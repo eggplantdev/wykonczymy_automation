@@ -4028,22 +4028,6 @@ zgłoszenie oczekujące, jedno przyjęte i jedno odrzucone.
 - [x] Transakcje → kolumna „Typ”: „Wydatek inwestycyjny” mieści się w jednej linii; plakietka
       „od pracownika” może zejść pod spód.
 
-## 2026-10-06 — qa-pass-fixes — poprawki z przeglądu (j.m., przyciski w języku konta, przytrzymanie wierszy)
-
-- [x] Przegląd zgłoszenia z pracą spoza rozpiski bez j.m. → „Podmień na pracę z katalogu”: pod
-      tytułem „Zgłoszono: „…” (bez j.m.)”; w wyborze pozycji rozpiski pozycja bez j.m. ma „(bez j.m.)”,
-      a nie puste „()”.
-      _Staging 7f105dac, 2026-10-06 (powtórka, OWNER, jedna sesja):_ skan `scan-nounit.jpg` (inw. 137, QA-Premia A) → zgłoszenie #38, 3 prace spoza rozpiski z „Brak j.m. w kosztorysie — wybierz pracę z katalogu”; „Szukaj w katalogu…” otwiera „Podmień na pracę z katalogu” z podtytułem „Zgłoszono: „Malowanie scian pokoj” (bez j.m.)”. Etykieta „(bez j.m.)” w wyborze pozycji rozpiski („W której sekcji?”, `worker-report-review.tsx:145` → `unitLabel`) NIE klikana — wymaga pozycji rozpiski bez j.m. w 2+ sekcjach; idzie przez ten sam `unitLabel`, który na ekranie dał „(bez j.m.)” w podtytule. Zgłoszenie #38 odrzucone przez UI (status `rejected`).
-- [x] Pracownik z językiem ukraińskim lub rosyjskim na swojej stronie → kosz przy wydatku: podpowiedź
-      przycisku i „Anuluj” w oknie potwierdzenia są w jego języku.
-      _Staging 2026-10-06 (konto Pracownik 85):_ Українська: tooltip „Видалити”, okno „Видалити витрату?” z „Скасувати”; Русский: „Удалить”, „Удалить расход?” z „Отмена”. Okno anulowane, nic nie usunięte.
-- [x] Konto z językiem polskim: okna edytora (np. „Wyczyść kosztorys”) i „Zakończyć inwestycję?” w
-      formularzu inwestycji nadal mają „Anuluj”; kosze w tabelach nadal „Usuń”.
-      _Staging 2026-10-06:_ Konto OWNER (pl): „Wyczyść kosztorys” → „Anuluj”/„Wyczyść”; edycja inwestycji 137 ze statusem Zakończona → „Zakończyć inwestycję?” z „Anuluj”/„Zakończ” (anulowane, status dalej Aktywna); kosz w tabeli inwestycji: „Usuń inwestycję”.
-- [x] Edytor → „Problemy” → wybierz problem i popraw jeden wiersz: wiersz zostaje widoczny do
-      „Odśwież — ukryj poprawione” (bez zmian względem dotychczasowego zachowania).
-      _Staging 2026-10-06:_ Inw. 137, filtr „Pozycje z wykonaną pracą bez przedmiaru (1)”: wpisany Przedmiar 2 → licznik chipa 0, wiersz zostaje widoczny; po przywróceniu 0 stan jak przed.
-
 ## EX-999 — kosztorys-reorder-dialog — „Ustaw kolejność” (prace i sekcje)
 
 Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
@@ -4280,23 +4264,6 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
       _Staging 2026-10-06 (pass 4):_ Popraw disabled ~0.25-0.5 s in reopened menu (one earlier run showed no disabled window; short run).
 - [x] W trakcie tłumaczenia „Popraw literówki” też jest wyszarzona — i odwrotnie, w trakcie poprawiania wyszarzone jest „Uzupełnij tłumaczenia (AI)”.
       _Staging 2026-10-06 (pass 4):_ Both items aria-disabled during Popraw (238 ms sample); translate-side both disabled too.
-
-## 2026-10-06 — worker-report-review-table — wyszukiwarka, menu kolumn i opis w języku pracownika w oknie akceptacji zgłoszeń
-
-- [x] Edytor kosztorysu → „Zgłoszenia wykonanych prac” → otwórz zgłoszenie: okno jest szersze niż wcześniej — na monitorze ~1440px zajmuje prawie całą szerokość, na bardzo szerokim kończy się na ~1400px.
-      _Staging 2026-10-06 (pass 2):_ okno szerokie na 1440px.
-- [x] Wpisz w wyszukiwarkę nad tabelą fragment opisu, nazwy sekcji albo numer „Nr”: zostają tylko pasujące prace, nagłówki tabel pokazują „(dopasowane z wszystkich)”; „Zaznacz wszystkie” zaznacza tylko widoczne. Wyszukiwanie bez polskich znaków („sciany”) też trafia.
-      _Staging 2026-10-06 (pass 2):_ wyszukiwanie po opisie i Nr działa.
-- [x] Zgłoszenie ze zdjęciem: nad tabelą jest przycisk „Zgłoszone prace” z ikoną pliku, otwiera podgląd zdjęć; tabela nie ma już kolumny ze zdjęciem. Zgłoszenie bez zdjęć — przycisku nie ma.
-      _Staging 2026-10-06 (pass 2):_ przycisk „Zgłoszone prace” obecny.
-- [x] Przycisk „Kolumny” nad każdą tabelą otwiera menu nad oknem: ukrycie kolumny i „Ustaw kolejność” działają, a po zamknięciu i ponownym otwarciu okna ustawienie zostaje. Domyślna kolejność „Z rozpiski”: zaznaczenie · Nr · Sekcja · Opis prac · Opis w języku pracownika · reszta jak wcześniej.
-      _Staging 2026-10-06 (pass 2):_ menu nad oknem; ukrycie „Sekcja” zostaje po ponownym otwarciu; dialog „Ustaw kolejność” otwiera się, domyślna kolejność zgodna. Przeciągania nie testowano (drag).
-- [x] Pracownik z językiem konta UA/RU, praca z rozpiski z przetłumaczonym opisem: kolumna „Opis w języku pracownika” pokazuje tłumaczenie z oznaczeniem UA/RU. Pracownik na polskim — komórka pusta.
-      _Staging 2026-10-06 (batch B): worker 80 (uk), zgłoszenie 05.10 21:10 (QA-blokady B): „Malowanie ścian QA test” → „UA Фарбування стін QA тест”, druga praca bez tłumaczenia — komórka pusta. Pracownik 85 (polski): w podglądzie kolumny „Opis w języku pracownika” w ogóle nie ma (nie pusta komórka) — wg intencji OK._
-- [x] Praca spoza rozpiski wpisana po ukraińsku: „Opis prac” pokazuje polskie tłumaczenie, „Opis w języku pracownika” — tekst wpisany przez pracownika; nie ma już dopisku „Zgłoszono (UA): „…””.
-      _Staging 2026-10-06 (pass 4):_ extra entered via UA link: review dialog „Opis prac” = „Szpachlowanie sufitu QA-909” (+ Przetłumacz ponownie), „Opis w języku pracownika” = „UA Шпаклювання стелі QA-909”; no „Zgłoszono (UA)” suffix.
-- [x] Rozwijane listy i podpowiedzi nad oknami (warstwa przeniesiona do wspólnych komponentów): „Kategorie” w „Dodaj z katalogu” i w zamianie pozycji na katalogową, wybór daty w formularzu w oknie, ikonka „i” w „Rozlicz wypłaty” — wszystkie otwierają się nad oknem, nie pod nim. Na zwykłej stronie menu „Kolumny” i filtry działają jak wcześniej.
-      _Staging 2026-10-06 (pass 4):_ measured via elementFromPoint, popper wrapper z-index 10001, content on top: „Kategorie” in „Praca z katalogu…” and in „Podmień na pracę z katalogu”, date picker in „Rozlicz wypłaty”, „i” tooltip in „Rozlicz wypłaty” (Kamil Kamiński, „Inwestycja zakończona”); „Kolumny” and „Filtry” on /pracownicy normal.
 
 ## EX-1005 — worker-expense-drafts-history — strona „Zgłoszenia wydatków” i tabela zgłoszeń u pracownika (2026-10-06)
 

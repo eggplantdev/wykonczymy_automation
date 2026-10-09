@@ -6,6 +6,8 @@ Checks: code-review, tailwind-v4-audit, comment-noise-audit (flag-only), feature
 module-cohesion-audit + structure-scatter-audit. Skipped: 10x-impl-review (no plan), Step 0.5 browser
 pass (Playwright not authorised this turn).
 
+_Trimmed at archive (2026-10-09): 5 of 16 findings were `fixed` and are removed — their record is the commit. What remains is what the gate chose not to act on._
+
 ## Findings
 
 - [x] 🔵 OBSERVATION · dismissed · code-review · `review-lines-table.tsx` workerDescriptionColumn · hideable column is the only place the worker's original wording shows — hiding is the owner's choice; the column menu was asked for exactly this
@@ -16,11 +18,6 @@ pass (Playwright not authorised this turn).
       test: no automated test — no defect
 - [x] 🔵 OBSERVATION · dismissed · code-review · `worker-report-review.tsx` workerDescriptionOf · rozpiska uses the worker's current account language — by design: the column answers what he reads now
       test: no automated test — intended behaviour
-- [x] fixed · altitude · `ui/dropdown-menu.tsx`, `ui/popover.tsx`, `ui/tooltip.tsx` · overlays defaulted to z-50 under the z-10000 dialog, patched per site (incl. a new ColumnToggle `contentClassName` passthrough) — z-10001 moved into the primitives like `ui/select.tsx`; per-site overrides removed from combobox, search-select, form-date-picker, catalogue-swap-dialog, add-items-from-catalogue-dialog, review-lines-table; passthrough reverted. Also lifts the InfoTooltip in „Rozlicz wypłaty” above its dialog
-- [x] fixed · simplify · `worker-report-review.tsx` · `isSearching` derivable — „z N” now shows when `lines.length < total`, empty state when rows exist but none match; no deferred-term flicker
-- [x] fixed · simplify · `worker-report-review.tsx` workerDescriptionOf · two-undefined object collapsed to `translated || undefined`
-- [x] fixed · comment-noise · `globals.css` dialog-xl · „Wider than the others” went false with dialog-2xl — clause dropped
-- [x] fixed · comment-noise · `worker-report-review.tsx` searchableText · comment restated the field list — deleted
 - [x] dropped · code-review · `lib/db/worker-reports.ts:89` · long REPORT_COLUMNS line — the line below it was already longer; cosmetic
 - [x] dropped · reuse-scan · `ui/column-toggle-menu.tsx:70` · `contentClassName` replaces the `w-72` default instead of merging — moot once the only caller repeating it was removed
 - [x] dismissed · altitude · `tables/data-table/data-table.tsx:123` · non-hideable ⇒ pinned-first coupling — both users are first anyway; documented in place
