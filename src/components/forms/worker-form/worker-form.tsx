@@ -56,6 +56,7 @@ export function WorkerForm({
       email: value.email,
       role: value.role,
       active: value.active,
+      canAddExpensesWithoutInvestment: value.canAddExpensesWithoutInvestment,
       defaultCashRegister: value.defaultCashRegister
         ? Number(value.defaultCashRegister)
         : undefined,
@@ -109,6 +110,10 @@ export function WorkerForm({
         />
 
         <form.AppField name="active">{(field) => <field.Checkbox label="Aktywny" />}</form.AppField>
+
+        <form.AppField name="canAddExpensesWithoutInvestment">
+          {(field) => <field.Checkbox label="Może dodawać wydatki bez inwestycji" />}
+        </form.AppField>
       </FieldGroup>
 
       <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />

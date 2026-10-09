@@ -41,6 +41,7 @@ export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   role: RoleT
   email: string
   language: LanguageT | null
+  canAddExpensesWithoutInvestment: boolean
 }
 
 export type OtherCategoryRefT = {

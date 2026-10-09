@@ -31,6 +31,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
             email: worker.email,
             role: worker.role,
             active: worker.active ?? true,
+            canAddExpensesWithoutInvestment: worker.canAddExpensesWithoutInvestment,
             defaultCashRegister: worker.defaultCashRegisterId
               ? String(worker.defaultCashRegisterId)
               : '',

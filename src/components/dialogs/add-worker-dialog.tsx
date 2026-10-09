@@ -13,6 +13,7 @@ const EMPTY_DEFAULTS: WorkerFormValuesT = {
   email: '',
   role: 'EMPLOYEE',
   active: true,
+  canAddExpensesWithoutInvestment: false,
   defaultCashRegister: '',
   language: 'pl',
 }
