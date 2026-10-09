@@ -1,10 +1,10 @@
 ---
 change_id: done-percent-vs-offer
 title: „% wykonania (względem przedmiaru ofertowego)” column
-status: implementing
+status: archived
 created: 2026-10-09
 updated: 2026-10-09
-archived_at: null
+archived_at: 2026-10-09T07:33:15Z
 branch: spike/transfer-cards
 worktree: null
 ---
@@ -23,3 +23,5 @@ on saved investor documents. The pre-push hook's generic „migrate BEFORE" does
 **Deviation from the plan:** `tipPlannedQty` now carries the worker's wording in all three
 languages (its ru/uk text had no reader since EX-921); the editor's tip, which speaks of the margin
 forecast, is a literal in `HEADER_TIPS`, like `plannedNetForPlane`.
+
+**Archived 2026-10-09** with the tests still owed (typecheck + 10 touched specs — see `review-gate.md` § Tests & suite) and the manual checks open in `context/foundation/manual-checks.md`. The plan's rationale lives in `context/reference/kosztorys-editor-domain-notes.md` (§ „% wykonania (względem przedmiaru ofertowego)”).

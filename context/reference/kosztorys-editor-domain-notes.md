@@ -635,12 +635,23 @@ protokół jest dokumentem na papier, nie bytem w bazie.
     kotwiczy do niej**: „% wykonania", „Pozostało", przekroczenie, ukończenie sekcji, licznik postępu
     i filtry „bez/z przedmiarem" czytają aktualizację. **Oferta zostaje ofertą**: prognoza marży,
     wykres sekcji, „Oferta", przegląd AI i porównanie z arkuszem czytają ofertowy. Pracownik widzi
-    tylko aktualizację. Arkusz właściciela tej kolumny nie ma — **bez parytetu z arkuszem**, import
+    aktualizację, a Przedmiar ofertowy tylko wtedy, gdy kierownik go zaznaczy (2026-10-09). Arkusz właściciela tej kolumny nie ma — **bez parytetu z arkuszem**, import
     wypełnia tylko ofertowy. Poniższe „Przedmiar" w regułach postępu czytaj jako aktualizację.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
     It stays next to the summary's „Postęp prac" on purpose (EX-703, owner re-confirmed 2026-08-17):
     the summary is value-weighted over the whole kosztorys, the column is quantity-weighted per row,
     so only the column says which position lags.
+  - **„% wykonania (względem przedmiaru ofertowego)"** (2026-10-09, uwaga właściciela po EX-921) =
+    `Σ etapów / Przedmiar ofertowy` — „ile procent oferty zrobione", obok kolumny liczonej od
+    aktualizacji. Różnią się tylko dzielnikiem. Pozycja spoza oferty (ofertowy 0, np. przyjęta ze
+    zgłoszenia) ma „—", nie 0% ani ∞. **Ponad 100% nie świeci na czerwono**: przekroczenie oferty jest
+    normalne, gdy zakres urósł w aktualizacji, a czerwień zostaje sygnałem „ponad uzgodniony zakres"
+    na kolumnie od aktualizacji. Gdyby właściciel chciał oznaczać przekroczenie oferty, to osobny
+    predykat na wzór `hasStagesOverPlanned`, liczony od ofertowego. Na linku pracownika liczy
+    **wszystkie etapy pozycji**, nie tylko jego, tak jak jego „Pozostało" — to fakt o pozycji, nie
+    o ekipie, więc pracownik widzi tę samą liczbę co edytor. W widoku inwestora i pracownika jest
+    domyślnie odznaczona; zapisane ustawienia to zbiór UKRYTYCH kolumn, więc nowa kolumna ukryta
+    domyślnie wymaga migracji dopisującej ją do każdego zapisanego zbioru (EX-1033 ma to uprościć).
 
   Konsekwencja architektoniczna: wartość wykonania zależy od etapów, więc `calc.ts` (czysta
   warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej policzyć. Warstwa

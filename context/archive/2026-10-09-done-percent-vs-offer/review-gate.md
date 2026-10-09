@@ -8,13 +8,6 @@ Checks run: `10x-impl-review`, `code-review`, `comment-noise-audit` (flag-only),
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · code-review · `src/__tests__/components/kosztorys/editor/grid/column-value-parity.test.ts` · the worker-surface parity case compared `plannedDonePercent` against a sort that is never handed `executedQtyByItem` — filtered out beside `remainingForPlane`
-      test: no new test — the parity spec itself is the guard, its filter updated · unit
-- [x] 🟡 WARNING · fixed · impl-review · `src/migrations/20261009_2_worker_view_offer_columns_hidden.ts` · migrating before the deploy hides the Aktualizacja on every worker link (old code reads a stored `plannedQty` as its legacy name) — order fixed to „straight after the deploy", one batch with `_1`, runbook in `change.md`
-      test: no automated test — a deploy-time ordering, not code behaviour
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/migrations/20261009_2_worker_view_offer_columns_hidden.ts` · the legacy-key rewrite opened its own window and rewrote nothing — prod dump 2026-10-09 carries no legacy key; rewrite removed
-      test: no automated test — removed code
-- [x] 🔵 OBSERVATION · fixed · impl-review · `src/migrations/20261009_1_client_view_planned_done_percent_hidden.ts` · comment claimed it may run before the deploy, contradicting the batch with `_2` — reworded
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `src/lib/kosztorys/worker-view/settings.ts` · global `defaultValue []` would show both new columns on an environment with no settings row — unreachable: every environment is a prod dump carrying the row; pre-existing shape
       test: no automated test — unreachable path
 - [x] dismissed · impl-review · `src/lib/kosztorys/settlement-columns.ts` · the percentage hides until the first etap entry — intended, same rule as „Wartość wykonana"
