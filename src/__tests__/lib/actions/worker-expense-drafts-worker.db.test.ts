@@ -271,6 +271,77 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       })
       expect(await readDraft(draftId)).toEqual(before)
     })
+
+    // EX-1034: zakończone etapy take the investment off his list for a new choice, never from under
+    // a draft already sent to it.
+    describe('once his etapy on the investment are zakończone', () => {
+      const setCompleted = (isCompleted: boolean) =>
+        db.execute(sql`
+          UPDATE kosztorys_stages SET completed = ${isCompleted} WHERE investment_id = ${investmentId}
+        `)
+
+      it('refuses a new draft onto it and stores nothing', async () => {
+        await setCompleted(true)
+        try {
+          const before = await draftCount()
+
+          expect(
+            await send('send-completed', { investmentId, cashRegisterId: registerId }),
+          ).toEqual({
+            success: false,
+            error: 'Nie pracujesz na tej inwestycji',
+            messageKey: 'notOnInvestment',
+          })
+          expect(await draftCount()).toBe(before)
+        } finally {
+          await setCompleted(false)
+        }
+      })
+
+      it('still saves an edit to a pending draft that stays on it', async () => {
+        const { draftId } = await ownDraft('edit-completed')
+        await setCompleted(true)
+        try {
+          expect(
+            await updateExpenseDraftAction({
+              draftId,
+              investmentId,
+              cashRegisterId: registerId,
+              note: 'po',
+              scanMode: 'one-invoice',
+            }),
+          ).toMatchObject({ success: true })
+          expect(await readDraft(draftId)).toMatchObject({
+            note: 'po',
+            investment_id: investmentId,
+          })
+        } finally {
+          await setCompleted(false)
+        }
+      })
+
+      it('refuses that edit once the investment is also in the kosz', async () => {
+        const { draftId } = await ownDraft('edit-completed-trashed')
+        const before = await readDraft(draftId)
+        await setCompleted(true)
+        await db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${investmentId}`)
+        try {
+          expect(
+            await updateExpenseDraftAction({
+              draftId,
+              investmentId,
+              cashRegisterId: registerId,
+              note: 'po',
+              scanMode: 'one-invoice',
+            }),
+          ).toMatchObject({ success: false, messageKey: 'notOnInvestment' })
+          expect(await readDraft(draftId)).toEqual(before)
+        } finally {
+          await db.execute(sql`UPDATE investments SET trashed_at = NULL WHERE id = ${investmentId}`)
+          await setCompleted(false)
+        }
+      })
+    })
   })
 
   describe('a draft without an investment', () => {

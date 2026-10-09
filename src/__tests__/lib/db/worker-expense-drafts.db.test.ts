@@ -9,7 +9,7 @@ import {
   deletePendingExpenseDraft,
   findDraftHeldMedia,
   insertWorkerExpenseDraft,
-  isPendingDraftWithoutInvestment,
+  isPendingDraftOn,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
@@ -863,11 +863,14 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       const withOne = await draftOf([await insertMedia('none-probe-invested', workerId)])
       if (withOne === null) throw new Error('draft fixture refused')
 
-      expect(await isPendingDraftWithoutInvestment(db, { draftId: without, workerId })).toBe(true)
-      expect(await isPendingDraftWithoutInvestment(db, { draftId: withOne, workerId })).toBe(false)
-      expect(
-        await isPendingDraftWithoutInvestment(db, { draftId: without, workerId: otherWorkerId }),
-      ).toBe(false)
+      const isOn = (draftId: number, onInvestment: number | null, ownerId = workerId) =>
+        isPendingDraftOn(db, { draftId, workerId: ownerId, investmentId: onInvestment })
+
+      expect(await isOn(without, null)).toBe(true)
+      expect(await isOn(withOne, null)).toBe(false)
+      expect(await isOn(withOne, investmentId)).toBe(true)
+      expect(await isOn(without, investmentId)).toBe(false)
+      expect(await isOn(without, null, otherWorkerId)).toBe(false)
     })
   })
 })

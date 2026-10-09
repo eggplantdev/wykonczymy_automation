@@ -391,9 +391,9 @@ describe('the rate-source trio', () => {
 
 describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew guard', () => {
   const STAGES_BOTH_PLANES: KosztorysStageT[] = [
-    { id: 1, ordinal: 1, label: null, plane: 'w_tools', split: null },
-    { id: 2, ordinal: 2, label: null, plane: 'own_tools', split: null },
-    { id: 3, ordinal: 3, label: null, plane: null, split: null },
+    { id: 1, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+    { id: 2, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
+    { id: 3, ordinal: 3, label: null, plane: null, split: null, completed: false },
   ]
   const settled = {
     stages: STAGES_BOTH_PLANES,

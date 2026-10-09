@@ -620,14 +620,15 @@ export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): P
   return res.rows.map((row) => Number(row.media_id))
 }
 
-export async function isPendingDraftWithoutInvestment(
+/** Whether the worker's own pending draft already sits on `investmentId` (`null` = none). */
+export async function isPendingDraftOn(
   db: DbExecutorT,
-  draft: { draftId: number; workerId: number },
+  draft: { draftId: number; workerId: number; investmentId: number | null },
 ): Promise<boolean> {
   const res = await db.execute(sql`
-    SELECT 1 FROM worker_expense_drafts
-    WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
-      AND investment_id IS NULL
+    SELECT 1 FROM worker_expense_drafts d
+    WHERE d.id = ${draft.draftId} AND d.worker_id = ${draft.workerId} AND d.status = 'pending'
+      AND d.investment_id IS NOT DISTINCT FROM ${draft.investmentId}
   `)
   return res.rows.length > 0
 }

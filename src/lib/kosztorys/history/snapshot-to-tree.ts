@@ -39,6 +39,7 @@ export function snapshotToTree(
       label: stage.label,
       plane: stage.plane,
       split: storedStageSplit(stage),
+      completed: stage.completed ?? false,
     })),
     progress: payload.progress.map((entry) => ({ ...entry, qtyDone: entry.qtyDone ?? 0 })),
     globalCoeffs: {

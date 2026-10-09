@@ -9,6 +9,7 @@ import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import type { ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
+import { hasOpenStage } from '@/lib/kosztorys/worker-view/scope'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import {
   getWorkerKosztorysByReportShare,
@@ -55,7 +56,17 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
   const refusal = await reportShareRefusal(db, share)
   if (refusal) return notice(refusal)
 
-  return assembleReportPage(db, locale, share.investmentId, getWorkerKosztorysByReportShare(share))
+  const page = await assembleReportPage(
+    db,
+    locale,
+    share.investmentId,
+    getWorkerKosztorysByReportShare(share),
+  )
+  // Only the link refuses: „Podgląd pracownika" still shows the manager what the worker would see.
+  if (page?.kind === 'ready' && !hasOpenStage(page.document.tree.stages)) {
+    return notice('stagesCompleted')
+  }
+  return page
 }
 
 /**

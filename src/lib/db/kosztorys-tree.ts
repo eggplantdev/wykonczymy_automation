@@ -95,7 +95,7 @@ export async function selectKosztorysTreeData(
       (
         SELECT coalesce(json_agg(st ORDER BY st.ordinal, st.id), '[]'::json)
         FROM (
-          SELECT id, ordinal, label, plane, split_mode
+          SELECT id, ordinal, label, plane, split_mode, completed
           FROM kosztorys_stages WHERE investment_id = ${investmentId}
         ) st
       ) AS stages,
@@ -221,6 +221,7 @@ const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({
   label: textOrNull(row.label),
   plane: textOrNull(row.plane) as ToolPlaneT | null,
   split: mapStageSplit(row.split_mode, members),
+  completed: row.completed === true,
 })
 
 // Shared by every raw read of an etap's members, so the tree, the pairs path and the worker view

@@ -6,6 +6,7 @@ import { listWorkerReports, readWorkerReport } from '@/lib/db/worker-reports'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import type { ScanPageT } from '@/lib/kosztorys/worker-report/types'
+import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/labels'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -212,6 +213,24 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     } finally {
       await db.execute(
         sql`UPDATE kosztorys_stages SET plane = 'w_tools' WHERE investment_id = ${investmentId}`,
+      )
+    }
+  })
+
+  it('refuses a worker whose every etap is zakończony, and stores nothing (EX-1034)', async () => {
+    const before = (await listWorkerReports(db, investmentId, workerId)).length
+    await db.execute(
+      sql`UPDATE kosztorys_stages SET completed = true WHERE investment_id = ${investmentId}`,
+    )
+    try {
+      expect(await scan('stages-completed')).toEqual({
+        success: false,
+        error: WORKER_STAGES_COMPLETED_MESSAGE,
+      })
+      expect(await listWorkerReports(db, investmentId, workerId)).toHaveLength(before)
+    } finally {
+      await db.execute(
+        sql`UPDATE kosztorys_stages SET completed = false WHERE investment_id = ${investmentId}`,
       )
     }
   })

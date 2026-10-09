@@ -5,8 +5,8 @@ import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { readReportShare } from '@/lib/db/worker-report-share'
 import { noticeFailure, type NoticeKeyT } from '@/lib/i18n/notice-failure'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
-import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
-import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
+import { REPORT_SCOPE_REFUSAL_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
+import { reportScopeRefusal, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
@@ -49,8 +49,8 @@ export async function tokenAction<TData = undefined>(
       if (refusal) return refuse(refusal)
 
       const tree = await buildKosztorysTree(share.investmentId)
-      const scope = resolveWorkerScope(tree.stages, share.workerId)
-      if (scope.kind === 'blocked') return refuse(WORKER_SCOPE_BLOCK_NOTICE_KEYS[scope.reason])
+      const scopeRefusal = reportScopeRefusal(resolveWorkerScope(tree.stages, share.workerId))
+      if (scopeRefusal) return refuse(REPORT_SCOPE_REFUSAL_NOTICE_KEYS[scopeRefusal])
 
       const ownItemIds = new Set(
         tree.sections.flatMap((section) => section.items.map((item) => item.id)),

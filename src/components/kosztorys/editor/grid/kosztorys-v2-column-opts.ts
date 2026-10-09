@@ -21,6 +21,7 @@ export type BuildV2ColumnsOptsT = {
   onRemoveStage?: (stageId: number) => void
   onRenameStage?: (stageId: number, label: string) => void
   onSetStagePlane?: (stageId: number, plane: ToolPlaneT) => void
+  onSetStageCompleted?: (stageId: number, completed: boolean) => void
   workers?: WorkerRefT[]
   onSetStageSplit?: (stageId: number, split: StageSplitT | null) => void
   executedValueByStage?: Map<number, number>

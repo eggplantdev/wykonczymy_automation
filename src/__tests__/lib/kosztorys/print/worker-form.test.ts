@@ -12,7 +12,14 @@ import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  {
+    id: 100,
+    ordinal: 1,
+    label: 'Tynki',
+    plane: 'w_tools',
+    split: oneWorkerSplit(WORKER),
+    completed: false,
+  },
 ]
 const rates = { wToolsOverrideValue: 12.5, ownToolsOverrideValue: 9.75 }
 const tree = makeTree({

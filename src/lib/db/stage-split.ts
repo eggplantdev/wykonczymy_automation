@@ -71,7 +71,14 @@ export async function insertWorkerStage(
     RETURNING id, ordinal
   `)
   const row = res.rows[0]
-  const stage = { id: Number(row.id), ordinal: Number(row.ordinal), label: null, plane, split }
+  const stage = {
+    id: Number(row.id),
+    ordinal: Number(row.ordinal),
+    label: null,
+    plane,
+    split,
+    completed: false,
+  }
   await insertStageMembers(db, [{ stageId: stage.id, split }])
   return stage
 }

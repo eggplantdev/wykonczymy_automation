@@ -779,6 +779,7 @@ const stagePatchSchema = z
   .object({
     label: z.string().nullable(),
     plane: stagePlaneSchema,
+    completed: z.boolean(),
   })
   .partial()
 

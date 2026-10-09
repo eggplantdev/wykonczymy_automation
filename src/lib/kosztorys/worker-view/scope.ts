@@ -30,3 +30,16 @@ export function resolveWorkerScope(stages: KosztorysStageT[], workerId: number):
   const [plane] = planes
   return { kind: 'ready', plane, stages: own }
 }
+
+export type ReportScopeRefusalT = WorkerScopeBlockReasonT | 'stages-completed'
+
+// The view keeps zakończone etapy — his settlement stays readable — but a report names no etap, so
+// he may report only while at least one of his etapy here is still open (EX-1034).
+export const hasOpenStage = (ownStages: KosztorysStageT[]): boolean =>
+  ownStages.some((stage) => !stage.completed)
+
+/** Why this worker may not report here — the link, the send and the scan all refuse on it. */
+export function reportScopeRefusal(scope: WorkerScopeT): ReportScopeRefusalT | null {
+  if (scope.kind === 'blocked') return scope.reason
+  return hasOpenStage(scope.stages) ? null : 'stages-completed'
+}

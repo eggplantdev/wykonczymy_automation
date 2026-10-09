@@ -21,14 +21,19 @@ import { ScanReportMenuItem } from '@/components/kosztorys/editor/actions/scan-r
 import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
+import { REPORT_SCOPE_REFUSAL_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
+import { reportScopeRefusal } from '@/lib/kosztorys/worker-view/scope'
+import { cn } from '@/lib/utils/cn'
 
 // Mounted inside KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
   const { worker, workerReports } = useKosztorysActions()
-  const assigned = assignedWorkers(stages, workers, worker.linkHolders)
-  const scannable = assigned.filter(({ scope }) => scope.kind !== 'blocked')
+  const assigned = assignedWorkers(stages, workers, worker.linkHolders).map((assignee) => ({
+    ...assignee,
+    refusal: reportScopeRefusal(assignee.scope),
+  }))
+  const scannable = assigned.filter(({ refusal }) => refusal === null)
 
   return (
     <DropdownMenu
@@ -67,10 +72,10 @@ export function KosztorysWorkersMenu() {
             <DropdownMenuSeparator />
           </>
         )}
-        {assigned.map(({ id, name, scope }) => {
+        {assigned.map(({ id, name, scope, refusal }) => {
           // Podgląd stays open when blocked: it shows the owner the same notice the worker would get.
           const blockReason =
-            scope.kind === 'blocked' ? WORKER_SCOPE_BLOCK_MESSAGES[scope.reason] : undefined
+            scope.kind === 'blocked' ? REPORT_SCOPE_REFUSAL_MESSAGES[scope.reason] : undefined
           return (
             <Fragment key={id}>
               <DropdownMenuItem asChild className="font-medium">
@@ -79,7 +84,16 @@ export function KosztorysWorkersMenu() {
                   <ChevronRight className="ml-auto" />
                 </Link>
               </DropdownMenuItem>
-              {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
+              {refusal && (
+                <p
+                  className={cn(
+                    'px-2 pb-1 text-xs',
+                    blockReason ? 'text-destructive' : 'text-muted-foreground',
+                  )}
+                >
+                  {REPORT_SCOPE_REFUSAL_MESSAGES[refusal]}
+                </p>
+              )}
               <WorkerPreviewMenuItem target={{ id, name }} />
               <WorkerShareMenuItem target={{ id, name, blockReason }} />
               <WorkerPrintMenuItem
@@ -87,11 +101,8 @@ export function KosztorysWorkersMenu() {
                 disabled={blockReason !== undefined}
                 variant="pdf"
               />
-              <WorkerPrintMenuItem
-                workerId={id}
-                disabled={blockReason !== undefined}
-                variant="form"
-              />
+              {/* The form is filled in to be scanned, and the scan would be refused. */}
+              <WorkerPrintMenuItem workerId={id} disabled={refusal !== null} variant="form" />
               <DropdownMenuSeparator />
             </Fragment>
           )
