@@ -4521,8 +4521,9 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 - [ ] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart, adres dostaje `?view=list`, a strona listy się nie zmienia.
 - [ ] Widok kart przy 390px: jedna obramowana lista z separatorami; od 768px osobne karty z cieniem, nie szersze niż ~48rem.
-- [ ] Karta: numer i data w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
-- [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; rozliczony wydatek ma różowy.
+- [ ] Karta: numer po lewej i data po prawej w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
+- [ ] Etykiety pod opisem karty mówią, czym są: „Kasa źródłowa: …”, „Kasa docelowa: …”, „Pracownik: …”, „Dodane przez: …” — każdy rodzaj ma własny kolor ramki, kasy niebieską, pracownik żółtą.
+- [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; „Materiały wliczone w robociznę” mają fuksję — czerwonawą, ale inną niż cztery czerwienie wydatków.
 - [ ] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony.
 
 ## 2026-10-09 — worker-report-default-new-stage — zgłoszenie pracy domyślnie do nowego etapu

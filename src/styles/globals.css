@@ -177,6 +177,9 @@
     var(--color-chart-red) 65%,
     var(--color-chart-orange)
   );
+  /* Materiały wliczone w robociznę: still an expense, so it leans red, but it must not read as
+     one of the four reds above. */
+  --color-transfer-fuchsia: #d9268f;
 }
 
 /* The dark palette: overriding the semantic tokens here flips the whole token-driven UI without

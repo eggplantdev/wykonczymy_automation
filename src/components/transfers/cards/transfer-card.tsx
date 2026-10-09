@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react'
 import { flexRender, type Row } from '@tanstack/react-table'
-import { ArrowRight, CreditCard, Tag, User, UserPen, Wallet } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -31,10 +30,27 @@ function hasColumn(row: Row<TransferRowT>, columnId: string) {
   return row.getAllCells().some((cell) => cell.column.id === columnId)
 }
 
-function Chip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+// One border colour per kind of fact, as on the Bayalab buildlog cards. The label inside carries the
+// meaning — a bare name could be the worker, the kasa's owner or whoever booked it.
+const CHIP_BORDER = {
+  register: 'border-chart-blue',
+  worker: 'border-chart-yellow',
+  category: 'border-chart-purple',
+  paymentMethod: 'border-chart-teal',
+  createdBy: 'border-border',
+} as const
+
+type ChipKindT = keyof typeof CHIP_BORDER
+
+function Chip({ kind, label, children }: { kind: ChipKindT; label: string; children: ReactNode }) {
   return (
-    <span className="border-border text-muted-foreground inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs [&_svg]:size-3 [&_svg]:shrink-0">
-      {icon}
+    <span
+      className={cn(
+        'inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs',
+        CHIP_BORDER[kind],
+      )}
+    >
+      <span className="text-muted-foreground shrink-0">{label}:</span>
       <span className="truncate">{children}</span>
     </span>
   )
@@ -47,11 +63,10 @@ export function TransferCard({ row, className }: PropsT) {
   const showsNet = billsNetAmount(transfer.type) && transfer.netAmount !== null
   const hasSource = hasColumn(row, 'sourceRegister') && transfer.sourceRegisterName !== EMPTY_NAME
   const hasTarget = hasColumn(row, 'targetRegister') && transfer.targetRegisterName !== EMPTY_NAME
+  const { t } = translator
   const paymentMethod = transferPaymentMethodText(transfer, translator)
-  const category =
-    transfer.expenseCategoryName !== EMPTY_NAME
-      ? transfer.expenseCategoryName
-      : transfer.otherCategoryName
+  const hasExpenseCategory = transfer.expenseCategoryName !== EMPTY_NAME
+  const category = hasExpenseCategory ? transfer.expenseCategoryName : transfer.otherCategoryName
 
   return (
     <article
@@ -64,7 +79,7 @@ export function TransferCard({ row, className }: PropsT) {
     >
       <header className="flex items-center gap-2 text-xs">
         <span className="text-muted-foreground">#{transfer.id}</span>
-        <span className="text-muted-foreground">{formatPLDate(transfer.date)}</span>
+        <span className="text-muted-foreground ml-auto">{formatPLDate(transfer.date)}</span>
       </header>
 
       <TransferTypeBadge transfer={transfer} translator={translator} className="self-start" />
@@ -94,22 +109,38 @@ export function TransferCard({ row, className }: PropsT) {
       )}
 
       <div className="flex flex-wrap gap-1">
-        {(hasSource || hasTarget) && (
-          <Chip icon={<Wallet />}>
-            {hasSource && renderCell(row, 'sourceRegister')}
-            {hasSource && hasTarget && <ArrowRight className="mx-0.5 inline" />}
-            {hasTarget && renderCell(row, 'targetRegister')}
+        {hasSource && (
+          <Chip kind="register" label={t('colSourceRegister')}>
+            {renderCell(row, 'sourceRegister')}
+          </Chip>
+        )}
+        {hasTarget && (
+          <Chip kind="register" label={t('colTargetRegister')}>
+            {renderCell(row, 'targetRegister')}
           </Chip>
         )}
         {hasColumn(row, 'worker') && transfer.workerName !== EMPTY_NAME && (
-          <Chip icon={<User />}>{renderCell(row, 'worker')}</Chip>
+          <Chip kind="worker" label={t('colWorker')}>
+            {renderCell(row, 'worker')}
+          </Chip>
         )}
-        {category && category !== EMPTY_NAME && <Chip icon={<Tag />}>{category}</Chip>}
+        {category && category !== EMPTY_NAME && (
+          <Chip
+            kind="category"
+            label={t(hasExpenseCategory ? 'colExpenseCategory' : 'colOtherCategory')}
+          >
+            {category}
+          </Chip>
+        )}
         {paymentMethod && paymentMethod !== EMPTY_NAME && (
-          <Chip icon={<CreditCard />}>{paymentMethod}</Chip>
+          <Chip kind="paymentMethod" label={t('colPaymentMethod')}>
+            {paymentMethod}
+          </Chip>
         )}
         {transfer.createdByName && transfer.createdByName !== EMPTY_NAME && (
-          <Chip icon={<UserPen />}>{transfer.createdByName}</Chip>
+          <Chip kind="createdBy" label={t('colCreatedBy')}>
+            {transfer.createdByName}
+          </Chip>
         )}
       </div>
 

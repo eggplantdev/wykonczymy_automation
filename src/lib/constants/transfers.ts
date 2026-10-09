@@ -303,10 +303,11 @@ export const DEFAULT_EXPENSE_CATEGORY_NAME = 'Materiały budowlane'
 
 // Single source for the settled INVESTMENT_EXPENSE (material priced into robocizna):
 // label + chart color, shared by the transfers table and the investment stats panel so they never drift.
-// `color` is a chart token (resolved via var(--color-<token>)); chart-pink keeps it distinct from korekta (orange).
+// `color` is a colour token (resolved via var(--color-<token>)); fuchsia keeps it in the expense reds
+// while staying distinct from korekta (orange) and the four outgoing reds.
 export const SETTLED_TYPE = {
   label: 'Materiały wliczone w robociznę',
-  color: 'chart-pink',
+  color: 'transfer-fuchsia',
 } as const
 
 // Bound to the table's `deposit` column by the consistency test. Kept as an explicit
