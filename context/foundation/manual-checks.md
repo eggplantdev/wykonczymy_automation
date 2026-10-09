@@ -4588,87 +4588,19 @@ Stan: lokalny kosztorys ze wczytanym szkicem (`load-ai-draft.ts`), część pozy
 - [x] Telefon (390px) → to samo okno: lista wypełnia ekran między paskiem narzędzi a przyciskami.
       Staging 2026-10-07: 390px, inw. 173 — okno na pełny ekran, lista wypełnia przestrzeń między nagłówkiem a przyciskami „Zapisz kolejność” / „Anuluj”.
 
-## EX-1012 — media-upload-speed — szybsze „Wyślij” zgłoszenia wydatku (2026-10-07)
-
-Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia z telefonu (albo podobne JPEG-i ~300 KB po kompresji).
-
-- [x] „Dodaj wydatek” → 3 zdjęcia → „Wyślij”: okno zamyka się po ok. 2–3 s (było ~7 s na LTE), zgłoszenie ma 3 strony i każda otwiera się w podglądzie.
-      Zweryfikowane na stagingu (pracownik QA, 390 px): 3 zdjęcia, zgłoszenie 82, 3 strony w kolejności, pliki 200. Pomiar: okno zamknęło się po ok. 5,4 s na tej maszynie (box zakłada 2–3 s na LTE; wynik nie jest porównywalny).
-- [x] Zgłoszenie z jedną stroną → dodaj 2 zdjęcia z komórki ze stronami: są 3 strony, wszystkie się otwierają.
-      Zweryfikowane na stagingu: dodano 2 zdjęcia przez „Dodaj stronę” w podglądzie do oczekującego zgłoszenia 82 (było 3 strony, nie 1) → 5 stron w bazie, każda 200.
-- [x] Załącz e-fakturę PDF (~100 KB): zgłoszenie wysłane, PDF otwiera się w podglądzie.
-      Zweryfikowane na stagingu: zgłoszenie 83, PDF 102 KB, okno zamknięte po ok. 1,9 s, plik 200 application/pdf (otwarcie w podglądzie sprawdzone przez serwowanie pliku, nie wzrokowo).
-- [x] Plik powyżej 4 MB, którego kompresja nie zmniejszy (duży PDF), razem z 3 zdjęciami w jednym „Wyślij”: zgłoszenie dalej się wysyła (wolniej), ma 4 strony i każda się otwiera.
-      Zweryfikowane na stagingu: zgłoszenie 84 = duży PDF 4,7 MB + 3 zdjęcia, wysłane w ok. 4,9 s, 4 strony w kolejności, każdy plik 200.
-- [x] Kierownik: „Zweryfikuj” na takim zgłoszeniu i zapis transakcji → jej faktura pokazuje te same strony.
-      Zweryfikowane na stagingu (MANAGER 69): zgłoszenie 82 po dodaniu stron (5) → transakcja 5548 ma te same 5 stron w tej samej kolejności (kopie plików). Odczyt AI na szumie zwrócił „NIE UDAŁO SIĘ ODCZYTAĆ”, kwotę wpisano ręcznie.
-- [x] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
-  - NIEZALICZONE 2026-10-07 (staging): kierownik nie ma akcji „Usuń” na zgłoszeniu (`deleteExpenseDraftAction` kasuje tylko własne zgłoszenie pracownika). Usunięcie przez pracownika kasuje wiersze i plik (świeży URL → 404), ale już otwarty URL dalej daje 200 z cache CDN (`public, max-age=31536000`, `x-vercel-cache: HIT`). Szczegóły w Findings na końcu sekcji.
-  - POMINIĘTE (box nieaktualny): „Usuń” na zgłoszeniu ma tylko pracownik, z założenia (`sessionAction`, własne zgłoszenie). Ścieżka pracownika zweryfikowana: świeży URL → 404; już otwarty URL z cache CDN — akceptowane.
-- [x] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.
-      Zweryfikowane na stagingu 2026-10-07 przez boxy EX-1014: faktura przy transakcji (wydatek zbiorczy, edycja, komórka faktury) i zdjęcia inwestycji (nowa inwestycja, galeria 10 zdjęć, rzut, edycja) działają i pliki się otwierają.
-
-### Findings — 2026-10-07
-
-- [x] **Kierownik nie ma „Usuń" na zgłoszeniu wydatku, więc box „kierownik usuń takie zgłoszenie → 404" nie ma ścieżki w UI** — `deleteExpenseDraftAction` kasuje tylko zgłoszenie własne pracownika; po stronie pracownika plik znika (świeży URL 404), ale otwarty URL dalej 200 z CDN (`public, max-age=31536000`, `x-vercel-cache: HIT`).
-      **Needs human:** czy kierownik ma móc usunąć zgłoszenie (wtedy to nowa funkcja), czy box dotyczy usunięcia przez pracownika (wtedy przeredagować go na „pracownik usuwa" i zaakceptować cache CDN)?
-      **Test disposition:** no automated test — decyzja produktowa; po niej unit na akcji.
-      **Dropped 2026-10-07:** nie defekt — akcja jest z założenia tylko dla pracownika (własne zgłoszenie); box był źle zredagowany. Cache CDN otwartego URL-a akceptowany.
-
 ## EX-1014 — media-upload-other-forms — każdy formularz z plikami na szybkiej ścieżce (2026-10-07)
 
 Staging (albo preview brancha), konto OWNER, chyba że napisano inaczej. Zdjęcia z telefonu albo
 JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 
-- [x] Wydatek zbiorczy: 4 wiersze, każdy z fakturą → zapis: 4 transakcje, każda faktura otwiera się w podglądzie.
-      Zweryfikowane na stagingu (OWNER): transakcje 5549–5552, po 1 fakturze, wszystkie pliki 200. Dialog zamknął się po ok. 0,4 s (zapis w tle).
-- [x] Wydatek zbiorczy: wiersz z fakturą wielostronicową (3 zdjęcia) i wiersz z PDF → zapis: strony w dobrej kolejności, PDF się otwiera.
-      Zweryfikowane na stagingu: 5553 = foto1,2,3 w kolejności, 5554 = PDF 102 KB; pliki 200.
-- [x] Wydatek zbiorczy z dużym plikiem w jednym z wierszy → zapis się udaje (wolniej), duży PDF się otwiera.
-      Zweryfikowane na stagingu: 5555 (foto) i 5556 (PDF 4,7 MB), pliki 200; zapis w tle, bez błędu.
-- [x] Edycja transakcji: dodaj stronę faktury i usuń inną → zapis: zostaje właściwy zestaw stron.
-      Zweryfikowane na stagingu: transakcja 5553 (foto1,2,3) → usunięto stronę 2 (w podglądzie, potwierdzenie), dodano foto6 → zapis: foto1, foto3, foto6 w tej kolejności. Uwaga: „Usuń stronę” w edycji kasuje plik i wiersz od razu po potwierdzeniu, bez „Zapisz”.
-- [x] Tabela transakcji → komórka faktury: dodaj zdjęcie, potem duży PDF → oba widoczne i otwierają się.
-      Zweryfikowane na stagingu: transakcja 5550, podgląd → „Dodaj stronę”: foto7, potem duży PDF 4,7 MB → 3 strony w kolejności, pliki 200.
 - [ ] Telmak: dodaj fakturę PDF → zapisana i otwiera się.
   - POMINIĘTE 2026-10-07 (staging): okno „Sprawdź Telmak” przyjmuje tylko faktury w układzie Telmaka (parser odrzuca inne), a jedyne takie PDF-y to prawdziwe faktury z lustra produkcyjnego Bloba — nie wgrywam ich na staging. Wymaga PDF-a Telmaka od człowieka.
-- [x] Inspekcja: dodaj kilka załączników → po zapisie wszystkie się otwierają.
-      Zweryfikowane na stagingu: pojazd QA908X, przegląd 28 z 2 zdjęciami i PDF; 3 załączniki w kolejności, pliki 200. (Wpis przeglądu 28 do usunięcia przy sprzątaniu.)
-- [x] Nowa inwestycja z plikami w formularzu → po zapisie pliki są w galerii inwestycji.
-      Zweryfikowane na stagingu: inwestycja 185 „QA-1014 nowa inwestycja” z 2 zdjęciami i PDF → 3 pliki w galerii („Dokumentacja (3)”), w bazie investments_rels path=assets.
-- [x] Galeria inwestycji: dodaj 10 zdjęć naraz → wszystkie 10 w galerii, żadne nie zginęło.
-      Zweryfikowane na stagingu: inwestycja 185, „Dodaj kolejne” z 10 zdjęciami naraz → 13 plików w bazie (13 różnych media), żaden nie zginął, galeria „(13)”.
-- [x] Galeria inwestycji: dodaj plik jako „projekt" (rzut) → ląduje jako projekt, nie jako zwykłe zdjęcie.
-      Zweryfikowane na stagingu: „Dodaj kolejne” z zaznaczonym „To jest rzut lub projekt” → media.kind = projekt (foto9); „Oznacz jako rzut” na istniejącym pliku też ustawia projekt.
-- [x] Edycja inwestycji → pole plików: dodaj i usuń plik → zapis zgadza się z tym, co widać.
-      Zweryfikowane na stagingu: inwestycja 185, w oknie edycji dodano foto10 (przycisk „Dodaj zdjęcia lub pliki”) i zapisano, potem w galerii usunięto plik → baza 14 = galeria „(14)”, usunięty plik znika też z media. Uwaga: plik z pola w edycji trafia do bazy od razu, przed „Zapisz”.
 - [ ] Raport ze skanu: dodaj zdjęcia → raport zapisany, zdjęcia się otwierają.
   - POMINIĘTE 2026-10-07 (staging): wymaga czytelnie wypełnionej kartki „Drukuj kartkę do zgłoszenia prac” — dwa zdjęcia z szumem skończyły się komunikatem „Na zdjęciach nie odczytano żadnej wpisanej ilości.” i raport się nie zapisuje. Potrzebne zdjęcie prawdziwej, wypełnionej kartki od człowieka.
-- [x] Plik SVG w dowolnym z tych miejsc → po kliknięciu zapisu odrzucony z komunikatem „Dozwolone są tylko zdjęcia i pliki PDF", nic nie zostaje zapisane. SVG przemianowany na `.jpg` → „Plik „….jpg" został odrzucony — może być uszkodzony.", też bez zapisu.
-      Zweryfikowane na stagingu (OWNER) 2026-10-07 w oknie „Wydatek" (pole FV): SVG → „Dozwolone są tylko zdjęcia i pliki PDF"; SVG jako `.jpg` → „Plik „qa-tmp-svg.jpg" został odrzucony — może być uszkodzony."; w obu przypadkach 0 transakcji i 0 plików w media. Inne formularze nie sprawdzane osobno (ta sama ścieżka `ingestFiles`).
-- [x] Usuń transakcję z fakturą (mały plik) i drugą z dużym PDF → stary link do pliku daje 404 w obu przypadkach.
-      NIEZALICZONE 2026-10-07 (staging): UI nie ma „Usuń" transakcji (tylko „Anuluj", które zostawia pliki); jedyna droga to `/admin` lub `DELETE /api/transactions/:id`. Obie odpowiadają 200 i zwracają dokument (toast „Pomyślnie usunięto"), ale wiersz zostaje w bazie (transakcje 5555 i 5556, cofnięte, faktura 2403 / 4,7 MB PDF 2404), a pliki dalej się otwierają. Zob. Findings 2026-10-07 w sekcji EX-1014.
-      POMINIĘTE (nieosiągalne): aplikacja nie ma „Usuń” transakcji, tylko „Anuluj”; panel Payloada jest nieużywany.
-- [x] Dwie karty naraz: w każdej dodaj 5 zdjęć do galerii (jedna z nich z dużym plikiem) → wszystkie pliki są w galerii, w logach Vercela brak „Failed to persist upload data".
-      NIEZALICZONE 2026-10-07 (staging, inw. 185): dwie karty, jedna 4 zdjęcia + duży PDF, druga 5 zdjęć, wysłane równocześnie → w galerii tylko 5 z 10 nowych plików (14 → 19), pliki drugiej karty są w `media`, ale bez powiązania z inwestycją. Zob. Findings 2026-10-07 w sekcji EX-1014. Logów Vercela („Failed to persist upload data") nie sprawdzano — brak dostępu do logów z tej sesji.
-      POMINIĘTE (świadomie nieobsługiwane): `set-upload-field.ts` akceptuje utratę jednej listy przy dwóch kartach na jednej inwestycji (bajty nie giną).
 - [ ] Okno leada (zgłoszenie z Facebooka) z plikami → miniatury wyglądają jak dotąd.
       POMINIĘTE 2026-10-07 (staging): żadne z 221 zgłoszeń na preview DB nie ma plików (`leads_rels` bez media), a nowego z plikami nie da się utworzyć bez podpisanego webhooka landingu (sekret Preview niedostępny, zob. sekcja EX-802). Wymaga zgłoszenia z plikami od człowieka.
 - [ ] Zgłoszenie z formularza na stronie (landing) ze zdjęciem z telefonu i PDF-em → oba pliki są przy zgłoszeniu, miniatura zdjęcia się wyświetla.
       POMINIĘTE 2026-10-07 (staging): to wymaga prawdziwego formularza na stronie landingu i podpisanego webhooka (`LANDING_WEBHOOK_SECRET` Preview niedostępny, pliki leżą w blobie landingu). Nie da się zrobić z tej sesji.
-- [x] Konto pracownika: „Dodaj wydatek" z 3 zdjęciami → „Wyślij" działa jak po EX-1012; dodanie stron do oczekującego zgłoszenia działa.
-      Zweryfikowane na stagingu w ramach EX-1012 (konto QA, 390 px): 3 zdjęcia → „Wyślij" i „Dodaj stronę” do oczekującego zgłoszenia działają.
-
-### Findings — 2026-10-07
-
-- [x] **`DELETE /api/transactions/:id` i „Usuń" w `/admin` zwracają sukces, a wiersz zostaje** — staging, OWNER: usunięcie transakcji 5555 i 5556 (cofnięte, z fakturą) przez `/admin/collections/transactions/<id>` → „Potwierdź" (toast „Pomyślnie usunięto Transfer …") oraz przez `fetch(`/api/transactions/5555`, {method: `DELETE`})` (200 + dokument) — a `select` w bazie dalej widzi wiersz, plik faktury (media 2403, 2404) nie jest kasowany. Hooki: `src/collections/transfers.ts` (`guardDeleteOnLockedInvestment`, `recalcAfterDelete`, `syncSheetAfterDelete`, `deleteInvoiceMediaAfterDelete`); podejrzenie: `COMMIT` zatrutej transakcji (cichy rollback), nie sprawdzone.
-      **Needs human:** czy usuwanie transakcji ma w ogóle działać (UI zna tylko „Anuluj", panel Payloada jest nieużywany)? Jeśli tak — czemu rollback; jeśli nie — skreślić box „Usuń transakcję z fakturą" i hooki kasowania plików.
-      **Test disposition:** test-driven-debugging · integration — `payload.delete` na transakcji z fakturą w `src/__tests__/` (DB), asercja na wierszu w bazie, nie na wyniku.
-      **Dropped 2026-10-07:** nieosiągalne — w aplikacji nie ma usuwania transakcji (tylko „Anuluj”), panel Payloada nieużywany, REST DELETE tylko ADMIN/OWNER.
-- [x] **Dwie karty równocześnie dodają pliki do galerii inwestycji — jedna lista ginie** — staging, inw. 185: karta A (4 zdjęcia + PDF 4,9 MB) i karta B (5 zdjęć) wysłane w jednym momencie → w `investments_rels` przybyło 5 pozycji zamiast 10 (14 → 19); pliki karty B są w `media` (2434, 2436–2439), ale bez powiązania, więc nie ma ich w galerii. Przyczyna znana w kodzie: `setUploadField` (`src/lib/media/set-upload-field.ts`) to read-modify-write bez blokady, komentarz nazywa to „Accepted … takes two tabs on one investment".
-      **Needs human:** czy zostawiamy akceptację (wtedy box „Dwie karty naraz" do skreślenia jako świadomie nieobsługiwany), czy serializujemy zapis (transakcja / zapis różnicowy `INSERT` do `investments_rels`)?
-      **Test disposition:** test-driven-debugging · integration — dwa równoległe `addInvestmentAssetsAction` na tej samej inwestycji, asercja: oba zestawy w `investments_rels`.
-      **Dropped 2026-10-07:** świadoma akceptacja w `src/lib/media/set-upload-field.ts` (dwie karty na jednej inwestycji, pliki zostają w `media`); serializacja dopiero, gdy piszących przybędzie.
 
 ## 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”
 

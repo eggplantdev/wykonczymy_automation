@@ -1,10 +1,10 @@
 ---
 change_id: media-upload-speed
 title: Worker invoice draft send — cut the per-photo server work that keeps the dialog open
-status: implemented
+status: archived
 created: 2026-10-07
-updated: 2026-10-07
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:39:28Z
 branch: media-upload-speed
 worktree: ../wykonczymy-worktrees/media-upload-speed
 ---

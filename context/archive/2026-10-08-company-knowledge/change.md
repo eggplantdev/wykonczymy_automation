@@ -1,10 +1,10 @@
 ---
 change_id: company-knowledge
 title: Wiedza firmowa — a book of company rules in a top-bar dialog, for management and the AI agent
-status: implemented
+status: archived
 created: 2026-10-08
-updated: 2026-10-08
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:39:32Z
 branch: staging
 worktree: null
 ---

@@ -1,10 +1,10 @@
 ---
 change_id: media-upload-other-forms
 title: Every upload form on the size router — fast path up to 4 MB, head()-registered rows above it
-status: implemented
+status: archived
 created: 2026-10-07
-updated: 2026-10-07
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:39:30Z
 branch: media-upload-other-forms
 worktree: ../wykonczymy-worktrees/media-upload-other-forms
 ---
