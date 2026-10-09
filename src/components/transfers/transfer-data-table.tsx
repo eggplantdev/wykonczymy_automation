@@ -97,7 +97,13 @@ export function TransferDataTable({
         sorting={sorting}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
         getRowClassName={transferRowClassName}
-        renderRows={view === 'list' ? (rows) => <TransferCardList rows={rows} /> : undefined}
+        renderRows={
+          view === 'list'
+            ? (rows, visibleColumnIds) => (
+                <TransferCardList rows={rows} visibleColumnIds={visibleColumnIds} />
+              )
+            : undefined
+        }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
             className="mt-8"

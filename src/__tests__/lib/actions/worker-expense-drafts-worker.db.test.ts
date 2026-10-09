@@ -71,6 +71,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     name: string,
     owner: { workerId: number; registerId: number },
     pageCount = 1,
+    onInvestment: number | null = investmentId,
   ): Promise<{ draftId: number; mediaIds: number[] }> {
     const mediaIds: number[] = []
     for (let page = 0; page < pageCount; page++) {
@@ -78,7 +79,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     }
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId: owner.workerId,
-      investmentId,
+      investmentId: onInvestment,
       cashRegisterId: owner.registerId,
       note: 'przed',
       scanMode: 'one-invoice',
@@ -88,8 +89,19 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     return { draftId, mediaIds }
   }
 
-  const ownDraft = (name: string, pageCount?: number) =>
-    createDraft(name, { workerId, registerId }, pageCount)
+  const ownDraft = (name: string, pageCount?: number, onInvestment?: number | null) =>
+    createDraft(name, { workerId, registerId }, pageCount, onInvestment)
+
+  const send = async (
+    name: string,
+    target: { investmentId: number | null; cashRegisterId: number },
+  ) =>
+    sendExpenseDraftAction({
+      ...target,
+      note: '',
+      scanMode: 'one-invoice',
+      mediaIds: [await insertMedia(name, workerId)],
+    })
 
   const readDraft = async (draftId: number) =>
     (
@@ -181,14 +193,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the target a draft is sent to', () => {
-    const send = async (name: string, target: { investmentId: number; cashRegisterId: number }) =>
-      sendExpenseDraftAction({
-        ...target,
-        note: '',
-        scanMode: 'one-invoice',
-        mediaIds: [await insertMedia(name, workerId)],
-      })
-
     it('sends to his own live kasa on an investment he works on', async () => {
       const result = await send('send-ok', { investmentId, cashRegisterId: registerId })
 
@@ -266,6 +270,88 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
         messageKey: 'notYourRegister',
       })
       expect(await readDraft(draftId)).toEqual(before)
+    })
+  })
+
+  describe('a draft without an investment', () => {
+    const setFlag = (isFlagged: boolean) =>
+      db.execute(sql`
+        UPDATE users SET can_add_expenses_without_investment = ${isFlagged} WHERE id = ${workerId}
+      `)
+
+    const sendWithout = (name: string, cashRegisterId = registerId) =>
+      send(name, { investmentId: null, cashRegisterId })
+
+    const editTo = (draftId: number, investmentId: number | null) =>
+      updateExpenseDraftAction({
+        draftId,
+        investmentId,
+        cashRegisterId: registerId,
+        note: 'po',
+        scanMode: 'one-invoice',
+      })
+
+    beforeEach(() => setFlag(false))
+    afterAll(() => setFlag(false))
+
+    it('a flagged worker sends one and it is stored with no investment', async () => {
+      await setFlag(true)
+
+      const result = await sendWithout('none-send-flagged')
+
+      expect(result).toMatchObject({ success: true })
+      if (!result.success) return
+      expect(await readDraft(result.data.draftId)).toMatchObject({
+        status: 'pending',
+        investment_id: null,
+      })
+    })
+
+    it('an unflagged worker is refused and nothing is stored', async () => {
+      const before = await draftCount()
+
+      expect(await sendWithout('none-send-unflagged')).toMatchObject({
+        success: false,
+        messageKey: 'chooseInvestment',
+      })
+      expect(await draftCount()).toBe(before)
+    })
+
+    it('a flagged worker is still held to his own kasa', async () => {
+      await setFlag(true)
+      const before = await draftCount()
+
+      expect(await sendWithout('none-send-foreign-kasa', otherRegisterId)).toMatchObject({
+        success: false,
+        messageKey: 'notYourRegister',
+      })
+      expect(await draftCount()).toBe(before)
+    })
+
+    it('an unflagged worker may keep a draft he sent without an investment as it is', async () => {
+      const { draftId } = await ownDraft('none-keep', 1, null)
+
+      expect(await editTo(draftId, null)).toEqual({ success: true })
+      expect(await readDraft(draftId)).toMatchObject({ note: 'po', investment_id: null })
+    })
+
+    it('an unflagged worker cannot clear the investment of a draft', async () => {
+      const { draftId } = await ownDraft('none-clear-unflagged')
+      const before = await readDraft(draftId)
+
+      expect(await editTo(draftId, null)).toMatchObject({
+        success: false,
+        messageKey: 'chooseInvestment',
+      })
+      expect(await readDraft(draftId)).toEqual(before)
+    })
+
+    it('a flagged worker may clear the investment of a draft', async () => {
+      await setFlag(true)
+      const { draftId } = await ownDraft('none-clear-flagged')
+
+      expect(await editTo(draftId, null)).toEqual({ success: true })
+      expect(await readDraft(draftId)).toMatchObject({ investment_id: null })
     })
   })
 

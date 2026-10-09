@@ -118,3 +118,16 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
     expect(rejectExpenseDraftAction).toHaveBeenCalledWith(draft.id, undefined)
   })
 })
+
+describe('zgłoszenie bez inwestycji', () => {
+  it('stoi w kolejce jako „Bez inwestycji”', () => {
+    render(
+      <PendingExpenseDrafts
+        drafts={[{ ...draft, investmentId: null, investmentName: null }]}
+        referenceData={referenceData}
+      />,
+    )
+
+    expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
+  })
+})

@@ -9,6 +9,7 @@ import {
   deletePendingExpenseDraft,
   findDraftHeldMedia,
   insertWorkerExpenseDraft,
+  isPendingDraftWithoutInvestment,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
@@ -101,7 +102,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  const draftOf = (mediaIds: number[], onInvestment = investmentId) =>
+  const draftOf = (mediaIds: number[], onInvestment: number | null = investmentId) =>
     insertWorkerExpenseDraft(db, {
       workerId,
       investmentId: onInvestment,
@@ -813,6 +814,60 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
       expect(await persisted()).toEqual({ status: 'pending', duplicate_of: null })
       expect((await duplicatesOnly()).rows.map((row) => row.id)).not.toContain(draftId)
+    })
+  })
+
+  // „Bez inwestycji": an inner join or an investment-only trash predicate would hide it silently.
+  describe('a draft without an investment', () => {
+    async function noInvestmentDraft(name: string): Promise<number> {
+      const draftId = await draftOf([await insertMedia(name, workerId)], null)
+      if (draftId === null) throw new Error('draft fixture refused')
+      return draftId
+    }
+
+    it('is stored with no investment and listed to its worker as such', async () => {
+      const draftId = await noInvestmentDraft('none-listed')
+
+      const { rows } = await db.execute(
+        sql`SELECT investment_id FROM worker_expense_drafts WHERE id = ${draftId}`,
+      )
+      expect(rows[0].investment_id).toBeNull()
+      expect(
+        (await listWorkerExpenseDrafts(db, workerId)).find((draft) => draft.id === draftId),
+      ).toMatchObject({ investmentId: null, investmentName: null, status: 'pending' })
+    })
+
+    it('waits in the queue and is counted there', async () => {
+      const before = await countPendingExpenseDrafts(db)
+      const draftId = await noInvestmentDraft('none-queue')
+
+      expect(await countPendingExpenseDrafts(db)).toBe(before + 1)
+      expect((await listPendingExpenseDrafts(db)).map((draft) => draft.id)).toContain(draftId)
+    })
+
+    it('a refusal of one is listed in the history and can be restored', async () => {
+      const draftId = await noInvestmentDraft('none-rejected')
+      await reject(draftId)
+
+      const { rows } = await listExpenseDraftHistory(
+        db,
+        { statuses: ['rejected'], investmentIds: null, workerIds: [workerId], sentRange: {} },
+        { page: 1, limit: 10_000 },
+      )
+      expect(rows.find((draft) => draft.id === draftId)).toMatchObject({ investmentName: null })
+      expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
+    })
+
+    it('is told apart from a pending draft that has an investment', async () => {
+      const without = await noInvestmentDraft('none-probe')
+      const withOne = await draftOf([await insertMedia('none-probe-invested', workerId)])
+      if (withOne === null) throw new Error('draft fixture refused')
+
+      expect(await isPendingDraftWithoutInvestment(db, { draftId: without, workerId })).toBe(true)
+      expect(await isPendingDraftWithoutInvestment(db, { draftId: withOne, workerId })).toBe(false)
+      expect(
+        await isPendingDraftWithoutInvestment(db, { draftId: without, workerId: otherWorkerId }),
+      ).toBe(false)
     })
   })
 })

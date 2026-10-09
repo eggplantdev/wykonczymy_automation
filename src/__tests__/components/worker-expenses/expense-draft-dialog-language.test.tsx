@@ -16,7 +16,9 @@ vi.mock('next/navigation', async (importOriginal) => ({
 const INVESTMENTS = [{ investmentId: 1, name: 'Mokotów' }] as WorkerStageInvestmentT[]
 const REGISTERS = [{ id: 3, name: 'Kasa Jana', active: true }] as never
 
-const dialog = <ExpenseDraftDialog investments={INVESTMENTS} registers={REGISTERS} />
+const dialog = (
+  <ExpenseDraftDialog investments={INVESTMENTS} registers={REGISTERS} canSkipInvestment={false} />
+)
 
 describe('ExpenseDraftDialog language', () => {
   it('reads Ukrainian under a uk account', async () => {

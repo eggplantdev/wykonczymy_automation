@@ -9,12 +9,14 @@ import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
+import { canAddExpensesWithoutInvestment } from '@/lib/db/worker-gate'
 import {
   appendExpenseDraftPages,
   countPendingDraftPages,
   decideExpenseDraft,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
+  isPendingDraftWithoutInvestment,
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
   restoreSkippedReceipt,
@@ -28,7 +30,7 @@ import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-f
 import type { ActionResultT } from '@/types/action'
 
 const sendDraftSchema = z.object({
-  investmentId: z.number().int().positive(pl.notices.chooseInvestment),
+  investmentId: z.number().int().positive(pl.notices.chooseInvestment).nullable(),
   cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
   note: z.string().trim().max(2000, pl.notices.noteTooLong),
   scanMode: z.enum(RECEIPT_SCAN_MODES),
@@ -53,11 +55,28 @@ const addPagesSchema = z.object({
 
 async function findDraftTargetError(
   db: DbExecutorT,
-  target: { workerId: number; investmentId: number; cashRegisterId: number },
+  target: {
+    workerId: number
+    investmentId: number | null
+    cashRegisterId: number
+    draftId?: number
+  },
 ): Promise<NoticeKeyT | undefined> {
-  const investments = await listWorkerStageInvestments(db, target.workerId)
-  if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
-    return 'notOnInvestment'
+  if (target.investmentId === null) {
+    // A cleared flag leaves the drafts already sent without an investment editable as they are.
+    const isAllowed =
+      (await canAddExpensesWithoutInvestment(db, target.workerId)) ||
+      (target.draftId !== undefined &&
+        (await isPendingDraftWithoutInvestment(db, {
+          draftId: target.draftId,
+          workerId: target.workerId,
+        })))
+    if (!isAllowed) return 'chooseInvestment'
+  } else {
+    const investments = await listWorkerStageInvestments(db, target.workerId)
+    if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
+      return 'notOnInvestment'
+    }
   }
   if (!(await isWorkerLiveRegister(db, target.workerId, target.cashRegisterId))) {
     return 'notYourRegister'
@@ -216,7 +235,12 @@ export async function updateExpenseDraftAction(
     `updateExpenseDraftAction draft=${draftId}`,
     async ({ payload, user: { id: workerId } }) => {
       const db = await getDb(payload)
-      const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
+      const targetError = await findDraftTargetError(db, {
+        workerId,
+        investmentId,
+        cashRegisterId,
+        draftId,
+      })
       if (targetError) return noticeFailure(targetError)
 
       const { isUpdated, isScanModeChanged } = await updatePendingExpenseDraft(db, {

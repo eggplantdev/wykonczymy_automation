@@ -15,6 +15,7 @@ import { useTranslation } from '@/hooks/use-translation'
 import {
   DRAFT_STATUS_LABEL_KEYS,
   EXPENSE_DRAFT_STATUSES,
+  NO_INVESTMENT,
 } from '@/lib/constants/worker-expense-drafts'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
@@ -27,7 +28,8 @@ const DEFAULT_PAGE_SIZE = 10
 const getStatus = (draft: ExpenseDraftRowT) => draft.status
 // What still waits on the manager is what he opens the page for; the decided ones are a filter away.
 const DEFAULT_STATUS_FILTER = ['pending']
-const getInvestment = (draft: ExpenseDraftRowT) => String(draft.investmentId)
+const getInvestment = (draft: ExpenseDraftRowT) =>
+  draft.investmentId === null ? NO_INVESTMENT : String(draft.investmentId)
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
@@ -35,6 +37,7 @@ type PropsT = {
   canOpenTransfers: boolean
   investments: WorkerStageInvestmentT[]
   registers: CashRegisterRefT[]
+  canSkipInvestment: boolean
 }
 
 export function WorkerExpenseDraftsTable({
@@ -43,6 +46,7 @@ export function WorkerExpenseDraftsTable({
   canOpenTransfers,
   investments,
   registers,
+  canSkipInvestment,
 }: PropsT) {
   const { t } = useTranslation('expenseDrafts')
   const [page, setPage] = useState(1)
@@ -75,8 +79,16 @@ export function WorkerExpenseDraftsTable({
       ? (draft) =>
           draft.status === 'pending' && (
             <>
-              <ExpenseDraftDialog investments={investments} registers={registers} draft={draft} />
-              <DeleteExpenseDraftButton draftId={draft.id} investmentName={draft.investmentName} />
+              <ExpenseDraftDialog
+                investments={investments}
+                registers={registers}
+                canSkipInvestment={canSkipInvestment}
+                draft={draft}
+              />
+              <DeleteExpenseDraftButton
+                draftId={draft.id}
+                investmentName={draft.investmentName ?? t('noInvestment')}
+              />
             </>
           )
       : undefined,
@@ -85,9 +97,11 @@ export function WorkerExpenseDraftsTable({
   // Off the drafts, not the props' `investments`: those are where he may send today, and his history
   // also holds investments he has since left.
   const investmentOptions = [
-    ...new Map(drafts.map((draft) => [draft.investmentId, draft.investmentName])),
+    ...new Map(
+      drafts.map((draft) => [getInvestment(draft), draft.investmentName ?? t('noInvestment')]),
+    ),
   ]
-    .map(([id, name]) => ({ value: String(id), label: name }))
+    .map(([value, label]) => ({ value, label }))
     .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
 
   const totalPages = Math.ceil(filtered.length / pageSize)

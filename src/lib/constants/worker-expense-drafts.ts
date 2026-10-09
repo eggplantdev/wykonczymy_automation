@@ -20,3 +20,6 @@ export const MAX_DRAFT_PAGES = MAX_RECEIPT_PAGES
 export const DRAFT_ALREADY_DECIDED = pl.notices.draftAlreadyDecided
 export const TOO_MANY_DRAFT_PAGES = pl.notices.tooManyPhotos
 export const DRAFT_PAGES_NOT_ATTACHED = pl.notices.attachFailed
+
+// A Radix Select value can't be empty, so „Bez inwestycji" needs a stand-in for its null id.
+export const NO_INVESTMENT = 'none'

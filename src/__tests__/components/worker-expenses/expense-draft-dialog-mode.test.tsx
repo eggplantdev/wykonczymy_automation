@@ -38,7 +38,11 @@ const photo = (name: string) => new File(['x'], name, { type: 'image/jpeg' })
 
 async function openNewAndPick(count: number) {
   const { container } = render(
-    <ExpenseDraftDialog investments={INVESTMENTS} registers={REGISTERS} />,
+    <ExpenseDraftDialog
+      investments={INVESTMENTS}
+      registers={REGISTERS}
+      canSkipInvestment={false}
+    />,
   )
   await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
   const input = document.querySelector<HTMLInputElement>('input[type="file"]')
@@ -137,7 +141,14 @@ describe('ExpenseDraftDialog scan mode', () => {
 
   it('„Edytuj” starts from the draft’s own mode', async () => {
     const draft = draftWith({ media: [page(1), page(2)], scanMode: 'one-per-photo' })
-    render(<ExpenseDraftDialog investments={INVESTMENTS} registers={REGISTERS} draft={draft} />)
+    render(
+      <ExpenseDraftDialog
+        investments={INVESTMENTS}
+        registers={REGISTERS}
+        canSkipInvestment={false}
+        draft={draft}
+      />,
+    )
 
     await userEvent.click(screen.getByRole('button', { name: 'Edytuj wydatek' }))
 
@@ -164,7 +175,14 @@ describe('ExpenseDraftDialog scan mode', () => {
   // A changed mode clears the read and reads again — a note edit must not count as one.
   it('„Edytuj” on a one-photo draft keeps its mode', async () => {
     const draft = draftWith({ media: [page(1)], scanMode: 'one-per-photo' })
-    render(<ExpenseDraftDialog investments={INVESTMENTS} registers={REGISTERS} draft={draft} />)
+    render(
+      <ExpenseDraftDialog
+        investments={INVESTMENTS}
+        registers={REGISTERS}
+        canSkipInvestment={false}
+        draft={draft}
+      />,
+    )
 
     await userEvent.click(screen.getByRole('button', { name: 'Edytuj wydatek' }))
     await userEvent.click(screen.getByRole('button', { name: 'Zapisz' }))

@@ -13,6 +13,7 @@ type PropsT = {
   canSend: boolean
   canOpenTransfers: boolean
   sendableRegisters: CashRegisterRefT[]
+  canSkipInvestment: boolean
   locale: LanguageT
 }
 
@@ -22,6 +23,7 @@ export function WorkerExpenseDraftsSection({
   canSend,
   canOpenTransfers,
   sendableRegisters,
+  canSkipInvestment,
   locale,
 }: PropsT) {
   if (drafts.length === 0) return null
@@ -40,6 +42,7 @@ export function WorkerExpenseDraftsSection({
         canOpenTransfers={canOpenTransfers}
         investments={investments}
         registers={sendableRegisters}
+        canSkipInvestment={canSkipInvestment}
       />
     </CollapsibleSection>
   )

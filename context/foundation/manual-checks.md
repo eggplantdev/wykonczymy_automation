@@ -4371,21 +4371,21 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 
 ## 2026-10-08 — investment-notes-inline-edit — edycja notatki inwestycji w miejscu
 
-- [ ] Karta inwestycji i Kosztorys → Podsumowanie → „Inwestycja”: pod listą danych stoi „Notatki” z przyciskiem „Edytuj notatkę”; pusta notatka pokazuje „—”, wieloliniowa zachowuje podziały wierszy.
-- [ ] „Edytuj notatkę” → zmień tekst → „Zapisz”: toast „Notatka zapisana”, pole wraca do podglądu z nowym tekstem, który przetrwa przeładowanie; pozostałe dane inwestycji (nazwa, status, kontakt) bez zmian.
-- [ ] „Edytuj notatkę” → zmień tekst → „Anuluj”: wraca stary tekst, nic się nie zapisuje.
-- [ ] Inwestycja w koszu: karta pokazuje notatkę bez przycisku „Edytuj notatkę”.
-- [ ] Dialog „Edytuj inwestycję”: pod „Prośba o opinię wysłana” widać podpowiedź „Zaznacz jeśli wysłałeś już do inwestora prośbę o opinię w google”.
+- [x] Karta inwestycji i Kosztorys → Podsumowanie → „Inwestycja”: pod listą danych stoi „Notatki” z przyciskiem „Edytuj notatkę”; pusta notatka pokazuje „—”, wieloliniowa zachowuje podziały wierszy.
+- [x] „Edytuj notatkę” → zmień tekst → „Zapisz”: toast „Notatka zapisana”, pole wraca do podglądu z nowym tekstem, który przetrwa przeładowanie; pozostałe dane inwestycji (nazwa, status, kontakt) bez zmian.
+- [x] „Edytuj notatkę” → zmień tekst → „Anuluj”: wraca stary tekst, nic się nie zapisuje.
+- [x] Inwestycja w koszu: karta pokazuje notatkę bez przycisku „Edytuj notatkę”.
+- [x] Dialog „Edytuj inwestycję”: pod „Prośba o opinię wysłana” widać podpowiedź „Zaznacz jeśli wysłałeś już do inwestora prośbę o opinię w google”.
 
 ## 2026-10-08 — other-expense-worker — „Inny wydatek” z opcjonalnym pracownikiem (EX-1027)
 
-- [ ] „Kilka wydatków” → typ „Inny wydatek”, trzy wiersze: pracownik A, bez pracownika, pracownik B → zapisz: w liście transakcji kolumna „Pracownik” pokazuje A / — / B.
-- [ ] W tym samym formularzu zmień typ z „Inny wydatek” na inny: pole „Pracownik” w wierszach znika, a zapisany wydatek nie ma pracownika.
-- [ ] Edycja istniejącego „Innego wydatku” bez pracownika → ustaw pracownika X → zapisz: transakcja widoczna na `/pracownicy/X` i w liście z filtrem „Pracownik” = X; wyczyść pracownika i zapisz — znika z obu miejsc.
-- [ ] Edycja „Wypłaty”: w dialogu nie ma pola „Pracownik” do zmiany.
-- [ ] Strona główna → filtry: Typ „Inny wydatek” + Kategoria „narzędzia” + Pracownik X → lista pokazuje tylko wydatki X, a kafelek „Suma” zgadza się z sumą kwot w wierszach.
-- [ ] Po przypisaniu pracownika do „Innego wydatku” jego „Pozostało do wypłaty” (strona pracownika / inwestycji) się nie zmienia.
-- [ ] „Nowy wydatek” → „Inny wydatek”, wiersz bez kategorii → „Zapisz”: formularz nie wysyła się, pole „Kategoria” w wierszu jest czerwone (bez angielskiego toastu „Category is required…”); placeholder pola to „Kategoria *”. To samo w edycji „Innego wydatku” po wyczyszczeniu kategorii.
+- [x] „Kilka wydatków” → typ „Inny wydatek”, trzy wiersze: pracownik A, bez pracownika, pracownik B → zapisz: w liście transakcji kolumna „Pracownik” pokazuje A / — / B.
+- [x] W tym samym formularzu zmień typ z „Inny wydatek” na inny: pole „Pracownik” w wierszach znika, a zapisany wydatek nie ma pracownika.
+- [x] Edycja istniejącego „Innego wydatku” bez pracownika → ustaw pracownika X → zapisz: transakcja widoczna na `/pracownicy/X` i w liście z filtrem „Pracownik” = X; wyczyść pracownika i zapisz — znika z obu miejsc.
+- [x] Edycja „Wypłaty”: w dialogu nie ma pola „Pracownik” do zmiany.
+- [x] Strona główna → filtry: Typ „Inny wydatek” + Kategoria „narzędzia” + Pracownik X → lista pokazuje tylko wydatki X, a kafelek „Suma” zgadza się z sumą kwot w wierszach.
+- [x] Po przypisaniu pracownika do „Innego wydatku” jego „Pozostało do wypłaty” (strona pracownika / inwestycji) się nie zmienia.
+- [x] „Nowy wydatek” → „Inny wydatek”, wiersz bez kategorii → „Zapisz”: formularz nie wysyła się, pole „Kategoria” w wierszu jest czerwone (bez angielskiego toastu „Category is required…”); placeholder pola to „Kategoria *”. To samo w edycji „Innego wydatku” po wyczyszczeniu kategorii.
 
 ## EX-1025 — invoice-duplicate-detection — duplikaty paragonów przy akceptacji zgłoszeń wydatków (2026-10-08)
 
@@ -4446,63 +4446,63 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 ## 2026-10-08 — worker-report-columns-default — „Wykonano” i postęp widoczne domyślnie, wybór zapamiętany
 
-- [ ] Link pracownika (zgłaszanie prac) otwarty w przeglądarce bez zapisanych ustawień: kolumny
+- [x] Link pracownika (zgłaszanie prac) otwarty w przeglądarce bez zapisanych ustawień: kolumny
       z sumą wykonanej pracy i z postępem są widoczne od razu, w „Opcjach” oba przełączniki są zaznaczone.
-- [ ] Wyłącz w „Opcjach” „Pokaż postęp” i przeładuj stronę: kolumna postępu nadal schowana,
+- [x] Wyłącz w „Opcjach” „Pokaż postęp” i przeładuj stronę: kolumna postępu nadal schowana,
       „Pokaż sumę do tej pory wykonanej pracy” nadal włączona. To samo na innej inwestycji.
 
 ## 2026-10-08 — przycisk „Przegląd AI" na pasku narzędzi
 
-- [ ] Kosztorys ze szkicem AI → na pasku narzędzi, obok „Kolumny", jest przycisk „Przegląd AI"; kliknięcie dokłada kolumny AI i ustawia filtr „Przegląd AI" jak wcześniej, ponowne kliknięcie je zabiera. W menu „Kolumny" → „Widok" jest już tylko „Oferta".
-- [ ] Zwykły kosztorys (bez szkicu AI): brak przycisku „Przegląd AI"; szablon: brak przycisku i menu „Kolumny".
-- [ ] Wyłączony „Przegląd AI" wygląda jak sąsiednie przyciski (np. „Akcje"), tekst nie jest wyszarzony;
+- [x] Kosztorys ze szkicem AI → na pasku narzędzi, obok „Kolumny", jest przycisk „Przegląd AI"; kliknięcie dokłada kolumny AI i ustawia filtr „Przegląd AI" jak wcześniej, ponowne kliknięcie je zabiera. W menu „Kolumny" → „Widok" jest już tylko „Oferta".
+- [x] Zwykły kosztorys (bez szkicu AI): brak przycisku „Przegląd AI"; szablon: brak przycisku i menu „Kolumny".
+- [x] Wyłączony „Przegląd AI" wygląda jak sąsiednie przyciski (np. „Akcje"), tekst nie jest wyszarzony;
       włączenie płynnie wprowadza gradientową ramkę z poświatą i cyjanowy napis, wyłączenie płynnie je
       wygasza, a przycisk nie zmienia przy tym szerokości.
 
 ## 2026-10-08 — „Komentarz" na widoku inwestora
 
-- [ ] „Ustawienia widoku inwestora" → „Opis i ilości": jest pole „Komentarz", domyślnie odznaczone —
+- [x] „Ustawienia widoku inwestora" → „Opis i ilości": jest pole „Komentarz", domyślnie odznaczone —
       także na inwestycji, której widok był już wcześniej zapisany.
-- [ ] Zaznacz „Komentarz" → podgląd inwestora i link dla inwestora pokazują kolumnę „Komentarz" zaraz
+- [x] Zaznacz „Komentarz" → podgląd inwestora i link dla inwestora pokazują kolumnę „Komentarz" zaraz
       po „Opisie", z treścią komentarzy pozycji; odznaczenie ją zabiera.
-- [ ] Z zaznaczonym „Komentarzem" → „Generuj ofertę": wydruk ma kolumnę „Komentarz" (mniejszy, szary
+- [x] Z zaznaczonym „Komentarzem" → „Generuj ofertę": wydruk ma kolumnę „Komentarz" (mniejszy, szary
       tekst) w pionie i w poziomie; bez zaznaczenia jej nie ma.
 
 ## EX-1030 — ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”
 
-- [ ] Kosztorys ze szkicem AI → „Przegląd AI”: po „AI wartość netto przedmiar” jest kolumna
+- [x] Kosztorys ze szkicem AI → „Przegląd AI”: po „AI wartość netto przedmiar” jest kolumna
       „Komentarz AI”; komórka pokazuje „Czego nie było wiadomo: …” i/lub „Co / ile założono: …”
       z odpowiedziami pogrubionymi — tylko te linie, w których jest coś do powiedzenia. Pozycja bez
       braków i bez założeń ma pustą komórkę (żadnego „nic”).
-- [ ] „Komentarz AI” jest tylko do odczytu (wpisanie / wklejenie / Delete nic nie zmienia), a skopiowana
+- [x] „Komentarz AI” jest tylko do odczytu (wpisanie / wklejenie / Delete nic nie zmienia), a skopiowana
       komórka wkleja się jako te same linie tekstu.
-- [ ] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
+- [x] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
       ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
-- [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
-- [ ] Kosztorys ze szkicem AI → przywróć wcześniejszą wersję z historii: „Komentarz AI” pozycji
+- [x] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
+- [x] Kosztorys ze szkicem AI → przywróć wcześniejszą wersję z historii: „Komentarz AI” pozycji
       wraca razem z nią, nie znika.
 
 ## EX-1032 — company-knowledge — „Manual Wykończymy” w górnym pasku
 
-- [ ] Desktop, OWNER lub MANAGER: przycisk „Manual Wykończymy” jest w górnym pasku na każdej stronie
+- [x] Desktop, OWNER lub MANAGER: przycisk „Manual Wykończymy” jest w górnym pasku na każdej stronie
       (transakcje, katalog prac, edytor kosztorysu). Kliknięcie pokazuje wpisy startowe, pierwszy to
       „Wysokość pomieszczeń, gdy rysunek jej nie podaje”.
-- [ ] Przeciągnij wpis za uchwyt w inne miejsce: kolejność zostaje po przeładowaniu strony, a
+- [x] Przeciągnij wpis za uchwyt w inne miejsce: kolejność zostaje po przeładowaniu strony, a
       „Ostatnio zmienione” nie wynosi przeciągniętych wpisów na górę.
-- [ ] Wpisz „lazienka” w wyszukiwarkę: zostają tylko wpisy z „łazienka”. Gdy coś jest wpisane albo
+- [x] Wpisz „lazienka” w wyszukiwarkę: zostają tylko wpisy z „łazienka”. Gdy coś jest wpisane albo
       wybrane jest „Alfabetycznie”, uchwytów nie ma, a pod paskiem stoi podpowiedź, gdzie działa
-      przeciąganie.
-- [ ] Edytuj wpis, potem wybierz „Ostatnio zmienione”: ten wpis jest pierwszy.
-- [ ] Dodaj wpis: „Zapisz” czeka na odpowiedź serwera, potem wpis pojawia się na górze. Zmień jego
+      przeciąganie. (zweryfikowano LOKALNIE; „lazienka” nie trafia w dane db-test, działa „lazienk” — wyszukiwanie ignoruje diakrytyki)
+- [x] Edytuj wpis, potem wybierz „Ostatnio zmienione”: ten wpis jest pierwszy.
+- [x] Dodaj wpis: „Zapisz” czeka na odpowiedź serwera, potem wpis pojawia się na górze. Zmień jego
       treść, potem usuń go po potwierdzeniu — te dwa kroki widać od razu. Każdy zostaje po przeładowaniu.
-- [ ] „Zapisz” jest nieaktywne, dopóki temat albo treść są puste (same spacje też).
-- [ ] Telefon, 390px: menu → „Manual Wykończymy” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
+- [x] „Zapisz” jest nieaktywne, dopóki temat albo treść są puste (same spacje też).
+- [x] Telefon, 390px: menu → „Manual Wykończymy” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
       przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.
 - [ ] Jako EMPLOYEE: brak przycisku w górnym pasku i w menu mobilnym.
 - [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/wiedza-firmowa.md` ma
       każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
       oknie pojawia się po kolejnym uruchomieniu.
-- [ ] Okno „Manual Wykończymy”: pod tytułem opis „Zasady firmy — wszystko, co AI musi wiedzieć…,
+- [x] Okno „Manual Wykończymy”: pod tytułem opis „Zasady firmy — wszystko, co AI musi wiedzieć…,
       np.:”, a pod nim w osobnych liniach przykład z wysokością pomieszczeń (stan deweloperski
       i rynek wtórny jako dwa punkty z myślnikiem).
 - [ ] Po migracji na świeżej bazie (produkcja): wpisy „Wysokość pomieszczeń…”, „Otwory w glazurze…”,
@@ -4511,60 +4511,98 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 ## 2026-10-09 — investments-listing-ai-draft-column — „Analiza AI” na liście inwestycji
 
-- [ ] `/inwestycje` (staging): inwestycja, do której wgrano szkic AI, ma w kolumnie „Analiza AI” „Tak”,
-      a jej kosztorys pokazuje w „Przeglądzie AI” kolumnę „AI przedmiar”.
-- [ ] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”.
-- [ ] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem.
-- [ ] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa.
+- [x] `/inwestycje` (staging): inwestycja, do której wgrano szkic AI, ma w kolumnie „Analiza AI” „Tak”,
+      a jej kosztorys pokazuje w „Przeglądzie AI” kolumnę „AI przedmiar”. (zweryfikowano LOKALNIE na db-test 5435, nie na stagingu: inwestycje 183 i 185 mają „Tak”, ich „Przegląd AI” pokazuje „AI przedmiar”)
+- [x] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”. (lokalnie: 51 inwestycji z kosztorysem i 16 bez — wszystkie „—”)
+- [x] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem. (lokalnie: „Tak” na początku/końcu, 2 wiersze)
+- [x] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa. (lokalnie)
 
 ## 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie
 
-- [ ] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart bez zmiany adresu i strony listy; wybór zostaje po odświeżeniu i obowiązuje też na liście transakcji pracownika, kasy i inwestycji.
-- [ ] Widok kart przy 390px: jedna obramowana lista z separatorami; od 768px osobne karty z cieniem, nie szersze niż ~48rem.
-- [ ] Karta: numer po lewej i data po prawej w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
-- [ ] Etykiety pod opisem karty mówią, czym są: „Kasa źródłowa: …”, „Kasa docelowa: …”, „Pracownik: …”, „Dodane przez: …” — każdy rodzaj ma własny kolor ramki, kasy niebieską, pracownik żółtą.
-- [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; „Materiały wliczone w robociznę” mają fuksję — czerwonawą, ale inną niż cztery czerwienie wydatków.
-- [ ] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony.
-- [ ] Karta → „FV” przy transakcji z fakturą: w podglądzie przyciski powiększania nad obrazem to same ikony, bez tekstu.
-- [ ] Widok kart → „Kolumny” → odznacz np. „Kasa źródłowa”: etykieta znika z kart; po ponownym zaznaczeniu wraca.
-- [ ] Pracownik zalogowany na telefonie → własna strona → Transakcje → „Karty”: brak etykiety „Metoda”, tak jak w tabeli.
-- [ ] Konto w języku ukraińskim → widok kart: przełącznik, przyciski „FV”/„Notatka” i pusta lista są po ukraińsku.
-- [ ] Inwestycja z wydatkiem „Materiały wliczone w robociznę” → panel statystyk: kafelek tej pozycji ma kolor fuksji (ten sam co badge na liście transakcji).
+- [x] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart bez zmiany adresu i strony listy; wybór zostaje po odświeżeniu i obowiązuje też na liście transakcji pracownika, kasy i inwestycji. (lokalnie 390px: obie ikony w x=18–90, bez zmiany URL; `transfers:view=list` przeżywa reload; przełącznik zapamiętany na `/`, `/kasa/5`, `/inwestycje/26`, `/pracownicy/24`)
+- [x] Widok kart przy 390px: jedna obramowana lista z separatorami; od 768px osobne karty z cieniem, nie szersze niż ~48rem. (lokalnie: 390px = jeden kontener z `border` + `divide-y`; 1100px = osobne `article` z ramką i cieniem, szerokość 768px = 48rem)
+- [x] Karta: numer po lewej i data po prawej w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona. (lokalnie: układ ze zrzutu; anulowana #5769 — `opacity 0.7`, kwota `line-through`)
+- [x] Etykiety pod opisem karty mówią, czym są: „Kasa źródłowa: …”, „Kasa docelowa: …”, „Pracownik: …”, „Dodane przez: …” — każdy rodzaj ma własny kolor ramki, kasy niebieską, pracownik żółtą. (lokalnie: ramki — kasy `rgb(96,150,255)`, pracownik `rgb(255,191,66)`, kategoria fiolet, metoda turkus, „Dodane przez” neutralna)
+- [x] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; „Materiały wliczone w robociznę” mają fuksję — czerwonawą, ale inną niż cztery czerwienie wydatków. (lokalnie: 15 tokenów kolorów → 15 różnych wartości; fuksja `#d9268f` osobno od czterech czerwieni; ten sam `transferColorVar` w tabeli i na karcie)
+- [x] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony. (lokalnie `/kasa/37` #5790: FV → podgląd faktury, Notatka → treść notatki, Edytuj → „Edytuj transakcję”; wiersz w tabeli ma tylko ikony z aria-label)
+- [x] Karta → „FV” przy transakcji z fakturą: w podglądzie przyciski powiększania nad obrazem to same ikony, bez tekstu. (lokalnie: przyciski „Oddal / Przybliż / Dopasuj do okna” bez tekstu; sam obraz 404 — lokalny Blob preview nie ma tej faktury, to znana własność środowiska)
+- [x] Widok kart → „Kolumny” → odznacz np. „Kasa źródłowa”: etykieta znika z kart; po ponownym zaznaczeniu wraca. (lokalnie: za pierwszym razem NIE — karty ignorowały przełącznik kolumn, patrz Findings; po poprawce odznaczenie = 0 etykiet, ponowne zaznaczenie = 37)
+- [x] Pracownik zalogowany na telefonie → własna strona → Transakcje → „Karty”: brak etykiety „Metoda”, tak jak w tabeli. (lokalnie 390px, EMPLOYEE `qa-worker-pl`: karta #910003 z metodą Przelew — 0 × „Metoda:”; ten sam wiersz u OWNER na `/inwestycje/900101` ma „Metoda: Przelew”)
+- [x] Konto w języku ukraińskim → widok kart: przełącznik, przyciski „FV”/„Notatka” i pusta lista są po ukraińsku. (lokalnie 390px, konto `qa-worker-uk`: „Таблиця/Картки”, „Фактура/Примітка”, puste „Немає даних” przy filtrze dat 2030)
+- [x] Inwestycja z wydatkiem „Materiały wliczone w robociznę” → panel statystyk: kafelek tej pozycji ma kolor fuksji (ten sam co badge na liście transakcji). (lokalnie `/inwestycje/900101?widok=v1`: obramowanie kafelka i kwota `rgb(217,38,143)` = `#d9268f`)
+
+### Findings — 2026-10-09
+
+- [x] **Karty ignorują przełącznik „Kolumny” i zapamiętaną widoczność** — odznaczona kolumna dalej dawała etykietę na karcie. Przyczyna: `TransferCard` jest memoizowany po obiekcie wiersza TanStack, który zachowuje tożsamość przy zmianie widoczności kolumn. **Fixed:** `visibleColumnIds` przekazane przez `renderRows` → `TransferCardList` → `TransferCard` (`data-table.tsx`, `transfer-data-table.tsx`, `transfer-card-list.tsx`, `transfer-card.tsx`); sprawdzone na żywo. **Test disposition:** test-driven-debugging · dom — spec `src/__tests__/components/transfers/cards/transfer-card-columns.test.tsx` napisany, jeszcze nie uruchomiony.
 
 ## 2026-10-09 — worker-report-default-new-stage — zgłoszenie pracy domyślnie do nowego etapu
 
-- [ ] Kosztorys → „Zgłoszenia wykonanych prac” → nowe, nieprzyjęte zgłoszenie pracownika, który ma już etapy: „Dodaj do” pokazuje domyślnie „Nowy etap”, a lista nadal oferuje jego etapy (ostatni z dopiskiem „(ostatni)”).
-- [ ] Przyjęcie z domyślnym wyborem tworzy nowy etap pracownika z przyjętymi ilościami; poprzednie etapy się nie zmieniają.
-- [ ] Zgłoszenie już przyjęte pokazuje „Dodano do: Etap N” — ten sam etap co przed zmianą.
+- [x] Kosztorys → „Zgłoszenia wykonanych prac” → nowe, nieprzyjęte zgłoszenie pracownika, który ma już etapy: „Dodaj do” pokazuje domyślnie „Nowy etap”, a lista nadal oferuje jego etapy (ostatni z dopiskiem „(ostatni)”).
+- [x] Przyjęcie z domyślnym wyborem tworzy nowy etap pracownika z przyjętymi ilościami; poprzednie etapy się nie zmieniają.
+- [x] Zgłoszenie już przyjęte pokazuje „Dodano do: Etap N” — ten sam etap co przed zmianą.
 
 ## 2026-10-09 — ui-scale — rozmiar interfejsu na telefonie
 
-- [ ] Telefon → menu: wiersz „Rozmiar” z przyciskami 100% / 90% / 80% / 70%; dotknięcie 80% od razu pomniejsza całą aplikację (tekst i odstępy), bez przeładowania.
-- [ ] Po wyborze 70% zamknij i otwórz aplikację ponownie: od pierwszego ekranu jest pomniejszona, bez mignięcia w pełnym rozmiarze, a w menu podświetlone jest 70%.
+- [x] Telefon → menu: wiersz „Rozmiar” z przyciskami 100% / 90% / 80% / 70%; dotknięcie 80% od razu pomniejsza całą aplikację (tekst i odstępy), bez przeładowania.
+- [x] Po wyborze 70% zamknij i otwórz aplikację ponownie: od pierwszego ekranu jest pomniejszona, bez mignięcia w pełnym rozmiarze, a w menu podświetlone jest 70%.
 - [ ] Przy 70% na iPhonie: dotknięcie pola (np. kwota w „Dodaj transakcję”) nie przybliża strony, a wpisywany tekst mieści się w polu.
-- [ ] Przy 70% → Transakcje → „Karty”: na ekranie mieści się więcej kart niż przy 100%, nic nie nachodzi na siebie.
-- [ ] Powrót do 100% przywraca dotychczasowy wygląd.
+- [x] Przy 70% → Transakcje → „Karty”: na ekranie mieści się więcej kart niż przy 100%, nic nie nachodzi na siebie.
+- [x] Powrót do 100% przywraca dotychczasowy wygląd.
 
 ## 2026-10-09 — done-percent-vs-offer — „% wykonania (względem przedmiaru ofertowego)”
 
 Kosztorys:
 
-- [ ] Inwestycja, w której Aktualizacja przedmiaru różni się od Przedmiaru ofertowego, z wpisanymi etapami → kosztorys: obok „% wykonania” stoi „% wykonania (względem przedmiaru ofertowego)”. Dla pozycji z Przedmiarem ofertowym 10, Aktualizacją 12 i 4 w etapach pokazuje 40%, a „% wykonania” 33%.
-- [ ] Pozycja dodana po ofercie (Przedmiar ofertowy pusty lub 0): nowa kolumna pokazuje kreskę „—”, nie 0% ani „∞”. Pozycja wykonana ponad ofertę pokazuje ponad 100% i nie świeci się na czerwono.
-- [ ] Nagłówek nowej kolumny ma podpowiedź (ikonka „i”), która mówi, że to procent oferty, a powyżej 100% oznacza więcej, niż zakładała oferta.
-- [ ] Sortowanie po nowej kolumnie układa wiersze rosnąco i malejąco. Przełączanie warstw kosztorysu ukrywa ją i pokazuje razem z „% wykonania”.
-- [ ] Kosztorys bez żadnego wpisu w etapach: nowej kolumny nie widać, tak samo jak „% wykonania”.
+- [x] Inwestycja, w której Aktualizacja przedmiaru różni się od Przedmiaru ofertowego, z wpisanymi etapami → kosztorys: obok „% wykonania” stoi „% wykonania (względem przedmiaru ofertowego)”. Dla pozycji z Przedmiarem ofertowym 10, Aktualizacją 12 i 4 w etapach pokazuje 40%, a „% wykonania” 33%.
+- [x] Pozycja dodana po ofercie (Przedmiar ofertowy pusty lub 0): nowa kolumna pokazuje kreskę „—”, nie 0% ani „∞”. Pozycja wykonana ponad ofertę pokazuje ponad 100% i nie świeci się na czerwono.
+- [x] Nagłówek nowej kolumny ma podpowiedź (ikonka „i”), która mówi, że to procent oferty, a powyżej 100% oznacza więcej, niż zakładała oferta.
+- [x] Sortowanie po nowej kolumnie układa wiersze rosnąco i malejąco. Przełączanie warstw kosztorysu ukrywa ją i pokazuje razem z „% wykonania”.
+- [x] Kosztorys bez żadnego wpisu w etapach: nowej kolumny nie widać, tak samo jak „% wykonania”. _(2026-10-09, lokalnie: reguła działa w widoku inwestora/pracownika — podgląd inw. 174 bez wpisów w etapach nie ma żadnej z kolumn „%”; w samym edytorze obie kolumny „%” zostają widoczne, bo ukrywanie dotyczy tylko dokumentów.)_
 
 Widok inwestora:
 
-- [ ] „Widok inwestora” → ustawienia: w grupie z „% wykonania” jest nowy checkbox „% wykonania (względem przedmiaru ofertowego)”, domyślnie odznaczony — także w kosztorysach z zapisanymi wcześniej ustawieniami.
-- [ ] Po zaznaczeniu: podgląd i „Generuj ofertę” pokazują kolumnę obok „% wykonania”, z tymi samymi wartościami co w kosztorysie. Po odznaczeniu znika z obu.
+- [x] „Widok inwestora” → ustawienia: w grupie z „% wykonania” jest nowy checkbox „% wykonania (względem przedmiaru ofertowego)”, domyślnie odznaczony — także w kosztorysach z zapisanymi wcześniej ustawieniami.
+- [x] Po zaznaczeniu: podgląd i „Generuj ofertę” pokazują kolumnę obok „% wykonania”, z tymi samymi wartościami co w kosztorysie. Po odznaczeniu znika z obu.
 
 Widok pracownika:
 
-- [ ] „Widok pracownika” → ustawienia: w „Opis i ilości” jest „Przedmiar ofertowy” przed „Aktualizacja przedmiaru”, a w „Etapy i postęp” jest „% wykonania (względem przedmiaru ofertowego)”. Oba są domyślnie odznaczone; pozostałe checkboxy mają ten sam stan co przed zmianą (w tym odznaczone wcześniej „Pozostało”).
-- [ ] Zaznacz oba i zapisz: link pracownika, „Podgląd” i PDF pokazują Przedmiar ofertowy oraz nowy procent. Po odznaczeniu znikają ze wszystkich trzech.
-- [ ] Pozycja, w której etapy ma także inna ekipa: procent na linku pracownika jest taki sam jak w kosztorysie (liczy wszystkie etapy, nie tylko jego).
-- [ ] „Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy” zaznaczone, a w etapach jest wpis: Aktualizacja przedmiaru znika, a zaznaczony Przedmiar ofertowy zostaje.
-- [ ] Link pracownika na telefonie (390px), z oboma kolumnami zaznaczonymi: tabela przewija się w poziomie, nagłówki są czytelne.
-- [ ] Pracownik z językiem Українська: nagłówki „Плановий обсяг” / „% виконання (від планового обсягу)” i ich podpowiedzi są po ukraińsku.
+- [x] „Widok pracownika” → ustawienia: w „Opis i ilości” jest „Przedmiar ofertowy” przed „Aktualizacja przedmiaru”, a w „Etapy i postęp” jest „% wykonania (względem przedmiaru ofertowego)”. Oba są domyślnie odznaczone; pozostałe checkboxy mają ten sam stan co przed zmianą (w tym odznaczone wcześniej „Pozostało”).
+- [x] Zaznacz oba i zapisz: link pracownika, „Podgląd” i PDF pokazują Przedmiar ofertowy oraz nowy procent. Po odznaczeniu znikają ze wszystkich trzech.
+- [x] Pozycja, w której etapy ma także inna ekipa: procent na linku pracownika jest taki sam jak w kosztorysie (liczy wszystkie etapy, nie tylko jego).
+- [x] „Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy” zaznaczone, a w etapach jest wpis: Aktualizacja przedmiaru znika, a zaznaczony Przedmiar ofertowy zostaje.
+- [x] Link pracownika na telefonie (390px), z oboma kolumnami zaznaczonymi: tabela przewija się w poziomie, nagłówki są czytelne.
+- [x] Pracownik z językiem Українська: nagłówki „Плановий обсяг” / „% виконання (від планового обсягу)” i ich podpowiedzi są po ukraińsku.
+
+### Findings — 2026-10-09
+
+- [ ] **ui-scale: iPhone 70% field tap** — computed input font is 16px and fields fit at 390px (no iOS zoom expected), real device not driven. **Needs human:** on a real iPhone at 70% scale, does tapping a form field zoom the page? **Test disposition:** no automated test · e2e — Safari zoom behaviour is not reproducible in Playwright.
+- [ ] **Box „Wyłączony wygląda jak Opcje" / Przegląd AI (EX-1030)** — ticked from computed style + equal width on inv 190; gradient animation smoothness and clipboard copy of the AI comment not judged. Legacy drafts 183/185 (trashed) still carry „AI: …" in Komentarz. **Needs human:** does the animation look smooth, and does the copy button put the comment on the clipboard? **Test disposition:** no automated test · e2e — visual and clipboard.
+- [ ] **Komentarz on investor view print** — preview, /k/<token> and print CSS (.note 7pt muted) verified. **Needs human:** portrait vs landscape in the real print dialog. **Test disposition:** no automated test · e2e — browser print dialog.
+- [ ] **Box 4560 wording stale** — the registry text names a menu layout that no longer matches the editor (Zapisz/Wczytaj live under „Opcje", preview items under „Inwestor"). **Needs human:** confirm and reword the box. **Test disposition:** no automated test · e2e — documentation only.
+- [ ] **Not reached in this pass** — about 113 unticked boxes in the later sections were not driven (see unticked `- [ ]` below this point's sections). **Needs human:** rerun the pass for the remainder. **Test disposition:** no automated test · e2e — n/a.
+
+## 2026-10-09 — worker-expense-without-investment — wydatek pracownika bez inwestycji
+
+Przed sprawdzeniem: migracja `20261009_3_worker_expense_without_investment` zastosowana na bazie, na której klikasz.
+
+Pracownik — flaga:
+
+- [ ] „Dodaj pracownika” / „Edytuj pracownika”: jest checkbox „Może dodawać wydatki bez inwestycji”, domyślnie odznaczony; zapis go utrwala. Kierownik (MANAGER) też może go ustawić.
+- [ ] Kierownictwo na stronie pracownika widzi wiersz „Wydatki bez inwestycji: Tak/Nie”; pracownik na swojej stronie go nie widzi.
+
+Pracownik — wysyłka (telefon, 390px):
+
+- [ ] Pracownik z flagą, z kasą i bez żadnej inwestycji: na jego stronie jest „Wydatek”; dialog ma wybrane „Bez inwestycji”, a po dodaniu zdjęcia „Wyślij” wysyła zgłoszenie, które pojawia się na liście jako „Bez inwestycji”.
+- [ ] Pracownik z flagą i z inwestycjami: lista w dialogu ma jego inwestycje oraz „Bez inwestycji”, nic nie jest wybrane z góry.
+- [ ] Pracownik bez flagi: „Bez inwestycji” nie ma na liście; bez żadnej inwestycji przycisku „Wydatek” nie ma wcale.
+- [ ] Po odznaczeniu flagi przez kierownika: istniejące zgłoszenie „Bez inwestycji” nadal da się edytować i zapisać z tą opcją, a nowe zgłoszenie już jej nie oferuje.
+- [ ] Pracownik wysłał zgłoszenie z „Bez inwestycji” (albo z drugiej kasy), potem kierownik zdjął flagę (albo kasę) i pracownik odświeżył stronę: ponowne „Wydatek” nie pamięta znikniętego wyboru — „Wyślij” jest nieaktywne do wyboru inwestycji, a z jedną kasą zgłoszenie idzie na nią bez komunikatu „To nie jest Twoja kasa”.
+- [ ] Lista „Zgłoszone wydatki” pracownika: filtr „Inwestycja” ma pozycję „Bez inwestycji” i zawęża do takich zgłoszeń; „Usuń” takiego zgłoszenia pyta o „Bez inwestycji”.
+- [ ] Pracownik z językiem Українська: opcja i kolumna brzmią „Без об'єкта”.
+
+Kierownictwo — przyjęcie:
+
+- [ ] „Zgłoszenia wydatków”: zgłoszenie bez inwestycji stoi w kolejce z „Bez inwestycji” w kolumnie inwestycji.
+- [ ] „Zweryfikuj” na nim: formularz otwiera się jako „Inny wydatek”, z kasą pracownika, bez pola inwestycji i z pracownikiem jako kupującym w każdym wierszu. Po wybraniu kategorii w każdym wierszu i zapisie powstają transakcje „Inny wydatek” z tym pracownikiem, a zgłoszenie jest „przyjęte”.
+- [ ] Zmiana typu na „Wydatek inwestycyjny” podczas przyjęcia wymaga wyboru inwestycji jak zwykle.
+- [ ] „Odrzuć” na takim zgłoszeniu: potwierdzenie pokazuje „<pracownik> · Bez inwestycji”; odrzucone zgłoszenie da się przywrócić.

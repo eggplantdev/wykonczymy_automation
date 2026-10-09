@@ -96,8 +96,26 @@ describe('buildTransferLookups — a trashed worker', () => {
       trashedCashRegisters: [],
       trashedInvestments: [],
       investments: [],
-      workers: [{ id: 1, name: 'Jan Aktywny', role: 'EMPLOYEE', email: '', language: null }],
-      trashedWorkers: [{ id: 2, name: 'Piotr W Koszu', role: 'EMPLOYEE', email: '', language: null }],
+      workers: [
+        {
+          id: 1,
+          name: 'Jan Aktywny',
+          role: 'EMPLOYEE',
+          email: '',
+          language: null,
+          canAddExpensesWithoutInvestment: false,
+        },
+      ],
+      trashedWorkers: [
+        {
+          id: 2,
+          name: 'Piotr W Koszu',
+          role: 'EMPLOYEE',
+          email: '',
+          language: null,
+          canAddExpensesWithoutInvestment: false,
+        },
+      ],
       otherCategories: [],
       expenseCategories: [],
     },

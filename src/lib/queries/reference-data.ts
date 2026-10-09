@@ -84,7 +84,7 @@ export const fetchReferenceData = cache(
       `),
         db.execute(sql`
         SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer,
-               language, (trashed_at IS NOT NULL) AS trashed
+               language, can_add_expenses_without_investment, (trashed_at IS NOT NULL) AS trashed
         FROM users
         ORDER BY name
       `),
@@ -155,6 +155,7 @@ export const fetchReferenceData = cache(
             ? Number(row.default_cash_register_id)
             : undefined,
           language: toLanguage(row.language),
+          canAddExpensesWithoutInvestment: row.can_add_expenses_without_investment === true,
         } satisfies WorkerRefT,
       }))
       const [workers, trashedWorkers] = splitTrashed(workerRows)
@@ -183,7 +184,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v7'],
+    ['reference-data-v8'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,

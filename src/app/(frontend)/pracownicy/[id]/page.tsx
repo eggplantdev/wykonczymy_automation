@@ -115,6 +115,14 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ...(isManager ? [{ label: t('role'), value: t(ROLE_KEYS[role]) }] : []),
     { label: t('email'), value: worker.email },
     ...(isManager ? [{ label: t('status'), value: t(worker.active ? 'active' : 'inactive') }] : []),
+    ...(isManager
+      ? [
+          {
+            label: t('expensesWithoutInvestment'),
+            value: t(worker.canAddExpensesWithoutInvestment ? 'yes' : 'no'),
+          },
+        ]
+      : []),
     {
       label: t('defaultLanguage'),
       value: isOwnPage ? (
@@ -141,6 +149,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           investmentLinks={investmentLinks}
           sendableRegisters={sendableRegisters}
           defaultRegisterId={worker.defaultCashRegisterId}
+          canSkipInvestment={worker.canAddExpensesWithoutInvestment}
           locale={locale}
         />
       )}
@@ -162,6 +171,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         canSend={isOwnPage}
         canOpenTransfers={isManager}
         sendableRegisters={sendableRegisters}
+        canSkipInvestment={worker.canAddExpensesWithoutInvestment}
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />

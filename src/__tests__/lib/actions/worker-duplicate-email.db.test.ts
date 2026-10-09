@@ -33,6 +33,7 @@ describe.skipIf(!ENV_READY)('worker e-mail clash (DB)', () => {
     role: 'EMPLOYEE',
     active: true,
     language: null,
+    canAddExpensesWithoutInvestment: false,
   })
 
   const countWith = async (email: string) => {
