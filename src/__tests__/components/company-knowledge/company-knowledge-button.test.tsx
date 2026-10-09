@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
@@ -14,6 +14,14 @@ vi.mock('@/hooks/use-current-user', () => ({
 vi.mock('@/lib/queries/company-knowledge', () => ({
   fetchCompanyKnowledge: vi.fn(async () => ({ success: true, data: state.entries })),
 }))
+const actions = vi.hoisted(() => ({
+  createCompanyKnowledgeAction: vi.fn(),
+  updateCompanyKnowledgeAction: vi.fn(),
+  deleteCompanyKnowledgeAction: vi.fn(),
+  reorderCompanyKnowledgeAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/company-knowledge', () => actions)
+vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const entry = (id: number, topic: string, content: string): CompanyKnowledgeEntryT => ({
   id,
@@ -43,8 +51,27 @@ async function openBook() {
   return user
 }
 
+const REFUSED = { success: false, error: 'Błąd bazy danych', code: 'DATABASE_ERROR' } as const
+
+async function openLoadedBook() {
+  const user = await openBook()
+  await screen.findByText('Wysokość pomieszczeń')
+  return user
+}
+
+async function typeEntry(user: ReturnType<typeof userEvent.setup>, topic: string, content: string) {
+  const topicField = screen.getByPlaceholderText('Temat')
+  const contentField = screen.getByPlaceholderText('Treść')
+  await user.clear(topicField)
+  await user.type(topicField, topic)
+  await user.clear(contentField)
+  await user.type(contentField, content)
+  await user.click(screen.getByRole('button', { name: 'Zapisz' }))
+}
+
 describe('CompanyKnowledgeButton', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     state.role = 'MANAGER'
     state.entries = BOOK
   })
@@ -83,5 +110,49 @@ describe('CompanyKnowledgeButton', () => {
     await user.click(await screen.findByRole('option', { name: 'Alfabetycznie' }))
     expect(topics()).toEqual(['Akrylowanie', 'Bruzdy wod-kan', 'Wysokość pomieszczeń'])
     expect(grips()).toHaveLength(0)
+  })
+
+  it('puts a created entry on top once the server has given it an id', async () => {
+    actions.createCompanyKnowledgeAction.mockResolvedValue({ success: true, data: { id: 9 } })
+    const user = await openLoadedBook()
+    await user.click(screen.getByRole('button', { name: 'Dodaj wpis' }))
+    await typeEntry(user, 'Gruz', 'Dwa big bagi na łazienkę.')
+    expect(await screen.findByText('Gruz')).toBeInTheDocument()
+    expect(topics()[0]).toBe('Gruz')
+    expect(screen.queryByPlaceholderText('Temat')).not.toBeInTheDocument()
+    expect(grips()).toHaveLength(4)
+  })
+
+  it('keeps the typed entry in the form when the server refuses it', async () => {
+    actions.createCompanyKnowledgeAction.mockResolvedValue(REFUSED)
+    const user = await openLoadedBook()
+    await user.click(screen.getByRole('button', { name: 'Dodaj wpis' }))
+    await typeEntry(user, 'Gruz', 'Dwa big bagi na łazienkę.')
+    expect(await screen.findByDisplayValue('Gruz')).toBeInTheDocument()
+    expect(topics()).toEqual(['Wysokość pomieszczeń', 'Bruzdy wod-kan', 'Akrylowanie'])
+  })
+
+  it('puts a refused edit back and reopens the form with what was typed', async () => {
+    actions.updateCompanyKnowledgeAction.mockResolvedValue(REFUSED)
+    const user = await openLoadedBook()
+    await user.click(screen.getAllByRole('button', { name: 'Edytuj wpis' })[0])
+    await typeEntry(user, 'Wysokość', 'Zawsze 2,70 m.')
+    expect(await screen.findByDisplayValue('Zawsze 2,70 m.')).toBeInTheDocument()
+    expect(topics()).toEqual(['Bruzdy wod-kan', 'Akrylowanie'])
+    await user.click(screen.getByRole('button', { name: /Anuluj|Cancel/ }))
+    expect(topics()).toEqual(['Wysokość pomieszczeń', 'Bruzdy wod-kan', 'Akrylowanie'])
+  })
+
+  it('reloads the book when the entry was already deleted elsewhere', async () => {
+    actions.deleteCompanyKnowledgeAction.mockResolvedValue({
+      success: false,
+      error: 'Nie znaleziono',
+      code: 'NOT_FOUND',
+    })
+    const user = await openLoadedBook()
+    state.entries = [BOOK[2]]
+    await user.click(screen.getAllByRole('button', { name: 'Usuń wpis' })[1])
+    await user.click(await screen.findByRole('button', { name: 'Usuń' }))
+    await waitFor(() => expect(topics()).toEqual(['Akrylowanie']))
   })
 })

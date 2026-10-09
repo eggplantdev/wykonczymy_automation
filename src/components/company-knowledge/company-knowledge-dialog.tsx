@@ -8,7 +8,6 @@ import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 type PropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  // `null` while the book is loading.
   entries: CompanyKnowledgeEntryT[] | null
 }
 

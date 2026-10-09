@@ -3,7 +3,6 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 
-/** The whole book, in the order management dragged it into. */
 export async function listCompanyKnowledge(db: DbExecutorT): Promise<CompanyKnowledgeEntryT[]> {
   const result = await db.execute(sql`
     SELECT id, topic, content, updated_at
@@ -23,7 +22,7 @@ export async function nextTopDisplayOrder(db: DbExecutorT): Promise<number> {
   const result = await db.execute(sql`
     SELECT COALESCE(MIN(display_order), 0) - 1 AS next FROM company_knowledge
   `)
-  return Number(result.rows[0]?.next ?? 0)
+  return Number(result.rows[0].next)
 }
 
 // Writes `display_order` only: „Ostatnio zmienione” sorts on `updated_at`, and a drag that bumped it

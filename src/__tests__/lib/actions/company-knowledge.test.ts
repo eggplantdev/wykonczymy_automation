@@ -31,6 +31,7 @@ const {
   deleteCompanyKnowledgeAction,
   reorderCompanyKnowledgeAction,
 } = await import('@/lib/actions/company-knowledge')
+const { fetchCompanyKnowledge } = await import('@/lib/queries/company-knowledge')
 
 const sessionAs = (role: string) =>
   getCurrentUserJwt.mockResolvedValue({ id: 1, email: 'u@t.com', name: 'Test', role })
@@ -48,9 +49,10 @@ describe('company knowledge actions', () => {
     sessionAs('MANAGER')
   })
 
-  it('refuses every write from an EMPLOYEE session', async () => {
+  it('refuses every read and write from an EMPLOYEE session', async () => {
     sessionAs('EMPLOYEE')
     const results = [
+      await fetchCompanyKnowledge(),
       await createCompanyKnowledgeAction({ topic: 'Temat', content: 'Treść' }),
       await updateCompanyKnowledgeAction(1, { topic: 'Temat', content: 'Treść' }),
       await deleteCompanyKnowledgeAction(1),

@@ -13,7 +13,6 @@ type PropsT = {
   onDragEnd: () => void
   onEdit: () => void
   onDelete: () => void
-  // The inline form replaces the entry's text while it is being edited.
   editor?: ReactNode
 }
 

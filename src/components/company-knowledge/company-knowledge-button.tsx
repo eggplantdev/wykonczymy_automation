@@ -11,8 +11,8 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 
-// Placed twice — the top bar and the mobile menu — so it hides itself rather than trusting its
-// callers. `onOpen` lets the mobile menu close first: its drawer stacks above every dialog.
+// Placed twice — the top bar and the mobile menu — so it hides itself. `onOpen` lets the mobile menu
+// close first: its drawer stacks above every dialog.
 export function CompanyKnowledgeButton({
   onOpen,
   className,
@@ -32,11 +32,11 @@ export function CompanyKnowledgeButton({
     setOpen(true)
     const result = await settleAction(() => fetchCompanyKnowledge())
     if (result.success) {
-      setEntries(result.data ?? [])
+      setEntries(result.data)
       return
     }
     setOpen(false)
-    toastMessage(result.error ?? 'Nie udało się wczytać wiedzy firmowej', 'error', 4000)
+    toastMessage(result.error, 'error', 4000)
   }
 
   return (

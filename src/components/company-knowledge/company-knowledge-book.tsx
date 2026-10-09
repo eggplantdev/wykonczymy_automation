@@ -12,30 +12,35 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { Textarea } from '@/components/ui/textarea'
+import { useSearchFilter } from '@/hooks/use-search-filter'
 import {
   createCompanyKnowledgeAction,
   deleteCompanyKnowledgeAction,
   reorderCompanyKnowledgeAction,
   updateCompanyKnowledgeAction,
 } from '@/lib/actions/company-knowledge'
-import { foldText } from '@/lib/utils/fold-text'
+import { fetchCompanyKnowledge } from '@/lib/queries/company-knowledge'
+import { sameItems } from '@/lib/utils/same-items'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import type { FailureT } from '@/types/action'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 
 type DraftT = { id: number | null; topic: string; content: string }
+
 type SortT = 'manual' | 'alpha' | 'recent'
 
-const SORT_OPTIONS = [
+const SORT_OPTIONS: { value: SortT; label: string }[] = [
   { value: 'manual', label: 'Własna kolejność' },
   { value: 'alpha', label: 'Alfabetycznie' },
   { value: 'recent', label: 'Ostatnio zmienione' },
 ]
 
+const searchableText = (entry: CompanyKnowledgeEntryT) => `${entry.topic} ${entry.content}`
+
 const isSort = (value: string): value is SortT =>
   SORT_OPTIONS.some((option) => option.value === value)
 
-// Every write shows at once; a refused one puts the list back as it was before it.
 export function CompanyKnowledgeBook({
   initialEntries,
 }: {
@@ -43,17 +48,19 @@ export function CompanyKnowledgeBook({
 }) {
   const [entries, setEntries] = useState(initialEntries)
   const [draft, setDraft] = useState<DraftT | null>(null)
-  const [query, setQuery] = useState('')
   const [deleting, setDeleting] = useState<CompanyKnowledgeEntryT | null>(null)
   const [sort, setSort] = useState<SortT>('manual')
-  // Order shown while a drag is in flight; committed on drop.
   const [dragOrder, setDragOrder] = useState<number[] | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
+
+  const {
+    filteredData: filtered,
+    searchTerm,
+    setSearchTerm,
+  } = useSearchFilter(entries, searchableText)
+  const isSearching = searchTerm.trim() !== ''
 
   const byId = new Map(entries.map((entry) => [entry.id, entry]))
-  const needle = foldText(query.trim())
-  const filtered = needle
-    ? entries.filter((entry) => foldText(`${entry.topic} ${entry.content}`).includes(needle))
-    : entries
   const sorted =
     sort === 'alpha'
       ? filtered.toSorted((a, b) => a.topic.localeCompare(b.topic, 'pl'))
@@ -61,32 +68,39 @@ export function CompanyKnowledgeBook({
         ? filtered.toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))
         : filtered
   // A dragged position only means something against the whole list in its own order.
-  const canReorder = sort === 'manual' && !needle
+  const canReorder = sort === 'manual' && !isSearching
   const ids = dragOrder ?? sorted.map((entry) => entry.id)
 
   async function write(
     next: CompanyKnowledgeEntryT[],
-    call: () => Promise<{ success: boolean; error?: string }>,
-    failure: string,
+    call: () => Promise<{ success: true } | FailureT>,
   ) {
     const previous = entries
     setEntries(next)
     const result = await settleAction(call)
-    if (result.success) return true
-    setEntries(previous)
-    toastMessage(result.error ?? failure, 'error', 4000)
-    return false
+    if (result.success) return result
+    toastMessage(result.error, 'error', 4000)
+    // Refused because its entry is gone: the list on screen is stale — another manager deleted it —
+    // so the book is reloaded rather than put back with that entry still in it.
+    const fresh =
+      result.code === 'NOT_FOUND' ? await settleAction(() => fetchCompanyKnowledge()) : null
+    setEntries(fresh?.success ? fresh.data : previous)
+    return result
   }
 
   async function commitDrag() {
     if (!dragOrder) return
-    const order = dragOrder
     setDragOrder(null)
-    if (order.every((id, index) => entries[index]?.id === id)) return
+    if (
+      sameItems(
+        dragOrder,
+        entries.map((entry) => entry.id),
+      )
+    )
+      return
     await write(
-      order.flatMap((id) => byId.get(id) ?? []),
-      () => reorderCompanyKnowledgeAction(order),
-      'Nie udało się zapisać kolejności',
+      dragOrder.flatMap((id) => byId.get(id) ?? []),
+      () => reorderCompanyKnowledgeAction(dragOrder),
     )
   }
 
@@ -95,31 +109,26 @@ export function CompanyKnowledgeBook({
     const data = { topic: draft.topic.trim(), content: draft.content.trim() }
     if (!data.topic || !data.content) return
     const updatedAt = new Date().toISOString()
-    setDraft(null)
+    const { id } = draft
 
-    if (draft.id === null) {
-      const previous = entries
-      const tempId = -Date.now()
-      setEntries([{ id: tempId, ...data, updatedAt }, ...entries])
+    // Not optimistic: until the server answers there is no id to edit, delete or drag the entry by.
+    if (id === null) {
+      setIsCreating(true)
       const result = await settleAction(() => createCompanyKnowledgeAction(data))
-      if (!result.success) {
-        setEntries(previous)
-        toastMessage(result.error ?? 'Nie udało się dodać wpisu', 'error', 4000)
-        return
-      }
-      const { id } = result.data
-      setEntries((current) =>
-        current.map((entry) => (entry.id === tempId ? { ...entry, id } : entry)),
-      )
+      setIsCreating(false)
+      if (!result.success) return toastMessage(result.error, 'error', 4000)
+      setEntries((current) => [{ id: result.data.id, ...data, updatedAt }, ...current])
+      setDraft(null)
       return
     }
 
-    const id = draft.id
-    await write(
+    setDraft(null)
+    const result = await write(
       entries.map((entry) => (entry.id === id ? { ...entry, ...data, updatedAt } : entry)),
       () => updateCompanyKnowledgeAction(id, data),
-      'Nie udało się zapisać wpisu',
     )
+    // The typed text comes back with the error, unless the entry it edits no longer exists.
+    if (!result.success && result.code !== 'NOT_FOUND') setDraft(draft)
   }
 
   async function remove(entry: CompanyKnowledgeEntryT) {
@@ -127,7 +136,6 @@ export function CompanyKnowledgeBook({
     await write(
       entries.filter((existing) => existing.id !== entry.id),
       () => deleteCompanyKnowledgeAction(entry.id),
-      'Nie udało się usunąć wpisu',
     )
   }
 
@@ -150,6 +158,7 @@ export function CompanyKnowledgeBook({
         onConfirm={save}
         onCancel={() => setDraft(null)}
         confirmDisabled={!draft.topic.trim() || !draft.content.trim()}
+        pending={isCreating}
       />
     </div>
   )
@@ -158,8 +167,8 @@ export function CompanyKnowledgeBook({
     <>
       <div className="flex flex-wrap items-center gap-2">
         <SearchFilterInput
-          value={query}
-          onChange={setQuery}
+          value={searchTerm}
+          onChange={setSearchTerm}
           placeholder="Szukaj w tematach i treści"
           className="min-w-48 flex-1"
         />
@@ -187,7 +196,7 @@ export function CompanyKnowledgeBook({
       )}
       <motion.div layoutScroll className="min-h-0 overflow-y-auto">
         {sorted.length === 0 ? (
-          <EmptyState title={needle ? 'Nic nie pasuje do wyszukiwania' : 'Brak wpisów'} />
+          <EmptyState title={isSearching ? 'Nic nie pasuje do wyszukiwania' : 'Brak wpisów'} />
         ) : (
           <Reorder.Group
             axis="y"

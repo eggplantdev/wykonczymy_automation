@@ -1,9 +1,8 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// Wiedza firmowa (EX-1032): company rules that belong to no single praca, read by management and the
-// kosztorys agent. Seeded with the rules the agent learned in the AI-kosztorys tests, only while the
-// table is empty, so re-running it never duplicates or resurrects an entry somebody deleted.
+// Seeded with the rules the agent learned in the AI-kosztorys tests, only while the table is empty, so
+// re-running it never duplicates or resurrects an entry somebody deleted.
 //
 // Purely additive — the table does not exist before this migration, so prod migrates BEFORE the
 // code ships (AGENTS.md, Migrations).

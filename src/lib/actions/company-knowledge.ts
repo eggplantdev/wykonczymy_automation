@@ -10,7 +10,7 @@ const entrySchema = z.object({
   content: z.string().trim().min(1, 'Wpis musi mieć treść'),
 })
 
-export type CompanyKnowledgeDataT = z.input<typeof entrySchema>
+type CompanyKnowledgeDataT = z.input<typeof entrySchema>
 
 const idSchema = z.number().int().positive()
 
