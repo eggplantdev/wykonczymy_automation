@@ -22,8 +22,6 @@ dropped out. No verification skill pass (Step 0.5) — the manual checks are the
       overflows the stack on thousands of nested `(` and throws out of `onChange` — dropped: needs a pasted
       wall of parentheses, nobody types that.
       test: no automated test — unreachable in practice
-- [x] fixed · impl-review · `context/changes/2026-10-07-kosztorys-cell-arithmetic/change.md` · `worktree:`
-      pointed at a removed worktree — set to `null`.
 - [x] dismissed · impl-review · plan.md Phase 1 · code matches the plan's contract: plain parse first, the
       evaluator only on `invalid`, `roundToCents` reused, `parseDecimalInput`/`toMoney` untouched, the
       worker-report page keeps `parseDecimalInput`.

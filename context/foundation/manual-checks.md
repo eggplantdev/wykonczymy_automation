@@ -4431,19 +4431,6 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] iPhone, ikona na ekranie głównym: logo jest wyśrodkowane, z marginesem dookoła, nie dotyka krawędzi kafelka.
 - [ ] Aplikacja zainstalowana (Android i iPhone): obok hamburgera jest strzałka wstecz na każdej stronie; cofa do poprzedniej strony, a przy pierwszej stronie po otwarciu prowadzi na stronę główną. W zwykłej karcie przeglądarki strzałki nie ma.
 
-## 2026-10-07 — kosztorys-cell-arithmetic — działania w komórkach liczbowych kosztorysu
-
-- [x] Edytor kosztorysu → wpisz `3,5x2,8` w „Przedmiar” i Enter: w komórce zostaje `9,8`, „Wartość netto przedmiar” wiersza się przelicza.
-      Staging 2026-10-07 (173): komórka 9,8 (zapis w DB planned_qty=9.8); „Wartość netto przedmiar” nie przeliczona wizualnie (kolumna ukryta w widoku).
-- [x] Wpisz `=10/3` w „Cena j.m.”: zostaje `3,33`.
-      Staging 2026-10-07 (173): 3,33 (DB client_price=3.33), przez klawiaturę i przez input.
-- [x] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
-      Staging 2026-10-07 (173): komórka wraca do 0 i toast „Nieprawidłowa wartość — przywrócono 0.”.
-- [x] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
-      Staging 2026-10-07 (173): ClipboardEvent na zaznaczonej komórce Przedmiar → 7,5 (komórka etapu nie testowana: kolumny etapów nie były w widoku, ta sama ścieżka cellPaste).
-- [x] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.
-      Staging 2026-10-07 (173): 12,5 zapisane bez zmian.
-
 ## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
 
 - [x] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
