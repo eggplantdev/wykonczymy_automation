@@ -61,7 +61,7 @@ export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate
     )
     .filter((row) => !dismissed.has(rowKey(row)))
   if (rows.length === 0) {
-    return <p className="text-muted-foreground text-sm">Nie znaleziono podobnych wydatków.</p>
+    return null
   }
 
   // Only a confirmed match earns the alarm; „Ta sama kwota" alone stays as quiet as its row.

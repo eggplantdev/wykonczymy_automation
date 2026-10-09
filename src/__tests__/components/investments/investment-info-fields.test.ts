@@ -43,7 +43,6 @@ describe('buildInvestmentInfoFields', () => {
       phone: '',
       email: '',
       contactPerson: '',
-      notes: '',
       status: 'planowana',
       reviewRequested: false,
     })

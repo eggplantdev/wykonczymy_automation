@@ -114,8 +114,6 @@ export const CATALOGUE_PROBLEM_IDS = [
   CATALOGUE_DUPLICATE_ID,
 ]
 
-// Built off `data` on every load, so — unlike „Użycie" — a stored engagement always has its count to
-// narrow by and may persist with the rest.
 export function catalogueDuplicateCondition(
   nearDuplicates: ReadonlyMap<number, unknown>,
 ): CatalogueConditionT {
@@ -128,27 +126,30 @@ export function catalogueDuplicateCondition(
   }
 }
 
-// Built off a count taken on a click, so the group only exists once there is one — and its ids are
-// never persisted: after a reload there is no count to filter by, and a stored „nieużywane" would
-// either narrow by nothing or by a count nobody took.
-export function catalogueUsageConditions(usage: CatalogueUsageT | null): CatalogueConditionT[] {
-  if (!usage) return []
-  const isUsed = (entry: WorkCatalogueItemT) => (usage.byId[entry.id] ?? 0) > 0
+const usagePair = (
+  key: string,
+  group: string,
+  [none, some]: readonly [string, string],
+  isUsed: (entry: WorkCatalogueItemT) => boolean,
+): CatalogueConditionT[] => [
+  { id: `${key}-unused`, kind: 'filter', group, label: none, matches: (entry) => !isUsed(entry) },
+  { id: `${key}-used`, kind: 'filter', group, label: some, matches: isUsed },
+]
+
+export function catalogueUsageConditions(usage: CatalogueUsageT): CatalogueConditionT[] {
   return [
-    {
-      id: 'catalogue-usage-unused',
-      kind: 'filter',
-      group: 'Użycie',
-      label: 'nieużywane',
-      matches: (entry) => !isUsed(entry),
-    },
-    {
-      id: 'catalogue-usage-used',
-      kind: 'filter',
-      group: 'Użycie',
-      label: 'używane',
-      matches: isUsed,
-    },
+    ...usagePair(
+      'catalogue-usage',
+      'Kosztorysy',
+      ['w żadnym kosztorysie', 'w kosztorysach'],
+      (entry) => (usage.byId[entry.id] ?? 0) > 0,
+    ),
+    ...usagePair(
+      'catalogue-template',
+      'Szablony',
+      ['w żadnym szablonie', 'w szablonach'],
+      (entry) => (usage.templateNamesById[entry.id]?.length ?? 0) > 0,
+    ),
   ]
 }
 

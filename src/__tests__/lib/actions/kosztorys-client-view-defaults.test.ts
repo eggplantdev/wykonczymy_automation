@@ -52,7 +52,7 @@ describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
   it('stores the set as the firm-wide default, sanitized against the ceiling', async () => {
     const res = await saveClientViewDefaultsAction({
       ...SETTINGS,
-      hiddenColumns: [...SETTINGS.hiddenColumns, 'note'],
+      hiddenColumns: [...SETTINGS.hiddenColumns, 'aiPlannedQty'],
     })
 
     expect(res.success).toBe(true)

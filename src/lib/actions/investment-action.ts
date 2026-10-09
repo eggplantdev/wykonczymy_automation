@@ -40,6 +40,7 @@ export function investmentAction<TData = undefined>(
     payload: Payload
     user: SessionUserT
     investmentId: number
+    isTemplate: boolean
   }) => Promise<ActionResultT<TData>>,
   revalidate?: (keyof typeof CACHE_TAGS)[],
   opts?: { deferRefresh?: boolean; entityTags?: string[] },
@@ -80,7 +81,11 @@ export function investmentAction<TData = undefined>(
         return { success: false, error: gate.lockMessage } as ActionResultT<TData>
       }
 
-      const result = await handler({ ...ctx, investmentId: gate.investmentId })
+      const result = await handler({
+        ...ctx,
+        investmentId: gate.investmentId,
+        isTemplate: gate.isTemplate,
+      })
 
       // HERE because this is the one point every one of the few dozen ways to change the tree passes
       // through. Raw SQL, not `payload.update`: that would bump `updated_at`, the editor's remount

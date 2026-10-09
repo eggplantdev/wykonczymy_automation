@@ -1,7 +1,6 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import { WandSparkles } from 'lucide-react'
 import {
   DropdownMenuCheckboxRow,
   DropdownMenuLabel,
@@ -80,13 +79,10 @@ export function KosztorysViewMenu() {
     offerAvailable,
     offer,
     setOffer,
-    aiReviewAvailable,
-    aiReview,
-    setAiReview,
   } = useKosztorysEditorContext()
 
-  // „Oferta" is a closed column list: no tick and no axis would move a column, so only the two lenses
-  // stay — and the menu must stay, or there is no way back out of „Oferta".
+  // „Oferta" is a closed column list: no tick and no axis would move a column, so only the lens
+  // stays — and the menu must stay, or there is no way back out of „Oferta".
   const items = offer ? [] : columnToggleItems
 
   // Both axis controls belong to „Inwestor" alone, for two different reasons: subcontractors are paid
@@ -130,29 +126,15 @@ export function KosztorysViewMenu() {
       }
       sections={
         <>
-          {(offerAvailable || aiReviewAvailable) && (
+          {offerAvailable && (
             <>
               <DropdownMenuLabel>Widok</DropdownMenuLabel>
-              {offerAvailable && (
-                <DropdownMenuCheckboxRow
-                  checked={offer}
-                  onCheckedChange={setOffer}
-                  label="Oferta"
-                />
-              )}
-              {aiReviewAvailable && (
-                <DropdownMenuCheckboxRow
-                  checked={aiReview}
-                  onCheckedChange={setAiReview}
-                  label="Przegląd AI"
-                  trailing={<WandSparkles className="text-neon-cyan" />}
-                />
-              )}
+              <DropdownMenuCheckboxRow checked={offer} onCheckedChange={setOffer} label="Oferta" />
             </>
           )}
           {!offer && (
             <>
-              {(offerAvailable || aiReviewAvailable) && <DropdownMenuSeparator />}
+              {offerAvailable && <DropdownMenuSeparator />}
               {isClientView && (
                 <>
                   <AxisSection

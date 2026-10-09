@@ -29,10 +29,12 @@ export type CollisionChoiceT =
 export function CatalogueCollisionConfirm({
   existing,
   candidate,
+  allowKosztorysOnly,
   onChoose,
 }: {
   existing: WorkCatalogueItemT
   candidate: CataloguePricesT & { category: string }
+  allowKosztorysOnly: boolean
   onChoose: (choice: CollisionChoiceT) => void
 }) {
   // The katalog owns its klasyfikacja, so protecting it is the default.
@@ -74,9 +76,11 @@ export function CatalogueCollisionConfirm({
           <Button variant="outline" onClick={back}>
             Wróć
           </Button>
-          <Button variant="outline" onClick={() => onChoose({ kind: 'kosztorys-only' })}>
-            Tylko do kosztorysu
-          </Button>
+          {allowKosztorysOnly && (
+            <Button variant="outline" onClick={() => onChoose({ kind: 'kosztorys-only' })}>
+              Tylko do kosztorysu
+            </Button>
+          )}
           <Button
             variant="destructive"
             onClick={() => onChoose({ kind: 'overwrite', keepCatalogueCategory: keepCategory })}

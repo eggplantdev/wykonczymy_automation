@@ -3,7 +3,10 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { translationText } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
-import { ALL_TRANSLATION_COLUMN_KEYS, translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
+import {
+  ALL_TRANSLATION_COLUMN_KEYS,
+  translationColumnKey,
+} from '@/lib/kosztorys/translation-column-keys'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
@@ -262,16 +265,19 @@ const workNoteColumn = col.accessor((row) => row.workNote ?? '', {
   cell: (info) => <span className="text-muted-foreground block text-sm">{info.getValue()}</span>,
 })
 
-// Counts distinct inwestycje, not pozycje: a praca repeated across five łazienki of one mieszkanie is
-// still one kosztorys that would miss it. Absent until „Policz użycia" — a column of zeros before the
-// count would read as „nothing uses anything".
-const usageColumn = (usage: CatalogueUsageT) =>
-  col.accessor((row) => usage.byId[row.id] ?? 0, {
-    id: 'kosztorysCount',
-    header: 'Kosztorysy',
-    meta: { align: 'right' },
+// Both count distinct inwestycje, not pozycje: a praca repeated across five łazienki of one
+// mieszkanie is still one kosztorys that would miss it.
+const countColumn = (id: string, header: string, tooltip: string, count: (id: number) => number) =>
+  col.accessor((row) => count(row.id), {
+    id,
+    header,
+    meta: { align: 'right', tooltip },
     cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
   })
+
+const KOSZTORYS_COUNT_TOOLTIP =
+  'W ilu inwestycjach praca ma Przedmiar albo ilość w etapach. Liczone tylko z kosztorysów ' +
+  'w aplikacji — stare arkusze Google się nie liczą, więc praca używana tylko tam ma tu 0.'
 
 export function getWorkCatalogueColumns({
   categorySuggestions,
@@ -281,12 +287,12 @@ export function getWorkCatalogueColumns({
 }: {
   categorySuggestions: readonly string[]
   ordinals: ReadonlyMap<number, number>
-  usage: CatalogueUsageT | null
+  usage: CatalogueUsageT
   nearDuplicates: DescriptionMarksT['nearDuplicates']
 }) {
   return [
     lpColumn(ordinals),
-    descriptionColumnWith({ otherUnitIds: new Set(usage?.otherUnitIds), nearDuplicates }),
+    descriptionColumnWith({ otherUnitIds: new Set(usage.otherUnitIds), nearDuplicates }),
     ...translationColumns,
     categoryColumn,
     unitColumn,
@@ -298,14 +304,29 @@ export function getWorkCatalogueColumns({
     ownToolsRateColumn,
     ownToolsShareColumn,
     workNoteColumn,
-    ...(usage ? [usageColumn(usage)] : []),
+    countColumn(
+      'kosztorysCount',
+      'Kosztorysy',
+      KOSZTORYS_COUNT_TOOLTIP,
+      (id) => usage.byId[id] ?? 0,
+    ),
+    countColumn(
+      'templateCount',
+      'Szablony',
+      'W ilu szablonach stoi ta praca.',
+      (id) => usage.templateNamesById[id]?.length ?? 0,
+    ),
 
     col.display({
       id: 'actions',
       header: 'Akcje',
       meta: { align: 'right' },
       cell: (info) => (
-        <CatalogueRowActions item={info.row.original} categorySuggestions={categorySuggestions} />
+        <CatalogueRowActions
+          item={info.row.original}
+          categorySuggestions={categorySuggestions}
+          templateNames={usage.templateNamesById[info.row.original.id] ?? []}
+        />
       ),
     }),
   ]

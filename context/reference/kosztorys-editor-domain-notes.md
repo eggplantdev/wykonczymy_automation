@@ -334,6 +334,14 @@ Reguły, które trzymają to razem:
 - **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
   zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
   allowlistę, z rabatem włącznie.
+- **Nowa kolumna w allowliście pojawia się zaznaczona wszędzie, gdzie zestaw jest zapisany.**
+  Przechowywany jest zestaw UKRYTY, więc każda inwestycja z zapisaną tablicą `hidden_columns` —
+  i domyślny zestaw firmy w `kosztorys_client_view_defaults` — pokaże ją od razu. Kolumna, która ma
+  być domyślnie odznaczona, potrzebuje migracji danych dopisującej jej id do każdej tablicy
+  `hidden_columns` w obu tabelach; NULL już czyta domyślny zestaw z kodu. Tak weszły
+  `currentPlannedNet` (`20261007_1_add_current_planned_qty`) i `note`
+  (`20261008_1_client_view_note_hidden`). Stary kod jest na nią obojętny — `sanitizeClientViewSettings`
+  odrzuca klucz spoza allowlisty — więc migracja może iść przed wdrożeniem albo po nim.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
@@ -1081,7 +1089,36 @@ padły wprost od właściciela, nie są domysłem implementacji:
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
 
-### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01)
+### Szablon = lista prac z katalogu; pozycja pamięta swój wpis (EX-1017, 2026-10-08)
+
+**Odwraca decyzję z 2026-10-01 niżej** — zostaje ona jako zapis powodów, na które ten model odpowiada.
+Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w szablonie (big bag 450 vs
+600, „Kosztorys 2026 kolory" nadpisany z kosztorysu klienta) była skutkiem dwóch niezależnych kopii.
+
+- **Miękka referencja, bez FK:** `kosztorys_items.catalogue_item_id`. Martwe id znaczy „nic" — snapshot
+  z usuniętym wpisem przywraca się bez 23503, usunięcie z katalogu nie pisze w zamknięte inwestycje.
+  Odczyt: najpierw zapamiętany wpis, potem klucz opis + j.m. (`resolveCatalogueEntry`) — jedna reguła
+  dla porównania, „już w kosztorysie", zamiany w zgłoszeniu, licznika użycia i „Komentarza do pracy".
+- **Szablon czyta katalog na żywo** (nakładka tylko na wiersze szablonu): opis, j.m., Cena j.m.,
+  stawki, tłumaczenia, komentarz do pracy. Edycja tych pól w szablonie zapisuje się w katalogu,
+  a więc we wszystkich szablonach z tą pracą. Przemianowanie, które trafiłoby w cudzy klucz, jest
+  odmawiane przed pierwszym zapisem. Kolumny „Komentarz" szablon nie ma.
+- **Kosztorys zostaje kopią.** Zapis w katalogu nigdy nie płynie do kosztorysu; pamięta on wpis tylko
+  po to, by „Aktualizuj pozycję w katalogu prac" trafiła w tę samą pracę po przemianowaniu w katalogu.
+- **Zmieniony opis w kosztorysie = inna praca** — „Zapisz jako nową pracę", stary wpis zostaje, pozycja
+  przepina się na nowy. Kosztorys nigdy nie przemianowuje wpisu katalogu (zmieniłby pracę we
+  wszystkich szablonach). Okno mówi, które szablony zmieni aktualizacja.
+- **„Zapisz jako szablon" / „Nadpisz" bierze tylko prace z katalogu.** Wpisane ręcznie są pomijane
+  z komunikatem „Pominięto N prac spoza katalogu…" — nie trafiają do katalogu same, bo wciągnęłyby
+  cenę klienta do cennika.
+- **Katalog ostrzega:** edycja i usunięcie wpisu wymieniają szablony, które go mają; usunięcie zabiera
+  pracę także ze szablonów (również w koszu). Kosztorysy zachowują kopię.
+- Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
+- Istniejące pozycje dostały link jednorazowo, po opisie + j.m.
+  (`src/scripts/link-kosztorys-items-to-catalogue.ts`); wiersz szablonu tylko przy zgodności we
+  wszystkich polach katalogu.
+
+### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01) — ODWRÓCONE przez EX-1017
 
 Link `kosztorys_items` → `work_catalogue_items` (nullable FK) był proponowany **dwa razy** i dwa razy
 odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko w `3baa7e09`) oraz
@@ -1507,7 +1544,7 @@ stays live and overrides positions, so a move in „Ustaw kolejność…" would 
 one order. It lives in the column header, not the section menu, because one section can't be sorted
 in isolation.
 
-## Katalog prac: Filtry, Problemy i „Policz użycia" (2026-09-29, EX-863 / EX-873)
+## Katalog prac: Filtry, Problemy i kolumny użycia (2026-09-29, EX-863 / EX-873)
 
 `/katalog-prac` dostał te same dwa menu co edytor i tę samą semantykę: w „Filtrach" zaznaczone =
 widoczne, a włączony filtr chowa swoje trafienia; „Problemy" są wyłączne i włączony problem
@@ -1524,17 +1561,21 @@ szukanie czy „Kategoria". Obok „Kategorii" stoi filtr „j.m.", a pusta j.m.
 - **Problemy to „bez ceny j.m." i „stawka 0 zł" na każdej płaszczyźnie.** Stawka 0 liczy się tylko
   przy kwocie albo mnożniku, bo przy „auto" zera nikt nie wpisał.
 
-**„Policz użycia" — co znaczy „używana".** Praca z katalogu jest używana w inwestycji, gdy któraś
+**Kolumna „Kosztorysy" — co znaczy „używana".** Praca z katalogu jest używana w inwestycji, gdy któraś
 pozycja jej kosztorysu ma przedmiar > 0 albo postęp na którymkolwiek etapie. Dopasowanie idzie po
 kluczu opis + j.m., tak jak porównanie z katalogiem. Wyceny się liczą. Poza zakresem są inwestycje
 w koszu i o statusie „szablon". Liczba w kolumnie „Kosztorysy" to **liczba różnych inwestycji**, nie
 pozycji: praca powtórzona w pięciu łazienkach jednego mieszkania to dalej jeden kosztorys.
 
-- **Na kliknięcie, nie przy wejściu.** Odczyt przechodzi przez wszystkie kosztorysy, a odpowiedź
-  ma wartość tylko dla kogoś, kto właśnie porządkuje cennik. Ponowne kliknięcie liczy od nowa.
-- **Grupa „Użycie" nie jest zapamiętywana.** Po przeładowaniu nie ma liczby, po której dałoby się
-  filtrować. Zapamiętane „nieużywane" filtrowałoby więc albo po niczym, albo po liczbie, której
-  nikt nie policzył. Dlatego zwykłe filtry siedzą w localStorage, a „Użycie" tylko w stanie strony.
+- **Liczone przy każdym wejściu (od 2026-10-08), nie na kliknięcie.** Przycisk „Policz użycia"
+  zniknął. Odczyt trwa ~0,1 s na całym dumpie produkcji, więc oszczędzał niewiele. Licznik idzie
+  razem z cennikiem, który strona pokazuje, więc praca dodana przed chwilą nigdy nie dostaje
+  przestarzałego „0". Grupy „Kosztorysy" i „Szablony" w „Filtrach" są więc zapamiętywane jak każdy inny filtr.
+- **Tylko kosztorysy w aplikacji.** Stare arkusze Google się nie liczą (zostaną wycofane), więc
+  praca używana tylko tam ma w kolumnie 0. Nagłówek kolumny mówi to w podpowiedzi. Dokładniejszy
+  licznik (stare arkusze, inne nazwy) to EX-1010.
+- **Obok kolumna „Szablony"** pokazuje, w ilu żywych szablonach stoi praca. Liczone po dowiązaniu do
+  katalogu, a każdy szablon raz, niezależnie od liczby sekcji.
 - **Podpowiedzi nigdy się nie liczą.** Lista „Używane, a brak w katalogu" pokazuje przy każdej
   pracy do trzech kandydatów z katalogu („może chodzi o…"). To tylko wskazówka: kolumna „Kosztorysy"
   liczy wyłącznie dokładne dopasowania, bo bliskie trafienie zawyżyłoby wpis, którego nikt nie użył.

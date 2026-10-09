@@ -54,7 +54,7 @@ describe('workshop columns', () => {
   // reorders columns it is allowed to keep. Same localStorage, same missing control — the reorder
   // dialog and its reset both live in KosztorysViewMenu, which the workbench hides.
   it('ignores a stored column order set on some other kosztorys', () => {
-    expect(workshopIds({ columnRanks: { note: 0, description: 1, sectionName: 2 } })).toEqual(
+    expect(workshopIds({ columnRanks: { workNote: 0, description: 1, sectionName: 2 } })).toEqual(
       workshopIds(),
     )
   })
@@ -76,6 +76,12 @@ describe('workshop columns', () => {
   // shown there too.
   it('shows the Komentarz do pracy', () => {
     expect(workshopIds()).toContain('workNote')
+  })
+
+  // A szablon is a list of katalog prace (EX-1017); a row's own Komentarz would be the one thing on
+  // it the katalog does not own.
+  it('has no per-row Komentarz', () => {
+    expect(workshopIds()).not.toContain('note')
   })
 
   it('carries each crew rate beside its source, on every plane', () => {

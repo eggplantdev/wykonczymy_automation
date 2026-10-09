@@ -34,6 +34,15 @@ export const DESCRIPTION_COLUMN: PrintColumnT = {
   cell: (row) => escapeHtml(row.description ?? ''),
 }
 
+export const NOTE_COLUMN: PrintColumnT = {
+  key: 'note',
+  label: 'Komentarz',
+  colClass: 'c-note',
+  cellClass: 'desc note',
+  headerClass: '',
+  cell: (row) => escapeHtml(row.note ?? ''),
+}
+
 export const PLANNED_QTY_COLUMN: PrintColumnT = {
   key: 'plannedQty',
   label: POLISH_GRID.t('plannedQty'),

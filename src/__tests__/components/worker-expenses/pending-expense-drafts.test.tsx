@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -13,12 +13,18 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
   useRouter: () => ({ refresh: vi.fn() }),
 }))
-const { readExpenseDraftAction } = vi.hoisted(() => ({ readExpenseDraftAction: vi.fn() }))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
-  readExpenseDraftAction,
+const { readExpenseDraftAction, rejectExpenseDraftAction } = vi.hoisted(() => ({
+  readExpenseDraftAction: vi.fn(),
   rejectExpenseDraftAction: vi.fn(),
 }))
+vi.mock('@/lib/actions/worker-expense-drafts', () => ({
+  readExpenseDraftAction,
+  rejectExpenseDraftAction,
+}))
 vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
+vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
+  findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
+}))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const draft: ExpenseDraftRowT = {
@@ -82,5 +88,33 @@ describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
 
     expect(await screen.findByRole('textbox', { name: 'Opis' })).toBeEnabled()
     expect(toastMessage).toHaveBeenCalledWith('Brak uprawnień', 'warning')
+  })
+})
+
+describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 404 })),
+    )
+  })
+
+  it('otwiera dialog bez zapisu i bez odczytu, a zgłoszenie da się odrzucić', async () => {
+    rejectExpenseDraftAction.mockResolvedValue({ success: true, data: undefined })
+    render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
+
+    expect(await screen.findByRole('button', { name: 'Zapisz' })).toBeDisabled()
+    expect(toastMessage).toHaveBeenCalledWith(expect.stringContaining('zdjęć'), 'warning')
+    expect(readExpenseDraftAction).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Odrzuć' }))
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odrzuć' }),
+    )
+
+    expect(rejectExpenseDraftAction).toHaveBeenCalledWith(draft.id, undefined)
   })
 })

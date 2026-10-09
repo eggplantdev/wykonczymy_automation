@@ -10,9 +10,9 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// „Policz użycia" counts a praca as used only where real work was offered or measured; a szablon or
-// an inwestycja in the kosz counted in would inflate every figure with pozycje nobody sold. The kosz
-// exclusion can only be proved here — the local dump has no trashed inwestycje.
+// „Kosztorysy" counts a praca as used only where real work was offered or measured; a szablon or
+// an inwestycja in the kosz counted in would inflate every figure with pozycje nobody sold. The
+// kosz exclusion can only be proved here — the local dump has no trashed inwestycje.
 
 vi.mock('server-only', () => ({}))
 

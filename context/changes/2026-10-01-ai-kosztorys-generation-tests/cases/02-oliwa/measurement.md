@@ -7,7 +7,7 @@ Scripts: `scripts/geometry.py` (calibration + areas), `scripts/build_draft.py` (
 
 Raster furnishing plan (screenshot). No printed room m², no Hpom, no window/door heights. It does print
 7 dimensions, so pixel measurement is allowed after calibration (procedure rule 3). Every quantity is
-labelled read / measured / assumed in `measure/ai-draft.json`.
+recorded in `measure/ai-draft-load.json` — assumptions and unknowns per row (see the reanalysis at the end).
 
 ## 2. Scale calibration
 
@@ -156,3 +156,17 @@ Tynkowanie bruzd = 32,5 mb.
 1 new unpriced position (maskownica GK, 6,03 mb, „brak w katalogu — do wyceny”). The total
 understates the job by that position: 663 zł at 110 zł/mb (the 53061 sztukateria cover) up to
 2 111 zł at 350 zł/mb (the 53089 GK zabudowa).
+
+## Reanalysis under „the agent may assume, and writes every assumption” (2026-10-09)
+
+`scripts/build_draft.py` now writes the `load-ai-draft` shape directly (`measure/ai-draft.json`, the
+intermediate with `source`, is gone). Each row carries its assumptions and unknowns; a row read off the
+rzut or the client's text carries neither. One quantity input changed: **H = 2,68 m**, not 2,65. The rzut
+prints no height, and the inquiry describes the developer's kaloryfer and tynki, so this is stan deweloperski,
+which Wiedza firmowa sets at 2,68. Walls are now 90,36 m² net, gładź walls 77,01 m², and łazienka wall tiles
+22,14 m².
+
+**51 rows, 39 375,48 zł** (+170,33 zł from the height): 31 with an assumption, 18 with an unknown,
+1 unpriced (the maskownica GK). It loads into **#180 itself**, next to the owner's Przedmiar: the matched
+pozycje get AI przedmiar and the maskownica is added with Przedmiar 0.
+Not loaded yet: production lacks the AI-comment migration until the human-run migrate.

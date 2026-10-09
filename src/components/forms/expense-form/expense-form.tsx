@@ -87,6 +87,9 @@ type TransferFormPropsT = {
   prefill?: ExpenseFormPrefillT
   // The prefill's read is still in flight; the form locks so the refill can't overwrite typing.
   isPrefillReading?: boolean
+  // The save uploads the prefill's files as the expense's invoices; without them it would book one
+  // with none.
+  isSaveBlocked?: boolean
   secondaryAction?: React.ReactNode
   // `duplicateOf` when the last row went as a duplicate — it takes the whole zgłoszenie with it.
   onRemoveLastItem?: (duplicateOf?: DuplicateOfT) => void
@@ -106,6 +109,7 @@ export function ExpenseForm({
   formId = FORM_ID,
   prefill,
   isPrefillReading = false,
+  isSaveBlocked = false,
   secondaryAction,
   onRemoveLastItem,
   renderAboveLineItems,
@@ -225,6 +229,7 @@ export function ExpenseForm({
         toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
         return false
       }
+      if (isSaveBlocked) return false
 
       const type = value.type as TransferTypeT
       const data: CreateBulkExpenseFormT = {
@@ -457,7 +462,7 @@ export function ExpenseForm({
       <FormFooter
         className="mt-6"
         label="Zapisz"
-        disabled={isIngesting || isPrefillReading}
+        disabled={isIngesting || isPrefillReading || isSaveBlocked}
         secondaryAction={secondaryAction}
       />
     </FormShell>

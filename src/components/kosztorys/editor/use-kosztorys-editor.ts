@@ -470,8 +470,9 @@ export function useKosztorysEditor({
     return buildCatalogueComparison(rows, workCatalogue, {
       wToolsCoeff: rows[0].globalWToolsCoeff,
       ownToolsCoeff: rows[0].globalOwnToolsCoeff,
+      linkedRowsAreCatalogue: isTemplate,
     })
-  }, [preview, rows, workCatalogue])
+  }, [preview, rows, workCatalogue, isTemplate])
 
   const catalogueRowIds = useMemo(
     () =>

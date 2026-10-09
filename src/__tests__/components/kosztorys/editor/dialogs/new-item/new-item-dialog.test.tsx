@@ -47,6 +47,7 @@ function renderDialog(placement: NewItemPlacementT = { kind: 'end', sectionId: 3
       sectionName={SECTION}
       anchorDescription="Skucie płytek"
       workCatalogue={[CATALOGUE_ENTRY]}
+      isTemplate={false}
       kosztorysUnits={[]}
       onPlaced={onPlaced}
       onStaleTree={onStaleTree}

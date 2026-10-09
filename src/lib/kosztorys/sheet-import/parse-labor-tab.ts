@@ -193,6 +193,7 @@ export function parseLaborTab(
         readsStages,
       ),
       note: null,
+      catalogueItemId: null,
       aiPlannedQty: null,
       changeReason: null,
       reviewStatus: null,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo } from 'react'
 import { Ruler, Tags } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -17,7 +17,6 @@ import {
 } from '@/components/work-catalogue/catalogue-active-filters-model'
 import { CatalogueFiltersMenu } from '@/components/work-catalogue/catalogue-filters-menu'
 import { catalogueFiltersMenuModel } from '@/components/work-catalogue/catalogue-filters-menu-model'
-import { CountUsageButton } from '@/components/work-catalogue/count-usage-button'
 import { countNeedingTranslation } from '@/lib/i18n/description-translations'
 import { FillCatalogueTranslationsButton } from '@/components/work-catalogue/fill-catalogue-translations-button'
 import { UncataloguedUsageList } from '@/components/work-catalogue/uncatalogued-usage-list'
@@ -56,7 +55,12 @@ const getCategory = (row: WorkCatalogueItemT) => row.category ?? ''
 
 const getUnit = (row: WorkCatalogueItemT) => row.unit
 
-export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] }) {
+type PropsT = {
+  data: WorkCatalogueItemT[]
+  usage: CatalogueUsageT
+}
+
+export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   const {
     engagedIds,
     toggle: toggleCondition,
@@ -68,49 +72,11 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
   const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
 
-  const [usage, setUsage] = useState<CatalogueUsageT | null>(null)
-  // Beside the persisted set, never in it — see `catalogueUsageConditions`.
-  const [engagedUsageIds, setEngagedUsageIds] = useState<ReadonlySet<string>>(new Set())
-  // A count taken before the cennik changed would show a praca added since as „0" and match it to
-  // „nieużywane" — exactly what someone pruning the cennik deletes. Dropped, not kept: re-count.
-  const [countedFor, setCountedFor] = useState(data)
-  if (countedFor !== data) {
-    setCountedFor(data)
-    setUsage(null)
-    setEngagedUsageIds(new Set())
-  }
-  const usageConditions = catalogueUsageConditions(usage)
-  const isUsageId = (id: string) => usageConditions.some((condition) => condition.id === id)
   const conditions = [
     ...CATALOGUE_CONDITIONS,
     catalogueDuplicateCondition(nearDuplicates),
-    ...usageConditions,
+    ...catalogueUsageConditions(usage),
   ]
-  const allEngagedIds = new Set([...engagedIds, ...engagedUsageIds])
-
-  function setUsageEngaged(ids: readonly string[], engaged: boolean) {
-    setEngagedUsageIds((prev) => {
-      const next = new Set(prev)
-      for (const id of ids) {
-        if (engaged) next.add(id)
-        else next.delete(id)
-      }
-      return next
-    })
-  }
-
-  function toggleFilter(id: string) {
-    if (isUsageId(id)) setUsageEngaged([id], !engagedUsageIds.has(id))
-    else toggleCondition(id)
-  }
-
-  function setFiltersEngaged(ids: readonly string[], engaged: boolean) {
-    setUsageEngaged(ids.filter(isUsageId), engaged)
-    setMany(
-      ids.filter((id) => !isUsageId(id)),
-      engaged,
-    )
-  }
 
   // Every control ANDs, so the order only decides what gets recomputed: search runs first because it
   // folds its haystacks once per input array, and a condition toggle would otherwise refold them all.
@@ -120,7 +86,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(data, getSearchableText)
-  const conditioned = applyCatalogueConditions(searched, conditions, allEngagedIds)
+  const conditioned = applyCatalogueConditions(searched, conditions, engagedIds)
   const {
     filteredData: categorised,
     values: categories,
@@ -135,7 +101,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   const counts = countCatalogueConditions(data, conditions)
   const filterToggles = catalogueFiltersMenuModel({
     conditions,
-    engagedIds: allEngagedIds,
+    engagedIds,
     counts,
   })
   const problemToggles = catalogueProblemsMenuModel({ conditions, engagedIds, counts })
@@ -153,7 +119,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
 
   const chips = catalogueActiveFiltersModel({
     conditions,
-    engagedIds: allEngagedIds,
+    engagedIds,
     counts,
     search: searchTerm,
     categories: { values: categories, options: categoryOptions },
@@ -162,7 +128,6 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
 
   function resetFilters() {
     clearConditions()
-    setEngagedUsageIds(new Set())
     setSearchTerm('')
     setCategories([])
     setUnits([])
@@ -171,7 +136,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   function removeChip(chip: CatalogueActiveFilterChipT) {
     switch (chip.removal) {
       case 'condition':
-        return toggleFilter(chip.id)
+        return toggleCondition(chip.id)
       case 'problem':
         return toggleExclusive(chip.id, CATALOGUE_PROBLEM_IDS)
       case 'search':
@@ -196,7 +161,13 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   )
 
   const columns = useMemo(
-    () => getWorkCatalogueColumns({ categorySuggestions, ordinals, usage, nearDuplicates }),
+    () =>
+      getWorkCatalogueColumns({
+        categorySuggestions,
+        ordinals,
+        usage,
+        nearDuplicates,
+      }),
     [categorySuggestions, ordinals, usage, nearDuplicates],
   )
 
@@ -250,9 +221,9 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
                 />
                 <CatalogueFiltersMenu
                   toggles={filterToggles}
-                  onToggle={toggleFilter}
+                  onToggle={toggleCondition}
                   // Ticked = visible, so „all ticked" means none engaged.
-                  onToggleAll={(ids, visible) => setFiltersEngaged(ids, !visible)}
+                  onToggleAll={(ids, visible) => setMany(ids, !visible)}
                   resetAction={{
                     label: 'Zresetuj filtry',
                     onReset: resetFilters,
@@ -271,7 +242,6 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
             }
             actions={
               <>
-                <CountUsageButton onCounted={setUsage} />
                 <FillCatalogueTranslationsButton count={countNeedingTranslation(data)} />
                 <AddCatalogueItemDialog categorySuggestions={categorySuggestions} />
               </>
@@ -279,7 +249,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
           />
         )}
       />
-      {usage && <UncataloguedUsageList groups={usage.uncatalogued} />}
+      <UncataloguedUsageList groups={usage.uncatalogued} />
     </>
   )
 }

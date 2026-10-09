@@ -30,6 +30,7 @@ import {
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
 import {
   AI_REVIEW_COLUMN_CLASS,
+  aiCommentColumn,
   reviewStatusColumn,
   workNoteColumn,
 } from '@/components/kosztorys/editor/grid/cells/ai-review-columns'
@@ -199,6 +200,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           ...AI_REVIEW_COLUMN_CLASS,
         },
         { ...resolvedColumn('aiPlannedNet'), ...AI_REVIEW_COLUMN_CLASS },
+        aiCommentColumn(columnTitle('aiComment', opts)),
         reviewStatusColumn(columnTitle('reviewStatus', opts)),
         keyCol('changeReason', longTextColumn, {
           id: 'changeReason',

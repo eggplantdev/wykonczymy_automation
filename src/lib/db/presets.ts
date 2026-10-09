@@ -111,6 +111,54 @@ export async function templateOwnersOfSections(
   return new Map(res.rows.map((row) => [Number(row.id), Number(row.investment_id)]))
 }
 
+// The szablony a katalog praca appears in (EX-1017) — what an edit or delete in /katalog-prac
+// reaches. Live only: a trashed szablon is nowhere the owner would look for the effect.
+export async function listTemplateNamesUsingCatalogueItem(
+  db: DbExecutorT,
+  catalogueItemId: number,
+): Promise<string[]> {
+  const res = await db.execute(sql`
+    SELECT DISTINCT inv.name
+    FROM kosztorys_items ki
+    JOIN investments inv ON inv.id = ki.investment_id
+    WHERE ki.catalogue_item_id = ${catalogueItemId} AND ${liveTemplate('inv')}
+    ORDER BY inv.name
+  `)
+  return res.rows.map((row) => String(row.name))
+}
+
+export async function listTemplateNamesByCatalogueItem(
+  db: DbExecutorT,
+): Promise<Record<number, string[]>> {
+  const res = await db.execute(sql`
+    SELECT ki.catalogue_item_id, array_agg(DISTINCT inv.name ORDER BY inv.name) AS names
+    FROM kosztorys_items ki
+    JOIN investments inv ON inv.id = ki.investment_id
+    WHERE ki.catalogue_item_id IS NOT NULL AND ${liveTemplate('inv')}
+    GROUP BY ki.catalogue_item_id
+  `)
+  return Object.fromEntries(
+    res.rows.map((row) => [Number(row.catalogue_item_id), (row.names as unknown[]).map(String)]),
+  )
+}
+
+// Trashed szablony included: one restored later must not bring back a praca whose content is gone.
+// Returns the szablony that lost a row, for the edit stamp.
+export async function deleteTemplateRowsOfCatalogueItem(
+  db: DbExecutorT,
+  catalogueItemId: number,
+): Promise<number[]> {
+  const res = await db.execute(sql`
+    DELETE FROM kosztorys_items ki
+    USING investments inv
+    WHERE inv.id = ki.investment_id
+      AND inv.status = ${TEMPLATE_INVESTMENT_STATUS}
+      AND ki.catalogue_item_id = ${catalogueItemId}
+    RETURNING ki.investment_id
+  `)
+  return [...new Set(res.rows.map((row) => Number(row.investment_id)))]
+}
+
 // The list sorts by the last edit, and a szablon created a second ago is the one about to be opened.
 export async function markPresetEdited(db: DbExecutorT, id: number): Promise<void> {
   await db.execute(sql`UPDATE investments SET content_edited_at = now() WHERE id = ${id}`)

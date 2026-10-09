@@ -13,6 +13,7 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
+import { withCatalogueFields, type ItemFieldsT } from '@/lib/kosztorys/item-from-fields'
 import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type { DbExecutorT } from './get-db'
 import { numOrNull, textOrNull } from './row-coerce'
@@ -68,13 +69,27 @@ export async function selectKosztorysTreeData(
       (
         SELECT coalesce(json_agg(i ORDER BY i.display_order, i.id), '[]'::json)
         FROM (
-          SELECT id, section_id, display_order, description, description_translations, unit, planned_qty,
-                 current_planned_qty, sheet_measured_qty,
-                 discount_type, discount_value, client_price,
-                 w_tools_override_value, own_tools_override_value,
-                 w_tools_override_coeff, own_tools_override_coeff,
-                 note, ref, ai_planned_qty, change_reason, review_status
-          FROM kosztorys_items WHERE investment_id = ${investmentId}
+          SELECT ki.id, ki.section_id, ki.display_order, ki.description, ki.description_translations,
+                 ki.unit, ki.planned_qty, ki.current_planned_qty, ki.sheet_measured_qty,
+                 ki.discount_type, ki.discount_value, ki.client_price,
+                 ki.w_tools_override_value, ki.own_tools_override_value,
+                 ki.w_tools_override_coeff, ki.own_tools_override_coeff,
+                 ki.note, ki.ref, ki.catalogue_item_id, ki.ai_planned_qty, ki.ai_missing_data, ki.ai_assumptions, ki.change_reason,
+                 ki.review_status,
+                 w.id AS catalogue_entry_id, w.description AS catalogue_description,
+                 w.description_translations AS catalogue_description_translations,
+                 w.unit AS catalogue_unit, w.client_price AS catalogue_client_price,
+                 w.w_tools_rate AS catalogue_w_tools_rate,
+                 w.w_tools_rate_coeff AS catalogue_w_tools_rate_coeff,
+                 w.own_tools_rate AS catalogue_own_tools_rate,
+                 w.own_tools_rate_coeff AS catalogue_own_tools_rate_coeff
+          FROM kosztorys_items ki
+          JOIN investments host ON host.id = ki.investment_id
+          -- Only a szablon reads its prace from the katalog (EX-1017); a kosztorys keeps its own copy
+          -- even where it remembers the entry.
+          LEFT JOIN work_catalogue_items w
+            ON w.id = ki.catalogue_item_id AND host.status = 'szablon'
+          WHERE ki.investment_id = ${investmentId}
         ) i
       ) AS items,
       (
@@ -149,7 +164,24 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
-const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
+const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } =>
+  withCatalogueFields(mapOwnItem(row), mapCatalogueFields(row))
+
+const mapCatalogueFields = (row: RowT): ItemFieldsT | null =>
+  row.catalogue_entry_id == null
+    ? null
+    : {
+        description: String(row.catalogue_description),
+        descriptionTranslations: toDescriptionTranslations(row.catalogue_description_translations),
+        unit: String(row.catalogue_unit),
+        clientPrice: num(row.catalogue_client_price),
+        wToolsRate: numOrNull(row.catalogue_w_tools_rate),
+        wToolsRateCoeff: numOrNull(row.catalogue_w_tools_rate_coeff),
+        ownToolsRate: numOrNull(row.catalogue_own_tools_rate),
+        ownToolsRateCoeff: numOrNull(row.catalogue_own_tools_rate_coeff),
+      }
+
+const mapOwnItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   ref: Number(row.ref),
   sectionId: Number(row.section_id),
@@ -175,7 +207,10 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: textOrNull(row.note),
+  catalogueItemId: numOrNull(row.catalogue_item_id),
   aiPlannedQty: numOrNull(row.ai_planned_qty),
+  aiMissingData: textOrNull(row.ai_missing_data),
+  aiAssumptions: textOrNull(row.ai_assumptions),
   changeReason: textOrNull(row.change_reason),
   reviewStatus: isReviewStatus(row.review_status) ? row.review_status : null,
 })

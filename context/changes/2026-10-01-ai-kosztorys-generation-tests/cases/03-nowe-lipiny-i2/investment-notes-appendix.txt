@@ -1,0 +1,127 @@
+KOSZTORYS AI — segment I2 Nowe Lipiny, Pu 101,21 m² (parter 52,19 + piętro 49,02) + strych 32,38 m²
+Źródła: rzut dewelopera (skan, metraże pomieszczeń wydrukowane na rzucie), standard deweloperski, wizualizacje i zdjęcia inspiracji (tylko do liczenia elementów), mail klienta.
+Wartość netto z cenami z rozpiski (robocizna):
+- dom (parter + piętro): 119 688,41 zł + 3 pozycje bez ceny;
+- PODDASZE (osobna sekcja): 27 634,80 zł + 3 pozycje bez ceny;
+- REKUPERACJA (osobna sekcja): 16 080,00 zł + 1 pozycja bez ceny;
+- razem: 163 403,21 zł.
+Każde założenie jest zapisane przy pozycji w Komentarzu AI („Co / ile założono”), a czego nie było wiadomo — w „Czego nie było wiadomo”.
+Materiały, zabudowy meblowe, AGD i centrala rekuperacji NIE są w kwocie (klient prosi o ich rozdzielenie — patrz pytania).
+
+WARIANT PODŁÓG (klient prosi o porównanie)
+- Mikrocement na wszystkich podłogach, 101,21 m² × 500 zł = 50 605 zł — tak jest w kosztorysie.
+- Panele winylowe klejone, układ prosty, 93,82 m² × 60 zł = 5 629 zł, plus gres w WC i łazience, 7,39 m² × 180 zł = 1 330 zł. Razem 6 959 zł, czyli −43 646 zł robocizny. Do tego gruntowanie podłóg +10 zł/m².
+
+ZAŁOŻENIA (do weryfikacji)
+1. Wysokość pomieszczeń 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20. Każde ±10 cm to ok. ±860 zł (gładzie, grunt, malowanie, akryl).
+2. Obwody pokoi wyliczone z metrażu i wydrukowanych długości ścian. Salon z kuchnią (kształt L ze schodami) ma obwód ok. 31 mb — do sprawdzenia na miejscu.
+3. Okna: szerokości z rzutu, wysokości przyjęte:
+   - O1 180×150;
+   - drzwi przesuwne 270×230;
+   - 2 × O2 150×160;
+   - 2 × drzwi balkonowe 90×230.
+   Otwory odjęte od ścian, razem 38,4 m².
+4. Gładź Q3 na wszystkich ścianach i sufitach poza łazienką, 223 m² ścian + 94 m² sufitów. Bez ścian za zabudową kuchni (4 mb × 2,68 = 10,7 m², −611 zł gładzi). Z doliczoną klatką schodową ok. 15 m² (z dodatkiem za utrudniony dostęp).
+5. Malowanie wszystkiego na biało. Ściany w kolorze: +4 zł/m², ok. +900 zł.
+6. Łazienka na piętrze: mikrocement na podłodze i na ścianach na pełną wysokość, 23,9 m² — nowa pozycja bez ceny. Pozostałe elementy:
+   - hydroizolacja: podłoga + strefa prysznica do 2,0 m;
+   - walk-in z odpływem liniowym jednospadkowym i szybą stałą;
+   - bateria podtynkowa z deszczownicą;
+   - wnęka LED = przedścianka z 1 półką;
+   - WC podwieszane;
+   - umywalka na szafce;
+   - lustro LED;
+   - 3 wpusty.
+7. WC na parterze:
+   - mikrocement na podłodze;
+   - tapeta na 2 ścianach, 7,6 m² (po gładzi);
+   - reszta ścian i sufit — pozycja „malowanie bez glazury + gładź na suficie”;
+   - wnęka LED nad stelażem;
+   - WC podwieszane;
+   - umywalka z szafką;
+   - okrągłe lustro LED;
+   - 2 wpusty.
+8. Elektryka: osprzęt stanu deweloperskiego ok. 46 szt. i 10 lamp. Nowe punkty: 8 opraw LED przy schodach (co drugi stopień), LED pod szafkami kuchennymi, LED w garderobie, 2 wnęki LED, 1 gniazdo w wyspie, 1 punkt nad wyspą. Bruzdy wg zasady 2,5 mb/pkt = 35 mb. Każdy dodatkowy punkt to ok. +225 zł. Oprawy schodowe razem to ok. 2 600 zł.
+9. Kuchnia: zlew, płyta, piekarnik i zmywarka w ciągu przyściennym, wyspa bez wody i odpływu. Podłączenie AGD klienta po naszej stronie, okap jako pochłaniacz (rekuperacja). LED pod szafkami 3,5 mb.
+10. Drzwi wewnętrzne: 6 szt. (WC, sień, pokój, garderoba, hobby, łazienka) + drzwi na strych w sekcji poddasza. Ościeżnice regulowane. Drzwi ukryte: +620 zł/szt.
+11. Parapety wewnętrzne 5,1 mb (O1 + 2 × O2). Jeżeli są w standardzie dewelopera: −1 173 zł.
+12. Transport i wniesienie 1 kpl (rozpiska 1 500 zł; próg katalogu dla domu tej wielkości to 2 000 zł, czyli +500 zł) i 2 big bagi — bez wyburzeń.
+13. Zabezpieczenia liczone od powierzchni podłóg, 101,21 m².
+14. PODDASZE — geometria przyjęta, bez przekroju budynku:
+   - podłoga ok. 59 m²: obrys 5,70 × 11,37 m minus otwór schodów; wydrukowane 32,38 m² to najpewniej powierzchnia ważona wysokością;
+   - skosy ok. 72 m² przy kącie dachu 35°;
+   - szczyty ok. 32 m², mur bez tynku.
+   Każde ±10 m² skosów to ok. ±1 580 zł, plus zabudowa GK.
+   Zakres:
+   - wełna między krokwiami jedną warstwą;
+   - folia;
+   - zabudowa GK (bez ceny);
+   - gładź + malowanie;
+   - tynk na szczytach;
+   - panele na istniejącej płycie OSB;
+   - drzwi D3;
+   - 17 stopni na strych (bez ceny);
+   - 10 gniazd, 4 lampy i taśma LED 20 mb pod skosami;
+   - 3 nowe obwody.
+15. REKUPERACJA — ok. 100 mb kanałów:
+   - 10 anemostatów (nawiew: salon 2, pokój, hobby, garderoba, poddasze 2; wywiew: kuchnia, WC, łazienka);
+   - czerpnia i wyrzutnia;
+   - skropliny;
+   - zasilanie;
+   - pion z poddasza na parter w zabudowie GK, 6 mb.
+   Każde ±10 mb kanałów to ±1 200 zł.
+
+PYTANIA DO KLIENTA / WŁAŚCICIELA (z wpływem na kwotę)
+- Jakie tynki daje deweloper — cementowo-wapienne czy gipsowe maszynowe? Przy gipsowych gładź może odpaść: ok. −18 300 zł (zostaje szlifowanie mleczka 7 zł/m² + grunt).
+- Mikrocement czy winyl — patrz WARIANT PODŁÓG. Właściciel: czy wykonujemy mikrocement na ścianach łazienki i jaką cenę dajemy (najbliżej: posadzka z mikrocementu 500 zł/m², mikrocement gabinet 650 zł/m²)?
+- Czy pod mikrocement potrzebne jest wyrównanie wylewki dewelopera? Wylewka samopoziomująca +55 zł/m², ok. +5 570 zł.
+- Wpusty LED w salonie (wizualizacja) wymagają sufitu podwieszanego: ok. 46,7 m² × 160 zł = +7 470 zł. Wpusty w łazience i WC: „Sufit podwieszany z LED wg projektu” +1 800 zł/szt.
+- Kuchnia — czy w wyspie ma być zlew lub płyta? Woda, kanalizacja i prąd w podłodze z ogrzewaniem podłogowym to praca do oceny na miejscu (ryzyko przecięcia pętli). Fartuch między szafkami: płytki ok. 2,5 m² × 220 zł = +550 zł.
+- Kocioł gazowy wisi na ścianie łazienki (wizualizacja) — zostaje tam? Obudowa i mikrocement wokół kotła do ustalenia z instalatorem gazu.
+- Grzejnik drabinkowy w łazience — czy jest (podłogówka w standardzie)? Punkt c.o. +250 zł + montaż 450 zł.
+- Schody:
+  - jakie drewno;
+  - nakładki czy pełne stopnie;
+  - podstopnice białe — malowane czy z płyty;
+  - czy wykańczamy spód biegu;
+  - balustrada — kto dostarcza.
+  Montaż okładzin i balustrady jest bez ceny (17 + 17 stopni). Najbliżej w katalogu: cyklinowanie stopnia z podstopniem 380 zł/szt.
+- Poddasze:
+  - przekrój dachu: wysokość ścianki kolankowej, kąt, czy jest membrana i jakieś ocieplenie;
+  - ogrzewanie: podłogówka obejmuje tylko parter i piętro;
+  - okno dachowe z wizualizacji to praca dekarza, poza naszym zakresem;
+  - szczyty: tynk czy płytki cegłopodobne;
+  - zmiana sposobu użytkowania („nieużytkowy” → pracownia) po stronie klienta.
+  Druga warstwa wełny pod krokwiami: +60 zł/m², ok. +4 320 zł.
+- Rekuperacja: co dokładnie przygotował deweloper (kanały w stropach, szacht, miejsce na centralę)? Jaką centralę wybiera klient? Montaż i uruchomienie centrali bez ceny (najbliżej: montaż klimatyzacji + uruchomienie 600 zł).
+- Szafki pod umywalkami: robi je stolarz razem z zabudowami czy kupne? Jeżeli stolarz: −500 zł.
+- Ścianka TV, uchwyt TV, gniazda LAN — brak w opisie: uchwyt +250 zł, punkt LAN +250 zł.
+- Dla właściciela (pytania z maila, bez wpływu na robociznę):
+  - projekt wnętrz;
+  - termin po odbiorze w kwietniu 2027 i start od poddasza;
+  - płatności i etapy;
+  - gwarancja i OC;
+  - czy wycena jest bezpłatna;
+  - kwoty brutto (stawka VAT);
+  - rozdzielenie materiałów budowlanych, wykończeniowych i zabudów.
+
+NOWE PRACE BEZ CENY (brak w katalogu — do wyceny)
+- Mikrocement na ścianach łazienki — 23,9 m². Najbliżej: posadzki z mikrocementu 500 zł/m², czyli 11 970 zł; mikrocement gabinet 650 zł/m², czyli 15 561 zł.
+- Montaż okładzin drewnianych stopni i podstopni — 17 stopni w domu + 17 na strych. Najbliżej: cyklinowanie stopnia z podstopniem 380 zł/szt, czyli 6 460 zł za bieg.
+- Montaż balustrady i poręczy drewnianej — 1 kpl w domu + 1 kpl na strych.
+- Zabudowa skosów płytą GK na stelażu — 72 m². Najbliżej:
+  - przedścianka GK z folią 150 zł/m², czyli 10 800 zł;
+  - sufit podwieszany niski stopień 160 zł/m², czyli 11 520 zł;
+  - zabudowa ścian GK 250 zł/m², czyli 18 000 zł.
+- Montaż i uruchomienie centrali rekuperacyjnej — 1 kpl.
+
+POZYCJE ŚWIADOMIE POMINIĘTE
+- Wyburzenia, demontaże, skuwanie — stan deweloperski.
+- Glazura, fugowanie, wiercenie otworów w płytkach, mata — łazienki w mikrocemencie (wrócą w wariancie z gresem).
+- Wentylatory łazienkowe — wywiew z WC i łazienki przez rekuperację.
+- Gruntowanie podłóg — w systemie mikrocementu; w wariancie z winylem +10 zł/m².
+- Wzmocnienie OSB pod szafki — ściany z cegły ceramicznej.
+- Rozdzielnia, przyłącze 3-fazowe, termostaty podłogówki — standard dewelopera.
+- Klimatyzacja — nie ma jej w zapytaniu.
+- Zabudowy meblowe (kuchnia z wyspą, garderoba, pod schodami, łazienki, pokoje, wiatrołap) — poza robocizną, osobna wycena stolarza.
+- Wkucia i przeróbki wod-kan w łazienkach — pozycja „bateria podtynkowa z podłączeniem zasilania wody” zawiera doprowadzenie; resztę liczymy w punktach dewelopera.

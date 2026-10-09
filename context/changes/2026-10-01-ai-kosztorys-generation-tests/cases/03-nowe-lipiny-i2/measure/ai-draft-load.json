@@ -1,0 +1,775 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "assumptions": "1 kpl dla domu ~100 m² + poddasze (rozpiska 1 500 zł; próg katalogu dla tej wielkości 2 000 zł)"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "qty": 2,
+    "unit": "big bag",
+    "clientPrice": 600.0,
+    "assumptions": "≈ 2 big bagi — stan deweloperski bez wyburzeń: opakowania, docinki"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "qty": 4,
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "assumptions": "≈ 2 mb na łazienkę (Wiedza firmowa) × WC i łazienka"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "qty": 32.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "assumptions": "≈ 2,5 mb bruzdy na punkt (katalog)\n13 nowych punktów ściennych: schody_led 8, kuchnia_led 1, garderoba_led 1, wnęka_wc 1, wnęka_łazienka 1, wyspa 1"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w żelbecie",
+    "qty": 2.5,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "assumptions": "1 punkt sufitowy nad wyspą w stropie żelbetowym, ≈ 2,5 mb (katalog)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "qty": 101.21,
+    "unit": "kpl",
+    "clientPrice": 25.0,
+    "assumptions": "zabezpieczenia = m² podłóg (katalog)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "qty": 64.8,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "assumptions": "obwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nbez listew wzdłuż zabudowy kuchni (4,0 mb) i w garderobie (zabudowa)\ndrzwi 0,90 m odliczone"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 155.1,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "assumptions": "obwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\n24 narożniki pionowe × wysokość\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony",
+    "qty": 15.0,
+    "unit": "m²",
+    "clientPrice": 35.0,
+    "assumptions": "ściany klatki schodowej nad stropem parteru ≈ 15 m² — dostęp z rusztowania"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 93.82,
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może odpaść"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 216.84,
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może odpaść",
+    "assumptions": "wysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\nobwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nwysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\ndrzwi wewnętrzne 0,90 × 2,05, wejściowe 1,00 × 2,10 — odliczone\nściany klatki schodowej nad stropem parteru ≈ 15 m²\nzabudowa kuchni 4,0 mb wzdłuż ściany — ściana za nią bez gładzi (Wiedza firmowa)\nściany WC pod tapetę też z gładzią — tapeta w WC na 2 ścianach 1,80 + 1,03 (wizualizacja, długości z rzutu WC)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 310.66,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może odpaść",
+    "assumptions": "= gładź ścian + sufitów\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\nobwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nwysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\ndrzwi wewnętrzne 0,90 × 2,05, wejściowe 1,00 × 2,10 — odliczone\nściany klatki schodowej nad stropem parteru ≈ 15 m²\nzabudowa kuchni 4,0 mb wzdłuż ściany — ściana za nią bez gładzi (Wiedza firmowa)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "qty": 313.79,
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "missingData": "kolory ścian",
+    "assumptions": "wszystko na biało (klient: „głównie na biało”)\nściana za zabudową kuchni też malowana\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\nobwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nwysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\ndrzwi wewnętrzne 0,90 × 2,05, wejściowe 1,00 × 2,10 — odliczone\nściany klatki schodowej nad stropem parteru ≈ 15 m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "qty": 35.0,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "assumptions": "= długość bruzd elektrycznych"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Tapetowanie",
+    "qty": 7.58,
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "assumptions": "tapeta w WC na 2 ścianach 1,80 + 1,03 (wizualizacja, długości z rzutu WC)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "qty": 48.6,
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "assumptions": "wysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\n6 narożników zewnętrznych na pełną wysokość\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Akrylowanie",
+    "qty": 15.3,
+    "unit": "mb",
+    "clientPrice": 14.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 200.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 36.9,
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "assumptions": "łazienka: podłoga + sufit + ściany pod mikrocement; WC: tylko podłoga\nściany łazienki w mikrocemencie na pełną wysokość (wizualizacja)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 13.1,
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "assumptions": "sufity łazienki i WC + ściany WC bez tapety\ntapeta w WC na 2 ścianach 1,80 + 1,03 (wizualizacja, długości z rzutu WC)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "missingData": "ile akcesoriów",
+    "assumptions": "po 3 akcesoria w WC i łazience"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii do umywalki",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "assumptions": "baterie umywalkowe stojące — na wizualizacjach umywalki na szafkach"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 900.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 450.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "qty": 2,
+    "unit": "mb",
+    "clientPrice": 150.0,
+    "assumptions": "wnęki LED w WC i w prysznicu po ~1 mb (wizualizacje, bez wymiaru)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lamp",
+    "qty": 5,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "missingData": "wpusty w łazience i WC wymagają sufitu podwieszanego — czy go robimy",
+    "assumptions": "wpusty: WC 2, łazienka 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra z LED",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 150.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 1600.0,
+    "assumptions": "odpływ jednospadkowy (pod mikrocement)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 2,
+    "unit": "kpl",
+    "clientPrice": 450.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "assumptions": "syfony obu umywalek"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 550.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 130.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 350.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 11.2,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "assumptions": "podłoga łazienki + ściany strefy prysznica\nwalk-in na szerokość 1,85 m, 1,0 m w głąb, hydroizolacja ścian do 2,0 m"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "qty": 25,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "assumptions": "20–30 mb na łazienkę (Wiedza firmowa): łazienka 20, WC 5 (bez prysznica)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "qty": 20.8,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "assumptions": "≈ 15 mb na łazienkę 4 m² (Wiedza firmowa), przeskalowane do 5,54 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie przedścianki pod prysznicem z 1 półką",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 1200.0,
+    "assumptions": "wnęka LED w prysznicu = przedścianka z 1 półką (wizualizacja)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie punktów oświetleniowych",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "zasilanie wnęk LED w WC i łazience"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż gniazdek i włączników standard",
+    "qty": 5,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "assumptions": "osprzęt: WC 2, łazienka 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Złożenie i montaż szafki podumywalkowej",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "missingData": "szafki robi stolarz z zabudowami czy kupne",
+    "assumptions": "szafki pod umywalkami kupne — montujemy my"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż AGD: lodówka, zmywarka, płyta, piekarnik",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "missingData": "kto montuje AGD — klient: bez sprzętu AGD",
+    "assumptions": "zabudowa lodówki; montaż AGD klienta po naszej stronie"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż baterii zlewozmywakowej",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "missingData": "czy w wyspie ma być zlew lub płyta",
+    "assumptions": "zlew w ciągu przyściennym, wyspa bez wody"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż LED",
+    "qty": 3.5,
+    "unit": "mb",
+    "clientPrice": 90.0,
+    "assumptions": "LED pod szafkami 3,5 mb (wizualizacja, bez wymiaru)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż syfonu",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "assumptions": "syfon zlewu w ciągu przyściennym"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż zlewu",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "assumptions": "zlew w ciągu przyściennym"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie indukcji",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "assumptions": "płyta indukcyjna w ciągu przyściennym"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie piekarnika",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "assumptions": "piekarnik w zabudowie"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie zmywarki",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "assumptions": "zmywarka w zabudowie"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "missingData": "drzwi zwykłe czy ukryte",
+    "assumptions": "ościeżnice regulowane"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż parapetów",
+    "qty": 5.1,
+    "unit": "mb",
+    "clientPrice": 200.0,
+    "missingData": "czy parapety są w standardzie dewelopera",
+    "assumptions": "parapety wewnętrzne O1 + 2× O2, +10 cm na okno; drzwi balkonowe bez parapetu"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Silikonowanie parapetu",
+    "qty": 5.1,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "assumptions": "= długość parapetów"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 46,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "missingData": "liczba punktów dewelopera",
+    "assumptions": "osprzęt stanu deweloperskiego ok. 45 pkt (salon z kuchnią 20, pokój 8, hobby 6, sień 4, hall 4, garderoba 3) + wyspa"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż kinkietów",
+    "qty": 8,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "oprawy LED przy schodach co drugi stopień (wizualizacja)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż okapu i podłączenie do wentylacji",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "assumptions": "okap jako pochłaniacz — dom ma rekuperację"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż prostych lamp (bez składania)",
+    "qty": 10,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "lampy: salon 2, nad wyspą 3, sień, pokój, garderoba, hobby, hall po 1"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż transformatorów",
+    "qty": 4,
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "assumptions": "zasilacze LED: kuchnia, schody, wnęka WC, wnęka łazienki"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "assumptions": "włączniki schodowe parter/piętro"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 11,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "nowe punkty: oprawy schodowe 8, nad wyspą 1, LED kuchnia 1, LED garderoba 1"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "assumptions": "gniazdo w wyspie"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni",
+    "qty": 1,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "assumptions": "dopasowanie podejścia zlewu do projektu kuchni"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Posadzki z mikrocementu sama robocizna",
+    "qty": 101.21,
+    "unit": "m²",
+    "clientPrice": 500.0,
+    "missingData": "mikrocement czy winyl — klient prosi o porównanie\nczy pod mikrocement trzeba wyrównać wylewkę dewelopera",
+    "assumptions": "mikrocement na wszystkich podłogach, łącznie z WC i łazienką (klient: preferowany)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Mikrocement na ścianach łazienki",
+    "qty": 23.94,
+    "unit": "m²",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Posadzki z mikrocementu 500 zł/m², Mikrocement gabinet 650 zł/m²",
+    "assumptions": "ściany łazienki w mikrocemencie na pełną wysokość (wizualizacja)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\ndrzwi 0,90 × 2,05 odliczone"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykuwanie wnęki pod półeczkę + GK",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 500.0,
+    "assumptions": "podświetlona wnęka nad stelażem WC (wizualizacja)"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych",
+    "qty": 17,
+    "unit": "stopień",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt, Ułożenie gresu na stopniach 220 zł/szt\njakie drewno, nakładki czy pełne stopnie, podstopnice, spód biegu",
+    "assumptions": "okładziny drewniane na 17 stopniach parter → piętro (rzut, klient: drewno)"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż balustrady i poręczy drewnianej",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny\nkto dostarcza balustradę",
+    "assumptions": "drewniana poręcz i balustrada wzdłuż biegu i otworu na piętrze (wizualizacja)"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Ocieplenie skosów — układanie wełny między krokwiami",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 45.0,
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "poddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²\njedna warstwa wełny"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Folia paroizolacyjna ściany i sufity",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 20.0,
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "= powierzchnia skosów\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Zabudowa skosów płytą GK na stelażu",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Przedścianka z GK + folia 150 zł/m², Zabudowa ścian z GK na stelażu 250 zł/m², Sufit podwieszany niski stopień 160 zł/m²\nprzekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "= powierzchnia skosów\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "gładź na skosach z GK\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Tynkowanie ręczne ścian lub sufitów do 1 cm",
+    "qty": 32.0,
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "missingData": "szczyty: tynk czy płytki cegłopodobne",
+    "assumptions": "2 ściany szczytowe, mur ceramiczny bez tynku\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 104.0,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "skosy + szczyty\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "qty": 104.0,
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "skosy + szczyty na biało\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 36.7,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "styki skosów ze ścianami kolankowymi i szczytami ≈ 36,7 mb\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Układanie paneli winylowych pływających niski stopień skomplikowania prac",
+    "qty": 59.0,
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "assumptions": "panele na istniejącej płycie OSB (rzut: „płyta OSB”, wizualizacja poddasza)\npodłoga = obrys minus otwór schodów; wydrukowane 32,38 m² to powierzchnia ważona wysokością\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "qty": 34.0,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "assumptions": "obwód poddasza ≈ 34 mb\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 380.0
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych",
+    "qty": 17,
+    "unit": "stopień",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt",
+    "assumptions": "okładziny drewniane na 17 stopniach piętro → strych (rzut)"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż balustrady i poręczy drewnianej",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny",
+    "assumptions": "bieg na strych + otwór w podłodze strychu"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 10,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "missingData": "układ pomieszczenia na poddaszu",
+    "assumptions": "pracownia/magazyn: 10 gniazd"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 5,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "4 punkty oświetlenia + zasilanie taśmy LED"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Układanie przewodów w peszlu",
+    "qty": 60,
+    "unit": "mb",
+    "clientPrice": 40.0,
+    "assumptions": "przewody za GK, ok. 4 mb na punkt × 15"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 13,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "assumptions": "10 gniazd + 3 włączniki"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż prostych lamp (bez składania)",
+    "qty": 4,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "4 oprawy"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż taśm LED",
+    "qty": 20,
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "assumptions": "taśma LED pod skosami 2 × 10 mb (wizualizacja, bez wymiaru)"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż transformatorów",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "assumptions": "2 zasilacze LED"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika",
+    "qty": 3,
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "assumptions": "osobne obwody: gniazda, oświetlenie, LED"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "assumptions": "oświetlenie biegu na strych z dwóch miejsc"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Rozprowadzenie kanałów rekuperacji",
+    "qty": 100,
+    "unit": "mb",
+    "clientPrice": 120.0,
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "10 anemostatów × ~8 mb + czerpnia/wyrzutnia ~20 mb\ncena z katalogu: „Montaż wentylacji” 120 zł/mb"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Montaż i uruchomienie centrali rekuperacyjnej",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Montaż klimatyzacji + uruchomienie 600 zł\njaką centralę wybiera klient",
+    "assumptions": "centrala na strychu"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Montaż kratki wentylacyjnej",
+    "qty": 10,
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "nawiew: salon 2, pokój, hobby, garderoba, poddasze 2; wywiew: kuchnia, WC, łazienka"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Przebicie się na zewnątrz",
+    "qty": 2,
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "czerpnia i wyrzutnia"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Montaż syfonu klimatyzacji natynkowo",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 150.0,
+    "assumptions": "odprowadzenie skroplin z centrali"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "assumptions": "zasilanie centrali"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu",
+    "qty": 6,
+    "unit": "mb",
+    "clientPrice": 350.0,
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "pion kanałów z poddasza na parter w zabudowie GK, 6 mb"
+  }
+]

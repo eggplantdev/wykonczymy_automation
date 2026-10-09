@@ -4,9 +4,10 @@ import { serializeKosztorys } from './serialize-kosztorys'
 import type { SnapshotPayloadT } from './snapshot-format'
 
 // A preset = a snapshot with the job-specific fields stripped, so it seeds a DIFFERENT investment
-// with only the reusable skeleton (sekcje + prace + prices + coefficients/overrides). `note` is part
-// of that skeleton: „cena zawiera transport" is about the WORK, so it travels to the next budowa —
-// unlike the przedmiar, the rabat and the etapy, which are about one job. Wraps
+// with only the reusable skeleton (sekcje + prace + prices + coefficients/overrides) and the katalog
+// entry each praca came from. A remark about the WORK („cena zawiera transport") lives on that entry
+// as its Komentarz do pracy, so the pozycja's own Komentarz is about one job and stays behind, with
+// the przedmiar, the rabat and the etapy (owner, 2026-10-08). Wraps
 // serializeKosztorys (pure read) and zeroes the per-job fields at serialize time. The payload keeps
 // full snapshot shape-parity — `settings` (VAT/coeffs) is retained but IGNORED on apply, since a
 // preset must not carry one job's pricing config onto another investment.
@@ -31,6 +32,7 @@ export async function serializeKosztorysAsPreset(
       sheetMeasuredQty: null,
       discountType: null,
       discountValue: 0,
+      note: null,
       // The agent's draft and its review are about one job's przedmiar, which the szablon zeroes.
       aiPlannedQty: null,
       changeReason: null,

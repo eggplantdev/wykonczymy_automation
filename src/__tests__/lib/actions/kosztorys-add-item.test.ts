@@ -14,8 +14,8 @@ vi.mock('@/lib/auth/require-auth', () => ({
   })),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-// Pass-through unless a test arms it — the only way to reach „the praca was inserted, then the katalog
-// write failed" without racing the action's own reads.
+// Pass-through unless a test arms it — the only way to fail the katalog write without racing the
+// action's own reads.
 const catalogueWrite = vi.hoisted(() => ({ failNext: false }))
 vi.mock('@/lib/kosztorys/work-catalogue/write-catalogue-entry', async (importOriginal) => {
   const actual =
@@ -104,7 +104,7 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     const result = await db.execute(sql`
       SELECT id, description, unit, display_order, client_price, planned_qty,
              w_tools_override_value, own_tools_override_value,
-             w_tools_override_coeff, own_tools_override_coeff
+             w_tools_override_coeff, own_tools_override_coeff, catalogue_item_id
       FROM kosztorys_items WHERE section_id = ${sectionId} ORDER BY display_order
     `)
     return result.rows
@@ -135,6 +135,7 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     expect(Number(added.planned_qty)).toBe(0)
     expect(Number(added.w_tools_override_value)).toBe(50)
     expect(Number(added.own_tools_override_value)).toBe(40)
+    expect(added.catalogue_item_id).toBeNull()
     if (result.success) expect(result.data.item.id).toBe(Number(added.id))
   })
 
@@ -191,7 +192,9 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     expect(entry.unit).toBe('m2')
     expect(Number(entry.client_price)).toBe(100)
     expect(entry.match_key).toBeTruthy()
-    expect(await itemsOf(sectionId)).toHaveLength(1)
+    const items = await itemsOf(sectionId)
+    expect(items).toHaveLength(1)
+    expect(items[0].catalogue_item_id).toBe(entry.id)
   })
 
   it('duplikat w trybie „nowy" odmawia i nie zapisuje pracy', async () => {
@@ -241,6 +244,10 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     )
     expect(Number(after.client_price)).toBe(150)
     expect(after.category).toBe('Stara')
+    expect((await itemsOf(sectionId)).map((row) => row.catalogue_item_id)).toEqual([
+      before.id,
+      before.id,
+    ])
   })
 
   it('nadpisanie bez „zostaw kategorię" zapisuje nową kategorię', async () => {

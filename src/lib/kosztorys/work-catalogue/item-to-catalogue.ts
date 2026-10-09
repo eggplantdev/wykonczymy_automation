@@ -29,6 +29,7 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   wToolsOverrideCoeff: source.wToolsOverrideCoeff,
   ownToolsOverrideCoeff: source.ownToolsOverrideCoeff,
   note: null,
+  catalogueItemId: null,
   aiPlannedQty: null,
   changeReason: null,
   reviewStatus: null,

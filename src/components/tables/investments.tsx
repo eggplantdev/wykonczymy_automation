@@ -118,6 +118,13 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       header: 'Kosztorys_v2',
       cell: (info) => <OpenKosztorysV2Button investmentId={info.row.original.id} label="Otwórz" />,
     }),
+    col.accessor('hasAiDraft', {
+      id: 'hasAiDraft',
+      header: () => <span className="text-neon-cyan">Analiza AI</span>,
+      meta: { label: 'Analiza AI' },
+      enableSorting: true,
+      cell: (info) => (info.getValue() ? <span className="text-neon-cyan">Tak</span> : '—'),
+    }),
 
     // Every figure that exists on two planes is shown on BOTH, v1 beside v2: nothing here infers
     // which plane an investment „really" belongs to, because while investments are still being moved

@@ -79,6 +79,11 @@ Od EX-1001 płatny odczyt leci też **bez kliknięcia**: wysłanie wydatku przez
 lub usunięcie zdjęcia i zmiana trybu odpalają w `after()` odczyt zdjęć zgłoszenia — z każdego
 środowiska, w którym ktoś wyśle zgłoszenie. Świadomie bez bramki, z tego samego powodu.
 
+Te `after()` w `lib/actions/worker-expense-drafts.ts` są **gołe, bez zapasowego
+`try { after(fn) } catch { await fn() }`** z `delete-unreferenced-media.ts`. Poza żądaniem
+(skrypt, spec) taki zapas wykonałby odczyt synchronicznie: wywołanie wisi do kilku minut (odczyt
+ma limit 270 s) i płaci za prawdziwy odczyt modelu. Poza żądaniem odczyt ma się nie odpalić.
+
 **Nie zakładać tu bramki** i nie zgłaszać tego ponownie jako dziury.
 
 ## Meta Graph — bramka niepotrzebna

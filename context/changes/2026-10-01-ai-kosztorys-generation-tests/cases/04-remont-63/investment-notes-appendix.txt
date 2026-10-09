@@ -1,0 +1,11 @@
+AI przedmiar (szkic 2026-10-09): 102 354,06 zł netto, 67 pozycji, 1 bez ceny (sprzątanie).
+Każde założenie jest zapisane przy pozycji w Komentarzu AI („Co / ile założono”), a czego nie było wiadomo — w „Czego nie było wiadomo”.
+
+Najważniejsze założenia (zmiana któregokolwiek przelicza wiele pozycji):
+1. Wysokość 2,60 m (rynek wtórny) — rzut jej nie podaje.
+2. Łazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m²; nowa ściana GK w kształcie L ok. 3,0 mb.
+3. Płytki do sufitu w łazience i WC; umywalka w WC zostaje.
+4. Przedpokój: obwód 12 mb (rzut podaje tylko 8,0 m²).
+5. Ściany liczone brutto — okna i drzwi nieodliczone; okna 1,50 m wysokości do narożników.
+6. „Montaż […]” z urwanego maila = 6 drzwi z ościeżnicami regulowanymi.
+7. Wylewka samopoziomująca pod nowe płytki w przedpokoju i kuchni.

@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
+import { aiCommentLines } from '@/lib/kosztorys/ai-review-columns'
 import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys/labels'
 import {
   aiOffered,
@@ -64,6 +65,36 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
     copyValue: ({ rowData }) => effectiveReviewStatus(rowData) ?? '',
     deleteValue: ({ rowData }) => ({ ...rowData, reviewStatus: null }),
     pasteValue: ({ rowData, value }) => ({ ...rowData, reviewStatus: toStatus(value.trim()) }),
+  }
+}
+
+function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
+  const lines = aiCommentLines(rowData)
+  if (lines.length === 0) return null
+  return (
+    <ReadOnlyCellText>
+      {lines.map(({ field, question, answer }) => (
+        <span key={field} className="block">
+          {question}: <strong>{answer}</strong>
+        </span>
+      ))}
+    </ReadOnlyCellText>
+  )
+}
+
+export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
+  return {
+    id: 'aiComment',
+    title: titleNode,
+    disabled: true,
+    minWidth: 320,
+    grow: 2,
+    ...AI_REVIEW_COLUMN_CLASS,
+    component: AiCommentCell,
+    copyValue: ({ rowData }) =>
+      aiCommentLines(rowData)
+        .map(({ question, answer }) => `${question}: ${answer}`)
+        .join('\n') || null,
   }
 }
 

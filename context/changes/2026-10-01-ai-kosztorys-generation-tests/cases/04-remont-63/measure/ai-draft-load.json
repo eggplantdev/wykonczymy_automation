@@ -1,0 +1,538 @@
+[
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "qty": 63.0,
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "assumptions": "zabezpieczenia = m² podłogi całego mieszkania (katalog), 63 m² z maila"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1000.0,
+    "assumptions": "1 kpl za armaturę łazienki i WC oraz zabudowę kuchni — wg ilości pracy"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wyburzanie ścian do 12 cm grubości - materiał miękki",
+    "qty": 8.4,
+    "unit": "m²",
+    "clientPrice": 110.0,
+    "missingData": "mail wymienia ścianę kuchnia/przedpokój dwa razy — policzona raz",
+    "assumptions": "wysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\nściana kuchnia/przedpokój = szerokość kuchni 1,44 (4,5 m² ÷ 3,12)\nbrutto, z otworem drzwi"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "qty": 45.0,
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "assumptions": "wysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje — stara łazienka, płytki do sufitu (zdjęcie)\npłytki w WC do 1,50 m (zdjęcie), drzwi 0,7 m odliczone\npłytki w kuchni do 1,60 m na obu długich ścianach i pod oknem (zdjęcie), okno 0,6 m² odliczone"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie ścian po kleju, przygotowanie do dalszych prac",
+    "qty": 36.1,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "assumptions": "= ściany po skuciu płytek z klejem\npłytki w WC do 1,50 m (zdjęcie), drzwi 0,7 m odliczone\npłytki w kuchni do 1,60 m na obu długich ścianach i pod oknem (zdjęcie), okno 0,6 m² odliczone"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż metalowych futryn",
+    "qty": 6.0,
+    "unit": "kpl",
+    "clientPrice": 200.0
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż grzejników",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "assumptions": "stara drabinka w łazience do demontażu — mail montuje nowy grzejnik"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki",
+    "qty": 8.0,
+    "unit": "m²",
+    "clientPrice": 75.0
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 850.0
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wykucie nadproża i powiększenie otworu drzwiowego",
+    "qty": 2.0,
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "missingData": "gdzie i ile nadproży",
+    "assumptions": "2 otwory pod nowe nadproża — mail ich nie liczy, poza otworem przy WC"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "qty": 122.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "assumptions": "≈ 2,5 mb bruzdy na punkt (katalog)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "qty": 122.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "assumptions": "= bruzdy elektryczne"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian",
+    "qty": 20.0,
+    "unit": "mb",
+    "clientPrice": 40.0,
+    "assumptions": "drzwi wejściowe 5,0 mb (obwód 0,9 × 2,05), otwór przy WC 4,8 mb, styki po dwóch wyburzonych ścianach ok. 10 mb"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "qty": 4.0,
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "assumptions": "≈ 2 mb na łazienkę (Wiedza firmowa) × łazienka + WC"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc.",
+    "qty": 1.0,
+    "unit": "kontener",
+    "clientPrice": 1500.0
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "missingData": "piętro i winda",
+    "assumptions": "ryczałt dla małego mieszkania (katalog)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Uzupełnianie posadzki po wyburzeniach",
+    "qty": 3.23,
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "assumptions": "= długości wyburzonych ścian"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "missingData": "stan podłoża po zerwaniu parkietu",
+    "assumptions": "wylewka samopoziomująca pod nowe płytki — podłoże nierówne po zerwaniu parkietu i skuciu płytek"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Położenie gresu na podłodze format standard od 30x30 do 60x120",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 180.0
+  },
+  {
+    "section": "Podłogi",
+    "description": "Fugowanie",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "assumptions": "fugowanie = m² płytek (katalog)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 10.0
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg",
+    "qty": 3.6,
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "assumptions": "4 przejścia płytki/parkiet z przedpokoju (salon, 3 pokoje) × 0,9 m"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac",
+    "qty": 12.2,
+    "unit": "m²",
+    "clientPrice": 150.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "ściana salon/pokój zamyka otwór po harmonijce 2,0 × 2,20 m (zdjęcie, bez wymiaru)\nściana łazienka/pokój w kształcie L ok. 3,0 mb × 2,60"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)",
+    "qty": 30.0,
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "assumptions": "≈ 30 mb taśm: obie strony ściany salon/pokój + strona pokoju ściany łazienkowej (strona łazienki pod płytki)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu",
+    "qty": 3.0,
+    "unit": "mb",
+    "clientPrice": 350.0,
+    "missingData": "długość rury przy suficie",
+    "assumptions": "zabudowa rury w przedpokoju ok. 3,0 mb (zdjęcie, bez wymiaru)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "qty": 36.06,
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "missingData": "wysokości okien i drzwi (rzut podaje tylko szerokości okien)",
+    "assumptions": "6 okien o szerokościach z rzutu, wysokość 1,50 m — glify 26,1 mb\notwór przy WC 0,8 × 2,0 i dwa narożniki po wyburzeniu ściany kuchni"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa",
+    "qty": 240.39,
+    "unit": "m²",
+    "clientPrice": 85.0,
+    "missingData": "wysokości okien i drzwi (rzut podaje tylko szerokości okien)",
+    "assumptions": "wysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\nściany brutto — okna i drzwi nieodliczone\nobwód przedpokoju 12 mb — korytarz ok. 1,4 m szerokości, bez ściany do kuchni (do wyburzenia); rzut podaje tylko 8,0 m²\nsufity bez 2,0 m² przeniesionych do łazienki\nściany kuchni pominięte — za zabudową (Wiedza firmowa)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Dodatek za wklejanie siatki tynkarskiej",
+    "qty": 240.39,
+    "unit": "m²",
+    "clientPrice": 13.0,
+    "assumptions": "jak gładź\nwysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\nściany brutto — okna i drzwi nieodliczone\nobwód przedpokoju 12 mb — korytarz ok. 1,4 m szerokości, bez ściany do kuchni (do wyburzenia); rzut podaje tylko 8,0 m²\nsufity bez 2,0 m² przeniesionych do łazienki\nściany kuchni pominięte — za zabudową (Wiedza firmowa)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 240.39,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "assumptions": "jak gładź\nwysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\nściany brutto — okna i drzwi nieodliczone\nobwód przedpokoju 12 mb — korytarz ok. 1,4 m szerokości, bez ściany do kuchni (do wyburzenia); rzut podaje tylko 8,0 m²\nsufity bez 2,0 m² przeniesionych do łazienki\nściany kuchni pominięte — za zabudową (Wiedza firmowa)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.",
+    "qty": 240.39,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "assumptions": "jak gładź\nwysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\nściany brutto — okna i drzwi nieodliczone\nobwód przedpokoju 12 mb — korytarz ok. 1,4 m szerokości, bez ściany do kuchni (do wyburzenia); rzut podaje tylko 8,0 m²\nsufity bez 2,0 m² przeniesionych do łazienki\nściany kuchni pominięte — za zabudową (Wiedza firmowa)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian w kolorze",
+    "qty": 184.01,
+    "unit": "m²",
+    "clientPrice": 26.0,
+    "missingData": "wysokości okien i drzwi (rzut podaje tylko szerokości okien)",
+    "assumptions": "wysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\nściany brutto — okna i drzwi nieodliczone\nobwód przedpokoju 12 mb — korytarz ok. 1,4 m szerokości, bez ściany do kuchni (do wyburzenia); rzut podaje tylko 8,0 m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 70.77,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "assumptions": "styk ściana/sufit = obwody pomieszczeń jak przy gładzi\nobwód przedpokoju 12 mb — korytarz ok. 1,4 m szerokości, bez ściany do kuchni (do wyburzenia); rzut podaje tylko 8,0 m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie sufitów farbą silikonową lub akrylową na biało",
+    "qty": 56.38,
+    "unit": "m²",
+    "clientPrice": 23.0,
+    "assumptions": "sufity bez 2,0 m² przeniesionych do łazienki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Klejenie płyt GK",
+    "qty": 25.5,
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "GK na wyrównanie na ścianach pod płytki, poza nową ścianą GK\nłazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)\npłytki do sufitu w łazience i WC (stara łazienka ma je do sufitu na zdjęciu)\ndrzwi 0,8 × 2,0 w łazience i 0,7 × 2,0 w WC, okno łazienki 0,6 × 0,9 (zdjęcie) — odliczone"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 46.1,
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "dwukrotne gruntowanie = podłoga + sufit + ściany (katalog)\nłazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)\npłytki do sufitu w łazience i WC (stara łazienka ma je do sufitu na zdjęciu)\ndrzwi 0,8 × 2,0 w łazience i 0,7 × 2,0 w WC, okno łazienki 0,6 × 0,9 (zdjęcie) — odliczone"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "qty": 33.3,
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "łazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)\nwysokość 2,60 m (rynek wtórny, Wiedza firmowa) — rzut jej nie podaje\npłytki do sufitu w łazience i WC (stara łazienka ma je do sufitu na zdjęciu)\ndrzwi 0,8 × 2,0 w łazience i 0,7 × 2,0 w WC, okno łazienki 0,6 × 0,9 (zdjęcie) — odliczone"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "qty": 6.4,
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "łazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)\npodłoga pod brodzikiem też w płytkach"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 39.7,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "folia w płynie = suma płytek (Wiedza firmowa)\nłazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)\npłytki do sufitu w łazience i WC (stara łazienka ma je do sufitu na zdjęciu)\ndrzwi 0,8 × 2,0 w łazience i 0,7 × 2,0 w WC, okno łazienki 0,6 × 0,9 (zdjęcie) — odliczone"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "qty": 39.7,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "missingData": "gdzie stanie nowa ściana łazienka/pokój",
+    "assumptions": "fugowanie = suma płytek (Wiedza firmowa)\nłazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)\npłytki do sufitu w łazience i WC (stara łazienka ma je do sufitu na zdjęciu)\ndrzwi 0,8 × 2,0 w łazience i 0,7 × 2,0 w WC, okno łazienki 0,6 × 0,9 (zdjęcie) — odliczone"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "qty": 18.17,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "assumptions": "obwody podłóg łazienki i WC + 2 narożniki strefy prysznica po 2,0 m (Wiedza firmowa)\nłazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "qty": 45.0,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "assumptions": "20–30 mb na łazienkę (Wiedza firmowa): łazienka 25, WC 20"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard",
+    "qty": 3.0,
+    "unit": "mb",
+    "clientPrice": 130.0,
+    "assumptions": "glif okna łazienki ok. 3,0 mb — okno 0,6 × 0,9 (zdjęcie)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "qty": 3.0,
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "missingData": "narożniki zewnętrzne i zabudowy w projekcie",
+    "assumptions": "krawędzie 45° tylko na glifie okna łazienki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 6.4,
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "assumptions": "ściany w płytkach do sufitu — maluje się tylko sufity\nłazienka powiększona o 2,0 m² kosztem pokoju 11,8 → 5,0 m² (1,70 × 2,95)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "qty": 13.0,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "assumptions": "punkt = zimna + ciepła + kanalizacja (katalog): umywalka 3, prysznic 3, pralka 2, geberit 2, umywalka w WC 3\numywalka w WC zostaje (zdjęcie) — „zestaw natynkowy” z maila to jej bateria"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "qty": 18.0,
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "assumptions": "otwory wg Wiedzy firmowej: prysznic natynkowy 2, umywalka 3, grzejnik 2, pralka 1, lustro 2; WC: geberit 5, umywalka 3\numywalka w WC zostaje (zdjęcie)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 450.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 450.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 350.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1500.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki wiszącej",
+    "qty": 2.0,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "assumptions": "umywalka w WC zostaje (zdjęcie)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii do umywalki",
+    "qty": 2.0,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "assumptions": "umywalka w WC zostaje (zdjęcie)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "qty": 2.0,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "assumptions": "syfony obu umywalek; brodzik ma syfon w komplecie"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż grzejnika z zaworami",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Podłączenie pralki",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 100.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra",
+    "qty": 2.0,
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "assumptions": "lustro w łazience i w WC (zdjęcia)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "qty": 4.0,
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "missingData": "ile akcesoriów",
+    "assumptions": "2 akcesoria na pomieszczenie — łazienka i WC"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Montaż grzejnika z zaworami",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa punktów centralnego ogrzewania",
+    "qty": 2.0,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "assumptions": "nowy grzejnik: zasilanie + powrót"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "qty": 6.0,
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "missingData": "mail urwany na „Montaż […]” — czy także listwy przypodłogowe i drzwi do pomieszczenia przy WC",
+    "assumptions": "„Montaż […]” to drzwi — 6, tyle ile futryn do usunięcia, ościeżnice regulowane"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 37.0,
+    "unit": "szt",
+    "clientPrice": 130.0
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 12.0,
+    "unit": "szt",
+    "clientPrice": 100.0
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 35.0,
+    "unit": "szt",
+    "clientPrice": 39.0
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "qty": 2.0,
+    "unit": "szt",
+    "clientPrice": 70.0
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1200.0,
+    "assumptions": "6 bezpieczników + różnicowy + główny mieści się w 12 modułach"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Sprzątanie pomieszczeń po remoncie, rozklejanie zabezpieczeń",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "missingData": "brak w katalogu — do wyceny"
+  }
+]

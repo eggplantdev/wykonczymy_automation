@@ -31,6 +31,7 @@ const item = (overrides: Partial<KosztorysItemT> = {}): KosztorysItemT => ({
   wToolsOverrideCoeff: null,
   ownToolsOverrideCoeff: null,
   note: null,
+  catalogueItemId: null,
   currentPlannedQty: null,
   aiPlannedQty: null,
   changeReason: null,
@@ -390,5 +391,34 @@ describe('buildCatalogueComparison — the katalog entry behind each pozycja', (
     const catalogue = [...CATALOGUE, entry({ id: 6, description: '', workNote: 'pusty' })]
 
     expect(buildCatalogueComparison(rows, catalogue, SETTINGS).entryByItemId.size).toBe(0)
+  })
+})
+
+describe('buildCatalogueComparison — szablon', () => {
+  // The editor holds the katalog it was served at mount, while an edit to a linked szablon row is
+  // written INTO the katalog — so the row reads the new number and the held katalog the old one.
+  it('never reports a linked szablon row against a katalog read before its edit', () => {
+    const edited = item({ catalogueItemId: 1, clientPrice: 120 })
+    const servedAtMount = [entry({ id: 1, clientPrice: 100 })]
+
+    const result = buildCatalogueComparison([edited], servedAtMount, {
+      ...SETTINGS,
+      linkedRowsAreCatalogue: true,
+    })
+
+    expect(result.diffs).toEqual([])
+    expect(result.matching).toBe(1)
+    expect(result.entryByItemId.get(edited.id)?.id).toBe(1)
+  })
+
+  it('still reports an unlinked szablon row', () => {
+    const unlinked = item({ clientPrice: 120 })
+
+    const result = buildCatalogueComparison([unlinked], [entry({ id: 1 })], {
+      ...SETTINGS,
+      linkedRowsAreCatalogue: true,
+    })
+
+    expect(result.diffs.map((diff) => diff.itemId)).toEqual([unlinked.id])
   })
 })

@@ -1,14 +1,15 @@
 // Loads an agent's przedmiar draft into a LOCAL investment's kosztorys as AI przedmiar, so it can be
 // reviewed in the editor. Every pozycja gets a value — the draft's qty where sekcja + opis match
-// (folded like the sheet import's, so case, diacritics and known typos don't break a match), else 0 (the agent left it out) — and its Status and Powód zmiany are reset.
+// (folded like the sheet import's, so case, diacritics and known typos don't break a match), else 0 (the agent left it out) — and its Status, Powód zmiany and Komentarz AI are reset.
 // A draft row matching no pozycja is a praca the agent added beyond the kosztorys: it becomes a new
 // pozycja in its sekcja with Przedmiar 0, so the review shows it as an offer awaiting a verdict.
 //
 //   INV=<id> DRAFT=<path.json> node --env-file=.env --conditions=react-server --import tsx src/scripts/load-ai-draft.ts
 //
-// DRAFT: [{ "section": "Łazienka", "description": "Skucie płytek", "qty": 12.5, "unit": "m2", "clientPrice": 80, "note": "pomiar z rzutu" }, …]
-// (`unit` and `clientPrice` are read only for an added pozycja; `note` — the agent's source for the
-// quantity — goes into Komentarz, and a row without one keeps the Komentarz it has)
+// DRAFT: [{ "section": "Łazienka", "description": "Skucie płytek", "qty": 12.5, "unit": "m2", "clientPrice": 80,
+//           "missingData": "wysokość pomieszczeń", "assumptions": "2,75 m" }, …]
+// (`unit` and `clientPrice` are read only for an added pozycja. `missingData` / `assumptions` are
+// Komentarz AI — never Komentarz, which the investor may be shown; the loader writes no Komentarz.)
 import { readFileSync } from 'node:fs'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
@@ -21,7 +22,8 @@ type DraftRowT = {
   qty: number
   unit?: string
   clientPrice?: number
-  note?: string
+  missingData?: string
+  assumptions?: string
 }
 
 const INVESTMENT_ID = Number(process.env.INV)
@@ -60,7 +62,8 @@ async function run() {
         aiPlannedQty: row?.qty ?? 0,
         reviewStatus: null,
         changeReason: null,
-        ...(row?.note ? { note: row.note } : {}),
+        aiMissingData: row?.missingData ?? null,
+        aiAssumptions: row?.assumptions ?? null,
       },
       context: { skipRevalidation: true },
     })
@@ -99,7 +102,8 @@ async function run() {
         plannedQty: 0,
         discountValue: 0,
         aiPlannedQty: row.qty,
-        note: row.note,
+        aiMissingData: row.missingData ?? null,
+        aiAssumptions: row.assumptions ?? null,
       },
       context: { skipRevalidation: true },
     })

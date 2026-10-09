@@ -85,6 +85,15 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
   appears nowhere in the DB.** → **No URL rewrite is ever needed on restore**, same store or new.
 - Join keys that matter: **`filename`** and **`sizes_thumbnail_filename`**. `url` /
   `sizes_thumbnail_url` are filename-derived and travel unchanged.
+- **Since 2026-10-07 (EX-1012 / EX-1014) app uploads carry no thumbnail.** `/api/media-upload` and
+  `/api/media-register` insert the row with raw SQL (`insertMediaRow`), so `sizes_thumbnail_*`,
+  `width` and `height` stay `NULL` and no `-400x300` blob exists. Only Payload-made rows have one:
+  everything older, the landing import (`fetchLandingAsset`) and REST `POST /api/media`. A new
+  faktura without a thumbnail is not a restore failure.
+- **Removing `imageSizes` orphans the stored thumbnails.** The plugin's `afterDelete` deletes
+  `doc.filename` plus `doc.sizes[*].filename`, and Payload builds `sizes` from the _current_
+  `imageSizes` — drop it (EX-1013) and every later row delete leaves its thumbnail blob behind.
+  Accept the leak or sweep by `sizes_thumbnail_filename` while that column still exists.
 
 ### The storage key is in the URL, not in `pathname` (found by the Phase-3 drill)
 
@@ -297,7 +306,7 @@ don't start.
    rewrite (§2).
 5. **Point the app at both** and note every env var you had to supply that neither backup contained
    — that list is the actual finding.
-6. **Acceptance:** a transaction's invoice renders (main file + thumbnail) through the plugin's own
+6. **Acceptance:** a transaction's invoice renders (main file, plus its thumbnail for an invoice uploaded before 2026-10-07) through the plugin's own
    read path, on a stack whose only input was the FTP server. Also confirm the env guards in
    `src/lib/env/schema.ts` don't block the rebuild: a brand-new production store token used from a
    machine where `VERCEL_ENV` is unset trips the store/environment check by design.

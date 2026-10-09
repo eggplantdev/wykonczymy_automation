@@ -6,6 +6,7 @@ import {
   getPresetName,
   isTemplateInvestment,
   listPresetSections,
+  listTemplateNamesByCatalogueItem,
   markPresetEdited,
   listPresets,
   presetNameHolder,
@@ -19,6 +20,7 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -337,5 +339,58 @@ describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
 
     expect(await renamePreset(db, live, trashedName)).toBe(false)
     expect(await presetNameHolder(db, trashedName, live)).toBe('trashed')
+  })
+})
+
+// „Szablony" on /katalog-prac is the length of this list, so a praca repeated in two sekcje of one
+// szablon names it once, and a trashed szablon or an ordinary kosztorys names nothing.
+describe.skipIf(!ENV_READY)('listTemplateNamesByCatalogueItem (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  const created: number[] = []
+  let entryId: number
+  let live: number
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    const description = `Szpachlowanie ${crypto.randomUUID().slice(0, 8)}`
+    const entry = await payload.create({
+      collection: 'work-catalogue-items',
+      data: { description, unit: 'm2', clientPrice: 30, matchKey: catalogueKey(description, 'm2') },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    entryId = Number(entry.id)
+
+    const row = { description, unit: 'm2', clientPrice: 30, catalogueItemId: entryId }
+    const once = { sections: [{ name: 'Salon', items: [row] }] }
+    live = await createTestTemplate(payload, 'catalogue-names-live')
+    const trashed = await createTestTemplate(payload, 'catalogue-names-trashed')
+    const kosztorys = await createTestInvestment(payload, `catalogue-names-kosztorys ${entryId}`)
+    created.push(live, trashed, kosztorys)
+
+    await createKosztorysTree(payload, live, {
+      sections: [
+        { name: 'Salon', items: [row] },
+        { name: 'Kuchnia', items: [row] },
+      ],
+    })
+    await createKosztorysTree(payload, trashed, once)
+    await createKosztorysTree(payload, kosztorys, once)
+    await trashDaysAgo(db, trashed, 0)
+  })
+
+  afterAll(async () => {
+    for (const id of created) await deleteTestInvestment(payload, id)
+    await db.execute(sql`DELETE FROM work_catalogue_items WHERE id = ${entryId}`)
+  })
+
+  it('names each live szablon once, however many sekcje repeat the praca', async () => {
+    const names = await listTemplateNamesByCatalogueItem(db)
+    expect(names[entryId]).toEqual([await getPresetName(db, live)])
   })
 })

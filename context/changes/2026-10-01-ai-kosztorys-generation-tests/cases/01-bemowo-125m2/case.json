@@ -2,13 +2,29 @@
   "investmentId": 168,
   "presetId": 165,
   "files": [
-    { "name": "1_Projekt_mieszkania_dokumentacja_techniczna.pdf", "kind": "projekt" },
-    { "name": "2_RYS.6_-_ELEKTRYKA.pdf", "kind": "projekt" },
-    { "name": "3_RYS_7_-_OŚWIETLENIE.pdf", "kind": "projekt" },
-    { "name": "4_Modyfikacje_Ethernet.pdf", "kind": "projekt" },
-    { "name": "5_Lista_zakupowa_plytki_okładziny_armatura.pdf", "kind": "inne" }
+    {
+      "name": "1_Projekt_mieszkania_dokumentacja_techniczna.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "2_RYS.6_-_ELEKTRYKA.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "3_RYS_7_-_OŚWIETLENIE.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "4_Modyfikacje_Ethernet.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "5_Lista_zakupowa_plytki_okładziny_armatura.pdf",
+      "kind": "inne"
+    }
   ],
   "przedmiar": "measure/przedmiar-v2.json",
   "newWorks": "measure/new-works.json",
+  "draft": "measure/ai-draft-load.json",
   "notesAppendix": "investment-notes-appendix.txt"
 }

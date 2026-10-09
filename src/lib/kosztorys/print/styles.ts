@@ -37,6 +37,7 @@ table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout:
    descriptions needed far more. The figures are known-width; the description takes the remainder. */
 col.c-qty { width: 18mm; } col.c-unit { width: 20mm; }
 col.c-price { width: 19mm; } col.c-value { width: 23mm; } col.c-stage-qty { width: 14mm; }
+col.c-note { width: 40mm; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 
@@ -73,6 +74,7 @@ td.rail { border-left: 2px solid; padding-left: 11px;
           background-image: linear-gradient(var(--print-rule), var(--print-rule));
           background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 1px; }
 .desc { white-space: pre-line; overflow-wrap: break-word; color: #27272a; }
+.note { color: var(--print-muted); font-size: 7pt; }
 .unit { white-space: nowrap; text-align: right; color: var(--print-muted); font-size: 7pt;
         padding-left: 4px; padding-right: 5px; }
 .price { color: var(--print-soft); }
@@ -137,7 +139,7 @@ th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal;
 th > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg);
             max-height: 22mm; text-align: left; }
 col.c-qty { width: 10mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
-col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; }
+col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; } col.c-note { width: 28mm; }
 .num, th.num { padding-left: 2px; padding-right: 2px; }
 .band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }
 tr.band-total td { font-size: 6pt; }
