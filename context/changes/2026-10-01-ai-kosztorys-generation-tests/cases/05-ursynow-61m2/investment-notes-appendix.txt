@@ -1,0 +1,108 @@
+=== Wycena AI (test, 2026-10-09) — mieszkanie 61 m², Ursynów, stan deweloperski ===
+Źródła:
+- brief klienta (PDF, 12 stron);
+- rzut dewelopera z metrażami pomieszczeń, z zaznaczonymi ścianami do wyburzenia i nowymi ścianami;
+- układ architekta z wysokościami okien;
+- wizualizacje — tylko do liczenia elementów;
+- mail klienta.
+Projekt wykonawczy ma przyjść za ok. 2 tygodnie. Do tego czasu to wstępna wycena.
+
+Wartość netto z cenami z rozpiski (robocizna):
+- mieszkanie: 86 740,36 zł + 3 pozycje bez ceny;
+- KLIMATYZACJA — SYPIALNIA (OPCJA), osobna sekcja: 3 390,00 zł + 1 pozycja bez ceny;
+- razem: 90 130,36 zł, 113 pozycji.
+
+Największe bloki:
+- Łazienka 28 270 zł;
+- Ściany i sufity 21 362 zł;
+- Elektryka 12 773 zł;
+- Wyburzenia i zabezpieczenia 7 678 zł;
+- Podłogi 7 167 zł.
+
+Materiały, meble na wymiar, AGD i jednostki klimatyzacji NIE są w kwocie.
+
+KOMENTARZ AI
+Każda pozycja z Przedmiarem ma w kolumnie Komentarz AI dwa pola:
+- „Co / ile założono” — skąd jest ilość i co przyjęto bez danych;
+- „Czego nie było wiadomo” — czego brakuje do pewnej wyceny.
+Pozycja bez komentarza ma ilość odczytaną wprost z rzutu albo z maila. Ten komentarz jest dla nas, nie dla klienta.
+
+ZAŁOŻENIA (do weryfikacji — każde przelicza wiele pozycji)
+1. Wysokość pomieszczeń 2,68 m (stan deweloperski, Wiedza firmowa). Rzut i układ jej nie podają. Każde ±10 cm to ok. ±810 zł (ściany GK, wyburzenia, glazura, gładzie, malowanie).
+2. Gładź tylko miejscowo, zgodnie z briefem. Gładź jest na nowych ścianach GK i na ok. 20 % pozostałych ścian, łącznie z miejscami po bruzdach — razem 32,1 m². Reszta ścian i sufity: szlifowanie mleczka, grunt, farba podkładowa, malowanie.
+   - Gładź Q3 na wszystkich ścianach: ok. +5 060 zł.
+   - Bez gładzi poza GK: ok. −1 260 zł.
+   Bez gładzi zostają ściana pod szafę w holu (4,95 mb) i ściana za zabudową kuchni (ok. 3,5 mb).
+3. Elektryka liczona z briefu:
+   - 28 nowych gniazd i włączników (hol 3, salon 4, kuchnia 12, sypialnia 4, klimatyzacja 1, włączniki 4);
+   - 17 punktów oświetleniowych;
+   - w łazience 5 punktów oświetleniowych i 3 elektryczne.
+   Bruzdy wg zasady 2,5 mb na punkt dają 132,5 mb. Każdy punkt z bruzdą i naprawą to ok. 290 zł (gniazdo z osprzętem) albo ok. 225 zł (światło).
+   Nie wiemy, co zrobił deweloper. Jeśli połowa gniazd już stoi we właściwych miejscach: ok. −4 000 zł.
+4. Wyburzenia (ok. 8,1 mb × 2,68 = 21,7 m²) przyjęte jako ściany działowe do 12 cm z materiału miękkiego. Jeżeli to żelbet: ok. +4 130 zł.
+5. Ściana TV w salonie: gres na ok. 2/3 ściany, 7,5 m², format standard 180 zł/m². Płyty wielkoformatowe 550 zł/m²: +2 775 zł.
+6. Łazienka powiększona o ok. 0,5 m kosztem pokoju, do ok. 1,61 × 3,24 = 5,22 m². Nowa ściana GK w kształcie L ma 2,35 mb. Rzut zaznacza ją kreską bez wymiaru.
+   W łazience:
+   - gres średni format do sufitu na wszystkich ścianach i na całej podłodze;
+   - walk-in z odpływem liniowym jednospadkowym i szybą stałą;
+   - przedścianka z 2 półkami i LED;
+   - wanna wolnostojąca z baterią podtynkową;
+   - umywalka nablatowa na blacie z gresem (1,2 mb);
+   - lustro LED;
+   - mata grzewcza 3,86 m²;
+   - sufit podwieszany z LED wg projektu;
+   - grzejnik zdemontowany i zamontowany w nowym miejscu (2 punkty c.o.).
+7. Podłogi: winyl jodełka KLEJONY, 57,4 m² (salon, kuchnia, hol, sypialnia). Pływający jodełka: −290 zł.
+8. Ściany w kolorze wg projektu. Na biało: −480 zł.
+9. Drzwi ukryte 2 szt. (sypialnia, łazienka), kolor kaszmir. Każde kolejne: +1 000 zł.
+10. Klimatyzacja w salonie: jednostka przy drzwiach balkonowych, agregat na balkonie, ok. 4 mb rur, 3 mb bruzdy, skropliny grawitacyjnie na balkon.
+    Sypialnia jest osobno, w sekcji „Klimatyzacja — sypialnia (opcja)”: ok. 8 mb rur przez hol do agregatu na balkonie.
+
+PYTANIA DO KLIENTA / WŁAŚCICIELA (z wpływem na kwotę)
+- Jaki jest stan tynków dewelopera — czy wystarczy szlifowanie i malowanie? Patrz założenie 2: od −1 260 zł do +5 060 zł.
+- Co z elektryki zrobił deweloper?
+  - Rozmieszczenie punktów.
+  - Czy jest osprzęt. Jeśli go nie ma, osprzęt w istniejących punktach to 39 zł/szt.
+  - Czy rozdzielnia ma miejsce na 3 nowe obwody.
+- Z czego są ściany do wyburzenia i ściana zewnętrzna przy balkonie? Przy żelbecie: wyburzenie +4 130 zł, przebicie +250 zł, kanał TV +300 zł.
+- Ściana TV:
+  - które to ściana;
+  - płytki czy płyty wielkoformatowe (+2 775 zł);
+  - kto robi wykończenie krawędzi.
+- Przedpokój: brief wspomina lekki spadek sufitu. Czy wyrównujemy sufitem podwieszanym? Czy oprawy w holu mają być wpuszczane? Sufit podwieszany w holu to ok. 13,45 m² × 160 zł = +2 150 zł.
+- Kuchnia:
+  - czy zlew zostaje w miejscu przyłączy dewelopera (przeniesienie to 250 zł/punkt);
+  - lista AGD;
+  - długość LED pod szafkami;
+  - fartuch między szafkami — płytki to ok. 220 zł/m².
+- Drzwi między holem a salonem — zostają, czy jest przejście bez drzwi?
+- Lustro w sypialni: wymiar i waga, czyli wzmocnienie ściany GK. Które to ściana z uskokiem ok. 1 cm?
+- Listwy podtynkowe: jaki system i kto go dostarcza? Cena do ustalenia (patrz niżej).
+- Dla właściciela (pytania z maila, bez wpływu na robociznę):
+  - termin rozpoczęcia — mieszkanie gotowe i czeka;
+  - czas trwania;
+  - harmonogram płatności;
+  - czy materiały są w cenie;
+  - które pozycje wyceniamy osobno;
+  - własna ekipa czy podwykonawcy;
+  - czy realizujemy meble na wymiar i klimatyzację.
+
+NOWE PRACE BEZ CENY (brak w katalogu — do wyceny)
+- Montaż listew przypodłogowych podtynkowych („wisząca ściana”), 40,3 mb. Najbliżej w katalogu: Montaż listew przypodłogowych metalowych 200 zł/mb, czyli ok. 8 060 zł.
+- Sprzątanie po remoncie, 1 kpl.
+- Jednostki klimatyzacji (salon, opcja sypialnia) — pozycja z rozpiski z ceną 0 zł, cena wg modelu.
+
+DOPISANE Z KATALOGU (nie ma ich w rozpisce)
+- Gres na ścianie TV: „Układanie glazury na ścianie format standard”, 180 zł/m², sekcja Ściany i sufity, z fugowaniem w Podłogach.
+- „Montaż blatu do umywalki”, 250 zł/mb, sekcja Łazienka.
+- „Wykonanie punktu elektrycznego”, 120 zł, w opcji klimatyzacji w sypialni.
+
+POZYCJE ŚWIADOMIE POMINIĘTE (Przedmiar 0)
+- Meble na wymiar: szafa w holu, zabudowa kuchni z wyspą, komoda, szafka pod umywalkę. To osobna firma. W kosztorysie są tylko przygotowania: instalacje w szafie, LED, ściany bez gładzi za zabudową.
+- Wylewki, tynki i parapety — stan deweloperski. Deweloper zrobił też drzwi wejściowe.
+- Skuwanie i demontaże poza grzejnikiem łazienkowym — mieszkanie jest puste.
+- Gładź na sufitach — brief jej nie wymienia, sufity tylko szlifowane i malowane.
+- Wzmocnienie OSB pod szafki kuchenne — ściany murowane.
+- Płytki między szafkami w kuchni — brak w briefie (patrz pytania).
+- Kratka i wentylator w łazience — brak w briefie.
+- Wod-kan w kuchni — zlew zostaje na przyłączach dewelopera (patrz pytania).

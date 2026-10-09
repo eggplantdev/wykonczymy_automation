@@ -68,6 +68,17 @@ describe('columnValueResolver', () => {
     expect(value('remainingForPlane')?.(row)).toBe(1000) // (10 − 5) × 200
   })
 
+  it('reads the worker offer percentage off the all-etapy quantity, not his etapy', () => {
+    const own = stages.filter((stage) => stage.plane === 'own_tools')
+    const value = columnValueResolver({
+      stages: own,
+      view: 'own_tools',
+      executedQtyByItem: { 1: 5 },
+    })
+    expect(value('plannedDonePercent')?.(row)).toBe(0.5) // 5 of the ofertowy 10, his etap holds 4
+    expect(value('plannedDonePercent')?.({ ...row, plannedQty: 0 })).toBeNull()
+  })
+
   // EX-921: Aktualizacja przedmiaru 15 against ofertowy 10 — the plane and progress figures follow
   // the aktualizacja, the offer figure does not.
   it('reads progress and the crew figures off the Aktualizacja przedmiaru', () => {
@@ -77,10 +88,19 @@ describe('columnValueResolver', () => {
     expect(client('currentPlannedNet')?.(updated)).toBe(1500)
     expect(client('currentPlannedGross')?.(updated)).toBeCloseTo(1845)
     expect(client('donePercent')?.(updated)).toBeCloseTo(5 / 15)
+    expect(client('plannedDonePercent')?.(updated)).toBe(0.5) // the offer: 5 of the ofertowy 10
     expect(client('remaining')?.(updated)).toBe(1000)
     expect(client('plannedNetForPlane')?.(updated)).toBeCloseTo(975)
     const worker = columnValueResolver({ stages, view: 'own_tools', executedQtyByItem: { 1: 5 } })
     expect(worker('remainingForPlane')?.(updated)).toBe(2000) // (15 − 5) × 200
+  })
+
+  // A pozycja accepted from a worker's zgłoszenie: no offer behind it, only the aktualizacja.
+  it('has no offer percentage for a pozycja outside the offer', () => {
+    const value = columnValueResolver({ stages, view: 'client' })
+    const extra = { ...row, plannedQty: 0, currentPlannedQty: 5 }
+    expect(value('plannedDonePercent')?.(extra)).toBeNull()
+    expect(value('donePercent')?.(extra)).toBe(1)
   })
 
   it('reads „AI wartość netto przedmiar" as AI przedmiar × Cena j.m., rabat ignored', () => {

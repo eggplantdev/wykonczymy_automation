@@ -132,6 +132,8 @@ import * as migration_20261008_0_add_kosztorys_item_catalogue_id from './2026100
 import * as migration_20261008_1_client_view_note_hidden from './20261008_1_client_view_note_hidden'
 import * as migration_20261008_2_add_kosztorys_item_ai_comment from './20261008_2_add_kosztorys_item_ai_comment'
 import * as migration_20261008_3_add_company_knowledge from './20261008_3_add_company_knowledge'
+import * as migration_20261009_1_client_view_planned_done_percent_hidden from './20261009_1_client_view_planned_done_percent_hidden'
+import * as migration_20261009_2_worker_view_offer_columns_hidden from './20261009_2_worker_view_offer_columns_hidden'
 
 export const migrations = [
   {
@@ -803,5 +805,15 @@ export const migrations = [
     up: migration_20261008_3_add_company_knowledge.up,
     down: migration_20261008_3_add_company_knowledge.down,
     name: '20261008_3_add_company_knowledge',
+  },
+  {
+    up: migration_20261009_1_client_view_planned_done_percent_hidden.up,
+    down: migration_20261009_1_client_view_planned_done_percent_hidden.down,
+    name: '20261009_1_client_view_planned_done_percent_hidden',
+  },
+  {
+    up: migration_20261009_2_worker_view_offer_columns_hidden.up,
+    down: migration_20261009_2_worker_view_offer_columns_hidden.down,
+    name: '20261009_2_worker_view_offer_columns_hidden',
   },
 ]

@@ -334,6 +334,14 @@ Reguły, które trzymają to razem:
 - **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
   zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
   allowlistę, z rabatem włącznie.
+- **Nowa kolumna w allowliście pojawia się zaznaczona wszędzie, gdzie zestaw jest zapisany.**
+  Przechowywany jest zestaw UKRYTY, więc każda inwestycja z zapisaną tablicą `hidden_columns` —
+  i domyślny zestaw firmy w `kosztorys_client_view_defaults` — pokaże ją od razu. Kolumna, która ma
+  być domyślnie odznaczona, potrzebuje migracji danych dopisującej jej id do każdej tablicy
+  `hidden_columns` w obu tabelach; NULL już czyta domyślny zestaw z kodu. Tak weszły
+  `currentPlannedNet` (`20261007_1_add_current_planned_qty`) i `note`
+  (`20261008_1_client_view_note_hidden`). Stary kod jest na nią obojętny — `sanitizeClientViewSettings`
+  odrzuca klucz spoza allowlisty — więc migracja może iść przed wdrożeniem albo po nim.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
@@ -627,12 +635,23 @@ protokół jest dokumentem na papier, nie bytem w bazie.
     kotwiczy do niej**: „% wykonania", „Pozostało", przekroczenie, ukończenie sekcji, licznik postępu
     i filtry „bez/z przedmiarem" czytają aktualizację. **Oferta zostaje ofertą**: prognoza marży,
     wykres sekcji, „Oferta", przegląd AI i porównanie z arkuszem czytają ofertowy. Pracownik widzi
-    tylko aktualizację. Arkusz właściciela tej kolumny nie ma — **bez parytetu z arkuszem**, import
+    aktualizację, a Przedmiar ofertowy tylko wtedy, gdy kierownik go zaznaczy (2026-10-09). Arkusz właściciela tej kolumny nie ma — **bez parytetu z arkuszem**, import
     wypełnia tylko ofertowy. Poniższe „Przedmiar" w regułach postępu czytaj jako aktualizację.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
     It stays next to the summary's „Postęp prac" on purpose (EX-703, owner re-confirmed 2026-08-17):
     the summary is value-weighted over the whole kosztorys, the column is quantity-weighted per row,
     so only the column says which position lags.
+  - **„% wykonania (względem przedmiaru ofertowego)"** (2026-10-09, uwaga właściciela po EX-921) =
+    `Σ etapów / Przedmiar ofertowy` — „ile procent oferty zrobione", obok kolumny liczonej od
+    aktualizacji. Różnią się tylko dzielnikiem. Pozycja spoza oferty (ofertowy 0, np. przyjęta ze
+    zgłoszenia) ma „—", nie 0% ani ∞. **Ponad 100% nie świeci na czerwono**: przekroczenie oferty jest
+    normalne, gdy zakres urósł w aktualizacji, a czerwień zostaje sygnałem „ponad uzgodniony zakres"
+    na kolumnie od aktualizacji. Gdyby właściciel chciał oznaczać przekroczenie oferty, to osobny
+    predykat na wzór `hasStagesOverPlanned`, liczony od ofertowego. Na linku pracownika liczy
+    **wszystkie etapy pozycji**, nie tylko jego, tak jak jego „Pozostało" — to fakt o pozycji, nie
+    o ekipie, więc pracownik widzi tę samą liczbę co edytor. W widoku inwestora i pracownika jest
+    domyślnie odznaczona; zapisane ustawienia to zbiór UKRYTYCH kolumn, więc nowa kolumna ukryta
+    domyślnie wymaga migracji dopisującej ją do każdego zapisanego zbioru (EX-1033 ma to uprościć).
 
   Konsekwencja architektoniczna: wartość wykonania zależy od etapów, więc `calc.ts` (czysta
   warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej policzyć. Warstwa

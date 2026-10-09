@@ -34,21 +34,19 @@ working, fix it here as part of the pass.
   kosztorys/stage controls need `MANAGEMENT_ROLES` (OWNER/MANAGER); a role-gated page without the role
   answers with a bare 404/redirect.
 
-## Test data — UI first, staging preferred
+## Test data — UI first, local by default
 
-**Staging is the default target.** Local is for a branch that isn't deployed yet, not a fallback for
-a staging check that needs setup. Per check: find a real record already in the required state
-(read-only SQL on `DB_POSTGRES_URL_PREVIEW`, or the UI); if none exists, **create the state through
-the app's own UI** — book the wypłata, change the etap, flip the investment status — and undo it the
-same way at the end (cancel the transfer, restore the value). Record what was created in the pass
-report. A seed script is a last resort for a state the UI cannot produce; most of ours refuse a
-remote host (`assertLocalDb`), and that refusal is **not** a reason to move the pass to local.
+**Local is the default target** (owner, 2026-10-09) — this overrides the skill's staging default.
+Staging only when the user asks for it in that turn. Per check: find a real record already in the
+required state (read-only SQL on the safe DB, or the UI); if none exists, **create the state through
+the app's own UI** — book the wypłata, change the etap, flip the investment status. The safe DB is
+reset by `pnpm db:import:test`, so undoing is optional; record what was created in the pass report.
+A seed script is a last resort for a state the UI cannot produce.
 
-**Writing on the preview DB is isolated** (`context/reference/outgoing-effects-isolation.md`): a
+**Writing locally is isolated the same way** (`context/reference/outgoing-effects-isolation.md`): a
 Sheets write is refused by Google (reader credential only), mail dies on `EMAIL_HOST=disabled.invalid`,
 Blob points at the preview store. A check whose write would still escape — a real person, an external
-service, production — is returned as a blocker naming the missing isolation. We fix the isolation;
-we don't retreat to local.
+service, production — is returned as a blocker naming the missing isolation.
 
 ## Staging target
 
@@ -137,7 +135,7 @@ Zdestylowane z `context/foundation/manual-checks.md` przy jego przycięciu 2026-
 `git show d426e567^:context/foundation/manual-checks.md`). To są rzeczy, na które kolejny
 weryfikator straci godzinę, jeśli ich nie przeczyta.
 
-### Stałe blokady — czego na stagingu zweryfikować się NIE DA
+### Stałe blokady — czego poza produkcją zweryfikować się NIE DA
 
 Te powody trzymają praktycznie każdy niezaznaczony boks w rejestrze. Żaden nie jest defektem i
 żadnego nie usunie kolejne podejście:

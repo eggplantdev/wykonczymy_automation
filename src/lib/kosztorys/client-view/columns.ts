@@ -30,7 +30,7 @@ export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
   },
   {
     label: 'Etapy i postęp',
-    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP, 'donePercent'],
+    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP, 'donePercent', 'plannedDonePercent'],
   },
 ]
 
@@ -59,5 +59,6 @@ export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   STAGE_VALUE_NET_COLUMN_GROUP,
   'net',
   'donePercent',
+  'plannedDonePercent',
   'remaining',
 ]

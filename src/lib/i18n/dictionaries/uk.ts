@@ -260,6 +260,7 @@ export const uk: TranslationsT = {
     price: 'Ціна за од. нетто',
     plannedNetForPlane: 'Вартість оновленого планового обсягу нетто',
     remainingForPlane: 'Залишилось нетто (від оновленого планового обсягу)',
+    plannedDonePercent: '% виконання (від планового обсягу)',
     planeWithTools: 'З інструментами (субпідрядник)',
     planeOwnTools: 'Без інструментів (працівник)',
     netForPlane: 'Сума етапів {{plane}} нетто',
@@ -282,7 +283,8 @@ export const uk: TranslationsT = {
     rejectedInvalid: 'Неправильне значення',
     rejectedBlocked: 'Значення відхилено',
     rejectedRestored: 'відновлено {{value}}',
-    tipPlannedQty: 'Плановий обсяг — запланована кількість (прогноз обсягу з пропозиції).',
+    tipPlannedQty:
+      'Плановий обсяг — кількість із пропозиції, до змін обсягу, погоджених під час робіт.',
     tipCurrentPlannedQty:
       'Оновлений плановий обсяг — обсяг після змін, погоджених під час робіт.\nВід нього рахується прогрес і те, що залишилось.',
     tipStageQtySum:
@@ -293,6 +295,8 @@ export const uk: TranslationsT = {
     tipStageValueNet: 'Кількість, виконана в цьому етапі, помножена на Вашу ставку.',
     tipRemainingForPlane:
       'Вартість оновленого планового обсягу мінус вартість уже виконаного — в усіх етапах, також інших бригад.\nОбидві пораховані за Вашою ставкою.\nУ мінусі (червоним) = оновлений плановий обсяг перевищено; сума внизу такі рядки пропускає.',
+    tipPlannedDonePercent:
+      'Скільки відсотків планового обсягу виконано — в усіх етапах, також інших бригад.\nПонад 100% = виконано більше, ніж передбачала пропозиція (напр. після оновлення планового обсягу).\nПрочерк для позицій поза пропозицією.',
   },
   transfers: {
     title: 'Транзакції',
@@ -366,6 +370,10 @@ export const uk: TranslationsT = {
     invoiceUploading: 'Завантаження рахунку',
     invoiceAdd: 'Додати рахунок',
     showNote: 'Показати примітку',
+    noteShort: 'Примітка',
+    invoiceShort: 'Фактура',
+    viewTable: 'Таблиця',
+    viewCards: 'Картки',
   },
   filters: {
     search: 'Пошук...',
@@ -498,6 +506,7 @@ export const uk: TranslationsT = {
     toggleTheme: 'Змінити тему',
     lightTheme: 'Світла тема',
     darkTheme: 'Темна тема',
+    uiScale: 'Розмір',
     refreshData: 'Оновити дані',
     dataRefreshed: 'Дані оновлено',
     logout: 'Вийти',

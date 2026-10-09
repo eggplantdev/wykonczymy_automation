@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   type ColumnDef,
+  type Row,
   type SortingState,
   type Table,
   type VisibilityState,
@@ -70,6 +71,9 @@ type DataTablePropsT<TData> = {
    * the list below rather than another toolbar item. */
   aboveToolbar?: React.ReactNode
   belowToolbar?: React.ReactNode
+  /** Renders the sorted rows in place of the <table> — a card layout keeps the toolbar, sort and
+   * column state the table already owns. */
+  renderRows?: (rows: Row<TData>[]) => React.ReactNode
   className?: string
 }
 
@@ -91,6 +95,7 @@ export function DataTable<TData>({
   toolbar,
   aboveToolbar,
   belowToolbar,
+  renderRows,
   className,
 }: DataTablePropsT<TData>) {
   const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
@@ -200,42 +205,48 @@ export function DataTable<TData>({
         resetOrder,
       })}
       {belowToolbar}
-      <div className="border-border overflow-x-auto rounded-lg border">
-        {enableVirtualization ? (
-          <VirtualizedTableBody
-            parentRef={parentRef}
-            containerHeight={virtualContainerHeight}
-            containerClassName={virtualContainerClassName}
-            headerGroups={headerGroups}
-            rows={rows}
-            virtualizer={virtualizer}
-            visibleColumnIdList={visibleColumnIdList}
-            getRowHref={getRowHref}
-            getRowClassName={getRowClassName}
-            footer={footer}
-          />
-        ) : (
-          <table className="w-full text-sm">
-            <TableHeader headerGroups={headerGroups} />
-            <tbody>
-              {rows.length === 0 ? (
-                <EmptyRow colSpan={visibleColCount} />
-              ) : (
-                rows.map((row) => (
-                  <DataTableRow
-                    key={row.id}
-                    row={row}
-                    cells={row.getVisibleCells()}
-                    getRowHref={getRowHref}
-                    getRowClassName={getRowClassName}
-                  />
-                ))
+      {renderRows ? (
+        renderRows(rows)
+      ) : (
+        <div className="border-border overflow-x-auto rounded-lg border">
+          {enableVirtualization ? (
+            <VirtualizedTableBody
+              parentRef={parentRef}
+              containerHeight={virtualContainerHeight}
+              containerClassName={virtualContainerClassName}
+              headerGroups={headerGroups}
+              rows={rows}
+              virtualizer={virtualizer}
+              visibleColumnIdList={visibleColumnIdList}
+              getRowHref={getRowHref}
+              getRowClassName={getRowClassName}
+              footer={footer}
+            />
+          ) : (
+            <table className="w-full text-sm">
+              <TableHeader headerGroups={headerGroups} />
+              <tbody>
+                {rows.length === 0 ? (
+                  <EmptyRow colSpan={visibleColCount} />
+                ) : (
+                  rows.map((row) => (
+                    <DataTableRow
+                      key={row.id}
+                      row={row}
+                      cells={row.getVisibleCells()}
+                      getRowHref={getRowHref}
+                      getRowClassName={getRowClassName}
+                    />
+                  ))
+                )}
+              </tbody>
+              {footer && rows.length > 0 && (
+                <TableFooter>{footer(visibleColumnIdList)}</TableFooter>
               )}
-            </tbody>
-            {footer && rows.length > 0 && <TableFooter>{footer(visibleColumnIdList)}</TableFooter>}
-          </table>
-        )}
-      </div>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { BrandLogo } from '@/components/ui/brand-logo'
 import { RoleBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
+import { UiScaleSwitch } from '@/components/nav/ui-scale-switch'
 import { LogoutButton } from '@/components/nav/logout-button'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
@@ -136,6 +137,7 @@ export function MobileNav() {
             </Link>
             <RoleBadge role={user.role}>{tPage(ROLE_KEYS[user.role])}</RoleBadge>
           </div>
+          <UiScaleSwitch />
           <ThemeToggle collapsed={false} />
           <RefreshDataButton />
           <AdminButton />

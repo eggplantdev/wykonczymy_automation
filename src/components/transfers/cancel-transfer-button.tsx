@@ -56,6 +56,7 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
       <RowActionButton
         icon={Ban}
         label="Anuluj transakcję"
+        text="Anuluj"
         tone="destructive"
         onClick={() => setOpen(true)}
       />

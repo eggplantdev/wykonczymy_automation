@@ -103,8 +103,8 @@ describe('every computed cell shows the value its column sorts by', () => {
     expect(ids).toContain(stageValueNetKey(view === 'own_tools' ? 200 : 100))
   })
 
-  // The worker's grid is read-only and has no sort; „Pozostało" there reads a quantity the sort is
-  // never handed, so it is the one column left out — every other one is the owner's figure.
+  // The worker's grid is read-only and has no sort; „Pozostało" and the offer percentage there read
+  // a quantity the sort is never handed, so they are left out — every other one is the owner's figure.
   it('worker surface', () => {
     const view = 'w_tools'
     const stages = tree.stages.filter((st) => st.plane === view)
@@ -117,7 +117,7 @@ describe('every computed cell shows the value its column sorts by', () => {
         columnRanks: {},
         executedQtyByItem: { 1: 5, 2: 6, 3: 5 },
       },
-    }).filter((column) => column.id !== 'remainingForPlane')
+    }).filter((column) => column.id !== 'remainingForPlane' && column.id !== 'plannedDonePercent')
     expect(columns.length).toBeGreaterThan(0)
     expectCellsMatchSort(columns, view, stages)
   })

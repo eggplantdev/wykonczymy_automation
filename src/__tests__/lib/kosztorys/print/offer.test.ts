@@ -252,6 +252,25 @@ describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => 
     expect(out).not.toMatch(header(`${stageLabel(stage2!)} netto`))
     expect(out).toMatch(header(columnLabelForView('net', 'client')))
   })
+
+  // Pomiar 4 against ofertowy 10 and Aktualizacja 12: the two percentages differ, so a column that
+  // printed the neighbour's figure under its own header would fail here.
+  it('drukuje zaznaczony % wykonania względem przedmiaru ofertowego obok istniejącego', () => {
+    const percentRow = row({
+      id: 1,
+      plannedQty: 10,
+      currentPlannedQty: 12,
+      clientPrice: 100,
+      [stageKey(stage1!.id)]: 4,
+    })
+    const label = columnLabelForView('plannedDonePercent', 'client')
+
+    expect(html([percentRow])).not.toMatch(header(label))
+    const out = html([percentRow], showing('plannedDonePercent'))
+    expect(out).toMatch(header(label))
+    expect(out).toMatch(/>40%<\/td>/)
+    expect(out).toMatch(/>33%<\/td>/)
+  })
 })
 
 // EX-921: before the first entry the investor gets the pure offer — no Aktualizacja przedmiaru and no

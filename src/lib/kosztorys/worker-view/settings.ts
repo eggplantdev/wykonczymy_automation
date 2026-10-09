@@ -26,26 +26,16 @@ const WORKER_VIEW_KEYS: ReadonlySet<string> = new Set(
 )
 
 export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
-  hiddenColumns: [],
+  hiddenColumns: ['plannedQty', 'plannedDonePercent'],
   hideEmptyRows: true,
   hidePlannedOnceExecuted: true,
   columnRanks: {},
 }
 
-// Settings saved before EX-921 name the worker's quantity column `plannedQty`. Read under the new key,
-// an owner's stored untick and position carry over; dropped by the ceiling, the column would silently
-// come back.
-const LEGACY_KEYS: ReadonlyMap<string, string> = new Map([['plannedQty', 'currentPlannedQty']])
-const currentKey = (key: unknown) => (typeof key === 'string' ? (LEGACY_KEYS.get(key) ?? key) : key)
-const currentRanks = (ranks: unknown) =>
-  typeof ranks === 'object' && ranks !== null && !Array.isArray(ranks)
-    ? Object.fromEntries(Object.entries(ranks).map(([key, rank]) => [currentKey(key), rank]))
-    : ranks
-
 // Same fail-closed contract as `sanitizeClientViewSettings`: a key outside the worker ceiling is
 // dropped on read and on write, so a hand-edited `price` in the global's JSON is inert rather than a
-// way onto a worker's screen. Here the default hides nothing, so „closed" rests entirely on the
-// ceiling — which is why `workerVisibleColumns` builds from the groups and only ever subtracts.
+// way onto a worker's screen. „Closed" rests on the ceiling, not on the default hidden set — which is
+// why `workerVisibleColumns` builds from the groups and only ever subtracts.
 export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT {
   if (typeof source !== 'object' || source === null) return WORKER_VIEW_DEFAULT_SETTINGS
   const { hiddenColumns, hideEmptyRows, hidePlannedOnceExecuted, columnRanks } = source as {
@@ -56,14 +46,14 @@ export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT
   }
   return {
     hiddenColumns: Array.isArray(hiddenColumns)
-      ? [...new Set(hiddenColumns.map(currentKey))].filter(
+      ? [...new Set(hiddenColumns)].filter(
           (key): key is string =>
             typeof key === 'string' && WORKER_VIEW_KEYS.has(key) && key !== DOCUMENT_PINNED_COLUMN,
         )
       : WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
     hideEmptyRows: hideEmptyRows !== false,
     hidePlannedOnceExecuted: hidePlannedOnceExecuted !== false,
-    columnRanks: sanitizeDocumentRanks(currentRanks(columnRanks), WORKER_VIEW_KEYS),
+    columnRanks: sanitizeDocumentRanks(columnRanks, WORKER_VIEW_KEYS),
   }
 }
 

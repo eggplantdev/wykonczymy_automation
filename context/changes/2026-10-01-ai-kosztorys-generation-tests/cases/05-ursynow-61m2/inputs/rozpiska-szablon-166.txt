@@ -1,0 +1,302 @@
+0 | Prace dodatkowe | 50402 | Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra | kpl | 1500 | 
+0 | Prace dodatkowe | 50403 | Dodatek za wniesienie dużej ilości materiałów 1 zł/kg + 0,3 zł za każde piętro bez windy | kg | 1 | 
+0 | Prace dodatkowe | 50404 | Transport i wniesienie materiałów wykończeniowych - stawki do ustalenia w zależności od rodzaju i ilości | kpl | 2000 | 
+0 | Prace dodatkowe | 50405 | Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag | big bag | 450 | 
+0 | Prace dodatkowe | 50406 | Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. | kontener | 1500 | 
+0 | Prace dodatkowe | 50407 | Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - 2 piętro i sporo gruzu | kontener | 1800 | 
+1 | Klimatyzacja | 50408 | Bruzdowanie pod rury materiał miękki | mb | 80 | 
+1 | Klimatyzacja | 50409 | Bruzdowanie pod rury żelbet | mb | 200 | 
+1 | Klimatyzacja | 50410 | Jednostka cena indywidualna w zależności od modelu | kpl | 0 | 
+1 | Klimatyzacja | 50411 | Montaż klimatyzacji + uruchomienie | kpl | 600 | 
+1 | Klimatyzacja | 50412 | Montaż syfonu klimatyzacji natynkowo | kpl | 150 | 
+1 | Klimatyzacja | 50413 | Montaż syfonu podtynkowego z wkuciem w ścianę | kpl | 300 | 
+1 | Klimatyzacja | 50414 | Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd | mb | 50 | 
+1 | Klimatyzacja | 50415 | Przebicie się na zewnątrz | kpl | 350 | 
+1 | Klimatyzacja | 50416 | Przebicie się na zewnątrz - ściana żelbetowa | kpl | 600 | 
+1 | Klimatyzacja | 50417 | Rury miedziane + skropliny + ułożenie | mb | 120 | 
+1 | Klimatyzacja | 50418 | Wsporniki | kpl | 100 | 
+1 | Klimatyzacja | 50419 | Wykonanie gładzi po bruzdach | mb | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50454 | Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. | m² | 25 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50455 | Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. - mieszkanie zamieszkane | m² | 45 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50420 | Bruzdowanie pod instalacje wod-kan w materiałach miękkich | mb | 80 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50421 | Bruzdowanie pod instalacje wod-kan w żelbecie | mb | 150 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50422 | Bruzdowanie pod kable elektryczne w materiałach miękkich | mb | 25 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50423 | Bruzdowanie pod kable elektryczne w żelbecie | mb | 45 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50432 | Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić | kpl | 1000 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50442 | Demontaż drewnianych ościeżnic | kpl | 100 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50443 | Demontaż metalowych futryn | kpl | 200 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50431 | Demontaże drzwi zewnętrznych - drzwi z ościeżnicą | kpl | 400 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50425 | Demontaż grzejników | szt | 100 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50426 | Demontaż listew przypodłogowych | mb | 10 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50427 | Demontaż paneli klejonych | m² | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50444 | Demontaż podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki | m² | 75 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50445 | Demontaż podłogi drewnianej na klej - prosty demontaż | m² | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50446 | Demontaż podłogi pływającej panele etc. | m² | 20 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50428 | Demontaż parapetów | mb | 60 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50429 | Demontaż sufitów podwieszanych | m² | 70 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50430 | Demontaż ścianek z GK | m² | 50 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50433 | Skuwanie posadzki/lastryko 10 cm - beton zbrojony | m² | 150 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50434 | Skuwanie wylewki do 6cm | m² | 60 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50435 | Skuwanie tynków cementowo-wapiennych i cementowych | m² | 50 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50436 | Skuwanie glazury z klejem i płytami GK - ściany i podłogi | m² | 85 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50437 | Skuwanie glazury z klejem ściany i podłogi | m² | 70 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50440 | Szlifowanie ścian po kleju, przygotowanie do dalszych prac | m² | 12 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50441 | Szlifowanie/usuwanie subitu | m² | 75 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50447 | Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża | szt | 850 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50453 | Wykucie nadproża i powiększenie otworu drzwiowego | kpl | 450 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50448 | Wyburzanie ścian 12-20 cm grubości - materiał miękki | m² | 130 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50449 | Wyburzanie ścian do 12 -20 cm - żelbeton | m² | 450 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50450 | Wyburzanie ścian do 12 cm grubości - materiał miękki | m² | 110 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50451 | Wyburzanie ścian do 12 cm grubości - żelbeton | m² | 300 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50452 | Wyburzanie ścian powyżej 20 cm grubości - materiał miękki | m² | 150 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50456 | Zdzieranie starej farby z tynkiem | m² | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 50457 | Zdzieranie tapet i usuwanie kleju | m² | 50 | 
+3 | Podłogi | 50463 | Gruntowanie podłóg | m² | 10 | 
+3 | Podłogi | 50491 | Uzupełnianie posadzki po wyburzeniach | mb | 60 | 
+3 | Podłogi | 50484 | Szycie dylatacji z dyblami | mb | 100 | 
+3 | Podłogi | 50493 | Wylewka betonowa ok. 3-5 cm | m² | 80 | 
+3 | Podłogi | 50494 | Wylewka samopoziomująca w całym mieszkaniu do 5 mm | m² | 55 | 
+3 | Podłogi | 50460 | Cyklinowanie - cena już z materiałem. Ewentualnie dodatkowe koszty mogą się pojawić jeżeli trzeba będzie coś naprawiać itp. | m² | 150 | 
+3 | Podłogi | 50458 | Akrylowanie listew przypodłogowych | mb | 16 | 
+3 | Podłogi | 50469 | Montaż listew przypodłogowych metalowych | mb | 200 | 
+3 | Podłogi | 50470 | Montaż listew przypodłogowych poliuretan lub MDF | mb | 45 | 
+3 | Podłogi | 50468 | Malowanie listew przypodłogowych | mb | 25 | 
+3 | Podłogi | 50461 | Docięcie i montaż progu w drzwiach wejściowych | szt | 250 | 
+3 | Podłogi | 50471 | Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg | mb | 100 | 
+3 | Podłogi | 50492 | Wklejanie korka drewnianego między parkiet | mb | 30 | 
+3 | Podłogi | 50472 | Ogrzewanie podłogowe elektryczne, montaż maty | m² | 90 | 
+3 | Podłogi | 50473 | Ogrzewanie podłogowe elektryczne, ułożenie maty + wylewka samopoziomująca | m² | 130 | 
+3 | Podłogi | 50474 | Położenie gresu na podłodze (karo) 30x30 | m² | 250 | 
+3 | Podłogi | 50475 | Położenie gresu na podłodze format 120x120 | m² | 300 | 
+3 | Podłogi | 50476 | Położenie gresu na podłodze format mały 20x20 | m² | 250 | 
+3 | Podłogi | 50477 | Położenie gresu na podłodze format mały cegiełki i inne np 10x10, 6x15 itp. | m² | 380 | 
+3 | Podłogi | 50478 | Położenie gresu na podłodze format standard od 30x30 do 60x120 | m² | 180 | 
+3 | Podłogi | 50479 | Położenie gresu na podłodze wielki format 120x270 itp. | m² | 550 | 
+3 | Podłogi | 50464 | Klejenie maty kompensacyjnej | m² | 40 | 
+3 | Podłogi | 50480 | Położenie płytek na podłodze 20x20 | m² | 250 | 
+3 | Podłogi | 50481 | Położenie płytek na podłodze 120x120 | m² | 300 | 
+3 | Podłogi | 50482 | Położenie trawertynu na podłodze | m² | 300 | 
+3 | Podłogi | 50459 | Cokół docinany z płytek | mb | 100 | 
+3 | Podłogi | 50462 | Fugowanie | m² | 30 | 
+3 | Podłogi | 50483 | Równe cięcia podłóg do łączeń bez listew | mb | 100 | 
+3 | Podłogi | 50465 | Klejenie paneli winylowych jodełka | m² | 95 | 
+3 | Podłogi | 50466 | Klejenie paneli winylowych mijanka | m² | 60 | 
+3 | Podłogi | 50467 | Klejenie paneli winylowych układ prosty, | m² | 60 | 
+3 | Podłogi | 50485 | Układanie paneli laminowanych jodełka - wysoki stopień skomplikowania prac | m² | 85 | 
+3 | Podłogi | 50486 | Układanie paneli laminowanych niski stopień skomplikowania prac | m² | 60 | 
+3 | Podłogi | 50487 | Układanie paneli winylowych pływających jodełka wysoki stopień skomplikowania prac | m² | 90 | 
+3 | Podłogi | 50488 | Układanie paneli winylowych pływających niski stopień skomplikowania prac | m² | 60 | 
+3 | Podłogi | 50489 | Układanie parkietu jodełka - wysoki stopień skomplikowania prac | m² | 110 | 
+3 | Podłogi | 50490 | Układanie parkietu z gruntowaniem mijanka | m² | 75 | 
+4 | Ściany i sufity bez łazienek  | 50519 | Montaż płyt GK na klej na ścianach | m² | 80 | 
+4 | Ściany i sufity bez łazienek  | 50521 | Montaż profili wzmocnionych pod ościeżnice | kpl | 250 | 
+4 | Ściany i sufity bez łazienek  | 50522 | Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac | m² | 150 | 
+4 | Ściany i sufity bez łazienek  | 50523 | Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac | m² | 180 | 
+4 | Ściany i sufity bez łazienek  | 50545 | Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu | mb | 350 | 
+4 | Ściany i sufity bez łazienek  | 50533 | Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac | m² | 160 | 
+4 | Ściany i sufity bez łazienek  | 50536 | Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.) | mb | 35 | 
+4 | Ściany i sufity bez łazienek  | 50543 | Wklejanie taśmy w łączenie sufit-ściana oraz dylatacje - poprawia estetykę oraz chroni przed pęknięciami | mb | 35 | 
+4 | Ściany i sufity bez łazienek  | 50524 | Montaż wzmocnień w ścianach działowych pod szafki wiszące | m² | 80 | 
+4 | Ściany i sufity bez łazienek  | 50518 | Montaż nadproży w nowo murowanej ścianie | szt | 150 | 
+4 | Ściany i sufity bez łazienek  | 50525 | Murowanie ścian z bloczków komórkowych 10 cm | m² | 110 | 
+4 | Ściany i sufity bez łazienek  | 50526 | Murowanie ścian z bloczków komórkowych 5 cm | m² | 110 | 
+4 | Ściany i sufity bez łazienek  | 50527 | Murowanie ścian z bloczków komórkowych 7,5 cm | m² | 110 | 
+4 | Ściany i sufity bez łazienek  | 50528 | Murowanie ścian z bloczków komórkowych 7,5 cm (skomplikowany montaż) | m² | 150 | 
+4 | Ściany i sufity bez łazienek  | 50532 | Przesunięcie otworu drzwiowego z montażem nadproża + murowanie | szt | 1200 | 
+4 | Ściany i sufity bez łazienek  | 50529 | Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących) | mb | 25 | 
+4 | Ściany i sufity bez łazienek  | 50544 | Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc. | mb | 45 | 
+4 | Ściany i sufity bez łazienek  | 50504 | Gruntowanie powierzchni betonkontaktem | mb | 15 | 
+4 | Ściany i sufity bez łazienek  | 50539 | Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian | mb | 40 | 
+4 | Ściany i sufity bez łazienek  | 50540 | Tynkowanie ręczne ścian lub sufitów do 1 cm | m² | 60 | 
+4 | Ściany i sufity bez łazienek  | 50496 | Dodatek za wklejanie siatki tynkarskiej | m² | 13 | 
+4 | Ściany i sufity bez łazienek  | 50541 | Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości. | m² | 100 | 
+4 | Ściany i sufity bez łazienek  | 50542 | Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga | mb | 35 | 
+4 | Ściany i sufity bez łazienek  | 50497 | Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony | m² | 35 | 
+4 | Ściany i sufity bez łazienek  | 50498 | Gładzie na sufitach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3 | m² | 59 | 
+4 | Ściany i sufity bez łazienek  | 50499 | Gładzie na sufitach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4 | m² | 80 | 
+4 | Ściany i sufity bez łazienek  | 50500 | Gładzie na ścianach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3 | m² | 57 | 
+4 | Ściany i sufity bez łazienek  | 50501 | Gładzie na ścianach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4 | m² | 75 | 
+4 | Ściany i sufity bez łazienek  | 50502 | Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa | m² | 85 | 
+4 | Ściany i sufity bez łazienek  | 50535 | Szpachlowanie glifów / dekoracyjnych narożników / wykończenie obwodu drzwi z ukrytą opaską | mb | 55 | 
+4 | Ściany i sufity bez łazienek  | 50534 | Szlifowanie mleczka z tynków deweloperskich | m² | 7 | 
+4 | Ściany i sufity bez łazienek  | 50505 | Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach | m² | 12 | 
+4 | Ściany i sufity bez łazienek  | 50506 | Gruntowanie ścian jednokrotne | m² | 8 | 
+4 | Ściany i sufity bez łazienek  | 50507 | Gruntowanie ścian jednokrotne + drobne poprawki | m² | 15 | 
+4 | Ściany i sufity bez łazienek  | 50495 | Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia | mb | 14 | 
+4 | Ściany i sufity bez łazienek  | 50503 | Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową. | m² | 12 | 
+4 | Ściany i sufity bez łazienek  | 50508 | Malowanie sufitów farbą silikonową lub akrylową na biało | m² | 23 | 
+4 | Ściany i sufity bez łazienek  | 50509 | Malowanie sufitu w kolorze | m² | 27 | 
+4 | Ściany i sufity bez łazienek  | 50511 | Malowanie ścian emulsją z gruntem (przykrycie koloru, żeby malować na biało) - 1 warstwa | m² | 10 | 
+4 | Ściany i sufity bez łazienek  | 50512 | Malowanie ścian farbą strukturalną efekt beton - do ustalenia dokładnie produkt i czy to ma być beton, tynk dekoracyjny czy farba, bo cena może się różnić. Od 40 do 150 zł | m² | 100 | 
+4 | Ściany i sufity bez łazienek  | 50513 | Malowanie ścian i sufitów farbą silikonową lub akrylową na biało | m² | 22 | 
+4 | Ściany i sufity bez łazienek  | 50514 | Malowanie ścian w kolorze | m² | 26 | 
+4 | Ściany i sufity bez łazienek  | 50530 | Odcinanie kolorów, lamperie itp. | mb | 12 | 
+4 | Ściany i sufity bez łazienek  | 50516 | Montaż listew sztukateryjnych na ścianach przygotowanie do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie) | mb | 80 | 
+4 | Ściany i sufity bez łazienek  | 50517 | Montaż listew sztukateryjnych sufitowych (osłona karnisza) przygotowanie do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie) | mb | 110 | 
+4 | Ściany i sufity bez łazienek  | 50510 | Malowanie sztukaterii | mb | 40 | 
+4 | Ściany i sufity bez łazienek  | 50515 | Montaż karniszy | mb | 80 | 
+4 | Ściany i sufity bez łazienek  | 50537 | Tapetowanie | m² | 100 | 
+4 | Ściany i sufity bez łazienek  | 50538 | Tynk dekoracyjny efekt betonu | m² | 160 | 
+5 | Łazienka | 50546 | Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt | pkt | 250 | 
+5 | Łazienka | 50620 | Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem | pkt | 250 | 
+5 | Łazienka | 50621 | Wkucie w ścianę nośną/żelbet instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem | kpl | 500 | 
+5 | Łazienka | 50569 | Montaż geberitu | szt | 450 | 
+5 | Łazienka | 50583 | Montaż profili i płyt GK w zabudowie geberitu | kpl | 450 | 
+5 | Łazienka | 50579 | Montaż odpływu liniowego z wypoziomowaniem spadku - koperta | kpl | 1900 | 
+5 | Łazienka | 50580 | Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy | kpl | 1600 | 
+5 | Łazienka | 50551 | Dodatek za schodek pod prysznicem - murowanie i wykonanie spadki na podwyższeniu | kpl | 1000 | 
+5 | Łazienka | 50590 | Montaż wanny z zabudową z bloczków i rewizją | kpl | 1800 | 
+5 | Łazienka | 50591 | Montaż wanny z zabudową z bloczków i rewizją oraz LED | kpl | 2000 | 
+5 | Łazienka | 50631 | Zmiana kanalizacji z wanny na odpływ liniowy - skucie posadzki, obniżenie rur w pionie, wykonanie odpowiedniego spadku | kpl | 800 | 
+5 | Łazienka | 50626 | Wykonanie punktów oświetleniowych | szt | 100 | 
+5 | Łazienka | 50627 | Wykonanie punktów elektrycznych pod włącznik, gniazdko | szt | 120 | 
+5 | Łazienka | 50552 | Dwukrotne gruntowanie ścian, sufitów i podłóg | m² | 10 | 
+5 | Łazienka | 50557 | Klejenie płyt GK | m² | 80 | 
+5 | Łazienka | 50558 | Licowanie ścian płytami GK + wklejanie taśm i przygotowanie pod malowanie/tapetę | m² | 120 | 
+5 | Łazienka | 50599 | Sufit podwieszany z LED wg. projektu | kpl | 1800 | 
+5 | Łazienka | 50602 | Tynkowanie/wyrównanie ścian pod układanie glazury | m² | 80 | 
+5 | Łazienka | 50622 | Wykonanie przedścianki pod prysznicem z 1 półką | szt | 1200 | 
+5 | Łazienka | 50623 | Wykonanie przedścianki pod prysznicem z 2 półkami | kpl | 1500 | 
+5 | Łazienka | 50624 | Wykonanie przedścianki pod prysznicem z 3 półkami | szt | 1800 | 
+5 | Łazienka | 50628 | Wykonanie zabudowy rur z gk | mb | 250 | 
+5 | Łazienka | 50596 | Położenie folii w płynie (izolacji) | m² | 30 | 
+5 | Łazienka | 50618 | Wklejanie maty hydroizolacyjnej | m² | 65 | 
+5 | Łazienka | 50619 | Wklejanie taśmy hydroizolacyjnej | mb | 30 | 
+5 | Łazienka | 50600 | Szlifowanie krawędzi płytek na 45 stopni | mb | 80 | 
+5 | Łazienka | 50601 | Szlifowanie krawędzi płytek czyste cięcie | mb | 50 | 
+5 | Łazienka | 50603 | Układanie glazury mały format 6,5 x 20 | m² | 380 | 
+5 | Łazienka | 50604 | Układanie glazury na glify i małe ściany - mały format | mb | 345 | 
+5 | Łazienka | 50605 | Układanie glazury na podłodze duży format 120x120 | m² | 300 | 
+5 | Łazienka | 50606 | Układanie glazury na podłodze format 20x20 | m² | 200 | 
+5 | Łazienka | 50607 | Układanie glazury na podłodze format standard od 30x30 do 120x60 | m² | 180 | 
+5 | Łazienka | 50608 | Układanie glazury na podłodze format standard od 30x30 do 120x60 (karo) | m² | 250 | 
+5 | Łazienka | 50609 | Układanie glazury na podłodze lub ścianie mozaika | m² | 400 | 
+5 | Łazienka | 50610 | Układanie glazury na podłodze wielki format np. 120x270 | m² | 550 | 
+5 | Łazienka | 50597 | Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe | m² | 45 | 
+5 | Łazienka | 50611 | Układanie glazury na ścianie mały format np. 6,5 x 15 | m² | 380 | 
+5 | Łazienka | 50612 | Układanie glazury na ścianie format duży 120x120 | m² | 300 | 
+5 | Łazienka | 50613 | Układanie glazury na ścianie format standard od 30x30 do 120x60 | m² | 180 | 
+5 | Łazienka | 50614 | Układanie glazury na ścianie wielki format 120x270 | m² | 550 | 
+5 | Łazienka | 50615 | Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard | mb | 130 | 
+5 | Łazienka | 50616 | Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format | mb | 350 | 
+5 | Łazienka | 50553 | Fugowanie fugą epoksydową format płytek standard | m² | 80 | 
+5 | Łazienka | 50554 | Fugowanie ścian i podłóg fuga cementowa płytka mały format | m² | 50 | 
+5 | Łazienka | 50555 | Fugowanie ścian i podłóg fugą epoksydową płytka mały format | m² | 120 | 
+5 | Łazienka | 50556 | Fugowanie ścian i podłóg płytka format standard | m² | 30 | 
+5 | Łazienka | 50598 | Silikonowanie | mb | 25 | 
+5 | Łazienka | 50617 | Wiercenie otworów w płytkach | szt | 60 | 
+5 | Łazienka | 50625 | Wykonanie przycisku WC z glazury | szt | 650 | 
+5 | Łazienka | 50547 | Akrylowanie | mb | 14 | 
+5 | Łazienka | 50559 | Malowanie sufitów i ścian bez glazury + gładź na suficie | m² | 100 | 
+5 | Łazienka | 50560 | Montaż akcesoriów łazienkowych | szt | 50 | 
+5 | Łazienka | 50561 | Montaż baterii do umywalki | szt | 150 | 
+5 | Łazienka | 50562 | Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody | szt | 900 | 
+5 | Łazienka | 50563 | Montaż baterii prysznicowo-wannowej natynkowej | szt | 250 | 
+5 | Łazienka | 50564 | Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody | szt | 550 | 
+5 | Łazienka | 50565 | Montaż baterii wannowej wolnostojącej | szt | 550 | 
+5 | Łazienka | 50566 | Montaż bidetu podtynkowego | szt | 550 | 
+5 | Łazienka | 50548 | Biały montaż baterii podtynkowej bidetka | kpl | 100 | 
+5 | Łazienka | 50549 | Biały montaż baterii podtynkowej do umywalki | kpl | 100 | 
+5 | Łazienka | 50550 | Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą | kpl | 200 | 
+5 | Łazienka | 50567 | Montaż brodzika z kabiną prysznicową | kpl | 1500 | 
+5 | Łazienka | 50568 | Montaż deski wc elektrycznej | szt | 550 | 
+5 | Łazienka | 50570 | Montaż gniazdek i włączników standard | szt | 39 | 
+5 | Łazienka | 50571 | Montaż grzejnika elektrycznego | szt | 200 | 
+5 | Łazienka | 50572 | Montaż grzejnika z zaworami | szt | 250 | 
+5 | Łazienka | 50573 | Montaż i podłączenie listw led + taśm | mb | 150 | 
+5 | Łazienka | 50574 | Montaż i podłączenie transformatora | mb | 100 | 
+5 | Łazienka | 50575 | Montaż kratki wentylacyjnej | kpl | 100 | 
+5 | Łazienka | 50576 | Montaż lamp | szt | 100 | 
+5 | Łazienka | 50577 | Montaż lustra | szt | 120 | 
+5 | Łazienka | 50578 | Montaż lustra z LED | szt | 150 | 
+5 | Łazienka | 50581 | Montaż ościeżnicy z drzwiami i klamkami | szt | 380 | 
+5 | Łazienka | 50582 | Montaż parawanu nawannowego | szt | 550 | 
+5 | Łazienka | 50584 | Montaż rewizji z glazury | kpl | 350 | 
+5 | Łazienka | 50586 | Montaż szyby stałej do odpływu liniowego | kpl | 550 | 
+5 | Łazienka | 50587 | Montaż umywalki nablatowej lub na szafke | szt | 130 | 
+5 | Łazienka | 50588 | Montaż umywalki wiszącej | szt | 250 | 
+5 | Łazienka | 50589 | Montaż wanny wolnostojącej z syfonem | kpl | 600 | 
+5 | Łazienka | 50585 | Montaż syfonów | szt | 80 | 
+5 | Łazienka | 50593 | Montaż zaworów czerpalnych do umywalek i zlewów | szt | 60 | 
+5 | Łazienka | 50592 | Montaż WC podwieszanego | szt | 350 | 
+5 | Łazienka | 50594 | Podłączenie pralki | szt | 100 | 
+5 | Łazienka | 50595 | Podłączenie suszarki | szt | 100 | 
+5 | Łazienka | 50629 | Złożenie i montaż szafki nad geberitem | szt | 250 | 
+5 | Łazienka | 50630 | Złożenie i montaż szafki podumywalkowej | szt | 250 | 
+6 | Kuchnia | 50648 | Wklejanie narożników i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga | mb | 35 | 
+6 | Kuchnia | 50649 | Wkucie płytek w ścianę, zlicowanie + obróbka | m² | 400 | 
+6 | Kuchnia | 50650 | Wzmocnienie płytą OSB pod szafki kuchenne min. m2 | m² | 120 | 
+6 | Kuchnia | 50642 | Położenie płytek między szafkami - mozaika | m² | 450 | 
+6 | Kuchnia | 50643 | Położenie płytek między szafkami format standard od 30x30 do 60x120 | m² | 220 | 
+6 | Kuchnia | 50644 | Położenie płytek między szafkami mały format cegiełki itp. | m² | 380 | 
+6 | Kuchnia | 50645 | Układanie glazury na ścianie format standard | m² | 180 | 
+6 | Kuchnia | 50646 | Układanie gresu 120x120 | m² | 300 | 
+6 | Kuchnia | 50647 | Układanie gresu na podłodze format standard od 30x30 do 60x120 | m² | 180 | 
+6 | Kuchnia | 50632 | Montaż AGD: lodówka, zmywarka, płyta, piekarnik | szt | 250 | 
+6 | Kuchnia | 50633 | Montaż baterii zlewozmywakowej | szt | 250 | 
+6 | Kuchnia | 50634 | Montaż LED | mb | 90 | 
+6 | Kuchnia | 50635 | Montaż oświetlenia LED | szt | 100 | 
+6 | Kuchnia | 50636 | Montaż syfonu | szt | 80 | 
+6 | Kuchnia | 50637 | Montaż zlewu | szt | 250 | 
+6 | Kuchnia | 50638 | Montaż zlewu z wywierceniem otworu | szt | 350 | 
+6 | Kuchnia | 50639 | Podłączenie indukcji | szt | 150 | 
+6 | Kuchnia | 50640 | Podłączenie piekarnika | szt | 150 | 
+6 | Kuchnia | 50641 | Podłączenie zmywarki | szt | 250 | 
+7 | Montaż stolarki i ślusarski | 50652 | Montaż drzwi do systemu kasetowego | kpl | 600 | 
+7 | Montaż stolarki i ślusarski | 50653 | Montaż kasety pod drzwi przesuwne | szt | 1400 | 
+7 | Montaż stolarki i ślusarski | 50654 | Montaż drzwi, ościeżnic stałych, klamek, zamków | szt | 450 | 
+7 | Montaż stolarki i ślusarski | 50655 | Montaż drzwi, ościeżnic regulowanych, klamek, zamków | szt | 380 | 
+7 | Montaż stolarki i ślusarski | 50656 | Montaż drzwi ukrytych z wykończeniem i przygotowaniem do malowania/tapety | szt | 1000 | 
+7 | Montaż stolarki i ślusarski | 50657 | Montaż klamek okiennych | szt | 20 | 
+7 | Montaż stolarki i ślusarski | 50658 | Montaż parapetów | mb | 200 | 
+7 | Montaż stolarki i ślusarski | 50659 | Montaż progu drzwi wejściowych | szt | 150 | 
+7 | Montaż stolarki i ślusarski | 50660 | Obróbka drzwi ukrytych bez montażu ościeży | szt | 800 | 
+7 | Montaż stolarki i ślusarski | 50661 | Regulacja okien | szt | 40 | 
+7 | Montaż stolarki i ślusarski | 50662 | Silikonowanie parapetu | mb | 30 | 
+7 | Montaż stolarki i ślusarski | 50663 | Wklejanie opasek drzwi + docinanie listew | kpl | 200 | 
+7 | Montaż stolarki i ślusarski | 50664 | Dopasowanie otworów pod montaż drzwi - zmniejszenie otworu | szt | 200 | 
+7 | Montaż stolarki i ślusarski | 50665 | Poszerzenie otworów drzwi | szt | 350 | 
+9 | Instalacja elektryczna i oświetleniowa | 50701 | Wykonanie punktów oświetleniowych, czujki, rolety | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 50702 | Wykonanie punktu lan, kamery, internet | m² | 250 | 
+9 | Instalacja elektryczna i oświetleniowa | 50703 | Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla | szt | 130 | 
+9 | Instalacja elektryczna i oświetleniowa | 50698 | Punkty elektryczne żelbet dodatek | szt | 50 | 
+9 | Instalacja elektryczna i oświetleniowa | 50699 | Układanie przewodów w peszlu | mb | 40 | 
+9 | Instalacja elektryczna i oświetleniowa | 50668 | Doprowadzenie kabla do rolet zewnętrznych + przebicie | kpl | 350 | 
+9 | Instalacja elektryczna i oświetleniowa | 50669 | Doprowadzenie przewodu 3-fazowego | kpl | 300 | 
+9 | Instalacja elektryczna i oświetleniowa | 50670 | Doprowadzenie przewodu 3-fazowego do rozdzielni, wniosek do E.ON, wymiana bezpiecznika przedlicznikowego i przygotowanie instalacji | kpl | 1500 | 
+9 | Instalacja elektryczna i oświetleniowa | 50671 | Doprowadzenie przewodu 3-fazowego z montażem gniazda | kpl | 500 | 
+9 | Instalacja elektryczna i oświetleniowa | 50675 | Montaż gniazdek i włączników | szt | 39 | 
+9 | Instalacja elektryczna i oświetleniowa | 50693 | Montaż włączników schodowych/krzyżowych | szt | 70 | 
+9 | Instalacja elektryczna i oświetleniowa | 50682 | Montaż master switch; stycznik + master switch | kpl | 450 | 
+9 | Instalacja elektryczna i oświetleniowa | 50673 | Montaż czujnika termostatycznego ze sterownikiem do ogrzewania podłogowego | szt | 250 | 
+9 | Instalacja elektryczna i oświetleniowa | 50674 | Montaż gniazda TV i internet | szt | 200 | 
+9 | Instalacja elektryczna i oświetleniowa | 50700 | Wykonanie gniazda zewnętrznego na balkonie z przebiciem się przez ściane | szt | 220 | 
+9 | Instalacja elektryczna i oświetleniowa | 50676 | Montaż gniazdek i włączników smart home - cena +/- w zależności od osprzętu | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 50677 | Montaż kanału TV - wykucie i osadzenie + tynk - ściana działowa miękka | szt | 700 | 
+9 | Instalacja elektryczna i oświetleniowa | 50678 | Montaż kanału TV - wykucie i osadzenie + tynk - ściana żelbetowa | szt | 1000 | 
+9 | Instalacja elektryczna i oświetleniowa | 50679 | Montaż kinkietów | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 50680 | Montaż lamp ze składaniem (trudne) | szt | 150 | 
+9 | Instalacja elektryczna i oświetleniowa | 50685 | Montaż prostych lamp (bez składania) | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 50688 | Montaż szynoprzewodów natynkowych | mb | 120 | 
+9 | Instalacja elektryczna i oświetleniowa | 50684 | Montaż profili LED podtynkowych w suficie | mb | 160 | 
+9 | Instalacja elektryczna i oświetleniowa | 50681 | Montaż listew LED + taśm LED | kpl | 150 | 
+9 | Instalacja elektryczna i oświetleniowa | 50672 | Lutowanie taśm LED | pkt | 30 | 
+9 | Instalacja elektryczna i oświetleniowa | 50689 | Montaż taśm LED | mb | 60 | 
+9 | Instalacja elektryczna i oświetleniowa | 50690 | Montaż transformatorów | szt | 120 | 
+9 | Instalacja elektryczna i oświetleniowa | 50683 | Montaż okapu i podłączenie do wentylacji | kpl | 350 | 
+9 | Instalacja elektryczna i oświetleniowa | 50686 | Montaż puszek elektrycznych | pkt | 35 | 
+9 | Instalacja elektryczna i oświetleniowa | 50691 | Montaż uchwytu TV | kpl | 250 | 
+9 | Instalacja elektryczna i oświetleniowa | 50692 | Montaż wentylatora łazienkowego | kpl | 120 | 
+9 | Instalacja elektryczna i oświetleniowa | 50687 | Montaż rozdzielni CCTV - wycena indywidualna | kpl | 1500 | 
+9 | Instalacja elektryczna i oświetleniowa | 50694 | Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów | kpl | 1200 | 
+9 | Instalacja elektryczna i oświetleniowa | 50695 | Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów | kpl | 1500 | 
+9 | Instalacja elektryczna i oświetleniowa | 50696 | Montaż/przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 24 modułów | kpl | 2100 | 
+9 | Instalacja elektryczna i oświetleniowa | 50697 | Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika | szt | 200 | 
+9 | Instalacja elektryczna i oświetleniowa | 50704 | Wymiana bezpiecznika 3-fazowego | szt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50705 | Montaż grzejnika z zaworami | szt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50706 | Likwidacja punktów wod-kan | pkt | 120 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50707 | Montaż filtra wody | szt | 500 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50708 | Montaż grzejników dekoracyjnych z zaworami | szt | 450 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50709 | Przebudowa punktów centralnego ogrzewania | pkt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50710 | Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni | pkt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 50711 | Rozkucie i zatynkowanie podejść grzejnikowych | kpl | 300 | 

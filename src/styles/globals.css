@@ -167,6 +167,21 @@
   --animate-collapse-up: collapse-up 200ms ease-out;
 }
 
+:root {
+  /* Two more reds for the transfer types: every outgoing type stays red, and there are four of
+     them — the section's soft red reads as pink. Outside @theme because only inline styles read
+     them, and Tailwind drops a theme variable no utility class uses. */
+  --color-transfer-red-dark: color-mix(in oklch, var(--color-chart-red) 58%, black);
+  --color-transfer-red-warm: color-mix(
+    in oklch,
+    var(--color-chart-red) 65%,
+    var(--color-chart-orange)
+  );
+  /* Materiały wliczone w robociznę: still an expense, so it leans red, but it must not read as
+     one of the four reds above. */
+  --color-transfer-fuchsia: #d9268f;
+}
+
 /* The dark palette: overriding the semantic tokens here flips the whole token-driven UI without
    touching a component. Light values stay the source of truth in @theme above.
    Text runs brighter than shadcn's stock scale (foreground 1 instead of 0.985, muted 0.78 instead
@@ -224,9 +239,10 @@
    back out — so every surface you can type into is 16px on a phone and the app's usual 14px from
    `sm` up. The placeholder stays 14px throughout: it is a hint, and at 16px the longer Polish ones
    ran out of field. Four inputs were carrying this as a copied three-class incantation and the
-   fifth (the kosztorys cell) silently missed it. */
+   fifth (the kosztorys cell) silently missed it. The `max` holds the 16px floor when the „Rozmiar"
+   switch shrinks the root font-size below it. */
 @utility typing-surface {
-  font-size: var(--text-base);
+  font-size: max(var(--text-base), 16px);
   line-height: var(--text-base--line-height);
 
   &::placeholder {

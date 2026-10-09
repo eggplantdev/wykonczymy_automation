@@ -43,23 +43,28 @@ describe('worker view settings', () => {
     })
   })
 
-  // EX-921: the worker's quantity column became the Aktualizacja przedmiaru; an untick saved under
-  // the old key must keep it hidden rather than fall to the ceiling and reappear.
-  it('offers the crew the Aktualizacja przedmiaru, never the Przedmiar ofertowy', () => {
+  // A quantity and a percentage of quantities disclose no price, so the offer is the managers' call
+  // (2026-10-09).
+  it('offers the Przedmiar ofertowy and the percentage against it, unticked by default', () => {
     const keys = WORKER_VIEW_GROUPS.flatMap((group) => group.keys)
 
-    expect(keys).toContain('currentPlannedQty')
-    expect(keys).not.toContain('plannedQty')
+    for (const key of ['plannedQty', 'currentPlannedQty', 'plannedDonePercent']) {
+      expect(keys, key).toContain(key)
+    }
+    const columns = workerVisibleColumns('w_tools', WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns)
+    expect(columns.has('plannedQty')).toBe(false)
+    expect(columns.has('plannedDonePercent')).toBe(false)
+    expect(columns.has('currentPlannedQty')).toBe(true)
   })
 
-  it('reads a pre-EX-921 `plannedQty` untick and position as the Aktualizacja przedmiaru', () => {
+  it('reads a stored `plannedQty` untick and position as the Przedmiar ofertowy', () => {
     const settings = sanitizeWorkerViewSettings({
-      hiddenColumns: ['plannedQty', 'currentPlannedQty', 'unit'],
+      hiddenColumns: ['plannedQty', 'unit'],
       columnRanks: { plannedQty: 3 },
     })
 
-    expect(settings.hiddenColumns).toEqual(['currentPlannedQty', 'unit'])
-    expect(settings.columnRanks).toEqual({ currentPlannedQty: 3 })
+    expect(settings.hiddenColumns).toEqual(['plannedQty', 'unit'])
+    expect(settings.columnRanks).toEqual({ plannedQty: 3 })
   })
 
   it.each([undefined, null, 'x', 42, { hiddenColumns: 'price' }])(
@@ -71,9 +76,9 @@ describe('worker view settings', () => {
     },
   )
 
-  it('defaults to every allowed column visible, with empty pozycje hidden', () => {
+  it('defaults to every allowed column but the offer visible, with empty pozycje hidden', () => {
     expect(WORKER_VIEW_DEFAULT_SETTINGS).toEqual({
-      hiddenColumns: [],
+      hiddenColumns: ['plannedQty', 'plannedDonePercent'],
       hideEmptyRows: true,
       hidePlannedOnceExecuted: true,
       columnRanks: {},

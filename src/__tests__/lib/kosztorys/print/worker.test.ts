@@ -4,7 +4,10 @@ import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/worker-view/columns'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
-import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
+import {
+  WORKER_VIEW_DEFAULT_SETTINGS,
+  type WorkerViewSettingsT,
+} from '@/lib/kosztorys/worker-view/settings'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
@@ -272,6 +275,26 @@ describe('buildWorkerPrintHtml', () => {
     expect(headersOf(out)).toContain(PLANNED_NET_HEADER)
   })
 
+  it('prints the Przedmiar ofertowy and the percentage against it only once a manager ticks them', () => {
+    const offer = ['Przedmiar ofertowy', '% wykonania (względem przedmiaru ofertowego)']
+    const unticked = headersOf(
+      html(
+        projection({
+          hiddenColumns: WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
+          hidePlannedOnceExecuted: false,
+        }),
+      ),
+    )
+    for (const label of offer) expect(unticked, label).not.toContain(label)
+
+    const out = html(projection({ hidePlannedOnceExecuted: false }))
+    for (const label of offer) expect(headersOf(out), label).toContain(label)
+    // Tynk: 5 done across every crew of the ofertowy 5 — his own etap holds only 2 (40%).
+    expect(out).toMatch(/>100%<\/td>/)
+    expect(out).not.toMatch(/>40%<\/td>/)
+    expect(out).toMatch(/>25%<\/td>/) // Gładź: 1 of 4
+  })
+
   describe('columns the data takes off — the same rule the link renders by', () => {
     const [tynki, second] = stages.map((each) => stageLabel(each))
 
@@ -351,6 +374,7 @@ describe('buildWorkerPrintHtml in the worker’s language', () => {
         'Tynki нетто',
         'Етап 3 нетто',
         'Сума етапів з інструментами (субпідрядник) нетто',
+        '% виконання (від планового обсягу)',
         'Залишилось нетто (від оновленого планового обсягу)',
       ]),
     )

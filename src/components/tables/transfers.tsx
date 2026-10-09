@@ -8,14 +8,11 @@ import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
+import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
-import {
-  TRANSFER_TYPE_COLORS,
-  isCancellationType,
-  SETTLED_TYPE,
-  billsNetAmount,
-} from '@/lib/constants/transfers'
+import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -53,16 +50,15 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
       header: t('colAmount'),
       meta: { printValue: (row) => transferAmountText(row, translator) },
       cell: (info) => {
-        const { type, cancelled, settled, netAmount } = info.row.original
+        const { type, cancelled, netAmount } = info.row.original
         const isMuted = cancelled || type === 'CANCELLATION'
-        const color = settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
         // Brutto stays the primary figure: this column is summed against the kasa balance, and only
         // the amount that left the register reconciles there.
         const showsNet = billsNetAmount(type) && netAmount !== null
         return (
           <span
             className="flex flex-col font-medium"
-            style={isMuted ? undefined : { color: `var(--color-${color})` }}
+            style={isMuted ? undefined : { color: transferColorVar(info.row.original) }}
           >
             {formatPLN(info.getValue())}
             {showsNet && (
@@ -91,7 +87,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const id = info.row.original.investmentId
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id ? `/inwestycje/${id}` : undefined}>
+          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/inwestycje/${id}` : undefined}>
             {name}
           </OptionalLink>
         )
@@ -103,7 +99,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
       meta: { minWidth: 'min-w-56', printValue: (row) => transferTypeText(row, translator) },
       cell: (info) => (
         <span className="flex flex-wrap items-center gap-1">
-          {transferTypeText(info.row.original, translator)}
+          <TransferTypeBadge transfer={info.row.original} translator={translator} />
           {info.row.original.fromWorkerDraft && (
             <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('fromWorker')}</span>
           )}
@@ -155,7 +151,9 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+          <OptionalLink
+            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
+          >
             {name}
           </OptionalLink>
         )
@@ -169,7 +167,9 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+          <OptionalLink
+            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
+          >
             {name}
           </OptionalLink>
         )
@@ -190,7 +190,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const id = info.row.original.workerId
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id ? `/pracownicy/${id}` : undefined}>
+          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/pracownicy/${id}` : undefined}>
             {name}
           </OptionalLink>
         )
