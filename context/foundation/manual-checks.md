@@ -4606,3 +4606,34 @@ Kierownictwo — przyjęcie:
 - [ ] „Zweryfikuj” na nim: formularz otwiera się jako „Inny wydatek”, z kasą pracownika, bez pola inwestycji i z pracownikiem jako kupującym w każdym wierszu. Po wybraniu kategorii w każdym wierszu i zapisie powstają transakcje „Inny wydatek” z tym pracownikiem, a zgłoszenie jest „przyjęte”.
 - [ ] Zmiana typu na „Wydatek inwestycyjny” podczas przyjęcia wymaga wyboru inwestycji jak zwykle.
 - [ ] „Odrzuć” na takim zgłoszeniu: potwierdzenie pokazuje „<pracownik> · Bez inwestycji”; odrzucone zgłoszenie da się przywrócić.
+
+## 2026-10-09 — stage-completed-flag — etap „zakończony” (EX-1034)
+
+Przed sprawdzeniem: migracja `20261009_4_kosztorys_stages_completed` zastosowana na bazie, na której klikasz.
+
+Edytor — flaga:
+
+- [ ] Menu etapu: „Etap zakończony” zaznaczone → odśwież → nadal zaznaczone; odznacz → odśwież → odznaczone. Kierownik (MANAGER) też może je przełączyć.
+- [ ] Przywrócenie starszej wersji z historii po zamknięciu etapu: etap wraca taki, jaki był w tej wersji.
+- [ ] Ilości na etapie zakończonym nadal da się wpisywać (nic nie jest zablokowane).
+
+Kolor:
+
+- [ ] Edytor: zamknięty etap ma zielone kolumny ilości, netto i brutto oraz ✓ w nagłówku; po ponownym otwarciu wraca do normy.
+- [ ] Podgląd inwestora i `/k/[token]`: te same kolumny są zielone, także kolumna w paski (nieparzysta), a pasy działów nadal czytają się jako jeden pas.
+- [ ] Podgląd pracownika i `/z/...` (pracownik z jednym otwartym i jednym zakończonym etapem): zakończony etap jest widoczny i zielony, kolumna „Zgłaszam” zostaje limonkowa.
+- [ ] Tryb ciemny w edytorze: zielony jest czytelny.
+- [ ] PDF inwestora i PDF pracownika wydrukowane po zamknięciu etapu wyglądają jak dotąd.
+
+Pracownik (telefon, 390px) — pracownik z jednym etapem na inwestycji X, etap zamyka kierownik:
+
+- [ ] X znika z „Moje inwestycje”, z linków „Zgłoś pracę” i z listy inwestycji w nowym wydatku; po ponownym otwarciu etapu X wraca.
+- [ ] Zapisany wcześniej link `/z/...` po zamknięciu pokazuje komunikat o zakończonych etapach zamiast formularza; „Podgląd pracownika” u kierownika nadal działa.
+- [ ] Z jednym otwartym i jednym zakończonym etapem: X zostaje na liście, link działa.
+- [ ] Istniejące, nieprzyjęte zgłoszenie wydatku na X nadal da się edytować i zapisać na X; nowe zgłoszenie już X nie oferuje.
+- [ ] Zgłoszenie prac wysłane przed zamknięciem etapu da się przyjąć po jego zamknięciu.
+
+Kierownictwo — skan:
+
+- [ ] Edytor, menu „Pracownicy”: przy pracowniku ze wszystkimi etapami zakończonymi jest dopisek o zakończonych etapach, a „Drukuj kartkę do zgłoszenia prac” jest nieaktywne.
+- [ ] Ogólny dialog skanu zgłoszenia nie proponuje już tego pracownika ani X.
