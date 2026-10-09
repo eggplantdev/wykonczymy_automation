@@ -102,5 +102,14 @@ tmp-lessons/
 # QA screenshots, written next to the cwd. Anchored for the reason above.
 /*.png
 
+# Client photos and floor plans fed to the AI kosztorys test cases — a real client's flat, and the
+# repo is public. They stay on the disk of whoever runs the case.
+context/**/cases/**/*.png
+context/**/cases/**/*.jpg
+context/**/cases/**/*.jpeg
+context/**/cases/**/*.webp
+context/**/cases/**/*.heic
+context/**/cases/**/*.pdf
+
 # Review-gate scratch ledgers
 .review-gate/
