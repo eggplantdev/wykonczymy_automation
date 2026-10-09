@@ -4118,64 +4118,12 @@ Przebieg `verify-manual-checks` na stagingu (origin/staging 1899287d → 7f105da
 
 Stan zostawiony na preview DB: raport pracownika #37 (QA-Premia A, inw. 137) przyjęty — Etap 1 „Mikrocement” cofnięty ręcznie do 13; „Przedmiar” pozycji „QA extra B” na inw. 137 wpisany na 2 i przywrócony do 0. Inw. 159 wróciła do pierwotnej kolejności (dodatkowe migawki wersji zostają). Język strony /z pracownika 36 w przeglądarce ustawiony na Русский (tylko localStorage).
 
-## 2026-10-06 — worker-page-cleanup — strona pracownika: zwijane sekcje, „Moje transfery”, mniej kontrolek
-
-Potrzebny stan: konto roli Pracownik z co najmniej jedną kasą, przypisane do etapu aktywnej
-inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
-
-- [x] Pracownik na swojej stronie: „Moje kasy”, „Moje inwestycje” i „Zgłoszone wydatki” mają ten sam
-      nagłówek ze strzałką i są domyślnie otwarte; zwinięcie jednej przetrwa przeładowanie strony.
-      _Staging 2026-10-06 (pass 2):_ trzy sekcje otwarte, zwinięcie „Moje kasy” przetrwało reload (390px).
-- [x] Pod „Moje inwestycje” i pod „Zgłoszone wydatki” jest podpowiedź tuż pod tytułem, a odstęp do
-      tabeli jest taki sam jak w sekcjach bez podpowiedzi; „Dodaj wydatek” stoi w wierszu tytułu.
-      _Staging 2026-10-06 (pass 3, EMPLOYEE 85): podpowiedź tuż pod tytułem obu sekcji, odstęp podpowiedź→tabela ~8–16 px jak tytuł→tabela w „Moje kasy”; „Dodaj wydatek” jest w nagłówku sekcji (pracownik, 390px: osobna linia pod podpowiedzią)._
-- [x] Na telefonie (390px) „Dodaj wydatek” stoi w osobnej linii pod podpowiedzią „Zgłoszone wydatki”
-      i nie nachodzi na jej tekst; na desktopie zostaje obok tytułu, a podpowiedź zawija się przed nim.
-      _Staging 2026-10-06 (pass 2):_ na 390px przycisk w osobnej linii pod podpowiedzią; desktopu nie sprawdzano.
-- [x] Tabele kas, sprzętu i inwestycji mają pierwszą kolumnę tej samej szerokości; na telefonie (390px)
-      strona nie przewija się w bok.
-      _Staging 2026-10-06 (batch A, /pracownicy/36, /30, /85): desktop — wszystkie trzy 320 px; 390px — brak przewijania w bok (scrollWidth = innerWidth). Treść boksu zawężona: tabela transakcji nigdy nie miała tej kolumny (ec96a030), „Zgłoszone wydatki” są od EX-1005 wspólną tabelą zgłoszeń, a 12 px w siatkach na telefonie jest celowe (`summary-grid.tsx`)._
-- [x] „Moje transfery” to jedna zwijana sekcja, domyślnie zamknięta; po otwarciu w środku są „Filtry”
-      (osobno zwijane) i tabela, bez kreski pod nagłówkiem. Pod stroną jest zapas miejsca po ostatniej sekcji.
-      _Staging 2026-10-06 (pass 2):_ domyślnie zamknięta, w środku „Filtry” i tabela; zapas pod stroną nie mierzony; brak przewijania w bok na 390px.
-- [x] Pracownik: w filtrach nie ma pól „Szukaj po kwocie” / „Szukaj po id” ani „Anulowane”; filtr kasy,
-      inwestycji i typu pojawia się tylko gdy jest z czego wybierać i proponuje wyłącznie to, co jest
-      w jego transakcjach.
-      _Staging 2026-10-06 (pass 2):_ brak „Szukaj po kwocie/id” i „Anulowane”; widoczne Kategoria, Rok, Miesiąc, Od, Do.
-- [x] Pracownik: w tabeli nie ma kolumn „Forma wpłaty”, „Czas dodania”, „Metoda” ani akcji; „ID” jest.
-      Nie ma przycisków „Faktury” ani „Drukuj”.
-      _Staging 2026-10-06 (pass 2):_ brak Forma wpłaty/Czas dodania/Metoda/akcji, ID jest; brak Faktury/Drukuj.
-- [x] Kierownik na stronie tego pracownika: „Faktury” i „Drukuj” są i działają — ZIP / wydruk zawiera
-      tylko transakcje tego pracownika z bieżącymi filtrami.
-      _Staging 2026-10-06 (pass 3, OWNER, /pracownicy/85): „Drukuj” (popup.print zastubowany) → wydruk zawiera dokładnie 3 transakcje tego pracownika (#5397–5399); „Faktury” → toast „Pobieranie 1/3 plików…”. Filtrów nie zawężano._
-
-### Findings — 2026-10-06
-
-- [x] dropped — boks nieaktualny, przepisany na to, co wdrożono (wspólna szerokość kas/sprzętu/inwestycji, 12 px na telefonie celowo, „wydatki” to tabela zgłoszeń z EX-1005) · **Tabele strony pracownika nie mają jednej szerokości pierwszej kolumny ani czcionki na telefonie** — mierzone na /pracownicy/36, /30, /85 (OWNER, staging): desktop 1440px — kasy, sprzęt i inwestycje (`SummaryTable`, `SUMMARY_NAME_COL`) mają pierwszą kolumnę 320 px i treść 14 px (nagłówki 12 px), ale „Zgłoszone wydatki” to `DataTable` z pierwszą kolumną „Inwestycja” szeroką na treść (174–187 px); 390px — kasy 213 px, sprzęt 168,6 px, a treść siatek ma 12 px (`max-sm:text-xs` w `src/components/ui/summary-grid.tsx` wygrywa z `text-sm` z wywołania) przy 14 px w tabeli transakcji. Brak przewijania w bok (scrollWidth 390 = innerWidth) na wszystkich trzech stronach.
-      **Needs human:** czy na telefonie 12 px w siatkach to zamierzone (komentarz w kodzie: „phone has no room”), a „wydatki” miały być w tej samej siatce 320 px co reszta (obecnie `DataTable` po EX-1005) — albo zmienić treść boksu.
-      **Test disposition:** no automated test · — czysto wizualna miara szerokości/czcionki, jsdom nie ma układu.
-
 ## 2026-10-06 — worker-report-ref-column — numer „Nr” w oknie akceptacji zgłoszeń
 
 - [x] Edytor kosztorysu → „Zgłoszenia wykonanych prac” → otwórz zgłoszenie wczytane z kartki: w tabeli „Z rozpiski” zaraz za checkboxem jest kolumna „Nr”, a numer w wierszu jest taki sam jak przy tej pozycji na zdjęciu kartki (np. `35812-7`).
       _Staging 2026-10-06 (pass 2):_ kolumna Nr zaraz za checkboxem, wartości zgodne z kartką.
 - [x] W tym samym oknie kliknij nagłówek „Nr”: wiersze sortują się po numerze; pozycja przypisana ręcznie (po „do przypisania ręcznie”) pokazuje numer wybranej pozycji, a tabela „Spoza rozpiski” nie ma kolumny „Nr”.
       _Staging 2026-10-06 (pass 2):_ sortowanie po Nr działa (asc/desc). Część o ręcznym przypisaniu i braku Nr w „Spoza rozpiski” niesprawdzona — brak takiego wiersza w danych.
-
-## 2026-10-06 — scan-report-ai-entry — „Wczytaj zgłoszenie z kartki (AI)”
-
-- [x] Edytor kosztorysu → „Pracownicy”: pierwsza pozycja menu to „Wczytaj zgłoszenie z kartki (AI)” z ikoną różdżki w stylu AI; pod nazwiskami pracowników nie ma już osobnego „Wczytaj z kartki”.
-      _Staging 2026-10-06 (pass 2):_ pierwsza pozycja z różdżką i stylem AI, brak osobnego „Wczytaj z kartki” (inw. 137).
-- [x] Kliknij ją: okno ma pole „Pracownik” z pracownikami przypisanymi do etapów (bez zablokowanych), inwestycja jest ta z kosztorysu; po wczytaniu kartki otwiera się nowe zgłoszenie do sprawdzenia.
-      _Staging 2026-10-06 (pass 4):_ Pole „Pracownik” = Adam Orłowski, QA-Premia A, QA Staging, Staging QA Pracownik (bez zablokowanych); inwestycja bez osobnego pola. Wczytanie kartki przez AI (nowe zgłoszenie) NIESPRAWDZONE — needs-human.
-- [x] Kosztorys bez przypisanego pracownika: pozycja jest wyszarzona.
-      _Staging 2026-10-06 (pass 4):_ Inw. 31 (kosztorys bez przypisanych): „Wczytaj zgłoszenie z kartki (AI)” aria-disabled.
-- [x] Lista „Zgłoszenia prac”: przycisk ma tę samą etykietę i styl AI (gradientowa ramka, różdżka); okno pozwala wybrać pracownika i inwestycję jak dotąd.
-      _Staging 2026-10-06 (pass 4):_ Etykieta „Wczytaj zgłoszenie z kartki (AI)” z ikoną SVG; okno ma Pracownik + Inwestycja. Gradientowa ramka oceniona tylko po klasach, nie wizualnie — needs-human.
-- [x] „Pracownicy” → kliknij nazwisko pracownika (ze strzałką po prawej): otwiera się jego strona pracownika.
-      _Staging 2026-10-06 (pass 2):_ klik w QA-Premia A otworzył /pracownicy/80.
-- [x] Pozycje pracownika w menu brzmią „Podgląd linku pracownika”, „Link do zgłoszeń”, „Drukuj kosztorys pracownika (PDF)”, „Drukuj kartkę do zgłoszenia prac”; obie pozycje druku drukują to samo co wcześniej.
-      _Staging 2026-10-06 (pass 2):_ cztery pozycje z właściwymi nazwami; wydruki sprawdzone w boxie worker-form-mirrors-link.
 
 ## 2026-10-06 — worker-form-mirrors-link — kartka do wypełnienia jak „Zgłaszam pracę”, czytelny wydruk
 
@@ -4186,17 +4134,6 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Ta sama kartka wydrukowana na papierze: linie tabeli, nagłówki kolumn i jednostki są wyraźnie widoczne; szare tło mają tylko Nr, Wykonano i Postęp — Opis prac i Zgłaszam są białe.
 - [ ] Wydrukuj kosztorys dla klienta i PDF pracownika: linie i szare podpisy też są widoczne na papierze, kolumny dalej w paski jak wcześniej.
 - [ ] Wypełnij kartkę ręcznie (kilka ilości w „Zgłaszam”), wczytaj ją przez „Wczytaj zgłoszenie z kartki (AI)”: w zgłoszeniu są dokładnie wpisane ilości, a nie liczby z kolumn „Wykonano” / „Postęp”.
-
-## 2026-10-06 — tree-rewrite-pending — „Uzupełnij tłumaczenia (AI)” nie da się kliknąć drugi raz w trakcie
-
-- [x] Szablon z nieprzetłumaczonymi opisami → „Opcje” → „Uzupełnij tłumaczenia (AI)”, zaraz potem otwórz „Opcje” jeszcze raz: pozycja jest wyszarzona do końca tłumaczenia, potem znów aktywna (albo znika, gdy wszystko przetłumaczone).
-      _Staging 2026-10-06 (pass 4):_ Uzupełnij disabled ~1 s during run, then active/gone; confirmed.
-- [x] Po komunikacie „Przetłumaczono opisy: N…” kolumny „Opis prac (UA)” / „(RU)” wypełniają się od razu, bez odświeżania strony.
-      _Staging 2026-10-06 (pass 4):_ UA/RU columns filled without refresh; toast text itself not captured (transient).
-- [x] To samo dla „Popraw literówki w opisie prac i j.m.”: w trakcie poprawiania pozycja w ponownie otwartym menu jest wyszarzona.
-      _Staging 2026-10-06 (pass 4):_ Popraw disabled ~0.25-0.5 s in reopened menu (one earlier run showed no disabled window; short run).
-- [x] W trakcie tłumaczenia „Popraw literówki” też jest wyszarzona — i odwrotnie, w trakcie poprawiania wyszarzone jest „Uzupełnij tłumaczenia (AI)”.
-      _Staging 2026-10-06 (pass 4):_ Both items aria-disabled during Popraw (238 ms sample); translate-side both disabled too.
 
 ## 2026-10-06 — cash-register-edit-button
 
