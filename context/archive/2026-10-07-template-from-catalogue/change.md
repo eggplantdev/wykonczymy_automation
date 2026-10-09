@@ -1,10 +1,10 @@
 ---
 change_id: template-from-catalogue
 title: Szablon jako lista prac z katalogu — ceny wyłącznie w katalogu prac
-status: implemented
+status: archived
 created: 2026-10-07
-updated: 2026-10-08
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:45:02Z
 branch: ex-1017-template-from-catalogue
 worktree: .claude/worktrees/ex-1017
 ---
