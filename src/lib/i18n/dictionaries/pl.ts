@@ -518,6 +518,7 @@ export const pl = {
     toggleTheme: 'Przełącz motyw',
     lightTheme: 'Jasny motyw',
     darkTheme: 'Ciemny motyw',
+    uiScale: 'Rozmiar',
     refreshData: 'Odśwież dane',
     dataRefreshed: 'Dane odświeżone',
     logout: 'Wyloguj',

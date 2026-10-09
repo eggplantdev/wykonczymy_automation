@@ -239,9 +239,10 @@
    back out — so every surface you can type into is 16px on a phone and the app's usual 14px from
    `sm` up. The placeholder stays 14px throughout: it is a hint, and at 16px the longer Polish ones
    ran out of field. Four inputs were carrying this as a copied three-class incantation and the
-   fifth (the kosztorys cell) silently missed it. */
+   fifth (the kosztorys cell) silently missed it. The `max` holds the 16px floor when the „Rozmiar"
+   switch shrinks the root font-size below it. */
 @utility typing-surface {
-  font-size: var(--text-base);
+  font-size: max(var(--text-base), 16px);
   line-height: var(--text-base--line-height);
 
   &::placeholder {

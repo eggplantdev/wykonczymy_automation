@@ -502,6 +502,7 @@ export const uk: TranslationsT = {
     toggleTheme: 'Змінити тему',
     lightTheme: 'Світла тема',
     darkTheme: 'Темна тема',
+    uiScale: 'Розмір',
     refreshData: 'Оновити дані',
     dataRefreshed: 'Дані оновлено',
     logout: 'Вийти',

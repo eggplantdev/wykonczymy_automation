@@ -4536,3 +4536,11 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Kosztorys → „Zgłoszenia wykonanych prac” → nowe, nieprzyjęte zgłoszenie pracownika, który ma już etapy: „Dodaj do” pokazuje domyślnie „Nowy etap”, a lista nadal oferuje jego etapy (ostatni z dopiskiem „(ostatni)”).
 - [ ] Przyjęcie z domyślnym wyborem tworzy nowy etap pracownika z przyjętymi ilościami; poprzednie etapy się nie zmieniają.
 - [ ] Zgłoszenie już przyjęte pokazuje „Dodano do: Etap N” — ten sam etap co przed zmianą.
+
+## 2026-10-09 — ui-scale — rozmiar interfejsu na telefonie
+
+- [ ] Telefon → menu: wiersz „Rozmiar” z przyciskami 100% / 90% / 80% / 70%; dotknięcie 80% od razu pomniejsza całą aplikację (tekst i odstępy), bez przeładowania.
+- [ ] Po wyborze 70% zamknij i otwórz aplikację ponownie: od pierwszego ekranu jest pomniejszona, bez mignięcia w pełnym rozmiarze, a w menu podświetlone jest 70%.
+- [ ] Przy 70% na iPhonie: dotknięcie pola (np. kwota w „Dodaj transakcję”) nie przybliża strony, a wpisywany tekst mieści się w polu.
+- [ ] Przy 70% → Transakcje → „Karty”: na ekranie mieści się więcej kart niż przy 100%, nic nie nachodzi na siebie.
+- [ ] Powrót do 100% przywraca dotychczasowy wygląd.

@@ -503,6 +503,7 @@ export const ru: TranslationsT = {
     toggleTheme: 'Сменить тему',
     lightTheme: 'Светлая тема',
     darkTheme: 'Тёмная тема',
+    uiScale: 'Размер',
     refreshData: 'Обновить данные',
     dataRefreshed: 'Данные обновлены',
     logout: 'Выйти',
