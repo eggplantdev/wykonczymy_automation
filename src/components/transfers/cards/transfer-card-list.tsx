@@ -8,10 +8,11 @@ import type { TransferRowT } from '@/types/transfers'
 
 type PropsT = {
   rows: Row<TransferRowT>[]
+  visibleColumnIds: string[]
   className?: string
 }
 
-export function TransferCardList({ rows, className }: PropsT) {
+export function TransferCardList({ rows, visibleColumnIds, className }: PropsT) {
   const { t } = useTranslation('filters')
   if (rows.length === 0) {
     return <p className="text-muted-foreground py-8 text-center text-sm">{t('noData')}</p>
@@ -28,6 +29,7 @@ export function TransferCardList({ rows, className }: PropsT) {
         <TransferCard
           key={row.id}
           row={row}
+          visibleColumnIds={visibleColumnIds}
           className="bg-background sm:border-border sm:rounded-lg sm:border sm:shadow-sm"
         />
       ))}

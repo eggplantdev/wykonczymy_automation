@@ -73,7 +73,7 @@ type DataTablePropsT<TData> = {
   belowToolbar?: React.ReactNode
   /** Renders the sorted rows in place of the <table> — a card layout keeps the toolbar, sort and
    * column state the table already owns. */
-  renderRows?: (rows: Row<TData>[]) => React.ReactNode
+  renderRows?: (rows: Row<TData>[], visibleColumnIds: string[]) => React.ReactNode
   className?: string
 }
 
@@ -206,7 +206,7 @@ export function DataTable<TData>({
       })}
       {belowToolbar}
       {renderRows ? (
-        renderRows(rows)
+        renderRows(rows, visibleColumnIdList)
       ) : (
         <div className="border-border overflow-x-auto rounded-lg border">
           {enableVirtualization ? (
