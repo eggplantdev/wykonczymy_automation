@@ -1,11 +1,12 @@
-KOSZTORYS AI — Oliwa, mieszkanie ok. 41 m² (36,6 m² bez łazienki + łazienka 4,4 m²)
+KOSZTORYS AI (test, 2026-10-09) — Oliwa, mieszkanie ok. 41 m² (36,6 m² bez łazienki + łazienka 4,4 m²)
 Źródła: rzut aranżacyjny (zrzut ekranu, skala sprawdzona na 7 wymiarach, zgodność ±0,7%), opis klienta, instrukcja właściciela.
-Wartość netto z cenami z rozpiski: 39 205,15 zł + 1 pozycja bez ceny (maskownica GK).
+Kolumna „AI przedmiar” stoi obok Przedmiaru właściciela: 51 pozycji, razem 39 375,48 zł netto + 1 pozycja bez ceny (maskownica GK, dopisana na końcu sekcji z Przedmiarem 0).
+Przy każdej pozycji „Komentarz AI” mówi, co agent założył i czego nie było wiadomo. Pozycja z ilością odczytaną z rzutu lub z opisu klienta nie ma tam nic.
 
 ZAŁOŻENIA (do weryfikacji)
-1. Wysokość pomieszczeń 2,65 m — brak na rzucie. Każde ±10 cm to ok. ±566 zł (gładzie, malowanie, glazura w łazience, akryl, narożniki).
+1. Wysokość pomieszczeń 2,68 m — brak na rzucie; stan deweloperski (kaloryfer i tynki „deweloperskie”), więc wg Wiedzy firmowej 2,68. Każde ±10 cm to ok. ±566 zł (gładzie, malowanie, glazura w łazience, akryl, narożniki).
 2. Okna 1,50 m wysokości (sypialnia 164 cm, salon 253 cm szer.), drzwi „wysokie” 2,40 m, wejściowe 2,05 m. Otwory odjęte od ścian (15,15 m²). Jeżeli liczymy ściany bez odejmowania otworów: +ok. 1 380 zł. Glify okien nie doliczone (ok. 2,5 m², +ok. 230 zł).
-3. Ściany za zabudową kuchenną wyłączone z gładzi na pełną wysokość (13,2 m²), łącznie z pasem między szafkami. Jeżeli fartuch między szafkami ma być malowany, a nie płytki/szkło: +ok. 3 m² gładzi, +ok. 210 zł. Malowanie liczone z tymi ścianami — bez nich −290 zł.
+3. Ściany za zabudową kuchenną wyłączone z gładzi na pełną wysokość (13,4 m²), łącznie z pasem między szafkami. Jeżeli fartuch między szafkami ma być malowany, a nie płytki/szkło: +ok. 3 m² gładzi, +ok. 210 zł. Malowanie liczone z tymi ścianami — bez nich −290 zł.
 4. Ściany wewnątrz szaf wnękowych (szafa gosp. 70 cm, szafa na ubrania i pawlacz, zabudowa przy wejściu) policzone w gładziach i malowaniu, ok. 17,2 m². Jeżeli nie robimy ich: −ok. 1 570 zł.
 5. Malowanie na biało (ściany i sufity jedną pozycją). Ściany w kolorze: +ok. 360 zł.
 6. Punkty elektryczne — klient nie podał liczby. Przyjęto 13 punktów:

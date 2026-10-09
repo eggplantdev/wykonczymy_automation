@@ -35,6 +35,8 @@ describe('sanitizeClientViewSettings', () => {
     expect(settings.hiddenColumns).toContain('remaining')
     // EX-921: the Aktualizacja is ticked, its value an available tick left off.
     expect(settings.hiddenColumns).toContain('currentPlannedNet')
+    // An AI draft writes its sources into the komentarz, so no kosztorys shows it unasked.
+    expect(settings.hiddenColumns).toContain('note')
     expect(settings.hideEmptyRows).toBe(true)
   })
 
@@ -90,7 +92,7 @@ describe('sanitizeClientViewSettings', () => {
   })
 
   it.each([
-    ['a key outside the ceiling', { note: 1, price: 2 }],
+    ['a key outside the ceiling', { aiPlannedQty: 1, price: 2 }],
     ['a rank on the pinned column', { description: 9, price: 2 }],
     ['a rank that is not a finite number', { price: 2, unit: Number.NaN, net: 'x' }],
   ])('drops %s from the stored order', (_label, columnRanks) => {

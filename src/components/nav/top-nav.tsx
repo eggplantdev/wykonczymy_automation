@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
 import { DepositDialog } from '@/components/dialogs/deposit-dialog'
 import { InternalTransferDialog } from '@/components/dialogs/internal-transfer-dialog'
 import { ExpenseDialog } from '@/components/dialogs/expense-dialog'
@@ -22,6 +23,7 @@ export function TopNav({ referenceData, investmentCrumb }: TopNavPropsT) {
       <StandaloneBackButton />
       <Suspense fallback={null}>{investmentCrumb}</Suspense>
       <div className="ml-auto flex shrink-0 items-center gap-2">
+        <CompanyKnowledgeButton className="max-sm:hidden" />
         {referenceData && (
           <>
             <DepositDialog referenceData={referenceData} />

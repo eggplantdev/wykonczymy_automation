@@ -102,5 +102,5 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+export { Button, buttonVariants, BUTTON_ANIMATION_CLASSES }
 export type { ButtonAnimationT, ButtonPropsT }

@@ -178,7 +178,13 @@ export type CatalogueComparisonT = {
 // matching.
 export type CatalogueComparisonItemT = KosztorysItemT & { sectionName?: string }
 
-export type CatalogueComparisonSettingsT = { wToolsCoeff: number; ownToolsCoeff: number }
+export type CatalogueComparisonSettingsT = {
+  wToolsCoeff: number
+  ownToolsCoeff: number
+  // A szablon: a linked row's content IS its katalog entry (EX-1017), so it cannot disagree with it —
+  // only with an older copy of the katalog, which is what the editor holds after the row is edited.
+  linkedRowsAreCatalogue?: boolean
+}
 
 // The created rows in the nested shape `getKosztorysTree` yields, so the grid can build its rows
 // without a refetch — same contract as `AppendedSliceT`, one section instead of many.

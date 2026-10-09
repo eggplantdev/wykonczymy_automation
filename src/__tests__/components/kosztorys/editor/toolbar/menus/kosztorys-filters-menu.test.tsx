@@ -128,3 +128,14 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     )
   })
 })
+
+describe('KosztorysFiltersMenu — nothing to offer', () => {
+  // A szablon with the stawki off has no filter at all; an empty menu read as broken. An engaged
+  // filter is always listed, so hiding the trigger never strands one, and „Zresetuj filtry" stays in
+  // „Sekcje".
+  it('renders no trigger', () => {
+    renderMenu({})
+
+    expect(screen.queryByRole('button', { name: /^Filtry/ })).not.toBeInTheDocument()
+  })
+})

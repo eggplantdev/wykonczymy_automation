@@ -70,6 +70,20 @@ export const KosztorysItems: CollectionConfig = {
       access: { create: () => false, update: () => false },
       label: { en: 'AI planned qty', pl: 'AI przedmiar' },
     },
+    // EX-1030: Komentarz AI — what the inquiry left unknown and what `aiPlannedQty` assumed in its
+    // place. Its own pair of fields, never Komentarz: that one the investor may be shown.
+    {
+      name: 'aiMissingData',
+      type: 'text',
+      access: { create: () => false, update: () => false },
+      label: { en: 'AI: unknown', pl: 'Czego nie było wiadomo' },
+    },
+    {
+      name: 'aiAssumptions',
+      type: 'text',
+      access: { create: () => false, update: () => false },
+      label: { en: 'AI: assumed', pl: 'Co / ile założono' },
+    },
     { name: 'changeReason', type: 'text', label: { en: 'Change reason', pl: 'Powód zmiany' } },
     {
       name: 'reviewStatus',

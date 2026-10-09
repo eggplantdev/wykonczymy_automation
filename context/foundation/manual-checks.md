@@ -4869,6 +4869,8 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Szablon → przemianuj pracę (tylko opis) → kosztorys założony wcześniej z tą pracą nadal pokazuje jej „Komentarz do pracy”.
 - [ ] Szablon (`/szablony/<id>`): nie ma panelu podsumowania ani przycisku „Podsumowanie” w pasku, siatka zajmuje całą wysokość. Kosztorys inwestycji nadal ma panel z „Opcjami rozliczenia” i „Listą wpłat”.
 - [ ] Szablon → „Filtry”: są tylko nagłówki „Źródło stawki wykonawcy” i „Udział wykonawcy w cenie” — brak „Przedmiar i wykonana praca”, „Komentarz”, „Rabat”. „Sekcje” → „Zwijanie”: tylko „Zwiń wszystkie sekcje”, bez „Sekcje bez przedmiaru / wykonanej pracy / rabatu”. Kosztorys inwestycji nadal ma wszystkie te filtry.
+- [ ] Szablon z wyłączonymi stawkami wykonawców: w pasku nie ma przycisku „Filtry”. Po włączeniu stawek „Filtry” wracają.
+- [ ] Szablon → zmień Cenę j.m. albo stawkę pracy z katalogu i bez przeładowania otwórz „Problemy”: nie pojawia się „Inne liczby niż w katalogu prac”.
 - [ ] Katalog prac → „Usuń z katalogu” na pracy użytej w szablonie: tytuł „Usunąć pozycję z katalogu i szablonów?”, pod opisem od nowej linii „Zniknie natomiast z szablonów:” i nazwy szablonów jako lista punktowana. Na pracy spoza szablonów listy nie ma.
 
 ## 2026-10-08 — catalogue-usage-columns — kolumny „Kosztorysy” i „Szablony” w katalogu prac
@@ -4890,3 +4892,76 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] W tym dialogu „Odrzuć” → potwierdź: toast „Zgłoszenie odrzucone”, zgłoszenie znika z kolejki.
 - [ ] Zgłoszenie ze zdjęciami, które się pobierają: „Zweryfikuj” działa jak dotąd — zdjęcia przy
       pozycjach, „Zapisz” aktywny po odczycie.
+
+## 2026-10-08 — worker-report-columns-default — „Wykonano” i postęp widoczne domyślnie, wybór zapamiętany
+
+- [ ] Link pracownika (zgłaszanie prac) otwarty w przeglądarce bez zapisanych ustawień: kolumny
+      z sumą wykonanej pracy i z postępem są widoczne od razu, w „Opcjach” oba przełączniki są zaznaczone.
+- [ ] Wyłącz w „Opcjach” „Pokaż postęp” i przeładuj stronę: kolumna postępu nadal schowana,
+      „Pokaż sumę do tej pory wykonanej pracy” nadal włączona. To samo na innej inwestycji.
+
+## 2026-10-08 — przycisk „Przegląd AI" na pasku narzędzi
+
+- [ ] Kosztorys ze szkicem AI → na pasku narzędzi, obok „Kolumny", jest przycisk „Przegląd AI"; kliknięcie dokłada kolumny AI i ustawia filtr „Przegląd AI" jak wcześniej, ponowne kliknięcie je zabiera. W menu „Kolumny" → „Widok" jest już tylko „Oferta".
+- [ ] Zwykły kosztorys (bez szkicu AI): brak przycisku „Przegląd AI"; szablon: brak przycisku i menu „Kolumny".
+- [ ] Wyłączony „Przegląd AI" wygląda jak sąsiednie przyciski (np. „Akcje"), tekst nie jest wyszarzony;
+      włączenie płynnie wprowadza gradientową ramkę z poświatą i cyjanowy napis, wyłączenie płynnie je
+      wygasza, a przycisk nie zmienia przy tym szerokości.
+
+## 2026-10-08 — „Komentarz" na widoku inwestora
+
+- [ ] „Ustawienia widoku inwestora" → „Opis i ilości": jest pole „Komentarz", domyślnie odznaczone —
+      także na inwestycji, której widok był już wcześniej zapisany.
+- [ ] Zaznacz „Komentarz" → podgląd inwestora i link dla inwestora pokazują kolumnę „Komentarz" zaraz
+      po „Opisie", z treścią komentarzy pozycji; odznaczenie ją zabiera.
+- [ ] Z zaznaczonym „Komentarzem" → „Generuj ofertę": wydruk ma kolumnę „Komentarz" (mniejszy, szary
+      tekst) w pionie i w poziomie; bez zaznaczenia jej nie ma.
+
+## EX-1030 — ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”
+
+- [ ] Kosztorys ze szkicem AI → „Przegląd AI”: po „AI wartość netto przedmiar” jest kolumna
+      „Komentarz AI”; komórka pokazuje „Czego nie było wiadomo: …” i/lub „Co / ile założono: …”
+      z odpowiedziami pogrubionymi — tylko te linie, w których jest coś do powiedzenia. Pozycja bez
+      braków i bez założeń ma pustą komórkę (żadnego „nic”).
+- [ ] „Komentarz AI” jest tylko do odczytu (wpisanie / wklejenie / Delete nic nie zmienia), a skopiowana
+      komórka wkleja się jako te same linie tekstu.
+- [ ] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
+      ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
+- [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
+- [ ] Kosztorys ze szkicem AI → przywróć wcześniejszą wersję z historii: „Komentarz AI” pozycji
+      wraca razem z nią, nie znika.
+
+## EX-1032 — company-knowledge — „Manual Wykończymy” w górnym pasku
+
+- [ ] Desktop, OWNER lub MANAGER: przycisk „Manual Wykończymy” jest w górnym pasku na każdej stronie
+      (transakcje, katalog prac, edytor kosztorysu). Kliknięcie pokazuje wpisy startowe, pierwszy to
+      „Wysokość pomieszczeń, gdy rysunek jej nie podaje”.
+- [ ] Przeciągnij wpis za uchwyt w inne miejsce: kolejność zostaje po przeładowaniu strony, a
+      „Ostatnio zmienione” nie wynosi przeciągniętych wpisów na górę.
+- [ ] Wpisz „lazienka” w wyszukiwarkę: zostają tylko wpisy z „łazienka”. Gdy coś jest wpisane albo
+      wybrane jest „Alfabetycznie”, uchwytów nie ma, a pod paskiem stoi podpowiedź, gdzie działa
+      przeciąganie.
+- [ ] Edytuj wpis, potem wybierz „Ostatnio zmienione”: ten wpis jest pierwszy.
+- [ ] Dodaj wpis: „Zapisz” czeka na odpowiedź serwera, potem wpis pojawia się na górze. Zmień jego
+      treść, potem usuń go po potwierdzeniu — te dwa kroki widać od razu. Każdy zostaje po przeładowaniu.
+- [ ] „Zapisz” jest nieaktywne, dopóki temat albo treść są puste (same spacje też).
+- [ ] Telefon, 390px: menu → „Manual Wykończymy” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
+      przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.
+- [ ] Jako EMPLOYEE: brak przycisku w górnym pasku i w menu mobilnym.
+- [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/wiedza-firmowa.md` ma
+      każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
+      oknie pojawia się po kolejnym uruchomieniu.
+- [ ] Okno „Manual Wykończymy”: pod tytułem opis „Zasady firmy — wszystko, co AI musi wiedzieć…,
+      np.:”, a pod nim w osobnych liniach przykład z wysokością pomieszczeń (stan deweloperski
+      i rynek wtórny jako dwa punkty z myślnikiem).
+- [ ] Po migracji na świeżej bazie (produkcja): wpisy „Wysokość pomieszczeń…”, „Otwory w glazurze…”,
+      „Glazura…”, „Malowanie i gładź” i „Szlifowanie płytek na 45°” wyświetlają się w punktach,
+      każdy punkt w osobnej linii.
+
+## 2026-10-09 — investments-listing-ai-draft-column — „Analiza AI” na liście inwestycji
+
+- [ ] `/inwestycje` (staging): inwestycja, do której wgrano szkic AI, ma w kolumnie „Analiza AI” „Tak”,
+      a jej kosztorys pokazuje w „Przeglądzie AI” kolumnę „AI przedmiar”.
+- [ ] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”.
+- [ ] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem.
+- [ ] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa.

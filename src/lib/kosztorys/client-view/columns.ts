@@ -16,7 +16,9 @@ import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztor
 export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['description', 'plannedQty', 'currentPlannedQty', 'stageQtySum', 'unit'],
+    // Komentarz is the owner's own text and an AI draft writes its sources into it, so it starts
+    // unticked (DEFAULT_VISIBLE_COLUMNS) and the owner opens it per investment.
+    keys: ['description', 'note', 'plannedQty', 'currentPlannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Ceny i rabat',
@@ -24,8 +26,6 @@ export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
   },
   {
     label: 'Wartości',
-    // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
-    // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
     keys: ['plannedNet', 'currentPlannedNet', 'net', 'remaining'],
   },
   {
@@ -44,6 +44,7 @@ export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
 // CLIENT_VIEW_GROUPS, which orders them for the settings dialog instead.
 export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
+  'note',
   'plannedQty',
   'currentPlannedQty',
   'unit',

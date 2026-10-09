@@ -112,6 +112,7 @@ export function shapeInvestments(
       hasSheet: inv.hasSheet,
       createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,
+      hasAiDraft: clientTotals?.hasAiDraft ?? false,
       materialsNetRate: inv.materialsNetRate,
       settlementMode: inv.settlementMode,
       vatRate: inv.vatRate,

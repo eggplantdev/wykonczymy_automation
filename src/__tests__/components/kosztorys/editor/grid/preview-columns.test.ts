@@ -122,8 +122,9 @@ describe('preview columns', () => {
     expect(visible).toContain('stageValueNet_7')
   })
 
-  it('withholds the owner-authored komentarz', () => {
-    expect(previewIds()).not.toContain('note')
+  it('shows the komentarz only while the owner has it ticked', () => {
+    expect(previewIds()).toContain('note')
+    expect(previewIds({ documentHiddenColumns: new Set(['note']) })).not.toContain('note')
   })
 
   // What the sheet measured against what the etapy carry is the company's own bookkeeping, and the
@@ -172,8 +173,10 @@ describe('preview columns', () => {
   })
 
   it('cannot let a stored key add a column outside the allowlist', () => {
-    // `note` is inert here rather than a way in — naming it is the point of the fixture.
-    expect(previewIds({ documentHiddenColumns: new Set(['note']) })).not.toContain('note')
+    // `aiPlannedQty` is inert here rather than a way in — naming it is the point of the fixture.
+    expect(previewIds({ documentHiddenColumns: new Set(['aiPlannedQty']) })).not.toContain(
+      'aiPlannedQty',
+    )
   })
 
   it('ignores the hidden set outside the preview', () => {
