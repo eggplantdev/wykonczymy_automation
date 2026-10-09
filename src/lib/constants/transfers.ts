@@ -106,7 +106,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   OTHER_DEPOSIT: {
     label: 'Inna wpłata',
-    color: 'chart-green',
+    color: 'section-teal',
     deposit: true,
     expensesSheetTab: false,
     transfersSheetTab: false,
@@ -117,7 +117,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   OTHER: {
     label: 'Inny wydatek',
-    color: 'chart-red',
+    color: 'transfer-red-warm',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: false,
@@ -128,7 +128,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   CORRECTION: {
     label: 'Korekta',
-    color: 'chart-orange',
+    color: 'section-orange',
     deposit: false,
     expensesSheetTab: true,
     transfersSheetTab: false,
@@ -139,7 +139,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   LABOR_COST: {
     label: 'Koszty robocizny',
-    color: 'chart-orange',
+    color: 'section-orange-deep',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: true,
@@ -150,7 +150,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   BONUS: {
     label: 'Premia',
-    color: 'chart-yellow',
+    color: 'section-yellow',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: false,
@@ -163,7 +163,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   RABAT: {
     label: 'Rabat',
-    color: 'chart-green',
+    color: 'section-yellow-deep',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: true,
@@ -174,7 +174,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   LOSS: {
     label: 'Strata',
-    color: 'chart-purple',
+    color: 'section-purple',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: true,
@@ -185,7 +185,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   REGISTER_TRANSFER: {
     label: 'Transfer między kasami',
-    color: 'chart-turquoise',
+    color: 'section-turquoise',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: false,
@@ -196,7 +196,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   INVESTOR_DEPOSIT: {
     label: 'Wpłata od inwestora',
-    color: 'chart-green',
+    color: 'section-green',
     deposit: true,
     expensesSheetTab: false,
     transfersSheetTab: true,
@@ -207,7 +207,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   INVESTMENT_EXPENSE: {
     label: 'Wydatek inwestycyjny',
-    color: 'chart-red',
+    color: 'section-red',
     deposit: false,
     expensesSheetTab: true,
     transfersSheetTab: false,
@@ -218,7 +218,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   INVESTMENT_EXPENSE_NET: {
     label: 'Wydatek inwestycyjny netto',
-    color: 'chart-blue',
+    color: 'transfer-red-dark',
     deposit: false,
     // Shares routing, category and sheet-sync with the brutto expense — only the money
     // differs.
@@ -234,7 +234,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   PAYOUT: {
     label: 'Wypłata',
-    color: 'chart-red',
+    color: 'section-red-deep',
     deposit: false,
     expensesSheetTab: false,
     transfersSheetTab: true,
@@ -245,7 +245,7 @@ export const TRANSFER_TYPE_SPECS = {
   },
   COMPANY_FUNDING: {
     label: 'Zasilenie z konta firmowego',
-    color: 'chart-green',
+    color: 'section-green-deep',
     deposit: true,
     expensesSheetTab: false,
     transfersSheetTab: false,
@@ -266,32 +266,10 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = mapSpecs((s) 
 
 export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = mapSpecs((s) => s.color)
 
-// One hue per type, so the badge and the amount tell the types apart — `TRANSFER_TYPE_COLORS` shares
-// hues (green in, red out). Every outgoing type still gets a red.
-export const TRANSFER_TYPE_DISPLAY_COLORS: Record<TransferTypeT, string> = {
-  CANCELLATION: 'muted-foreground',
-  INVESTOR_DEPOSIT: 'section-green',
-  OTHER_DEPOSIT: 'section-teal',
-  COMPANY_FUNDING: 'section-green-deep',
-  RABAT: 'section-yellow-deep',
-  INVESTMENT_EXPENSE: 'section-red',
-  INVESTMENT_EXPENSE_NET: 'transfer-red-dark',
-  OTHER: 'transfer-red-warm',
-  PAYOUT: 'section-red-deep',
-  CORRECTION: 'section-orange',
-  LABOR_COST: 'section-orange-deep',
-  BONUS: 'section-yellow',
-  LOSS: 'section-purple',
-  REGISTER_TRANSFER: 'section-turquoise',
-}
-
-export const transferDisplayColor = ({
-  type,
-  settled,
-}: {
-  type: TransferTypeT
-  settled?: boolean
-}) => (settled ? SETTLED_TYPE.color : TRANSFER_TYPE_DISPLAY_COLORS[type])
+// A CSS colour value, not a class: the hue is picked per row at runtime, and the settled flag overrides
+// the type's own.
+export const transferColorVar = ({ type, settled }: { type: TransferTypeT; settled?: boolean }) =>
+  `var(--color-${settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]})`
 
 export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
 

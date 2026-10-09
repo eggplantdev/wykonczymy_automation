@@ -6,6 +6,7 @@ import { X } from 'lucide-react'
 
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
+import { RowActionLabels } from '@/components/ui/row-actions/row-action-labels'
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -67,7 +68,9 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
+        {/* A dialog opened from a card portals out of the card visually but not out of its React
+            context — without this reset the dialog's own row actions would print their labels. */}
+        <RowActionLabels value={false}>{children}</RowActionLabels>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"

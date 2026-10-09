@@ -11,7 +11,8 @@ import { CancelTransferButton } from '@/components/transfers/cancel-transfer-but
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
-import { isCancellationType, billsNetAmount, transferDisplayColor } from '@/lib/constants/transfers'
+import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -57,11 +58,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         return (
           <span
             className="flex flex-col font-medium"
-            style={
-              isMuted
-                ? undefined
-                : { color: `var(--color-${transferDisplayColor(info.row.original)})` }
-            }
+            style={isMuted ? undefined : { color: transferColorVar(info.row.original) }}
           >
             {formatPLN(info.getValue())}
             {showsNet && (
@@ -90,7 +87,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const id = info.row.original.investmentId
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id ? `/inwestycje/${id}` : undefined}>
+          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/inwestycje/${id}` : undefined}>
             {name}
           </OptionalLink>
         )
@@ -154,7 +151,9 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+          <OptionalLink
+            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
+          >
             {name}
           </OptionalLink>
         )
@@ -168,7 +167,9 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+          <OptionalLink
+            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
+          >
             {name}
           </OptionalLink>
         )
@@ -189,7 +190,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         const id = info.row.original.workerId
         const name = info.getValue()
         return (
-          <OptionalLink href={name !== '—' && id ? `/pracownicy/${id}` : undefined}>
+          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/pracownicy/${id}` : undefined}>
             {name}
           </OptionalLink>
         )

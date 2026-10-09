@@ -367,6 +367,10 @@ export const ru: TranslationsT = {
     invoiceUploading: 'Загрузка счёта',
     invoiceAdd: 'Добавить счёт',
     showNote: 'Показать примечание',
+    noteShort: 'Примечание',
+    invoiceShort: 'Фактура',
+    viewTable: 'Таблица',
+    viewCards: 'Карточки',
   },
   filters: {
     search: 'Поиск...',

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils/cn'
-import { transferDisplayColor } from '@/lib/constants/transfers'
+import { transferColorVar } from '@/lib/constants/transfers'
 import { transferTypeText } from '@/lib/transfers/transfer-text'
 import type { TranslatorT } from '@/lib/i18n/translations'
 import type { TransferRowT } from '@/types/transfers'
@@ -20,7 +20,7 @@ export function TransferTypeBadge({ transfer, translator, className }: PropsT) {
     >
       <span
         className="size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: `var(--color-${transferDisplayColor(transfer)})` }}
+        style={{ backgroundColor: transferColorVar(transfer) }}
       />
       <span className="truncate">{transferTypeText(transfer, translator)}</span>
     </span>

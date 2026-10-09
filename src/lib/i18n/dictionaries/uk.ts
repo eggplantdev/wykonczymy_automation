@@ -366,6 +366,10 @@ export const uk: TranslationsT = {
     invoiceUploading: 'Завантаження рахунку',
     invoiceAdd: 'Додати рахунок',
     showNote: 'Показати примітку',
+    noteShort: 'Примітка',
+    invoiceShort: 'Фактура',
+    viewTable: 'Таблиця',
+    viewCards: 'Картки',
   },
   filters: {
     search: 'Пошук...',

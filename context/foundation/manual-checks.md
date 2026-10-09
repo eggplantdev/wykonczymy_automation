@@ -4525,6 +4525,11 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Etykiety pod opisem karty mówią, czym są: „Kasa źródłowa: …”, „Kasa docelowa: …”, „Pracownik: …”, „Dodane przez: …” — każdy rodzaj ma własny kolor ramki, kasy niebieską, pracownik żółtą.
 - [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; „Materiały wliczone w robociznę” mają fuksję — czerwonawą, ale inną niż cztery czerwienie wydatków.
 - [ ] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony.
+- [ ] Karta → „FV” przy transakcji z fakturą: w podglądzie przyciski powiększania nad obrazem to same ikony, bez tekstu.
+- [ ] Widok kart → „Kolumny” → odznacz np. „Kasa źródłowa”: etykieta znika z kart; po ponownym zaznaczeniu wraca.
+- [ ] Pracownik zalogowany na telefonie → własna strona → Transakcje → „Karty”: brak etykiety „Metoda”, tak jak w tabeli.
+- [ ] Konto w języku ukraińskim → widok kart: przełącznik, przyciski „FV”/„Notatka” i pusta lista są po ukraińsku.
+- [ ] Inwestycja z wydatkiem „Materiały wliczone w robociznę” → panel statystyk: kafelek tej pozycji ma kolor fuksji (ten sam co badge na liście transakcji).
 
 ## 2026-10-09 — worker-report-default-new-stage — zgłoszenie pracy domyślnie do nowego etapu
 

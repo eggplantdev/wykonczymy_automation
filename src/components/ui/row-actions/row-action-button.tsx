@@ -34,12 +34,21 @@ export function RowActionButton({
   ...props
 }: RowActionButtonPropsT) {
   const isLabelled = useRowActionLabels()
+  const isOutlined = showLabel || isLabelled
+  const variant =
+    tone === 'destructive'
+      ? isOutlined
+        ? 'outlineDestructive'
+        : 'ghostDestructive'
+      : isOutlined
+        ? 'outline'
+        : 'ghost'
 
   if (showLabel) {
     return (
       <Button
         size="sm"
-        variant={tone === 'destructive' ? 'outlineDestructive' : 'outline'}
+        variant={variant}
         className={className}
         disabled={disabled}
         aria-label={label}
@@ -54,15 +63,7 @@ export function RowActionButton({
   const button = (
     <Button
       size="xs"
-      variant={
-        tone === 'destructive'
-          ? isLabelled
-            ? 'outlineDestructive'
-            : 'ghostDestructive'
-          : isLabelled
-            ? 'outline'
-            : 'ghost'
-      }
+      variant={variant}
       className={cn(!isLabelled && 'px-1.5', className)}
       aria-label={label}
       disabled={disabled}

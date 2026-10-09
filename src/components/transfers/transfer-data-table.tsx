@@ -24,10 +24,8 @@ import { validTransferSort } from '@/lib/queries/transfer-sort'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useTranslation } from '@/hooks/use-translation'
 import { TransferCardList } from '@/components/transfers/cards/transfer-card-list'
-import {
-  TransferViewSwitch,
-  parseTransferView,
-} from '@/components/transfers/cards/transfer-view-switch'
+import { TransferViewSwitch } from '@/components/transfers/cards/transfer-view-switch'
+import { parseTransferView } from '@/lib/constants/transfer-view'
 
 type TransferDataTablePropsT = {
   data: TransferRowT[]
@@ -106,7 +104,7 @@ export function TransferDataTable({
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
               <>
-                <TransferViewSwitch baseUrl={baseUrl} />
+                <TransferViewSwitch baseUrl={baseUrl} activeView={view} />
                 {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
                 {print && (
                   <PrintTransfersButton

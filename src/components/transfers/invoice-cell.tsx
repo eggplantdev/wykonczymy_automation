@@ -15,8 +15,6 @@ import type { PreviewFileT } from '@/types/media'
 import { useTranslation } from '@/hooks/use-translation'
 import { useRowActionLabels } from '@/components/ui/row-actions/row-action-labels'
 
-const INVOICE_CHIP_TEXT = 'FV'
-
 type InvoiceCellPropsT = {
   transactionId: number
   invoices: PreviewFileT[]
@@ -27,7 +25,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
   const { role } = useCurrentUser()
   const isLabelled = useRowActionLabels()
   const previewVariant = isLabelled ? 'chip' : 'compact'
-  const previewLabel = isLabelled ? INVOICE_CHIP_TEXT : undefined
+  const previewLabel = isLabelled ? t('invoiceShort') : undefined
   const iconButtonProps = isLabelled
     ? ({ variant: 'outline', size: 'xs' } as const)
     : ({ variant: 'ghost', size: 'icon', className: 'text-muted-foreground' } as const)
@@ -55,7 +53,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
       {isUploading ? (
         <Button {...iconButtonProps} disabled aria-label={t('invoiceUploading')}>
           <Loader2 className="animate-spin" />
-          {isLabelled && INVOICE_CHIP_TEXT}
+          {isLabelled && t('invoiceShort')}
         </Button>
       ) : visibleInvoices.length > 0 ? (
         <MediaPreviewButton
@@ -78,7 +76,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
           aria-label={t('invoiceAdd')}
         >
           <Plus />
-          {isLabelled && INVOICE_CHIP_TEXT}
+          {isLabelled && t('invoiceShort')}
         </Button>
       )}
 

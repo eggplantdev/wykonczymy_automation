@@ -27,7 +27,7 @@ export function NotePopover({ note }: NotePopoverPropsT) {
         }
       >
         <Info />
-        {isLabelled && 'Notatka'}
+        {isLabelled && t('noteShort')}
       </PopoverTrigger>
       <PopoverContent align="start" className="max-h-80 w-80 overflow-y-auto">
         <p className="text-sm wrap-break-word whitespace-pre-line">{note}</p>

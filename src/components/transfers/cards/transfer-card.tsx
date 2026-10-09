@@ -5,7 +5,8 @@ import { flexRender, type Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { billsNetAmount, transferDisplayColor } from '@/lib/constants/transfers'
+import { billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { transferPaymentMethodText } from '@/lib/transfers/transfer-text'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { RowActionLabels } from '@/components/ui/row-actions/row-action-labels'
@@ -17,21 +18,21 @@ type PropsT = {
   className?: string
 }
 
-const EMPTY_NAME = '—'
-
 // Cells come from the table's own column defs, so links, invoice upload and edit/cancel behave exactly
-// as in the table, and a column the page excludes is absent here too.
+// as in the table, and a column the page excludes or the viewer hid is absent here too.
 function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
-  const cell = row.getAllCells().find((candidate) => candidate.column.id === columnId)
+  const cell = row.getVisibleCells().find((candidate) => candidate.column.id === columnId)
   return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
 }
 
 function hasColumn(row: Row<TransferRowT>, columnId: string) {
-  return row.getAllCells().some((cell) => cell.column.id === columnId)
+  return row.getVisibleCells().some((cell) => cell.column.id === columnId)
 }
 
-// One border colour per kind of fact, as on the Bayalab buildlog cards. The label inside carries the
-// meaning — a bare name could be the worker, the kasa's owner or whoever booked it.
+const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
+
+// The label inside carries the meaning — a bare name could be the worker, the kasa's owner or whoever
+// booked it.
 const CHIP_BORDER = {
   register: 'border-chart-blue',
   worker: 'border-chart-yellow',
@@ -60,12 +61,10 @@ export function TransferCard({ row, className }: PropsT) {
   const translator = useTranslation('transfers')
   const transfer = row.original
   const isMuted = transfer.cancelled || transfer.type === 'CANCELLATION'
-  const showsNet = billsNetAmount(transfer.type) && transfer.netAmount !== null
-  const hasSource = hasColumn(row, 'sourceRegister') && transfer.sourceRegisterName !== EMPTY_NAME
-  const hasTarget = hasColumn(row, 'targetRegister') && transfer.targetRegisterName !== EMPTY_NAME
+  const showsNet = billsNetAmount(transfer.type)
   const { t } = translator
-  const paymentMethod = transferPaymentMethodText(transfer, translator)
-  const hasExpenseCategory = transfer.expenseCategoryName !== EMPTY_NAME
+  const hasExpenseCategory = isNamed(transfer.expenseCategoryName)
+  const categoryColumn = hasExpenseCategory ? 'expenseCategory' : 'otherCategory'
   const category = hasExpenseCategory ? transfer.expenseCategoryName : transfer.otherCategoryName
 
   return (
@@ -87,7 +86,7 @@ export function TransferCard({ row, className }: PropsT) {
       <div className="flex items-baseline gap-2">
         <span
           className={cn('text-lg font-semibold', transfer.cancelled && 'line-through')}
-          style={isMuted ? undefined : { color: `var(--color-${transferDisplayColor(transfer)})` }}
+          style={isMuted ? undefined : { color: transferColorVar(transfer) }}
         >
           {formatPLN(transfer.amount)}
         </span>
@@ -98,33 +97,33 @@ export function TransferCard({ row, className }: PropsT) {
         )}
       </div>
 
-      {hasColumn(row, 'investment') && transfer.investmentName !== EMPTY_NAME && (
+      {hasColumn(row, 'investment') && isNamed(transfer.investmentName) && (
         <div className="text-muted-foreground truncate text-sm">
           {renderCell(row, 'investment')}
         </div>
       )}
 
-      {transfer.description && (
+      {hasColumn(row, 'description') && transfer.description && (
         <p className="line-clamp-3 text-sm whitespace-pre-line">{transfer.description}</p>
       )}
 
       <div className="flex flex-wrap gap-1">
-        {hasSource && (
+        {hasColumn(row, 'sourceRegister') && isNamed(transfer.sourceRegisterName) && (
           <Chip kind="register" label={t('colSourceRegister')}>
             {renderCell(row, 'sourceRegister')}
           </Chip>
         )}
-        {hasTarget && (
+        {hasColumn(row, 'targetRegister') && isNamed(transfer.targetRegisterName) && (
           <Chip kind="register" label={t('colTargetRegister')}>
             {renderCell(row, 'targetRegister')}
           </Chip>
         )}
-        {hasColumn(row, 'worker') && transfer.workerName !== EMPTY_NAME && (
+        {hasColumn(row, 'worker') && isNamed(transfer.workerName) && (
           <Chip kind="worker" label={t('colWorker')}>
             {renderCell(row, 'worker')}
           </Chip>
         )}
-        {category && category !== EMPTY_NAME && (
+        {hasColumn(row, categoryColumn) && category && isNamed(category) && (
           <Chip
             kind="category"
             label={t(hasExpenseCategory ? 'colExpenseCategory' : 'colOtherCategory')}
@@ -132,16 +131,18 @@ export function TransferCard({ row, className }: PropsT) {
             {category}
           </Chip>
         )}
-        {paymentMethod && paymentMethod !== EMPTY_NAME && (
+        {hasColumn(row, 'paymentMethod') && transfer.paymentMethod && (
           <Chip kind="paymentMethod" label={t('colPaymentMethod')}>
-            {paymentMethod}
+            {transferPaymentMethodText(transfer, translator)}
           </Chip>
         )}
-        {transfer.createdByName && transfer.createdByName !== EMPTY_NAME && (
-          <Chip kind="createdBy" label={t('colCreatedBy')}>
-            {transfer.createdByName}
-          </Chip>
-        )}
+        {hasColumn(row, 'createdBy') &&
+          transfer.createdByName &&
+          isNamed(transfer.createdByName) && (
+            <Chip kind="createdBy" label={t('colCreatedBy')}>
+              {transfer.createdByName}
+            </Chip>
+          )}
       </div>
 
       <RowActionLabels value>

@@ -7,8 +7,7 @@ export type MediaPreviewTriggerPropsT = {
   ariaLabel: string
   onClick: () => void
   // `compact` defaults to the ghost icon-button's 36px box but lets `className` override it — the
-  // transfers table and a fixed-height virtualized row have different height budgets. `chip` is the
-  // smallest button that still prints `label`.
+  // transfers table and a fixed-height virtualized row have different height budgets.
   variant?: 'field' | 'compact' | 'chip'
   className?: string
 }

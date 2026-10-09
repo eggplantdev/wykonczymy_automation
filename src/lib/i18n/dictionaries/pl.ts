@@ -379,6 +379,10 @@ export const pl = {
     invoiceUploading: 'Przesyłanie faktury',
     invoiceAdd: 'Dodaj fakturę',
     showNote: 'Pokaż notatkę',
+    noteShort: 'Notatka',
+    invoiceShort: 'FV',
+    viewTable: 'Tabela',
+    viewCards: 'Karty',
   },
   // The list primitives every table and filter bar shares.
   filters: {
