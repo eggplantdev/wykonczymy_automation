@@ -4524,3 +4524,9 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Karta: numer i data w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
 - [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; rozliczony wydatek ma różowy.
 - [ ] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony.
+
+## 2026-10-09 — worker-report-default-new-stage — zgłoszenie pracy domyślnie do nowego etapu
+
+- [ ] Kosztorys → „Zgłoszenia wykonanych prac” → nowe, nieprzyjęte zgłoszenie pracownika, który ma już etapy: „Dodaj do” pokazuje domyślnie „Nowy etap”, a lista nadal oferuje jego etapy (ostatni z dopiskiem „(ostatni)”).
+- [ ] Przyjęcie z domyślnym wyborem tworzy nowy etap pracownika z przyjętymi ilościami; poprzednie etapy się nie zmieniają.
+- [ ] Zgłoszenie już przyjęte pokazuje „Dodano do: Etap N” — ten sam etap co przed zmianą.

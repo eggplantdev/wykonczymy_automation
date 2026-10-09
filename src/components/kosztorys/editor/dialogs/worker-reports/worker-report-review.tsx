@@ -94,9 +94,14 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   // The server holds a later accept to the etap the report already went to, while it exists.
   const recordedStage = ownStages.find((stage) => stage.id === report.target?.stageId)
   const hasRecordedFigures = stages.some((stage) => stage.id === report.target?.stageId)
-  // The latest of his etapy is the one work usually continues.
+  // A report opens a new etap unless the kierownik picks one (owner, 2026-10-09) — a default of his
+  // latest etap silently folded a later etap's work into it. A new etap is refused while his etapy
+  // disagree on rozliczenie, so there the latest one stays the default.
+  const isNewStageRefused = scope.kind === 'blocked' && scope.reason !== 'no-stages'
   const [target, setTarget] = useState(() =>
-    String(recordedStage?.id ?? ownStages.at(-1)?.id ?? NEW_STAGE),
+    String(
+      recordedStage?.id ?? (isNewStageRefused ? ownStages.at(-1)?.id : undefined) ?? NEW_STAGE,
+    ),
   )
   const [plane, setPlane] = useState<ToolPlaneT | undefined>()
   const [isSaving, setIsSaving] = useState(false)
