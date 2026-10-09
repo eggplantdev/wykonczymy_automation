@@ -117,7 +117,7 @@ describe('every computed cell shows the value its column sorts by', () => {
         columnRanks: {},
         executedQtyByItem: { 1: 5, 2: 6, 3: 5 },
       },
-    }).filter((column) => !['remainingForPlane', 'plannedDonePercent'].includes(column.id))
+    }).filter((column) => column.id !== 'remainingForPlane' && column.id !== 'plannedDonePercent')
     expect(columns.length).toBeGreaterThan(0)
     expectCellsMatchSort(columns, view, stages)
   })

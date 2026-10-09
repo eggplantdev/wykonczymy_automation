@@ -65,8 +65,8 @@ export function columnValueResolver({
   const currentPlannedNet = (row: KosztorysV2RowT) => rowCurrentPlannedNetForView(row, 'client')
   // The worker surface's `stages` are only his, so Σ over them would be his share of the pozycja,
   // not the figure the editor shows for it — that surface hands the all-etapy quantity in instead.
-  const qtyDone: ColumnValueT = executedQtyByItem
-    ? (row) => executedQtyByItem[row.id] ?? 0
+  const qtyDone = executedQtyByItem
+    ? (row: KosztorysV2RowT) => executedQtyByItem[row.id] ?? 0
     : memoisedByRow((row) => rowTotalQtyDone(row, stages, 'client'))
   const remaining = (row: KosztorysV2RowT) =>
     rowRemainingForExecutedQty(row, resolvedCurrentPlannedQty(row), qtyDone(row), 'client')
