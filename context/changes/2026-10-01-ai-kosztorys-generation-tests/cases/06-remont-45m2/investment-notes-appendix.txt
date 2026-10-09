@@ -1,0 +1,30 @@
+=== Wycena AI (test, 2026-10-09) — AI przedmiar z pomiaru projektu wnętrza ===
+Kosztorys wypełnił agent: 103 pozycje, AI przedmiar razem 105 079,14 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. Ilości zmierzone z wektorowego projektu (rzuty 1:50, rozwinięcia łazienki i kuchni); wysokość 2,65 m — wydrukowana przy każdym pomieszczeniu.
+Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”). Pozycja z ilością odczytaną z rysunku nie ma tam nic.
+
+Pozycje, których w szablonie nie ma (3), są dopisane na końcu sekcji. Lamele są z katalogu prac („Montaż paneli ściennych, lamele, dekory itp”, 150 zł/m²). Klejenia dużych luster (6 szt.) i sprzątania w katalogu nie ma: te 2 pozycje mają Cenę j.m. 0 zł i czekają na wycenę, więc razem jest zaniżone dokładnie o nie.
+
+Przedmiar 0 świadomie:
+- drzwi wejściowe (demontaż i montaż) i okna — dostawcy;
+- panele tapicerowane w holu, zabudowy stolarskie, blaty — stolarz;
+- grzejniki płytowe — zostają, nowa jest tylko drabinka w łazience.
+
+Najważniejsze założenia (ruszają wieloma pozycjami naraz):
+- podłogi wg rysunku podłóg: klepka do cyklinowania w pokojach, gres 80 × 80 w holu i kuchni — zestawienie pomieszczeń mówi „mikrocement” wszędzie; mikrocement w całym mieszkaniu ≈ +14,9 tys. zł;
+- obwody holu, sypialni 0.02 i kuchni z m² i jednego boku — każdy 1 mb obwodu ≈ ±380 zł (gładź, grunt, malowanie);
+- ściany działowe miękkie — bruzdy elektryczne 7,1 tys. zł; w żelbecie drożej;
+- klimatyzację montujemy my, trasa ok. 4 mb — jeśli montuje dostawca: −2,4 tys. zł;
+- sufity: wszystkie suche pomieszczenia 42,56 m², rysunek sufitów podaje białego sufitu „ok. 27,5 m²” — przy 27,5: −2,2 tys. zł;
+- płytki Equipe w łazience i kuchni jako mały format (cegiełka) — przy formacie standard: −1,8 tys. zł;
+- stary stan nienarysowany: łazienka w płytkach do 2,0 m, pas płytek i płytki na podłodze w kuchni, klepka w holu — razem ≈ 2,0 tys. zł;
+- lamele, lustra i tapety na pełną wysokość; gładź pod tapetą i lustrami, bez gładzi pod lamelami.
+
+Do ustalenia z klientem:
+- podłogi: mikrocement czy klepka + gres;
+- czy jest okap; czy płyta indukcyjna potrzebuje siły (trójfazy);
+- materiał ścian działowych; czy nadproża w punktach 2' i 4' da się usunąć;
+- wentylator czy sama kratka w łazience;
+- LED w łazience: 1,86 mb z rozwinięcia czy 1,35 mb z rysunku oświetlenia;
+- ościeżnice do demontażu: drewniane czy metalowe; piętro i winda.
+
+Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/06-remont-45m2

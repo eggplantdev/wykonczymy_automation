@@ -1,0 +1,12 @@
+{
+  "investmentId": 191,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "projekt-techniczny.pdf",
+      "kind": "projekt"
+    }
+  ],
+  "notesAppendix": "investment-notes-appendix.txt",
+  "draft": "measure/ai-draft-load.json"
+}
