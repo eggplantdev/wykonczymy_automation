@@ -4568,3 +4568,28 @@ Widok pracownika:
 - [ ] „Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy” zaznaczone, a w etapach jest wpis: Aktualizacja przedmiaru znika, a zaznaczony Przedmiar ofertowy zostaje.
 - [ ] Link pracownika na telefonie (390px), z oboma kolumnami zaznaczonymi: tabela przewija się w poziomie, nagłówki są czytelne.
 - [ ] Pracownik z językiem Українська: nagłówki „Плановий обсяг” / „% виконання (від планового обсягу)” i ich podpowiedzi są po ukraińsku.
+
+## 2026-10-09 — worker-expense-without-investment — wydatek pracownika bez inwestycji
+
+Przed sprawdzeniem: migracja `20261009_3_worker_expense_without_investment` zastosowana na bazie, na której klikasz.
+
+Pracownik — flaga:
+
+- [ ] „Dodaj pracownika” / „Edytuj pracownika”: jest checkbox „Może dodawać wydatki bez inwestycji”, domyślnie odznaczony; zapis go utrwala. Kierownik (MANAGER) też może go ustawić.
+- [ ] Kierownictwo na stronie pracownika widzi wiersz „Wydatki bez inwestycji: Tak/Nie”; pracownik na swojej stronie go nie widzi.
+
+Pracownik — wysyłka (telefon, 390px):
+
+- [ ] Pracownik z flagą, z kasą i bez żadnej inwestycji: na jego stronie jest „Wydatek”; dialog ma wybrane „Bez inwestycji”, a po dodaniu zdjęcia „Wyślij” wysyła zgłoszenie, które pojawia się na liście jako „Bez inwestycji”.
+- [ ] Pracownik z flagą i z inwestycjami: lista w dialogu ma jego inwestycje oraz „Bez inwestycji”, nic nie jest wybrane z góry.
+- [ ] Pracownik bez flagi: „Bez inwestycji” nie ma na liście; bez żadnej inwestycji przycisku „Wydatek” nie ma wcale.
+- [ ] Po odznaczeniu flagi przez kierownika: istniejące zgłoszenie „Bez inwestycji” nadal da się edytować i zapisać z tą opcją, a nowe zgłoszenie już jej nie oferuje.
+- [ ] Lista „Zgłoszone wydatki” pracownika: filtr „Inwestycja” ma pozycję „Bez inwestycji” i zawęża do takich zgłoszeń; „Usuń” takiego zgłoszenia pyta o „Bez inwestycji”.
+- [ ] Pracownik z językiem Українська: opcja i kolumna brzmią „Без об'єкта”.
+
+Kierownictwo — przyjęcie:
+
+- [ ] „Zgłoszenia wydatków”: zgłoszenie bez inwestycji stoi w kolejce z „Bez inwestycji” w kolumnie inwestycji.
+- [ ] „Zweryfikuj” na nim: formularz otwiera się jako „Inny wydatek”, z kasą pracownika, bez pola inwestycji i z pracownikiem jako kupującym w każdym wierszu. Po wybraniu kategorii w każdym wierszu i zapisie powstają transakcje „Inny wydatek” z tym pracownikiem, a zgłoszenie jest „przyjęte”.
+- [ ] Zmiana typu na „Wydatek inwestycyjny” podczas przyjęcia wymaga wyboru inwestycji jak zwykle.
+- [ ] „Odrzuć” na takim zgłoszeniu: potwierdzenie pokazuje „<pracownik> · Bez inwestycji”; odrzucone zgłoszenie da się przywrócić.
