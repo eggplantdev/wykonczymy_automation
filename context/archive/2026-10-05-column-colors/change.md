@@ -1,10 +1,10 @@
 ---
 change_id: column-colors
 title: Kolory kolumn w edytorze kosztorysu v2 — zapis lokalny w przeglądarce
-status: new
+status: archived
 created: 2026-10-05
-updated: 2026-10-05
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:45:24Z
 branch: null
 worktree: null
 ---

@@ -3704,26 +3704,6 @@ Brak nowych findingów. Uwaga do przebiegu: w trakcie testu kwotowego przypadkow
 - [x] Inwestycja z dodatnim saldem: „Pozostało do zapłaty” bez gwiazdki, bez przypisu, kwota na czerwono.
       _Staging 2026-10-05:_ `/inwestycje/19` (Siennicka 50/152, tylko odczyt): „Pozostało do zapłaty” 90 090,82 bez gwiazdki, bez przypisu „Minusowa”, kolor kwoty czerwony (lab 48/77/61).
 
-## 2026-10-05 — column-colors — kolor kolumny w edytorze kosztorysu (zapis w przeglądarce)
-
-- [x] Edytor kosztorysu → kliknij nagłówek „Przedmiar” → w menu pod sortowaniem siatka 27 kolorów;
-      wybierz kolor: cała kolumna i jej nagłówek dostają delikatny odcień, szare pola i czerwone
-      ostrzeżenia w kolumnie nadal widać pod spodem.
-      _Staging 2026-10-05:_ Inwestycja 137, OWNER: „Przedmiar” → 27 swatchy + „Bez koloru”; zielony → 21 komórek kolumny i nagłówek z półprzezroczystym gradientem (alfa 0,2) NAD zachowanym tłem komórki. Kolumna „Pomiar” (szare pola) w czerwonym: tło lab(96.5) zostaje pod gradientem, szary tekst widoczny. Czerwonych ostrzeżeń nie było w danych — ten sam mechanizm nakładki, zweryfikowany tylko dla szarych pól.
-- [x] Ta sama kolumna przecina nagłówek sekcji: belka sekcji zostaje jednolita w kolorze sekcji,
-      bez wstawki koloru kolumny.
-      _Staging 2026-10-05:_ Belki sekcji („Prace dodatkowe”, „Klimatyzacja”) i wiersze „Razem” bez gradientu (5 komórek `none` w kolumnie, 21 z tintem) — belka jednolita w kolorze sekcji (screenshot).
-- [x] Nagłówek etapu → menu etapu: ta sama siatka kolorów; po wyborze koloruje się kolumna ilości etapu.
-      _Staging 2026-10-05:_ Menu etapu: ta sama siatka 27 kolorów; niebieski na „Etap 1” → 20 komórek kolumny z gradientem, klucz `stage_78` w localStorage.
-- [x] „Bez koloru” w menu kolumny usuwa odcień.
-      _Staging 2026-10-05:_ „Bez koloru” na Przedmiarze → 0 komórek z gradientem w kolumnie, klucz `plannedQty` zniknął z `kosztorys-v2-col-colors`.
-- [x] Odśwież stronę: kolory zostają. Otwórz inny kosztorys: kolumna „Przedmiar” ma ten sam kolor.
-      _Staging 2026-10-05:_ Po przeładowaniu 137 kolumny Przedmiar/Etap 1/Pomiar dalej z tintem; kosztorys inwestycji 106 („Sulmierzycka 6/29”) — Przedmiar ten sam zielony (21 komórek z identycznym gradientem).
-- [x] Pokoloruj kolumnę etapu, usuń etap, dodaj nowy: nowy etap jest bez koloru.
-      _Staging 2026-10-05:_ Dodany etap 2 (id 79) pokolorowany na fioletowo → usunięty (potwierdzenie „Usuń”) → dodany nowy etap 2: 24 komórki bez gradientu, wpis `stage_79` zniknął z localStorage. Oba etapy 2 usunięte po teście (w bazie tylko etap 78).
-- [x] „Podgląd inwestora” tej samej inwestycji: żadna kolumna nie jest pokolorowana.
-      _Staging 2026-10-05:_ „Podgląd” (/podglad-inwestora/137, nowa karta, zamknięta): żaden element z gradientem koloru kolumn (jedyny gradient to obramowanie przycisku „Opcje”); wcześniej na edytorze kolumny były pokolorowane.
-
 ## 2026-10-05 — keep-date-on-keep-open — data zostaje po zapisie z „Nie zamykaj”
 
 - [x] „Wydatek” → zaznacz „Nie zamykaj”, ustaw datę inną niż dzisiejsza, zapisz: formularz się czyści,
