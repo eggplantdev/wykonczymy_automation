@@ -4519,7 +4519,7 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 ## 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie
 
-- [ ] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart, adres dostaje `?view=list`, a strona listy się nie zmienia.
+- [ ] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart bez zmiany adresu i strony listy; wybór zostaje po odświeżeniu i obowiązuje też na liście transakcji pracownika, kasy i inwestycji.
 - [ ] Widok kart przy 390px: jedna obramowana lista z separatorami; od 768px osobne karty z cieniem, nie szersze niż ~48rem.
 - [ ] Karta: numer po lewej i data po prawej w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
 - [ ] Etykiety pod opisem karty mówią, czym są: „Kasa źródłowa: …”, „Kasa docelowa: …”, „Pracownik: …”, „Dodane przez: …” — każdy rodzaj ma własny kolor ramki, kasy niebieską, pracownik żółtą.

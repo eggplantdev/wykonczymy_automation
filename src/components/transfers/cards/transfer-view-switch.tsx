@@ -1,10 +1,7 @@
 'use client'
 
-import { useTransition } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { LayoutList, Table2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferViewT } from '@/lib/constants/transfer-view'
 
@@ -14,24 +11,12 @@ const VIEW_OPTIONS = [
 ] as const satisfies readonly { view: TransferViewT; labelKey: string; icon: unknown }[]
 
 type PropsT = {
-  baseUrl: string
-  activeView: TransferViewT
+  view: TransferViewT
+  onChange: (view: TransferViewT) => void
 }
 
-export function TransferViewSwitch({ baseUrl, activeView }: PropsT) {
+export function TransferViewSwitch({ view: activeView, onChange }: PropsT) {
   const { t } = useTranslation('transfers')
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [, startTransition] = useTransition()
-
-  function select(view: TransferViewT) {
-    if (view === activeView) return
-    // `page` is kept on purpose: switching the layout must not move the viewer to another page.
-    const url = buildUrlWithParams(baseUrl, searchParams.toString(), {
-      view: view === 'table' ? '' : view,
-    })
-    startTransition(() => router.replace(url, { scroll: false }))
-  }
 
   return (
     <div className="bg-muted flex h-8 w-fit items-center rounded-md p-0.5">
@@ -45,7 +30,7 @@ export function TransferViewSwitch({ baseUrl, activeView }: PropsT) {
             title={label}
             aria-label={label}
             aria-pressed={isActive}
-            onClick={() => select(view)}
+            onClick={() => onChange(view)}
             className={cn(
               'flex h-full items-center justify-center rounded-sm px-2.5 transition-colors',
               isActive ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground',

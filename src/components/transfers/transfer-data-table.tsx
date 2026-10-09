@@ -25,7 +25,8 @@ import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useTranslation } from '@/hooks/use-translation'
 import { TransferCardList } from '@/components/transfers/cards/transfer-card-list'
 import { TransferViewSwitch } from '@/components/transfers/cards/transfer-view-switch'
-import { parseTransferView } from '@/lib/constants/transfer-view'
+import { TRANSFER_VIEWS, TRANSFER_VIEW_STORAGE_KEY } from '@/lib/constants/transfer-view'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 
 type TransferDataTablePropsT = {
   data: TransferRowT[]
@@ -61,7 +62,7 @@ export function TransferDataTable({
   const { updateParam } = useUrlFilterParams(baseUrl)
   const sorting = sortParamToSortingState(validTransferSort(searchParams.get('sort') ?? undefined))
 
-  const view = parseTransferView(searchParams.get('view'))
+  const [view, setView] = usePersistedEnum(TRANSFER_VIEW_STORAGE_KEY, TRANSFER_VIEWS, 'table')
 
   const columns = getTransferColumns(excludeColumns, {
     referenceData,
@@ -104,7 +105,7 @@ export function TransferDataTable({
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
               <>
-                <TransferViewSwitch baseUrl={baseUrl} activeView={view} />
+                <TransferViewSwitch view={view} onChange={setView} />
                 {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
                 {print && (
                   <PrintTransfersButton
