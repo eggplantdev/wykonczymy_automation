@@ -1,10 +1,10 @@
 ---
 change_id: worker-expense-ai-prefill
 title: AI reads a worker's expense photos on send; manager gets a prefilled wydatek + a re-read button (EX-1001)
-status: implemented
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:43:57Z
 branch: worker-expense-ai-prefill
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-expense-ai-prefill
 ---
