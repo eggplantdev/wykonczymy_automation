@@ -131,6 +131,8 @@ export const pl = {
     pushFailed: 'Nie udało się zmienić powiadomień',
     testPushTitle: 'Powiadomienie testowe',
     testPushBody: 'Jeśli to widzisz, powiadomienia działają na tym urządzeniu.',
+    payoutPushTitle: 'Wypłata do potwierdzenia',
+    payoutPushBody: 'Potwierdź odbiór {{amount}} albo napisz, czego brakuje.',
   },
   account: {
     title: 'Zmień e-mail lub hasło',

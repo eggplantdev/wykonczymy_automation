@@ -9,6 +9,7 @@ import {
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentGates } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
+import { type BookedPayoutT, notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import {
   BLOCKED_PAIR_REASON,
@@ -53,7 +54,9 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
       // afterChange sync per row — same policy as the bulk wydatek.
       const outcome = await withPayloadTransaction(
         payload,
-        async (req): Promise<SettlePayoutsResultT | { createdIds: number[] }> => {
+        async (
+          req,
+        ): Promise<SettlePayoutsResultT | { createdIds: number[]; payouts: BookedPayoutT[] }> => {
           const db = await getDb(payload, req)
           // Two overlapping submits of one pair (two tabs, a double Enter) would both pass the
           // re-read below and both book. Locked, the second waits for the first to commit and then
@@ -108,15 +111,19 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
             })
             createdIds.push(created.id)
           }
-          return { createdIds }
+          return {
+            createdIds,
+            payouts: bookings.map(({ workerId, amount }) => ({ workerId, amount })),
+          }
         },
         { skipSheetSync: true },
       )
       if (!('createdIds' in outcome)) return outcome
-      const { createdIds } = outcome
+      const { createdIds, payouts } = outcome
       console.log(`[PERF]   payload.create x${createdIds.length} ${step()}ms`)
 
       after(() => syncBulkExpensesToSheet(createdIds))
+      after(async () => notifyPendingPayouts(await getDb(payload), payouts))
 
       return { success: true }
     },

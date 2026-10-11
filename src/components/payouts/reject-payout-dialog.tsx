@@ -9,6 +9,7 @@ import { failureMessage } from '@/lib/i18n/failure-message'
 import { CANCEL_REASON_MAX_LENGTH, CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { settleAction } from '@/lib/utils/settle-action'
+import { syncAppBadge } from '@/lib/push/push-client'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 
@@ -37,6 +38,7 @@ export function RejectPayoutDialog({ transactionId, amount, onClose }: PropsT) {
       return
     }
     toastMessage(t('payoutRejected'), 'success')
+    void syncAppBadge()
     onClose()
   }
 

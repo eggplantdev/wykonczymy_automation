@@ -6,8 +6,12 @@ vi.mock('@/lib/actions/push', () => ({
   subscribePushAction: (...args: unknown[]) => subscribePushAction(...args),
   unsubscribePushAction: (...args: unknown[]) => unsubscribePushAction(...args),
 }))
+const fetchOwnPendingPayoutCount = vi.fn()
+vi.mock('@/lib/queries/pending-payouts', () => ({
+  fetchOwnPendingPayoutCount: () => fetchOwnPendingPayoutCount(),
+}))
 
-const { subscribeThisDevice, syncPushSubscription, unsubscribeThisDevice } =
+const { subscribeThisDevice, syncAppBadge, syncPushSubscription, unsubscribeThisDevice } =
   await import('@/lib/push/push-client')
 
 // base64url of bytes [1, 2, 3, 4]
@@ -174,5 +178,41 @@ describe('unsubscribeThisDevice', () => {
     unsubscribePushAction.mockRejectedValue(new Error('offline'))
 
     await expect(unsubscribeThisDevice()).resolves.toBeUndefined()
+  })
+})
+
+describe('syncAppBadge', () => {
+  const installBadge = () => {
+    const badge = { setAppBadge: vi.fn(async () => {}), clearAppBadge: vi.fn(async () => {}) }
+    vi.stubGlobal('navigator', badge)
+    return badge
+  }
+
+  it('shows the count of wypłaty waiting on his answer', async () => {
+    const badge = installBadge()
+    fetchOwnPendingPayoutCount.mockResolvedValue(2)
+
+    await syncAppBadge()
+
+    expect(badge.setAppBadge).toHaveBeenCalledWith(2)
+  })
+
+  it('clears the badge once nothing is waiting', async () => {
+    const badge = installBadge()
+    fetchOwnPendingPayoutCount.mockResolvedValue(0)
+
+    await syncAppBadge()
+
+    expect(badge.clearAppBadge).toHaveBeenCalled()
+    expect(badge.setAppBadge).not.toHaveBeenCalled()
+  })
+
+  it('asks the server nothing where the browser has no badge', async () => {
+    vi.stubGlobal('navigator', {})
+    fetchOwnPendingPayoutCount.mockReset()
+
+    await syncAppBadge()
+
+    expect(fetchOwnPendingPayoutCount).not.toHaveBeenCalled()
   })
 })

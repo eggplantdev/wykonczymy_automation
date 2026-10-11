@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
   acceptPayout,
+  countPendingPayouts,
   countRejectedPayouts,
   listPayoutsToConfirm,
   listRejectedPayouts,
@@ -196,5 +197,24 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
 
     expect(await countRejectedPayouts(db)).toBe(before - 1)
     expect((await listRejectedPayouts(db)).map((row) => row.id)).not.toContain(id)
+  })
+
+  it('counts for the badge only the wypłaty still waiting on his answer', async () => {
+    await cleanUp()
+    await bookPayout('badge one')
+    await bookPayout('badge two')
+    await cancel(await bookPayout('badge cancelled'), 0)
+    await acceptPayout(db, {
+      transactionId: await bookPayout('badge accepted'),
+      workerId: worker.ownerId,
+    })
+    await rejectPayout(db, {
+      transactionId: await bookPayout('badge rejected'),
+      workerId: worker.ownerId,
+      reason: 'Brak 100 zł',
+    })
+    await bookPayout('badge stranger', stranger.ownerId)
+
+    expect(await countPendingPayouts(db, worker.ownerId)).toBe(2)
   })
 })

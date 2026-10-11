@@ -11,6 +11,7 @@ import { failureMessage } from '@/lib/i18n/failure-message'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { settleAction } from '@/lib/utils/settle-action'
+import { syncAppBadge } from '@/lib/push/push-client'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 
@@ -35,6 +36,7 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
       return
     }
     toastMessage(t('payoutAccepted'), 'success')
+    void syncAppBadge()
   }
 
   return (

@@ -123,6 +123,8 @@ export const ru: TranslationsT = {
     pushFailed: 'Не удалось изменить уведомления',
     testPushTitle: 'Тестовое уведомление',
     testPushBody: 'Если вы это видите, уведомления работают на этом устройстве.',
+    payoutPushTitle: 'Выплата для подтверждения',
+    payoutPushBody: 'Подтвердите получение {{amount}} или напишите, чего не хватает.',
   },
   account: {
     title: 'Изменить e-mail или пароль',

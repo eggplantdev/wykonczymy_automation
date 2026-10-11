@@ -8,7 +8,7 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
 import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
-import { canBeSettled, hasOptionalWorker } from '@/lib/constants/transfers'
+import { canBeSettled, carriesPayoutStatus, hasOptionalWorker } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { decideExpenseDraft } from '@/lib/db/worker-expense-drafts'
@@ -38,6 +38,7 @@ import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
 import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
+import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {
   return protectedAction(
@@ -79,6 +80,13 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         },
       })
       console.log(`[PERF]   payload.create ${step()}ms`)
+
+      const { type, worker, amount } = parsed.data
+      if (carriesPayoutStatus(type) && worker) {
+        after(async () =>
+          notifyPendingPayouts(await getDb(payload), [{ workerId: worker, amount }]),
+        )
+      }
 
       return { success: true }
     },
@@ -204,6 +212,11 @@ export async function createBulkTransferAction(
       // once, write once) instead of N serialized single-transfer syncs (review T4.2).
       // `after()` keeps the function alive past the response on Vercel.
       after(() => syncBulkExpensesToSheet(createdIds))
+      const { type, worker, lineItems } = parsed.data
+      if (carriesPayoutStatus(type) && worker) {
+        const payouts = lineItems.map(({ amount }) => ({ workerId: worker, amount }))
+        after(async () => notifyPendingPayouts(await getDb(payload), payouts))
+      }
 
       return { success: true }
     },

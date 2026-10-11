@@ -1,4 +1,5 @@
 import { subscribePushAction, unsubscribePushAction } from '@/lib/actions/push'
+import { fetchOwnPendingPayoutCount } from '@/lib/queries/pending-payouts'
 import { logError } from '@/lib/utils/log-error'
 import type { ActionResultT } from '@/types/action'
 
@@ -93,5 +94,16 @@ export async function unsubscribeThisDevice(): Promise<void> {
   } catch (err) {
     // TODO(EX-449) SENTRY-REQUIRED: a device left subscribed keeps getting the logged-out account's pushes.
     logError('[PUSH] unsubscribe failed', err)
+  }
+}
+
+/** A push's badge goes stale the moment he answers on another device, so every open re-reads it. */
+export async function syncAppBadge(): Promise<void> {
+  if (!('setAppBadge' in navigator)) return
+  try {
+    const count = await fetchOwnPendingPayoutCount()
+    await (count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge())
+  } catch (err) {
+    logError('[PUSH] badge sync failed', err)
   }
 }

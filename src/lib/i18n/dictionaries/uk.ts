@@ -123,6 +123,8 @@ export const uk: TranslationsT = {
     pushFailed: 'Не вдалося змінити сповіщення',
     testPushTitle: 'Тестове сповіщення',
     testPushBody: 'Якщо ви це бачите, сповіщення працюють на цьому пристрої.',
+    payoutPushTitle: 'Виплата для підтвердження',
+    payoutPushBody: 'Підтвердіть отримання {{amount}} або напишіть, чого бракує.',
   },
   account: {
     title: 'Змінити e-mail або пароль',

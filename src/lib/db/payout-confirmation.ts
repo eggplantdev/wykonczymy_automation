@@ -99,6 +99,17 @@ export async function listPayoutsToConfirm(
   }))
 }
 
+// What the app icon's badge shows: the wypłaty still waiting on his answer. A rejected one waits on
+// management, not on him.
+export async function countPendingPayouts(db: DbExecutorT, workerId: number): Promise<number> {
+  const res = await db.execute(sql`
+    SELECT count(*)::int AS total FROM transactions
+    WHERE worker_id = ${workerId} AND type = 'PAYOUT' AND cancelled IS NOT TRUE
+      AND payout_status = 'pending'
+  `)
+  return Number(res.rows[0]?.total ?? 0)
+}
+
 const AWAITING_MANAGEMENT = sql`t.payout_status = 'rejected' AND t.cancelled IS NOT TRUE`
 
 export async function countRejectedPayouts(db: DbExecutorT): Promise<number> {
