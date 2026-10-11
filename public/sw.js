@@ -1,5 +1,5 @@
-/* global self, fetch, Response */
-// Navigations only, network-first, no cache: Chrome's install path wants a fetch handler, and the
+/* global self, fetch, Response, URL */
+// Fetch: navigations only, network-first, no cache: Chrome's install path wants a fetch handler, and the
 // app must behave online exactly as it does without one. Non-navigation requests (Server Actions,
 // RSC fetches) are never answered here, so they keep failing into the app's own offline toast.
 
@@ -21,7 +21,10 @@ const offlinePage = () => {
 <body style="font-family:system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;padding:16px;text-align:center">
 <p>${message}<br><br><a href="">${reload}</a></p>
 </body></html>`
-  return new Response(html, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+  return new Response(html, {
+    status: 503,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  })
 }
 
 self.addEventListener('install', () => self.skipWaiting())
@@ -42,6 +45,64 @@ self.addEventListener('fetch', (event) => {
       } catch {
         return offlinePage()
       }
+    })(),
+  )
+})
+
+const readPushMessage = (event) => {
+  try {
+    const message = event.data?.json()
+    if (message && typeof message.title === 'string') return message
+  } catch {
+    // Falls through to the generic notification below.
+  }
+  return { title: 'Wykończymy', body: '', url: '/' }
+}
+
+// Every push shows a notification, a malformed one included: iOS revokes the subscription of an app
+// that receives a push and shows nothing.
+self.addEventListener('push', (event) => {
+  const message = readPushMessage(event)
+  const badge =
+    typeof message.badgeCount !== 'number'
+      ? undefined
+      : message.badgeCount > 0
+        ? self.navigator.setAppBadge?.(message.badgeCount)
+        : self.navigator.clearAppBadge?.()
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(message.title, {
+        body: message.body,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/badge-96.png',
+        // `renotify` without a tag makes `showNotification` throw — and shows nothing.
+        tag: message.tag || 'generic',
+        renotify: true,
+        data: { url: message.url },
+      }),
+      badge?.catch(() => {}),
+    ]),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const requested = new URL(event.notification.data?.url ?? '/', self.location.origin)
+  const target = requested.origin === self.location.origin ? requested.href : self.location.origin
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      const open = windows.find((client) => new URL(client.url).origin === self.location.origin)
+      if (open) {
+        try {
+          await open.focus()
+          // An uncontrolled window refuses `navigate`; a fresh one still lands on the target.
+          if (await open.navigate(target)) return
+        } catch {
+          // Falls through to a fresh window.
+        }
+      }
+      return self.clients.openWindow(target)
     })(),
   )
 })

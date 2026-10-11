@@ -4,6 +4,7 @@ import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { trashCashRegister } from '@/lib/cash-registers/trash-cash-register'
 import { getDb } from '@/lib/db/get-db'
 import { deleteUserSessions } from '@/lib/db/user-sessions'
+import { deletePushSubscriptions } from '@/lib/db/push-subscriptions'
 import { selectLiveRegisterIds } from '@/lib/db/worker-trash'
 import { workerUseBlocker } from '@/lib/workers/delete-blocker'
 
@@ -41,5 +42,6 @@ export async function trashWorker(
     req,
   })
   await deleteUserSessions(db, workerId)
+  await deletePushSubscriptions(db, workerId)
   return undefined
 }

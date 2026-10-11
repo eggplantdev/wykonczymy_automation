@@ -4,6 +4,7 @@ import { canViewWorkerPage, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { InstallAppButton } from '@/components/pwa/install-app-button'
+import { PushToggle } from '@/components/pwa/push-toggle'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { createTranslator } from '@/lib/i18n/translations'
 import { ROLE_KEYS } from '@/lib/i18n/role-keys'
@@ -146,6 +147,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
           {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
           {isOwnPage && <InstallAppButton />}
+          {isOwnPage && <PushToggle className="w-fit" />}
         </div>
       )}
       <InfoList items={infoFields} />

@@ -98,10 +98,17 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('trashes an unused worker and his empty kasa under one instant, and ends his sessions', async () => {
+  it('trashes an unused worker and his empty kasa under one instant, and ends his sessions and pushes', async () => {
     const worker = await createWorker()
     const registerId = await createRegister(worker.id, 'Kasa pracownika')
     await payload.login({ collection: 'users', data: { email: worker.email, password: PASSWORD } })
+    const { upsertPushSubscription } = await import('@/lib/db/push-subscriptions')
+    await upsertPushSubscription(db, worker.id, {
+      endpoint: 'https://push.test.local/worker-trash',
+      p256dh: 'p256dh',
+      auth: 'auth',
+      userAgent: undefined,
+    })
 
     expect(await actions.trashWorkerAction(worker.id)).toEqual({ success: true })
 
@@ -112,6 +119,10 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
       sql`SELECT count(*)::int AS n FROM users_sessions WHERE _parent_id = ${worker.id}`,
     )
     expect(Number(rows[0]?.n)).toBe(0)
+    const { rows: devices } = await db.execute(
+      sql`SELECT count(*)::int AS n FROM push_subscriptions WHERE user_id = ${worker.id}`,
+    )
+    expect(Number(devices[0]?.n)).toBe(0)
 
     // Listed as the worker, with his kasa named — never as a kasa of its own.
     const { fetchTrashedWorkers } = await import('@/lib/db/worker-trash')

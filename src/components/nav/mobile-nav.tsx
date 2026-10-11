@@ -16,6 +16,7 @@ import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
 import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
 import { TrashButton } from '@/components/nav/trash-button'
+import { PushToggle } from '@/components/pwa/push-toggle'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { useTranslation } from '@/hooks/use-translation'
@@ -143,6 +144,7 @@ export function MobileNav() {
           <AdminButton />
           <CompanyKnowledgeButton onOpen={() => setOpen(false)} />
           <TrashButton active={isActive(TRASH_HREF)} onClick={() => closeIfSameRoute(TRASH_HREF)} />
+          <PushToggle />
           <LogoutButton beforeLogout={() => setScrollLocked(false)} />
         </div>
       </nav>

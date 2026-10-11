@@ -137,6 +137,7 @@ import * as migration_20261009_2_worker_view_offer_columns_hidden from './202610
 import * as migration_20261009_3_worker_expense_without_investment from './20261009_3_worker_expense_without_investment'
 import * as migration_20261009_4_kosztorys_stages_completed from './20261009_4_kosztorys_stages_completed'
 import * as migration_20261011_1_add_payout_confirmation from './20261011_1_add_payout_confirmation'
+import * as migration_20261011_2_add_push_subscriptions from './20261011_2_add_push_subscriptions'
 
 export const migrations = [
   {
@@ -833,5 +834,10 @@ export const migrations = [
     up: migration_20261011_1_add_payout_confirmation.up,
     down: migration_20261011_1_add_payout_confirmation.down,
     name: '20261011_1_add_payout_confirmation',
+  },
+  {
+    up: migration_20261011_2_add_push_subscriptions.up,
+    down: migration_20261011_2_add_push_subscriptions.down,
+    name: '20261011_2_add_push_subscriptions',
   },
 ]
