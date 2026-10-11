@@ -1,12 +1,14 @@
 'use client'
 
+import { StandaloneBackButton } from '@/components/nav/standalone-back-button'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { LanguageSwitcher } from '@/components/kosztorys/worker-report/language-switcher'
 import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import { useTranslation } from '@/hooks/use-translation'
 
 // The same mark as the investor link, so a worker opening this from a text message
-// knows whose page it is. The switcher lives here so a notice offers it too.
+// knows whose page it is. The switcher lives here so a notice offers it too. The installed app has
+// no browser chrome, so a worker who came from his own page has no other way back to it.
 export function BrandedHeader({
   data,
 }: {
@@ -15,6 +17,7 @@ export function BrandedHeader({
   const { t } = useTranslation('report')
   return (
     <header className="border-border flex items-center gap-4 border-b px-4 py-3 sm:py-5">
+      <StandaloneBackButton />
       <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
       <div className="min-w-0 flex-1">
         <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-sm">

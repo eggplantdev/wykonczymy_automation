@@ -4637,3 +4637,16 @@ Kierownictwo — skan:
 
 - [ ] Edytor, menu „Pracownicy”: przy pracowniku ze wszystkimi etapami zakończonymi jest dopisek o zakończonych etapach, a „Drukuj kartkę do zgłoszenia prac” jest nieaktywne.
 - [ ] Ogólny dialog skanu zgłoszenia nie proponuje już tego pracownika ani X.
+
+## 2026-10-11 — worker-report-back-button — „Wstecz” na stronie zgłoszenia pracy w aplikacji
+
+- [ ] Telefon, aplikacja zainstalowana (PWA), zalogowany pracownik → na swojej stronie „Zgłoś
+      pracę” → strona zgłoszenia ma strzałkę „Wstecz” po lewej od logo; dotknięcie wraca na
+      stronę pracownika.
+- [ ] To samo przez link inwestycji w „Moje inwestycje” (widok „Inwestycja”) → strzałka wraca na
+      stronę pracownika.
+- [ ] Po wysłaniu zgłoszenia ekran „wysłano” też ma strzałkę i wraca na stronę pracownika.
+- [ ] Link zgłoszenia otwarty z SMS-a (brak historii w aplikacji) → strzałka prowadzi na stronę
+      pracownika (zalogowany) albo na logowanie, nie zostawia go na pustej stronie.
+- [ ] Zwykła przeglądarka (nie PWA) i desktop → strzałki nie ma; przy 390px nazwa inwestycji
+      i pracownika nadal czytelna (najwyżej ucięta wielokropkiem), przełącznik języka mieści się.
