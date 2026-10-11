@@ -4767,3 +4767,7 @@ Bez zmian:
 
 - [ ] `/pracownicy/[id]` pracownika z wypłatą i wydatkiem → w tabeli i w widoku kart kwoty mają zwykły kolor tekstu (wypłata nie jest czerwona), a plakietka typu nadal jest kolorowa; to samo po zalogowaniu jako pracownik na jego stronie przy 390px.
 - [ ] `/transakcje` i `/kasa/[id]` → kwoty nadal kolorowane według typu (wpłata zielona, wydatek/wypłata czerwone), anulowane wiersze wyszarzone.
+
+## 2026-10-11 — sidebar-wider-smaller-logo — szerszy pasek boczny, mniejsze logo
+
+- [ ] Desktop (≥768px), rozwinięty pasek boczny → jest szerszy niż wcześniej, logo Wykończymy u góry mniejsze i ostre (nie rozmyte); zwinięcie i ponowne rozwinięcie paska działa, w zwiniętym logo wygląda jak dotąd.

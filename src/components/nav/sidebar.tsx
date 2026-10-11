@@ -39,7 +39,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
         // z-40: the handle overhangs into the page, and the kosztorys v2 grid paints its frozen
         // columns at z-30 — without a stacking context above that, the pill disappears under them.
         'border-border bg-background sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r pb-3 sm:flex',
-        collapsed ? 'w-14 px-2' : 'w-54 px-3',
+        collapsed ? 'w-14 px-2' : 'w-64 px-3',
       )}
     >
       <SimpleTooltip content={toggleLabel}>
@@ -60,7 +60,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       {/* `-m-1 p-1`: the scroll container clips, and the collapsed unread badge overhangs its row by 4px. */}
       <div className="-m-1 flex min-h-0 flex-col overflow-y-auto p-1">
         <Link href="/" className="mx-auto flex items-center py-3">
-          <BrandLogo height={collapsed ? 36 : 54} priority />
+          <BrandLogo height={collapsed ? 36 : 40} priority />
         </Link>
         <nav className="flex flex-col gap-1">
           {links.map((link) => (
