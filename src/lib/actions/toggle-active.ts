@@ -73,8 +73,7 @@ export async function toggleUserActive(id: number, active: boolean) {
       return active ? undefined : removalRefusal(subject, { isSelf: actor.id === id })
     },
     // A deactivated account is refused at login; this also shuts the `/admin` and REST sessions it
-    // already holds and silences its phones. After the update, which would otherwise write the
-    // sessions back.
+    // already holds. After the update, which would otherwise write the sessions back.
     afterUpdate: async (payload, id, active) => {
       if (active) return
       const db = await getDb(payload)

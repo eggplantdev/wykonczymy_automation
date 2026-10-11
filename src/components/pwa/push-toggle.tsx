@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useSyncExternalStore, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { Bell, BellOff, Loader2 } from 'lucide-react'
+import { useClientSnapshot } from '@/components/pwa/use-client-snapshot'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/hooks/use-translation'
 import { VAPID_PUBLIC_KEY } from '@/lib/env'
-import { isPushSupported, subscribeThisDevice, unsubscribeThisDevice } from '@/lib/pwa/push-client'
-import { readPlatform, subscribeNever } from '@/lib/pwa/read-platform'
+import { isPushSupported, subscribeThisDevice, unsubscribeThisDevice } from '@/lib/push/push-client'
+import { readPlatform } from '@/lib/pwa/install-state'
 import { logError } from '@/lib/utils/log-error'
 import { toastMessage } from '@/lib/utils/toast'
 import { usePushSubscriptionStore } from '@/stores/push-subscription-store'
@@ -19,8 +20,8 @@ type PushTogglePropsT = {
 
 export function PushToggle({ className }: PushTogglePropsT) {
   const { t } = useTranslation('workerPage')
-  const platform = useSyncExternalStore(subscribeNever, readPlatform, () => undefined)
-  const permission = useSyncExternalStore(subscribeNever, readPermission, () => undefined)
+  const platform = useClientSnapshot(readPlatform)
+  const permission = useClientSnapshot(readPermission)
   const subscribed = usePushSubscriptionStore((s) => s.subscribed)
   const [refused, setRefused] = useState(false)
   const [isPending, startTransition] = useTransition()

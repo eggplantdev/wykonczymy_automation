@@ -10,16 +10,15 @@ vi.mock('@/lib/env', () => ({
 
 const subscribeThisDevice = vi.fn()
 const unsubscribeThisDevice = vi.fn()
-vi.mock('@/lib/pwa/push-client', () => ({
+vi.mock('@/lib/push/push-client', () => ({
   isPushSupported: () => 'PushManager' in window,
   subscribeThisDevice: (...args: unknown[]) => subscribeThisDevice(...args),
   unsubscribeThisDevice: (...args: unknown[]) => unsubscribeThisDevice(...args),
 }))
 
 const platform = vi.hoisted(() => ({ current: 'standalone' as 'standalone' | 'ios' | 'browser' }))
-vi.mock('@/lib/pwa/read-platform', () => ({
+vi.mock('@/lib/pwa/install-state', () => ({
   readPlatform: () => platform.current,
-  subscribeNever: () => () => {},
 }))
 
 const toastMessage = vi.fn()
@@ -54,7 +53,9 @@ describe('PushToggle', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Włącz powiadomienia' }))
 
-    expect(await screen.findByRole('button', { name: 'Wyłącz powiadomienia' })).toBeEnabled()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Wyłącz powiadomienia' })).toBeEnabled(),
+    )
     expect(subscribeThisDevice).toHaveBeenCalledExactlyOnceWith('AQIDBA')
   })
 
@@ -64,7 +65,9 @@ describe('PushToggle', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Wyłącz powiadomienia' }))
 
-    expect(await screen.findByRole('button', { name: 'Włącz powiadomienia' })).toBeEnabled()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Włącz powiadomienia' })).toBeEnabled(),
+    )
     expect(unsubscribeThisDevice).toHaveBeenCalledOnce()
   })
 
@@ -88,7 +91,9 @@ describe('PushToggle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Włącz powiadomienia' }))
 
     await waitFor(() => expect(subscribeThisDevice).toHaveBeenCalled())
-    expect(await screen.findByRole('button', { name: 'Włącz powiadomienia' })).toBeEnabled()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Włącz powiadomienia' })).toBeEnabled(),
+    )
   })
 
   it('stays off and says so when the subscribe throws', async () => {

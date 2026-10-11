@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('server-only', () => ({}))
+vi.mock('@payload-config', () => ({ default: {} }))
 
 const mockRequireAuth = vi.fn()
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -50,8 +51,8 @@ describe('subscribePushAction', () => {
     })
   })
 
-  it.each(['http://push.test.local/phone', 'not a url'])(
-    'refuses an endpoint no push service hands out (%s)',
+  it.each(['http://push.test.local/phone', 'not a url', `${PHONE}/${'x'.repeat(2048)}`])(
+    'refuses an endpoint no push service hands out (%#)',
     async (endpoint) => {
       const result = await subscribePushAction({ ...subscription, endpoint })
 

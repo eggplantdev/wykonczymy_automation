@@ -8,11 +8,13 @@ import { deletePushSubscription, upsertPushSubscription } from '@/lib/db/push-su
 import type { ActionResultT } from '@/types/action'
 
 // Every browser's push service is https; anything else did not come from `pushManager.subscribe`.
-const endpointSchema = z.url({ protocol: /^https$/ })
+const endpointSchema = z.url({ protocol: /^https$/ }).max(2048)
+
+const keySchema = z.string().min(1).max(256)
 
 const subscribeSchema = z.object({
   endpoint: endpointSchema,
-  keys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }),
+  keys: z.object({ p256dh: keySchema, auth: keySchema }),
 })
 
 export type PushSubscriptionInputT = z.infer<typeof subscribeSchema>

@@ -6,11 +6,7 @@ import { getDb } from '@/lib/db/get-db'
 import { translate } from '@/lib/i18n/translations'
 import { isPushConfigured, sendPushToUser } from '@/lib/push/send-push'
 
-/**
- * GET /api/test-push — sends a test notification to the calling ADMIN's own devices. ADMIN only, and
- * never to anyone else: the private key lives only on production, so this is the one way to check
- * delivery end to end there.
- */
+/** The private key lives only on production, so this is the one way to check delivery end to end there. */
 export async function GET() {
   const user = await getCurrentUserJwt()
   if (!user || user.role !== 'ADMIN') {

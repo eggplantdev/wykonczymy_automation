@@ -6,7 +6,7 @@ export type PushSubscriptionKeysT = { endpoint: string; p256dh: string; auth: st
 
 /**
  * The endpoint is the device, so a conflict moves it to the caller: a phone handed to another worker
- * stops receiving the previous owner's pushes the moment the new one turns them on.
+ * stops receiving the previous owner's pushes the first time the new one opens the app on it.
  */
 export async function upsertPushSubscription(
   db: DbExecutorT,

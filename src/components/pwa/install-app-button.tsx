@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { Download, Ellipsis, Loader2, Share, SquarePlus } from 'lucide-react'
+import { useClientSnapshot } from '@/components/pwa/use-client-snapshot'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { useTranslation } from '@/hooks/use-translation'
-import { resolveInstallState } from '@/lib/pwa/install-state'
-import { readPlatform, subscribeNever } from '@/lib/pwa/read-platform'
+import { readPlatform, resolveInstallState } from '@/lib/pwa/install-state'
 import { useInstallPromptStore } from '@/stores/install-prompt-store'
 
 // Chrome fires `beforeinstallprompt` only once its engagement checks pass, which can take a while
@@ -15,7 +15,7 @@ const PROMPT_WAIT_MS = 60_000
 
 export function InstallAppButton() {
   const { t } = useTranslation('workerPage')
-  const platform = useSyncExternalStore(subscribeNever, readPlatform, () => undefined)
+  const platform = useClientSnapshot(readPlatform)
   const hasPrompt = useInstallPromptStore((s) => s.held !== undefined)
   const promptUsed = useInstallPromptStore((s) => s.promptUsed)
   const installed = useInstallPromptStore((s) => s.installed)

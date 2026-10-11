@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { VAPID_PUBLIC_KEY } from '@/lib/env'
-import { syncPushSubscription } from '@/lib/pwa/push-client'
+import { syncPushSubscription } from '@/lib/push/push-client'
 import { usePushSubscriptionStore } from '@/stores/push-subscription-store'
 
 export function PushSubscriptionSync() {

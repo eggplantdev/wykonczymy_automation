@@ -13,7 +13,7 @@ const base64UrlToBytes = (base64Url: string): Uint8Array<ArrayBuffer> => {
 }
 
 /** A subscription signed for another key pair is dead weight: no push we sign will ever reach it. */
-export const isSubscribedWithKey = (subscription: PushSubscription, publicKey: string): boolean => {
+const isSubscribedWithKey = (subscription: PushSubscription, publicKey: string): boolean => {
   const current = subscription.options.applicationServerKey
   if (!current) return false
   const expected = base64UrlToBytes(publicKey)
@@ -25,12 +25,12 @@ export const isSubscribedWithKey = (subscription: PushSubscription, publicKey: s
 
 // Not `serviceWorker.ready`: outside production no worker is registered, and `ready` would then
 // never settle — holding the logout that waits on this forever.
-export async function getPushSubscription(): Promise<PushSubscription | null> {
+async function getPushSubscription(): Promise<PushSubscription | null> {
   const registration = await navigator.serviceWorker.getRegistration()
   return (await registration?.pushManager.getSubscription()) ?? null
 }
 
-export const toSubscriptionInput = (subscription: PushSubscription) => {
+const toSubscriptionInput = (subscription: PushSubscription) => {
   const { endpoint, keys } = subscription.toJSON()
   return { endpoint: endpoint ?? '', keys: { p256dh: keys?.p256dh ?? '', auth: keys?.auth ?? '' } }
 }
@@ -41,6 +41,10 @@ export const toSubscriptionInput = (subscription: PushSubscription) => {
  */
 export async function subscribeThisDevice(publicKey: string): Promise<ActionResultT | 'denied'> {
   if ((await Notification.requestPermission()) !== 'granted') return 'denied'
+  // `ready` only settles once a worker is registered; without one the toggle would spin forever.
+  if (!(await navigator.serviceWorker.getRegistration())) {
+    return { success: false, error: 'Brak service workera' }
+  }
   const registration = await navigator.serviceWorker.ready
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
@@ -63,9 +67,9 @@ export async function syncPushSubscription(publicKey: string): Promise<boolean> 
       await subscription.unsubscribe()
       return false
     }
-    await subscribePushAction(toSubscriptionInput(subscription))
-    return true
+    return (await subscribePushAction(toSubscriptionInput(subscription))).success
   } catch (err) {
+    // TODO(EX-449) SENTRY-REQUIRED: a failed re-registration silently stops this device's pushes.
     logError('[PUSH] subscription sync failed', err)
     return false
   }
@@ -82,13 +86,12 @@ export async function unsubscribeThisDevice(): Promise<void> {
     const subscription = await getPushSubscription()
     if (!subscription) return
     const { endpoint } = subscription
-    try {
-      await subscription.unsubscribe()
-    } catch (err) {
-      logError('[PUSH] browser unsubscribe failed', err)
-    }
+    await subscription
+      .unsubscribe()
+      .catch((err: unknown) => logError('[PUSH] browser unsubscribe failed', err))
     await unsubscribePushAction(endpoint)
   } catch (err) {
+    // TODO(EX-449) SENTRY-REQUIRED: a device left subscribed keeps getting the logged-out account's pushes.
     logError('[PUSH] unsubscribe failed', err)
   }
 }

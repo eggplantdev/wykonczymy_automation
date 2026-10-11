@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import type { PushMessageT } from '@/lib/push/send-push'
 
 vi.mock('server-only', () => ({}))
 
@@ -14,7 +15,6 @@ vi.mock('@/lib/env', () => ({
 const sendNotification = vi.fn()
 vi.mock('web-push', () => ({
   sendNotification: (...args: unknown[]) => sendNotification(...args),
-  setVapidDetails: vi.fn(),
 }))
 
 const selectLivePushSubscriptions = vi.fn()
@@ -37,7 +37,7 @@ const PHONE = 'https://push.test.local/phone'
 const TABLET = 'https://push.test.local/tablet'
 const device = (endpoint: string) => ({ endpoint, p256dh: 'p256dh', auth: 'auth' })
 const refusal = (statusCode: number) => Object.assign(new Error('refused'), { statusCode })
-const build = (locale: string) => ({
+const build = (locale: string): PushMessageT => ({
   title: `title-${locale}`,
   body: 'body',
   url: '/',
@@ -50,7 +50,7 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
   sendNotification.mockReset().mockResolvedValue({ statusCode: 201 })
   selectLivePushSubscriptions.mockReset().mockResolvedValue([device(PHONE), device(TABLET)])
-  deletePushSubscriptionByEndpoint.mockReset()
+  deletePushSubscriptionByEndpoint.mockReset().mockResolvedValue(undefined)
   selectUserLanguage.mockReset().mockResolvedValue(null)
 })
 
@@ -76,6 +76,13 @@ describe('sendPushToUser', () => {
 
     expect(await sendPushToUser(db, 1, build)).toBe(1)
     expect(deletePushSubscriptionByEndpoint).toHaveBeenCalledExactlyOnceWith(db, PHONE)
+  })
+
+  it('still counts the sends when forgetting a gone device fails', async () => {
+    sendNotification.mockRejectedValueOnce(refusal(410))
+    deletePushSubscriptionByEndpoint.mockRejectedValue(new Error('db down'))
+
+    expect(await sendPushToUser(db, 1, build)).toBe(1)
   })
 
   it.each([401, 403, 500])(

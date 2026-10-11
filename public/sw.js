@@ -56,7 +56,7 @@ const readPushMessage = (event) => {
   } catch {
     // Falls through to the generic notification below.
   }
-  return { title: 'Wykończymy', body: '', url: '/', tag: 'generic' }
+  return { title: 'Wykończymy', body: '', url: '/' }
 }
 
 // Every push shows a notification, a malformed one included: iOS revokes the subscription of an app
@@ -75,7 +75,8 @@ self.addEventListener('push', (event) => {
         body: message.body,
         icon: '/icons/icon-192.png',
         badge: '/icons/badge-96.png',
-        tag: message.tag,
+        // `renotify` without a tag makes `showNotification` throw — and shows nothing.
+        tag: message.tag || 'generic',
         renotify: true,
         data: { url: message.url },
       }),
@@ -86,14 +87,22 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const target = new URL(event.notification.data?.url ?? '/', self.location.origin).href
+  const requested = new URL(event.notification.data?.url ?? '/', self.location.origin)
+  const target = requested.origin === self.location.origin ? requested.href : self.location.origin
   event.waitUntil(
     (async () => {
       const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
       const open = windows.find((client) => new URL(client.url).origin === self.location.origin)
-      if (!open) return self.clients.openWindow(target)
-      await open.focus()
-      return open.navigate?.(target)
+      if (open) {
+        try {
+          await open.focus()
+          // An uncontrolled window refuses `navigate`; a fresh one still lands on the target.
+          if (await open.navigate(target)) return
+        } catch {
+          // Falls through to a fresh window.
+        }
+      }
+      return self.clients.openWindow(target)
     })(),
   )
 })
