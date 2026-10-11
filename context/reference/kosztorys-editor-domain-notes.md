@@ -1795,7 +1795,7 @@ this section is the original phrasing/context for those questions.
   > nie wchodził do żadnej marży. Dziś robocizna i rabat na liście inwestycji czytane są
   > **z kosztorysu** (EX-555), a obok starej marży stoi marża rzeczywista liczona z
   > kosztorysu razem z prognozą z przedmiaru (EX-649). Stara marża transferowa została
-  > nietknięta i dalej jest tym, co widać na v1 i `/raporty` — dwie figury obok siebie,
+  > nietknięta i dalej jest tym, co widać na v1 — dwie figury obok siebie,
   > nie zamiana jednej na drugą.
 
   ~~Skutek dla v2, ważny przy każdej

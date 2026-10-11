@@ -30,7 +30,7 @@ const col = createColumnHelper<TransferRowT>()
 // follow the link into a 404.
 const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
-const buildColumns = (translator: TranslatorT<'transfers'>) => {
+const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: boolean) => {
   const { t } = translator
   return [
     col.accessor('id', {
@@ -58,7 +58,11 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
         return (
           <span
             className="flex flex-col font-medium"
-            style={isMuted ? undefined : { color: transferColorVar(info.row.original) }}
+            style={
+              isMuted || uncoloredAmounts
+                ? undefined
+                : { color: transferColorVar(info.row.original) }
+            }
           >
             {formatPLN(info.getValue())}
             {showsNet && (
@@ -216,6 +220,7 @@ type ColumnOptionsT = {
   currentUserId?: number
   currentUserRole?: RoleT
   translator?: TranslatorT<'transfers'>
+  uncoloredAmounts?: boolean
 }
 
 export function transferRowClassName(row: TransferRowT) {
@@ -225,7 +230,13 @@ export function transferRowClassName(row: TransferRowT) {
 }
 
 export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
-  const { referenceData, currentUserId, currentUserRole, translator = POLISH_TRANSFERS } = options
+  const {
+    referenceData,
+    currentUserId,
+    currentUserRole,
+    translator = POLISH_TRANSFERS,
+    uncoloredAmounts = false,
+  } = options
 
   // Built once per column set, not per rendered row: the cell only knows its investment's id, so
   // without this every row would rescan the whole reference list on every sort and filter pass.
@@ -275,7 +286,10 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
   // database has nothing to order by and the click would silently sort one page. Those columns narrow
   // by filter instead (EX-777); deriving keeps the whitelist the single source of truth.
-  const columns: ColumnDef<TransferRowT, unknown>[] = [...buildColumns(translator), actionsColumn]
+  const columns: ColumnDef<TransferRowT, unknown>[] = [
+    ...buildColumns(translator, uncoloredAmounts),
+    actionsColumn,
+  ]
     .map((column) =>
       isServerSortableColumn(column.id!)
         ? (column as ColumnDef<TransferRowT, unknown>)

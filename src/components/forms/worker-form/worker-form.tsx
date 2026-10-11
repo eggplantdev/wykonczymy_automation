@@ -112,7 +112,9 @@ export function WorkerForm({
         <form.AppField name="active">{(field) => <field.Checkbox label="Aktywny" />}</form.AppField>
 
         <form.AppField name="canAddExpensesWithoutInvestment">
-          {(field) => <field.Checkbox label="Może dodawać wydatki bez inwestycji" />}
+          {(field) => (
+            <field.Checkbox label="Zaznacz, jeśli pracownik może dodawać wydatki bez wybranej inwestycji" />
+          )}
         </form.AppField>
       </FieldGroup>
 

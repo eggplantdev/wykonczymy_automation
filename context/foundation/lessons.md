@@ -18,7 +18,7 @@
 
 ## A parity test must run the REAL per-surface assembly on REAL data — a shared stand-in is false confidence
 
-- **Context**: Any figure shown in more than one place computed by more than one code path — here the investor `bilans`/`marża` on the investments listing (`lib/queries/investments.ts` → `calculateBalance`/`calculateMargin`) vs the detail/report page (`financial-stats` → `ToggleStatButtons` interactive sum + `calculateMargin`). A third surface — print/export — computed the same figure with its own `calculateBalance` until EX-672 deleted it; two functions of that name (a static formula vs a sum-of-visible-cards) is what the drift below turns on, and the parity spec now inlines the sum-of-visible-cards side. Applies to any future change touching these figures.
+- **Context**: Any figure shown in more than one place computed by more than one code path — here the investor `bilans`/`marża` on the investments listing (`lib/queries/investments.ts` → `calculateBalance`/`calculateMargin`) vs the detail page (`financial-stats` → `ToggleStatButtons` interactive sum + `calculateMargin`). A third surface — print/export — computed the same figure with its own `calculateBalance` until EX-672 deleted it; two functions of that name (a static formula vs a sum-of-visible-cards) is what the drift below turns on, and the parity spec now inlines the sum-of-visible-cards side. Applies to any future change touching these figures.
 - **Problem**: Equality between independently-assembled copies of the same figure is an unenforced coincidence that decays on every change. We shipped a "parity test" that compared `extractFigures ↔ extractFigures` — a helper **no page uses** — so it stayed green while the listing and detail pages disagreed by hundreds of zł on 7 real investments (legacy un-categorised corrections: counted by the listing's `totalMaterialCosts`, absent from the detail's category-card sum). Repeatedly declared "verified / can't break" from reasoning about the wrong layer; only real/legacy data exposed the gap. Also mis-stated the duplication ("4–6 places") from memory instead of grep (truth: marża = 1 formula, 3 call sites incl. an orphaned `extractFigures`; bilans = 2 legitimate algorithms — the detail's interactive toggle vs the listing's static formula).
 - **Rule**: (1) A parity/regression test must call the **actual functions the surface renders**, on **real data** (gated DB test), not a stand-in. (2) Prove it **red** — it must fail when you break the real thing; a test that's only ever green may be tautological. (3) A _legitimate_ difference (interactive toggle vs static formula) is fine — but then assert the invariant (default/all-visible == formula) with a test; don't assume. (4) Never claim "verified" without an executable red→green on the real path. (5) Count call sites with `grep`, never from memory. (6) Consolidate duplicated assembly into one function that takes the whole `financials` object (`calculateBalance(financials)`, `calculateMargin(financials)`) — no long positional-arg lists, no vaguely-named orphan bundles.
 - **Applies to**: plan, plan-review, implement, impl-review, tdd, simplify
@@ -1237,9 +1237,10 @@ precondition here was a **data** invariant (`COMPANY_FUNDING` / `OTHER_DEPOSIT` 
 `investment_id`, EX-557), so that is what the guard asserts, on the persisted row. Guard the cause that
 makes the two definitions coincide, not the coincidence.
 
-**Do not "fix" the aggregate's definition to match.** `totalIncome` is a **company-level** figure —
-`/raporty` needs both legacy deposit types inside bucket `income`. It is only correct per-investment
-because of the EX-557 invariant, and its name says none of that.
+**The aggregate's definition is wider than its use.** `totalIncome` buckets all three deposit types
+because it was sized for the company-wide `/raporty`, deleted 2026-10-11. Every remaining consumer is
+per-investment, where it is correct only because of the EX-557 invariant — and its name says none of
+that.
 
 ## This codebase assumes "money may be signed, quantities may not" — a negative quantity fails to ZERO instead of propagating
 

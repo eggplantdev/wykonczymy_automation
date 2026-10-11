@@ -72,7 +72,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
           // from/to registers they own (currently managers see all transactions).
           // Intentionally inline — manager sees only visible registers and active investments.
           // Entity pages use buildFilterConfig(refData) with full data since they're already scoped
-          // to one investment/user. Reports page is not accessible to managers at all.
+          // to one investment/user.
           filters: {
             cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),

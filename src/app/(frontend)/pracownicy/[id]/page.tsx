@@ -200,6 +200,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
               },
               invoiceDownload: isManager,
               print: isManager,
+              uncoloredAmounts: true,
               cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
             }}
           />

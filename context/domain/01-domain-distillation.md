@@ -127,7 +127,7 @@ marża  = robocizna − wypłaty − rabat − strata − rozliczone − materia
 
 `src/lib/kosztorys/calculate-balance.ts`, `calculate-margin.ts`.
 
-Od EX-649 obok tej marży stoi druga — nie zamiast niej. Powyższa zostaje żywa na v1, `/raporty`
+Od EX-649 obok tej marży stoi druga — nie zamiast niej. Powyższa zostaje żywa na v1
 i w kolumnie „Marża":
 
 ```
