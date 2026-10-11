@@ -4766,6 +4766,7 @@ Kierownictwo — skan:
 - [ ] Data Od późniejsza niż Do → komunikat o błędnym zakresie, „Pobierz” nieaktywny.
 - [ ] To samo na `/kasa/[id]` i na `/pracownicy/[id]` jako manager.
 - [ ] „Drukuj” dalej drukuje bieżący zestaw filtrów tabeli, niezależnie od dialogu.
+- [ ] Dialog „Pobierz faktury” na desktopie: Rok i Miesiąc w pierwszym wierszu, Od i Do w drugim, „Wyczyść daty” pod nimi — pary się nie mieszają. To samo w dialogu „Sprawdź faktury Telmak”; filtry dat nad listami bez zmian (jeden rząd).
 
 ## 2026-10-11 — investments-default-sort — lista inwestycji od najnowszej
 

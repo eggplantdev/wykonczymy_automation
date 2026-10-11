@@ -18,6 +18,8 @@ type DateRangePickerPropsT = {
   onChange: (next: DateRangeT) => void
   /** Only a caller whose write costs a round trip has anything to report; local state never does. */
   isPending?: boolean
+  /** In a dialog the controls wrap mid-pair; this pins Rok/Miesiąc and Od/Do to a row each. */
+  stacked?: boolean
 }
 
 /**
@@ -25,7 +27,12 @@ type DateRangePickerPropsT = {
  * `DateFilters` binds it to the URL for a listing somebody links to; a surface whose window is nobody
  * else's business binds it to local state. One picker, two bindings.
  */
-export function DateRangePicker({ value, onChange, isPending = false }: DateRangePickerPropsT) {
+export function DateRangePicker({
+  value,
+  onChange,
+  isPending = false,
+  stacked = false,
+}: DateRangePickerPropsT) {
   const { t } = useTranslation('filters')
   const now = new Date()
 
@@ -51,7 +58,7 @@ export function DateRangePicker({ value, onChange, isPending = false }: DateRang
   const years = Array.from({ length: YEARS_OFFERED }, (_, index) => currentYear - index)
 
   return (
-    <ControlGrid>
+    <ControlGrid className={stacked ? 'sm:grid' : undefined}>
       <Loader loading={isPending} portal />
 
       <FilterSelect

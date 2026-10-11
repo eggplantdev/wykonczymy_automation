@@ -104,7 +104,7 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
         pending={isZipping}
         contentClassName="sm:max-w-dialog gap-6"
       >
-        <DateRangePicker value={range} onChange={changeRange} />
+        <DateRangePicker value={range} onChange={changeRange} stacked />
 
         <p className="text-sm" aria-live="polite">
           {!isComplete && <span className="text-muted-foreground">{t('invoicesPickRange')}</span>}
