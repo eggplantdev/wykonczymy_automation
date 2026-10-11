@@ -563,24 +563,24 @@ later session):
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB
-- [x] 1.2 Env spec covers the gate
-- [x] 1.3 Data-access spec
+- [x] 1.1 Migration applies to the local DB — e87180242
+- [x] 1.2 Env spec covers the gate — e87180242
+- [x] 1.3 Data-access spec — e87180242
 
 ### Phase 2: Sender + server actions + lockout
 
 #### Automated
 
-- [x] 2.1 Sender spec with `web-push` mocked
-- [x] 2.2 Action spec
-- [x] 2.3 Lockout specs extended
+- [x] 2.1 Sender spec with `web-push` mocked — a0f487593
+- [x] 2.2 Action spec — a0f487593
+- [x] 2.3 Lockout specs extended — a0f487593
 
 ### Phase 3: Service worker + client toggle
 
 #### Automated
 
-- [ ] 3.1 Toggle DOM spec
-- [ ] 3.2 Push-client helper spec
+- [x] 3.1 Toggle DOM spec
+- [x] 3.2 Push-client helper spec
 
 ### Phase 4: Wypłata trigger + badge count (BLOCKED on EX-1042)
 

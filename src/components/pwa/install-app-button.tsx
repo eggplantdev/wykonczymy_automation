@@ -5,22 +5,13 @@ import { Download, Ellipsis, Loader2, Share, SquarePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { useTranslation } from '@/hooks/use-translation'
-import { isIosDevice, resolveInstallState, type PlatformT } from '@/lib/pwa/install-state'
+import { resolveInstallState } from '@/lib/pwa/install-state'
+import { readPlatform, subscribeNever } from '@/lib/pwa/read-platform'
 import { useInstallPromptStore } from '@/stores/install-prompt-store'
 
 // Chrome fires `beforeinstallprompt` only once its engagement checks pass, which can take a while
 // on a cold page — past this the button gives way to the browser-menu path.
 const PROMPT_WAIT_MS = 60_000
-
-const readPlatform = (): PlatformT => {
-  const nav = navigator as Navigator & { standalone?: boolean }
-  if (matchMedia('(display-mode: standalone)').matches || nav.standalone === true) {
-    return 'standalone'
-  }
-  return isIosDevice(nav.userAgent, nav.maxTouchPoints) ? 'ios' : 'browser'
-}
-
-const subscribeNever = () => () => {}
 
 export function InstallAppButton() {
   const { t } = useTranslation('workerPage')

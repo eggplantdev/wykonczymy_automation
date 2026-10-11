@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useI18nContext, useTranslation } from '@/hooks/use-translation'
 import { failureMessage } from '@/lib/i18n/failure-message'
 import { logoutAction } from '@/lib/actions/auth'
+import { unsubscribeThisDevice } from '@/lib/pwa/push-client'
 import { cn } from '@/lib/utils/cn'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -31,6 +32,8 @@ export function LogoutButton({ collapsed = false, beforeLogout, ...props }: Logo
       onClick={() => {
         beforeLogout?.()
         startTransition(async () => {
+          // A shared phone must stop receiving the previous account's pushes.
+          await unsubscribeThisDevice()
           // Only a failed request ever returns — a logout that lands redirects.
           const res = await settleAction(logoutAction)
           if (!res.success) toastMessage(failureMessage(locale, res), 'error')

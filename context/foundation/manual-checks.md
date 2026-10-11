@@ -4771,3 +4771,15 @@ Bez zmian:
 ## 2026-10-11 — sidebar-wider-smaller-logo — szerszy pasek boczny, mniejsze logo
 
 - [ ] Desktop (≥768px), rozwinięty pasek boczny → jest szerszy niż wcześniej, logo Wykończymy u góry mniejsze i ostre (nie rozmyte); zwinięcie i ponowne rozwinięcie paska działa, w zwiniętym logo wygląda jak dotąd.
+
+## 2026-10-11 — pwa-push-notifications — powiadomienia push w zainstalowanej aplikacji (EX-1040)
+
+Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada środowiskowa, nie defekt).
+
+- [ ] Localhost i preview → przełącznik „Włącz powiadomienia” nie pojawia się ani na własnej stronie `/pracownicy/[id]`, ani w menu mobilnym; wylogowanie działa jak dotąd.
+- [ ] Produkcja, Android, zainstalowana aplikacja → menu mobilne → „Włącz powiadomienia” → zgoda w systemie → toast „Powiadomienia włączone”, przycisk zmienia się na „Wyłącz powiadomienia”; jako ADMIN otwórz `/api/test-push` → przychodzi powiadomienie z jednobarwną ikoną na pasku stanu; dotknięcie otwiera aplikację.
+- [ ] Produkcja, iPhone (iOS 16.4+) → w karcie Safari przełącznika nie ma; w aplikacji z ekranu początkowego jest, włączenie pokazuje pytanie o zgodę, a testowe powiadomienie dociera.
+- [ ] Odmowa zgody na powiadomienia → zamiast przycisku napis „Powiadomienia są zablokowane — włącz je w ustawieniach telefonu.”
+- [ ] „Wyłącz powiadomienia” → `/api/test-push` zwraca `sent: 0` i na telefon nic nie przychodzi; to samo po wylogowaniu się na telefonie.
+- [ ] Pracownik z włączonymi powiadomieniami zdezaktywowany („Aktywny” wyłączone) albo przeniesiony do kosza → nie dostaje już żadnego powiadomienia.
+- [ ] 390px → przełącznik na własnej stronie `/pracownicy/[id]` (obok „Zainstaluj aplikację”) i w stopce menu mobilnego nie rozjeżdża układu.
