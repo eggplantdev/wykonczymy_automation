@@ -4588,6 +4588,7 @@ Przed sprawdzeniem: migracja `20261009_3_worker_expense_without_investment` zast
 Pracownik — flaga:
 
 - [ ] „Dodaj pracownika” / „Edytuj pracownika”: jest checkbox „Może dodawać wydatki bez inwestycji”, domyślnie odznaczony; zapis go utrwala. Kierownik (MANAGER) też może go ustawić.
+- [ ] „Edytuj pracownika”: checkbox brzmi teraz „Zaznacz, jeśli pracownik może dodawać wydatki bez wybranej inwestycji” i mieści się w dialogu bez ucinania (także na telefonie, 390px).
 - [ ] Kierownictwo na stronie pracownika widzi wiersz „Wydatki bez inwestycji: Tak/Nie”; pracownik na swojej stronie go nie widzi.
 
 Pracownik — wysyłka (telefon, 390px):

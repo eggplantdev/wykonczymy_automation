@@ -110,7 +110,7 @@ export const Users: CollectionConfig = {
       defaultValue: false,
       label: {
         en: 'Can add expenses without an investment',
-        pl: 'Może dodawać wydatki bez inwestycji',
+        pl: 'Zaznacz, jeśli pracownik może dodawać wydatki bez wybranej inwestycji',
       },
     },
     {
