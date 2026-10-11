@@ -4650,3 +4650,13 @@ Kierownictwo — skan:
       pracownika (zalogowany) albo na logowanie, nie zostawia go na pustej stronie.
 - [ ] Zwykła przeglądarka (nie PWA) i desktop → strzałki nie ma; przy 390px nazwa inwestycji
       i pracownika nadal czytelna (najwyżej ucięta wielokropkiem), przełącznik języka mieści się.
+
+## 2026-10-11 — invoice-download-date-range — „Faktury” z zakresem dat (EX-1039)
+
+- [ ] `/inwestycje/[id]` → „Faktury”: otwiera się dialog; wybór Rok + Miesiąc pokazuje „Dokumentów do pobrania: N”; ZIP pobrany przez „Pobierz” ma dokładnie N plików, a w nazwie zakres dat.
+- [ ] Tabela przefiltrowana przez Od/Do → „Faktury”: dialog otwiera się z tymi datami i od razu z policzonymi dokumentami.
+- [ ] Tabela przefiltrowana po typie (np. tylko Wydatki) → licznik w dialogu spada odpowiednio: pozostałe filtry działają, podmieniane są tylko daty.
+- [ ] Miesiąc bez faktur → licznik pokazuje 0, „Pobierz” nieaktywny.
+- [ ] Data Od późniejsza niż Do → komunikat o błędnym zakresie, „Pobierz” nieaktywny.
+- [ ] To samo na `/kasa/[id]` i na `/pracownicy/[id]` jako manager.
+- [ ] „Drukuj” dalej drukuje bieżący zestaw filtrów tabeli, niezależnie od dialogu.
