@@ -7,8 +7,6 @@ import type { TransferRowsFetchT } from '@/components/transfers/transfer-table-c
 import type { TransferRowT } from '@/types/transfers'
 import type { PreviewFileT } from '@/types/media'
 
-// EX-1039: the dialog's count is the archive's file count, and nothing downloads without a full range.
-
 const url = vi.hoisted(() => ({ params: new URLSearchParams() }))
 vi.mock('next/navigation', () => ({
   useSearchParams: () => url.params,

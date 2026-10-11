@@ -373,7 +373,6 @@ export const uk: TranslationsT = {
     printEmpty: 'Немає транзакцій для друку',
     invoices: 'Рахунки',
     invoicesAria: 'Завантажити рахунки',
-    invoicesDialogTitle: 'Завантажити рахунки',
     invoicesPickRange: 'Виберіть діапазон дат — обидві дати обовʼязкові.',
     invoicesInvalidRange: 'Дата «Від» пізніша за «До».',
     invoicesCounting: 'Рахую документи…',

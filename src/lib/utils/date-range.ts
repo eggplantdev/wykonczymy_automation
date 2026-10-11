@@ -9,7 +9,6 @@ export type DateRangeT = {
   to?: string
 }
 
-/** A window with both ends — what a surface that refuses „everything since July" asks for. */
 export type ClosedDateRangeT = Required<DateRangeT>
 
 /** No window. Spelled out so a caller has to say which it wants rather than omit an argument. */
@@ -32,6 +31,18 @@ export const dayBound = (value: unknown): string | undefined =>
 const isCalendarDay = (day: string): boolean => {
   const parsed = new Date(`${day}T00:00:00Z`)
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(day)
+}
+
+export const urlDateRange = (params: Pick<URLSearchParams, 'get'>): DateRangeT => ({
+  from: dayBound(params.get('from')),
+  to: dayBound(params.get('to')),
+})
+
+/** Both ends valid days and in order — a junk or inverted window would read as an honest empty one. */
+export const isClosedRange = (range: DateRangeT): range is ClosedDateRangeT => {
+  const from = dayBound(range.from)
+  const to = dayBound(range.to)
+  return Boolean(from && to && from <= to)
 }
 
 /** Lexical on purpose: `YYYY-MM-DD` sorts chronologically, so no date parsing is involved. */

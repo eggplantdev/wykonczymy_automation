@@ -374,7 +374,6 @@ export const ru: TranslationsT = {
     printEmpty: 'Нет транзакций для печати',
     invoices: 'Счета',
     invoicesAria: 'Скачать счета',
-    invoicesDialogTitle: 'Скачать счета',
     invoicesPickRange: 'Выберите диапазон дат — обе даты обязательны.',
     invoicesInvalidRange: 'Дата «От» позже, чем «До».',
     invoicesCounting: 'Считаю документы…',

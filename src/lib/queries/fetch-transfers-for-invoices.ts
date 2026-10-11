@@ -6,14 +6,14 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { fetchAllTransferRows } from '@/lib/queries/fetch-transfer-rows'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
 import { withDateRange } from '@/lib/queries/transfer-filters'
-import { dayBound, type ClosedDateRangeT } from '@/lib/utils/date-range'
+import { isClosedRange, type ClosedDateRangeT } from '@/lib/utils/date-range'
 import type { TransferRowT } from '@/types/transfers'
 import type { ActionResultT } from '@/types/action'
 import { toActionFailure } from '@/lib/actions/action-failure'
 import { logError } from '@/lib/utils/log-error'
 import { perfStart } from '@/lib/perf'
 
-type FetchFilteredTransfersOptsT = {
+export type FetchFilteredTransfersOptsT = {
   /** Skip resolving invoice media for callers that never render it. */
   skipMedia?: boolean
   /** The printout passes the screen's own key here so the two cannot disagree. Re-validated against
@@ -30,8 +30,9 @@ export async function fetchFilteredTransfers(
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return session
 
-  // A bound that fails validation must not quietly widen the archive to all time.
-  if (range && (!dayBound(range.from) || !dayBound(range.to))) {
+  // Refused rather than queried: a junk or inverted bound comes back as an empty archive, which reads
+  // exactly like a month with no faktury.
+  if (range && !isClosedRange(range)) {
     return { success: false, error: 'Nieprawidłowy zakres dat' }
   }
 

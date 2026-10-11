@@ -73,6 +73,7 @@ describe('fetchFilteredTransfers — invoice range', () => {
     ['a half range', { from: '2026-09-01', to: '' }],
     ['a malformed bound', { from: '2026-09-01', to: '2026-02-30' }],
     ['a non-ISO bound', { from: '1.09.2026', to: '2026-09-30' }],
+    ['an inverted range', { from: '2026-09-30', to: '2026-09-01' }],
   ])('refuses %s without querying', async (_label, range) => {
     const result = await fetchFilteredTransfers({}, { range })
 

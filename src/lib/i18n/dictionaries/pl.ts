@@ -385,7 +385,6 @@ export const pl = {
     printEmpty: 'Brak transakcji do wydruku',
     invoices: 'Faktury',
     invoicesAria: 'Pobierz faktury',
-    invoicesDialogTitle: 'Pobierz faktury',
     invoicesPickRange: 'Wybierz zakres dat — obie daty są wymagane.',
     invoicesInvalidRange: 'Data „Od” jest późniejsza niż „Do”.',
     invoicesCounting: 'Liczę dokumenty…',

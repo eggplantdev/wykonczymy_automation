@@ -22,10 +22,9 @@ const BATCH_SIZE = 6
  * Everything that happens *after* the rows are known: fetch each page, name it uniquely, zip,
  * hand the archive to the browser, and drive one in-place toast throughout.
  *
- * Split out of `InvoiceDownloadDialog` because obtaining the rows and packing them are separate
- * concerns with separate auth needs — the transfers toolbar fetches its rows through an authenticated
- * server action, while the kosztorys Wydatki list already has them in props and runs on the
- * unauthenticated share path. Media is publicly readable, so packing needs no session either way.
+ * Kept apart from obtaining the rows because the two have separate auth needs — the transfers
+ * toolbar fetches its rows through an authenticated server action, while the kosztorys Wydatki list
+ * already has them in props and runs on the unauthenticated share path. Media is publicly readable, so packing needs no session either way.
  */
 export function useFileArchive() {
   const [isPending, startTransition] = useTransition()

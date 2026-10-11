@@ -255,7 +255,6 @@ describe('scopeNarrowsByOriginalOnlyField', () => {
   })
 })
 
-// The invoice dialog's range replaces the table's own Od/Do and nothing else.
 describe('withDateRange → stats SQL', () => {
   const SEPTEMBER = { from: '2026-09-01', to: '2026-09-30' }
 

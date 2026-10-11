@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { FileArchive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { DateRangePicker } from '@/components/filters/date-range-picker'
 import { useFileArchive } from '@/hooks/use-file-archive'
 import { useLatestRequest } from '@/hooks/use-latest-request'
@@ -14,7 +14,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import { flattenArchiveRows } from '@/lib/media/file-archive'
 import { INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 import { failureMessage } from '@/lib/i18n/failure-message'
-import { ALL_TIME, dayBound, type DateRangeT } from '@/lib/utils/date-range'
+import { ALL_TIME, isClosedRange, urlDateRange, type DateRangeT } from '@/lib/utils/date-range'
 import type { TransferRowsFetchT } from '@/components/transfers/transfer-table-config'
 import type { TransferRowT } from '@/types/transfers'
 
@@ -23,8 +23,7 @@ type InvoiceDownloadDialogPropsT = {
 }
 
 // The rows that produce the count are the rows „Pobierz" packs — one fetch, so the number shown can
-// never disagree with the archive. Packing belongs to `useFileArchive`, shared with the kosztorys
-// Wydatki list.
+// never disagree with the archive.
 export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT) {
   const { locale, t } = useTranslation('transfers')
   const searchParams = useSearchParams()
@@ -35,21 +34,20 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
   const [isCounting, setIsCounting] = useState(false)
   const request = useLatestRequest()
 
-  const { from, to } = range
-  const isComplete = Boolean(from && to)
-  const isInverted = Boolean(from && to && from > to)
+  const isComplete = Boolean(range.from && range.to)
+  const isInverted = isComplete && !isClosedRange(range)
   const fileCount = rows ? flattenArchiveRows(rows).length : 0
 
-  async function count({ from: start, to: end }: DateRangeT) {
+  async function count(next: DateRangeT) {
     const isLatest = request.start()
     setRows(undefined)
-    if (!start || !end || start > end) {
+    if (!isClosedRange(next)) {
       setIsCounting(false)
       return
     }
 
     setIsCounting(true)
-    const result = await settleAction(() => fetchRows({ range: { from: start, to: end } }))
+    const result = await settleAction(() => fetchRows({ range: next }))
     if (!isLatest()) return
     setIsCounting(false)
     if (!result.success) {
@@ -74,15 +72,13 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
       return
     }
 
-    // The table's Od/Do is the range the user already chose; half of it is no range here.
-    const tableFrom = dayBound(searchParams.get('from'))
-    const tableTo = dayBound(searchParams.get('to'))
-    if (tableFrom && tableTo) changeRange({ from: tableFrom, to: tableTo })
+    const tableRange = urlDateRange(searchParams)
+    if (tableRange.from && tableRange.to) changeRange(tableRange)
   }
 
   function handleDownload() {
-    if (!rows || !from || !to) return
-    download(rows, [from, to], INVOICE_ARCHIVE_COPY)
+    if (!rows || !isClosedRange(range)) return
+    download(rows, [range.from, range.to], INVOICE_ARCHIVE_COPY)
     handleOpenChange(false)
   }
 
@@ -98,32 +94,30 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
         {isZipping ? <Loader2 className="animate-spin" /> : <FileArchive />}
         {t('invoices')}
       </Button>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="gap-6" aria-describedby={undefined}>
-          <DialogHeader title={t('invoicesDialogTitle')} />
+      <FormDialogShell
+        open={open}
+        onOpenChange={handleOpenChange}
+        title={t('invoicesAria')}
+        confirmLabel={t('invoicesDownload')}
+        onConfirm={handleDownload}
+        confirmDisabled={!rows || fileCount === 0}
+        pending={isZipping}
+        contentClassName="sm:max-w-dialog gap-6"
+      >
+        <DateRangePicker value={range} onChange={changeRange} />
 
-          <DateRangePicker value={range} onChange={changeRange} isPending={isCounting} />
-
-          <p className="text-sm" aria-live="polite">
-            {!isComplete && <span className="text-muted-foreground">{t('invoicesPickRange')}</span>}
-            {isInverted && <span className="text-destructive">{t('invoicesInvalidRange')}</span>}
-            {isComplete && !isInverted && isCounting && (
-              <span className="text-muted-foreground flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin" />
-                {t('invoicesCounting')}
-              </span>
-            )}
-            {rows && t('invoicesCount', { count: fileCount })}
-          </p>
-
-          <DialogFooter>
-            <Button onClick={handleDownload} disabled={!rows || fileCount === 0 || isZipping}>
-              <FileArchive />
-              {t('invoicesDownload')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <p className="text-sm" aria-live="polite">
+          {!isComplete && <span className="text-muted-foreground">{t('invoicesPickRange')}</span>}
+          {isInverted && <span className="text-destructive">{t('invoicesInvalidRange')}</span>}
+          {isCounting && (
+            <span className="text-muted-foreground flex items-center gap-2">
+              <Loader2 className="size-4 animate-spin" />
+              {t('invoicesCounting')}
+            </span>
+          )}
+          {rows && t('invoicesCount', { count: fileCount })}
+        </p>
+      </FormDialogShell>
     </>
   )
 }
