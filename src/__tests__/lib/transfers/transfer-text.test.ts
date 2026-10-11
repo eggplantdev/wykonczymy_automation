@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { transferAmountText, transferTypeText } from '@/lib/transfers/transfer-text'
+import {
+  transferAmountText,
+  transferPayoutStatusText,
+  transferTypeText,
+} from '@/lib/transfers/transfer-text'
 import { transferRow } from '@/__tests__/fixtures/transfer-row'
 
 describe('transferAmountText', () => {
@@ -40,5 +44,26 @@ describe('transferTypeText', () => {
     expect(transferTypeText(transferRow({ type: 'CANCELLATION', originalType: null }))).toBe(
       'Anulowanie',
     )
+  })
+})
+
+describe('transferPayoutStatusText', () => {
+  it('leaves every type but a wypłata blank', () => {
+    expect(transferPayoutStatusText(transferRow({ type: 'BONUS', payoutStatus: null }))).toBe('')
+  })
+
+  it('dashes a wypłata booked before anyone was asked', () => {
+    expect(transferPayoutStatusText(transferRow({ type: 'PAYOUT', payoutStatus: null }))).toBe('—')
+  })
+
+  it('names a cancelled wypłata „Anulowana" over whatever he answered', () => {
+    expect(
+      transferPayoutStatusText(
+        transferRow({ type: 'PAYOUT', payoutStatus: 'rejected', cancelled: true }),
+      ),
+    ).toBe('Anulowana')
+    expect(
+      transferPayoutStatusText(transferRow({ type: 'PAYOUT', payoutStatus: 'rejected' })),
+    ).toBe('Odrzucona')
   })
 })

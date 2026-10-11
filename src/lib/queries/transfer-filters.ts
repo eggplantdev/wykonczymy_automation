@@ -1,6 +1,7 @@
 import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
 import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { isPayoutStatus } from '@/lib/constants/payout-confirmation'
 import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
 import type { ClosedDateRangeT } from '@/lib/utils/date-range'
 
@@ -120,6 +121,13 @@ export function buildTransferFilters(
     else where.id = NO_RESULTS
   }
 
+  const payoutStatusParam = getStringParam(searchParams.payoutStatus)
+  if (payoutStatusParam) {
+    const statuses = payoutStatusParam.split(',').filter(isPayoutStatus)
+    if (statuses.length > 0) where.payoutStatus = { in: statuses }
+    else where.id = NO_RESULTS
+  }
+
   const expenseCategoryParam = getStringParam(searchParams.expenseCategory)
   const expenseCategoryIds = parseNumericIds(expenseCategoryParam)
   if (expenseCategoryIds.length > 0) where.expenseCategory = { in: expenseCategoryIds }
@@ -161,6 +169,15 @@ export function buildTransferFilters(
   }
 
   return where
+}
+
+// Routed through the Typ param rather than overwriting `where.type`, so audit mode re-aims it at the
+// cancelled original like any other Typ scope.
+export function buildPayoutFilters(
+  searchParams: ResolvedSearchParamsT,
+  userContext: UserContextT,
+): Where {
+  return buildTransferFilters({ ...searchParams, type: 'PAYOUT' }, userContext)
 }
 
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,
@@ -211,6 +228,8 @@ export const FIELDS_ONLY_THE_ORIGINAL_CARRIES = [
   // Joined the list when the method stopped being copied onto the audit row: an anulowanie is never
   // asked how it was paid, so „anulowania przelewem" can only mean the original's method.
   'paymentMethod',
+  // An anulowanie is born with no status, so „anulowane odrzucone" can only mean the original's.
+  'payoutStatus',
 ] as const
 
 /**

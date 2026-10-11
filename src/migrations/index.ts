@@ -136,6 +136,7 @@ import * as migration_20261009_1_client_view_planned_done_percent_hidden from '.
 import * as migration_20261009_2_worker_view_offer_columns_hidden from './20261009_2_worker_view_offer_columns_hidden'
 import * as migration_20261009_3_worker_expense_without_investment from './20261009_3_worker_expense_without_investment'
 import * as migration_20261009_4_kosztorys_stages_completed from './20261009_4_kosztorys_stages_completed'
+import * as migration_20261011_1_add_payout_confirmation from './20261011_1_add_payout_confirmation'
 
 export const migrations = [
   {
@@ -827,5 +828,10 @@ export const migrations = [
     up: migration_20261009_4_kosztorys_stages_completed.up,
     down: migration_20261009_4_kosztorys_stages_completed.down,
     name: '20261009_4_kosztorys_stages_completed',
+  },
+  {
+    up: migration_20261011_1_add_payout_confirmation.up,
+    down: migration_20261011_1_add_payout_confirmation.down,
+    name: '20261011_1_add_payout_confirmation',
   },
 ]

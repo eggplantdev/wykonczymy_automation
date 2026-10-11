@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import {
   Ban,
   Banknote,
+  CircleCheck,
   CreditCard,
   FolderOpen,
   HardHat,
@@ -23,6 +24,7 @@ import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { PAYOUT_STATUSES } from '@/lib/constants/payout-confirmation'
 import { useTranslation } from '@/hooks/use-translation'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
@@ -38,6 +40,7 @@ const ENTITY_FILTER_KEYS = [
   'investment',
   'createdBy',
   'paymentMethod',
+  'payoutStatus',
   'otherCategory',
   'expenseCategory',
   'worker',
@@ -67,6 +70,7 @@ export function TransferFilters({
   expenseCategories,
   transferTypes,
   showPaymentMethodFilter = false,
+  showPayoutStatusFilter = false,
   showCancelledFilter = true,
   showSearchFilters = true,
   baseUrl,
@@ -117,6 +121,7 @@ export function TransferFilters({
   const currentCreatedBys = getMultiParam('createdBy')
   const currentWorkers = getMultiParam('worker')
   const currentPaymentMethods = getMultiParam('paymentMethod')
+  const currentPayoutStatuses = getMultiParam('payoutStatus')
   const currentOtherCategories = getMultiParam('otherCategory')
   const currentExpenseCategories = getMultiParam('expenseCategory')
 
@@ -139,6 +144,7 @@ export function TransferFilters({
         (users && users.length > 0) ||
         (workers && workers.length > 0) ||
         showPaymentMethodFilter ||
+        showPayoutStatusFilter ||
         (otherCategories && otherCategories.length > 0) ||
         (expenseCategories && expenseCategories.length > 0)) && (
         <ControlGrid>
@@ -213,6 +219,19 @@ export function TransferFilters({
               }))}
               label={t('filterPaymentMethod')}
               icon={CreditCard}
+            />
+          )}
+
+          {showPayoutStatusFilter && (
+            <FilterMultiSelect
+              values={currentPayoutStatuses}
+              onValuesChange={(v) => updateParam('payoutStatus', v.join(','))}
+              options={PAYOUT_STATUSES.map((status) => ({
+                value: status,
+                label: t(`payoutStatus_${status}`),
+              }))}
+              label={t('filterPayoutStatus')}
+              icon={CircleCheck}
             />
           )}
 

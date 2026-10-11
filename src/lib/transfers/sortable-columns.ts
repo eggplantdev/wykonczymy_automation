@@ -11,6 +11,8 @@ export const SERVER_SORTABLE_TRANSFER_COLUMNS = [
   'paymentMethod',
   'description',
   'vatPlane',
+  'payoutStatus',
+  'payoutDecidedAt',
   'createdAt',
 ] as const
 

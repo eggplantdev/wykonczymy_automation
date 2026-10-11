@@ -87,7 +87,10 @@ export function TransferCard({
         <span className="text-muted-foreground ml-auto">{formatPLDate(transfer.date)}</span>
       </header>
 
-      <TransferTypeBadge transfer={transfer} translator={translator} className="self-start" />
+      <div className="flex flex-wrap items-center gap-1.5">
+        <TransferTypeBadge transfer={transfer} translator={translator} />
+        {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell(row, 'payoutStatus')}
+      </div>
 
       <div className="flex items-baseline gap-2">
         <span

@@ -21,6 +21,9 @@ describe('buildSqlConditions — Where → SQL', () => {
     expect(buildSqlConditions({ paymentMethod: { in: ['CASH'] } })).toContain(
       "payment_method IN ('CASH')",
     )
+    expect(buildSqlConditions({ payoutStatus: { in: ['rejected'] } })).toContain(
+      "payout_status IN ('rejected')",
+    )
   })
 
   it('renders both ends of a range as one parenthesised condition', () => {

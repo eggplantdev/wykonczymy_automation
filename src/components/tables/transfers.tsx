@@ -9,6 +9,7 @@ import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
+import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
 import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
@@ -19,6 +20,7 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import {
   transferAmountText,
   transferPaymentMethodText,
+  transferPayoutStatusText,
   transferTypeText,
   transferVatPlaneText,
 } from '@/lib/transfers/transfer-text'
@@ -199,6 +201,44 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
           </OptionalLink>
         )
       },
+    }),
+    col.accessor('payoutStatus', {
+      id: 'payoutStatus',
+      header: t('colPayoutStatus'),
+      meta: {
+        minWidth: 'min-w-40',
+        printValue: (row) => transferPayoutStatusText(row, translator),
+      },
+      cell: (info) => {
+        const row = info.row.original
+        return row.payoutStatus ? (
+          <PayoutStatusBadge
+            status={row.payoutStatus}
+            cancelled={row.cancelled}
+            translator={translator}
+          />
+        ) : (
+          transferPayoutStatusText(row, translator)
+        )
+      },
+    }),
+    col.accessor('payoutDecidedAt', {
+      id: 'payoutDecidedAt',
+      header: t('colPayoutDecidedAt'),
+      meta: {
+        minWidth: 'min-w-40',
+        printValue: (row) => (row.payoutDecidedAt ? formatPLDateTime(row.payoutDecidedAt) : ''),
+      },
+      cell: (info) => {
+        const decidedAt = info.getValue()
+        return decidedAt ? formatPLDateTime(decidedAt) : ''
+      },
+    }),
+    col.accessor('payoutRejectionReason', {
+      id: 'payoutRejectionReason',
+      header: t('colPayoutRejectionReason'),
+      meta: { minWidth: 'min-w-56', printValue: (row) => row.payoutRejectionReason ?? '' },
+      cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
     }),
     col.accessor('createdByName', {
       id: 'createdBy',

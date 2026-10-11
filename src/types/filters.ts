@@ -12,6 +12,7 @@ export type FilterConfigT = {
   expenseCategories?: { id: number; name: string }[]
   transferTypes?: readonly TransferTypeT[]
   showPaymentMethodFilter?: boolean
+  showPayoutStatusFilter?: boolean
   showCancelledFilter?: boolean
   showSearchFilters?: boolean
 }

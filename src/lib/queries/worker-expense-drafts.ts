@@ -2,7 +2,7 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { canViewWorkerPage, ROLES } from '@/lib/auth/roles'
+import { ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import {
   listDraftTransferIds,
@@ -14,16 +14,13 @@ import {
   type ExpenseDraftRowT,
 } from '@/lib/db/worker-expense-drafts'
 import { managementDb } from '@/lib/queries/management-db'
+import { workerPageDb } from '@/lib/queries/worker-page-db'
 import { paginationMetaFromCount, type PaginationParamsT } from '@/lib/utils/pagination'
 import type { QueuePageT } from '@/types/filters'
 
 // Uncached: a manager's decision must reach the worker's status list on his next load.
 export async function fetchWorkerExpenseDrafts(workerId: number): Promise<ExpenseDraftRowT[]> {
-  const session = await requireAuth(ROLES)
-  if (!session.success) throw new Error('Nie jesteś zalogowany')
-  if (!canViewWorkerPage(session.user, workerId)) throw new Error('Brak uprawnień')
-
-  return listWorkerExpenseDrafts(await getDb(await getPayload({ config })), workerId)
+  return listWorkerExpenseDrafts(await workerPageDb(workerId), workerId)
 }
 
 // Uncached: a worker's new draft must show up on the manager's next load.

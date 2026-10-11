@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
@@ -53,6 +53,9 @@ const ROW: TransferRowT = {
   settled: false,
   vatPlane: null,
   originalType: null,
+  payoutStatus: null,
+  payoutDecidedAt: null,
+  payoutRejectionReason: null,
 }
 
 beforeEach(() => {
@@ -76,5 +79,30 @@ describe('TransferCard column visibility', () => {
 
     await waitFor(() => expect(screen.getByText('Kasa docelowa:')).toBeInTheDocument())
     await waitFor(() => expect(screen.queryByText('Kasa źródłowa:')).not.toBeInTheDocument())
+  })
+})
+
+// A phone gets the cards, not the table, so the status column has to reach them too.
+describe('TransferCard payout status', () => {
+  it('shows a wypłata’s status, and none on other types', async () => {
+    render(
+      <CurrentUserProvider user={{ id: 1, email: 'jan@test.invalid', name: 'Jan', role: 'OWNER' }}>
+        <TransferDataTable
+          data={[
+            { ...ROW, id: 2, type: 'PAYOUT', payoutStatus: 'rejected' },
+            { ...ROW, id: 3, payoutStatus: null },
+          ]}
+          paginationMeta={{ currentPage: 1, totalPages: 1, totalDocs: 2, limit: 100 }}
+          config={CONFIG}
+        />
+      </CurrentUserProvider>,
+    )
+
+    const cardOf = async (id: number) =>
+      within((await screen.findByText(`#${id}`)).closest('article')!)
+    expect((await cardOf(2)).getByText('Odrzucona')).toBeInTheDocument()
+    expect(
+      (await cardOf(3)).queryByText(/Czeka na potwierdzenie|Potwierdzona|Odrzucona/),
+    ).toBeNull()
   })
 })

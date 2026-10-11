@@ -7,7 +7,14 @@ import type { UnreadStreamT } from '@/types/notifications'
 const pathname = vi.hoisted(() => ({ current: '/' }))
 vi.mock('next/navigation', () => ({ usePathname: () => pathname.current }))
 
-const VALUES = { leads: 3, fleet: 0, equipment: 0, workerReports: 2, expenseDrafts: 4 }
+const VALUES = {
+  leads: 3,
+  fleet: 0,
+  equipment: 0,
+  workerReports: 2,
+  expenseDrafts: 4,
+  rejectedPayouts: 5,
+}
 // Pre-settled the way React marks a thenable it has read, so `use` returns synchronously and a zero is
 // a real zero rather than a badge still suspended.
 const COUNTS = Object.assign(Promise.resolve(VALUES), { status: 'fulfilled', value: VALUES })
@@ -50,5 +57,12 @@ describe('UnreadBadge', () => {
     renderBadge('expenseDrafts', '/zgloszenia-wydatkow', '/zgloszenia-wydatkow')
 
     expect(screen.getByText('4')).toBeInTheDocument()
+  })
+
+  // Opening „Wypłaty" answers no rejection — only a cancellation or his own acceptance does.
+  it('keeps the rejected-payouts count on its own page', async () => {
+    renderBadge('rejectedPayouts', '/wyplaty', '/wyplaty')
+
+    expect(screen.getByText('5')).toBeInTheDocument()
   })
 })

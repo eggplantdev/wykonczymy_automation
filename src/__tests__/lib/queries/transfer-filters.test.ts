@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import {
+  buildPayoutFilters,
   buildTransferFilters,
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
@@ -75,6 +76,16 @@ describe('transfer filters → stats SQL', () => {
 
   it('applies a multi-worker search', async () => {
     expect(await sqlForSearchParams({ worker: '3,7' })).toContain('worker_id IN (3, 7)')
+  })
+
+  it('applies a payout status search', async () => {
+    expect(await sqlForSearchParams({ payoutStatus: 'rejected,pending' })).toContain(
+      "payout_status IN ('rejected', 'pending')",
+    )
+  })
+
+  it('empties the list when the status select names nothing valid', () => {
+    expect(buildTransferFilters({ payoutStatus: '__none__' }, { id: 1 }).id).toEqual({ equals: -1 })
   })
 
   it('matches a cash register on either side of the transfer', async () => {
@@ -222,6 +233,21 @@ describe('audit mode → scope through the cancelled original', () => {
     expect(() => buildSqlConditions(auditWhere({ investment: { equals: 31 } }))).toThrow(
       /unmapped field/,
     )
+  })
+})
+
+// „Wypłaty" is a type filter the URL cannot widen — and in „Tryb anulowań" it must still name the
+// wypłaty that were cancelled, not every CANCELLATION in the ledger.
+describe('buildPayoutFilters', () => {
+  it('keeps the list on wypłaty whatever Typ the URL carries', () => {
+    expect(buildPayoutFilters({ type: 'DEPOSIT' }, { id: 1 }).type).toEqual({ in: ['PAYOUT'] })
+  })
+
+  it('lists only the anulowania of wypłaty in audit mode', () => {
+    const where = buildPayoutFilters({ cancelledTransactionAudit: '1' }, { id: 1 })
+
+    expect(where.type).toEqual({ in: ['CANCELLATION'] })
+    expect(where['cancelledTransaction.type']).toEqual({ in: ['PAYOUT'] })
   })
 })
 

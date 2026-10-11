@@ -35,6 +35,9 @@ export function transferRow(overrides: Partial<TransferRowT> = {}): TransferRowT
     settled: false,
     vatPlane: null,
     originalType: null,
+    payoutStatus: null,
+    payoutDecidedAt: null,
+    payoutRejectionReason: null,
     ...overrides,
   }
 }

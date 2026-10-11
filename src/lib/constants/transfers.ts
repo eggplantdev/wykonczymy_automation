@@ -499,6 +499,9 @@ export const carriesVatPlane = (type: unknown): boolean => type === 'INVESTOR_DE
 export const carriesPaymentMethod = (type: unknown): boolean =>
   type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE_NET'
 
+// Does this row STORE the worker's answer? Only a wypłata hands cash to a worker; a premia moves none.
+export const carriesPayoutStatus = (type: unknown): boolean => type === 'PAYOUT'
+
 // The one row an edit may still tag: a wpłata booked before the plane existed. Named once because
 // three places ask it — the form offering the question, the payload carrying the answer, the action
 // letting it through — and they may not drift apart.
