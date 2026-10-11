@@ -30,7 +30,7 @@ graph TD
   subgraph routes["app/(frontend) — routes"]
     INW["inwestycje/[id] ⚠hub"]
     KASA["kasa/[id] ⚠hub"]
-    OTHER["uzytkownicy · raporty · kosztorysy · zgloszenia"]
+    OTHER["uzytkownicy · kosztorysy · zgloszenia"]
   end
   subgraph comp["components"]
     FORMS["forms (TanStack)"]
