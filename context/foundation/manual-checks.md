@@ -4771,3 +4771,16 @@ Bez zmian:
 ## 2026-10-11 — sidebar-wider-smaller-logo — szerszy pasek boczny, mniejsze logo
 
 - [ ] Desktop (≥768px), rozwinięty pasek boczny → jest szerszy niż wcześniej, logo Wykończymy u góry mniejsze i ostre (nie rozmyte); zwinięcie i ponowne rozwinięcie paska działa, w zwiniętym logo wygląda jak dotąd.
+
+## 2026-10-11 — stage-plane-gate — jedno rozliczenie pracownika na inwestycji
+
+- [ ] Kosztorys inwestycji z pracownikiem przypisanym do etapu „z narzędziami” → „Dodaj etap” w rozliczeniu „własne narzędzia” z tym pracownikiem: zapis odmówiony komunikatem z jego imieniem, żaden nowy etap nie powstaje.
+- [ ] Ta sama inwestycja → dopisanie tego pracownika do istniejącego etapu w drugim rozliczeniu (podział etapu): odmowa z tym samym komunikatem, skład etapu bez zmian.
+- [ ] Pracownik z dwoma etapami „z narzędziami” → zmiana rozliczenia jednego z nich na „własne narzędzia”: odmowa. Pracownik z jednym etapem → zmiana rozliczenia przechodzi.
+- [ ] Pusty etap (bez ilości) w tym samym rozliczeniu co pozostałe → link do zgłoszeń pracownika działa i zgłoszenie da się wysłać.
+
+## 2026-10-11 — worker-report-extras-sum — pozycje dodatkowe dopisują się do istniejącej pracy
+
+- [ ] Zgłoszenie pracownika z pozycją dodatkową z katalogu prac, która już jest w kosztorysie w tej samej sekcji → „Akceptuj”: ilość trafia do etapu w istniejącym wierszu, nie powstaje duplikat; „Przedmiar” i „Przedmiar ofertowy” tego wiersza bez zmian.
+- [ ] Dwie linie zgłoszenia z tą samą nową pracą z katalogu → po akceptacji jeden nowy wiersz z sumą ilości.
+- [ ] Cofnięcie akceptacji takiej linii → ilość znika z etapu, istniejący wiersz zostaje.
