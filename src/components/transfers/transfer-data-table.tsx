@@ -7,7 +7,7 @@ import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { InvoiceDownloadButton } from '@/components/transfers/invoice-download-button'
+import { InvoiceDownloadDialog } from '@/components/transfers/invoice-download-dialog'
 import { PrintTransfersButton } from '@/components/transfers/print-transfers-button'
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
 import type { TransferRowT } from '@/types/transfers'
@@ -112,7 +112,7 @@ export function TransferDataTable({
             actions={
               <>
                 <TransferViewSwitch view={view} onChange={setView} />
-                {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
+                {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
                 {print && (
                   <PrintTransfersButton
                     fetchRows={fetchRows}
