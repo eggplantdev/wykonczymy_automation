@@ -90,7 +90,7 @@ The work follows the data flow: table → gate → sender → client.
 - The keys are optional in the env schema and required only when `VERCEL_ENV === 'production'`. Their
   absence anywhere else **is** the gate. The sender no-ops without the private key, and the toggle does
   not render without the public key.
-- One generic `sendPushToUser(userId, build)` resolves the recipient's language, selects their live
+- One generic `sendPushToUser(db, userId, build)` resolves the recipient's language, selects their live
   subscriptions and sends to each one. Each failure is classified independently.
 - The ADMIN self-push route replaces the "admin-only script" answer. A laptop script would need the
   production private key on the laptop, which the prod-only decision forbids. A route running on
@@ -116,7 +116,7 @@ dependency. No behaviour changes yet.
 
 #### 1. Migration
 
-**File**: `src/migrations/20261011_1_add_push_subscriptions.ts` (+ register in `src/migrations/index.ts`)
+**File**: `src/migrations/20261011_2_add_push_subscriptions.ts` (+ register in `src/migrations/index.ts`)
 
 **Intent**: Store one row per subscribed device, owned by one user, removed when the user is hard-deleted.
 
@@ -186,7 +186,7 @@ missing.
 
 - Migration applies to the local DB: `pnpm payload migrate` (after `git status src/migrations` shows only this change's file as new)
 - Env spec covers the gate: `pnpm exec vitest run src/__tests__/lib/env/schema.test.ts`. Production without either key fails. Non-production without both passes.
-- Data-access spec: `pnpm exec vitest run src/__tests__/lib/db/push-subscriptions.test.ts`. It covers the upsert reassigning the endpoint to another user and the live select excluding inactive and trashed accounts.
+- Data-access spec: `pnpm exec vitest run src/__tests__/lib/db/push-subscriptions.db.test.ts`. It covers the upsert reassigning the endpoint to another user and the live select excluding inactive and trashed accounts.
 
 #### Manual Verification:
 
@@ -216,7 +216,7 @@ table honest without ever deleting on an auth refusal.
 
 ```ts
 type PushMessageT = { title: string; body: string; url: string; tag: string; badgeCount?: number }
-sendPushToUser(userId: number, build: (locale: LanguageT) => PushMessageT): Promise<void>
+sendPushToUser(db: DbExecutorT, userId: number, build: (locale: LanguageT) => PushMessageT): Promise<number> // devices that accepted it
 ```
 
 - With no `VAPID_PRIVATE_KEY` or no public key, return immediately.
@@ -243,7 +243,7 @@ sendPushToUser(userId: number, build: (locale: LanguageT) => PushMessageT): Prom
   - zod validates: `endpoint` is an `https:` URL, and the keys are non-empty strings.
   - `userAgent` comes from `headers()`.
   - The action calls `upsertPushSubscription`.
-- `unsubscribePushAction({ endpoint })` → `sessionAction` → `deletePushSubscription(ctx.user.id, endpoint)`.
+- `unsubscribePushAction(endpoint)` → `sessionAction` → `deletePushSubscription(ctx.user.id, endpoint)`.
 - Neither revalidates a cache tag: no cached reader exists.
 
 #### 3. Lockout cleanup
@@ -266,9 +266,9 @@ implements the "admin-only script" decision.
 
 - `GET`, ADMIN-only via `getCurrentUserJwt()`; anyone else gets 401. This mirrors
   `api/test-email/route.ts`.
-- It calls `sendPushToUser(admin.id, …)` with a translated test title and body, `url: '/'` and
+- It calls `sendPushToUser(db, admin.id, …)` with a translated test title and body, `url: '/'` and
   `tag: 'test'`, and no `badgeCount`.
-- It returns `{ sent: <live subscription count>, configured: <bool> }`, so a 0 or a missing key is
+- It returns `{ sent: <devices that accepted the push>, configured: <bool> }`, so a 0 or a missing key is
   visible instead of silent.
 - No `userId` parameter. It only ever pushes to the caller.
 
@@ -462,7 +462,7 @@ worker's own non-cancelled PAYOUTs whose status is EX-1042's "pending".
 
 **Contract**:
 
-- `sendPushToUser(workerId, (locale) => ({ title, body, url, tag: 'payout-pending', badgeCount }))`.
+- `sendPushToUser(db, workerId, (locale) => ({ title, body, url, tag: 'payout-pending', badgeCount }))`.
   - `title` and `body` are translated and include the amount.
   - `url` is the worker's confirmation screen per EX-1042.
   - `badgeCount` is `countPendingPayouts` taken after commit.
@@ -579,8 +579,8 @@ later session):
 
 #### Automated
 
-- [x] 3.1 Toggle DOM spec
-- [x] 3.2 Push-client helper spec
+- [x] 3.1 Toggle DOM spec — 4f5ef960d
+- [x] 3.2 Push-client helper spec — 4f5ef960d
 
 ### Phase 4: Wypłata trigger + badge count (BLOCKED on EX-1042)
 
