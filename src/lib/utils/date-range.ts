@@ -9,6 +9,9 @@ export type DateRangeT = {
   to?: string
 }
 
+/** A window with both ends — what a surface that refuses „everything since July" asks for. */
+export type ClosedDateRangeT = Required<DateRangeT>
+
 /** No window. Spelled out so a caller has to say which it wants rather than omit an argument. */
 export const ALL_TIME: DateRangeT = {}
 

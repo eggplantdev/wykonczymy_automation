@@ -2,6 +2,7 @@ import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
 import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
+import type { ClosedDateRangeT } from '@/lib/utils/date-range'
 
 type UserContextT = {
   id: number
@@ -254,6 +255,19 @@ export function stripOriginalScopedFilters(where: Where): Where {
   return mapWhereLeaves(where, (field, condition) =>
     field.startsWith(ORIGINAL_PATH_PREFIX) ? undefined : [field, condition],
   )
+}
+
+/**
+ * Swap whatever date window the scope carries for `range`, wherever in the tree it sits. A swap, not
+ * an intersection: the invoice dialog's range is the answer to „which dates", so the table's own
+ * Od/Do narrowing it further would hand back an empty archive for a month the table isn't showing.
+ */
+export function withDateRange(where: Where, { from, to }: ClosedDateRangeT): Where {
+  const undated = mapWhereLeaves(where, (field, condition) =>
+    field === 'date' ? undefined : [field, condition],
+  )
+  const dateWindow: Where = { date: { greater_than_equal: from, less_than_equal: to } }
+  return Object.keys(undated).length > 0 ? { and: [undated, dateWindow] } : dateWindow
 }
 
 /**

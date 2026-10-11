@@ -3,6 +3,7 @@ import type { FilterConfigT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 import type { ActionResultT } from '@/types/action'
 import type { TransferRowT } from '@/types/transfers'
+import type { ClosedDateRangeT } from '@/lib/utils/date-range'
 
 // `sort` travels with page/limit, not in the table: EX-777's whole point is the DATABASE orders
 // rows, so ordering is part of the query the host parses.
@@ -38,4 +39,5 @@ export type TransferTableConfigT = {
 export type TransferRowsFetchT = (opts?: {
   skipMedia?: boolean
   sort?: string
+  range?: ClosedDateRangeT
 }) => Promise<ActionResultT<TransferRowT[]>>
