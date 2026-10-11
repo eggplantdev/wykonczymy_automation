@@ -571,9 +571,9 @@ later session):
 
 #### Automated
 
-- [ ] 2.1 Sender spec with `web-push` mocked
-- [ ] 2.2 Action spec
-- [ ] 2.3 Lockout specs extended
+- [x] 2.1 Sender spec with `web-push` mocked
+- [x] 2.2 Action spec
+- [x] 2.3 Lockout specs extended
 
 ### Phase 3: Service worker + client toggle
 

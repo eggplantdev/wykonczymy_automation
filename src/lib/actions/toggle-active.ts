@@ -11,6 +11,7 @@ import { toActionFailure } from '@/lib/actions/action-failure'
 import { logError } from '@/lib/utils/log-error'
 import { getDb } from '@/lib/db/get-db'
 import { deleteUserSessions } from '@/lib/db/user-sessions'
+import { deletePushSubscriptions } from '@/lib/db/push-subscriptions'
 import { fetchRemovalSubject } from '@/lib/db/account-removal'
 import { MANAGER_SCOPE_MESSAGE } from '@/lib/constants/worker-lock'
 import { removalRefusal } from '@/lib/workers/account-removal'
@@ -72,9 +73,13 @@ export async function toggleUserActive(id: number, active: boolean) {
       return active ? undefined : removalRefusal(subject, { isSelf: actor.id === id })
     },
     // A deactivated account is refused at login; this also shuts the `/admin` and REST sessions it
-    // already holds. After the update, which would otherwise write them back.
+    // already holds and silences its phones. After the update, which would otherwise write the
+    // sessions back.
     afterUpdate: async (payload, id, active) => {
-      if (!active) await deleteUserSessions(await getDb(payload), id)
+      if (active) return
+      const db = await getDb(payload)
+      await deleteUserSessions(db, id)
+      await deletePushSubscriptions(db, id)
     },
   })
 }
