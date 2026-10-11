@@ -293,7 +293,9 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
 
   describe('updateStageAction — etap zakończony (EX-1034)', () => {
     async function completedOf(stageId: number): Promise<unknown> {
-      const res = await db.execute(sql`SELECT completed FROM kosztorys_stages WHERE id = ${stageId}`)
+      const res = await db.execute(
+        sql`SELECT completed FROM kosztorys_stages WHERE id = ${stageId}`,
+      )
       return res.rows[0]?.completed
     }
 
@@ -361,6 +363,82 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
         sql`SELECT count(*)::int AS n FROM kosztorys_stages WHERE investment_id = ${investmentId}`,
       )
       expect(after.rows[0]?.n).toBe(before.rows[0]?.n)
+    })
+  })
+
+  // A worker with etapy in both rozliczenia loses his report link (`resolveWorkerScope`), so the
+  // write that would mix them is refused instead — even for an etap with nothing in it yet.
+  describe('one rozliczenie per worker on an investment', () => {
+    const oneWorker = (workerId: number) => ({
+      mode: 'percent' as const,
+      members: [{ workerId, value: 0, takesRest: true }],
+    })
+
+    async function stagesOf(workerId: number) {
+      const res = await db.execute(sql`
+        SELECT s.id, s.plane FROM kosztorys_stages s
+        JOIN kosztorys_stage_workers w ON w.stage_id = s.id
+        WHERE s.investment_id = ${investmentId} AND w.worker_id = ${workerId}
+        ORDER BY s.id
+      `)
+      return res.rows.map((row) => [Number(row.id), row.plane])
+    }
+
+    async function ownStage(plane: 'w_tools' | 'own_tools') {
+      const stageId = await createStage(plane)
+      expect((await updateStageSplitAction(stageId, oneWorker(authState.userId))).success).toBe(
+        true,
+      )
+      return stageId
+    }
+
+    it('refuses a new etap putting him on the other rozliczenie, creating no etap', async () => {
+      const stageId = await ownStage('w_tools')
+
+      const res = await addStageAction(investmentId, 'own_tools', oneWorker(authState.userId))
+      if (res.success) createdStages.push(res.data.id)
+
+      expect(res.success).toBe(false)
+      expect(await stagesOf(authState.userId)).toEqual([[stageId, 'w_tools']])
+    })
+
+    it('opens a new etap for him on his own rozliczenie', async () => {
+      await ownStage('w_tools')
+
+      const res = await addStageAction(investmentId, 'w_tools', oneWorker(authState.userId))
+      if (res.success) createdStages.push(res.data.id)
+
+      expect(res.success).toBe(true)
+    })
+
+    it('refuses adding him to an etap on the other rozliczenie, writing no member', async () => {
+      const stageId = await ownStage('w_tools')
+      const otherPlaneStageId = await createStage('own_tools')
+
+      const res = await updateStageSplitAction(otherPlaneStageId, oneWorker(authState.userId))
+
+      expect(res.success).toBe(false)
+      expect(await stagesOf(authState.userId)).toEqual([[stageId, 'w_tools']])
+    })
+
+    it('refuses switching his etap to the other rozliczenie while another of his stays', async () => {
+      const firstId = await ownStage('w_tools')
+      const secondId = await ownStage('w_tools')
+
+      const res = await updateStageAction(secondId, { plane: 'own_tools' })
+
+      expect(res.success).toBe(false)
+      expect(await stagesOf(authState.userId)).toEqual([
+        [firstId, 'w_tools'],
+        [secondId, 'w_tools'],
+      ])
+    })
+
+    it('switches the rozliczenie of his only etap — a wrong pick stays fixable', async () => {
+      const stageId = await ownStage('w_tools')
+
+      expect((await updateStageAction(stageId, { plane: 'own_tools' })).success).toBe(true)
+      expect(await stagesOf(authState.userId)).toEqual([[stageId, 'own_tools']])
     })
   })
 

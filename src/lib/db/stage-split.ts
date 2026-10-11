@@ -6,6 +6,13 @@ import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subc
 import type { DbExecutorT } from './get-db'
 import { insertMissingWorkerReportShares } from './worker-report-share'
 
+export async function selectStageWorkerIds(db: DbExecutorT, stageId: number): Promise<number[]> {
+  const res = await db.execute(
+    sql`SELECT worker_id FROM kosztorys_stage_workers WHERE stage_id = ${stageId}`,
+  )
+  return res.rows.map((row) => Number(row.worker_id))
+}
+
 /** One etap's executed-work value at its own plane — the pool its split divides. */
 export async function selectStagePool(db: DbExecutorT, stageId: number): Promise<number> {
   const res = await db.execute(sql`

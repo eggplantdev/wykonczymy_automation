@@ -13,6 +13,9 @@ export const SELF_REMOVAL_MESSAGE =
 export const lastRoleMessage = (role: RoleT): string =>
   `Nie można wyłączyć ani usunąć ostatniego aktywnego konta z rolą „${ROLE_LABELS[role].pl}".`
 
+export const mixedPlaneWorkersMessage = (names: readonly string[]): string =>
+  `${names.join(', ')} ${names.length === 1 ? 'ma' : 'mają'} już na tej inwestycji etap w innym rozliczeniu. Pracownik rozlicza się tu w jednym rozliczeniu — z dwoma jego link do zgłoszeń przestaje działać.`
+
 export const MANAGER_SCOPE_MESSAGE = 'Kierownik może zmieniać tylko konta pracowników.'
 
 /** The roles an account must keep at least one live holder of — nobody else can administer them. */
