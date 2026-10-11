@@ -7,10 +7,9 @@ import type {
 } from '@/lib/kosztorys/worker-report/types'
 import { formatQty } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import {
   indexCatalogue,
-  resolveCatalogueEntry,
+  itemsHoldingEntry,
 } from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { decimalText, moneyText } from '@/lib/utils/decimal-text'
@@ -53,16 +52,9 @@ export function catalogueSwap(
   rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit' | 'catalogueItemId'>[],
   catalogue: readonly Pick<WorkCatalogueItemT, 'id' | 'matchKey'>[],
 ): Partial<LineDraftT> {
-  const index = indexCatalogue(catalogue)
-  const matchedItemIds = rows
-    .filter((row) => row.description?.trim())
-    .filter(
-      (row) =>
-        resolveCatalogueEntry(index, row.catalogueItemId, () =>
-          catalogueKey(row.description ?? '', row.unit),
-        )?.id === entry.id,
-    )
-    .map((row) => row.id)
+  const matchedItemIds = itemsHoldingEntry(indexCatalogue(catalogue), rows, entry.id).map(
+    (row) => row.id,
+  )
   return {
     catalogueId: entry.id,
     matchedItemIds,
