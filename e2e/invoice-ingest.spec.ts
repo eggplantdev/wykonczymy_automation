@@ -144,6 +144,7 @@ test('nieczytelny HEIC nie wchodzi do formularza (EX-460)', async ({ page }) => 
   const save = dialog.getByRole('button', { name: 'Zapisz' })
   await expect(save).toBeEnabled()
   await save.click()
+  await page.getByRole('button', { name: 'Zapisz bez faktury' }).click()
   await expect(dialog).toBeHidden()
   await expect(
     rowOf(page, description).getByRole('button', { name: 'Dodaj fakturę' }),

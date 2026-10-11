@@ -72,6 +72,11 @@ export async function createInvestmentExpense(
 ): Promise<void> {
   await openInvestmentExpenseForm(page, amount, description, netAmount)
   await submitExpenseForm(page)
+  // Whichever answers first: a refused submit never asks, and the close below reads its field errors out.
+  const saveWithoutInvoice = page.getByRole('button', { name: 'Zapisz bez faktury' })
+  const refusal = page.getByRole('dialog').locator('[data-slot=field-error]')
+  await expect(saveWithoutInvoice.or(refusal).first()).toBeVisible()
+  if (await saveWithoutInvoice.isVisible()) await saveWithoutInvoice.click()
   await waitForExpenseDialogToClose(page)
 }
 

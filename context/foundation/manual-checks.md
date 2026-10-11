@@ -4650,3 +4650,32 @@ Kierownictwo — skan:
       pracownika (zalogowany) albo na logowanie, nie zostawia go na pustej stronie.
 - [ ] Zwykła przeglądarka (nie PWA) i desktop → strzałki nie ma; przy 390px nazwa inwestycji
       i pracownika nadal czytelna (najwyżej ucięta wielokropkiem), przełącznik języka mieści się.
+
+## 2026-10-11 — expense-missing-invoice-confirm — „Brak faktury” przed zapisem wydatku inwestycyjnego
+
+Nowy wydatek:
+
+- [ ] „Wydatek” → jedna pozycja bez FV → „Zapisz” pokazuje neutralne „Brak faktury”; „Popraw”
+      zostawia wszystkie pola; „Zapisz bez faktury” zapisuje i zamyka.
+- [ ] Trzy pozycje, dwie bez FV → okno wymienia obie nazwy i „(2 z 3)”; pozycja z pustym Opisem
+      to „Pozycja N”.
+- [ ] Każda pozycja z FV → zapis bez pytania.
+- [ ] „Wydatek inwestycyjny netto” oraz zaznaczone „Wliczone w robociznę” → to samo okno.
+- [ ] „Nie zamykaj” + zapis bez FV → okno, potem formularz się czyści, data zostaje.
+- [ ] Przyjęcie zgłoszenia ze zdjęciami → bez okna; po usunięciu jedynego zdjęcia z pozycji → okno.
+- [ ] 390px: okno się mieści, oba przyciski da się dotknąć.
+
+Edycja transakcji:
+
+- [ ] Wydatek inwestycyjny z FV, zmiana Opisu, zapis → bez okna.
+- [ ] Usunięcie jedynej strony FV („Usuń fakturę”), potem „Zapisz” → „Brak faktury”;
+      „Zapisz bez faktury” zapisuje.
+- [ ] Stary wydatek inwestycyjny bez FV, wybrany plik → bez okna.
+- [ ] „Inny wydatek” bez FV → bez okna.
+
+Bez zmian:
+
+- [ ] „Nowa wpłata” na inwestycji brutto z wpłatą gotówką nadal pokazuje czerwone „Ta wpłata nie
+      policzy się w rozliczeniu”, a „Popraw” zostawia formularz.
+- [ ] „Edytuj inwestycję” → status „Zakończona” → nadal czerwone „Zakończyć inwestycję?”, a
+      „Anuluj” zostawia formularz.

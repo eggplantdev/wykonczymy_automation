@@ -9,10 +9,13 @@ import { FileInput } from '@/components/ui/file-input'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
+import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
+import { MISSING_TRANSFER_INVOICE_CONFIRM } from '@/lib/transfers/missing-invoice-confirm'
 import {
   showsInvestment,
   hasOptionalWorker,
   needsExpenseCategory,
+  isInvestmentExpense,
   isLaborCost,
   canFillVatPlane,
   planeFor,
@@ -26,6 +29,7 @@ import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
 import type { TransferRowT } from '@/types/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { updateTransferAction } from '@/lib/actions/transfers'
+import { toastMessage } from '@/lib/utils/toast'
 import { planeFillIn, UNANSWERED_PAYMENT_METHOD } from '@/lib/transfers/plane-fill-in'
 import {
   AmountField,
@@ -58,6 +62,14 @@ export function EditTransferForm({
 
   const fillsPlane = canFillVatPlane(row)
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
+  const { ask, dialogProps: missingInvoiceDialog } = useSubmitConfirm()
+
+  // Removal is immediate (its own action), unlike the rest of this form which applies on „Zapisz" —
+  // the file input below only ever ADDS pages, so there is no other way to drop one here.
+  const { visibleInvoices, handleRemove, handleRemoveAll, removalConfirm } = useInvoiceRemoval(
+    row.id,
+    row.invoices,
+  )
 
   // A bare reset is right HERE and nowhere else: this form persists no draft, so its `defaultValues`
   // really are the row — „wyczyść" means „back to what is saved", not „blank".
@@ -86,6 +98,17 @@ export function EditTransferForm({
       onSubmit: editTransferFormSchema(row),
     },
     onSubmit: async ({ value }) => {
+      // Enter bypasses the disabled submit button, so the guard has to exist here too — saving
+      // mid-ingest would persist the row without the pages still being converted.
+      if (isIngesting) {
+        toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
+        return false
+      }
+
+      const missingInvoice =
+        isInvestmentExpense(row.type) && visibleInvoices.length === 0 && files.length === 0
+      if (missingInvoice && !(await ask(MISSING_TRANSFER_INVOICE_CONFIRM))) return false
+
       const data: UpdateTransferFormT = {
         description: value.description,
         amount: value.amount ? Number(value.amount) : undefined,
@@ -102,16 +125,11 @@ export function EditTransferForm({
       }
 
       await submit(!!keepOpen, {
-        action: async () => {
-          // Enter bypasses the disabled submit button, so the guard has to exist here too —
-          // saving mid-ingest would persist the row without the pages still being converted.
-          if (isIngesting) return { success: false, error: 'Poczekaj na przetworzenie plików.' }
-
-          return submitWithUploads(files, (pageIds) =>
+        action: () =>
+          submitWithUploads(files, (pageIds) =>
             // `undefined` means "no pages this save" to an update that only ever ADDS invoices.
             updateTransferAction(row.id, data, pageIds.length > 0 ? pageIds : undefined),
-          )
-        },
+          ),
         successMessage: 'Transakcja zaktualizowana',
         onSubmitSuccess,
         onReset: handleReset,
@@ -129,13 +147,6 @@ export function EditTransferForm({
   // type field without a reload (matches the create form's currentInvestment).
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const currentPaymentMethod = useStore(form.store, (s) => s.values.paymentMethod)
-
-  // Removal is immediate (its own action), unlike the rest of this form which applies on „Zapisz" —
-  // the file input below only ever ADDS pages, so there is no other way to drop one here.
-  const { visibleInvoices, handleRemove, handleRemoveAll, removalConfirm } = useInvoiceRemoval(
-    row.id,
-    row.invoices,
-  )
 
   return (
     <form.AppForm>
@@ -257,10 +268,12 @@ export function EditTransferForm({
           submittingLabel="Zapisywanie..."
           className="mt-6"
           disabled={isIngesting}
+          awaitingAnswer={missingInvoiceDialog.open}
         />
       </form>
 
       <ConfirmDialog {...removalConfirm} />
+      <ConfirmDialog {...missingInvoiceDialog} />
     </form.AppForm>
   )
 }
