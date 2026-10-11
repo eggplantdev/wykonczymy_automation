@@ -435,7 +435,7 @@ in all three languages. `uk`/`ru` are typed `typeof pl`, so the typecheck enforc
 
 ---
 
-## Phase 4: Wypłata trigger + badge count (BLOCKED on EX-1042)
+## Phase 4: Wypłata trigger + badge count
 
 ### Overview
 
@@ -582,9 +582,9 @@ later session):
 - [x] 3.1 Toggle DOM spec — 4f5ef960d
 - [x] 3.2 Push-client helper spec — 4f5ef960d
 
-### Phase 4: Wypłata trigger + badge count (BLOCKED on EX-1042)
+### Phase 4: Wypłata trigger + badge count
 
 #### Automated
 
-- [ ] 4.1 Count spec
-- [ ] 4.2 Trigger spec
+- [x] 4.1 Count spec — bf3f173fc
+- [x] 4.2 Trigger spec — bf3f173fc

@@ -1,6 +1,6 @@
 # Review-gate ledger — pwa-push-notifications (EX-1040) · 2026-10-11
 
-Scope: `14b36b922...HEAD` on `pwa-push-notifications` (Phases 1–3; Phase 4 blocked on EX-1042).
+Scope: `14b36b922...HEAD` on `pwa-push-notifications` (Phases 1–3); Phase 4 landed on `staging` after EX-1042 merged — see § Phase 4.
 Step 0.5 verification pass skipped: every surface is gated off without the production-only VAPID
 key, so localhost has nothing to exercise; the device checks live in `manual-checks.md`.
 
@@ -66,3 +66,12 @@ Ran /simplify (reuse / simplification / efficiency / altitude agents) over the g
 - `pnpm typecheck` — clean. `eslint` on touched files — clean.
 - `pnpm build` + `pnpm test:integration` — green on the pre-gate tree (Phase 3).
 - Full `pnpm test` — not run; asked.
+
+## Phase 4
+
+Wired after EX-1042 merged into `staging`: all three PAYOUT booking paths (`createTransferAction`,
+`createBulkTransferAction`, `settlePayoutsAction`) call `notifyPendingPayouts` in `after()` — one
+push per worker with the summed amount and the post-commit `countPendingPayouts`. The app re-syncs
+the badge on open and after „Potwierdzam” / „Odrzuć”. No separate gate fan-out: the diff reuses the
+gated sender unchanged. Specs: `notify-pending-payouts.test.ts` (4), `countPendingPayouts` DB case,
+`settle-payouts.test.ts` trigger asserts, `syncAppBadge` (3) — green; typecheck clean.
