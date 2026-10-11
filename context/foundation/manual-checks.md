@@ -4733,3 +4733,8 @@ Kierownictwo — skan:
 ## 2026-10-11 — investments-default-sort — lista inwestycji od najnowszej
 
 - [ ] `/inwestycje` → lista otwiera się posortowana po „Data dodania”, najnowsza inwestycja na górze; kliknięcie nagłówka innej kolumny nadal przestawia sortowanie.
+
+## 2026-10-11 — worker-page-uncolored-amounts — kwoty bez koloru typu na stronie pracownika
+
+- [ ] `/pracownicy/[id]` pracownika z wypłatą i wydatkiem → w tabeli i w widoku kart kwoty mają zwykły kolor tekstu (wypłata nie jest czerwona), a plakietka typu nadal jest kolorowa; to samo po zalogowaniu jako pracownik na jego stronie przy 390px.
+- [ ] `/transakcje` i `/kasa/[id]` → kwoty nadal kolorowane według typu (wpłata zielona, wydatek/wypłata czerwone), anulowane wiersze wyszarzone.

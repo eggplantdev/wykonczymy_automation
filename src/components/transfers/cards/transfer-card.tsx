@@ -18,6 +18,7 @@ type PropsT = {
   // TanStack's rows are mutable and keep their identity when a column is toggled, so a memoized card
   // would never see the change; a fresh list here is what makes it re-read the row.
   visibleColumnIds: string[]
+  uncoloredAmounts?: boolean
   className?: string
 }
 
@@ -56,7 +57,12 @@ function Chip({ kind, label, children }: { kind: ChipKindT; label: string; child
   )
 }
 
-export function TransferCard({ row, visibleColumnIds, className }: PropsT) {
+export function TransferCard({
+  row,
+  visibleColumnIds,
+  uncoloredAmounts = false,
+  className,
+}: PropsT) {
   const hasColumn = (columnId: string) => visibleColumnIds.includes(columnId)
   const translator = useTranslation('transfers')
   const transfer = row.original
@@ -86,7 +92,7 @@ export function TransferCard({ row, visibleColumnIds, className }: PropsT) {
       <div className="flex items-baseline gap-2">
         <span
           className={cn('text-lg font-semibold', transfer.cancelled && 'line-through')}
-          style={isMuted ? undefined : { color: transferColorVar(transfer) }}
+          style={isMuted || uncoloredAmounts ? undefined : { color: transferColorVar(transfer) }}
         >
           {formatPLN(transfer.amount)}
         </span>

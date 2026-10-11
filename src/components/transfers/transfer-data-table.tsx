@@ -53,6 +53,7 @@ export function TransferDataTable({
     listsCancelled,
     invoiceDownload,
     print,
+    uncoloredAmounts,
   } = config
 
   const fetchRows: TransferRowsFetchT = (opts) => fetchFilteredTransfers(config.query.where, opts)
@@ -69,6 +70,7 @@ export function TransferDataTable({
     currentUserId,
     currentUserRole,
     translator,
+    uncoloredAmounts,
   })
 
   return (
@@ -100,7 +102,11 @@ export function TransferDataTable({
         renderRows={
           view === 'list'
             ? (rows, visibleColumnIds) => (
-                <TransferCardList rows={rows} visibleColumnIds={visibleColumnIds} />
+                <TransferCardList
+                  rows={rows}
+                  visibleColumnIds={visibleColumnIds}
+                  uncoloredAmounts={uncoloredAmounts}
+                />
               )
             : undefined
         }

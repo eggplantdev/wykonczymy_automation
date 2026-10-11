@@ -34,6 +34,11 @@ export type TransferTableConfigT = {
    * SILENT: a page that forgets to set it compiles clean with no button, so verify each host.
    */
   print?: boolean
+  /**
+   * The type hue is the company's in/out — a wypłata is red to the company and income to the worker
+   * — so a page seen from a worker's side drops it from the amount. The badge keeps the type.
+   */
+  uncoloredAmounts?: boolean
 }
 
 export type TransferRowsFetchT = (
