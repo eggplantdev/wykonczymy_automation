@@ -11,7 +11,7 @@ import {
   makeLineItem,
   type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense-form'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 import type { DuplicateMatchT } from '@/lib/queries/expense-draft-duplicates'
@@ -30,12 +30,6 @@ vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }
 vi.mock('@/lib/media/ingest-files', () => ({
   ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
 }))
-
-const referenceData = {
-  ...referenceDataFor('OWNER'),
-  cashRegisters: [{ id: 7, name: 'Kasa Jana', type: 'AUXILIARY' as const }],
-  investments: [{ id: 3, name: 'Mieszkanie Mokotów', status: 'active' as const }],
-} as unknown as ReturnType<typeof referenceDataFor>
 
 function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
   return {
@@ -61,20 +55,6 @@ function readyState(itemId: string, matches: DuplicateMatchT[]): DuplicateHintsS
   return {
     status: 'ready',
     paragons: [{ itemId, mediaIds: [101], description: 'Klej', amount: 89.9, matches }],
-  }
-}
-
-function valuesWith(lineItems: BulkExpenseFormValuesT['lineItems']): BulkExpenseFormValuesT {
-  return {
-    date: '2026-10-05',
-    type: 'INVESTMENT_EXPENSE',
-    paymentMethod: 'CASH',
-    sourceRegister: '7',
-    targetRegister: '',
-    investment: '3',
-    worker: '',
-    settled: false,
-    lineItems,
   }
 }
 
@@ -169,7 +149,7 @@ describe('ExpenseForm with duplicate hints', () => {
     const duplicates = readyState(first.id, [match({ source: 'transaction', id: 501 })])
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
@@ -179,7 +159,7 @@ describe('ExpenseForm with duplicate hints', () => {
             [second.id, [102]],
           ]),
           files,
-          values: valuesWith([first, second]),
+          values: expenseValues({ lineItems: [first, second] }),
         }}
         renderAboveLineItems={({ lineItemIds, markDuplicate }) => (
           <ExpenseDraftDuplicateHints
@@ -230,6 +210,7 @@ describe('ExpenseForm with duplicate hints', () => {
     await user.click(await screen.findByRole('button', { name: 'Duplikat' }))
     await waitFor(() => expect(screen.queryByDisplayValue('Klej do płytek')).toBeNull())
     await user.click(screen.getByRole('button', { name: 'Zapisz' }))
+    await user.click(await screen.findByRole('button', { name: 'Zapisz bez faktury' }))
 
     await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
     expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
