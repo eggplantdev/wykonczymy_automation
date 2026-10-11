@@ -83,9 +83,13 @@ function workerFooterHtml(summary: WorkerSummaryT, grid: TranslatorT<'grid'>): s
     ),
     row([labels.summaryTotal, ''], [formatPLN(summary.paidNet)]),
   ]
-  const table = (rows: string[]) => `<table><tbody>\n${rows.join('\n')}\n</tbody></table>`
+  // A `<thead>` row is what the browser repeats when a long table breaks onto the next page.
+  const table = (rows: string[], head = '') =>
+    `<table>${head ? `<thead>${head}</thead>` : ''}<tbody>\n${rows.join('\n')}\n</tbody></table>`
+  const [executedHead, ...executedBody] = executed
+  const [payoutsHead, ...payoutsBody] = payouts
   return `
-<div class="totals">${table(executed)}${table(balance)}${summary.payouts.length ? table(payouts) : ''}</div>`
+<div class="totals">${table(executedBody, executedHead)}${table(balance)}${summary.payouts.length ? table(payoutsBody, payoutsHead) : ''}</div>`
 }
 
 /**
