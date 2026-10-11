@@ -21,6 +21,8 @@ import type { PresetMetaT } from '@/lib/db/presets'
 
 const getStatus = (row: InvestmentRowT) => row.status
 
+const INITIAL_SORTING = [{ id: 'createdAt', desc: true }]
+
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
   presets: PresetMetaT[]
@@ -61,6 +63,7 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         data={filteredData}
         columns={columns}
         storageKey="investments"
+        initialSorting={INITIAL_SORTING}
         getRowHref={(row) => `/inwestycje/${row.id}`}
         getRowClassName={(row) => (row.status === 'completed' ? 'opacity-50' : '')}
         toolbar={({ table, columnVisibility: cv, ...order }) => {

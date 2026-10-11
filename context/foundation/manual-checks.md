@@ -4661,3 +4661,7 @@ Kierownictwo — skan:
 - [ ] Data Od późniejsza niż Do → komunikat o błędnym zakresie, „Pobierz” nieaktywny.
 - [ ] To samo na `/kasa/[id]` i na `/pracownicy/[id]` jako manager.
 - [ ] „Drukuj” dalej drukuje bieżący zestaw filtrów tabeli, niezależnie od dialogu.
+
+## 2026-10-11 — investments-default-sort — lista inwestycji od najnowszej
+
+- [ ] `/inwestycje` → lista otwiera się posortowana po „Data dodania”, najnowsza inwestycja na górze; kliknięcie nagłówka innej kolumny nadal przestawia sortowanie.
