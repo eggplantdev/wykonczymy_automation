@@ -25,12 +25,11 @@ nieodhaczonymi boksami** plus indeks zamkniętych przebiegów na końcu.
 
 ## Stałe blokady
 
-Cztery powody trzymają **wszystkie** otwarte boksy poniżej. Żaden nie jest defektem i żadnego nie
-zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwarte:
+Trzy powody trzymają **wszystkie** otwarte boksy poniżej. Żaden nie jest defektem i żadnego nie
+zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwarte. Numeracja zaczyna się
+od 2, bo boksy niżej powołują się na nią — dawna blokada 1 (`/raporty`) zniknęła razem z trasą
+(2026-10-11):
 
-1. **`/raporty` jest wygaszone do czasu EX-598.** `src/app/(frontend)/raporty/page.tsx` renderuje
-   bezwarunkowo `EmptyState` „W budowie" — na trasie nie ma żadnych kafli ani liczb, do których
-   można by przyłożyć check.
 2. **Poczta nie wychodzi poza produkcją.** `EMAIL_HOST` = `disabled.invalid` (AGENTS.md), więc
    dostawy ani treści maila nie da się zaobserwować; każdy check „przychodzi mail o treści X"
    wymaga człowieka z prawdziwą skrzynką. Sygnałem, że kod doszedł do wysyłki, jest **500** z trasy
@@ -42,73 +41,36 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
 
 # Otwarte
 
-## EX-594 — investment-summary-panel
+## 2026-10-11 — raporty-removal
 
-26/27 odhaczone (ostatni przebieg 2026-09-03, staging). Pełny zapis: archiwum.
-
-- [ ] `/raporty` renderuje kafle dokładnie jak przedtem, z odznaczaniem włącznie — **blokada 1**
-      (trasa wygaszona do EX-598). Do przejechania dopiero, gdy EX-598 przywróci `/raporty`.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
-
-### Findings — 2026-09-23 (staging/preview pass)
-
-- Blokada 1 nadal aktualna: `src/app/(frontend)/raporty/page.tsx` renderuje bezwarunkowo
-  `EmptyState` „W budowie" (kod przeczytany na żywo, commit `e0158cb8`) — na trasie nie ma żadnych
-  kafli. Boks zostaje otwarty, nic do zrobienia poza EX-598.
-
-## EX-596 — materials-net-pricing-persisted
-
-15/16 odhaczone (ostatni przebieg 2026-09-04, staging). Pełny zapis: archiwum.
-
-- [ ] `/raporty` pokazuje baner ostrzegawczy nad liczbami bez przewijania — **blokada 1**. Na trasie
-      nie ma żadnych liczb, nad którymi baner miałby stanąć. Nie jest blokerem dla samego EX-596:
-      bramka jest świadoma i starsza niż ten boks.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
-
-### Findings — 2026-09-23 (staging/preview pass)
-
-- Blokada 1 nadal aktualna — ta sama trasa i ten sam kod co w EX-594 powyżej. Boks zostaje otwarty.
+- [ ] Jako OWNER wpisz `/raporty` w pasku adresu → strona 404, nie „W budowie"; ani menu boczne, ani
+      mobilne nie mają pozycji „Raporty".
 
 ## EX-574 — cancellation-sum-overcount
 
 Repro + żywe liczby: `context/archive/2026-07-28-cancellation-sum-overcount/change.md`. Liczby
-poniżej chodzą za lokalnym dumpem produkcji — przepuść najpierw jego SQL.
-
-**Cała sekcja stoi na blokadzie 1** (`/raporty` wygaszone do EX-598). Sama poprawka jest
-zweryfikowana na poziomie kodu i bazy — `stripCancelledFilters()`
-(`src/lib/queries/transfer-filters.ts`) zdejmuje wyłącznie klucz `cancelled` i zachowuje domyślne
-`type: { not_in: ['CANCELLATION'] }`, co pinuje spec `transfer-filters.test.ts`. Otwarte zostają
-wyłącznie boksy UI.
+poniżej chodzą za lokalnym dumpem produkcji — przepuść najpierw jego SQL. Issue celowało w
+`/raporty`; strona jest usunięta (2026-10-11), a kafel „Suma kwot" żyje na każdej tabeli transakcji —
+boksy idą na Pulpicie (`/`), jak `e2e/transfer-sum-tile.spec.ts`, bo jego `where` to sam
+`buildTransferFilters`. Sama poprawka (`stripCancelledFilters()`, `src/lib/queries/transfer-filters.ts`)
+jest przypięta specem `transfer-filters.test.ts`; otwarte zostają wyłącznie boksy UI.
 
 ### Faza 1: kafel przestaje liczyć anulowania
 
-- [ ] `/raporty?from=2026-03-01&to=2026-03-31` — kafel czyta 4 202 513,34 zł, nie 7 192 866,38 zł.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
+- [ ] `/?from=2026-03-01&to=2026-03-31` — kafel czyta 4 202 513,34 zł, nie 7 192 866,38 zł.
 - [ ] Ten sam URL z `&type=` wymieniającym każdy typ poza CANCELLATION daje _ten sam_ kafel i tę samą listę 379 wierszy.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] Styczeń i luty 2026 (zero anulowań) bez zmian — 354 675,00 i 191 030,00.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] `?cancelledTransactionAudit=1` dalej pokazuje niezerowy kafel (odrzucona poprawka wyzerowałaby go).
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 
 ### Faza 2: sufit filtra kwoty dochodzi do kafla
 
-- [ ] `/raporty?amount=500,00` — 20 wierszy na 10 000,00 zł i kafel 10 000,00 zł.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
-- [ ] `/raporty?amount=500` (prefiks, bez separatora) dalej listuje każdą kwotę zaczynającą się od 500, a kafel się zgadza.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
+- [ ] `/?amount=500,00` — 20 wierszy na 10 000,00 zł i kafel 10 000,00 zł.
+- [ ] `/?amount=500` (prefiks, bez separatora) dalej listuje każdą kwotę zaczynającą się od 500, a kafel się zgadza.
 
 ### Faza 3: kafel mówi, co liczy
 
-- [ ] `/raporty?showCancelled=1` z aktywnym filtrem — przy kaflu stoi (i) mówiące, że suma pomija anulowane transakcje.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
+- [ ] `/?showCancelled=1` z aktywnym filtrem — przy kaflu stoi (i) mówiące, że suma pomija anulowane transakcje.
 - [ ] Bez `showCancelled` żadnego (i) nie ma.
-      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
-
-### Findings — 2026-10-09 (pass 3)
-
-- [x] **EX-574, wszystkie 8 boxów UI** (kafle `/raporty` marzec/styczeń/luty, filtr `type=`, `cancelledTransactionAudit=1`, `amount=500,00` / `amount=500`, (i) przy `showCancelled=1`) — zablokowane: `/raporty` renderuje tylko „W budowie" do EX-598 (ADMIN/OWNER; MANAGER dostaje przekierowanie), więc nie ma kafla do sprawdzenia. **Linear: EX-598** — blokada; 8 boxów zostaje otwartych, dopóki `/raporty` nie wróci.
-      **Needs human:** po EX-598 przejść boxy na dumpie proda. **Test disposition:** unit · poprawkę (`stripCancelledFilters`) pinuje `transfer-filters.test.ts`; kafel to integration po powrocie raportu.
 
 ## cron-lead-reconcile (EX-416)
 
@@ -438,8 +400,8 @@ Pełne dowody, verbatim: `git show d426e567^:context/foundation/manual-checks.md
 | EX-569 — client-facing „Pobierz faktury" in the kosztorys Wydatki tab                                                    | 12/12 | 2026-09-04           |
 | EX-585 — kosztorys-invoice-note-and-preview                                                                              | 17/17 | 2026-09-04           |
 | EX-588 — investment-settlement-mode                                                                                      | 14/14 | 2026-09-04           |
-| EX-594 — investment-summary-panel                                                                                        | 26/27 | 2026-09-15           |
-| EX-596 — materials-net-pricing-persisted                                                                                 | 15/16 | 2026-09-15           |
+| EX-594 — investment-summary-panel                                                                                        | 26/26 | 2026-09-15           |
+| EX-596 — materials-net-pricing-persisted                                                                                 | 15/15 | 2026-09-15           |
 | EX-597 — decouple-panel-write-refresh                                                                                    | 21/21 | 2026-09-15           |
 | EX-605 — rabat globalny: activates on selection, undoable, one „Zapisz"                                                  | 8/8   | —                    |
 | EX-606 — the % mass-overwrite gets a confirm dialog, not an undo entry                                                   | 9/9   | 2026-07-27           |
@@ -4221,7 +4183,7 @@ Adresy wpisuj ręcznie w pasku przeglądarki.
       `/zgloszenia` → przekierowanie na własną stronę.
       _Staging 2026-10-06 (pass 2):_ wszystkie → /pracownicy/85.
 - [x] `/inwestycje/{id}`, `/kosztorys…` dowolnej inwestycji, `/szablony`, `/zgloszenia-prac`,
-      `/zgloszenia-wydatkow`, `/kosz`, `/raporty` → kończy na własnej stronie (chwilowy przeskok przez
+      `/zgloszenia-wydatkow`, `/kosz` → kończy na własnej stronie (chwilowy przeskok przez
       `/zaloguj` w adresie jest dopuszczalny), nic z tych stron nie mignie na ekranie.
       _Staging 2026-10-06 (pass 2):_ wszystkie → /pracownicy/85.
 - [x] `/kasa/{id}` — także **własnej** kasy pracownika → 404.

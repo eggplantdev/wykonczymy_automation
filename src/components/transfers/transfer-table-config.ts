@@ -24,8 +24,8 @@ export type TransferTableConfigT = {
   cancelledTransactionAudit?: boolean
   /**
    * Opt in to the invoice-download button. The fetch behind it is unpaginated over the table's own
-   * `where`, so on an unanchored filter (`/raporty` with nothing applied) it ZIPs every invoice in
-   * the system — deliberate there, but weigh it before opting a new page in.
+   * `where`, so on a page not anchored to one entity it ZIPs every invoice the filters let through —
+   * weigh it before opting such a page in.
    */
   invoiceDownload?: boolean
   /**

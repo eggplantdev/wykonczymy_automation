@@ -14,8 +14,7 @@ import { openTransferFilters } from './drivers/transfers'
 // is invisible below the browser: one side is a Payload `Where`, the other a SQL string built from
 // it by `stripCancelledFilters`, and only a rendered page holds both answers at once.
 //
-// The issue named `/raporty`, which today renders nothing but „W budowie" (EX-598). The tile itself
-// moved: it lives on every transfers table and appears only while a filter is active. The dashboard
+// The tile lives on every transfers table and appears only while a filter is active. The dashboard
 // is the surface used here because its `where` is `buildTransferFilters` alone — a register or
 // investment page additionally narrows by a field a CANCELLATION row does not carry, which would
 // hide the very row the regression turns on.

@@ -35,7 +35,6 @@ export const PAGE_TITLES = {
   equipment: 'Sprzęt',
   employees: 'Pracownicy',
   trash: 'Kosz',
-  reports: 'Raporty',
 } as const
 
 // „Kosz" sits with the bottom actions, under „Admin".
