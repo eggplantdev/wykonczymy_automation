@@ -1,21 +1,16 @@
-import { useState } from 'react'
 import type { ZodType } from 'zod'
 import type { UseBoundStore, StoreApi } from 'zustand'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
+import {
+  useSubmitConfirm,
+  type SubmitConfirmCopyT,
+} from '@/components/forms/hooks/use-submit-confirm'
 import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
 import type { FormStoreT } from '@/stores/create-form-store'
 import type { ActionResultT } from '@/types/action'
 
 type FormStoreHookT<TValues> = UseBoundStore<StoreApi<FormStoreT<TValues>>>
-
-/** The copy of a confirm step raised by the values themselves, not by the button that was pressed. */
-export type SubmitConfirmCopyT = {
-  title: string
-  description: string
-  confirmLabel?: string
-  cancelLabel?: string
-}
 
 type UseManagedFormArgsT<TValues, TData> = {
   formId: string
@@ -88,13 +83,7 @@ export function useManagedForm<TValues, TData>({
   persistDraft = true,
 }: UseManagedFormArgsT<TValues, TData>) {
   const { submit } = useFormSubmit(formId)
-  // The dialog's answer is awaited INSIDE onSubmit rather than staging the write for later: the
-  // submit then keeps running as one flow, so the pending state, the toast and the store reset stay
-  // where every other form has them.
-  const [asked, setAsked] = useState<{
-    copy: SubmitConfirmCopyT
-    answer: (confirmed: boolean) => void
-  } | null>(null)
+  const { ask, dialogProps } = useSubmitConfirm()
 
   const storedFormId = useFormStore((s) => s.formId)
   const storedValues = useFormStore((s) => s.formData)
@@ -135,11 +124,7 @@ export function useManagedForm<TValues, TData>({
     },
     onSubmit: async ({ value }) => {
       const copy = confirmBeforeSubmit?.(value as TValues)
-      if (copy) {
-        const confirmed = await new Promise<boolean>((answer) => setAsked({ copy, answer }))
-        setAsked(null)
-        if (!confirmed) return false
-      }
+      if (copy && !(await ask(copy))) return false
       if (beforeSubmit && !(await beforeSubmit(value as TValues))) return false
 
       const data = toData(value as TValues)
@@ -176,15 +161,6 @@ export function useManagedForm<TValues, TData>({
   return {
     form,
     reset,
-    // Spreadable onto ConfirmDialog. Empty title while closed — the dialog renders nothing then.
-    submitConfirm: {
-      open: asked !== null,
-      title: asked?.copy.title ?? '',
-      description: asked?.copy.description,
-      confirmLabel: asked?.copy.confirmLabel,
-      cancelLabel: asked?.copy.cancelLabel,
-      onConfirm: () => asked?.answer(true),
-      onCancel: () => asked?.answer(false),
-    },
+    submitConfirm: dialogProps,
   }
 }
