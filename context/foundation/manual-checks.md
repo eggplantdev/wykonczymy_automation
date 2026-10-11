@@ -4784,3 +4784,18 @@ Bez zmian:
 - [ ] Zgłoszenie pracownika z pozycją dodatkową z katalogu prac, która już jest w kosztorysie w tej samej sekcji → „Akceptuj”: ilość trafia do etapu w istniejącym wierszu, nie powstaje duplikat; „Przedmiar” i „Przedmiar ofertowy” tego wiersza bez zmian.
 - [ ] Dwie linie zgłoszenia z tą samą nową pracą z katalogu → po akceptacji jeden nowy wiersz z sumą ilości.
 - [ ] Cofnięcie akceptacji takiej linii → ilość znika z etapu, istniejący wiersz zostaje.
+
+## 2026-10-11 — worker-payout-confirmation — pracownik potwierdza albo odrzuca wypłatę (EX-1042)
+
+- [ ] Wypłata zaksięgowana pracownikowi z loginem → zalogowany jako on, przy 390px, na swojej stronie widzi blok „Wypłaty do potwierdzenia” z kwotą, datą, inwestycją i plakietką „Czeka na potwierdzenie”; przyciski „Potwierdzam” i „Odrzuć” mieszczą się bez przewijania w bok.
+- [ ] „Potwierdzam” → dialog z kwotą → potwierdzenie: wypłata znika z bloku; na `/wyplaty` ma status „Potwierdzona” i datę decyzji.
+- [ ] „Odrzuć” → „Odrzuć” w dialogu nieaktywne, dopóki powód nie ma minimalnej długości; po odrzuceniu wypłata zostaje w bloku jako „Odrzucona” z „Twój powód: …” i z samym „Potwierdzam”.
+- [ ] Jako zarząd: odrzucona wypłata jest na `/` w bloku „Wypłaty odrzucone przez pracowników”, a „Wypłaty” w menu ma licznik; licznik nie znika po wejściu na `/wyplaty`.
+- [ ] „Zweryfikuj” → dialog pokazuje szczegóły i powód; „Anuluj” z powodem → po odświeżeniu wypłata znika z bloku i z licznika, a pracownik widzi ją jako „Anulowana” (bez przycisków).
+- [ ] Odrzucona wypłata, którą pracownik potem potwierdza → znika z bloku na `/`, powód zostaje widoczny w kolumnie „Powód odrzucenia”.
+- [ ] `/wyplaty` → same wypłaty; filtr „Potwierdzenie” zawęża listę i sumę razem; sortowanie po statusie i po dacie decyzji działa.
+- [ ] Tabela transakcji na `/` → kolumny statusu wypłaty są puste dla innych typów, „—” dla starej wypłaty bez statusu; kolumnę da się ukryć i zostaje ukryta po przeładowaniu.
+- [ ] Wypłata na zakończonej inwestycji → „Zweryfikuj” pokazuje komunikat o zablokowanej inwestycji zamiast „Anuluj”.
+- [ ] `/wyplaty` w „Trybie anulowań” → tylko anulowania wypłat, nie anulowania innych typów; przy 390px (widok kart) każda wypłata ma plakietkę statusu.
+- [ ] Pracownik z kontem na „Українська” → blok „Wypłaty do potwierdzenia” i oba dialogi są po ukraińsku.
+- [ ] Wypłata zaksięgowana przez „Rozlicz wypłaty” trafia do pracownika jako „Czeka na potwierdzenie”.
