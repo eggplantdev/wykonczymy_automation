@@ -234,11 +234,11 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 `withDateRange` spec passes
-- [ ] 1.2 Action spec passes
+- [x] 1.1 `withDateRange` spec passes — 8a0ecce4c
+- [x] 1.2 Action spec passes — 8a0ecce4c
 
 ### Phase 2: UI — the download dialog
 
 #### Automated
 
-- [ ] 2.1 DOM spec passes
+- [x] 2.1 DOM spec passes — 5cd9db6be

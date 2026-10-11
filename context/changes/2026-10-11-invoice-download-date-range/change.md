@@ -11,4 +11,4 @@ worktree: null
 
 ## Notes
 
-EX-1039: przycisk „Faktury” w tabeli transferów otwiera dialog z wymaganym zakresem dat (obie daty, zastępują Od/Do tabeli, reszta filtrów zostaje) i licznikiem dokumentów do pobrania liczonym po stronie serwera; tylko na stronach, gdzie przycisk już jest (inwestycja, kasa, pracownik).
+EX-1039: przycisk „Faktury” w tabeli transferów otwiera dialog z wymaganym zakresem dat (obie daty, zastępują Od/Do tabeli, reszta filtrów zostaje) i licznikiem dokumentów do pobrania liczonym z tych samych wierszy, które pakuje ZIP; tylko na stronach, gdzie przycisk już jest (inwestycja, kasa, pracownik).
