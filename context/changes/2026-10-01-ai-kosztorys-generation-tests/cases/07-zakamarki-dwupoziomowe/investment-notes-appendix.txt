@@ -1,0 +1,30 @@
+=== Wycena AI (test, 2026-10-12) — AI przedmiar z rysunków roboczych ===
+Kosztorys wypełnił agent: 97 pozycji, AI przedmiar razem 117 186,83 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026” — transport zostawiony na 1500 zł z szablonu, katalog dla rynku wtórnego poza Warszawą mówi ok. 2000–2500 zł.
+Rysunki nie podają wymiarów pomieszczeń: skala wzięta ze schodów (antresola 161 × 339, stopień 27 — „Rozwinięcia ścian, klatka schodowa”), z niej zmierzone: parter 45,9 m² (łazienka 4,7, pokój dziecka 13,1, sypialnia 14,6, hol 13,5), piętro 34,4 m² (z antresolą 4,8). Wysokość: parter 2,66 m (przekrój A-A), piętro 2,60 m (brak na rysunku).
+Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+
+Przedmiar 0 świadomie:
+- konstrukcja antresoli i schodów, balustrada i poręcz z LED — firma zewnętrzna (mail, Manual);
+- zabudowy stolarskie (kuchnia, TV, szafy, wykończenie stelaża WC płytą meblową) — stolarz;
+- klimatyzacja i taras — mail ich nie wymienia.
+
+Najważniejsze założenia (ruszają wieloma pozycjami naraz):
+- panele tylko na antresoli (mail: „jak reszta górnego piętra”) — rzuty i wizualizacje pokazują jodełkę wszędzie; nowe panele na całym piętrze i w obu sypialniach ≈ +4,9 tys. zł + demontaż starych ≈ +1,2 tys. zł;
+- pod farbą strukturalną grunt i drobne poprawki, bez pełnej gładzi — pełna gładź na 130 m²: +9,1 tys. zł;
+- farba strukturalna 130 m² wprost z maila (100 zł/m²) — nie liczona z rzutów; każde ±10 m² ≈ ±1,15 tys. zł;
+- „ściana do usunięcia” na piętrze: pełna wysokość, materiał miękki do 12 cm (8,8 m²) — jeśli GK: −0,5 tys. zł;
+- stara łazienka w płytkach do 2,0 m + płytki na podłodze (skuwanie 20,8 m²);
+- drzwi ukryte 4 szt. (łazienka, pokój dziecka, sypialnia, schowek) — każde ±1,0 tys. zł;
+- punkty elektryczne policzone z rysunków roboczych (26 gniazd/łączników, 18 punktów świetlnych) — projekt „w połowie”, liczba się zmieni;
+- 1 kontener w wyższej stawce — zakładam wyższe piętro (taras).
+
+Do ustalenia z klientem:
+- podłogi: tylko antresola czy całe piętro i sypialnie; co z podłogą w holu na parterze (na rzucie pusta);
+- czy pod Kabric robimy pełną gładź;
+- „ściana do usunięcia”: materiał i wysokość;
+- brodzik niski zlicowany z posadzką — czy trzeba obniżać kanalizację (+800 zł);
+- kuchnia: czy zlew zostaje w miejscu; pas między szafkami — płytki czy spiek od blaciarza;
+- spód schodów i obrys schowka pod schodami — co obudowujemy GK;
+- piętro budynku i winda; czy mieszkanie będzie zamieszkane w trakcie.
+
+Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/07-zakamarki-dwupoziomowe

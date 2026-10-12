@@ -3,7 +3,7 @@ change_id: ai-kosztorys-generation-tests
 title: AI kosztorys generation tests
 status: new
 created: 2026-10-01
-updated: 2026-10-05
+updated: 2026-10-12
 archived_at: null
 branch: null
 worktree: null
@@ -26,6 +26,35 @@ as possible.
 
 This is an experiment, not a feature. Nothing here ships. Each test case gets its own folder under
 `cases/`.
+
+## Fast path: an investment the owner already added (cases 5–7)
+
+The owner adds a lead as `quote` („Wycena”) with the mail in Notatki and the files in „Pliki”, and
+no kosztorys. Per investment, one at a time:
+
+1. `adopt-case-prod.ts` (`DRY=1` first) — files out of the repo, kosztorys seeded from szablon #166,
+   `cases/<n>-<slug>/` with `case.json` and the rozpiska dump. Redact contacts in
+   `inputs/client-inquiry.md`; client names stay out of the repo.
+2. `dump-knowledge-prod.ts` — read the Manual and every Komentarz do pracy in full first.
+3. Render the PDFs to PNG outside the repo (`pdftoppm -r 110`) and read every page before deriving.
+4. `cases/<n>/scripts/build_draft.py` — copy case 07's: an `add(id, qty, assumptions, missing)` per
+   rozpiska id, the opis copied from the dump by id (so the loader's sekcja + opis match never
+   misses), measured areas as named variables, totals per sekcja printed. It writes
+   `measure/ai-draft-load.json`; add `"draft"` and `"notesAppendix"` to `case.json`.
+5. `investment-notes-appendix.txt` (case 07's layout: header with total, how it was measured,
+   „Przedmiar 0 świadomie”, the assumptions with their zł impact, „Do ustalenia z klientem”) and
+   `measurement.md`.
+6. `fill-case-prod.ts` with `DRY=1` — its „expected AI przedmiar” must equal the script's total —
+   then without, then `load-draft-prod.sh` after the user's go (step 7 below).
+7. Add the case to the Cases table.
+
+Drawings with no printed room dimensions (case 7): take the scale from any printed dimension —
+stair treads and the antresola outline there — and confirm it on a second and third one before
+measuring a room with it.
+
+**Next candidates** (listed 2026-10-12): production #198–#206, `quote` investments the owner
+added without a kosztorys. #200 and #202 have no files, only a scope in Notatki. Re-list before
+picking, because one may have been priced by hand since.
 
 ## Method (per case)
 
@@ -55,6 +84,12 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
    actions and Blob upload the browser uses. They read the action ids from the deployed chunks on
    every run, so a deploy doesn't break them. Case 1 instead ran on the local DB first, using
    `cases/01-bemowo-125m2/scripts/create-investment.ts`.
+
+   **When the owner already created the investment** (mail in Notatki, files in „Pliki”), run
+   `scripts/adopt-case-prod.ts` instead (`TOKEN_FILE=… INVESTMENT=<id> CASE=<n>-<slug> [DRY=1]`). It
+   downloads the files outside the repo (`~/.local/share/wykonczymy-ai-cases/<CASE>/`), seeds the
+   kosztorys from the szablon only when it is empty, and scaffolds the case the same way. Case 7 is
+   the worked example.
 
 3. (Done by step 2.) The rozpiska dump keeps the szablon's ids. The fill matches by section and
    description, so the ids don't need to survive the seeding.
@@ -99,11 +134,17 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
 
    **AI przedmiar instead of Przedmiar** (`draft` in `case.json`, the `load-ai-draft.ts` shape): no app
    action writes AI przedmiar, so `fill-case-prod.ts` only creates the sekcje the draft lacks and adds
-   the notes. `src/scripts/load-ai-draft.ts` then writes the rows straight into the production DB. It
-   must run from a worktree of `origin/main`, because the staging code reads columns that production
-   doesn't have yet. Copy in the loader without its `assertLocalDb`, symlink `node_modules`, and run
-   with `DB_POSTGRES_URL` exported to the production URL. Afterwards, one harmless app action on the
-   kosztorys expires the cache. Case 3 is the worked example.
+   the notes. `scripts/load-draft-prod.sh` (`TOKEN_FILE=… CASE=…`) then writes the rows **straight into
+   the production DB** — ask the user before every run. It runs `src/scripts/load-ai-draft.ts` without
+   its `assertLocalDb` from a throwaway worktree of `origin/main` (staging's code reads columns
+   production may not have), refuses if main's Payload config lost `push: false`, then runs
+   `scripts/touch-kosztorys-prod.ts`: one no-op sekcja save through the app to expire the editor's
+   cache, and the AI przedmiar total read back from production, which must equal the draft's.
+   - The loader writes `aiPlannedQty` and Komentarz AI only. A `clientPrice` in the draft is ignored
+     on a matched pozycja, so the szablon's Cena j.m. stands; a price doubt goes in `missingData` and
+     the notes, never into the draft.
+   - It resets Status and Powód zmiany on every pozycja, so a rerun after the owner has started
+     reviewing wipes the review. Never rerun on a kosztorys the owner has touched.
 
 8. **Evaluation (not done yet for any case):** compare v1 and v2 against the owner's real offer for
    the same client, position by position.
@@ -122,14 +163,15 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
 
 ## Cases
 
-| #   | Folder                    | Input                                                                                                                          | Investment (local)                                    | Result                                                                                                                                                                                                                                                       | Evaluated                                                                                                                    |
-| --- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `cases/01-bemowo-125m2`   | 125,6 m² flat, stan deweloperski, 2 bathrooms, 5 PDFs (vector projekt)                                                         | **Owner's #175 production** (built on szablon #165)   | AI przedmiar **205 053,65 zł** next to the owner's Przedmiar 210 925,36 zł: 127 rows, 11 added, 5 at 0 zł. The draft is 203 763,65 zł at szablon prices; #175 prices 3 pozycje differently (+1 290 zł). #168 is in the trash                                 | **Yes, vs the owner's #175** (`owner-comparison.md`): 212 667 zł, −4,2%, but 35,8 tys. zł absolute error on shared positions |
-| 2   | `cases/02-oliwa`          | ~41 m² flat, raster plan screenshot with 7 dimensions, 1 łazienka                                                              | **Owner's #180 production**                           | AI przedmiar **39 375,48 zł** next to the owner's Przedmiar 48 255,00 zł: 51 rows, 1 added at 0 zł (maskownica GK)                                                                                                                                           | No                                                                                                                           |
-| 3   | `cases/03-nowe-lipiny-i2` | Segment, Pu 101,21 m² + strych 32,38 m², stan deweloperski; scan with printed m², visualisations                               | **#188 production** (szablon #166; #183 in the trash) | AI przedmiar **163 103,21 zł**: house 119 388 + poddasze 27 635 + rekuperacja 16 080 (two own sekcje), 94 rows, 7 at 0 zł. The draft is 163 403,21 zł; szablon #166 now prices big bag at 450 zł instead of 600 zł. Winyl instead of mikrocement: −43 646 zł | No                                                                                                                           |
-| 4   | `cases/04-remont-63`      | 63 m² flat, rynek wtórny, full remodel incl. łazienka + WC; old scan with printed m², 8 photos, scope list cut at „Montaż […]” | **#189 production** (szablon #166; #185 in the trash) | AI przedmiar **102 354,06 zł**, 67 rows, 1 added                                                                                                                                                                                                             | No                                                                                                                           |
-| 5   | `cases/05-ursynow-61m2`   | 61 m² flat, stan deweloperski; brief PDF with a rzut, scope list and visualisations, the working project still to come         | **#190 production** (szablon #166)                    | AI przedmiar **90 130,36 zł**, 113 rows, 4 at 0 zł; the flat 86 740 + optional bedroom AC 3 390 (own sekcja)                                                                                                                                                 | No                                                                                                                           |
-| 6   | `cases/06-remont-45m2`    | 45 m² flat, kapitalny remont, one-sentence mail; full vector technical project (A.04–A.10), height printed (2,65 m)            | **#191 production** (szablon #166)                    | AI przedmiar **105 079,14 zł**, 103 rows, 2 at 0 zł; floors follow the floor plan, not the room schedule (all mikrocement ≈ +14,9 tys. zł)                                                                                                                   | No                                                                                                                           |
+| #   | Folder                            | Input                                                                                                                                                                  | Investment (local)                                    | Result                                                                                                                                                                                                                                                       | Evaluated                                                                                                                    |
+| --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `cases/01-bemowo-125m2`           | 125,6 m² flat, stan deweloperski, 2 bathrooms, 5 PDFs (vector projekt)                                                                                                 | **Owner's #175 production** (built on szablon #165)   | AI przedmiar **205 053,65 zł** next to the owner's Przedmiar 210 925,36 zł: 127 rows, 11 added, 5 at 0 zł. The draft is 203 763,65 zł at szablon prices; #175 prices 3 pozycje differently (+1 290 zł). #168 is in the trash                                 | **Yes, vs the owner's #175** (`owner-comparison.md`): 212 667 zł, −4,2%, but 35,8 tys. zł absolute error on shared positions |
+| 2   | `cases/02-oliwa`                  | ~41 m² flat, raster plan screenshot with 7 dimensions, 1 łazienka                                                                                                      | **Owner's #180 production**                           | AI przedmiar **39 375,48 zł** next to the owner's Przedmiar 48 255,00 zł: 51 rows, 1 added at 0 zł (maskownica GK)                                                                                                                                           | No                                                                                                                           |
+| 3   | `cases/03-nowe-lipiny-i2`         | Segment, Pu 101,21 m² + strych 32,38 m², stan deweloperski; scan with printed m², visualisations                                                                       | **#188 production** (szablon #166; #183 in the trash) | AI przedmiar **163 103,21 zł**: house 119 388 + poddasze 27 635 + rekuperacja 16 080 (two own sekcje), 94 rows, 7 at 0 zł. The draft is 163 403,21 zł; szablon #166 now prices big bag at 450 zł instead of 600 zł. Winyl instead of mikrocement: −43 646 zł | No                                                                                                                           |
+| 4   | `cases/04-remont-63`              | 63 m² flat, rynek wtórny, full remodel incl. łazienka + WC; old scan with printed m², 8 photos, scope list cut at „Montaż […]”                                         | **#189 production** (szablon #166; #185 in the trash) | AI przedmiar **102 354,06 zł**, 67 rows, 1 added                                                                                                                                                                                                             | No                                                                                                                           |
+| 5   | `cases/05-ursynow-61m2`           | 61 m² flat, stan deweloperski; brief PDF with a rzut, scope list and visualisations, the working project still to come                                                 | **#190 production** (szablon #166)                    | AI przedmiar **90 130,36 zł**, 113 rows, 4 at 0 zł; the flat 86 740 + optional bedroom AC 3 390 (own sekcja)                                                                                                                                                 | No                                                                                                                           |
+| 6   | `cases/06-remont-45m2`            | 45 m² flat, kapitalny remont, one-sentence mail; full vector technical project (A.04–A.10), height printed (2,65 m)                                                    | **#191 production** (szablon #166)                    | AI przedmiar **105 079,14 zł**, 103 rows, 2 at 0 zł; floors follow the floor plan, not the room schedule (all mikrocement ≈ +14,9 tys. zł)                                                                                                                   | No                                                                                                                           |
+| 7   | `cases/07-zakamarki-dwupoziomowe` | Two-level flat with an antresola, rynek wtórny; architect's mail + 9 raster working drawings with **no room dimensions** (scale taken from the stairs), visualisations | **Owner's #207 production** (szablon #166)            | AI przedmiar **117 186,83 zł**, 97 rows, 0 added; panels only on the antresola (whole piętro + bedrooms ≈ +6,1 tys. zł), no full gładź under the structural paint (+9,1 tys. zł)                                                                             | No                                                                                                                           |
 
 ## Research log
 

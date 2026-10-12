@@ -1,0 +1,789 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł; katalog: rynek wtórny ok. 2000 zł, poza Warszawą wyżej — do podniesienia ręcznie",
+    "assumptions": "rynek wtórny, dwa poziomy, poza Warszawą (Marki)"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - co najmniej drugie piętro lub sporo gruzu",
+    "unit": "kontener",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "missingData": "piętro budynku i winda",
+    "assumptions": "1 kontener: skucie łazienki, wyburzenie ściany na piętrze, demontaże; mieszkanie z dużym tarasem na piętrze → zakładam wyższe piętro"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 80.37,
+    "missingData": "czy mieszkanie będzie zamieszkane w trakcie (stawka 45 zł)",
+    "assumptions": "m² podłogi obu poziomów: parter 45,93 + piętro 34,44 (z antresolą). wymiary zmierzone z rzutu w skali wziętej ze schodów (antresola 161 × 339, stopień 27 — rys. 7); rzuty nie podają wymiarów pomieszczeń"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić",
+    "unit": "kpl",
+    "clientPrice": 1000.0,
+    "qty": 1,
+    "missingData": "zastany stan — rysunki pokazują tylko stan projektowany",
+    "assumptions": "stara łazienka (armatura, WC, brodzik), pralka na parterze, stara kuchnia na piętrze, grzejniki — rynek wtórny"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż drewnianych ościeżnic",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 3,
+    "missingData": "ościeżnice drewniane czy metalowe (+100 zł/szt.)",
+    "assumptions": "3 stare ościeżnice: łazienka, pokój dziecka, sypialnia — w ich miejsce drzwi ukryte"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż grzejników",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 4,
+    "assumptions": "łazienka (przeniesienie), pokój dziecka i sypialnia (wymiana), salon (przeniesienie) — rys. 3–4"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 10.0,
+    "qty": 50,
+    "assumptions": "jak nowe listwy przypodłogowe"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "qty": 20.79,
+    "missingData": "wysokość starych płytek i czy podłoga w płytkach",
+    "assumptions": "stara łazienka: ściany w płytkach do 2,0 m (8,84 mb obwodu minus drzwi) + podłoga 4,71 m²"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie ścian po kleju, przygotowanie do dalszych prac",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 20.79,
+    "assumptions": "jak skuwanie płytek"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wyburzanie ścian do 12 cm grubości - materiał miękki",
+    "unit": "m²",
+    "clientPrice": 110.0,
+    "qty": 8.81,
+    "missingData": "materiał i wysokość ściany — jeśli to GK: 50 zł/m²; jeśli to murek przy antresoli ok. 1,1 m, o 5 m² mniej",
+    "assumptions": "„ściana do usunięcia” na piętrze (rys. 4): 3,39 mb × 2,60 m, grubość z rzutu ok. 8 cm → materiał miękki do 12 cm"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 6,
+    "assumptions": "łazienka ok. 2 mb (katalog) + pralka na piętrze ok. 3 mb + przeniesienie c.o. ok. 1 mb"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 88,
+    "assumptions": "2 mb na punkt (katalog): 26 gniazd/łączników + 18 punktów świetlnych z rys. 5–6; limit 150 mb dla 50–100 m² niedotknięty"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Układanie paneli laminowanych jodełka - wysoki stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 85.0,
+    "qty": 4.83,
+    "missingData": "czy panele idą też na resztę piętra i do sypialni (na rzutach i wizualizacjach wszędzie jodełka)",
+    "assumptions": "panele tylko na antresoli (4,83 m² = 1,61 × 3,39 minus szacht 0,82 × 0,77), jodełka jak na wizualizacjach — mail: „jak reszta górnego piętra”, czyli reszta zostaje"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych metalowych",
+    "unit": "mb",
+    "clientPrice": 120.0,
+    "qty": 50,
+    "missingData": "czy listwy wymieniamy, jeśli podłogi zostają",
+    "assumptions": "czarna listwa aluminiowa z planszy (wiz. 7); obwód bez łazienki 71,46 mb minus ok. 30% na zabudowy"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "qty": 4.71,
+    "assumptions": "wylewka w łazience po skuciu starej posadzki, pod nowe płytki i niski brodzik"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Uzupełnianie posadzki po wyburzeniach",
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "qty": 3.39,
+    "assumptions": "pod wyburzoną ścianą na piętrze"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 13.88,
+    "missingData": "dokładny obrys schowka pod schodami — rzuty pokazują go tylko szkicowo",
+    "assumptions": "schowek/garderoba pod schodami ok. 8 m² (ścianki wokół schowka, rys. 1 i 7) + „nowa ściana projektowana” na piętrze 2,26 mb × 2,60 (rys. 4); wysoki stopień — przy schodach, wzmocnienie OSB"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż profili wzmocnionych pod ościeżnice",
+    "unit": "kpl",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "drzwi ukryte do schowka w nowej ścianie GK"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 160.0,
+    "qty": 32.7,
+    "missingData": "czy spód schodów obudowujemy (zależy od firmy schodowej)",
+    "assumptions": "sufit podwieszany w salonie 21,76 m² (rys. 4) + spód antresoli 4,83 m² + czoło antresoli ok. 2 m² + spód biegu schodów 4,12 m² (bieg 312 cm, rys. 7) — konstrukcję antresoli robi firma zewnętrzna, my tylko GK"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 15,
+    "assumptions": "krawędzie antresoli (ok. 5,8 mb × 2 narożniki) + narożnik nowej ściany"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie ścian jednokrotne + drobne poprawki",
+    "unit": "m²",
+    "clientPrice": 15.0,
+    "qty": 130.0,
+    "missingData": "czy pod Kabric robimy pełną gładź (rynek wtórny 85 zł/m²: +9 100 zł)",
+    "assumptions": "pod farbę strukturalną: grunt + drobne poprawki zamiast pełnej gładzi — Kabric kryje drobne nierówności"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian farbą strukturalną efekt beton - do ustalenia dokładnie produkt i czy to ma być beton, tynk dekoracyjny czy farba, bo cena może się różnić. Od 40 do 150 zł",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 130.0,
+    "assumptions": "ok. 130 m² podane w mailu („po za pokojem dziecka i łazienką”), 100 zł/m² jak w mailu; zgadza się z rzutami (ściany bez łazienki i pokoju dziecka ok. 125–150 m² brutto minus otwory)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa",
+    "unit": "m²",
+    "clientPrice": 85.0,
+    "qty": 82.83,
+    "assumptions": "pokój dziecka — ściany 34,47 m² (malowane, nie strukturalne) + istniejące sufity 48,36 m² (sypialnie, hol, część piętra bez sufitu podwieszanego). wysokość parteru 2,66 m — przekrój A-A (rys. 7)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 32.7,
+    "assumptions": "gładź Q4 na nowych sufitach GK — szynoprzewody i światło boczne pokazują każdą nierówność, klienci zwracają uwagę na detal"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 115.53,
+    "assumptions": "przed i po gładziach — pod wszystkie gładzie"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 115.53,
+    "assumptions": "farba podkładowa na świeże gładzie"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 23.0,
+    "qty": 81.07,
+    "assumptions": "wszystkie sufity bez łazienki na biało (wizualizacje)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian w kolorze",
+    "unit": "m²",
+    "clientPrice": 26.0,
+    "qty": 34.47,
+    "assumptions": "pokój dziecka: ściana granatowa + szara (wiz. 6)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 71.46,
+    "assumptions": "łączenia ścian i sufitów — obwód bez łazienki: dziecko, sypialnia, hol, piętro 5,01 × 7,98"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 94,
+    "assumptions": "tynkowanie bruzd elektrycznych i wod-kan"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc.",
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "qty": 60,
+    "assumptions": "gładź po bruzdach na ścianach pod farbę strukturalną (tam pełnej gładzi nie ma); ściany pokoju dziecka mają gładź całą"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 8,
+    "assumptions": "prysznic podtynkowy 3 (zimna, ciepła, odpływ brodzika) + umywalka podtynkowa 3 + stelaż WC 2 — rys. 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 31.29,
+    "assumptions": "ściany 21,87 + podłoga + sufit 4,71 m² — łazienka 2,63 × 1,79, wysokość parteru 2,66 m — przekrój A-A (rys. 7)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 21.87,
+    "assumptions": "po skuciu starych płytek — wyrównanie pod nowe"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 26.58,
+    "assumptions": "folia w płynie na wszystkich ścianach i podłodze (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 17,
+    "assumptions": "ok. 15 mb na 4 m² (katalog), łazienka 4,7 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie przedścianki pod prysznicem z 3 półkami",
+    "unit": "szt",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "assumptions": "przedścianka GK z wnęką na szampony — na rozwinięciu i wizualizacji wnęka z kilkoma półkami podświetlonymi LED (rys. 9, wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "„Zabudowa GK, stelaż podtynkowy” — rys. 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "zabudowa stelaża GK; wykończenie płytą meblową robi stolarz"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "czy odpływ da się zlicować bez obniżenia kanalizacji (jeśli nie: +800 zł)",
+    "assumptions": "„brodzik niski zlicowany z posadzką” + szyba stała (rys. 3, wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 12.59,
+    "assumptions": "ściany poza strefą prysznica, płytki ok. 60 × 120 (rys. 9) — ściany 21,87 minus wielki format 9,28"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie wielki format 120x270",
+    "unit": "m²",
+    "clientPrice": 550.0,
+    "qty": 9.28,
+    "assumptions": "wielki format pod prysznicem (mail): ściana 1,79 + dwa boki 0,85 × 2,66"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe",
+    "unit": "m²",
+    "clientPrice": 45.0,
+    "qty": 9.28,
+    "assumptions": "mata pod płytki wielkoformatowe (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 4.71,
+    "assumptions": "podłoga — beżowy gres, format standard (wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 26.58,
+    "missingData": "fuga epoksydowa czy cementowa",
+    "assumptions": "fugowanie = wszystkie płytki (Manual)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format",
+    "unit": "mb",
+    "clientPrice": 350.0,
+    "qty": 4,
+    "assumptions": "półki we wnęce — wielki format, ok. 5 półek × 0,3 m + boki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 6,
+    "assumptions": "pion wnęki i skrzynka umywalki z płytek (wiz. 1) — zaniżone, do weryfikacji (katalog: przy wątpliwościach nie zawyżaj)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 16,
+    "assumptions": "WC 5 + prysznic 3 + umywalka 3 + grzejnik 2 + puszki przy lustrze 2 + kratka 1 (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 25,
+    "assumptions": "Manual: 20–30 mb na łazienkę"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 8.84,
+    "assumptions": "styk płytek z sufitem — obwód łazienki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 4.71,
+    "assumptions": "sufit łazienki — jedyna powierzchnia bez płytek"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 900.0,
+    "qty": 1,
+    "assumptions": "armatura prysznicowa podtynkowa (rys. 9)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
+    "unit": "kpl",
+    "clientPrice": 200.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "assumptions": "„umywalka, armatura podtynkowa” — rys. 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do umywalki",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "umywalka na blacie z płytek (wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Złożenie i montaż szafki podumywalkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "szafka pod umywalką (rys. 9)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "grzejnik drabinka — przeniesiony (rys. 3, wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 1,
+    "assumptions": "lustro 125 × 148 (rys. 9)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "unit": "mb",
+    "clientPrice": 150.0,
+    "qty": 2.75,
+    "assumptions": "LED za lustrem 1,25 mb (rys. 5) + LED we wnęce ok. 1,5 mb (wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż i podłączenie transformatora",
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "assumptions": "plafon + kinkiet (wiz. 1)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 3,
+    "assumptions": "LED za lustrem, LED we wnęce, kinkiet"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 2,
+    "assumptions": "gniazdo przy lustrze + przeniesiony łącznik (rys. 5)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 3
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "wentylator czy kratka",
+    "assumptions": "nowa kratka przy remoncie"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 3,
+    "assumptions": "wieszak na ręcznik, uchwyt na papier, haczyk (rys. 9)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Podłączenie pralki",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "pralka w kuchni na piętrze, „zasilanie pralka, suszarka” (rys. 6)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Podłączenie suszarki",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "jak pralka"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Położenie płytek między szafkami format standard od 30x30 do 60x120",
+    "unit": "m²",
+    "clientPrice": 220.0,
+    "qty": 1.8,
+    "missingData": "płytki czy spiek od blaciarza — jeśli spiek, pozycja wypada (−396 zł)",
+    "assumptions": "pas między szafkami ok. 3,0 mb × 0,6 m (wiz. 2)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż AGD: lodówka, zmywarka, płyta, piekarnik",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 3,
+    "assumptions": "lodówka, piekarnik, ekspres w zabudowie — „zasilanie ekspres / piekarnik / lodówka” (rys. 6)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie indukcji",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "płyta indukcyjna (wiz. 2)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie zmywarki",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż zlewu",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż baterii zlewozmywakowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż syfonu",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Wzmocnienie płytą OSB pod szafki kuchenne min. m2",
+    "unit": "m²",
+    "clientPrice": 120.0,
+    "qty": 5.88,
+    "assumptions": "„ściana z płyt GK wzmocnienie płytą osb” pod zabudowę kuchni (rys. 7)"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi ukrytych z wykończeniem i przygotowaniem do malowania/tapety",
+    "unit": "szt",
+    "clientPrice": 1000.0,
+    "qty": 4,
+    "missingData": "liczba drzwi — rysunki ich nie numerują",
+    "assumptions": "drzwi z ukrytą ościeżnicą malowane farbą strukturalną (mail): łazienka, pokój dziecka, sypialnia, schowek pod schodami"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 26,
+    "missingData": "liczba punktów z rysunków roboczych — projekt jest „w połowie pracy”",
+    "assumptions": "nowe i przenoszone gniazda/łączniki z rys. 5–6: parter ok. 8, piętro ok. 18 (aneks: nadblatowe, lodówka, piekarnik, ekspres, okap, pralka + suszarka; RTV-ściana; łączniki przy schodach)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 18,
+    "assumptions": "nowe punkty świetlne z rys. 5–6: hol 5, sypialnia 2, łazienka 2, piętro 4, zasilanie szyn 2, wyjścia LED 3"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 45,
+    "assumptions": "cały osprzęt wymieniany (Simon 55, wiz. 7) — szacunek z rys. 5–6"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "qty": 2,
+    "assumptions": "łącznik schodowy na dole i na górze schodów (rys. 5–6)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazda TV i internet",
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "qty": 2,
+    "assumptions": "RTV + internet przy TV w salonie (rys. 6)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż szynoprzewodów natynkowych",
+    "unit": "mb",
+    "clientPrice": 120.0,
+    "qty": 17,
+    "missingData": "montaż reflektorów na szynach — ich liczba",
+    "assumptions": "salon ok. 12 mb (obrys na rys. 6, wiz. 4) + sypialnia ok. 5,2 mb (rys. 5, wiz. 5)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż profili LED podtynkowych w suficie",
+    "unit": "mb",
+    "clientPrice": 160.0,
+    "qty": 2.6,
+    "assumptions": "pionowy profil LED w narożniku salonu przy schodach (wiz. 3, wizualizacja zabudowy)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż taśm LED",
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "qty": 6,
+    "assumptions": "LED pod szafkami w kuchni ok. 3 mb + półki w pokoju dziecka ok. 3 mb (wiz. 2, 6); LED w poręczy robią ludzie od schodów"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż transformatorów",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 3,
+    "assumptions": "kuchnia, pokój dziecka, profil w salonie"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż prostych lamp (bez składania)",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 14,
+    "assumptions": "plafony i oprawy: hol 5, sypialnia 3, pokój dziecka 1, piętro 5"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż okapu i podłączenie do wentylacji",
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "assumptions": "„zasilanie okap” (rys. 6)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "assumptions": "nowe obwody: indukcja, piekarnik, pralka/suszarka, ekspres — przy indukcji min. 18 modułów (katalog)"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 2,
+    "missingData": "czy zlew w kuchni zostaje w miejscu — rysunki nie pokazują zmian wod-kan w aneksie",
+    "assumptions": "pralka na piętrze: zimna + odpływ (rys. 4)"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Likwidacja punktów wod-kan",
+    "unit": "pkt",
+    "clientPrice": 120.0,
+    "qty": 2,
+    "assumptions": "„WOD-KAN pralka, do usunięcia” na parterze (rys. 3)"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "pokój dziecka — wymiana grzejnika płytowego (rys. 3, wiz. 6)"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Montaż grzejników dekoracyjnych z zaworami",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "sypialnia (wymiana) i salon (przeniesienie) — grzejniki pionowe z wizualizacji (wiz. 4–5)"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa punktów centralnego ogrzewania",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 6,
+    "assumptions": "przeniesienia: łazienka 2, salon 2; sypialnia — inne podejście pod grzejnik pionowy 2"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Rozkucie i zatynkowanie podejść grzejnikowych",
+    "unit": "kpl",
+    "clientPrice": 300.0,
+    "qty": 3,
+    "assumptions": "łazienka, salon, sypialnia"
+  }
+]
