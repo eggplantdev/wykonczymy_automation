@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Scale as ScaleIcon } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
+import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { compareWithSheet, type SheetCompareResultT } from '@/lib/actions/kosztorys-import'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 

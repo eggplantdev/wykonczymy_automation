@@ -2,7 +2,7 @@
 
 import { ClipboardCheck } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
+import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 export function AcceptanceProtocolMenuItem() {

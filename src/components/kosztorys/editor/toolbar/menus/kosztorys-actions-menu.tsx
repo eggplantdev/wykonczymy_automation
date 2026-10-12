@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
+import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
 import { SaveVersionMenuItem } from '@/components/kosztorys/editor/actions/save-version-action'
