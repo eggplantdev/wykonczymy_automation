@@ -1,10 +1,10 @@
 ---
 change_id: invoice-download-date-range
 title: Invoice download dialog with a required date range and document counter
-status: implemented
+status: archived
 created: 2026-10-11
-updated: 2026-10-11
-archived_at: null
+updated: 2026-10-12
+archived_at: 2026-10-12T18:27:08Z
 branch: invoice-download-date-range
 worktree: null
 ---
