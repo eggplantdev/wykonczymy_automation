@@ -43,10 +43,24 @@ no kosztorys. Per investment, one at a time:
    `measure/ai-draft-load.json`; add `"draft"` and `"notesAppendix"` to `case.json`.
 5. `investment-notes-appendix.txt` (case 07's layout: header with total, how it was measured,
    „Przedmiar 0 świadomie”, the assumptions with their zł impact, „Do ustalenia z klientem”) and
-   `measurement.md`.
+   `measurement.md`. Every line of it also on its pozycja's Komentarz AI (see „Every point lives in
+   both places” below).
 6. `fill-case-prod.ts` with `DRY=1` — its „expected AI przedmiar” must equal the script's total —
    then without, then `load-draft-prod.sh` after the user's go (step 7 below).
 7. Add the case to the Cases table.
+
+**The owner hears the AI only through the kosztorys.** Anything the owner has to check or decide —
+a doubt, a price that may be off, a reading that could double the scope — goes into the kosztorys,
+never only into the report to the user. The report to the user is status: which investment, the
+total, loaded or not, anything blocking. Don't relay the owner's to-do list back to the user.
+
+**Every point lives in both places.** The notes appendix is the summary, and Komentarz AI on the
+pozycja is where the owner meets the point while editing that row. So every „założenie” and every
+„Do ustalenia z klientem” line in the appendix is also in the `assumptions` / `missingData` of each
+pozycja it concerns. The zł impact may stay in the notes only. A point with no pozycja to carry it
+(a whole trade at 0, a demontaż the szablon has no row for) stays in the notes only. **Check before
+step 6:** walk the appendix line by line against `ai-draft-load.json` and fix the draft, not the
+notes. The 2026-10-12 audit of cases 7–16 found 10 of 172 points only in the notes.
 
 Drawings with no printed room dimensions (case 7): take the scale from any printed dimension —
 stair treads and the antresola outline there — and confirm it on a second and third one before
