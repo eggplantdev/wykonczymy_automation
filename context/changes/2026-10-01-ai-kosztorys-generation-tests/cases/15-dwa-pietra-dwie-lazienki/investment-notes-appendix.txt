@@ -1,34 +1,32 @@
-=== Wycena AI (test, 2026-10-12) — AI przedmiar z rzutu sprzedażowego i zakresu w Notatkach ===
-Kosztorys wypełnił agent: 59 pozycji, AI przedmiar razem 85 789,86 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 2 pozycje są wybrane z ilością 0 (sztukateria — montaż i malowanie), bo nic nie mówi, ile jej ma być. 1 praca dodana spoza szablonu, z katalogu: „Montaż paneli ściennych, lamele, dekory itp” (ścianka RTV).
-Jedyny plik to zdjęcie rzutu sprzedażowego dewelopera (dwa poziomy, bez wymiarów i bez wysokości). Metraże z rzutu: dół salon z aneksem 25,5 + sypialnia 7,5, góra sypialnie 15,2 i 13,8 + łazienka 4,2. Hol na dole (5,1 m²), hol na górze (5,1 m²) i WC (2,0 m²) nie mają podpisu — zmierzone w skali wziętej z podpisanych pokoi. Razem podłogi 78,4 m², z tego winyl 72,2 m². Wysokość 2,68 m (rzut jej nie podaje, Manual dla stanu deweloperskiego).
-Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 85 789,86 zł netto** — 59 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 2 pozycje z ilością 0 (sztukateria — montaż i malowanie), bo nic nie mówi, ile jej ma być. 1 praca spoza szablonu, z katalogu: „Montaż paneli ściennych, lamele, dekory itp” (ścianka RTV).
+Źródło: jedyny plik to zdjęcie rzutu sprzedażowego dewelopera (dwa poziomy, bez wymiarów i bez wysokości) plus zakres w Notatkach. Metraże z rzutu: dół salon z aneksem 25,5 + sypialnia 7,5, góra sypialnie 15,2 i 13,8 + łazienka 4,2. Hol na dole (5,1 m²), hol na górze (5,1 m²) i WC (2,0 m²) nie mają podpisu — zmierzone w skali wziętej z podpisanych pokoi. Razem podłogi 78,4 m², z tego winyl 72,2 m². Wysokość 2,68 m (rzut jej nie podaje, Manual dla stanu deweloperskiego).
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
 
-Przedmiar 0 świadomie:
-- sufity — „sufity napinany raczej do wyceny u sprzedawcy”, więc ani malowania sufitów, ani akrylu na styku ściana-sufit;
-- schody (winyl na stopniach, balustrada) — Notatki ich nie wymieniają, drewnianych stopni nie robimy;
-- kuchnia (płytki między szafkami, AGD, zlew) — Notatki jej nie wymieniają;
-- wyburzenia, skuwanie, demontaże — zakładam stan deweloperski.
+## Do ustalenia z klientem
+- **Sztukateria**: ile mb i gdzie (ściany czy sufit) — montaż listew sztukateryjnych (ścienne 80 zł/mb, sufitowe 110 zł/mb), malowanie (40 zł/mb); każde 10 mb ściennej ≈ +1,2 tys. zł.
+- **Dolna łazienka**: czy WC staje się łazienką z prysznicem i w jakim obrysie (bez prysznica: ≈ −5,6 tys. zł) — dotyczy wszystkich pozycji dolnej łazienki.
+- **Sufity**: napinane u sprzedawcy wszędzie, także w łazienkach? (malowanie sufitów i akryl na styku: ≈ +4,4 tys. zł).
+- **Nowe ścianki GK** (ok. 20 m²): gdzie stają, czy mają drzwi — szpachlowanie styków z taśmą, wzmocnienie pod ościeżnicę.
+- **Ścianka RTV**: wymiar i rodzaj płyty, długość LED (klient prosi o inspiracje) — montaż paneli ściennych, taśmy LED.
+- **Płytki w łazienkach**: wysokość (do 2,0 m: ≈ −1,4 tys. zł) i fuga (epoksydowa czy cementowa).
+- **Odpływy liniowe**: koperta czy jednospadkowe, i czy da się je zlicować z posadzką (inaczej schodek +1000 zł).
+- **Winyl**: na schodach i pod szafkami kuchennymi.
+- **Elektryka i kolor**: liczba gniazd, łączników i lamp w całym mieszkaniu (każde ±10 ≈ ±0,4 tys. zł); kolor ścian.
+- **Stan i dostęp**: stan mieszkania (deweloperskie czy wtórne — pełna gładź ≈ +12,9 tys. zł), piętro i winda; czy mieszkanie będzie zamieszkane w trakcie.
 
-Najważniejsze założenia (ruszają wieloma pozycjami naraz):
-- stan deweloperski z gotową gładzią („malowanie bo gładzie są”): na istniejących ścianach tylko grunt z drobnymi poprawkami i malowanie (195 m²) — pełna gładź z gruntowaniem i farbą podkładową to ok. +12,9 tys. zł;
-- dolne „WC” (2,0 m² na rzucie) jako druga łazienka z prysznicem, bo Notatki mówią „dwie łazienki dwa prysznice” — bez prysznica na dole ok. −5,6 tys. zł; prysznic na 2 m² może wymagać przebudowy;
-- sufity zostają u sprzedawcy sufitów napinanych — gdyby jednak malować: sufity ok. 78 m² i akryl na styku ze ścianami ≈ +4,4 tys. zł;
-- glazura w obu łazienkach do sufitu (35,4 m² ścian) — płytki do 2,0 m to ok. −1,4 tys. zł (mniej płytek, za to malowanie z gładzią nad nimi);
-- drzwi ukryte 5 szt. z rzutu (dół: sypialnia i łazienka, góra: 2 sypialnie i łazienka) — każde ±1,0 tys. zł;
-- listwy MDF 57,5 mb (obwód minus 30% na zabudowy) — listwy metalowe +4,3 tys. zł;
-- 20 punktów z Notatek podzielone pół na pół (10 gniazd/łączników, 10 oświetleniowych); osprzęt 45 szt. i 12 lamp to szacunek agenta — każde ±10 gniazd/łączników ≈ ±0,4 tys. zł;
-- transport materiałów zostawiony na 1500 zł z szablonu — katalog dla dużego mieszkania deweloperskiego z wieloma zmianami mówi ok. 2000 zł.
+## Najważniejsze założenia
+- **Stan deweloperski z gotową gładzią** („malowanie bo gładzie są”): na istniejących ścianach tylko grunt z drobnymi poprawkami i malowanie (195 m²) — pełna gładź z gruntowaniem i farbą podkładową ≈ +12,9 tys. zł.
+- **Dolne „WC” (2,0 m²) jako druga łazienka z prysznicem**, bo Notatki mówią „dwie łazienki dwa prysznice” — bez prysznica na dole ≈ −5,6 tys. zł; prysznic na 2 m² może wymagać przebudowy.
+- **Sufity zostają u sprzedawcy sufitów napinanych** — gdyby jednak malować: sufity ok. 78 m² i akryl na styku ze ścianami ≈ +4,4 tys. zł.
+- **Glazura w obu łazienkach do sufitu** (35,4 m² ścian) — płytki do 2,0 m ≈ −1,4 tys. zł (mniej płytek, za to malowanie z gładzią nad nimi).
+- **Drzwi ukryte 5 szt.** z rzutu (dół: sypialnia i łazienka, góra: 2 sypialnie i łazienka) — każde ±1,0 tys. zł.
+- **Listwy MDF 57,5 mb** (obwód minus 30% na zabudowy) — listwy metalowe +4,3 tys. zł.
+- **20 punktów z Notatek podzielone pół na pół** (10 gniazd/łączników, 10 oświetleniowych); osprzęt 45 szt. i 12 lamp to szacunek agenta — każde ±10 gniazd/łączników ≈ ±0,4 tys. zł.
+- **Transport materiałów 1500 zł** z szablonu — katalog dla dużego mieszkania deweloperskiego z wieloma zmianami mówi ok. 2000 zł.
 
-Do ustalenia z klientem (każde pytanie = jeden pomiar lub decyzja):
-- sztukateria: ile mb i gdzie (ściany czy sufit) — dotyczy: montaż listew sztukateryjnych (ścienne 80 zł/mb, sufitowe 110 zł/mb), malowanie sztukaterii (40 zł/mb); każde 10 mb ściennej ≈ +1,2 tys. zł;
-- dolna łazienka: czy WC staje się łazienką z prysznicem i w jakim obrysie — dotyczy wszystkich pozycji dolnej łazienki;
-- sufity: napinane u sprzedawcy wszędzie, także w łazienkach? — dotyczy: malowanie sufitów, akrylowanie styku ściana-sufit, sufity w łazienkach;
-- nowe ścianki GK (ok. 20 m²): gdzie stają, czy mają drzwi — dotyczy: szpachlowanie styków z taśmą, wzmocnienie pod ościeżnicę;
-- ścianka RTV: wymiar i rodzaj płyty, długość LED (klient prosi o inspiracje) — dotyczy: montaż paneli ściennych, taśmy LED;
-- wysokość płytek w łazienkach i fuga (epoksydowa czy cementowa);
-- odpływy liniowe: koperta czy jednospadkowe, i czy da się je zlicować z posadzką (inaczej schodek +1000 zł);
-- winyl na schodach i pod szafkami kuchennymi;
-- liczba gniazd, łączników i lamp w całym mieszkaniu; kolor ścian;
-- stan mieszkania (deweloperskie czy wtórne), piętro i winda; czy mieszkanie będzie zamieszkane w trakcie.
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/15-dwa-pietra-dwie-lazienki
+## Przedmiar 0 świadomie
+- Sufity — „sufity napinany raczej do wyceny u sprzedawcy”, więc ani malowania sufitów, ani akrylu na styku ściana-sufit.
+- Schody (winyl na stopniach, balustrada) — Notatki ich nie wymieniają, drewnianych stopni nie robimy.
+- Kuchnia (płytki między szafkami, AGD, zlew) — Notatki jej nie wymieniają.
+- Wyburzenia, skuwanie, demontaże — zakładam stan deweloperski.

@@ -41,8 +41,10 @@ no kosztorys. Per investment, one at a time:
    rozpiska id, the opis copied from the dump by id (so the loader's sekcja + opis match never
    misses), measured areas as named variables, totals per sekcja printed. It writes
    `measure/ai-draft-load.json`; add `"draft"` and `"notesAppendix"` to `case.json`.
-5. `investment-notes-appendix.txt` (case 07's layout: header with total, how it was measured,
-   „Przedmiar 0 świadomie”, the assumptions with their zł impact, „Do ustalenia z klientem”) and
+5. `investment-notes-appendix.txt` in Notatki markdown (`##` headings, `- ` lists, `**bold**`;
+   case 07's layout): `## Wycena AI (test, <date>)` with the **bold total** and how it was
+   measured, then `## Do ustalenia z klientem` (bold key word + zł impact),
+   `## Najważniejsze założenia`, `## Przedmiar 0 świadomie` — no repo paths — and
    `measurement.md`. Every line of it also on its pozycja's Komentarz AI (see „Every point lives in
    both places” below).
 6. `fill-case-prod.ts` with `DRY=1` — its „expected AI przedmiar” must equal the script's total —

@@ -1,34 +1,37 @@
-=== Wycena AI (test, 2026-10-12) — AI przedmiar z kosztorysu wykonawczego projektanta ===
-Kosztorys wypełnił agent: 104 pozycje, AI przedmiar razem 90 961,72 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”; 12 pozycji spoza szablonu — 7 z ceną z katalogu, 5 z ceną 0 zł („brak w katalogu — do wyceny”).
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 90 961,72 zł netto** — 104 pozycje, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”; 12 pozycji spoza szablonu — 7 z ceną z katalogu, 5 z ceną 0 zł (do wyceny, niżej).
 Źródło ilości: „Kosztorys wykonawczy” projektanta (zakres prac z ilościami) i projekt A.00–A.09 z wymiarami. Mieszkanie 58,6 m² (rzut A.01), stan deweloperski, bez wyburzeń; wysokość 2,75 m, pod sufitem podwieszanym 2,71 m, w łazience 2,63 m.
-Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
 
-Przedmiar 0 świadomie:
-- klimatyzacja — widać ją na wizualizacjach, ale nie ma jej w zakresie prac;
-- zabudowy meblowe, szafy, lamele i panel ryflowany, lustro i szafki w łazience — stolarz;
-- lampy — dostarcza klient (A.03), liczony tylko montaż;
-- wkuwanie wod-kan w ściany — ściana kuchni jest międzylokalowa, podejścia idą w przedściankę;
-- kontener — wystarczą 2 big bagi.
+## Do ustalenia z klientem
+- **Spiek**: format, wysokość (do sufitu?) i kto docina — każdy ±1 m² ≈ ±550 zł.
+- **Gładź i LED**: standard gładzi Q3 czy Q4 (Q4: sufity +1,1 tys. zł, ściany +1,8 tys. zł) i rodzaj profili LED (podtynkowe w GK: +2,6 tys. zł).
+- **Osprzęt elektryczny**: czy wymieniamy gniazdka i włączniki w całym mieszkaniu (≈ +1,4 tys. zł).
+- **Wnęki i przedścianka**: gdzie są „wnęki w zabudowie” (1 + 2 szt.) i na której ścianie przedścianka 10,2 m².
+- **„Zmiana otworu”**: który otwór i czy zmniejszenie, czy poszerzenie.
+- **„Grzejnik 1 szt.”** w zakresie — co to za pozycja.
+- **Montaż przez dostawcę**: czy ścianę z mchu (−825 zł, jeśli dostawca) i lustro montuje dostawca/stolarz.
+- **Dostęp**: piętro budynku i winda.
 
-Najważniejsze założenia (ruszają wieloma pozycjami naraz):
-- spiek kamienny zamiast paneli Murso (mail) na polach „panel dekoracyjny imitujący skałę” z A.01: salon 0,86 + 0,30 + 0,86 m i ściana za łóżkiem 1,80 m, do sufitu = 10,35 m² × 550 zł ≈ 5,7 tys. zł — zakres liczył 3 panele, każdy ±1 m² spieku ≈ ±550 zł;
-- gładzie w standardzie Q3 — Q4 pod profilami LED: sufity +1,1 tys. zł, ściany +1,8 tys. zł;
-- taśmy LED 26,3 mb jako zwykły montaż taśmy (60 zł/mb) — jeśli to profile podtynkowe w GK: +2,6 tys. zł;
-- osprzęt elektryczny zostaje deweloperski, nowy tylko przy nowym gnieździe w kuchni — wymiana w całym mieszkaniu ≈ +1,4 tys. zł;
-- deska Boen liczona po ułożonej powierzchni 47,1 m² jako mijanka — zakres podaje 51,8 m² materiału (z zapasem);
-- przedścianka w kuchni 10,2 m² na ścianie międzylokalowej z ceną z katalogu (150 zł/m²) — 1,5 tys. zł;
-- ściana z mchu 5,5 m² montowana przez nas (150 zł/m², 825 zł) — jeśli montuje dostawca, pozycja wypada.
+## Najważniejsze założenia
+- **Spiek kamienny zamiast paneli Murso** (mail) na polach „panel dekoracyjny imitujący skałę” z A.01: salon 0,86 + 0,30 + 0,86 m i ściana za łóżkiem 1,80 m, do sufitu = 10,35 m² × 550 zł ≈ 5,7 tys. zł — zakres liczył 3 panele, każdy ±1 m² spieku ≈ ±550 zł.
+- **Gładzie w standardzie Q3** — Q4 pod profilami LED: sufity +1,1 tys. zł, ściany +1,8 tys. zł.
+- **Taśmy LED 26,3 mb** jako zwykły montaż taśmy (60 zł/mb) — profile podtynkowe w GK: +2,6 tys. zł.
+- **Osprzęt elektryczny zostaje deweloperski**, nowy tylko przy nowym gnieździe w kuchni — wymiana w całym mieszkaniu ≈ +1,4 tys. zł.
+- **Deska Boen 47,1 m²** liczona po ułożonej powierzchni jako mijanka — zakres podaje 51,8 m² materiału (z zapasem).
+- **Przedścianka w kuchni 10,2 m²** na ścianie międzylokalowej, cena z katalogu (150 zł/m²) — 1,5 tys. zł.
+- **Ściana z mchu 5,5 m² montowana przez nas** (150 zł/m², 825 zł) — jeśli montuje dostawca, pozycja wypada.
 
-Pozycje 0 zł do wyceny (brak w katalogu): montaż kominka elektrycznego, 3 wnęki na głośniki w suficie, 3 wnęki w zabudowie GK, klejenie lustra 1,56 m², grunt magnetyczny 2,2 m².
+## Pozycje 0 zł do wyceny (brak w katalogu)
+- Montaż kominka elektrycznego.
+- 3 wnęki na głośniki w suficie.
+- 3 wnęki w zabudowie GK.
+- Klejenie lustra 1,56 m².
+- Grunt magnetyczny 2,2 m².
 
-Do ustalenia z klientem:
-- spiek: format, wysokość (do sufitu?) i kto docina;
-- standard gładzi (Q3 czy Q4) i rodzaj profili LED;
-- czy wymieniamy gniazdka i włączniki w całym mieszkaniu;
-- gdzie są „wnęki w zabudowie” (1 + 2 szt.) i na której ścianie przedścianka 10,2 m²;
-- „zmiana otworu” — który otwór i czy zmniejszenie, czy poszerzenie;
-- „grzejnik 1 szt.” w zakresie — co to za pozycja;
-- czy ścianę z mchu i lustro montuje dostawca/stolarz;
-- piętro budynku i winda.
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/10-projekt-3601
+## Przedmiar 0 świadomie
+- Klimatyzacja — widać ją na wizualizacjach, ale nie ma jej w zakresie prac.
+- Zabudowy meblowe, szafy, lamele i panel ryflowany, lustro i szafki w łazience — stolarz.
+- Lampy — dostarcza klient (A.03), liczony tylko montaż.
+- Wkuwanie wod-kan w ściany — ściana kuchni jest międzylokalowa, podejścia idą w przedściankę.
+- Kontener — wystarczą 2 big bagi.
