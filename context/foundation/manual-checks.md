@@ -4855,3 +4855,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Podsumowanie kosztorysu → zakładka inwestycji: „Notatki” zwijają się tak samo i pamiętają ten sam stan co strona inwestycji.
 - [ ] `/inwestycje` → kolumna „Analiza AI” to plakietki jak „Status”, każdy etap innym kolorem; „Uzupełnianie informacji” szara, w jednej linii, nie łamie wiersza. Select „Etap AI” na stronie inwestycji i w Podsumowaniu → „Inwestycja”: obramowanie i tekst w kolorze plakietki z listy (tło bez koloru), zmienia się od razu po wyborze; po rozwinięciu każda opcja ma ikonę i nazwę w swoim kolorze, opis szary.
 - [ ] Inwestycja w `/kosz` → notatki da się zwinąć, „Edytuj notatkę” się nie pojawia.
+
+## 2026-10-12 — investment-notes-markdown — nagłówki, listy i pogrubienie w „Notatkach”
+
+- [ ] `/inwestycje/[id]` → „Edytuj notatkę”, wpisz linię `## Do ustalenia`, pod nią dwie linie zaczynające się od `- `, w jednej `**ważne**` → „Zapisz”: nagłówek z podkreśleniem, lista z kropkami, „ważne” pogrubione; ponowne „Edytuj notatkę” pokazuje surowy tekst z `##`, `-`, `**`.
+- [ ] Inwestycja ze starą, zwykłą notatką (kilka linii, puste linie między akapitami): wygląda jak dotąd — łamania linii zachowane, nic nie znika.
+- [ ] Notatka z tekstem typu `-10%` albo `#207` na początku linii: zostaje zwykłym tekstem, nie robi się z niego lista ani nagłówek.
