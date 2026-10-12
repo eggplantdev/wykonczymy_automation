@@ -1,0 +1,489 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł; katalog: rynek wtórny ok. 2000 zł, poza Warszawą wyżej — do podniesienia ręcznie",
+    "assumptions": "małe mieszkanie w całości, 1. piętro bez windy, Piastów (mail)"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - parter",
+    "unit": "kontener",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "czy jest miejsce na kontener pod blokiem",
+    "assumptions": "rynek wtórny z wyburzeniem → kontener (Manual); 1. piętro → stawka 1500 zł (Manual: parter i pierwsze piętro). Gruz ze ścianki, wanna, stara kuchnia, panele, płytki z kuchni"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 47.95,
+    "missingData": "czy mieszkanie będzie zamieszkane w trakcie (stawka 45 zł)",
+    "assumptions": "m² podłogi całego mieszkania (47,95 m², mail: 48 m²). wymiary wewnętrzne dopisane ręcznie na rzucie (zdjęcie rzutu), m² z rzutu jako kontrola"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić",
+    "unit": "kpl",
+    "clientPrice": 1000.0,
+    "qty": 1,
+    "missingData": "cena: szablon 1000 zł, katalog 800–1500 zł — łazienka + cała kuchnia to raczej górna granica",
+    "assumptions": "wanna z obudową, stara zabudowa kuchenna z blatem i zlewem, płyta gazowa, okap (mail, zdjęcia)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wyburzanie ścian do 12 cm grubości - materiał miękki",
+    "unit": "m²",
+    "clientPrice": 110.0,
+    "qty": 5.93,
+    "missingData": "którą ściankę klient ma na myśli i z czego jest — jeśli GK: 50 zł/m² (−0,4 tys. zł); jeśli to pełna ściana salon–kuchnia 3,86 mb: +4,1 m² (+0,5 tys. zł)",
+    "assumptions": "„wyburzenie ścianki kuchnia–salon”: na zdjęciu z salonu salon jest już otwarty na kuchnię, a strefę kuchenną dzieli ścianka kończąca się słupkiem — 2,28 mb × 2,60 m. Na rzucie z 2001 r. jej nie ma (dorysowana ręcznie), więc zakładam materiał miękki do 12 cm"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż podłogi pływającej panele etc.",
+    "unit": "m²",
+    "clientPrice": 20.0,
+    "qty": 38.68,
+    "missingData": "co leży pod panelami — rzut podaje mozaikę; jeśli jest luźna, do skucia",
+    "assumptions": "panele na zdjęciach w sypialni, salonie, przedpokoju i różowej części kuchni: 10,48 + 16,49 + 6,09 + 5,62 m²"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 10.0,
+    "qty": 35,
+    "assumptions": "obwód pomieszczeń z panelami minus ok. 25% (drzwi, otwory)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "qty": 4.7,
+    "missingData": "czy płytki w kuchni zostają pod nową podłogę",
+    "assumptions": "płytki na podłodze w kuchni (zdjęcie kuchni): 2,26 × 2,08; ściany kuchni są malowane, nie w płytkach"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż parapetów",
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "qty": 3.8,
+    "missingData": "czy parapety wymienia firma okienna",
+    "assumptions": "parapety wewnętrzne pod wymienianymi oknami: sypialnia 1,80 + salon 1,80 + zakłady"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 32,
+    "assumptions": "2 mb na punkt (katalog): 12 gniazd + 4 punktów świetlnych"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 2,
+    "assumptions": "katalog: ok. 2 mb na łazienkę — przeróbki pod brodzik i baterię"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Układanie paneli laminowanych niski stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "qty": 43.66,
+    "missingData": "rodzaj podłogi: panele laminowane czy winyl klejony (winyl + wylewka na całość ≈ +2,5 tys. zł); w kuchni płytki zamiast paneli ≈ +0,6 tys. zł",
+    "assumptions": "panele laminowane, układ prosty, wszędzie poza łazienką — „wymiana podłogi” w sypialni, salonie, kuchni i przedpokoju (mail); dziś laminat. Kuchnia też w panelach, bo po wyburzeniu ścianki to jedna strefa z salonem: 43,66 m²"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "qty": 4.97,
+    "assumptions": "kuchnia po skuciu płytek 4,70 m² + pas po ściance 0,27 m² — zrównanie z resztą pod panele"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 4.97,
+    "assumptions": "pod wylewkę samopoziomującą"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Uzupełnianie posadzki po wyburzeniach",
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "qty": 2.28,
+    "assumptions": "pas posadzki po wyburzonej ściance"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "qty": 38,
+    "missingData": "listwy MDF czy inne",
+    "assumptions": "katalog: obwód bez łazienki (53,92 mb) minus 30% na zabudowę kuchenną, drzwi i otwory — lepiej niedoszacować"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Akrylowanie listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 16.0,
+    "qty": 38,
+    "assumptions": "katalog: tyle samo co listew"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg",
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "qty": 0.8,
+    "assumptions": "przejście panele/płytki w drzwiach łazienki"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie ścian jednokrotne + drobne poprawki",
+    "unit": "m²",
+    "clientPrice": 15.0,
+    "qty": 141.27,
+    "missingData": "czy ściany wymagają pełnej gładzi (rynek wtórny 85 zł/m² na ok. 141 m²: +12,0 tys. zł)",
+    "assumptions": "„przygotowanie ścian” (mail): grunt i drobne poprawki, bez pełnej gładzi — ściany 97,62 m² + sufity 43,66 m². Ściany: obwody 53,92 mb minus otwarty bok salon–kuchnia 2 × 3,86 mb, × 2,60 m, minus okna i drzwi 22,51 m². wysokość 2,60 m — rzut jej nie podaje (Manual: rynek wtórny); schody dają kondygnację 2,81 m (18 × 15,6), czyli w świetle ok. 2,55–2,60"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "qty": 141.27,
+    "missingData": "kolor ścian — w kolorze 26 zł/m² zamiast 22 (+0,6 tys. zł); czy sufity w salonie, kuchni i przedpokoju też malujemy",
+    "assumptions": "2× malowanie ścian i sufitów na biało: sypialnia (mail: ściany i sufit), salon, kuchnia, przedpokój — sufity też, bo malowanie po demontażu ścianki i zmianach elektrycznych"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian emulsją z gruntem (przykrycie koloru, żeby malować na biało) - 1 warstwa",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 97.62,
+    "missingData": "jeśli nowy kolor jest ciemny, pozycja może wypaść",
+    "assumptions": "wszystkie ściany są dziś w kolorze (szare, różowa, miętowa — zdjęcia) → warstwa przykrywająca przed białym"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 46.2,
+    "assumptions": "łączenia ścian z sufitem — obwód ścian bez otwartego boku salon–kuchnia"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian",
+    "unit": "mb",
+    "clientPrice": 40.0,
+    "qty": 16.9,
+    "missingData": "wymiana okien: czy firma okienna zostawia glify do obróbki (zwykle tak)",
+    "assumptions": "glify po wymianie okien: sypialnia 4,80 mb + salon okno z drzwiami balkonowymi 7,10 mb; poprawka po ściance ok. 5 mb (sufit + ściana)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 11.9,
+    "assumptions": "narożniki aluminiowe na glifach po wymianie okien"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 34,
+    "assumptions": "tynkowanie bruzd elektrycznych i wod-kan"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc.",
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "qty": 32,
+    "assumptions": "gładź po bruzdach elektrycznych — pełnej gładzi nie ma"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "wymiar brodzika i kabiny; brodzik na nóżkach czy niski — przy niskim może dojść schodek (+1000 zł)",
+    "assumptions": "„montaż kabiny z brodzikiem” w miejscu wanny (mail, zdjęcie łazienki)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "bateria natynkowa czy podtynkowa (+650 zł + biały montaż)",
+    "assumptions": "bateria natynkowa jak obecna przy wannie — mail nie mówi o podtynkowej"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 3,
+    "assumptions": "„przeróbki hydrauliczne”: podniesienie zimnej i ciepłej pod baterię prysznicową + przesunięcie odpływu pod brodzik (katalog: liczymy końcowe punkty)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 1.5,
+    "assumptions": "pas ściany pod starą wanną, dziś bez płytek — ok. 2,45 mb × 0,6 m — wyrównanie pod płytki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 2.5,
+    "assumptions": "pas ściany + podłoga pod wanną, gdzie nie przykryje jej brodzik"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 2.5,
+    "assumptions": "„uszczelnienia” (mail): folia tylko na odsłoniętych powierzchniach w strefie prysznica — reszta łazienki bez remontu"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 5,
+    "assumptions": "styk brodzika ze ścianami i narożniki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 1.5,
+    "missingData": "czy klient ma zapas obecnych płytek (białe, fala) — jeśli nie, uzupełnienie nie będzie pasować",
+    "assumptions": "uzupełnienie płytek ściennych pod linią starej wanny (ok. 2,45 mb × 0,6 m)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 0.5,
+    "assumptions": "podłoga po wannie poza obrysem brodzika"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 2.0,
+    "assumptions": "fugowanie = wszystkie nowe płytki (Manual)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 6,
+    "assumptions": "brodzik i kabina — reszta łazienki zostaje (Manual 20–30 mb dotyczy całej łazienki)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 2,
+    "assumptions": "bateria natynkowa (katalog: 2 przy natynkowej)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż AGD: lodówka, zmywarka, płyta, piekarnik",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 3,
+    "missingData": "czy lodówka jest w zabudowie (+250 zł)",
+    "assumptions": "płyta indukcyjna, piekarnik, zmywarka w nowej zabudowie (zdjęcie: piekarnik i zmywarka w zabudowie)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie indukcji",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "missingData": "zakorkowanie gazu — gazownik z uprawnieniami, poza szablonem",
+    "assumptions": "„instalacja pod płytę indukcyjną” (mail) — dziś płyta gazowa"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie piekarnika",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie zmywarki",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż zlewu z wywierceniem otworu",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "assumptions": "nowy blat → wycięcie otworu pod zlew"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż baterii zlewozmywakowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż syfonu",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż blatu kuchennego laminowanego",
+    "unit": "mb",
+    "clientPrice": 200.0,
+    "qty": 3.8,
+    "assumptions": "katalog prac: „nowa zabudowa, blat” (mail); układ L jak dziś — ściana 2,26 + bok do okna ok. 1,5 mb",
+    "missingData": "blat laminowany czy kamienny (katalog 350 zł/mb); czy blat montuje firma meblowa"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż i skręcanie mebli",
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "qty": 1,
+    "assumptions": "katalog prac: „nowa zabudowa” (mail) — katalog nie ma stawki, cena indywidualna",
+    "missingData": "kto składa zabudowę kuchenną — firma meblowa czy my; cena do ustalenia"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 12,
+    "missingData": "liczba i miejsca nowych punktów — mail ich nie wymienia",
+    "assumptions": "kuchnia: 3 nadblatowe, lodówka, zmywarka, piekarnik, okap, płyta; RTV 2; „nowe punkty” ok. 2 (mail)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 4,
+    "assumptions": "nowy układ kuchni po wyburzeniu ścianki: 2 w strefie kuchennej, LED pod szafkami 1, salon 1"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 35,
+    "missingData": "czy osprzęt jest nowy, czy zakładamy stary",
+    "assumptions": "„montaż gniazdek i włączników” w pracach końcowych (mail): cały osprzęt po malowaniu, ok. 23 istniejące + 12 nowych"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazda TV i internet",
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "qty": 1,
+    "assumptions": "RTV (mail)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "stan rozdzielni — jeśli wystarczy dołożyć bezpiecznik: 200 zł (−1,3 tys. zł)",
+    "assumptions": "„sprawdzenie instalacji” + indukcja (katalog: przy indukcji minimum 18 modułów); budynek z 2001"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Doprowadzenie przewodu 3-fazowego z montażem gniazda",
+    "unit": "kpl",
+    "clientPrice": 500.0,
+    "qty": 1,
+    "missingData": "czy mieszkanie ma 3 fazy — jeśli nie, wniosek do operatora i przewód do rozdzielni: 1500 zł (+1,0 tys. zł); pomiary instalacji poza szablonem",
+    "assumptions": "przewód pod płytę indukcyjną z gniazdem — zakładam, że w mieszkaniu jest 3 fazy"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż prostych lamp (bez składania)",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 5,
+    "missingData": "czy klient ma nowe lampy",
+    "assumptions": "lampy zdjęte do malowania wracają: sypialnia, salon, przedpokój, kuchnia, różowa część"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż okapu i podłączenie do wentylacji",
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "assumptions": "okap w nowej zabudowie (dziś okap pod szafką)"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 3,
+    "missingData": "czy zlew zostaje w tym samym miejscu — jeśli tak, przyłącza mogą być niepotrzebne (−750 zł)",
+    "assumptions": "„przyłącza” w kuchni (mail): zimna, ciepła, odpływ pod zlew i zmywarkę w nowej zabudowie"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż parapetów",
+    "unit": "mb",
+    "clientPrice": 200.0,
+    "qty": 3.8,
+    "missingData": "czy parapety montuje firma okienna",
+    "assumptions": "nowe parapety pod wymienionymi oknami"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Silikonowanie parapetu",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 3.8
+  }
+]

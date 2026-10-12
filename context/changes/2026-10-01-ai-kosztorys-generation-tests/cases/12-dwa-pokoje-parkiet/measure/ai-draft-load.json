@@ -1,0 +1,227 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "inwestycja w Rynie, daleko poza Warszawą: dojazd ekipy, noclegi i transport materiałów nie są w szablonie — kwotę ustalić ręcznie; piętro i winda",
+    "assumptions": "1 kpl na cały remont (zawsze); cena j.m. z szablonu 1500 zł — katalog: „małe mieszkanie w całości 1500 zł”, „poza Warszawą … wyższe ceny”"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "missingData": "piętro i winda; czy 2 big bagi wystarczą po zdarciu tynku ze ścian",
+    "assumptions": "Manual: „rynek wtórny bez wyburzeń — 2 big bagi total”; gruz to subit z 28 m², zdarte powłoki i luźny tynk"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 35,
+    "missingData": "czy mieszkanie będzie zamieszkane w trakcie (stawka 45 zł/m²: +700 zł)",
+    "assumptions": "35 m² podane w zakresie („około 35 m²”); obejmuje też przygotowanie pomieszczeń, zabezpieczenie ciągów komunikacyjnych i usunięcie zabezpieczeń na końcu"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie/usuwanie subitu",
+    "unit": "m²",
+    "clientPrice": 75.0,
+    "qty": 28,
+    "assumptions": "28 m² podane w zakresie; razem z mechanicznym szlifowaniem i oczyszczeniem podłoża (zakres, pkt 2)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zdzieranie starej farby z tynkiem",
+    "unit": "m²",
+    "clientPrice": 40.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: m² ścian do zdarcia („mechaniczne usunięcie starych powłok malarskich i luźnych warstw tynku”) — powierzchnia ścian obu pokoi (ok. 20 i 8 m² podłogi) — zakres nie podaje wysokości ani wymiarów pokoi, więc m² ścian nie da się policzyć"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 6,
+    "missingData": "materiał ścian — w żelbecie stawka 45 zł/mb (+120 zł)",
+    "assumptions": "katalog: ok. 2 mb na punkt × 3 nowe punkty z zakresu"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 28,
+    "assumptions": "pod wylewkę samopoziomującą (katalog) — 28 m², jak usuwanie subitu i wylewka"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "qty": 28,
+    "assumptions": "28 m² podane w zakresie"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Układanie parkietu z gruntowaniem mijanka",
+    "unit": "m²",
+    "clientPrice": 75.0,
+    "qty": 28,
+    "missingData": "układ parkietu — jodełka to inna pozycja, 110 zł/m² (+980 zł); parkiet lity czy warstwowy",
+    "assumptions": "28 m² podane w zakresie; układ nieznany → wybrany parkiet mijanka (z gruntowaniem)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Cyklinowanie - cena już z materiałem. Ewentualnie dodatkowe koszty mogą się pojawić jeżeli trzeba będzie coś naprawiać itp.",
+    "unit": "m²",
+    "clientPrice": 150.0,
+    "qty": 33,
+    "missingData": "stan parkietu w korytarzu — naprawy przed cyklinowaniem płatne osobno",
+    "assumptions": "33 m² podane w zakresie: nowy parkiet 28 m² + korytarz z istniejącym parkietem ok. 5 m²; cena z materiałem"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: mb listew — obwód obu pokoi minus zabudowy (katalog), zakres podaje tylko m² podłogi; rodzaj listew (MDF czy metalowe — 120 zł/mb)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Akrylowanie listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 16.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: jak montaż listew — mb obwodu obu pokoi",
+    "assumptions": "tyle samo co listew (katalog)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 150.0,
+    "qty": 5,
+    "missingData": "konstrukcja ścianki: podwójna płyta z wełną czy pojedyncza",
+    "assumptions": "5 m² podane w zakresie; wełna i podwójna płyta jak w szablonie"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż profili wzmocnionych pod ościeżnice",
+    "unit": "kpl",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "1 kpl — jedne drzwi w nowej ściance („wzmocnienie konstrukcji GK pod montaż ościeżnicy”)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: mb styków nowej ścianki z istniejącymi ścianami i sufitem — zakres podaje tylko jej m²",
+    "assumptions": "„Przygotowanie i wykończenie powierzchni nowej ścianki”"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "qty": 10,
+    "missingData": "czy obie strony ścianki są w remontowanych pomieszczeniach",
+    "assumptions": "nowa ścianka GK: 5 m² × 2 strony; na płycie GK gładź standardu Q3, nie stawka rynku wtórnego"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa",
+    "unit": "m²",
+    "clientPrice": 85.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia ścian obu pokoi (ok. 20 i 8 m² podłogi) — zakres nie podaje wysokości ani wymiarów pokoi, więc m² ścian nie da się policzyć; czy gładź także na sufitach",
+    "assumptions": "gładź „standard prac dla rynku wtórnego” (zakres, pkt 3); stawka obejmuje miejscowe naprawy tynku pod gładzią i szlifowanie"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia ścian obu pokoi (ok. 20 i 8 m² podłogi) — zakres nie podaje wysokości ani wymiarów pokoi, więc m² ścian nie da się policzyć + 10 m² nowej ścianki GK (+ sufity, jeśli w zakresie)",
+    "assumptions": "przed gładzią i ponownie przed malowaniem (zakres, pkt 3 i 7)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian",
+    "unit": "mb",
+    "clientPrice": 40.0,
+    "qty": 15,
+    "missingData": "zakres i sposób obmiaru 10 mb — klient sam pisze „do potwierdzenia”",
+    "assumptions": "10 mb „dodatkowych prac tynkarskich i gładzi” + 5 mb obróbek wokół drzwi wejściowych — oba z zakresu"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 6,
+    "assumptions": "jak bruzdy pod 3 nowe punkty — „naprawa bruzd i ubytków po pracach instalacyjnych”; gładź po bruzdach pominięta, bo gładź idzie na całe ściany (katalog)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia ścian obu pokoi (ok. 20 i 8 m² podłogi) — zakres nie podaje wysokości ani wymiarów pokoi, więc m² ścian nie da się policzyć + 10 m² nowej ścianki GK; kolor (malowanie w kolorze 26 zł/m²)",
+    "assumptions": "dwukrotne malowanie ścian obu pokoi (zakres, pkt 7); na biało"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 23.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: czy sufity są w zakresie; jeśli tak — 28 m² (= podłoga obu pokoi): +644 zł, plus gruntowanie (i gładź, jeśli potrzebna)",
+    "assumptions": "„ewentualnie sufitów” (zakres, pkt 7)"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "assumptions": "1 szt. — „montaż drzwi wewnętrznych wraz z ościeżnicą regulowaną” (liczba pojedyncza)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 3,
+    "assumptions": "3 nowe punkty podane w zakresie („około 3”); okablowanie w cenie punktu"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: liczba istniejących gniazd i łączników do wymiany w obu pokojach (+ 3 nowe)",
+    "assumptions": "wymiana istniejących gniazd + osprzęt na 3 nowe punkty"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Prace glazurnicze i naprawcze: naprawa uszkodzonych płytek, wykonanie lub odtworzenie rewizji, uzupełnienie fug — ryczałt",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena to założony koszt z zakresu, nie wycena z szablonu; gdzie są płytki i ile do wymiany — do potwierdzenia na oględzinach",
+    "assumptions": "ryczałt 1500 zł — „Założony koszt pozycji: 1 500 zł” wpisany w zakresie; szablon nie ma pozycji na naprawę płytek"
+  }
+]

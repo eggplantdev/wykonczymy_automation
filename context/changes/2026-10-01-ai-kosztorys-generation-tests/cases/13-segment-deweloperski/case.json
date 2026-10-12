@@ -1,0 +1,16 @@
+{
+  "investmentId": 203,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "image1-2-38ad81c2f471.jpeg",
+      "kind": "projekt"
+    },
+    {
+      "name": "image02-ce965365adba.jpeg",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

@@ -1,0 +1,64 @@
+{
+  "investmentId": 201,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "wizualizacja-12-1b8570c7ae50.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-10-5c04da815833.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-11-fa7d52942343.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-3-fd8977aa9cc6.png",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-4-c68437d71162.png",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-8-8d273b1abb1f.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-7-8ccaaea1cbc9.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-9-84bd53bce3cd.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-6-988f2aebdbfd.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-2-01275519701b.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-1-71d113b4df2b.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wizualizacja-5-0a79f21fb88f.jpeg",
+      "kind": null
+    },
+    {
+      "name": "3601_zakres-prac-3aa81b8d4084.pdf",
+      "kind": null
+    },
+    {
+      "name": "3601_projekt-8390122a1329.pdf",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

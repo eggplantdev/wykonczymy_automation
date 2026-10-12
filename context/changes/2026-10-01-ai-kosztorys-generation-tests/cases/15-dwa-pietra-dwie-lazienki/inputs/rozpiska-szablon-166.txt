@@ -1,0 +1,302 @@
+0 | Prace dodatkowe | 62110 | Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra | kpl | 1500 | 
+0 | Prace dodatkowe | 62111 | Dodatek za wniesienie dużej ilości materiałów 1 zł/kg + 0,3 zł za każde piętro bez windy | kg | 1 | 
+0 | Prace dodatkowe | 62112 | Transport i wniesienie materiałów wykończeniowych - stawki do ustalenia w zależności od rodzaju i ilości | kpl | 2000 | 
+0 | Prace dodatkowe | 62113 | Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag | big bag | 450 | 
+0 | Prace dodatkowe | 62114 | Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - parter | kontener | 1500 | 
+0 | Prace dodatkowe | 62115 | Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - co najmniej drugie piętro lub sporo gruzu | kontener | 1800 | 
+1 | Klimatyzacja | 62116 | Bruzdowanie pod rury materiał miękki | mb | 80 | 
+1 | Klimatyzacja | 62117 | Bruzdowanie pod rury żelbet | mb | 200 | 
+1 | Klimatyzacja | 62118 | Jednostka cena indywidualna w zależności od modelu | kpl | 0 | 
+1 | Klimatyzacja | 62119 | Montaż klimatyzacji + uruchomienie | kpl | 600 | 
+1 | Klimatyzacja | 62120 | Montaż syfonu klimatyzacji natynkowo | kpl | 150 | 
+1 | Klimatyzacja | 62121 | Montaż syfonu podtynkowego z wkuciem w ścianę | kpl | 300 | 
+1 | Klimatyzacja | 62122 | Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd | mb | 50 | 
+1 | Klimatyzacja | 62123 | Przebicie się na zewnątrz | kpl | 350 | 
+1 | Klimatyzacja | 62124 | Przebicie się na zewnątrz - ściana żelbetowa | kpl | 600 | 
+1 | Klimatyzacja | 62125 | Rury miedziane + skropliny + ułożenie | mb | 120 | 
+1 | Klimatyzacja | 62126 | Wsporniki | kpl | 100 | 
+1 | Klimatyzacja | 62127 | Wykonanie gładzi po bruzdach | mb | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62128 | Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. | m² | 25 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62129 | Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. - mieszkanie zamieszkane | m² | 45 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62130 | Bruzdowanie pod instalacje wod-kan w materiałach miękkich | mb | 80 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62131 | Bruzdowanie pod instalacje wod-kan w żelbecie | mb | 150 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62132 | Bruzdowanie pod kable elektryczne w materiałach miękkich | mb | 25 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62133 | Bruzdowanie pod kable elektryczne w żelbecie | mb | 45 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62134 | Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić | kpl | 1000 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62135 | Demontaż drewnianych ościeżnic | kpl | 100 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62136 | Demontaż metalowych futryn | kpl | 200 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62137 | Demontaże drzwi zewnętrznych - drzwi z ościeżnicą | kpl | 400 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62138 | Demontaż grzejników | szt | 100 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62139 | Demontaż listew przypodłogowych | mb | 10 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62140 | Demontaż paneli klejonych | m² | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62141 | Demontaż podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki | m² | 75 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62142 | Demontaż podłogi drewnianej na klej - prosty demontaż | m² | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62143 | Demontaż podłogi pływającej panele etc. | m² | 20 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62144 | Demontaż parapetów | mb | 60 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62145 | Demontaż sufitów podwieszanych | m² | 70 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62146 | Demontaż ścianek z GK | m² | 50 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62147 | Skuwanie posadzki/lastryko 10 cm - beton zbrojony | m² | 150 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62148 | Skuwanie wylewki do 6cm | m² | 60 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62149 | Skuwanie tynków cementowo-wapiennych i cementowych | m² | 50 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62150 | Skuwanie glazury z klejem i płytami GK - ściany i podłogi | m² | 85 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62151 | Skuwanie glazury z klejem ściany i podłogi | m² | 70 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62152 | Szlifowanie ścian po kleju, przygotowanie do dalszych prac | m² | 12 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62153 | Szlifowanie/usuwanie subitu | m² | 75 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62154 | Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża | szt | 850 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62155 | Wykucie nadproża i powiększenie otworu drzwiowego | kpl | 450 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62156 | Wyburzanie ścian 12-20 cm grubości - materiał miękki | m² | 130 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62157 | Wyburzanie ścian do 12 -20 cm - żelbeton | m² | 450 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62158 | Wyburzanie ścian do 12 cm grubości - materiał miękki | m² | 110 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62159 | Wyburzanie ścian do 12 cm grubości - żelbeton | m² | 300 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62160 | Wyburzanie ścian powyżej 20 cm grubości - materiał miękki | m² | 150 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62161 | Zdzieranie starej farby z tynkiem | m² | 40 | 
+2 | Wyburzenia, demontaże, zabezpieczenia | 62162 | Zdzieranie tapet i usuwanie kleju | m² | 50 | 
+3 | Podłogi | 62163 | Gruntowanie podłóg | m² | 10 | 
+3 | Podłogi | 62164 | Uzupełnianie posadzki po wyburzeniach | mb | 60 | 
+3 | Podłogi | 62165 | Szycie dylatacji z dyblami | mb | 100 | 
+3 | Podłogi | 62166 | Wylewka betonowa ok. 3-5 cm | m² | 80 | 
+3 | Podłogi | 62167 | Wylewka samopoziomująca w całym mieszkaniu do 5 mm | m² | 55 | 
+3 | Podłogi | 62168 | Cyklinowanie - cena już z materiałem. Ewentualnie dodatkowe koszty mogą się pojawić jeżeli trzeba będzie coś naprawiać itp. | m² | 150 | 
+3 | Podłogi | 62169 | Akrylowanie listew przypodłogowych | mb | 16 | 
+3 | Podłogi | 62170 | Montaż listew przypodłogowych metalowych | mb | 120 | 
+3 | Podłogi | 62171 | Montaż listew przypodłogowych poliuretan lub MDF | mb | 45 | 
+3 | Podłogi | 62172 | Malowanie listew przypodłogowych | mb | 25 | 
+3 | Podłogi | 62173 | Docięcie i montaż progu w drzwiach wejściowych | szt | 250 | 
+3 | Podłogi | 62174 | Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg | mb | 100 | 
+3 | Podłogi | 62175 | Wklejanie korka drewnianego między parkiet | mb | 30 | 
+3 | Podłogi | 62176 | Ogrzewanie podłogowe elektryczne, montaż maty | m² | 90 | 
+3 | Podłogi | 62177 | Ogrzewanie podłogowe elektryczne, ułożenie maty + wylewka samopoziomująca | m² | 130 | 
+3 | Podłogi | 62178 | Położenie gresu na podłodze (karo) 30x30 | m² | 250 | 
+3 | Podłogi | 62179 | Położenie gresu na podłodze format 120x120 | m² | 300 | 
+3 | Podłogi | 62180 | Położenie gresu na podłodze format mały 20x20 | m² | 250 | 
+3 | Podłogi | 62181 | Położenie gresu na podłodze format mały cegiełki i inne np 10x10, 6x15 itp. | m² | 380 | 
+3 | Podłogi | 62182 | Położenie gresu na podłodze format standard od 30x30 do 60x120 | m² | 180 | 
+3 | Podłogi | 62183 | Położenie gresu na podłodze wielki format 120x270 itp. | m² | 550 | 
+3 | Podłogi | 62184 | Klejenie maty kompensacyjnej | m² | 40 | 
+3 | Podłogi | 62185 | Położenie płytek na podłodze 20x20 | m² | 250 | 
+3 | Podłogi | 62186 | Położenie płytek na podłodze 120x120 | m² | 300 | 
+3 | Podłogi | 62187 | Położenie trawertynu na podłodze | m² | 300 | 
+3 | Podłogi | 62188 | Cokół docinany z płytek | mb | 100 | 
+3 | Podłogi | 62189 | Fugowanie | m² | 30 | 
+3 | Podłogi | 62190 | Równe cięcia podłóg do łączeń bez listew | mb | 100 | 
+3 | Podłogi | 62191 | Klejenie paneli winylowych jodełka | m² | 95 | 
+3 | Podłogi | 62192 | Klejenie paneli winylowych mijanka | m² | 60 | 
+3 | Podłogi | 62193 | Klejenie paneli winylowych układ prosty, | m² | 60 | 
+3 | Podłogi | 62194 | Układanie paneli laminowanych jodełka - wysoki stopień skomplikowania prac | m² | 85 | 
+3 | Podłogi | 62195 | Układanie paneli laminowanych niski stopień skomplikowania prac | m² | 60 | 
+3 | Podłogi | 62196 | Układanie paneli winylowych pływających jodełka wysoki stopień skomplikowania prac | m² | 90 | 
+3 | Podłogi | 62197 | Układanie paneli winylowych pływających niski stopień skomplikowania prac | m² | 60 | 
+3 | Podłogi | 62198 | Układanie parkietu jodełka - wysoki stopień skomplikowania prac | m² | 110 | 
+3 | Podłogi | 62199 | Układanie parkietu z gruntowaniem mijanka | m² | 75 | 
+4 | Ściany i sufity bez łazienek  | 62200 | Montaż płyt GK na klej na ścianach | m² | 80 | 
+4 | Ściany i sufity bez łazienek  | 62201 | Montaż profili wzmocnionych pod ościeżnice | kpl | 250 | 
+4 | Ściany i sufity bez łazienek  | 62202 | Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac | m² | 150 | 
+4 | Ściany i sufity bez łazienek  | 62203 | Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac | m² | 180 | 
+4 | Ściany i sufity bez łazienek  | 62204 | Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu | mb | 350 | 
+4 | Ściany i sufity bez łazienek  | 62205 | Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac | m² | 160 | 
+4 | Ściany i sufity bez łazienek  | 62206 | Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.) | mb | 35 | 
+4 | Ściany i sufity bez łazienek  | 62207 | Wklejanie taśmy w łączenie sufit-ściana oraz dylatacje - poprawia estetykę oraz chroni przed pęknięciami | mb | 35 | 
+4 | Ściany i sufity bez łazienek  | 62208 | Montaż wzmocnień w ścianach działowych pod szafki wiszące | m² | 80 | 
+4 | Ściany i sufity bez łazienek  | 62209 | Montaż nadproży w nowo murowanej ścianie | szt | 150 | 
+4 | Ściany i sufity bez łazienek  | 62210 | Murowanie ścian z bloczków komórkowych 10 cm | m² | 110 | 
+4 | Ściany i sufity bez łazienek  | 62211 | Murowanie ścian z bloczków komórkowych 5 cm | m² | 110 | 
+4 | Ściany i sufity bez łazienek  | 62212 | Murowanie ścian z bloczków komórkowych 7,5 cm | m² | 110 | 
+4 | Ściany i sufity bez łazienek  | 62213 | Murowanie ścian z bloczków komórkowych 7,5 cm (skomplikowany montaż) | m² | 150 | 
+4 | Ściany i sufity bez łazienek  | 62214 | Przesunięcie otworu drzwiowego z montażem nadproża + murowanie | szt | 1200 | 
+4 | Ściany i sufity bez łazienek  | 62215 | Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących) | mb | 25 | 
+4 | Ściany i sufity bez łazienek  | 62216 | Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc. | mb | 45 | 
+4 | Ściany i sufity bez łazienek  | 62217 | Gruntowanie powierzchni betonkontaktem | mb | 15 | 
+4 | Ściany i sufity bez łazienek  | 62218 | Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian | mb | 40 | 
+4 | Ściany i sufity bez łazienek  | 62219 | Tynkowanie ręczne ścian lub sufitów do 1 cm | m² | 60 | 
+4 | Ściany i sufity bez łazienek  | 62220 | Dodatek za wklejanie siatki tynkarskiej | m² | 13 | 
+4 | Ściany i sufity bez łazienek  | 62221 | Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości. | m² | 100 | 
+4 | Ściany i sufity bez łazienek  | 62222 | Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga | mb | 35 | 
+4 | Ściany i sufity bez łazienek  | 62223 | Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony | m² | 35 | 
+4 | Ściany i sufity bez łazienek  | 62224 | Gładzie na sufitach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3 | m² | 59 | 
+4 | Ściany i sufity bez łazienek  | 62225 | Gładzie na sufitach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4 | m² | 80 | 
+4 | Ściany i sufity bez łazienek  | 62226 | Gładzie na ścianach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3 | m² | 57 | 
+4 | Ściany i sufity bez łazienek  | 62227 | Gładzie na ścianach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4 | m² | 75 | 
+4 | Ściany i sufity bez łazienek  | 62228 | Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa | m² | 85 | 
+4 | Ściany i sufity bez łazienek  | 62229 | Szpachlowanie glifów / dekoracyjnych narożników / wykończenie obwodu drzwi z ukrytą opaską | mb | 55 | 
+4 | Ściany i sufity bez łazienek  | 62230 | Szlifowanie mleczka z tynków deweloperskich | m² | 7 | 
+4 | Ściany i sufity bez łazienek  | 62231 | Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach | m² | 12 | 
+4 | Ściany i sufity bez łazienek  | 62232 | Gruntowanie ścian jednokrotne | m² | 8 | 
+4 | Ściany i sufity bez łazienek  | 62233 | Gruntowanie ścian jednokrotne + drobne poprawki | m² | 15 | 
+4 | Ściany i sufity bez łazienek  | 62234 | Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia | mb | 14 | 
+4 | Ściany i sufity bez łazienek  | 62235 | Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową. | m² | 12 | 
+4 | Ściany i sufity bez łazienek  | 62236 | Malowanie sufitów farbą silikonową lub akrylową na biało | m² | 23 | 
+4 | Ściany i sufity bez łazienek  | 62237 | Malowanie sufitu w kolorze | m² | 27 | 
+4 | Ściany i sufity bez łazienek  | 62238 | Malowanie ścian emulsją z gruntem (przykrycie koloru, żeby malować na biało) - 1 warstwa | m² | 10 | 
+4 | Ściany i sufity bez łazienek  | 62239 | Malowanie ścian farbą strukturalną efekt beton - do ustalenia dokładnie produkt i czy to ma być beton, tynk dekoracyjny czy farba, bo cena może się różnić. Od 40 do 150 zł | m² | 100 | 
+4 | Ściany i sufity bez łazienek  | 62240 | Malowanie ścian i sufitów farbą silikonową lub akrylową na biało | m² | 22 | 
+4 | Ściany i sufity bez łazienek  | 62241 | Malowanie ścian w kolorze | m² | 26 | 
+4 | Ściany i sufity bez łazienek  | 62242 | Odcinanie kolorów, lamperie itp. | mb | 12 | 
+4 | Ściany i sufity bez łazienek  | 62243 | Montaż listew sztukateryjnych na ścianach przygotowanie do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie) | mb | 80 | 
+4 | Ściany i sufity bez łazienek  | 62244 | Montaż listew sztukateryjnych sufitowych (osłona karnisza) przygotowanie do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie) | mb | 110 | 
+4 | Ściany i sufity bez łazienek  | 62245 | Malowanie sztukaterii | mb | 40 | 
+4 | Ściany i sufity bez łazienek  | 62246 | Montaż karniszy | mb | 80 | 
+4 | Ściany i sufity bez łazienek  | 62247 | Tapetowanie | m² | 100 | 
+4 | Ściany i sufity bez łazienek  | 62248 | Tynk dekoracyjny efekt betonu | m² | 160 | 
+5 | Łazienka | 62249 | Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt | pkt | 250 | 
+5 | Łazienka | 62250 | Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem | pkt | 250 | 
+5 | Łazienka | 62251 | Wkucie w ścianę nośną/żelbet instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem | kpl | 500 | 
+5 | Łazienka | 62252 | Montaż geberitu | szt | 450 | 
+5 | Łazienka | 62253 | Montaż profili i płyt GK w zabudowie geberitu | kpl | 450 | 
+5 | Łazienka | 62254 | Montaż odpływu liniowego z wypoziomowaniem spadku - koperta | kpl | 1900 | 
+5 | Łazienka | 62255 | Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy | kpl | 1600 | 
+5 | Łazienka | 62256 | Dodatek za schodek pod prysznicem - murowanie i wykonanie spadki na podwyższeniu | kpl | 1000 | 
+5 | Łazienka | 62257 | Montaż wanny z zabudową z bloczków i rewizją | kpl | 1800 | 
+5 | Łazienka | 62258 | Montaż wanny z zabudową z bloczków i rewizją oraz LED | kpl | 2000 | 
+5 | Łazienka | 62259 | Zmiana kanalizacji z wanny na odpływ liniowy - skucie posadzki, obniżenie rur w pionie, wykonanie odpowiedniego spadku | kpl | 800 | 
+5 | Łazienka | 62260 | Wykonanie punktów oświetleniowych | szt | 100 | 
+5 | Łazienka | 62261 | Wykonanie punktów elektrycznych pod włącznik, gniazdko | szt | 120 | 
+5 | Łazienka | 62262 | Dwukrotne gruntowanie ścian, sufitów i podłóg | m² | 10 | 
+5 | Łazienka | 62263 | Klejenie płyt GK | m² | 80 | 
+5 | Łazienka | 62264 | Licowanie ścian płytami GK + wklejanie taśm i przygotowanie pod malowanie/tapetę | m² | 120 | 
+5 | Łazienka | 62265 | Sufit podwieszany z LED wg. projektu | kpl | 1800 | 
+5 | Łazienka | 62266 | Tynkowanie/wyrównanie ścian pod układanie glazury | m² | 80 | 
+5 | Łazienka | 62267 | Wykonanie przedścianki pod prysznicem z 1 półką | szt | 1200 | 
+5 | Łazienka | 62268 | Wykonanie przedścianki pod prysznicem z 2 półkami | kpl | 1500 | 
+5 | Łazienka | 62269 | Wykonanie przedścianki pod prysznicem z 3 półkami | szt | 1800 | 
+5 | Łazienka | 62270 | Wykonanie zabudowy rur z gk | mb | 250 | 
+5 | Łazienka | 62271 | Położenie folii w płynie (izolacji) | m² | 30 | 
+5 | Łazienka | 62272 | Wklejanie maty hydroizolacyjnej | m² | 65 | 
+5 | Łazienka | 62273 | Wklejanie taśmy hydroizolacyjnej | mb | 30 | 
+5 | Łazienka | 62274 | Szlifowanie krawędzi płytek na 45 stopni | mb | 80 | 
+5 | Łazienka | 62275 | Szlifowanie krawędzi płytek czyste cięcie | mb | 50 | 
+5 | Łazienka | 62276 | Układanie glazury mały format 6,5 x 20 | m² | 380 | 
+5 | Łazienka | 62277 | Układanie glazury na glify i małe ściany - mały format | mb | 345 | 
+5 | Łazienka | 62278 | Układanie glazury na podłodze duży format 120x120 | m² | 300 | 
+5 | Łazienka | 62279 | Układanie glazury na podłodze format 20x20 | m² | 200 | 
+5 | Łazienka | 62280 | Układanie glazury na podłodze format standard od 30x30 do 120x60 | m² | 180 | 
+5 | Łazienka | 62281 | Układanie glazury na podłodze format standard od 30x30 do 120x60 (karo) | m² | 250 | 
+5 | Łazienka | 62282 | Układanie glazury na podłodze lub ścianie mozaika | m² | 400 | 
+5 | Łazienka | 62283 | Układanie glazury na podłodze wielki format np. 120x270 | m² | 550 | 
+5 | Łazienka | 62284 | Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe | m² | 45 | 
+5 | Łazienka | 62285 | Układanie glazury na ścianie mały format np. 6,5 x 15 | m² | 380 | 
+5 | Łazienka | 62286 | Układanie glazury na ścianie format duży 120x120 | m² | 300 | 
+5 | Łazienka | 62287 | Układanie glazury na ścianie format standard od 30x30 do 120x60 | m² | 180 | 
+5 | Łazienka | 62288 | Układanie glazury na ścianie wielki format 120x270 | m² | 550 | 
+5 | Łazienka | 62289 | Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard | mb | 130 | 
+5 | Łazienka | 62290 | Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format | mb | 350 | 
+5 | Łazienka | 62291 | Fugowanie fugą epoksydową format płytek standard | m² | 80 | 
+5 | Łazienka | 62292 | Fugowanie ścian i podłóg fuga cementowa płytka mały format | m² | 50 | 
+5 | Łazienka | 62293 | Fugowanie ścian i podłóg fugą epoksydową płytka mały format | m² | 120 | 
+5 | Łazienka | 62294 | Fugowanie ścian i podłóg płytka format standard | m² | 30 | 
+5 | Łazienka | 62295 | Silikonowanie | mb | 25 | 
+5 | Łazienka | 62296 | Wiercenie otworów w płytkach | szt | 60 | 
+5 | Łazienka | 62297 | Wykonanie przycisku WC z glazury | szt | 650 | 
+5 | Łazienka | 62298 | Akrylowanie | mb | 14 | 
+5 | Łazienka | 62299 | Malowanie sufitów i ścian bez glazury + gładź na suficie | m² | 100 | 
+5 | Łazienka | 62300 | Montaż akcesoriów łazienkowych | szt | 50 | 
+5 | Łazienka | 62301 | Montaż baterii do umywalki | szt | 150 | 
+5 | Łazienka | 62302 | Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody | szt | 900 | 
+5 | Łazienka | 62303 | Montaż baterii prysznicowo-wannowej natynkowej | szt | 250 | 
+5 | Łazienka | 62304 | Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody | szt | 550 | 
+5 | Łazienka | 62305 | Montaż baterii wannowej wolnostojącej | szt | 550 | 
+5 | Łazienka | 62306 | Montaż bidetu podtynkowego | szt | 550 | 
+5 | Łazienka | 62307 | Biały montaż baterii podtynkowej bidetka | kpl | 100 | 
+5 | Łazienka | 62308 | Biały montaż baterii podtynkowej do umywalki | kpl | 100 | 
+5 | Łazienka | 62309 | Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą | kpl | 200 | 
+5 | Łazienka | 62310 | Montaż brodzika z kabiną prysznicową | kpl | 1500 | 
+5 | Łazienka | 62311 | Montaż deski wc elektrycznej | szt | 550 | 
+5 | Łazienka | 62312 | Montaż gniazdek i włączników standard | szt | 39 | 
+5 | Łazienka | 62313 | Montaż grzejnika elektrycznego | szt | 200 | 
+5 | Łazienka | 62314 | Montaż grzejnika z zaworami | szt | 250 | 
+5 | Łazienka | 62315 | Montaż i podłączenie listw led + taśm | mb | 150 | 
+5 | Łazienka | 62316 | Montaż i podłączenie transformatora | mb | 100 | 
+5 | Łazienka | 62317 | Montaż kratki wentylacyjnej | kpl | 100 | 
+5 | Łazienka | 62318 | Montaż lamp | szt | 100 | 
+5 | Łazienka | 62319 | Montaż lustra | szt | 120 | 
+5 | Łazienka | 62320 | Montaż lustra z LED | szt | 150 | 
+5 | Łazienka | 62321 | Montaż ościeżnicy z drzwiami i klamkami | szt | 380 | 
+5 | Łazienka | 62322 | Montaż parawanu nawannowego | szt | 550 | 
+5 | Łazienka | 62323 | Montaż rewizji z glazury | kpl | 350 | 
+5 | Łazienka | 62324 | Montaż szyby stałej do odpływu liniowego | kpl | 550 | 
+5 | Łazienka | 62325 | Montaż umywalki nablatowej lub na szafke | szt | 130 | 
+5 | Łazienka | 62326 | Montaż umywalki wiszącej | szt | 250 | 
+5 | Łazienka | 62327 | Montaż wanny wolnostojącej z syfonem | kpl | 600 | 
+5 | Łazienka | 62328 | Montaż syfonów | szt | 80 | 
+5 | Łazienka | 62329 | Montaż zaworów czerpalnych do umywalek i zlewów | szt | 60 | 
+5 | Łazienka | 62330 | Montaż WC podwieszanego | szt | 350 | 
+5 | Łazienka | 62331 | Podłączenie pralki | szt | 100 | 
+5 | Łazienka | 62332 | Podłączenie suszarki | szt | 100 | 
+5 | Łazienka | 62333 | Złożenie i montaż szafki nad geberitem | szt | 250 | 
+5 | Łazienka | 62334 | Złożenie i montaż szafki podumywalkowej | szt | 250 | 
+6 | Kuchnia | 62335 | Wklejanie narożników i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga | mb | 35 | 
+6 | Kuchnia | 62336 | Wkucie płytek w ścianę, zlicowanie + obróbka | m² | 400 | 
+6 | Kuchnia | 62337 | Wzmocnienie płytą OSB pod szafki kuchenne min. m2 | m² | 120 | 
+6 | Kuchnia | 62338 | Położenie płytek między szafkami - mozaika | m² | 450 | 
+6 | Kuchnia | 62339 | Położenie płytek między szafkami format standard od 30x30 do 60x120 | m² | 220 | 
+6 | Kuchnia | 62340 | Położenie płytek między szafkami mały format cegiełki itp. | m² | 380 | 
+6 | Kuchnia | 62341 | Układanie glazury na ścianie format standard | m² | 180 | 
+6 | Kuchnia | 62342 | Układanie gresu 120x120 | m² | 300 | 
+6 | Kuchnia | 62343 | Układanie gresu na podłodze format standard od 30x30 do 60x120 | m² | 180 | 
+6 | Kuchnia | 62344 | Montaż AGD: lodówka, zmywarka, płyta, piekarnik | szt | 250 | 
+6 | Kuchnia | 62345 | Montaż baterii zlewozmywakowej | szt | 250 | 
+6 | Kuchnia | 62346 | Montaż LED | mb | 90 | 
+6 | Kuchnia | 62347 | Montaż oświetlenia LED | szt | 100 | 
+6 | Kuchnia | 62348 | Montaż syfonu | szt | 80 | 
+6 | Kuchnia | 62349 | Montaż zlewu | szt | 250 | 
+6 | Kuchnia | 62350 | Montaż zlewu z wywierceniem otworu | szt | 350 | 
+6 | Kuchnia | 62351 | Podłączenie indukcji | szt | 150 | 
+6 | Kuchnia | 62352 | Podłączenie piekarnika | szt | 150 | 
+6 | Kuchnia | 62353 | Podłączenie zmywarki | szt | 250 | 
+7 | Montaż stolarki i ślusarski | 62354 | Montaż drzwi do systemu kasetowego | kpl | 600 | 
+7 | Montaż stolarki i ślusarski | 62355 | Montaż kasety pod drzwi przesuwne | szt | 1400 | 
+7 | Montaż stolarki i ślusarski | 62356 | Montaż drzwi, ościeżnic stałych, klamek, zamków | szt | 450 | 
+7 | Montaż stolarki i ślusarski | 62357 | Montaż drzwi, ościeżnic regulowanych, klamek, zamków | szt | 380 | 
+7 | Montaż stolarki i ślusarski | 62358 | Montaż drzwi ukrytych z wykończeniem i przygotowaniem do malowania/tapety | szt | 1000 | 
+7 | Montaż stolarki i ślusarski | 62359 | Montaż klamek okiennych | szt | 20 | 
+7 | Montaż stolarki i ślusarski | 62360 | Montaż parapetów | mb | 200 | 
+7 | Montaż stolarki i ślusarski | 62361 | Montaż progu drzwi wejściowych | szt | 150 | 
+7 | Montaż stolarki i ślusarski | 62362 | Obróbka drzwi ukrytych bez montażu ościeży | szt | 800 | 
+7 | Montaż stolarki i ślusarski | 62363 | Regulacja okien | szt | 40 | 
+7 | Montaż stolarki i ślusarski | 62364 | Silikonowanie parapetu | mb | 30 | 
+7 | Montaż stolarki i ślusarski | 62365 | Wklejanie opasek drzwi + docinanie listew | kpl | 200 | 
+7 | Montaż stolarki i ślusarski | 62366 | Dopasowanie otworów pod montaż drzwi - zmniejszenie otworu | szt | 200 | 
+7 | Montaż stolarki i ślusarski | 62367 | Poszerzenie otworów drzwi | szt | 350 | 
+9 | Instalacja elektryczna i oświetleniowa | 62368 | Wykonanie punktów oświetleniowych, czujki, rolety | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 62369 | Wykonanie punktu lan, kamery, internet | m² | 250 | 
+9 | Instalacja elektryczna i oświetleniowa | 62370 | Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla | szt | 130 | 
+9 | Instalacja elektryczna i oświetleniowa | 62371 | Punkty elektryczne żelbet dodatek | szt | 50 | 
+9 | Instalacja elektryczna i oświetleniowa | 62372 | Układanie przewodów w peszlu | mb | 40 | 
+9 | Instalacja elektryczna i oświetleniowa | 62373 | Doprowadzenie kabla do rolet zewnętrznych + przebicie | kpl | 350 | 
+9 | Instalacja elektryczna i oświetleniowa | 62374 | Doprowadzenie przewodu 3-fazowego | kpl | 300 | 
+9 | Instalacja elektryczna i oświetleniowa | 62375 | Doprowadzenie przewodu 3-fazowego do rozdzielni, wniosek do E.ON, wymiana bezpiecznika przedlicznikowego i przygotowanie instalacji | kpl | 1500 | 
+9 | Instalacja elektryczna i oświetleniowa | 62376 | Doprowadzenie przewodu 3-fazowego z montażem gniazda | kpl | 500 | 
+9 | Instalacja elektryczna i oświetleniowa | 62377 | Montaż gniazdek i włączników | szt | 39 | 
+9 | Instalacja elektryczna i oświetleniowa | 62378 | Montaż włączników schodowych/krzyżowych | szt | 70 | 
+9 | Instalacja elektryczna i oświetleniowa | 62379 | Montaż master switch; stycznik + master switch | kpl | 450 | 
+9 | Instalacja elektryczna i oświetleniowa | 62380 | Montaż czujnika termostatycznego ze sterownikiem do ogrzewania podłogowego | szt | 250 | 
+9 | Instalacja elektryczna i oświetleniowa | 62381 | Montaż gniazda TV i internet | szt | 200 | 
+9 | Instalacja elektryczna i oświetleniowa | 62382 | Wykonanie gniazda zewnętrznego na balkonie z przebiciem się przez ściane | szt | 220 | 
+9 | Instalacja elektryczna i oświetleniowa | 62383 | Montaż gniazdek i włączników smart home - cena +/- w zależności od osprzętu | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 62384 | Montaż kanału TV - wykucie i osadzenie + tynk - ściana działowa miękka | szt | 700 | 
+9 | Instalacja elektryczna i oświetleniowa | 62385 | Montaż kanału TV - wykucie i osadzenie + tynk - ściana żelbetowa | szt | 1000 | 
+9 | Instalacja elektryczna i oświetleniowa | 62386 | Montaż kinkietów | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 62387 | Montaż lamp ze składaniem (trudne) | szt | 150 | 
+9 | Instalacja elektryczna i oświetleniowa | 62388 | Montaż prostych lamp (bez składania) | szt | 100 | 
+9 | Instalacja elektryczna i oświetleniowa | 62389 | Montaż szynoprzewodów natynkowych | mb | 120 | 
+9 | Instalacja elektryczna i oświetleniowa | 62390 | Montaż profili LED podtynkowych w suficie | mb | 160 | 
+9 | Instalacja elektryczna i oświetleniowa | 62391 | Montaż listew LED + taśm LED | kpl | 150 | 
+9 | Instalacja elektryczna i oświetleniowa | 62392 | Lutowanie taśm LED | pkt | 30 | 
+9 | Instalacja elektryczna i oświetleniowa | 62393 | Montaż taśm LED | mb | 60 | 
+9 | Instalacja elektryczna i oświetleniowa | 62394 | Montaż transformatorów | szt | 120 | 
+9 | Instalacja elektryczna i oświetleniowa | 62395 | Montaż okapu i podłączenie do wentylacji | kpl | 350 | 
+9 | Instalacja elektryczna i oświetleniowa | 62396 | Montaż puszek elektrycznych | pkt | 35 | 
+9 | Instalacja elektryczna i oświetleniowa | 62397 | Montaż uchwytu TV | kpl | 250 | 
+9 | Instalacja elektryczna i oświetleniowa | 62398 | Montaż wentylatora łazienkowego | kpl | 120 | 
+9 | Instalacja elektryczna i oświetleniowa | 62399 | Montaż rozdzielni CCTV - wycena indywidualna | kpl | 1500 | 
+9 | Instalacja elektryczna i oświetleniowa | 62400 | Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów | kpl | 1200 | 
+9 | Instalacja elektryczna i oświetleniowa | 62401 | Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów | kpl | 1500 | 
+9 | Instalacja elektryczna i oświetleniowa | 62402 | Montaż/przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 24 modułów | kpl | 2100 | 
+9 | Instalacja elektryczna i oświetleniowa | 62403 | Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika | szt | 200 | 
+9 | Instalacja elektryczna i oświetleniowa | 62404 | Wymiana bezpiecznika 3-fazowego | szt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62405 | Montaż grzejnika z zaworami | szt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62406 | Likwidacja punktów wod-kan | pkt | 120 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62407 | Montaż filtra wody | szt | 500 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62408 | Montaż grzejników dekoracyjnych z zaworami | szt | 450 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62409 | Przebudowa punktów centralnego ogrzewania | pkt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62410 | Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni | pkt | 250 | 
+10 | Instalacja wodno-kanalizacyjna + c.o. | 62411 | Rozkucie i zatynkowanie podejść grzejnikowych | kpl | 300 | 

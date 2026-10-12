@@ -1,0 +1,461 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł; katalog: duże mieszkania deweloperskie ok. 2000 zł, poza Warszawą wyżej — lokalizacja nieznana",
+    "assumptions": "1 kpl na cały remont — segment dwupoziomowy ok. 73 m², stan deweloperski bez zmian układu"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "2 big bagi — katalog: rynek pierwotny bez wyburzeń; docinki płytek, paneli, GK, opakowania"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Sprzątanie i przygotowanie pomieszczeń do odbioru",
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "qty": 1,
+    "missingData": "brak w szablonie i w katalogu — do wyceny (Cena j.m. pusta)",
+    "assumptions": "1 kpl — Notatki: „Uporządkowanie miejsca prowadzenia prac. Przygotowanie pomieszczeń do odbioru.”"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 72.81,
+    "missingData": "czy wycena dotyczy jednego lokalu (segmentu) — rzut pokazuje dwa lustrzane lokale; przy obu ilości ×2",
+    "assumptions": "m² podłogi obu poziomów z klatką schodową (katalog): parter 37,52 + piętro 35,29 — Notatki: zabezpieczenie stolarki, schodów i ciągów komunikacyjnych. wymiary pomieszczeń odczytane ze zdjęć rzutów w skali z podanych m² (rzuty podają tylko powierzchnie i wymiary otworów); wycena dla jednego lokalu — oba lokale na rzucie są lustrzane, o tych samych m²"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 4,
+    "missingData": "materiał ścian przy podejściach — przy żelbecie 150 zł/mb zamiast 80",
+    "assumptions": "ok. 2 mb na łazienkę (katalog) × 2 łazienki — przeróbki podejść pod stelaże i umywalki"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 10,
+    "missingData": "materiał ścian — przy żelbecie 45 zł/mb zamiast 25",
+    "assumptions": "2 mb na punkt (katalog) × 5 nowych punktów z Notatek"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 68.58,
+    "assumptions": "pod wylewkę samopoziomującą (59,98 m²) i pod płytki w łazienkach (8,60 m²) — Notatki: „Gruntowanie podłoży”"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "qty": 59.98,
+    "missingData": "stan wylewek dewelopera — jeśli równe, pozycja może się zmniejszyć do pojedynczych pomieszczeń",
+    "assumptions": "Notatki: wylewka samopoziomująca pod panele winylowe klejone; katalog: pod klejony winyl w 95% przypadków — wszystkie podłogi poza łazienkami i schodami, parter 31,07 + piętro 28,91 m²"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Klejenie paneli winylowych mijanka",
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "qty": 59.98,
+    "missingData": "wiatrołap, przedpokój i aneks: winyl jak w Notatkach czy terakota jak na rzucie dewelopera (gres zamiast winylu na ok. 10,3 m² ≈ +1,0 tys. zł)",
+    "assumptions": "Notatki: „paneli winylowych klejonych w prostym układzie mijankowym” — wszędzie poza łazienkami, także wiatrołap, przedpokój i aneks, które rzut dewelopera opisuje jako „terakota” (Notatki mówią o płytkach tylko w łazienkach)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "qty": 54,
+    "missingData": "listwy malowane czy gotowe białe (malowanie listew 25 zł/mb nie liczone)",
+    "assumptions": "obwód bez łazienek i ścian klatki schodowej 71,76 mb minus 25% na zabudowy (katalog: lepiej niedoszacować)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Akrylowanie listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 16.0,
+    "qty": 54,
+    "assumptions": "tyle samo co listew (katalog)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "qty": 171.94,
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może być lżejsza",
+    "assumptions": "Notatki: gładź na ścianach — ściany bez łazienek: 35,88 mb parteru + 45,72 mb piętra × 2,68 m minus otwory = 180,04 m², minus ściana za szafkami kuchennymi 8,10 m² (Manual). wysokość 2,68 m — rzut jej nie podaje, Manual: stan deweloperski. otwory odliczone wg rzutu (szer./wys.): okna, drzwi tarasowe 200/240, wejściowe 90/205, drzwi wewnętrzne 80/200"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "qty": 61.73,
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może być lżejsza",
+    "assumptions": "Notatki: gładź na sufitach — sufity bez łazienek: parter 31,07 + piętro 30,66 m² (powierzchnie z rzutu; pod schodami parteru brak sufitu)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony",
+    "unit": "m²",
+    "clientPrice": 35.0,
+    "qty": 8,
+    "missingData": "wysokość klatki schodowej — rzut jej nie pokazuje",
+    "assumptions": "ściany nad biegiem schodów, poza zasięgiem z podłogi — szacunek agenta ok. 8 m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 233.67,
+    "assumptions": "Notatki: gruntowanie przed gładzią i ponowne po szlifowaniu — wszystkie ściany i sufity z gładzią"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 52.12,
+    "missingData": "czy deweloper osadził narożniki na glifach",
+    "assumptions": "glify okien i drzwi tarasowych/balkonowych 41,40 mb (wymiary z rzutu) + 4 narożniki zewnętrzne przy klatce schodowej × 2,68 m"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 10,
+    "assumptions": "Notatki: „Uzupełnienie bruzd po wykonaniu instalacji” — tyle, ile bruzd; gładź po bruzdach nie, bo gładź idzie na całe ściany (katalog)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "qty": 241.77,
+    "missingData": "kolor ścian — w kolorze 26 zł/m² zamiast 22 zł/m²",
+    "assumptions": "Notatki: dwukrotne malowanie ścian i sufitów — ściany 180,04 m² (z pasem za kuchnią) + sufity 61,73 m², zakładam na biało"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 141.6,
+    "assumptions": "Notatki: akrylowanie połączeń ścian i sufitów (81,60 mb) i ościeżnic ze ścianami (6 drzwi × 2 strony × ok. 5 mb)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 10,
+    "missingData": "stan podejść dewelopera — czy wanna i pralka mają podejścia w miejscu z rzutu (+250 zł za punkt)",
+    "assumptions": "przeróbki podejść pod rzut: stelaże WC 2 × 2 pkt + umywalki 2 × 3 pkt; wanna i pralka zakładam na istniejących podejściach dewelopera"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 3,
+    "missingData": "czy rury dewelopera są przed ścianami czy już w bruzdach (wtedy pozycja wypada)",
+    "assumptions": "katalog: w deweloperce rury idą przed ścianą — wkucie zespołów: 2 umywalki + wanna"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "Notatki: zabudowy stelaży podtynkowych — WC w obu łazienkach (rzut)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "zabudowa GK obu stelaży"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie zabudowy rur z gk",
+    "unit": "mb",
+    "clientPrice": 250.0,
+    "qty": 5.36,
+    "missingData": "czy piony w łazienkach są do zabudowy (na rzucie tylko symbol)",
+    "assumptions": "Notatki: zabudowy instalacyjne z GK — pion w narożniku każdej łazienki (kółko na rzucie) × 2,68 m"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż wanny z zabudową z bloczków i rewizją",
+    "unit": "kpl",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "assumptions": "wanna w łazience na piętrze (rzut) — obudowa z bloczków z rewizją, płytki na froncie"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 57.06,
+    "assumptions": "ściany 39,86 + podłogi i sufity 8,60 m² obu łazienek — Notatki: przygotowanie ścian i podłóg pod płytki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 48.46,
+    "assumptions": "katalog: w łazience na wszystkich ścianach i podłodze — ściany 39,86 + podłogi 8,60 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 32,
+    "assumptions": "ok. 15 mb na łazienkę 4 m² (katalog): parter 3,97 m² → 15 mb, piętro 4,63 m² → 17 mb"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 39.86,
+    "missingData": "wysokość płytek — przy płytkach do 2,0 m ok. 11,5 m² ścian przechodzi na malowanie (≈ −1,6 tys. zł); format płytek",
+    "assumptions": "płytki do sufitu na wszystkich ścianach (założenie): parter 7,98 mb, piętro 8,86 mb × 2,68 m minus drzwi i okna; front wanny w płytkach w miejsce ściany za wanną. wysokość 2,68 m — rzut jej nie podaje, Manual: stan deweloperski"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 8.6,
+    "missingData": "format płytek podłogowych",
+    "assumptions": "podłogi łazienek z rzutu: 3,97 + 4,63 m², format standard zakładam"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 48.46,
+    "assumptions": "fugowanie = wszystkie płytki (Manual)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 45,
+    "assumptions": "Manual: 20–30 mb na łazienkę — piętro z wanną 25, parter bez prysznica 20"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 25,
+    "assumptions": "katalog: parter WC 5 + umywalka 3 + puszki 2 + kratka 1; piętro WC 5 + umywalka 3 + bateria wannowa natynkowa 2 + puszki przy lustrze 2 + pralka 1 + kratka 1"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 5,
+    "missingData": "czy narożniki szlifowane 45° czy profile",
+    "assumptions": "narożniki zewnętrzne zabudów stelaży i obudowy wanny — szacunek, katalog: przy wątpliwościach nie zawyżaj"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 16.84,
+    "assumptions": "styk płytek z sufitem — obwody obu łazienek (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 8.6,
+    "assumptions": "sufity łazienek — jedyne powierzchnie bez płytek przy płytkach do sufitu (Notatki: malowanie powierzchni nieobjętych płytkami)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 2,
+    "assumptions": "Notatki: montaż WC — oba WC podwieszane na stelażach"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki wiszącej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 2,
+    "missingData": "umywalki wiszące czy na szafce (szafka + 250 zł, umywalka nablatowa 130 zł)",
+    "assumptions": "umywalki w obu łazienkach (rzut) — zakładam wiszące"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 2,
+    "assumptions": "baterie umywalkowe natynkowe — standard"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "bateria podtynkowa: 900 zł + biały montaż 200 zł zamiast 250 zł",
+    "assumptions": "bateria wannowa natynkowa — standard"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż parawanu nawannowego",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "missingData": "czy w łazience na parterze ma być prysznic — rzut pokazuje tylko WC i umywalkę (brodzik z kabiną, 2 punkty wod-kan i bateria ≈ +2,3 tys. zł)",
+    "assumptions": "Notatki: montaż kabin i ścianek prysznicowych — na rzucie jest tylko wanna, więc parawan nawannowy"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 2,
+    "assumptions": "syfony umywalek (wanna ma syfon w pozycji wanny)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 2,
+    "assumptions": "Notatki: montaż luster — po jednym w łazience"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 6,
+    "assumptions": "Notatki: montaż akcesoriów — po 3 w łazience (wieszak, uchwyt na papier, haczyk)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "missingData": "kratka czy wentylator (120 zł)",
+    "assumptions": "kratki wentylacyjne w obu łazienkach — standard wykończenia"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Podłączenie pralki",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "pralka „P” w łazience na piętrze (rzut)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 4,
+    "assumptions": "osprzęt w łazienkach: gniazdo przy lustrze w obu + gniazdo pralki i łącznik na piętrze"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "assumptions": "Notatki: podstawowe oświetlenie — po jednej lampie w łazience"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 6,
+    "missingData": "liczba drzwi — czy wiatrołap dostaje drzwi",
+    "assumptions": "Notatki: drzwi wewnętrzne z ościeżnicami regulowanymi — 6 otworów 80/200 na rzutach: wiatrołap, łazienka (parter), dwa pokoje, gabinet, łazienka (piętro)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 5,
+    "missingData": "rozmieszczenie 5 punktów — jest w Notatkach tylko liczba",
+    "assumptions": "Notatki: „około 5 dodatkowych punktów elektrycznych” — z wierceniem, puszką i kablem"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż puszek elektrycznych",
+    "unit": "pkt",
+    "clientPrice": 35.0,
+    "qty": 5,
+    "assumptions": "Notatki: osadzenie puszek — przy każdym nowym punkcie"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 34,
+    "missingData": "liczba puszek dewelopera — rzut elektryczny nie był dołączony",
+    "assumptions": "Notatki: montaż gniazd i łączników — cały osprzęt poza łazienkami, szacunek agenta: salon 8, aneks 6, wiatrołap i przedpokój 3, gabinet 4, pokoje 5 + 4, przedpokój piętra 2, z 5 nowymi"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "qty": 2,
+    "assumptions": "łącznik schodowy na dole i na górze schodów — dom dwupoziomowy"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż prostych lamp (bez składania)",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 10,
+    "missingData": "zakres oświetlenia „zgodnie z ustalonym zakresem” — modele lamp",
+    "assumptions": "Notatki: podstawowe oświetlenie — po jednej lampie: wiatrołap, przedpokój, aneks, schody, przedpokój piętra, gabinet, 2 pokoje + 2 w salonie"
+  }
+]
