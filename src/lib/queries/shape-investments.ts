@@ -12,6 +12,7 @@ import { effectiveMaterialsNetRate } from '@/lib/kosztorys/settlement-mode'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
 import { billedMaterials, computeAmountDue } from '@/lib/kosztorys/summary-economics'
 import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
+import { aiProgressOf } from '@/lib/constants/investment-ai-stage'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { InvestmentRefT } from '@/types/reference-data'
@@ -112,7 +113,8 @@ export function shapeInvestments(
       hasSheet: inv.hasSheet,
       createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,
-      hasAiDraft: clientTotals?.hasAiDraft ?? false,
+      aiProgress: aiProgressOf(inv.aiStage, clientTotals?.hasAiDraft ?? false),
+      aiStage: inv.aiStage,
       materialsNetRate: inv.materialsNetRate,
       settlementMode: inv.settlementMode,
       vatRate: inv.vatRate,

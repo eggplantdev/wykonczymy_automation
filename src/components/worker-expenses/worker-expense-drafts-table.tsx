@@ -9,16 +9,14 @@ import { ControlGrid } from '@/components/ui/control-grid'
 import { PageNav } from '@/components/ui/pagination/page-nav'
 import { PaginationBar } from '@/components/ui/pagination/pagination-bar'
 import { DeleteExpenseDraftButton } from '@/components/worker-expenses/delete-expense-draft-button'
-import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useTranslation } from '@/hooks/use-translation'
 import {
   DRAFT_STATUS_LABEL_KEYS,
   EXPENSE_DRAFT_STATUSES,
+  NO_INVESTMENT,
 } from '@/lib/constants/worker-expense-drafts'
-import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import type { CashRegisterRefT } from '@/types/reference-data'
 
 // The page also pages and filters transfers through the URL, so this table keeps its page, limit and
 // filters in state — two URL-driven tables on one page would fight over `page` / `limit` / `investment`.
@@ -27,23 +25,16 @@ const DEFAULT_PAGE_SIZE = 10
 const getStatus = (draft: ExpenseDraftRowT) => draft.status
 // What still waits on the manager is what he opens the page for; the decided ones are a filter away.
 const DEFAULT_STATUS_FILTER = ['pending']
-const getInvestment = (draft: ExpenseDraftRowT) => String(draft.investmentId)
+const getInvestment = (draft: ExpenseDraftRowT) =>
+  draft.investmentId === null ? NO_INVESTMENT : String(draft.investmentId)
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
   canSend: boolean
   canOpenTransfers: boolean
-  investments: WorkerStageInvestmentT[]
-  registers: CashRegisterRefT[]
 }
 
-export function WorkerExpenseDraftsTable({
-  drafts,
-  canSend,
-  canOpenTransfers,
-  investments,
-  registers,
-}: PropsT) {
+export function WorkerExpenseDraftsTable({ drafts, canSend, canOpenTransfers }: PropsT) {
   const { t } = useTranslation('expenseDrafts')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
@@ -65,19 +56,18 @@ export function WorkerExpenseDraftsTable({
     values: investmentFilter,
     setValues: setInvestmentFilter,
   } = useClientMultiFilter(byStatus, getInvestment)
-  // Only a pending draft can be edited or deleted, so with none listed the column would stand empty.
+  // Only a pending draft can be deleted, so with none listed the column would stand empty.
   const hasActions = canSend && filtered.some((draft) => draft.status === 'pending')
   const columns = useExpenseDraftColumns({
     isManagerView: false,
-    canEditPages: canSend,
     canOpenTransfers,
     actions: hasActions
       ? (draft) =>
           draft.status === 'pending' && (
-            <>
-              <ExpenseDraftDialog investments={investments} registers={registers} draft={draft} />
-              <DeleteExpenseDraftButton draftId={draft.id} investmentName={draft.investmentName} />
-            </>
+            <DeleteExpenseDraftButton
+              draftId={draft.id}
+              investmentName={draft.investmentName ?? t('noInvestment')}
+            />
           )
       : undefined,
   })
@@ -85,9 +75,11 @@ export function WorkerExpenseDraftsTable({
   // Off the drafts, not the props' `investments`: those are where he may send today, and his history
   // also holds investments he has since left.
   const investmentOptions = [
-    ...new Map(drafts.map((draft) => [draft.investmentId, draft.investmentName])),
+    ...new Map(
+      drafts.map((draft) => [getInvestment(draft), draft.investmentName ?? t('noInvestment')]),
+    ),
   ]
-    .map(([id, name]) => ({ value: String(id), label: name }))
+    .map(([value, label]) => ({ value, label }))
     .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
 
   const totalPages = Math.ceil(filtered.length / pageSize)

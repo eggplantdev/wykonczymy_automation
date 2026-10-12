@@ -4,10 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 import { makeLineItem } from '@/components/forms/expense-form/bulk-expense-form'
-import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense-form'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
@@ -25,31 +24,9 @@ vi.mock('@/lib/media/ingest-files', () => ({
   ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
 }))
 
-const referenceData = {
-  ...referenceDataFor('OWNER'),
-  cashRegisters: [
-    { id: 1, name: 'Kasa główna', type: 'MAIN' as const },
-    { id: 7, name: 'Kasa Jana', type: 'AUXILIARY' as const },
-  ],
-  investments: [{ id: 3, name: 'Mieszkanie Mokotów', status: 'active' as const }],
-} as unknown as ReturnType<typeof referenceDataFor>
-
-function valuesWith(overrides: Partial<BulkExpenseFormValuesT>): BulkExpenseFormValuesT {
-  return {
-    date: '2026-10-05',
-    type: 'INVESTMENT_EXPENSE',
-    paymentMethod: 'CASH',
-    sourceRegister: '',
-    targetRegister: '',
-    investment: '',
-    worker: '',
-    settled: false,
-    lineItems: [makeLineItem({ description: '' })],
-    ...overrides,
-  }
-}
-
-const halfTypedExpense = valuesWith({
+const halfTypedExpense = expenseValues({
+  sourceRegister: '',
+  investment: '',
   lineItems: [makeLineItem({ description: 'Kleje z Castoramy', amount: '120' })],
 })
 
@@ -65,14 +42,14 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
 
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [receipt]]]),
-          values: valuesWith({ investment: '3', sourceRegister: '7' }),
+          values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
       />,
     )
@@ -96,14 +73,14 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
 
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [receipt]]]),
-          values: valuesWith({
+          values: expenseValues({
             investment: '3',
             sourceRegister: '7',
             lineItems: [makeLineItem({ description: 'Klej do płytek', amount: '89.9' })],
@@ -132,14 +109,14 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
 
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, pages]]),
-          values: valuesWith({ investment: '3', sourceRegister: '7' }),
+          values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
       />,
     )
@@ -166,14 +143,14 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
 
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [new File(['jpg'], 'od-pracownika.jpg', { type: 'image/jpeg' })]]]),
-          values: valuesWith({ investment: '3', sourceRegister: '7' }),
+          values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
       />,
     )
@@ -207,14 +184,14 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
 
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [receipt]]]),
-          values: valuesWith({
+          values: expenseValues({
             investment: '3',
             sourceRegister: '7',
             lineItems: [makeLineItem({ description: 'Klej do płytek', amount: '89.9' })],
@@ -241,17 +218,21 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
 
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map([
-            [kept.id, [101]],
-            [removed.id, [102, 103]],
+          receipts: new Map([
+            [kept.id, { mediaIds: [101] }],
+            [removed.id, { mediaIds: [102, 103] }],
           ]),
           files: new Map(),
-          values: valuesWith({ investment: '3', sourceRegister: '7', lineItems: [kept, removed] }),
+          values: expenseValues({
+            investment: '3',
+            sourceRegister: '7',
+            lineItems: [kept, removed],
+          }),
         }}
       />,
     )
@@ -260,6 +241,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     await screen.findByDisplayValue('Fuga szara')
     await user.click(screen.getAllByRole('button', { name: 'Usuń' })[1])
     await user.click(screen.getByRole('button', { name: 'Zapisz' }))
+    await user.click(await screen.findByRole('button', { name: 'Zapisz bez faktury' }))
 
     await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
     expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
@@ -273,15 +255,15 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
   it('póki zgłoszenie się odczytuje, cały formularz i „Zapisz" są zablokowane', async () => {
     render(
       <ExpenseForm
-        referenceData={referenceData}
+        referenceData={expenseReferenceData}
         onSubmitSuccess={vi.fn()}
         formId="expense-draft-42"
         isPrefillReading
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })]]]),
-          values: valuesWith({ investment: '3', sourceRegister: '7' }),
+          values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
       />,
     )
@@ -293,7 +275,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
   })
 
   it('bez zgłoszenia „Nowy wydatek" odtwarza swój szkic', async () => {
-    render(<ExpenseForm referenceData={referenceData} onSubmitSuccess={vi.fn()} />)
+    render(<ExpenseForm referenceData={expenseReferenceData} onSubmitSuccess={vi.fn()} />)
 
     expect(await screen.findByDisplayValue('Kleje z Castoramy')).toBeInTheDocument()
     expect(screen.getByDisplayValue('120')).toBeInTheDocument()

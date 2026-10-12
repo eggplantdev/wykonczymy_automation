@@ -3,6 +3,7 @@ import { isAdminOrOwner } from '@/access'
 import {
   canBeSettled,
   carriesNetAmount,
+  carriesPayoutStatus,
   hasOptionalWorker,
   needsExpenseCategory,
   needsOtherCategory,
@@ -12,6 +13,7 @@ import {
   showsWorker,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
+import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { guardDeleteOnLockedInvestment } from '@/hooks/transfers/guard-delete'
 import { recalcAfterChange, recalcAfterDelete } from '@/hooks/transfers/recalculate-balances'
@@ -302,6 +304,39 @@ export const Transfers: CollectionConfig = {
           pl: 'Materiał już zawarty w cenie robocizny: schodzi z kasy, obniża marżę, inwestor NIE płaci za niego osobno.',
         },
       },
+    },
+    // --- The worker's answer to a wypłata (EX-1042) ---
+    // Written by `validateTransfer` on create and by the worker's raw-SQL decision only. A label:
+    // no figure reads it.
+    {
+      name: 'payoutStatus',
+      type: 'select',
+      options: [
+        { label: { en: 'Awaiting confirmation', pl: 'Czeka na potwierdzenie' }, value: 'pending' },
+        { label: { en: 'Confirmed', pl: 'Potwierdzona' }, value: 'accepted' },
+        { label: { en: 'Rejected', pl: 'Odrzucona' }, value: 'rejected' },
+      ] satisfies { label: { en: string; pl: string }; value: PayoutStatusT }[],
+      label: { en: 'Worker confirmation', pl: 'Potwierdzenie pracownika' },
+      access: { update: () => false },
+      admin: { readOnly: true, condition: (data) => carriesPayoutStatus(typeOf(data)) },
+    },
+    {
+      name: 'payoutDecidedAt',
+      type: 'date',
+      label: { en: 'Decided at', pl: 'Data decyzji pracownika' },
+      access: { update: () => false },
+      admin: {
+        readOnly: true,
+        condition: (data) => carriesPayoutStatus(typeOf(data)),
+        date: { pickerAppearance: 'dayAndTime' },
+      },
+    },
+    {
+      name: 'payoutRejectionReason',
+      type: 'textarea',
+      label: { en: 'Rejection reason', pl: 'Powód odrzucenia' },
+      access: { update: () => false },
+      admin: { readOnly: true, condition: (data) => carriesPayoutStatus(typeOf(data)) },
     },
     // --- Metadata ---
     {

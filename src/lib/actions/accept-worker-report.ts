@@ -34,6 +34,10 @@ import type {
 import { withTranslation } from '@/lib/i18n/description-translations'
 import { isTranslationLanguage } from '@/lib/i18n/languages'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import {
+  indexCatalogue,
+  itemsHoldingEntry,
+} from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
 import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
@@ -247,6 +251,7 @@ async function acceptInTransaction(
         ? target.stage
         : await insertWorkerStage(tx, investmentId, target.plane, workerId)
 
+  const heldByLine = await heldItemsByLine(tx, tree.items, request.extras, catalogue)
   const appended: AcceptReportResultT['appended'] = []
   const createdByLine = new Map<number, number>()
   for (const [sectionId, extras] of Map.groupBy(request.extras, (extra) => extra.sectionId)) {
@@ -254,13 +259,20 @@ async function acceptInTransaction(
     if (!owner || owner.investmentId !== investmentId) {
       throw new AcceptRefusal('Wybrana sekcja nie istnieje.')
     }
-    const items = extras.map((extra, index) =>
+    const minting = extras.filter((extra) => !heldByLine.has(extra.lineId))
+    if (minting.length === 0) continue
+    // Two lines naming one new katalog praca share the pozycja the first of them mints.
+    const groups = [
+      ...Map.groupBy(minting, (extra) => extra.catalogueItemId ?? `line:${extra.lineId}`).values(),
+    ]
+    const items = groups.map((group, index) =>
       extraAsItem(
-        extra,
-        lineById.get(extra.lineId) as WorkerReportLineRowT,
+        group[0],
+        lineById.get(group[0].lineId) as WorkerReportLineRowT,
         catalogue,
         owner.section,
         owner.nextDisplayOrder + index,
+        round6(group.reduce((sum, extra) => sum + extra.acceptedQty, 0)),
       ),
     )
     const newIds = await insertItems(
@@ -268,7 +280,9 @@ async function acceptInTransaction(
       investmentId,
       items.map((item) => ({ sectionId, item })),
     )
-    extras.forEach((extra, index) => createdByLine.set(extra.lineId, newIds[index]))
+    groups.forEach((group, index) => {
+      for (const extra of group) createdByLine.set(extra.lineId, newIds[index])
+    })
     appended.push({
       ...owner.section,
       items: items.map((item, index) => ({ ...item, id: newIds[index] })),
@@ -286,7 +300,8 @@ async function acceptInTransaction(
   if (stage) {
     for (const { decision, itemId } of rozpiskaLines) add(stage.id, itemId, decision.acceptedQty)
     for (const extra of request.extras) {
-      add(stage.id, createdByLine.get(extra.lineId) as number, extra.acceptedQty)
+      const itemId = heldByLine.get(extra.lineId) ?? createdByLine.get(extra.lineId)
+      add(stage.id, itemId as number, extra.acceptedQty)
     }
   }
   if (recordedStage) {
@@ -312,9 +327,12 @@ async function acceptInTransaction(
       lineId: decision.lineId,
       acceptedQty: decision.acceptedQty,
     })),
+    // A line summed into a pozycja it found is recorded as one re-pointed at it: an undo then takes
+    // the ilość back out and leaves the pozycja to the rozpiska.
     ...request.extras.map((extra) => ({
       lineId: extra.lineId,
       acceptedQty: extra.acceptedQty,
+      itemId: heldByLine.get(extra.lineId),
       createdItemId: createdByLine.get(extra.lineId),
       catalogueItemId: extra.catalogueItemId,
     })),
@@ -363,6 +381,47 @@ function resolveTarget(
   return { kind: 'new', plane: target.plane }
 }
 
+type ExtraDecisionT = z.infer<typeof acceptSchema>['extras'][number]
+
+/**
+ * Line → the pozycja in its sekcja that already holds its katalog praca, found as the review's swap
+ * finds it. The ilość then goes into that pozycja's etap and both przedmiary stay as they are: the
+ * work may well be in them already. Another sekcja is another pokój, so the same praca there still
+ * gets a pozycja of its own — and so does one held twice in the sekcja, where which is meant is the
+ * kierownik's call, as it is in the review.
+ */
+async function heldItemsByLine(
+  tx: DbExecutorT,
+  items: readonly KosztorysItemT[],
+  extras: readonly ExtraDecisionT[],
+  picked: ReadonlyMap<number, WorkCatalogueItemT>,
+): Promise<Map<number, number>> {
+  const heldByLine = new Map<number, number>()
+  const swapped = extras.filter((extra) => extra.catalogueItemId !== undefined)
+  if (swapped.length === 0) return heldByLine
+  const sectionIds = new Set(swapped.map((extra) => extra.sectionId))
+  const itemsBySection = Map.groupBy(
+    items.filter((item) => sectionIds.has(item.sectionId)),
+    (item) => item.sectionId,
+  )
+  const linkedIds = [
+    ...new Set([...itemsBySection.values()].flat().flatMap((item) => item.catalogueItemId ?? [])),
+  ].filter((id) => !picked.has(id))
+  const index = indexCatalogue([
+    ...picked.values(),
+    ...(await listCatalogueItemsByIds(tx, linkedIds)),
+  ])
+  for (const extra of swapped) {
+    const holders = itemsHoldingEntry(
+      index,
+      itemsBySection.get(extra.sectionId) ?? [],
+      extra.catalogueItemId as number,
+    )
+    if (holders.length === 1) heldByLine.set(extra.lineId, holders[0].id)
+  }
+  return heldByLine
+}
+
 // A katalog wpis comes over as the picker copies it; the worker's own opis gets only the cena j.m.
 // the kierownik typed — its stawki stay „auto". A translated opis lands in Polish, and the worker's
 // own words become its current translation, so his crew reads what he wrote — only in a language
@@ -370,18 +429,19 @@ function resolveTarget(
 // The work was never offered, so Przedmiar ofertowy stays 0 and the accepted quantity is the scope
 // it grew by (EX-921).
 function extraAsItem(
-  extra: z.infer<typeof acceptSchema>['extras'][number],
+  extra: ExtraDecisionT,
   line: WorkerReportLineRowT,
   catalogue: ReadonlyMap<number, WorkCatalogueItemT>,
   section: KosztorysSectionT,
   displayOrder: number,
+  acceptedQty: number,
 ): KosztorysItemT {
   const entry =
     extra.catalogueItemId === undefined ? undefined : catalogue.get(extra.catalogueItemId)
   if (entry) {
     return {
       ...itemFromFields(entry, section.id, displayOrder, entry.id),
-      currentPlannedQty: extra.acceptedQty,
+      currentPlannedQty: acceptedQty,
     }
   }
   const language = line.descriptionLanguage
@@ -397,7 +457,7 @@ function extraAsItem(
         : {},
     unit: line.unit,
     plannedQty: 0,
-    currentPlannedQty: extra.acceptedQty,
+    currentPlannedQty: acceptedQty,
     sheetMeasuredQty: null,
     discountType: null,
     discountValue: 0,

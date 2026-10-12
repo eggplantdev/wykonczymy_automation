@@ -125,6 +125,7 @@ export async function createKosztorysTree(
         label: stage.label ?? null,
         plane: stage.plane ?? null,
         splitMode: split?.mode ?? 'percent',
+        completed: stage.completed ?? false,
       },
       ...FIXTURE_CONTEXT,
     })

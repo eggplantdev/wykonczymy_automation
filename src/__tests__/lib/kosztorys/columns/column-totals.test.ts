@@ -43,8 +43,8 @@ const tree: KosztorysTreeT = makeTree({
     },
   ],
   stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
-    { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null },
+    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+    { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
   ],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 2 },
@@ -128,7 +128,9 @@ describe('columnTotalsForRows', () => {
           ],
         },
       ],
-      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null }],
+      stages: [
+        { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+      ],
       progress: [{ itemId: 60, stageId: 100, qtyDone: 1 }],
       vatRate: 0.08,
     })
@@ -249,7 +251,7 @@ describe('Aktualizacja przedmiaru w sumach', () => {
         ],
       },
     ],
-    stages: [{ id: 300, ordinal: 1, label: null, plane: null, split: null }],
+    stages: [{ id: 300, ordinal: 1, label: null, plane: null, split: null, completed: false }],
     progress: [{ itemId: 9, stageId: 300, qtyDone: 12 }],
     vatRate: 0.08,
   })

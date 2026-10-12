@@ -32,7 +32,9 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
   } satisfies KosztorysItemT
 }
 
-const STAGES = [{ id: 100, ordinal: 1, label: null, plane: 'w_tools' as const, split: null }]
+const STAGES = [
+  { id: 100, ordinal: 1, label: null, plane: 'w_tools' as const, split: null, completed: false },
+]
 
 // Sekcja A: two priced pozycje plus one empty on both axes — no przedmiar, no etap. Sekcja B holds
 // nothing but such pozycje, so the client's document has no Sekcja B at all.

@@ -1,13 +1,19 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { InvestmentNoteBody } from '@/components/investments/investment-note-body'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { CollapsibleSection, OPEN_STATES } from '@/components/ui/collapsible-section'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import { updateInvestmentAction } from '@/lib/actions/investments'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentRefT } from '@/types/reference-data'
+
+// One key for every investment: collapsing a long note is a reading preference, not a per-record one.
+const NOTES_STORAGE_KEY = 'investment:notes'
 
 type PropsT = {
   investment: InvestmentRefT
@@ -18,6 +24,12 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
   const [draft, setDraft] = useState<string | undefined>(undefined)
   const [isSaving, startSaving] = useTransition()
   const isEditing = draft !== undefined
+  const [, setIsOpen] = usePersistedFlag(NOTES_STORAGE_KEY, OPEN_STATES, true)
+
+  function startEditing() {
+    setIsOpen(true)
+    setDraft(investment.notes)
+  }
 
   function save() {
     startSaving(async () => {
@@ -46,20 +58,26 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
   }
 
   return (
-    <div className="flex flex-col gap-2 text-sm">
-      <div className="flex min-h-8 items-center justify-between gap-2">
-        <span className="text-muted-foreground font-medium">Notatki</span>
-        {!readOnly && !isEditing && (
+    <CollapsibleSection
+      title="Notatki"
+      storageKey={NOTES_STORAGE_KEY}
+      size="sm"
+      withSeparator={false}
+      className="text-sm"
+      action={
+        !readOnly &&
+        !isEditing && (
           <EditButton
             label="Edytuj notatkę"
             text="Edytuj notatkę"
             showLabel
-            onClick={() => setDraft(investment.notes)}
+            onClick={startEditing}
           />
-        )}
-      </div>
+        )
+      }
+    >
       {isEditing ? (
-        <>
+        <div className="flex flex-col gap-2">
           <Textarea
             aria-label="Notatki"
             value={draft}
@@ -80,10 +98,10 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
               Anuluj
             </Button>
           </div>
-        </>
+        </div>
       ) : (
-        <div className="whitespace-pre-line">{investment.notes || '—'}</div>
+        <InvestmentNoteBody note={investment.notes} />
       )}
-    </div>
+    </CollapsibleSection>
   )
 }

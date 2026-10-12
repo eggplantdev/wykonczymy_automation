@@ -1,7 +1,9 @@
 import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
 import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { isPayoutStatus } from '@/lib/constants/payout-confirmation'
 import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
+import type { ClosedDateRangeT } from '@/lib/utils/date-range'
 
 type UserContextT = {
   id: number
@@ -119,6 +121,13 @@ export function buildTransferFilters(
     else where.id = NO_RESULTS
   }
 
+  const payoutStatusParam = getStringParam(searchParams.payoutStatus)
+  if (payoutStatusParam) {
+    const statuses = payoutStatusParam.split(',').filter(isPayoutStatus)
+    if (statuses.length > 0) where.payoutStatus = { in: statuses }
+    else where.id = NO_RESULTS
+  }
+
   const expenseCategoryParam = getStringParam(searchParams.expenseCategory)
   const expenseCategoryIds = parseNumericIds(expenseCategoryParam)
   if (expenseCategoryIds.length > 0) where.expenseCategory = { in: expenseCategoryIds }
@@ -160,6 +169,15 @@ export function buildTransferFilters(
   }
 
   return where
+}
+
+// Routed through the Typ param rather than overwriting `where.type`, so audit mode re-aims it at the
+// cancelled original like any other Typ scope.
+export function buildPayoutFilters(
+  searchParams: ResolvedSearchParamsT,
+  userContext: UserContextT,
+): Where {
+  return buildTransferFilters({ ...searchParams, type: 'PAYOUT' }, userContext)
 }
 
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,
@@ -210,6 +228,8 @@ export const FIELDS_ONLY_THE_ORIGINAL_CARRIES = [
   // Joined the list when the method stopped being copied onto the audit row: an anulowanie is never
   // asked how it was paid, so „anulowania przelewem" can only mean the original's method.
   'paymentMethod',
+  // An anulowanie is born with no status, so „anulowane odrzucone" can only mean the original's.
+  'payoutStatus',
 ] as const
 
 /**
@@ -254,6 +274,19 @@ export function stripOriginalScopedFilters(where: Where): Where {
   return mapWhereLeaves(where, (field, condition) =>
     field.startsWith(ORIGINAL_PATH_PREFIX) ? undefined : [field, condition],
   )
+}
+
+/**
+ * Swap whatever date window the scope carries for `range`, wherever in the tree it sits. A swap, not
+ * an intersection: the invoice dialog's range is the answer to „which dates", so the table's own
+ * Od/Do narrowing it further would hand back an empty archive for a month the table isn't showing.
+ */
+export function withDateRange(where: Where, { from, to }: ClosedDateRangeT): Where {
+  const undated = mapWhereLeaves(where, (field, condition) =>
+    field === 'date' ? undefined : [field, condition],
+  )
+  const dateWindow: Where = { date: { greater_than_equal: from, less_than_equal: to } }
+  return Object.keys(undated).length > 0 ? { and: [undated, dateWindow] } : dateWindow
 }
 
 /**

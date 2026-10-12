@@ -4,6 +4,7 @@ import { canViewWorkerPage, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { InstallAppButton } from '@/components/pwa/install-app-button'
+import { PushToggle } from '@/components/pwa/push-toggle'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { createTranslator } from '@/lib/i18n/translations'
 import { ROLE_KEYS } from '@/lib/i18n/role-keys'
@@ -16,6 +17,7 @@ import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
 import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
 import { fetchWorkerReportHistory } from '@/lib/queries/worker-report-history'
+import { fetchPayoutsToConfirm } from '@/lib/queries/payout-confirmation'
 import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { fetchTransferFacets } from '@/lib/queries/transfer-totals'
 import { TRANSFER_TYPES } from '@/lib/constants/transfers'
@@ -25,6 +27,7 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
+import { PayoutsToConfirm } from '@/components/payouts/payouts-to-confirm'
 import { WorkerQuickActions } from '@/components/users/worker-quick-actions'
 import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
 import { WorkerReportsSection } from '@/components/worker-reports/worker-reports-section'
@@ -74,6 +77,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     stageInvestments,
     expenseDrafts,
     workReports,
+    payoutsToConfirm,
   ] = await Promise.all([
     fetchUserLanguage(currentUser.id),
     refDataPromise,
@@ -83,6 +87,8 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     fetchWorkerStageInvestments(userId),
     fetchWorkerExpenseDrafts(userId),
     fetchWorkerReportHistory(userId),
+    // Only his own: the answer is his to give, and management reads the status on /wyplaty.
+    isOwnPage ? fetchPayoutsToConfirm(userId) : [],
   ])
 
   const worker = refData.workers.find((w) => w.id === userId)
@@ -115,6 +121,14 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ...(isManager ? [{ label: t('role'), value: t(ROLE_KEYS[role]) }] : []),
     { label: t('email'), value: worker.email },
     ...(isManager ? [{ label: t('status'), value: t(worker.active ? 'active' : 'inactive') }] : []),
+    ...(isManager
+      ? [
+          {
+            label: t('expensesWithoutInvestment'),
+            value: t(worker.canAddExpensesWithoutInvestment ? 'yes' : 'no'),
+          },
+        ]
+      : []),
     {
       label: t('defaultLanguage'),
       value: isOwnPage ? (
@@ -133,14 +147,17 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
           {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
           {isOwnPage && <InstallAppButton />}
+          {isOwnPage && <PushToggle className="w-fit" />}
         </div>
       )}
       <InfoList items={infoFields} />
+      {isOwnPage && <PayoutsToConfirm payouts={payoutsToConfirm} />}
       {isOwnPage && (
         <WorkerQuickActions
           investmentLinks={investmentLinks}
           sendableRegisters={sendableRegisters}
           defaultRegisterId={worker.defaultCashRegisterId}
+          canSkipInvestment={worker.canAddExpensesWithoutInvestment}
           locale={locale}
         />
       )}
@@ -158,10 +175,8 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       />
       <WorkerExpenseDraftsSection
         drafts={expenseDrafts}
-        investments={stageInvestments}
         canSend={isOwnPage}
         canOpenTransfers={isManager}
-        sendableRegisters={sendableRegisters}
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />
@@ -190,6 +205,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
               },
               invoiceDownload: isManager,
               print: isManager,
+              uncoloredAmounts: true,
               cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
             }}
           />

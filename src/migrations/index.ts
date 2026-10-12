@@ -134,6 +134,12 @@ import * as migration_20261008_2_add_kosztorys_item_ai_comment from './20261008_
 import * as migration_20261008_3_add_company_knowledge from './20261008_3_add_company_knowledge'
 import * as migration_20261009_1_client_view_planned_done_percent_hidden from './20261009_1_client_view_planned_done_percent_hidden'
 import * as migration_20261009_2_worker_view_offer_columns_hidden from './20261009_2_worker_view_offer_columns_hidden'
+import * as migration_20261009_3_worker_expense_without_investment from './20261009_3_worker_expense_without_investment'
+import * as migration_20261009_4_kosztorys_stages_completed from './20261009_4_kosztorys_stages_completed'
+import * as migration_20261011_1_add_payout_confirmation from './20261011_1_add_payout_confirmation'
+import * as migration_20261011_2_add_push_subscriptions from './20261011_2_add_push_subscriptions'
+import * as migration_20261012_0_add_investment_ai_stage from './20261012_0_add_investment_ai_stage'
+import * as migration_20261012_1_add_skipped_receipt_read_row from './20261012_1_add_skipped_receipt_read_row'
 
 export const migrations = [
   {
@@ -815,5 +821,35 @@ export const migrations = [
     up: migration_20261009_2_worker_view_offer_columns_hidden.up,
     down: migration_20261009_2_worker_view_offer_columns_hidden.down,
     name: '20261009_2_worker_view_offer_columns_hidden',
+  },
+  {
+    up: migration_20261009_3_worker_expense_without_investment.up,
+    down: migration_20261009_3_worker_expense_without_investment.down,
+    name: '20261009_3_worker_expense_without_investment',
+  },
+  {
+    up: migration_20261009_4_kosztorys_stages_completed.up,
+    down: migration_20261009_4_kosztorys_stages_completed.down,
+    name: '20261009_4_kosztorys_stages_completed',
+  },
+  {
+    up: migration_20261011_1_add_payout_confirmation.up,
+    down: migration_20261011_1_add_payout_confirmation.down,
+    name: '20261011_1_add_payout_confirmation',
+  },
+  {
+    up: migration_20261011_2_add_push_subscriptions.up,
+    down: migration_20261011_2_add_push_subscriptions.down,
+    name: '20261011_2_add_push_subscriptions',
+  },
+  {
+    up: migration_20261012_0_add_investment_ai_stage.up,
+    down: migration_20261012_0_add_investment_ai_stage.down,
+    name: '20261012_0_add_investment_ai_stage',
+  },
+  {
+    up: migration_20261012_1_add_skipped_receipt_read_row.up,
+    down: migration_20261012_1_add_skipped_receipt_read_row.down,
+    name: '20261012_1_add_skipped_receipt_read_row',
   },
 ]

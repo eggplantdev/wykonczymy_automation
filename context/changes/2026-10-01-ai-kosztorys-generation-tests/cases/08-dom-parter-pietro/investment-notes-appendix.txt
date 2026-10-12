@@ -1,0 +1,24 @@
+=== Wycena AI (test, 2026-10-12) — AI przedmiar z rysunków projektanta ===
+86 pozycji, AI przedmiar 166 628,82 zł (netto, ceny j.m. z szablonu). Dom dwupoziomowy: parter + piętro.
+
+Jak liczone: rysunki projektanta wnętrz (parter 28.05.2025, piętro 17.06.2025) mają wpisane wymiary i powierzchnie płytek, sufitów i podłóg, więc nic nie było skalowane. Wysokości z przekrojów: parter 2,80 m, piętro 2,75 m. Punkty elektryczne i oprawy z legend (po jednej na piętro). Ściany malowane i długości listew to szacunek z obrysu — rysunki ich nie podają.
+
+W kolumnie Komentarz AI: „Co / ile założono” i „Czego nie było wiadomo”.
+
+Przedmiar 0 świadomie: stolarka meblowa i zabudowy, blaty ze spieku i wyspa, schody (stopnie, beton, impregnat, balustrada), przegroda stalowo-szklana z drzwiami podwójnymi, klimatyzacja (osobny projekt), zasłony, panel z roślinami, nisze kosmetyczne wkute w ścianę (brak pozycji w szablonie).
+
+Najważniejsze założenia (ruszają wieloma pozycjami naraz):
+- Ściany istniejące, gładkie, tylko malowanie z poprawkami. Jeśli stan deweloperski/surowy: pełna gładź na ok. 155 m² to ok. +11 600 zł.
+- Bruzdy elektryczne 200 mb w materiale miękkim (limit domu > 100 m²). Jeśli żelbet (45 zł/mb zamiast 25): ok. +4 000 zł.
+- Wylewka samopoziomująca na całym domu, 102,9 m² = 5 660 zł. Wypada, jeśli istniejące wylewki są równe.
+- Listwy aluminiowe 57 mb po 120 zł = 6 840 zł; długość szacowana (obwód minus zabudowy).
+- Płytka na ścianach łazienki z wanną: rysunki podają tylko podłogę, założone 14 m² (ok. 2 520 zł). Spiek w kuchni 8,75 m² po 550 zł/m² = 4 813 zł — przy dużym formacie stawka może być wyższa.
+
+Do ustalenia z klientem:
+- stan ścian i wylewek (oględziny), materiał ściany do wyburzenia na piętrze,
+- deska Kahrs 10 mm: klejona czy pływająca (cena j.m. parkietu 60083 może nie pasować),
+- kto montuje karnisze i drzwi/przegrodę stalowo-szklaną,
+- czy dom jest zamieszkany w trakcie prac (zabezpieczenie 45 zł/m²),
+- rzeczywista ilość gruzu (kontener).
+
+Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/08-dom-parter-pietro

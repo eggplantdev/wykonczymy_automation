@@ -46,12 +46,14 @@ const WRITER_JSON = JSON.stringify({
   private_key: 'key',
 })
 
-// Production carries the Editor credential, so a spec about anything ELSE in production has to
-// carry it too — otherwise it fails on the guard below instead of on its own subject.
+// Production carries the Editor credential and the VAPID pair, so a spec about anything ELSE in
+// production has to carry them too — otherwise it fails on those guards instead of on its own subject.
 const productionEnv = {
   ...baseEnv,
   VERCEL_ENV: 'production',
   GOOGLE_SERVICE_ACCOUNT_WRITE_JSON: WRITER_JSON,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: 'public-key',
+  VAPID_PRIVATE_KEY: 'private-key',
 }
 
 describe('serverSchema — production Blob token guard', () => {
@@ -194,4 +196,26 @@ describe('serverSchema — Editor service-account credential', () => {
 
     expect(result.success).toBe(true)
   })
+})
+
+describe('serverSchema — Web Push key pair', () => {
+  const productionWithProdToken = { ...productionEnv, BLOB_READ_WRITE_TOKEN: PROD_TOKEN }
+
+  it.each(['NEXT_PUBLIC_VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'] as const)(
+    'refuses a production boot without %s',
+    (key) => {
+      const { [key]: _absent, ...withoutKey } = productionWithProdToken
+      const result = serverSchema.safeParse(withoutKey)
+
+      expect(result.success).toBe(false)
+      expect(result.error?.issues.map((issue) => issue.path.join('.'))).toEqual([key])
+    },
+  )
+
+  it.each(['preview', 'development', undefined])(
+    'does not demand the pair when VERCEL_ENV is %s, where its absence IS the gate',
+    (vercelEnv) => {
+      expect(serverSchema.safeParse({ ...baseEnv, VERCEL_ENV: vercelEnv }).success).toBe(true)
+    },
+  )
 })

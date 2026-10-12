@@ -129,7 +129,7 @@ the second figure below drops the term for an unrelated reason.
 
 ## The second marża — prognoza and marża rzeczywista (EX-649, 2026-08-18)
 
-The formula above is untouched and still live on v1, `/raporty` and the `Marża` column. Beside it the
+The formula above is untouched and still live on v1 and the `Marża` column. Beside it the
 kosztorys panel and the listing now carry a second reading, because the first one answers a question
 the owner was not asking: it prices the crew from **wypłaty**, so a crew paid late reads as profit
 and a crew paid ahead as a loss.
@@ -266,7 +266,7 @@ three surfaces, and any modifier that moves the bilans has to be taught to **all
 
 1. `calculateBalance(financials)` (`src/lib/db/calculate-balance.ts`) — the investments listing.
 2. Σ of the tiles from `buildFinancialFields` (`src/lib/queries/investment-financial-fields.ts` →
-   `financial-stats.tsx`) — the investment page (v1) and `/raporty`. The header's bilans is the
+   `financial-stats.tsx`) — the investment page (v1). The header's bilans is the
    **sum of the tiles**, so a term with no tile makes the two readings disagree on one screen.
 3. `computeDoZaplatyRM` / `computeMixedSettlement` (`src/lib/kosztorys/summary-economics.ts`) —
    the v2 settlement panel and the client preview.

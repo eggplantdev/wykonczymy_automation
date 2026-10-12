@@ -5,8 +5,7 @@ import { Ban } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import { ReasonField } from '@/components/ui/reason-field'
 import { cancelTransferAction } from '@/lib/actions/transfers'
 import {
   CANCEL_REASON_MAX_LENGTH as REASON_MAX_LENGTH,
@@ -26,7 +25,6 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
 
   const trimmedReason = reason.trim()
   const isReasonValid = trimmedReason.length >= REASON_MIN_LENGTH
-  const remainingMin = Math.max(0, REASON_MIN_LENGTH - trimmedReason.length)
 
   function handleOpenChange(next: boolean) {
     setOpen(next)
@@ -68,23 +66,19 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
             description={`Czy na pewno chcesz anulować transakcję #${transactionId}? Operacja jest nieodwracalna.`}
           />
 
-          <div className="grid gap-2">
-            <Label htmlFor="cancel-reason">Powód anulowania (wymagany)</Label>
-            <Textarea
-              id="cancel-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value.slice(0, REASON_MAX_LENGTH))}
-              placeholder={`Min. ${REASON_MIN_LENGTH} znaków`}
-              rows={3}
-              disabled={isPending}
-              autoFocus
-            />
-            <p className="text-muted-foreground text-xs">
-              {isReasonValid
-                ? `${trimmedReason.length}/${REASON_MAX_LENGTH} znaków`
-                : `Brakuje ${remainingMin} znaków`}
-            </p>
-          </div>
+          <ReasonField
+            id="cancel-reason"
+            value={reason}
+            onChange={setReason}
+            min={REASON_MIN_LENGTH}
+            max={REASON_MAX_LENGTH}
+            label="Powód anulowania (wymagany)"
+            placeholder={`Min. ${REASON_MIN_LENGTH} znaków`}
+            counterText={({ length, missing }) =>
+              missing === 0 ? `${length}/${REASON_MAX_LENGTH} znaków` : `Brakuje ${missing} znaków`
+            }
+            disabled={isPending}
+          />
 
           <DialogActions
             cancelLabel="Nie"

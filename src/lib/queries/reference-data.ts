@@ -14,6 +14,7 @@ import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/s
 import { perfStart } from '@/lib/perf'
 
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
+import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import type {
   CashRegisterRefT,
   CashRegisterTypeT,
@@ -75,7 +76,7 @@ export const fetchReferenceData = cache(
         db.execute(sql`
         SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review_requested,
-               i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8,
+               i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8, i.ai_stage::text,
                i.created_at, (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
@@ -84,7 +85,7 @@ export const fetchReferenceData = cache(
       `),
         db.execute(sql`
         SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer,
-               language, (trashed_at IS NOT NULL) AS trashed
+               language, can_add_expenses_without_investment, (trashed_at IS NOT NULL) AS trashed
         FROM users
         ORDER BY name
       `),
@@ -138,6 +139,7 @@ export const fetchReferenceData = cache(
           settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
           vatRate: row.vat_rate == null ? DEFAULT_VAT : Number(row.vat_rate),
           hasSheet: Boolean(row.has_sheet),
+          aiStage: (row.ai_stage as InvestmentAiStageT | null) ?? null,
           createdAt: isoOrNull(row.created_at) ?? '',
         } satisfies InvestmentRefT,
       }))
@@ -155,6 +157,7 @@ export const fetchReferenceData = cache(
             ? Number(row.default_cash_register_id)
             : undefined,
           language: toLanguage(row.language),
+          canAddExpensesWithoutInvestment: row.can_add_expenses_without_investment === true,
         } satisfies WorkerRefT,
       }))
       const [workers, trashedWorkers] = splitTrashed(workerRows)
@@ -183,7 +186,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v7'],
+    ['reference-data-v9'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,

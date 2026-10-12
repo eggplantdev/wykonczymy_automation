@@ -1,0 +1,298 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł; katalog: łazienka rynek pierwotny ok. 700 zł, małe mieszkanie 1500 zł — piętro i winda nieznane",
+    "assumptions": "rynek pierwotny: łazienka + gładź 60 m²"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "katalog: 2 big bagi na łazienkę, rynek pierwotny bez wyburzeń"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 60.0,
+    "missingData": "czy podłogi są już położone; czy mieszkanie będzie puste w trakcie",
+    "assumptions": "podłoga mieszkania ok. 60,00 m² z rzutu punktów elektrycznych (1:40, obrys ok. 68 m² brutto) — gładź i szlifowanie pylą w całym mieszkaniu"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 2,
+    "assumptions": "katalog: ok. 2 mb na łazienkę"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Ogrzewanie podłogowe elektryczne, montaż maty",
+    "unit": "m²",
+    "clientPrice": 90.0,
+    "qty": 2.16,
+    "missingData": "czy matę kładziemy my; podłączenie i sterownik robi elektryk (elektryka poza wyceną)",
+    "assumptions": "mata elektryczna z rzutu punktów elektrycznych: podłoga poza prysznicem i zabudową stelaża = 2,16 m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "qty": 60.0,
+    "missingData": "klient chce gładź 1 raz — szablon ma tylko gładź 2-warstwową (57 zł/m²); cena j.m. za jedną warstwę do ustalenia",
+    "assumptions": "60 m² ścian wprost z maila (pozostałe ściany zabudowane lub oklejone); szlifowanie w cenie gładzi"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 60.0,
+    "assumptions": "grunt przed i po gładzi na tych samych 60 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 8,
+    "assumptions": "prysznic 3 (zimna, ciepła, odpływ liniowy), umywalka 3 (bateria podtynkowa h=107, odpływ h=58), WC 2 — rzut punktów hydraulicznych; pralka w holu bez zmian"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 2,
+    "missingData": "które ściany są działowe, a które nośne",
+    "assumptions": "bateria prysznicowa podtynkowa i bateria umywalkowa podtynkowa wpuszczone w ściany"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "stelaż WC H112 („Kłady ścian”)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - koperta",
+    "unit": "kpl",
+    "clientPrice": 1900.0,
+    "qty": 1,
+    "assumptions": "odpływ liniowy z kopertą — cięcia po przekątnej na „Układzie płytek”"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 25.27,
+    "assumptions": "ściany w płytkach 18,06 + glif 0,28 + podłoga 3,46 + sufit 3,46 m²; wymiary z „Układu płytek” i „Kładów ścian” (od ścian otynkowanych), wysokość 272 od gresu, nad prysznicem sufit podwieszany h=10"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Sufit podwieszany z LED wg. projektu",
+    "unit": "kpl",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "assumptions": "sufit podwieszany h=10 nad prysznicem z maskownicą LED Creativa LK-03 („Rzut sufitu”) — taśma LED i zasilanie po stronie elektryka"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 21.61,
+    "assumptions": "wszystkie ściany w płytkach i podłoga (katalog): 18,06 + 0,28 + 3,27 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 14,
+    "assumptions": "katalog: ok. 15 mb na łazienkę 4 m², łazienka ma 3,5 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 16.08,
+    "missingData": "czy projekt chce narożniki na 45° czy listwy",
+    "assumptions": "narożniki zewnętrzne ścianki przy prysznicu (2) i wnęki przy stelażu (1), po dwie krawędzie = 16,08 mb"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 3.27,
+    "assumptions": "Navona Bone Cross 60×120 na podłodze 3,46 m² bez zabudowy stelaża 0,19 m²; wymiary z „Układu płytek” i „Kładów ścian” (od ścian otynkowanych), wysokość 272 od gresu, nad prysznicem sufit podwieszany h=10"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 18.06,
+    "missingData": "czy ściana nad szafką nad stelażem jest w płytkach",
+    "assumptions": "Navona 60×120 14,36 m² + Tarima Black 30×90 na ścianie prysznica 3,71 m², od podłogi do sufitu; ściana za stelażem WC (95,4) pod zabudową MDF i szafką — bez płytek; nowe ściany deweloperskie przyjęte jako równe — bez wyrównania pod glazurę"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard",
+    "unit": "mb",
+    "clientPrice": 130.0,
+    "qty": 2.72,
+    "assumptions": "czoło ścianki 10,3 cm przy prysznicu, na całą wysokość"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie fugą epoksydową format płytek standard",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 21.61,
+    "assumptions": "fuga epoksydowa na wszystkich płytkach (projekt: fuga epoksydowa)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 25,
+    "assumptions": "katalog: 20–30 mb na łazienkę"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 20,
+    "assumptions": "WC 5, prysznic 5 (bateria 3-pokrętłowa, deszczownica, słuchawka), umywalka 3, grzejnik 2, gniazda 3, lustro 1, kratka 1"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 8.02,
+    "assumptions": "styk płytek z sufitem po obwodzie łazienki = 8,02 mb"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 3.46,
+    "assumptions": "sufit 3,46 m² z gładzią (także część podwieszana); ściany bez płytek są tylko za zabudową"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 1,
+    "assumptions": "półka Dabstory w prysznicu („Układ płytek”)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 900.0,
+    "qty": 1,
+    "assumptions": "bateria prysznicowa podtynkowa h=120, deszczownica h=240"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
+    "unit": "kpl",
+    "clientPrice": 200.0,
+    "qty": 1,
+    "assumptions": "deszczownica + słuchawka"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "assumptions": "bateria umywalkowa podtynkowa w ścianie h=107"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do umywalki",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "missingData": "rysunek pokazuje drzwi otwierane na zawiasach, nie szybę stałą — cena j.m. do sprawdzenia",
+    "assumptions": "drzwi szklane prysznica 99,6 × 200 przy ściance — najbliższa pozycja w szablonie"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "czy przesuwamy punkty c.o. pod nowy grzejnik",
+    "assumptions": "grzejnik dekoracyjny pionowy na ścianie z drzwiami"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "kratka czy wentylator",
+    "assumptions": "okrągły wylot wentylacji u góry ściany we wnęce"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra z LED",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "okrągłe lustro z LED; podłączenie po stronie elektryka"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "umywalka nablatowa na wiszącej szafce od stolarza"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki nablatowej"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1
+  }
+]

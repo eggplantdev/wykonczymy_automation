@@ -1,6 +1,7 @@
 import { getRelationName } from '@/lib/utils/get-relation-name'
 import { resolveId } from '@/lib/utils/resolve-id'
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
+import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
 import { resolveInvoiceFiles } from '@/lib/media/invoice-field'
@@ -70,6 +71,9 @@ export type TransferDocT = {
   settled?: boolean | null
   vatPlane?: VatPlaneT | null
   originalType?: TransferTypeT | null
+  payoutStatus?: PayoutStatusT | null
+  payoutDecidedAt?: string | null
+  payoutRejectionReason?: string | null
 }
 
 /** Maps a depth:0 transfer document to a flat TransferRowT, resolving IDs via lookup maps. */
@@ -98,6 +102,9 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
     settled: doc.settled ?? false,
     vatPlane: doc.vatPlane ?? null,
     originalType: doc.originalType ?? null,
+    payoutStatus: doc.payoutStatus ?? null,
+    payoutDecidedAt: doc.payoutDecidedAt ?? null,
+    payoutRejectionReason: doc.payoutRejectionReason ?? null,
     sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
     targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
     sourceRegisterTrashed: isTrashed(lookups.trashedCashRegisterIds, doc.sourceRegister),

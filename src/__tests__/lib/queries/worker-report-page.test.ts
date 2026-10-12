@@ -1,14 +1,23 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 vi.mock('server-only', () => ({}))
+// „Podgląd pracownika" sits behind a management session; the token page never asks for one.
+vi.mock('@/lib/auth/require-auth', () => ({
+  requireAuth: vi.fn(async () => ({
+    success: true,
+    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
+  })),
+}))
 
 const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-kosztorys')
-const { getWorkerReportPage } = await import('@/lib/queries/worker-report-page')
+const { getWorkerReportPage, getWorkerReportPreview } =
+  await import('@/lib/queries/worker-report-page')
 
 // The token lookup is the whole access control for the worker's link, and the narrowing to one
 // worker's etapy is the whole privacy boundary between two crews on one site — both run against the
@@ -126,6 +135,33 @@ describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {
   it('keeps the two token spaces apart — neither route resolves the other’s token', async () => {
     expect(await getWorkerReportPage(investorToken)).toBeNull()
     expect(await getPreviewKosztorysByToken(workerToken)).toBeNull()
+  })
+
+  it('refuses the link once all his etapy are zakończone, while the podgląd still shows them (EX-1034)', async () => {
+    const setCompleted = (completed: boolean) =>
+      db.execute(sql`
+        UPDATE kosztorys_stages SET completed = ${completed}
+        WHERE id IN (${stageIds[0]}, ${stageIds[2]})
+      `)
+    await setCompleted(true)
+    try {
+      expect(await getWorkerReportPage(workerToken)).toMatchObject({
+        kind: 'notice',
+        messageKey: 'stagesCompleted',
+      })
+      expect(await getWorkerReportPreview(investmentId, workerId)).toMatchObject({ kind: 'ready' })
+    } finally {
+      await setCompleted(false)
+    }
+  })
+
+  it('keeps the link open while one of his etapy is still open', async () => {
+    await db.execute(sql`UPDATE kosztorys_stages SET completed = true WHERE id = ${stageIds[0]}`)
+    try {
+      expect((await getWorkerReportPage(workerToken))?.kind).toBe('ready')
+    } finally {
+      await db.execute(sql`UPDATE kosztorys_stages SET completed = false WHERE id = ${stageIds[0]}`)
+    }
   })
 
   it('shows a notice instead of the kosztorys while the investment is in the trash', async () => {

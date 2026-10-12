@@ -1,0 +1,32 @@
+{
+  "investmentId": 199,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "8b079b88-5a0e-4a9b-aa4f-2d114cac32ff-61073d4fc977.jpg",
+      "kind": null
+    },
+    {
+      "name": "5347-32f24e12d5ee.jpg",
+      "kind": null
+    },
+    {
+      "name": "5345-e5c1dd25922a.jpg",
+      "kind": null
+    },
+    {
+      "name": "5340-b1bccab24969.jpg",
+      "kind": null
+    },
+    {
+      "name": "5338-d4c43b525082.jpg",
+      "kind": null
+    },
+    {
+      "name": "5332-2a33e047a011.jpg",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

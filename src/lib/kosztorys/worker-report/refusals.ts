@@ -13,6 +13,7 @@ export const REPORT_REFUSALS = {
   template: pl.notices.template,
   inactiveWorker: pl.notices.inactiveWorker,
   foreignItem: pl.notices.foreignItem,
+  stagesCompleted: pl.notices.stagesCompleted,
 } as const satisfies Partial<Record<ReportNoticeKeyT, string>>
 
 export type ReportRefusalKeyT = keyof typeof REPORT_REFUSALS

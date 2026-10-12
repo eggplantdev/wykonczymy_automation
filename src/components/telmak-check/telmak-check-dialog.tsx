@@ -158,6 +158,7 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
               </span>
             </div>
             <DateRangePicker
+              stacked
               value={range}
               onChange={(next) => {
                 setRange(next)

@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -114,7 +114,7 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
     const user = renderForm()
 
     await pickNextDue(user, '2027-03-20')
-    expect(nextDue()).toHaveTextContent('20 mar 2027')
+    await waitFor(() => expect(nextDue()).toHaveTextContent('20 mar 2027'))
 
     // The date is printed on the document; the interval is only a guess about it.
     await pickType(user, 'Przegląd gwarancyjny')

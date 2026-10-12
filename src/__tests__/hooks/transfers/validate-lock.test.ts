@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
-// Transactions have no raw-SQL writer, so unlike the kosztorys this ONE hook is the complete gate —
-// the panel, the REST API and every server action pass through it. The cases below are the four
+// Every write that moves money passes this ONE hook — the panel, the REST API and every server action;
+// the worker's raw-SQL payout decision touches only the status columns — so unlike the kosztorys it
+// is the complete gate. The cases below are the four
 // shapes a write can take (create / edit / anulowanie / przenosiny, both directions) plus the single
 // deliberate hole: the scan of the faktura.
 //

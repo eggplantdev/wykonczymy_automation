@@ -16,6 +16,7 @@ niżej) to `context/archive/2026-08-26-sheet-write-env-guard/change.md`.
 | Vercel Blob   | **jest**                | token niesie w sobie id store'a; `blobTokenRefusal` (`src/lib/env/schema.ts`) odmawia w obie strony |
 | Google Sheets | **jest**                | dwa konta usługi — poza produkcją aplikacja ma tylko Przeglądającego, zapis odrzuca Google (`403`)  |
 | Poczta SMTP   | **jest**                | `EMAIL_HOST` poza produkcją wskazuje na `disabled.invalid` — wysyłka pada na DNS                    |
+| Web Push      | **jest**                | para kluczy VAPID istnieje tylko w Vercel Production; bez niej `sendPushToUser` nic nie wysyła      |
 | OpenRouter    | brak — **świadomie**    | patrz niżej                                                                                         |
 | Meta Graph    | brak — **niepotrzebna** | patrz niżej                                                                                         |
 | crony         | brak — **niepotrzebna** | patrz niżej                                                                                         |
@@ -66,6 +67,25 @@ Reszta ścieżek pisze do pracowników: `notifyNewLead`, `notifyShapeAlert`, `no
 `Failure` (`src/lib/leads/notify.ts`), `notifyFleetDigest` (`src/lib/fleet/notify.ts` — **już wyszedł
 raz z localhosta**), reset hasła (`src/collections/users.ts` ← `src/lib/actions/auth.ts`) oraz
 `/api/test-email?to=` (ADMIN-only, świadome narzędzie).
+
+## Web Push
+
+Subskrypcja telefonu jest **związana z kluczem publicznym**, którym ją założono — push podpisany
+inną parą usługa push (Apple, Google, Mozilla) odrzuca. Para `NEXT_PUBLIC_VAPID_PUBLIC_KEY` /
+`VAPID_PRIVATE_KEY` istnieje **tylko w Vercel Production** (`superRefine` w `src/lib/env/schema.ts`
+nie wpuści bootu produkcji bez niej); localhost, preview i baza E2E jej nie mają, więc
+`sendPushToUser` (`src/lib/push/send-push.ts`) wraca bez wysyłki, a przełącznik powiadomień się nie
+renderuje. Tabela `push_subscriptions` przychodzi z dumpem — prawdziwe telefony pracowników — ale bez
+klucza prywatnego nic do nich nie dojdzie.
+
+**Klucza prywatnego nigdy nie wkładamy do `.env`.** Ten laptop i tak trzyma sekrety produkcji, więc
+bramką nie jest niemożność, tylko to, że do zrobienia szkody trzeba świadomie wkleić klucz.
+Dlatego nie ma osobnej pary deweloperskiej i nie ma odmowy w drugą stronę (jak przy Blobie) — nie ma
+czego pomylić.
+
+Wiersz kasujemy **tylko na 404/410** (subskrypcja wygasła). 401/403 znaczy, że odrzucono nasz klucz —
+skasowanie wtedy wymazałoby wszystkie telefony przy pierwszym wysłaniu złą parą. Test dostarczenia na
+produkcji: `/api/test-push` (ADMIN-only, wysyła wyłącznie na urządzenia wywołującego).
 
 ## OpenRouter — świadomie bez bramki
 

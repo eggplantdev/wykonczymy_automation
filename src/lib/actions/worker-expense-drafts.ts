@@ -9,16 +9,13 @@ import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
+import { canAddExpensesWithoutInvestment } from '@/lib/db/worker-gate'
 import {
-  appendExpenseDraftPages,
-  countPendingDraftPages,
   decideExpenseDraft,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
-  removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
   restoreSkippedReceipt,
-  updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
 import { duplicateOfSchema, type DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
@@ -28,7 +25,7 @@ import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-f
 import type { ActionResultT } from '@/types/action'
 
 const sendDraftSchema = z.object({
-  investmentId: z.number().int().positive(pl.notices.chooseInvestment),
+  investmentId: z.number().int().positive(pl.notices.chooseInvestment).nullable(),
   cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
   note: z.string().trim().max(2000, pl.notices.noteTooLong),
   scanMode: z.enum(RECEIPT_SCAN_MODES),
@@ -40,26 +37,23 @@ const sendDraftSchema = z.object({
 
 export type SendExpenseDraftInputT = z.infer<typeof sendDraftSchema>
 
-const updateDraftSchema = sendDraftSchema
-  .omit({ mediaIds: true })
-  .extend({ draftId: z.number().int().positive() })
-
-export type UpdateExpenseDraftInputT = z.infer<typeof updateDraftSchema>
-
-const addPagesSchema = z.object({
-  draftId: z.number().int().positive(),
-  mediaIds: z.array(z.number().int().positive()).min(1),
-})
-
 async function findDraftTargetError(
   db: DbExecutorT,
-  target: { workerId: number; investmentId: number; cashRegisterId: number },
+  target: {
+    workerId: number
+    investmentId: number | null
+    cashRegisterId: number
+  },
 ): Promise<NoticeKeyT | undefined> {
-  const investments = await listWorkerStageInvestments(db, target.workerId)
-  if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
-    return 'notOnInvestment'
+  const { workerId, investmentId, cashRegisterId } = target
+  if (investmentId === null) {
+    if (!(await canAddExpensesWithoutInvestment(db, workerId))) return 'chooseInvestment'
+  } else {
+    const investments = await listWorkerStageInvestments(db, workerId)
+    const isListed = investments.some((investment) => investment.investmentId === investmentId)
+    if (!isListed) return 'notOnInvestment'
   }
-  if (!(await isWorkerLiveRegister(db, target.workerId, target.cashRegisterId))) {
+  if (!(await isWorkerLiveRegister(db, workerId, cashRegisterId))) {
     return 'notYourRegister'
   }
   return undefined
@@ -137,15 +131,13 @@ export async function restoreSkippedReceiptAction(receiptId: number): Promise<Ac
     `restoreSkippedReceiptAction receipt=${receiptId}`,
     async ({ payload }) => {
       const db = await getDb(payload)
-      const restored = await restoreSkippedReceipt(db, receiptId)
-      if (!restored) {
+      if ((await restoreSkippedReceipt(db, receiptId)) === null) {
         return {
           success: false,
           error:
             'Nie można przywrócić — paragon został już przywrócony albo pracownik, inwestycja lub kasa są w koszu.',
         }
       }
-      if (!restored.hasRead) after(() => readExpenseDraftReceipts(db, restored.draftId))
       return { success: true }
     },
   )
@@ -158,77 +150,6 @@ export async function deleteExpenseDraftAction(draftId: number): Promise<ActionR
       const mediaIds = await deletePendingExpenseDraft(await getDb(payload), { draftId, workerId })
       if (mediaIds === null) return noticeFailure('draftAlreadyDecided')
       await reclaimUnreferencedMedia(payload, mediaIds)
-      return { success: true }
-    },
-  )
-}
-
-export async function addExpenseDraftPagesAction(
-  draftId: number,
-  mediaIds: number[],
-): Promise<ActionResultT> {
-  const parsed = validateAction(addPagesSchema, { draftId, mediaIds })
-  if (!parsed.success) return { ...parsed, messageKey: noticeKeyOf(parsed.error) }
-
-  return sessionAction(
-    `addExpenseDraftPagesAction draft=${draftId}`,
-    async ({ payload, user: { id: workerId } }) => {
-      const db = await getDb(payload)
-      const pageCount = await countPendingDraftPages(db, { draftId, workerId })
-      if (pageCount === null) return noticeFailure('draftAlreadyDecided')
-      const newIds = [...new Set(parsed.data.mediaIds)]
-      if (pageCount + newIds.length > MAX_DRAFT_PAGES) {
-        return noticeFailure('tooManyPhotos')
-      }
-      const isAdded = await appendExpenseDraftPages(db, { draftId, workerId, mediaIds: newIds })
-      if (!isAdded) return noticeFailure('attachFailed')
-      after(() => readExpenseDraftReceipts(db, draftId))
-      return { success: true }
-    },
-  )
-}
-
-export async function removeExpenseDraftPageAction(
-  draftId: number,
-  mediaId: number,
-): Promise<ActionResultT> {
-  return sessionAction(
-    `removeExpenseDraftPageAction draft=${draftId}`,
-    async ({ payload, user: { id: workerId } }) => {
-      const db = await getDb(payload)
-      const isRemoved = await removeExpenseDraftPage(db, { draftId, workerId, mediaId })
-      if (!isRemoved) return noticeFailure('lastPhoto')
-      after(() => readExpenseDraftReceipts(db, draftId))
-      await reclaimUnreferencedMedia(payload, [mediaId])
-      return { success: true }
-    },
-  )
-}
-
-export async function updateExpenseDraftAction(
-  input: UpdateExpenseDraftInputT,
-): Promise<ActionResultT> {
-  const parsed = validateAction(updateDraftSchema, input)
-  if (!parsed.success) return { ...parsed, messageKey: noticeKeyOf(parsed.error) }
-  const { draftId, investmentId, cashRegisterId, note, scanMode } = parsed.data
-
-  return sessionAction(
-    `updateExpenseDraftAction draft=${draftId}`,
-    async ({ payload, user: { id: workerId } }) => {
-      const db = await getDb(payload)
-      const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
-      if (targetError) return noticeFailure(targetError)
-
-      const { isUpdated, isScanModeChanged } = await updatePendingExpenseDraft(db, {
-        draftId,
-        workerId,
-        investmentId,
-        cashRegisterId,
-        note: note || null,
-        scanMode,
-      })
-      if (!isUpdated) return noticeFailure('draftAlreadyDecided')
-      if (isScanModeChanged) after(() => readExpenseDraftReceipts(db, draftId))
       return { success: true }
     },
   )

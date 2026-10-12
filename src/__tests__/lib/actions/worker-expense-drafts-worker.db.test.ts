@@ -4,10 +4,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertMediaRow } from '@/lib/db/media'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import {
-  DRAFT_ALREADY_DECIDED,
-  DRAFT_PAGES_NOT_ATTACHED,
-} from '@/lib/constants/worker-expense-drafts'
+import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
@@ -31,14 +28,8 @@ vi.mock('next/server', async (importOriginal) => {
   return { ...actual, after: (task: unknown) => void scheduled.push(task) }
 })
 
-const {
-  addExpenseDraftPagesAction,
-  deleteExpenseDraftAction,
-  removeExpenseDraftPageAction,
-  restoreExpenseDraftAction,
-  sendExpenseDraftAction,
-  updateExpenseDraftAction,
-} = await import('@/lib/actions/worker-expense-drafts')
+const { deleteExpenseDraftAction, restoreExpenseDraftAction, sendExpenseDraftAction } =
+  await import('@/lib/actions/worker-expense-drafts')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-worker-'
@@ -71,6 +62,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     name: string,
     owner: { workerId: number; registerId: number },
     pageCount = 1,
+    onInvestment: number | null = investmentId,
   ): Promise<{ draftId: number; mediaIds: number[] }> {
     const mediaIds: number[] = []
     for (let page = 0; page < pageCount; page++) {
@@ -78,7 +70,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     }
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId: owner.workerId,
-      investmentId,
+      investmentId: onInvestment,
       cashRegisterId: owner.registerId,
       note: 'przed',
       scanMode: 'one-invoice',
@@ -88,8 +80,19 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     return { draftId, mediaIds }
   }
 
-  const ownDraft = (name: string, pageCount?: number) =>
-    createDraft(name, { workerId, registerId }, pageCount)
+  const ownDraft = (name: string, pageCount?: number, onInvestment?: number | null) =>
+    createDraft(name, { workerId, registerId }, pageCount, onInvestment)
+
+  const send = async (
+    name: string,
+    target: { investmentId: number | null; cashRegisterId: number },
+  ) =>
+    sendExpenseDraftAction({
+      ...target,
+      note: '',
+      scanMode: 'one-invoice',
+      mediaIds: [await insertMedia(name, workerId)],
+    })
 
   const readDraft = async (draftId: number) =>
     (
@@ -181,14 +184,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the target a draft is sent to', () => {
-    const send = async (name: string, target: { investmentId: number; cashRegisterId: number }) =>
-      sendExpenseDraftAction({
-        ...target,
-        note: '',
-        scanMode: 'one-invoice',
-        mediaIds: [await insertMedia(name, workerId)],
-      })
-
     it('sends to his own live kasa on an investment he works on', async () => {
       const result = await send('send-ok', { investmentId, cashRegisterId: registerId })
 
@@ -248,29 +243,81 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       expect(await draftCount()).toBe(before)
     })
 
-    it('an edit is held to the same target check', async () => {
-      const { draftId } = await ownDraft('edit-target')
-      const before = await readDraft(draftId)
+    describe('once his etapy on the investment are zakończone', () => {
+      const setCompleted = (isCompleted: boolean) =>
+        db.execute(sql`
+          UPDATE kosztorys_stages SET completed = ${isCompleted} WHERE investment_id = ${investmentId}
+        `)
 
-      expect(
-        await updateExpenseDraftAction({
-          draftId,
-          investmentId,
-          cashRegisterId: otherRegisterId,
-          note: 'po',
-          scanMode: 'one-invoice',
-        }),
-      ).toEqual({
+      it('refuses a new draft onto it and stores nothing', async () => {
+        await setCompleted(true)
+        try {
+          const before = await draftCount()
+
+          expect(
+            await send('send-completed', { investmentId, cashRegisterId: registerId }),
+          ).toEqual({
+            success: false,
+            error: 'Nie pracujesz na tej inwestycji',
+            messageKey: 'notOnInvestment',
+          })
+          expect(await draftCount()).toBe(before)
+        } finally {
+          await setCompleted(false)
+        }
+      })
+    })
+  })
+
+  describe('a draft without an investment', () => {
+    const setFlag = (isFlagged: boolean) =>
+      db.execute(sql`
+        UPDATE users SET can_add_expenses_without_investment = ${isFlagged} WHERE id = ${workerId}
+      `)
+
+    const sendWithout = (name: string, cashRegisterId = registerId) =>
+      send(name, { investmentId: null, cashRegisterId })
+
+    beforeEach(() => setFlag(false))
+    afterAll(() => setFlag(false))
+
+    it('a flagged worker sends one and it is stored with no investment', async () => {
+      await setFlag(true)
+
+      const result = await sendWithout('none-send-flagged')
+
+      expect(result).toMatchObject({ success: true })
+      if (!result.success) return
+      expect(await readDraft(result.data.draftId)).toMatchObject({
+        status: 'pending',
+        investment_id: null,
+      })
+    })
+
+    it('an unflagged worker is refused and nothing is stored', async () => {
+      const before = await draftCount()
+
+      expect(await sendWithout('none-send-unflagged')).toMatchObject({
         success: false,
-        error: 'To nie jest Twoja kasa',
+        messageKey: 'chooseInvestment',
+      })
+      expect(await draftCount()).toBe(before)
+    })
+
+    it('a flagged worker is still held to his own kasa', async () => {
+      await setFlag(true)
+      const before = await draftCount()
+
+      expect(await sendWithout('none-send-foreign-kasa', otherRegisterId)).toMatchObject({
+        success: false,
         messageKey: 'notYourRegister',
       })
-      expect(await readDraft(draftId)).toEqual(before)
+      expect(await draftCount()).toBe(before)
     })
   })
 
   describe('another worker’s draft', () => {
-    it('cannot be edited, extended, trimmed or deleted', async () => {
+    it('cannot be deleted', async () => {
       const { draftId, mediaIds } = await createDraft(
         'foreign',
         { workerId: otherWorkerId, registerId: otherRegisterId },
@@ -278,20 +325,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       )
       const before = await readDraft(draftId)
 
-      const results = [
-        await updateExpenseDraftAction({
-          draftId,
-          investmentId,
-          cashRegisterId: registerId,
-          note: 'po',
-          scanMode: 'one-invoice',
-        }),
-        await addExpenseDraftPagesAction(draftId, [await insertMedia('foreign-add', workerId)]),
-        await removeExpenseDraftPageAction(draftId, mediaIds[0]),
-        await deleteExpenseDraftAction(draftId),
-      ]
-
-      for (const result of results) expect(result).toMatchObject({ success: false })
+      expect(await deleteExpenseDraftAction(draftId)).toMatchObject({ success: false })
       expect(await readDraft(draftId)).toEqual(before)
       expect(await readPages(draftId)).toEqual(mediaIds)
       expect(reclaimUnreferencedMedia).not.toHaveBeenCalled()
@@ -299,34 +333,11 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('a decided draft', () => {
-    it('cannot be edited, extended, trimmed or deleted by its sender', async () => {
+    it('cannot be deleted by its sender', async () => {
       const { draftId, mediaIds } = await ownDraft('decided', 2)
       await reject(draftId)
       const before = await readDraft(draftId)
 
-      expect(
-        await updateExpenseDraftAction({
-          draftId,
-          investmentId,
-          cashRegisterId: registerId,
-          note: 'po',
-          scanMode: 'one-invoice',
-        }),
-      ).toEqual({
-        success: false,
-        error: DRAFT_ALREADY_DECIDED,
-        messageKey: 'draftAlreadyDecided',
-      })
-      expect(
-        await addExpenseDraftPagesAction(draftId, [await insertMedia('decided-add', workerId)]),
-      ).toEqual({
-        success: false,
-        error: DRAFT_ALREADY_DECIDED,
-        messageKey: 'draftAlreadyDecided',
-      })
-      expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toMatchObject({
-        success: false,
-      })
       expect(await deleteExpenseDraftAction(draftId)).toEqual({
         success: false,
         error: DRAFT_ALREADY_DECIDED,
@@ -338,29 +349,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
   })
 
-  describe('the pages of his own pending draft', () => {
-    it('appending a photo another user uploaded is refused and adds nothing', async () => {
-      const { draftId, mediaIds } = await ownDraft('append-foreign')
-      const foreign = await insertMedia('append-foreign-page', otherWorkerId)
-
-      expect(await addExpenseDraftPagesAction(draftId, [foreign])).toEqual({
-        success: false,
-        error: DRAFT_PAGES_NOT_ATTACHED,
-        messageKey: 'attachFailed',
-      })
-      expect(await readPages(draftId)).toEqual(mediaIds)
-    })
-
-    it('the last photo cannot be removed', async () => {
-      const { draftId, mediaIds } = await ownDraft('last-page')
-
-      expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toMatchObject({
-        success: false,
-      })
-      expect(await readPages(draftId)).toEqual(mediaIds)
-      expect(reclaimUnreferencedMedia).not.toHaveBeenCalled()
-    })
-
+  describe('his own pending draft', () => {
     it('deleting the draft removes it and hands its photos to the reclaim', async () => {
       const { draftId, mediaIds } = await ownDraft('delete', 2)
 
@@ -374,22 +363,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the AI read of his draft', () => {
-    const READ = { rows: [{ mediaIds: [0], description: 'Cement' }] }
-    const seedRead = (draftId: number) =>
-      db.execute(sql`UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify(READ)}::jsonb
-        WHERE id = ${draftId}`)
-    const readOf = async (draftId: number) =>
-      (await db.execute(sql`SELECT ai_read FROM worker_expense_drafts WHERE id = ${draftId}`))
-        .rows[0].ai_read
-    const edit = (draftId: number, scanMode: 'one-invoice' | 'one-per-photo', note = 'przed') =>
-      updateExpenseDraftAction({
-        draftId,
-        investmentId,
-        cashRegisterId: registerId,
-        note,
-        scanMode,
-      })
-
     it('is asked for once a draft is sent, in the mode the worker chose', async () => {
       const result = await sendExpenseDraftAction({
         investmentId,
@@ -403,56 +376,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       if (!result.success) return
       expect(await readDraft(result.data.draftId)).toMatchObject({ scan_mode: 'one-per-photo' })
       expect(scheduled).toHaveLength(1)
-    })
-
-    it('an added photo drops the read and asks again', async () => {
-      const { draftId } = await ownDraft('read-add')
-      await seedRead(draftId)
-
-      expect(
-        await addExpenseDraftPagesAction(draftId, [await insertMedia('read-add-page', workerId)]),
-      ).toEqual({ success: true })
-      expect(await readOf(draftId)).toBeNull()
-      expect(scheduled).toHaveLength(1)
-    })
-
-    it('a removed photo drops the read and asks again', async () => {
-      const { draftId, mediaIds } = await ownDraft('read-remove', 2)
-      await seedRead(draftId)
-
-      expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toEqual({ success: true })
-      expect(await readOf(draftId)).toBeNull()
-      expect(scheduled).toHaveLength(1)
-    })
-
-    it('a changed mode drops the read and asks again', async () => {
-      const { draftId } = await ownDraft('read-mode', 2)
-      await seedRead(draftId)
-
-      expect(await edit(draftId, 'one-per-photo')).toEqual({ success: true })
-      expect(await readDraft(draftId)).toMatchObject({ scan_mode: 'one-per-photo' })
-      expect(await readOf(draftId)).toBeNull()
-      expect(scheduled).toHaveLength(1)
-    })
-
-    it('an edit that keeps the mode keeps the read and asks nothing', async () => {
-      const { draftId } = await ownDraft('read-note', 2)
-      await seedRead(draftId)
-
-      expect(await edit(draftId, 'one-invoice', 'po')).toEqual({ success: true })
-      expect(await readOf(draftId)).toEqual(READ)
-      expect(scheduled).toHaveLength(0)
-    })
-
-    it('a refused change keeps the read and asks nothing', async () => {
-      const { draftId, mediaIds } = await ownDraft('read-refused')
-      await seedRead(draftId)
-
-      expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toMatchObject({
-        success: false,
-      })
-      expect(await readOf(draftId)).toEqual(READ)
-      expect(scheduled).toHaveLength(0)
     })
   })
 

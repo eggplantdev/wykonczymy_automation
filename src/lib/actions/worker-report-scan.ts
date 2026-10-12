@@ -14,8 +14,8 @@ import { resolveScanLines } from '@/lib/kosztorys/worker-report/resolve-scan'
 import { createScannedReportSchema } from '@/lib/kosztorys/worker-report/schemas'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import type { CreateScannedReportInputT } from '@/lib/kosztorys/worker-report/types'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
-import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
+import { REPORT_SCOPE_REFUSAL_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
+import { reportScopeRefusal, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import type { ActionResultT } from '@/types/action'
 
@@ -27,8 +27,8 @@ const refusalMessage = (refusal: ReportRefusalKeyT): string =>
 
 /**
  * The kierownik files a zgłoszenie from the worker's paper. It passes the same gates as the worker's
- * own send — closed investment, szablon, inactive worker, blocked etapy — because it lands in the
- * same review and the same etap quantities.
+ * own send — closed investment, szablon, inactive worker, blocked or zakończone etapy —
+ * because it lands in the same review and the same etap quantities.
  */
 export async function createScannedReportAction(
   input: CreateScannedReportInputT,
@@ -49,10 +49,9 @@ export async function createScannedReportAction(
       if (refusal) return { success: false, error: refusalMessage(refusal) }
 
       const tree = await buildKosztorysTree(investmentId)
-      const scope = resolveWorkerScope(tree.stages, workerId)
-      if (scope.kind === 'blocked') {
-        return { success: false, error: WORKER_SCOPE_BLOCK_MESSAGES[scope.reason] }
-      }
+      const scopeRefusal = reportScopeRefusal(resolveWorkerScope(tree.stages, workerId))
+      if (scopeRefusal)
+        return { success: false, error: REPORT_SCOPE_REFUSAL_MESSAGES[scopeRefusal] }
 
       const lines = resolveScanLines(pages, tree, reportUnits(treeItems(tree)))
       if (lines.length === 0) {

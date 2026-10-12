@@ -8,12 +8,20 @@ import {
 import { getDb } from '@/lib/db/get-db'
 import { countPendingExpenseDrafts } from '@/lib/db/worker-expense-drafts'
 import { countPendingReports } from '@/lib/db/worker-reports'
+import { countRejectedPayouts } from '@/lib/db/payout-confirmation'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { isManagementRole } from '@/lib/auth/roles'
 import { warsawToday } from '@/lib/utils/days'
 import type { UnreadCountsT } from '@/types/notifications'
 
-const NONE: UnreadCountsT = { leads: 0, fleet: 0, equipment: 0, workerReports: 0, expenseDrafts: 0 }
+const NONE: UnreadCountsT = {
+  leads: 0,
+  fleet: 0,
+  equipment: 0,
+  workerReports: 0,
+  expenseDrafts: 0,
+  rejectedPayouts: 0,
+}
 
 /**
  * Reads the session itself rather than taking a `userId`/`role` pair: a caller-supplied identity is one
@@ -28,13 +36,15 @@ export async function fetchUnreadCounts(): Promise<UnreadCountsT> {
   const today = warsawToday()
 
   const db = getDb(payload)
-  const [leads, fleet, equipment, workerReports, expenseDrafts] = await Promise.all([
-    countUnreadLeads(payload, user.id),
-    countUnreadFleetDeadlines(payload, user.id, today),
-    countUnreadWarranties(payload, user.id, today),
-    db.then(countPendingReports),
-    db.then(countPendingExpenseDrafts),
-  ])
+  const [leads, fleet, equipment, workerReports, expenseDrafts, rejectedPayouts] =
+    await Promise.all([
+      countUnreadLeads(payload, user.id),
+      countUnreadFleetDeadlines(payload, user.id, today),
+      countUnreadWarranties(payload, user.id, today),
+      db.then(countPendingReports),
+      db.then(countPendingExpenseDrafts),
+      db.then(countRejectedPayouts),
+    ])
 
-  return { leads, fleet, equipment, workerReports, expenseDrafts }
+  return { leads, fleet, equipment, workerReports, expenseDrafts, rejectedPayouts }
 }

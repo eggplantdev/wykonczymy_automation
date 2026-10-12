@@ -1,3 +1,4 @@
+import { AiStageSelect } from '@/components/investments/ai-stage-select'
 import { ContactLink } from '@/components/ui/contact-link'
 import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import type { InvestmentRefT } from '@/types/reference-data'
@@ -7,8 +8,16 @@ import type { InvestmentRefT } from '@/types/reference-data'
 export function buildInvestmentInfoFields(
   investment: Pick<
     InvestmentRefT,
-    'address' | 'phone' | 'email' | 'contactPerson' | 'status' | 'reviewRequested'
+    | 'id'
+    | 'address'
+    | 'phone'
+    | 'email'
+    | 'contactPerson'
+    | 'status'
+    | 'reviewRequested'
+    | 'aiStage'
   >,
+  { isReadOnly = false }: { isReadOnly?: boolean } = {},
 ) {
   return [
     { label: 'Adres', value: investment.address },
@@ -25,5 +34,11 @@ export function buildInvestmentInfoFields(
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Status', value: INVESTMENT_STATUS_LABELS[investment.status].pl },
     { label: 'Opinia', value: investment.reviewRequested && 'Wysłano' },
+    {
+      label: 'Etap AI',
+      value: !isReadOnly && (
+        <AiStageSelect investmentId={investment.id} aiStage={investment.aiStage} />
+      ),
+    },
   ].filter((field) => field.value)
 }

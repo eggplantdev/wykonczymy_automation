@@ -65,8 +65,14 @@ import {
   STAGE_SPLIT_NEEDS_PLANE,
   validateStageSplit,
 } from '@/lib/kosztorys/stage-split'
-import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
-import { trashedWorkerMessage } from '@/lib/db/worker-gate'
+import {
+  insertStageMembers,
+  replaceStageSplit,
+  selectStagePool,
+  selectStageWorkerIds,
+} from '@/lib/db/stage-split'
+import { selectOtherPlaneWorkerNames, trashedWorkerMessage } from '@/lib/db/worker-gate'
+import { mixedPlaneWorkersMessage } from '@/lib/constants/worker-lock'
 import { findCatalogueItemByKey, findLinkedCatalogueItem } from '@/lib/db/work-catalogue'
 import { translateNewRow } from '@/lib/ai/translate-new-row'
 import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
@@ -736,11 +742,14 @@ export async function addStageAction(
       return withPayloadTransaction(
         payload,
         async (req) => {
-          const trashedWorker = await trashedWorkerMessage(
-            await getDb(payload, req),
-            normalized?.members.map((member) => member.workerId) ?? [],
-          )
+          const txDb = await getDb(payload, req)
+          const workerIds = normalized?.members.map((member) => member.workerId) ?? []
+          const trashedWorker = await trashedWorkerMessage(txDb, workerIds)
           if (trashedWorker) return { success: false as const, error: trashedWorker }
+          const mixed = await selectOtherPlaneWorkerNames(txDb, { investmentId, plane, workerIds })
+          if (mixed.length > 0) {
+            return { success: false as const, error: mixedPlaneWorkersMessage(mixed) }
+          }
           const existing = await payload.find({
             collection: 'kosztorys-stages',
             where: { investment: { equals: investmentId } },
@@ -761,9 +770,7 @@ export async function addStageAction(
             req,
           })
           if (normalized) {
-            await insertStageMembers(await getDb(payload, req), [
-              { stageId: created.id, split: normalized },
-            ])
+            await insertStageMembers(txDb, [{ stageId: created.id, split: normalized }])
           }
           return { success: true as const, data: { id: created.id, ordinal: nextOrdinal } }
         },
@@ -779,6 +786,7 @@ const stagePatchSchema = z
   .object({
     label: z.string().nullable(),
     plane: stagePlaneSchema,
+    completed: z.boolean(),
   })
   .partial()
 
@@ -804,9 +812,20 @@ export async function updateStageAction(
   return investmentAction(
     'updateStageAction',
     { kind: 'stage', id: stageId },
-    async ({ payload }) => {
+    async ({ payload, investmentId }) => {
       const parsed = validateAction(stagePatchSchema, patch)
       if (!parsed.success) return parsed
+      const { plane } = parsed.data
+      if (plane) {
+        const db = await getDb(payload)
+        const mixed = await selectOtherPlaneWorkerNames(db, {
+          investmentId,
+          plane,
+          workerIds: await selectStageWorkerIds(db, stageId),
+          exceptStageId: stageId,
+        })
+        if (mixed.length > 0) return { success: false, error: mixedPlaneWorkersMessage(mixed) }
+      }
       await payload.update({ collection: 'kosztorys-stages', id: stageId, data: parsed.data })
       return { success: true }
     },
@@ -826,7 +845,7 @@ export async function updateStageSplitAction(
   return investmentAction(
     'updateStageSplitAction',
     { kind: 'stage', id: stageId },
-    async ({ payload }) => {
+    async ({ payload, investmentId }) => {
       const parsed = validateAction(stageSplitSchema, split)
       if (!parsed.success) return parsed
       // Validated as sent, written normalized: normalizing repairs a missing rest holder by zeroing
@@ -847,11 +866,16 @@ export async function updateStageSplitAction(
             const refusal = validateStageSplit(parsed.data, await selectStagePool(txDb, stageId))
             if (refusal) return { success: false, error: refusal }
           }
-          const trashedWorker = await trashedWorkerMessage(
-            txDb,
-            normalized?.members.map((member) => member.workerId) ?? [],
-          )
+          const workerIds = normalized?.members.map((member) => member.workerId) ?? []
+          const trashedWorker = await trashedWorkerMessage(txDb, workerIds)
           if (trashedWorker) return { success: false, error: trashedWorker }
+          const mixed = await selectOtherPlaneWorkerNames(txDb, {
+            investmentId,
+            plane: stage.plane as ToolPlaneT | null,
+            workerIds,
+            exceptStageId: stageId,
+          })
+          if (mixed.length > 0) return { success: false, error: mixedPlaneWorkersMessage(mixed) }
           await replaceStageSplit(txDb, stageId, normalized)
           return { success: true }
         },

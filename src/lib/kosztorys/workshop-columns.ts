@@ -7,9 +7,9 @@ import { ALL_TRANSLATION_COLUMN_KEYS } from '@/lib/kosztorys/translation-column-
 // zeroes it on every save. A column added later is absent from the workbench until someone
 // deliberately writes it in here, and that is the intended default side.
 //
-// This list is BOTH the ceiling and the floor (see `selectV2Columns`): the map of hidden columns is
-// one per browser, so a tick set on an ordinary kosztorys must neither add a column here nor take
-// one away — the workbench has no picker to answer it with.
+// This list is the ceiling (see `selectV2Columns`): the workbench's picker hides and reorders only
+// within it, through its own maps (`ColumnPrefsScopeT`), so a tick set on an ordinary kosztorys
+// neither adds a column here nor takes one away.
 //
 // Full ids, never the base key (see `basePriceKey`) — hence `ALL_PLANE_PRICE_KEYS`, so a third plane
 // cannot arrive with one of its two columns missing. Both halves, because a NADPISANA stawka travels:
@@ -46,3 +46,7 @@ export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   ...ALL_PLANE_PRICE_KEYS,
   'workNote',
 ])
+
+// Out of the workbench picker: „Ukryj wszystkie" would otherwise take away the only route to usuń /
+// przesuń / wstaw a pozycja, with no sign on the grid of where it went.
+export const WORKSHOP_UNPICKABLE_COLUMNS: ReadonlySet<string> = new Set(['actions'])

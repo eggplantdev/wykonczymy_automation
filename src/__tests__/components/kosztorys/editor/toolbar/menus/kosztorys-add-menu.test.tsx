@@ -43,8 +43,15 @@ describe('KosztorysAddMenu — „Etap"', () => {
       ],
     }
     editor.stages = [
-      { id: 11, ordinal: 1, label: null, plane: 'w_tools', split: oneWorkerSplit(6) },
-      { id: 12, ordinal: 2, label: null, plane: 'own_tools', split },
+      {
+        id: 11,
+        ordinal: 1,
+        label: null,
+        plane: 'w_tools',
+        split: oneWorkerSplit(6),
+        completed: false,
+      },
+      { id: 12, ordinal: 2, label: null, plane: 'own_tools', split, completed: false },
     ]
     await openMenu()
 

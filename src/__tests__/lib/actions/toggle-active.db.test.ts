@@ -52,15 +52,27 @@ describe.skipIf(!ENV_READY)('toggleUserActive — sessions (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('drops every stored session when the account is deactivated', async () => {
+  it('drops every stored session and push device when the account is deactivated', async () => {
     await payload.login({ collection: 'users', data: { email: EMAIL, password: PASSWORD } })
     await payload.login({ collection: 'users', data: { email: EMAIL, password: PASSWORD } })
     expect(await sessionCount()).toBe(2)
+    const { upsertPushSubscription } = await import('@/lib/db/push-subscriptions')
+    await upsertPushSubscription(db, workerId, {
+      endpoint: 'https://push.test.local/toggle-active',
+      p256dh: 'p256dh',
+      auth: 'auth',
+      userAgent: undefined,
+    })
 
     const { toggleUserActive } = await import('@/lib/actions/toggle-active')
     expect(await toggleUserActive(workerId, false)).toEqual({ success: true })
 
     expect(await sessionCount()).toBe(0)
+    // Raw count, not `selectLivePushSubscriptions`: that one already hides a deactivated account.
+    const { rows: devices } = await db.execute(
+      sql`SELECT count(*)::int AS n FROM push_subscriptions WHERE user_id = ${workerId}`,
+    )
+    expect(Number(devices[0]?.n)).toBe(0)
     const { rows } = await db.execute(sql`SELECT active FROM users WHERE id = ${workerId}`)
     expect(rows[0]?.active).toBe(false)
   })

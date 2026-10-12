@@ -50,7 +50,7 @@ describe('TransferDataTable language', () => {
   it('renders headers, filters and the pagination summary in Ukrainian', () => {
     renderTable('uk')
 
-    expect(screen.getByRole('columnheader', { name: /Дата/ })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /^Дата$/ })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Сума/ })).toBeInTheDocument()
     expect(screen.getByText('Фільтри')).toBeInTheDocument()
     expect(screen.getByText('3 результати')).toBeInTheDocument()
@@ -60,7 +60,7 @@ describe('TransferDataTable language', () => {
   it('stays Polish without a provider', () => {
     renderTable()
 
-    expect(screen.getByRole('columnheader', { name: /Data/ })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /^Data$/ })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: /Kwota/ })).toBeInTheDocument()
     expect(screen.getByText('Filtry')).toBeInTheDocument()
     expect(screen.getByText('3 wyników')).toBeInTheDocument()

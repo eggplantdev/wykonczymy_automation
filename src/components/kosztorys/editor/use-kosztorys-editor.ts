@@ -256,12 +256,13 @@ export function useKosztorysEditor({
   const { widths, setWidth, dropWidth } = useColumnWidths()
   const { colors: columnColors, setColor: setColumnColor, dropColor } = useColumnColors()
   const { heights: rowHeights, setHeight: setRowHeight, dropHeight } = useRowHeights()
-  const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns()
+  const columnPrefsScope = isTemplate ? 'workshop' : 'kosztorys'
+  const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns(columnPrefsScope)
   const {
     ranks: columnRanks,
     setRank: setColumnRank,
     resetOrder: resetColumnOrder,
-  } = useColumnOrder()
+  } = useColumnOrder(columnPrefsScope)
   const [moneyAxis, setMoneyAxis] = useMoneyAxis()
   // Nothing here is pinned for a preview: selectV2Columns drops every gate but the allowlist, so the
   // axis, layer and picker never reach the client's grid at all.
@@ -295,6 +296,7 @@ export function useKosztorysEditor({
     handleRemoveStage,
     handleRenameStage,
     handleSetStagePlane,
+    handleSetStageCompleted,
     handleSetStageSplit,
   } = useKosztorysStageOps({
     investmentId,
@@ -589,6 +591,7 @@ export function useKosztorysEditor({
     onRemoveStage: editorOnly(handleRemoveStage),
     onRenameStage: editorOnly(handleRenameStage),
     onSetStagePlane: editorOnly(handleSetStagePlane),
+    onSetStageCompleted: editorOnly(handleSetStageCompleted),
     onSetStageSplit: editorOnly(handleSetStageSplit),
     workers,
     executedValueByStage: subcontractorDue.byStage,

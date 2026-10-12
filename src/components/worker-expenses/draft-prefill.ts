@@ -2,23 +2,26 @@ import { receiptToLineItemValues } from '@/components/forms/expense-form/apply-r
 import {
   makeLineItem,
   type BulkExpenseFormValuesT,
+  type BulkLineItemT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { renamePages } from '@/lib/utils/receipt-filename'
+import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import { sameItems } from '@/lib/utils/same-items'
 
 type DraftPrefillT = {
   lineItems: BulkExpenseFormValuesT['lineItems']
   // Keyed by row position, the shape `ExpenseFormPrefillT.files` takes.
   files: Map<number, File[]>
-  // Keyed by line item id: the draft pages each row is the paragon of.
-  receiptMediaIds: Map<string, number[]>
+  // Keyed by line item id: the paragon each row stands for.
+  receipts: Map<string, DraftReceiptT>
 }
 
 /**
  * The rows follow the worker's mode: a read that failed or hasn't landed yet still
- * opens the right rows, blank, for „Odczytaj dodane zdjęcia" to fill. `files` are the downloaded
- * pages in `draft.media` order — empty when the download failed and the dialog opens only to reject.
+ * opens the right rows, blank, for „Odczytaj dodane zdjęcia" to fill. A photo the AI found several
+ * paragony on opens one row per paragon. `files` are the downloaded pages in `draft.media` order —
+ * empty when the download failed and the dialog opens only to reject.
  */
 export function buildDraftPrefill(
   draft: Pick<ExpenseDraftRowT, 'media' | 'scanMode' | 'aiRead'>,
@@ -31,20 +34,50 @@ export function buildDraftPrefill(
       ? pageIndexes.map((index) => [index])
       : [pageIndexes]
 
-  const rowFiles = new Map<number, File[]>()
-  const receiptMediaIds = new Map<string, number[]>()
-  const lineItems = groups.map((group, row) => {
+  const rows = groups.flatMap((group) => {
     const mediaIds = group.map((index) => draft.media[index].id)
-    // The write's compare-and-set can lose a race to a page change under READ COMMITTED, so a read
-    // row fills only the row whose pages it was read from.
-    const read = draft.aiRead?.rows.find((candidate) => sameItems(candidate.mediaIds, mediaIds))
+    // `readRow` is the read's own position, which names the paragon where its pages cannot.
+    const reads = (draft.aiRead?.rows ?? []).flatMap((read, readRow) =>
+      sameItems(read.mediaIds, mediaIds) ? [{ read, readRow }] : [],
+    )
     const downloaded = group.flatMap((index) => files[index] ?? [])
-    const pages = read?.filename ? renamePages(downloaded, read.filename) : downloaded
+    return (reads.length > 0 ? reads : [undefined]).map((found) => ({
+      mediaIds,
+      found,
+      pages: found?.read.filename ? renamePages(downloaded, found.read.filename) : downloaded,
+    }))
+  })
+
+  const rowFiles = new Map<number, File[]>()
+  const receipts = new Map<string, DraftReceiptT>()
+  const lineItems = rows.map(({ mediaIds, found, pages }, row) => {
     if (pages.length > 0) rowFiles.set(row, pages)
-    const lineItem = makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) })
-    receiptMediaIds.set(lineItem.id, mediaIds)
+    const lineItem = makeLineItem({
+      expenseCategory,
+      ...(found && receiptToLineItemValues(found.read)),
+    })
+    receipts.set(lineItem.id, found ? { mediaIds, readRow: found.readRow } : { mediaIds })
     return lineItem
   })
 
-  return { lineItems, files: rowFiles, receiptMediaIds }
+  return { lineItems, files: rowFiles, receipts }
+}
+
+/**
+ * The category stays a manual pick: nothing on a draft without an investment says what kind of cost
+ * it was.
+ */
+export function withDraftTarget(
+  draft: Pick<ExpenseDraftRowT, 'investmentId' | 'workerId'>,
+  lineItems: BulkLineItemT[],
+): Pick<BulkExpenseFormValuesT, 'type' | 'investment' | 'lineItems'> {
+  if (draft.investmentId !== null) {
+    return { type: 'INVESTMENT_EXPENSE', investment: String(draft.investmentId), lineItems }
+  }
+  const worker = String(draft.workerId)
+  return {
+    type: 'OTHER',
+    investment: '',
+    lineItems: lineItems.map((lineItem) => ({ ...lineItem, worker })),
+  }
 }

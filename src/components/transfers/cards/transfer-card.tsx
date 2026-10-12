@@ -15,6 +15,10 @@ import type { TransferRowT } from '@/types/transfers'
 
 type PropsT = {
   row: Row<TransferRowT>
+  // TanStack's rows are mutable and keep their identity when a column is toggled, so a memoized card
+  // would never see the change; a fresh list here is what makes it re-read the row.
+  visibleColumnIds: string[]
+  uncoloredAmounts?: boolean
   className?: string
 }
 
@@ -23,10 +27,6 @@ type PropsT = {
 function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
   const cell = row.getVisibleCells().find((candidate) => candidate.column.id === columnId)
   return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
-}
-
-function hasColumn(row: Row<TransferRowT>, columnId: string) {
-  return row.getVisibleCells().some((cell) => cell.column.id === columnId)
 }
 
 const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
@@ -57,7 +57,13 @@ function Chip({ kind, label, children }: { kind: ChipKindT; label: string; child
   )
 }
 
-export function TransferCard({ row, className }: PropsT) {
+export function TransferCard({
+  row,
+  visibleColumnIds,
+  uncoloredAmounts = false,
+  className,
+}: PropsT) {
+  const hasColumn = (columnId: string) => visibleColumnIds.includes(columnId)
   const translator = useTranslation('transfers')
   const transfer = row.original
   const isMuted = transfer.cancelled || transfer.type === 'CANCELLATION'
@@ -81,12 +87,15 @@ export function TransferCard({ row, className }: PropsT) {
         <span className="text-muted-foreground ml-auto">{formatPLDate(transfer.date)}</span>
       </header>
 
-      <TransferTypeBadge transfer={transfer} translator={translator} className="self-start" />
+      <div className="flex flex-wrap items-center gap-1.5">
+        <TransferTypeBadge transfer={transfer} translator={translator} />
+        {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell(row, 'payoutStatus')}
+      </div>
 
       <div className="flex items-baseline gap-2">
         <span
           className={cn('text-lg font-semibold', transfer.cancelled && 'line-through')}
-          style={isMuted ? undefined : { color: transferColorVar(transfer) }}
+          style={isMuted || uncoloredAmounts ? undefined : { color: transferColorVar(transfer) }}
         >
           {formatPLN(transfer.amount)}
         </span>
@@ -97,33 +106,33 @@ export function TransferCard({ row, className }: PropsT) {
         )}
       </div>
 
-      {hasColumn(row, 'investment') && isNamed(transfer.investmentName) && (
+      {hasColumn('investment') && isNamed(transfer.investmentName) && (
         <div className="text-muted-foreground truncate text-sm">
           {renderCell(row, 'investment')}
         </div>
       )}
 
-      {hasColumn(row, 'description') && transfer.description && (
+      {hasColumn('description') && transfer.description && (
         <p className="line-clamp-3 text-sm whitespace-pre-line">{transfer.description}</p>
       )}
 
       <div className="flex flex-wrap gap-1">
-        {hasColumn(row, 'sourceRegister') && isNamed(transfer.sourceRegisterName) && (
+        {hasColumn('sourceRegister') && isNamed(transfer.sourceRegisterName) && (
           <Chip kind="register" label={t('colSourceRegister')}>
             {renderCell(row, 'sourceRegister')}
           </Chip>
         )}
-        {hasColumn(row, 'targetRegister') && isNamed(transfer.targetRegisterName) && (
+        {hasColumn('targetRegister') && isNamed(transfer.targetRegisterName) && (
           <Chip kind="register" label={t('colTargetRegister')}>
             {renderCell(row, 'targetRegister')}
           </Chip>
         )}
-        {hasColumn(row, 'worker') && isNamed(transfer.workerName) && (
+        {hasColumn('worker') && isNamed(transfer.workerName) && (
           <Chip kind="worker" label={t('colWorker')}>
             {renderCell(row, 'worker')}
           </Chip>
         )}
-        {hasColumn(row, categoryColumn) && category && isNamed(category) && (
+        {hasColumn(categoryColumn) && category && isNamed(category) && (
           <Chip
             kind="category"
             label={t(hasExpenseCategory ? 'colExpenseCategory' : 'colOtherCategory')}
@@ -131,18 +140,16 @@ export function TransferCard({ row, className }: PropsT) {
             {category}
           </Chip>
         )}
-        {hasColumn(row, 'paymentMethod') && transfer.paymentMethod && (
+        {hasColumn('paymentMethod') && transfer.paymentMethod && (
           <Chip kind="paymentMethod" label={t('colPaymentMethod')}>
             {transferPaymentMethodText(transfer, translator)}
           </Chip>
         )}
-        {hasColumn(row, 'createdBy') &&
-          transfer.createdByName &&
-          isNamed(transfer.createdByName) && (
-            <Chip kind="createdBy" label={t('colCreatedBy')}>
-              {transfer.createdByName}
-            </Chip>
-          )}
+        {hasColumn('createdBy') && transfer.createdByName && isNamed(transfer.createdByName) && (
+          <Chip kind="createdBy" label={t('colCreatedBy')}>
+            {transfer.createdByName}
+          </Chip>
+        )}
       </div>
 
       <RowActionLabels value>

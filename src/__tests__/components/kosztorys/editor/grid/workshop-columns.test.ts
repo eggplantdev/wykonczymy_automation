@@ -13,7 +13,9 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 // the RENDERED ids rather than the constant — the constant can be right while the selection still
 // lets a column through, or drops one.
 
-const STAGES: KosztorysStageT[] = [{ id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null }]
+const STAGES: KosztorysStageT[] = [
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
+]
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
   return buildV2Columns({ view: 'client', workshopVisible: true, stages: STAGES, ...extra })
@@ -33,34 +35,49 @@ describe('workshop columns', () => {
     }
   })
 
-  // Every reading preference — the picker tick, the money axis, the layer — persists per BROWSER
-  // and arrives here having been set on some other kosztorys, while the workbench hides every
-  // control that edits it. So each has to be a dead end in BOTH directions, and the floor is the
-  // one that bites: „Sekcja" is in DEFAULT_HIDDEN_COLUMNS, so on a first visit it would simply be
-  // missing from the owner's own list.
   it('is a ceiling no reading preference can lift', () => {
     expect(workshopIds({ isHidden: () => false, moneyAxis: 'both', layer: 'both' })).toEqual(
       workshopIds(),
     )
   })
 
-  it('is a floor no reading preference can lower', () => {
-    expect(workshopIds({ isHidden: () => true, moneyAxis: 'none', layer: 'none' })).toEqual(
+  // The menu offers the workbench no axes, so a money axis or layer stored on a kosztorys must not
+  // take a column away with nothing on screen to bring it back.
+  it('ignores the money axis and the layer', () => {
+    expect(workshopIds({ moneyAxis: 'none', layer: 'none', crewAxis: 'none' })).toEqual(
       workshopIds(),
     )
   })
 
-  // The third preference gate, and the one the allowlist cannot answer on its own: a rank map
-  // reorders columns it is allowed to keep. Same localStorage, same missing control — the reorder
-  // dialog and its reset both live in KosztorysViewMenu, which the workbench hides.
-  it('ignores a stored column order set on some other kosztorys', () => {
-    expect(workshopIds({ columnRanks: { workNote: 0, description: 1, sectionName: 2 } })).toEqual(
-      workshopIds(),
-    )
+  it('hides a column the workbench picker unticked', () => {
+    const ids = workshopIds({ isHidden: (id) => id === 'sectionName' })
+
+    expect(ids).not.toContain('sectionName')
+    expect(ids).toContain('description')
   })
 
-  // The workbench hides „Widok" (`KosztorysViewMenu`), which is where the netto/brutto axis lives,
-  // so netto is not „the axis that happens to be on" — it is the only price a szablon can carry.
+  // A problem engaged on the workbench still has to show the stawka that explains it.
+  it('shows a column an engaged problem reveals, tick or no tick', () => {
+    const ids = workshopIds({
+      isHidden: (id) => id === 'workNote',
+      revealedColumnIds: new Set(['workNote']),
+    })
+
+    expect(ids).toContain('workNote')
+  })
+
+  it('keeps the row-actions column whatever the picker says', () => {
+    expect(workshopIds({ onRemoveItem: () => {}, isHidden: () => true })).toContain('actions')
+  })
+
+  it('reorders by the workbench rank map', () => {
+    const ids = workshopIds({ columnRanks: { workNote: -1 } })
+
+    expect(ids[0]).toBe('workNote')
+  })
+
+  // The menu offers the workbench no netto/brutto axis, so netto is not „the axis that happens to
+  // be on" — it is the only price a szablon can carry.
   // Brutto is netto times THIS investment's VAT, which a preset does not take to the next one.
   it('carries the netto price and no brutto beside it', () => {
     expect(workshopIds()).toContain('price')
@@ -110,14 +127,19 @@ describe('workshop columns', () => {
     expect(workshopIds({ onRemoveItem: () => {} })).toContain('actions')
   })
 
-  it('leaves the picker empty, so the toolbar has nothing to offer', () => {
+  it('offers the warsztat list in the picker and nothing outside it', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
       workshopVisible: true,
       stages: STAGES,
+      isHidden: (id) => id === 'workNote',
     })
+    const ids = columnToggleItems.map((item) => item.id)
 
-    expect(columnToggleItems).toEqual([])
+    expect(ids).toContain('description')
+    expect(ids).not.toContain('actions')
+    expect(ids.every((id) => WORKSHOP_VISIBLE_COLUMNS.has(id))).toBe(true)
+    expect(columnToggleItems.find((item) => item.id === 'workNote')?.visible).toBe(false)
   })
 
   it('narrows nothing on an ordinary kosztorys', () => {

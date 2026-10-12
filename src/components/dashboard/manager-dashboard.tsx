@@ -4,9 +4,11 @@ import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchPendingExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
+import { fetchRejectedPayouts } from '@/lib/queries/payout-confirmation'
 import type { RoleT } from '@/lib/auth/roles'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expense-drafts'
+import { RejectedPayouts } from '@/components/payouts/rejected-payouts'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES, SECTION_IDS } from '@/lib/constants/sections'
@@ -34,10 +36,12 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
       isAdminOrOwner,
     },
     pendingDrafts,
+    rejectedPayouts,
     referenceDataBase,
   ] = await Promise.all([
     fetchManagerDashboardData(),
     fetchPendingExpenseDrafts(),
+    fetchRejectedPayouts(),
     fetchReferenceData(),
   ])
   const where = buildTransferFilters(searchParams, { id: 0 })
@@ -56,6 +60,8 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
         }}
       />
 
+      <RejectedPayouts payouts={rejectedPayouts} />
+
       {/* Recent transactions */}
       <TransfersSection
         id={SECTION_IDS.transactions}
@@ -72,7 +78,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
           // from/to registers they own (currently managers see all transactions).
           // Intentionally inline — manager sees only visible registers and active investments.
           // Entity pages use buildFilterConfig(refData) with full data since they're already scoped
-          // to one investment/user. Reports page is not accessible to managers at all.
+          // to one investment/user.
           filters: {
             cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),

@@ -21,6 +21,7 @@ const stage = (id: number, workerId: number | null): KosztorysStageT => ({
   label: null,
   plane: 'w_tools',
   split: workerId == null ? null : oneWorkerSplit(workerId),
+  completed: false,
 })
 
 const worker = (id: number, name: string): WorkerRefT => ({
@@ -29,6 +30,7 @@ const worker = (id: number, name: string): WorkerRefT => ({
   role: 'EMPLOYEE',
   email: `${name.toLowerCase()}@t.com`,
   language: null,
+  canAddExpensesWithoutInvestment: false,
 })
 
 describe('computeSubcontractorSummary', () => {
@@ -143,7 +145,14 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
       expect(stateFor(0, 150, [stage(10, 1)])).toBe('no_executed_work')
       expect(
         stateFor(0, 150, [
-          { id: 10, ordinal: 1, label: null, plane: null, split: oneWorkerSplit(1) },
+          {
+            id: 10,
+            ordinal: 1,
+            label: null,
+            plane: null,
+            split: oneWorkerSplit(1),
+            completed: false,
+          },
         ]),
       ).toBe('no_executed_work')
     })

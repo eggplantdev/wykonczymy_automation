@@ -56,7 +56,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   aiComment: 'Komentarz AI',
   reviewStatus: 'Status',
   changeReason: 'Powód zmiany (co AI zrobiło źle)',
-  workNote: 'Komentarz do pracy (wiedza firmowa — niewidoczna dla klienta)',
+  workNote: 'Komentarz do pracy (niewidoczny dla klienta)',
 }
 
 // The labels the worker's link renders, keyed into the `grid` dictionary. A map rather than a key

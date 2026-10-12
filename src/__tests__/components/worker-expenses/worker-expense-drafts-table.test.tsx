@@ -11,9 +11,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), replace, push }),
   useSearchParams: () => new URLSearchParams(),
 }))
-vi.mock('@/components/worker-expenses/expense-draft-dialog', () => ({
-  ExpenseDraftDialog: ({ draft }: { draft: ExpenseDraftRowT }) => <span>Edytuj {draft.id}</span>,
-}))
 vi.mock('@/components/worker-expenses/delete-expense-draft-button', () => ({
   DeleteExpenseDraftButton: ({ draftId }: { draftId: number }) => <span>Usuń {draftId}</span>,
 }))
@@ -63,8 +60,6 @@ function renderTable(rows: ExpenseDraftRowT[], canSend = true, canOpenTransfers 
       drafts={rows}
       canSend={canSend}
       canOpenTransfers={canOpenTransfers}
-      investments={[]}
-      registers={[]}
     />,
   )
 }
@@ -99,21 +94,20 @@ describe('WorkerExpenseDraftsTable', () => {
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 
-  it('offers Edytuj and Usuń only on the pending drafts of the own page', async () => {
+  it('offers only Usuń, and only on the pending drafts of the own page', async () => {
     renderTable([draft(1), draft(2, accepted(2))])
     await tickStatuses(userEvent.setup(), ['czeka', 'przyjęty'])
 
     const pendingRow = screen.getByText('Inwestycja 1').closest('tr')!
     const acceptedRow = screen.getByText('Inwestycja 2').closest('tr')!
-    expect(within(pendingRow).getByText('Edytuj 1')).toBeInTheDocument()
     expect(within(pendingRow).getByText('Usuń 1')).toBeInTheDocument()
-    expect(within(acceptedRow).queryByText(/Edytuj|Usuń/)).not.toBeInTheDocument()
+    expect(within(acceptedRow).queryByText('Usuń 2')).not.toBeInTheDocument()
   })
 
   it('gives a manager on the worker page no actions', () => {
     renderTable([draft(1)], false)
 
-    expect(screen.queryByText(/Edytuj|Usuń/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Usuń/)).not.toBeInTheDocument()
   })
 
   it('narrows to the ticked status and inwestycja, back on page 1, without touching the URL', async () => {
@@ -156,13 +150,7 @@ describe('WorkerExpenseDraftsTable', () => {
 
     const sent = draft(30)
     rerender(
-      <WorkerExpenseDraftsTable
-        drafts={[sent, ...drafts]}
-        canSend
-        canOpenTransfers={false}
-        investments={[]}
-        registers={[]}
-      />,
+      <WorkerExpenseDraftsTable drafts={[sent, ...drafts]} canSend canOpenTransfers={false} />,
     )
 
     expect(shownIds()[0]).toBe(30)
@@ -190,5 +178,19 @@ describe('WorkerExpenseDraftsTable', () => {
     await tickStatuses(userEvent.setup(), ['przyjęty'])
 
     expect(screen.getByRole('link')).toHaveAttribute('href', '/inwestycje/3?id=101')
+  })
+
+  it('lists a draft without an investment as „Bez inwestycji” and filters on it', async () => {
+    const user = userEvent.setup()
+    renderTable([draft(1), draft(2, { investmentId: null, investmentName: null })])
+    expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^Inwestycja/ }))
+    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
+    await user.click(screen.getByRole('option', { name: 'Bez inwestycji' }))
+    await user.keyboard('{Escape}')
+
+    expect(shownIds()).toEqual([])
+    expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
   })
 })

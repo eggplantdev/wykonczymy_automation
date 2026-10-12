@@ -2,7 +2,7 @@
 
 import { FileText } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
+import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { toastMessage } from '@/lib/utils/toast'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'

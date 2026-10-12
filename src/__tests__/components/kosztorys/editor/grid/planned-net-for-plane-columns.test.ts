@@ -9,8 +9,8 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 // at the crew's stawka, beside the client-priced figures, in both crew views and never in the client one.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: null },
-  { id: 8, ordinal: 2, label: 'Etap 2', plane: 'own_tools', split: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: null, completed: false },
+  { id: 8, ordinal: 2, label: 'Etap 2', plane: 'own_tools', split: null, completed: false },
 ]
 
 function grid(view: PriceViewT, extra: Partial<BuildV2ColumnsOptsT> = {}) {

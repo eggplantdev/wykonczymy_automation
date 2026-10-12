@@ -7,8 +7,22 @@ import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 // Already narrowed to his etapy, as the projection hands them over.
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: oneWorkerSplit(3) },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: 'w_tools', split: oneWorkerSplit(3) },
+  {
+    id: 7,
+    ordinal: 1,
+    label: 'Etap 1',
+    plane: 'w_tools',
+    split: oneWorkerSplit(3),
+    completed: false,
+  },
+  {
+    id: 9,
+    ordinal: 2,
+    label: 'Etap 2',
+    plane: 'w_tools',
+    split: oneWorkerSplit(3),
+    completed: false,
+  },
 ]
 
 const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>

@@ -46,6 +46,7 @@
     "blob:refresh:preview": "bash scripts/blob-refresh-preview.sh",
     "test": "bash scripts/with-test-lock.sh vitest run",
     "test:parity": "bash scripts/with-test-lock.sh bash -c 'source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env node_modules/vitest/vitest.mjs run src/__tests__/investment-render-parity-db.test.ts src/__tests__/financial-golden-master-db.test.ts'",
+    "test:receipts-ai": "RECEIPT_EVAL=1 node --env-file=.env node_modules/vitest/vitest.mjs run src/__tests__/lib/ai/extract-receipts-live.test.ts",
     "test:golden:update": "source .env && UPDATE_GOLDEN=1 DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env node_modules/vitest/vitest.mjs run src/__tests__/financial-golden-master-db.test.ts",
     "test:integration": "bash scripts/with-test-lock.sh bash scripts/test-integration.sh",
     "test:watch": "vitest",
@@ -106,6 +107,7 @@
     "sharp": "^0.34.5",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
+    "web-push": "^3.6.7",
     "zod": "^4.3.5",
     "zustand": "^5.0.9"
   },
@@ -122,6 +124,7 @@
     "@types/nodemailer": "^7.0.9",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@types/web-push": "^3.6.4",
     "babel-plugin-react-compiler": "^1.0.0",
     "dependency-cruiser": "^17.4.3",
     "eslint": "^9.39.2",

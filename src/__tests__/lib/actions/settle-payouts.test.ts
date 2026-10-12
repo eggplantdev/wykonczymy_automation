@@ -11,12 +11,15 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 // Every case asserts the PERSISTED rows, never only the return value: a refusal that still wrote
 // row 1, or a `{ success: true }` from a rolled-back transaction, reads the same from the outside.
 vi.mock('server-only', () => ({}))
-// after() schedules the post-response sheet sync (live Google credentials); it also throws outside a
-// request scope. Not under test.
+// after() throws outside a request scope, so it runs the task inline; the sheet sync it schedules
+// needs live Google credentials and is not under test.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
+  return { ...actual, after: (task: () => unknown) => void task() }
 })
+vi.mock('@/lib/actions/sheets-sync', () => ({ syncBulkExpensesToSheet: vi.fn() }))
+const { notifyPendingPayouts } = vi.hoisted(() => ({ notifyPendingPayouts: vi.fn() }))
+vi.mock('@/lib/push/notify-pending-payouts', () => ({ notifyPendingPayouts }))
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({
@@ -129,6 +132,7 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
 
   afterEach(async () => {
     vi.restoreAllMocks()
+    notifyPendingPayouts.mockClear()
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${marker}%`}`)
   })
 
@@ -176,6 +180,11 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     })
     expect(ahead).toMatchObject({ investment_id: created.b, amount: remainingB + 150 })
     expect(ahead.description).toMatch(new RegExp(`^${marker}\\nw tym zaliczka 150,00`))
+    expect(notifyPendingPayouts).toHaveBeenCalledTimes(1)
+    expect(notifyPendingPayouts.mock.calls[0][1]).toEqual([
+      { workerId: worker.a, amount: remainingA },
+      { workerId: worker.a, amount: remainingB + 150 },
+    ])
   })
 
   it('settles both workers of a shared etap, each at their own share', async () => {
@@ -227,6 +236,7 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     ])
     expect(result).toMatchObject({ success: false, stale: true })
     expect(await booked()).toHaveLength(0)
+    expect(notifyPendingPayouts).not.toHaveBeenCalled()
   })
 
   // EX-979: a premia moves the pair like a wypłata does, so a dialog opened before it is stale.

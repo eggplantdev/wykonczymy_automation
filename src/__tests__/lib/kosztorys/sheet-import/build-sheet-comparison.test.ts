@@ -85,6 +85,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
       label: null,
       plane: null,
       split: null,
+      completed: false,
     })),
     progress: [],
     settings: { wToolsCoeff: 0.71, ownToolsCoeff: 0.42, vatRate: 8 },

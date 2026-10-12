@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { cn } from '@/lib/utils/cn'
 
 // `icon` renders inside the item's text node, which Radix mirrors into the trigger — so an option
@@ -18,6 +19,9 @@ export type SelectOptionT = {
   value: string
   label: ReactNode
   icon?: LucideIcon
+  description?: ReactNode
+  // Colour classes for the option's icon and name in the open list (the item's own rule mutes icons).
+  tone?: string
   className?: string
 }
 export type SelectVariantT = 'default' | 'soft' | 'pill' | 'toolbar' | 'toolbarSm'
@@ -65,11 +69,20 @@ export function SimpleSelect({
   invalid,
 }: PropsT) {
   const preset = VARIANT[variant]
+  const selected = options.find((option) => option.value === value)
+  // Radix mirrors the whole item into the trigger; given children it shows those instead, so the
+  // closed select carries the name without the description.
+  const selectedValue = selected?.description ? (
+    <>
+      {selected.icon && <selected.icon />}
+      {selected.label}
+    </>
+  ) : undefined
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       {preset.buttonTrigger ? (
         <SelectButtonTrigger aria-invalid={invalid} className={cn(preset.className, className)}>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>{selectedValue}</SelectValue>
         </SelectButtonTrigger>
       ) : (
         <SelectTrigger
@@ -77,14 +90,23 @@ export function SimpleSelect({
           aria-invalid={invalid}
           className={cn(preset.className, className)}
         >
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>{selectedValue}</SelectValue>
         </SelectTrigger>
       )}
-      <SelectContent>
+      {/* Descriptions wrap at the kosztorys menus' width instead of stretching the list to the longest. */}
+      <SelectContent className={cn(options.some((option) => option.description) && 'w-80')}>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} className={option.className}>
-            {option.icon && <option.icon />}
-            {option.label}
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className={cn(option.tone, option.className)}
+          >
+            {option.icon && <option.icon className={option.tone} />}
+            {option.description ? (
+              <MenuItemBody label={option.label} description={option.description} />
+            ) : (
+              option.label
+            )}
           </SelectItem>
         ))}
       </SelectContent>

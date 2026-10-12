@@ -140,10 +140,8 @@ weryfikator straci godzinę, jeśli ich nie przeczyta.
 Te powody trzymają praktycznie każdy niezaznaczony boks w rejestrze. Żaden nie jest defektem i
 żadnego nie usunie kolejne podejście:
 
-1. **`/raporty` jest wyłączone** do czasu EX-598 — `src/app/(frontend)/raporty/page.tsx` renderuje
-   bezwarunkowy `EmptyState` „W budowie". Każdy boks mówiący „sprawdź na raportach" jest tym zablokowany.
-2. **Poczta nie wychodzi poza produkcją** (`EMAIL_HOST` = `disabled.invalid`, patrz AGENTS.md).
-3. **Nie ma dostępu do skrzynki odbiorczej**, więc „czy mail dotarł i jak wygląda" jest poza zasięgiem.
+1. **Poczta nie wychodzi poza produkcją** (`EMAIL_HOST` = `disabled.invalid`, patrz AGENTS.md).
+2. **Nie ma dostępu do skrzynki odbiorczej**, więc „czy mail dotarł i jak wygląda" jest poza zasięgiem.
 
 Boks zablokowany którymś z powyższych zostawia się **niezaznaczony z podanym powodem** — nie zaznacza
 się go „bo kod wygląda dobrze" i nie kasuje.

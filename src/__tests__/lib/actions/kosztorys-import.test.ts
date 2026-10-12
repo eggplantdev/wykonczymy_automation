@@ -65,6 +65,8 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
     db = await getDb(payload)
     const users = await payload.find({
       collection: 'users',
+      // The etap write refuses a trashed worker, and a restored dump can trash anyone.
+      where: { trashedAt: { exists: false } },
       limit: 1,
       depth: 0,
       overrideAccess: true,
@@ -113,7 +115,11 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
     `)
     expect(stages.rows.length).toBeGreaterThan(0)
     expect(stages.rows).toEqual(
-      stages.rows.map(() => ({ plane: 'own_tools', worker_id: authState.userId, takes_rest: true })),
+      stages.rows.map(() => ({
+        plane: 'own_tools',
+        worker_id: authState.userId,
+        takes_rest: true,
+      })),
     )
   })
 

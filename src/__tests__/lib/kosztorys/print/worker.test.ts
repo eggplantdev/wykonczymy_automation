@@ -29,8 +29,22 @@ const NET_HEADER = 'Suma etapów z narzędziami (podwykonawca) netto'
 // The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  {
+    id: 100,
+    ordinal: 1,
+    label: 'Tynki',
+    plane: 'w_tools',
+    split: oneWorkerSplit(WORKER),
+    completed: false,
+  },
+  {
+    id: 102,
+    ordinal: 3,
+    label: null,
+    plane: 'w_tools',
+    split: oneWorkerSplit(WORKER),
+    completed: false,
+  },
 ]
 const rates = { wToolsOverrideValue: RATE, ownToolsOverrideValue: OWN_RATE }
 const treeWith = (progress: { itemId: number; stageId: number; qtyDone: number }[]) =>

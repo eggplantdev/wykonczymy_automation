@@ -90,11 +90,11 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         )}
         {/* Without a sheet this is the setup dialog — a write. */}
         {(!trashed || investment.hasSheet) && (
-          <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} />
+          <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} size="sm" />
         )}
-        <OpenKosztorysV2Button investmentId={investmentId} />
+        <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
       </div>
-      <InfoList items={buildInvestmentInfoFields(investment)} />
+      <InfoList items={buildInvestmentInfoFields(investment, { isReadOnly: trashed })} />
       <InvestmentNotes investment={investment} readOnly={trashed} />
 
       {/* Its own boundary: the gallery's read is independent of everything above it, so it must not

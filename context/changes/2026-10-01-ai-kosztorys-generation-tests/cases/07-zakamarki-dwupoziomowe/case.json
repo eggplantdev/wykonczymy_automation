@@ -1,0 +1,32 @@
+{
+  "investmentId": 207,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "zakamarki-rys-tech-robocze-cb835dc6e979.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "wizualizacje-komplet-0f69928a019a.pdf",
+      "kind": null
+    },
+    {
+      "name": "łazienka-22092026-f8c3dd98014b.png",
+      "kind": null
+    },
+    {
+      "name": "zabudowa-2-bfc0eb5824bb.png",
+      "kind": null
+    },
+    {
+      "name": "kuchnia2-2118802deb77.png",
+      "kind": null
+    },
+    {
+      "name": "salon-1_2-e2e6741598ad.jpg",
+      "kind": null
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

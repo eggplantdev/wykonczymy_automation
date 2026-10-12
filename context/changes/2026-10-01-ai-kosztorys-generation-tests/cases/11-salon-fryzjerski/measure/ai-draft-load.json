@@ -1,0 +1,188 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł (katalog: małe mieszkanie w całości); lokal usługowy, zakres odświeżeniowy — piętro i dostęp nieznane, kwotę do potwierdzenia",
+    "assumptions": "1 kpl na cały remont — pozycja ryczałtowa; Notatki jej nie wymieniają, ale gres, klej, listwy i farbę trzeba kupić i wnieść"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: ilość gruzu zależy od powierzchni skuwanych płytek; przy 4 big bagach i więcej kontener (Manual: 1500 zł parter, od 1800 zł wyżej)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia podłogi lokalu (m²); czy salon działa w trakcie remontu (wtedy stawka 45 zł/m²)",
+    "assumptions": "zabezpieczenia liczone po m² podłogi (katalog); stawka podstawowa — zakładam, że lokal jest zamknięty na czas remontu"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia płytek do skucia (m²) — podłoga, schody, czy także ściany — Notatki: „skucie płytek”, „usunięcie istniejącej posadzki”, „glazura na schodach”"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 10.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: długość istniejących listew (mb) — zwykle jak nowe listwy: obwód lokalu bez zabudów meblowych (mb)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż drewnianych ościeżnic",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "ościeżnica drewniana czy metalowa (metalowa futryna 200 zł: +100 zł)",
+    "assumptions": "1 szt. — Notatki: „Wymiana drzwi wewnętrznych. 1 szt.” i „Demontaż drzwi przeznaczonych do wymiany”; zakładam ościeżnicę drewnianą"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie ścian po kleju, przygotowanie do dalszych prac",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: jak skuwanie: powierzchnia płytek do skucia (m²) — podłoga, schody, czy także ściany",
+    "assumptions": "po skuciu płytek podłoże szlifujemy z kleju (katalog) — Notatki: „Przygotowanie podłoża po usunięciu istniejącej posadzki”"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia podłogi lokalu (m²)",
+    "assumptions": "grunt pod wylewkę i pod glazurę (katalog)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia podłogi lokalu (m²); stan podłoża po skuciu — jeśli potrzebna wylewka betonowa 3–5 cm: 80 zł/m² zamiast 55 zł/m²",
+    "assumptions": "Notatki: „Wyrównanie i naprawa podłoża” — zakładam wylewkę samopoziomującą do 5 mm pod nowy gres"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Położenie gresu na podłodze format standard od 30x30 do 60x120",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia podłogi lokalu (m²); format płytek (120×120: 300 zł/m², mały format: 250–380 zł/m²)",
+    "assumptions": "Notatki: „Ułożenie nowej podłogi na całej powierzchni lokalu. glazura” — zakładam format standard (30×30 do 60×120)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Fugowanie",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: jak gres: powierzchnia podłogi lokalu (m²)",
+    "assumptions": "fugowanie = tyle m², ile gresu (katalog)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Ułożenie gresu na stopniach",
+    "unit": "szt",
+    "clientPrice": 220.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: liczba stopni; czy na schodach skuwamy stare płytki i kładziemy nowe, czy tylko jedno z tych dwóch",
+    "assumptions": "katalog prac (#661, 220 zł/szt.) — szablon nie ma pozycji na schody; Notatki: „układania glazury na schodach” (w części demontażowej)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: obwód lokalu bez zabudów meblowych (mb)",
+    "assumptions": "Notatki: „Montaż nowych listew przypodłogowych. poliuretan”"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Akrylowanie listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 16.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: jak listwy: obwód lokalu bez zabudów meblowych (mb)",
+    "assumptions": "Notatki: „Akrylowanie połączeń listew ze ścianami” — tyle samo mb co listew (katalog)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Malowanie listew przypodłogowych",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: jak listwy: obwód lokalu bez zabudów meblowych (mb); czy listwy są malowane (gotowe białe listwy — pozycja wypada)",
+    "assumptions": "listwy poliuretanowe zwykle idą pod malowanie, a Notatki przewidują malowanie całego lokalu"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Uzupełnienie i wyrównanie tynków na ścianie w kuchni, za zabudową meblową",
+    "unit": "kpl",
+    "clientPrice": 600.0,
+    "qty": 1,
+    "missingData": "czy 600 zł to cena dla klienta; kto demontuje i montuje zabudowę kuchenną, żeby dostać się do ściany",
+    "assumptions": "kwota ryczałtowa 600 zł wpisana w Notatkach — przyjęta jako Cena j.m.; w szablonie najbliżej „Tynkowanie ręczne ścian lub sufitów do 1 cm” 60 zł/m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie ścian jednokrotne + drobne poprawki",
+    "unit": "m²",
+    "clientPrice": 15.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia ścian i sufitów do malowania (m²) — wysokość lokalu i obwód; jeśli ściany wymagają pełnej gładzi: rynek wtórny 85 zł/m² zamiast 15 zł/m²",
+    "assumptions": "Notatki: „Przygotowanie powierzchni pod malowanie”, „Miejscowe szpachlowanie i przygotowanie ścian” — grunt z drobnymi poprawkami, bez pełnej gładzi (zakres „odświeżenia”)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: powierzchnia ścian i sufitów do malowania (m²) — wysokość lokalu i obwód; kolor ścian (w kolorze 26 zł/m² zamiast 22 zł/m²)",
+    "assumptions": "Notatki: „Malowanie całego lokalu w zakresie odświeżenia pomieszczeń” — ściany i sufity, zakładam na biało; poprawki malarskie po pozostałych pracach w tej samej pozycji"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "missingData": "ościeżnica regulowana czy stała (stała 450 zł + wklejanie opasek 200 zł)",
+    "assumptions": "1 szt. — Notatki: „Wymiana drzwi wewnętrznych. 1 szt.”; zakładam ościeżnicę regulowaną"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Uporządkowanie istniejącego okablowania",
+    "unit": "kpl",
+    "clientPrice": 500.0,
+    "qty": 1,
+    "missingData": "czy 500 zł to cena dla klienta i co obejmuje (porządkowanie przewodów natynkowych, puszki, rozdzielnia?)",
+    "assumptions": "kwota ryczałtowa 500 zł wpisana w Notatkach — przyjęta jako Cena j.m.; szablon nie ma takiej pozycji"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Sprzątanie lokalu po zakończeniu remontu",
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "qty": 1,
+    "missingData": "brak w szablonie i w katalogu — do wyceny (Cena j.m. pusta)",
+    "assumptions": "1 kpl — Notatki: „Uprzątnięcie lokalu po zakończeniu remontu”"
+  }
+]

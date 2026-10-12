@@ -20,3 +20,5 @@ export const receiptExtractionSchema = z.object({
 })
 
 export type ReceiptExtractionT = z.infer<typeof receiptExtractionSchema>
+
+export const receiptListExtractionSchema = z.object({ receipts: z.array(receiptExtractionSchema) })

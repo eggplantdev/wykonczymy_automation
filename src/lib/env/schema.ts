@@ -8,6 +8,8 @@ import isValidUrl from '@/lib/utils/is-valid-url'
 export const clientSchema = z.object({
   // Public (inlined into the browser bundle) — read via statically-keyed object in env.ts.
   NEXT_PUBLIC_FRONTEND_URL: z.string().refine(isValidUrl, 'Invalid URL'),
+  // Optional for the same reason as VAPID_PRIVATE_KEY below; without it the push toggle never renders.
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
 })
 
 // The two Blob stores' ids, which a token carries verbatim (`vercel_blob_rw_<STORE_ID>_…`).
@@ -123,6 +125,12 @@ export const serverSchema = z
     // Vercel-injected at runtime; absent locally (where NODE_ENV is the right signal).
     VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
     CRON_SECRET: z.string().min(1),
+    // Web Push. A subscription is bound to the public key it was made with, and the push service
+    // refuses a push signed by any other pair — so with the pair on Vercel Production only, the
+    // production subscriptions every dump carries cannot be reached from anywhere else. Absence is
+    // the gate, as with the Editor credential: never put this pair in `.env`.
+    NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+    VAPID_PRIVATE_KEY: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
     const refusal = blobTokenRefusal(env.VERCEL_ENV, env.BLOB_READ_WRITE_TOKEN)
@@ -140,5 +148,18 @@ export const serverSchema = z
           'GOOGLE_SERVICE_ACCOUNT_WRITE_JSON is required in production — without it Google Sheets ' +
           'sync fails silently on every transfer. Set the Editor service-account JSON on Vercel Production.',
       })
+    }
+
+    // Without the pair, `sendPushToUser` returns before sending — a silent loss, so production fails
+    // the boot instead.
+    if (env.VERCEL_ENV === 'production') {
+      for (const key of ['NEXT_PUBLIC_VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY'] as const) {
+        if (env[key] !== undefined) continue
+        ctx.addIssue({
+          code: 'custom',
+          path: [key],
+          message: `${key} is required in production — without it no push notification is sent.`,
+        })
+      }
     }
   })

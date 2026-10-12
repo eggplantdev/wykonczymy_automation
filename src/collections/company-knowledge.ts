@@ -7,7 +7,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 export const CompanyKnowledge: CollectionConfig = {
   slug: 'company-knowledge',
   labels: {
-    singular: { en: 'Company knowledge entry', pl: 'Wpis wiedzy firmowej' },
+    singular: { en: 'Company knowledge entry', pl: 'Wpis w Manualu' },
     plural: { en: 'Company knowledge', pl: 'Manual Wykończymy' },
   },
   admin: {

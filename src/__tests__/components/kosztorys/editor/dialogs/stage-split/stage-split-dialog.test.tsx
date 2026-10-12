@@ -13,9 +13,30 @@ const ANNA = 1
 const BOB = 2
 const CEZARY = 3
 const WORKERS: WorkerRefT[] = [
-  { id: ANNA, name: 'Anna', role: 'EMPLOYEE', email: 'a@t.test', language: null },
-  { id: BOB, name: 'Bob', role: 'EMPLOYEE', email: 'b@t.test', language: null },
-  { id: CEZARY, name: 'Cezary', role: 'EMPLOYEE', email: 'c@t.test', language: null },
+  {
+    id: ANNA,
+    name: 'Anna',
+    role: 'EMPLOYEE',
+    email: 'a@t.test',
+    language: null,
+    canAddExpensesWithoutInvestment: false,
+  },
+  {
+    id: BOB,
+    name: 'Bob',
+    role: 'EMPLOYEE',
+    email: 'b@t.test',
+    language: null,
+    canAddExpensesWithoutInvestment: false,
+  },
+  {
+    id: CEZARY,
+    name: 'Cezary',
+    role: 'EMPLOYEE',
+    email: 'c@t.test',
+    language: null,
+    canAddExpensesWithoutInvestment: false,
+  },
 ]
 
 // Anna holds the rest; Bob and Cezary are listed after her, so their inputs are textboxes 0 and 1.

@@ -35,7 +35,7 @@ export function WorkNoteDialog({
       open
       onOpenChange={onOpenChange}
       title="Komentarz do pracy…"
-      description="Wiedza firmowa, niewidoczna dla klienta. Dotyczy tej pracy w każdym kosztorysie i szablonie — zapisuje się w katalogu prac. Kolumna „Komentarz” zostaje przypisana do jednego kosztorysu."
+      description="Niewidoczny dla klienta. Dotyczy tej pracy w każdym kosztorysie i szablonie — zapisuje się w katalogu prac. Kolumna „Komentarz” zostaje przypisana do jednego kosztorysu."
       confirmLabel="Zapisz"
       onConfirm={handleSave}
       pending={pending}

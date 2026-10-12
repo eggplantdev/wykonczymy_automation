@@ -105,6 +105,15 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      name: 'canAddExpensesWithoutInvestment',
+      type: 'checkbox',
+      defaultValue: false,
+      label: {
+        en: 'Can add expenses without an investment',
+        pl: 'Zaznacz, jeśli pracownik może dodawać wydatki bez wybranej inwestycji',
+      },
+    },
+    {
       name: 'defaultCashRegister',
       type: 'relationship',
       relationTo: 'cash-registers',

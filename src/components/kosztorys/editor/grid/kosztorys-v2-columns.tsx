@@ -273,6 +273,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         onRename={opts.onRenameStage}
         onRemove={opts.onRemoveStage}
         onSetPlane={opts.onSetStagePlane}
+        onSetCompleted={opts.onSetStageCompleted}
         workers={opts.workers}
         onSetSplit={opts.onSetStageSplit}
         sort={activeSortPick(opts.sort, qtyField)}

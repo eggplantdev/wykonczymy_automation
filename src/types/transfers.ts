@@ -1,4 +1,5 @@
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
+import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
 import type { PreviewFileT } from '@/types/media'
 
 /**
@@ -48,6 +49,11 @@ export type TransferRowT = {
   vatPlane: VatPlaneT | null
   // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
   originalType: TransferTypeT | null
+  // The worker's answer to a wypłata. null on every other type and on a wypłata booked before
+  // EX-1042, which no worker was ever asked about.
+  payoutStatus: PayoutStatusT | null
+  payoutDecidedAt: string | null
+  payoutRejectionReason: string | null
   fromWorkerDraft?: boolean
 }
 

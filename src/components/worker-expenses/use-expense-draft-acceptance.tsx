@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
-import { buildDraftPrefill } from '@/components/worker-expenses/draft-prefill'
+import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
 import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
 import {
   ExpenseDraftDuplicateHints,
@@ -20,8 +20,8 @@ import {
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicates'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { ExpenseDraftMediaT, ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { sameItems } from '@/lib/utils/same-items'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { warsawToday } from '@/lib/utils/days'
@@ -68,22 +68,20 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     const {
       lineItems,
       files: rowFiles,
-      receiptMediaIds,
+      receipts,
     } = buildDraftPrefill(draft, files, expenseCategory)
     return {
       expenseDraftId: draft.id,
-      receiptMediaIds,
+      receipts,
       files: rowFiles,
       values: {
         date: warsawToday(),
-        type: 'INVESTMENT_EXPENSE',
         paymentMethod: 'CASH',
         sourceRegister: String(draft.cashRegisterId),
         targetRegister: '',
-        investment: String(draft.investmentId),
         worker: '',
         settled: false,
-        lineItems,
+        ...withDraftTarget(draft, lineItems),
       },
     }
   }
@@ -131,9 +129,9 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       if (!result.success) {
         return { ...prev, duplicates: { status: 'error', message: result.error } }
       }
-      const receipts = [...prev.prefill.receiptMediaIds]
+      const receipts = [...prev.prefill.receipts]
       const paragons = result.data.flatMap((paragon) => {
-        const itemId = receipts.find(([, mediaIds]) => sameItems(mediaIds, paragon.mediaIds))?.[0]
+        const itemId = receipts.find(([, receipt]) => receipt.readRow === paragon.readRow)?.[0]
         return itemId ? [{ ...paragon, itemId }] : []
       })
       return { ...prev, duplicates: { status: 'ready', paragons } }
@@ -236,7 +234,10 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       <ConfirmDialog
         open={rejecting !== undefined}
         title="Odrzucić zgłoszenie?"
-        description={rejecting && `${rejecting.workerName} · ${rejecting.investmentName}`}
+        description={
+          rejecting &&
+          `${rejecting.workerName} · ${rejecting.investmentName ?? pl.expenseDrafts.noInvestment}`
+        }
         confirmLabel="Odrzuć"
         onConfirm={() => rejecting && handleReject(rejecting.id)}
         onCancel={() => setRejecting(undefined)}

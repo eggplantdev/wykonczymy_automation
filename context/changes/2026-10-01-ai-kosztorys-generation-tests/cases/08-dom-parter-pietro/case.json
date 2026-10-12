@@ -1,0 +1,24 @@
+{
+  "investmentId": 198,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "WK.RYS-PIEITRO-74537ab48d58.pdf",
+      "kind": null
+    },
+    {
+      "name": "WK.RYS-PARTER-32b86037cf27.pdf",
+      "kind": null
+    },
+    {
+      "name": "produkty-WK-1ecc0225d8a6.pdf",
+      "kind": null
+    },
+    {
+      "name": "materiały-WK-8578092e4a5a.pdf",
+      "kind": null
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

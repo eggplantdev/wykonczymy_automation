@@ -1,11 +1,12 @@
 import { formatPLN } from '@/lib/utils/format-currency'
-import { billsNetAmount } from '@/lib/constants/transfers'
+import { billsNetAmount, carriesPayoutStatus } from '@/lib/constants/transfers'
 import {
   POLISH_TRANSFERS,
   isMessageKey,
   type MessageKeyT,
   type TranslatorT,
 } from '@/lib/i18n/translations'
+import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
 import type { TransferRowT } from '@/types/transfers'
 
 // Screen and paper must name a transfer identically, so the column's `cell` and its `meta.printValue`
@@ -52,4 +53,22 @@ export function transferPaymentMethodText(
   { t }: TransfersTranslatorT = POLISH_TRANSFERS,
 ): string {
   return paymentMethod ? t(`payment_${paymentMethod}` satisfies MessageKeyT<'transfers'>) : '—'
+}
+
+// Empty off a wypłata: the column exists on every row, the question only on this one.
+export function transferPayoutStatusText(
+  { type, payoutStatus, cancelled }: TransferRowT,
+  translator: TransfersTranslatorT = POLISH_TRANSFERS,
+): string {
+  if (!carriesPayoutStatus(type)) return ''
+  return payoutStatus ? payoutStatusLabel(payoutStatus, cancelled, translator) : '—'
+}
+
+// A cancellation leaves the worker's answer stored as it stood; „Anulowana" overrides it on screen.
+export function payoutStatusLabel(
+  status: PayoutStatusT,
+  cancelled: boolean,
+  { t }: TransfersTranslatorT,
+): string {
+  return cancelled ? t('payoutCancelled') : t(`payoutStatus_${status}`)
 }

@@ -13,6 +13,7 @@ import {
   carriesNetAmount,
   carriesVatPlane,
   carriesPaymentMethod,
+  carriesPayoutStatus,
 } from '@/lib/constants/transfers'
 import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
 import { getDb } from '@/lib/db/get-db'
@@ -61,9 +62,23 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   const vatPlane = resolved('vatPlane')
   const paymentMethod = resolved('paymentMethod')
 
-  // Above BOTH early returns, or anulowanie leaks through the second one. Transactions have no
-  // raw-SQL writer, so unlike the kosztorys this hook IS the complete gate. Covers both sides of a
-  // move: booking ONTO a locked investment and lifting a row OFF one.
+  // Only the worker's raw-SQL decision moves a status. A Local API update runs with overrideAccess and
+  // skips the fields' `access.update`, so an edit carrying the stored doc back must not reach them.
+  // Above every early return: a CANCELLATION is a create too.
+  if (operation === 'create') {
+    d.payoutStatus = carriesPayoutStatus(type) ? 'pending' : null
+    d.payoutDecidedAt = null
+    d.payoutRejectionReason = null
+  } else {
+    delete d.payoutStatus
+    delete d.payoutDecidedAt
+    delete d.payoutRejectionReason
+  }
+
+  // Above BOTH early returns, or anulowanie leaks through the second one. Every write that moves money
+  // passes this hook — the one raw-SQL writer is the worker's payout decision, which touches only the
+  // status columns — so unlike the kosztorys this IS the complete gate. Covers both sides of a move:
+  // booking ONTO a locked investment and lifting a row OFF one.
   const target = resolveId(resolved('investment'))
   const previous = resolveId(original?.investment)
   // The one write that stays open on a locked investment. Keyed on the VALUES that differ from the

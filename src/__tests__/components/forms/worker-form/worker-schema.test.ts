@@ -7,6 +7,7 @@ const worker = (language: unknown) => ({
   email: '',
   role: 'EMPLOYEE',
   active: true,
+  canAddExpensesWithoutInvestment: false,
   language,
 })
 

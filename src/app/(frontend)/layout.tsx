@@ -27,6 +27,7 @@ import { EnvBadge } from '@/components/ui/env-badge'
 import { PendingSubmitIndicator } from '@/components/ui/pending-submit-indicator'
 import { ReviewPromptHost } from '@/components/investments/review-prompt-host'
 import { ServiceWorkerRegistration } from '@/components/pwa/service-worker-registration'
+import { PushSubscriptionSync } from '@/components/pwa/push-subscription-sync'
 import { PWA_METADATA, PWA_VIEWPORT } from '@/lib/pwa/head'
 import { DEFAULT_UI_SCALE, UI_SCALE_COOKIE, parseUiScale } from '@/lib/constants/ui-scale'
 
@@ -106,6 +107,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </div>
           </div>
           <ReviewPromptHost />
+          <PushSubscriptionSync />
           {needsSessionRefresh(issuedAt) && <SessionRefresher />}
         </UnreadCountsProvider>
       </CurrentUserProvider>

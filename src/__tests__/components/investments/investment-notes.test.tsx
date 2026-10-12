@@ -21,6 +21,7 @@ const INVESTMENT: InvestmentRefT = {
   notes: 'Zakres prac: kuchnia, łazienka',
   reviewRequested: true,
   hasSheet: false,
+  aiStage: null,
   createdAt: '2026-01-15T10:00:00.000Z',
   materialsNetRate: null,
   settlementMode: 'NET',
@@ -93,6 +94,18 @@ describe('InvestmentNotes', () => {
 
     expect(toastMessage).toHaveBeenCalledWith('Błąd zapisu', 'error')
     expect(screen.getByRole('textbox', { name: 'Notatki' })).toHaveValue(NEW_NOTE)
+  })
+
+  it('renders headings, lists and bold, and edits the raw text', async () => {
+    const note = '## Do ustalenia z klientem\n- **podłogi**: całe piętro\n- gładź pod farbą'
+    render(<InvestmentNotes investment={{ ...INVESTMENT, notes: note }} />)
+
+    expect(screen.getByRole('heading', { name: 'Do ustalenia z klientem' })).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByText('podłogi').tagName).toBe('STRONG')
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Edytuj notatkę' }))
+    expect(screen.getByRole('textbox', { name: 'Notatki' })).toHaveValue(note)
   })
 
   it('offers no edit on a read-only investment', () => {

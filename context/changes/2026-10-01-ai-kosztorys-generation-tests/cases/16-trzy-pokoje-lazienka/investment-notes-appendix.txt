@@ -1,0 +1,32 @@
+=== Wycena AI (test, 2026-10-12) — AI przedmiar z rzutu poddasza i zdjęcia ===
+Kosztorys wypełnił agent: 46 pozycji, AI przedmiar razem 86 643,41 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026” — poza sufitem podwieszanym, gdzie cena j.m. 300 zł/m² jest wzięta z Notatek. Dodane 2 pozycje spoza szablonu: sufit podwieszany z wełną i folią (300 zł/m²) oraz glify z GK na oknach dachowych (70 zł/mb, z katalogu prac). Transport zostawiony na 1500 zł z szablonu — katalog dla wyższych pięter bez windy mówi ok. 2500 zł.
+Rzut poddasza nie podaje wymiarów, tylko powierzchnie: skala wzięta z pom. 29 (66,20 m²) i pom. 30 (5,78 m²), z niej poddasze 8,08 × 9,48 m w świetle ścian. Ze zdjęcia: ścianka kolankowa ok. 1,10 m, dach ok. 45°, stara wełna między krokwiami, 2 okna dachowe. Sufit płaski przyjęty na 2,60 m (Manual: rynek wtórny) → sufit z GK razem ze skosami 90,83 m².
+Nie ma rzutu z podziałem na pokoje, więc ścianki GK (20 mb) są rozrysowane przez agenta: korytarz wzdłuż kalenicy, 3 pokoje, łazienka ok. 2,0 × 2,0 m; mała garderoba = istniejące pom. 30.
+Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+
+Przedmiar 0 świadomie:
+- podłogi, listwy, drzwi i ościeżnice — firma zewnętrzna (Notatki); są tylko profile pod ościeżnice w ściankach GK;
+- instalacja wod-kan w łazience — media wyprowadzone (Notatki), liczony tylko biały montaż;
+- ogrzewanie pokoi — Notatki go nie wymieniają;
+- lampy w pokojach — są tylko punkty świetlne; montaż okien dachowych.
+
+Najważniejsze założenia (ruszają wieloma pozycjami naraz):
+- sufit podwieszany 300 zł/m² z Notatek — katalog rozbija go na sufit podwieszany 160 + wełna 10 cm 60 + folia 25 = 245 zł/m², czyli ≈ −5,0 tys. zł; powierzchnia 89–93 m² zależnie od kąta i wysokości jętek, każde 10 m² = 3 000 zł;
+- ściany murowane (kolankowe, szczyt, pom. 30 — 84,31 m²) przyjęte jako otynkowane, pod zwykłą gładź — na zdjęciu krawędź otworu to surowa cegła; gładź rynek wtórny z podkładem z tynku ≈ +2,4 tys. zł, tynkowanie na listwach ≈ +8,4 tys. zł;
+- układ ścianek GK zgadywany (20 mb, 42,37 m², wysoki stopień) — każde 5 mb ścianki ≈ 1,9 tys. zł, z gładzią i malowaniem obustronnie ≈ 4,1 tys. zł;
+- transport 1500 zł z szablonu i bez dodatku za wniesienie ok. 2,5–2,7 t płyt (1 zł/kg) — razem może dojść ≈ +3,7 tys. zł;
+- łazienka „kopia” 2,0 × 2,0 m: brodzik z kabiną, bateria natynkowa, płytki do sufitu, grzejnik na c.o. — odpływ liniowy z szybą +650 zł, bateria podtynkowa +650 zł;
+- 30 punktów elektryki podzielone 20 gniazd/łączników + 10 punktów świetlnych, 3 bezpieczniki w istniejącej rozdzielni — podrozdzielnia na poddaszu +600 zł.
+
+Do ustalenia z klientem:
+- rzut z podziałem: gdzie 3 pokoje, łazienka i garderoba; czy garderoba to pom. 30;
+- wysokość jętek / sufitu płaskiego i czy szczyt od sąsiada też obkładamy GK;
+- liczba i wymiar okien dachowych (rzut ma tylko wyłaz dachowy);
+- czy ściany murowane są otynkowane;
+- ogrzewanie poddasza i grzejnik w łazience: c.o. czy elektryczny;
+- łazienka: brodzik czy odpływ liniowy, bateria natynkowa czy podtynkowa, płytki do sufitu; wentylacja (kratka na kanał czy wentylator);
+- które piętro, dojście i winda — stawka transportu i dodatek za kilogramy;
+- czy dom pod spodem jest zamieszkany — zabezpieczenie klatki i dojścia;
+- miejsce w rozdzielni na nowe obwody.
+
+Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/16-trzy-pokoje-lazienka

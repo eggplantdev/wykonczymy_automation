@@ -401,6 +401,20 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   Automatycznego odwołania przy odpięciu ostatniego etapu świadomie nie ma: ponowne przypięcie
   wymagałoby wtedy nowego linku. Kto ma żywy link, menu czyta przy każdym otwarciu, a nie z propsów
   edytora. Dzięki temu po odwołaniu dane są świeże i nie ma przeciągania przez kontekst (EX-496).
+- **Etap „zakończony" (EX-1034)** — przełącznik w menu etapu, MANAGER i wyżej. To status, nie
+  blokada: ilości dalej się edytuje, a przyjęcie zgłoszenia do zakończonego etapu przechodzi bez
+  ograniczeń. Reguła działa **per pracownik**: inwestycja znika z jego list (strona pracownika,
+  wybór inwestycji przy FV, skanowanie), dopiero gdy wszystkie jego etapy na niej są zakończone;
+  wtedy link do zgłoszeń, wysyłka i skan zgłoszenia odmawiają, a w menu „Pracownicy" gaśnie druk
+  formularza do skanu. Sam widok zostaje, a zakończony etap stoi w nim dalej, żeby rozliczenie było
+  czytelne. Szkic FV już wysłany na taką inwestycję da się dalej edytować bez zmiany inwestycji —
+  ale tylko z tego powodu: inwestycja w koszu, nieaktywna albo bez jego etapu odmawia jak przy nowym
+  szkicu. „Podgląd pracownika" nie odmawia — pokazuje menedżerowi to, co widziałby pracownik.
+  Kolumny zakończonego etapu (ilość, wartość netto, brutto) są zielone, a w nagłówku stoi ✓ —
+  w edytorze, u inwestora i u pracownika. Zieleń wygrywa z kolorem kolumny wybranym przez
+  właściciela; ten kolor nie ginie, wraca po ponownym otwarciu etapu. Dotyczy to tylko ekranu: PDF
+  się nie zmienia. Import „Zastąp" wstawia etapy od nowa, więc wszystkie wracają jako otwarte —
+  jak rozliczenie i podział.
 - **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
   przypięty: zła stawka to wyjątek, nie cicha naprawa. Ceny klienta, „Wartości netto" po cenie
   klienta, rabatu, brutto, mnożnika i cudzych etapów nie da się włączyć żadnym ustawieniem —
@@ -1781,7 +1795,7 @@ this section is the original phrasing/context for those questions.
   > nie wchodził do żadnej marży. Dziś robocizna i rabat na liście inwestycji czytane są
   > **z kosztorysu** (EX-555), a obok starej marży stoi marża rzeczywista liczona z
   > kosztorysu razem z prognozą z przedmiaru (EX-649). Stara marża transferowa została
-  > nietknięta i dalej jest tym, co widać na v1 i `/raporty` — dwie figury obok siebie,
+  > nietknięta i dalej jest tym, co widać na v1 — dwie figury obok siebie,
   > nie zamiana jednej na drugą.
 
   ~~Skutek dla v2, ważny przy każdej

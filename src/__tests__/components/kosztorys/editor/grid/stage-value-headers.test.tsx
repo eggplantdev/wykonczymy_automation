@@ -15,7 +15,7 @@ const PER_STAGE_IDS = [DEMOLITION, PAINTING].flatMap((id) => [
 ])
 
 function stage(id: number, ordinal: number, label: string): KosztorysStageT {
-  return { id, ordinal, label, plane: 'w_tools', split: null }
+  return { id, ordinal, label, plane: 'w_tools', split: null, completed: false }
 }
 
 function headerTexts(stages: KosztorysStageT[], stageId: number) {

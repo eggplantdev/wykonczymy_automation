@@ -2,15 +2,16 @@
 
 import type { ReactNode } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
-import { ExpenseDraftPagesCell } from '@/components/worker-expenses/expense-draft-pages-cell'
 import { useTranslation } from '@/hooks/use-translation'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { isServerSortableDraftColumn } from '@/lib/worker-expenses/sortable-columns'
 
@@ -23,7 +24,6 @@ type OptionsT = {
   isManagerView: boolean
   // The dashboard queue: nothing in it is decided yet, and opening one is the whole point of the row.
   isPendingQueue?: boolean
-  canEditPages?: boolean
   // Management reads the worker's own table too, and only management may open the transfers list.
   canOpenTransfers?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
@@ -54,7 +54,6 @@ function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: 
 export function useExpenseDraftColumns({
   isManagerView,
   isPendingQueue = false,
-  canEditPages = false,
   canOpenTransfers = isManagerView,
   actions,
 }: OptionsT) {
@@ -82,6 +81,7 @@ export function useExpenseDraftColumns({
     col.accessor('investmentName', {
       header: t('investment'),
       enableSorting: sortable('investmentName'),
+      cell: (info) => info.getValue() ?? t('noInvestment'),
     }),
     col.accessor('sentAt', {
       header: t('sentAt'),
@@ -93,11 +93,7 @@ export function useExpenseDraftColumns({
       header: t('attachments'),
       meta: { align: 'center' },
       cell: ({ row: { original: draft } }) => (
-        <ExpenseDraftPagesCell
-          draftId={draft.id}
-          media={draft.media}
-          isEditable={canEditPages && draft.status === 'pending'}
-        />
+        <MediaPreviewButton labels={INVOICE_PREVIEW_LABELS} files={draft.media} variant="compact" />
       ),
     }),
     col.accessor('note', {

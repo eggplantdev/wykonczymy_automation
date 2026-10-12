@@ -84,3 +84,11 @@ describe('„Przywróć” na liście „Zgłoszenia wydatków”', () => {
     expect(restoreSkippedReceiptAction).not.toHaveBeenCalled()
   })
 })
+
+describe('zgłoszenie bez inwestycji na liście „Zgłoszenia wydatków”', () => {
+  it('shows „Bez inwestycji” in the investment column', () => {
+    renderTable([draft(9, { investmentId: null, investmentName: null })])
+
+    expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
+  })
+})

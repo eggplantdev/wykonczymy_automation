@@ -2,6 +2,7 @@ import type { RoleT } from '@/lib/auth/roles'
 import type { LanguageT } from '@/lib/i18n/languages'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
+import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 
 export type ReferenceItemT = {
   id: number
@@ -27,6 +28,7 @@ export type InvestmentRefT = ReferenceItemT & {
   notes: string
   reviewRequested: boolean
   hasSheet: boolean
+  aiStage: InvestmentAiStageT | null
   createdAt: string
   // The materiały concession is gated on the settlement mode, so a reader that has one without the
   // other cannot compute it (null rate = no concession); VAT rides the prace alone and turns
@@ -41,6 +43,7 @@ export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   role: RoleT
   email: string
   language: LanguageT | null
+  canAddExpensesWithoutInvestment: boolean
 }
 
 export type OtherCategoryRefT = {

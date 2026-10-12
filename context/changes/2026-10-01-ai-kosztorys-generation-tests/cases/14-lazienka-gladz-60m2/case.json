@@ -1,0 +1,52 @@
+{
+  "investmentId": 204,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "3.Łazienka_1-187361f4105c.jpg",
+      "kind": null
+    },
+    {
+      "name": "3.Łazienka_4-603e92b8acc7.jpg",
+      "kind": null
+    },
+    {
+      "name": "3.Łazienka_3-9b22be3bded3.jpg",
+      "kind": null
+    },
+    {
+      "name": "3.Łazienka_2-0e6cbd894757.jpg",
+      "kind": null
+    },
+    {
+      "name": "15.-kłady-ścian-i-mebli-łazienka_2-0cbcd54dbf19.pdf",
+      "kind": null
+    },
+    {
+      "name": "15.-kłady-ścian-i-mebli-łazienka_1-979479b2ff8d.pdf",
+      "kind": null
+    },
+    {
+      "name": "9.-układ-płytek-łazienka_2-9b763b261c3d.pdf",
+      "kind": null
+    },
+    {
+      "name": "9.-układ-płytek-łazienka_1-2bd8470a3e91.pdf",
+      "kind": null
+    },
+    {
+      "name": "7.-rzut-sufitu-łazienka-da7b40ecacae.pdf",
+      "kind": null
+    },
+    {
+      "name": "5.-rzut-punktów-hydraulicznych-hol-i-łazienka-b6cf82b18b97.pdf",
+      "kind": null
+    },
+    {
+      "name": "4.-rzut-punktów-elektrycznych-81a1178bad6f.pdf",
+      "kind": null
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

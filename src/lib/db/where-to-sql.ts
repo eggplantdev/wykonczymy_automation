@@ -17,6 +17,7 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   otherCategory: 'other_category_id',
   worker: 'worker_id',
   paymentMethod: 'payment_method',
+  payoutStatus: 'payout_status',
   date: 'date',
   cancelled: 'cancelled',
   amount: 'amount',

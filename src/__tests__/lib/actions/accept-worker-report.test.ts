@@ -282,6 +282,185 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     }
   })
 
+  describe('a katalog praca the sekcja already holds', () => {
+    let entryId: number
+    let bathroomId: number
+    let heldId: number
+
+    const itemsOfEntry = async () =>
+      (await selectKosztorysTreeData(db, investmentId))?.items.filter(
+        (item) => item.catalogueItemId === entryId,
+      ) ?? []
+
+    beforeEach(async () => {
+      const entry = await payload.create({
+        collection: 'work-catalogue-items',
+        data: {
+          description: 'EX-1041 malowanie sufitu',
+          unit: 'm²',
+          clientPrice: 30,
+          matchKey: catalogueKey('EX-1041 malowanie sufitu', 'm²'),
+        },
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      })
+      entryId = Number(entry.id)
+      const room = await createKosztorysTree(payload, investmentId, {
+        sections: [
+          {
+            name: 'Łazienka',
+            items: [
+              {
+                description: 'EX-1041 malowanie sufitu',
+                unit: 'm²',
+                plannedQty: 10,
+                currentPlannedQty: 12,
+                clientPrice: 30,
+                catalogueItemId: entryId,
+              },
+            ],
+          },
+        ],
+      })
+      ;[bathroomId] = room.sectionIds
+      ;[heldId] = room.itemIds
+    })
+
+    afterEach(async () => {
+      await payload.delete({
+        collection: 'work-catalogue-items',
+        id: entryId,
+        overrideAccess: true,
+      })
+    })
+
+    const acceptInto = (
+      reportId: number,
+      extras: { lineId: number; acceptedQty: number; sectionId: number }[],
+    ) =>
+      accept({
+        reportId,
+        target: { kind: 'stage', stageId: ownStageId },
+        lines: [],
+        extras: extras.map((extra) => ({ ...extra, catalogueItemId: entryId })),
+      })
+
+    it('adds the ilość to that pozycja in the etap, leaving both przedmiary as they were', async () => {
+      const { reportId, lineIds } = await sendReport([
+        { itemId: null, qty: 3, opis: 'Sufit w łazience' },
+      ])
+      const res = await acceptInto(reportId, [
+        { lineId: lineIds[0], acceptedQty: 3, sectionId: bathroomId },
+      ])
+
+      expect(res.success).toBe(true)
+      if (res.success) expect(res.data.appended).toEqual([])
+      const held = await itemsOfEntry()
+      expect(held).toHaveLength(1)
+      expect(held[0]).toMatchObject({ id: heldId, plannedQty: 10, currentPlannedQty: 12 })
+      expect(await qtyDone(heldId, ownStageId)).toBe(3)
+      expect((await readWorkerReport(db, investmentId, reportId))?.lines[0]).toMatchObject({
+        acceptedQty: 3,
+        itemId: heldId,
+        createdItemId: null,
+      })
+    })
+
+    it('counts a pozycja with the same opis and j.m. as that praca', async () => {
+      await db.execute(
+        sql`UPDATE kosztorys_items SET catalogue_item_id = NULL WHERE id = ${heldId}`,
+      )
+      const { reportId, lineIds } = await sendReport([
+        { itemId: null, qty: 2, opis: 'Sufit w łazience' },
+      ])
+      const res = await acceptInto(reportId, [
+        { lineId: lineIds[0], acceptedQty: 2, sectionId: bathroomId },
+      ])
+
+      expect(res.success).toBe(true)
+      expect(await qtyDone(heldId, ownStageId)).toBe(2)
+      const tree = await selectKosztorysTreeData(db, investmentId)
+      expect(tree?.items.filter((item) => item.sectionId === bathroomId)).toHaveLength(1)
+    })
+
+    it('guesses no pozycja when the sekcja holds the praca twice', async () => {
+      const twin = await createKosztorysTree(payload, investmentId, {
+        sections: [
+          {
+            name: 'Łazienka 2',
+            items: [
+              { description: 'EX-1041 malowanie sufitu', unit: 'm²', catalogueItemId: entryId },
+              { description: 'EX-1041 malowanie sufitu', unit: 'm²', catalogueItemId: entryId },
+            ],
+          },
+        ],
+      })
+      const { reportId, lineIds } = await sendReport([
+        { itemId: null, qty: 2, opis: 'Sufit w łazience 2' },
+      ])
+      const res = await acceptInto(reportId, [
+        { lineId: lineIds[0], acceptedQty: 2, sectionId: twin.sectionIds[0] },
+      ])
+
+      expect(res.success).toBe(true)
+      for (const id of twin.itemIds) expect(await qtyDone(id, ownStageId)).toBe(0)
+      const inSection = (await itemsOfEntry()).filter(
+        (item) => item.sectionId === twin.sectionIds[0],
+      )
+      expect(inSection).toHaveLength(3)
+    })
+
+    it('still mints a pozycja in a sekcja that does not hold it', async () => {
+      const { reportId, lineIds } = await sendReport([
+        { itemId: null, qty: 4, opis: 'Sufit w salonie' },
+      ])
+      const res = await acceptInto(reportId, [{ lineId: lineIds[0], acceptedQty: 4, sectionId }])
+
+      expect(res.success).toBe(true)
+      const minted = (await itemsOfEntry()).find((item) => item.sectionId === sectionId)
+      expect(minted).toMatchObject({ plannedQty: 0, currentPlannedQty: 4 })
+      expect(await qtyDone(minted?.id ?? 0, ownStageId)).toBe(4)
+      expect(await qtyDone(heldId, ownStageId)).toBe(0)
+    })
+
+    it('mints one pozycja for two lines of a report naming the same new praca', async () => {
+      const { reportId, lineIds } = await sendReport([
+        { itemId: null, qty: 2, opis: 'Sufit — pokój 1' },
+        { itemId: null, qty: 3, opis: 'Sufit — pokój 2' },
+      ])
+      const res = await acceptInto(reportId, [
+        { lineId: lineIds[0], acceptedQty: 2, sectionId },
+        { lineId: lineIds[1], acceptedQty: 3, sectionId },
+      ])
+
+      expect(res.success).toBe(true)
+      const minted = (await itemsOfEntry()).filter((item) => item.sectionId === sectionId)
+      expect(minted).toHaveLength(1)
+      expect(minted[0]).toMatchObject({ plannedQty: 0, currentPlannedQty: 5 })
+      expect(await qtyDone(minted[0].id, ownStageId)).toBe(5)
+      const stored = await readWorkerReport(db, investmentId, reportId)
+      expect(stored?.lines.map((line) => line.createdItemId)).toEqual([minted[0].id, minted[0].id])
+    })
+
+    it('takes an undone line back out of that pozycja and leaves the pozycja in place', async () => {
+      const { reportId, lineIds } = await sendReport([
+        { itemId: null, qty: 3, opis: 'Sufit w łazience' },
+      ])
+      await acceptInto(reportId, [{ lineId: lineIds[0], acceptedQty: 3, sectionId: bathroomId }])
+
+      const res = await accept({
+        reportId,
+        target: { kind: 'stage', stageId: ownStageId },
+        lines: [],
+        undone: [lineIds[0]],
+      })
+
+      expect(res.success).toBe(true)
+      expect(await qtyDone(heldId, ownStageId)).toBe(0)
+      expect(await itemsOfEntry()).toMatchObject([{ id: heldId, plannedQty: 10 }])
+    })
+  })
+
   it("accepts a translated extra in Polish, with the worker's words as its current translation", async () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: null, qty: 2, opis: 'Занесення плит' },
@@ -418,6 +597,20 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
 
     expect(later.success).toBe(false)
     expect((await readWorkerReport(db, investmentId, reportId))?.lines[1].acceptedQty).toBeNull()
+  })
+
+  // EX-1034 locks nothing: a report sent before the etap was zakończony still lands in it.
+  it('accepts into a zakończony etap', async () => {
+    const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 3 }])
+    await db.execute(sql`UPDATE kosztorys_stages SET completed = true WHERE id = ${ownStageId}`)
+    const res = await accept({
+      reportId,
+      target: { kind: 'stage', stageId: ownStageId },
+      lines: [{ lineId: lineIds[0], acceptedQty: 3 }],
+    })
+
+    expect(res.success).toBe(true)
+    expect(await qtyDone(itemIds[0], ownStageId)).toBe(8)
   })
 
   it('refuses an etap the reporting worker is not on', async () => {

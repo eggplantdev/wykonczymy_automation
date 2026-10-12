@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Pencil, Trash2, Users } from 'lucide-react'
+import { Check, ChevronDown, Pencil, Trash2, Users } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
@@ -38,6 +38,7 @@ type PropsT = {
   onRename?: (stageId: number, label: string) => void
   onRemove?: (stageId: number) => void
   onSetPlane?: (stageId: number, plane: ToolPlaneT) => void
+  onSetCompleted?: (stageId: number, completed: boolean) => void
   workers?: WorkerRefT[]
   onSetSplit?: (stageId: number, split: StageSplitT | null) => void
   // Sorting by this etap's quantity — its header is the only place that offers it.
@@ -57,6 +58,7 @@ export function StageHeader({
   onRename,
   onRemove,
   onSetPlane,
+  onSetCompleted,
   workers,
   onSetSplit,
   sort = null,
@@ -84,13 +86,23 @@ export function StageHeader({
       ? null
       : resolveWorkerName(restHolder, nameById) + (others > 0 ? ` +${others}` : '')
 
+  const completedMark = stage.completed && (
+    <span
+      title={gridDictionary.t('stageCompleted')}
+      className="inline-flex shrink-0 text-green-600"
+    >
+      <Check className="size-3.5" />
+    </span>
+  )
+
   // No handlers = a read-only mount (preview): render the bare label, no menu/rename/delete AND no
   // plane icon or warning — the rozliczenie is internal subcontractor information, never client-facing.
-  if (!onRename && !onRemove && !onSetPlane && !onSetSplit) {
+  if (!onRename && !onRemove && !onSetPlane && !onSetCompleted && !onSetSplit) {
     return (
-      <HeaderLabel className={cn('px-1', !stage.label && 'text-muted-foreground')}>
-        {label}
-      </HeaderLabel>
+      <span className="inline-flex min-w-0 items-center gap-1 px-1">
+        {completedMark}
+        <HeaderLabel className={cn(!stage.label && 'text-muted-foreground')}>{label}</HeaderLabel>
+      </span>
     )
   }
 
@@ -118,6 +130,7 @@ export function StageHeader({
             >
               {/* A wrench here would claim a crew nobody picked. */}
               {stage.plane != null && planeIcon(stage.plane)}
+              {completedMark}
               <HeaderLabel
                 className={cn(
                   stage.plane != null && !stage.label && 'text-muted-foreground',
@@ -161,6 +174,16 @@ export function StageHeader({
                 trailing={planeIcon(plane)}
               />
             ))}
+            <DropdownMenuSeparator />
+          </>
+        )}
+        {onSetCompleted && (
+          <>
+            <DropdownMenuCheckboxRow
+              checked={stage.completed}
+              onCheckedChange={(checked) => onSetCompleted(stage.id, checked === true)}
+              label={gridDictionary.t('stageCompleted')}
+            />
             <DropdownMenuSeparator />
           </>
         )}

@@ -7,7 +7,7 @@ import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { InvoiceDownloadButton } from '@/components/transfers/invoice-download-button'
+import { InvoiceDownloadDialog } from '@/components/transfers/invoice-download-dialog'
 import { PrintTransfersButton } from '@/components/transfers/print-transfers-button'
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
 import type { TransferRowT } from '@/types/transfers'
@@ -53,6 +53,7 @@ export function TransferDataTable({
     listsCancelled,
     invoiceDownload,
     print,
+    uncoloredAmounts,
   } = config
 
   const fetchRows: TransferRowsFetchT = (opts) => fetchFilteredTransfers(config.query.where, opts)
@@ -69,6 +70,7 @@ export function TransferDataTable({
     currentUserId,
     currentUserRole,
     translator,
+    uncoloredAmounts,
   })
 
   return (
@@ -97,7 +99,17 @@ export function TransferDataTable({
         sorting={sorting}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
         getRowClassName={transferRowClassName}
-        renderRows={view === 'list' ? (rows) => <TransferCardList rows={rows} /> : undefined}
+        renderRows={
+          view === 'list'
+            ? (rows, visibleColumnIds) => (
+                <TransferCardList
+                  rows={rows}
+                  visibleColumnIds={visibleColumnIds}
+                  uncoloredAmounts={uncoloredAmounts}
+                />
+              )
+            : undefined
+        }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
             className="mt-8"
@@ -106,7 +118,7 @@ export function TransferDataTable({
             actions={
               <>
                 <TransferViewSwitch view={view} onChange={setView} />
-                {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
+                {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
                 {print && (
                   <PrintTransfersButton
                     fetchRows={fetchRows}

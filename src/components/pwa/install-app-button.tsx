@@ -1,30 +1,23 @@
 'use client'
 
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { Download, Ellipsis, Loader2, Share, SquarePlus } from 'lucide-react'
+import { useClientSnapshot } from '@/components/pwa/use-client-snapshot'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { useTranslation } from '@/hooks/use-translation'
-import { isIosDevice, resolveInstallState, type PlatformT } from '@/lib/pwa/install-state'
+import { readPlatform, resolveInstallState } from '@/lib/pwa/install-state'
 import { useInstallPromptStore } from '@/stores/install-prompt-store'
 
 // Chrome fires `beforeinstallprompt` only once its engagement checks pass, which can take a while
 // on a cold page — past this the button gives way to the browser-menu path.
 const PROMPT_WAIT_MS = 60_000
 
-const readPlatform = (): PlatformT => {
-  const nav = navigator as Navigator & { standalone?: boolean }
-  if (matchMedia('(display-mode: standalone)').matches || nav.standalone === true) {
-    return 'standalone'
-  }
-  return isIosDevice(nav.userAgent, nav.maxTouchPoints) ? 'ios' : 'browser'
-}
-
-const subscribeNever = () => () => {}
-
+// Phone-only (`sm:hidden`): desktop browsers mostly never fire `beforeinstallprompt`, so there the
+// button would only ever wait out into a menu hint written for Android.
 export function InstallAppButton() {
   const { t } = useTranslation('workerPage')
-  const platform = useSyncExternalStore(subscribeNever, readPlatform, () => undefined)
+  const platform = useClientSnapshot(readPlatform)
   const hasPrompt = useInstallPromptStore((s) => s.held !== undefined)
   const promptUsed = useInstallPromptStore((s) => s.promptUsed)
   const installed = useInstallPromptStore((s) => s.installed)
@@ -44,14 +37,16 @@ export function InstallAppButton() {
   if (state === 'hidden') return null
 
   if (state === 'manual') {
-    return <p className="text-muted-foreground self-center text-sm">{t('installManual')}</p>
+    return (
+      <p className="text-muted-foreground self-center text-sm sm:hidden">{t('installManual')}</p>
+    )
   }
 
   if (state === 'ios') {
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="w-fit">
+          <Button size="sm" variant="outline" className="w-fit sm:hidden">
             <Download />
             {t('installApp')}
           </Button>
@@ -80,7 +75,7 @@ export function InstallAppButton() {
     <Button
       size="sm"
       variant="outline"
-      className="w-fit"
+      className="w-fit sm:hidden"
       disabled={state === 'waiting'}
       onClick={showInstallPrompt}
     >

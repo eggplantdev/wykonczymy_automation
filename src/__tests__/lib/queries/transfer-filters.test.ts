@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import {
+  buildPayoutFilters,
   buildTransferFilters,
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
   stripCancelledFilters,
   stripOriginalScopedFilters,
+  withDateRange,
 } from '@/lib/queries/transfer-filters'
 import { sumFilteredByType } from '@/lib/db/sum-transfers'
 import { buildSqlConditions } from '@/lib/db/where-to-sql'
@@ -74,6 +76,16 @@ describe('transfer filters → stats SQL', () => {
 
   it('applies a multi-worker search', async () => {
     expect(await sqlForSearchParams({ worker: '3,7' })).toContain('worker_id IN (3, 7)')
+  })
+
+  it('applies a payout status search', async () => {
+    expect(await sqlForSearchParams({ payoutStatus: 'rejected,pending' })).toContain(
+      "payout_status IN ('rejected', 'pending')",
+    )
+  })
+
+  it('empties the list when the status select names nothing valid', () => {
+    expect(buildTransferFilters({ payoutStatus: '__none__' }, { id: 1 }).id).toEqual({ equals: -1 })
   })
 
   it('matches a cash register on either side of the transfer', async () => {
@@ -224,6 +236,21 @@ describe('audit mode → scope through the cancelled original', () => {
   })
 })
 
+// „Wypłaty" is a type filter the URL cannot widen — and in „Tryb anulowań" it must still name the
+// wypłaty that were cancelled, not every CANCELLATION in the ledger.
+describe('buildPayoutFilters', () => {
+  it('keeps the list on wypłaty whatever Typ the URL carries', () => {
+    expect(buildPayoutFilters({ type: 'DEPOSIT' }, { id: 1 }).type).toEqual({ in: ['PAYOUT'] })
+  })
+
+  it('lists only the anulowania of wypłaty in audit mode', () => {
+    const where = buildPayoutFilters({ cancelledTransactionAudit: '1' }, { id: 1 })
+
+    expect(where.type).toEqual({ in: ['CANCELLATION'] })
+    expect(where['cancelledTransaction.type']).toEqual({ in: ['PAYOUT'] })
+  })
+})
+
 // The tile cannot be re-aimed the way the list is, so the caller drops it rather than render 0,00 zł
 // beside a list full of rows.
 describe('scopeNarrowsByOriginalOnlyField', () => {
@@ -251,5 +278,59 @@ describe('scopeNarrowsByOriginalOnlyField', () => {
         createdBy: { in: [3] },
       }),
     ).toBe(false)
+  })
+})
+
+describe('withDateRange → stats SQL', () => {
+  const SEPTEMBER = { from: '2026-09-01', to: '2026-09-30' }
+
+  async function sqlFor(where: Where): Promise<string> {
+    await sumFilteredByType(fakePayload, stripCancelledFilters(where))
+    return lastSql()
+  }
+
+  it('replaces the table window instead of intersecting with it', async () => {
+    const tableWhere = buildTransferFilters({ from: '2026-03-01', to: '2026-03-31' }, { id: 1 })
+    const sql = await sqlFor(withDateRange(tableWhere, SEPTEMBER))
+    expect(sql).toContain("date >= '2026-09-01'")
+    expect(sql).toContain("date <= '2026-09-30'")
+    expect(sql).not.toContain('2026-03-')
+  })
+
+  it('adds the window when the table had none', async () => {
+    const sql = await sqlFor(withDateRange(buildTransferFilters({}, { id: 1 }), SEPTEMBER))
+    expect(sql).toContain("date >= '2026-09-01'")
+    expect(sql).toContain("date <= '2026-09-30'")
+  })
+
+  it('keeps every other filter and the kasa scope', async () => {
+    const tableWhere: Where = {
+      ...buildTransferFilters({ type: 'INVESTMENT_EXPENSE', from: '2026-03-01' }, { id: 1 }),
+      or: [{ sourceRegister: { equals: 7 } }, { targetRegister: { equals: 7 } }],
+    }
+    const sql = await sqlFor(withDateRange(tableWhere, SEPTEMBER))
+    expect(sql).toContain("'INVESTMENT_EXPENSE'")
+    expect(sql).toContain('source_register_id = 7 OR target_register_id = 7')
+    expect(sql).not.toContain('2026-03-')
+  })
+
+  it('keeps the worker scope', async () => {
+    const tableWhere = buildWorkerTransferWhere(
+      buildTransferFilters({ from: '2026-03-01', to: '2026-03-31' }, { id: 1 }),
+      workerTransferScope(25, [37]),
+    )
+    const sql = await sqlFor(withDateRange(tableWhere, SEPTEMBER))
+    expect(sql).toContain('worker_id = 25')
+    expect(sql).toContain("date >= '2026-09-01'")
+    expect(sql).not.toContain('2026-03-')
+  })
+
+  it('reaches a date filter nested in a branch', async () => {
+    const tableWhere: Where = {
+      and: [{ date: { greater_than_equal: '2026-03-01' }, investment: { equals: 31 } }],
+    }
+    const sql = await sqlFor(withDateRange(tableWhere, SEPTEMBER))
+    expect(sql).toContain('investment_id = 31')
+    expect(sql).not.toContain('2026-03-')
   })
 })

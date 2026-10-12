@@ -99,6 +99,7 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
       sql`UPDATE users SET active = true, trashed_at = NULL WHERE id = ${readyWorkerId}`,
     )
     await db.execute(sql`DELETE FROM worker_report_shares WHERE investment_id = ${investmentId}`)
+    await db.execute(sql`UPDATE kosztorys_stages SET completed = false WHERE investment_id = ${investmentId}`)
   })
 
   it('reaches the handler with the token’s investment and worker when every gate passes', async () => {
@@ -157,6 +158,16 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
       error: WORKER_SCOPE_BLOCK_MESSAGES['unconfirmed-plane'],
       messageKey: 'unconfirmedPlane',
     })
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('refuses a worker whose every etap here is zakończony (EX-1034)', async () => {
+    const token = await mintToken(readyWorkerId)
+    await db.execute(sql`
+      UPDATE kosztorys_stages SET completed = true
+      WHERE id IN (SELECT stage_id FROM kosztorys_stage_workers WHERE worker_id = ${readyWorkerId})
+    `)
+    expect(await run(token, [ownItemId])).toEqual(refused('stagesCompleted'))
     expect(handler).not.toHaveBeenCalled()
   })
 

@@ -7,6 +7,9 @@ import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceIngest } from '@/components/forms/expense-form/use-invoice-ingest'
 import { useReceiptGeneration } from '@/components/forms/expense-form/use-receipt-generation'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
+import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { missingInvoiceConfirm } from '@/lib/transfers/missing-invoice-confirm'
 import { useRegisterBalance } from '@/components/forms/hooks/use-register-balance'
 import { useInvestmentFromUrl } from '@/components/forms/hooks/use-investment-from-url'
 import {
@@ -21,6 +24,7 @@ import {
   needsWorker,
   canBeSettled,
   carriesPaymentMethod,
+  isInvestmentExpense,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -65,7 +69,7 @@ import { RegisterBalanceSummary } from '../form-components/register-balance-summ
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
-import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
+import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 
 // Form state uses strings since HTML inputs/selects work with strings.
@@ -76,7 +80,7 @@ export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
   expenseDraftId: number
-  receiptMediaIds: Map<string, number[]>
+  receipts: Map<string, DraftReceiptT>
 }
 
 type TransferFormPropsT = {
@@ -115,6 +119,7 @@ export function ExpenseForm({
   renderAboveLineItems,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
+  const { ask, dialogProps: missingInvoiceDialog } = useSubmitConfirm()
   // Rides on the acceptance decision; nothing is stored until the save.
   const [duplicateOfByItemId, setDuplicateOfByItemId] = useState(
     () => new Map<string, DuplicateOfT>(),
@@ -231,6 +236,14 @@ export function ExpenseForm({
       }
       if (isSaveBlocked) return false
 
+      // Cross the id→position seam once, here: the upload contract and the optimistic-store
+      // snapshot (persisted for recovery) are both positional (mediaIds[i] ↔ lineItems[i]).
+      const files = positionalFiles(value.lineItems, getFiles())
+
+      const missingInvoice =
+        isInvestmentExpense(value.type) && missingInvoiceConfirm(value.lineItems, files)
+      if (missingInvoice && !(await ask(missingInvoice))) return false
+
       const type = value.type as TransferTypeT
       const data: CreateBulkExpenseFormT = {
         date: value.date,
@@ -244,10 +257,6 @@ export function ExpenseForm({
         lineItems: value.lineItems.map((item) => mapLineItem(item, type, !!value.investment)),
       }
 
-      // Cross the id→position seam once, here: the upload contract and the optimistic-store
-      // snapshot (persisted for recovery) are both positional (mediaIds[i] ↔ lineItems[i]).
-      const files = positionalFiles(value.lineItems, getFiles())
-
       await submit(!!keepOpen, {
         // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
         // every attached file is uploaded once here.
@@ -258,7 +267,7 @@ export function ExpenseForm({
               invoicePageRows,
               prefill && {
                 expenseDraftId: prefill.expenseDraftId,
-                ...receiptDecision(prefill.receiptMediaIds, value.lineItems, duplicateOfByItemId),
+                ...receiptDecision(prefill.receipts, value.lineItems, duplicateOfByItemId),
               },
             ),
           ),
@@ -463,8 +472,10 @@ export function ExpenseForm({
         className="mt-6"
         label="Zapisz"
         disabled={isIngesting || isPrefillReading || isSaveBlocked}
+        awaitingAnswer={missingInvoiceDialog.open}
         secondaryAction={secondaryAction}
       />
+      <ConfirmDialog {...missingInvoiceDialog} />
     </FormShell>
   )
 }

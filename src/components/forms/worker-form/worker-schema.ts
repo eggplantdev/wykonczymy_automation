@@ -9,6 +9,7 @@ export const workerFormSchema = z.object({
   email: z.union([z.literal(''), z.email('Nieprawidłowy adres email')]),
   role: z.enum(ROLES),
   active: z.boolean(),
+  canAddExpensesWithoutInvestment: z.boolean(),
   defaultCashRegister: z.string(),
   // „Polski” is a real option in the select, so the form never holds an empty language.
   language: languageSchema,

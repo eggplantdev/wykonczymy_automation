@@ -101,7 +101,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  const draftOf = (mediaIds: number[], onInvestment = investmentId) =>
+  const draftOf = (mediaIds: number[], onInvestment: number | null = investmentId) =>
     insertWorkerExpenseDraft(db, {
       workerId,
       investmentId: onInvestment,
@@ -600,6 +600,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
           { mediaIds: [pages[0]], amount: 10 },
           { mediaIds: [pages[1]], amount: 20, description: 'farba' },
           { mediaIds: [pages[2], pages[3]], amount: 30 },
+          { mediaIds: [pages[1]], amount: 5, description: 'parking' },
         ],
       }
       await db.execute(sql`
@@ -615,9 +616,10 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         transferIds: [transferId],
         transferMediaIds: [[pages[0]]],
         skippedReceipts: [
-          { mediaIds: [pages[1]] },
-          { mediaIds: [pages[3], pages[2]] },
+          { mediaIds: [pages[1]], readRow: 1 },
+          { mediaIds: [pages[3], pages[2]], readRow: 2 },
           { mediaIds: [pages[4]] },
+          { mediaIds: [pages[1]], readRow: 3 },
         ],
       })
     })
@@ -633,10 +635,9 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     it('becomes a pending zgłoszenie of its own, carrying its read, and leaves the parent as booked', async () => {
       const [single] = await skippedOf(parentId)
       const restored = await restoreSkippedReceipt(db, single.id)
-      if (!restored) throw new Error('restore refused')
+      if (restored === null) throw new Error('restore refused')
 
-      expect(restored.hasRead).toBe(true)
-      expect(await draftRow(restored.draftId)).toEqual({
+      expect(await draftRow(restored)).toEqual({
         worker_id: workerId,
         investment_id: restoreInvestmentId,
         cash_register_id: registerId,
@@ -658,21 +659,34 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await restoreSkippedReceipt(db, single.id)).toBeNull()
     })
 
+    // Two paragony on one photo share its pages, so the read row is what names the one restored.
+    it('carries the read of its own paragon when the photo holds another', async () => {
+      const second = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[1])
+      if (!second) throw new Error('second paragon fixture missing')
+      const restored = await restoreSkippedReceipt(db, second.id)
+      if (restored === null) throw new Error('restore refused')
+
+      expect(await draftRow(restored)).toMatchObject({
+        ai_read: { rows: [{ mediaIds: [pages[1]], amount: 5, description: 'parking' }] },
+        pages: [pages[1]],
+      })
+    })
+
     it('matches its read row as a set and keeps the parent’s page order', async () => {
       const pair = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds.length === 2)
       if (!pair) throw new Error('pair fixture missing')
       const restored = await restoreSkippedReceipt(db, pair.id)
-      if (!restored) throw new Error('restore refused')
+      if (restored === null) throw new Error('restore refused')
 
-      expect(restored.hasRead).toBe(true)
-      expect(await draftRow(restored.draftId)).toMatchObject({
+      expect(await draftRow(restored)).toMatchObject({
         ai_read: { rows: [{ mediaIds: [pages[2], pages[3]], amount: 30 }] },
         pages: [pages[2], pages[3]],
       })
     })
 
-    // Deleting the restored zgłoszenie drops its links only; the accepted parent still holds the photo.
-    it('a paragon with no read row comes back unread, and its pages outlive its delete', async () => {
+    // Unread but stored: a fresh read of the photo would return every paragon on it, the booked ones
+    // too. Deleting the restored zgłoszenie drops its links only; the parent still holds the photo.
+    it('a paragon with no read row comes back with an empty read, and its pages outlive its delete', async () => {
       const unread = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[4])
       if (!unread) throw new Error('unread fixture missing')
 
@@ -697,11 +711,10 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       }
 
       const restored = await restoreSkippedReceipt(db, unread.id)
-      if (!restored) throw new Error('restore refused')
-      expect(restored.hasRead).toBe(false)
-      expect((await draftRow(restored.draftId)).ai_read).toBeNull()
+      if (restored === null) throw new Error('restore refused')
+      expect((await draftRow(restored)).ai_read).toEqual({ rows: [{ mediaIds: [pages[4]] }] })
 
-      expect(await deletePendingExpenseDraft(db, { draftId: restored.draftId, workerId })).toEqual([
+      expect(await deletePendingExpenseDraft(db, { draftId: restored, workerId })).toEqual([
         pages[4],
       ])
       expect(await findDraftHeldMedia(db, [pages[4]])).toEqual([pages[4]])
@@ -813,6 +826,48 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
       expect(await persisted()).toEqual({ status: 'pending', duplicate_of: null })
       expect((await duplicatesOnly()).rows.map((row) => row.id)).not.toContain(draftId)
+    })
+  })
+
+  // „Bez inwestycji": an inner join or an investment-only trash predicate would hide it silently.
+  describe('a draft without an investment', () => {
+    async function noInvestmentDraft(name: string): Promise<number> {
+      const draftId = await draftOf([await insertMedia(name, workerId)], null)
+      if (draftId === null) throw new Error('draft fixture refused')
+      return draftId
+    }
+
+    it('is stored with no investment and listed to its worker as such', async () => {
+      const draftId = await noInvestmentDraft('none-listed')
+
+      const { rows } = await db.execute(
+        sql`SELECT investment_id FROM worker_expense_drafts WHERE id = ${draftId}`,
+      )
+      expect(rows[0].investment_id).toBeNull()
+      expect(
+        (await listWorkerExpenseDrafts(db, workerId)).find((draft) => draft.id === draftId),
+      ).toMatchObject({ investmentId: null, investmentName: null, status: 'pending' })
+    })
+
+    it('waits in the queue and is counted there', async () => {
+      const before = await countPendingExpenseDrafts(db)
+      const draftId = await noInvestmentDraft('none-queue')
+
+      expect(await countPendingExpenseDrafts(db)).toBe(before + 1)
+      expect((await listPendingExpenseDrafts(db)).map((draft) => draft.id)).toContain(draftId)
+    })
+
+    it('a refusal of one is listed in the history and can be restored', async () => {
+      const draftId = await noInvestmentDraft('none-rejected')
+      await reject(draftId)
+
+      const { rows } = await listExpenseDraftHistory(
+        db,
+        { statuses: ['rejected'], investmentIds: null, workerIds: [workerId], sentRange: {} },
+        { page: 1, limit: 10_000 },
+      )
+      expect(rows.find((draft) => draft.id === draftId)).toMatchObject({ investmentName: null })
+      expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
     })
   })
 })

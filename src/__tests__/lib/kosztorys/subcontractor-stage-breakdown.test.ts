@@ -30,9 +30,17 @@ const stages: KosztorysStageT[] = [
         { workerId: CELINA, value: 0, takesRest: true },
       ],
     },
+    completed: false,
   },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(BARTEK) },
+  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null, completed: false },
+  {
+    id: 102,
+    ordinal: 3,
+    label: null,
+    plane: 'w_tools',
+    split: oneWorkerSplit(BARTEK),
+    completed: false,
+  },
 ]
 const tree = makeTree({
   sections: [

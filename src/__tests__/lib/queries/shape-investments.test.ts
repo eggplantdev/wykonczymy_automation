@@ -41,6 +41,7 @@ const baseInv: InvestmentRefT = {
   notes: '',
   reviewRequested: false,
   hasSheet: false,
+  aiStage: null,
   createdAt: '2026-01-15T10:00:00.000Z',
   materialsNetRate: null,
   settlementMode: 'NET',
@@ -482,22 +483,20 @@ describe('shapeInvestments robocizna source', () => {
     ).toBe(false)
   })
 
-  it('carries the AI-draft flag from the entry, and reads no entry as no draft', () => {
+  it('folds the AI-draft flag into the step, and reads no entry as no draft', () => {
     const withDraft: KosztorysClientTotalsMapT = {
       '5': { ...kosztorysTotals['5'], hasAiDraft: true },
     }
+    const step = (inv: InvestmentRefT, totals: KosztorysClientTotalsMapT) =>
+      shapeInvestments([inv], transactionFinancials, totals, NO_MAP, NO_DEPOSITS)[0].aiProgress
 
-    expect(
-      shapeInvestments([baseInv], transactionFinancials, withDraft, NO_MAP, NO_DEPOSITS)[0]
-        .hasAiDraft,
-    ).toBe(true)
-    expect(
-      shapeInvestments([baseInv], transactionFinancials, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
-        .hasAiDraft,
-    ).toBe(false)
-    expect(
-      shapeInvestments([{ ...baseInv, id: 6 }], {}, withDraft, NO_MAP, NO_DEPOSITS)[0].hasAiDraft,
-    ).toBe(false)
+    expect(step(baseInv, withDraft)).toBe('analyzed')
+    expect(step(baseInv, kosztorysTotals)).toBe('none')
+    expect(step({ ...baseInv, id: 6 }, withDraft)).toBe('none')
+    expect(step({ ...baseInv, aiStage: 'review_done' }, withDraft)).toBe('review_done')
+    expect(step({ ...baseInv, id: 6, aiStage: 'ready_for_analysis' }, withDraft)).toBe(
+      'ready_for_analysis',
+    )
   })
 })
 

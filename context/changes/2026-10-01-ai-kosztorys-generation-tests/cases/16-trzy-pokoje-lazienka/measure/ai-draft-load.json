@@ -1,0 +1,381 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "poddasze domu bez windy i ok. 2,5 t płyt GK (sufit 90,83 m² + ściany podwójną płytą) — katalog: wyższe piętra bez windy ok. 2500 zł; szablon ma też „Dodatek za wniesienie dużej ilości materiałów 1 zł/kg” (≈ +2,7 tys. zł) — nie dodany; lokalizacja i piętro nieznane",
+    "assumptions": "1 kpl na całą zabudowę poddasza; cena j.m. z szablonu 1500 zł"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "Manual: bez wyburzeń 2 big bagi total — tu tylko ścinki GK, wełny, folii i opakowania"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 71.98,
+    "missingData": "dom pod spodem jest zamieszkany: czy zabezpieczamy też klatkę schodową i dojście (stawka zamieszkana 45 zł/m²); poddasze trzeba opróżnić z rzeczy przed startem",
+    "assumptions": "m² podłogi poddasza 71,98 (wydrukowane „razem pow. podł.”); stawka podstawowa — na poddaszu nikt nie mieszka"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 20,
+    "missingData": "ile punktów wypada na ścianach murowanych",
+    "assumptions": "katalog: 2 mb na punkt — tylko punkty w ścianach murowanych (kolankowe, pom. 30), ok. 10 z 30; w ścianach GK i suficie przewody idą w stelażu"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Sufit podwieszany na stelażu krzyżowym z płytami GK + dołożenie wełny 10 cm + folia paroizolacyjna (skosy i sufit poziomy)",
+    "unit": "m²",
+    "clientPrice": 300.0,
+    "qty": 90.83,
+    "missingData": "wysokość sufitu płaskiego (jętki) i kąt dachu — przy 2,40 m lub 50° wychodzi 89–93 m², każde 10 m² = 3 000 zł; czy szczyt od sąsiada też w GK; katalog rozbija to na sufit podwieszany 160 + wełna 10 cm 60 + folia 25 = 245 zł/m² — przyjęte 300 zł z Notatek",
+    "assumptions": "Notatki: „Dodanie 10cm wełny+folia + płyty gk - koszt ok 300 zł/m2 sufitu podwieszanego stelaż krzyżowy” — cena j.m. z Notatek. Powierzchnia: rzut 8,08 × 9,48 = 76,59 m², z tego sufit płaski 40,53 m² i skosy 36,06 m² w rzucie = 50,99 m² po spadku, minus kominy; łącznie z łazienką, garderobą i nad klatką schodową. skala z wydrukowanych powierzchni (pom. 29 66,20 m², pom. 30 5,78 m²) — rzut poddasza nie podaje wymiarów; ścianka kolankowa ok. 1,10 m i kąt dachu ok. 45° ze zdjęcia; sufit płaski na 2,60 m — przekroju brak, Manual: rynek wtórny 2,60 m"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "glify z gk na oknach dachowych",
+    "unit": "mb",
+    "clientPrice": 70.0,
+    "qty": 7.84,
+    "missingData": "liczba i wymiar okien dachowych — zdjęcie pokazuje jedną połać, rzut ma tylko wyłaz dachowy",
+    "assumptions": "katalog prac (glify z gk na oknach dachowych, 70 zł/mb): 2 okna dachowe widoczne na zdjęciu, ok. 78 × 118 → 3,92 mb na okno"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 42.37,
+    "missingData": "układ pokoi — bez rzutu z podziałem to szacunek, każde 5 mb ścianki ≈ 1,9 tys. zł, z gładzią i malowaniem obustronnie ≈ 4,1 tys. zł; jeśli garderoba nie jest w pom. 30, dochodzi jej ścianka; niski stopień 150 zł/m²",
+    "assumptions": "ścianki GK z wełną, podwójna płyta: 20,00 mb; przy korytarzu i łazience pełne 2,60 m, przegrody pod skosem średnio 2,15 m; minus 4 otwory 0,90 × 2,05. Wysoki stopień — każda ścianka dochodzi do skosu. układ ścian zgadywany — brak rzutu z podziałem: korytarz wzdłuż kalenicy 11,00 mb, 2 przegrody między pokojami 5,00 mb, łazienka 4,00 mb; pom. 30 (5,78 m²) = mała garderoba"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż profili wzmocnionych pod ościeżnice",
+    "unit": "kpl",
+    "clientPrice": 250.0,
+    "qty": 4,
+    "assumptions": "4 nowe otwory w GK: 3 pokoje + łazienka (garderoba w pom. 30 ma otwór); drzwi i ościeżnice montuje firma zewnętrzna (Notatki)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 40.63,
+    "assumptions": "taśma w załamaniach GK: skos/sufit płaski 21,04 mb + 2 narożniki koperty 5,20 mb; styki nowych ścianek z murem ok. 6 × 2,4 m"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 12.84,
+    "assumptions": "narożniki glifów okien dachowych + wolne końce ścianek przy korytarzu ok. 5 mb"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "qty": 149.89,
+    "missingData": "czy ściany murowane (kolankowe, szczyt, pom. 30 — 84,31 m²) są otynkowane — na zdjęciu krawędź otworu to surowa cegła; jeśli nie: gładź rynek wtórny z podkładem z tynku 85 zł/m² (≈ +2,4 tys. zł) albo tynkowanie na listwach 100 zł/m² (≈ +8,4 tys. zł)",
+    "assumptions": "gładź Q3 na ścianach: nowe GK obustronnie 84,74 + kolankowe 29,74 + szczyt 18,76 + ściany pom. 30 obustronnie 35,81 minus płytki w łazience 19,16 m². ścianka kolankowa ok. 1,10 m i kąt dachu ok. 45° ze zdjęcia; sufit płaski na 2,60 m — przekroju brak, Manual: rynek wtórny 2,60 m"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "qty": 86.83,
+    "assumptions": "gładź Q3 na całym nowym suficie GK bez łazienki (90,83 − 4,00 m²)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 236.73,
+    "assumptions": "przed i po gładziach — ściany + sufity"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 236.73,
+    "assumptions": "farba podkładowa na świeże gładzie"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "qty": 236.73,
+    "missingData": "kolory ścian (malowanie w kolorze 26 zł/m²)",
+    "assumptions": "ściany i sufity na biało — Notatki nie mówią o kolorach"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 71.37,
+    "assumptions": "styki ścian z sufitem: kolankowe 27,04 + szczyt 9,32 + nowe ścianki 20,00 + pom. 30 obustronnie 15,01 mb"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 20,
+    "assumptions": "tynkowanie bruzd w murze — jak bruzdowanie; gładź po bruzdach pominięta, bo gładź idzie na całe ściany (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "„zrób kopię jakiejś łazienki w całość … ok 4m2 z płytką standardową” (Notatki) — WC podwieszane na stelażu"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "brodzik czy odpływ liniowy z szybą (1600 + 550 zł zamiast 1500 zł)",
+    "assumptions": "brodzik z kabiną 80 × 80 — najprostszy standard dla 4 m²; media wyprowadzone (Notatki), więc bez przeróbek wod-kan"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "bateria podtynkowa: +650 zł i biały montaż",
+    "assumptions": "bateria natynkowa — standard"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "umywalka na szafce"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Złożenie i montaż szafki podumywalkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki (brodzik ma syfon w komplecie)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "czy c.o. jest wyprowadzone na poddasze, czy grzejnik elektryczny (200 zł)",
+    "assumptions": "grzejnik drabinka na c.o."
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 27.16,
+    "missingData": "położenie łazienki — pod skosem mniej płytek na ścianach",
+    "assumptions": "ściany 19,16 + podłoga + sufit 4,00 m² — łazienka 2,00 × 2,00, wysokość 2,60 m (sufit płaski)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 23.16,
+    "assumptions": "folia w płynie na wszystkich ścianach i podłodze (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 15,
+    "assumptions": "ok. 15 mb na łazienkę 4 m² (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 19.16,
+    "missingData": "płytki do sufitu czy do 2,0–2,2 m",
+    "assumptions": "płytka standardowa do sufitu na wszystkich ścianach: obwód 8 mb × 2,60 minus drzwi 0,80 × 2,05"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 3.36,
+    "assumptions": "podłoga 4,00 m² minus brodzik 0,80 × 0,80"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 22.52,
+    "assumptions": "fugowanie = wszystkie płytki (Manual)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 25,
+    "assumptions": "Manual: 20–30 mb na łazienkę"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 15,
+    "assumptions": "WC 5 + umywalka 3 + bateria natynkowa 2 + grzejnik 2 + puszki przy lustrze 2 + kratka 1 (katalog)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 8.0,
+    "assumptions": "styk płytek z sufitem — obwód łazienki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 4.0,
+    "assumptions": "sufit łazienki — jedyna powierzchnia bez płytek; sam sufit GK z wełną jest w pozycji sufitu podwieszanego"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "assumptions": "plafon + oprawa nad lustrem"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 3,
+    "assumptions": "wieszak, uchwyt na papier, haczyk"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "czy łazienka sięga kanału, czy potrzebny wentylator (120 zł)",
+    "assumptions": "kratka na kanał wentylacyjny — przy pom. 30 rzut ma kanały „w”"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 2,
+    "assumptions": "gniazdo przy lustrze + łącznik — punkty są w puli 30 punktów elektryki"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 20,
+    "missingData": "podział 30 punktów na gniazda i światło — każdy punkt przesunięty z gniazd do światła to −30 zł",
+    "assumptions": "Notatki: „cała elektryka. elektryka ok 30 punktów” — podział agenta: 20 gniazd/łączników (3 pokoje po ok. 4, korytarz 2, garderoba 1, łazienka 2, zapas) i 10 punktów świetlnych"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 10,
+    "assumptions": "3 pokoje, korytarz 2, garderoba, łazienka 2, zapas — z puli 30 punktów"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 18,
+    "assumptions": "osprzęt na wszystkie gniazda i łączniki poza łazienką (te są w sekcji Łazienka)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika",
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "qty": 3,
+    "missingData": "czy w rozdzielni jest miejsce — osobna podrozdzielnia na poddaszu to 1200 zł (do 12 modułów)",
+    "assumptions": "nowe obwody poddasza: gniazda, oświetlenie, łazienka — dołożenie 3 bezpieczników do istniejącej rozdzielni"
+  }
+]

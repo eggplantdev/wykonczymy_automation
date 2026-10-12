@@ -8,6 +8,10 @@ import { guardTemplateStatus } from '@/hooks/investments/guard-template-status'
 import { guardTrashedInvestment } from '@/hooks/investments/guard-trashed-investment'
 import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
+import {
+  INVESTMENT_AI_STAGES,
+  INVESTMENT_AI_STAGE_LABELS,
+} from '@/lib/constants/investment-ai-stage'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
@@ -16,6 +20,11 @@ import {
 
 const STATUS_OPTIONS = INVESTMENT_STATUSES.map((value) => ({
   label: INVESTMENT_STATUS_LABELS[value],
+  value,
+}))
+
+const AI_STAGE_OPTIONS = INVESTMENT_AI_STAGES.map((value) => ({
+  label: { pl: INVESTMENT_AI_STAGE_LABELS[value].pl, en: INVESTMENT_AI_STAGE_LABELS[value].en },
   value,
 }))
 
@@ -101,6 +110,12 @@ export const Investments: CollectionConfig = {
       defaultValue: 'quote',
       label: { en: 'Status', pl: 'Status' },
       options: STATUS_OPTIONS,
+    },
+    {
+      name: 'aiStage',
+      type: 'select',
+      label: { en: 'AI stage', pl: 'Etap AI' },
+      options: AI_STAGE_OPTIONS,
     },
     // Defaults for the sheet, which a single pozycja may override. „Bez narzędzi" is not independent:
     // the sheet derives it as „z narzędziami" less 15%, which is why DEFAULT_COEFFS owns both and the

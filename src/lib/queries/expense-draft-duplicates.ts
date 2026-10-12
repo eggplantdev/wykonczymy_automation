@@ -21,7 +21,7 @@ import type { ActionResultT } from '@/types/action'
 export type DuplicateMatchT = MatchVerdictT & CandidateT
 
 export type ParagonDuplicatesT = {
-  mediaIds: number[]
+  readRow: number
   description: string | null
   amount: number | null
   matches: DuplicateMatchT[]
@@ -49,7 +49,7 @@ export async function findExpenseDraftDuplicates(
     return {
       success: true,
       data: probes.map((probe) => ({
-        mediaIds: probe.mediaIds,
+        readRow: probe.readRow,
         description: probe.description,
         amount: probe.amount,
         matches: candidates

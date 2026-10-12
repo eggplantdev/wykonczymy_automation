@@ -649,9 +649,10 @@
 }
 
 /* Must stay above the section band rules: same specificity, and a band's wash has to win over the
-   stripe so the band still reads as one bar. */
+   stripe so the band still reads as one bar. The colour alone, not the `background` shorthand: the
+   shorthand would reset the column tint's background-image on every odd column. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-stripe-column {
-  background: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
+  background-color: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
 }
 
 /* After the stripe rule, which has the same specificity and would otherwise win. dsg's own
