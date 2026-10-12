@@ -163,12 +163,21 @@ Same reasoning closes the subcontractor figures: `remaining` and `dueNet`
 | AI planned qty         | AI przedmiar            | —                     | `aiPlannedQty`                                                                                                      | B   | — (new, EX-1006)                                                   | `kosztorys-items.ts`         |
 | review status          | Status                  | —                     | `reviewStatus` (`ReviewStatusT`)                                                                                    | B   | — (new, EX-1006)                                                   | `kosztorys/review-status.ts` |
 | change reason          | Powód zmiany            | —                     | `changeReason`                                                                                                      | B   | — (new, EX-1006)                                                   | `kosztorys-items.ts`         |
+| company manual         | Manual (Wykończymy)     | —                     | `companyKnowledge` (slug `company-knowledge`)                                                                       | B   | — (new, EX-1032)                                                   | `company-knowledge.ts`       |
 
 **„Komentarz do pracy" is `workNote`, never `note` (EX-1006).** Two comments, two owners: `note`
 („Komentarz") belongs to one pozycja in one kosztorys and may be shown to the client; `workNote` belongs
 to the katalog entry, shows on every pozycja with the same opis + j.m. across kosztorysy and szablony,
-and is company knowledge the client never sees. A shared bare name would hide which of the two a row
-holds.
+and the client never sees it. A shared bare name would hide which of the two a row holds.
+
+**The owner's knowledge has three homes, by reach — say „Manual", never „Wiedza firmowa".** The
+**Manual** holds rules that belong to no single praca; a **Komentarz do pracy** holds what is true of
+one katalog praca everywhere; a **Powód zmiany** explains one correction on one pozycja and teaches
+nothing outside that kosztorys until someone lifts it into one of the other two. A rule that names a
+praca goes to its Komentarz do pracy first — it shows on the pozycja itself — and is not repeated in
+the Manual (owner, 2026-10-12). „Wiedza firmowa" /
+„wiedza ogólna" named the Manual until 2026-10-12 and is retired; older docs and agent output still
+carry it.
 
 **`stage deposit` / `zaliczki` — retired (EX-536).** The deposit→etap tagging bridge is gone:
 `lib/kosztorys/zaliczki.ts` deleted, the `kosztorys_stage_id` column dropped from `transactions`

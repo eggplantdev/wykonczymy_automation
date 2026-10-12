@@ -60,12 +60,12 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
    description, so the ids don't need to survive the seeding.
 4. **Dump the house knowledge first:** `TOKEN_FILE=… CASE=… node --import tsx
 context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-prod.ts` writes
-   `inputs/wiedza-firmowa.md` (management's „Wiedza firmowa” plus every katalog Komentarz do pracy).
+   `inputs/manual-i-komentarze-do-prac.md` (management's „Manual Wykończymy” plus every katalog Komentarz do pracy).
    The agent reads it in full before choosing a position or a quantity.
 
    **The agent may assume, and writes down every assumption — no exceptions** (owner, 2026-10-09).
    Every quantity not read from the rzut, the email or the photos has an entry in „Co / ile
-   założono” on its own pozycja: what was taken, how much, and on what basis — a „Wiedza firmowa”
+   założono” on its own pozycja: what was taken, how much, and on what basis — a Manual
    entry, a katalog rule, or the agent's own estimate, named as such. An unwritten assumption is a
    defect of the draft, not a shortcut.
 
@@ -107,6 +107,18 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
 
 8. **Evaluation (not done yet for any case):** compare v1 and v2 against the owner's real offer for
    the same client, position by position.
+
+9. **Lift the owner's Powody zmiany into the knowledge** once the owner has reviewed the draft. The agent
+   never reads a Powód zmiany, so a correction stays in that one kosztorys until it is lifted.
+   - `scripts/collect-reasons-prod.ts` (`TOKEN_FILE=… INVESTMENTS=188,189`) lists them, read-only.
+   - Each is discussed with the user and lands in `knowledge-edits.json`. A rule about one praca goes
+     to its Komentarz do pracy (`set` / `append`, by katalog id plus the opis start as a guard). Only
+     a rule that names no single praca, or a praca outside the katalog, goes to the Manual (`set` /
+     `create` / `delete`, by topic).
+   - `scripts/apply-knowledge-prod.ts` with `DRY=1` prints „było → będzie”, then writes after the
+     user's go through the app's own actions. An edit already in place is skipped, so a second
+     `DRY=1` printing „prod zgodny z plikiem” is the check.
+   - #188–#191 were lifted this way on 2026-10-12 (21 edits).
 
 ## Cases
 
@@ -301,7 +313,7 @@ an AI draft. Rules the katalog notes don't already state:
   deweloperski, **2,60 m** on the rynek wtórny. A printed Hpom always wins. Komentarz names which of
   the two was used.
 
-**These rules now live in „Wiedza firmowa”** (EX-1032, seeded by migration `20261008_3`), which
+**These rules now live in the Manual („Manual Wykończymy”)** (EX-1032, seeded by migration `20261008_3`), which
 management edits in the app; where the list above and the book differ, the book wins.
 
 These are general rules, not case numbers, so they belong in the procedure (and, per entry, in the
@@ -447,7 +459,7 @@ amend it.
 
    A quantity that can be neither read nor measured is **assumed**, and the assumption goes on the
    position's „Co / ile założono” (`assumptions`): what was taken, how much, and on what basis — a
-   „Wiedza firmowa” entry, a katalog Komentarz do pracy, a photo, or the agent's own estimate, named as
+   Manual entry, a katalog Komentarz do pracy, a photo, or the agent's own estimate, named as
    such. For example, the house clear height (2,68 deweloperka / 2,60 rynek wtórny) when the drawing
    prints none, or a przedpokój perimeter when the scan prints only its m². What the inputs leave
    unknown goes in „Czego nie było wiadomo” (`missingData`). Where a quantity came from is not an

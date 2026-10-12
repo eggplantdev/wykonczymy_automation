@@ -23,7 +23,7 @@ async function run() {
   const notes = catalogue.docs.filter((item) => item.workNote?.trim())
 
   const lines = [
-    '# Wiedza firmowa',
+    '# Manual Wykończymy',
     '',
     ...knowledge.docs.flatMap((entry) => [`### ${entry.topic}`, '', entry.content.trim(), '']),
     '# Komentarze do prac z katalogu',
@@ -37,7 +37,7 @@ async function run() {
   ]
 
   mkdirSync(inputsDir, { recursive: true })
-  const file = path.join(inputsDir, 'wiedza-firmowa.md')
+  const file = path.join(inputsDir, 'manual-i-komentarze-do-prac.md')
   writeFileSync(file, lines.join('\n'))
   console.log(`${knowledge.docs.length} wpisów, ${notes.length} komentarzy → ${file}`)
 }
