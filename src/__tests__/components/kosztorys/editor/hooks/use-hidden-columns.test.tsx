@@ -84,3 +84,24 @@ describe('useHiddenColumns — a corrupt stored value', () => {
     expect(result.current.isHidden(NET)).toBe(false)
   })
 })
+
+describe('useHiddenColumns — the szablon workbench', () => {
+  it('opens with every column shown, „Sekcja" included', () => {
+    const { result } = renderHook(() => useHiddenColumns('workshop'))
+
+    expect(result.current.isHidden('sectionName')).toBe(false)
+  })
+
+  it('keeps its picks apart from the kosztorys picks in both directions', () => {
+    const workshop = renderHook(() => useHiddenColumns('workshop'))
+    const kosztorys = remount()
+
+    act(() => workshop.result.current.toggleColumn('description'))
+    act(() => kosztorys.result.current.toggleColumn('workNote'))
+
+    expect(remount().result.current.isHidden('description')).toBe(false)
+    const reloaded = renderHook(() => useHiddenColumns('workshop')).result.current
+    expect(reloaded.isHidden('description')).toBe(true)
+    expect(reloaded.isHidden('workNote')).toBe(false)
+  })
+})
