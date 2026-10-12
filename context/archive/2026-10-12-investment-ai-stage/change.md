@@ -1,10 +1,10 @@
 ---
 change_id: investment-ai-stage
 title: „Etap AI” on the investment
-status: implemented
+status: archived
 created: 2026-10-12
 updated: 2026-10-12
-archived_at: null
+archived_at: 2026-10-12T18:29:27Z
 branch: staging
 worktree: null
 linear: EX-1046
