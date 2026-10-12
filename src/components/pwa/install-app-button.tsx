@@ -13,6 +13,8 @@ import { useInstallPromptStore } from '@/stores/install-prompt-store'
 // on a cold page — past this the button gives way to the browser-menu path.
 const PROMPT_WAIT_MS = 60_000
 
+// Phone-only (`sm:hidden`): desktop browsers mostly never fire `beforeinstallprompt`, so there the
+// button would only ever wait out into a menu hint written for Android.
 export function InstallAppButton() {
   const { t } = useTranslation('workerPage')
   const platform = useClientSnapshot(readPlatform)
@@ -35,14 +37,16 @@ export function InstallAppButton() {
   if (state === 'hidden') return null
 
   if (state === 'manual') {
-    return <p className="text-muted-foreground self-center text-sm">{t('installManual')}</p>
+    return (
+      <p className="text-muted-foreground self-center text-sm sm:hidden">{t('installManual')}</p>
+    )
   }
 
   if (state === 'ios') {
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="w-fit">
+          <Button size="sm" variant="outline" className="w-fit sm:hidden">
             <Download />
             {t('installApp')}
           </Button>
@@ -71,7 +75,7 @@ export function InstallAppButton() {
     <Button
       size="sm"
       variant="outline"
-      className="w-fit"
+      className="w-fit sm:hidden"
       disabled={state === 'waiting'}
       onClick={showInstallPrompt}
     >

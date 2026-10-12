@@ -4816,3 +4816,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Ten sam pracownik „Potwierdzam” albo „Odrzuć” → liczba na ikonie znika od razu, bez zamykania aplikacji.
 - [ ] Produkcja, Android → po zaksięgowaniu wypłaty powiadomienie dociera.
 - [ ] „Rozlicz wypłaty” dla jednego pracownika na dwóch inwestycjach → przychodzi jedno powiadomienie z sumą kwot, a ikona pokazuje 2.
+
+## 2026-10-12 — install-button-phone-only — „Zainstaluj aplikację" tylko na telefonie
+
+- [ ] Desktop (≥768px), własna strona `/pracownicy/[id]` → brak przycisku „Zainstaluj aplikację" i brak podpowiedzi „Otwórz menu przeglądarki…", także po odczekaniu ponad minuty.
+- [ ] Telefon (390px), własna strona pracownika w przeglądarce → przycisk „Zainstaluj aplikację" widoczny jak dotąd (na iPhonie otwiera instrukcję).
