@@ -1,10 +1,10 @@
 ---
 change_id: stage-completed-flag
 title: Etap „zakończony" flag — hides finished etapy from the worker and colours them
-status: implemented
+status: archived
 created: 2026-10-09
-updated: 2026-10-09
-archived_at: null
+updated: 2026-10-12
+archived_at: 2026-10-12T18:26:25Z
 branch: stage-completed-flag
 worktree: ../wykonczymy-stage-completed
 ---
