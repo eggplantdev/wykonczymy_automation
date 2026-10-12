@@ -1,10 +1,10 @@
 ---
 change_id: pwa-push-notifications
 title: Web Push notifications and an app icon badge for the installed PWA
-status: implemented
+status: archived
 created: 2026-10-11
-updated: 2026-10-11
-archived_at: null
+updated: 2026-10-12
+archived_at: 2026-10-12T18:27:29Z
 branch: staging
 worktree: null
 ---

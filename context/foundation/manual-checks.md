@@ -4761,8 +4761,6 @@ Bez zmian:
 
 Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada środowiskowa, nie defekt).
 
-- [x] Localhost i preview → przełącznik „Włącz powiadomienia” nie pojawia się ani na własnej stronie `/pracownicy/[id]`, ani w menu mobilnym; wylogowanie działa jak dotąd.
-- [x] Localhost, zalogowany jako ADMIN → `/api/test-push` zwraca `configured: false` i `sent: 0`; nic nie zostaje wysłane.
 - [ ] Produkcja, Android, zainstalowana aplikacja → menu mobilne → „Włącz powiadomienia” → zgoda w systemie → toast „Powiadomienia włączone”, przycisk zmienia się na „Wyłącz powiadomienia”; jako ADMIN otwórz `/api/test-push` → przychodzi powiadomienie z jednobarwną ikoną na pasku stanu; dotknięcie otwiera aplikację.
 - [ ] Produkcja, iPhone (iOS 16.4+) → w karcie Safari przełącznika nie ma; w aplikacji z ekranu początkowego jest, włączenie pokazuje pytanie o zgodę, a testowe powiadomienie dociera.
 - [ ] Odmowa zgody na powiadomienia → zamiast przycisku napis „Powiadomienia są zablokowane — włącz je w ustawieniach telefonu.”
@@ -4773,14 +4771,6 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Ten sam pracownik „Potwierdzam” albo „Odrzuć” → liczba na ikonie znika od razu, bez zamykania aplikacji.
 - [ ] Produkcja, Android → po zaksięgowaniu wypłaty powiadomienie dociera.
 - [ ] „Rozlicz wypłaty” dla jednego pracownika na dwóch inwestycjach → przychodzi jedno powiadomienie z sumą kwot, a ikona pokazuje 2.
-
-### Findings — 2026-10-11 (przebieg lokalny, 5435)
-
-- [x] **Box 1 i 2 zweryfikowane lokalnie** — OWNER, ADMIN i EMPLOYEE (390px): brak przełącznika na `/pracownicy/[id]` i w menu mobilnym, „Wyloguj” z menu kończy na `/zaloguj`; ADMIN → `/api/test-push` = `{"sent":0,"configured":false}`. Brak poziomego scrolla (scrollWidth = 390).
-- [x] **Synchronizacja plakietki (bez boksa)** — pracownik z wypłatą `pending` (#5957, 11 zł, zaksięgowana z UI jako OWNER): strona otwarta, potem „Potwierdzam” → `payout_status = accepted`, blok „Wypłaty do potwierdzenia” znika; konsola przeglądarki i log serwera bez błędów `[PUSH]` i bez wyjątków z `fetchOwnPendingPayoutCount`. Samego ustawienia plakietki nie widać lokalnie (brak VAPID/instalacji PWA).
-- [x] **Boksy produkcyjne — zablokowane środowiskiem** (dropped: to nie defekt, a otwarte boksy powyżej same są listą do przejścia na produkcji) — Android/iPhone, zgoda systemowa, odmowa, wyłączenie, dezaktywacja, wypłata → push z plakietką, „Rozlicz wypłaty” (8 boksów powyżej) oraz układ 390px samego przełącznika; lokalnie `isPushConfigured()` = false (klucze VAPID tylko w Vercel Production), więc przełącznik się nie renderuje. Układ strony pracownika i stopki menu przy 390px sprawdzony (bez rozjazdu), sam przełącznik nie.
-      **Needs human:** po deployu i ustawieniu kluczy VAPID przejść te boksy na produkcji, na prawdziwym telefonie z zainstalowaną aplikacją.
-      **Test disposition:** no automated test · e2e — wymaga prawdziwego push service i zainstalowanej PWA, których Playwright nie odtworzy.
 
 
 ## 2026-10-12 — install-button-phone-only — „Zainstaluj aplikację" tylko na telefonie
