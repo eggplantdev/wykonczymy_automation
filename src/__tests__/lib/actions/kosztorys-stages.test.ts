@@ -55,6 +55,8 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     investmentId = await createTestInvestment(payload, `kosztorys-stages-test-${Date.now()}`)
     const users = await payload.find({
       collection: 'users',
+      // The etap write refuses a trashed worker, and a restored dump can trash anyone.
+      where: { trashedAt: { exists: false } },
       limit: 2,
       depth: 0,
       overrideAccess: true,

@@ -29,7 +29,9 @@ import {
   carriesNetAmount,
   carriesVatPlane,
   carriesPaymentMethod,
+  carriesPayoutStatus,
   canFillVatPlane,
+  isInvestmentExpense,
   isLaborCost,
   isCancellationType,
   planeFor,
@@ -163,6 +165,14 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   carriesPaymentMethod: {
     fn: carriesPaymentMethod,
     trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE_NET'],
+  },
+  carriesPayoutStatus: {
+    fn: carriesPayoutStatus,
+    trueFor: ['PAYOUT'],
+  },
+  isInvestmentExpense: {
+    fn: isInvestmentExpense,
+    trueFor: ['INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET'],
   },
 }
 
