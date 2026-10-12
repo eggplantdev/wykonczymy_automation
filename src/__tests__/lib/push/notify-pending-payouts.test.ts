@@ -11,6 +11,7 @@ const { sendPushToUser, isPushConfigured, countPendingPayouts } = vi.hoisted(() 
 }))
 vi.mock('@/lib/push/send-push', () => ({ sendPushToUser, isPushConfigured }))
 vi.mock('@/lib/db/payout-confirmation', () => ({ countPendingPayouts }))
+vi.mock('@/lib/push/constants', () => ({ PAYOUT_PUSH_PAUSED: false }))
 
 import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
 
