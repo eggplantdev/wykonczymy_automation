@@ -1,5 +1,6 @@
 'use server'
 
+import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
@@ -13,6 +14,7 @@ import {
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
 import { createInvestment } from '@/lib/investments/create-investment'
+import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
@@ -195,6 +197,26 @@ export async function updateInvestmentClientFieldsAction(
       if (!parsed.success) return parsed
 
       await payload.update({ collection: 'investments', id, data: parsed.data, user })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}
+
+const aiStageSchema = z.enum(INVESTMENT_AI_STAGES).nullable()
+
+// Its own action, not a field of `investmentSchema`: the edit form and the notes save send the whole
+// record, and a stage riding along would be overwritten from a stale copy. `protectedAction`, not
+// `investmentAction`: the stage is a label, so a zakończona inwestycja takes it too.
+export async function setInvestmentAiStageAction(id: number, aiStage: InvestmentAiStageT | null) {
+  return protectedAction(
+    'setInvestmentAiStageAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(aiStageSchema, aiStage)
+      if (!parsed.success) return parsed
+
+      await payload.update({ collection: 'investments', id, data: { aiStage: parsed.data }, user })
 
       return { success: true }
     },

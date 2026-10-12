@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 
 const FULL = {
+  id: 7,
   address: 'ul. Testowa 1',
   phone: '500600700',
   email: 'test@example.com',
@@ -9,6 +10,7 @@ const FULL = {
   notes: 'Notatka',
   status: 'active' as const,
   reviewRequested: true,
+  aiStage: null,
 }
 
 describe('buildInvestmentInfoFields', () => {
@@ -21,6 +23,7 @@ describe('buildInvestmentInfoFields', () => {
       'Osoba kontaktowa',
       'Status',
       'Opinia',
+      'Etap AI',
     ])
   })
 
@@ -34,18 +37,28 @@ describe('buildInvestmentInfoFields', () => {
       email: '',
       reviewRequested: false,
     })
-    expect(fields.map((field) => field.label)).toEqual(['Adres', 'Osoba kontaktowa', 'Status'])
+    expect(fields.map((field) => field.label)).toEqual([
+      'Adres',
+      'Osoba kontaktowa',
+      'Status',
+      'Etap AI',
+    ])
   })
 
-  it('Status zostaje nawet gdy wszystkie pozostałe pola są puste', () => {
-    const fields = buildInvestmentInfoFields({
-      address: '',
-      phone: '',
-      email: '',
-      contactPerson: '',
-      status: 'planowana',
-      reviewRequested: false,
-    })
+  it('Status zostaje nawet gdy wszystkie pozostałe pola są puste, a Etap AI znika w trybie tylko do odczytu', () => {
+    const fields = buildInvestmentInfoFields(
+      {
+        id: 7,
+        address: '',
+        phone: '',
+        email: '',
+        contactPerson: '',
+        status: 'planowana',
+        reviewRequested: false,
+        aiStage: null,
+      },
+      { isReadOnly: true },
+    )
     expect(fields.map((field) => field.label)).toEqual(['Status'])
   })
 })

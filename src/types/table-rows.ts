@@ -3,6 +3,7 @@ import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { SheetStatusT } from '@/lib/constants/sheets'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
+import type { AiProgressStepT, InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import type { StrandedDepositsT } from '@/lib/kosztorys/off-plane-deposits'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 
@@ -66,10 +67,10 @@ export type InvestmentRowT = {
    *  the figure, or a zero-progress kosztorys would hide its real −wypłaty; the trash button reads
    *  it too. */
   hasKosztorys: boolean
-  /** An agent draft was loaded into the kosztorys — the listing's twin of the editor's `hasAiDraft`. */
-  hasAiDraft: boolean
+  aiProgress: AiProgressStepT
   // No column renders these — the whole row is handed to EditInvestmentDialog, whose form needs
   // them. `vatRate` is the exception that also prices `balanceGross`.
+  aiStage: InvestmentAiStageT | null
   materialsNetRate: number | null
   settlementMode: SettlementModeT
   vatRate: number

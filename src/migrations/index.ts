@@ -138,6 +138,7 @@ import * as migration_20261009_3_worker_expense_without_investment from './20261
 import * as migration_20261009_4_kosztorys_stages_completed from './20261009_4_kosztorys_stages_completed'
 import * as migration_20261011_1_add_payout_confirmation from './20261011_1_add_payout_confirmation'
 import * as migration_20261011_2_add_push_subscriptions from './20261011_2_add_push_subscriptions'
+import * as migration_20261012_0_add_investment_ai_stage from './20261012_0_add_investment_ai_stage'
 
 export const migrations = [
   {
@@ -839,5 +840,10 @@ export const migrations = [
     up: migration_20261011_2_add_push_subscriptions.up,
     down: migration_20261011_2_add_push_subscriptions.down,
     name: '20261011_2_add_push_subscriptions',
+  },
+  {
+    up: migration_20261012_0_add_investment_ai_stage.up,
+    down: migration_20261012_0_add_investment_ai_stage.down,
+    name: '20261012_0_add_investment_ai_stage',
   },
 ]

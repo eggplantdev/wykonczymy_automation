@@ -158,7 +158,9 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
 
 9. **Lift the owner's Powody zmiany into the knowledge** once the owner has reviewed the draft. The agent
    never reads a Powód zmiany, so a correction stays in that one kosztorys until it is lifted.
-   - `scripts/collect-reasons-prod.ts` (`TOKEN_FILE=… INVESTMENTS=188,189`) lists them, read-only.
+   - The owner marks a reviewed investment „Etap AI: Recenzja zakończona” on its page (EX-1046).
+   - `scripts/collect-reasons-prod.ts` (`TOKEN_FILE=…`) lists the Powody zmiany of every investment
+     at „Recenzja zakończona”, read-only; `INVESTMENTS=188,189` overrides the list.
    - Each is discussed with the user and lands in `knowledge-edits.json`. A rule about one praca goes
      to its Komentarz do pracy (`set` / `append`, by katalog id plus the opis start as a guard). Only
      a rule that names no single praca, or a praca outside the katalog, goes to the Manual (`set` /
@@ -166,6 +168,9 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
    - `scripts/apply-knowledge-prod.ts` with `DRY=1` prints „było → będzie”, then writes after the
      user's go through the app's own actions. An edit already in place is skipped, so a second
      `DRY=1` printing „prod zgodny z plikiem” is the check.
+   - Then set „Etap AI: Wiedza wyekstraktowana” by hand on each source investment, so the next
+     collect skips it. A Powód zmiany written after that is not picked up unless the stage is set
+     back to „Recenzja zakończona”.
    - #188–#191 were lifted this way on 2026-10-12 (21 edits).
 
 ## Cases

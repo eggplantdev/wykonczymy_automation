@@ -21,6 +21,7 @@ const INVESTMENT: InvestmentRefT = {
   notes: 'Zakres prac: kuchnia, łazienka',
   reviewRequested: true,
   hasSheet: false,
+  aiStage: null,
   createdAt: '2026-01-15T10:00:00.000Z',
   materialsNetRate: null,
   settlementMode: 'NET',

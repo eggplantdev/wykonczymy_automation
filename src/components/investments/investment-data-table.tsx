@@ -1,16 +1,19 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { StatusFilter } from '@/components/investments/status-filter'
 import { getInvestmentColumns, V2_COLUMN_IDS } from '@/components/tables/investments'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
+import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { useStatusFilter } from '@/hooks/use-status-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
+import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AddInvestmentDialog } from '@/components/dialogs/add-investment-dialog'
 import {
@@ -18,8 +21,15 @@ import {
   type SettleDialogTargetT,
 } from '@/components/dialogs/settle-payouts-dialog'
 import type { PresetMetaT } from '@/lib/db/presets'
+import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 
 const getStatus = (row: InvestmentRowT) => row.status
+const getAiProgress = (row: InvestmentRowT) => row.aiProgress
+
+const AI_PROGRESS_OPTIONS = AI_PROGRESS_STEPS.map((step) => ({
+  value: step,
+  label: AI_PROGRESS_LABELS[step],
+}))
 
 const INITIAL_SORTING = [{ id: 'createdAt', desc: true }]
 
@@ -41,10 +51,17 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
     (row: InvestmentRowT) => `${row.name} ${row.address} ${row.contactPerson}`,
     [],
   )
-  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
-    statusFiltered,
-    getSearchableText,
-  )
+  const {
+    filteredData: searched,
+    searchTerm,
+    setSearchTerm,
+  } = useSearchFilter(statusFiltered, getSearchableText)
+
+  const {
+    filteredData,
+    values: aiSteps,
+    setValues: setAiSteps,
+  } = useClientMultiFilter(searched, getAiProgress)
 
   const [settleTarget, setSettleTarget] = useState<SettleDialogTargetT | null>(null)
   const columns = useMemo(
@@ -78,6 +95,14 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
                   <StatusFilter
                     selectedStatuses={selectedStatuses}
                     onToggle={toggleStatus}
+                    triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                  />
+                  <FilterMultiSelect
+                    label="Analiza AI"
+                    options={AI_PROGRESS_OPTIONS}
+                    values={aiSteps}
+                    onValuesChange={setAiSteps}
+                    icon={Sparkles}
                     triggerClassName={GRID_FILTER_TRIGGER_CLASS}
                   />
                   {/* Flipping it writes the same visibility state the picker does, so the two never

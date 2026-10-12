@@ -4835,6 +4835,19 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Edytor kosztorysu → „Kolumny” → włącz „Komentarz do pracy”: nagłówek brzmi „Komentarz do pracy (niewidoczny dla klienta)”, bez „wiedza firmowa”.
 - [ ] Edytor kosztorysu → menu wiersza pozycji z katalogu → „Komentarz do pracy…”: opis okna zaczyna się od „Niewidoczny dla klienta.”; zapis komentarza działa jak dotąd.
+
+## 2026-10-12 — investment-ai-stage — „Etap AI” na inwestycji (EX-1046)
+
+- [ ] `/inwestycje/[id]` → w wierszu „Etap AI” (pod „Status”) wybierz „Gotowa do analizy”, przeładuj → select nadal to pokazuje; wybierz „Uzupełnianie informacji”, przeładuj → wyczyszczone (każda opcja ma ikonę i opis pod nazwą; zamknięty select pokazuje samą nazwę).
+- [ ] Kosztorys → Podsumowanie → „Inwestycja” → ten sam wiersz „Etap AI” pod „Status”; zmiana tutaj widać po przeładowaniu na stronie inwestycji i odwrotnie.
+- [ ] `/inwestycje/[id]` → przyciski w nagłówku („Edytuj”, „Dodaj”/„Otwórz”, „Otwórz kosztorys_v2”) mają jedną wysokość.
+- [ ] Zakończona inwestycja → select jest i zapisuje; inwestycja w `/kosz` → selecta nie ma.
+- [ ] Zapis notatki i „Edytuj inwestycję” nie zmieniają wybranego etapu.
+- [ ] `/inwestycje` → inwestycja ze szkicem AI i bez etapu pokazuje „Przeanalizowana”; po ustawieniu „Recenzja zakończona” na jej stronie lista pokazuje „Recenzja zakończona”.
+- [ ] Sortowanie „Analiza AI”: Uzupełnianie informacji / Gotowa do analizy / Przeanalizowana / Recenzja zakończona / Wiedza wyekstraktowana.
+- [ ] Filtr „Analiza AI” → „Recenzja zakończona” zostawia tylko te wiersze; razem z filtrem statusu i wyszukiwaniem wszystkie trzy zawężają naraz; pozycja „Uzupełnianie informacji” = inwestycje bez etapu i bez szkicu.
+- [ ] Po deployu i migracji produkcji: ustaw „Recenzja zakończona” na jednej inwestycji, uruchom `collect-reasons-prod.ts` bez `INVESTMENTS` → listuje Powody zmiany dokładnie tej inwestycji.
+
 ## 2026-10-12 — investment-notes-collapsible — zwijane „Notatki” inwestycji
 
 - [ ] `/inwestycje/[id]` → kliknij „Notatki”: treść się zwija, strzałka obraca; przeładuj i otwórz inną inwestycję → notatki nadal zwinięte; kliknij ponownie → rozwinięte.

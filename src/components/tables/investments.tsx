@@ -24,6 +24,7 @@ import { RequestReviewButton } from '@/components/investments/request-review-but
 import { isLockedStatus } from '@/lib/constants/investment-lock'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
+import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 
 const col = createColumnHelper<InvestmentRowT>()
 
@@ -118,12 +119,20 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       header: 'Kosztorys_v2',
       cell: (info) => <OpenKosztorysV2Button investmentId={info.row.original.id} label="Otwórz" />,
     }),
-    col.accessor('hasAiDraft', {
+    // The id stays `hasAiDraft`: it keys the column's stored visibility and order.
+    col.accessor('aiProgress', {
       id: 'hasAiDraft',
       header: () => <span className="text-neon-cyan">Analiza AI</span>,
       meta: { label: 'Analiza AI' },
       enableSorting: true,
-      cell: (info) => (info.getValue() ? <span className="text-neon-cyan">Tak</span> : '—'),
+      sortingFn: (a, b) =>
+        AI_PROGRESS_STEPS.indexOf(a.original.aiProgress) -
+        AI_PROGRESS_STEPS.indexOf(b.original.aiProgress),
+      cell: (info) => {
+        const step = info.getValue()
+        if (step === 'none') return AI_PROGRESS_LABELS.none
+        return <span className="text-neon-cyan">{AI_PROGRESS_LABELS[step]}</span>
+      },
     }),
 
     // Every figure that exists on two planes is shown on BOTH, v1 beside v2: nothing here infers
