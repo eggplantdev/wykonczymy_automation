@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
-import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
+import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 
-const RECEIPTS = new Map<string, number[]>([
-  ['a', [11, 12]],
-  ['b', [21]],
-  ['c', [31]],
+const RECEIPTS = new Map<string, DraftReceiptT>([
+  ['a', { mediaIds: [11, 12] }],
+  ['b', { mediaIds: [21] }],
+  ['c', { mediaIds: [31] }],
 ])
 const BOOKED: DuplicateOfT = { source: 'transaction', id: 4021 }
 
@@ -46,5 +46,18 @@ describe('receiptDecision', () => {
     )
 
     expect(decision.skippedReceipts).toEqual([])
+  })
+
+  // Two paragony on one photo share its pages; only the read row tells the restore which one went.
+  it('carries the read row of a skipped receipt', () => {
+    const onePhoto = new Map<string, DraftReceiptT>([
+      ['a', { mediaIds: [11], readRow: 0 }],
+      ['b', { mediaIds: [11], readRow: 1 }],
+    ])
+
+    const decision = receiptDecision(onePhoto, [{ id: 'a' }])
+
+    expect(decision.receiptMediaIds).toEqual([[11]])
+    expect(decision.skippedReceipts).toEqual([{ mediaIds: [11], readRow: 1 }])
   })
 })

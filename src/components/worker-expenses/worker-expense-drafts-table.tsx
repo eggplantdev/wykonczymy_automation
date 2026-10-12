@@ -9,7 +9,6 @@ import { ControlGrid } from '@/components/ui/control-grid'
 import { PageNav } from '@/components/ui/pagination/page-nav'
 import { PaginationBar } from '@/components/ui/pagination/pagination-bar'
 import { DeleteExpenseDraftButton } from '@/components/worker-expenses/delete-expense-draft-button'
-import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useTranslation } from '@/hooks/use-translation'
 import {
@@ -17,9 +16,7 @@ import {
   EXPENSE_DRAFT_STATUSES,
   NO_INVESTMENT,
 } from '@/lib/constants/worker-expense-drafts'
-import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import type { CashRegisterRefT } from '@/types/reference-data'
 
 // The page also pages and filters transfers through the URL, so this table keeps its page, limit and
 // filters in state — two URL-driven tables on one page would fight over `page` / `limit` / `investment`.
@@ -35,19 +32,9 @@ type PropsT = {
   drafts: ExpenseDraftRowT[]
   canSend: boolean
   canOpenTransfers: boolean
-  investments: WorkerStageInvestmentT[]
-  registers: CashRegisterRefT[]
-  canSkipInvestment: boolean
 }
 
-export function WorkerExpenseDraftsTable({
-  drafts,
-  canSend,
-  canOpenTransfers,
-  investments,
-  registers,
-  canSkipInvestment,
-}: PropsT) {
+export function WorkerExpenseDraftsTable({ drafts, canSend, canOpenTransfers }: PropsT) {
   const { t } = useTranslation('expenseDrafts')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
@@ -69,27 +56,18 @@ export function WorkerExpenseDraftsTable({
     values: investmentFilter,
     setValues: setInvestmentFilter,
   } = useClientMultiFilter(byStatus, getInvestment)
-  // Only a pending draft can be edited or deleted, so with none listed the column would stand empty.
+  // Only a pending draft can be deleted, so with none listed the column would stand empty.
   const hasActions = canSend && filtered.some((draft) => draft.status === 'pending')
   const columns = useExpenseDraftColumns({
     isManagerView: false,
-    canEditPages: canSend,
     canOpenTransfers,
     actions: hasActions
       ? (draft) =>
           draft.status === 'pending' && (
-            <>
-              <ExpenseDraftDialog
-                investments={investments}
-                registers={registers}
-                canSkipInvestment={canSkipInvestment}
-                draft={draft}
-              />
-              <DeleteExpenseDraftButton
-                draftId={draft.id}
-                investmentName={draft.investmentName ?? t('noInvestment')}
-              />
-            </>
+            <DeleteExpenseDraftButton
+              draftId={draft.id}
+              investmentName={draft.investmentName ?? t('noInvestment')}
+            />
           )
       : undefined,
   })

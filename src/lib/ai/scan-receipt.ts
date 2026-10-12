@@ -1,4 +1,4 @@
-import { extractReceipt, type ReceiptPageT } from '@/lib/ai/openrouter'
+import { extractReceipt, extractReceipts, type ReceiptPageT } from '@/lib/ai/openrouter'
 import { UNREADABLE_RECEIPT, type ReceiptExtractionT } from '@/lib/ai/receipt-extraction-schema'
 import { buildReceiptFileName } from '@/lib/utils/receipt-filename'
 
@@ -32,8 +32,18 @@ export async function scanReceiptPages(
   pages: ReceiptPageT[],
   otherCategoryNames: string[],
 ): Promise<ReceiptFillResultT> {
-  const data = await extractReceipt(pages, otherCategoryNames)
+  return shapeForForm(await extractReceipt(pages, otherCategoryNames), pages)
+}
 
+export async function scanReceiptList(
+  pages: ReceiptPageT[],
+  otherCategoryNames: string[],
+): Promise<ReceiptFillResultT[]> {
+  const receipts = await extractReceipts(pages, otherCategoryNames)
+  return receipts.map((data) => shapeForForm(data, pages))
+}
+
+function shapeForForm(data: ReceiptExtractionT, pages: ReceiptPageT[]): ReceiptFillResultT {
   // Derive the Opis-based name for the client to apply before upload; skip on the unreadable
   // sentinel or an empty Opis so the original filename is kept. Page 1 supplies the extension —
   // the client suffixes the remaining pages off this base.

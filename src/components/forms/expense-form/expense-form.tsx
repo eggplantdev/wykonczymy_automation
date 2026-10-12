@@ -69,7 +69,7 @@ import { RegisterBalanceSummary } from '../form-components/register-balance-summ
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
-import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
+import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 
 // Form state uses strings since HTML inputs/selects work with strings.
@@ -80,7 +80,7 @@ export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
   expenseDraftId: number
-  receiptMediaIds: Map<string, number[]>
+  receipts: Map<string, DraftReceiptT>
 }
 
 type TransferFormPropsT = {
@@ -267,7 +267,7 @@ export function ExpenseForm({
               invoicePageRows,
               prefill && {
                 expenseDraftId: prefill.expenseDraftId,
-                ...receiptDecision(prefill.receiptMediaIds, value.lineItems, duplicateOfByItemId),
+                ...receiptDecision(prefill.receipts, value.lineItems, duplicateOfByItemId),
               },
             ),
           ),

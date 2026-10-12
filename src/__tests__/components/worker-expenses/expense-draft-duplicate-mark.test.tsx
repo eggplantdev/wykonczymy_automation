@@ -54,7 +54,7 @@ function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
 function readyState(itemId: string, matches: DuplicateMatchT[]): DuplicateHintsStateT {
   return {
     status: 'ready',
-    paragons: [{ itemId, mediaIds: [101], description: 'Klej', amount: 89.9, matches }],
+    paragons: [{ itemId, readRow: 0, description: 'Klej', amount: 89.9, matches }],
   }
 }
 
@@ -154,9 +154,9 @@ describe('ExpenseForm with duplicate hints', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map([
-            [first.id, [101]],
-            [second.id, [102]],
+          receipts: new Map([
+            [first.id, { mediaIds: [101] }],
+            [second.id, { mediaIds: [102] }],
           ]),
           files,
           values: expenseValues({ lineItems: [first, second] }),

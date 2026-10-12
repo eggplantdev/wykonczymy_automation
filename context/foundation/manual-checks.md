@@ -4861,3 +4861,12 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] `/inwestycje/[id]` → „Edytuj notatkę”, wpisz linię `## Do ustalenia`, pod nią dwie linie zaczynające się od `- `, w jednej `**ważne**` → „Zapisz”: nagłówek z podkreśleniem, lista z kropkami, „ważne” pogrubione; ponowne „Edytuj notatkę” pokazuje surowy tekst z `##`, `-`, `**`.
 - [ ] Inwestycja ze starą, zwykłą notatką (kilka linii, puste linie między akapitami): wygląda jak dotąd — łamania linii zachowane, nic nie znika.
 - [ ] Notatka z tekstem typu `-10%` albo `#207` na początku linii: zostaje zwykłym tekstem, nie robi się z niego lista ani nagłówek.
+
+## 2026-10-12 — worker-draft-one-expense-per-photo — każdy paragon na zdjęciu osobno
+
+- [ ] Pracownik, własna `/pracownicy/[id]` (390px) → „Wydatek”, dodaj dwa zdjęcia: zaznaczone jest „Kilka wydatków”; kliknięcie „Jeden wydatek” otwiera pytanie „Czy wszystkie zdjęcia to na pewno jedna faktura?”, „Anuluj” zostawia „Kilka wydatków”, „Tak, jedna faktura” przełącza.
+- [ ] Ten sam formularz: wybierz „Jeden wydatek”, potem zostaw tylko jedno zdjęcie → przełącznik znika; po wysłaniu zgłoszenie kierownik widzi jako czytane paragon po paragonie, nie jako jedną sumę.
+- [ ] Wysłane, nierozpatrzone zgłoszenie na liście pracownika: da się je tylko usunąć — nie ma „Edytuj wydatek”, dodawania ani usuwania zdjęć.
+- [ ] Kierownik → zgłoszenie z jednym zdjęciem, na którym leży kilka paragonów obok siebie → „Zobacz”: każdy paragon to osobna pozycja ze swoją kwotą; NIP wpisany tylko tam, gdzie jest wydrukowany.
+- [ ] Zgłoszenie z jednym zdjęciem wysłane przed 2026-10-12 (zapisane jako „Jeden wydatek”), jeszcze bez odczytu → „Zobacz”: paragony ze zdjęcia rozpisane na osobne pozycje.
+- [ ] Kierownik przyjmuje zgłoszenie, pomijając jeden z paragonów → pominięty paragon w historii → „Przywróć”: wraca jako osobne zgłoszenie z jednym pustym wierszem do uzupełnienia, bez paragonów już zaksięgowanych z tego samego zdjęcia.

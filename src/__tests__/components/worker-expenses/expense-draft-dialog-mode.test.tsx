@@ -3,21 +3,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
-import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => ({ refresh: vi.fn() }),
 }))
 
-const { sendExpenseDraftAction, updateExpenseDraftAction } = vi.hoisted(() => ({
-  sendExpenseDraftAction: vi.fn(),
-  updateExpenseDraftAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
-  sendExpenseDraftAction,
-  updateExpenseDraftAction,
-}))
+const { sendExpenseDraftAction } = vi.hoisted(() => ({ sendExpenseDraftAction: vi.fn() }))
+vi.mock('@/lib/actions/worker-expense-drafts', () => ({ sendExpenseDraftAction }))
 const { submitWithUploads } = vi.hoisted(() => ({
   submitWithUploads: vi.fn((_files: File[], action: (mediaIds: number[]) => unknown) =>
     action([11, 12]),
@@ -26,9 +19,6 @@ const { submitWithUploads } = vi.hoisted(() => ({
 vi.mock('@/lib/media/submit-with-uploads', () => ({ submitWithUploads }))
 vi.mock('@/lib/media/ingest-picked-files', () => ({
   ingestPickedFiles: async (files: File[]) => ({ files, blocked: [] }),
-}))
-vi.mock('@/components/worker-expenses/expense-draft-pages-cell', () => ({
-  ExpenseDraftPagesCell: () => null,
 }))
 
 const INVESTMENTS = [{ investmentId: 1, name: 'Mokotów' }] as WorkerStageInvestmentT[]
@@ -53,40 +43,13 @@ async function openNewAndPick(count: number) {
   )
 }
 
-const draftWith = (overrides: Partial<ExpenseDraftRowT>): ExpenseDraftRowT => ({
-  id: 7,
-  workerId: 2,
-  workerName: 'Jan',
-  investmentId: 1,
-  investmentName: 'Mokotów',
-  cashRegisterId: 3,
-  note: null,
-  status: 'pending',
-  sentAt: '2026-10-06T10:00:00Z',
-  decidedAt: null,
-  decidedByName: null,
-  transfers: [],
-  media: [],
-  scanMode: 'one-invoice',
-  aiRead: undefined,
-  ...overrides,
-})
-
-const page = (id: number) => ({
-  id,
-  url: `/m/${id}.jpg`,
-  filename: `${id}.jpg`,
-  mimeType: 'image/jpeg',
-})
-
 beforeEach(() => {
   submitWithUploads.mockClear()
   sendExpenseDraftAction.mockReset().mockResolvedValue({ success: true })
-  updateExpenseDraftAction.mockReset().mockResolvedValue({ success: true })
 })
 
 describe('ExpenseDraftDialog scan mode', () => {
-  it('offers no choice for one photo and sends „Jeden wydatek”', async () => {
+  it('offers no choice for one photo', async () => {
     await openNewAndPick(1)
 
     expect(screen.queryByRole('radio', { name: 'Kilka wydatków' })).not.toBeInTheDocument()
@@ -94,7 +57,7 @@ describe('ExpenseDraftDialog scan mode', () => {
 
     await waitFor(() =>
       expect(sendExpenseDraftAction).toHaveBeenCalledWith(
-        expect.objectContaining({ scanMode: 'one-invoice', mediaIds: [11, 12] }),
+        expect.objectContaining({ scanMode: 'one-per-photo', mediaIds: [11, 12] }),
       ),
     )
   })
@@ -112,23 +75,13 @@ describe('ExpenseDraftDialog scan mode', () => {
     )
   })
 
-  it('defaults two photos to „Jeden wydatek”', async () => {
+  it('defaults two photos to „Kilka wydatków”', async () => {
     await openNewAndPick(2)
 
-    expect(screen.getByRole('radio', { name: 'Jeden wydatek' })).toHaveAttribute('data-state', 'on')
-    await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
-
-    await waitFor(() =>
-      expect(sendExpenseDraftAction).toHaveBeenCalledWith(
-        expect.objectContaining({ scanMode: 'one-invoice' }),
-      ),
+    expect(screen.getByRole('radio', { name: 'Kilka wydatków' })).toHaveAttribute(
+      'data-state',
+      'on',
     )
-  })
-
-  it('sends „Kilka wydatków” once the worker switches to it', async () => {
-    await openNewAndPick(2)
-
-    await userEvent.click(screen.getByRole('radio', { name: 'Kilka wydatków' }))
     expect(screen.getByText(/Każde zdjęcie to osobny paragon/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
 
@@ -139,29 +92,49 @@ describe('ExpenseDraftDialog scan mode', () => {
     )
   })
 
-  it('„Edytuj” starts from the draft’s own mode', async () => {
-    const draft = draftWith({ media: [page(1), page(2)], scanMode: 'one-per-photo' })
-    render(
-      <ExpenseDraftDialog
-        investments={INVESTMENTS}
-        registers={REGISTERS}
-        canSkipInvestment={false}
-        draft={draft}
-      />,
-    )
+  it('sends „Jeden wydatek” only once the worker confirms it', async () => {
+    await openNewAndPick(2)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Edytuj wydatek' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Jeden wydatek' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Tak, jedna faktura' }))
+    expect(screen.getByRole('radio', { name: 'Jeden wydatek' })).toHaveAttribute('data-state', 'on')
+    await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
+
+    await waitFor(() =>
+      expect(sendExpenseDraftAction).toHaveBeenCalledWith(
+        expect.objectContaining({ scanMode: 'one-invoice' }),
+      ),
+    )
+  })
+
+  // A single photo of paragony laid side by side would otherwise be summed into one amount.
+  it('drops „Jeden wydatek” once the photos are re-picked down to one', async () => {
+    await openNewAndPick(2)
+    await userEvent.click(screen.getByRole('radio', { name: 'Jeden wydatek' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Tak, jedna faktura' }))
+
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')
+    if (!input) throw new Error('no file input')
+    await userEvent.upload(input, [photo('one.jpg')])
+    expect(screen.queryByRole('radio', { name: 'Jeden wydatek' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
+
+    await waitFor(() =>
+      expect(sendExpenseDraftAction).toHaveBeenCalledWith(
+        expect.objectContaining({ scanMode: 'one-per-photo' }),
+      ),
+    )
+  })
+
+  it('keeps „Kilka wydatków” when the confirm is cancelled', async () => {
+    await openNewAndPick(2)
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Jeden wydatek' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Anuluj' }))
 
     expect(screen.getByRole('radio', { name: 'Kilka wydatków' })).toHaveAttribute(
       'data-state',
       'on',
-    )
-    await userEvent.click(screen.getByRole('button', { name: 'Zapisz' }))
-
-    await waitFor(() =>
-      expect(updateExpenseDraftAction).toHaveBeenCalledWith(
-        expect.objectContaining({ draftId: 7, scanMode: 'one-per-photo' }),
-      ),
     )
   })
 
@@ -170,27 +143,5 @@ describe('ExpenseDraftDialog scan mode', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Najwyżej 8 zdjęć w jednym wydatku')
     expect(screen.getByRole('button', { name: 'Wyślij' })).toBeDisabled()
-  })
-
-  // A changed mode clears the read and reads again — a note edit must not count as one.
-  it('„Edytuj” on a one-photo draft keeps its mode', async () => {
-    const draft = draftWith({ media: [page(1)], scanMode: 'one-per-photo' })
-    render(
-      <ExpenseDraftDialog
-        investments={INVESTMENTS}
-        registers={REGISTERS}
-        canSkipInvestment={false}
-        draft={draft}
-      />,
-    )
-
-    await userEvent.click(screen.getByRole('button', { name: 'Edytuj wydatek' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Zapisz' }))
-
-    await waitFor(() =>
-      expect(updateExpenseDraftAction).toHaveBeenCalledWith(
-        expect.objectContaining({ scanMode: 'one-per-photo' }),
-      ),
-    )
   })
 })

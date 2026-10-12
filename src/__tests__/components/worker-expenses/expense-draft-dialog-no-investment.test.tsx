@@ -3,29 +3,19 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
-import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => ({ refresh: vi.fn() }),
 }))
 
-const { sendExpenseDraftAction, updateExpenseDraftAction } = vi.hoisted(() => ({
-  sendExpenseDraftAction: vi.fn(),
-  updateExpenseDraftAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
-  sendExpenseDraftAction,
-  updateExpenseDraftAction,
-}))
+const { sendExpenseDraftAction } = vi.hoisted(() => ({ sendExpenseDraftAction: vi.fn() }))
+vi.mock('@/lib/actions/worker-expense-drafts', () => ({ sendExpenseDraftAction }))
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploads: (_files: File[], action: (mediaIds: number[]) => unknown) => action([11]),
 }))
 vi.mock('@/lib/media/ingest-picked-files', () => ({
   ingestPickedFiles: async (files: File[]) => ({ files, blocked: [] }),
-}))
-vi.mock('@/components/worker-expenses/expense-draft-pages-cell', () => ({
-  ExpenseDraftPagesCell: () => null,
 }))
 
 const INVESTMENTS = [{ investmentId: 1, name: 'Mokotów' }] as WorkerStageInvestmentT[]
@@ -35,31 +25,12 @@ const TWO_INVESTMENTS = [
 ] as WorkerStageInvestmentT[]
 const REGISTERS = [{ id: 3, name: 'Kasa Jana', active: true }] as never
 
-const noInvestmentDraft: ExpenseDraftRowT = {
-  id: 7,
-  workerId: 2,
-  workerName: 'Jan',
-  investmentId: null,
-  investmentName: null,
-  cashRegisterId: 3,
-  note: null,
-  status: 'pending',
-  sentAt: '2026-10-06T10:00:00Z',
-  decidedAt: null,
-  decidedByName: null,
-  transfers: [],
-  media: [{ id: 1, url: '/m/1.jpg', filename: '1.jpg', mimeType: 'image/jpeg' }],
-  scanMode: 'one-invoice',
-  aiRead: undefined,
-}
-
 async function openInvestmentSelect() {
   await userEvent.click(screen.getByRole('combobox'))
 }
 
 beforeEach(() => {
   sendExpenseDraftAction.mockReset().mockResolvedValue({ success: true })
-  updateExpenseDraftAction.mockReset().mockResolvedValue({ success: true })
 })
 
 describe('ExpenseDraftDialog „Bez inwestycji”', () => {
@@ -161,27 +132,6 @@ describe('ExpenseDraftDialog „Bez inwestycji”', () => {
     await waitFor(() =>
       expect(sendExpenseDraftAction).toHaveBeenCalledWith(
         expect.objectContaining({ cashRegisterId: 3 }),
-      ),
-    )
-  })
-
-  it('keeps it selected when an unflagged worker edits a draft without an investment', async () => {
-    render(
-      <ExpenseDraftDialog
-        investments={INVESTMENTS}
-        registers={REGISTERS}
-        canSkipInvestment={false}
-        draft={noInvestmentDraft}
-      />,
-    )
-    await userEvent.click(screen.getByRole('button', { name: 'Edytuj wydatek' }))
-
-    expect(screen.getByRole('combobox')).toHaveTextContent('Bez inwestycji')
-    await userEvent.click(screen.getByRole('button', { name: 'Zapisz' }))
-
-    await waitFor(() =>
-      expect(updateExpenseDraftAction).toHaveBeenCalledWith(
-        expect.objectContaining({ draftId: 7, investmentId: null }),
       ),
     )
   })

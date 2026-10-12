@@ -22,7 +22,6 @@ import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicat
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { ExpenseDraftMediaT, ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { sameItems } from '@/lib/utils/same-items'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { warsawToday } from '@/lib/utils/days'
@@ -69,11 +68,11 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     const {
       lineItems,
       files: rowFiles,
-      receiptMediaIds,
+      receipts,
     } = buildDraftPrefill(draft, files, expenseCategory)
     return {
       expenseDraftId: draft.id,
-      receiptMediaIds,
+      receipts,
       files: rowFiles,
       values: {
         date: warsawToday(),
@@ -130,9 +129,9 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       if (!result.success) {
         return { ...prev, duplicates: { status: 'error', message: result.error } }
       }
-      const receipts = [...prev.prefill.receiptMediaIds]
+      const receipts = [...prev.prefill.receipts]
       const paragons = result.data.flatMap((paragon) => {
-        const itemId = receipts.find(([, mediaIds]) => sameItems(mediaIds, paragon.mediaIds))?.[0]
+        const itemId = receipts.find(([, receipt]) => receipt.readRow === paragon.readRow)?.[0]
         return itemId ? [{ ...paragon, itemId }] : []
       })
       return { ...prev, duplicates: { status: 'ready', paragons } }

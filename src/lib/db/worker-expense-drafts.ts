@@ -358,6 +358,7 @@ export async function decideExpenseDraft(
   }))
   const skipped = (decision.skippedReceipts ?? []).map((receipt) => ({
     media_ids: receipt.mediaIds,
+    read_row: receipt.readRow ?? null,
     duplicate_of: receipt.duplicateOf ?? null,
   }))
   // A page id the client sends lands only if it is one of this draft's pages.
@@ -377,10 +378,10 @@ export async function decideExpenseDraft(
       SELECT r.id, decided.id, ${ownPages}
       FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
     ), skipped AS (
-      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, duplicate_of)
-      SELECT decided.id, ${ownPages}, r.duplicate_of
-      FROM decided,
-        jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[], duplicate_of jsonb)
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row, duplicate_of)
+      SELECT decided.id, ${ownPages}, r.read_row, r.duplicate_of
+      FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb)
+        AS r(media_ids int[], read_row int, duplicate_of jsonb)
     )
     SELECT id FROM decided
   `)
@@ -404,14 +405,15 @@ export async function restoreRejectedExpenseDraft(
 /**
  * A skipped paragon comes back as a new pending zgłoszenie sharing the accepted parent's pages, at
  * the parent's send date — re-opening the parent would rebook what it already booked. It carries
- * the parent's read of that paragon (its pages are exactly one read row, fixed by the mode), so
- * `hasRead: false` is the caller's cue to read it afresh. The delete is the gate: a trashed party or
- * a second restore deletes nothing and inserts nothing. `null` = refused.
+ * the parent's read of that paragon, found by its `read_row` — one photo can hold several paragony,
+ * so its pages alone don't name it. With no such row it carries an empty read instead of none: a
+ * fresh read would list every paragon on the photo, the booked ones too. The delete is the gate: a
+ * trashed party or a second restore deletes nothing and inserts nothing. `null` = refused.
  */
 export async function restoreSkippedReceipt(
   db: DbExecutorT,
   receiptId: number,
-): Promise<{ draftId: number; hasRead: boolean } | null> {
+): Promise<number | null> {
   const res = await db.execute(sql`
     WITH restored AS (
       DELETE FROM worker_expense_draft_skipped_receipts sr
@@ -419,119 +421,28 @@ export async function restoreSkippedReceipt(
       WHERE sr.id = ${receiptId} AND sr.draft_id = d.id AND d.status = 'accepted'
         AND cardinality(sr.media_ids) > 0 AND ${PARTIES_NOT_TRASHED}
       RETURNING d.id AS parent_id, d.worker_id, d.investment_id, d.cash_register_id, d.note,
-        d.scan_mode, d.sent_at, d.ai_read, sr.media_ids
+        d.scan_mode, d.sent_at, d.ai_read -> 'rows' -> sr.read_row AS read_row, sr.media_ids
     ), draft AS (
       INSERT INTO worker_expense_drafts
         (worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, ai_read)
-      SELECT worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, (
-        SELECT jsonb_build_object('rows', jsonb_build_array(read_row))
-        FROM jsonb_array_elements(restored.ai_read -> 'rows') AS read_row
-        WHERE ARRAY(SELECT jsonb_array_elements_text(read_row -> 'mediaIds')::int ORDER BY 1)
-          = ARRAY(SELECT unnest(restored.media_ids) ORDER BY 1)
-        LIMIT 1
-      )
+      SELECT worker_id, investment_id, cash_register_id, note, scan_mode, sent_at,
+        CASE WHEN ARRAY(SELECT jsonb_array_elements_text(read_row -> 'mediaIds')::int ORDER BY 1)
+            = ARRAY(SELECT unnest(media_ids) ORDER BY 1)
+          THEN jsonb_build_object('rows', jsonb_build_array(read_row))
+          ELSE jsonb_build_object('rows', jsonb_build_array(jsonb_build_object('mediaIds', to_jsonb(media_ids))))
+        END
       FROM restored
-      RETURNING id, ai_read IS NOT NULL AS has_read
+      RETURNING id
     ), pages AS (
       INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
       SELECT draft.id, dm.media_id, dm.position
       FROM draft, restored JOIN worker_expense_draft_media dm ON dm.draft_id = restored.parent_id
       WHERE dm.media_id = ANY(restored.media_ids)
     )
-    SELECT id, has_read FROM draft
+    SELECT id FROM draft
   `)
   const row = res.rows[0]
-  return row ? { draftId: Number(row.id), hasRead: row.has_read === true } : null
-}
-
-/**
- * Only the sender, and only while the draft waits — a decided one is a record. A changed mode drops
- * the read, which answered the other question; the old mode comes from a CTE because `RETURNING`
- * sees only the new row.
- */
-export async function updatePendingExpenseDraft(
-  db: DbExecutorT,
-  draft: {
-    draftId: number
-    workerId: number
-    investmentId: number | null
-    cashRegisterId: number
-    note: string | null
-    scanMode: ScanModeT
-  },
-): Promise<{ isUpdated: boolean; isScanModeChanged: boolean }> {
-  const res = await db.execute(sql`
-    WITH before AS (
-      SELECT id, scan_mode FROM worker_expense_drafts
-      WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
-      FOR UPDATE
-    )
-    UPDATE worker_expense_drafts d
-    SET investment_id = ${draft.investmentId}, cash_register_id = ${draft.cashRegisterId},
-      note = ${draft.note}, scan_mode = ${draft.scanMode},
-      ai_read = CASE WHEN before.scan_mode = ${draft.scanMode} THEN d.ai_read END
-    FROM before
-    WHERE d.id = before.id
-    RETURNING before.scan_mode <> d.scan_mode AS is_scan_mode_changed
-  `)
-  const row = res.rows[0]
-  return { isUpdated: row !== undefined, isScanModeChanged: row?.is_scan_mode_changed === true }
-}
-
-// The read answered for the old pages; the statement that changes them drops it.
-const clearRead = (draftId: number, changed: SqlT) => sql`
-  UPDATE worker_expense_drafts SET ai_read = NULL
-  WHERE id = ${draftId} AND EXISTS (SELECT 1 FROM ${changed})
-`
-
-/**
- * Appended after the draft's last page, and like the send only when every page is media the worker
- * uploaded himself. `false` = refused (not his, no longer pending, or a foreign page).
- */
-export async function appendExpenseDraftPages(
-  db: DbExecutorT,
-  pages: { draftId: number; workerId: number; mediaIds: number[] },
-): Promise<boolean> {
-  const values = pages.mediaIds.map((mediaId, position) => sql`(${mediaId}::int, ${position}::int)`)
-  const res = await db.execute(sql`
-    WITH draft AS (
-      SELECT id FROM worker_expense_drafts
-      WHERE id = ${pages.draftId} AND worker_id = ${pages.workerId} AND status = 'pending'
-    ), pages_in AS (
-      SELECT v.media_id, v.position
-      FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(media_id, position)
-      JOIN media m ON m.id = v.media_id AND m.created_by_id = ${pages.workerId}
-    ), next AS (
-      SELECT COALESCE(MAX(position) + 1, 0) AS start
-      FROM worker_expense_draft_media WHERE draft_id = ${pages.draftId}
-    ), added AS (
-      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
-      SELECT draft.id, pages_in.media_id, next.start + pages_in.position FROM draft, pages_in, next
-      WHERE (SELECT count(*) FROM pages_in) = ${pages.mediaIds.length}
-      RETURNING media_id
-    ), cleared AS (${clearRead(pages.draftId, sql`added`)})
-    SELECT media_id FROM added
-  `)
-  return res.rows.length === pages.mediaIds.length
-}
-
-/** A draft keeps at least one page — the whole wydatek is what goes once the last photo would. */
-export async function removeExpenseDraftPage(
-  db: DbExecutorT,
-  page: { draftId: number; workerId: number; mediaId: number },
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    WITH removed AS (
-      DELETE FROM worker_expense_draft_media dm
-      USING worker_expense_drafts d
-      WHERE dm.draft_id = d.id AND d.id = ${page.draftId} AND d.worker_id = ${page.workerId}
-        AND d.status = 'pending' AND dm.media_id = ${page.mediaId}
-        AND (SELECT count(*) FROM worker_expense_draft_media WHERE draft_id = ${page.draftId}) > 1
-      RETURNING dm.media_id
-    ), cleared AS (${clearRead(page.draftId, sql`removed`)})
-    SELECT media_id FROM removed
-  `)
-  return res.rows.length > 0
+  return row ? Number(row.id) : null
 }
 
 export async function loadExpenseDraftForRead(
@@ -556,20 +467,27 @@ export async function loadExpenseDraftForRead(
 }
 
 /**
- * Stored only while the draft still holds exactly the pages and the mode it was read for — a read
- * that finished after the worker changed either would prefill an answer to a question nobody asks.
+ * The first read stored wins: a skipped paragon and a duplicate hint name their row by its position
+ * in the read, so a second read finishing later („Zobacz" while the send-time one runs) must not
+ * renumber the rows under them. Returns the read the draft holds afterwards, or `undefined` once it
+ * is no longer pending.
  */
 export async function saveExpenseDraftRead(
   db: DbExecutorT,
-  read: { draftId: number; scanMode: ScanModeT; mediaIds: number[]; read: ExpenseDraftReadT },
-): Promise<void> {
-  await db.execute(sql`
-    UPDATE worker_expense_drafts d SET ai_read = ${JSON.stringify(read.read)}::jsonb
-    WHERE d.id = ${read.draftId} AND d.status = 'pending' AND d.scan_mode = ${read.scanMode}
-      AND (SELECT array_agg(dm.media_id ORDER BY dm.position)
-           FROM worker_expense_draft_media dm WHERE dm.draft_id = d.id)
-          = ARRAY[${sqlList(read.mediaIds)}]::int[]
+  draftId: number,
+  read: ExpenseDraftReadT,
+): Promise<ExpenseDraftReadT | undefined> {
+  const saved = await db.execute(sql`
+    UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify(read)}::jsonb
+    WHERE id = ${draftId} AND status = 'pending' AND ai_read IS NULL
+    RETURNING ai_read
   `)
+  if (saved.rows[0]) return toDraftRead(saved.rows[0].ai_read)
+  // A second statement, so it sees the winner's commit, which the UPDATE's snapshot could not.
+  const stored = await db.execute(sql`
+    SELECT ai_read FROM worker_expense_drafts WHERE id = ${draftId} AND status = 'pending'
+  `)
+  return toDraftRead(stored.rows[0]?.ai_read)
 }
 
 /**
@@ -618,34 +536,6 @@ export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): P
     WHERE media_id IN (${sqlList(mediaIds)})
   `)
   return res.rows.map((row) => Number(row.media_id))
-}
-
-/** Whether the worker's own pending draft already sits on `investmentId` (`null` = none). */
-export async function isPendingDraftOn(
-  db: DbExecutorT,
-  draft: { draftId: number; workerId: number; investmentId: number | null },
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    SELECT 1 FROM worker_expense_drafts d
-    WHERE d.id = ${draft.draftId} AND d.worker_id = ${draft.workerId} AND d.status = 'pending'
-      AND d.investment_id IS NOT DISTINCT FROM ${draft.investmentId}
-  `)
-  return res.rows.length > 0
-}
-
-/** `null` when the draft is not the worker's own pending one. */
-export async function countPendingDraftPages(
-  db: DbExecutorT,
-  draft: { draftId: number; workerId: number },
-): Promise<number | null> {
-  const res = await db.execute(sql`
-    SELECT count(dm.media_id)::int AS total
-    FROM worker_expense_drafts d
-    LEFT JOIN worker_expense_draft_media dm ON dm.draft_id = d.id
-    WHERE d.id = ${draft.draftId} AND d.worker_id = ${draft.workerId} AND d.status = 'pending'
-    GROUP BY d.id
-  `)
-  return numOrNull(res.rows[0]?.total)
 }
 
 const DRAFT_TARGET_COLUMNS = {

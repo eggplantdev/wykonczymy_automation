@@ -47,7 +47,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [receipt]]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
@@ -78,7 +78,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [receipt]]]),
           values: expenseValues({
             investment: '3',
@@ -114,7 +114,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, pages]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
@@ -148,7 +148,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [new File(['jpg'], 'od-pracownika.jpg', { type: 'image/jpeg' })]]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
@@ -189,7 +189,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [receipt]]]),
           values: expenseValues({
             investment: '3',
@@ -223,9 +223,9 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map([
-            [kept.id, [101]],
-            [removed.id, [102, 103]],
+          receipts: new Map([
+            [kept.id, { mediaIds: [101] }],
+            [removed.id, { mediaIds: [102, 103] }],
           ]),
           files: new Map(),
           values: expenseValues({
@@ -261,7 +261,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         isPrefillReading
         prefill={{
           expenseDraftId: 42,
-          receiptMediaIds: new Map(),
+          receipts: new Map(),
           files: new Map([[0, [new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })]]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}

@@ -112,6 +112,38 @@ describe('buildDraftPrefill', () => {
     ).toEqual([BLANK, BLANK, BLANK])
   })
 
+  it('„Kilka wydatków” with two paragony on one photo → a row for each, on that photo', () => {
+    const aiRead: ExpenseDraftReadT = {
+      rows: [
+        { mediaIds: [1], description: 'Leroy', amount: 12, filename: 'leroy.jpg' },
+        { mediaIds: [1], description: 'Parking', amount: 5, filename: 'parking.jpg' },
+        { mediaIds: [2], description: 'Castorama', amount: 40 },
+      ],
+    }
+
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 2), scanMode: 'one-per-photo', aiRead },
+      FILES.slice(0, 2),
+      CATEGORY,
+    )
+
+    expect(fieldsOf(prefill).map(({ description, amount }) => [description, amount])).toEqual([
+      ['Leroy', '12'],
+      ['Parking', '5'],
+      ['Castorama', '40'],
+    ])
+    expect(namesOf(prefill)).toEqual([
+      [0, ['leroy.jpg']],
+      [1, ['parking.jpg']],
+      [2, ['2.jpg']],
+    ])
+    expect(prefill.lineItems.map((item) => prefill.receipts.get(item.id))).toEqual([
+      { mediaIds: [1], readRow: 0 },
+      { mediaIds: [1], readRow: 1 },
+      { mediaIds: [2], readRow: 2 },
+    ])
+  })
+
   it('names the pages from the read the way „Generuj” would', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [{ mediaIds: [1, 2], description: 'Leroy', filename: 'leroy.jpg' }],

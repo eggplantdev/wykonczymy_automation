@@ -175,11 +175,8 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       />
       <WorkerExpenseDraftsSection
         drafts={expenseDrafts}
-        investments={stageInvestments}
         canSend={isOwnPage}
         canOpenTransfers={isManager}
-        sendableRegisters={sendableRegisters}
-        canSkipInvestment={worker.canAddExpensesWithoutInvestment}
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />

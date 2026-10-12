@@ -11,7 +11,8 @@ import type { PreviewFileT } from '@/types/media'
 // The types a receipt gets booked under — Orlen 614,42 zł went in three times as OTHER.
 const RECEIPT_TYPES = sql`('INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET', 'OTHER')`
 
-type DraftProbeT = ExpenseDocT & { mediaIds: number[] }
+// `readRow` is the probe's position in the draft's AI read — one photo can hold several paragony.
+type DraftProbeT = ExpenseDocT & { readRow: number }
 
 export type CandidateT = ExpenseDocT & {
   // A pending zgłoszenie can match through several of its paragony, so `id` alone repeats.
@@ -49,7 +50,7 @@ const amountOrNumber = (amount: SqlT, numbers: SqlT[], filter: CandidateFilterT)
 
 export async function loadDraftProbes(db: DbExecutorT, draftId: number): Promise<DraftProbeT[]> {
   const res = await db.execute(sql`
-    SELECT r.value AS read_row
+    SELECT r.value AS read_row, r.ordinality
     FROM worker_expense_drafts d
     CROSS JOIN LATERAL jsonb_array_elements(d.ai_read -> 'rows') WITH ORDINALITY r(value, ordinality)
     WHERE d.id = ${draftId} AND d.status = 'pending'
@@ -58,7 +59,7 @@ export async function loadDraftProbes(db: DbExecutorT, draftId: number): Promise
   return res.rows.flatMap((row) => {
     const read = expenseDraftReadRowSchema.safeParse(row.read_row)
     if (!read.success) return []
-    return [{ mediaIds: read.data.mediaIds, ...docOfReadRow(read.data) }]
+    return [{ readRow: Number(row.ordinality) - 1, ...docOfReadRow(read.data) }]
   })
 }
 

@@ -49,21 +49,6 @@ export async function listWorkerStageInvestments(
   }))
 }
 
-// Any etap of his, zakończone included — what still holds a draft already sent there.
-export async function hasStageOnRunningInvestment(
-  db: DbExecutorT,
-  workerId: number,
-  investmentId: number,
-): Promise<boolean> {
-  const { rows } = await db.execute(sql`
-    SELECT 1 FROM ${STAGE_WORKERS_ON_RUNNING_INVESTMENTS}
-    WHERE ksw.worker_id = ${workerId} AND ks.investment_id = ${investmentId}
-    LIMIT 1
-  `)
-
-  return rows.length > 0
-}
-
 export type ScanWorkerT = { id: number; name: string }
 
 // Whose paper a kierownik can file: a live worker on an open etap of a running investment — the

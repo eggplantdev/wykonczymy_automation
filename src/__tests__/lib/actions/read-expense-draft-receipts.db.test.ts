@@ -3,20 +3,18 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { UNREADABLE_RECEIPT, type ReceiptExtractionT } from '@/lib/ai/receipt-extraction-schema'
 import { getDb } from '@/lib/db/get-db'
-import {
-  decideExpenseDraft,
-  insertWorkerExpenseDraft,
-  removeExpenseDraftPage,
-  updatePendingExpenseDraft,
-} from '@/lib/db/worker-expense-drafts'
+import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 
 vi.mock('server-only', () => ({}))
-const { extractReceipt } = vi.hoisted(() => ({ extractReceipt: vi.fn() }))
-vi.mock('@/lib/ai/openrouter', () => ({ extractReceipt }))
+const { extractReceipt, extractReceipts } = vi.hoisted(() => ({
+  extractReceipt: vi.fn(),
+  extractReceipts: vi.fn(),
+}))
+vi.mock('@/lib/ai/openrouter', () => ({ extractReceipt, extractReceipts }))
 const { fetchMediaBytes } = vi.hoisted(() => ({ fetchMediaBytes: vi.fn() }))
 vi.mock('@/lib/media/blob-public-url', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/media/blob-public-url')>()),
@@ -90,6 +88,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   beforeEach(() => {
     vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_testStore_secret')
     extractReceipt.mockReset().mockResolvedValue(reading())
+    extractReceipts.mockReset().mockResolvedValue([reading()])
     fetchMediaBytes
       .mockReset()
       .mockImplementation(
@@ -130,17 +129,15 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  it('„Kilka wydatków” stores one row per photo; an unreadable one keeps the sentinel, an unfetched one stays bare', async () => {
+  it('„Kilka wydatków” stores a row per paragon on each photo; an unreadable photo keeps the sentinel, an unfetched one stays bare', async () => {
     const { draftId, mediaIds } = await createDraft('per-photo', 3, 'one-per-photo')
-    extractReceipt.mockImplementation(async (pages: { filename: string }[]) =>
+    extractReceipts.mockImplementation(async (pages: { filename: string }[]) =>
       pages[0].filename.endsWith('-1.jpg')
-        ? reading({
-            description: UNREADABLE_RECEIPT,
-            amount: null,
-            netAmount: null,
-            invoiceNote: '',
-          })
-        : reading({ description: 'Castorama', netAmount: null, invoiceNote: '' }),
+        ? []
+        : [
+            reading({ description: 'Castorama', netAmount: null, invoiceNote: '' }),
+            reading({ description: 'Parking', amount: 5, netAmount: null, invoiceNote: '' }),
+          ],
     )
     fetchMediaBytes.mockImplementationOnce(async () => {
       throw new Error('Blob 404')
@@ -148,6 +145,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
     await readExpenseDraftReceipts(db, draftId)
 
+    expect(extractReceipt).not.toHaveBeenCalled()
     expect(await readOf(draftId)).toEqual({
       rows: [
         { mediaIds: [mediaIds[0]] },
@@ -158,6 +156,27 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
           amount: 123,
           filename: 'castorama.jpg',
         },
+        { mediaIds: [mediaIds[2]], description: 'Parking', amount: 5, filename: 'parking.jpg' },
+      ],
+    })
+  })
+
+  // Every single-photo draft sent before 2026-10-12 says „Jeden wydatek”, and one photo can still
+  // hold several paragony side by side.
+  it('reads a one-photo „Jeden wydatek” paragon by paragon', async () => {
+    const { draftId, mediaIds } = await createDraft('one-photo-invoice', 1, 'one-invoice')
+    extractReceipts.mockResolvedValue([
+      reading({ description: 'Castorama', netAmount: null, invoiceNote: '' }),
+      reading({ description: 'Parking', amount: 5, netAmount: null, invoiceNote: '' }),
+    ])
+
+    await readExpenseDraftReceipts(db, draftId)
+
+    expect(extractReceipt).not.toHaveBeenCalled()
+    expect(await readOf(draftId)).toEqual({
+      rows: [
+        { mediaIds, description: 'Castorama', amount: 123, filename: 'castorama.jpg' },
+        { mediaIds, description: 'Parking', amount: 5, filename: 'parking.jpg' },
       ],
     })
   })
@@ -175,9 +194,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   // Stored, or every „Zobacz" would pay the model again for the same answer.
   it('stores a draft the AI could not read at all', async () => {
     const { draftId, mediaIds } = await createDraft('all-unreadable', 2, 'one-per-photo')
-    extractReceipt.mockResolvedValue(
-      reading({ description: UNREADABLE_RECEIPT, amount: null, netAmount: null, invoiceNote: '' }),
-    )
+    extractReceipts.mockResolvedValue([])
 
     await readExpenseDraftReceipts(db, draftId)
 
@@ -191,7 +208,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   // A list loaded before the send-time read landed still offers the read.
   it('returns a stored read without asking the AI again', async () => {
-    const { draftId } = await createDraft('already-read', 1, 'one-invoice')
+    const { draftId } = await createDraft('already-read', 2, 'one-invoice')
     const stored = await readExpenseDraftReceipts(db, draftId)
     extractReceipt.mockClear()
 
@@ -208,39 +225,26 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     expect(await readOf(draftId)).toBeNull()
   })
 
-  it('a photo removed while the AI reads loses the write — the draft keeps the clear', async () => {
-    const { draftId, mediaIds } = await createDraft('stale-page', 2, 'one-invoice')
-    extractReceipt.mockImplementation(async () => {
-      await removeExpenseDraftPage(db, { draftId, workerId, mediaId: mediaIds[1] })
-      return reading()
+  // A skipped paragon and a duplicate hint name their row by its position in the stored read, so a
+  // second read („Zobacz" while the send-time one runs) must not swap it for a different one.
+  it('the first read stored wins an overlapping one, and both callers get it', async () => {
+    const { draftId, mediaIds } = await createDraft('overlap', 1, 'one-per-photo')
+    const first = { rows: [{ mediaIds, description: 'Castorama', amount: 10 }] }
+    extractReceipts.mockImplementation(async () => {
+      await db.execute(sql`
+        UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify(first)}::jsonb WHERE id = ${draftId}
+      `)
+      return [reading({ description: 'Leroy Merlin', amount: 20 })]
     })
 
-    await readExpenseDraftReceipts(db, draftId)
+    const returned = await readExpenseDraftReceipts(db, draftId)
 
-    expect(await readOf(draftId)).toBeNull()
-  })
-
-  it('a mode changed while the AI reads loses the write', async () => {
-    const { draftId } = await createDraft('stale-mode', 2, 'one-invoice')
-    extractReceipt.mockImplementation(async () => {
-      await updatePendingExpenseDraft(db, {
-        draftId,
-        workerId,
-        investmentId,
-        cashRegisterId: registerId,
-        note: null,
-        scanMode: 'one-per-photo',
-      })
-      return reading()
-    })
-
-    await readExpenseDraftReceipts(db, draftId)
-
-    expect(await readOf(draftId)).toBeNull()
+    expect(await readOf(draftId)).toEqual(first)
+    expect(returned).toEqual(first)
   })
 
   it('a draft decided while the AI reads is left as the record it became', async () => {
-    const { draftId } = await createDraft('decided', 1, 'one-invoice')
+    const { draftId } = await createDraft('decided', 2, 'one-invoice')
     extractReceipt.mockImplementation(async () => {
       await decideExpenseDraft(db, {
         draftId,

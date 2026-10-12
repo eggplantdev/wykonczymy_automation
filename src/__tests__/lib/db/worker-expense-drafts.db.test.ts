@@ -9,7 +9,6 @@ import {
   deletePendingExpenseDraft,
   findDraftHeldMedia,
   insertWorkerExpenseDraft,
-  isPendingDraftOn,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
@@ -601,6 +600,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
           { mediaIds: [pages[0]], amount: 10 },
           { mediaIds: [pages[1]], amount: 20, description: 'farba' },
           { mediaIds: [pages[2], pages[3]], amount: 30 },
+          { mediaIds: [pages[1]], amount: 5, description: 'parking' },
         ],
       }
       await db.execute(sql`
@@ -616,9 +616,10 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         transferIds: [transferId],
         transferMediaIds: [[pages[0]]],
         skippedReceipts: [
-          { mediaIds: [pages[1]] },
-          { mediaIds: [pages[3], pages[2]] },
+          { mediaIds: [pages[1]], readRow: 1 },
+          { mediaIds: [pages[3], pages[2]], readRow: 2 },
           { mediaIds: [pages[4]] },
+          { mediaIds: [pages[1]], readRow: 3 },
         ],
       })
     })
@@ -634,10 +635,9 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     it('becomes a pending zgłoszenie of its own, carrying its read, and leaves the parent as booked', async () => {
       const [single] = await skippedOf(parentId)
       const restored = await restoreSkippedReceipt(db, single.id)
-      if (!restored) throw new Error('restore refused')
+      if (restored === null) throw new Error('restore refused')
 
-      expect(restored.hasRead).toBe(true)
-      expect(await draftRow(restored.draftId)).toEqual({
+      expect(await draftRow(restored)).toEqual({
         worker_id: workerId,
         investment_id: restoreInvestmentId,
         cash_register_id: registerId,
@@ -659,21 +659,34 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await restoreSkippedReceipt(db, single.id)).toBeNull()
     })
 
+    // Two paragony on one photo share its pages, so the read row is what names the one restored.
+    it('carries the read of its own paragon when the photo holds another', async () => {
+      const second = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[1])
+      if (!second) throw new Error('second paragon fixture missing')
+      const restored = await restoreSkippedReceipt(db, second.id)
+      if (restored === null) throw new Error('restore refused')
+
+      expect(await draftRow(restored)).toMatchObject({
+        ai_read: { rows: [{ mediaIds: [pages[1]], amount: 5, description: 'parking' }] },
+        pages: [pages[1]],
+      })
+    })
+
     it('matches its read row as a set and keeps the parent’s page order', async () => {
       const pair = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds.length === 2)
       if (!pair) throw new Error('pair fixture missing')
       const restored = await restoreSkippedReceipt(db, pair.id)
-      if (!restored) throw new Error('restore refused')
+      if (restored === null) throw new Error('restore refused')
 
-      expect(restored.hasRead).toBe(true)
-      expect(await draftRow(restored.draftId)).toMatchObject({
+      expect(await draftRow(restored)).toMatchObject({
         ai_read: { rows: [{ mediaIds: [pages[2], pages[3]], amount: 30 }] },
         pages: [pages[2], pages[3]],
       })
     })
 
-    // Deleting the restored zgłoszenie drops its links only; the accepted parent still holds the photo.
-    it('a paragon with no read row comes back unread, and its pages outlive its delete', async () => {
+    // Unread but stored: a fresh read of the photo would return every paragon on it, the booked ones
+    // too. Deleting the restored zgłoszenie drops its links only; the parent still holds the photo.
+    it('a paragon with no read row comes back with an empty read, and its pages outlive its delete', async () => {
       const unread = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[4])
       if (!unread) throw new Error('unread fixture missing')
 
@@ -698,11 +711,10 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       }
 
       const restored = await restoreSkippedReceipt(db, unread.id)
-      if (!restored) throw new Error('restore refused')
-      expect(restored.hasRead).toBe(false)
-      expect((await draftRow(restored.draftId)).ai_read).toBeNull()
+      if (restored === null) throw new Error('restore refused')
+      expect((await draftRow(restored)).ai_read).toEqual({ rows: [{ mediaIds: [pages[4]] }] })
 
-      expect(await deletePendingExpenseDraft(db, { draftId: restored.draftId, workerId })).toEqual([
+      expect(await deletePendingExpenseDraft(db, { draftId: restored, workerId })).toEqual([
         pages[4],
       ])
       expect(await findDraftHeldMedia(db, [pages[4]])).toEqual([pages[4]])
@@ -856,21 +868,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       )
       expect(rows.find((draft) => draft.id === draftId)).toMatchObject({ investmentName: null })
       expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
-    })
-
-    it('is told apart from a pending draft that has an investment', async () => {
-      const without = await noInvestmentDraft('none-probe')
-      const withOne = await draftOf([await insertMedia('none-probe-invested', workerId)])
-      if (withOne === null) throw new Error('draft fixture refused')
-
-      const isOn = (draftId: number, onInvestment: number | null, ownerId = workerId) =>
-        isPendingDraftOn(db, { draftId, workerId: ownerId, investmentId: onInvestment })
-
-      expect(await isOn(without, null)).toBe(true)
-      expect(await isOn(withOne, null)).toBe(false)
-      expect(await isOn(withOne, investmentId)).toBe(true)
-      expect(await isOn(without, investmentId)).toBe(false)
-      expect(await isOn(without, null, otherWorkerId)).toBe(false)
     })
   })
 })
