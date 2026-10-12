@@ -4554,7 +4554,7 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
       przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.
 - [x] Jako EMPLOYEE: brak przycisku w górnym pasku i w menu mobilnym.
       _Lokalnie 2026-10-09 (390px): w DOM nie ma żadnego przycisku/linku „Manual Wykończymy”; menu mobilne i górny pasek używają tego samego `CompanyKnowledgeButton`, który zwraca `null` dla roli spoza zarządu (kod) — menu mobilne nie otwierane w przeglądarce._
-- [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/wiedza-firmowa.md` ma
+- [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/manual-i-komentarze-do-prac.md` ma
       każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
       oknie pojawia się po kolejnym uruchomieniu.
 - [x] Okno „Manual Wykończymy”: pod tytułem opis „Zasady firmy — wszystko, co AI musi wiedzieć…,
@@ -4830,3 +4830,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Pierwsza wizyta w szablonie (czysta przeglądarka) → „Sekcja” i tłumaczenia opisów widoczne.
 - [ ] Szablon → „Ukryj wszystkie” w „Kolumny” → kolumna „Akcje” zostaje, menu wiersza nadal działa.
 - [ ] Szablon z ukrytą stawką ekipy → włącz w „Problemy” problem o ujemnej stawce tej ekipy → stawka pojawia się w siatce mimo odznaczenia.
+
+## 2026-10-12 — manual-naming — nazwa „Manual” i etykieta komentarza do pracy
+
+- [ ] Edytor kosztorysu → „Kolumny” → włącz „Komentarz do pracy”: nagłówek brzmi „Komentarz do pracy (niewidoczny dla klienta)”, bez „wiedza firmowa”.
+- [ ] Edytor kosztorysu → menu wiersza pozycji z katalogu → „Komentarz do pracy…”: opis okna zaczyna się od „Niewidoczny dla klienta.”; zapis komentarza działa jak dotąd.
