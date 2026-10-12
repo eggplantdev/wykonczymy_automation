@@ -311,3 +311,18 @@ the rozliczone materiały table while the marża stays hidden. So the visible ov
 to collapse — the props carry different audiences, and the gap between them _is_ the access gate.
 Deriving `settledBreakdown` from `financials` (a tempting prop-count cleanup) silently deletes that
 table for every MANAGER.
+
+## A company-wide report is a fold over investments, never one pooled formula (`/raporty` removed, 2026-10-11)
+
+`/raporty` was removed rather than rebuilt (EX-598 / EX-678 canceled). If a company report ever
+returns, three facts from that decision shape it. The old page ran `deriveFinancials` once over every
+filtered transfer — the pooled shape — which cannot carry the per-investment netto rate, VAT and
+settlement mode, so the materials-netto concession came out as 0 and marża too high; it also counted
+`COMPANY_FUNDING` / `OTHER_DEPOSIT` as investor money and subtracted payouts that have no
+investment. The correct primitive is **Σ over the investments-listing rows** (`shapeInvestments`),
+each already computed with its own parameters: map per investment, then reduce, with two caveats —
+NET/MIXED bilans is netto and GROSS bilans is brutto, so a total needs a column per plane, and a
+`null` marża v2 / undefined „Pozostało” is skipped and counted, not zeroed. And **v2 robocizna has no
+time axis**: `stage_progress.qty_done` is a current-state cell with no history, so a v2 report is a
+snapshot („stan na dziś”), never a period P&L; only the transfers plane (overheads, funding,
+payouts without an investment, none of which any Σ over investments sees) can be cut by date.
