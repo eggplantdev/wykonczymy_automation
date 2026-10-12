@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { InvestmentNoteBody } from '@/components/investments/investment-note-body'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { CollapsibleSection, OPEN_STATES } from '@/components/ui/collapsible-section'
@@ -99,7 +100,7 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
           </div>
         </div>
       ) : (
-        <div className="whitespace-pre-line">{investment.notes || '—'}</div>
+        <InvestmentNoteBody note={investment.notes} />
       )}
     </CollapsibleSection>
   )
