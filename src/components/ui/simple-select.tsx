@@ -20,6 +20,8 @@ export type SelectOptionT = {
   label: ReactNode
   icon?: LucideIcon
   description?: ReactNode
+  // Colour classes for the option's icon and name in the open list (the item's own rule mutes icons).
+  tone?: string
   className?: string
 }
 export type SelectVariantT = 'default' | 'soft' | 'pill' | 'toolbar' | 'toolbarSm'
@@ -94,8 +96,12 @@ export function SimpleSelect({
       {/* Descriptions wrap at the kosztorys menus' width instead of stretching the list to the longest. */}
       <SelectContent className={cn(options.some((option) => option.description) && 'w-80')}>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} className={option.className}>
-            {option.icon && <option.icon />}
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className={cn(option.tone, option.className)}
+          >
+            {option.icon && <option.icon className={option.tone} />}
             {option.description ? (
               <MenuItemBody label={option.label} description={option.description} />
             ) : (

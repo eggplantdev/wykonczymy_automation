@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { SimpleSelect } from '@/components/ui/simple-select'
+import { AI_PROGRESS_OUTLINE_TONES } from '@/components/investments/ai-progress-badge'
 import { setInvestmentAiStageAction } from '@/lib/actions/investments'
 import {
   AI_STAGE_GATHERING,
@@ -37,12 +38,14 @@ const OPTIONS = [
     label: AI_STAGE_GATHERING.pl,
     icon: FolderInput,
     description: AI_STAGE_GATHERING.description,
+    tone: AI_PROGRESS_OUTLINE_TONES.none,
   },
   ...INVESTMENT_AI_STAGES.map((stage) => ({
     value: stage,
     label: INVESTMENT_AI_STAGE_LABELS[stage].pl,
     icon: STAGE_ICONS[stage],
     description: INVESTMENT_AI_STAGE_LABELS[stage].description,
+    tone: AI_PROGRESS_OUTLINE_TONES[stage],
   })),
 ]
 
@@ -71,6 +74,7 @@ export function AiStageSelect({ investmentId, aiStage }: PropsT) {
       onValueChange={handleChange}
       options={OPTIONS}
       disabled={isPending}
+      className={AI_PROGRESS_OUTLINE_TONES[value ?? 'none']}
     />
   )
 }

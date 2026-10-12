@@ -4853,5 +4853,5 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] `/inwestycje/[id]` → kliknij „Notatki”: treść się zwija, strzałka obraca; przeładuj i otwórz inną inwestycję → notatki nadal zwinięte; kliknij ponownie → rozwinięte.
 - [ ] Zwinięte notatki → „Edytuj notatkę”: sekcja się rozwija i pokazuje pole edycji; „Zapisz” i „Anuluj” działają jak dotąd.
 - [ ] Podsumowanie kosztorysu → zakładka inwestycji: „Notatki” zwijają się tak samo i pamiętają ten sam stan co strona inwestycji.
-- [ ] `/inwestycje` → kolumna „Analiza AI” to plakietki jak „Status”, każdy etap innym kolorem; „Uzupełnianie informacji” szara, w jednej linii, nie łamie wiersza.
+- [ ] `/inwestycje` → kolumna „Analiza AI” to plakietki jak „Status”, każdy etap innym kolorem; „Uzupełnianie informacji” szara, w jednej linii, nie łamie wiersza. Select „Etap AI” na stronie inwestycji i w Podsumowaniu → „Inwestycja”: obramowanie i tekst w kolorze plakietki z listy (tło bez koloru), zmienia się od razu po wyborze; po rozwinięciu każda opcja ma ikonę i nazwę w swoim kolorze, opis szary.
 - [ ] Inwestycja w `/kosz` → notatki da się zwinąć, „Edytuj notatkę” się nie pojawia.
