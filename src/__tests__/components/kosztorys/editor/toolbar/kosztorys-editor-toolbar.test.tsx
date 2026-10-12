@@ -116,13 +116,23 @@ describe('KosztorysEditorToolbar — „Widok cen"', () => {
     expect(screen.getByRole('group', { name: 'Widok cen' })).toBeInTheDocument()
   })
 
-  // The workbench renders a closed column list, so both crews' stawki are on screen at once and the
-  // switch moves no column — it only moves the „Cena j.m." sort key and which filters are counted,
-  // neither of which the owner came to the szablon to change. Its plane is pinned instead, which is
-  // what makes dropping the control safe: `pickView` is the only writer of the stored view.
+  // The workbench shows both crews' stawki at once, so the switch moves no column — it only moves
+  // the „Cena j.m." sort key and which filters are counted, neither of which the owner came to the
+  // szablon to change. Its plane is pinned instead, which is what makes dropping the control safe: `pickView` is the only writer of the stored view.
   it('drops it on the szablon workbench', () => {
     renderToolbar({ isTemplate: true })
 
     expect(screen.queryByRole('group', { name: 'Widok cen' })).not.toBeInTheDocument()
+  })
+})
+
+describe('KosztorysEditorToolbar — „Kolumny"', () => {
+  it('offers the column picker on the szablon workbench', () => {
+    renderToolbar({
+      isTemplate: true,
+      columnToggleItems: [{ id: 'description', label: 'Opis prac', visible: true }],
+    })
+
+    expect(screen.getByRole('button', { name: /Kolumny/ })).toBeInTheDocument()
   })
 })

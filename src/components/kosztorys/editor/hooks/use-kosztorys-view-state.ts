@@ -79,8 +79,8 @@ export function useKosztorysViewState({
   // public page ships the full tree, so an unpinned plane would render a subcontractor view to any
   // client who set localStorage['kosztorys-view:<id>'].
   //
-  // The workbench pins the BASE plane for a different reason: its column list is closed
-  // (WORKSHOP_VISIBLE_COLUMNS), so both crews' stawki are on screen at once and there is nothing for a
+  // The workbench pins the BASE plane for a different reason: its column list
+  // (WORKSHOP_VISIBLE_COLUMNS) puts both crews' stawki on screen at once, so there is nothing for a
   // plane to choose — which is why the toolbar offers it no switch. The pin is what makes removing
   // that switch safe: `pickView` is the only writer of the stored view, so a browser parked on a crew
   // plane would otherwise stay there forever with no control to come back. The problem overlay stays

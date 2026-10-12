@@ -4821,3 +4821,12 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Desktop (≥768px), własna strona `/pracownicy/[id]` → brak przycisku „Zainstaluj aplikację" i brak podpowiedzi „Otwórz menu przeglądarki…", także po odczekaniu ponad minuty.
 - [ ] Telefon (390px), własna strona pracownika w przeglądarce → przycisk „Zainstaluj aplikację" widoczny jak dotąd (na iPhonie otwiera instrukcję).
+
+## 2026-10-12 — szablon-column-picker — ukrywanie i przesuwanie kolumn w szablonie
+
+- [ ] Szablon (`/szablony/[id]`) → w pasku jest przycisk „Kolumny”; w menu są tylko kolumny szablonu (bez przedmiaru, etapów, rabatu), bez sekcji „Kwoty” / „Warstwy” / „Stawki wykonawców” i bez „Akcje” na liście.
+- [ ] Szablon → odznacz „Opis prac (RU)”, przeciągnij „Komentarz do pracy” na początek → siatka od razu to pokazuje; po przeładowaniu i w innym szablonie układ jest taki sam.
+- [ ] Zwykły kosztorys inwestycji po zmianach w szablonie → kolumny i ich kolejność jak przed zmianą; i odwrotnie: ukrycie kolumny w kosztorysie nie zmienia szablonu.
+- [ ] Pierwsza wizyta w szablonie (czysta przeglądarka) → „Sekcja” i tłumaczenia opisów widoczne.
+- [ ] Szablon → „Ukryj wszystkie” w „Kolumny” → kolumna „Akcje” zostaje, menu wiersza nadal działa.
+- [ ] Szablon z ukrytą stawką ekipy → włącz w „Problemy” problem o ujemnej stawce tej ekipy → stawka pojawia się w siatce mimo odznaczenia.

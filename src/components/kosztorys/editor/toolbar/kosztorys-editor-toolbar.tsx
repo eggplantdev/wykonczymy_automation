@@ -163,9 +163,7 @@ export function KosztorysEditorToolbar({
                 </span>
               </Button>
             )}
-            {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
-                would steer an empty list, and the money/layer axes describe columns it has not. */}
-            {!isTemplate && <KosztorysViewMenu />}
+            <KosztorysViewMenu />
           </div>
         </div>
       </div>

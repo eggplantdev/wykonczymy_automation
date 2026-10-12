@@ -13,20 +13,29 @@ import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 // "which columns do I want" preference clears as one family. Global, not per-investment — a preferred
 // column set is a property of the person reading, not of the kosztorys being read. Store mechanics
 // live in createJsonMapStore, shared with useColumnWidths.
-const store = createJsonMapStore<boolean>('table-columns:kosztorys')
+const kosztorysStore = createJsonMapStore<boolean>('table-columns:kosztorys')
+// The szablon workbench keeps its own map: its column list is a different document, so a tick on a
+// kosztorys must neither hide nor reveal a column there. No defaults — WORKSHOP_VISIBLE_COLUMNS is
+// already the curated set, and „Sekcja" hidden by default would be missing from it on a first visit.
+const workshopStore = createJsonMapStore<boolean>('table-columns:kosztorys-szablon')
+const NO_DEFAULT_HIDDEN: ReadonlySet<string> = new Set()
+
+export type ColumnPrefsScopeT = 'kosztorys' | 'workshop'
 
 // The raw map is deliberately NOT returned: an absent key means "ask DEFAULT_HIDDEN_COLUMNS", so a
 // caller reading hidden[id] would silently get the pre-default answer. isHidden is the only honest
 // reader of it.
-export function useHiddenColumns(): {
+export function useHiddenColumns(scope: ColumnPrefsScopeT = 'kosztorys'): {
   isHidden: (id: string) => boolean
   toggleColumn: (id: string) => void
   setAllColumns: (ids: string[], hidden: boolean) => void
 } {
+  const store = scope === 'workshop' ? workshopStore : kosztorysStore
+  const defaults = scope === 'workshop' ? NO_DEFAULT_HIDDEN : DEFAULT_HIDDEN_COLUMNS
   const hidden = useJsonMap(store)
 
   function isHidden(id: string) {
-    return hidden[id] ?? DEFAULT_HIDDEN_COLUMNS.has(id)
+    return hidden[id] ?? defaults.has(id)
   }
 
   // Writes an explicit boolean either way: deleting the key means "revert to default", not "show" —
@@ -34,7 +43,7 @@ export function useHiddenColumns(): {
   // against the freshly-read map (via update), not the render's, so two toggles in one tick don't
   // revert each other.
   function toggleColumn(id: string) {
-    store.update((prev) => ({ ...prev, [id]: !(prev[id] ?? DEFAULT_HIDDEN_COLUMNS.has(id)) }))
+    store.update((prev) => ({ ...prev, [id]: !(prev[id] ?? defaults.has(id)) }))
   }
 
   // Writes an explicit boolean per id — never deletes, since an absent key falls back to the column's

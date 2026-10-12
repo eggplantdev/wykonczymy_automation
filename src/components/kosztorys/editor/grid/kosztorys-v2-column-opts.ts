@@ -106,10 +106,9 @@ export type BuildV2ColumnsOptsT = {
   // never `columnRanks` above, which is one browser's preference and must not shape a client's
   // document (ruling 2026-07-28).
   previewColumnRanks?: ColumnRanksT
-  // The szablon workbench: WORKSHOP_VISIBLE_COLUMNS over both the grid and the picker. Twin of
-  // `previewVisible` in mechanism, its opposite in reason — that one is about what a client must
-  // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
-  // map of hidden columns is one per browser, so a tick would leak across every kosztorys.
+  // The szablon workbench: WORKSHOP_VISIBLE_COLUMNS caps both the grid and the picker — what a
+  // szablon cannot carry is absent. Under that cap `isHidden` / `columnRanks` apply, and the caller
+  // passes the workbench's own maps, never the kosztorys' (a tick there would leak in here).
   workshopVisible?: boolean
   // rowId → its katalog entry (id + Komentarz do pracy). Absent in preview and without a katalog.
   catalogueEntryByRowId?: ReadonlyMap<number, RowCatalogueEntryT>

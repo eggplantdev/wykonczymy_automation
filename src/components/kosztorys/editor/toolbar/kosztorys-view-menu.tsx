@@ -79,6 +79,7 @@ export function KosztorysViewMenu() {
     offerAvailable,
     offer,
     setOffer,
+    isTemplate,
   } = useKosztorysEditorContext()
 
   // „Oferta" is a closed column list: no tick and no axis would move a column, so only the lens
@@ -111,60 +112,67 @@ export function KosztorysViewMenu() {
           !visible,
         )
       }
-      hint={<InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
+      // The hint is about the axis options above the list, which the workbench does not have.
+      hint={isTemplate ? undefined : <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
       order={
         offer
           ? undefined
           : {
-              description:
-                'Przeciągnij pozycję, żeby przestawić kolumny w tabeli. Ustawienie zapamiętuje ta przeglądarka i działa we wszystkich kosztorysach.',
+              description: `Przeciągnij pozycję, żeby przestawić kolumny w tabeli. Ustawienie zapamiętuje ta przeglądarka i działa we wszystkich ${isTemplate ? 'szablonach' : 'kosztorysach'}.`,
               ranks: columnRanks,
               baseRanks: columnBaseRanks,
               onSetRank: setColumnRank,
               onReset: resetColumnOrder,
             }
       }
+      // The workbench shows both crews' stawki at once and none of the columns the axes pick.
       sections={
-        <>
-          {offerAvailable && (
-            <>
-              <DropdownMenuLabel>Widok</DropdownMenuLabel>
-              <DropdownMenuCheckboxRow checked={offer} onCheckedChange={setOffer} label="Oferta" />
-            </>
-          )}
-          {!offer && (
-            <>
-              {offerAvailable && <DropdownMenuSeparator />}
-              {isClientView && (
-                <>
-                  <AxisSection
-                    label="Kwoty"
-                    options={MONEY_AXES}
-                    value={moneyAxis}
-                    config={MONEY_PAIR_CONFIG}
-                    onChange={setMoneyAxis}
-                  />
-                  <DropdownMenuSeparator />
-                  <AxisSection
-                    label="Stawki wykonawców"
-                    options={CREWS}
-                    value={crewAxis}
-                    config={CREW_PAIR_CONFIG}
-                    onChange={setCrewAxis}
-                  />
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <AxisSection
-                label="Warstwy"
-                options={LAYERS}
-                value={layer}
-                config={LAYER_PAIR_CONFIG}
-                onChange={setLayer}
-              />
-            </>
-          )}
-        </>
+        isTemplate ? undefined : (
+          <>
+            {offerAvailable && (
+              <>
+                <DropdownMenuLabel>Widok</DropdownMenuLabel>
+                <DropdownMenuCheckboxRow
+                  checked={offer}
+                  onCheckedChange={setOffer}
+                  label="Oferta"
+                />
+              </>
+            )}
+            {!offer && (
+              <>
+                {offerAvailable && <DropdownMenuSeparator />}
+                {isClientView && (
+                  <>
+                    <AxisSection
+                      label="Kwoty"
+                      options={MONEY_AXES}
+                      value={moneyAxis}
+                      config={MONEY_PAIR_CONFIG}
+                      onChange={setMoneyAxis}
+                    />
+                    <DropdownMenuSeparator />
+                    <AxisSection
+                      label="Stawki wykonawców"
+                      options={CREWS}
+                      value={crewAxis}
+                      config={CREW_PAIR_CONFIG}
+                      onChange={setCrewAxis}
+                    />
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <AxisSection
+                  label="Warstwy"
+                  options={LAYERS}
+                  value={layer}
+                  config={LAYER_PAIR_CONFIG}
+                  onChange={setLayer}
+                />
+              </>
+            )}
+          </>
+        )
       }
     />
   )
