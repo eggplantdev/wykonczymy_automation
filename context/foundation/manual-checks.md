@@ -4835,3 +4835,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Edytor kosztorysu → „Kolumny” → włącz „Komentarz do pracy”: nagłówek brzmi „Komentarz do pracy (niewidoczny dla klienta)”, bez „wiedza firmowa”.
 - [ ] Edytor kosztorysu → menu wiersza pozycji z katalogu → „Komentarz do pracy…”: opis okna zaczyna się od „Niewidoczny dla klienta.”; zapis komentarza działa jak dotąd.
+## 2026-10-12 — investment-notes-collapsible — zwijane „Notatki” inwestycji
+
+- [ ] `/inwestycje/[id]` → kliknij „Notatki”: treść się zwija, strzałka obraca; przeładuj i otwórz inną inwestycję → notatki nadal zwinięte; kliknij ponownie → rozwinięte.
+- [ ] Zwinięte notatki → „Edytuj notatkę”: sekcja się rozwija i pokazuje pole edycji; „Zapisz” i „Anuluj” działają jak dotąd.
+- [ ] Podsumowanie kosztorysu → zakładka inwestycji: „Notatki” zwijają się tak samo i pamiętają ten sam stan co strona inwestycji.
+- [ ] Inwestycja w `/kosz` → notatki da się zwinąć, „Edytuj notatkę” się nie pojawia.

@@ -34,7 +34,8 @@ const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string }> 
   sm: { title: 'text-sm font-medium', chevron: 'size-4' },
 }
 
-const OPEN_STATES = ['open', 'closed'] as const
+// Exported so a consumer can open a remembered section from outside through the same stored key.
+export const OPEN_STATES = ['open', 'closed'] as const
 
 // Both hooks always run — a conditional hook is illegal, and an unused usePersistedFlag on an empty
 // key only ever reads a key nobody writes. The stored snapshot falls back to `defaultOpen`, so server
