@@ -43,6 +43,8 @@ type PropsT = {
   onToggleAll: (visible: boolean) => void
   order?: ColumnOrderT
   sections?: ReactNode
+  // Rendered after the column list — controls that refine it rather than precede it.
+  footer?: ReactNode
   hint?: ReactNode
   // Overrides the derived count where „hidden" and „off screen" come apart — the kosztorys grid
   // shows a column an engaged problem reveals whatever its tick says, and the badge has to answer
@@ -63,6 +65,7 @@ export function ColumnToggleMenu({
   onToggleAll,
   order,
   sections,
+  footer,
   hint,
   hiddenCount,
   align = 'end',
@@ -72,7 +75,7 @@ export function ColumnToggleMenu({
   const { t } = useTranslation('filters')
   const [orderOpen, setOrderOpen] = useState(false)
 
-  if (items.length === 0 && !sections) return null
+  if (items.length === 0 && !sections && !footer) return null
 
   const allVisible = items.every((item) => item.visible)
   const badgeCount = hiddenCount ?? items.filter((item) => !item.visible).length
@@ -113,7 +116,9 @@ export function ColumnToggleMenu({
                   {items.length > COLUMN_SEARCH_THRESHOLD && (
                     <CommandInput placeholder={t('searchColumn')} className="h-8" />
                   )}
-                  <CommandList>
+                  {/* One scroll for the whole menu — the dropdown already caps at the viewport, and
+                      a nested 300px pane buries whatever follows the list. */}
+                  <CommandList className="max-h-none overflow-visible">
                     {/* forceMount keeps the show/hide-all action visible under any search. */}
                     <CommandItem forceMount onSelect={() => onToggleAll(!allVisible)}>
                       <CheckCheck />
@@ -135,6 +140,8 @@ export function ColumnToggleMenu({
               </div>
             </>
           )}
+          {footer && (sections || items.length > 0) && <DropdownMenuSeparator />}
+          {footer}
         </DropdownMenuContent>
       </DropdownMenu>
 

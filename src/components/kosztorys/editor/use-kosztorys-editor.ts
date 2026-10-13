@@ -31,6 +31,7 @@ import { useKosztorysStageOps } from '@/components/kosztorys/editor/hooks/use-ko
 import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-kosztorys-view-state'
 import { useColumnOrder } from '@/components/kosztorys/editor/hooks/use-column-order'
 import { useHiddenColumns } from '@/components/kosztorys/editor/hooks/use-hidden-columns'
+import { useHiddenStages } from '@/components/kosztorys/editor/hooks/use-hidden-stages'
 import { useLayer } from '@/components/kosztorys/editor/hooks/use-layer'
 import { useCrewAxis } from '@/components/kosztorys/editor/hooks/use-crew-axis'
 import { effectiveCrewAxis } from '@/lib/kosztorys/crew-axis'
@@ -311,6 +312,10 @@ export function useKosztorysEditor({
     save,
     reportFailure,
   })
+  const { isStageHidden, toggleStage, setStagesHidden } = useHiddenStages(
+    investmentId,
+    stages.map((stage) => stage.id),
+  )
 
   // onChange appends each keystroke here; the flush timer collapses them into one command (UNDO_COALESCE_MS).
   const pendingFields = useRef<FieldChangeT[]>([])
@@ -599,6 +604,7 @@ export function useKosztorysEditor({
     sort,
     onSetSort: editorOnly(setSortField),
     isHidden,
+    isStageHidden,
     moneyAxis: axis,
     layer,
     crewAxis,
@@ -1286,6 +1292,9 @@ export function useKosztorysEditor({
     revealedColumnIds,
     toggleColumn,
     setAllColumns,
+    isStageHidden,
+    toggleStage,
+    setStagesHidden,
     columnRanks,
     columnBaseRanks,
     setColumnRank,

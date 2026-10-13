@@ -32,6 +32,9 @@ export type BuildV2ColumnsOptsT = {
   // DEFAULT_HIDDEN_COLUMNS, which the caller resolves; the two are indistinguishable here. Keyed by
   // column id, except stage columns, which answer to one of the stage groups (stage-keys.ts).
   isHidden?: (id: string) => boolean
+  // Per-etap picker: true = this etap's three columns are off, whatever the axis ticks above say.
+  // A preference gate like `isHidden` — no closed surface reads it.
+  isStageHidden?: (stageId: number) => boolean
   // Money axis: narrows the picker's answer further, never widens it. Omitted = 'both' = every
   // column the picker allows, which is what buildV2ToggleItems (axis-blind by design) assumes.
   moneyAxis?: MoneyAxisT

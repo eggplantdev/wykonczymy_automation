@@ -4836,3 +4836,14 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Kosztorys, widok Inwestor → nagłówek kolumny i pozycja w liście „Kolumny” brzmią „Pomiar z natury (etapy razem)”; dymek nagłówka zaczyna się od „Pomiar z natury — ilość faktycznie wykonana.”
 - [ ] Widok ekipy (np. „Z narzędziami (podwykonawca)”) → kolumna nazywa się „Pomiar z natury (etapy razem) — z narzędziami (podwykonawca)”; to samo na wydruku dla ekipy.
+
+## 2026-10-13 — stage-column-picker — ukrywanie pojedynczych etapów w „Kolumny”
+
+- [ ] Kosztorys, widok Inwestor → „Kolumny”: na końcu menu sekcja „Etapy” (za separatorem) z „Ukryj wszystkie” i każdym etapem z ikoną ekipy; całe menu przewija się jednym paskiem, bez wewnętrznego przewijania listy kolumn.
+- [ ] Odznacz jeden etap: znikają wszystkie jego kolumny (ilość, wartość netto, wartość brutto), pozostałe etapy zostają; licznik na przycisku „Kolumny” rośnie o 1; sumy i „Pozostało” bez zmian.
+- [ ] Odśwież stronę: etap dalej ukryty. Otwórz inny kosztorys: jego etapy są widoczne (wybór dotyczy jednego kosztorysu).
+- [ ] „Ukryj wszystkie” / „Pokaż wszystkie” przełącza wszystkie etapy naraz; zaznaczenia „Etapy — ilość” itd. dalej działają niezależnie.
+- [ ] Widok ekipy (np. „Z narzędziami (podwykonawca)”): sekcja „Etapy” pokazuje tylko etapy tej ekipy, a „Pokaż wszystkie” nie odkrywa etapów drugiej ekipy.
+- [ ] Ukryty etap bez przypisanego wykonawcy → włącz w „Problemy” „Etapy bez przypisanego wykonawcy”: etap jest widoczny mimo odznaczenia; po wyłączeniu problemu znowu znika.
+- [ ] Z ukrytym etapem: „Oferta”, podgląd dokumentu inwestora i dokument pracownika pokazują ten etap jak wcześniej.
+- [ ] Inna tabela (np. Transakcje) → „Kolumny”: lista kolumn bez wewnętrznego przewijania, menu przewija się w całości.
