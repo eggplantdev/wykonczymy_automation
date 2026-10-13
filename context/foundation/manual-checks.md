@@ -4861,3 +4861,5 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] „Odrzucona · cofnij” na zapisanej odrzuconej pozycji → po zapisie wraca do „czeka”, zgłoszenie znów „Do sprawdzenia”.
 - [ ] Pracownik (390px) → podgląd swojego zgłoszenia: przy każdej pozycji przyjęta / odrzucona / czeka.
 - [ ] Stare zgłoszenia #7, #8, #11 (inw. 139) po migracji: „Do sprawdzenia” z postępem, nie „Przyjęte”.
+- [ ] Zaznacz albo „Odrzuć” pozycję bez zapisu: „Rozpatrzono X z N” w stopce zmienia się od razu; gdy każda pozycja ma decyzję, stopka mówi „Przyjęto X z N” albo „Wszystkie pozycje odrzucone.”
+- [ ] Kolumny „Aktualizacja przedmiaru” i „Pomiar z natury (etapy razem)” mają nagłówek w dwóch wierszach, a „Przekroczono aktualizację przedmiaru” zawija się zamiast poszerzać kolumnę; obie dalej są w menu „Kolumny” pod tymi nazwami.

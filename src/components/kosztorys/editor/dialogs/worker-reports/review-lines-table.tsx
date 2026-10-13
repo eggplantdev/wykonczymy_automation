@@ -259,7 +259,7 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
   const { measuredQty, currentPlannedQty } = row.figures
   const isOverPlanned = currentPlannedQty > 0 && measuredQty + added > currentPlannedQty
   return (
-    <span className="whitespace-nowrap">
+    <span>
       <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
         <GrowingQty before={measuredQty} added={added} />
       </span>
@@ -515,9 +515,15 @@ const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   meta: { label: 'Etap' },
   cell: ({ row }) => <StageCell row={row.original} />,
 })
+// The shared header never wraps; these two kosztorys labels are the widest in the dialog.
+const wrappedHeader = (label: string) => () => (
+  <span className="block w-28 whitespace-normal">{label}</span>
+)
+
 const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0, {
   id: 'planned',
-  header: COLUMN_LABELS.currentPlannedQty,
+  header: wrappedHeader(COLUMN_LABELS.currentPlannedQty),
+  meta: { label: COLUMN_LABELS.currentPlannedQty },
   cell: ({ row }) =>
     row.original.figures &&
     (row.original.figures.currentPlannedQty > 0 ? (
@@ -528,8 +534,8 @@ const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0,
 })
 const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'measured',
-  header: COLUMN_LABELS.stageQtySum,
-  meta: { align: 'right' },
+  header: wrappedHeader(COLUMN_LABELS.stageQtySum),
+  meta: { align: 'right', label: COLUMN_LABELS.stageQtySum },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
 const targetSectionColumn = col.display({
