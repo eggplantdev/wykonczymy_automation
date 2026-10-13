@@ -188,6 +188,32 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     expect(await listDraftTransferIds(db, [])).toEqual([])
   })
 
+  // A read row the draft's AI read lacks is dropped, as a page the draft lacks is.
+  it('stores the read rows each transakcja was booked from', async () => {
+    const draftId = await draftOf([await insertMedia('read-rows', workerId)])
+    if (draftId === null) throw new Error('draft fixture refused')
+    await db.execute(sql`
+      UPDATE worker_expense_drafts
+      SET ai_read = ${JSON.stringify({ rows: [{ mediaIds: [] }, { mediaIds: [] }] })}::jsonb
+      WHERE id = ${draftId}
+    `)
+    const [merged, single] = await unlinkedTransferIds(2)
+
+    await decideExpenseDraft(db, {
+      draftId,
+      decidedBy: workerId,
+      status: 'accepted',
+      transferIds: [merged, single],
+      transferReadRows: [[1, 7, 0], []],
+    })
+
+    const { rows } = await db.execute(sql`
+      SELECT transfer_id, read_rows FROM worker_expense_draft_transfers
+      WHERE draft_id = ${draftId} ORDER BY transfer_id = ${single}
+    `)
+    expect(rows.map((row) => (row.read_rows as number[]).map(Number))).toEqual([[0, 1], []])
+  })
+
   // A pending draft is a receipt the worker is owed money for; deleting its worker, investment or
   // kasa would CASCADE it away before a manager decided it.
   it('a pending draft blocks the delete until a manager decides it', async () => {

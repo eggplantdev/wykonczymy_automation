@@ -200,6 +200,7 @@ export async function createBulkTransferAction(
               status: 'accepted',
               transferIds: ids,
               transferMediaIds: opts.receiptMediaIds,
+              transferReadRows: receiptReadRows.data,
               skippedReceipts: skippedReceipts.data,
             })
             if (!isDecided) throw new DraftAlreadyDecided()

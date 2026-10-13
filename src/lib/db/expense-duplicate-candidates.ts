@@ -67,6 +67,17 @@ export async function loadTransactionCandidates(
   db: DbExecutorT,
   filter: CandidateFilterT,
 ): Promise<CandidateT[]> {
+  const [own, merged] = await Promise.all([
+    loadBookedTransactions(db, filter),
+    loadMergedParagony(db, filter),
+  ])
+  return [...own, ...merged]
+}
+
+async function loadBookedTransactions(
+  db: DbExecutorT,
+  filter: CandidateFilterT,
+): Promise<CandidateT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.amount, t.date, t.description, t.invoice_note, t.document_number, t.seller_nip,
       t.document_date, i.name AS investment_name,
@@ -96,6 +107,52 @@ export async function loadTransactionCandidates(
     description: textOrNull(row.description),
     pages: toPages(row.pages),
   }))
+}
+
+// A transakcja booked from merged paragony carries their summed Kwota, which matches none of them —
+// so each paragon behind it is a candidate of its own, read off the zgłoszenie it came from.
+async function loadMergedParagony(
+  db: DbExecutorT,
+  filter: CandidateFilterT,
+): Promise<CandidateT[]> {
+  const res = await db.execute(sql`
+    WITH paragony AS (
+      SELECT dt.transfer_id, src.worker_id, src.ai_read -> 'rows' -> rr.read_row AS read_row,
+        rr.read_row AS position
+      FROM worker_expense_draft_transfers dt
+      JOIN worker_expense_drafts src ON src.id = dt.draft_id
+      CROSS JOIN LATERAL unnest(dt.read_rows) rr(read_row)
+      WHERE cardinality(dt.read_rows) > 1
+    )
+    SELECT t.id, t.date, p.read_row, p.position, i.name AS investment_name,
+      w.name AS submitter_name, ${transactionInvoicesJson(sql`t.id`)} AS pages
+    FROM paragony p
+    JOIN transactions t ON t.id = p.transfer_id
+    LEFT JOIN investments i ON i.id = t.investment_id
+    LEFT JOIN users w ON w.id = p.worker_id
+    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE
+      AND ${amountOrNumber(
+        sql`(p.read_row ->> 'amount')::numeric`,
+        [sql`(p.read_row ->> 'documentNumber')`, noteLine1(sql`(p.read_row ->> 'invoiceNote')`)],
+        filter,
+      )}
+  `)
+  return res.rows.flatMap((row) => {
+    const read = expenseDraftReadRowSchema.safeParse(row.read_row)
+    if (!read.success) return []
+    return [
+      {
+        key: `transaction-${row.id}-${row.position}`,
+        source: 'transaction' as const,
+        id: Number(row.id),
+        date: text(row.date),
+        submitterName: textOrNull(row.submitter_name),
+        investmentName: textOrNull(row.investment_name),
+        ...docOfReadRow(read.data),
+        pages: toPages(row.pages),
+      },
+    ]
+  })
 }
 
 export async function loadDraftCandidates(

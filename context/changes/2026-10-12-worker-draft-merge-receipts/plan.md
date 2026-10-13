@@ -471,19 +471,19 @@ after the merge to staging.
 
 #### Automated
 
-- [x] 3.1 expense-form-merge DOM spec
-- [x] 3.2 expense-form-prefill spec
-- [x] 3.3 duplicate-mark spec on merged rows
-- [x] 3.4 file-map setter covered
+- [x] 3.1 expense-form-merge DOM spec — 932402b32
+- [x] 3.2 expense-form-prefill spec — 932402b32
+- [x] 3.3 duplicate-mark spec on merged rows — 932402b32
+- [x] 3.4 file-map setter covered — 932402b32
 
 ### Phase 4: Booked paragony stay visible to the duplicate check
 
 #### Automated
 
-- [ ] 4.1 migration applies locally and on 5435
-- [ ] 4.2 worker-expense-drafts DB spec: read_rows stored and range-checked
-- [ ] 4.3 expense-duplicate-candidates DB spec: merged booking candidate
-- [ ] 4.4 worker-expense-drafts actions DB spec
+- [x] 4.1 migration applies locally and on 5435
+- [x] 4.2 worker-expense-drafts DB spec: read_rows stored and range-checked
+- [x] 4.3 expense-duplicate-candidates DB spec: merged booking candidate
+- [x] 4.4 worker-expense-drafts actions DB spec
 
 ### Phase 5: Docs
 

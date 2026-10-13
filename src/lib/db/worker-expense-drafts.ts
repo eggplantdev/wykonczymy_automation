@@ -344,6 +344,8 @@ export async function decideExpenseDraft(
     transferIds: number[]
     // Positional to `transferIds`: the draft's pages each transakcja was booked from.
     transferMediaIds?: number[][]
+    // Positional to `transferIds`: the rows of the draft's AI read each transakcja was booked from.
+    transferReadRows?: number[][]
     skippedReceipts?: SkippedReceiptT[]
     duplicateOf?: DuplicateOfT
   },
@@ -351,6 +353,7 @@ export async function decideExpenseDraft(
   const transfers = decision.transferIds.map((id, i) => ({
     id,
     media_ids: decision.transferMediaIds?.[i] ?? [],
+    read_rows: decision.transferReadRows?.[i] ?? [],
   }))
   const skipped = (decision.skippedReceipts ?? []).map((receipt) => ({
     media_ids: receipt.mediaIds,
@@ -362,17 +365,26 @@ export async function decideExpenseDraft(
     SELECT unnest(r.media_ids) INTERSECT
     SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
   )`
+  // Likewise a read row lands only if the draft's AI read has it.
+  const ownReadRows = sql`ARRAY(
+    SELECT unnest(r.read_rows) INTERSECT
+    SELECT generate_series(0, jsonb_array_length(decided.read_rows) - 1)
+    ORDER BY 1
+  )`
   const res = await db.execute(sql`
     WITH decided AS (
       UPDATE worker_expense_drafts
       SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
         duplicate_of = ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
       WHERE id = ${decision.draftId} AND status = 'pending'
-      RETURNING id
+      RETURNING id,
+        CASE WHEN jsonb_typeof(ai_read -> 'rows') = 'array' THEN ai_read -> 'rows' ELSE '[]' END
+          AS read_rows
     ), linked AS (
-      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids)
-      SELECT r.id, decided.id, ${ownPages}
-      FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
+      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
+      SELECT r.id, decided.id, ${ownPages}, ${ownReadRows}
+      FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb)
+        AS r(id int, media_ids int[], read_rows int[])
     ), skipped AS (
       INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row, duplicate_of)
       SELECT decided.id, ${ownPages}, r.read_row, r.duplicate_of
