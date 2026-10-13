@@ -144,6 +144,27 @@ describe('buildDraftPrefill', () => {
     ])
   })
 
+  // React's server-action decoder counts every repeat of one array as more nesting, so ~20 paragony
+  // sharing one `mediaIds` refused the save as „Brak połączenia z serwerem”.
+  it('gives every paragon on one photo its own copy of the page list', () => {
+    const aiRead: ExpenseDraftReadT = {
+      rows: [
+        { mediaIds: [1], description: 'Leroy' },
+        { mediaIds: [1], description: 'Parking' },
+      ],
+    }
+
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 1), scanMode: 'one-per-photo', aiRead },
+      FILES.slice(0, 1),
+      CATEGORY,
+    )
+
+    const [first, second] = prefill.lineItems.map((item) => prefill.receipts.get(item.id))
+    expect(first?.mediaIds).toEqual(second?.mediaIds)
+    expect(first?.mediaIds).not.toBe(second?.mediaIds)
+  })
+
   it('names the pages from the read the way „Generuj” would', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [{ mediaIds: [1, 2], description: 'Leroy', filename: 'leroy.jpg' }],

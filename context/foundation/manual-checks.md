@@ -4863,3 +4863,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Stare zgłoszenia #7, #8, #11 (inw. 139) po migracji: „Do sprawdzenia” z postępem, nie „Przyjęte”.
 - [ ] Zaznacz albo „Odrzuć” pozycję bez zapisu: „Rozpatrzono X z N” w stopce zmienia się od razu; gdy każda pozycja ma decyzję, stopka mówi „Przyjęto X z N” albo „Wszystkie pozycje odrzucone.”
 - [ ] Kolumny „Aktualizacja przedmiaru” i „Pomiar z natury (etapy razem)” mają nagłówek w dwóch wierszach, a „Przekroczono aktualizację przedmiaru” zawija się zamiast poszerzać kolumnę; obie dalej są w menu „Kolumny” pod tymi nazwami.
+
+## 2026-10-13 — receipt-media-ids-copy — zapis wydatku ze zgłoszenia z wieloma paragonami na jednym zdjęciu
+
+- [ ] „Zgłoszenia wydatków” → zgłoszenie „Kilka wydatków”, w którym AI znalazło ~20+ paragonów na jednym zdjęciu → zapisz wydatek: zapis przechodzi, bez „Brak połączenia z serwerem”.

@@ -42,7 +42,9 @@ export function buildDraftPrefill(
     )
     const downloaded = group.flatMap((index) => files[index] ?? [])
     return (reads.length > 0 ? reads : [undefined]).map((found) => ({
-      mediaIds,
+      // A copy per paragon: the server-action decoder counts a shared array once per reference, and
+      // ~20 paragony on one photo tripped its nesting limit.
+      mediaIds: [...mediaIds],
       found,
       pages: found?.read.filename ? renamePages(downloaded, found.read.filename) : downloaded,
     }))
