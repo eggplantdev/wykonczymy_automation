@@ -20,6 +20,7 @@ import {
 } from '@/lib/constants/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { validExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
+import { DEFAULT_EXPENSE_DRAFT_SORT } from '@/lib/worker-expenses/sortable-columns'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { ReferenceDataT, ReferenceItemT } from '@/types/reference-data'
@@ -45,6 +46,8 @@ export function ExpenseDraftsDataTable({
   const { updateParam } = useUrlFilterParams(EXPENSE_DRAFTS_BASE_URL)
   const { t } = useTranslation('expenseDrafts')
   const { openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
+  const sort =
+    validExpenseDraftSort(searchParams.get('sort') ?? undefined) ?? DEFAULT_EXPENSE_DRAFT_SORT
   const columns = useExpenseDraftColumns({
     isManagerView: true,
     actions: (draft) => {
@@ -92,10 +95,14 @@ export function ExpenseDraftsDataTable({
         data={data}
         columns={columns}
         storageKey="expense-drafts"
-        sorting={sortParamToSortingState(
-          validExpenseDraftSort(searchParams.get('sort') ?? undefined),
-        )}
-        onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
+        sorting={sortParamToSortingState(sort)}
+        // Clearing the default would write no parameter, and so leave the order as it was.
+        onSortingChange={(next) =>
+          updateParam(
+            'sort',
+            sortingStateToParam(next) || (sort === DEFAULT_EXPENSE_DRAFT_SORT ? 'sentAt' : ''),
+          )
+        }
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={EXPENSE_DRAFTS_BASE_URL} />
       {dialogs}

@@ -418,35 +418,36 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         await deleteTestInvestment(payload, refusedOnlyInvestmentId).catch(() => {})
     })
 
-    it('lists the pending queue first, then the rest newest first', async () => {
+    // The queue sits above the history on the page, so the history no longer lifts pending first.
+    it('lists every status newest first, a pending zgłoszenie below a newer decided one', async () => {
       expect(await historyIds()).toEqual([
-        newerPendingId,
-        olderPendingId,
         unbookedId,
         unbookedId,
         oneTransferId,
+        newerPendingId,
         acceptedId,
         acceptedId,
         acceptedId,
+        olderPendingId,
         rejectedId,
       ])
     })
 
-    it('an unknown sort keeps the queue order', async () => {
+    it('an unknown sort keeps the default order', async () => {
       expect(await historyIds({}, 1, 50, '-transferAmount')).toEqual(await historyIds())
     })
 
-    it('a column sort overrides the queue', async () => {
-      expect(await historyIds({}, 1, 50, '-sentAt')).toEqual([
-        unbookedId,
-        unbookedId,
-        oneTransferId,
-        newerPendingId,
-        acceptedId,
-        acceptedId,
-        acceptedId,
-        olderPendingId,
+    it('a column sort overrides the default', async () => {
+      expect(await historyIds({}, 1, 50, 'sentAt')).toEqual([
         rejectedId,
+        olderPendingId,
+        acceptedId,
+        acceptedId,
+        acceptedId,
+        newerPendingId,
+        oneTransferId,
+        unbookedId,
+        unbookedId,
       ])
     })
 
@@ -457,7 +458,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       // Counted and paged per paragon row, not per zgłoszenie.
       const thirdPage = await history({}, 3, 2)
       expect(thirdPage.totalDocs).toBe(9)
-      expect(thirdPage.rows.map((draft) => draft.id)).toEqual([oneTransferId, acceptedId])
+      expect(thirdPage.rows.map((draft) => draft.id)).toEqual([acceptedId, acceptedId])
 
       expect(await history({ workerIds: [otherWorkerId] })).toEqual({ rows: [], totalDocs: 0 })
       expect(await historyIds({ sentRange: { from: '2026-01-03', to: '2026-01-03' } })).toEqual([

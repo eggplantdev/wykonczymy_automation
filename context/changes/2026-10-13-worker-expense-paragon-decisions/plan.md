@@ -520,15 +520,15 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 4.1 DOM spec for the badge passes
-- [x] 4.2 Existing work-report and expense-draft table specs pass
+- [x] 4.1 DOM spec for the badge passes — 5d8c18077
+- [x] 4.2 Existing work-report and expense-draft table specs pass — 5d8c18077
 
 ### Phase 5: „Zgłoszenia wydatków” page
 
 #### Automated
 
-- [ ] 5.1 History-order DB case passes
-- [ ] 5.2 `pending-expense-drafts.test.tsx` and `expense-drafts-data-table.test.tsx` pass
+- [x] 5.1 History-order DB case passes
+- [x] 5.2 `pending-expense-drafts.test.tsx` and `expense-drafts-data-table.test.tsx` pass
 
 ### Phase 6: Documentation
 

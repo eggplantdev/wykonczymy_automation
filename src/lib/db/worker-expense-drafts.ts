@@ -337,7 +337,7 @@ export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number
 
 export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT> & { duplicatesOnly?: boolean }
 
-const QUEUE_ORDER = sql`d.status <> 'pending', d.sent_at DESC, ${PARAGON_ORDER}`
+const HISTORY_ORDER = sql`d.sent_at DESC, ${PARAGON_ORDER}`
 
 const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
   workerName: sql`w.name`,
@@ -348,12 +348,12 @@ const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
   status: sql`array_position(ARRAY[${sqlList(EXPENSE_DRAFT_STATUSES)}]::text[], pr.row_status)`,
 }
 
-// An unknown column falls back to the queue, since the column picks a SQL fragment, not a bound
+// An unknown column falls back to the default order, since the column picks a SQL fragment, not a bound
 // value. A pending draft has no decision, so it trails a decision sort either way.
 function draftHistoryOrderBy(sort: string | undefined): SqlT {
-  if (!sort) return QUEUE_ORDER
+  if (!sort) return HISTORY_ORDER
   const column = sortParamColumnId(sort)
-  if (!isServerSortableDraftColumn(column)) return QUEUE_ORDER
+  if (!isServerSortableDraftColumn(column)) return HISTORY_ORDER
   const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
   return sql`${SORT_EXPRESSIONS[column]} ${direction} NULLS LAST, d.sent_at DESC, ${PARAGON_ORDER}`
 }

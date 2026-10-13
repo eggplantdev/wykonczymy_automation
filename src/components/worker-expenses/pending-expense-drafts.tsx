@@ -23,9 +23,15 @@ const NO_SELECTION: ReadonlySet<number> = new Set()
 type PropsT = {
   drafts: ExpenseDraftRowT[]
   referenceData: ReferenceDataT
+  // Per surface, so collapsing the queue on one page leaves it open on the other.
+  storageKey?: string
 }
 
-export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
+export function PendingExpenseDrafts({
+  drafts,
+  referenceData,
+  storageKey = 'pending-expense-drafts',
+}: PropsT) {
   const router = useRouter()
   const { t, tp, locale } = useTranslation('expenseDrafts')
   const { openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
@@ -79,7 +85,7 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
         hint={t('mergeHint')}
         size="sm"
         withSeparator={false}
-        storageKey="pending-expense-drafts:open"
+        storageKey={`${storageKey}:open`}
         action={
           selectedIds.size > 1 && (
             <Button
@@ -95,7 +101,7 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
         }
       >
         <SelectedIdsContext value={selectedIds}>
-          <DataTable data={drafts} columns={columns} storageKey="pending-expense-drafts" />
+          <DataTable data={drafts} columns={columns} storageKey={storageKey} />
         </SelectedIdsContext>
       </CollapsibleSection>
       <ConfirmDialog

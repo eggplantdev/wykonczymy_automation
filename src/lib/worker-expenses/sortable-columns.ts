@@ -8,6 +8,9 @@ export const SERVER_SORTABLE_DRAFT_COLUMNS = [
 
 export type ServerSortableDraftColumnT = (typeof SERVER_SORTABLE_DRAFT_COLUMNS)[number]
 
+/** Newest first — the queue of what still waits sits above the history, on the same page. */
+export const DEFAULT_EXPENSE_DRAFT_SORT = '-sentAt'
+
 export function isServerSortableDraftColumn(
   columnId: string,
 ): columnId is ServerSortableDraftColumnT {
