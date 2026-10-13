@@ -41,7 +41,7 @@ const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   return source === 'amount' ? (
     <span className="tabular-nums">{formatRate(rate.rate, source, rate.coeff)}</span>
   ) : (
-    <span className="text-muted-foreground text-sm">{formatRate(null, source, rate.coeff)}</span>
+    <span className="text-muted-foreground">{formatRate(null, source, rate.coeff)}</span>
   )
 }
 
@@ -61,7 +61,7 @@ const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
 
 const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
-    <span className="text-muted-foreground text-sm">—</span>
+    <span className="text-muted-foreground">—</span>
   ) : (
     <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>
       {formatPercentPrecise(value)}
@@ -91,7 +91,7 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
     header: 'Lp.',
     meta: { align: 'right' },
     cell: (info) => (
-      <span className="text-muted-foreground text-sm tabular-nums">
+      <span className="text-muted-foreground tabular-nums">
         {ordinals.get(info.row.original.id)}
       </span>
     ),
@@ -168,14 +168,14 @@ const categoryColumn = col.accessor((row) => row.category ?? '', {
   sortingFn: (first, second) =>
     compareDescriptions(first.original.category ?? '', second.original.category ?? ''),
   meta: { minWidth: 'min-w-50' },
-  cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
+  cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
 })
 
 const unitColumn = col.accessor('unit', {
   id: 'unit',
   header: 'j.m.',
   size: 72,
-  cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
+  cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
 })
 
 const clientPriceColumn = col.accessor('clientPrice', {
@@ -215,7 +215,7 @@ const sourceColumn = (plane: ToolPlaneT, id: string, tools: string) =>
     header: twoLines('Źródło', tools),
     meta: { label: `Źródło ${tools}` },
     cell: (info) => (
-      <span className="text-muted-foreground text-sm">{PRICE_SOURCE_LABELS[info.getValue()]}</span>
+      <span className="text-muted-foreground">{PRICE_SOURCE_LABELS[info.getValue()]}</span>
     ),
   })
 
@@ -262,7 +262,7 @@ const workNoteColumn = col.accessor((row) => row.workNote ?? '', {
   id: 'workNote',
   header: 'Komentarz do pracy',
   size: 280,
-  cell: (info) => <span className="text-muted-foreground block text-sm">{info.getValue()}</span>,
+  cell: (info) => <span className="text-muted-foreground block">{info.getValue()}</span>,
 })
 
 // Both count distinct inwestycje, not pozycje: a praca repeated across five łazienki of one

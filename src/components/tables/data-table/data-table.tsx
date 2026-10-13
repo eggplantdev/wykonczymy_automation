@@ -223,7 +223,7 @@ export function DataTable<TData>({
               footer={footer}
             />
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm max-sm:text-xs">
               <TableHeader headerGroups={headerGroups} />
               <tbody>
                 {rows.length === 0 ? (

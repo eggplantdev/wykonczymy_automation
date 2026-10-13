@@ -50,9 +50,7 @@ export function getEquipmentColumns({
     col.accessor('serialNumber', {
       id: 'serialNumber',
       header: 'Nr seryjny',
-      cell: (info) => (
-        <span className="text-muted-foreground text-sm">{info.getValue() || '—'}</span>
-      ),
+      cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
     }),
     col.accessor((row) => (row.location.kind === 'holder' ? row.location.name : ''), {
       id: 'holder',
@@ -85,7 +83,7 @@ export function getEquipmentColumns({
     col.accessor('investmentName', {
       id: 'investment',
       header: 'Inwestycja',
-      cell: (info) => <span className="text-sm">{info.getValue() || '—'}</span>,
+      cell: (info) => <span>{info.getValue() || '—'}</span>,
     }),
     col.accessor((row) => warrantyDaysLeft(row.warrantyUntil, today) ?? undefined, {
       id: 'warranty',

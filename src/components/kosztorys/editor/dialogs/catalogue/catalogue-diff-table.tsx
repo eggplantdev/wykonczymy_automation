@@ -101,7 +101,7 @@ export function CatalogueDiffTable({
         </Button>
       )}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm max-sm:text-xs">
           <thead>
             <tr className="text-muted-foreground text-xs">
               <th className="w-6 py-1 font-normal" />

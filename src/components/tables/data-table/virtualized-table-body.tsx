@@ -49,7 +49,7 @@ export function VirtualizedTableBody<TData>({
       className={cn('overflow-auto', containerClassName)}
       style={containerClassName ? undefined : { height: containerHeight }}
     >
-      <table className="w-full table-fixed text-sm" style={{ minWidth: totalWidth }}>
+      <table className="w-full table-fixed text-sm max-sm:text-xs" style={{ minWidth: totalWidth }}>
         <colgroup>
           {leafHeaders.map((header) => (
             <col

@@ -43,7 +43,7 @@ export function getKosztorysColumns({
     kosztorysCol.accessor((row) => SHEET_STATUS_LABELS[row.status], {
       id: 'status',
       header: 'Status',
-      cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
+      cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
     }),
 
     kosztorysCol.display({

@@ -24,7 +24,7 @@ export function ReportTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className={cn('w-full text-sm', className)}>
+      <table className={cn('w-full text-sm max-sm:text-xs', className)}>
         {headers && (
           <thead>
             <tr className="text-muted-foreground text-xs">

@@ -31,12 +31,12 @@ const COLUMNS = [
     id: 'note',
     header: 'Notatka',
     enableSorting: false,
-    cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue() || '—'}</span>,
+    cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
   }),
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Wpisał',
-    cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue() || '—'}</span>,
+    cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
   }),
   col.accessor((row) => row.cost ?? undefined, {
     id: 'cost',
