@@ -1,7 +1,7 @@
 ---
 change_id: worker-draft-merge-receipts
 title: Merge and split paragon rows when accepting a worker's expense draft
-status: implementing
+status: implemented
 created: 2026-10-12
 updated: 2026-10-13
 archived_at: null
