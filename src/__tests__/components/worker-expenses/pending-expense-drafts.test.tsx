@@ -40,6 +40,8 @@ const draft: ExpenseDraftRowT = {
   decidedAt: null,
   decidedByName: null,
   transfers: [],
+  acceptedReadRows: [],
+  rejectedReceipts: [],
   media: [{ id: 11, url: '/m/11.jpg', filename: 'leroy.jpg', mimeType: 'image/jpeg' }],
   aiRead: undefined,
 }

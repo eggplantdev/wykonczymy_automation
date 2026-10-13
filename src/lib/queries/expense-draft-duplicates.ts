@@ -40,7 +40,7 @@ export async function findExpenseDraftDuplicates(
       documentNumbers: probes.flatMap((probe) => documentNumberOf(probe) ?? []),
     }
     const [transactions, drafts] = await Promise.all([
-      loadTransactionCandidates(db, filter),
+      loadTransactionCandidates(db, { ...filter, excludeDraftId: draftId }),
       loadDraftCandidates(db, { ...filter, excludeDraftId: draftId }),
     ])
     const candidates = [...transactions, ...drafts]

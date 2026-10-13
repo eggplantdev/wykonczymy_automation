@@ -6,8 +6,13 @@ import { sqlList } from '@/lib/db/sql-list'
 import {
   countPendingExpenseDrafts,
   decideExpenseDraft,
+  decideExpenseParagons,
   deletePendingExpenseDraft,
   findDraftHeldMedia,
+  findExpenseDraftDecisions,
+  mergeExpenseDrafts,
+  rejectPendingParagons,
+  reopenSkippedReceipt,
   insertWorkerExpenseDraft,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
@@ -850,6 +855,179 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
       expect(await persisted()).toEqual({ status: 'pending', duplicate_of: null })
       expect((await duplicatesOnly()).rows.map((row) => row.id)).not.toContain(draftId)
+    })
+  })
+
+  // The zgłoszenie's status is derived from its paragony after every decision, under one lock.
+  describe('deciding paragon by paragon', () => {
+    async function readDraft(name: string, rowCount: number, onInvestment = investmentId) {
+      const pages: number[] = []
+      for (let i = 0; i < rowCount; i++) pages.push(await insertMedia(`${name}-${i}`, workerId))
+      const draftId = await draftOf(pages, onInvestment)
+      if (draftId === null) throw new Error('draft fixture refused')
+      const rows = pages.map((id) => ({ mediaIds: [id] }))
+      await db.execute(sql`
+        UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify({ rows })}::jsonb
+        WHERE id = ${draftId}
+      `)
+      return { draftId, pages }
+    }
+
+    const statusOf = async (draftId: number) =>
+      (await db.execute(sql`SELECT status FROM worker_expense_drafts WHERE id = ${draftId}`))
+        .rows[0]?.status
+
+    const book = async (draftId: number, readRows: number[][]) =>
+      decideExpenseParagons(db, {
+        draftId,
+        decidedBy: workerId,
+        transferIds: await unlinkedTransferIds(readRows.length),
+        transferReadRows: readRows,
+      })
+
+    const skip = (draftId: number, readRows: number[]) =>
+      decideExpenseParagons(db, {
+        draftId,
+        decidedBy: workerId,
+        transferIds: [],
+        skippedReceipts: readRows.map((readRow) => ({ mediaIds: [], readRow })),
+      })
+
+    it('booking some paragony leaves the zgłoszenie waiting', async () => {
+      const { draftId } = await readDraft('paragon-subset', 3)
+
+      expect(await book(draftId, [[0], [2]])).toEqual({ rejected: [] })
+
+      expect(await statusOf(draftId)).toBe('pending')
+      expect(await findExpenseDraftDecisions(db, draftId)).toEqual({
+        status: 'pending',
+        acceptedReadRows: [0, 2],
+        rejectedReceipts: [],
+      })
+    })
+
+    it('refusing the rest accepts it when anything was booked', async () => {
+      const { draftId } = await readDraft('paragon-rest', 3)
+      await book(draftId, [[0, 1]])
+
+      const decided = await skip(draftId, [2])
+
+      expect(decided).toMatchObject({ rejected: [{ readRow: 2 }] })
+      expect(await statusOf(draftId)).toBe('accepted')
+    })
+
+    it('refusing every paragon rejects it', async () => {
+      const { draftId } = await readDraft('paragon-all-refused', 2)
+      await skip(draftId, [0])
+      expect(await statusOf(draftId)).toBe('pending')
+
+      expect(await rejectPendingParagons(db, { draftId, decidedBy: workerId })).toBe('done')
+
+      expect(await statusOf(draftId)).toBe('rejected')
+      expect((await findExpenseDraftDecisions(db, draftId))?.rejectedReceipts).toHaveLength(2)
+    })
+
+    // A clash on a zgłoszenie that still waits must not read „już rozpatrzone".
+    it('a paragon decided first is refused as a clash naming it, and nothing is written', async () => {
+      const { draftId } = await readDraft('paragon-clash', 4)
+      await book(draftId, [[1]])
+      await skip(draftId, [3])
+      const before = await findExpenseDraftDecisions(db, draftId)
+
+      expect(await book(draftId, [[0, 1]])).toEqual({ refusal: 'clash', readRows: [1] })
+      expect(await skip(draftId, [3, 2])).toEqual({ refusal: 'clash', readRows: [3] })
+
+      expect(await findExpenseDraftDecisions(db, draftId)).toEqual(before)
+    })
+
+    it('a decision on a zgłoszenie no longer waiting is refused as not pending', async () => {
+      const { draftId } = await readDraft('paragon-not-pending', 1)
+      await book(draftId, [[0]])
+      expect(await statusOf(draftId)).toBe('accepted')
+
+      expect(await skip(draftId, [0])).toEqual({ refusal: 'not-pending' })
+    })
+
+    it('reopening a refused paragon puts the zgłoszenie back to waiting', async () => {
+      const { draftId } = await readDraft('paragon-reopen', 2)
+      await book(draftId, [[0]])
+      const decided = await skip(draftId, [1])
+      if ('refusal' in decided) throw new Error('skip refused')
+      expect(await statusOf(draftId)).toBe('accepted')
+
+      expect(await reopenSkippedReceipt(db, decided.rejected[0].id)).toBe(true)
+
+      expect(await findExpenseDraftDecisions(db, draftId)).toEqual({
+        status: 'pending',
+        acceptedReadRows: [0],
+        rejectedReceipts: [],
+      })
+    })
+
+    it('reads nothing for a zgłoszenie that is gone', async () => {
+      expect(await findExpenseDraftDecisions(db, 2_000_000_000)).toBeUndefined()
+    })
+
+    describe('merging zgłoszenia', () => {
+      it('chains read rows and pages in send order into the oldest', async () => {
+        const newer = await readDraft('merge-newer', 2)
+        const older = await readDraft('merge-older', 1)
+        await db.execute(sql`
+          UPDATE worker_expense_drafts SET sent_at = now() - interval '1 day' WHERE id = ${older.draftId}
+        `)
+
+        expect(await mergeExpenseDrafts(db, [newer.draftId, older.draftId])).toEqual({
+          draftId: older.draftId,
+        })
+
+        const { rows } = await db.execute(sql`
+          SELECT d.ai_read,
+            ARRAY(SELECT dm.media_id FROM worker_expense_draft_media dm
+              WHERE dm.draft_id = d.id ORDER BY dm.position) AS pages
+          FROM worker_expense_drafts d WHERE d.id = ${older.draftId}
+        `)
+        const chained = [...older.pages, ...newer.pages]
+        expect((rows[0].pages as number[]).map(Number)).toEqual(chained)
+        expect(rows[0].ai_read).toEqual({ rows: chained.map((id) => ({ mediaIds: [id] })) })
+        expect(await statusOf(newer.draftId)).toBeUndefined()
+      })
+
+      it.each([
+        [
+          'not-pending',
+          async () => {
+            const decided = await readDraft('merge-refused-decided-whole', 1)
+            await book(decided.draftId, [[0]])
+            return decided.draftId
+          },
+        ],
+        [
+          'mixed',
+          async () => (await readDraft('merge-refused-mixed', 1, otherInvestmentId)).draftId,
+        ],
+        [
+          'decided',
+          async () => {
+            const partial = await readDraft('merge-refused-partial', 2)
+            await skip(partial.draftId, [0])
+            return partial.draftId
+          },
+        ],
+        [
+          'unread',
+          async () => {
+            const draftId = await draftOf([await insertMedia('merge-refused-unread', workerId)])
+            if (draftId === null) throw new Error('draft fixture refused')
+            return draftId
+          },
+        ],
+      ] as const)('refuses a merge as %s', async (refusal, otherDraft) => {
+        const { draftId } = await readDraft(`merge-refused-${refusal}-base`, 1)
+        const otherId = await otherDraft()
+
+        expect(await mergeExpenseDrafts(db, [draftId, otherId])).toEqual({ refusal })
+        expect(await statusOf(draftId)).toBe('pending')
+      })
     })
   })
 

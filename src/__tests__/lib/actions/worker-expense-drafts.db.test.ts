@@ -159,6 +159,8 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     expect(await accept(draftId, description)).toEqual({
       success: false,
       error: DRAFT_ALREADY_DECIDED,
+      messageKey: 'draftAlreadyDecided',
+      code: 'ALREADY_DECIDED',
     })
     expect(await expensesDescribed(description)).toHaveLength(1)
   })

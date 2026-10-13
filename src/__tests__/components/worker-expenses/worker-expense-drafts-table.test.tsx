@@ -28,6 +28,8 @@ const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDr
   decidedAt: null,
   decidedByName: null,
   transfers: [],
+  acceptedReadRows: [],
+  rejectedReceipts: [],
   media: [],
   aiRead: undefined,
   ...overrides,
@@ -176,7 +178,8 @@ describe('WorkerExpenseDraftsTable', () => {
     renderTable([draft(1, accepted(1))], false, true)
     await tickStatuses(userEvent.setup(), ['przyjęty'])
 
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/inwestycje/3?id=101')
+    const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'))
+    expect(hrefs).toContain('/inwestycje/3?id=101')
   })
 
   it('lists a draft without an investment as „Bez inwestycji” and filters on it', async () => {

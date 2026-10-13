@@ -27,6 +27,14 @@ export type CandidateT = ExpenseDocT & {
 
 type CandidateFilterT = { amountsCents: number[]; documentNumbers: string[] }
 
+// A paragon booked from the probed zgłoszenie is its sibling, not a duplicate.
+type TransactionFilterT = CandidateFilterT & { excludeDraftId: number }
+
+const notBookedFrom = (draftId: number) => sql`NOT EXISTS (
+  SELECT 1 FROM worker_expense_draft_transfers own
+  WHERE own.transfer_id = t.id AND own.draft_id = ${draftId}
+)`
+
 const toPages = (value: unknown): PreviewFileT[] =>
   Array.isArray(value) ? (value as PreviewFileT[]) : []
 
@@ -72,7 +80,7 @@ export async function loadDraftProbes(db: DbExecutorT, draftId: number): Promise
 
 export async function loadTransactionCandidates(
   db: DbExecutorT,
-  filter: CandidateFilterT,
+  filter: TransactionFilterT,
 ): Promise<CandidateT[]> {
   const [own, merged] = await Promise.all([
     loadBookedTransactions(db, filter),
@@ -83,7 +91,7 @@ export async function loadTransactionCandidates(
 
 async function loadBookedTransactions(
   db: DbExecutorT,
-  filter: CandidateFilterT,
+  { excludeDraftId, ...filter }: TransactionFilterT,
 ): Promise<CandidateT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.amount, t.date, t.description, t.invoice_note, t.document_number, t.seller_nip,
@@ -96,7 +104,7 @@ async function loadBookedTransactions(
     LEFT JOIN worker_expense_draft_transfers dt ON dt.transfer_id = t.id
     LEFT JOIN worker_expense_drafts src ON src.id = dt.draft_id
     LEFT JOIN users drafter ON drafter.id = src.worker_id
-    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE
+    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE AND ${notBookedFrom(excludeDraftId)}
       AND ${amountOrNumber(sql`t.amount`, [sql`t.document_number`, noteLine1(sql`t.invoice_note`)], filter)}
   `)
   return res.rows.map((row) => ({
@@ -120,7 +128,7 @@ async function loadBookedTransactions(
 // so each paragon behind it is a candidate of its own, read off the zgłoszenie it came from.
 async function loadMergedParagony(
   db: DbExecutorT,
-  filter: CandidateFilterT,
+  { excludeDraftId, ...filter }: TransactionFilterT,
 ): Promise<CandidateT[]> {
   const res = await db.execute(sql`
     WITH paragony AS (
@@ -137,7 +145,7 @@ async function loadMergedParagony(
     JOIN transactions t ON t.id = p.transfer_id
     LEFT JOIN investments i ON i.id = t.investment_id
     LEFT JOIN users w ON w.id = p.worker_id
-    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE
+    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE AND ${notBookedFrom(excludeDraftId)}
       AND ${readRowMatches(sql`p.read_row`, filter)}
   `)
   return res.rows.flatMap((row) => {

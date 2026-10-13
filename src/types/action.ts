@@ -5,9 +5,10 @@
  * whole copy is stale", which is a different recovery (reseed) than a revert. `REQUEST_FAILED` is
  * set only client-side by `settleAction`: the request never completed, so whether the write
  * committed is unknown. `DATABASE_ERROR` marks a driver failure whose text was replaced, so a
- * translating surface can word it without matching the Polish sentence.
+ * translating surface can word it without matching the Polish sentence. `ALREADY_DECIDED` means
+ * someone else decided the zgłoszenie or some of its paragony first — the dialog's copy is stale.
  */
-export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED' | 'DATABASE_ERROR'
+export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED' | 'DATABASE_ERROR' | 'ALREADY_DECIDED'
 
 /**
  * `messageKey` names the dictionary entry `error` was worded from, for a surface that shows the

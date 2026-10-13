@@ -37,6 +37,8 @@ const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDr
   decidedAt: '2026-10-06T12:00:00Z',
   decidedByName: 'Szef',
   transfers: [],
+  acceptedReadRows: [],
+  rejectedReceipts: [],
   media: [],
   aiRead: undefined,
   ...overrides,

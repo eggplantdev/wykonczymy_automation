@@ -26,6 +26,8 @@ const accepted: ExpenseDraftRowT = {
   decidedByName: 'Szef',
   // The manager moved it to another investment while accepting — the link follows the transaction.
   transfers: [{ id: 41, amount: 123.45, investmentId: 9, cancelled: false }],
+  acceptedReadRows: [],
+  rejectedReceipts: [],
   media: [],
   aiRead: undefined,
 }
@@ -37,6 +39,8 @@ const pending: ExpenseDraftRowT = {
   decidedAt: null,
   decidedByName: null,
   transfers: [],
+  acceptedReadRows: [],
+  rejectedReceipts: [],
 }
 
 function Table({ rows, isManagerView }: { rows: ExpenseDraftRowT[]; isManagerView: boolean }) {
@@ -105,6 +109,6 @@ describe('useExpenseDraftColumns', () => {
     render(<Table rows={[{ ...accepted, transfers: [] }]} isManagerView />)
 
     expect(cell(7, 'transfers')).toHaveTextContent('—')
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(cell(7, 'transfers')?.querySelector('a')).toBeNull()
   })
 })

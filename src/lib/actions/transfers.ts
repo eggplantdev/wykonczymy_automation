@@ -11,9 +11,9 @@ import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from 
 import { canBeSettled, carriesPayoutStatus, hasOptionalWorker } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { decideExpenseParagons } from '@/lib/db/worker-expense-drafts'
+import { decideExpenseParagons, type ParagonRefusalT } from '@/lib/db/worker-expense-drafts'
 import { skippedReceiptSchema, type SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
+import { paragonRefusalFailure } from '@/lib/worker-expenses/paragon-refusal'
 import {
   cancelTransferSchema,
   createTransferSchema,
@@ -95,7 +95,11 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
 }
 
 // Thrown, not returned: a returned refusal would still commit the expenses created before it.
-class DraftAlreadyDecided extends Error {}
+class DraftAlreadyDecided extends Error {
+  constructor(readonly refusal: ParagonRefusalT) {
+    super(refusal.refusal)
+  }
+}
 
 // Blank is stored as null so the duplicate check never matches two empty values.
 function documentIdentity(item: {
@@ -202,16 +206,16 @@ export async function createBulkTransferAction(
               transferReadRows: receiptReadRows.data,
               skippedReceipts: skippedReceipts.data,
             })
-            if (!decided) throw new DraftAlreadyDecided()
+            if ('refusal' in decided) throw new DraftAlreadyDecided(decided)
           }
           return ids
         },
         { skipSheetSync: true },
       ).catch((error: unknown) => {
-        if (error instanceof DraftAlreadyDecided) return undefined
+        if (error instanceof DraftAlreadyDecided) return error.refusal
         throw error
       })
-      if (!createdIds) return { success: false, error: DRAFT_ALREADY_DECIDED }
+      if ('refusal' in createdIds) return paragonRefusalFailure(createdIds)
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
       // Post-response sync after commit — never before, else a rolled-back row would

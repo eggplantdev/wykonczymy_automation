@@ -175,6 +175,8 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
   })
 
   const FILTER = { amountsCents: [AMOUNT_CENTS], documentNumbers: [NUMBER, LEGACY_NUMBER] }
+  // No draft has this id, so nothing is excluded as booked from the probed zgłoszenie.
+  const NO_DRAFT = 0
   const ourTransactionIds = (candidates: CandidateT[]) =>
     candidates.map((c) => c.id).filter((id) => Object.values(tx).includes(id))
 
@@ -189,7 +191,9 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
   })
 
   it('returns a booked receipt by amount, by number, and by „Notatka" line 1 — nothing else', async () => {
-    const ids = ourTransactionIds(await loadTransactionCandidates(db, FILTER))
+    const ids = ourTransactionIds(
+      await loadTransactionCandidates(db, { ...FILTER, excludeDraftId: NO_DRAFT }),
+    )
     expect(ids.sort((a, b) => a - b)).toEqual(
       [tx.byAmount, tx.byNumber, tx.legacyNote].sort((a, b) => a - b),
     )
@@ -248,10 +252,11 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     const candidates = await loadTransactionCandidates(db, {
       amountsCents: [432109],
       documentNumbers: [],
+      excludeDraftId: NO_DRAFT,
     })
-    expect(
-      candidates.filter((c) => c.id === tx.merged).map((c) => [c.key, c.amount]),
-    ).toEqual([[`transaction-${tx.merged}-0`, MERGED]])
+    expect(candidates.filter((c) => c.id === tx.merged).map((c) => [c.key, c.amount])).toEqual([
+      [`transaction-${tx.merged}-0`, MERGED],
+    ])
 
     const { draftId: againId } = await pendingDraftWithRead('again', [
       { amount: MERGED, description: 'Bilet' },
@@ -260,6 +265,34 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     if (!result.success) throw new Error(result.error)
     expect(result.data[0].matches.map((m) => `${m.source}-${m.id}`)).toContain(
       `transaction-${tx.merged}`,
+    )
+  })
+
+  // A booking whose response was lost left these paragony waiting in the dialog; they must not
+  // then flag as duplicates of the transakcje booked from them.
+  it('a paragon booked from the probed zgłoszenie is not its duplicate, booked whole or merged', async () => {
+    const SIBLING = 6182.47
+    const { draftId } = await pendingDraftWithRead('sibling', [
+      { amount: SIBLING, description: 'Farba' },
+      { amount: 5.5, description: 'Bilet' },
+      { amount: 2.25, description: 'Bilet' },
+      { amount: SIBLING, description: 'Farba' },
+    ])
+    await insertTransaction('sibling', { amount: SIBLING })
+    await insertTransaction('siblingMerged', { amount: 7.75 })
+    await db.execute(sql`
+      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
+      VALUES (${tx.sibling}, ${draftId}, '{}', '{0}'), (${tx.siblingMerged}, ${draftId}, '{}', '{1,2}')
+    `)
+    const filter = { amountsCents: [618247, 550], documentNumbers: [] }
+
+    const own = await loadTransactionCandidates(db, { ...filter, excludeDraftId: draftId })
+    expect(own.map((c) => c.id)).not.toContain(tx.sibling)
+    expect(own.map((c) => c.id)).not.toContain(tx.siblingMerged)
+
+    const elsewhere = await loadTransactionCandidates(db, { ...filter, excludeDraftId: NO_DRAFT })
+    expect(elsewhere.map((c) => c.key)).toEqual(
+      expect.arrayContaining([`transaction-${tx.sibling}`, `transaction-${tx.siblingMerged}-1`]),
     )
   })
 })

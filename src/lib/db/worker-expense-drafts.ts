@@ -505,8 +505,11 @@ export async function settleExpenseDraft(
   `)
 }
 
+// `clash` names the read rows someone else decided first; the zgłoszenie itself still waits.
+export type ParagonRefusalT = { refusal: 'not-pending' } | { refusal: 'clash'; readRows: number[] }
+
 /**
- * Books or refuses some paragony of a pending zgłoszenie, then settles it. Refused (`null`) once the
+ * Books or refuses some paragony of a pending zgłoszenie, then settles it. Refused once the
  * zgłoszenie is decided or any of these paragony already is, so two managers can't both book one.
  * Returns the refused paragony as stored, for „cofnij".
  */
@@ -520,7 +523,7 @@ export async function decideExpenseParagons(
     transferReadRows?: number[][]
     skippedReceipts?: SkippedReceiptT[]
   },
-): Promise<RejectedReceiptT[] | null> {
+): Promise<{ rejected: RejectedReceiptT[] } | ParagonRefusalT> {
   const transfers = decision.transferIds.map((id, i) => ({
     id,
     media_ids: decision.transferMediaIds?.[i] ?? [],
@@ -540,14 +543,16 @@ export async function decideExpenseParagons(
     WHERE d.id = ${decision.draftId} AND d.status = 'pending'
     FOR UPDATE
   `)
-  if (locked.rows.length === 0) return null
+  if (locked.rows.length === 0) return { refusal: 'not-pending' }
   const clash = await db.execute(sql`
-    SELECT 1 FROM worker_expense_drafts d
-    WHERE d.id = ${decision.draftId}
-      AND EXISTS (SELECT 1 FROM (${DECIDED_READ_ROWS}) decided(read_row)
-        WHERE decided.read_row = ANY(${asIntArray(requested)}))
+    SELECT decided.read_row FROM worker_expense_drafts d,
+      LATERAL (${DECIDED_READ_ROWS}) decided(read_row)
+    WHERE d.id = ${decision.draftId} AND decided.read_row = ANY(${asIntArray(requested)})
+    ORDER BY 1
   `)
-  if (clash.rows.length > 0) return null
+  if (clash.rows.length > 0) {
+    return { refusal: 'clash', readRows: clash.rows.map((row) => Number(row.read_row)) }
+  }
 
   const ownPages = sql`ARRAY(
     SELECT unnest(r.media_ids) INTERSECT
@@ -578,7 +583,29 @@ export async function decideExpenseParagons(
     FROM skipped
   `)
   await settleExpenseDraft(db, decision.draftId, decision.decidedBy)
-  return toRejectedReceipts(res.rows.map((row) => row.receipt))
+  return { rejected: toRejectedReceipts(res.rows.map((row) => row.receipt)) }
+}
+
+export type ExpenseDraftDecisionsT = Pick<
+  ExpenseDraftRowT,
+  'status' | 'acceptedReadRows' | 'rejectedReceipts'
+>
+
+/** What a „Przyjmij" dialog resyncs to when it can't tell whether its last decision landed. */
+export async function findExpenseDraftDecisions(
+  db: DbExecutorT,
+  draftId: number,
+): Promise<ExpenseDraftDecisionsT | undefined> {
+  const res = await db.execute(sql`
+    SELECT d.status, ${DRAFT_DECISIONS} FROM worker_expense_drafts d WHERE d.id = ${draftId}
+  `)
+  const row = res.rows[0]
+  if (!row) return undefined
+  return {
+    status: row.status as ExpenseDraftStatusT,
+    acceptedReadRows: ((row.booked_read_rows ?? []) as unknown[]).map(Number),
+    rejectedReceipts: toRejectedReceipts(row.rejected_receipts),
+  }
 }
 
 /**

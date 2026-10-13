@@ -46,6 +46,7 @@ export const pl = {
       'Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach. Spróbuj ponownie za kilka minut.',
     accountDisabled: 'To konto jest wyłączone. Skontaktuj się z właścicielem firmy.',
     draftAlreadyDecided: 'To zgłoszenie zostało już rozpatrzone.',
+    paragonsAlreadyDecided: 'Już rozpatrzone paragony: nr {{numbers}}. Lista została odświeżona.',
     payoutAlreadyDecided: 'Ta wypłata została już rozpatrzona albo anulowana — odśwież stronę.',
     payoutReasonTooShort: 'Napisz, czego brakuje — co najmniej kilka znaków.',
     payoutReasonTooLong: 'Powód jest za długi.',

@@ -33,6 +33,7 @@ import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-failure'
+import { paragonRefusalFailure } from '@/lib/worker-expenses/paragon-refusal'
 import type { ActionResultT } from '@/types/action'
 
 const sendDraftSchema = z.object({
@@ -125,7 +126,7 @@ export async function rejectExpenseParagonsAction(
   return protectedAction(
     `rejectExpenseParagonsAction draft=${draftId} receipts=${receipts.length}`,
     async ({ payload, user }) => {
-      const rejected = await withPayloadTransaction(
+      const decided = await withPayloadTransaction(
         payload,
         async (req) =>
           decideExpenseParagons(await getDb(payload, req), {
@@ -136,7 +137,9 @@ export async function rejectExpenseParagonsAction(
           }),
         {},
       )
-      return rejected ? { success: true, data: rejected } : noticeFailure('draftAlreadyDecided')
+      return 'refusal' in decided
+        ? paragonRefusalFailure(decided)
+        : { success: true, data: decided.rejected }
     },
   )
 }
