@@ -6,7 +6,9 @@ import {
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { mergeLineItems } from '@/components/forms/expense-form/merge-line-items'
 import { lineItemForPart, pagesFor, readOf } from '@/components/worker-expenses/draft-prefill'
+import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
+import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import {
   bookedReceipt,
@@ -19,6 +21,27 @@ type DraftReceiptsSourceT = {
   receipts: Map<string, DraftReceiptT[]>
   aiReadRows: ExpenseDraftReadRowT[]
   pagesByMediaId: Map<number, File>
+  acceptedReadRows?: number[]
+  rejectedReceipts?: RejectedReceiptT[]
+}
+
+type DecisionT = Exclude<LineItemStatusT, 'pending'>
+
+// A paragon's refusal names it by its read row, or by its photos when the read never covered it.
+export const isReceiptOf = (receipt: RejectedReceiptT, part: DraftReceiptT) =>
+  receipt.readRow === null
+    ? part.readRow === undefined && receipt.mediaIds.every((id) => part.mediaIds.includes(id))
+    : receipt.readRow === part.readRow
+
+function initialDecisions(source: DraftReceiptsSourceT | undefined) {
+  const decisions = new Map<string, DecisionT>()
+  const accepted = new Set(source?.acceptedReadRows ?? [])
+  for (const [id, [part]] of source?.receipts ?? []) {
+    if (part.readRow !== undefined && accepted.has(part.readRow)) decisions.set(id, 'accepted')
+    else if (source?.rejectedReceipts?.some((receipt) => isReceiptOf(receipt, part)))
+      decisions.set(id, 'rejected')
+  }
+  return decisions
 }
 
 type OptionsT = {
@@ -42,11 +65,13 @@ export function useDraftReceipts({
     () => source?.receipts ?? new Map<string, DraftReceiptT[]>(),
   )
   const [selected, setSelected] = useState(() => new Set<string>())
+  const [decisions, setDecisions] = useState(() => initialDecisions(source))
   // Grows only: a row id is never reused, so a merged-away or split row's id can't match again.
   const [incompleteIds, setIncompleteIds] = useState(() => new Set<string>())
 
   const rowIds = new Set(lineItems.map((item) => item.id))
-  const selectedIds = new Set([...selected].filter((id) => rowIds.has(id)))
+  const pendingIds = new Set([...rowIds].filter((id) => !decisions.has(id)))
+  const selectedIds = new Set([...selected].filter((id) => pendingIds.has(id)))
   const selectedItems = lineItems.filter((item) => selectedIds.has(item.id))
 
   function merge() {
@@ -105,14 +130,35 @@ export function useDraftReceipts({
     )
   }
 
+  function decide(ids: string[], decision: DecisionT) {
+    setDecisions((prev) => new Map([...prev, ...ids.map((id) => [id, decision] as const)]))
+    setSelected((prev) => new Set([...prev].filter((id) => !ids.includes(id))))
+  }
+
+  function undecide(id: string) {
+    setDecisions((prev) => new Map([...prev].filter(([key]) => key !== id)))
+  }
+
   function itemIdOfReadRow(readRow: number): string | undefined {
     return [...receipts].find(
-      ([id, parts]) => rowIds.has(id) && parts.some((part) => part.readRow === readRow),
+      ([id, parts]) => pendingIds.has(id) && parts.some((part) => part.readRow === readRow),
     )?.[0]
   }
 
+  // Counted in read rows, like the list's badge: a merged booking still covers each paragon it took.
+  const countReadRows = (ids: Iterable<string>) =>
+    [...ids].flatMap((id) => receipts.get(id) ?? []).filter((part) => part.readRow !== undefined)
+      .length
+  const idsDecided = (decision: DecisionT) =>
+    [...rowIds].filter((id) => decisions.get(id) === decision)
+  const progress = {
+    accepted: countReadRows(idsDecided('accepted')),
+    rejected: countReadRows(idsDecided('rejected')),
+    pending: countReadRows(pendingIds),
+  }
+
   const grouping: ReceiptGroupingT | undefined = source && {
-    selectableIds: new Set([...rowIds].filter((id) => receipts.has(id))),
+    selectableIds: new Set([...pendingIds].filter((id) => receipts.has(id))),
     selectedIds,
     mergedIds: new Set([...rowIds].filter((id) => (receipts.get(id)?.length ?? 0) > 1)),
     incompleteIds,
@@ -120,7 +166,12 @@ export function useDraftReceipts({
     onToggle: (id) => setSelected((prev) => toggleInSet(prev, id)),
     onMerge: merge,
     onSplit: split,
+    readRowOf: (id) => {
+      const readRows = (receipts.get(id) ?? []).flatMap((part) => part.readRow ?? [])
+      return readRows.length > 0 ? Math.min(...readRows) : undefined
+    },
+    statusOf: (id) => decisions.get(id) ?? 'pending',
   }
 
-  return { receipts, grouping, itemIdOfReadRow }
+  return { receipts, grouping, itemIdOfReadRow, pendingIds, progress, decide, undecide }
 }

@@ -133,9 +133,7 @@ describe('ExpenseDraftDuplicateHints', () => {
     )
     expect(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })).toHaveLength(2)
 
-    await userEvent
-      .setup()
-      .click(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })[0])
+    await userEvent.setup().click(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })[0])
 
     expect(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })).toHaveLength(1)
   })
@@ -144,10 +142,7 @@ describe('ExpenseDraftDuplicateHints', () => {
     [{ status: 'reading' }, 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.'],
     [{ status: 'checking' }, 'Sprawdzanie duplikatów…'],
     [{ status: 'no-read' }, 'Bez odczytu paragonów nie da się sprawdzić duplikatów.'],
-    [
-      { status: 'error', message: 'Nie udało się sprawdzić duplikatów' },
-      'Nie udało się sprawdzić duplikatów',
-    ],
+    [{ status: 'error', retry: vi.fn() }, 'Nie udało się sprawdzić duplikatów.'],
   ])('shows the %o notice and offers no „Duplikat"', (state, notice) => {
     render(
       <ExpenseDraftDuplicateHints

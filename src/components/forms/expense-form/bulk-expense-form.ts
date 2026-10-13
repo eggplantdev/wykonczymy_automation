@@ -1,3 +1,4 @@
+import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
 import { formOptions } from '@tanstack/react-form'
 import type { FormApiOfT } from '@/components/forms/hooks/form-api-of'
 import { randomId } from '@/lib/utils/random-id'
@@ -40,6 +41,12 @@ export type ReceiptGroupingT = {
   onToggle: (id: string) => void
   onMerge: () => void
   onSplit: (id: string) => void
+  // Set when each paragon is booked or refused on its own.
+  onDecide?: (ids: string[], decision: 'accept' | 'reject') => void
+  // The paragon's place in the worker's photos, so the rows keep the worker's order.
+  readRowOf: (id: string) => number | undefined
+  statusOf: (id: string) => LineItemStatusT
+  undoFor?: (id: string) => (() => void) | undefined
 }
 
 // A fresh row with a stable client-side `id` that keys its out-of-form state (invoice file,

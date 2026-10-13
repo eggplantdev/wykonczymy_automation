@@ -5,6 +5,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
+import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
 import { useTranslation } from '@/hooks/use-translation'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
@@ -121,7 +122,14 @@ export function useExpenseDraftColumns({
       cell: (info) => <span className="break-words">{info.getValue() ?? '—'}</span>,
     }),
     ...(isPendingQueue
-      ? []
+      ? [
+          col.display({
+            id: 'progress',
+            header: 'Paragony',
+            cell: ({ row: { original: draft } }) =>
+              draft.progress ? <DraftProgressBadge progress={draft.progress} /> : '—',
+          }),
+        ]
       : [
           col.accessor('status', {
             header: t('status'),
@@ -129,6 +137,9 @@ export function useExpenseDraftColumns({
             cell: ({ row: { original: draft } }) => (
               <span className="flex flex-wrap items-center gap-2">
                 <DraftStatusBadge status={draft.status} />
+                {draft.status === 'pending' && draft.progress && (
+                  <DraftProgressBadge progress={draft.progress} />
+                )}
                 {/* The worker sees only „Odrzucone". */}
                 {isManagerView && draft.duplicateOf && (
                   <span className="text-destructive text-xs whitespace-nowrap">

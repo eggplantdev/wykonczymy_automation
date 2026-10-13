@@ -63,7 +63,8 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, canOpenTransfers }: 
     canOpenTransfers,
     actions: hasActions
       ? (draft) =>
-          draft.status === 'pending' && (
+          draft.status === 'pending' &&
+          !draft.progress?.accepted && (
             <DeleteExpenseDraftButton
               draftId={draft.id}
               investmentName={draft.investmentName ?? t('noInvestment')}
