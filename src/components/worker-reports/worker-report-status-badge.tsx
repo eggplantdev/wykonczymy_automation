@@ -1,4 +1,5 @@
 import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
+import { DecisionProgressBadge } from '@/components/ui/decision-progress-badge'
 import { useTranslation } from '@/hooks/use-translation'
 import {
   REPORT_STATUS_LABEL_KEYS,
@@ -13,6 +14,12 @@ type PropsT = {
   rejectedLineCount: number
 }
 
+const STATUS_TONE: Record<ReportStatusT, string> = {
+  pending: BADGE_TONE.pending,
+  accepted: BADGE_TONE.positive,
+  rejected: BADGE_TONE.muted,
+}
+
 export function WorkerReportStatusBadge({
   status,
   lineCount,
@@ -20,28 +27,20 @@ export function WorkerReportStatusBadge({
   rejectedLineCount,
 }: PropsT) {
   const { t } = useTranslation('workerReports')
-  if (status === 'pending') {
-    const decided = acceptedLineCount + rejectedLineCount
+  // A report with no lines has nothing to count, so it reads as its status.
+  const pending = status === 'pending' ? lineCount - acceptedLineCount - rejectedLineCount : 0
+  if (acceptedLineCount + rejectedLineCount + pending > 0) {
     return (
-      <span className={cn(BADGE_BASE, BADGE_TONE.pending)}>
-        {decided === 0
-          ? t(REPORT_STATUS_LABEL_KEYS.pending)
-          : t('pendingProgress', { decided, total: lineCount })}
-      </span>
-    )
-  }
-  if (status === 'rejected') {
-    return (
-      <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>
-        {t(REPORT_STATUS_LABEL_KEYS.rejected)}
-      </span>
+      <DecisionProgressBadge
+        accepted={acceptedLineCount}
+        rejected={rejectedLineCount}
+        pending={pending}
+      />
     )
   }
   return (
-    <span className={cn(BADGE_BASE, BADGE_TONE.positive)}>
-      {acceptedLineCount === lineCount
-        ? t(REPORT_STATUS_LABEL_KEYS.accepted)
-        : t('acceptedPartial', { accepted: acceptedLineCount, total: lineCount })}
+    <span className={cn(BADGE_BASE, STATUS_TONE[status])}>
+      {t(REPORT_STATUS_LABEL_KEYS[status])}
     </span>
   )
 }

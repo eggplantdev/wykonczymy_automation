@@ -37,10 +37,8 @@ import {
   type BulkLineItemT,
   type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import {
-  CollapsibleLineItem,
-  type LineItemStatusT,
-} from '@/components/forms/form-fields/collapsible-line-item'
+import { CollapsibleLineItem } from '@/components/forms/form-fields/collapsible-line-item'
+import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
 
@@ -99,7 +97,7 @@ type LineItemsFieldPropsT = {
   failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
   receiptGrouping?: ReceiptGroupingT
-  hiddenStatuses?: ReadonlySet<LineItemStatusT>
+  hiddenStatuses?: ReadonlySet<DecisionStatusT>
 }
 
 const rowTitle = (item: BulkLineItemT) =>

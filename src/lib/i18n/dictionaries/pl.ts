@@ -11,6 +11,9 @@ import {
 // categories — and `other` is the fraction form, which Polish and the crew languages all have.
 export const pl = {
   common: {
+    decisionAccepted: 'Przyjęte',
+    decisionRejected: 'Odrzucone',
+    decisionPending: 'Do sprawdzenia',
     close: 'Zamknij',
     cancel: 'Anuluj',
     delete: 'Usuń',
@@ -184,9 +187,6 @@ export const pl = {
     delete: 'Usuń',
     deletedToast: 'Wydatek usunięty',
     tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
-    progressAccepted: 'Przyjęte',
-    progressRejected: 'Odrzucone',
-    progressPending: 'Do sprawdzenia',
     receipts: 'Paragony',
     queueTitle: 'Wydatki zgłoszone przez pracowników',
     mergeHint:
@@ -215,8 +215,6 @@ export const pl = {
     statusPending: 'Do sprawdzenia',
     statusAccepted: 'Przyjęte',
     statusRejected: 'Odrzucone',
-    pendingProgress: 'Do sprawdzenia · {{decided}} z {{total}}',
-    acceptedPartial: 'Przyjęte {{accepted}} z {{total}}',
     works: 'Prace',
     source: 'Źródło',
     sourceLink: 'z linku',

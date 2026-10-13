@@ -512,16 +512,16 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 3.1 Unit specs for the extracted functions pass
-- [x] 3.2 `expense-form-merge.test.tsx` passes after the split
-- [x] 3.3 DOM spec: a refused decision triggers the resync
+- [x] 3.1 Unit specs for the extracted functions pass — eb5f38015
+- [x] 3.2 `expense-form-merge.test.tsx` passes after the split — eb5f38015
+- [x] 3.3 DOM spec: a refused decision triggers the resync — eb5f38015
 
 ### Phase 4: Shared badge
 
 #### Automated
 
-- [ ] 4.1 DOM spec for the badge passes
-- [ ] 4.2 Existing work-report and expense-draft table specs pass
+- [x] 4.1 DOM spec for the badge passes
+- [x] 4.2 Existing work-report and expense-draft table specs pass
 
 ### Phase 5: „Zgłoszenia wydatków” page
 

@@ -6,7 +6,7 @@ import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { SelectPageHeader, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
-import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
+import { DecisionProgressBadge } from '@/components/ui/decision-progress-badge'
 import { useTranslation } from '@/hooks/use-translation'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
@@ -155,7 +155,7 @@ export function useExpenseDraftColumns({
             id: 'progress',
             header: t('receipts'),
             cell: ({ row: { original: draft } }) =>
-              draft.progress ? <DraftProgressBadge progress={draft.progress} /> : '—',
+              draft.progress ? <DecisionProgressBadge {...draft.progress} /> : '—',
           }),
         ]
       : [
@@ -164,8 +164,8 @@ export function useExpenseDraftColumns({
             enableSorting: sortable('status'),
             cell: ({ row: { original: draft } }) => (
               <span className="flex flex-wrap items-center gap-2">
-                {draft.status === 'pending' && draft.progress ? (
-                  <DraftProgressBadge progress={draft.progress} />
+                {draft.progress ? (
+                  <DecisionProgressBadge {...draft.progress} />
                 ) : (
                   <DraftStatusBadge status={draft.status} />
                 )}

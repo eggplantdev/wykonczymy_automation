@@ -4950,3 +4950,6 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] „Przyjmij” przy wyłączonej sieci (DevTools → Offline) → po włączeniu sieci i ponownym otwarciu zgłoszenia paragon nie jest przyjęty dwa razy; okno pokazuje to, co naprawdę zapisano.
 - [ ] Paragon bez kwoty → „Przyjmij”: przy polu „Kwota” tego paragonu pojawia się błąd, paragon zostaje na liście, inne paragony bez zmian.
 - [ ] Zwykłe „Dodaj wydatek” (bez zgłoszenia) → zapis działa jak dotąd; akcje zaznaczenia pojawiają się dopiero przy więcej niż jednej pozycji.
+- [ ] Raport prac z częścią pozycji przyjętą i częścią czekającą → licznik „Przyjęte X · Do sprawdzenia Z” na liście raportów, w podglądzie i w nagłówku sprawdzania.
+- [ ] W pełni przyjęty raport prac i w pełni odrzucone zgłoszenie wydatków w historii → pokazują liczniki, nie pusty znaczek.
+- [ ] Konto z językiem Українська → etykiety licznika są po ukraińsku.

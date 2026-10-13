@@ -4,11 +4,10 @@ import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
+import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { cn } from '@/lib/utils/cn'
 
-export type LineItemStatusT = 'pending' | 'accepted' | 'rejected'
-
-const STATUS: Record<LineItemStatusT, { label: string; tone: string }> = {
+const STATUS: Record<DecisionStatusT, { label: string; tone: string }> = {
   pending: { label: 'Do sprawdzenia', tone: BADGE_TONE.pending },
   accepted: { label: 'Przyjęty', tone: BADGE_TONE.positive },
   rejected: { label: 'Odrzucony', tone: BADGE_TONE.negative },
@@ -16,7 +15,7 @@ const STATUS: Record<LineItemStatusT, { label: string; tone: string }> = {
 
 type CollapsibleLineItemPropsT = {
   title: string
-  status: LineItemStatusT
+  status: DecisionStatusT
   defaultOpen: boolean
   // Beside the trigger, not in it: a checkbox or button nested in the trigger button is invalid markup.
   leading?: React.ReactNode

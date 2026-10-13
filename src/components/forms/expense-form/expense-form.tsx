@@ -70,7 +70,7 @@ import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/recei
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
-import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
+import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -129,7 +129,7 @@ export function ExpenseForm({
   // With an AI read, each paragon is booked or refused by its own button; without one, the
   // zgłoszenie is booked whole by „Zapisz".
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
-  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<LineItemStatusT>>(
+  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<DecisionStatusT>>(
     () => new Set(['accepted', 'rejected']),
   )
   const { recoveredFiles, submit } = useFormSubmit(formId)

@@ -5,18 +5,20 @@ import type {
   ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
-import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
 import { Description } from '@/components/ui/description'
+import {
+  DecisionProgressBadge,
+  type DecisionStatusT,
+} from '@/components/ui/decision-progress-badge'
 import { Label } from '@/components/ui/label'
-import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
 import type { DraftProgressT } from '@/lib/db/worker-expense-drafts'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
 type ParagonFooterPropsT = {
   progress: DraftProgressT
-  hiddenStatuses: ReadonlySet<LineItemStatusT>
-  onHiddenStatusesChange: (statuses: ReadonlySet<LineItemStatusT>) => void
+  hiddenStatuses: ReadonlySet<DecisionStatusT>
+  onHiddenStatusesChange: (statuses: ReadonlySet<DecisionStatusT>) => void
   grouping: ReceiptGroupingT
   lineItems: BulkLineItemT[]
 }
@@ -35,8 +37,8 @@ export function ParagonFooter({
   return (
     <div className="bg-background sticky -bottom-4 z-10 -mx-4 mt-6 -mb-4 flex flex-wrap items-center gap-2 px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6">
       <div className="space-y-2">
-        <DraftProgressBadge
-          progress={progress}
+        <DecisionProgressBadge
+          {...progress}
           hidden={hiddenStatuses}
           onToggle={(status) => onHiddenStatusesChange(toggleInSet(hiddenStatuses, status))}
         />

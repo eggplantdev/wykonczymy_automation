@@ -10,6 +10,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
 import { AddLineToRozpiska } from '@/components/kosztorys/editor/dialogs/worker-reports/add-line-to-rozpiska'
 import {
   buildAccept,
@@ -273,7 +274,10 @@ export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
     <div className="worker-report flex min-h-0 flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold">{report.workerName}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-semibold">{report.workerName}</h3>
+            <WorkerReportStatusBadge {...report} />
+          </div>
           <p className="text-muted-foreground text-xs">
             {report.source === 'scan'
               ? `Wczytane z kartki${report.createdByName ? ` przez ${report.createdByName}` : ''} ${formatPLDateTime(report.sentAt)}`

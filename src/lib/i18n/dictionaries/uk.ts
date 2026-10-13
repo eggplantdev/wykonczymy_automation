@@ -2,6 +2,9 @@ import type { TranslationsT } from '@/lib/i18n/translations'
 
 export const uk: TranslationsT = {
   common: {
+    decisionAccepted: 'Прийнято',
+    decisionRejected: 'Відхилено',
+    decisionPending: 'На перевірці',
     close: 'Закрити',
     cancel: 'Скасувати',
     delete: 'Видалити',
@@ -176,9 +179,6 @@ export const uk: TranslationsT = {
     delete: 'Видалити',
     deletedToast: 'Витрату видалено',
     tooManyPhotos: 'Не більше {{max}} фото в одній витраті — решту надішліть окремо.',
-    progressAccepted: 'Прийнято',
-    progressRejected: 'Відхилено',
-    progressPending: 'На перевірці',
     receipts: 'Чеки',
     queueTitle: 'Витрати, подані працівниками',
     mergeHint:
@@ -207,8 +207,6 @@ export const uk: TranslationsT = {
     statusPending: 'На перевірці',
     statusAccepted: 'Прийнято',
     statusRejected: 'Відхилено',
-    pendingProgress: 'На перевірці · {{decided}} з {{total}}',
-    acceptedPartial: 'Прийнято {{accepted}} з {{total}}',
     works: 'Роботи',
     source: 'Джерело',
     sourceLink: 'з посилання',
