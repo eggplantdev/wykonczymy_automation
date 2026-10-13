@@ -43,7 +43,6 @@ type PropsT = {
   onToggleAll: (visible: boolean) => void
   order?: ColumnOrderT
   sections?: ReactNode
-  // Rendered after the column list — controls that refine it rather than precede it.
   footer?: ReactNode
   hint?: ReactNode
   // Overrides the derived count where „hidden" and „off screen" come apart — the kosztorys grid
@@ -116,9 +115,10 @@ export function ColumnToggleMenu({
                   {items.length > COLUMN_SEARCH_THRESHOLD && (
                     <CommandInput placeholder={t('searchColumn')} className="h-8" />
                   )}
-                  {/* One scroll for the whole menu — the dropdown already caps at the viewport, and
-                      a nested 300px pane buries whatever follows the list. */}
-                  <CommandList className="max-h-none overflow-visible">
+                  {/* With a footer, one scroll for the whole menu — the dropdown already caps at the
+                      viewport, and a nested 300px pane buries whatever follows the list. Without one,
+                      the pane keeps the search box in view. */}
+                  <CommandList className={footer ? 'max-h-none overflow-visible' : undefined}>
                     {/* forceMount keeps the show/hide-all action visible under any search. */}
                     <CommandItem forceMount onSelect={() => onToggleAll(!allVisible)}>
                       <CheckCheck />

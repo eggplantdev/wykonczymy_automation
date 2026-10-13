@@ -463,12 +463,14 @@
   padding: 0 0.5rem 0 0.25rem;
   background: inherit;
   color: var(--color-muted-foreground);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  font-size: var(--text-sm);
+  /* Fixed, not `--text-sm--line-height`: that token is a ratio, and under `--text-xs` it would no
+     longer match the cell's 20px line (`text-xs/5`). */
+  line-height: calc(var(--spacing) * 5);
   pointer-events: none;
 
   @variant max-sm {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 }
 
