@@ -696,6 +696,71 @@ export async function restoreSkippedReceipt(
   return row ? Number(row.id) : null
 }
 
+export type MergeRefusalT = 'not-pending' | 'mixed' | 'decided' | 'unread'
+
+/**
+ * Folds several pending zgłoszenia of one worker into the oldest, as if he had sent them as one:
+ * its read becomes theirs chained in send order, so every paragon stays a read row of the result.
+ * Refused once anything inside is decided — a decision names its read row by position, which the
+ * chaining shifts — or while one has no read, whose photos would be paragony nothing tracks.
+ */
+export async function mergeExpenseDrafts(
+  db: DbExecutorT,
+  draftIds: number[],
+): Promise<{ draftId: number } | { refusal: MergeRefusalT }> {
+  const locked = await db.execute(sql`
+    SELECT d.id, d.worker_id, d.investment_id, d.cash_register_id, d.note, d.status,
+      jsonb_typeof(d.ai_read -> 'rows') = 'array' AS has_read,
+      EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+        OR EXISTS (SELECT 1 FROM worker_expense_draft_skipped_receipts sr WHERE sr.draft_id = d.id)
+        AS has_decisions
+    FROM worker_expense_drafts d
+    WHERE d.id IN (${sqlList(draftIds)})
+    ORDER BY d.sent_at, d.id
+    FOR UPDATE
+  `)
+  const rows = locked.rows
+  if (rows.length !== draftIds.length || rows.some((row) => row.status !== 'pending')) {
+    return { refusal: 'not-pending' }
+  }
+  const [target] = rows
+  const sameParties = rows.every(
+    (row) =>
+      row.worker_id === target.worker_id &&
+      row.investment_id === target.investment_id &&
+      row.cash_register_id === target.cash_register_id,
+  )
+  if (!sameParties) return { refusal: 'mixed' }
+  if (rows.some((row) => row.has_decisions === true)) return { refusal: 'decided' }
+  if (rows.some((row) => row.has_read !== true)) return { refusal: 'unread' }
+
+  const targetId = Number(target.id)
+  const mergedIds = rows.slice(1).map((row) => Number(row.id))
+  const note = rows.flatMap((row) => (row.note ? [text(row.note)] : [])).join('\n') || null
+  await db.execute(sql`
+    WITH ordered AS (
+      SELECT d.id, ord FROM unnest(${asIntArray([targetId, ...mergedIds])}) WITH ORDINALITY AS o(id, ord)
+      JOIN worker_expense_drafts d ON d.id = o.id
+    ), pages AS (
+      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+      SELECT ${targetId}, dm.media_id,
+        (SELECT max(position) FROM worker_expense_draft_media WHERE draft_id = ${targetId})
+          + row_number() OVER (ORDER BY ordered.ord, dm.position)
+      FROM ordered JOIN worker_expense_draft_media dm ON dm.draft_id = ordered.id
+      WHERE ordered.id <> ${targetId}
+      ON CONFLICT DO NOTHING
+    )
+    UPDATE worker_expense_drafts SET note = ${note}, ai_read = jsonb_build_object('rows', (
+      SELECT jsonb_agg(r.row ORDER BY ordered.ord, r.idx)
+      FROM ordered JOIN worker_expense_drafts d ON d.id = ordered.id,
+        jsonb_array_elements(d.ai_read -> 'rows') WITH ORDINALITY AS r(row, idx)
+    ))
+    WHERE id = ${targetId}
+  `)
+  await db.execute(sql`DELETE FROM worker_expense_drafts WHERE id IN (${sqlList(mergedIds)})`)
+  return { draftId: targetId }
+}
+
 export async function loadExpenseDraftForRead(
   db: DbExecutorT,
   draftId: number,

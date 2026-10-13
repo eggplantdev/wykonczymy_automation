@@ -14,7 +14,9 @@ import {
   decideExpenseParagons,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
+  mergeExpenseDrafts,
   rejectPendingParagons,
+  type MergeRefusalT,
   reopenSkippedReceipt,
   restoreRejectedExpenseDraft,
   restoreSkippedReceipt,
@@ -100,12 +102,16 @@ export async function rejectExpenseDraftAction(
   if (!parsedDuplicateOf.success) return parsedDuplicateOf
   return protectedAction(`rejectExpenseDraftAction draft=${draftId}`, async ({ payload, user }) => {
     const decision = { draftId, decidedBy: user.id, duplicateOf: parsedDuplicateOf.data }
-    const outcome = await withPayloadTransaction(payload, async (req) => {
-      const db = await getDb(payload, req)
-      const paragons = await rejectPendingParagons(db, decision)
-      if (paragons !== 'no-read') return paragons === 'done'
-      return decideExpenseDraft(db, { ...decision, status: 'rejected', transferIds: [] })
-    }, {})
+    const outcome = await withPayloadTransaction(
+      payload,
+      async (req) => {
+        const db = await getDb(payload, req)
+        const paragons = await rejectPendingParagons(db, decision)
+        if (paragons !== 'no-read') return paragons === 'done'
+        return decideExpenseDraft(db, { ...decision, status: 'rejected', transferIds: [] })
+      },
+      {},
+    )
     return outcome ? { success: true } : noticeFailure('draftAlreadyDecided')
   })
 }
@@ -119,16 +125,48 @@ export async function rejectExpenseParagonsAction(
   return protectedAction(
     `rejectExpenseParagonsAction draft=${draftId} receipts=${receipts.length}`,
     async ({ payload, user }) => {
-      const rejected = await withPayloadTransaction(payload, async (req) =>
-        decideExpenseParagons(await getDb(payload, req), {
-          draftId,
-          decidedBy: user.id,
-          transferIds: [],
-          skippedReceipts: parsed.data,
-        }),
+      const rejected = await withPayloadTransaction(
+        payload,
+        async (req) =>
+          decideExpenseParagons(await getDb(payload, req), {
+            draftId,
+            decidedBy: user.id,
+            transferIds: [],
+            skippedReceipts: parsed.data,
+          }),
         {},
       )
       return rejected ? { success: true, data: rejected } : noticeFailure('draftAlreadyDecided')
+    },
+  )
+}
+
+const MERGE_REFUSALS: Record<MergeRefusalT, NoticeKeyT> = {
+  'not-pending': 'mergeNotPending',
+  mixed: 'mergeMixed',
+  decided: 'mergeDecided',
+  unread: 'mergeUnread',
+}
+
+export async function mergeExpenseDraftsAction(
+  draftIds: number[],
+): Promise<ActionResultT<{ draftId: number }>> {
+  const parsed = validateAction(z.array(z.number().int().positive()).min(2), [...new Set(draftIds)])
+  if (!parsed.success) return parsed
+  return protectedAction(
+    `mergeExpenseDraftsAction drafts=${parsed.data.length}`,
+    async ({ payload }) => {
+      const db = await getDb(payload)
+      // Before the lock: a read is a model call per photo, and one without a read can't be merged.
+      for (const draftId of parsed.data) await readExpenseDraftReceipts(db, draftId)
+      const merged = await withPayloadTransaction(
+        payload,
+        async (req) => mergeExpenseDrafts(await getDb(payload, req), parsed.data),
+        {},
+      )
+      return 'refusal' in merged
+        ? noticeFailure(MERGE_REFUSALS[merged.refusal])
+        : { success: true, data: merged }
     },
   )
 }

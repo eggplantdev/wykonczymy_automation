@@ -93,7 +93,8 @@ export function useDraftReceipts({
     ])
     setReceipts((prev) => mergeParts(prev, mergedAwayIds, merged.id))
     if (isIncomplete) setIncompleteIds((prev) => new Set(prev).add(merged.id))
-    setSelected(new Set())
+    // Kept selected, so the merged paragon is the one the footer's actions and sum now name.
+    setSelected(new Set([merged.id]))
   }
 
   // Rebuilt from the stored read, not from the merged row: what the manager typed into it is lost.

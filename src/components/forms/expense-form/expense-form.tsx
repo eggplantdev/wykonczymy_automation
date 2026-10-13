@@ -10,6 +10,9 @@ import { isReceiptOf, useDraftReceipts } from '@/components/forms/expense-form/u
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Label } from '@/components/ui/label'
+import { Description } from '@/components/ui/description'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { missingInvoiceConfirm } from '@/lib/transfers/missing-invoice-confirm'
 import { useRegisterBalance } from '@/components/forms/hooks/use-register-balance'
 import { useInvestmentFromUrl } from '@/components/forms/hooks/use-investment-from-url'
@@ -80,6 +83,7 @@ import {
 } from '@/lib/actions/worker-expense-drafts'
 import { settleAction } from '@/lib/utils/settle-action'
 import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
+import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
 import { cn } from '@/lib/utils/cn'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 
@@ -141,6 +145,9 @@ export function ExpenseForm({
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
   const [rejected, setRejected] = useState(() => prefill?.rejectedReceipts ?? [])
   const [isDeciding, setIsDeciding] = useState(false)
+  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<LineItemStatusT>>(
+    () => new Set(['accepted', 'rejected']),
+  )
   const { recoveredFiles, submit } = useFormSubmit(formId)
   const { ask, dialogProps: missingInvoiceDialog } = useSubmitConfirm()
   // Rides on the acceptance decision; nothing is stored until the save.
@@ -441,9 +448,13 @@ export function ExpenseForm({
     },
   }
   // Booked and refused rows stay on screen; only what is still waiting adds up.
-  const total = lineItems
-    .filter((item) => !isParagonMode || draftReceipts.pendingIds.has(item.id))
-    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const sumAmounts = (items: typeof lineItems) =>
+    items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const total = sumAmounts(
+    lineItems.filter((item) => !isParagonMode || draftReceipts.pendingIds.has(item.id)),
+  )
+  const selectedIds = receiptGrouping?.selectedIds ?? new Set<string>()
+  const selectedTotal = sumAmounts(lineItems.filter((item) => selectedIds.has(item.id)))
 
   function markDuplicate(itemId: string, duplicateOf: DuplicateOfT) {
     const index = lineItems.findIndex((item) => item.id === itemId)
@@ -578,7 +589,7 @@ export function ExpenseForm({
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              total={total}
+              total={isParagonMode ? undefined : total}
               hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
               onRemoveLastItem={onRemoveLastItem}
@@ -593,6 +604,7 @@ export function ExpenseForm({
               ingestingIds={ingestingIds}
               failedIds={failedIds}
               receiptGrouping={receiptGrouping}
+              hiddenStatuses={isParagonMode ? hiddenStatuses : undefined}
               generationProgress={generationProgress}
               transferType={currentType}
               referenceData={referenceData}
@@ -612,15 +624,35 @@ export function ExpenseForm({
         className={cn(
           'mt-6',
           isParagonMode &&
-            'bg-background sticky -bottom-4 z-10 -mx-4 space-y-3 border-t px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:px-6 sm:pb-6',
+            'bg-background sticky -bottom-4 z-10 -mx-4 -mb-4 space-y-3 px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6',
         )}
       >
         {isParagonMode && prefill && (
           <div className="flex flex-wrap items-center gap-2">
-            <DraftProgressBadge progress={draftReceipts.progress} />
-            {receiptGrouping && (
-              <ReceiptSelectionActions grouping={receiptGrouping} className="ml-auto" />
-            )}
+            <div className="space-y-2">
+              <DraftProgressBadge
+                progress={draftReceipts.progress}
+                hidden={hiddenStatuses}
+                onToggle={(status) =>
+                  setHiddenStatuses((prev) => {
+                    const next = new Set(prev)
+                    if (!next.delete(status)) next.add(status)
+                    return next
+                  })
+                }
+              />
+              <Description size="xs">
+                Kliknij etykietę, aby ukryć lub pokazać te paragony.
+              </Description>
+            </div>
+            <div className="ml-auto flex flex-col items-end gap-2">
+              {selectedIds.size > 0 && (
+                <Label>
+                  Suma zaznaczonych ({selectedIds.size}): {formatPLN(selectedTotal)}
+                </Label>
+              )}
+              {receiptGrouping && <ReceiptSelectionActions grouping={receiptGrouping} />}
+            </div>
           </div>
         )}
         {!isParagonMode && (

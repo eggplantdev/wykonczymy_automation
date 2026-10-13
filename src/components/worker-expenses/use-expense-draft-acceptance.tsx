@@ -197,7 +197,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
           formId={formIdOf(accepting.draft.id)}
           trigger={null}
           showKeepOpen={false}
-          title="Nowy wydatek"
+          title={`Zgłoszenie wydatków · ${accepting.draft.workerName}`}
           description={accepting.draft.note ?? undefined}
           className="sm:max-w-dialog-2xl"
         >

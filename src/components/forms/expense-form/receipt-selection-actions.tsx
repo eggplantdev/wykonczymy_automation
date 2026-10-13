@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import type { ReceiptGroupingT } from '@/components/forms/expense-form/bulk-expense-form'
 import { cn } from '@/lib/utils/cn'
 
@@ -13,7 +14,8 @@ export function ReceiptSelectionActions({
   const ids = [...selectedIds]
 
   return (
-    <div className={cn('flex flex-wrap justify-end gap-2', className)}>
+    <div className={cn('flex flex-wrap items-center justify-end gap-2', className)}>
+      {disabled && <GradientSpinner />}
       {onDecide && (
         <>
           <Button
@@ -22,7 +24,7 @@ export function ReceiptSelectionActions({
             disabled={ids.length === 0 || disabled}
             onClick={() => onDecide(ids, 'accept')}
           >
-            Przyjmij zaznaczone ({ids.length})
+            Przyjmij zaznaczone
           </Button>
           <Button
             type="button"
@@ -31,7 +33,7 @@ export function ReceiptSelectionActions({
             disabled={ids.length === 0 || disabled}
             onClick={() => onDecide(ids, 'reject')}
           >
-            Odrzuć zaznaczone ({ids.length})
+            Odrzuć zaznaczone
           </Button>
         </>
       )}
@@ -43,7 +45,7 @@ export function ReceiptSelectionActions({
           disabled={ids.length < 2 || disabled}
           onClick={grouping.onMerge}
         >
-          Połącz zaznaczone ({ids.length})
+          Połącz zaznaczone w 1 transakcję
         </Button>
       )}
     </div>

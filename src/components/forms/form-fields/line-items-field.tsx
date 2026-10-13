@@ -37,7 +37,10 @@ import {
   type BulkLineItemT,
   type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import { CollapsibleLineItem } from '@/components/forms/form-fields/collapsible-line-item'
+import {
+  CollapsibleLineItem,
+  type LineItemStatusT,
+} from '@/components/forms/form-fields/collapsible-line-item'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 
 // Structural on purpose — name only the members we call, since the full FieldApi generic is
@@ -74,7 +77,8 @@ type LineItemsFieldPropsT = {
   transferType: string
   referenceData: ReferenceDataBaseT
   defaultExpenseCategory?: string
-  total: number
+  // Left out when the caller shows the sum itself.
+  total?: number
   hasInvestment?: boolean
   onRemoveItem: (id: string, index: number, removeValue: (index: number) => void) => void
   // Without it the last row's trash is disabled: an expense needs at least one row.
@@ -94,6 +98,7 @@ type LineItemsFieldPropsT = {
   failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
   receiptGrouping?: ReceiptGroupingT
+  hiddenStatuses?: ReadonlySet<LineItemStatusT>
 }
 
 type EntryT = { item: BulkLineItemT; index: number }
@@ -198,6 +203,7 @@ export function LineItemsField({
   failedIds,
   generationProgress,
   receiptGrouping,
+  hiddenStatuses,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
@@ -287,7 +293,12 @@ export function LineItemsField({
   return (
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: LineItemsArrayFieldT) => {
+        // Numbered before filtering, so a paragon keeps its number whatever is hidden around it.
         const entries = orderedEntries(lineItemsField.state.value, receiptGrouping)
+          .map((entry, position) => ({ ...entry, position }))
+          .filter(
+            (entry) => !hiddenStatuses?.has(receiptGrouping?.statusOf(entry.item.id) ?? 'pending'),
+          )
 
         const selectCheckbox = (id: string, position: number, className?: string) =>
           receiptGrouping?.selectableIds.has(id) && (
@@ -369,25 +380,27 @@ export function LineItemsField({
           shows the loader in its slot and queued rows keep it disabled — removing a
           row mid-generation shifts the array under in-flight extraction tasks (captured
           index), landing a result on the wrong row. */}
-              <div className="mt-6 flex size-9 shrink-0 items-center justify-center">
-                {generatingIds?.has(item.id) || ingestingIds?.has(item.id) ? (
-                  <GradientSpinner />
-                ) : receiptGrouping?.onDecide ? null : (
-                  <RemoveButton
-                    icon={Trash2}
-                    onClick={() =>
-                      lineItemsField.state.value.length === 1
-                        ? onRemoveLastItem?.()
-                        : onRemoveItem(item.id, index, lineItemsField.removeValue)
-                    }
-                    disabled={
-                      isGenerating ||
-                      isIngesting ||
-                      (lineItemsField.state.value.length === 1 && !onRemoveLastItem)
-                    }
-                  />
-                )}
-              </div>
+              {(generatingIds?.has(item.id) || ingestingIds?.has(item.id) || !isDecideMode) && (
+                <div className="mt-6 flex size-9 shrink-0 items-center justify-center">
+                  {generatingIds?.has(item.id) || ingestingIds?.has(item.id) ? (
+                    <GradientSpinner />
+                  ) : (
+                    <RemoveButton
+                      icon={Trash2}
+                      onClick={() =>
+                        lineItemsField.state.value.length === 1
+                          ? onRemoveLastItem?.()
+                          : onRemoveItem(item.id, index, lineItemsField.removeValue)
+                      }
+                      disabled={
+                        isGenerating ||
+                        isIngesting ||
+                        (lineItemsField.state.value.length === 1 && !onRemoveLastItem)
+                      }
+                    />
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
               {secondRowSelects.map((config) => (
@@ -461,29 +474,32 @@ export function LineItemsField({
                 />
               )}
             </form.AppField>
-            {receiptGrouping?.onDecide && receiptGrouping.selectableIds.has(item.id) && (
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={receiptGrouping.disabled}
-                  onClick={() => receiptGrouping.onDecide?.([item.id], 'accept')}
-                >
-                  Przyjmij
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  disabled={receiptGrouping.disabled}
-                  onClick={() => receiptGrouping.onDecide?.([item.id], 'reject')}
-                >
-                  Odrzuć
-                </Button>
-              </div>
-            )}
           </div>
         )
+
+        const decideActions = (itemId: string) =>
+          receiptGrouping?.onDecide &&
+          receiptGrouping.selectableIds.has(itemId) && (
+            <div className="flex shrink-0 gap-2">
+              <Button
+                type="button"
+                size="sm"
+                disabled={receiptGrouping.disabled}
+                onClick={() => receiptGrouping.onDecide?.([itemId], 'accept')}
+              >
+                Przyjmij
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={receiptGrouping.disabled}
+                onClick={() => receiptGrouping.onDecide?.([itemId], 'reject')}
+              >
+                Odrzuć
+              </Button>
+            </div>
+          )
 
         return (
           <div className="space-y-4">
@@ -492,7 +508,8 @@ export function LineItemsField({
               <ReceiptSelectionActions grouping={receiptGrouping} />
             )}
             <div className="space-y-6">
-              {entries.map((entry, position) => {
+              {entries.map((entry, visibleIndex) => {
+                const { position } = entry
                 const status = receiptGrouping?.statusOf(entry.item.id) ?? 'pending'
                 const undo = status === 'rejected' && receiptGrouping?.undoFor?.(entry.item.id)
                 return (
@@ -506,7 +523,7 @@ export function LineItemsField({
                         defaultOpen={status === 'pending'}
                         leading={status === 'pending' && selectCheckbox(entry.item.id, position)}
                         action={
-                          undo && (
+                          undo ? (
                             <Button
                               type="button"
                               variant="outline"
@@ -516,6 +533,8 @@ export function LineItemsField({
                             >
                               Cofnij
                             </Button>
+                          ) : (
+                            status === 'pending' && decideActions(entry.item.id)
                           )
                         }
                       >
@@ -532,7 +551,7 @@ export function LineItemsField({
                         {renderFields(entry.item, entry.index)}
                       </div>
                     )}
-                    {position < entries.length - 1 && (
+                    {visibleIndex < entries.length - 1 && (
                       <Separator orientation="horizontal" className="bg-foreground" />
                     )}
                   </Fragment>
@@ -614,7 +633,7 @@ export function LineItemsField({
                 )}
               </>
             )}
-            <Label>Suma: {formatPLN(total)}</Label>
+            {total !== undefined && <Label>Suma: {formatPLN(total)}</Label>}
           </div>
         )
       }}

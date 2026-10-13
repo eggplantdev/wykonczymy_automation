@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { OptionalLink } from '@/components/ui/optional-link'
+import { SelectPageHeader, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
 import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
 import { useTranslation } from '@/hooks/use-translation'
@@ -29,6 +30,8 @@ type OptionsT = {
   // or the investment.
   canOpenTransfers?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
+  // The queue ticks zgłoszenia to merge them; read from `SelectedIdsContext`.
+  selection?: { onToggle: (id: number) => void; onTogglePage: (ids: number[]) => void }
 }
 
 // A history row stands for one paragon, so it carries at most one transakcja.
@@ -58,6 +61,7 @@ export function useExpenseDraftColumns({
   isPendingQueue = false,
   canOpenTransfers = isManagerView,
   actions,
+  selection,
 }: OptionsT) {
   const { t } = useTranslation('expenseDrafts')
   const sortable = (id: string) =>
@@ -75,7 +79,31 @@ export function useExpenseDraftColumns({
       ]
     : []
 
+  const selectColumn = selection
+    ? [
+        col.display({
+          id: 'select',
+          size: 40,
+          enableHiding: false,
+          header: ({ table }) => (
+            <SelectPageHeader
+              pageIds={table.getRowModel().rows.map((row) => row.original.id)}
+              onTogglePage={selection.onTogglePage}
+            />
+          ),
+          cell: ({ row: { original: draft } }) => (
+            <SelectRowCell
+              id={draft.id}
+              label={t('selectDraft', { name: draft.workerName })}
+              onToggle={selection.onToggle}
+            />
+          ),
+        }),
+      ]
+    : []
+
   return [
+    ...selectColumn,
     ...(isPendingQueue ? actionsColumn : []),
     ...(isManagerView
       ? [
@@ -125,7 +153,7 @@ export function useExpenseDraftColumns({
       ? [
           col.display({
             id: 'progress',
-            header: 'Paragony',
+            header: t('receipts'),
             cell: ({ row: { original: draft } }) =>
               draft.progress ? <DraftProgressBadge progress={draft.progress} /> : '—',
           }),
@@ -136,9 +164,10 @@ export function useExpenseDraftColumns({
             enableSorting: sortable('status'),
             cell: ({ row: { original: draft } }) => (
               <span className="flex flex-wrap items-center gap-2">
-                <DraftStatusBadge status={draft.status} />
-                {draft.status === 'pending' && draft.progress && (
+                {draft.status === 'pending' && draft.progress ? (
                   <DraftProgressBadge progress={draft.progress} />
+                ) : (
+                  <DraftStatusBadge status={draft.status} />
                 )}
                 {/* The worker sees only „Odrzucone". */}
                 {isManagerView && draft.duplicateOf && (
