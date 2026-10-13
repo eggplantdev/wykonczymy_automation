@@ -4836,3 +4836,14 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Kosztorys, widok Inwestor → nagłówek kolumny i pozycja w liście „Kolumny” brzmią „Pomiar z natury (etapy razem)”; dymek nagłówka zaczyna się od „Pomiar z natury — ilość faktycznie wykonana.”
 - [ ] Widok ekipy (np. „Z narzędziami (podwykonawca)”) → kolumna nazywa się „Pomiar z natury (etapy razem) — z narzędziami (podwykonawca)”; to samo na wydruku dla ekipy.
+
+## 2026-10-13 — report-line-decisions — „Przyjmij / Odrzuć” pozycja po pozycji (EX-1049)
+
+- [ ] Kosztorys → „Zgłoszenia prac” → zgłoszenie z kilkoma pozycjami: przy każdej jest „Odrzuć”; w stopce nie ma już „Odrzuć zgłoszenie”.
+- [ ] Przyjmij jedną pozycję, resztę zostaw: zgłoszenie zostaje „Do sprawdzenia · 1 z N” (lista w kosztorysie, lista zgłoszeń, podgląd), ilość jest w etapie.
+- [ ] „Odrzuć” na pozostałych → zgłoszenie przechodzi na „Przyjęte 1 z N”; odrzucenie wszystkich pozycji → „Odrzucone”, rozpiska i wersje bez zmian.
+- [ ] „Zaznacz wszystkie” pomija pozycję oznaczoną „Odrzucona · cofnij”; zaznaczenie jej ręcznie zdejmuje odrzucenie.
+- [ ] „Odrzuć” na przyjętej pozycji → po zapisie jej ilość znika z etapu, pozycja jest odrzucona.
+- [ ] „Odrzucona · cofnij” na zapisanej odrzuconej pozycji → po zapisie wraca do „czeka”, zgłoszenie znów „Do sprawdzenia”.
+- [ ] Pracownik (390px) → podgląd swojego zgłoszenia: przy każdej pozycji przyjęta / odrzucona / czeka.
+- [ ] Stare zgłoszenia #7, #8, #11 (inw. 139) po migracji: „Do sprawdzenia” z postępem, nie „Przyjęte”.

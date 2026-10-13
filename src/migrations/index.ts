@@ -140,6 +140,7 @@ import * as migration_20261011_1_add_payout_confirmation from './20261011_1_add_
 import * as migration_20261011_2_add_push_subscriptions from './20261011_2_add_push_subscriptions'
 import * as migration_20261012_0_add_investment_ai_stage from './20261012_0_add_investment_ai_stage'
 import * as migration_20261012_1_add_skipped_receipt_read_row from './20261012_1_add_skipped_receipt_read_row'
+import * as migration_20261013_0_worker_report_line_rejected from './20261013_0_worker_report_line_rejected'
 
 export const migrations = [
   {
@@ -851,5 +852,10 @@ export const migrations = [
     up: migration_20261012_1_add_skipped_receipt_read_row.up,
     down: migration_20261012_1_add_skipped_receipt_read_row.down,
     name: '20261012_1_add_skipped_receipt_read_row',
+  },
+  {
+    up: migration_20261013_0_worker_report_line_rejected.up,
+    down: migration_20261013_0_worker_report_line_rejected.down,
+    name: '20261013_0_worker_report_line_rejected',
   },
 ]

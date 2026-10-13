@@ -28,17 +28,14 @@ vi.mock('@/lib/db/worker-reports', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/db/worker-reports')>()
   return {
     ...actual,
-    reopenReportIfNoneAccepted: async (
-      ...args: Parameters<typeof actual.reopenReportIfNoneAccepted>
-    ) => {
+    settleReport: async (...args: Parameters<typeof actual.settleReport>) => {
       if (recording.failNext) throw new Error('record failed')
-      return actual.reopenReportIfNoneAccepted(...args)
+      return actual.settleReport(...args)
     },
   }
 })
 
-const { acceptWorkerReportAction, rejectWorkerReportAction } =
-  await import('@/lib/actions/accept-worker-report')
+const { acceptWorkerReportAction } = await import('@/lib/actions/accept-worker-report')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -96,9 +93,23 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
   }
 
   const accept = (
-    input: Omit<AcceptReportInputT, 'investmentId' | 'extras' | 'undone'> &
+    input: Omit<
+      AcceptReportInputT,
+      'investmentId' | 'extras' | 'undone' | 'rejected' | 'unrejected'
+    > &
       Partial<AcceptReportInputT>,
-  ) => acceptWorkerReportAction({ investmentId, extras: [], undone: [], ...input })
+  ) =>
+    acceptWorkerReportAction({
+      investmentId,
+      extras: [],
+      undone: [],
+      rejected: [],
+      unrejected: [],
+      ...input,
+    })
+
+  const reject = (reportId: number, lineIds: number[]) =>
+    accept({ reportId, target: { kind: 'new' }, lines: [], rejected: lineIds })
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -526,7 +537,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(await qtyDone(itemIds[0], ownStageId)).toBe(7)
   })
 
-  it('accepts a line odrzucona earlier into the etap the report already went to', async () => {
+  it('accepts the rest later into the etap the report already went to', async () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: itemIds[0], qty: 2 },
       { itemId: itemIds[1], qty: 4 },
@@ -547,9 +558,9 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(stored?.report).toMatchObject({ status: 'accepted', acceptedLineCount: 2 })
   })
 
-  it('accepts a line of a report odrzucone w całości', async () => {
+  it('accepts a line odrzucona earlier, which clears its rejection', async () => {
     const { reportId, lineIds } = await sendReport([{ itemId: itemIds[1], qty: 3 }])
-    expect((await rejectWorkerReportAction(investmentId, reportId)).success).toBe(true)
+    expect((await reject(reportId, lineIds)).success).toBe(true)
 
     const res = await accept({
       reportId,
@@ -559,14 +570,16 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
 
     expect(res.success).toBe(true)
     expect(await qtyDone(itemIds[1], ownStageId)).toBe(3)
-    expect((await readWorkerReport(db, investmentId, reportId))?.report.status).toBe('accepted')
+    const stored = await readWorkerReport(db, investmentId, reportId)
+    expect(stored?.report).toMatchObject({ status: 'accepted', rejectedLineCount: 0 })
+    expect(stored?.lines[0].isRejected).toBe(false)
   })
 
-  it('accepts a praca spoza rozpiski of a rejected report re-pointed at a pozycja', async () => {
+  it('accepts an odrzucona praca spoza rozpiski re-pointed at a pozycja', async () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: null, qty: 22, opis: 'Gniazdo 3-fazowe' },
     ])
-    expect((await rejectWorkerReportAction(investmentId, reportId)).success).toBe(true)
+    expect((await reject(reportId, lineIds)).success).toBe(true)
 
     const res = await accept({
       reportId,
@@ -710,7 +723,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     })
   })
 
-  it('keeps the report przyjęte into its etap while another line stays accepted', async () => {
+  it('keeps its etap while another line stays accepted, and waits on the unticked one', async () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: itemIds[0], qty: 2 },
       { itemId: itemIds[1], qty: 4 },
@@ -729,7 +742,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(await qtyDone(itemIds[1], ownStageId)).toBe(0)
     const stored = await readWorkerReport(db, investmentId, reportId)
     expect(stored?.report).toMatchObject({
-      status: 'accepted',
+      status: 'pending',
       targetStageId: ownStageId,
       acceptedLineCount: 1,
     })
@@ -895,7 +908,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
 
   it('leaves the report as it was when a save changes nothing', async () => {
     const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 2 }])
-    expect((await rejectWorkerReportAction(investmentId, reportId)).success).toBe(true)
+    expect((await reject(reportId, lineIds)).success).toBe(true)
     const before = await readWorkerReport(db, investmentId, reportId)
     const snapshotsBefore = await snapshotCount()
 
@@ -921,5 +934,141 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     })
 
     expect(await qtyDone(itemIds[1], ownStageId)).toBe(0.1)
+  })
+
+  describe('a decision on every line (EX-1049)', () => {
+    const twoLines = () =>
+      sendReport([
+        { itemId: itemIds[0], qty: 2 },
+        { itemId: itemIds[1], qty: 4 },
+      ])
+
+    it('stays pending while a line still waits', async () => {
+      const { reportId, lineIds } = await twoLines()
+      await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [{ lineId: lineIds[0], acceptedQty: 2 }],
+      })
+
+      expect((await readWorkerReport(db, investmentId, reportId))?.report).toMatchObject({
+        status: 'pending',
+        targetStageId: ownStageId,
+        acceptedLineCount: 1,
+        rejectedLineCount: 0,
+      })
+    })
+
+    it('settles przyjęte once the last waiting line is odrzucona', async () => {
+      const { reportId, lineIds } = await twoLines()
+      await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [{ lineId: lineIds[0], acceptedQty: 2 }],
+      })
+
+      expect((await reject(reportId, [lineIds[1]])).success).toBe(true)
+
+      expect(await qtyDone(itemIds[1], ownStageId)).toBe(0)
+      expect((await readWorkerReport(db, investmentId, reportId))?.report).toMatchObject({
+        status: 'accepted',
+        targetStageId: ownStageId,
+        acceptedLineCount: 1,
+        rejectedLineCount: 1,
+      })
+    })
+
+    it('odrzuca every line without touching the rozpiska or writing a version', async () => {
+      const { reportId, lineIds } = await twoLines()
+      const treeBefore = await selectKosztorysTreeData(db, investmentId)
+      const snapshotsBefore = await snapshotCount()
+
+      expect((await reject(reportId, lineIds)).success).toBe(true)
+
+      expect(await selectKosztorysTreeData(db, investmentId)).toEqual(treeBefore)
+      expect(await snapshotCount()).toBe(snapshotsBefore)
+      const stored = await readWorkerReport(db, investmentId, reportId)
+      expect(stored?.report).toMatchObject({
+        status: 'rejected',
+        targetStageId: null,
+        rejectedLineCount: 2,
+      })
+      expect(stored?.report.decidedAt).not.toBeNull()
+    })
+
+    it('sends an odrzucona line back to waiting', async () => {
+      const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 2 }])
+      await reject(reportId, lineIds)
+
+      const res = await accept({
+        reportId,
+        target: { kind: 'new' },
+        lines: [],
+        unrejected: lineIds,
+      })
+
+      expect(res.success).toBe(true)
+      const stored = await readWorkerReport(db, investmentId, reportId)
+      expect(stored?.report).toMatchObject({
+        status: 'pending',
+        decidedAt: null,
+        rejectedLineCount: 0,
+      })
+      expect(stored?.lines[0].isRejected).toBe(false)
+    })
+
+    it('takes the ilość of an accepted line back out when it is odrzucona', async () => {
+      const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 8 }])
+      await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [{ lineId: lineIds[0], acceptedQty: 7 }],
+      })
+
+      const res = await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [],
+        undone: lineIds,
+        rejected: lineIds,
+      })
+
+      expect(res.success).toBe(true)
+      expect(await qtyDone(itemIds[0], ownStageId)).toBe(5)
+      const stored = await readWorkerReport(db, investmentId, reportId)
+      expect(stored?.lines[0]).toMatchObject({ acceptedQty: null, isRejected: true })
+      expect(stored?.report).toMatchObject({ status: 'rejected', targetStageId: null })
+    })
+
+    it('refuses to odrzucić a line accepted in another window meanwhile', async () => {
+      const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 8 }])
+      await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [{ lineId: lineIds[0], acceptedQty: 7 }],
+      })
+
+      expect((await reject(reportId, lineIds)).success).toBe(false)
+      expect(await qtyDone(itemIds[0], ownStageId)).toBe(12)
+      expect((await readWorkerReport(db, investmentId, reportId))?.lines[0]).toMatchObject({
+        acceptedQty: 7,
+        isRejected: false,
+      })
+    })
+
+    it('refuses one line both accepted and odrzucona', async () => {
+      const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 8 }])
+
+      const res = await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [{ lineId: lineIds[0], acceptedQty: 8 }],
+        rejected: lineIds,
+      })
+
+      expect(res.success).toBe(false)
+      expect(await qtyDone(itemIds[0], ownStageId)).toBe(5)
+      expect((await readWorkerReport(db, investmentId, reportId))?.report.status).toBe('pending')
+    })
   })
 })

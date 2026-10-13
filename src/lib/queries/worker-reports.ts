@@ -67,6 +67,7 @@ function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {
           },
     lineCount: row.lineCount,
     acceptedLineCount: row.acceptedLineCount,
+    rejectedLineCount: row.rejectedLineCount,
   }
 }
 
@@ -80,6 +81,7 @@ function toLine(row: WorkerReportLineRowT): ReportLineT {
     sectionName: row.sectionName ?? undefined,
     reportedQty: row.reportedQty,
     acceptedQty: row.acceptedQty ?? undefined,
+    isRejected: row.isRejected,
     createdItemId: row.createdItemId ?? undefined,
     catalogueItemId: row.catalogueItemId ?? undefined,
     polishDescription: row.polishDescription ?? undefined,

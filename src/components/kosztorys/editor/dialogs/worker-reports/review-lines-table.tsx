@@ -92,9 +92,10 @@ function useReviewTable() {
   return context
 }
 
+// Bulk only accepts: a line is odrzucona one by one, and the bulk tick leaves those alone.
 function TickHeader() {
   const { rows, drafts, onChange } = useReviewTable()
-  const bulkRows = rows.filter((row) => !row.isDuplicateItem)
+  const bulkRows = rows.filter((row) => !row.isDuplicateItem && !drafts[row.id].isRejected)
   const tickedCount = bulkRows.filter((row) => drafts[row.id].isTicked).length
   return (
     <Checkbox
@@ -113,8 +114,32 @@ function TickCell({ row }: { row: ReviewRowT }) {
     <Checkbox
       aria-label={`Przyjmij: ${row.description}`}
       checked={drafts[row.id].isTicked}
-      onCheckedChange={(checked) => onChange(row.id, { isTicked: checked === true })}
+      onCheckedChange={(checked) =>
+        onChange(
+          row.id,
+          checked === true ? { isTicked: true, isRejected: false } : { isTicked: false },
+        )
+      }
     />
+  )
+}
+
+// A second click sends the line back to waiting.
+function RejectCell({ row }: { row: ReviewRowT }) {
+  const { drafts, onChange } = useReviewTable()
+  const { isRejected } = drafts[row.id]
+  return (
+    <Button
+      variant="ghost"
+      size="xs"
+      aria-pressed={isRejected}
+      className={cn('whitespace-nowrap', isRejected ? 'text-destructive' : 'text-muted-foreground')}
+      onClick={() =>
+        onChange(row.id, isRejected ? { isRejected: false } : { isRejected: true, isTicked: false })
+      }
+    >
+      {isRejected ? 'Odrzucona · cofnij' : 'Odrzuć'}
+    </Button>
   )
 }
 
@@ -434,6 +459,12 @@ const tickColumn = col.display({
   header: () => <TickHeader />,
   cell: ({ row }) => <TickCell row={row.original} />,
 })
+const rejectColumn = col.display({
+  id: 'reject',
+  enableHiding: false,
+  header: '',
+  cell: ({ row }) => <RejectCell row={row.original} />,
+})
 const refColumn = col.accessor((row) => row.ref ?? 0, {
   id: 'ref',
   header: 'Nr',
@@ -537,6 +568,7 @@ const COLUMNS_BY_GROUP = {
     stageColumn,
     plannedColumn,
     measuredColumn,
+    rejectColumn,
   ],
   extra: [
     tickColumn,
@@ -547,6 +579,7 @@ const COLUMNS_BY_GROUP = {
     acceptedColumn,
     targetSectionColumn,
     unitPriceColumn,
+    rejectColumn,
   ],
 }
 
@@ -570,6 +603,7 @@ export function ReviewLinesTable({ group, ...props }: PropsT) {
             'worker-report-rail',
             sectionColorRail(row.sectionColor),
             props.drafts[row.id].isTicked && 'bg-primary/5',
+            props.drafts[row.id].isRejected && 'bg-destructive/5',
           )
         }
       />

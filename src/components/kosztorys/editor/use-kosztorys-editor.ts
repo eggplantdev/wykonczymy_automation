@@ -1021,8 +1021,7 @@ export function useKosztorysEditor({
     },
   })
 
-  const { acceptReport, rejectReport } = useWorkerReportAcceptance({
-    investmentId,
+  const { acceptReport } = useWorkerReportAcceptance({
     flushUndoBuffer,
     drain,
     adoptStage,
@@ -1387,7 +1386,6 @@ export function useKosztorysEditor({
     handleAppendedCatalogueItems,
     handleAddStage,
     acceptReport,
-    rejectReport,
     handleGlobalCoeffChange,
     handleVatChange,
     handleSettlementModeChange,

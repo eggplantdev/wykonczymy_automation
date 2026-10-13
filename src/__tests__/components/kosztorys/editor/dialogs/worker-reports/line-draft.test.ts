@@ -17,6 +17,7 @@ import type { ReportLineT, WorkerReportT } from '@/lib/kosztorys/worker-report/t
 
 const draft: LineDraftT = {
   isTicked: true,
+  isRejected: false,
   qty: '12',
   itemId: undefined,
   isExtra: false,
@@ -88,6 +89,7 @@ const line = (patch: Partial<ReportLineT>): ReportLineT => ({
   sectionName: 'Salon',
   reportedQty: 8,
   acceptedQty: undefined,
+  isRejected: false,
   createdItemId: undefined,
   catalogueItemId: undefined,
   polishDescription: undefined,
@@ -165,6 +167,48 @@ describe('decyzja w zgłoszeniu', () => {
       { itemId: 11, stageId: 20 },
       { itemId: 11, stageId: 20 },
     ])
+  })
+})
+
+describe('odrzucenie pozycja po pozycji', () => {
+  it('odrzuca czekającą i przyjętą — przyjęta wraca też z etapu', () => {
+    const waiting = line({ id: 1 })
+    const accepted = line({ id: 2, itemId: 11, acceptedQty: 3 })
+    const rejected = { ...draft, isTicked: false, isRejected: true }
+
+    const { input, cells } = buildAccept(
+      report([waiting, accepted], 20),
+      { 1: rejected, 2: rejected },
+      { kind: 'stage', stageId: 20 },
+      (reported) => reported.itemId,
+    )
+
+    expect(input.rejected).toEqual([1, 2])
+    expect(input.undone).toEqual([2])
+    expect(input.lines).toEqual([])
+    expect(cells).toEqual([{ itemId: 11, stageId: 20 }])
+  })
+
+  it('cofnięte odrzucenie wraca do czekających, a zaznaczona odrzucona jest po prostu przyjęta', () => {
+    const sentBack = line({ id: 1, isRejected: true })
+    const ticked = line({ id: 2, isRejected: true })
+
+    const { input } = buildAccept(
+      report([sentBack, ticked]),
+      { 1: { ...draft, isTicked: false }, 2: draft },
+      { kind: 'stage', stageId: 20 },
+      (reported) => reported.itemId,
+    )
+
+    expect(input.unrejected).toEqual([1])
+    expect(input.rejected).toEqual([])
+    expect(input.lines).toEqual([{ lineId: 2, acceptedQty: 12, itemId: undefined }])
+  })
+
+  it('otwiera odrzuconą pozycję jako odrzuconą, nie zaznaczoną', () => {
+    const drafts = initialDrafts(report([line({ isRejected: true })]), liveRows)
+
+    expect(drafts[1]).toMatchObject({ isTicked: false, isRejected: true })
   })
 })
 

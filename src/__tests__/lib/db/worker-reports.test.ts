@@ -3,7 +3,6 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
-  claimPendingReport,
   insertScannedReport,
   insertWorkerReport,
   listDecidableReports,
@@ -55,6 +54,13 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     sectionName: 'Salon',
     reportedQty,
   })
+
+  // Settles the record only; the lines stay as the spec set them.
+  const decide = (reportId: number, status: 'accepted' | 'rejected') =>
+    db.execute(sql`
+      UPDATE worker_reports SET status = ${status}, decided_at = now(), decided_by = ${otherWorkerId}
+      WHERE id = ${reportId}
+    `)
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -144,7 +150,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     expect(await readWorkerReport(db, otherInvestmentId, reportId)).toBeNull()
   })
 
-  it('refuses a decided status without a decision time, and a pending one with it', async () => {
+  it('refuses a decided status without a decision time, and a line both accepted and odrzucona', async () => {
     const reportId = await insertWorkerReport(db, {
       investmentId,
       workerId,
@@ -155,39 +161,11 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
       db.execute(sql`UPDATE worker_reports SET status = 'accepted' WHERE id = ${reportId}`),
     ).rejects.toThrow()
     await expect(
-      db.execute(sql`UPDATE worker_reports SET decided_at = now() WHERE id = ${reportId}`),
+      db.execute(sql`
+        UPDATE worker_report_lines SET accepted_qty = 1, is_rejected = true
+        WHERE report_id = ${reportId}
+      `),
     ).rejects.toThrow()
-  })
-
-  it('claims a pending report once; the second claim changes nothing', async () => {
-    const reportId = await insertWorkerReport(db, {
-      investmentId,
-      workerId,
-      lines: [rozpiskaLine(itemIds[0], 1)],
-    })
-
-    expect(await claimPendingReport(db, investmentId, reportId, 'rejected', otherWorkerId)).toBe(
-      workerId,
-    )
-    expect(
-      await claimPendingReport(db, investmentId, reportId, 'accepted', otherWorkerId),
-    ).toBeNull()
-
-    const read = await readWorkerReport(db, investmentId, reportId)
-    expect(read?.report.status).toBe('rejected')
-  })
-
-  it('refuses a claim through another investment', async () => {
-    const reportId = await insertWorkerReport(db, {
-      investmentId,
-      workerId,
-      lines: [rozpiskaLine(itemIds[0], 1)],
-    })
-
-    expect(
-      await claimPendingReport(db, otherInvestmentId, reportId, 'rejected', otherWorkerId),
-    ).toBeNull()
-    expect((await readWorkerReport(db, investmentId, reportId))?.report.status).toBe('pending')
   })
 
   it('lists a decided report after the pending queue, not only the queue', async () => {
@@ -196,7 +174,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
       workerId,
       lines: [rozpiskaLine(itemIds[0], 1)],
     })
-    await claimPendingReport(db, investmentId, rejected, 'rejected', otherWorkerId)
+    await decide(rejected, 'rejected')
     const pending = await insertWorkerReport(db, {
       investmentId,
       workerId,
@@ -224,7 +202,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
       workerId,
       lines: line,
     })
-    await claimPendingReport(db, otherInvestmentId, rejected, 'rejected', otherWorkerId)
+    await decide(rejected, 'rejected')
     const byOtherWorker = await insertWorkerReport(db, {
       investmentId: otherInvestmentId,
       workerId: otherWorkerId,
@@ -278,8 +256,8 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     const middle = await report('2025-01-10T10:00:00Z')
     const accepted = await report('2025-01-12T10:00:00Z')
     const newest = await report('2025-01-15T10:00:00Z')
-    await claimPendingReport(db, otherInvestmentId, accepted, 'accepted', otherWorkerId)
-    await claimPendingReport(db, otherInvestmentId, newest, 'rejected', otherWorkerId)
+    await decide(accepted, 'accepted')
+    await decide(newest, 'rejected')
 
     // January 2025 keeps the earlier tests' reports on this investment out of the count.
     const scope: WorkerReportFiltersT = {
@@ -425,7 +403,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
           extra('Skucie płytek'),
         ],
       })
-      await claimPendingReport(db, investmentId, reportId, 'accepted', otherWorkerId)
+      await decide(reportId, 'accepted')
       await db.execute(sql`
         UPDATE worker_report_lines SET accepted_qty = 1, created_item_id = ${itemIds[1]}
         WHERE report_id = ${reportId} AND kind = 'extra'
@@ -496,7 +474,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
         workerId,
         lines: [rozpiskaLine(itemIds[0], 1)],
       })
-      await claimPendingReport(db, investmentId, reportId, 'rejected', otherWorkerId)
+      await decide(reportId, 'rejected')
 
       const { rows } = await listDecidableReports(
         db,

@@ -55,6 +55,7 @@ export type WorkerReportRowT = {
   targetStageLabel: string | null
   lineCount: number
   acceptedLineCount: number
+  rejectedLineCount: number
 }
 
 export type WorkerReportLineRowT = {
@@ -67,6 +68,7 @@ export type WorkerReportLineRowT = {
   sectionName: string | null
   reportedQty: number
   acceptedQty: number | null
+  isRejected: boolean
   createdItemId: number | null
   catalogueItemId: number | null
   polishDescription: string | null
@@ -87,6 +89,7 @@ export type ReportListRowT = {
   decidedByName: string | null
   lineCount: number
   acceptedLineCount: number
+  rejectedLineCount: number
 }
 
 // The live pozycja the line went to, `null` once it was deleted: the line's snapshot speaks then.
@@ -113,7 +116,9 @@ const REPORT_COLUMNS = sql`
   c.name AS created_by_name, r.sent_at, r.decided_at, d.name AS decided_by_name, r.target_stage_id, r.target_stage_ordinal, r.target_stage_label,
   (SELECT count(*)::int FROM worker_report_lines l WHERE l.report_id = r.id) AS line_count,
   (SELECT count(*)::int FROM worker_report_lines l
-    WHERE l.report_id = r.id AND l.accepted_qty IS NOT NULL) AS accepted_line_count
+    WHERE l.report_id = r.id AND l.accepted_qty IS NOT NULL) AS accepted_line_count,
+  (SELECT count(*)::int FROM worker_report_lines l
+    WHERE l.report_id = r.id AND l.is_rejected) AS rejected_line_count
 `
 
 const REPORT_JOINS = sql`
@@ -140,6 +145,7 @@ function toReportRow(row: Record<string, unknown>): WorkerReportRowT {
     targetStageLabel: textOrNull(row.target_stage_label),
     lineCount: Number(row.line_count ?? 0),
     acceptedLineCount: Number(row.accepted_line_count ?? 0),
+    rejectedLineCount: Number(row.rejected_line_count ?? 0),
   }
 }
 
@@ -157,6 +163,7 @@ function toReportListRow(row: Record<string, unknown>): ReportListRowT {
     decidedByName: report.decidedByName,
     lineCount: report.lineCount,
     acceptedLineCount: report.acceptedLineCount,
+    rejectedLineCount: report.rejectedLineCount,
   }
 }
 
@@ -171,6 +178,7 @@ function toLineRow(row: Record<string, unknown>): WorkerReportLineRowT {
     sectionName: textOrNull(row.section_name),
     reportedQty: Number(row.reported_qty),
     acceptedQty: numOrNull(row.accepted_qty),
+    isRejected: row.is_rejected === true,
     createdItemId: numOrNull(row.created_item_id),
     catalogueItemId: numOrNull(row.catalogue_item_id),
     polishDescription: textOrNull(row.polish_description),
@@ -308,8 +316,8 @@ export async function readWorkerReport(
   const [linesRes, mediaRes] = await Promise.all([
     db.execute(sql`
       SELECT id, position, kind, item_id, description, unit, section_name, reported_qty,
-        accepted_qty, created_item_id, catalogue_item_id, polish_description, description_language,
-        is_uncertain, scanned_ref
+        accepted_qty, is_rejected, created_item_id, catalogue_item_id, polish_description,
+        description_language, is_uncertain, scanned_ref
       FROM worker_report_lines WHERE report_id = ${reportId}
       ORDER BY position
     `),
@@ -343,7 +351,7 @@ export async function readReportPreview(
   const [linesRes, mediaRes] = await Promise.all([
     db.execute(sql`
       SELECT l.id, l.position, l.kind, l.item_id, l.description, l.unit, l.section_name,
-        l.reported_qty, l.accepted_qty, l.created_item_id, l.catalogue_item_id, l.polish_description,
+        l.reported_qty, l.accepted_qty, l.is_rejected, l.created_item_id, l.catalogue_item_id, l.polish_description,
         l.description_language, l.is_uncertain, l.scanned_ref,
         k.ref, k.description AS item_description, k.description_translations,
         s.name AS live_section_name, s.color AS section_color, s.display_order AS section_order
@@ -412,7 +420,7 @@ function reportsOrderBy(sort: string | undefined): SqlT {
 }
 
 /**
- * Every report the kierownik can still act on — a decided one too, since its open lines stay
+ * Every report the kierownik can still act on — a decided one too, since its odrzucone lines stay
  * acceptable. Without a `sort`, the pending queue first, then the rest newest first.
  */
 export async function listDecidableReports(
@@ -490,50 +498,6 @@ export async function countPendingForInvestment(
 }
 
 /**
- * The decision's single write: only a still-pending report moves, so a second click — or a second
- * kierownik — gets `null` and changes nothing. Returns the reporting worker.
- */
-export async function claimPendingReport(
-  db: DbExecutorT,
-  investmentId: number,
-  reportId: number,
-  status: Exclude<ReportStatusT, 'pending'>,
-  userId: number,
-): Promise<number | null> {
-  const res = await db.execute(sql`
-    UPDATE worker_reports
-    SET status = ${status}, decided_at = now(), decided_by = ${userId}
-    WHERE id = ${reportId} AND investment_id = ${investmentId} AND status = 'pending'
-    RETURNING worker_id
-  `)
-  const row = res.rows[0]
-  return row ? Number(row.worker_id) : null
-}
-
-/**
- * Whatever the report's status: a line odrzucona — or a whole report odrzucone — can still be
- * przyjęta later. Two accepts of one report are serialised by the investment row lock the caller
- * holds (`lockInvestmentGates`), not by this UPDATE. The etap's ordinal and label are copied, so a
- * later rename or delete of it does not rewrite the record; without one the record stays as it was.
- */
-export async function markReportAccepted(
-  db: DbExecutorT,
-  reportId: number,
-  userId: number,
-  stage: { id: number; ordinal: number; label: string | null } | undefined,
-): Promise<void> {
-  const target = stage
-    ? sql`, target_stage_id = ${stage.id}, target_stage_ordinal = ${stage.ordinal},
-        target_stage_label = ${stage.label}`
-    : sql``
-  await db.execute(sql`
-    UPDATE worker_reports
-    SET status = 'accepted', decided_at = now(), decided_by = ${userId} ${target}
-    WHERE id = ${reportId}
-  `)
-}
-
-/**
  * An undone praca spoza rozpiski is left pointing at the pozycja its accept created, so accepting it
  * again adds to that pozycja instead of minting a second one.
  */
@@ -551,15 +515,52 @@ export async function clearLinesAcceptance(
   `)
 }
 
-// Undecided again once nothing of it is accepted: back in the queue, free to go to any etap.
-export async function reopenReportIfNoneAccepted(db: DbExecutorT, reportId: number): Promise<void> {
+export async function setLinesRejected(
+  db: DbExecutorT,
+  reportId: number,
+  lineIds: number[],
+  isRejected: boolean,
+): Promise<void> {
+  if (lineIds.length === 0) return
   await db.execute(sql`
-    UPDATE worker_reports
-    SET status = 'pending', decided_at = NULL, decided_by = NULL, target_stage_id = NULL,
-      target_stage_ordinal = NULL, target_stage_label = NULL
-    WHERE id = ${reportId} AND NOT EXISTS (
-      SELECT 1 FROM worker_report_lines l WHERE l.report_id = ${reportId} AND l.accepted_qty IS NOT NULL
+    UPDATE worker_report_lines SET is_rejected = ${isRejected}
+    WHERE id IN (${sqlList(lineIds)}) AND report_id = ${reportId}
+  `)
+}
+
+/**
+ * The report follows its lines: do sprawdzenia while one still waits for a decision, then przyjęte if
+ * any went into an etap, else odrzucone. It keeps its etap only while a line sits in it, and who
+ * decided only while anything is decided. Two decisions on one report are serialised by the
+ * investment row lock the caller holds (`lockInvestmentGates`). The etap's ordinal and label are
+ * copied, so a later rename or delete of it does not rewrite the record.
+ */
+export async function settleReport(
+  db: DbExecutorT,
+  reportId: number,
+  userId: number,
+  stage: { id: number; ordinal: number; label: string | null } | undefined,
+): Promise<void> {
+  const [stageId, ordinal, label] = stage
+    ? [sql`${stage.id}::int`, sql`${stage.ordinal}::int`, sql`${stage.label}::text`]
+    : [sql`r.target_stage_id`, sql`r.target_stage_ordinal`, sql`r.target_stage_label`]
+  await db.execute(sql`
+    WITH lines AS (
+      SELECT count(*) FILTER (WHERE accepted_qty IS NULL AND NOT is_rejected) AS waiting,
+        count(*) FILTER (WHERE accepted_qty IS NOT NULL) AS accepted,
+        count(*) FILTER (WHERE is_rejected) AS rejected
+      FROM worker_report_lines WHERE report_id = ${reportId}
     )
+    UPDATE worker_reports r
+    SET status = CASE WHEN l.waiting > 0 THEN 'pending' WHEN l.accepted > 0 THEN 'accepted'
+        ELSE 'rejected' END,
+      decided_at = CASE WHEN l.accepted + l.rejected > 0 THEN now() END,
+      decided_by = CASE WHEN l.accepted + l.rejected > 0 THEN ${userId}::int END,
+      target_stage_id = CASE WHEN l.accepted > 0 THEN ${stageId} END,
+      target_stage_ordinal = CASE WHEN l.accepted > 0 THEN ${ordinal} END,
+      target_stage_label = CASE WHEN l.accepted > 0 THEN ${label} END
+    FROM lines l
+    WHERE r.id = ${reportId}
   `)
 }
 
@@ -572,7 +573,7 @@ export type ReportLineDecisionT = {
   catalogueItemId?: number
 }
 
-/** Lines left out of `decisions` stay `accepted_qty = NULL`. */
+/** Lines left out of `decisions` stay as they are; an accepted one is no longer odrzucona. */
 export async function updateReportLines(
   db: DbExecutorT,
   reportId: number,
@@ -587,7 +588,7 @@ export async function updateReportLines(
   )
   await db.execute(sql`
     UPDATE worker_report_lines l
-    SET accepted_qty = v.accepted_qty,
+    SET accepted_qty = v.accepted_qty, is_rejected = false,
       item_id = COALESCE(v.item_id, l.item_id),
       created_item_id = COALESCE(v.created_item_id, l.created_item_id),
       catalogue_item_id = COALESCE(v.catalogue_item_id, l.catalogue_item_id)

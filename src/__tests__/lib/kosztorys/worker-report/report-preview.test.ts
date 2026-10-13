@@ -21,6 +21,7 @@ const report = (status: ReportStatusT): ReportPreviewReadT['report'] => ({
   targetStageLabel: null,
   lineCount: 2,
   acceptedLineCount: 0,
+  rejectedLineCount: 0,
 })
 
 const line = (overrides: Partial<ReportPreviewLineRowT>): ReportPreviewLineRowT => ({
@@ -33,6 +34,7 @@ const line = (overrides: Partial<ReportPreviewLineRowT>): ReportPreviewLineRowT 
   sectionName: 'Salon',
   reportedQty: 12,
   acceptedQty: null,
+  isRejected: false,
   createdItemId: null,
   catalogueItemId: null,
   polishDescription: null,
@@ -74,23 +76,31 @@ describe('buildReportPreview — Przyjęto', () => {
 
   it('shows every line of a rejected report as rejected', () => {
     const preview = build(
-      { report: report('rejected'), lines: [line({ id: 1 }), line({ id: 2, position: 1 })] },
+      {
+        report: report('rejected'),
+        lines: [line({ id: 1, isRejected: true }), line({ id: 2, position: 1, isRejected: true })],
+      },
       { isManagement: true },
     )
     expect(preview.lines.map((each) => each.outcome.kind)).toEqual(['rejected', 'rejected'])
   })
 
-  it('splits a partially accepted report into its qty and the rejected rest', () => {
+  it('shows only an odrzucona line as rejected while the rest still waits', () => {
     const preview = build(
       {
-        report: report('accepted'),
-        lines: [line({ id: 1, acceptedQty: 8 }), line({ id: 2, position: 1, acceptedQty: null })],
+        report: report('pending'),
+        lines: [
+          line({ id: 1, acceptedQty: 8 }),
+          line({ id: 2, position: 1, isRejected: true }),
+          line({ id: 3, position: 2 }),
+        ],
       },
       { isManagement: true },
     )
     expect(preview.lines.map((each) => each.outcome)).toEqual([
       { kind: 'accepted', qty: 8 },
       { kind: 'rejected' },
+      { kind: 'pending' },
     ])
   })
 })

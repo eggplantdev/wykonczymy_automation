@@ -26,6 +26,7 @@ const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
   ref: undefined,
   reportedQty: 12,
   acceptedQty: undefined,
+  isRejected: false,
   createdItemId: undefined,
   catalogueItemId: undefined,
   polishDescription: undefined,
@@ -46,6 +47,7 @@ const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
 
 const draft: LineDraftT = {
   isTicked: false,
+  isRejected: false,
   qty: '12',
   itemId: undefined,
   isExtra: false,
@@ -120,12 +122,16 @@ describe('praca spoza rozpiski — tłumaczenie dla kierownika', () => {
 const rozpiska = (patch: Partial<ReviewRowT>): ReviewRowT =>
   extra({ kind: 'rozpiska', itemId: 10, description: 'Malowanie ścian', unit: 'm2', ...patch })
 
-function renderRozpiska(rows: ReviewRowT[], onChange = vi.fn()) {
+function renderRozpiska(
+  rows: ReviewRowT[],
+  onChange = vi.fn(),
+  drafts: Record<number, Partial<LineDraftT>> = {},
+) {
   render(
     <ReviewLinesTable
       group="rozpiska"
       rows={rows}
-      drafts={Object.fromEntries(rows.map((row) => [row.id, draft]))}
+      drafts={Object.fromEntries(rows.map((row) => [row.id, { ...draft, ...drafts[row.id] }]))}
       onChange={onChange}
       sectionOptions={[]}
       itemOptions={[]}
@@ -167,10 +173,44 @@ describe('zgłoszenie z kartki — ostrzeżenia', () => {
     expect(onChange).not.toHaveBeenCalledWith(2, expect.anything())
   })
 
+  it('„Zaznacz wszystkie” leaves an odrzucona line odrzucona', async () => {
+    const onChange = renderRozpiska([rozpiska({ id: 1 }), rozpiska({ id: 2 })], vi.fn(), {
+      2: { isRejected: true },
+    })
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Zaznacz wszystkie' }))
+
+    expect(onChange).toHaveBeenCalledWith(1, { isTicked: true })
+    expect(onChange).not.toHaveBeenCalledWith(2, expect.anything())
+  })
+
   it('asks for a katalog praca when the scanned j.m. is missing', () => {
     renderTable(extra({ unit: '', isUnitMissing: true }), undefined)
     expect(
       screen.getByText('Brak j.m. w kosztorysie — wybierz pracę z katalogu'),
     ).toBeInTheDocument()
+  })
+})
+
+describe('odrzucenie pozycja po pozycji (EX-1049)', () => {
+  it('„Odrzuć” unticks the line, and a second click sends it back to waiting', async () => {
+    const onChange = renderRozpiska([rozpiska({ id: 1 }), rozpiska({ id: 2 })], vi.fn(), {
+      1: { isTicked: true },
+      2: { isRejected: true },
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Odrzuć' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Odrzucona · cofnij' }))
+
+    expect(onChange).toHaveBeenCalledWith(1, { isRejected: true, isTicked: false })
+    expect(onChange).toHaveBeenCalledWith(2, { isRejected: false })
+  })
+
+  it('ticking an odrzucona line takes its rejection back', async () => {
+    const onChange = renderRozpiska([rozpiska({ id: 1 })], vi.fn(), { 1: { isRejected: true } })
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Przyjmij: Malowanie ścian' }))
+
+    expect(onChange).toHaveBeenCalledWith(1, { isTicked: true, isRejected: false })
   })
 })
