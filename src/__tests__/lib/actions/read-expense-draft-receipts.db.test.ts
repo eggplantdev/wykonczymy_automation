@@ -60,10 +60,11 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      scanMode,
       mediaIds,
     })
     if (draftId === null) throw new Error('draft fixture refused')
+    // Drafts sent before EX-1048 still carry the worker's „Jeden wydatek”.
+    await db.execute(sql`UPDATE worker_expense_drafts SET scan_mode = ${scanMode} WHERE id = ${draftId}`)
     return { draftId, mediaIds }
   }
 
@@ -108,23 +109,27 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('„Jeden wydatek” stores one row over every page, read in one call', async () => {
+  // A draft sent before EX-1048 still says „Jeden wydatek”; one total asked over many documents
+  // came back wrong, so it is read paragon by paragon like every other.
+  it('reads a multi-photo „Jeden wydatek” photo by photo', async () => {
     const { draftId, mediaIds } = await createDraft('one-invoice', 2, 'one-invoice')
 
     await readExpenseDraftReceipts(db, draftId)
 
-    expect(extractReceipt).toHaveBeenCalledTimes(1)
-    expect(extractReceipt.mock.calls[0][0]).toHaveLength(2)
+    expect(extractReceipt).not.toHaveBeenCalled()
+    expect(extractReceipts).toHaveBeenCalledTimes(2)
+    expect(extractReceipts.mock.calls.map(([pages]) => pages.length)).toEqual([1, 1])
+    const row = {
+      description: 'Leroy Merlin 11.07.2026',
+      amount: 123,
+      netAmount: 100,
+      invoiceNote: 'FV 1/2026',
+      filename: 'leroy-merlin-11-07-2026.jpg',
+    }
     expect(await readOf(draftId)).toEqual({
       rows: [
-        {
-          mediaIds,
-          description: 'Leroy Merlin 11.07.2026',
-          amount: 123,
-          netAmount: 100,
-          invoiceNote: 'FV 1/2026',
-          filename: 'leroy-merlin-11-07-2026.jpg',
-        },
+        { mediaIds: [mediaIds[0]], ...row },
+        { mediaIds: [mediaIds[1]], ...row },
       ],
     })
   })
@@ -181,14 +186,14 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  // A draft sent under the old 20-photo cap can still be pending; the model takes 8 pages a call.
-  it('leaves a „Jeden wydatek” over 8 photos unread', async () => {
+  // A draft sent under the old 20-photo cap can still be pending; per photo, no page cap applies.
+  it('reads a „Jeden wydatek” over 8 photos photo by photo', async () => {
     const { draftId } = await createDraft('over-cap', 9, 'one-invoice')
 
     await readExpenseDraftReceipts(db, draftId)
 
-    expect(extractReceipt).not.toHaveBeenCalled()
-    expect(await readOf(draftId)).toBeNull()
+    expect(extractReceipts).toHaveBeenCalledTimes(9)
+    expect(((await readOf(draftId)) as { rows: unknown[] }).rows).toHaveLength(9)
   })
 
   // Stored, or every „Zobacz" would pay the model again for the same answer.
@@ -208,12 +213,12 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   // A list loaded before the send-time read landed still offers the read.
   it('returns a stored read without asking the AI again', async () => {
-    const { draftId } = await createDraft('already-read', 2, 'one-invoice')
+    const { draftId } = await createDraft('already-read', 2, 'one-per-photo')
     const stored = await readExpenseDraftReceipts(db, draftId)
-    extractReceipt.mockClear()
+    extractReceipts.mockClear()
 
     expect(await readExpenseDraftReceipts(db, draftId)).toEqual(stored)
-    expect(extractReceipt).not.toHaveBeenCalled()
+    expect(extractReceipts).not.toHaveBeenCalled()
   })
 
   it('writes nothing when no photo reached the AI', async () => {
@@ -244,15 +249,15 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('a draft decided while the AI reads is left as the record it became', async () => {
-    const { draftId } = await createDraft('decided', 2, 'one-invoice')
-    extractReceipt.mockImplementation(async () => {
+    const { draftId } = await createDraft('decided', 1, 'one-per-photo')
+    extractReceipts.mockImplementation(async () => {
       await decideExpenseDraft(db, {
         draftId,
         decidedBy: workerId,
         status: 'rejected',
         transferIds: [],
       })
-      return reading()
+      return [reading()]
     })
 
     await readExpenseDraftReceipts(db, draftId)

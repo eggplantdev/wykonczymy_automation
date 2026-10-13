@@ -12,23 +12,24 @@ import { isWeakMatch } from '@/lib/expense-duplicates/match'
 import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
 import { cn } from '@/lib/utils/cn'
 
-export type ItemDuplicatesT = ParagonDuplicatesT & { itemId: string }
-
 export type DuplicateHintsStateT =
   | { status: 'reading' }
   | { status: 'checking' }
   | { status: 'no-read' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; paragons: ItemDuplicatesT[] }
+  | { status: 'ready'; paragons: ParagonDuplicatesT[] }
 
 type PropsT = {
   state: DuplicateHintsStateT
-  // The form's current rows: a paragon removed or marked a duplicate takes its hints with it.
+  // Numbers each hint by its row's position in the form.
   lineItemIds: string[]
+  // Resolved at render: a merge or split moves a paragon to another row.
+  itemIdOfReadRow: (readRow: number) => string | undefined
   onMarkDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
 }
 
-const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonItemId}-${row.key}`
+// By read row, not by item: a merge or split mints new item ids under the same paragon.
+const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonReadRow}-${row.key}`
 
 const STATUS_MESSAGES = {
   reading: 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.',
@@ -36,7 +37,12 @@ const STATUS_MESSAGES = {
   'no-read': 'Bez odczytu paragonów nie da się sprawdzić duplikatów.',
 } as const
 
-export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate }: PropsT) {
+export function ExpenseDraftDuplicateHints({
+  state,
+  lineItemIds,
+  itemIdOfReadRow,
+  onMarkDuplicate,
+}: PropsT) {
   // „OK" only hides the row for this dialog; nothing is stored.
   const [dismissed, setDismissed] = useState(() => new Set<string>())
 
@@ -46,19 +52,23 @@ export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate
   if (state.status !== 'ready') {
     return <p className="text-muted-foreground text-sm">{STATUS_MESSAGES[state.status]}</p>
   }
+  // A paragon removed or marked a duplicate resolves to no row and takes its hints with it.
   const rows = state.paragons
-    .filter((paragon) => lineItemIds.includes(paragon.itemId))
-    .flatMap((paragon) =>
-      paragon.matches.map(
+    .flatMap((paragon) => {
+      const itemId = itemIdOfReadRow(paragon.readRow)
+      if (!itemId) return []
+      const label = [lineItemIds.indexOf(itemId) + 1, paragon.description]
+        .filter(Boolean)
+        .join(' · ')
+      return paragon.matches.map(
         (match): ExpenseDuplicateRowT => ({
           ...match,
-          paragon: [lineItemIds.indexOf(paragon.itemId) + 1, paragon.description]
-            .filter(Boolean)
-            .join(' · '),
-          paragonItemId: paragon.itemId,
+          paragon: label,
+          paragonItemId: itemId,
+          paragonReadRow: paragon.readRow,
         }),
-      ),
-    )
+      )
+    })
     .filter((row) => !dismissed.has(rowKey(row)))
   if (rows.length === 0) {
     return null

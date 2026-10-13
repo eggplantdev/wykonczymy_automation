@@ -50,7 +50,6 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      scanMode: 'one-invoice',
       mediaIds: [Number(rows[0].id)],
     })
     if (draftId === null) throw new Error('draft fixture refused')
@@ -93,7 +92,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
         })),
       },
       undefined,
-      { expenseDraftId: draftId, receiptMediaIds: [], skippedReceipts: [] },
+      { expenseDraftId: draftId, receiptMediaIds: [], receiptReadRows: [], skippedReceipts: [] },
     )
 
   beforeAll(async () => {
@@ -222,6 +221,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
       {
         expenseDraftId: draftId,
         receiptMediaIds: [],
+        receiptReadRows: [],
         skippedReceipts: [{ mediaIds: [Number(pageId)], duplicateOf }],
       },
     )

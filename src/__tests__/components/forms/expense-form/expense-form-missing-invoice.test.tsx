@@ -42,7 +42,14 @@ function renderForm(values: BulkExpenseFormValuesT, files: Map<number, File[]>) 
       referenceData={expenseReferenceData}
       onSubmitSuccess={vi.fn()}
       formId="expense-draft-42"
-      prefill={{ expenseDraftId: 42, receipts: new Map(), files, values }}
+      prefill={{
+        expenseDraftId: 42,
+        receipts: new Map(),
+        aiReadRows: [],
+        pagesByMediaId: new Map(),
+        files,
+        values,
+      }}
     />,
   )
 }

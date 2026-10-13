@@ -69,10 +69,13 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       lineItems,
       files: rowFiles,
       receipts,
+      pagesByMediaId,
     } = buildDraftPrefill(draft, files, expenseCategory)
     return {
       expenseDraftId: draft.id,
       receipts,
+      aiReadRows: draft.aiRead?.rows ?? [],
+      pagesByMediaId,
       files: rowFiles,
       values: {
         date: warsawToday(),
@@ -129,12 +132,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       if (!result.success) {
         return { ...prev, duplicates: { status: 'error', message: result.error } }
       }
-      const receipts = [...prev.prefill.receipts]
-      const paragons = result.data.flatMap((paragon) => {
-        const itemId = receipts.find(([, receipt]) => receipt.readRow === paragon.readRow)?.[0]
-        return itemId ? [{ ...paragon, itemId }] : []
-      })
-      return { ...prev, duplicates: { status: 'ready', paragons } }
+      return { ...prev, duplicates: { status: 'ready', paragons: result.data } }
     })
   }
 
@@ -209,10 +207,11 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
                   ? handleReject(accepting.draft.id, duplicateOf)
                   : setRejecting(accepting.draft)
               }
-              renderAboveLineItems={({ lineItemIds, markDuplicate }) => (
+              renderAboveLineItems={({ lineItemIds, markDuplicate, itemIdOfReadRow }) => (
                 <ExpenseDraftDuplicateHints
                   state={accepting.duplicates}
                   lineItemIds={lineItemIds}
+                  itemIdOfReadRow={itemIdOfReadRow}
                   onMarkDuplicate={markDuplicate}
                 />
               )}

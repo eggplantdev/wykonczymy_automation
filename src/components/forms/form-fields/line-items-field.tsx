@@ -1,8 +1,9 @@
 'use client'
 
 import { Fragment, useRef, useState } from 'react'
-import { Trash2, WandSparkles } from 'lucide-react'
+import { Trash2, Unlink, WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Description } from '@/components/ui/description'
 import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
@@ -28,12 +29,12 @@ import {
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
-import { pl } from '@/lib/i18n/dictionaries/pl'
 import {
   isBlankRow,
   makeLineItem,
   type BulkExpenseFormApiT,
   type BulkExpenseFormValuesT,
+  type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 
 // Structural on purpose — name only the members we call, since the full FieldApi generic is
@@ -56,13 +57,13 @@ const isReceiptFile = (file: File) =>
   file.type.startsWith('image/') || file.type === 'application/pdf'
 
 const SCAN_MODE_OPTIONS: OptionT<ScanModeT>[] = [
-  { value: 'one-per-photo', label: pl.expenseDrafts.scanModeOnePerPhoto },
-  { value: 'one-invoice', label: pl.expenseDrafts.scanModeOneInvoice },
+  { value: 'one-per-photo', label: 'Kilka wydatków' },
+  { value: 'one-invoice', label: 'Jeden wydatek' },
 ]
 
 const SCAN_MODE_HINT: Record<ScanModeT, string> = {
-  'one-per-photo': pl.expenseDrafts.scanModeOnePerPhotoHint,
-  'one-invoice': pl.expenseDrafts.scanModeOneInvoiceHint,
+  'one-per-photo': 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
+  'one-invoice': 'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
 }
 
 type LineItemsFieldPropsT = {
@@ -89,6 +90,7 @@ type LineItemsFieldPropsT = {
   ingestingIds?: Set<string>
   failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
+  receiptGrouping?: ReceiptGroupingT
 }
 
 const otherCategoryConfig = (type: string, refData: ReferenceDataBaseT): RowSelectConfigT => ({
@@ -177,6 +179,7 @@ export function LineItemsField({
   ingestingIds,
   failedIds,
   generationProgress,
+  receiptGrouping,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
@@ -266,10 +269,32 @@ export function LineItemsField({
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: LineItemsArrayFieldT) => (
         <div className="space-y-4">
+          {receiptGrouping && receiptGrouping.selectableIds.size > 1 && (
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={receiptGrouping.selectedIds.size < 2 || receiptGrouping.disabled}
+                onClick={receiptGrouping.onMerge}
+              >
+                Połącz zaznaczone ({receiptGrouping.selectedIds.size})
+              </Button>
+            </div>
+          )}
           <div className="space-y-6">
             {lineItemsField.state.value.map((item, index: number) => (
               <Fragment key={item.id}>
                 <div className="flex gap-2">
+                  {receiptGrouping?.selectableIds.has(item.id) && (
+                    <Checkbox
+                      className="mt-8.5"
+                      aria-label={`Zaznacz pozycję ${index + 1}`}
+                      checked={receiptGrouping.selectedIds.has(item.id)}
+                      onCheckedChange={() => receiptGrouping.onToggle(item.id)}
+                      disabled={receiptGrouping.disabled}
+                    />
+                  )}
                   {lineItemsField.state.value.length > 1 && (
                     <span className="text-muted-foreground mt-6 flex h-9 shrink-0 items-center text-xs tabular-nums">
                       {index + 1}.
@@ -329,7 +354,7 @@ export function LineItemsField({
                       {/* No icon: this row is already Kwota + Netto + Opis + kategoria + the delete
                       slot, and a `shrink-0` glyph would take its ~1rem straight off the flex-1
                       inputs. `tone="error"` alone carries the alarm here. */}
-                      {failedIds?.has(item.id) && (
+                      {(failedIds?.has(item.id) || receiptGrouping?.incompleteIds.has(item.id)) && (
                         <Description
                           tone="error"
                           size="xs"
@@ -380,17 +405,32 @@ export function LineItemsField({
                         onFileChange={onFileChange}
                         onRemoveFile={onRemoveFile}
                       />
-                      {onGenerateRow && getRowFiles(item.id) && (
+                      {/* A re-read would put one paragon's values over the whole merged row. */}
+                      {receiptGrouping?.mergedIds.has(item.id) ? (
                         <Button
                           type="button"
-                          variant="ai"
+                          variant="outline"
                           className="sm:mt-6"
-                          onClick={() => onGenerateRow(item.id)}
-                          disabled={isGenerating || isIngesting}
+                          onClick={() => receiptGrouping.onSplit(item.id)}
+                          disabled={receiptGrouping.disabled}
                         >
-                          <WandSparkles className="text-neon-cyan" />
-                          <span className="text-neon-cyan font-semibold">Odczytaj ponownie</span>
+                          <Unlink />
+                          Rozłącz
                         </Button>
+                      ) : (
+                        onGenerateRow &&
+                        getRowFiles(item.id) && (
+                          <Button
+                            type="button"
+                            variant="ai"
+                            className="sm:mt-6"
+                            onClick={() => onGenerateRow(item.id)}
+                            disabled={isGenerating || isIngesting}
+                          >
+                            <WandSparkles className="text-neon-cyan" />
+                            <span className="text-neon-cyan font-semibold">Odczytaj ponownie</span>
+                          </Button>
+                        )
                       )}
                     </div>
                     <div className="grid gap-2 sm:grid-cols-3">

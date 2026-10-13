@@ -4,7 +4,6 @@ import { after } from 'next/server'
 import { z } from 'zod'
 import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-receipts'
 import { protectedAction, sessionAction, validateAction } from '@/lib/actions/run-action'
-import { RECEIPT_SCAN_MODES } from '@/lib/constants/receipt-scan'
 import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
@@ -28,7 +27,6 @@ const sendDraftSchema = z.object({
   investmentId: z.number().int().positive(pl.notices.chooseInvestment).nullable(),
   cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
   note: z.string().trim().max(2000, pl.notices.noteTooLong),
-  scanMode: z.enum(RECEIPT_SCAN_MODES),
   mediaIds: z
     .array(z.number().int().positive())
     .min(1, pl.notices.photoRequired)
@@ -76,7 +74,6 @@ export async function sendExpenseDraftAction(
       investmentId,
       cashRegisterId,
       note: parsed.data.note || null,
-      scanMode: parsed.data.scanMode,
       mediaIds: [...new Set(parsed.data.mediaIds)],
     })
     if (draftId === null) return noticeFailure('attachFailed')

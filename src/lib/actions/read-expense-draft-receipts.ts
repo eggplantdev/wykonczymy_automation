@@ -1,7 +1,6 @@
 import 'server-only'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
-import { scanReceiptList, scanReceiptPages, type ReceiptFillResultT } from '@/lib/ai/scan-receipt'
-import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
+import { scanReceiptList, type ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 import type { ExpenseDraftReadRowT, ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import {
@@ -34,12 +33,6 @@ function toReadRow(mediaIds: number[], data: ReceiptFillResultT): ExpenseDraftRe
 const hasAnswer = (row: ExpenseDraftReadRowT) => Object.keys(row).some((key) => key !== 'mediaIds')
 
 // The category is never applied from a draft, so the model gets none to pick from.
-async function readInvoice(storeId: string, pages: ExpenseDraftMediaT[]) {
-  const bytes = await Promise.all(pages.map((page) => fetchMediaBytes(storeId, page)))
-  return scanReceiptPages(bytes, [])
-}
-
-// One photo can hold several paragony, each its own row on that photo.
 async function readPhoto(
   storeId: string,
   page: ExpenseDraftMediaT,
@@ -63,29 +56,23 @@ export async function readExpenseDraftReceipts(
   try {
     const draft = await loadExpenseDraftForRead(db, draftId)
     if (!draft || draft.pages.length === 0) return
-    // A sent draft's pages and mode never change, so a stored read still answers them.
+    // A sent draft's pages never change, so a stored read still answers them.
     if (draft.aiRead) return draft.aiRead
-    // One photo is read paragon by paragon whatever the mode says: every single-photo draft sent
-    // before 2026-10-12 says „Jeden wydatek”.
-    const isInvoice = draft.scanMode === 'one-invoice' && draft.pages.length > 1
-    // A draft from before the 8-photo cap can still be pending; the manager reads it by eye.
-    if (isInvoice && draft.pages.length > MAX_RECEIPT_PAGES) return
     const storeId = blobStoreId ?? blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)
     if (!storeId) throw new Error('BLOB_READ_WRITE_TOKEN names no Blob store')
 
-    const mediaIds = draft.pages.map((page) => page.id)
-    const rows = isInvoice
-      ? [toReadRow(mediaIds, await readInvoice(storeId, draft.pages))]
-      : (
-          await mapWithConcurrency(draft.pages, PAGE_READ_CONCURRENCY, async (page) => {
-            try {
-              return await readPhoto(storeId, page)
-            } catch (error) {
-              logError('readExpenseDraftReceipts page', error, { draftId, mediaId: page.id })
-              return [{ mediaIds: [page.id] }]
-            }
-          })
-        ).flat()
+    // Paragon by paragon whatever `scan_mode` says: one total asked over many documents came back
+    // wrong where a per-paragon read summed by the manager is exact (EX-1048).
+    const rows = (
+      await mapWithConcurrency(draft.pages, PAGE_READ_CONCURRENCY, async (page) => {
+        try {
+          return await readPhoto(storeId, page)
+        } catch (error) {
+          logError('readExpenseDraftReceipts page', error, { draftId, mediaId: page.id })
+          return [{ mediaIds: [page.id] }]
+        }
+      })
+    ).flat()
 
     if (!rows.some(hasAnswer)) return
     return await saveExpenseDraftRead(db, draftId, { rows })

@@ -91,7 +91,6 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      scanMode: 'one-per-photo',
       mediaIds: pages,
     })
     if (draftId === null) throw new Error('draft fixture refused')
@@ -228,5 +227,39 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     expect(ours(byAmount.matches)).toEqual([`transaction-${tx.byAmount}`])
     expect(ours(byNumber.matches)).toEqual([`transaction-${tx.byNumber}`])
     expect(ours(byLegacyNote.matches)).toEqual([`transaction-${tx.legacyNote}`])
+  })
+
+  // Bileciki merged into one transakcja book their sum, which matches none of them on its own.
+  it('a paragon booked inside a merged transakcja matches on its own Kwota and points at it', async () => {
+    const MERGED = 4321.09
+    const { draftId: bookedDraftId } = await pendingDraftWithRead('merged', [
+      { amount: MERGED, description: 'Bilet' },
+      { amount: 3.21, description: 'Bilet' },
+    ])
+    await insertTransaction('merged', { amount: MERGED + 3.21 })
+    await db.execute(sql`
+      UPDATE worker_expense_drafts SET status = 'accepted', decided_at = now() WHERE id = ${bookedDraftId}
+    `)
+    await db.execute(sql`
+      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
+      VALUES (${tx.merged}, ${bookedDraftId}, '{}', '{0,1}')
+    `)
+
+    const candidates = await loadTransactionCandidates(db, {
+      amountsCents: [432109],
+      documentNumbers: [],
+    })
+    expect(
+      candidates.filter((c) => c.id === tx.merged).map((c) => [c.key, c.amount]),
+    ).toEqual([[`transaction-${tx.merged}-0`, MERGED]])
+
+    const { draftId: againId } = await pendingDraftWithRead('again', [
+      { amount: MERGED, description: 'Bilet' },
+    ])
+    const result = await findExpenseDraftDuplicates(againId)
+    if (!result.success) throw new Error(result.error)
+    expect(result.data[0].matches.map((m) => `${m.source}-${m.id}`)).toContain(
+      `transaction-${tx.merged}`,
+    )
   })
 })

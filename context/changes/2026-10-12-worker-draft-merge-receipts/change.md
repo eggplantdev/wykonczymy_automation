@@ -1,12 +1,12 @@
 ---
 change_id: worker-draft-merge-receipts
 title: Merge and split paragon rows when accepting a worker's expense draft
-status: preparing
+status: implemented
 created: 2026-10-12
-updated: 2026-10-12
+updated: 2026-10-13
 archived_at: null
-branch: null
-worktree: null
+branch: worker-draft-merge-receipts
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-draft-merge-receipts
 ---
 
 ## Notes
@@ -14,7 +14,7 @@ worktree: null
 Linear: EX-1048
 
 „Połącz” / „Rozłącz” rows in the worker zgłoszenie „Przyjmij” dialog; always read paragon by
-paragon, „Jeden wydatek” only pre-merges.
+paragon. „Jeden wydatek” is removed from the worker's dialog (owner, 2026-10-13) — the manager merges.
 
 Trigger: zgłoszenie #13 (prod) — 13 Leroy Merlin paragony plus 24 parking bileciki on 7 photos.
 Re-read paragon by paragon as #24 (`src/scripts/rescan-expense-draft.ts`): 37 rows, 1177.85 zł.

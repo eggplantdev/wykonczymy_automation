@@ -38,7 +38,6 @@ const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDr
   decidedByName: 'Szef',
   transfers: [],
   media: [],
-  scanMode: 'one-per-photo',
   aiRead: undefined,
   ...overrides,
 })

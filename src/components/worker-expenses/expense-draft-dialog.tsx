@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
@@ -17,20 +16,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { ToggleGroup } from '@/components/ui/toggle-group'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import { sendExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 import { failureMessage } from '@/lib/i18n/failure-message'
-import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import { MAX_DRAFT_PAGES, NO_INVESTMENT } from '@/lib/constants/worker-expense-drafts'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { CashRegisterRefT } from '@/types/reference-data'
-
-// Several photos are far more often several paragony than one invoice's pages.
-const DEFAULT_SCAN_MODE: ScanModeT = 'one-per-photo'
 
 type InvestmentOptionT = Pick<WorkerStageInvestmentT, 'investmentId' | 'name'>
 
@@ -69,13 +63,9 @@ export function ExpenseDraftDialog({
     initialRegisterId(registers, defaultRegisterId),
   )
   const [note, setNote] = useState('')
-  const [scanMode, setScanMode] = useState(DEFAULT_SCAN_MODE)
-  // „Jeden wydatek" sums every photo into one amount, so it is opted into.
-  const [isOneInvoiceConfirmOpen, setIsOneInvoiceConfirmOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const { files, isIngesting, inputKey, reset, fileInputProps } = useFilePickIngest()
 
-  const isScanModeShown = files.length >= 2
   // The server refuses the same count, but only after every photo went up over the phone's data.
   const hasTooManyPhotos = files.length > MAX_DRAFT_PAGES
   const canSend =
@@ -89,7 +79,6 @@ export function ExpenseDraftDialog({
   function close() {
     setOpen(false)
     setNote('')
-    setScanMode(DEFAULT_SCAN_MODE)
     reset()
   }
 
@@ -110,8 +99,6 @@ export function ExpenseDraftDialog({
       investmentId: investmentId === NO_INVESTMENT ? null : Number(investmentId),
       cashRegisterId: Number(cashRegisterId),
       note,
-      // A re-pick down to one photo hides the choice but keeps the state behind it.
-      scanMode: isScanModeShown ? scanMode : DEFAULT_SCAN_MODE,
     }
     return submitWithUploads(
       files,
@@ -195,35 +182,6 @@ export function ExpenseDraftDialog({
               {t('tooManyPhotos', { max: MAX_DRAFT_PAGES })}
             </Description>
           )}
-          {isScanModeShown && (
-            <div className="flex flex-col gap-2">
-              <ToggleGroup
-                options={[
-                  { value: 'one-per-photo', label: t('scanModeOnePerPhoto') },
-                  { value: 'one-invoice', label: t('scanModeOneInvoice') },
-                ]}
-                value={scanMode}
-                onChange={(next) =>
-                  next === 'one-invoice' ? setIsOneInvoiceConfirmOpen(true) : setScanMode(next)
-                }
-                isEqualWidth
-              />
-              <Description size="xs">
-                {t(
-                  scanMode === 'one-invoice' ? 'scanModeOneInvoiceHint' : 'scanModeOnePerPhotoHint',
-                )}
-              </Description>
-            </div>
-          )}
-          <ConfirmDialog
-            open={isOneInvoiceConfirmOpen}
-            title={t('scanModeOneInvoiceConfirmTitle')}
-            description={t('scanModeOneInvoiceConfirmDescription')}
-            confirmLabel={t('scanModeOneInvoiceConfirm')}
-            variant="neutral"
-            onConfirm={() => setScanMode('one-invoice')}
-            onCancel={() => setIsOneInvoiceConfirmOpen(false)}
-          />
           <div className="flex flex-col gap-2">
             <Label htmlFor="expense-draft-note">{t('noteOptional')}</Label>
             <Textarea

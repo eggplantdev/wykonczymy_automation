@@ -169,15 +169,6 @@ export const ru: TranslationsT = {
     deleteTitle: 'Удалить расход?',
     delete: 'Удалить',
     deletedToast: 'Расход удалён',
-    scanModeOneInvoice: 'Один расход',
-    scanModeOnePerPhoto: 'Несколько расходов',
-    scanModeOneInvoiceHint:
-      'Все фото — это один счёт: будет одна позиция с несколькими страницами.',
-    scanModeOneInvoiceConfirmTitle: 'Все фото — точно один счёт?',
-    scanModeOneInvoiceConfirmDescription:
-      'Выбирайте это, только если один счёт или чек снят на нескольких фото — например, у счёта несколько страниц или длинный чек не поместился на одно фото. Такое почти никогда не бывает. Если на фото разные чеки, они будут сложены в одну сумму.',
-    scanModeOneInvoiceConfirm: 'Да, один счёт',
-    scanModeOnePerPhotoHint: 'Каждое фото — отдельный чек: из него будет отдельная позиция.',
     tooManyPhotos: 'Не больше {{max}} фото в одном расходе — остальные отправьте отдельно.',
   },
   workerReports: {

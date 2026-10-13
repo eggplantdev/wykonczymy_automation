@@ -73,7 +73,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       investmentId: onInvestment,
       cashRegisterId: owner.registerId,
       note: 'przed',
-      scanMode: 'one-invoice',
       mediaIds,
     })
     if (draftId === null) throw new Error('draft fixture refused')
@@ -90,7 +89,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     sendExpenseDraftAction({
       ...target,
       note: '',
-      scanMode: 'one-invoice',
       mediaIds: [await insertMedia(name, workerId)],
     })
 
@@ -206,7 +204,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
         investmentId,
         cashRegisterId: registerId,
         note: '',
-        scanMode: 'one-invoice',
         mediaIds: [mediaId],
       })
 
@@ -363,12 +360,11 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the AI read of his draft', () => {
-    it('is asked for once a draft is sent, in the mode the worker chose', async () => {
+    it('is asked for once a draft is sent, paragon by paragon', async () => {
       const result = await sendExpenseDraftAction({
         investmentId,
         cashRegisterId: registerId,
         note: '',
-        scanMode: 'one-per-photo',
         mediaIds: [await insertMedia('read-send', workerId)],
       })
 

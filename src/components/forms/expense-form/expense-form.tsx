@@ -6,6 +6,7 @@ import { FieldDescription, FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceIngest } from '@/components/forms/expense-form/use-invoice-ingest'
 import { useReceiptGeneration } from '@/components/forms/expense-form/use-receipt-generation'
+import { useDraftReceipts } from '@/components/forms/expense-form/use-draft-receipts'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -71,6 +72,7 @@ import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
+import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -80,7 +82,9 @@ export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
   expenseDraftId: number
-  receipts: Map<string, DraftReceiptT>
+  receipts: Map<string, DraftReceiptT[]>
+  aiReadRows: ExpenseDraftReadRowT[]
+  pagesByMediaId: Map<number, File>
 }
 
 type TransferFormPropsT = {
@@ -101,6 +105,7 @@ type TransferFormPropsT = {
   renderAboveLineItems?: (api: {
     lineItemIds: string[]
     markDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
+    itemIdOfReadRow: (readRow: number) => string | undefined
   }) => React.ReactNode
 }
 
@@ -144,6 +149,7 @@ export function ExpenseForm({
     // Keyed by id, so surviving rows' markers/files need no shift and the reactive store
     // re-renders the removed row on its own.
     handleRemoveLineItem,
+    replaceRows,
     removeFileAt,
     getRowFiles,
     getFiles,
@@ -267,7 +273,7 @@ export function ExpenseForm({
               invoicePageRows,
               prefill && {
                 expenseDraftId: prefill.expenseDraftId,
-                ...receiptDecision(prefill.receipts, value.lineItems, duplicateOfByItemId),
+                ...receiptDecision(draftReceipts.receipts, value.lineItems, duplicateOfByItemId),
               },
             ),
           ),
@@ -314,6 +320,14 @@ export function ExpenseForm({
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
   const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+
+  const draftReceipts = useDraftReceipts({
+    source: prefill,
+    lineItems,
+    setLineItems: (items) => form.setFieldValue('lineItems', items),
+    replaceRows,
+    isBusy: isGenerating || isIngesting || isPrefillReading,
+  })
 
   function markDuplicate(itemId: string, duplicateOf: DuplicateOfT) {
     const index = lineItems.findIndex((item) => item.id === itemId)
@@ -436,6 +450,7 @@ export function ExpenseForm({
           {renderAboveLineItems?.({
             lineItemIds: lineItems.map((item) => item.id),
             markDuplicate,
+            itemIdOfReadRow: draftReceipts.itemIdOfReadRow,
           })}
 
           {!isDepositType(currentType) && (
@@ -455,6 +470,7 @@ export function ExpenseForm({
               generatingIds={generatingIds}
               ingestingIds={ingestingIds}
               failedIds={failedIds}
+              receiptGrouping={draftReceipts.grouping}
               generationProgress={generationProgress}
               transferType={currentType}
               referenceData={referenceData}
