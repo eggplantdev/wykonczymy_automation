@@ -4948,6 +4948,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Podgląd zdjęcia paragonu → po otwarciu przycisk powiększenia nie ma podświetlenia fokusu.
 - [ ] Zgłoszenie otwarte w dwóch kartach → w jednej przyjmij paragon, w drugiej kliknij „Przyjmij” na tym samym: komunikat, że paragon jest już rozstrzygnięty, lista odświeża się bez niego, nic nie zapisuje się dwa razy.
 - [ ] „Przyjmij” przy wyłączonej sieci (DevTools → Offline) → po włączeniu sieci i ponownym otwarciu zgłoszenia paragon nie jest przyjęty dwa razy; okno pokazuje to, co naprawdę zapisano.
+- [ ] Zgłoszenie z kilkoma zdjęciami → „Przyjmij” przy paragonie: zapis kończy się w kilka sekund, bez paska wysyłania zdjęć; w szczegółach zapisanego wydatku są te same zdjęcia ze zgłoszenia.
 - [ ] Paragon bez kwoty → „Przyjmij”: przy polu „Kwota” tego paragonu pojawia się błąd, paragon zostaje na liście, inne paragony bez zmian.
 - [ ] Zwykłe „Dodaj wydatek” (bez zgłoszenia) → zapis działa jak dotąd; akcje zaznaczenia pojawiają się dopiero przy więcej niż jednej pozycji.
 - [ ] Raport prac z częścią pozycji przyjętą i częścią czekającą → licznik „Przyjęte X · Do sprawdzenia Z” na liście raportów, w podglądzie i w nagłówku sprawdzania.
