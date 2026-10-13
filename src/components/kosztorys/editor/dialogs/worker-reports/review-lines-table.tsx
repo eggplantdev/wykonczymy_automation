@@ -1,23 +1,20 @@
 'use client'
 
-import { createContext, use, useState, useTransition } from 'react'
+import { createContext, use, useTransition, type ReactNode } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { SearchIcon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-select'
-import { SimpleSelect, type SelectOptionT } from '@/components/ui/simple-select'
+import { SimpleSelect } from '@/components/ui/simple-select'
 import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
-import { CatalogueSwapDialog } from '@/components/kosztorys/editor/dialogs/worker-reports/catalogue-swap-dialog'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { SectionPill } from '@/components/worker-reports/section-pill'
 import { WorkerDescription } from '@/components/worker-reports/worker-description'
 import {
   acceptedQtyNote,
-  isLineReady,
   previewQtyChange,
   UNDO_CATALOGUE_SWAP,
   type ItemFiguresT,
@@ -29,7 +26,6 @@ import { formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { sectionColorRail, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
-import type { KosztorysItemRefT } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import type { CatalogueHintT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
@@ -67,11 +63,9 @@ type ReviewTablePropsT = {
   rows: ReviewRowT[]
   drafts: Record<number, LineDraftT>
   onChange: (lineId: number, patch: Partial<LineDraftT>) => void
-  sectionOptions: SelectOptionT[]
   itemOptions: SearchSelectItemT[]
   catalogue: WorkCatalogueItemT[]
-  kosztorysItems: readonly KosztorysItemRefT[]
-  onCatalogueSwap: (lineId: number, entry: WorkCatalogueItemT) => void
+  onOpenCatalogue: (lineId: number, entryId?: number) => void
   hintsByLine: Record<number, CatalogueHintT[]>
   stageTitle: string
   // Undefined once the report is decided: only a pending report's extras can be retranslated.
@@ -177,9 +171,9 @@ function ScanFlags({ row }: { row: ReviewRowT }) {
       {row.isDuplicateItem && (
         <span className={WARNING_NOTE}>Ta pozycja jest w zgłoszeniu więcej niż raz</span>
       )}
-      {row.isUnitMissing && drafts[row.id].catalogueId === undefined && (
+      {row.isUnitMissing && drafts[row.id].matchedItemIds.length === 0 && (
         <span className="text-destructive block text-xs">
-          Brak j.m. w kosztorysie — wybierz pracę z katalogu
+          Brak j.m. — wybierz pracę z katalogu albo dodaj nową
         </span>
       )}
     </>
@@ -222,7 +216,7 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
             variant="link"
             size="xs"
             className="h-auto p-0"
-            onClick={() => onChange(row.id, { isExtra: true, itemId: undefined })}
+            onClick={() => onChange(row.id, { isExtra: true, itemId: undefined, isTicked: false })}
           >
             Przenieś do prac spoza rozpiski
           </Button>
@@ -268,22 +262,17 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-// Where the worker's words were swapped for a katalog praca: what he wrote stays in view, and so
-// does a j.m. that disagrees with the katalog's — the ilość is his, counted in his unit.
-function SwapNote({ row, unit }: { row: ReviewRowT; unit: string | undefined }) {
+// „Cofnij podmianę” leaves the pozycja it went to in the rozpiska — empty, it shows on no page the
+// client sees.
+function SwapNote({ row }: { row: ReviewRowT }) {
   const { drafts, onChange } = useReviewTable()
-  const isSwapped = drafts[row.id].catalogueId !== undefined
+  const source = drafts[row.id].catalogueId === undefined ? 'Zgłoszono' : 'Z katalogu · zgłoszono'
   return (
     <>
       <span className="text-muted-foreground block text-xs">
-        {isSwapped ? 'Z katalogu · zgłoszono' : 'Zgłoszono'} „{reviewedDescription(row)}”
+        {source} „{reviewedDescription(row)}”
       </span>
-      {unit !== undefined && unit !== row.unit && (
-        <span className={WARNING_NOTE}>
-          j.m. katalogu: {unit}, zgłoszono w {row.unit}
-        </span>
-      )}
-      {isSwapped && !row.isAccepted && (
+      {!row.isAccepted && (
         <Button
           variant="link"
           size="xs"
@@ -297,8 +286,7 @@ function SwapNote({ row, unit }: { row: ReviewRowT; unit: string | undefined }) 
   )
 }
 
-// A katalog praca the rozpiska already holds: the line adds to that pozycja. In several sekcje, the
-// kierownik says which.
+// A katalog praca the rozpiska already holds: the line adds to that pozycja.
 function MatchedDescription({ row }: { row: ReviewRowT }) {
   const { drafts, onChange, itemOptions, catalogueById } = useReviewTable()
   const draft = drafts[row.id]
@@ -311,13 +299,13 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
       <span className="block leading-snug">
         {row.itemDescription ?? entry?.description ?? row.description}
       </span>
-      <SwapNote row={row} unit={entry?.unit} />
+      <SwapNote row={row} />
       {choices.length > 1 && !row.isAccepted && (
         <SimpleSelect
           value={draft.itemId === undefined ? '' : String(draft.itemId)}
           onValueChange={(value) => onChange(row.id, { itemId: Number(value) })}
           options={choices}
-          placeholder="W której sekcji?"
+          placeholder="Która pozycja?"
           className={cn('mt-1 h-8 max-w-80', draft.itemId === undefined && 'border-destructive')}
         />
       )}
@@ -328,12 +316,12 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
 function TranslationNote({ row }: { row: ReviewRowT }) {
   const { onRetranslate } = useReviewTable()
   const [isTranslating, startTranslating] = useTransition()
-  const isTranslated = row.polishDescription !== undefined
+  // A recognised language — Polish included — means the AI already answered; a retry is only for a
+  // line it never reached, which could otherwise land in the rozpiska in Cyrillic.
+  if (row.descriptionLanguage !== undefined) return undefined
   return (
     <>
-      {row.descriptionLanguage === undefined && (
-        <span className="text-muted-foreground block text-xs">Brak tłumaczenia</span>
-      )}
+      <span className="text-muted-foreground block text-xs">Brak tłumaczenia</span>
       {onRetranslate && !row.isAccepted && (
         <Button
           variant="link"
@@ -342,7 +330,7 @@ function TranslationNote({ row }: { row: ReviewRowT }) {
           disabled={isTranslating}
           onClick={() => startTranslating(() => onRetranslate(row.id))}
         >
-          {isTranslating ? 'Tłumaczę…' : isTranslated ? 'Przetłumacz ponownie' : 'Przetłumacz'}
+          {isTranslating ? 'Tłumaczę…' : 'Przetłumacz'}
         </Button>
       )}
     </>
@@ -365,87 +353,39 @@ function ManualDescriptionCell({ row }: { row: ReviewRowT }) {
   return (
     <>
       <span className="block leading-snug">{swapped.description}</span>
-      <SwapNote row={row} unit={swapped.unit} />
+      <SwapNote row={row} />
       <ScanFlags row={row} />
     </>
   )
 }
 
-// The worker names a praca in his own words; the manager often recognises a katalog wpis in them.
-// Swapping it in carries the katalog's opis, j.m. and cena, so the new pozycja is priced like any
-// other instead of by hand.
-function CatalogueCell({ row }: { row: ReviewRowT }) {
-  const { drafts, catalogue, catalogueById, kosztorysItems, onCatalogueSwap, hintsByLine } =
-    useReviewTable()
-  const [isPickerOpen, setIsPickerOpen] = useState(false)
-  if (row.isAccepted || drafts[row.id].catalogueId !== undefined) return null
-
+// A praca spoza rozpiski is accepted only once it is in the rozpiska, so this is its one way in. A
+// podpowiedź opens the window on that praca, with the szukajka still there to look further — so the
+// plain button is only for a line with nothing to suggest.
+function CatalogueHintsCell({ row }: { row: ReviewRowT }) {
+  const { onOpenCatalogue, hintsByLine } = useReviewTable()
+  if (row.isAccepted) return null
   const hints = hintsByLine[row.id] ?? []
+  if (hints.length === 0) {
+    return (
+      <Button variant="outline" size="xs" onClick={() => onOpenCatalogue(row.id)}>
+        <PlusIcon />
+        Dodaj do rozpiski
+      </Button>
+    )
+  }
   return (
-    <div className="flex flex-col items-start gap-1">
-      {hints.length > 0 && <span className="text-muted-foreground text-xs">Może chodzi o:</span>}
+    <div className="flex flex-col gap-1">
       {hints.map((hint) => (
         <CandidateRow
           key={hint.id}
           entry={hint}
           readOnly={false}
-          onClick={() => {
-            const entry = catalogueById.get(hint.id)
-            if (entry) onCatalogueSwap(row.id, entry)
-          }}
+          showFigures={false}
+          onClick={() => onOpenCatalogue(row.id, hint.id)}
         />
       ))}
-      <Button variant="outline" size="sm" onClick={() => setIsPickerOpen(true)}>
-        <SearchIcon />
-        Szukaj w katalogu…
-      </Button>
-      {isPickerOpen && (
-        <CatalogueSwapDialog
-          catalogue={catalogue}
-          kosztorysItems={kosztorysItems}
-          reported={{ description: reviewedDescription(row), unit: row.unit }}
-          onPick={(entry) => onCatalogueSwap(row.id, entry)}
-          onClose={() => setIsPickerOpen(false)}
-        />
-      )}
     </div>
-  )
-}
-
-function TargetSectionCell({ row }: { row: ReviewRowT }) {
-  const { drafts, onChange, sectionOptions } = useReviewTable()
-  const draft = drafts[row.id]
-  return (
-    <SimpleSelect
-      value={draft.sectionId}
-      onValueChange={(sectionId) => onChange(row.id, { sectionId })}
-      options={sectionOptions}
-      placeholder="Wybierz sekcję"
-      disabled={row.isAccepted || !draft.isTicked}
-      className={cn(
-        'h-8 w-44',
-        draft.isTicked && draft.sectionId === '' && !row.isAccepted && 'border-destructive',
-      )}
-    />
-  )
-}
-
-function UnitPriceCell({ row }: { row: ReviewRowT }) {
-  const { drafts, onChange } = useReviewTable()
-  const draft = drafts[row.id]
-  const isPriceMissing =
-    draft.isTicked && draft.sectionId !== '' && !isLineReady(row, draft, undefined)
-  return (
-    <Input
-      aria-label={`Cena j.m.: ${row.description}`}
-      inputMode="decimal"
-      placeholder="zł"
-      value={draft.unitPrice}
-      disabled={row.isAccepted || !draft.isTicked}
-      aria-invalid={isPriceMissing}
-      onChange={(event) => onChange(row.id, { unitPrice: event.target.value })}
-      className="h-8 w-24 text-right tabular-nums"
-    />
   )
 }
 
@@ -462,7 +402,7 @@ const tickColumn = col.display({
 const rejectColumn = col.display({
   id: 'reject',
   enableHiding: false,
-  header: '',
+  header: 'Akcje',
   cell: ({ row }) => <RejectCell row={row.original} />,
 })
 const refColumn = col.accessor((row) => row.ref ?? 0, {
@@ -538,28 +478,21 @@ const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   meta: { align: 'right', label: COLUMN_LABELS.stageQtySum },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
-const targetSectionColumn = col.display({
-  id: 'targetSection',
-  header: 'Do sekcji',
-  cell: ({ row }) => <TargetSectionCell row={row.original} />,
-})
+// The worker's opis and its podpowiedź are read side by side, so they split the width evenly rather
+// than by whichever happens to be longer.
+const EXTRA_TEXT_WIDTH = 'min-w-80 w-1/3'
 const manualDescriptionColumn = col.accessor('description', {
   header: 'Opis prac',
   sortingFn: (first, second) =>
     compareDescriptions(first.original.description, second.original.description),
-  meta: { fill: true, minWidth: DESCRIPTION_MIN_WIDTH },
+  meta: { minWidth: EXTRA_TEXT_WIDTH },
   cell: ({ row }) => <ManualDescriptionCell row={row.original} />,
 })
-const catalogueColumn = col.display({
-  id: 'catalogue',
-  header: 'Katalog',
-  cell: ({ row }) => <CatalogueCell row={row.original} />,
-})
-const unitPriceColumn = col.display({
-  id: 'unitPrice',
-  header: 'Cena j.m.',
-  meta: { align: 'right' },
-  cell: ({ row }) => <UnitPriceCell row={row.original} />,
+const catalogueHintsColumn = col.display({
+  id: 'catalogueHints',
+  header: 'Może chodzi o',
+  meta: { minWidth: EXTRA_TEXT_WIDTH },
+  cell: ({ row }) => <CatalogueHintsCell row={row.original} />,
 })
 
 const COLUMNS_BY_GROUP = {
@@ -577,32 +510,48 @@ const COLUMNS_BY_GROUP = {
     rejectColumn,
   ],
   extra: [
-    tickColumn,
-    manualDescriptionColumn,
-    workerDescriptionColumn,
-    catalogueColumn,
-    reportedColumn,
-    acceptedColumn,
-    targetSectionColumn,
-    unitPriceColumn,
     rejectColumn,
+    manualDescriptionColumn,
+    catalogueHintsColumn,
+    workerDescriptionColumn,
+    reportedColumn,
   ],
 }
 
-type PropsT = ReviewTablePropsT & { group: LineGroupT }
+// The group's title and hint share the column picker's row, so the picker takes no line of its own.
+// Collapsed keeps the heading row, so the column picker stays reachable with the table hidden.
+type PropsT = ReviewTablePropsT & {
+  group: LineGroupT
+  heading: ReactNode
+  isCollapsed?: boolean
+  // Decided over the whole report, not the searched rows, so the column holds still while typing.
+  hasWorkerDescription: boolean
+}
 
-export function ReviewLinesTable({ group, ...props }: PropsT) {
+export function ReviewLinesTable({
+  group,
+  heading,
+  isCollapsed = false,
+  hasWorkerDescription,
+  ...props
+}: PropsT) {
   const catalogueById = new Map(props.catalogue.map((entry) => [entry.id, entry]))
   return (
     <ReviewTableContext value={{ ...props, catalogueById }}>
       <DataTable
         data={props.rows}
-        columns={COLUMNS_BY_GROUP[group]}
+        columns={
+          hasWorkerDescription
+            ? COLUMNS_BY_GROUP[group]
+            : COLUMNS_BY_GROUP[group].filter((column) => column !== workerDescriptionColumn)
+        }
         storageKey={`worker-report-${group}`}
+        renderRows={isCollapsed ? () => null : undefined}
         toolbar={({ table, columnVisibility, ...order }) => (
-          <DataTableToolbar
-            columns={<ColumnToggle table={table} columnVisibility={columnVisibility} {...order} />}
-          />
+          <div className="flex items-end justify-between gap-4">
+            <div className="min-w-0">{heading}</div>
+            <ColumnToggle table={table} columnVisibility={columnVisibility} {...order} />
+          </div>
         )}
         getRowClassName={(row) =>
           cn(

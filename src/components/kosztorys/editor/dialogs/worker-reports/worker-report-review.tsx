@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -9,9 +10,9 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { AddLineToRozpiska } from '@/components/kosztorys/editor/dialogs/worker-reports/add-line-to-rozpiska'
 import {
   buildAccept,
-  catalogueSwap,
   decisionSummary,
   initialDrafts,
   isLineReady,
@@ -49,10 +50,13 @@ import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { settleAction } from '@/lib/utils/settle-action'
 import { NOTICE_MS, retranslationNotice } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
+import { cn } from '@/lib/utils/cn'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { unitLabel } from '@/lib/kosztorys/format'
 
 type PropsT = {
   report: WorkerReportT
+  onEdit: () => void
   onDecided: () => void
 }
 
@@ -62,7 +66,7 @@ const GROUPS: { group: LineGroupT; title: string; hint: string }[] = [
   {
     group: 'extra',
     title: 'Spoza rozpiski',
-    hint: 'Pracownik podał tylko opis, j.m. i ilość. Po przyjęciu trafią do rozpiski jako nowe pozycje bez przedmiaru — uzupełnij sekcję i cenę albo podmień na pracę z katalogu.',
+    hint: 'Pracownik podał tylko opis, j.m. i ilość. Dodaj pracę do rozpiski — z katalogu albo jako nową — a przejdzie do „Z rozpiski”, gdzie ją przyjmiesz.',
   },
   { group: 'rozpiska', title: 'Z rozpiski', hint: 'Przyjęta ilość dodaje się do wybranego etapu.' },
 ]
@@ -78,9 +82,10 @@ const searchableText = (row: ReviewRowT) =>
     row.workerDescription ?? '',
   ].join(' ')
 
-export function WorkerReportReview({ report, onDecided }: PropsT) {
+export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
   const { rows, stages, sections, workCatalogue, acceptReport } = useKosztorysEditorContext()
   const catalogue = workCatalogue ?? []
+  const [swapRequest, setSwapRequest] = useState<{ lineId: number; entryId?: number }>()
   const isPending = report.status === 'pending'
   const rowById = new Map(rows.map((row) => [row.id, row]))
   const [drafts, setDrafts] = useState(() => initialDrafts(report, rows))
@@ -103,6 +108,9 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
   )
   const [plane, setPlane] = useState<ToolPlaneT | undefined>()
   const [isSaving, setIsSaving] = useState(false)
+  const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<LineGroupT>>(new Set())
+  const toggleGroup = (group: LineGroupT) =>
+    setCollapsedGroups((current) => toggleInSet(current, group))
   // A retry's answer, laid over the report this dialog was opened with — no refetch of the whole report.
   const [retranslated, setRetranslated] = useState<
     Record<number, Pick<ReportLineT, 'polishDescription' | 'descriptionLanguage'>>
@@ -130,7 +138,7 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
   const reviewRows: ReviewRowT[] = reportLines
     .map((line) => {
       const isRozpiska = lineGroup(line, drafts[line.id]) === 'rozpiska'
-      const itemId = isRozpiska ? itemIdOf(line) : line.createdItemId
+      const itemId = isRozpiska ? itemIdOf(line) : undefined
       const row = itemId === undefined ? undefined : rowById.get(itemId)
       const sectionName = row?.sectionName ?? line.sectionName ?? ''
       return {
@@ -155,6 +163,7 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
       }
     })
     .toSorted((first, second) => first.sectionOrder - second.sectionOrder)
+  const hasWorkerDescription = reviewRows.some((row) => row.workerDescription !== undefined)
   const {
     filteredData: visibleRows,
     searchTerm,
@@ -180,10 +189,6 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
     { value: NEW_STAGE, label: 'Nowy etap' },
   ]
   const planeOptions = TOOL_PLANES.map((value) => ({ value, label: PLANE_LABELS[value] }))
-  const sectionOptions = sections.map((section) => ({
-    value: String(section.sectionId),
-    label: section.sectionName,
-  }))
 
   const {
     open: openLines,
@@ -216,8 +221,10 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
     isTargetReady &&
     report.lines.every((line) => isLineReady(line, drafts[line.id], itemIdOf(line)))
 
-  const updateDraft = (lineId: number, patch: Partial<LineDraftT>) =>
+  const updateDraft = (lineId: number, patch: Partial<LineDraftT>) => {
     setDrafts((current) => ({ ...current, [lineId]: { ...current[lineId], ...patch } }))
+    onEdit()
+  }
 
   const retranslate = async (lineId: number) => {
     const result = await settleAction(() =>
@@ -238,6 +245,8 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
       },
     }))
   }
+
+  const swapLine = reportLines.find((line) => line.id === swapRequest?.lineId)
 
   const decide = async (run: () => Promise<boolean>, doneMessage: string) => {
     setIsSaving(true)
@@ -343,23 +352,38 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
           if (lines.length === 0) return null
           return (
             <section key={group}>
-              <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                {title} ({lines.length}
-                {lines.length < total && ` z ${total}`})
-              </h4>
-              <p className="text-muted-foreground mb-2 text-xs">{hint}</p>
               <ReviewLinesTable
                 group={group}
+                heading={
+                  <>
+                    <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                      <button
+                        type="button"
+                        aria-expanded={!collapsedGroups.has(group)}
+                        onClick={() => toggleGroup(group)}
+                        className="flex cursor-pointer items-center gap-1 uppercase"
+                      >
+                        {title} ({lines.length}
+                        {lines.length < total && ` z ${total}`})
+                        <ChevronDown
+                          className={cn(
+                            'size-3.5 transition-transform duration-200',
+                            !collapsedGroups.has(group) && 'rotate-180',
+                          )}
+                        />
+                      </button>
+                    </h4>
+                    <p className="text-muted-foreground text-xs">{hint}</p>
+                  </>
+                }
+                isCollapsed={collapsedGroups.has(group)}
+                hasWorkerDescription={hasWorkerDescription}
                 rows={lines}
                 drafts={drafts}
                 onChange={updateDraft}
-                sectionOptions={sectionOptions}
                 itemOptions={itemOptions}
                 catalogue={catalogue}
-                kosztorysItems={rows}
-                onCatalogueSwap={(lineId, entry) =>
-                  updateDraft(lineId, catalogueSwap(entry, rows, catalogue))
-                }
+                onOpenCatalogue={(lineId, entryId) => setSwapRequest({ lineId, entryId })}
                 hintsByLine={hintsByLine}
                 stageTitle={stageTitle}
                 onRetranslate={isPending ? retranslate : undefined}
@@ -368,6 +392,15 @@ export function WorkerReportReview({ report, onDecided }: PropsT) {
           )
         })}
       </div>
+
+      {swapLine && (
+        <AddLineToRozpiska
+          line={swapLine}
+          entryId={swapRequest?.entryId}
+          onChange={updateDraft}
+          onClose={() => setSwapRequest(undefined)}
+        />
+      )}
 
       <DialogFooter>
         <p className="text-foreground mr-auto self-center text-sm">

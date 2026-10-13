@@ -51,8 +51,6 @@ const draft: LineDraftT = {
   qty: '12',
   itemId: undefined,
   isExtra: false,
-  sectionId: '',
-  unitPrice: '',
   catalogueId: undefined,
   matchedItemIds: [],
 }
@@ -64,14 +62,14 @@ function renderTable(
   return render(
     <ReviewLinesTable
       group="extra"
+      heading={null}
+      hasWorkerDescription={row.workerDescription !== undefined}
       rows={[row]}
       drafts={{ [row.id]: draft }}
       onChange={vi.fn()}
-      sectionOptions={[]}
       itemOptions={[]}
       catalogue={[]}
-      kosztorysItems={[]}
-      onCatalogueSwap={vi.fn()}
+      onOpenCatalogue={vi.fn()}
       hintsByLine={{}}
       stageTitle="Etap 1"
       onRetranslate={onRetranslate}
@@ -106,7 +104,14 @@ describe('praca spoza rozpiski — tłumaczenie dla kierownika', () => {
     expect(screen.getByText(ORIGINAL)).toBeInTheDocument()
     expect(screen.getByText('UA')).toBeInTheDocument()
     expect(screen.queryByText('Brak tłumaczenia')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Przetłumacz ponownie' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Przetłumacz/ })).not.toBeInTheDocument()
+  })
+
+  it('a line the worker wrote in Polish offers nothing to translate', () => {
+    renderTable(extra({ description: 'Zdzieranie farby', descriptionLanguage: 'pl' }), vi.fn())
+
+    expect(screen.queryByRole('button', { name: /Przetłumacz/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Opis w języku pracownika')).not.toBeInTheDocument()
   })
 
   it('offers no translation once the report is decided or the line accepted', () => {
@@ -130,14 +135,14 @@ function renderRozpiska(
   render(
     <ReviewLinesTable
       group="rozpiska"
+      heading={null}
+      hasWorkerDescription={false}
       rows={rows}
       drafts={Object.fromEntries(rows.map((row) => [row.id, { ...draft, ...drafts[row.id] }]))}
       onChange={onChange}
-      sectionOptions={[]}
       itemOptions={[]}
       catalogue={[]}
-      kosztorysItems={[]}
-      onCatalogueSwap={vi.fn()}
+      onOpenCatalogue={vi.fn()}
       hintsByLine={{}}
       stageTitle="Etap 1"
       onRetranslate={undefined}
@@ -184,10 +189,10 @@ describe('zgłoszenie z kartki — ostrzeżenia', () => {
     expect(onChange).not.toHaveBeenCalledWith(2, expect.anything())
   })
 
-  it('asks for a katalog praca when the scanned j.m. is missing', () => {
+  it('asks for a katalog or a new praca when the scanned j.m. is missing', () => {
     renderTable(extra({ unit: '', isUnitMissing: true }), undefined)
     expect(
-      screen.getByText('Brak j.m. w kosztorysie — wybierz pracę z katalogu'),
+      screen.getByText('Brak j.m. — wybierz pracę z katalogu albo dodaj nową'),
     ).toBeInTheDocument()
   })
 })

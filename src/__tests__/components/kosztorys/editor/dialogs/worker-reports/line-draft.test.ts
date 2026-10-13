@@ -10,6 +10,7 @@ import {
   lineGroup,
   previewQtyChange,
   qtyChange,
+  UNDO_CATALOGUE_SWAP,
   type LineDraftT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -22,15 +23,12 @@ const draft: LineDraftT = {
   qty: '12',
   itemId: undefined,
   isExtra: false,
-  sectionId: '',
-  unitPrice: '',
   catalogueId: undefined,
   matchedItemIds: [],
 }
 
 const entry = (description: string, unit: string) => ({
   id: 7,
-  clientPrice: 45,
   matchKey: catalogueKey(description, unit),
 })
 
@@ -62,16 +60,15 @@ describe('podmiana pracy spoza rozpiski na pracę z katalogu', () => {
     expect(swapped.itemId).toBeUndefined()
   })
 
-  it('praca spoza rozpiski zostaje nową pozycją z ceną z katalogu', () => {
+  it('praca, której rozpiska nie ma, nie trafia na żadną pozycję', () => {
     const swapped = { ...draft, ...swap(entry('Montaż domofonu', 'szt')) }
 
     expect(lineGroup({ kind: 'extra' }, swapped)).toBe('extra')
-    expect(swapped.catalogueId).toBe(7)
-    expect(swapped.unitPrice).toBe('45')
+    expect(swapped.matchedItemIds).toEqual([])
   })
 
   it('pozycja pamiętająca przemianowaną pracę katalogu trafia do niej mimo innego opisu', () => {
-    const renamed = { id: 7, clientPrice: 45, matchKey: catalogueKey('Gładź polimerowa', 'm2') }
+    const renamed = { id: 7, matchKey: catalogueKey('Gładź polimerowa', 'm2') }
     const linkedRows: SwapRowT[] = [
       { id: 1, description: 'Gładź gipsowa', unit: 'm2', catalogueItemId: 7 },
     ]
@@ -231,13 +228,20 @@ describe('licznik w stopce zgłoszenia', () => {
   })
 })
 
-describe('praca z kartki bez j.m.', () => {
-  it('czeka na pracę z katalogu — cena bez j.m. nie wystarczy', () => {
-    const scanned = line({ kind: 'extra', itemId: undefined, unit: '' })
-    const priced = { ...draft, isExtra: true, sectionId: '5', unitPrice: '30' }
+describe('praca spoza rozpiski', () => {
+  const extra = line({ kind: 'extra', itemId: undefined })
 
-    expect(isLineReady(scanned, priced, undefined)).toBe(false)
-    expect(isLineReady(scanned, { ...priced, catalogueId: 7 }, undefined)).toBe(true)
-    expect(isLineReady(line({ kind: 'extra', itemId: undefined }), priced, undefined)).toBe(true)
+  it('daje się przyjąć dopiero po dodaniu do rozpiski', () => {
+    expect(isLineReady(extra, draft, undefined)).toBe(false)
+    expect(isLineReady(extra, { ...draft, ...swap(entry('Gładź gipsowa', 'm2')) }, 1)).toBe(true)
+  })
+
+  it('„Cofnij podmianę” zdejmuje zaznaczenie, więc nie blokuje zapisu', () => {
+    const swapped = { ...draft, ...swap(entry('Gładź gipsowa', 'm2')) }
+    const undone = { ...swapped, ...UNDO_CATALOGUE_SWAP }
+
+    expect(lineGroup(extra, undone)).toBe('extra')
+    expect(undone.isTicked).toBe(false)
+    expect(isLineReady(extra, undone, undefined)).toBe(true)
   })
 })

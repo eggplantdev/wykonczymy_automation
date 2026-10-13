@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { WorkerReportReview } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-report-review'
 import { WorkerReportsList } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-reports-list'
 import type { WorkerReportsActionT } from '@/components/kosztorys/editor/actions/worker-reports-action'
@@ -16,20 +17,47 @@ const LOAD_FAILED = 'Nie udało się wczytać zgłoszeń'
 
 export function WorkerReportsDialog({ action }: PropsT) {
   const { investmentId } = useKosztorysEditorContext()
+  // Decisions live only in the window until „Zapisz zmiany”, while a praca added to the rozpiska is
+  // already there — a stray Esc would leave it an empty pozycja and the line back in „Spoza rozpiski”.
+  const [hasEdits, setHasEdits] = useState(false)
+  const [isConfirmingClose, setIsConfirmingClose] = useState(false)
+  const close = () => {
+    setHasEdits(false)
+    action.setOpen(false)
+  }
   return (
-    <Dialog open={action.open} onOpenChange={action.setOpen}>
-      <DialogContent className="sm:max-w-dialog-2xl">
-        <DialogHeader title="Zgłoszenia wykonanych prac" />
-        {/* Mounted only while open, so every open rereads what the workers sent. */}
-        {action.open && (
-          <WorkerReportsBody
-            investmentId={investmentId}
-            initialReportId={action.reportId}
-            onPendingCount={action.setPendingCount}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog
+        open={action.open}
+        onOpenChange={(open) => {
+          if (open) action.setOpen(true)
+          else if (hasEdits) setIsConfirmingClose(true)
+          else close()
+        }}
+      >
+        <DialogContent className="sm:max-w-dialog-2xl">
+          <DialogHeader title="Zgłoszenia wykonanych prac" />
+          {/* Mounted only while open, so every open rereads what the workers sent. */}
+          {action.open && (
+            <WorkerReportsBody
+              investmentId={investmentId}
+              initialReportId={action.reportId}
+              onPendingCount={action.setPendingCount}
+              onHasEdits={setHasEdits}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog
+        open={isConfirmingClose}
+        title="Zamknąć bez zapisywania?"
+        description="Zmiany w tym zgłoszeniu nie zostały zapisane i przepadną."
+        confirmLabel="Zamknij bez zapisywania"
+        cancelLabel="Wróć do zgłoszenia"
+        onConfirm={close}
+        onCancel={() => setIsConfirmingClose(false)}
+      />
+    </>
   )
 }
 
@@ -37,9 +65,15 @@ type BodyPropsT = {
   investmentId: number
   initialReportId: number | undefined
   onPendingCount: (count: number) => void
+  onHasEdits: (hasEdits: boolean) => void
 }
 
-function WorkerReportsBody({ investmentId, initialReportId, onPendingCount }: BodyPropsT) {
+function WorkerReportsBody({
+  investmentId,
+  initialReportId,
+  onPendingCount,
+  onHasEdits,
+}: BodyPropsT) {
   const [reports, setReports] = useState<WorkerReportSummaryT[] | undefined>()
   const [openReport, setOpenReport] = useState<WorkerReportT | undefined>()
   const [listVersion, setListVersion] = useState(0)
@@ -79,12 +113,20 @@ function WorkerReportsBody({ investmentId, initialReportId, onPendingCount }: Bo
   }, [])
 
   const backToList = () => {
+    onHasEdits(false)
     setOpenReport(undefined)
     setListVersion((version) => version + 1)
   }
 
   if (openReport) {
-    return <WorkerReportReview key={openReport.id} report={openReport} onDecided={backToList} />
+    return (
+      <WorkerReportReview
+        key={openReport.id}
+        report={openReport}
+        onEdit={() => onHasEdits(true)}
+        onDecided={backToList}
+      />
+    )
   }
   if (!reports) return <p className="text-muted-foreground py-8 text-sm">Wczytywanie…</p>
   return <WorkerReportsList reports={reports} onOpen={open} />

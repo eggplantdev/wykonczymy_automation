@@ -12,8 +12,7 @@ import {
   itemsHoldingEntry,
 } from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
-import { decimalText, moneyText } from '@/lib/utils/decimal-text'
-import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
+import { decimalText } from '@/lib/utils/decimal-text'
 import { round6 } from '@/lib/utils/round'
 
 export type LineDraftT = {
@@ -23,10 +22,8 @@ export type LineDraftT = {
   qty: string
   // The pozycja a line is re-pointed to once its own was deleted.
   itemId: number | undefined
-  // A rozpiska line whose pozycja is gone may be accepted as a praca spoza rozpiski instead.
+  // A rozpiska line whose pozycja is gone, moved to „Spoza rozpiski” to be added to the rozpiska anew.
   isExtra: boolean
-  sectionId: string
-  unitPrice: string
   catalogueId: number | undefined
   // The pozycje the picked katalog praca already sits in. Any at all and the line adds to one of them
   // instead of minting a second copy of the same praca.
@@ -46,14 +43,12 @@ export function lineGroup(line: Pick<ReportLineT, 'kind'>, draft: LineDraftT): L
   return line.kind === 'extra' || draft.isExtra ? 'extra' : 'rozpiska'
 }
 
-// Resolved as „Ukryj już dodane" resolves it — the remembered entry first, then the klucz. A praca in
-// several sekcje is left for the kierownik to point at one — guessing would add the work to the
-// wrong pokój.
+// Resolved as „Ukryj już dodane" resolves it — the remembered entry first, then the klucz.
 export function catalogueSwap(
-  entry: Pick<WorkCatalogueItemT, 'id' | 'clientPrice' | 'matchKey'>,
+  entry: Pick<WorkCatalogueItemT, 'id' | 'matchKey'>,
   rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit' | 'catalogueItemId'>[],
   catalogue: readonly Pick<WorkCatalogueItemT, 'id' | 'matchKey'>[],
-): Partial<LineDraftT> {
+): Pick<LineDraftT, 'catalogueId' | 'matchedItemIds' | 'itemId'> {
   const matchedItemIds = itemsHoldingEntry(indexCatalogue(catalogue), rows, entry.id).map(
     (row) => row.id,
   )
@@ -61,15 +56,15 @@ export function catalogueSwap(
     catalogueId: entry.id,
     matchedItemIds,
     itemId: matchedItemIds.length === 1 ? matchedItemIds[0] : undefined,
-    unitPrice: matchedItemIds.length > 0 ? '' : moneyText(entry.clientPrice),
   }
 }
 
+// Back in „Spoza rozpiski”, which has no tick to take back.
 export const UNDO_CATALOGUE_SWAP: Partial<LineDraftT> = {
+  isTicked: false,
   catalogueId: undefined,
   matchedItemIds: [],
   itemId: undefined,
-  unitPrice: '',
 }
 
 export function acceptedQty(draft: LineDraftT): number {
@@ -108,7 +103,7 @@ export function acceptedQtyNote(
 }
 
 export function isLineReady(
-  line: Pick<ReportLineT, 'kind' | 'acceptedQty' | 'unit'>,
+  line: Pick<ReportLineT, 'kind' | 'acceptedQty'>,
   draft: LineDraftT,
   itemId: number | undefined,
 ): boolean {
@@ -116,11 +111,8 @@ export function isLineReady(
   if (parseReportQty(draft.qty).kind !== 'value') return false
   // Its pozycja already exists; only the ilość is still the kierownik's to change.
   if (line.acceptedQty !== undefined) return true
-  if (lineGroup(line, draft) === 'rozpiska') return itemId !== undefined
-  if (draft.sectionId === '') return false
-  // A scanned praca whose j.m. was in no list: the new pozycja takes the katalog's.
-  if (line.unit.trim() === '') return draft.catalogueId !== undefined
-  return draft.catalogueId !== undefined || parseDecimalInput(draft.unitPrice).kind === 'value'
+  // A praca spoza rozpiski is accepted only once it was added to the rozpiska.
+  return lineGroup(line, draft) === 'rozpiska' && itemId !== undefined
 }
 
 // A pozycja deleted and re-added by hand (or by a restore) comes back under a new id; the same opis
@@ -137,10 +129,11 @@ export function exactItemMatch(
 
 export function initialDrafts(
   report: Pick<WorkerReportT, 'lines'>,
-  rows: Pick<KosztorysV2RowT, 'id' | 'sectionId' | 'description' | 'unit'>[],
+  rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit'>[],
 ): Record<number, LineDraftT> {
-  const sectionOfItem = new Map(rows.map((row) => [row.id, String(row.sectionId)]))
-  const isLive = (itemId: number | undefined) => itemId !== undefined && sectionOfItem.has(itemId)
+  const liveIds = new Set(rows.map((row) => row.id))
+  const isLive = (itemId: number | undefined): itemId is number =>
+    itemId !== undefined && liveIds.has(itemId)
   return Object.fromEntries(
     report.lines.map((line) => {
       const isGone = line.kind === 'rozpiska' && !isLive(line.itemId)
@@ -148,14 +141,20 @@ export function initialDrafts(
         isTicked: line.acceptedQty !== undefined,
         isRejected: line.isRejected,
         qty: qtyInputText(line.acceptedQty ?? line.reportedQty),
-        itemId: isGone && line.acceptedQty === undefined ? exactItemMatch(line, rows) : undefined,
+        itemId: isLive(line.createdItemId)
+          ? line.createdItemId
+          : isGone && line.acceptedQty === undefined
+            ? exactItemMatch(line, rows)
+            : undefined,
         isExtra: line.kind === 'rozpiska' && line.createdItemId !== undefined,
-        sectionId:
-          line.createdItemId === undefined ? '' : (sectionOfItem.get(line.createdItemId) ?? ''),
-        unitPrice: '',
         catalogueId: line.catalogueItemId,
-        // A praca spoza rozpiski accepted into a pozycja the rozpiska already held.
-        matchedItemIds: line.kind === 'extra' && isLive(line.itemId) ? [line.itemId as number] : [],
+        // A praca spoza rozpiski accepted into a pozycja the rozpiska already held, or one its accept
+        // minted — either way it is a rozpiska pozycja now, and reviewed as one.
+        matchedItemIds: isLive(line.createdItemId)
+          ? [line.createdItemId]
+          : line.kind === 'extra' && isLive(line.itemId)
+            ? [line.itemId]
+            : [],
       }
       return [line.id, draft]
     }),
@@ -229,26 +228,14 @@ export function buildAccept(
       cells.push({ itemId, stageId: recordedStageId })
     }
   }
+  // `isLineReady` lets only a line with a pozycja be ticked into an accept.
   for (const line of ticked) {
-    const draft = drafts[line.id]
-    if (lineGroup(line, draft) === 'rozpiska') {
-      const itemId = itemIdOf(line) as number
-      if (target.kind === 'stage') cells.push({ itemId, stageId: target.stageId })
-      input.lines.push({
-        lineId: line.id,
-        acceptedQty: acceptedQty(draft),
-        itemId: itemId === line.itemId ? undefined : itemId,
-      })
-      continue
-    }
-    const price = parseDecimalInput(draft.unitPrice)
-    input.extras.push({
+    const itemId = itemIdOf(line) as number
+    if (target.kind === 'stage') cells.push({ itemId, stageId: target.stageId })
+    input.lines.push({
       lineId: line.id,
-      acceptedQty: acceptedQty(draft),
-      sectionId: Number(draft.sectionId),
-      clientPrice:
-        draft.catalogueId === undefined && price.kind === 'value' ? price.value : undefined,
-      catalogueItemId: draft.catalogueId,
+      acceptedQty: acceptedQty(drafts[line.id]),
+      itemId: itemId === line.itemId ? undefined : itemId,
     })
   }
   return { input, cells }
