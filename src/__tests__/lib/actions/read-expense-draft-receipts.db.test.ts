@@ -60,10 +60,11 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      scanMode,
       mediaIds,
     })
     if (draftId === null) throw new Error('draft fixture refused')
+    // Drafts sent before EX-1048 still carry the worker's „Jeden wydatek”.
+    await db.execute(sql`UPDATE worker_expense_drafts SET scan_mode = ${scanMode} WHERE id = ${draftId}`)
     return { draftId, mediaIds }
   }
 

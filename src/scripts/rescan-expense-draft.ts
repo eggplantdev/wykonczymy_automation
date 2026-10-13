@@ -50,7 +50,6 @@ async function run() {
     investmentId: source.investment_id == null ? null : Number(source.investment_id),
     cashRegisterId: Number(source.cash_register_id),
     note: NOTE,
-    scanMode: 'one-per-photo',
     mediaIds: (source.media_ids as number[]).map(Number),
   })
   if (draftId === null) throw new Error('Insert refused: a page is not media the worker uploaded')

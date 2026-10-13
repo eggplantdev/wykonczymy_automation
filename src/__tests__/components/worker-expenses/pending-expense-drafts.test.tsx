@@ -41,7 +41,6 @@ const draft: ExpenseDraftRowT = {
   decidedByName: null,
   transfers: [],
   media: [{ id: 11, url: '/m/11.jpg', filename: 'leroy.jpg', mimeType: 'image/jpeg' }],
-  scanMode: 'one-invoice',
   aiRead: undefined,
 }
 const read: ExpenseDraftReadT = { rows: [{ mediaIds: [11], description: 'Klej do płytek' }] }

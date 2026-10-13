@@ -172,10 +172,6 @@ export const uk: TranslationsT = {
     scanModeOneInvoice: 'Одна витрата',
     scanModeOnePerPhoto: 'Кілька витрат',
     scanModeOneInvoiceHint: 'Усі фото — це один рахунок: буде одна позиція з кількома сторінками.',
-    scanModeOneInvoiceConfirmTitle: 'Усі фото — точно один рахунок?',
-    scanModeOneInvoiceConfirmDescription:
-      'Обирайте це, лише якщо один рахунок або чек знято на кількох фото — наприклад, рахунок має кілька сторінок або довгий чек не вмістився на одне фото. Таке майже ніколи не трапляється. Якщо на фото різні чеки, їх буде складено в одну суму.',
-    scanModeOneInvoiceConfirm: 'Так, один рахунок',
     scanModeOnePerPhotoHint: 'Кожне фото — окремий чек: з нього буде окрема позиція.',
     tooManyPhotos: 'Не більше {{max}} фото в одній витраті — решту надішліть окремо.',
   },

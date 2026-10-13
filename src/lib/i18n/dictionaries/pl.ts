@@ -181,10 +181,6 @@ export const pl = {
     scanModeOnePerPhoto: 'Kilka wydatków',
     scanModeOneInvoiceHint:
       'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
-    scanModeOneInvoiceConfirmTitle: 'Czy wszystkie zdjęcia to na pewno jedna faktura?',
-    scanModeOneInvoiceConfirmDescription:
-      'Wybierz to tylko wtedy, gdy jedna faktura lub paragon jest na kilku zdjęciach — np. faktura ma kilka stron albo długi paragon nie zmieścił się na jednym zdjęciu. Prawie nigdy się to nie zdarza. Jeśli na zdjęciach są różne paragony, zostaną zsumowane w jedną kwotę.',
-    scanModeOneInvoiceConfirm: 'Tak, jedna faktura',
     scanModeOnePerPhotoHint: 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
     tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
   },

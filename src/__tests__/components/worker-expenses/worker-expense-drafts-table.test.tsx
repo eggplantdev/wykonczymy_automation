@@ -29,7 +29,6 @@ const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDr
   decidedByName: null,
   transfers: [],
   media: [],
-  scanMode: 'one-invoice',
   aiRead: undefined,
   ...overrides,
 })

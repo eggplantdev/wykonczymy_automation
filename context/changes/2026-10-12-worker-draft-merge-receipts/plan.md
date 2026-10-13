@@ -454,18 +454,18 @@ after the merge to staging.
 
 #### Automated
 
-- [x] 1.1 merge-receipts unit spec
-- [x] 1.2 draft-prefill spec
-- [x] 1.3 receipt-decision spec incl. the booked-or-skipped invariant
-- [x] 1.4 read-expense-draft-receipts DB spec
+- [x] 1.1 merge-receipts unit spec — 1b9ad3d3f
+- [x] 1.2 draft-prefill spec — 1b9ad3d3f
+- [x] 1.3 receipt-decision spec incl. the booked-or-skipped invariant — 1b9ad3d3f
+- [x] 1.4 read-expense-draft-receipts DB spec — 1b9ad3d3f
 
 ### Phase 2: Worker's dialog without „Jeden wydatek”
 
 #### Automated
 
-- [ ] 2.1 dialog spec: no mode control, sends one-per-photo
-- [ ] 2.2 dialog language spec
-- [ ] 2.3 worker actions DB spec: stored scan_mode
+- [x] 2.1 dialog spec: no mode control, sends one-per-photo
+- [x] 2.2 dialog language spec
+- [x] 2.3 worker actions DB spec: stored scan_mode
 
 ### Phase 3: „Połącz” / „Rozłącz” in the „Przyjmij” dialog
 

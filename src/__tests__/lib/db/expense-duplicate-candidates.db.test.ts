@@ -91,7 +91,6 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      scanMode: 'one-per-photo',
       mediaIds: pages,
     })
     if (draftId === null) throw new Error('draft fixture refused')

@@ -107,7 +107,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       investmentId: onInvestment,
       cashRegisterId: registerId,
       note: null,
-      scanMode: 'one-invoice',
       mediaIds,
     })
 
@@ -590,7 +589,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         investmentId: restoreInvestmentId,
         cashRegisterId: registerId,
         note: 'z budowy',
-        scanMode: 'one-per-photo',
         mediaIds: pages,
       })
       if (draftId === null) throw new Error('draft fixture refused')

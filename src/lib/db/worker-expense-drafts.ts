@@ -1,5 +1,4 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import {
   EXPENSE_DRAFT_STATUSES,
   type ExpenseDraftStatusT,
@@ -53,7 +52,6 @@ export type ExpenseDraftRowT = {
   // A refusal management marked as a duplicate — shown to management only.
   duplicateOf?: DuplicateOfT
   media: ExpenseDraftMediaT[]
-  scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
 }
 
@@ -81,7 +79,7 @@ const DRAFT_TRANSFERS = sql`
 // behind instead of shipping it to the browser.
 const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
-    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.scan_mode,
+    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
     ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of
   FROM worker_expense_drafts d
@@ -134,7 +132,6 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     }),
     ...(duplicateOf.success && { duplicateOf: duplicateOf.data }),
     media: toDraftMedia(row.media),
-    scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
   }
 }
@@ -150,7 +147,6 @@ export async function insertWorkerExpenseDraft(
     investmentId: number | null
     cashRegisterId: number
     note: string | null
-    scanMode: ScanModeT
     mediaIds: number[]
   },
 ): Promise<number | null> {
@@ -163,7 +159,7 @@ export async function insertWorkerExpenseDraft(
     ), draft AS (
       INSERT INTO worker_expense_drafts (worker_id, investment_id, cash_register_id, note, scan_mode)
       SELECT ${draft.workerId}, ${draft.investmentId}, ${draft.cashRegisterId}, ${draft.note},
-        ${draft.scanMode}
+        'one-per-photo'
       WHERE (SELECT count(*) FROM pages_in) = ${draft.mediaIds.length}
       RETURNING id
     ), pages AS (
@@ -214,7 +210,7 @@ const PARAGON_FROM = sql`FROM pr JOIN worker_expense_drafts d ON d.id = pr.draft
 const PARAGON_SELECT = sql`
   ${PARAGON_ROWS}
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
-    d.cash_register_id, d.note, pr.row_status AS status, d.sent_at, d.decided_at, d.scan_mode,
+    d.cash_register_id, d.note, pr.row_status AS status, d.sent_at, d.decided_at,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, pr.receipt_id,
     (pr.receipt_id IS NOT NULL AND ${PARTIES_NOT_TRASHED}) AS is_restorable,
     COALESCE((
@@ -448,19 +444,15 @@ export async function restoreSkippedReceipt(
 export async function loadExpenseDraftForRead(
   db: DbExecutorT,
   draftId: number,
-): Promise<
-  | { scanMode: ScanModeT; pages: ExpenseDraftMediaT[]; aiRead: ExpenseDraftReadT | undefined }
-  | undefined
-> {
+): Promise<{ pages: ExpenseDraftMediaT[]; aiRead: ExpenseDraftReadT | undefined } | undefined> {
   const res = await db.execute(sql`
-    SELECT d.scan_mode, d.ai_read, ${DRAFT_MEDIA} AS media
+    SELECT d.ai_read, ${DRAFT_MEDIA} AS media
     FROM worker_expense_drafts d
     WHERE d.id = ${draftId} AND d.status = 'pending'
   `)
   const row = res.rows[0]
   if (!row) return undefined
   return {
-    scanMode: row.scan_mode as ScanModeT,
     pages: toDraftMedia(row.media),
     aiRead: toDraftRead(row.ai_read),
   }
