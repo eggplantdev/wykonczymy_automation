@@ -527,11 +527,11 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 5.1 History-order DB case passes
-- [x] 5.2 `pending-expense-drafts.test.tsx` and `expense-drafts-data-table.test.tsx` pass
+- [x] 5.1 History-order DB case passes — 74f0e1fff
+- [x] 5.2 `pending-expense-drafts.test.tsx` and `expense-drafts-data-table.test.tsx` pass — 74f0e1fff
 
 ### Phase 6: Documentation
 
 #### Automated
 
-- [ ] 6.1 No dead links in the new lessons entry
+- [x] 6.1 No dead links in the new lessons entry

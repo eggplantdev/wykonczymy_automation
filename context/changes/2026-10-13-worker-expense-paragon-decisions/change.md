@@ -51,22 +51,22 @@ Open for the plan:
   automatic re-read on the next open — „Odczytaj ponownie" on the row is the retry. Every page now
   gets a read row (a blank or the unreadable sentinel), so a page without one exists only on a
   zgłoszenie read before EX-1048.
-- A row is booked after only a subset check against `bulkExpenseFormSchema`, so a failure shows a toast, not the field error.
-- The counter badge, the queue and „Połącz zgłoszenia" are translated (pl/uk/ru); the badge shows
+- ~~A row is booked after only a subset check against `bulkExpenseFormSchema`, so a failure shows a toast, not the field error.~~ **Done (EX-1053).**
+- ~~The counter badge, the queue and „Połącz zgłoszenia" are translated (pl/uk/ru); the badge shows
   only parts above 0. The paragon dialog stays Polish, like the whole expense form. The badge is not
-  yet shared with work reports (EX-1049 worktree).
+  yet shared with work reports (EX-1049 worktree).~~ **Done (EX-1053).**
 - Worktree dev needs `next dev --webpack`: Turbopack rejects the symlinked node_modules.
-- Test fixtures for `ExpenseDraftRowT` lack `acceptedReadRows` / `rejectedReceipts`.
-- **Przyjmij / Odrzuć is extremely slow** (owner, 2026-10-13) — must be fixed before this ships.
+- ~~Test fixtures for `ExpenseDraftRowT` lack `acceptedReadRows` / `rejectedReceipts`.~~ **Done (EX-1053).**
+- ~~**Przyjmij / Odrzuć is extremely slow** (owner, 2026-10-13) — must be fixed before this ships.~~ **Done (EX-1053).**
 - A decided paragon stays in the dialog as its full row, folded and locked. On reopen an accepted row shows the AI read, not what was booked if the manager edited it, and a merged booking shows as its separate paragony.
-- **A booking whose response is lost desyncs the dialog** (hit 2026-10-13, draft 24): the request
+- ~~**A booking whose response is lost desyncs the dialog** (hit 2026-10-13, draft 24): the request
   was cut client-side (`ECONNRESET`) while the server committed transakcja #5890 for read rows
   31–36. The dialog took `REQUEST_FAILED` as „not booked" and kept those paragony as waiting. The
   next decision touching them hit the read-row clash and reported „To zgłoszenie zostało już
   rozpatrzone" — wrong, the zgłoszenie is still pending — and the duplicate check flagged them as
   duplicates of their own transakcje. Needed: on `REQUEST_FAILED` or a clash, re-read the draft's
   decided read rows and resync the dialog (the case `settleAction`'s `code` exists for), and a
-  clash notice that names paragony rather than the whole zgłoszenie.
+  clash notice that names paragony rather than the whole zgłoszenie.~~ **Done (EX-1053).**
 - **Historia status column** (owner, 2026-10-13): „czeka" is dropped while the counter is shown
   (done in the spike) — „Do sprawdzenia N" says it. Still open: an old zgłoszenie (no per-paragon data) should still get the counter, not fall back to the status
   badge alone. Owner to come back to the exact rule.
