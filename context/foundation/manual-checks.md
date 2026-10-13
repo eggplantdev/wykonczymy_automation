@@ -4896,3 +4896,18 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Kosztorys → „Zgłoszenia wykonanych prac”: pod tytułem okna nie ma już opisu.
 - [ ] Otwórz zgłoszenie z pracami spoza rozpiski i z rozpiski → „Spoza rozpiski” stoi nad „Z rozpiski”.
 - [ ] Stopka zgłoszenia: brak przycisku „Wszystkie zgłoszenia”; „Rozpatrzono X z Y.” czarną czcionką; po „Przyjmij…” / „Zapisz zmiany” okno wraca do listy zgłoszeń.
+
+## 2026-10-13 — catalogue-add-flow — „szukaj w katalogu → albo dodaj nową pracę” w kosztorysie i w zgłoszeniach
+
+- [ ] Kosztorys → „Dodaj” → z katalogu: wyszukiwarka i „Kategorie” filtrują cennik; „Dodaj nową pracę…” otwiera „Nowa praca” z wpisanym w szukajce tekstem jako opisem, do wybranej sekcji.
+- [ ] „Nowa praca”: przy odznaczonym „Dodaj pracę do katalogu prac” pola „Komentarz do pracy” i „Kategoria” są wyszarzone z notką, nie znikają; checkbox stoi na końcu formularza. „j.m.” i „Kategoria” przyjmują wartość spoza listy.
+- [ ] Katalog prac → dodaj / edytuj pracę: „j.m.” i „Kategoria” działają jak wcześniej (lista + własna wartość).
+- [ ] „Zgłoszenia wykonanych prac” → „Spoza rozpiski”: brak masowego zaznaczania; „Może chodzi o” obok „Opis prac” w równej szerokości; nagłówek „Akcje” w obu tabelach; „Kolumny” w wierszu nagłówka grupy, nie w osobnym rzędzie.
+- [ ] „Przetłumacz” widać tylko przy pracy bez tłumaczenia; kolumna „Opis w języku pracownika” znika, gdy żadna praca w zgłoszeniu jej nie ma, i nie miga przy wpisywaniu w szukajkę.
+- [ ] Praca spoza rozpiski nie daje się zaznaczyć do przyjęcia. „Dodaj do rozpiski” (albo klik w podpowiedź) → wybór sekcji i pracy z katalogu → „Dodaj”: pozycja od razu jest w kosztorysie, praca przechodzi do „Z rozpiski” i daje się przyjąć.
+- [ ] Ta sama praca z katalogu, której sekcja już ma pozycję: okno mówi „Jest już w tej sekcji — ilość doda się do tej pozycji” i nie powstaje druga pozycja.
+- [ ] „Dodaj nową pracę…” z okna dodawania → „Nowa praca” z opisem i j.m. ze zgłoszenia → „Dodaj”: pozycja w wybranej sekcji, praca w „Z rozpiski”.
+- [ ] „Cofnij podmianę” przy dodanej pracy: wraca do „Spoza rozpiski”, nie zostaje zaznaczona, „Zapisz zmiany” dalej działa.
+- [ ] Praca bez j.m. w zgłoszeniu: „Brak j.m. — wybierz pracę z katalogu albo dodaj nową” znika po dodaniu jej do rozpiski.
+- [ ] Zmień cokolwiek w zgłoszeniu i zamknij okno (krzyżyk / Esc / klik obok): pytanie „Zamknąć bez zapisywania?”; „Wróć do zgłoszenia” zostawia zmiany, „Zamknij bez zapisywania” zamyka. Bez zmian okno zamyka się od razu; po zapisie też.
+- [ ] Desktop → dowolne potwierdzenie (np. to wyżej, usuwanie pracy z katalogu): oba przyciski w jednym rzędzie, w obrębie okna; krótkie potwierdzenia mają szerokość jak dotąd. Telefon (390px): para, która się nie mieści, układa się jeden pod drugim na pełną szerokość.
