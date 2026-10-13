@@ -14,19 +14,28 @@ type CandidateEntryT = Pick<CatalogueHintT, 'description' | 'unit' | 'clientPric
 export function CandidateRow({
   entry,
   readOnly,
+  showFigures = true,
   onClick,
 }: {
   entry: CandidateEntryT
   readOnly: boolean
+  // Off where the click opens the katalog on the praca, which shows both anyway.
+  showFigures?: boolean
   onClick?: () => void
 }) {
   const body = (
     <>
       <span className="min-w-0 flex-1 text-left">{entry.description}</span>
-      <span className="text-muted-foreground w-16 shrink-0 text-right">
-        {unitLabel(entry.unit)}
-      </span>
-      <span className="w-20 shrink-0 text-right tabular-nums">{formatPLN(entry.clientPrice)}</span>
+      {showFigures && (
+        <>
+          <span className="text-muted-foreground w-16 shrink-0 text-right">
+            {unitLabel(entry.unit)}
+          </span>
+          <span className="w-20 shrink-0 text-right tabular-nums">
+            {formatPLN(entry.clientPrice)}
+          </span>
+        </>
+      )}
     </>
   )
 

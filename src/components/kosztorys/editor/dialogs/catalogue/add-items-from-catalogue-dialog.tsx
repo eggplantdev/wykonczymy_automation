@@ -30,6 +30,7 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
+import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
   investmentId: number
@@ -45,6 +46,8 @@ type PropsT = {
   // The editor patches the grid from this rather than refetching the tree. Only the server knows
   // whether a sekcja was minted, because the nazwa may have been taken since the dialog opened.
   onInserted: (slice: AppendedCatalogueSliceT['section'], createdSection: boolean) => void
+  // `sectionId` undefined = the kosztorys has no sekcja yet; `description` is the szukajka's phrase.
+  onNewItem: (sectionId: number | undefined, description: string) => void
 }
 
 const MAX_WARNING_TOASTS = 3
@@ -60,6 +63,7 @@ export function AddItemsFromCatalogueDialog({
   open,
   onOpenChange,
   onInserted,
+  onNewItem,
 }: PropsT) {
   // Ordered in state, because the prace land in the rozpiska in the order they were ticked; a Set
   // beside it for membership, which is asked once per visible row and once per already-added row —
@@ -71,6 +75,7 @@ export function AddItemsFromCatalogueDialog({
   )
   const [hideAlreadyAdded, setHideAlreadyAdded] = useState(true)
   const [pending, setPending] = useState(false)
+  const [sectionHint, setSectionHint] = useState<string | undefined>()
 
   const { inScope, searchTerm, setSearchTerm, categories, setCategories, categoryOptions } =
     useCatalogueFilters(catalogue)
@@ -90,6 +95,17 @@ export function AddItemsFromCatalogueDialog({
 
   const sectionOptions = sectionNameOptions(sections)
   const target = resolveSectionTarget(sectionName, sections, initialSectionId ?? undefined)
+  // A nazwa typed for a sekcja that does not exist yet cannot host the form: the sekcja is only
+  // minted by „Dodaj", together with the katalog prace.
+  const canAddNew = target?.kind === 'existing' || (sections.length === 0 && !target)
+
+  function handleNewItem() {
+    if (!canAddNew) {
+      setSectionHint(target ? 'Wybierz istniejącą sekcję' : 'Wybierz sekcję')
+      return
+    }
+    onNewItem(target?.kind === 'existing' ? target.sectionId : undefined, searchTerm.trim())
+  }
 
   function toggle(id: number) {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -149,7 +165,25 @@ export function AddItemsFromCatalogueDialog({
       {/* Widest of the editor's windows: seven columns of cennik, and the kategoria is what the eye
           picks a praca out by — clipped, it stops being a column and becomes noise. */}
       <DialogContent className="sm:max-w-dialog-xl gap-0 overflow-hidden p-0 sm:p-0">
-        <DialogHeader className="px-4 pt-4" title="Dodaj pracę z katalogu" />
+        <DialogHeader className="px-4 pt-4" title="Dodaj pracę" />
+        <div className="px-4 pt-3">
+          <Combobox
+            value={sectionName}
+            onChange={(name) => {
+              setSectionName(name)
+              setSectionHint(undefined)
+            }}
+            options={sectionOptions}
+            placeholder="Wybierz lub wpisz sekcję…"
+            allowCustom
+            modal
+            className={cn(
+              'border-input bg-background h-9 w-56 rounded-md border px-3',
+              sectionHint && 'border-destructive',
+            )}
+            contentClassName="w-(--radix-popover-trigger-width)"
+          />
+        </div>
         <div className="flex items-center gap-4 px-4 py-3">
           <SearchFilterInput
             value={searchTerm}
@@ -209,18 +243,9 @@ export function AddItemsFromCatalogueDialog({
           </div>
         )}
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="text-muted-foreground shrink-0 text-sm">Dodaj do:</span>
-            <Combobox
-              value={sectionName}
-              onChange={setSectionName}
-              options={sectionOptions}
-              placeholder="Wybierz lub wpisz sekcję…"
-              allowCustom
-              modal
-              className="border-input bg-background h-9 w-56 rounded-md border px-3"
-              contentClassName="w-(--radix-popover-trigger-width)"
-            />
+          <div className="flex items-center gap-2">
+            <Button onClick={handleNewItem}>Dodaj nową pracę…</Button>
+            {sectionHint && <span className="text-destructive text-sm">{sectionHint}</span>}
           </div>
           <DialogActions
             className="p-0"

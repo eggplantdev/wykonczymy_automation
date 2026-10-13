@@ -9,7 +9,6 @@ import FormFooter from '@/components/forms/form-components/form-footer'
 import { AiTranslateCheckbox } from '@/components/forms/form-components/ai-translate-checkbox'
 import { useAiTranslate } from '@/components/forms/hooks/use-ai-translate'
 import { RateField } from '@/components/forms/work-catalogue-item/rate-fields'
-import { CreatableComboboxField } from '@/components/forms/work-catalogue-item/creatable-combobox-field'
 import { catalogueFigures } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
@@ -31,9 +30,15 @@ const SOURCE_OPTION_LABELS: Record<PriceSourceT, string> = {
   auto: 'auto — ze współczynnika tej inwestycji',
 }
 
+// A pozycja has neither of its own — the kosztorys shows the katalog's — so without the katalog write
+// they would be typed for nothing.
+const CATALOGUE_ONLY_NOTE =
+  'Zapisuje się w katalogu prac — zaznacz niżej „Dodaj pracę do katalogu prac”.'
+
 export function NewItemForm({
   formId,
   sectionName,
+  initialValues,
   workCatalogue,
   isTemplate,
   kosztorysUnits,
@@ -43,6 +48,7 @@ export function NewItemForm({
 }: {
   formId: string
   sectionName: string
+  initialValues?: Partial<NewItemFormValuesT>
   workCatalogue: readonly WorkCatalogueItemT[]
   // A szablon praca lives in the katalog (EX-1017), so there it is never „only here".
   isTemplate: boolean
@@ -65,7 +71,7 @@ export function NewItemForm({
     formId,
     useFormStore: useNewItemFormStore,
     schema: newItemFormSchema,
-    defaultValues: newItemDefaults(sectionName),
+    defaultValues: { ...newItemDefaults(sectionName), ...initialValues },
     keepOpen,
     successMessage: 'Dodano pracę',
     onSubmitSuccess,
@@ -100,8 +106,8 @@ export function NewItemForm({
       }
       return true
     },
-    // A hidden kategoria still sits in the values (lessons.md: a hidden field still ships), so the
-    // checkbox — not the field's visibility — decides whether it travels.
+    // A greyed-out kategoria still sits in the values (lessons.md: a hidden field still ships), so
+    // the checkbox decides whether it travels.
     toData: (value) => ({
       data: {
         description: value.description,
@@ -131,15 +137,20 @@ export function NewItemForm({
             )}
           </form.AppField>
           <AiTranslateCheckbox checked={translate} onCheckedChange={setTranslate} />
-          {addToCatalogue && (
-            <form.AppField name="workNote">
-              {(field) => <field.Textarea label={COLUMN_LABELS.workNote} rows={3} />}
-            </form.AppField>
-          )}
+          <form.AppField name="workNote">
+            {(field) => (
+              <field.Textarea
+                label={COLUMN_LABELS.workNote}
+                rows={3}
+                disabled={!addToCatalogue}
+                description={addToCatalogue ? undefined : CATALOGUE_ONLY_NOTE}
+              />
+            )}
+          </form.AppField>
 
           <form.AppField name="unit">
-            {() => (
-              <CreatableComboboxField label="j.m." options={unitOptions(kosztorysUnits, unit)} />
+            {(field) => (
+              <field.CreatableCombobox label="j.m." options={unitOptions(kosztorysUnits, unit)} />
             )}
           </form.AppField>
 
@@ -152,20 +163,19 @@ export function NewItemForm({
           <RateField form={form} plane="wTools" sourceLabels={SOURCE_OPTION_LABELS} />
           <RateField form={form} plane="ownTools" sourceLabels={SOURCE_OPTION_LABELS} />
 
+          <form.AppField name="category">
+            {(field) => (
+              <field.CreatableCombobox
+                label="Kategoria"
+                options={catalogueCategorySuggestions(workCatalogue)}
+                disabled={!addToCatalogue}
+                description={addToCatalogue ? undefined : CATALOGUE_ONLY_NOTE}
+              />
+            )}
+          </form.AppField>
           {!isTemplate && (
             <form.AppField name="addToCatalogue">
               {(field) => <field.Checkbox label="Dodaj pracę do katalogu prac" />}
-            </form.AppField>
-          )}
-
-          {addToCatalogue && (
-            <form.AppField name="category">
-              {() => (
-                <CreatableComboboxField
-                  label="Kategoria"
-                  options={catalogueCategorySuggestions(workCatalogue)}
-                />
-              )}
             </form.AppField>
           )}
         </FieldGroup>

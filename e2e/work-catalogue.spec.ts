@@ -203,10 +203,10 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
     .filter({ has: page.locator('input[value="Sekcja beta"]') })
     .getByRole('button', { name: 'Akcje sekcji' })
     .click()
-  await page.getByRole('menuitem', { name: 'Dodaj pracę z katalogu do sekcji…' }).click()
+  await page.getByRole('menuitem', { name: 'Dodaj pracę do sekcji…' }).click()
 
   const picker = page.getByRole('dialog')
-  await expect(picker).toContainText('Dodaj pracę z katalogu')
+  await expect(picker.getByRole('heading', { name: 'Dodaj pracę', exact: true })).toBeVisible()
   // The list is virtualized, so a row outside its window is missing from the DOM too — the check
   // below would pass for that alone. Narrowed to this one praca, only the switch can hide it.
   await picker.getByPlaceholder('Szukaj pracy…').fill(seed.insert.item)

@@ -288,7 +288,9 @@ export function useKosztorysEditor({
   // eslint-disable-next-line react-hooks/refs
   sectionsRef.current = sections
   // Filled by `NewItemHost`. A ref, not state: opening the dialog must not re-render the grid (EX-496).
-  const newItemDialogRef = useRef<((placement: NewItemPlacementT) => void) | null>(null)
+  const newItemDialogRef = useRef<
+    ((placement: NewItemPlacementT, description?: string) => void) | null
+  >(null)
 
   const {
     stages,
@@ -844,8 +846,9 @@ export function useKosztorysEditor({
 
   // „Nowa praca" is a form (EX-951), so both entry points only choose where the praca goes; the host
   // owns the dialog and hands the saved praca back through `placeNewItem`.
-  function handleAddItem(sectionId: number) {
-    newItemDialogRef.current?.({ kind: 'end', sectionId })
+  // `description` is what the katalog search was typed with — the praca it did not find.
+  function handleAddItem(sectionId: number, description?: string) {
+    newItemDialogRef.current?.({ kind: 'end', sectionId }, description)
   }
 
   // „Above/below" means nothing against a price-sorted view, so it no-ops while a column sort is active.

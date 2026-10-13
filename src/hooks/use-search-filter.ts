@@ -25,8 +25,12 @@ export function filterBySearch<TItem>(
   return data.filter((_, index) => haystacks[index].includes(term))
 }
 
-export function useSearchFilter<TItem>(data: TItem[], getSearchableText: (item: TItem) => string) {
-  const [searchTerm, setSearchTerm] = useState('')
+export function useSearchFilter<TItem>(
+  data: TItem[],
+  getSearchableText: (item: TItem) => string,
+  initialSearchTerm = '',
+) {
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm)
   // Matching is cheap; RENDERING the result is not — /katalog-prac draws its ~560 rows unvirtualized — so
   // without the deferral the whole re-render sits between the keypress and the character appearing,
   // and the field itself stutters.

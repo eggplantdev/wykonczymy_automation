@@ -247,7 +247,7 @@ const ownToolsShareColumn = shareColumn(
   PLANE_LABELS.own_tools.toLowerCase(),
 )
 
-// „Dodaj pracę z katalogu" reads the cennik to pick from it, never to tune it, so the udział columns
+// „Dodaj pracę" reads the cennik to pick from it, never to tune it, so the udział columns
 // and „Akcje" stay behind on /katalog-prac. They sit mid-order, hence assembled rather than sliced.
 export const WORK_CATALOGUE_PICKER_COLUMNS = [
   descriptionColumn,

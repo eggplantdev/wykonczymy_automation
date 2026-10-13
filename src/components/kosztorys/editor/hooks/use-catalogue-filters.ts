@@ -7,8 +7,12 @@ const searchText = (item: WorkCatalogueItemT) => `${item.description} ${item.cat
 
 const itemCategory = (item: WorkCatalogueItemT) => item.category ?? ''
 
-export function useCatalogueFilters(catalogue: WorkCatalogueItemT[]) {
-  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(catalogue, searchText)
+export function useCatalogueFilters(catalogue: WorkCatalogueItemT[], initialSearchTerm = '') {
+  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
+    catalogue,
+    searchText,
+    initialSearchTerm,
+  )
   const {
     filteredData: inScope,
     values: categories,

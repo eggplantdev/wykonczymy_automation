@@ -6,8 +6,8 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { NewItemPlacementT } from '@/lib/kosztorys/types'
 
-// „Nowa praca" has five triggers across the toolbar, the sekcja band and menu, and a row's „…", so
-// like CataloguePickerHost it wraps the whole body. `children` is a prop for the same reason: opening
+// „Nowa praca" opens from the katalog window, the sekcja band and menu, and a row's „…", so like
+// CataloguePickerHost it wraps the whole body. `children` is a prop for the same reason: opening
 // the dialog re-renders only this host, never the grid (EX-496). The editor hook reaches it through
 // a ref it owns, which this host fills.
 export function NewItemHost({ children }: { children: ReactNode }) {
@@ -20,17 +20,21 @@ export function NewItemHost({ children }: { children: ReactNode }) {
     recoverStaleTree,
     isTemplate,
   } = useKosztorysEditorContext()
-  const [placement, setPlacement] = useState<NewItemPlacementT | null>(null)
+  const [request, setRequest] = useState<{
+    placement: NewItemPlacementT
+    description?: string
+  } | null>(null)
+  const placement = request?.placement ?? null
 
   useEffect(() => {
-    newItemDialogRef.current = setPlacement
+    newItemDialogRef.current = (placement, description) => setRequest({ placement, description })
     return () => {
       newItemDialogRef.current = null
     }
   }, [newItemDialogRef])
 
-  // Resolved at render, not at open: the toolbar's zero-sekcje path opens the dialog for a sekcja
-  // that reaches context in the same render as the placement.
+  // Resolved at render, not at open: the katalog window's zero-sekcje path opens the dialog for a
+  // sekcja that reaches context in the same render as the placement.
   const anchorRow =
     placement?.kind === 'next-to'
       ? rows.find((row) => row.id === placement.anchorItemId)
@@ -47,12 +51,15 @@ export function NewItemHost({ children }: { children: ReactNode }) {
           placement={placement}
           sectionName={sectionName}
           anchorDescription={anchorRow?.description ?? undefined}
+          initialValues={
+            request?.description === undefined ? undefined : { description: request.description }
+          }
           workCatalogue={workCatalogue ?? []}
           isTemplate={isTemplate}
           kosztorysUnits={rows.flatMap((row) => (row.unit ? [row.unit] : []))}
           onPlaced={placeNewItem}
           onStaleTree={recoverStaleTree}
-          onClose={() => setPlacement(null)}
+          onClose={() => setRequest(null)}
         />
       )}
     </>

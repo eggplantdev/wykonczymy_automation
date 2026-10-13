@@ -1,15 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { FolderPlus, Hammer, LibraryBig, ListChecks, Plus } from 'lucide-react'
+import { FolderPlus, Hammer, LibraryBig, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
@@ -23,8 +20,6 @@ import { copyStageSplit } from '@/lib/kosztorys/stage-split'
 export function KosztorysAddMenu() {
   const {
     investmentId,
-    sections,
-    handleAddItem,
     handleAddSection,
     handleAppendedSections,
     handleAddStage,
@@ -49,41 +44,11 @@ export function KosztorysAddMenu() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {/* No section is preselected — any default lands the praca where the user isn't looking,
-              which is the whole reason this is a picker. With no sekcja to offer, „Praca" mints a
-              bare one first; should the pozycja then fail, the sekcja bez pozycji left behind is a
-              legitimate state, not a leak. */}
-          {sections.length === 0 ? (
-            <DropdownMenuItem
-              onSelect={async () => {
-                const sectionId = await handleAddSection()
-                if (sectionId !== undefined) await handleAddItem(sectionId)
-              }}
-            >
-              <Hammer />
-              Praca
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Hammer />
-                Praca
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                {sections.map((section) => (
-                  <DropdownMenuItem
-                    key={section.sectionId}
-                    onSelect={() => handleAddItem(section.sectionId)}
-                  >
-                    {section.sectionName}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          )}
+          {/* One entry for both routes: the szukajka finds a katalog praca, and its „Dodaj nową pracę…"
+              opens the form for one it did not find. */}
           <DropdownMenuItem onSelect={() => openCataloguePicker()}>
-            <ListChecks />
-            Praca z katalogu…
+            <Hammer />
+            Praca…
           </DropdownMenuItem>
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
           {/* Etapy are opened one after another for the same crew on the same terms, so a new one

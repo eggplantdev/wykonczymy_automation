@@ -89,7 +89,7 @@ export function KosztorysSectionActionsMenu({
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => openCataloguePicker(sectionId)}>
             <ListChecks />
-            Dodaj pracę z katalogu do sekcji…
+            Dodaj pracę do sekcji…
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setTranslationOpen(true)}>
             <Languages />

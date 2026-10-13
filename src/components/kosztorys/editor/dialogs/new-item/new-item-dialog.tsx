@@ -7,6 +7,7 @@ import type { KosztorysItemT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { NewItemForm } from './new-item-form'
+import type { NewItemFormValuesT } from './new-item-form-schema'
 import { settleAction } from '@/lib/utils/settle-action'
 
 const FORM_ID = 'new-item'
@@ -36,9 +37,11 @@ export function NewItemDialog({
   placement,
   sectionName,
   anchorDescription,
+  initialValues,
   workCatalogue,
   isTemplate,
   kosztorysUnits,
+  canKeepOpen = true,
   onPlaced,
   onStaleTree,
   onClose,
@@ -46,9 +49,12 @@ export function NewItemDialog({
   placement: NewItemPlacementT
   sectionName: string
   anchorDescription?: string
+  initialValues?: Partial<NewItemFormValuesT>
   workCatalogue: readonly WorkCatalogueItemT[]
   isTemplate: boolean
   kosztorysUnits: readonly string[]
+  // False for a praca that answers one zgłoszona line — a second one would answer nothing.
+  canKeepOpen?: boolean
   onPlaced: (item: KosztorysItemT, placement: NewItemPlacementT) => void
   onStaleTree: () => void
   onClose: () => void
@@ -61,9 +67,9 @@ export function NewItemDialog({
   // The store's keep-open checkbox is shared by every form dialog; this one is not a `FormDialog`,
   // so it claims and releases the slot itself.
   useEffect(() => {
-    openDialog(FORM_ID, true)
+    openDialog(FORM_ID, canKeepOpen)
     return closeDialog
-  }, [openDialog, closeDialog])
+  }, [openDialog, closeDialog, canKeepOpen])
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -73,6 +79,7 @@ export function NewItemDialog({
           <NewItemForm
             formId={FORM_ID}
             sectionName={sectionName}
+            initialValues={initialValues}
             workCatalogue={workCatalogue}
             isTemplate={isTemplate}
             kosztorysUnits={kosztorysUnits}

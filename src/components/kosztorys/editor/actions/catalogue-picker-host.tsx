@@ -16,8 +16,15 @@ const CataloguePickerContext = createContext<OpenCataloguePickerT | null>(null)
 // state, and React skips a subtree whose element identity is unchanged. That is what keeps the grid
 // out of the re-render (EX-496).
 export function CataloguePickerHost({ children }: { children: ReactNode }) {
-  const { investmentId, rows, sections, workCatalogue, handleAppendedCatalogueItems } =
-    useKosztorysEditorContext()
+  const {
+    investmentId,
+    rows,
+    sections,
+    workCatalogue,
+    handleAppendedCatalogueItems,
+    handleAddItem,
+    handleAddSection,
+  } = useKosztorysEditorContext()
   // `null` = closed; a member `sectionId` of `null` = open with no section chosen yet.
   const [target, setTarget] = useState<{ sectionId: number | null } | null>(null)
   // Stable for the life of the host, so nothing under it re-renders when the picker opens.
@@ -43,6 +50,13 @@ export function CataloguePickerHost({ children }: { children: ReactNode }) {
           open
           onOpenChange={() => setTarget(null)}
           onInserted={handleAppendedCatalogueItems}
+          // With no sekcja to offer, a bare one is minted first; should the pozycja then be
+          // abandoned, the sekcja bez pozycji left behind is a legitimate state, not a leak.
+          onNewItem={async (sectionId, description) => {
+            setTarget(null)
+            const landing = sectionId ?? (await handleAddSection())
+            if (landing !== undefined) handleAddItem(landing, description)
+          }}
         />
       )}
     </CataloguePickerContext>
