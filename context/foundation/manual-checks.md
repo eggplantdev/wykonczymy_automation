@@ -4847,3 +4847,6 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Ukryty etap bez przypisanego wykonawcy → włącz w „Problemy” „Etapy bez przypisanego wykonawcy”: etap jest widoczny mimo odznaczenia; po wyłączeniu problemu znowu znika.
 - [ ] Z ukrytym etapem: „Oferta”, podgląd dokumentu inwestora i dokument pracownika pokazują ten etap jak wcześniej.
 - [ ] Inna tabela (np. Transakcje) → „Kolumny”: lista kolumn bez wewnętrznego przewijania, menu przewija się w całości.
+- [ ] „Kolumny” → „Etapy” → zaznacz „Ukryj zakończone”: etapy oznaczone „Etap zakończony” znikają z tabeli (wszystkie trzy kolumny), na liście są wyszarzone z zielonym ✓; licznik na przycisku rośnie o ich liczbę.
+- [ ] Odznacz „Ukryj zakończone”: wracają dokładnie te etapy, które były widoczne wcześniej (ręcznie odznaczone zostają ukryte). Ustawienie przetrwa odświeżenie i obowiązuje też w innym kosztorysie.
+- [ ] Z włączonym „Ukryj zakończone” oznacz w nagłówku etapu „Etap zakończony”: etap od razu znika z tabeli; odznacz — wraca.

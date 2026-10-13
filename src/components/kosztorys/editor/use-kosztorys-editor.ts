@@ -312,10 +312,14 @@ export function useKosztorysEditor({
     save,
     reportFailure,
   })
-  const { isStageHidden, toggleStage, setStagesHidden } = useHiddenStages(
-    investmentId,
-    stages.map((stage) => stage.id),
-  )
+  const {
+    isStageHidden,
+    isStageOff,
+    hideCompleted: hideCompletedStages,
+    setHideCompleted: setHideCompletedStages,
+    toggleStage,
+    setStagesHidden,
+  } = useHiddenStages(investmentId, stages)
 
   // onChange appends each keystroke here; the flush timer collapses them into one command (UNDO_COALESCE_MS).
   const pendingFields = useRef<FieldChangeT[]>([])
@@ -604,7 +608,7 @@ export function useKosztorysEditor({
     sort,
     onSetSort: editorOnly(setSortField),
     isHidden,
-    isStageHidden,
+    isStageHidden: isStageOff,
     moneyAxis: axis,
     layer,
     crewAxis,
@@ -1293,6 +1297,9 @@ export function useKosztorysEditor({
     toggleColumn,
     setAllColumns,
     isStageHidden,
+    isStageOff,
+    hideCompletedStages,
+    setHideCompletedStages,
     toggleStage,
     setStagesHidden,
     columnRanks,

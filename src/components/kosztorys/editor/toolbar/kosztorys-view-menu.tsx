@@ -83,7 +83,7 @@ export function KosztorysViewMenu() {
     setOffer,
     isTemplate,
     stages,
-    isStageHidden,
+    isStageOff,
     engagedStageConditionIds,
   } = useKosztorysEditorContext()
 
@@ -106,7 +106,7 @@ export function KosztorysViewMenu() {
   const hiddenStageCount =
     engagedStageConditionIds.size > 0
       ? 0
-      : pickableStages.filter((stage) => isStageHidden(stage.id)).length
+      : pickableStages.filter((stage) => isStageOff(stage.id)).length
   const hiddenCount =
     items.filter((item) => !item.visible && !revealedColumnIds.has(item.id)).length +
     hiddenStageCount
