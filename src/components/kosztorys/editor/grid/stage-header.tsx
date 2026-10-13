@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, ChevronDown, Pencil, Trash2, Users } from 'lucide-react'
+import { ChevronDown, Pencil, Trash2, Users } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
@@ -16,6 +16,7 @@ import { HeaderLabel } from '@/components/ui/datasheet-grid/header-label'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
+import { StageCompletedMark } from '@/components/kosztorys/editor/stage-completed-mark'
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
 import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -86,14 +87,7 @@ export function StageHeader({
       ? null
       : resolveWorkerName(restHolder, nameById) + (others > 0 ? ` +${others}` : '')
 
-  const completedMark = stage.completed && (
-    <span
-      title={gridDictionary.t('stageCompleted')}
-      className="inline-flex shrink-0 text-green-600"
-    >
-      <Check className="size-3.5" />
-    </span>
-  )
+  const completedMark = stage.completed && <StageCompletedMark />
 
   // No handlers = a read-only mount (preview): render the bare label, no menu/rename/delete AND no
   // plane icon or warning — the rozliczenie is internal subcontractor information, never client-facing.

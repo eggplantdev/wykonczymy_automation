@@ -3,11 +3,11 @@
 import { createJsonMapStore, dropKeys, useJsonMap } from '@/hooks/create-json-map-store'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
-// Which etapy the reader put away, per investment — the per-etap half of the „Etapy — …" picker
-// ticks, which hide one AXIS across every etap. Kept out of useHiddenColumns' map on purpose
-// (stage-keys.ts): that map is global, and etap ids are not. Every write keeps only the ids of
-// etapy that still exist, so a deleted etap's entry cannot outlive it and resurface on a reissued id.
+// Kept out of useHiddenColumns' map on purpose (stage-keys.ts): that map is global, and etap ids are
+// not. Every write drops the ids of etapy that no longer exist, so a deleted etap's entry lasts only
+// until the next tick on that investment.
 const store = createJsonMapStore<number[]>('table-columns:kosztorys-stages')
 // „Ukryj zakończone" is a reading habit, not a choice about one kosztorys, so it is global — and it
 // never writes the ticks above, which is what lets switching it off restore exactly what was there.
@@ -53,11 +53,7 @@ export function useHiddenStages(
   }
 
   function toggleStage(stageId: number) {
-    write((prev) => {
-      if (prev.has(stageId)) prev.delete(stageId)
-      else prev.add(stageId)
-      return prev
-    })
+    write((prev) => toggleInSet(prev, stageId))
   }
 
   // Over the ids the caller lists, not every etap: a subcontractor view lists only its crew's etapy,
