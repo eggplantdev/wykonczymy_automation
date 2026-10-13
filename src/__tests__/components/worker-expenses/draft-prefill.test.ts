@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
+import {
+  buildDraftPrefill,
+  lineItemForPart,
+  withDraftTarget,
+} from '@/components/worker-expenses/draft-prefill'
 import { makeLineItem, type BulkLineItemT } from '@/components/forms/expense-form/bulk-expense-form'
 import { expenseDraftReadSchema, type ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
@@ -30,10 +34,14 @@ const identityOf = ({ documentNumber, sellerNip, documentDate }: BulkLineItemT) 
 const namesOf = (prefill: ReturnType<typeof buildDraftPrefill>) =>
   [...prefill.files.entries()].map(([row, files]) => [row, files.map((file) => file.name)])
 
+const partsOf = (prefill: ReturnType<typeof buildDraftPrefill>) =>
+  prefill.lineItems.map((item) => prefill.receipts.get(item.id) ?? [])
+
 const BLANK = { description: '', amount: '', netAmount: '', invoiceNote: '', expenseCategory: '5' }
 
 describe('buildDraftPrefill', () => {
-  it('„Jeden wydatek” with a read → one filled row carrying every page', () => {
+  // Reads stored before EX-1048 („Jeden wydatek”) are one row over every photo.
+  it('an old single-row read over every photo → one filled row carrying every page', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [
         {
@@ -46,11 +54,7 @@ describe('buildDraftPrefill', () => {
       ],
     }
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA, scanMode: 'one-invoice', aiRead },
-      FILES,
-      CATEGORY,
-    )
+    const prefill = buildDraftPrefill({ media: MEDIA, aiRead }, FILES, CATEGORY)
 
     expect(fieldsOf(prefill)).toEqual([
       {
@@ -62,9 +66,10 @@ describe('buildDraftPrefill', () => {
       },
     ])
     expect(namesOf(prefill)).toEqual([[0, ['1.jpg', '2.jpg', '3.jpg']]])
+    expect(partsOf(prefill)).toEqual([[{ mediaIds: [1, 2, 3], readRow: 0 }]])
   })
 
-  it('„Kilka wydatków” with a partial read → filled and blank rows in page order', () => {
+  it('a partial read → filled and blank rows in read order', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [
         { mediaIds: [1] },
@@ -73,11 +78,7 @@ describe('buildDraftPrefill', () => {
       ],
     }
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA, scanMode: 'one-per-photo', aiRead },
-      FILES,
-      CATEGORY,
-    )
+    const prefill = buildDraftPrefill({ media: MEDIA, aiRead }, FILES, CATEGORY)
 
     expect(fieldsOf(prefill)).toEqual([
       BLANK,
@@ -91,28 +92,33 @@ describe('buildDraftPrefill', () => {
     ])
   })
 
-  it('no read yet → blank rows shaped by the mode', () => {
-    expect(
-      fieldsOf(
-        buildDraftPrefill(
-          { media: MEDIA, scanMode: 'one-invoice', aiRead: undefined },
-          FILES,
-          CATEGORY,
-        ),
-      ),
-    ).toEqual([BLANK])
-    expect(
-      fieldsOf(
-        buildDraftPrefill(
-          { media: MEDIA, scanMode: 'one-per-photo', aiRead: undefined },
-          FILES,
-          CATEGORY,
-        ),
-      ),
-    ).toEqual([BLANK, BLANK, BLANK])
+  it('no read yet → one blank row per photo', () => {
+    const prefill = buildDraftPrefill({ media: MEDIA, aiRead: undefined }, FILES, CATEGORY)
+
+    expect(fieldsOf(prefill)).toEqual([BLANK, BLANK, BLANK])
+    expect(partsOf(prefill)).toEqual([[{ mediaIds: [1] }], [{ mediaIds: [2] }], [{ mediaIds: [3] }]])
   })
 
-  it('„Kilka wydatków” with two paragony on one photo → a row for each, on that photo', () => {
+  it('a photo no read row names → a blank row of its own after the read rows', () => {
+    const aiRead: ExpenseDraftReadT = {
+      rows: [{ mediaIds: [2], description: 'Castorama', amount: 40 }],
+    }
+
+    const prefill = buildDraftPrefill({ media: MEDIA, aiRead }, FILES, CATEGORY)
+
+    expect(fieldsOf(prefill)).toEqual([
+      { ...BLANK, description: 'Castorama', amount: '40' },
+      BLANK,
+      BLANK,
+    ])
+    expect(partsOf(prefill)).toEqual([
+      [{ mediaIds: [2], readRow: 0 }],
+      [{ mediaIds: [1] }],
+      [{ mediaIds: [3] }],
+    ])
+  })
+
+  it('two paragony on one photo → a row for each, on that photo', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [
         { mediaIds: [1], description: 'Leroy', amount: 12, filename: 'leroy.jpg' },
@@ -121,11 +127,7 @@ describe('buildDraftPrefill', () => {
       ],
     }
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA.slice(0, 2), scanMode: 'one-per-photo', aiRead },
-      FILES.slice(0, 2),
-      CATEGORY,
-    )
+    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 2), aiRead }, FILES.slice(0, 2), CATEGORY)
 
     expect(fieldsOf(prefill).map(({ description, amount }) => [description, amount])).toEqual([
       ['Leroy', '12'],
@@ -137,10 +139,10 @@ describe('buildDraftPrefill', () => {
       [1, ['parking.jpg']],
       [2, ['2.jpg']],
     ])
-    expect(prefill.lineItems.map((item) => prefill.receipts.get(item.id))).toEqual([
-      { mediaIds: [1], readRow: 0 },
-      { mediaIds: [1], readRow: 1 },
-      { mediaIds: [2], readRow: 2 },
+    expect(partsOf(prefill)).toEqual([
+      [{ mediaIds: [1], readRow: 0 }],
+      [{ mediaIds: [1], readRow: 1 }],
+      [{ mediaIds: [2], readRow: 2 }],
     ])
   })
 
@@ -154,15 +156,12 @@ describe('buildDraftPrefill', () => {
       ],
     }
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA.slice(0, 1), scanMode: 'one-per-photo', aiRead },
-      FILES.slice(0, 1),
-      CATEGORY,
-    )
+    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 1), aiRead }, FILES.slice(0, 1), CATEGORY)
 
-    const [first, second] = prefill.lineItems.map((item) => prefill.receipts.get(item.id))
-    expect(first?.mediaIds).toEqual(second?.mediaIds)
-    expect(first?.mediaIds).not.toBe(second?.mediaIds)
+    const [[first], [second]] = partsOf(prefill)
+    expect(first.mediaIds).toEqual(second.mediaIds)
+    expect(first.mediaIds).not.toBe(second.mediaIds)
+    expect(first.mediaIds).not.toBe(aiRead.rows[0].mediaIds)
   })
 
   it('names the pages from the read the way „Generuj” would', () => {
@@ -170,11 +169,7 @@ describe('buildDraftPrefill', () => {
       rows: [{ mediaIds: [1, 2], description: 'Leroy', filename: 'leroy.jpg' }],
     }
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA.slice(0, 2), scanMode: 'one-invoice', aiRead },
-      FILES.slice(0, 2),
-      CATEGORY,
-    )
+    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 2), aiRead }, FILES.slice(0, 2), CATEGORY)
 
     expect(namesOf(prefill)).toEqual([[0, ['leroy.jpg', 'leroy-2.jpg']]])
     expect(prefill.files.get(0)?.[1].type).toBe('image/jpeg')
@@ -195,7 +190,7 @@ describe('buildDraftPrefill', () => {
     }
 
     const [lineItem] = buildDraftPrefill(
-      { media: MEDIA.slice(0, 1), scanMode: 'one-invoice', aiRead },
+      { media: MEDIA.slice(0, 1), aiRead },
       FILES.slice(0, 1),
       CATEGORY,
     ).lineItems
@@ -213,11 +208,7 @@ describe('buildDraftPrefill', () => {
       rows: [{ mediaIds: [1], description: 'Leroy 01.02.2026', amount: 12.5, invoiceNote: 'P/1' }],
     })
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA.slice(0, 1), scanMode: 'one-invoice', aiRead },
-      FILES.slice(0, 1),
-      CATEGORY,
-    )
+    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 1), aiRead }, FILES.slice(0, 1), CATEGORY)
 
     expect(fieldsOf(prefill)).toEqual([
       { ...BLANK, description: 'Leroy 01.02.2026', amount: '12.5', invoiceNote: 'P/1' },
@@ -229,17 +220,43 @@ describe('buildDraftPrefill', () => {
     })
   })
 
-  // The write guard keeps a stale read out of the DB; this keeps one out of the form all the same.
-  it('ignores a read row for a different set of pages', () => {
-    const aiRead: ExpenseDraftReadT = { rows: [{ mediaIds: [1, 2], description: 'Stary' }] }
+  // The write guard keeps a foreign read out of the DB; this keeps one out of the form all the same.
+  it('ignores a read row naming a photo the draft does not hold', () => {
+    const aiRead: ExpenseDraftReadT = { rows: [{ mediaIds: [1, 9], description: 'Obcy' }] }
 
-    const prefill = buildDraftPrefill(
-      { media: MEDIA, scanMode: 'one-invoice', aiRead },
-      FILES,
+    const prefill = buildDraftPrefill({ media: MEDIA, aiRead }, FILES, CATEGORY)
+
+    expect(fieldsOf(prefill)).toEqual([BLANK, BLANK, BLANK])
+  })
+
+  it('keeps every downloaded page by its photo for a later split', () => {
+    const prefill = buildDraftPrefill({ media: MEDIA, aiRead: undefined }, FILES, CATEGORY)
+
+    expect([...prefill.pagesByMediaId.keys()]).toEqual([1, 2, 3])
+    expect(prefill.pagesByMediaId.get(2)).toBe(FILES[1])
+  })
+})
+
+describe('lineItemForPart', () => {
+  const pagesByMediaId = new Map(MEDIA.map((m, index) => [m.id, FILES[index]]))
+
+  it('rebuilds one paragon from its read row, pages renamed', () => {
+    const { lineItem, pages } = lineItemForPart(
+      { mediaIds: [2, 3], readRow: 4 },
+      { mediaIds: [2, 3], description: 'Leroy', amount: 12, filename: 'leroy.jpg' },
+      pagesByMediaId,
       CATEGORY,
     )
 
-    expect(fieldsOf(prefill)).toEqual([BLANK])
+    expect(lineItem).toMatchObject({ description: 'Leroy', amount: '12', expenseCategory: '5' })
+    expect(pages.map((file) => file.name)).toEqual(['leroy.jpg', 'leroy-2.jpg'])
+  })
+
+  it('a part with no read row comes back blank with its photos', () => {
+    const { lineItem, pages } = lineItemForPart({ mediaIds: [1] }, undefined, pagesByMediaId, CATEGORY)
+
+    expect(lineItem).toMatchObject({ description: '', amount: '' })
+    expect(pages).toEqual([FILES[0]])
   })
 })
 
