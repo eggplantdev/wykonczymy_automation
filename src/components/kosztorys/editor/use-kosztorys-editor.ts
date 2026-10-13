@@ -967,13 +967,10 @@ export function useKosztorysEditor({
 
   // Built through treeToRows with the CURRENT stages + global discount, so server-committed rows carry
   // today's stage columns and rabat flag. Real ids, so there is no temp-id reconciliation.
-  function rowsFromSections(
-    treeSections: KosztorysTreeT['sections'],
-    newStages: KosztorysStageT[] = [],
-  ) {
+  function rowsFromSections(treeSections: KosztorysTreeT['sections']) {
     const built = treeToRows({
       sections: treeSections,
-      stages: [...stages, ...newStages],
+      stages,
       progress: [],
       globalCoeffs: tree.globalCoeffs,
       vatRate: tree.vatRate,
@@ -995,11 +992,10 @@ export function useKosztorysEditor({
   }
 
   // A sekcja the picker just minted lands at the TOP as one band, the way addSectionAction places one.
-  // Folding in order is what keeps the katalog's selection order. An accepted report never mints one.
+  // Folding in order is what keeps the katalog's selection order.
   function handleAppendedCatalogueItems(
     slice: KosztorysTreeT['sections'][number],
     createdSection: boolean,
-    newStages: KosztorysStageT[] = [],
   ) {
     const placement = catalogueSlicePlacement(
       new Set(sectionsRef.current.map((section) => section.sectionId)),
@@ -1007,7 +1003,7 @@ export function useKosztorysEditor({
       createdSection,
     )
     if (placement === 'reseed') return recoverStaleTree()
-    const appended = rowsFromSections([slice], newStages)
+    const appended = rowsFromSections([slice])
     if (placement === 'prepend') {
       const [meta] = treeToSections({ sections: [slice] })
       commitSections(insertSection(sectionsRef.current, meta, null))
@@ -1038,7 +1034,6 @@ export function useKosztorysEditor({
     flushUndoBuffer,
     drain,
     adoptStage,
-    appendItems: (slice, newStages) => handleAppendedCatalogueItems(slice, false, newStages),
     patchRows,
     pruneByIds,
     adoptRevision,

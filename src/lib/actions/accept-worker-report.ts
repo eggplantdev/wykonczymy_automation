@@ -10,7 +10,6 @@ import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
 import { addStageProgress } from '@/lib/db/stage-progress'
 import { insertWorkerStage } from '@/lib/db/stage-split'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
 import {
   clearLinesAcceptance,
   readWorkerReport,
@@ -21,24 +20,8 @@ import {
   type WorkerReportLineRowT,
 } from '@/lib/db/worker-reports'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
-import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
-import { insertItems } from '@/lib/kosztorys/insert-rows'
-import type {
-  KosztorysItemT,
-  KosztorysSectionT,
-  KosztorysStageT,
-  ToolPlaneT,
-} from '@/lib/kosztorys/types'
-import { withTranslation } from '@/lib/i18n/description-translations'
-import { isTranslationLanguage } from '@/lib/i18n/languages'
-import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
-import {
-  indexCatalogue,
-  itemsHoldingEntry,
-} from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
-import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
 import { acceptSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { AcceptReportInputT, AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
@@ -54,8 +37,8 @@ const STALE = 'Zgłoszenie zmieniło się w innym oknie — odśwież je.'
  * Brings the etap in line with the kierownik's decision: a newly accepted line adds its ilość, an
  * already accepted one adds only the difference to what it was accepted at, and an undone one takes
  * its ilość back out. An odrzucona line touches only the report. Everything — the auto version, a new
- * etap, the new pozycje, the figures and the report's record — is one transaction, so a failure
- * anywhere leaves the report and the rozpiska as they were.
+ * etap, the figures and the report's record — is one transaction, so a failure anywhere leaves the
+ * report and the rozpiska as they were.
  */
 export async function acceptWorkerReportAction(
   input: AcceptReportInputT,
@@ -68,23 +51,12 @@ export async function acceptWorkerReportAction(
       if (!parsed.success) return parsed
       const request = parsed.data
 
-      // Only ids come from the client: every katalog figure is re-read here.
-      const catalogueIds = [
-        ...new Set(request.extras.flatMap((extra) => extra.catalogueItemId ?? [])),
-      ]
-      const catalogue = new Map(
-        (await listCatalogueItemsByIds(await getDb(payload), catalogueIds)).map((entry) => [
-          entry.id,
-          entry,
-        ]),
-      )
-
       try {
         return await withPayloadTransaction(
           payload,
           async (req) => {
             const tx = await getDb(payload, req)
-            const data = await acceptInTransaction(tx, request, catalogue, user.id)
+            const data = await acceptInTransaction(tx, request, user.id)
             return { success: true as const, data }
           },
           { skipRevalidation: true },
@@ -101,7 +73,6 @@ export async function acceptWorkerReportAction(
 async function acceptInTransaction(
   tx: DbExecutorT,
   request: z.infer<typeof acceptSchema>,
-  catalogue: ReadonlyMap<number, WorkCatalogueItemT>,
   userId: number,
 ): Promise<AcceptReportResultT> {
   const { investmentId, reportId } = request
@@ -117,7 +88,7 @@ async function acceptInTransaction(
   const { workerId } = report.report
 
   const lineById = new Map(report.lines.map((line) => [line.id, line]))
-  const acceptedIds = [...request.lines, ...request.extras].map((decision) => decision.lineId)
+  const acceptedIds = request.lines.map((decision) => decision.lineId)
   const decidedIds = [...acceptedIds, ...request.undone]
   const flaggedIds = [...request.rejected, ...request.unrejected]
   if (
@@ -137,9 +108,7 @@ async function acceptInTransaction(
   const isStale =
     request.lines.some(
       (decision) => decision.seenQty !== (lineById.get(decision.lineId)?.acceptedQty ?? undefined),
-    ) ||
-    request.extras.some((extra) => isAccepted(extra.lineId)) ||
-    request.rejected.some((lineId) => isAccepted(lineId) && !request.undone.includes(lineId))
+    ) || request.rejected.some((lineId) => isAccepted(lineId) && !request.undone.includes(lineId))
   if (isStale) throw new AcceptRefusal(STALE)
   const freshLines = request.lines.filter((decision) => !isAccepted(decision.lineId))
   const changedLines = request.lines.filter((decision) => isAccepted(decision.lineId))
@@ -147,7 +116,7 @@ async function acceptInTransaction(
   const undoneIds = request.undone.filter(isAccepted)
   const rejectedIds = request.rejected.filter((lineId) => !isRejected(lineId))
   const unrejectedIds = request.unrejected.filter(isRejected)
-  const isAdding = freshLines.length + request.extras.length > 0
+  const isAdding = freshLines.length > 0
 
   // One report, one etap: a change or an untick lands in the etap the report names, so the rest may
   // join only that one — and none at all while it is gone or no longer his, until those lines are
@@ -208,23 +177,6 @@ async function acceptInTransaction(
     throw new AcceptRefusal(STALE)
   }
 
-  for (const extra of request.extras) {
-    const line = lineById.get(extra.lineId) as WorkerReportLineRowT
-    const hasPrice =
-      extra.catalogueItemId === undefined
-        ? extra.clientPrice !== undefined
-        : catalogue.has(extra.catalogueItemId)
-    if (!hasPrice) {
-      throw new AcceptRefusal(
-        `„${line.description}” — podaj cenę j.m. albo wybierz pracę z katalogu.`,
-      )
-    }
-    // A scan reads no j.m. it cannot match to the kosztorys's; only a katalog praca can supply one.
-    if (extra.catalogueItemId === undefined && line.unit.trim() === '') {
-      throw new AcceptRefusal(`„${line.description}” — brak j.m., wybierz pracę z katalogu.`)
-    }
-  }
-
   const target = isAdding ? resolveTarget(tree.stages, request.target, workerId) : undefined
 
   // Before any tree write, so the version holds the rozpiska as it was before the decision.
@@ -239,44 +191,6 @@ async function acceptInTransaction(
         ? target.stage
         : await insertWorkerStage(tx, investmentId, target.plane, workerId)
 
-  const heldByLine = await heldItemsByLine(tx, tree.items, request.extras, catalogue)
-  const appended: AcceptReportResultT['appended'] = []
-  const createdByLine = new Map<number, number>()
-  for (const [sectionId, extras] of Map.groupBy(request.extras, (extra) => extra.sectionId)) {
-    const owner = await sectionOwnerAndNextItemOrder(tx, sectionId)
-    if (!owner || owner.investmentId !== investmentId) {
-      throw new AcceptRefusal('Wybrana sekcja nie istnieje.')
-    }
-    const minting = extras.filter((extra) => !heldByLine.has(extra.lineId))
-    if (minting.length === 0) continue
-    // Two lines naming one new katalog praca share the pozycja the first of them mints.
-    const groups = [
-      ...Map.groupBy(minting, (extra) => extra.catalogueItemId ?? `line:${extra.lineId}`).values(),
-    ]
-    const items = groups.map((group, index) =>
-      extraAsItem(
-        group[0],
-        lineById.get(group[0].lineId) as WorkerReportLineRowT,
-        catalogue,
-        owner.section,
-        owner.nextDisplayOrder + index,
-        round6(group.reduce((sum, extra) => sum + extra.acceptedQty, 0)),
-      ),
-    )
-    const newIds = await insertItems(
-      tx,
-      investmentId,
-      items.map((item) => ({ sectionId, item })),
-    )
-    groups.forEach((group, index) => {
-      for (const extra of group) createdByLine.set(extra.lineId, newIds[index])
-    })
-    appended.push({
-      ...owner.section,
-      items: items.map((item, index) => ({ ...item, id: newIds[index] })),
-    })
-  }
-
   // Summed per etap first: an upsert touching one row twice is a Postgres error, and two lines of one
   // report may name the same pozycja once one of them was re-pointed.
   const qtyByStage = new Map<number, Map<number, number>>()
@@ -287,10 +201,6 @@ async function acceptInTransaction(
   }
   if (stage) {
     for (const { decision, itemId } of rozpiskaLines) add(stage.id, itemId, decision.acceptedQty)
-    for (const extra of request.extras) {
-      const itemId = heldByLine.get(extra.lineId) ?? createdByLine.get(extra.lineId)
-      add(stage.id, itemId as number, extra.acceptedQty)
-    }
   }
   if (recordedStage) {
     for (const { itemId, delta } of [...changes, ...removals]) add(recordedStage.id, itemId, delta)
@@ -315,15 +225,6 @@ async function acceptInTransaction(
       lineId: decision.lineId,
       acceptedQty: decision.acceptedQty,
     })),
-    // A line summed into a pozycja it found is recorded as one re-pointed at it: an undo then takes
-    // the ilość back out and leaves the pozycja to the rozpiska.
-    ...request.extras.map((extra) => ({
-      lineId: extra.lineId,
-      acceptedQty: extra.acceptedQty,
-      itemId: heldByLine.get(extra.lineId),
-      createdItemId: createdByLine.get(extra.lineId),
-      catalogueItemId: extra.catalogueItemId,
-    })),
   ]
   await updateReportLines(tx, reportId, decisions)
   await clearLinesAcceptance(tx, reportId, undoneIds)
@@ -333,7 +234,6 @@ async function acceptInTransaction(
 
   return {
     stage: target?.kind === 'new' ? stage : undefined,
-    appended,
     cells,
     revision: await bumpInvestmentRevision(tx, investmentId),
   }
@@ -368,97 +268,4 @@ function resolveTarget(
   }
   if (!target.plane) throw new AcceptRefusal('Wybierz rozliczenie nowego etapu.')
   return { kind: 'new', plane: target.plane }
-}
-
-type ExtraDecisionT = z.infer<typeof acceptSchema>['extras'][number]
-
-/**
- * Line → the pozycja in its sekcja that already holds its katalog praca, found as the review's swap
- * finds it. The ilość then goes into that pozycja's etap and both przedmiary stay as they are: the
- * work may well be in them already. Another sekcja is another pokój, so the same praca there still
- * gets a pozycja of its own — and so does one held twice in the sekcja, where which is meant is the
- * kierownik's call, as it is in the review.
- */
-async function heldItemsByLine(
-  tx: DbExecutorT,
-  items: readonly KosztorysItemT[],
-  extras: readonly ExtraDecisionT[],
-  picked: ReadonlyMap<number, WorkCatalogueItemT>,
-): Promise<Map<number, number>> {
-  const heldByLine = new Map<number, number>()
-  const swapped = extras.filter((extra) => extra.catalogueItemId !== undefined)
-  if (swapped.length === 0) return heldByLine
-  const sectionIds = new Set(swapped.map((extra) => extra.sectionId))
-  const itemsBySection = Map.groupBy(
-    items.filter((item) => sectionIds.has(item.sectionId)),
-    (item) => item.sectionId,
-  )
-  const linkedIds = [
-    ...new Set([...itemsBySection.values()].flat().flatMap((item) => item.catalogueItemId ?? [])),
-  ].filter((id) => !picked.has(id))
-  const index = indexCatalogue([
-    ...picked.values(),
-    ...(await listCatalogueItemsByIds(tx, linkedIds)),
-  ])
-  for (const extra of swapped) {
-    const holders = itemsHoldingEntry(
-      index,
-      itemsBySection.get(extra.sectionId) ?? [],
-      extra.catalogueItemId as number,
-    )
-    if (holders.length === 1) heldByLine.set(extra.lineId, holders[0].id)
-  }
-  return heldByLine
-}
-
-// A katalog wpis comes over as the picker copies it; the worker's own opis gets only the cena j.m.
-// the kierownik typed — its stawki stay „auto". A translated opis lands in Polish, and the worker's
-// own words become its current translation, so his crew reads what he wrote — only in a language
-// the editor carries; any other still lands in Polish, with no translation to show.
-// The work was never offered, so Przedmiar ofertowy stays 0 and the accepted quantity is the scope
-// it grew by (EX-921).
-function extraAsItem(
-  extra: ExtraDecisionT,
-  line: WorkerReportLineRowT,
-  catalogue: ReadonlyMap<number, WorkCatalogueItemT>,
-  section: KosztorysSectionT,
-  displayOrder: number,
-  acceptedQty: number,
-): KosztorysItemT {
-  const entry =
-    extra.catalogueItemId === undefined ? undefined : catalogue.get(extra.catalogueItemId)
-  if (entry) {
-    return {
-      ...itemFromFields(entry, section.id, displayOrder, entry.id),
-      currentPlannedQty: acceptedQty,
-    }
-  }
-  const language = line.descriptionLanguage
-  const polish = line.polishDescription
-  return {
-    id: 0,
-    sectionId: section.id,
-    displayOrder,
-    description: reviewedDescription(line),
-    descriptionTranslations:
-      polish !== null && isTranslationLanguage(language)
-        ? withTranslation({}, language, line.description, polish)
-        : {},
-    unit: line.unit,
-    plannedQty: 0,
-    currentPlannedQty: acceptedQty,
-    sheetMeasuredQty: null,
-    discountType: null,
-    discountValue: 0,
-    clientPrice: extra.clientPrice ?? 0,
-    wToolsOverrideValue: null,
-    ownToolsOverrideValue: null,
-    wToolsOverrideCoeff: null,
-    ownToolsOverrideCoeff: null,
-    note: null,
-    catalogueItemId: null,
-    aiPlannedQty: null,
-    changeReason: null,
-    reviewStatus: null,
-  }
 }

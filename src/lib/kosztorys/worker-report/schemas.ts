@@ -46,15 +46,6 @@ export const acceptSchema = z
         seenQty: reportQtySchema.optional(),
       }),
     ),
-    extras: z.array(
-      z.object({
-        lineId: idSchema,
-        acceptedQty: reportQtySchema,
-        sectionId: idSchema,
-        clientPrice: z.number().min(0).optional(),
-        catalogueItemId: idSchema.optional(),
-      }),
-    ),
     // Accepted lines the kierownik unticked: their ilość comes back out of the etap.
     undone: z.array(idSchema),
     // Lines odrzucone, one by one — an accepted one also sits in `undone`, which takes its ilość
@@ -64,11 +55,7 @@ export const acceptSchema = z
   })
   .refine(
     (input) =>
-      input.lines.length +
-        input.extras.length +
-        input.undone.length +
-        input.rejected.length +
-        input.unrejected.length >
+      input.lines.length + input.undone.length + input.rejected.length + input.unrejected.length >
       0,
     { message: 'Nic się nie zmieniło' },
   )

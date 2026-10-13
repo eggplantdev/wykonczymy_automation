@@ -4,10 +4,8 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
 import { insertWorkerReport, readWorkerReport } from '@/lib/db/worker-reports'
-import { setLineTranslations } from '@/lib/db/worker-report-line-translations'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
-import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -45,7 +43,6 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
   let investmentId: number
   let workerId: number
   let otherWorkerId: number
-  let sectionId: number
   let itemIds: number[]
   let ownStageId: number
   let otherStageId: number
@@ -93,15 +90,11 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
   }
 
   const accept = (
-    input: Omit<
-      AcceptReportInputT,
-      'investmentId' | 'extras' | 'undone' | 'rejected' | 'unrejected'
-    > &
+    input: Omit<AcceptReportInputT, 'investmentId' | 'undone' | 'rejected' | 'unrejected'> &
       Partial<AcceptReportInputT>,
   ) =>
     acceptWorkerReportAction({
       investmentId,
-      extras: [],
       undone: [],
       rejected: [],
       unrejected: [],
@@ -143,7 +136,6 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
       ],
       progress: [{ item: 0, stage: 0, qtyDone: 5 }],
     })
-    ;[sectionId] = tree.sectionIds
     itemIds = tree.itemIds
     ;[ownStageId, otherStageId] = tree.stageIds
   })
@@ -213,315 +205,6 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     })
     if (res.success) expect(res.data.stage?.id).toBe(created?.id)
     expect(await qtyDone(itemIds[0], created?.id ?? 0)).toBe(4)
-  })
-
-  // Never offered, so Przedmiar ofertowy stays 0; the accepted ilość is the scope it grew by (EX-921).
-  it('turns a praca spoza rozpiski into a pozycja bez przedmiaru at the typed cena', async () => {
-    const { reportId, lineIds } = await sendReport([
-      { itemId: null, qty: 3, opis: 'Wniesienie płyt' },
-    ])
-    const res = await accept({
-      reportId,
-      target: { kind: 'stage', stageId: ownStageId },
-      lines: [],
-      extras: [{ lineId: lineIds[0], acceptedQty: 3, sectionId, clientPrice: 25 }],
-    })
-
-    expect(res.success).toBe(true)
-    const tree = await selectKosztorysTreeData(db, investmentId)
-    const created = tree?.items.find((item) => item.description === 'Wniesienie płyt')
-    expect(created).toMatchObject({
-      sectionId,
-      plannedQty: 0,
-      currentPlannedQty: 3,
-      clientPrice: 25,
-      unit: 'm²',
-    })
-    expect(await qtyDone(created?.id ?? 0, ownStageId)).toBe(3)
-    const stored = await readWorkerReport(db, investmentId, reportId)
-    expect(stored?.lines[0].createdItemId).toBe(created?.id)
-  })
-
-  it('refuses a scanned extra with no j.m. unless a katalog praca supplies one', async () => {
-    const { reportId, lineIds } = await sendReport([
-      { itemId: null, qty: 4, opis: 'Listwy przypodłogowe', unit: '' },
-    ])
-    const extra = { lineId: lineIds[0], acceptedQty: 4, sectionId }
-    const target = { kind: 'stage' as const, stageId: ownStageId }
-
-    const priced = await accept({
-      reportId,
-      target,
-      lines: [],
-      extras: [{ ...extra, clientPrice: 30 }],
-    })
-    expect(priced).toMatchObject({ success: false, error: expect.stringContaining('brak j.m.') })
-
-    const entry = await payload.create({
-      collection: 'work-catalogue-items',
-      data: {
-        description: 'EX-949 montaż listew',
-        unit: 'mb',
-        clientPrice: 18,
-        matchKey: catalogueKey('EX-949 montaż listew', 'mb'),
-      },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    try {
-      const res = await accept({
-        reportId,
-        target,
-        lines: [],
-        extras: [{ ...extra, catalogueItemId: Number(entry.id) }],
-      })
-      expect(res.success).toBe(true)
-      const tree = await selectKosztorysTreeData(db, investmentId)
-      const created = tree?.items.find((item) => item.description === 'EX-949 montaż listew')
-      expect(created).toMatchObject({
-        unit: 'mb',
-        clientPrice: 18,
-        plannedQty: 0,
-        currentPlannedQty: 4,
-      })
-    } finally {
-      await payload.delete({
-        collection: 'work-catalogue-items',
-        id: entry.id,
-        overrideAccess: true,
-      })
-    }
-  })
-
-  describe('a katalog praca the sekcja already holds', () => {
-    let entryId: number
-    let bathroomId: number
-    let heldId: number
-
-    const itemsOfEntry = async () =>
-      (await selectKosztorysTreeData(db, investmentId))?.items.filter(
-        (item) => item.catalogueItemId === entryId,
-      ) ?? []
-
-    beforeEach(async () => {
-      const entry = await payload.create({
-        collection: 'work-catalogue-items',
-        data: {
-          description: 'EX-1041 malowanie sufitu',
-          unit: 'm²',
-          clientPrice: 30,
-          matchKey: catalogueKey('EX-1041 malowanie sufitu', 'm²'),
-        },
-        overrideAccess: true,
-        context: { skipRevalidation: true },
-      })
-      entryId = Number(entry.id)
-      const room = await createKosztorysTree(payload, investmentId, {
-        sections: [
-          {
-            name: 'Łazienka',
-            items: [
-              {
-                description: 'EX-1041 malowanie sufitu',
-                unit: 'm²',
-                plannedQty: 10,
-                currentPlannedQty: 12,
-                clientPrice: 30,
-                catalogueItemId: entryId,
-              },
-            ],
-          },
-        ],
-      })
-      ;[bathroomId] = room.sectionIds
-      ;[heldId] = room.itemIds
-    })
-
-    afterEach(async () => {
-      await payload.delete({
-        collection: 'work-catalogue-items',
-        id: entryId,
-        overrideAccess: true,
-      })
-    })
-
-    const acceptInto = (
-      reportId: number,
-      extras: { lineId: number; acceptedQty: number; sectionId: number }[],
-    ) =>
-      accept({
-        reportId,
-        target: { kind: 'stage', stageId: ownStageId },
-        lines: [],
-        extras: extras.map((extra) => ({ ...extra, catalogueItemId: entryId })),
-      })
-
-    it('adds the ilość to that pozycja in the etap, leaving both przedmiary as they were', async () => {
-      const { reportId, lineIds } = await sendReport([
-        { itemId: null, qty: 3, opis: 'Sufit w łazience' },
-      ])
-      const res = await acceptInto(reportId, [
-        { lineId: lineIds[0], acceptedQty: 3, sectionId: bathroomId },
-      ])
-
-      expect(res.success).toBe(true)
-      if (res.success) expect(res.data.appended).toEqual([])
-      const held = await itemsOfEntry()
-      expect(held).toHaveLength(1)
-      expect(held[0]).toMatchObject({ id: heldId, plannedQty: 10, currentPlannedQty: 12 })
-      expect(await qtyDone(heldId, ownStageId)).toBe(3)
-      expect((await readWorkerReport(db, investmentId, reportId))?.lines[0]).toMatchObject({
-        acceptedQty: 3,
-        itemId: heldId,
-        createdItemId: null,
-      })
-    })
-
-    it('counts a pozycja with the same opis and j.m. as that praca', async () => {
-      await db.execute(
-        sql`UPDATE kosztorys_items SET catalogue_item_id = NULL WHERE id = ${heldId}`,
-      )
-      const { reportId, lineIds } = await sendReport([
-        { itemId: null, qty: 2, opis: 'Sufit w łazience' },
-      ])
-      const res = await acceptInto(reportId, [
-        { lineId: lineIds[0], acceptedQty: 2, sectionId: bathroomId },
-      ])
-
-      expect(res.success).toBe(true)
-      expect(await qtyDone(heldId, ownStageId)).toBe(2)
-      const tree = await selectKosztorysTreeData(db, investmentId)
-      expect(tree?.items.filter((item) => item.sectionId === bathroomId)).toHaveLength(1)
-    })
-
-    it('guesses no pozycja when the sekcja holds the praca twice', async () => {
-      const twin = await createKosztorysTree(payload, investmentId, {
-        sections: [
-          {
-            name: 'Łazienka 2',
-            items: [
-              { description: 'EX-1041 malowanie sufitu', unit: 'm²', catalogueItemId: entryId },
-              { description: 'EX-1041 malowanie sufitu', unit: 'm²', catalogueItemId: entryId },
-            ],
-          },
-        ],
-      })
-      const { reportId, lineIds } = await sendReport([
-        { itemId: null, qty: 2, opis: 'Sufit w łazience 2' },
-      ])
-      const res = await acceptInto(reportId, [
-        { lineId: lineIds[0], acceptedQty: 2, sectionId: twin.sectionIds[0] },
-      ])
-
-      expect(res.success).toBe(true)
-      for (const id of twin.itemIds) expect(await qtyDone(id, ownStageId)).toBe(0)
-      const inSection = (await itemsOfEntry()).filter(
-        (item) => item.sectionId === twin.sectionIds[0],
-      )
-      expect(inSection).toHaveLength(3)
-    })
-
-    it('still mints a pozycja in a sekcja that does not hold it', async () => {
-      const { reportId, lineIds } = await sendReport([
-        { itemId: null, qty: 4, opis: 'Sufit w salonie' },
-      ])
-      const res = await acceptInto(reportId, [{ lineId: lineIds[0], acceptedQty: 4, sectionId }])
-
-      expect(res.success).toBe(true)
-      const minted = (await itemsOfEntry()).find((item) => item.sectionId === sectionId)
-      expect(minted).toMatchObject({ plannedQty: 0, currentPlannedQty: 4 })
-      expect(await qtyDone(minted?.id ?? 0, ownStageId)).toBe(4)
-      expect(await qtyDone(heldId, ownStageId)).toBe(0)
-    })
-
-    it('mints one pozycja for two lines of a report naming the same new praca', async () => {
-      const { reportId, lineIds } = await sendReport([
-        { itemId: null, qty: 2, opis: 'Sufit — pokój 1' },
-        { itemId: null, qty: 3, opis: 'Sufit — pokój 2' },
-      ])
-      const res = await acceptInto(reportId, [
-        { lineId: lineIds[0], acceptedQty: 2, sectionId },
-        { lineId: lineIds[1], acceptedQty: 3, sectionId },
-      ])
-
-      expect(res.success).toBe(true)
-      const minted = (await itemsOfEntry()).filter((item) => item.sectionId === sectionId)
-      expect(minted).toHaveLength(1)
-      expect(minted[0]).toMatchObject({ plannedQty: 0, currentPlannedQty: 5 })
-      expect(await qtyDone(minted[0].id, ownStageId)).toBe(5)
-      const stored = await readWorkerReport(db, investmentId, reportId)
-      expect(stored?.lines.map((line) => line.createdItemId)).toEqual([minted[0].id, minted[0].id])
-    })
-
-    it('takes an undone line back out of that pozycja and leaves the pozycja in place', async () => {
-      const { reportId, lineIds } = await sendReport([
-        { itemId: null, qty: 3, opis: 'Sufit w łazience' },
-      ])
-      await acceptInto(reportId, [{ lineId: lineIds[0], acceptedQty: 3, sectionId: bathroomId }])
-
-      const res = await accept({
-        reportId,
-        target: { kind: 'stage', stageId: ownStageId },
-        lines: [],
-        undone: [lineIds[0]],
-      })
-
-      expect(res.success).toBe(true)
-      expect(await qtyDone(heldId, ownStageId)).toBe(0)
-      expect(await itemsOfEntry()).toMatchObject([{ id: heldId, plannedQty: 10 }])
-    })
-  })
-
-  it("accepts a translated extra in Polish, with the worker's words as its current translation", async () => {
-    const { reportId, lineIds } = await sendReport([
-      { itemId: null, qty: 2, opis: 'Занесення плит' },
-    ])
-    await setLineTranslations(
-      db,
-      [{ id: lineIds[0], polishDescription: 'Wniesienie płyt', descriptionLanguage: 'uk' }],
-      { onlyUntranslated: false },
-    )
-
-    const res = await accept({
-      reportId,
-      target: { kind: 'stage', stageId: ownStageId },
-      lines: [],
-      extras: [{ lineId: lineIds[0], acceptedQty: 2, sectionId, clientPrice: 25 }],
-    })
-
-    expect(res.success).toBe(true)
-    const tree = await selectKosztorysTreeData(db, investmentId)
-    const stored = await readWorkerReport(db, investmentId, reportId)
-    const item = tree?.items.find((row) => row.id === stored?.lines[0].createdItemId)
-    expect(item?.description).toBe('Wniesienie płyt')
-    expect(item?.descriptionTranslations).toEqual({
-      uk: { text: 'Занесення плит', source: 'Wniesienie płyt' },
-    })
-  })
-
-  it('accepts an extra in a language the editor does not carry in Polish, with no translation', async () => {
-    const { reportId, lineIds } = await sendReport([
-      { itemId: null, qty: 2, opis: 'Přenesení desek' },
-    ])
-    await setLineTranslations(
-      db,
-      [{ id: lineIds[0], polishDescription: 'Wniesienie płyt', descriptionLanguage: 'other' }],
-      { onlyUntranslated: false },
-    )
-
-    const res = await accept({
-      reportId,
-      target: { kind: 'stage', stageId: ownStageId },
-      lines: [],
-      extras: [{ lineId: lineIds[0], acceptedQty: 2, sectionId, clientPrice: 25 }],
-    })
-
-    expect(res.success).toBe(true)
-    const tree = await selectKosztorysTreeData(db, investmentId)
-    const stored = await readWorkerReport(db, investmentId, reportId)
-    const item = tree?.items.find((row) => row.id === stored?.lines[0].createdItemId)
-    expect(item?.description).toBe('Wniesienie płyt')
-    expect(item?.descriptionTranslations).toEqual({})
   })
 
   it('refuses the same decision sent again instead of adding it twice', async () => {
@@ -664,10 +347,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
   })
 
   it('rolls everything back when the accept fails after the tree writes', async () => {
-    const { reportId, lineIds } = await sendReport([
-      { itemId: itemIds[0], qty: 2 },
-      { itemId: null, qty: 1, opis: 'Wniesienie płyt' },
-    ])
+    const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 2 }])
     const snapshotsBefore = await snapshotCount()
     const treeBefore = await selectKosztorysTreeData(db, investmentId)
     recording.failNext = true
@@ -677,7 +357,6 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
         reportId,
         target: { kind: 'new' },
         lines: [{ lineId: lineIds[0], acceptedQty: 2 }],
-        extras: [{ lineId: lineIds[1], acceptedQty: 1, sectionId, clientPrice: 10 }],
       }),
     ).resolves.toMatchObject({ success: false })
 
@@ -748,17 +427,25 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     })
   })
 
+  // Before the review added a praca spoza rozpiski to the rozpiska first, its accept minted the pozycja
+  // and recorded it as `created_item_id`; those lines are still in the database.
+  const acceptAsMinted = async (reportId: number, lineId: number, acceptedQty: number) => {
+    await accept({
+      reportId,
+      target: ownTarget(),
+      lines: [{ lineId, acceptedQty, itemId: itemIds[1] }],
+    })
+    await db.execute(sql`
+      UPDATE worker_report_lines SET created_item_id = item_id, item_id = NULL WHERE id = ${lineId}
+    `)
+    return itemIds[1]
+  }
+
   it('changes an accepted praca spoza rozpiski in the pozycja it created', async () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: null, qty: 3, opis: 'Wniesienie płyt' },
     ])
-    await accept({
-      reportId,
-      target: ownTarget(),
-      lines: [],
-      extras: [{ lineId: lineIds[0], acceptedQty: 3, sectionId, clientPrice: 25 }],
-    })
-    const createdId = (await readWorkerReport(db, investmentId, reportId))?.lines[0].createdItemId
+    const createdId = await acceptAsMinted(reportId, lineIds[0], 3)
 
     expect(
       (
@@ -781,13 +468,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: null, qty: 3, opis: 'Wniesienie płyt' },
     ])
-    await accept({
-      reportId,
-      target: ownTarget(),
-      lines: [],
-      extras: [{ lineId: lineIds[0], acceptedQty: 3, sectionId, clientPrice: 25 }],
-    })
-    const createdId = (await readWorkerReport(db, investmentId, reportId))?.lines[0].createdItemId
+    const createdId = await acceptAsMinted(reportId, lineIds[0], 3)
 
     expect(
       (await accept({ reportId, target: ownTarget(), lines: [], undone: [lineIds[0]] })).success,
@@ -803,8 +484,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     })
     expect(again.success).toBe(true)
     expect(await qtyDone(createdId ?? 0, ownStageId)).toBe(2)
-    const tree = await selectKosztorysTreeData(db, investmentId)
-    expect(tree?.items.filter((item) => item.description === 'Wniesienie płyt')).toHaveLength(1)
+    expect((await selectKosztorysTreeData(db, investmentId))?.items).toHaveLength(itemIds.length)
   })
 
   it('stops at zero when the etap was lowered by hand below the accepted ilość', async () => {

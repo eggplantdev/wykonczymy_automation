@@ -567,10 +567,8 @@ export async function settleReport(
 export type ReportLineDecisionT = {
   lineId: number
   acceptedQty: number
-  // Set only for a line re-pointed to a pozycja or turned into one (an extra).
+  // Set only for a line re-pointed to a pozycja.
   itemId?: number
-  createdItemId?: number
-  catalogueItemId?: number
 }
 
 /** Lines left out of `decisions` stay as they are; an accepted one is no longer odrzucona. */
@@ -582,18 +580,15 @@ export async function updateReportLines(
   if (decisions.length === 0) return
   const values = decisions.map(
     (decision) => sql`(
-      ${decision.lineId}::int, ${decision.acceptedQty}::numeric, ${decision.itemId ?? null}::int,
-      ${decision.createdItemId ?? null}::int, ${decision.catalogueItemId ?? null}::int
+      ${decision.lineId}::int, ${decision.acceptedQty}::numeric, ${decision.itemId ?? null}::int
     )`,
   )
   await db.execute(sql`
     UPDATE worker_report_lines l
     SET accepted_qty = v.accepted_qty, is_rejected = false,
-      item_id = COALESCE(v.item_id, l.item_id),
-      created_item_id = COALESCE(v.created_item_id, l.created_item_id),
-      catalogue_item_id = COALESCE(v.catalogue_item_id, l.catalogue_item_id)
+      item_id = COALESCE(v.item_id, l.item_id)
     FROM (VALUES ${sql.join(values, sql.raw(', '))})
-      AS v(line_id, accepted_qty, item_id, created_item_id, catalogue_item_id)
+      AS v(line_id, accepted_qty, item_id)
     WHERE l.id = v.line_id AND l.report_id = ${reportId}
   `)
 }

@@ -6,14 +6,12 @@ import { acceptWorkerReportAction } from '@/lib/actions/accept-worker-report'
 import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import type { AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
 
 vi.mock('@/lib/actions/accept-worker-report', () => ({
   acceptWorkerReportAction: vi.fn(),
 }))
 
 const NEW_STAGE = { id: 30, ordinal: 3 } as KosztorysStageT
-const APPENDED = [{ id: 5, name: 'Salon', items: [{ id: 90 }] }] as AcceptReportResultT['appended']
 
 function renderAcceptance() {
   const calls: string[] = []
@@ -28,7 +26,6 @@ function renderAcceptance() {
       calls.push('drain')
     }),
     adoptStage: vi.fn(record('adoptStage')),
-    appendItems: vi.fn(record('appendItems')),
     patchRows: vi.fn(record('patchRows')),
     pruneByIds: vi.fn(record('pruneByIds')),
     adoptRevision: vi.fn(record('adoptRevision')),
@@ -40,7 +37,6 @@ function renderAcceptance() {
       success: true,
       data: {
         stage: NEW_STAGE,
-        appended: APPENDED,
         cells: [
           { itemId: 10, stageId: 30, qtyDone: 12 },
           { itemId: 90, stageId: 30, qtyDone: 3 },
@@ -56,7 +52,7 @@ function renderAcceptance() {
 beforeEach(() => vi.clearAllMocks())
 
 describe('useWorkerReportAcceptance', () => {
-  it('quiets the touched cells before the call, and adopts the new etap before appending into it', async () => {
+  it('quiets the touched cells before the call, and adopts the new etap before writing into it', async () => {
     const { result, args, calls } = renderAcceptance()
 
     await result.current.acceptReport(
@@ -65,7 +61,6 @@ describe('useWorkerReportAcceptance', () => {
         reportId: 7,
         target: { kind: 'stage', stageId: 30 },
         lines: [{ lineId: 1, acceptedQty: 7 }],
-        extras: [],
         undone: [2],
         rejected: [],
         unrejected: [],
@@ -82,12 +77,11 @@ describe('useWorkerReportAcceptance', () => {
       'drain',
       'action',
       'adoptStage',
-      'appendItems',
       'patchRows',
       'pruneByIds',
       'adoptRevision',
     ])
-    expect(args.appendItems).toHaveBeenCalledWith(APPENDED[0], [NEW_STAGE])
+    expect(args.adoptStage).toHaveBeenCalledWith(NEW_STAGE)
   })
 
   it("writes the server's absolute figure into the cell rather than adding locally", async () => {
@@ -99,7 +93,6 @@ describe('useWorkerReportAcceptance', () => {
         reportId: 7,
         target: { kind: 'new' },
         lines: [],
-        extras: [],
         undone: [],
         rejected: [],
         unrejected: [],
@@ -126,7 +119,6 @@ describe('useWorkerReportAcceptance', () => {
       success: true,
       data: {
         stage: undefined,
-        appended: [],
         cells: [
           { itemId: 10, stageId: 20, qtyDone: 1 },
           { itemId: 10, stageId: 30, qtyDone: 4 },
@@ -141,7 +133,6 @@ describe('useWorkerReportAcceptance', () => {
         reportId: 7,
         target: { kind: 'new' },
         lines: [],
-        extras: [],
         undone: [],
         rejected: [],
         unrejected: [],
@@ -171,7 +162,6 @@ describe('useWorkerReportAcceptance', () => {
         reportId: 7,
         target: { kind: 'new' },
         lines: [],
-        extras: [],
         undone: [],
         rejected: [],
         unrejected: [],

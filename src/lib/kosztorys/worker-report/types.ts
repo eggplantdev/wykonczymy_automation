@@ -8,7 +8,7 @@ import type {
   scanPageSchema,
   sendLineSchema,
 } from '@/lib/kosztorys/worker-report/schemas'
-import type { KosztorysItemT, KosztorysSectionT, KosztorysStageT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 import type { MediaFileT } from '@/types/media'
 
@@ -108,7 +108,6 @@ export type AcceptTargetT = AcceptReportInputT['target']
 export type AcceptReportResultT = {
   // Only when the report went to „Nowy etap".
   stage: KosztorysStageT | undefined
-  appended: (KosztorysSectionT & { items: KosztorysItemT[] })[]
   // Absolute figures after the addition — the client never re-adds.
   cells: StageProgressCellT[]
   revision: string

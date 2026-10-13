@@ -5,7 +5,7 @@ import type { StageCellT } from '@/components/kosztorys/editor/dialogs/worker-re
 import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import type { AcceptReportInputT, AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
+import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
 import { settleAction } from '@/lib/utils/settle-action'
 import type { ActionErrorCodeT } from '@/types/action'
 
@@ -13,11 +13,6 @@ type ArgsT = {
   flushUndoBuffer: () => void
   drain: (keys: string[]) => Promise<void>
   adoptStage: (stage: KosztorysStageT) => void
-  // `newStages` because the etap adopted a moment earlier is not in the rows builder's closure yet.
-  appendItems: (
-    slice: AcceptReportResultT['appended'][number],
-    newStages: KosztorysStageT[],
-  ) => void
   patchRows: (
     match: (row: KosztorysV2RowT) => boolean,
     patch: (row: KosztorysV2RowT) => KosztorysV2RowT,
@@ -36,13 +31,12 @@ export function useWorkerReportAcceptance({
   flushUndoBuffer,
   drain,
   adoptStage,
-  appendItems,
   patchRows,
   pruneByIds,
   adoptRevision,
   reportFailure,
 }: ArgsT) {
-  // `cells` are the existing ones the save moves — a pozycja or an etap it creates has no lane yet.
+  // `cells` are the existing ones the save moves — an etap it creates has no lane yet.
   async function acceptReport(input: AcceptReportInputT, cells: StageCellT[]): Promise<boolean> {
     flushUndoBuffer()
     await drain(cells.map((cell) => stageLane(cell.itemId, cell.stageId)))
@@ -51,9 +45,8 @@ export function useWorkerReportAcceptance({
       reportFailure(res.error, res.code)
       return false
     }
-    const { stage, appended, revision } = res.data
+    const { stage, revision } = res.data
     if (stage) adoptStage(stage)
-    for (const slice of appended) appendItems(slice, stage ? [stage] : [])
     // One pozycja may move in two etapy: an untick out of the old one, an accept into a new one.
     const cellsByItem = Map.groupBy(res.data.cells, (cell) => cell.itemId)
     patchRows(

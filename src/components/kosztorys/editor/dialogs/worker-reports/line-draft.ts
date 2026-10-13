@@ -215,7 +215,6 @@ export function buildAccept(
       acceptedQty: acceptedQty(drafts[line.id]),
       seenQty: line.acceptedQty,
     })),
-    extras: [],
     undone: undone.map((line) => line.id),
     rejected: rejected.map((line) => line.id),
     unrejected: unrejected.map((line) => line.id),
