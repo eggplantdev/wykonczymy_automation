@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertCatalogueItems, listCatalogueItems } from '@/lib/db/work-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
@@ -78,7 +78,8 @@ describe.skipIf(!ENV_READY)('fillCatalogueTranslationsAction (DB)', () => {
     translateTexts.mockImplementation(async (texts: readonly string[]) => {
       const answered = new Map<string, { uk: string; ru: string }>()
       for (const text of texts) {
-        if (text === MISSING || text === STALE) answered.set(text, { uk: `uk ${text}`, ru: `ru ${text}` })
+        if (text === MISSING || text === STALE)
+          answered.set(text, { uk: `uk ${text}`, ru: `ru ${text}` })
       }
       return answered
     })

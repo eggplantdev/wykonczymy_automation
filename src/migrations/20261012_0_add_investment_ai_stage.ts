@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Nullable with no default: null is „Uzupełnianie informacji”, the state of every existing investment.
 export async function up({ db }: MigrateUpArgs): Promise<void> {

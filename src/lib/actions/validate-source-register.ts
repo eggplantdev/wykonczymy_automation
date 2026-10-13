@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { CashRegisterRefT, CashRegisterTypeT } from '@/types/reference-data'
 

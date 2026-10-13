@@ -1,6 +1,6 @@
 import 'server-only'
 import type { Payload, PayloadRequest } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentForReplace } from '@/lib/db/lock-investment-for-replace'
 import { insertKosztorysTree, type InsertKosztorysTreeResultT } from './insert-kosztorys-tree'

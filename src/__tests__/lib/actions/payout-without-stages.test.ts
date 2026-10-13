@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 
 // EX-613 puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
 // They are warnings, not gates — and „not a gate" is only true if the write actually lands. So this

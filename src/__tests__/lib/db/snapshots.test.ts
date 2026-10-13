@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots, insertSnapshot } from '@/lib/db/snapshots'
 import type { KosztorysSnapshotPayloadT, SnapshotKindT } from '@/lib/kosztorys/snapshot-format'

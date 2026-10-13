@@ -20,7 +20,7 @@
 //
 // Raw SQL skips the cache tags: a rozpiska keeps serving the old texts until any cell edit but a
 // tłumaczenie flushes it, and the katalog until any katalog edit.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { fillSectionNameTranslations } from '../lib/actions/translate-section-name'

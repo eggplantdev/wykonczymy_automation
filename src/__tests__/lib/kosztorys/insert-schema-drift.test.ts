@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { STAGE_MEMBER_INSERT_COLUMNS } from '@/lib/db/stage-split'
 import { ITEM_INSERT_COLUMNS, SECTION_INSERT_COLUMNS } from '@/lib/kosztorys/insert-rows'

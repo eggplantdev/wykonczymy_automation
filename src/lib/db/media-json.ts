@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { SqlT } from './sql-list'
 
 export const MEDIA_JSON = sql`json_build_object('id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type)`

@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, sql } from '@payloadcms/db-postgres'
 
 /**
  * Step 1: Add new enum values.

@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { insertStageMembers } from '@/lib/db/stage-split'

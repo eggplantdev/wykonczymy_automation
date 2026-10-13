@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { Payload } from 'payload'
 import { sumAllInvestmentFinancials, sumAllRegisterBalances } from '@/lib/db/sum-transfers'
 import { getDb } from '@/lib/db/get-db'

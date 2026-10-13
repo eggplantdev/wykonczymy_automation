@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { TelmakAppRowT } from '@/lib/telmak/compare-telmak'
 import type { DbExecutorT } from './get-db'
 import { normalizedNumber, noteLine1 } from './document-number-sql'

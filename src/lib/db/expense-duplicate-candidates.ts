@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { ExpenseDocT } from '@/lib/expense-duplicates/match'
 import type { DbExecutorT } from './get-db'
 import { expenseDraftReadRowSchema, type ExpenseDraftReadRowT } from './expense-draft-read'

@@ -15,7 +15,7 @@
 // twice with two different texts. Re-runnable: a second --apply writes 0.
 //
 // Raw SQL skips the cache tags: flush the katalog with any katalog edit after an --apply.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { getDb, type DbExecutorT } from '../lib/db/get-db'

@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from './get-db'
 
 // Not `server-only`: the users collection's delete guard imports it, and that graph also loads

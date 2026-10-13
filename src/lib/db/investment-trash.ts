@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { isUndeletableStatus, UNDELETABLE_INVESTMENT_STATUS } from '@/lib/constants/trash'
 import type { DbExecutorT } from '@/lib/db/get-db'

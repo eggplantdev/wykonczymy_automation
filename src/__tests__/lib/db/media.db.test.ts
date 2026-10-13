@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { deleteMediaRow, insertMediaRow, isMediaFilenameReferenced } from '@/lib/db/media'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
@@ -115,7 +115,9 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
       WHERE id = ${id}
     `)
 
-    await expect(isMediaFilenameReferenced(db, `${FILENAME_PREFIX}original.jpg`)).resolves.toBe(true)
+    await expect(isMediaFilenameReferenced(db, `${FILENAME_PREFIX}original.jpg`)).resolves.toBe(
+      true,
+    )
     await expect(
       isMediaFilenameReferenced(db, `${FILENAME_PREFIX}original-300x300.jpg`),
     ).resolves.toBe(true)
