@@ -1,40 +1,39 @@
-=== Wycena AI (test, 2026-10-12) — wybór prac z zakresu w Notatkach, bez plików ===
-Do tej inwestycji nie było żadnych plików — ani rzutu, ani zdjęć. Jedynym źródłem jest zakres wpisany poniżej w Notatkach. Agent wybrał z szablonu „Kosztorys 2026” prace, których ten zakres wymaga: 21 pozycji, z czego 6 ma ilość, a 15 jest wybranych z AI przedmiarem 0, bo ich ilości (m², mb, stopnie) nie da się ustalić bez pomiaru.
-AI przedmiar razem 3 080,00 zł netto — to suma tylko 6 pozycji z ilością: transport materiałów 1500 zł, tynki za zabudową w kuchni 600 zł i okablowanie 500 zł (obie kwoty z Notatek), wymiana jednych drzwi 380 zł + demontaż ościeżnicy 100 zł, sprzątanie 1 kpl bez ceny. Nie jest to cena remontu — podłoga, malowanie i listwy czekają na metraż.
-Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”); pozycje bez ilości zaczynają się od „Praca wybrana, ilość nieznana”.
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 3 080,00 zł netto — tylko 6 z 21 pozycji, to NIE jest cena remontu.** Podłoga, malowanie i listwy czekają na metraż.
+Źródło: wyłącznie zakres wpisany niżej w Notatkach — nie było rzutu ani zdjęć. Agent wybrał z szablonu „Kosztorys 2026” prace, których ten zakres wymaga: 21 pozycji, z czego 6 ma ilość, a 15 ma AI przedmiar 0, bo ich ilości (m², mb, stopnie) nie da się ustalić bez pomiaru.
+Kwota z ilością: transport materiałów 1500 zł, tynki za zabudową w kuchni 600 zł i okablowanie 500 zł (obie kwoty z Notatek), wymiana jednych drzwi 380 zł + demontaż ościeżnicy 100 zł, sprzątanie 1 kpl bez ceny.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”; pozycje bez ilości zaczynają się od „Praca wybrana, ilość nieznana”.
 
-Ile ruszą ceną brakujące pomiary (stawki z szablonu):
-- każde 10 m² podłogi ≈ +3,8 tys. zł (zabezpieczenia, skuwanie płytek, szlifowanie, grunt, wylewka samopoziomująca, gres format standard, fugowanie — przy założeniu, że cała podłoga jest dziś w płytkach);
-- każde 10 m² ścian i sufitów ≈ +370 zł (grunt z drobnymi poprawkami + malowanie na biało); pełna gładź zamiast miejscowych poprawek: +700 zł na 10 m²;
-- każde 10 mb listew ≈ +960 zł (demontaż, montaż listew poliuretanowych, akrylowanie, malowanie);
-- schody: 220 zł za stopień (katalog: „Ułożenie gresu na stopniach”) + skuwanie;
-- gruz: 2–3 big bagi po 450 zł albo kontener 1500–1800 zł (Manual: od 4 big bagów kontener).
+## Ile ruszą ceną brakujące pomiary
+- **Podłoga**: każde 10 m² ≈ +3,8 tys. zł (zabezpieczenia, skuwanie płytek, szlifowanie, grunt, wylewka samopoziomująca, gres format standard, fugowanie — przy założeniu, że cała podłoga jest dziś w płytkach).
+- **Ściany i sufity**: każde 10 m² ≈ +370 zł (grunt z drobnymi poprawkami + malowanie na biało); pełna gładź zamiast miejscowych poprawek: +700 zł na 10 m².
+- **Listwy**: każde 10 mb ≈ +960 zł (demontaż, montaż listew poliuretanowych, akrylowanie, malowanie).
+- **Schody**: 220 zł za stopień (katalog: „Ułożenie gresu na stopniach”) + skuwanie.
+- **Gruz**: 2–3 big bagi po 450 zł albo kontener 1500–1800 zł (Manual: od 4 big bagów kontener).
 
-Najważniejsze założenia:
-- kwoty 600 zł (tynki za zabudową w kuchni) i 500 zł (uporządkowanie okablowania) z Notatek przyjęte jako ryczałtowe Ceny j.m. nowych pozycji — szablon nie ma takich prac;
-- „miejscowe szpachlowanie” i „odświeżenie” = grunt z drobnymi poprawkami, bez pełnej gładzi; malowanie ścian i sufitów na biało;
-- nowa podłoga to gres format standard (30×30 do 60×120) na wylewce samopoziomującej do 5 mm;
-- drzwi: stara ościeżnica drewniana, nowa regulowana;
-- transport materiałów 1500 zł z szablonu — lokal usługowy, zakres odświeżeniowy, piętro nieznane;
-- zabezpieczenia w stawce podstawowej — salon zamknięty na czas remontu;
-- sprzątanie po remoncie dodane jako nowa pozycja bez ceny — brak w szablonie i w katalogu, do wyceny.
+## Do ustalenia z klientem
+- **Powierzchnia podłogi** (m², ≈ +3,8 tys. zł za 10 m²) — dotyczy: zabezpieczenia, gruntowanie podłóg, wylewka samopoziomująca, gres na podłodze, fugowanie.
+- **Płytki do skucia**: sama podłoga, schody, czy też ściany (np. przy myjkach) — dotyczy: skuwanie glazury, szlifowanie po kleju, wynoszenie gruzu (big bagi czy kontener).
+- **Obwód lokalu** bez zabudów meblowych (mb, ≈ +960 zł za 10 mb) — dotyczy: demontaż, montaż, akrylowanie i malowanie listew.
+- **Ściany i sufity do malowania**: wysokość lokalu i obwód (≈ +370 zł za 10 m²) — dotyczy: gruntowanie z drobnymi poprawkami, malowanie ścian i sufitów.
+- **Schody**: ile stopni (220 zł/stopień), czy skuwamy stare płytki i kładziemy nowy gres (pozycja „układania glazury na schodach” stoi w Notatkach wśród demontaży).
+- **Podłoże po skuciu**: wystarczy wylewka samopoziomująca do 5 mm czy trzeba wylewki betonowej 3–5 cm (80 zł/m² zamiast 55 zł/m²).
+- **Format gresu**: 120×120 300 zł/m², mały format 250–380 zł/m².
+- **Stan ścian**: miejscowe poprawki czy pełna gładź (+700 zł na 10 m²); kolor ścian (w kolorze 26 zł/m² zamiast 22 zł/m²); czy listwy idą pod malowanie.
+- **Drzwi**: ościeżnica stara drewniana czy metalowa; nowa regulowana czy stała (+70 zł + opaski 200 zł).
+- **Kwoty z Notatek**: czy 600 zł i 500 zł to ceny dla klienta i co obejmuje „uporządkowanie okablowania”; kto zdejmuje i zakłada zabudowę kuchenną.
+- **Dostęp i praca salonu**: piętro i dostęp do lokalu; czy salon działa w trakcie remontu (zabezpieczenia 45 zł/m² zamiast 25 zł/m²).
+- **Sprzątanie po remoncie**: cena.
 
-Przedmiar 0 świadomie:
-- montaż i demontaż zabudowy kuchennej, oświetlenia i wyposażenia salonu (stanowiska, lustra, myjki) — Notatki ich nie wymieniają;
-- pełna gładź, nowe punkty elektryczne, prace wod-kan — poza zakresem z Notatek.
+## Najważniejsze założenia
+- **Kwoty 600 zł i 500 zł z Notatek** (tynki za zabudową w kuchni, uporządkowanie okablowania) przyjęte jako ryczałtowe Ceny j.m. nowych pozycji — szablon nie ma takich prac.
+- **„Miejscowe szpachlowanie” i „odświeżenie”** = grunt z drobnymi poprawkami, bez pełnej gładzi; malowanie ścian i sufitów na biało.
+- **Nowa podłoga**: gres format standard (30×30 do 60×120) na wylewce samopoziomującej do 5 mm.
+- **Drzwi**: stara ościeżnica drewniana, nowa regulowana.
+- **Transport materiałów 1500 zł** z szablonu — lokal usługowy, zakres odświeżeniowy, piętro nieznane.
+- **Zabezpieczenia w stawce podstawowej** — salon zamknięty na czas remontu.
+- **Sprzątanie po remoncie** dodane jako nowa pozycja bez ceny — brak w szablonie i w katalogu, do wyceny.
 
-Do ustalenia z klientem (jeden pomiar = kilka pozycji):
-- powierzchnia podłogi lokalu (m²) — dotyczy: zabezpieczenia, gruntowanie podłóg, wylewka samopoziomująca, gres na podłodze, fugowanie;
-- powierzchnia płytek do skucia — sama podłoga, schody, czy też ściany (np. przy myjkach) — dotyczy: skuwanie glazury, szlifowanie po kleju, wynoszenie gruzu (big bagi czy kontener);
-- obwód lokalu bez zabudów meblowych (mb) — dotyczy: demontaż listew, montaż listew poliuretanowych, akrylowanie listew, malowanie listew;
-- powierzchnia ścian i sufitów do malowania — wysokość lokalu i obwód — dotyczy: gruntowanie z drobnymi poprawkami, malowanie ścian i sufitów;
-- schody: ile stopni, czy skuwamy stare płytki i kładziemy nowy gres (pozycja „układania glazury na schodach” stoi w Notatkach wśród demontaży);
-- stan podłoża po skuciu: wystarczy wylewka samopoziomująca do 5 mm czy trzeba wylewki betonowej 3–5 cm (80 zł/m² zamiast 55 zł/m²);
-- format gresu (120×120: 300 zł/m², mały format: 250–380 zł/m²);
-- stan ścian: miejscowe poprawki czy pełna gładź; kolor ścian (w kolorze 26 zł/m² zamiast 22 zł/m²); czy listwy idą pod malowanie;
-- drzwi: ościeżnica stara drewniana czy metalowa; nowa regulowana czy stała (+70 zł + opaski 200 zł);
-- czy 600 zł i 500 zł z Notatek to ceny dla klienta i co obejmuje „uporządkowanie okablowania”; kto zdejmuje i zakłada zabudowę kuchenną;
-- piętro i dostęp do lokalu, czy salon działa w trakcie remontu (zabezpieczenia 45 zł/m² zamiast 25 zł/m²);
-- cena sprzątania po remoncie.
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/11-salon-fryzjerski
+## Przedmiar 0 świadomie
+- Montaż i demontaż zabudowy kuchennej, oświetlenia i wyposażenia salonu (stanowiska, lustra, myjki) — Notatki ich nie wymieniają.
+- Pełna gładź, nowe punkty elektryczne, prace wod-kan — poza zakresem z Notatek.

@@ -4663,49 +4663,6 @@ Kierownictwo — przyjęcie:
 - [x] Zmiana typu na „Wydatek inwestycyjny” podczas przyjęcia wymaga wyboru inwestycji jak zwykle.
 - [x] „Odrzuć” na takim zgłoszeniu: potwierdzenie pokazuje „<pracownik> · Bez inwestycji”; odrzucone zgłoszenie da się przywrócić.
 
-## 2026-10-09 — stage-completed-flag — etap „zakończony” (EX-1034)
-
-Przed sprawdzeniem: migracja `20261009_4_kosztorys_stages_completed` zastosowana na bazie, na której klikasz.
-
-Edytor — flaga:
-
-- [x] Menu etapu: „Etap zakończony” zaznaczone → odśwież → nadal zaznaczone; odznacz → odśwież → odznaczone. Kierownik (MANAGER) też może je przełączyć.
-- [x] Przywrócenie starszej wersji z historii po zamknięciu etapu: etap wraca taki, jaki był w tej wersji. _(2026-10-09: z kodu `snapshot-to-tree.ts:42` + spec `snapshot-to-tree.test.ts` — wersja po zamknięciu wraca zamknięta, sprzed funkcji wraca otwarta; nie w przeglądarce.)_
-- [x] Ilości na etapie zakończonym nadal da się wpisywać (nic nie jest zablokowane).
-
-Kolor:
-
-- [x] Edytor: zamknięty etap ma zielone kolumny ilości, netto i brutto oraz ✓ w nagłówku; po ponownym otwarciu wraca do normy.
-- [x] Podgląd inwestora i `/k/[token]`: te same kolumny są zielone, także kolumna w paski (nieparzysta), a pasy działów nadal czytają się jako jeden pas.
-- [x] Podgląd pracownika i `/z/...` (pracownik z jednym otwartym i jednym zakończonym etapem): zakończony etap jest widoczny i zielony, kolumna „Zgłaszam” zostaje limonkowa.
-- [x] Tryb ciemny w edytorze: zielony jest czytelny.
-- [x] PDF inwestora i PDF pracownika wydrukowane po zamknięciu etapu wyglądają jak dotąd.
-
-Pracownik (telefon, 390px) — pracownik z jednym etapem na inwestycji X, etap zamyka kierownik:
-
-- [x] X znika z „Moje inwestycje”, z linków „Zgłoś pracę” i z listy inwestycji w nowym wydatku; po ponownym otwarciu etapu X wraca.
-- [x] Zapisany wcześniej link `/z/...` po zamknięciu pokazuje komunikat o zakończonych etapach zamiast formularza; „Podgląd pracownika” u kierownika nadal działa.
-- [x] Z jednym otwartym i jednym zakończonym etapem: X zostaje na liście, link działa.
-- [x] Istniejące, nieprzyjęte zgłoszenie wydatku na X nadal da się edytować i zapisać na X; nowe zgłoszenie już X nie oferuje.
-- [x] Zgłoszenie prac wysłane przed zamknięciem etapu da się przyjąć po jego zamknięciu.
-
-Kierownictwo — skan:
-
-- [x] Edytor, menu „Pracownicy”: przy pracowniku ze wszystkimi etapami zakończonymi jest dopisek o zakończonych etapach, a „Drukuj kartkę do zgłoszenia prac” jest nieaktywne.
-- [x] Ogólny dialog skanu zgłoszenia nie proponuje już tego pracownika ani X.
-
-### Findings — 2026-10-09 (worker-expense-without-investment, stage-completed-flag)
-
-- [x] **Box 4599 (zniknięty wybór po zdjęciu flagi/kasy)** — nie przejechane w przeglądarce; logikę (odrzucenie zachowanego wyboru przy otwarciu dialogu) pokrywa `expense-draft-dialog-no-investment.test.tsx`. **Needs human:** przejechać na telefonie albo uznać spec DOM za wystarczający. **Test disposition:** no automated test · e2e — pokryte specem DOM. Pass 2: flag zdjęty przez UI po wysłaniu zgłoszenia „Bez inwestycji” (worker 433, wszystkie etapy zakończone) -> „Wydatek” znika całkowicie (brak ofert), więc zniknięty wybór nie ma jak przetrwać; scenariusz z pozostałą inną inwestycją nie przejechany (kod dialogu 124-129 go obsługuje). _Odrzucone: pokryte kodem dialogu (`expense-draft-dialog.tsx:124-129`) i specem DOM — box odhaczony z tą adnotacją._
-- [x] **Box 4617 (przywrócenie wersji z historii po zamknięciu etapu)** — nie przejechane. **Needs human:** zamknąć etap, przywrócić starszą wersję, sprawdzić flagę. **Test disposition:** TDD · integration — snapshot niesie `completed` albo go gubi. _Odrzucone: pokryte kodem (`snapshot-to-tree.ts:42`) i specem `snapshot-to-tree.test.ts` — box odhaczony z tą adnotacją._
-- [x] **Box 4622 (edytor: zielone netto i brutto)** — zielone kolumny ilości i ✓ w nagłówku potwierdzone, także tryb ciemny; kolumny netto/brutto są domyślnie ukryte („Kolumny (5)"), nie włączałem ich. Netto zielone potwierdzone w podglądzie inwestora i `/k/<token>`. **Needs human:** włączyć netto/brutto w edytorze i obejrzeć. **Test disposition:** no automated test · e2e — kolor. **Pass 2 (2026-10-09, local 5435): włączone „Etapy — kwota netto/brutto" i „Wartość … (razem etapy)"; kolumna „Etap 1 brutto" zielona z wartościami, ✓ w nagłówku — OK.**
-- [x] **Box 4624 („Podgląd pracownika" / `/z/...` zielony etap)** — link `/z/` z jednym otwartym i jednym zakończonym etapem działa, „Zgłaszam" limonkowa; widok „Inwestycja" pracownika pokazuje tylko „Opis prac" (kolumny etapów ukryte ustawieniami widoku), więc zielonego etapu nie obejrzałem. **Needs human:** włączyć kolumny etapów w „Ustawienia widoku…" i obejrzeć. **Test disposition:** no automated test · e2e — kolor. **Pass 2: „Etapy — ilość/kwota netto" są włączone w ustawieniach widoku; `/z/97/…` pokazuje zielony Etap 1 z ✓ i „Etap 1 netto", Etap 2 biały, „Zgłaszam" limonkowa — OK.**
-- [x] **Box 4626 (PDF inwestora i pracownika)** — nie drukowałem (zakaz `window.print()`). **Needs human:** wydrukować oba PDF po zamknięciu etapu. **Test disposition:** no automated test · e2e — okno druku. **Pass 2: PDF inwestora i pracownika wygenerowane przez stub `print` na popupie (bez prawdziwego dialogu) — treść bez ✓ i bez zieleni, jak dotąd; wygląd na papierze oceni człowiek tylko jeśli chce.**
-- [x] **Box 4634 (zgłoszenie prac wysłane przed zamknięciem)** — nie przejechane. **Needs human:** wysłać zgłoszenie jako pracownik, zamknąć etap, przyjąć. **Test disposition:** TDD · integration — akceptacja nie może sprawdzać flagi `completed`. **Pass 2: zgłoszenie #241 (QA Pass Worker, 2 prace) wysłane z linku, potem oba etapy zamknięte, „Przyjmij 2 prac" do zamkniętego Etapu 2 → status accepted, target_stage_id=169, stage_progress zaktualizowane.**
-- [x] **Box 4639 (ogólny dialog skanu)** — pozycja „Wczytaj zgłoszenie z kartki (AI)" otwiera wybór pliku, dialog skanu wymaga AI. Dopisek i nieaktywne „Drukuj kartkę" (4638) potwierdzone. **Needs human:** wczytać kartkę i sprawdzić listę pracowników. **Test disposition:** TDD · unit — filtr listy po `hasOpenStage`. **Pass 2: dialog (bez wysyłki do AI) nie listuje „QA Pass Worker" (wszystkie etapy zakończone); dla Mikolaj Hulko lista inwestycji to tylko „Foksal 12/14" — Powsińska 70 zniknęła.**
-- [x] **Hydration mismatch na stronie pracownika przy 390px** — konsola: nagłówek (header) brakuje po stronie klienta. Nie zbadane ani nie naprawione. **Needs human:** zbadać `/pracownicy/[id]` na 390px. **Test disposition:** test-driven-debugging · dom — render szerokości mobilnej z asercją braku błędu hydratacji. **Linear: EX-1037.**
-- [x] **Uwaga: edycja kasy/inwestycji wymaga prawdziwych tokenów** — `kosztorys_shares` i `worker_report_shares` miały pustą/istniejącą pozycję; sprawdziłem `/k/` wstawiając wiersz z fikcyjnym tokenem (do usunięcia, patrz stan testowy). **Needs human:** brak. **Test disposition:** no automated test · e2e — n/a. _Odrzucone: notatka, nie defekt; wiersz z fikcyjnym tokenem usunięty._
-
 ## 2026-10-11 — worker-report-back-button — „Wstecz” na stronie zgłoszenia pracy w aplikacji
 
 - [ ] Telefon, aplikacja zainstalowana (PWA), zalogowany pracownik → na swojej stronie „Zgłoś
@@ -4804,8 +4761,6 @@ Bez zmian:
 
 Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada środowiskowa, nie defekt).
 
-- [x] Localhost i preview → przełącznik „Włącz powiadomienia” nie pojawia się ani na własnej stronie `/pracownicy/[id]`, ani w menu mobilnym; wylogowanie działa jak dotąd.
-- [x] Localhost, zalogowany jako ADMIN → `/api/test-push` zwraca `configured: false` i `sent: 0`; nic nie zostaje wysłane.
 - [ ] Produkcja, Android, zainstalowana aplikacja → menu mobilne → „Włącz powiadomienia” → zgoda w systemie → toast „Powiadomienia włączone”, przycisk zmienia się na „Wyłącz powiadomienia”; jako ADMIN otwórz `/api/test-push` → przychodzi powiadomienie z jednobarwną ikoną na pasku stanu; dotknięcie otwiera aplikację.
 - [ ] Produkcja, iPhone (iOS 16.4+) → w karcie Safari przełącznika nie ma; w aplikacji z ekranu początkowego jest, włączenie pokazuje pytanie o zgodę, a testowe powiadomienie dociera.
 - [ ] Odmowa zgody na powiadomienia → zamiast przycisku napis „Powiadomienia są zablokowane — włącz je w ustawieniach telefonu.”
@@ -4816,14 +4771,6 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Ten sam pracownik „Potwierdzam” albo „Odrzuć” → liczba na ikonie znika od razu, bez zamykania aplikacji.
 - [ ] Produkcja, Android → po zaksięgowaniu wypłaty powiadomienie dociera.
 - [ ] „Rozlicz wypłaty” dla jednego pracownika na dwóch inwestycjach → przychodzi jedno powiadomienie z sumą kwot, a ikona pokazuje 2.
-
-### Findings — 2026-10-11 (przebieg lokalny, 5435)
-
-- [x] **Box 1 i 2 zweryfikowane lokalnie** — OWNER, ADMIN i EMPLOYEE (390px): brak przełącznika na `/pracownicy/[id]` i w menu mobilnym, „Wyloguj” z menu kończy na `/zaloguj`; ADMIN → `/api/test-push` = `{"sent":0,"configured":false}`. Brak poziomego scrolla (scrollWidth = 390).
-- [x] **Synchronizacja plakietki (bez boksa)** — pracownik z wypłatą `pending` (#5957, 11 zł, zaksięgowana z UI jako OWNER): strona otwarta, potem „Potwierdzam” → `payout_status = accepted`, blok „Wypłaty do potwierdzenia” znika; konsola przeglądarki i log serwera bez błędów `[PUSH]` i bez wyjątków z `fetchOwnPendingPayoutCount`. Samego ustawienia plakietki nie widać lokalnie (brak VAPID/instalacji PWA).
-- [x] **Boksy produkcyjne — zablokowane środowiskiem** (dropped: to nie defekt, a otwarte boksy powyżej same są listą do przejścia na produkcji) — Android/iPhone, zgoda systemowa, odmowa, wyłączenie, dezaktywacja, wypłata → push z plakietką, „Rozlicz wypłaty” (8 boksów powyżej) oraz układ 390px samego przełącznika; lokalnie `isPushConfigured()` = false (klucze VAPID tylko w Vercel Production), więc przełącznik się nie renderuje. Układ strony pracownika i stopki menu przy 390px sprawdzony (bez rozjazdu), sam przełącznik nie.
-      **Needs human:** po deployu i ustawieniu kluczy VAPID przejść te boksy na produkcji, na prawdziwym telefonie z zainstalowaną aplikacją.
-      **Test disposition:** no automated test · e2e — wymaga prawdziwego push service i zainstalowanej PWA, których Playwright nie odtworzy.
 
 
 ## 2026-10-12 — install-button-phone-only — „Zainstaluj aplikację" tylko na telefonie
@@ -4879,3 +4826,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Kierownik → zgłoszenie z jednym zdjęciem, na którym leży kilka paragonów obok siebie → „Zobacz”: każdy paragon to osobna pozycja ze swoją kwotą; NIP wpisany tylko tam, gdzie jest wydrukowany.
 - [ ] Zgłoszenie z jednym zdjęciem wysłane przed 2026-10-12 (zapisane jako „Jeden wydatek”), jeszcze bez odczytu → „Zobacz”: paragony ze zdjęcia rozpisane na osobne pozycje.
 - [ ] Kierownik przyjmuje zgłoszenie, pomijając jeden z paragonów → pominięty paragon w historii → „Przywróć”: wraca jako osobne zgłoszenie z jednym pustym wierszem do uzupełnienia, bez paragonów już zaksięgowanych z tego samego zdjęcia.
+
+## 2026-10-13 — planned-done-percent-red — „% wykonania (względem przedmiaru ofertowego)” na czerwono
+
+- [ ] Kosztorys → widok „Postęp”, pozycja, w której suma etapów przekracza Aktualizację przedmiaru: „% wykonania (względem przedmiaru ofertowego)” jest czerwony, tak jak „% wykonania (względem aktualizacji przedmiaru)” i „Pozostało netto”.
+- [ ] Pozycja ponad przedmiarem ofertowym, ale w granicach Aktualizacji przedmiaru (np. 120% oferty): procent zostaje szary.
+
+## 2026-10-13 — stage-qty-sum-rename — „Pomiar z natury (etapy razem)”
+
+- [ ] Kosztorys, widok Inwestor → nagłówek kolumny i pozycja w liście „Kolumny” brzmią „Pomiar z natury (etapy razem)”; dymek nagłówka zaczyna się od „Pomiar z natury — ilość faktycznie wykonana.”
+- [ ] Widok ekipy (np. „Z narzędziami (podwykonawca)”) → kolumna nazywa się „Pomiar z natury (etapy razem) — z narzędziami (podwykonawca)”; to samo na wydruku dla ekipy.

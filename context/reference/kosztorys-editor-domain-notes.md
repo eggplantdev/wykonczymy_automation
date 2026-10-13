@@ -430,7 +430,7 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   ukrycie nie rusza żadnej sumy podsumowania.
 - **Kolumny rozliczenia pojawiają się po pierwszym wpisie w JEGO etapach** (właściciel, 2026-09-29 —
   odwraca wcześniejsze „pusty etap inwestora to nie powód, by ukryć go przed ekipą"). Reguła
-  inwestora: przed pracą „Pomiar (razem etapy)", „Wartość wykonana" i kolumny etapów znikają, a etap
+  inwestora: przed pracą „Pomiar z natury (etapy razem)", „Wartość wykonana" i kolumny etapów znikają, a etap
   bez wpisów nie pojawia się nigdy. Wpis innej ekipy nie zmienia jego dokumentu — projekcja zna tylko
   jego etapy. Do tego checkbox firmowy „Ukryj przedmiar i wartość przedmiaru, gdy w etapach są już
   wpisy" (domyślnie zaznaczony): po pierwszym wpisie „Przedmiar" i „Wartość przedmiaru netto"
@@ -706,7 +706,7 @@ protokół jest dokumentem na papier, nie bytem w bazie.
   — pojawia się razem z nim i znika, gdy się go odciśnie. Poza tym gestem siatka pokazuje wszystkie
   pozycje, więc kolumna byłaby pasem „—"; o istnieniu rozjazdu mówi licznik na samym przycisku.
   Z tego samego powodu nie ma jej w liście „Kolumny": widoczność należy do filtra, więc zapisany
-  ptaszek nie może go zawetować. Komórka „Pomiar (razem etapy)" nie ma już podpowiedzi
+  ptaszek nie może go zawetować. Komórka „Pomiar z natury (etapy razem)" nie ma już podpowiedzi
   z rozbiciem arkusz/etapy — liczby czyta się w kolumnie, nie z dymka.
   **No alarm styling** (owner, 2026-09-15): the column appears only under that filter and only on
   rows that differ, so its presence is the signal — no red header or background.

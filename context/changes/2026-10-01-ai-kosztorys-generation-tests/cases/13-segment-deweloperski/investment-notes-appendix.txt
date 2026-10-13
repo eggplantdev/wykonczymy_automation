@@ -1,34 +1,33 @@
-=== Wycena AI (test, 2026-10-12) — AI przedmiar z rzutów dewelopera ===
-Kosztorys wypełnił agent: 54 pozycje (53 z szablonu + 1 nowa: sprzątanie i przygotowanie do odbioru, Cena j.m. pusta), AI przedmiar razem 76 268,74 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026” — transport zostawiony na 1500 zł z szablonu, katalog dla dużych mieszkań deweloperskich mówi ok. 2000 zł.
-Wycena dla JEDNEGO lokalu: rzuty pokazują dwa lustrzane lokale (Lokal 1 i Lokal 2) o tych samych powierzchniach. Rzuty podają tylko m² pomieszczeń i wymiary okien/drzwi, bez wymiarów ścian: długości odczytane ze zdjęć rzutów w skali z podanych m². Parter 37,52 m² (łazienka 3,97), piętro 35,29 m² (łazienka 4,63), razem 72,81 m² ze schodami. Wysokość 2,68 m na obu poziomach — rzut jej nie podaje, Manual: stan deweloperski.
-Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 76 268,74 zł netto — za JEDEN lokal** (oba lokale z rzutu: ×2, +76,3 tys. zł). 54 pozycje (53 z szablonu + 1 nowa: sprzątanie i przygotowanie do odbioru, Cena j.m. pusta), bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”.
+Źródło: rzuty dewelopera — dwa lustrzane lokale (Lokal 1 i Lokal 2) o tych samych powierzchniach. Rzuty podają tylko m² pomieszczeń i wymiary okien/drzwi, bez wymiarów ścian: długości odczytane ze zdjęć rzutów w skali z podanych m². Parter 37,52 m² (łazienka 3,97), piętro 35,29 m² (łazienka 4,63), razem 72,81 m² ze schodami. Wysokość 2,68 m na obu poziomach — rzut jej nie podaje, Manual: stan deweloperski.
+Transport zostawiony na 1500 zł z szablonu — katalog dla dużych mieszkań deweloperskich mówi ok. 2000 zł.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
 
-Przedmiar 0 świadomie:
-- kuchnia (zabudowa, podłączenia, pas między szafkami) — Notatki jej nie wymieniają;
-- wykończenie schodów — Notatki mówią tylko o ich zabezpieczeniu;
-- szlifowanie i miejscowe wyrównanie podłoża „jeśli będzie wymagane” — w szablonie brak takiej pozycji, wylewka samopoziomująca liczona na całość;
-- listwa łączeniowa — winyl klejony, bez dylatacji;
-- malowanie listew — zakładam listwy gotowe białe;
-- farba podkładowa — gruntowanie po gładzi już liczone w „Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach”;
-- prysznic na parterze, grzejniki w łazienkach — rzut ich nie pokazuje.
+## Do ustalenia z klientem
+- **Jeden lokal czy oba** — oba to wszystkie ilości ×2: +76,3 tys. zł.
+- **Wiatrołap, przedpokój i aneks**: winyl czy terakota jak na rzucie (gres: ≈ +1,0 tys. zł).
+- **Płytki w łazienkach**: wysokość (do 2,0 m: ≈ −1,6 tys. zł) i format.
+- **Prysznic na parterze**: brodzik z kabiną, 2 punkty wod-kan i bateria ≈ +2,3 tys. zł.
+- **Tynki i wylewki dewelopera**: jakie tynki i czy równe są wylewki.
+- **Podejścia wod-kan dewelopera**: czy rury są przed ścianami, czy piony w łazienkach są do zabudowy (każdy dodatkowy punkt +250 zł).
+- **Elektryka**: rozmieszczenie 5 nowych punktów, liczba puszek dewelopera, zakres oświetlenia (każde ±10 gniazd ≈ ±0,4 tys. zł).
+- **Drzwi i kolor**: liczba drzwi (czy wiatrołap dostaje drzwi); kolor ścian (w kolorze 26 zł/m² zamiast 22 zł/m²).
+- **Lokalizacja**: transport 1500 vs ok. 2000 zł.
 
-Najważniejsze założenia (ruszają wieloma pozycjami naraz):
-- jeden lokal — przy wycenie obu lokali z rzutu wszystkie ilości ×2: +76,3 tys. zł;
-- płytki w łazienkach do sufitu na wszystkich ścianach (39,86 m²) — przy płytkach do 2,0 m ok. 11,5 m² przechodzi na malowanie: ≈ −1,6 tys. zł;
-- wysokość 2,68 m — każde ±10 cm to ok. ±8 m² gładzi, gruntu i malowania plus ±1,7 m² płytek: ≈ ±1,2 tys. zł;
-- winyl klejony na wszystkich podłogach poza łazienkami (59,98 m²), także w wiatrołapie, przedpokoju i aneksie, które rzut dewelopera opisuje jako „terakota” — gres tam zamiast winylu: ≈ +1,0 tys. zł;
-- gniazda i łączniki 34 szt. poza łazienkami i 10 lamp — szacunek agenta, rzutu elektrycznego nie było; każde ±10 gniazd ≈ ±0,4 tys. zł;
-- przeróbki wod-kan: 10 punktów pod stelaże WC i umywalki; wanna i pralka na podejściach dewelopera — każdy dodatkowy punkt +250 zł.
+## Najważniejsze założenia
+- **Jeden lokal** — przy wycenie obu lokali z rzutu wszystkie ilości ×2: +76,3 tys. zł.
+- **Płytki w łazienkach do sufitu na wszystkich ścianach** (39,86 m²) — przy płytkach do 2,0 m ok. 11,5 m² przechodzi na malowanie: ≈ −1,6 tys. zł.
+- **Wysokość 2,68 m** — każde ±10 cm to ok. ±8 m² gładzi, gruntu i malowania plus ±1,7 m² płytek: ≈ ±1,2 tys. zł.
+- **Winyl klejony na wszystkich podłogach poza łazienkami** (59,98 m²), także w wiatrołapie, przedpokoju i aneksie, które rzut dewelopera opisuje jako „terakota” — gres tam zamiast winylu: ≈ +1,0 tys. zł.
+- **Gniazda i łączniki 34 szt. poza łazienkami i 10 lamp** — szacunek agenta, rzutu elektrycznego nie było; każde ±10 gniazd ≈ ±0,4 tys. zł.
+- **Przeróbki wod-kan**: 10 punktów pod stelaże WC i umywalki; wanna i pralka na podejściach dewelopera — każdy dodatkowy punkt +250 zł.
 
-Do ustalenia z klientem:
-- jeden lokal czy oba;
-- wiatrołap, przedpokój i aneks: winyl czy terakota jak na rzucie;
-- wysokość płytek w łazienkach i format płytek;
-- czy w łazience na parterze ma być prysznic (brodzik z kabiną, 2 punkty wod-kan i bateria ≈ +2,3 tys. zł);
-- jakie tynki dał deweloper i czy równe są wylewki;
-- stan podejść wod-kan dewelopera: czy rury są przed ścianami, czy piony w łazienkach są do zabudowy;
-- rozmieszczenie 5 nowych punktów elektrycznych, liczba puszek dewelopera, zakres oświetlenia;
-- liczba drzwi (czy wiatrołap dostaje drzwi), kolor ścian (w kolorze 26 zł/m² zamiast 22 zł/m²);
-- lokalizacja (transport 1500 vs ok. 2000 zł).
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/13-segment-deweloperski
+## Przedmiar 0 świadomie
+- Kuchnia (zabudowa, podłączenia, pas między szafkami) — Notatki jej nie wymieniają.
+- Wykończenie schodów — Notatki mówią tylko o ich zabezpieczeniu.
+- Szlifowanie i miejscowe wyrównanie podłoża „jeśli będzie wymagane” — w szablonie brak takiej pozycji, wylewka samopoziomująca liczona na całość.
+- Listwa łączeniowa — winyl klejony, bez dylatacji.
+- Malowanie listew — zakładam listwy gotowe białe.
+- Farba podkładowa — gruntowanie po gładzi już liczone w „Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach”.
+- Prysznic na parterze, grzejniki w łazienkach — rzut ich nie pokazuje.

@@ -1,10 +1,10 @@
 ---
 change_id: expense-missing-invoice-confirm
 title: Confirm before saving a wydatek inwestycyjny without an invoice
-status: implemented
+status: archived
 created: 2026-10-11
-updated: 2026-10-11
-archived_at: null
+updated: 2026-10-12
+archived_at: 2026-10-12T18:26:55Z
 branch: expense-missing-invoice-confirm
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/expense-missing-invoice-confirm
 ---

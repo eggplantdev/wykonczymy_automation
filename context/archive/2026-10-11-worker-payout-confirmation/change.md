@@ -1,10 +1,10 @@
 ---
 change_id: worker-payout-confirmation
 title: Worker confirms receiving a wypłata before it is accepted
-status: implemented
+status: archived
 created: 2026-10-11
-updated: 2026-10-11
-archived_at: null
+updated: 2026-10-12
+archived_at: 2026-10-12T18:28:29Z
 branch: null
 worktree: null
 ---

@@ -15,7 +15,7 @@ import {
 
 // EX-497 (the read) and EX-604 (the write) — the same grid, its two directions.
 //
-// EX-497: „Pomiar (razem etapy)" stopped being a typed figure and became the live sum of the stage
+// EX-497: „Pomiar z natury (etapy razem)" stopped being a typed figure and became the live sum of the stage
 // cells (the owner's sheet has O = SUM(D:M)). The arithmetic is unit-covered; what no layer below
 // the browser reaches is the WIRING — that the column renders as a locked computed cell in the real
 // datasheet-grid and recomputes on a stage edit without a reload.
@@ -73,7 +73,9 @@ function countRouteRefreshes(page: Page, pathname: string): () => number {
   return () => refreshes
 }
 
-test('„Pomiar (razem etapy)" cannot be typed into and follows the etapy live', async ({ page }) => {
+test('„Pomiar z natury (etapy razem)" cannot be typed into and follows the etapy live', async ({
+  page,
+}) => {
   await openEditor(page, seed.live)
 
   const sumCell = await rowCell(page, 'Praca jeden', SUM_COLUMN)

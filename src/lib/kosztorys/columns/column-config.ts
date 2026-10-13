@@ -22,7 +22,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   description: pl.grid.description,
   plannedQty: pl.grid.plannedQty,
   currentPlannedQty: pl.grid.currentPlannedQty,
-  stageQtySum: 'Pomiar (razem etapy)',
+  stageQtySum: 'Pomiar z natury (etapy razem)',
   // Names both sides of its subtraction in the header: the column is read at a glance, so needing a
   // tooltip to learn which two figures are being compared would defeat it.
   divergence: 'Rozjazd między arkuszem Google a apką',

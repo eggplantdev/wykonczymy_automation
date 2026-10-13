@@ -1,32 +1,31 @@
-=== Wycena AI (test, 2026-10-12) — AI przedmiar z projektu łazienki ===
-Kosztorys wypełnił agent: 36 pozycji, AI przedmiar razem 29 266,88 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026” — transport zostawiony na 1500 zł z szablonu, katalog dla łazienki na rynku pierwotnym mówi ok. 700 zł (z gładzią w mieszkaniu raczej bliżej 1000–1500 zł).
-Łazienka zmierzona z „Układu płytek” i „Kładów ścian” (wymiary od ścian otynkowanych): 145,6 × 255,5 z wcięciem 50,3 × 42,6, podłoga 3,46 m², wysokość 272 od gresu, nad prysznicem sufit podwieszany h=10. Płytki na ścianach 18,06 m² (Navona 60×120 14,36 + Tarima 30×90 na ścianie prysznica 3,71), na podłodze 3,27 m². Gładź 60 m² wprost z maila.
-Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 29 266,88 zł netto** — 36 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”.
+Źródło: projekt łazienki — „Układ płytek” i „Kłady ścian” (wymiary od ścian otynkowanych): 145,6 × 255,5 z wcięciem 50,3 × 42,6, podłoga 3,46 m², wysokość 272 od gresu, nad prysznicem sufit podwieszany h=10. Płytki na ścianach 18,06 m² (Navona 60×120 14,36 + Tarima 30×90 na ścianie prysznica 3,71), na podłodze 3,27 m². Gładź 60 m² wprost z maila.
+Transport zostawiony na 1500 zł z szablonu — katalog dla łazienki na rynku pierwotnym mówi ok. 700 zł (z gładzią w mieszkaniu raczej bliżej 1000–1500 zł).
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
 
-Przedmiar 0 świadomie:
-- elektryka (punkty, taśma LED w maskownicy, gniazda, podłączenie lustra i maty) — mail: „elektryka … oddzielnie”;
-- meble: zabudowa stelaża z MDF, szafka nad WC, szafka pod umywalkę, wnęka z półkami — stolarz, mail: „meble … oddzielnie”;
-- podłączenie pralki w holu — na rzucie „bez zmian”;
-- montaż drzwi do łazienki (80) — mail ich nie wymienia (+380 zł);
-- malowanie 60 m² po gładzi — mail prosi tylko o gładź i szlifowanie (na biało ≈ +1,3 tys. zł);
-- szlifowanie ścian liczone w cenie gładzi, bez osobnej pozycji.
+## Do ustalenia z klientem
+- **Gładź 1 warstwa**: cena j.m. (każde −10 zł/m² to −600 zł) i czy szlifowanie to tylko szlif po gładzi.
+- **Malowanie po gładzi**: czy malujemy ściany i sufit w mieszkaniu (na biało ≈ +1,3 tys. zł).
+- **Drzwi do łazienki**: czy montujemy (+380 zł).
+- **Mata grzewcza**: kto kładzie (u nas montaż maty 2,16 m², podłączenie elektryk).
+- **C.o.**: czy przesuwamy punkty pod nowy grzejnik pionowy.
+- **Wentylacja**: kratka czy wentylator.
+- **Ściany**: które są działowe, a które nośne (wkucia baterii podtynkowych); czy trzeba wyrównać pod glazurę 60×120 (+1,4 tys. zł).
+- **Dostęp i podłogi**: piętro budynku, winda; czy podłogi w mieszkaniu są już położone (puste mieszkanie bez podłóg: ≈ −1,2 tys. zł na zabezpieczeniach).
 
-Najważniejsze założenia (ruszają wieloma pozycjami naraz):
-- gładź 60 m² po cenie gładzi 2-warstwowej Q3 (57 zł/m² = 3 420 zł) — klient chce 1 warstwę; każde −10 zł/m² ceny j.m. to −600 zł, każde ±10 m² ≈ ±690 zł z gruntem;
-- ściany deweloperskie równe, bez wyrównania pod glazurę 60×120 — jeśli trzeba wyrównać 18,06 m²: +1,4 tys. zł;
-- zabezpieczenia na całe mieszkanie ok. 60 m² podłogi (1 500 zł) — gładź pyli wszędzie; jeśli podłóg jeszcze nie ma i mieszkanie jest puste, zostają okna: ≈ −1,2 tys. zł;
-- transport 1500 zł z szablonu — katalog dla łazienki na rynku pierwotnym ok. 700 zł: do −800 zł;
-- drzwi prysznicowe na zawiasach 99,6 × 200 policzone jako „szyba stała do odpływu liniowego” (550 zł) — cena j.m. do sprawdzenia;
-- ściana za stelażem WC pod zabudową MDF i szafką — bez płytek.
+## Najważniejsze założenia
+- **Gładź 60 m² po cenie gładzi 2-warstwowej Q3** (57 zł/m² = 3 420 zł) — klient chce 1 warstwę; każde −10 zł/m² ceny j.m. to −600 zł, każde ±10 m² ≈ ±690 zł z gruntem.
+- **Ściany deweloperskie równe**, bez wyrównania pod glazurę 60×120 — wyrównanie 18,06 m²: +1,4 tys. zł.
+- **Zabezpieczenia na całe mieszkanie** ok. 60 m² podłogi (1 500 zł) — gładź pyli wszędzie; jeśli podłóg jeszcze nie ma i mieszkanie jest puste, zostają okna: ≈ −1,2 tys. zł.
+- **Transport 1500 zł z szablonu** — katalog dla łazienki na rynku pierwotnym ok. 700 zł: do −800 zł.
+- **Drzwi prysznicowe na zawiasach 99,6 × 200** policzone jako „szyba stała do odpływu liniowego” (550 zł) — cena j.m. do sprawdzenia.
+- **Ściana za stelażem WC** pod zabudową MDF i szafką — bez płytek.
 
-Do ustalenia z klientem:
-- gładź 1 warstwa: cena j.m. i czy szlifowanie to tylko szlif po gładzi;
-- czy malujemy ściany po gładzi i sufit w mieszkaniu;
-- czy montujemy drzwi do łazienki;
-- kto kładzie matę grzewczą (u nas montaż maty 2,16 m², podłączenie elektryk);
-- czy przesuwamy punkty c.o. pod nowy grzejnik pionowy;
-- kratka czy wentylator w łazience;
-- które ściany są działowe, a które nośne (wkucia baterii podtynkowych);
-- piętro budynku, winda; czy podłogi w mieszkaniu są już położone.
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/14-lazienka-gladz-60m2
+## Przedmiar 0 świadomie
+- Elektryka (punkty, taśma LED w maskownicy, gniazda, podłączenie lustra i maty) — mail: „elektryka … oddzielnie”.
+- Meble: zabudowa stelaża z MDF, szafka nad WC, szafka pod umywalkę, wnęka z półkami — stolarz, mail: „meble … oddzielnie”.
+- Podłączenie pralki w holu — na rzucie „bez zmian”.
+- Montaż drzwi do łazienki (80) — mail ich nie wymienia (+380 zł).
+- Malowanie 60 m² po gładzi — mail prosi tylko o gładź i szlifowanie (na biało ≈ +1,3 tys. zł).
+- Szlifowanie ścian — liczone w cenie gładzi, bez osobnej pozycji.

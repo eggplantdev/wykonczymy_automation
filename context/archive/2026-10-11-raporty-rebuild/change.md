@@ -1,10 +1,10 @@
 ---
 change_id: raporty-rebuild
 title: Rebuild the company-wide reports page (/raporty) on the current financial model
-status: implemented
+status: archived
 created: 2026-10-11
-updated: 2026-10-11
-archived_at: null
+updated: 2026-10-12
+archived_at: 2026-10-12T18:28:01Z
 branch: null
 worktree: null
 ---

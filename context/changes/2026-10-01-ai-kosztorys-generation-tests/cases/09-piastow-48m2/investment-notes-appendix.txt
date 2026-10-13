@@ -1,32 +1,31 @@
-=== Wycena AI (test, 2026-10-12) — AI przedmiar z rzutu i zdjęć ===
-Kosztorys wypełnił agent: 58 pozycji (2 dodane z katalogu prac), AI przedmiar razem 38 500,59 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026” — transport zostawiony na 1500 zł z szablonu, katalog dla rynku wtórnego poza Warszawą mówi ok. 2000 zł i więcej.
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 38 500,59 zł netto** — 58 pozycji (2 dodane z katalogu prac), bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”.
+Źródło: rzut i zdjęcia. Transport zostawiony na 1500 zł z szablonu — katalog dla rynku wtórnego poza Warszawą mówi ok. 2000 zł i więcej.
 Zmierzone z wymiarów dopisanych ręcznie na zdjęciu rzutu: sypialnia 10,5 m², łazienka 4,3, przedpokój 6,1, salon 16,5, strefa kuchenna 10,3 (różowa część 5,6 + kuchnia z oknem 4,7) — razem 48,0 m², zgodnie z mailem. Wysokość 2,60 m (rzut jej nie podaje; schody dają kondygnację 2,81 m).
-Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”).
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
 
-Przedmiar 0 świadomie:
-- wymiana okna w sypialni oraz okna z drzwiami balkonowymi w salonie — montuje firma okienna (szablon i katalog nie mają tej pracy); my robimy glify, parapety i poprawki;
-- zakorkowanie gazu po płycie gazowej — gazownik z uprawnieniami;
-- „sprawdzenie instalacji” jako pomiary elektryczne — szablon nie ma tej pozycji;
-- łazienka poza strefą prysznica — mail: „pozostała część bez remontu”;
+## Do ustalenia z klientem
+- **Ścianka do wyburzenia**: którą i z czego jest (pełna ściana salon–kuchnia: +0,5 tys. zł; GK: −0,4 tys. zł).
+- **Ściany**: pełna gładź czy tylko malowanie (+12,0 tys. zł); kolor ścian (+0,6 tys. zł); czy sufity w salonie, kuchni i przedpokoju też malujemy.
+- **Podłoga**: panele czy winyl (winyl klejony z wylewką: +2,5 tys. zł); czy w kuchni płytki (+0,6 tys. zł); co leży pod panelami (na rzucie mozaika).
+- **Łazienka**: wymiar brodzika, bateria natynkowa czy podtynkowa (+0,85 tys. zł), czy klient ma zapas obecnych płytek.
+- **Kuchnia**: kto składa zabudowę i z czego jest blat (kamienny: +0,6 tys. zł); czy zlew zostaje w miejscu (−0,75 tys. zł); czy lodówka w zabudowie.
+- **Elektryka**: czy mieszkanie ma 3 fazy (brak: +1,0 tys. zł) i w jakim stanie jest rozdzielnia; ile nowych punktów i gdzie.
+- **Pozostałe**: czy firma okienna wymienia też parapety; czy mieszkanie będzie zamieszkane w trakcie; miejsce na kontener.
+
+## Najważniejsze założenia
+- **Bez pełnej gładzi**: „przygotowanie ścian” = grunt i drobne poprawki na 141 m² ścian i sufitów — pełna gładź (85 zł/m²): +12,0 tys. zł.
+- **Wyburzana ścianka dzieli strefę kuchenną** (2,28 mb, kończy się słupkiem na zdjęciu z salonu) — salon jest już otwarty na kuchnię; materiał miękki do 12 cm, 5,9 m²; pełna ściana salon–kuchnia 3,86 mb: +0,5 tys. zł; GK: −0,4 tys. zł.
+- **Panele laminowane w układzie prostym na 43,7 m²**, także w kuchni (płytki w kuchni skute, wylewka 5,0 m²) — winyl klejony z wylewką na całości: +2,5 tys. zł; płytki w kuchni zamiast paneli: +0,6 tys. zł.
+- **Ściany i sufity na biało**, z warstwą przykrywającą obecne kolory — w kolorze: +0,6 tys. zł.
+- **Elektryka**: rozdzielnia do 18 modułów (indukcja) i przewód pod płytę przy 3 fazach — sam bezpiecznik zamiast rozdzielni: −1,3 tys. zł; brak 3 faz: +1,0 tys. zł; 12 nowych gniazd i 4 punkty świetlne — szacunek, mail ich nie wymienia.
+- **Łazienka**: brodzik z kabiną w miejscu wanny, bateria natynkowa, 3 punkty wod-kan, uzupełnienie płytek pod linią wanny ok. 2 m² — bateria podtynkowa: +0,85 tys. zł; schodek pod brodzikiem: +1,0 tys. zł.
+- **Kuchnia**: blat laminowany 3,8 mb (dodany z katalogu) — kamienny: +0,6 tys. zł; przyłącza wod-kan 3 punkty — jeśli zlew zostaje w miejscu: −0,75 tys. zł.
+- **1 kontener w stawce 1500 zł** (Manual: parter i pierwsze piętro).
+
+## Przedmiar 0 świadomie
+- Wymiana okna w sypialni oraz okna z drzwiami balkonowymi w salonie — montuje firma okienna (szablon i katalog nie mają tej pracy); my robimy glify, parapety i poprawki.
+- Zakorkowanie gazu po płycie gazowej — gazownik z uprawnieniami.
+- „Sprawdzenie instalacji” jako pomiary elektryczne — szablon nie ma tej pozycji.
+- Łazienka poza strefą prysznica — mail: „pozostała część bez remontu”.
 - „Montaż i skręcanie mebli” (kuchnia) dodany z ceną 0 zł — katalog nie ma stawki, cena indywidualna.
-
-Najważniejsze założenia (ruszają wieloma pozycjami naraz):
-- bez pełnej gładzi: „przygotowanie ścian” = grunt i drobne poprawki na 141 m² ścian i sufitów — pełna gładź (85 zł/m²): +12,0 tys. zł;
-- wyburzana ścianka to ta, która dzieli strefę kuchenną (2,28 mb, kończy się słupkiem na zdjęciu z salonu) — salon jest już otwarty na kuchnię; materiał miękki do 12 cm, 5,9 m²; jeśli chodzi o pełną ścianę salon–kuchnia 3,86 mb: +0,5 tys. zł; jeśli to GK: −0,4 tys. zł;
-- nowa podłoga to panele laminowane w układzie prostym na 43,7 m², także w kuchni (płytki w kuchni skute, wylewka 5,0 m²) — winyl klejony z wylewką na całości: +2,5 tys. zł; płytki w kuchni zamiast paneli: +0,6 tys. zł;
-- ściany i sufity na biało, z warstwą przykrywającą obecne kolory — w kolorze: +0,6 tys. zł;
-- elektryka: rozdzielnia do 18 modułów (indukcja) i przewód pod płytę przy 3 fazach — sam bezpiecznik zamiast rozdzielni: −1,3 tys. zł; brak 3 faz: +1,0 tys. zł; 12 nowych gniazd i 4 punkty świetlne — szacunek, mail ich nie wymienia;
-- łazienka: brodzik z kabiną w miejscu wanny, bateria natynkowa, 3 punkty wod-kan, uzupełnienie płytek pod linią wanny ok. 2 m² — bateria podtynkowa: +0,85 tys. zł; schodek pod brodzikiem: +1,0 tys. zł;
-- kuchnia: blat laminowany 3,8 mb (dodany z katalogu) — kamienny: +0,6 tys. zł; przyłącza wod-kan 3 punkty — jeśli zlew zostaje w miejscu: −0,75 tys. zł;
-- 1 kontener w stawce 1500 zł (Manual: parter i pierwsze piętro).
-
-Do ustalenia z klientem:
-- którą ściankę wyburzamy i z czego jest;
-- pełna gładź czy tylko malowanie; kolor ścian; czy sufity w salonie, kuchni i przedpokoju też malujemy;
-- rodzaj podłogi (panele / winyl) i czy w kuchni płytki; co leży pod panelami (na rzucie mozaika);
-- wymiar brodzika, bateria natynkowa czy podtynkowa, czy klient ma zapas obecnych płytek;
-- kto składa zabudowę kuchenną i z czego jest blat; czy zlew zostaje w miejscu; czy lodówka w zabudowie;
-- czy mieszkanie ma 3 fazy i w jakim stanie jest rozdzielnia; ile nowych punktów elektrycznych i gdzie;
-- czy firma okienna wymienia też parapety; czy mieszkanie będzie zamieszkane w trakcie; miejsce na kontener.
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/09-piastow-48m2

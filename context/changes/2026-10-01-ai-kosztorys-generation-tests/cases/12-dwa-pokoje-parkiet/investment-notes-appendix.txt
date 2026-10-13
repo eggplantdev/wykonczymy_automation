@@ -1,31 +1,32 @@
-=== Wycena AI (test, 2026-10-12) — AI przedmiar z samego zakresu w Notatkach ===
-Brak plików: nie było rzutu, rysunków ani zdjęć — jedynym wejściem był zakres prac wpisany poniżej. Agent wybrał z szablonu „Kosztorys 2026” wszystkie prace, które ten zakres oznacza (26 pozycji), ale ilość wpisał tylko tam, gdzie zakres ją podaje albo wprost z niej wynika.
-AI przedmiar razem 18 985,00 zł netto, bez rabatu, ceny j.m. z szablonu — ta kwota obejmuje TYLKO 17 pozycji z ilością. 9 pozycji jest wybranych z ilością 0, bo zakres jej nie podaje (głównie ściany: zdzieranie, gładź, gruntowanie, malowanie) — po zmierzeniu ścian kwota wyraźnie wzrośnie.
-Przy każdej pozycji kolumna „Komentarz AI” mówi, skąd wzięła się ilość („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”). Pozycje z ilością 0 mają tam „Praca wybrana, ilość nieznana:” i to, co trzeba zmierzyć.
-
-Ilości wzięte z zakresu: zabezpieczenia 35 m², usuwanie subitu 28 m², gruntowanie podłóg i wylewka samopoziomująca 28 m², parkiet 28 m², cyklinowanie 33 m² (z korytarzem), ścianka GK 5 m², tynkowanie pasów 10 mb + obróbki drzwi wejściowych 5 mb, 3 nowe punkty elektryczne, prace glazurnicze ryczałt 1 500 zł.
+## Wycena AI (test, 2026-10-12)
+**AI przedmiar: 18 985,00 zł netto — tylko 17 z 26 pozycji.** Po zmierzeniu ścian kwota wyraźnie wzrośnie (≈ +1 590 zł na każde 10 m² ściany).
+Źródło: wyłącznie zakres prac wpisany niżej — nie było rzutu, rysunków ani zdjęć. Agent wybrał z szablonu „Kosztorys 2026” wszystkie prace, które ten zakres oznacza, ale ilość wpisał tylko tam, gdzie zakres ją podaje albo wprost z niej wynika. 9 pozycji ma ilość 0 (głównie ściany: zdzieranie, gładź, gruntowanie, malowanie). Bez rabatu, ceny j.m. z szablonu.
+Ilości z zakresu: zabezpieczenia 35 m², usuwanie subitu 28 m², gruntowanie podłóg i wylewka samopoziomująca 28 m², parkiet 28 m², cyklinowanie 33 m² (z korytarzem), ścianka GK 5 m², tynkowanie pasów 10 mb + obróbki drzwi wejściowych 5 mb, 3 nowe punkty elektryczne, prace glazurnicze ryczałt 1 500 zł.
 Ilości wynikające z nich: bruzdy i ich naprawa 6 mb (2 mb na punkt), gładź Q3 na nowej ściance 10 m² (5 m² × 2 strony), wzmocnienie pod ościeżnicę i drzwi z ościeżnicą regulowaną po 1 szt. Z Manuala: 2 big bagi (rynek wtórny bez wyburzeń), transport materiałów 1 kpl.
+Przy każdej pozycji „Komentarz AI”: skąd wzięła się ilość („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”). Pozycje z ilością 0 mają tam „Praca wybrana, ilość nieznana:” i to, co trzeba zmierzyć.
 
-Niewybrane świadomie: łazienka, kuchnia, wod-kan, c.o. i klimatyzacja — zakres ich nie wymienia; rewizja i fugi nie są osobnymi pozycjami, bo siedzą w ryczałcie glazurniczym; gładź po bruzdach pominięta (gładź na całych ścianach); opaski drzwi pominięte (ościeżnica regulowana).
+## Do ustalenia z klientem
+- **Powierzchnia ścian w obu pokojach** (wysokość + wymiary pokoi lub m² ścian) — największa niewiadoma: ok. 159 zł za m², ±1 590 zł na każde 10 m²; dotyczy: zdzieranie starej farby z tynkiem, gładź rynek wtórny, gruntowanie przed i po gładziach, malowanie ścian.
+- **Sufity** („ewentualnie sufitów”): malowanie 28 m² (+644 zł), gruntowanie, ewentualnie gładź.
+- **Kolor ścian** czy biel — w kolorze +4 zł/m².
+- **Listwy**: obwód obu pokoi minus zabudowy i rodzaj listew (MDF czy metalowe) — montaż i akrylowanie listew (61 zł/mb przy MDF).
+- **Ścianka GK**: długość styków z istniejącymi ścianami i sufitem (szpachlowanie z taśmą 35 zł/mb); konstrukcja (podwójna płyta z wełną?) i czy obie strony są w remontowanych pomieszczeniach.
+- **Gniazda i łączniki**: ile istniejących do wymiany (39 zł/szt.); materiał ścian pod bruzdy (żelbet droższy).
+- **Lokalizacja**: piętro, winda, dojazd z Warszawy, noclegi — dotyczy: transport materiałów, big bagi.
+- **Parkiet**: układ (jodełka +980 zł) i stan parkietu w korytarzu przed cyklinowaniem.
+- **Zamieszkanie** w trakcie (+700 zł).
+- **Płytki do naprawy**: gdzie, ile sztuk, czy są zapasowe — czy ryczałt 1 500 zł wystarczy.
+- **„Dodatkowe prace tynkarskie i gładzie ok. 10 mb”**: zakres i sposób obmiaru (klient sam pisze „do potwierdzenia”).
 
-Najważniejsze założenia:
-- prace glazurnicze i naprawcze jako jedna dodana pozycja (sekcja Łazienka) za 1 500 zł — to „założony koszt” z zakresu, nie cena z szablonu (szablon nie ma pozycji na naprawę płytek); rewizja i fugi są w niej, nie osobno;
-- parkiet mijanka z gruntowaniem — układ nieznany; jodełka +980 zł;
-- gładź rynku wtórnego obejmuje miejscowe naprawy tynku i szlifowanie; gładzi po bruzdach nie liczono, bo gładź idzie na całe ściany;
-- transport materiałów zostawiony na 1 500 zł z szablonu — inwestycja jest w Rynie, daleko poza Warszawą; dojazd ekipy i noclegi nie są w żadnej pozycji;
-- zabezpieczenia w stawce 25 zł/m² (mieszkanie niezamieszkane) — zamieszkane +700 zł.
+## Najważniejsze założenia
+- **Prace glazurnicze i naprawcze jako jedna dodana pozycja** (sekcja Łazienka) za 1 500 zł — „założony koszt” z zakresu, nie cena z szablonu (szablon nie ma pozycji na naprawę płytek); rewizja i fugi są w niej, nie osobno.
+- **Parkiet mijanka z gruntowaniem** — układ nieznany; jodełka +980 zł.
+- **Gładź rynku wtórnego** obejmuje miejscowe naprawy tynku i szlifowanie; gładzi po bruzdach nie liczono, bo gładź idzie na całe ściany.
+- **Transport materiałów 1 500 zł** z szablonu — inwestycja jest w Rynie, daleko poza Warszawą; dojazd ekipy i noclegi nie są w żadnej pozycji.
+- **Zabezpieczenia w stawce 25 zł/m²** (mieszkanie niezamieszkane) — zamieszkane +700 zł.
 
-Do ustalenia z klientem (każde pytanie = jeden pomiar lub decyzja):
-- powierzchnia ścian w obu pokojach (wysokość + wymiary pokoi lub m² ścian) — dotyczy: zdzieranie starej farby z tynkiem, gładź rynek wtórny, gruntowanie przed i po gładziach, malowanie ścian; razem ok. 159 zł za każdy m² ściany, czyli ±1 590 zł na każde 10 m² — to największa niewiadoma tej wyceny;
-- czy sufity są w zakresie („ewentualnie sufitów”) — dotyczy: malowanie sufitów 28 m² (+644 zł), gruntowanie, ewentualnie gładź;
-- kolor ścian czy biel — malowanie w kolorze +4 zł/m²;
-- obwód obu pokoi minus zabudowy i rodzaj listew (MDF czy metalowe) — dotyczy: montaż listew przypodłogowych, akrylowanie listew (61 zł/mb przy MDF);
-- długość styków nowej ścianki GK z istniejącymi ścianami i sufitem — dotyczy: szpachlowanie połączeń z taśmą (35 zł/mb); konstrukcja ścianki (podwójna płyta z wełną?) i czy obie jej strony są w remontowanych pomieszczeniach;
-- liczba istniejących gniazd i łączników do wymiany — dotyczy: montaż gniazdek i włączników (39 zł/szt.); materiał ścian pod bruzdy (żelbet droższy);
-- lokalizacja: piętro, winda, dojazd z Warszawy, noclegi — dotyczy: transport materiałów, big bagi;
-- układ parkietu (mijanka czy jodełka), stan parkietu w korytarzu przed cyklinowaniem;
-- czy mieszkanie będzie zamieszkane w trakcie;
-- płytki do naprawy: gdzie, ile sztuk, czy są zapasowe płytki — czy ryczałt 1 500 zł wystarczy;
-- „dodatkowe prace tynkarskie i gładzie ok. 10 mb” — zakres i sposób obmiaru (klient sam pisze „do potwierdzenia”).
-
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/12-dwa-pokoje-parkiet
+## Przedmiar 0 świadomie
+- Łazienka, kuchnia, wod-kan, c.o. i klimatyzacja — zakres ich nie wymienia.
+- Rewizja i fugi jako osobne pozycje — siedzą w ryczałcie glazurniczym.
+- Gładź po bruzdach — gładź idzie na całe ściany.
+- Opaski drzwi — ościeżnica regulowana.
