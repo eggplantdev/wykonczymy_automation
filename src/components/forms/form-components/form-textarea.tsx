@@ -18,6 +18,7 @@ export function FormTextarea(props: FormControlPropsT & { rows?: number }) {
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}
         aria-invalid={isInvalid}
+        disabled={props.disabled}
         className={props.className}
       />
     </FormBase>

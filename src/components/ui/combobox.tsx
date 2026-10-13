@@ -15,6 +15,7 @@ type ComboboxPropsT = {
   placeholder?: string
   allowCustom?: boolean
   hideChevron?: boolean
+  disabled?: boolean
   /** Set inside a Dialog — see the `modal` note on the Popover below. */
   modal?: boolean
   className?: string
@@ -37,6 +38,7 @@ export function Combobox({
   placeholder,
   allowCustom = false,
   hideChevron,
+  disabled,
   modal = false,
   className,
   contentClassName,
@@ -114,7 +116,11 @@ export function Combobox({
           type="button"
           role="combobox"
           aria-expanded={open}
-          className={cn('flex items-center justify-between gap-1 text-sm outline-none', className)}
+          disabled={disabled}
+          className={cn(
+            'flex items-center justify-between gap-1 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50',
+            className,
+          )}
           aria-label={placeholder}
         >
           <span className="truncate">{value || placeholder}</span>

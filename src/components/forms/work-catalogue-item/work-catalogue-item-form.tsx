@@ -22,7 +22,6 @@ import {
   type WorkCatalogueItemFormValuesT,
 } from './work-catalogue-item-schema'
 import { RateField } from './rate-fields'
-import { CreatableComboboxField } from './creatable-combobox-field'
 import type { ActionResultT } from '@/types/action'
 
 type WorkCatalogueItemFormPropsT = {
@@ -108,11 +107,11 @@ export function WorkCatalogueItemForm({
         ))}
 
         <form.AppField name="category">
-          {() => <CreatableComboboxField label="Kategoria" options={categorySuggestions} />}
+          {(field) => <field.CreatableCombobox label="Kategoria" options={categorySuggestions} />}
         </form.AppField>
 
         <form.AppField name="unit">
-          {() => <CreatableComboboxField label="j.m." options={UNIT_SUGGESTIONS} />}
+          {(field) => <field.CreatableCombobox label="j.m." options={UNIT_SUGGESTIONS} />}
         </form.AppField>
 
         <form.AppField name="clientPrice">
