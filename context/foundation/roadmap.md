@@ -223,7 +223,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Frontend:** present — Next.js App Router, Tailwind v4, Shadcn UI, React Compiler (`src/app/(frontend)`, `src/components/ui`).
 - **Backend / API:** present — Payload CMS collections + server actions via `protectedAction()` (`src/collections`, `src/lib/actions`).
-- **Data:** present — Postgres (Neon prod / docker local on 5433), Payload migrations, raw SQL via `@vercel/postgres` (`src/lib/db`, `src/migrations`).
+- **Data:** present — Postgres (Neon prod / docker local on 5433), Payload migrations, raw SQL via `@payloadcms/db-postgres`'s Drizzle (`src/lib/db`, `src/migrations`).
 - **Auth:** present — JWT `payload-token` cookie, four roles (ADMIN/OWNER/MANAGER/EMPLOYEE) (`src/lib/auth`, `src/access`).
 - **Deploy / infra:** present — Vercel (build runs `generate:types` + `next build`; migrations applied deliberately, not by build).
 - **Observability:** partial — `perfStart()` perf logging only; no error tracking (`global-error.tsx` has no reporter). Sentry is a later feature, not a roadmap slice — see [Parked](#parked).

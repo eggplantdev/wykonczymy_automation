@@ -4882,3 +4882,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Telefon → kosztorys: opis prac, ilości, „Razem” sekcji i pasek sekcji mniejsze; opis zawija się całymi liniami, a „…” pojawia się tylko przy faktycznie uciętym tekście.
 - [ ] Telefon (iPhone) → raport pracownika (`/z/…`): stuknij w komórkę ilości i zacznij pisać — strona się NIE przybliża, a w trakcie edycji cyfra jest większa (16px); po wyjściu wraca do 12px.
 - [ ] Desktop → kosztorys: „Dopasuj wysokość do treści” daje te same wysokości wierszy co przed zmianą.
+
+## EX-855 — pg-pool-adapter — transakcje na Neonie z własnym połączeniem (staging)
+
+- [ ] Staging → OWNER: utwórz pracownika z kasą Pracownicze, „Usuń pracownika", potem w `/kosz`
+      „Usuń na zawsze" (pełne imię i nazwisko): usunięcie przechodzi bez „jest powiązany z danymi
+      (kasy: 1)", pracownik i jego kasa znikają z `/kosz`.
+- [ ] Staging → wydatek z kilkoma fakturami naraz (3+ pliki): zapis przechodzi, wszystkie pliki są
+      widoczne przy transakcji.
+- [ ] Staging → kosztorys: „Dodaj pracę" w środku sekcji, „Wczytaj szablon" i zmiana kolejności
+      działają jak wcześniej — bez zawieszenia, bez błędu klucza, kolejność pozycji poprawna.
