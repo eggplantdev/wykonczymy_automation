@@ -81,6 +81,7 @@ export type ReportListRowT = {
   id: number
   investmentId: number
   investmentName: string
+  workerId: number
   workerName: string
   status: ReportStatusT
   source: ReportSourceT
@@ -155,6 +156,7 @@ function toReportListRow(row: Record<string, unknown>): ReportListRowT {
     id: report.id,
     investmentId: report.investmentId,
     investmentName: text(row.investment_name),
+    workerId: report.workerId,
     workerName: report.workerName,
     status: report.status,
     source: report.source,

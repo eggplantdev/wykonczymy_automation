@@ -24,7 +24,8 @@ type OptionsT = {
   isManagerView: boolean
   // The dashboard queue: nothing in it is decided yet, and opening one is the whole point of the row.
   isPendingQueue?: boolean
-  // Management reads the worker's own table too, and only management may open the transfers list.
+  // Management reads the worker's own table too, and only management may open the transfers list
+  // or the investment.
   canOpenTransfers?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
 }
@@ -76,12 +77,30 @@ export function useExpenseDraftColumns({
   return [
     ...(isPendingQueue ? actionsColumn : []),
     ...(isManagerView
-      ? [col.accessor('workerName', { header: t('worker'), enableSorting: sortable('workerName') })]
+      ? [
+          col.accessor('workerName', {
+            header: t('worker'),
+            enableSorting: sortable('workerName'),
+            cell: ({ row: { original: draft } }) => (
+              <OptionalLink href={`/pracownicy/${draft.workerId}`}>{draft.workerName}</OptionalLink>
+            ),
+          }),
+        ]
       : []),
     col.accessor('investmentName', {
       header: t('investment'),
       enableSorting: sortable('investmentName'),
-      cell: (info) => info.getValue() ?? t('noInvestment'),
+      cell: ({ row: { original: draft } }) => (
+        <OptionalLink
+          href={
+            canOpenTransfers && draft.investmentId !== null
+              ? `/inwestycje/${draft.investmentId}`
+              : undefined
+          }
+        >
+          {draft.investmentName ?? t('noInvestment')}
+        </OptionalLink>
+      ),
     }),
     col.accessor('sentAt', {
       header: t('sentAt'),

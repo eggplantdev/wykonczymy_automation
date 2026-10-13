@@ -4867,3 +4867,10 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 ## 2026-10-13 — receipt-media-ids-copy — zapis wydatku ze zgłoszenia z wieloma paragonami na jednym zdjęciu
 
 - [ ] „Zgłoszenia wydatków” → zgłoszenie „Kilka wydatków”, w którym AI znalazło ~20+ paragonów na jednym zdjęciu → zapisz wydatek: zapis przechodzi, bez „Brak połączenia z serwerem”.
+
+## 2026-10-13 — queue-entity-links — linki do inwestycji i pracownika w zgłoszeniach
+
+- [ ] „Zgłoszenia wykonanych prac” → klik w nazwę inwestycji otwiera stronę tej inwestycji, klik w pracownika otwiera jego stronę.
+- [ ] „Zgłoszenia wydatków” → to samo dla inwestycji i pracownika; zgłoszenie bez inwestycji pokazuje „bez inwestycji” jako zwykły tekst.
+- [ ] Strona pracownika jako zarząd → w tabelach zgłoszeń prac i wydatków nazwa inwestycji jest linkiem.
+- [ ] Zalogowany jako pracownik (EMPLOYEE) → na własnej stronie nazwa inwestycji w obu tabelach zgłoszeń NIE jest linkiem.

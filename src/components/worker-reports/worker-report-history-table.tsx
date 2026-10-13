@@ -50,6 +50,7 @@ export function WorkerReportHistoryTable({ reports, canOpenInKosztorys }: PropsT
   const preview = useReportPreview()
   const columns = useWorkerReportColumns({
     isManagerView: false,
+    canOpenInvestment: canOpenInKosztorys,
     actions: (report) => (
       <WorkerReportRowActions
         report={report}

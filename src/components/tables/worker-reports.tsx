@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
 import { useTranslation } from '@/hooks/use-translation'
 import type { ReportListRowT } from '@/lib/db/worker-reports'
@@ -12,10 +13,16 @@ const col = createColumnHelper<ReportListRowT>()
 
 type OptionsT = {
   isManagerView: boolean
+  // `/inwestycje/[id]` is management-only, and management also reads the worker's own table.
+  canOpenInvestment?: boolean
   actions?: (report: ReportListRowT) => ReactNode
 }
 
-export function useWorkerReportColumns({ isManagerView, actions }: OptionsT) {
+export function useWorkerReportColumns({
+  isManagerView,
+  canOpenInvestment = isManagerView,
+  actions,
+}: OptionsT) {
   const { t, locale } = useTranslation('workerReports')
   const { t: tDrafts } = useTranslation('expenseDrafts')
   const sortable = (id: string) => isManagerView && isServerSortableReportColumn(id)
@@ -24,12 +31,22 @@ export function useWorkerReportColumns({ isManagerView, actions }: OptionsT) {
     col.accessor('investmentName', {
       header: tDrafts('investment'),
       enableSorting: sortable('investmentName'),
+      cell: ({ row: { original: report } }) => (
+        <OptionalLink href={canOpenInvestment ? `/inwestycje/${report.investmentId}` : undefined}>
+          {report.investmentName}
+        </OptionalLink>
+      ),
     }),
     ...(isManagerView
       ? [
           col.accessor('workerName', {
             header: tDrafts('worker'),
             enableSorting: sortable('workerName'),
+            cell: ({ row: { original: report } }) => (
+              <OptionalLink href={`/pracownicy/${report.workerId}`}>
+                {report.workerName}
+              </OptionalLink>
+            ),
           }),
         ]
       : []),

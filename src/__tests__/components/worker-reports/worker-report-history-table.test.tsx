@@ -16,6 +16,7 @@ const report = (id: number, overrides: Partial<ReportListRowT> = {}): ReportList
   id,
   investmentId: 3,
   investmentName: `Inwestycja ${id}`,
+  workerId: 2,
   workerName: 'Jan',
   status: 'pending',
   source: 'link',
