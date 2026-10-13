@@ -4826,3 +4826,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Kierownik → zgłoszenie z jednym zdjęciem, na którym leży kilka paragonów obok siebie → „Zobacz”: każdy paragon to osobna pozycja ze swoją kwotą; NIP wpisany tylko tam, gdzie jest wydrukowany.
 - [ ] Zgłoszenie z jednym zdjęciem wysłane przed 2026-10-12 (zapisane jako „Jeden wydatek”), jeszcze bez odczytu → „Zobacz”: paragony ze zdjęcia rozpisane na osobne pozycje.
 - [ ] Kierownik przyjmuje zgłoszenie, pomijając jeden z paragonów → pominięty paragon w historii → „Przywróć”: wraca jako osobne zgłoszenie z jednym pustym wierszem do uzupełnienia, bez paragonów już zaksięgowanych z tego samego zdjęcia.
+
+## 2026-10-13 — planned-done-percent-red — „% wykonania (względem przedmiaru ofertowego)” na czerwono
+
+- [ ] Kosztorys → widok „Postęp”, pozycja, w której suma etapów przekracza Aktualizację przedmiaru: „% wykonania (względem przedmiaru ofertowego)” jest czerwony, tak jak „% wykonania (względem aktualizacji przedmiaru)” i „Pozostało netto”.
+- [ ] Pozycja ponad przedmiarem ofertowym, ale w granicach Aktualizacji przedmiaru (np. 120% oferty): procent zostaje szary.
