@@ -11,6 +11,8 @@ const FLOAT_NOISE = 3
 // Past the ofertowy, inside the Aktualizacja przedmiaru — and the reverse.
 const WITHIN_CURRENT = 4
 const PAST_CURRENT = 5
+// Added outside the offer (ofertowy 0) and executed past its Aktualizacja przedmiaru.
+const OFF_OFFER_PAST_CURRENT = 6
 
 const tree = makeTree({
   sections: [
@@ -39,6 +41,14 @@ const tree = makeTree({
           currentPlannedQty: 1,
           clientPrice: 100,
         },
+        {
+          ...baseItem,
+          id: OFF_OFFER_PAST_CURRENT,
+          description: 'off offer',
+          plannedQty: 0,
+          currentPlannedQty: 1,
+          clientPrice: 100,
+        },
       ],
     },
   ],
@@ -49,6 +59,7 @@ const tree = makeTree({
     { itemId: FLOAT_NOISE, stageId: 100, qtyDone: 1.0003 },
     { itemId: WITHIN_CURRENT, stageId: 100, qtyDone: 1 },
     { itemId: PAST_CURRENT, stageId: 100, qtyDone: 2 },
+    { itemId: OFF_OFFER_PAST_CURRENT, stageId: 100, qtyDone: 2 },
   ],
 })
 const rows = treeToRows(tree)
@@ -85,4 +96,17 @@ describe('„Pozostało" overrun tone', () => {
       expect(tone(row(PAST_CURRENT))).toBe('danger')
     },
   )
+})
+
+describe('„% wykonania" over-planned tone', () => {
+  it('both columns go red past the Aktualizacja przedmiaru', () => {
+    expect(toneOf(ownerColumns, 'donePercent')(row(PAST_CURRENT))).toBe('danger')
+    expect(toneOf(ownerColumns, 'plannedDonePercent')(row(PAST_CURRENT))).toBe('danger')
+  })
+
+  // The offer-based figure is „—" without an ofertowy, and a red dash claims an overrun of nothing.
+  it('the offer-based column stays muted on a pozycja spoza oferty', () => {
+    expect(toneOf(ownerColumns, 'donePercent')(row(OFF_OFFER_PAST_CURRENT))).toBe('danger')
+    expect(toneOf(ownerColumns, 'plannedDonePercent')(row(OFF_OFFER_PAST_CURRENT))).toBe('muted')
+  })
 })

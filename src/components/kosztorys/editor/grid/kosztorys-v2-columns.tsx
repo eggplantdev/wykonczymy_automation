@@ -335,15 +335,20 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     )
   })
 
-  // More executed than offered. The >100% says so too, but only the tint says it at a glance across a
+  // More executed than agreed. The >100% says so too, but only the tint says it at a glance across a
   // thousand rows.
   const overPlannedTone = (r: KosztorysV2RowT) =>
     hasStagesOverPlanned(r, stages) ? 'danger' : 'muted'
   const donePercent: Column<KosztorysV2RowT>[] = [
     resolvedColumn('donePercent', { tone: overPlannedTone, emphasize: true }, formatPercent),
     // Red on the same predicate, past the AGREED scope, not past 100% of its own figure: past the
-    // offer is normal once the scope was updated.
-    resolvedColumn('plannedDonePercent', { tone: overPlannedTone }, formatPercent),
+    // offer is normal once the scope was updated. Without an ofertowy the cell is „—", and a red dash
+    // would claim an overrun of nothing.
+    resolvedColumn(
+      'plannedDonePercent',
+      { tone: (r) => (r.plannedQty > 0 ? overPlannedTone(r) : 'muted') },
+      formatPercent,
+    ),
   ]
 
   const plannedValue: Column<KosztorysV2RowT>[] = [
