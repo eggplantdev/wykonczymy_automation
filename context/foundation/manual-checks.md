@@ -4925,3 +4925,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Zapisz połączoną pozycję z odczytanego paragonu → w szczegółach wydatku załączniki noszą nazwę paragonu (jak po „Generuj”), nie nazwy plików z aparatu.
 - [ ] Dwa bileciki połączone w jedną pozycję pasują do tej samej transakcji → pod formularzem dwie podpowiedzi duplikatu, „OK” na jednej chowa tylko ją; po „Rozłącz” schowana nie wraca.
 - [ ] Zgłoszenie z kilkoma bilecikami → „Przyjmij”, zmień „Typ wydatku” na wpłatę → pozycje razem z przyciskiem „Połącz zaznaczone” znikają.
+
+## 2026-10-13 — pending-drafts-collapsible — zwijana sekcja „Wydatki zgłoszone przez pracowników”
+
+- [ ] Kierownik → strona z „Wydatki zgłoszone przez pracowników” (są oczekujące zgłoszenia): nagłówek ma strzałkę jak „Filtry”, sekcja otwarta na start; klik zwija i rozwija tabelę.
+- [ ] Zwiń sekcję, przejdź na inną stronę i wróć (albo przeładuj) → sekcja nadal zwinięta.
+- [ ] Przy rozwiniętej sekcji „Zweryfikuj” otwiera okno przyjęcia jak wcześniej.

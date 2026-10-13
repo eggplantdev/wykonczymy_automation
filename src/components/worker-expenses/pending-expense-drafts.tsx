@@ -1,6 +1,7 @@
 'use client'
 
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { useExpenseDraftColumns } from '@/components/tables/expense-drafts'
 import { useExpenseDraftAcceptance } from '@/components/worker-expenses/use-expense-draft-acceptance'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
@@ -22,9 +23,15 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
   if (drafts.length === 0) return null
 
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-semibold">Wydatki zgłoszone przez pracowników</h2>
-      <DataTable data={drafts} columns={columns} storageKey="pending-expense-drafts" />
+    <section>
+      <CollapsibleSection
+        title="Wydatki zgłoszone przez pracowników"
+        size="sm"
+        withSeparator={false}
+        storageKey="pending-expense-drafts:open"
+      >
+        <DataTable data={drafts} columns={columns} storageKey="pending-expense-drafts" />
+      </CollapsibleSection>
       {dialogs}
     </section>
   )
