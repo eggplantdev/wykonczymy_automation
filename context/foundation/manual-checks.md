@@ -4831,3 +4831,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Kosztorys → widok „Postęp”, pozycja, w której suma etapów przekracza Aktualizację przedmiaru: „% wykonania (względem przedmiaru ofertowego)” jest czerwony, tak jak „% wykonania (względem aktualizacji przedmiaru)” i „Pozostało netto”.
 - [ ] Pozycja ponad przedmiarem ofertowym, ale w granicach Aktualizacji przedmiaru (np. 120% oferty): procent zostaje szary.
+
+## 2026-10-13 — stage-qty-sum-rename — „Pomiar z natury (etapy razem)”
+
+- [ ] Kosztorys, widok Inwestor → nagłówek kolumny i pozycja w liście „Kolumny” brzmią „Pomiar z natury (etapy razem)”; dymek nagłówka zaczyna się od „Pomiar z natury — ilość faktycznie wykonana.”
+- [ ] Widok ekipy (np. „Z narzędziami (podwykonawca)”) → kolumna nazywa się „Pomiar z natury (etapy razem) — z narzędziami (podwykonawca)”; to samo na wydruku dla ekipy.

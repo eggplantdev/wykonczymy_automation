@@ -129,7 +129,7 @@ describe('preview columns', () => {
 
   // What the sheet measured against what the etapy carry is the company's own bookkeeping, and the
   // payload DOES carry the reference figure (preview-kosztorys.ts ships the whole tree by decision),
-  // so the render is the gate. „Pomiar (razem etapy)" is the one client-visible column derived from
+  // so the render is the gate. „Pomiar z natury (etapy razem)" is the one client-visible column derived from
   // the same rows, and the client still needs that column itself — so the render gate is what keeps
   // the sheet figure off it.
   it('never surfaces the sheet pomiar to the client', () => {

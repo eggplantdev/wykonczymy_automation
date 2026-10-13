@@ -300,7 +300,7 @@ export const pl = {
     planeWithTools: 'Z narzędziami (podwykonawca)',
     planeOwnTools: 'Bez narzędzi (pracownik)',
     netForPlane: 'Suma etapów {{plane}} netto',
-    stageQtySumForPlane: 'Pomiar — suma etapów {{plane}}',
+    stageQtySumForPlane: 'Pomiar z natury (etapy razem) — {{plane}}',
     stageFallback: 'Etap {{ordinal}}',
     stageCompleted: 'Etap zakończony',
     stageValueNetHeader: '{{stage}} netto',
@@ -325,7 +325,8 @@ export const pl = {
       'Przedmiar ofertowy — ilość z oferty, sprzed zmian zakresu uzgodnionych w trakcie prac.',
     tipCurrentPlannedQty:
       'Aktualizacja przedmiaru — zakres po zmianach uzgodnionych w trakcie prac.\nOd niej liczony jest postęp i to, co pozostało.',
-    tipStageQtySum: 'Pomiar — ilość faktycznie wykonana.\nSuma ilości prac w widocznych etapach.',
+    tipStageQtySum:
+      'Pomiar z natury — ilość faktycznie wykonana.\nSuma ilości prac w widocznych etapach.',
     tipPlannedNetForPlane:
       'Aktualizacja przedmiaru razy Twoja stawka.\nIle zarobisz, jeśli wykonasz cały uzgodniony zakres.',
     tipNet: 'Pomiar razy Twoja stawka.',

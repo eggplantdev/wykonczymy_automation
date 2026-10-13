@@ -23,7 +23,7 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
  * does not make the rest of the offer any less owed (EX-885). The skip is per row, so Σ footers =
  * „Razem" still holds.
  *
- * The quantity columns (both przedmiary, „Pomiar (razem etapy)", each etap's ilość) are absent for that
+ * The quantity columns (both przedmiary, „Pomiar z natury (etapy razem)", each etap's ilość) are absent for that
  * reason: rows in one section carry different jednostki miary, so 40 m² + 12 mb + 3 szt. adds to 55
  * of nothing. Only the zł columns share a unit across rows and may be summed. Per row those columns
  * still total fine — one row is one jednostka — which is why the columns themselves stay.

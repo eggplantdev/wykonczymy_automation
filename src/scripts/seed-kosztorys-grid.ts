@@ -2,7 +2,7 @@
 //
 // TWO fresh investments of the same shape, one per test: the write test types new quantities and the
 // read test asserts exact figures, so sharing one would make the second read the first's leftovers.
-// The shape is the smallest in which both are provable — two etapy so „Pomiar (razem etapy)" sums
+// The shape is the smallest in which both are provable — two etapy so „Pomiar z natury (etapy razem)" sums
 // rather than echoes, przedmiar 10 at 100 zł so „Pozostało" moves by a nameable amount, three prace
 // so a run of edits is a real burst with untouched rows as controls.
 //
