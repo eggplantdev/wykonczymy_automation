@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -6,6 +6,7 @@ import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 import { buildDraftPrefill } from '@/components/worker-expenses/draft-prefill'
 import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense-form'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
+import { rejectExpenseParagonsAction } from '@/lib/actions/worker-expense-drafts'
 import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
@@ -15,6 +16,10 @@ vi.mock('next/navigation', () => ({
 }))
 vi.mock('@/lib/actions/transfers', () => ({
   createBulkTransferAction: vi.fn(async () => ({ success: true })),
+}))
+vi.mock('@/lib/actions/worker-expense-drafts', () => ({
+  rejectExpenseParagonsAction: vi.fn(async () => ({ success: true, data: [] })),
+  restoreSkippedReceiptAction: vi.fn(),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
@@ -83,10 +88,13 @@ async function merge(user: ReturnType<typeof userEvent.setup>, rows: number[]) {
   await waitFor(() => expect(descriptions()).toHaveLength(4 - rows.length))
 }
 
-async function save(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: 'Zapisz' }))
-  await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
-  return vi.mocked(createBulkTransferAction).mock.calls[0]
+// Rows keep the order of the worker's photos, so a merged row sits at its earliest paragon.
+async function decide(
+  user: ReturnType<typeof userEvent.setup>,
+  decision: 'Przyjmij' | 'Odrzuć',
+  row: number,
+) {
+  await user.click(screen.getAllByRole('button', { name: decision })[row])
 }
 
 beforeEach(() => {
@@ -141,7 +149,7 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
     await screen.findByDisplayValue('Paliwo')
     await merge(user, [1, 2])
 
-    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
+    // The merged row stays selected, so ticking the other one is enough.
     await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 2' }))
     await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone w 1 transakcję' }))
     await waitFor(() => expect(descriptions()).toEqual(['Parking']))
@@ -160,45 +168,40 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
 
     await user.click(screen.getByRole('button', { name: 'Rozłącz' }))
 
-    await waitFor(() => expect(descriptions()).toEqual(['Parking', 'Paliwo', 'Bilet']))
+    await waitFor(() => expect(descriptions()).toEqual(['Parking', 'Bilet', 'Paliwo']))
     expect(screen.queryByRole('button', { name: 'Rozłącz' })).toBeNull()
     expect(screen.queryByText('nie odczytano')).toBeNull()
   })
 
-  it('books a merged row as the union of its photos and its read rows, skipping none', async () => {
+  it('books a merged row as the union of its photos and its read rows', async () => {
     const user = renderDraft()
     await screen.findByDisplayValue('Paliwo')
     await merge(user, [2, 3])
 
-    const [data, , opts] = await save(user)
+    await decide(user, 'Przyjmij', 1)
 
-    expect(data.lineItems).toHaveLength(2)
+    await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
+    const [data, , opts] = vi.mocked(createBulkTransferAction).mock.calls[0]
+    expect(data.lineItems).toHaveLength(1)
     expect(opts).toEqual({
       expenseDraftId: 42,
-      receiptMediaIds: [[101], [101, 102]],
-      receiptReadRows: [[0], [1, 2]],
+      receiptMediaIds: [[101, 102]],
+      receiptReadRows: [[1, 2]],
       skippedReceipts: [],
     })
   })
 
-  it('a merged row sent to the trash skips each of its paragony', async () => {
+  it('a merged row refused refuses each of its paragony', async () => {
     const user = renderDraft()
     await screen.findByDisplayValue('Paliwo')
     await merge(user, [1, 2])
 
-    const mergedRow = screen.getByRole('button', { name: 'Rozłącz' }).closest('.flex-1')!
-    await user.click(within(mergedRow as HTMLElement).getByRole('button', { name: 'Usuń' }))
-    await waitFor(() => expect(descriptions()).toEqual(['Paliwo']))
-    const [, , opts] = await save(user)
+    await decide(user, 'Odrzuć', 0)
 
-    expect(opts).toEqual({
-      expenseDraftId: 42,
-      receiptMediaIds: [[102]],
-      receiptReadRows: [[2]],
-      skippedReceipts: [
-        { mediaIds: [101], readRow: 0 },
-        { mediaIds: [101], readRow: 1 },
-      ],
-    })
+    await waitFor(() => expect(rejectExpenseParagonsAction).toHaveBeenCalledTimes(1))
+    expect(rejectExpenseParagonsAction).toHaveBeenCalledWith(42, [
+      { mediaIds: [101], readRow: 0, duplicateOf: undefined },
+      { mediaIds: [101], readRow: 1, duplicateOf: undefined },
+    ])
   })
 })

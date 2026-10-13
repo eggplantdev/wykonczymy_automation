@@ -42,6 +42,7 @@ import {
   type LineItemStatusT,
 } from '@/components/forms/form-fields/collapsible-line-item'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
+import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
 
 // Structural on purpose — name only the members we call, since the full FieldApi generic is
 // unnameable and the real inferred field is assignable to this.
@@ -99,16 +100,6 @@ type LineItemsFieldPropsT = {
   generationProgress?: { done: number; total: number } | null
   receiptGrouping?: ReceiptGroupingT
   hiddenStatuses?: ReadonlySet<LineItemStatusT>
-}
-
-type EntryT = { item: BulkLineItemT; index: number }
-
-// While deciding, rows keep the order of the worker's photos, decided or not.
-function orderedEntries(items: BulkLineItemT[], grouping: ReceiptGroupingT | undefined): EntryT[] {
-  const entries = items.map((item, index) => ({ item, index }))
-  if (!grouping?.onDecide) return entries
-  const order = (entry: EntryT) => grouping.readRowOf(entry.item.id) ?? Infinity
-  return entries.sort((a, b) => order(a) - order(b) || a.index - b.index)
 }
 
 const rowTitle = (item: BulkLineItemT) =>
@@ -294,7 +285,10 @@ export function LineItemsField({
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: LineItemsArrayFieldT) => {
         // Numbered before filtering, so a paragon keeps its number whatever is hidden around it.
-        const entries = orderedEntries(lineItemsField.state.value, receiptGrouping)
+        const entries = orderedEntries(
+          lineItemsField.state.value,
+          receiptGrouping?.onDecide && receiptGrouping.readRowOf,
+        )
           .map((entry, position) => ({ ...entry, position }))
           .filter(
             (entry) => !hiddenStatuses?.has(receiptGrouping?.statusOf(entry.item.id) ?? 'pending'),
@@ -504,7 +498,7 @@ export function LineItemsField({
         return (
           <div className="space-y-4">
             {/* While deciding, the selection's actions ride in the dialog's fixed footer. */}
-            {receiptGrouping && !isDecideMode && receiptGrouping.selectableIds.size > 0 && (
+            {receiptGrouping && !isDecideMode && receiptGrouping.selectableIds.size > 1 && (
               <ReceiptSelectionActions grouping={receiptGrouping} />
             )}
             <div className="space-y-6">

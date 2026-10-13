@@ -506,15 +506,15 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Unit spec for the existing-vs-new split and orphan-cleanup exclusion passes
+- [x] 2.1 Unit spec for the existing-vs-new split and orphan-cleanup exclusion passes — 2962e2cd9
 
 ### Phase 3: Dialog hardening
 
 #### Automated
 
-- [ ] 3.1 Unit specs for the extracted functions pass
-- [ ] 3.2 `expense-form-merge.test.tsx` passes after the split
-- [ ] 3.3 DOM spec: a refused decision triggers the resync
+- [x] 3.1 Unit specs for the extracted functions pass
+- [x] 3.2 `expense-form-merge.test.tsx` passes after the split
+- [x] 3.3 DOM spec: a refused decision triggers the resync
 
 ### Phase 4: Shared badge
 

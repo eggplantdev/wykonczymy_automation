@@ -6,13 +6,11 @@ import { FieldDescription, FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceIngest } from '@/components/forms/expense-form/use-invoice-ingest'
 import { useReceiptGeneration } from '@/components/forms/expense-form/use-receipt-generation'
-import { isReceiptOf, useDraftReceipts } from '@/components/forms/expense-form/use-draft-receipts'
+import { useParagonDecisions } from '@/components/forms/expense-form/use-paragon-decisions'
+import { ParagonFooter } from '@/components/forms/expense-form/paragon-footer'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { Label } from '@/components/ui/label'
-import { Description } from '@/components/ui/description'
-import { formatPLN } from '@/lib/utils/format-currency'
 import { missingInvoiceConfirm } from '@/lib/transfers/missing-invoice-confirm'
 import { useRegisterBalance } from '@/components/forms/hooks/use-register-balance'
 import { useInvestmentFromUrl } from '@/components/forms/hooks/use-investment-from-url'
@@ -29,11 +27,9 @@ import {
   canBeSettled,
   carriesPaymentMethod,
   isInvestmentExpense,
-  type TransferTypeT,
-  type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
-import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
+import { toBulkData } from '@/components/forms/expense-form/to-bulk-data'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import { restorableType } from '@/components/forms/expense-form/draft-type'
 import {
@@ -52,10 +48,7 @@ import {
   getDefaultCashRegister,
   getUserDefaultCashRegisterId,
 } from '@/lib/utils/default-cash-register'
-import {
-  bulkExpenseFormSchema,
-  type CreateBulkExpenseFormT,
-} from '@/components/forms/expense-form/bulk-expense-schema'
+import { bulkExpenseFormSchema } from '@/components/forms/expense-form/bulk-expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { warsawToday } from '@/lib/utils/days'
 import {
@@ -77,15 +70,7 @@ import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/recei
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
-import {
-  rejectExpenseParagonsAction,
-  restoreSkippedReceiptAction,
-} from '@/lib/actions/worker-expense-drafts'
-import { settleAction } from '@/lib/utils/settle-action'
-import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
 import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
-import { cn } from '@/lib/utils/cn'
-import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -141,10 +126,9 @@ export function ExpenseForm({
   renderAboveLineItems,
   onDecided,
 }: TransferFormPropsT) {
-  // With an AI read, a zgłoszenie is decided paragon by paragon; without one, whole.
+  // With an AI read, each paragon is booked or refused by its own button; without one, the
+  // zgłoszenie is booked whole by „Zapisz".
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
-  const [rejected, setRejected] = useState(() => prefill?.rejectedReceipts ?? [])
-  const [isDeciding, setIsDeciding] = useState(false)
   const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<LineItemStatusT>>(
     () => new Set(['accepted', 'rejected']),
   )
@@ -322,100 +306,6 @@ export function ExpenseForm({
 
   useCheckFormErrors(form)
 
-  // A decided paragon stays in the list, so the dialog closes on the last one still waiting.
-  function afterDecision(decidedIds: string[]) {
-    onDecided?.()
-    if ([...draftReceipts.pendingIds].every((id) => decidedIds.includes(id))) onSubmitSuccess()
-  }
-
-  async function bookRows(ids: string[]) {
-    if (!prefill) return
-    const value = form.state.values
-    const subset = value.lineItems.filter((item) => ids.includes(item.id))
-    const check = bulkExpenseFormSchema.safeParse({ ...value, lineItems: subset })
-    if (!check.success) {
-      toastMessage(check.error.issues[0]?.message ?? 'Uzupełnij pozycję', 'warning')
-      return
-    }
-    const files = positionalFiles(subset, getFiles())
-    const missingInvoice = isInvestmentExpense(value.type) && missingInvoiceConfirm(subset, files)
-    if (missingInvoice && !(await ask(missingInvoice))) return
-
-    const data = toBulkData(value, subset)
-    setIsDeciding(true)
-    try {
-      await submit(true, {
-        action: () =>
-          submitWithUploadRows(
-            subset.length,
-            files,
-            (invoicePageRows) =>
-              createBulkTransferAction(data, invoicePageRows, {
-                expenseDraftId: prefill.expenseDraftId,
-                ...receiptDecision(draftReceipts.receipts, subset),
-                skippedReceipts: [],
-              }),
-            draftMediaIdOf,
-          ),
-        successMessage: subset.length === 1 ? 'Paragon przyjęty' : `Przyjęto ${subset.length}`,
-        files,
-        onSubmitSuccess,
-        onReset: () => draftReceipts.decide(ids, 'accepted'),
-        onSaved: () => afterDecision(ids),
-      })
-    } finally {
-      setIsDeciding(false)
-    }
-  }
-
-  async function rejectRows(ids: string[], duplicateOf?: DuplicateOfT) {
-    if (!prefill) return
-    const parts = ids.flatMap((id) => draftReceipts.receipts.get(id) ?? [])
-    setIsDeciding(true)
-    try {
-      const result = await settleAction(() =>
-        rejectExpenseParagonsAction(
-          prefill.expenseDraftId,
-          parts.map((part) => ({ mediaIds: part.mediaIds, readRow: part.readRow, duplicateOf })),
-        ),
-      )
-      if (!result.success) {
-        toastMessage(result.error, 'error')
-        return
-      }
-      toastMessage(ids.length === 1 ? 'Paragon odrzucony' : `Odrzucono ${ids.length}`)
-      setRejected((prev) => [...prev, ...result.data])
-      draftReceipts.decide(ids, 'rejected')
-      afterDecision(ids)
-    } finally {
-      setIsDeciding(false)
-    }
-  }
-
-  function refusalsOf(id: string) {
-    const parts = draftReceipts.receipts.get(id) ?? []
-    return rejected.filter((receipt) => parts.some((part) => isReceiptOf(receipt, part)))
-  }
-
-  async function undoReject(id: string) {
-    const receipts = refusalsOf(id)
-    setIsDeciding(true)
-    try {
-      for (const receipt of receipts) {
-        const result = await settleAction(() => restoreSkippedReceiptAction(receipt.id))
-        if (!result.success) {
-          toastMessage(result.error, 'error')
-          return
-        }
-        setRejected((prev) => prev.filter((r) => r.id !== receipt.id))
-      }
-      draftReceipts.undecide(id)
-      onDecided?.()
-    } finally {
-      setIsDeciding(false)
-    }
-  }
-
   const {
     generateFromReceipts,
     regenerateRow,
@@ -440,36 +330,27 @@ export function ExpenseForm({
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
 
-  const draftReceipts = useDraftReceipts({
-    source: prefill,
+  const { draftReceipts, receiptGrouping, rejectRows } = useParagonDecisions({
+    prefill,
+    isParagonMode,
+    form,
     lineItems,
-    setLineItems: (items) => form.setFieldValue('lineItems', items),
     replaceRows,
-    isBusy: isGenerating || isIngesting || isPrefillReading || isDeciding,
+    isBusy: isGenerating || isIngesting || isPrefillReading || isSaveBlocked,
+    getFiles,
+    ask,
+    submit,
+    linkedMediaIdOf: draftMediaIdOf,
+    onSubmitSuccess,
+    onDecided,
   })
 
-  const receiptGrouping = draftReceipts.grouping && {
-    ...draftReceipts.grouping,
-    onDecide: isParagonMode
-      ? (ids: string[], decision: 'accept' | 'reject') =>
-          decision === 'accept' ? bookRows(ids) : rejectRows(ids)
-      : undefined,
-    // A photo refused without a read has no row the restore can name.
-    undoFor: (id: string) => {
-      const receipts = refusalsOf(id)
-      return receipts.length > 0 && receipts.every((receipt) => receipt.readRow !== null)
-        ? () => void undoReject(id)
-        : undefined
-    },
-  }
   // Booked and refused rows stay on screen; only what is still waiting adds up.
   const sumAmounts = (items: typeof lineItems) =>
     items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const total = sumAmounts(
     lineItems.filter((item) => !isParagonMode || draftReceipts.pendingIds.has(item.id)),
   )
-  const selectedIds = receiptGrouping?.selectedIds ?? new Set<string>()
-  const selectedTotal = sumAmounts(lineItems.filter((item) => selectedIds.has(item.id)))
 
   function markDuplicate(itemId: string, duplicateOf: DuplicateOfT) {
     const index = lineItems.findIndex((item) => item.id === itemId)
@@ -633,71 +514,25 @@ export function ExpenseForm({
         <RegisterBalanceSummary registerBalance={registerBalance} total={total} />
       )}
 
-      {/* Pinned while deciding: a zgłoszenie runs to dozens of paragony, and the selection's actions
-      must stay in reach from any of them. Negative offsets cancel the dialog's own padding. */}
-      <div
-        className={cn(
-          'mt-6',
-          isParagonMode &&
-            'bg-background sticky -bottom-4 z-10 -mx-4 -mb-4 space-y-3 px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6',
-        )}
-      >
-        {isParagonMode && prefill && (
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="space-y-2">
-              <DraftProgressBadge
-                progress={draftReceipts.progress}
-                hidden={hiddenStatuses}
-                onToggle={(status) =>
-                  setHiddenStatuses((prev) => {
-                    const next = new Set(prev)
-                    if (!next.delete(status)) next.add(status)
-                    return next
-                  })
-                }
-              />
-              <Description size="xs">
-                Kliknij etykietę, aby ukryć lub pokazać te paragony.
-              </Description>
-            </div>
-            <div className="ml-auto flex flex-col items-end gap-2">
-              {selectedIds.size > 0 && (
-                <Label>
-                  Suma zaznaczonych ({selectedIds.size}): {formatPLN(selectedTotal)}
-                </Label>
-              )}
-              {receiptGrouping && <ReceiptSelectionActions grouping={receiptGrouping} />}
-            </div>
-          </div>
-        )}
-        {!isParagonMode && (
+      {isParagonMode && receiptGrouping ? (
+        <ParagonFooter
+          progress={draftReceipts.progress}
+          hiddenStatuses={hiddenStatuses}
+          onHiddenStatusesChange={setHiddenStatuses}
+          grouping={receiptGrouping}
+          lineItems={lineItems}
+        />
+      ) : (
+        <div className="mt-6">
           <FormFooter
             label="Zapisz"
-            disabled={isIngesting || isPrefillReading || isSaveBlocked || isDeciding}
+            disabled={isIngesting || isPrefillReading || isSaveBlocked}
             awaitingAnswer={missingInvoiceDialog.open}
             secondaryAction={secondaryAction}
           />
-        )}
-      </div>
+        </div>
+      )}
       <ConfirmDialog {...missingInvoiceDialog} />
     </FormShell>
   )
-}
-
-function toBulkData(
-  value: FormValuesT,
-  lineItems: FormValuesT['lineItems'],
-): CreateBulkExpenseFormT {
-  const type = value.type as TransferTypeT
-  return {
-    date: value.date,
-    type,
-    paymentMethod: (value.paymentMethod as PaymentMethodT) || null,
-    sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
-    targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
-    investment: value.investment ? Number(value.investment) : undefined,
-    worker: value.worker ? Number(value.worker) : undefined,
-    settled: value.settled,
-    lineItems: lineItems.map((item) => mapLineItem(item, type, !!value.investment)),
-  }
 }

@@ -4946,3 +4946,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Zaznacz zgłoszenia różnych pracowników albo z różną inwestycją lub kasą → „Połącz” odmawia z komunikatem, nic się nie zmienia.
 - [ ] Konto z językiem Українська → kolejka, licznik i komunikaty „Połącz” są po ukraińsku.
 - [ ] Podgląd zdjęcia paragonu → po otwarciu przycisk powiększenia nie ma podświetlenia fokusu.
+- [ ] Zgłoszenie otwarte w dwóch kartach → w jednej przyjmij paragon, w drugiej kliknij „Przyjmij” na tym samym: komunikat, że paragon jest już rozstrzygnięty, lista odświeża się bez niego, nic nie zapisuje się dwa razy.
+- [ ] „Przyjmij” przy wyłączonej sieci (DevTools → Offline) → po włączeniu sieci i ponownym otwarciu zgłoszenia paragon nie jest przyjęty dwa razy; okno pokazuje to, co naprawdę zapisano.
+- [ ] Paragon bez kwoty → „Przyjmij”: przy polu „Kwota” tego paragonu pojawia się błąd, paragon zostaje na liście, inne paragony bez zmian.
+- [ ] Zwykłe „Dodaj wydatek” (bez zgłoszenia) → zapis działa jak dotąd; akcje zaznaczenia pojawiają się dopiero przy więcej niż jednej pozycji.
