@@ -42,7 +42,7 @@ export function ConfirmDialog({
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <AlertDialogContent>
-        <div className="flex flex-col gap-2">
+        <div className="flex max-w-sm flex-col gap-2">
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {/* A div, not Radix's <p>: a description may carry a list. */}
           {description != null && (
@@ -51,7 +51,9 @@ export function ConfirmDialog({
             </AlertDialogDescription>
           )}
         </div>
-        <div className="mt-4 flex justify-end gap-2">
+        {/* Only a phone is narrower than the pair: there the buttons share the row, and a pair too
+            wide for it stacks, each button full width. */}
+        <div className="mt-4 flex flex-wrap justify-end gap-2 *:max-sm:grow">
           <AlertDialogCancel>{cancelLabel ?? t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className={variant === 'alert' ? buttonVariants({ variant: 'destructive' }) : undefined}
