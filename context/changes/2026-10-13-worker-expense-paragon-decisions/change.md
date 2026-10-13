@@ -28,7 +28,10 @@ Shaped with the user 2026-10-13 (follow-up to EX-1048, mirrors the per-line deci
   „do sprawdzenia”. „Przywróć” in Historia reopens the paragon in place (no new zgłoszenie).
 - Worker cannot delete a zgłoszenie once anything in it is booked.
 - Historia: each paragon row carries its own status, not the zgłoszenie's.
-- A zgłoszenie without an AI read (no paragon list) stays all-or-nothing, as today, with no counter.
+- ~~A zgłoszenie without an AI read stays all-or-nothing, with no counter.~~ **Reversed (owner,
+  2026-10-13): one behaviour for every zgłoszenie.** A photo the read does not cover — the whole
+  zgłoszenie when the read returned nothing — is a paragon like any read row: same dialog, per-row
+  Przyjmij / Odrzuć, counter, filtering. No plain expense form (Wyczyść, trash) inside acceptance.
 
 ## Spike (2026-10-13, uncommitted in the worktree)
 
@@ -36,11 +39,43 @@ No schema change. The status is derived by `settleExpenseDraft` after every deci
 
 Open for the plan:
 
-- Photos the AI read does not cover (blank rows) are not tracked per paragon. Once every read row is decided the zgłoszenie settles, while a blank row may still sit in the open dialog, and the next booking is refused.
+- **No read → still paragony (done in the spike):** the draft read now saves its row per photo even
+  when every row came back blank (`read-expense-draft-receipts.ts`), so a photo the AI got nothing
+  from is a read row like any other and the whole per-paragon path applies unchanged. Cost: no
+  automatic re-read on the next open — „Odczytaj ponownie" on the row is the retry. Every page now
+  gets a read row (a blank or the unreadable sentinel), so a page without one exists only on a
+  zgłoszenie read before EX-1048.
 - A row is booked after only a subset check against `bulkExpenseFormSchema`, so a failure shows a toast, not the field error.
-- The badge and labels are hardcoded Polish (no i18n). The badge is not yet shared with work reports (EX-1049 worktree).
+- The counter badge, the queue and „Połącz zgłoszenia" are translated (pl/uk/ru); the badge shows
+  only parts above 0. The paragon dialog stays Polish, like the whole expense form. The badge is not
+  yet shared with work reports (EX-1049 worktree).
 - Worktree dev needs `next dev --webpack`: Turbopack rejects the symlinked node_modules.
 - Test fixtures for `ExpenseDraftRowT` lack `acceptedReadRows` / `rejectedReceipts`.
 - **Przyjmij / Odrzuć is extremely slow** (owner, 2026-10-13) — must be fixed before this ships.
 - A decided paragon stays in the dialog as its full row, folded and locked. On reopen an accepted row shows the AI read, not what was booked if the manager edited it, and a merged booking shows as its separate paragony.
-- Cofnij exists only for a refusal tied to a read row; a refused photo without a read can't be undone in the dialog.
+- **A booking whose response is lost desyncs the dialog** (hit 2026-10-13, draft 24): the request
+  was cut client-side (`ECONNRESET`) while the server committed transakcja #5890 for read rows
+  31–36. The dialog took `REQUEST_FAILED` as „not booked" and kept those paragony as waiting. The
+  next decision touching them hit the read-row clash and reported „To zgłoszenie zostało już
+  rozpatrzone" — wrong, the zgłoszenie is still pending — and the duplicate check flagged them as
+  duplicates of their own transakcje. Needed: on `REQUEST_FAILED` or a clash, re-read the draft's
+  decided read rows and resync the dialog (the case `settleAction`'s `code` exists for), and a
+  clash notice that names paragony rather than the whole zgłoszenie.
+- **Historia status column** (owner, 2026-10-13): „czeka" is dropped while the counter is shown
+  (done in the spike) — „Do sprawdzenia N" says it. Still open: an old zgłoszenie (no per-paragon data) should still get the counter, not fall back to the status
+  badge alone. Owner to come back to the exact rule.
+- **„Połącz zgłoszenia" in the queue (spike, owner 2026-10-13):** a worker sent ~30 one-photo
+  zgłoszenia. Tick them in the pending queue → „Połącz zgłoszenia (N)" folds them into the oldest
+  one, as if sent in one go (photos appended in send order, read rows concatenated, notes joined,
+  the rest deleted), then it opens in the paragon dialog like any other. Allowed only when every
+  selected zgłoszenie is pending with no decided paragon, and all share the worker, investment and
+  kasa; each is read first (the merge needs the reads). Irreversible, ignores the 8-photo limit, and
+  the worker sees one zgłoszenie — all accepted by the owner. `mergeExpenseDrafts` /
+  `mergeExpenseDraftsAction`. Tested on the prod dump and approved as the way to do it (owner,
+  2026-10-13). Combining automatically — a new send appended to the worker's open zgłoszenie for the
+  same investment and kasa — was discussed and not taken; it would need a read of only the new photos
+  and a rule for the worker's „Usuń" on a zgłoszenie holding several sends.
+  A merge doesn't need the photos looked at first: it decides nothing — every paragon stays its own
+  row — and the worker/investment/kasa rule matches what the dialog books under anyway. The opposite
+  route, one dialog over several zgłoszenia, can't „Połącz" across them: a transakcja links to one
+  zgłoszenie (`worker_expense_draft_transfers` is keyed by `transfer_id`).

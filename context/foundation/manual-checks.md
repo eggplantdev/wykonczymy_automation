@@ -4930,3 +4930,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Kosztorys → pozycja, w której etapy dają minimalnie więcej niż Aktualizacja przedmiaru (np. 14,3 przy 14,25): „% wykonania” pokazuje czerwone „100,4%”, nie czerwone „100%”; „% wykonania (względem przedmiaru ofertowego)” tak samo.
 - [ ] Kosztorys → pozycja wykonana dokładnie do Aktualizacji przedmiaru: „100%” szare, bez części dziesiętnej.
+
+## 2026-10-13 — worker-expense-paragon-decisions — „Przyjmij / Odrzuć” paragon po paragonie, „Połącz zgłoszenia” (EX-1053)
+
+- [ ] Kierownik → zgłoszenie z kilkoma paragonami → „Przyjmij”: przy każdym paragonie „Przyjmij” i „Odrzuć”; rozstrzygnięty paragon znika z listy do sprawdzenia, zamknięcie okna niczego nie rozstrzyga.
+- [ ] Odrzuć wszystkie paragony zgłoszenia → zgłoszenie znika z kolejki i w historii jest jako odrzucone; przyjmij choć jeden → przyjęte.
+- [ ] Kolejka „Wydatki zgłoszone przez pracowników” → kolumna „Paragony” pokazuje „Przyjęte / Odrzucone / Do sprawdzenia” tylko dla liczb większych od 0; w historii zgłoszenie oczekujące pokazuje licznik zamiast „czeka”.
+- [ ] Kolejka → zaznacz dwa zgłoszenia jednego pracownika z tą samą inwestycją i kasą → „Połącz zgłoszenia (2)” → potwierdź: zostaje jedno zgłoszenie ze wszystkimi zdjęciami i paragonami, w kolejności wysłania.
+- [ ] Zaznacz zgłoszenia różnych pracowników albo z różną inwestycją lub kasą → „Połącz” odmawia z komunikatem, nic się nie zmienia.
+- [ ] Konto z językiem Українська → kolejka, licznik i komunikaty „Połącz” są po ukraińsku.
+- [ ] Podgląd zdjęcia paragonu → po otwarciu przycisk powiększenia nie ma podświetlenia fokusu.
