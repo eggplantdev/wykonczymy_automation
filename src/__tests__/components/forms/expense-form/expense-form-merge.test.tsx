@@ -79,7 +79,7 @@ async function merge(user: ReturnType<typeof userEvent.setup>, rows: number[]) {
   for (const row of rows) {
     await user.click(screen.getByRole('checkbox', { name: `Zaznacz pozycję ${row}` }))
   }
-  await user.click(screen.getByRole('button', { name: `Połącz zaznaczone (${rows.length})` }))
+  await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone w 1 transakcję' }))
   await waitFor(() => expect(descriptions()).toHaveLength(4 - rows.length))
 }
 
@@ -144,7 +144,7 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
 
     await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
     await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 2' }))
-    await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone (2)' }))
+    await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone w 1 transakcję' }))
     await waitFor(() => expect(descriptions()).toEqual(['Parking']))
 
     expect(screen.getByDisplayValue('212.45')).toBeInTheDocument()

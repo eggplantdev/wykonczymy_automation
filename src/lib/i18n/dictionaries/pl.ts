@@ -65,6 +65,11 @@ export const pl = {
     uploadSaveFailed: 'Nie udało się zapisać pliku „{{name}}" ({{status}}) — spróbuj ponownie.',
     uploadNoFileReturned: 'Upload nie powiódł się — serwer nie zwrócił pliku',
     uploadFailed: 'Nie udało się przesłać plików — spróbuj ponownie.',
+    mergeNotPending: 'Nie można połączyć — któreś zgłoszenie zostało już rozpatrzone.',
+    mergeMixed: 'Połączyć można tylko zgłoszenia jednego pracownika, z tą samą inwestycją i kasą.',
+    mergeDecided:
+      'Nie można połączyć — w którymś zgłoszeniu część paragonów jest już przyjęta lub odrzucona.',
+    mergeUnread: 'Nie można połączyć — nie udało się odczytać zdjęć któregoś zgłoszenia.',
   },
   workerPage: {
     role: 'Rola',
@@ -178,6 +183,30 @@ export const pl = {
     delete: 'Usuń',
     deletedToast: 'Wydatek usunięty',
     tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
+    progressAccepted: 'Przyjęte',
+    progressRejected: 'Odrzucone',
+    progressPending: 'Do sprawdzenia',
+    receipts: 'Paragony',
+    queueTitle: 'Wydatki zgłoszone przez pracowników',
+    mergeHint:
+      'Zaznacz kilka zgłoszeń jednego pracownika, z tą samą inwestycją i kasą, aby połączyć je w jedno.',
+    selectDraft: 'Zaznacz zgłoszenie {{name}}',
+    merge: 'Połącz zgłoszenia ({{count}})',
+    mergeConfirm: 'Połącz',
+    mergeConfirmBody:
+      'Paragony trafią do najstarszego zgłoszenia, pozostałe znikną. Tego nie da się cofnąć.',
+    mergeConfirmTitle: {
+      one: 'Połączyć {{count}} zgłoszenie w jedno?',
+      few: 'Połączyć {{count}} zgłoszenia w jedno?',
+      many: 'Połączyć {{count}} zgłoszeń w jedno?',
+      other: 'Połączyć {{count}} zgłoszenia w jedno?',
+    },
+    mergedToast: {
+      one: 'Połączono {{count}} zgłoszenie',
+      few: 'Połączono {{count}} zgłoszenia',
+      many: 'Połączono {{count}} zgłoszeń',
+      other: 'Połączono {{count}} zgłoszenia',
+    },
   },
   workerReports: {
     title: 'Zgłoszenia wykonanych prac',

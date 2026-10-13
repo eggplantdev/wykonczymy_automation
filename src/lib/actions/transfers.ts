@@ -11,7 +11,7 @@ import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from 
 import { canBeSettled, carriesPayoutStatus, hasOptionalWorker } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { decideExpenseDraft } from '@/lib/db/worker-expense-drafts'
+import { decideExpenseParagons } from '@/lib/db/worker-expense-drafts'
 import { skippedReceiptSchema, type SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
 import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
 import {
@@ -194,16 +194,15 @@ export async function createBulkTransferAction(
             ids.push(created.id)
           }
           if (opts) {
-            const isDecided = await decideExpenseDraft(await getDb(payload, req), {
+            const decided = await decideExpenseParagons(await getDb(payload, req), {
               draftId: opts.expenseDraftId,
               decidedBy: user.id,
-              status: 'accepted',
               transferIds: ids,
               transferMediaIds: opts.receiptMediaIds,
               transferReadRows: receiptReadRows.data,
               skippedReceipts: skippedReceipts.data,
             })
-            if (!isDecided) throw new DraftAlreadyDecided()
+            if (!decided) throw new DraftAlreadyDecided()
           }
           return ids
         },

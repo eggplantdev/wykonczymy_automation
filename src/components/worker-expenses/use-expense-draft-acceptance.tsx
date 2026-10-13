@@ -76,6 +76,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       receipts,
       aiReadRows: draft.aiRead?.rows ?? [],
       pagesByMediaId,
+      rejectedReceipts: draft.rejectedReceipts,
+      acceptedReadRows: draft.acceptedReadRows,
       files: rowFiles,
       values: {
         date: warsawToday(),
@@ -130,10 +132,17 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     setAccepting((prev) => {
       if (prev?.draft.id !== draftId) return prev
       if (!result.success) {
-        return { ...prev, duplicates: { status: 'error', message: result.error } }
+        return { ...prev, duplicates: { status: 'error', retry: () => retryDuplicates(draftId) } }
       }
       return { ...prev, duplicates: { status: 'ready', paragons: result.data } }
     })
+  }
+
+  function retryDuplicates(draftId: number) {
+    setAccepting((prev) =>
+      prev?.draft.id === draftId ? { ...prev, duplicates: { status: 'checking' } } : prev,
+    )
+    void loadDuplicates(draftId)
   }
 
   // Reading here keeps the spend on the click.
@@ -188,7 +197,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
           formId={formIdOf(accepting.draft.id)}
           trigger={null}
           showKeepOpen={false}
-          title="Nowy wydatek"
+          title={`Zgłoszenie wydatków · ${accepting.draft.workerName}`}
           description={accepting.draft.note ?? undefined}
           className="sm:max-w-dialog-2xl"
         >
@@ -202,6 +211,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
               prefill={accepting.prefill}
               isPrefillReading={isPrefillReading}
               isSaveBlocked={!accepting.hasPages}
+              onDecided={() => router.refresh()}
               onRemoveLastItem={(duplicateOf) =>
                 duplicateOf
                   ? handleReject(accepting.draft.id, duplicateOf)

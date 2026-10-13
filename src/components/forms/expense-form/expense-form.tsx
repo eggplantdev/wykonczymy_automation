@@ -6,10 +6,13 @@ import { FieldDescription, FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceIngest } from '@/components/forms/expense-form/use-invoice-ingest'
 import { useReceiptGeneration } from '@/components/forms/expense-form/use-receipt-generation'
-import { useDraftReceipts } from '@/components/forms/expense-form/use-draft-receipts'
+import { isReceiptOf, useDraftReceipts } from '@/components/forms/expense-form/use-draft-receipts'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Label } from '@/components/ui/label'
+import { Description } from '@/components/ui/description'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { missingInvoiceConfirm } from '@/lib/transfers/missing-invoice-confirm'
 import { useRegisterBalance } from '@/components/forms/hooks/use-register-balance'
 import { useInvestmentFromUrl } from '@/components/forms/hooks/use-investment-from-url'
@@ -73,6 +76,16 @@ import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
+import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
+import {
+  rejectExpenseParagonsAction,
+  restoreSkippedReceiptAction,
+} from '@/lib/actions/worker-expense-drafts'
+import { settleAction } from '@/lib/utils/settle-action'
+import { DraftProgressBadge } from '@/components/worker-expenses/draft-progress-badge'
+import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
+import { cn } from '@/lib/utils/cn'
+import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -85,6 +98,8 @@ export type ExpenseFormPrefillT = {
   receipts: Map<string, DraftReceiptT[]>
   aiReadRows: ExpenseDraftReadRowT[]
   pagesByMediaId: Map<number, File>
+  rejectedReceipts?: RejectedReceiptT[]
+  acceptedReadRows?: number[]
 }
 
 type TransferFormPropsT = {
@@ -99,6 +114,8 @@ type TransferFormPropsT = {
   // with none.
   isSaveBlocked?: boolean
   secondaryAction?: React.ReactNode
+  // After each paragon booked or refused, while the dialog stays open.
+  onDecided?: () => void
   // `duplicateOf` when the last row went as a duplicate — it takes the whole zgłoszenie with it.
   onRemoveLastItem?: (duplicateOf?: DuplicateOfT) => void
   // Reads the live rows, so a hint follows the row it is about as rows are removed.
@@ -122,7 +139,15 @@ export function ExpenseForm({
   secondaryAction,
   onRemoveLastItem,
   renderAboveLineItems,
+  onDecided,
 }: TransferFormPropsT) {
+  // With an AI read, a zgłoszenie is decided paragon by paragon; without one, whole.
+  const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
+  const [rejected, setRejected] = useState(() => prefill?.rejectedReceipts ?? [])
+  const [isDeciding, setIsDeciding] = useState(false)
+  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<LineItemStatusT>>(
+    () => new Set(['accepted', 'rejected']),
+  )
   const { recoveredFiles, submit } = useFormSubmit(formId)
   const { ask, dialogProps: missingInvoiceDialog } = useSubmitConfirm()
   // Rides on the acceptance decision; nothing is stored until the save.
@@ -240,7 +265,8 @@ export function ExpenseForm({
         toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
         return false
       }
-      if (isSaveBlocked) return false
+      // Each paragon is booked by its own button; an Enter in a field books nothing.
+      if (isSaveBlocked || isParagonMode) return false
 
       // Cross the id→position seam once, here: the upload contract and the optimistic-store
       // snapshot (persisted for recovery) are both positional (mediaIds[i] ↔ lineItems[i]).
@@ -250,18 +276,7 @@ export function ExpenseForm({
         isInvestmentExpense(value.type) && missingInvoiceConfirm(value.lineItems, files)
       if (missingInvoice && !(await ask(missingInvoice))) return false
 
-      const type = value.type as TransferTypeT
-      const data: CreateBulkExpenseFormT = {
-        date: value.date,
-        type,
-        paymentMethod: (value.paymentMethod as PaymentMethodT) || null,
-        sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
-        targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
-        investment: value.investment ? Number(value.investment) : undefined,
-        worker: value.worker ? Number(value.worker) : undefined,
-        settled: value.settled,
-        lineItems: value.lineItems.map((item) => mapLineItem(item, type, !!value.investment)),
-      }
+      const data = toBulkData(value, value.lineItems)
 
       await submit(!!keepOpen, {
         // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
@@ -297,6 +312,96 @@ export function ExpenseForm({
 
   useCheckFormErrors(form)
 
+  // A decided paragon stays in the list, so the dialog closes on the last one still waiting.
+  function afterDecision(decidedIds: string[]) {
+    onDecided?.()
+    if ([...draftReceipts.pendingIds].every((id) => decidedIds.includes(id))) onSubmitSuccess()
+  }
+
+  async function bookRows(ids: string[]) {
+    if (!prefill) return
+    const value = form.state.values
+    const subset = value.lineItems.filter((item) => ids.includes(item.id))
+    const check = bulkExpenseFormSchema.safeParse({ ...value, lineItems: subset })
+    if (!check.success) {
+      toastMessage(check.error.issues[0]?.message ?? 'Uzupełnij pozycję', 'warning')
+      return
+    }
+    const files = positionalFiles(subset, getFiles())
+    const missingInvoice = isInvestmentExpense(value.type) && missingInvoiceConfirm(subset, files)
+    if (missingInvoice && !(await ask(missingInvoice))) return
+
+    const data = toBulkData(value, subset)
+    setIsDeciding(true)
+    try {
+      await submit(true, {
+        action: () =>
+          submitWithUploadRows(subset.length, files, (invoicePageRows) =>
+            createBulkTransferAction(data, invoicePageRows, {
+              expenseDraftId: prefill.expenseDraftId,
+              ...receiptDecision(draftReceipts.receipts, subset),
+              skippedReceipts: [],
+            }),
+          ),
+        successMessage: subset.length === 1 ? 'Paragon przyjęty' : `Przyjęto ${subset.length}`,
+        files,
+        onSubmitSuccess,
+        onReset: () => draftReceipts.decide(ids, 'accepted'),
+        onSaved: () => afterDecision(ids),
+      })
+    } finally {
+      setIsDeciding(false)
+    }
+  }
+
+  async function rejectRows(ids: string[], duplicateOf?: DuplicateOfT) {
+    if (!prefill) return
+    const parts = ids.flatMap((id) => draftReceipts.receipts.get(id) ?? [])
+    setIsDeciding(true)
+    try {
+      const result = await settleAction(() =>
+        rejectExpenseParagonsAction(
+          prefill.expenseDraftId,
+          parts.map((part) => ({ mediaIds: part.mediaIds, readRow: part.readRow, duplicateOf })),
+        ),
+      )
+      if (!result.success) {
+        toastMessage(result.error, 'error')
+        return
+      }
+      toastMessage(ids.length === 1 ? 'Paragon odrzucony' : `Odrzucono ${ids.length}`)
+      setRejected((prev) => [...prev, ...result.data])
+      draftReceipts.decide(ids, 'rejected')
+      afterDecision(ids)
+    } finally {
+      setIsDeciding(false)
+    }
+  }
+
+  function refusalsOf(id: string) {
+    const parts = draftReceipts.receipts.get(id) ?? []
+    return rejected.filter((receipt) => parts.some((part) => isReceiptOf(receipt, part)))
+  }
+
+  async function undoReject(id: string) {
+    const receipts = refusalsOf(id)
+    setIsDeciding(true)
+    try {
+      for (const receipt of receipts) {
+        const result = await settleAction(() => restoreSkippedReceiptAction(receipt.id))
+        if (!result.success) {
+          toastMessage(result.error, 'error')
+          return
+        }
+        setRejected((prev) => prev.filter((r) => r.id !== receipt.id))
+      }
+      draftReceipts.undecide(id)
+      onDecided?.()
+    } finally {
+      setIsDeciding(false)
+    }
+  }
+
   const {
     generateFromReceipts,
     regenerateRow,
@@ -319,19 +424,45 @@ export function ExpenseForm({
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
-  const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   const draftReceipts = useDraftReceipts({
     source: prefill,
     lineItems,
     setLineItems: (items) => form.setFieldValue('lineItems', items),
     replaceRows,
-    isBusy: isGenerating || isIngesting || isPrefillReading,
+    isBusy: isGenerating || isIngesting || isPrefillReading || isDeciding,
   })
+
+  const receiptGrouping = draftReceipts.grouping && {
+    ...draftReceipts.grouping,
+    onDecide: isParagonMode
+      ? (ids: string[], decision: 'accept' | 'reject') =>
+          decision === 'accept' ? bookRows(ids) : rejectRows(ids)
+      : undefined,
+    // A photo refused without a read has no row the restore can name.
+    undoFor: (id: string) => {
+      const receipts = refusalsOf(id)
+      return receipts.length > 0 && receipts.every((receipt) => receipt.readRow !== null)
+        ? () => void undoReject(id)
+        : undefined
+    },
+  }
+  // Booked and refused rows stay on screen; only what is still waiting adds up.
+  const sumAmounts = (items: typeof lineItems) =>
+    items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const total = sumAmounts(
+    lineItems.filter((item) => !isParagonMode || draftReceipts.pendingIds.has(item.id)),
+  )
+  const selectedIds = receiptGrouping?.selectedIds ?? new Set<string>()
+  const selectedTotal = sumAmounts(lineItems.filter((item) => selectedIds.has(item.id)))
 
   function markDuplicate(itemId: string, duplicateOf: DuplicateOfT) {
     const index = lineItems.findIndex((item) => item.id === itemId)
     if (index === -1) return
+    if (isParagonMode) {
+      void rejectRows([itemId], duplicateOf)
+      return
+    }
     if (lineItems.length === 1) {
       onRemoveLastItem?.(duplicateOf)
       return
@@ -448,7 +579,9 @@ export function ExpenseForm({
           )}
 
           {renderAboveLineItems?.({
-            lineItemIds: lineItems.map((item) => item.id),
+            lineItemIds: lineItems
+              .map((item) => item.id)
+              .filter((id) => draftReceipts.pendingIds.has(id)),
             markDuplicate,
             itemIdOfReadRow: draftReceipts.itemIdOfReadRow,
           })}
@@ -456,7 +589,7 @@ export function ExpenseForm({
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              total={total}
+              total={isParagonMode ? undefined : total}
               hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
               onRemoveLastItem={onRemoveLastItem}
@@ -470,7 +603,8 @@ export function ExpenseForm({
               generatingIds={generatingIds}
               ingestingIds={ingestingIds}
               failedIds={failedIds}
-              receiptGrouping={draftReceipts.grouping}
+              receiptGrouping={receiptGrouping}
+              hiddenStatuses={isParagonMode ? hiddenStatuses : undefined}
               generationProgress={generationProgress}
               transferType={currentType}
               referenceData={referenceData}
@@ -484,14 +618,71 @@ export function ExpenseForm({
         <RegisterBalanceSummary registerBalance={registerBalance} total={total} />
       )}
 
-      <FormFooter
-        className="mt-6"
-        label="Zapisz"
-        disabled={isIngesting || isPrefillReading || isSaveBlocked}
-        awaitingAnswer={missingInvoiceDialog.open}
-        secondaryAction={secondaryAction}
-      />
+      {/* Pinned while deciding: a zgłoszenie runs to dozens of paragony, and the selection's actions
+      must stay in reach from any of them. Negative offsets cancel the dialog's own padding. */}
+      <div
+        className={cn(
+          'mt-6',
+          isParagonMode &&
+            'bg-background sticky -bottom-4 z-10 -mx-4 -mb-4 space-y-3 px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6',
+        )}
+      >
+        {isParagonMode && prefill && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="space-y-2">
+              <DraftProgressBadge
+                progress={draftReceipts.progress}
+                hidden={hiddenStatuses}
+                onToggle={(status) =>
+                  setHiddenStatuses((prev) => {
+                    const next = new Set(prev)
+                    if (!next.delete(status)) next.add(status)
+                    return next
+                  })
+                }
+              />
+              <Description size="xs">
+                Kliknij etykietę, aby ukryć lub pokazać te paragony.
+              </Description>
+            </div>
+            <div className="ml-auto flex flex-col items-end gap-2">
+              {selectedIds.size > 0 && (
+                <Label>
+                  Suma zaznaczonych ({selectedIds.size}): {formatPLN(selectedTotal)}
+                </Label>
+              )}
+              {receiptGrouping && <ReceiptSelectionActions grouping={receiptGrouping} />}
+            </div>
+          </div>
+        )}
+        {!isParagonMode && (
+          <FormFooter
+            label="Zapisz"
+            disabled={isIngesting || isPrefillReading || isSaveBlocked || isDeciding}
+            awaitingAnswer={missingInvoiceDialog.open}
+            secondaryAction={secondaryAction}
+          />
+        )}
+      </div>
       <ConfirmDialog {...missingInvoiceDialog} />
     </FormShell>
   )
+}
+
+function toBulkData(
+  value: FormValuesT,
+  lineItems: FormValuesT['lineItems'],
+): CreateBulkExpenseFormT {
+  const type = value.type as TransferTypeT
+  return {
+    date: value.date,
+    type,
+    paymentMethod: (value.paymentMethod as PaymentMethodT) || null,
+    sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
+    targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
+    investment: value.investment ? Number(value.investment) : undefined,
+    worker: value.worker ? Number(value.worker) : undefined,
+    settled: value.settled,
+    lineItems: lineItems.map((item) => mapLineItem(item, type, !!value.investment)),
+  }
 }

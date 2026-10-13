@@ -155,6 +155,8 @@ export function MediaPreviewDialog({
       <DialogContent
         className="sm:top-0 sm:h-dvh sm:max-h-none sm:max-w-none sm:translate-y-0 sm:rounded-none"
         aria-describedby={undefined}
+        // Radix focuses the first button, the zoom control, which lights up its focus ring on open.
+        onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <DialogHeader title={title} />
 

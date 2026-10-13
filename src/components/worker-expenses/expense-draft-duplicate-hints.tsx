@@ -16,7 +16,7 @@ export type DuplicateHintsStateT =
   | { status: 'reading' }
   | { status: 'checking' }
   | { status: 'no-read' }
-  | { status: 'error'; message: string }
+  | { status: 'error'; retry: () => void }
   | { status: 'ready'; paragons: ParagonDuplicatesT[] }
 
 type PropsT = {
@@ -47,7 +47,14 @@ export function ExpenseDraftDuplicateHints({
   const [dismissed, setDismissed] = useState(() => new Set<string>())
 
   if (state.status === 'error') {
-    return <p className="text-destructive text-sm">{state.message}</p>
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-destructive text-sm">Nie udało się sprawdzić duplikatów.</p>
+        <Button type="button" variant="outline" size="sm" onClick={state.retry}>
+          Sprawdź ponownie
+        </Button>
+      </div>
+    )
   }
   if (state.status !== 'ready') {
     return <p className="text-muted-foreground text-sm">{STATUS_MESSAGES[state.status]}</p>

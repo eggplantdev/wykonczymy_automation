@@ -51,13 +51,22 @@ export const formatRate = (
 // A fraction (0.746) as a percentage; `null` (no denominator — see rowDoneFraction) renders as a
 // dash. Two precisions: integer for the dense grid cells, one decimal for the headline figures where
 // the whole kosztorys hangs on a single number.
-const percentFormat = (fraction: number | null, fractionDigits: number) =>
-  fraction == null
-    ? '—'
-    : `${(fraction * 100).toLocaleString('pl-PL', {
-        minimumFractionDigits: fractionDigits,
-        maximumFractionDigits: fractionDigits,
-      })}%`
+//
+// An overrun never prints as „100%": the cell is red past the agreed scope, and a red „100%" reads
+// as a false alarm. A sliver over (14,30 against 14,25) shows one decimal, at least „100,1%".
+const percentFormat = (fraction: number | null, fractionDigits: number) => {
+  if (fraction == null) return '—'
+  const percent = fraction * 100
+  const roundsToHundred = Number(percent.toFixed(fractionDigits)) === 100
+  const [shown, digits] =
+    percent > 100 && roundsToHundred
+      ? [Math.max(percent, 100.1), Math.max(fractionDigits, 1)]
+      : [percent, fractionDigits]
+  return `${shown.toLocaleString('pl-PL', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}%`
+}
 
 export const formatPercent = (fraction: number | null) => percentFormat(fraction, 0)
 

@@ -25,6 +25,20 @@ describe('formatPercent / formatPercentPrecise', () => {
   it('overshoot past 100% shows literally', () => {
     expect(formatPercent(1.2)).toBe('120%')
   })
+
+  // REGRESSION (owner, 2026-10-13): 14,30 done against 14,25 agreed is 100,35% — a red overrun cell
+  // that printed „100%", so the red read as a false alarm.
+  it('an overrun never prints as 100%', () => {
+    expect(formatPercent(14.3 / 14.25)).toBe('100,4%')
+    expect(formatPercent(63.3 / 63.25)).toBe('100,1%')
+    expect(formatPercent(1.0001)).toBe('100,1%')
+    expect(formatPercentPrecise(1.0001)).toBe('100,1%')
+  })
+
+  it('exactly 100% stays a whole 100%', () => {
+    expect(formatPercent(1)).toBe('100%')
+    expect(formatPercentPrecise(1)).toBe('100,0%')
+  })
 })
 
 // REGRESSION (`change.md` bug 3): a settlement that cancels out lands on a residue like −7e-12, not

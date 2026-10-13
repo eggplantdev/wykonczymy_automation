@@ -53,7 +53,15 @@ export type ExpenseDraftRowT = {
   duplicateOf?: DuplicateOfT
   media: ExpenseDraftMediaT[]
   aiRead: ExpenseDraftReadT | undefined
+  // Per paragon of the AI read; absent without one — such a zgłoszenie is decided whole.
+  progress?: DraftProgressT
+  acceptedReadRows: number[]
+  rejectedReceipts: RejectedReceiptT[]
 }
+
+export type DraftProgressT = { accepted: number; rejected: number; pending: number }
+
+export type RejectedReceiptT = { id: number; readRow: number | null; mediaIds: number[] }
 
 const DRAFT_MEDIA = sql`
   COALESCE((
@@ -75,13 +83,30 @@ const DRAFT_TRANSFERS = sql`
   ), '[]'::json)
 `
 
+const READ_COUNT = sql`CASE WHEN jsonb_typeof(d.ai_read -> 'rows') = 'array'
+  THEN jsonb_array_length(d.ai_read -> 'rows') ELSE 0 END`
+
+const DRAFT_DECISIONS = sql`
+  ${READ_COUNT} AS read_count,
+  ARRAY(
+    SELECT DISTINCT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt
+    WHERE dt.draft_id = d.id ORDER BY 1
+  ) AS booked_read_rows,
+  COALESCE((
+    SELECT json_agg(json_build_object('id', sr.id, 'readRow', sr.read_row, 'mediaIds', sr.media_ids)
+      ORDER BY sr.id)
+    FROM worker_expense_draft_skipped_receipts sr WHERE sr.draft_id = d.id
+  ), '[]'::json) AS rejected_receipts
+`
+
 // The AI read only prefills an acceptance, so a decided draft — most of a history page — leaves it
 // behind instead of shipping it to the browser.
 const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
-    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of
+    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of,
+    ${DRAFT_DECISIONS}
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   LEFT JOIN investments i ON i.id = d.investment_id
@@ -112,8 +137,43 @@ function toDraftRead(value: unknown): ExpenseDraftReadT | undefined {
   return parsed.success ? parsed.data : undefined
 }
 
+function toRejectedReceipts(value: unknown): RejectedReceiptT[] {
+  return ((value ?? []) as Record<string, unknown>[]).map((r) => ({
+    id: Number(r.id),
+    readRow: numOrNull(r.readRow),
+    mediaIds: ((r.mediaIds ?? []) as unknown[]).map(Number),
+  }))
+}
+
+function toProgress(
+  status: ExpenseDraftStatusT,
+  readCount: number,
+  bookedReadRows: number[],
+  rejectedReceipts: RejectedReceiptT[],
+): DraftProgressT | undefined {
+  if (readCount === 0) return undefined
+  const booked = bookedReadRows.length
+  if (status === 'pending') {
+    const rejected = new Set(
+      rejectedReceipts.flatMap((r) => (r.readRow === null ? [] : [r.readRow])),
+    )
+    return {
+      accepted: booked,
+      rejected: rejected.size,
+      pending: readCount - booked - rejected.size,
+    }
+  }
+  if (status === 'rejected') return { accepted: booked, rejected: readCount - booked, pending: 0 }
+  // A transakcja booked before read rows were kept names none, so the rest counts as booked.
+  const rejected = rejectedReceipts.length
+  return { accepted: Math.max(0, readCount - rejected), rejected, pending: 0 }
+}
+
 function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
   const duplicateOf = duplicateOfSchema.safeParse(row.duplicate_of)
+  const bookedReadRows = ((row.booked_read_rows ?? []) as unknown[]).map(Number)
+  const rejectedReceipts = toRejectedReceipts(row.rejected_receipts)
+  const draftStatus = (row.draft_status ?? row.status) as ExpenseDraftStatusT
   return {
     id: Number(row.id),
     workerId: Number(row.worker_id),
@@ -133,6 +193,14 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     ...(duplicateOf.success && { duplicateOf: duplicateOf.data }),
     media: toDraftMedia(row.media),
     aiRead: toDraftRead(row.ai_read),
+    progress: toProgress(
+      draftStatus,
+      Number(row.read_count ?? 0),
+      bookedReadRows,
+      rejectedReceipts,
+    ),
+    acceptedReadRows: bookedReadRows,
+    rejectedReceipts,
   }
 }
 
@@ -190,16 +258,19 @@ const LISTED_DRAFT = sql`(d.status <> 'rejected' OR (${PARTIES_NOT_TRASHED}))`
 // pages a row shows: a lone row shows them all, as does a transakcja booked before paragony kept pages.
 const PARAGON_ROWS = sql`
   WITH paragons AS (
-    SELECT dt.draft_id, d.status AS row_status, dt.transfer_id, NULL::int AS receipt_id,
+    SELECT dt.draft_id, 'accepted'::text AS row_status, dt.transfer_id, NULL::int AS receipt_id,
       dt.media_ids, 0 AS kind, dt.transfer_id AS part, NULL::jsonb AS duplicate_of
-    FROM worker_expense_draft_transfers dt JOIN worker_expense_drafts d ON d.id = dt.draft_id
+    FROM worker_expense_draft_transfers dt
     UNION ALL
     SELECT sr.draft_id, 'rejected', NULL, sr.id, sr.media_ids, 1, sr.id, sr.duplicate_of
     FROM worker_expense_draft_skipped_receipts sr
     UNION ALL
     SELECT d.id, d.status, NULL, NULL, '{}'::int[], 0, 0, d.duplicate_of
     FROM worker_expense_drafts d
-    WHERE NOT EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+    WHERE d.status = 'pending'
+      OR (NOT EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+        AND (d.status <> 'rejected'
+          OR NOT EXISTS (SELECT 1 FROM worker_expense_draft_skipped_receipts sr WHERE sr.draft_id = d.id)))
   ), pr AS (
     SELECT p.*, count(*) OVER (PARTITION BY p.draft_id) AS row_count FROM paragons p
   )
@@ -222,7 +293,7 @@ const PARAGON_SELECT = sql`
     COALESCE((
       SELECT json_agg(${TRANSFER_JSON}) FROM transactions t WHERE t.id = pr.transfer_id
     ), '[]'::json) AS transfers,
-    decider.name AS decided_by_name, pr.duplicate_of
+    decider.name AS decided_by_name, pr.duplicate_of, d.status AS draft_status, ${DRAFT_DECISIONS}
   ${PARAGON_FROM}
   JOIN users w ON w.id = d.worker_id
   LEFT JOIN investments i ON i.id = d.investment_id
@@ -395,6 +466,179 @@ export async function decideExpenseDraft(
   return res.rows.length > 0
 }
 
+const asIntArray = (values: number[]) =>
+  sql`ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(values)}::jsonb)::int)`
+
+const DECIDED_READ_ROWS = sql`
+  SELECT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id
+  UNION
+  SELECT sr.read_row FROM worker_expense_draft_skipped_receipts sr
+  WHERE sr.draft_id = d.id AND sr.read_row IS NOT NULL
+`
+
+/**
+ * A zgłoszenie stays pending while any paragon of its read waits; then it is przyjęte if anything
+ * was booked, else odrzucone. Without a read it has no paragony, so the first decision settles it.
+ */
+export async function settleExpenseDraft(
+  db: DbExecutorT,
+  draftId: number,
+  decidedBy: number | null,
+): Promise<void> {
+  await db.execute(sql`
+    UPDATE worker_expense_drafts target
+    SET status = s.next_status,
+      decided_at = CASE WHEN s.next_status = 'pending' THEN NULL
+        WHEN target.status = 'pending' THEN now() ELSE target.decided_at END,
+      decided_by = CASE WHEN s.next_status = 'pending' THEN NULL
+        WHEN target.status = 'pending' THEN ${decidedBy} ELSE target.decided_by END
+    FROM (
+      SELECT d.id, CASE
+        WHEN ${READ_COUNT} > (SELECT count(*) FROM (${DECIDED_READ_ROWS}) decided) THEN 'pending'
+        WHEN EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+          THEN 'accepted'
+        ELSE 'rejected'
+      END AS next_status
+      FROM worker_expense_drafts d WHERE d.id = ${draftId}
+    ) s
+    WHERE target.id = s.id
+  `)
+}
+
+/**
+ * Books or refuses some paragony of a pending zgłoszenie, then settles it. Refused (`null`) once the
+ * zgłoszenie is decided or any of these paragony already is, so two managers can't both book one.
+ * Returns the refused paragony as stored, for „cofnij".
+ */
+export async function decideExpenseParagons(
+  db: DbExecutorT,
+  decision: {
+    draftId: number
+    decidedBy: number
+    transferIds: number[]
+    transferMediaIds?: number[][]
+    transferReadRows?: number[][]
+    skippedReceipts?: SkippedReceiptT[]
+  },
+): Promise<RejectedReceiptT[] | null> {
+  const transfers = decision.transferIds.map((id, i) => ({
+    id,
+    media_ids: decision.transferMediaIds?.[i] ?? [],
+    read_rows: decision.transferReadRows?.[i] ?? [],
+  }))
+  const skipped = (decision.skippedReceipts ?? []).map((receipt) => ({
+    media_ids: receipt.mediaIds,
+    read_row: receipt.readRow ?? null,
+    duplicate_of: receipt.duplicateOf ?? null,
+  }))
+  const requested = [
+    ...transfers.flatMap((t) => t.read_rows),
+    ...skipped.flatMap((r) => (r.read_row === null ? [] : [r.read_row])),
+  ]
+  const locked = await db.execute(sql`
+    SELECT d.id FROM worker_expense_drafts d
+    WHERE d.id = ${decision.draftId} AND d.status = 'pending'
+    FOR UPDATE
+  `)
+  if (locked.rows.length === 0) return null
+  const clash = await db.execute(sql`
+    SELECT 1 FROM worker_expense_drafts d
+    WHERE d.id = ${decision.draftId}
+      AND EXISTS (SELECT 1 FROM (${DECIDED_READ_ROWS}) decided(read_row)
+        WHERE decided.read_row = ANY(${asIntArray(requested)}))
+  `)
+  if (clash.rows.length > 0) return null
+
+  const ownPages = sql`ARRAY(
+    SELECT unnest(r.media_ids) INTERSECT
+    SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
+  )`
+  const ownReadRows = sql`ARRAY(
+    SELECT unnest(r.read_rows) INTERSECT
+    SELECT generate_series(0, decided.read_count - 1)
+    ORDER BY 1
+  )`
+  const res = await db.execute(sql`
+    WITH decided AS (
+      SELECT d.id, ${READ_COUNT} AS read_count FROM worker_expense_drafts d
+      WHERE d.id = ${decision.draftId}
+    ), linked AS (
+      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
+      SELECT r.id, decided.id, ${ownPages}, ${ownReadRows}
+      FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb)
+        AS r(id int, media_ids int[], read_rows int[])
+    ), skipped AS (
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row, duplicate_of)
+      SELECT decided.id, ${ownPages}, r.read_row, r.duplicate_of
+      FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb)
+        AS r(media_ids int[], read_row int, duplicate_of jsonb)
+      RETURNING id, read_row, media_ids
+    )
+    SELECT json_build_object('id', id, 'readRow', read_row, 'mediaIds', media_ids) AS receipt
+    FROM skipped
+  `)
+  await settleExpenseDraft(db, decision.draftId, decision.decidedBy)
+  return toRejectedReceipts(res.rows.map((row) => row.receipt))
+}
+
+/**
+ * „Odrzuć" on the whole zgłoszenie refuses every paragon still waiting. `'no-read'` = it has no
+ * paragony, so the caller rejects it whole.
+ */
+export async function rejectPendingParagons(
+  db: DbExecutorT,
+  decision: { draftId: number; decidedBy: number; duplicateOf?: DuplicateOfT },
+): Promise<'refused' | 'no-read' | 'done'> {
+  const res = await db.execute(sql`
+    WITH draft AS (
+      SELECT d.id, d.ai_read, ${READ_COUNT} AS read_count FROM worker_expense_drafts d
+      WHERE d.id = ${decision.draftId} AND d.status = 'pending'
+      FOR UPDATE
+    ), skipped AS (
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row, duplicate_of)
+      SELECT draft.id,
+        ARRAY(SELECT jsonb_array_elements_text(draft.ai_read -> 'rows' -> g -> 'mediaIds')::int),
+        g, ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
+      FROM draft, generate_series(0, draft.read_count - 1) g
+      WHERE g NOT IN (
+        SELECT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt WHERE dt.draft_id = draft.id
+        UNION
+        SELECT sr.read_row FROM worker_expense_draft_skipped_receipts sr
+        WHERE sr.draft_id = draft.id AND sr.read_row IS NOT NULL
+      )
+    )
+    SELECT read_count FROM draft
+  `)
+  const row = res.rows[0]
+  if (!row) return 'refused'
+  if (Number(row.read_count) === 0) return 'no-read'
+  await settleExpenseDraft(db, decision.draftId, decision.decidedBy)
+  return 'done'
+}
+
+/**
+ * Puts a refused paragon back to „do sprawdzenia" on its own zgłoszenie. Only a paragon named by its
+ * read row, and only on a zgłoszenie whose transakcje all name theirs — one booked before read rows
+ * were kept would come back unbooked in the acceptance. `false` = not reopened here.
+ */
+export async function reopenSkippedReceipt(db: DbExecutorT, receiptId: number): Promise<boolean> {
+  const res = await db.execute(sql`
+    DELETE FROM worker_expense_draft_skipped_receipts sr
+    USING worker_expense_drafts d
+    WHERE sr.id = ${receiptId} AND sr.draft_id = d.id AND sr.read_row IS NOT NULL
+      AND ${PARTIES_NOT_TRASHED}
+      AND NOT EXISTS (
+        SELECT 1 FROM worker_expense_draft_transfers dt
+        WHERE dt.draft_id = d.id AND cardinality(dt.read_rows) = 0
+      )
+    RETURNING d.id
+  `)
+  const row = res.rows[0]
+  if (!row) return false
+  await settleExpenseDraft(db, Number(row.id), null)
+  return true
+}
+
 /** Only a refusal is undone — an accepted draft already stands behind a booked expense. */
 export async function restoreRejectedExpenseDraft(
   db: DbExecutorT,
@@ -450,6 +694,71 @@ export async function restoreSkippedReceipt(
   `)
   const row = res.rows[0]
   return row ? Number(row.id) : null
+}
+
+export type MergeRefusalT = 'not-pending' | 'mixed' | 'decided' | 'unread'
+
+/**
+ * Folds several pending zgłoszenia of one worker into the oldest, as if he had sent them as one:
+ * its read becomes theirs chained in send order, so every paragon stays a read row of the result.
+ * Refused once anything inside is decided — a decision names its read row by position, which the
+ * chaining shifts — or while one has no read, whose photos would be paragony nothing tracks.
+ */
+export async function mergeExpenseDrafts(
+  db: DbExecutorT,
+  draftIds: number[],
+): Promise<{ draftId: number } | { refusal: MergeRefusalT }> {
+  const locked = await db.execute(sql`
+    SELECT d.id, d.worker_id, d.investment_id, d.cash_register_id, d.note, d.status,
+      jsonb_typeof(d.ai_read -> 'rows') = 'array' AS has_read,
+      EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+        OR EXISTS (SELECT 1 FROM worker_expense_draft_skipped_receipts sr WHERE sr.draft_id = d.id)
+        AS has_decisions
+    FROM worker_expense_drafts d
+    WHERE d.id IN (${sqlList(draftIds)})
+    ORDER BY d.sent_at, d.id
+    FOR UPDATE
+  `)
+  const rows = locked.rows
+  if (rows.length !== draftIds.length || rows.some((row) => row.status !== 'pending')) {
+    return { refusal: 'not-pending' }
+  }
+  const [target] = rows
+  const sameParties = rows.every(
+    (row) =>
+      row.worker_id === target.worker_id &&
+      row.investment_id === target.investment_id &&
+      row.cash_register_id === target.cash_register_id,
+  )
+  if (!sameParties) return { refusal: 'mixed' }
+  if (rows.some((row) => row.has_decisions === true)) return { refusal: 'decided' }
+  if (rows.some((row) => row.has_read !== true)) return { refusal: 'unread' }
+
+  const targetId = Number(target.id)
+  const mergedIds = rows.slice(1).map((row) => Number(row.id))
+  const note = rows.flatMap((row) => (row.note ? [text(row.note)] : [])).join('\n') || null
+  await db.execute(sql`
+    WITH ordered AS (
+      SELECT d.id, ord FROM unnest(${asIntArray([targetId, ...mergedIds])}) WITH ORDINALITY AS o(id, ord)
+      JOIN worker_expense_drafts d ON d.id = o.id
+    ), pages AS (
+      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+      SELECT ${targetId}, dm.media_id,
+        (SELECT max(position) FROM worker_expense_draft_media WHERE draft_id = ${targetId})
+          + row_number() OVER (ORDER BY ordered.ord, dm.position)
+      FROM ordered JOIN worker_expense_draft_media dm ON dm.draft_id = ordered.id
+      WHERE ordered.id <> ${targetId}
+      ON CONFLICT DO NOTHING
+    )
+    UPDATE worker_expense_drafts SET note = ${note}, ai_read = jsonb_build_object('rows', (
+      SELECT jsonb_agg(r.row ORDER BY ordered.ord, r.idx)
+      FROM ordered JOIN worker_expense_drafts d ON d.id = ordered.id,
+        jsonb_array_elements(d.ai_read -> 'rows') WITH ORDINALITY AS r(row, idx)
+    ))
+    WHERE id = ${targetId}
+  `)
+  await db.execute(sql`DELETE FROM worker_expense_drafts WHERE id IN (${sqlList(mergedIds)})`)
+  return { draftId: targetId }
 }
 
 export async function loadExpenseDraftForRead(
@@ -508,6 +817,9 @@ export async function deletePendingExpenseDraft(
     ), deleted AS (
       DELETE FROM worker_expense_drafts
       WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
+        AND NOT EXISTS (
+          SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = ${draft.draftId}
+        )
       RETURNING id
     )
     SELECT deleted.id, pages.media_id FROM deleted LEFT JOIN pages ON true

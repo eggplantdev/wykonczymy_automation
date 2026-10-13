@@ -28,10 +28,6 @@ function toReadRow(mediaIds: number[], data: ReceiptFillResultT): ExpenseDraftRe
   return row
 }
 
-// The unreadable sentinel is an answer too; only a row that never reached the model is worth
-// asking again.
-const hasAnswer = (row: ExpenseDraftReadRowT) => Object.keys(row).some((key) => key !== 'mediaIds')
-
 // The category is never applied from a draft, so the model gets none to pick from.
 async function readPhoto(
   storeId: string,
@@ -69,12 +65,13 @@ export async function readExpenseDraftReceipts(
           return await readPhoto(storeId, page)
         } catch (error) {
           logError('readExpenseDraftReceipts page', error, { draftId, mediaId: page.id })
-          return [{ mediaIds: [page.id] }]
+          return [{ mediaIds: [page.id], description: UNREADABLE_RECEIPT }]
         }
       })
     ).flat()
 
-    if (!rows.some(hasAnswer)) return
+    // Saved even when no photo was read: a row per photo is what makes each one a paragon to
+    // decide, and „Odczytaj ponownie" on the row asks the model again.
     return await saveExpenseDraftRead(db, draftId, { rows })
   } catch (error) {
     logError('readExpenseDraftReceipts', error, { draftId })
