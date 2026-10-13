@@ -4925,3 +4925,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Zapisz połączoną pozycję z odczytanego paragonu → w szczegółach wydatku załączniki noszą nazwę paragonu (jak po „Generuj”), nie nazwy plików z aparatu.
 - [ ] Dwa bileciki połączone w jedną pozycję pasują do tej samej transakcji → pod formularzem dwie podpowiedzi duplikatu, „OK” na jednej chowa tylko ją; po „Rozłącz” schowana nie wraca.
 - [ ] Zgłoszenie z kilkoma bilecikami → „Przyjmij”, zmień „Typ wydatku” na wpłatę → pozycje razem z przyciskiem „Połącz zaznaczone” znikają.
+
+## 2026-10-13 — percent-overrun-label — przekroczenie nigdy nie pokazuje „100%”
+
+- [ ] Kosztorys → pozycja, w której etapy dają minimalnie więcej niż Aktualizacja przedmiaru (np. 14,3 przy 14,25): „% wykonania” pokazuje czerwone „100,4%”, nie czerwone „100%”; „% wykonania (względem przedmiaru ofertowego)” tak samo.
+- [ ] Kosztorys → pozycja wykonana dokładnie do Aktualizacji przedmiaru: „100%” szare, bez części dziesiętnej.
