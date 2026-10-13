@@ -53,19 +53,18 @@ import { unitLabel } from '@/lib/kosztorys/format'
 
 type PropsT = {
   report: WorkerReportT
-  onBack: () => void
   onDecided: () => void
 }
 
 const NEW_STAGE = 'new'
 
 const GROUPS: { group: LineGroupT; title: string; hint: string }[] = [
-  { group: 'rozpiska', title: 'Z rozpiski', hint: 'Przyjęta ilość dodaje się do wybranego etapu.' },
   {
     group: 'extra',
     title: 'Spoza rozpiski',
     hint: 'Pracownik podał tylko opis, j.m. i ilość. Po przyjęciu trafią do rozpiski jako nowe pozycje bez przedmiaru — uzupełnij sekcję i cenę albo podmień na pracę z katalogu.',
   },
+  { group: 'rozpiska', title: 'Z rozpiski', hint: 'Przyjęta ilość dodaje się do wybranego etapu.' },
 ]
 
 const searchableText = (row: ReviewRowT) =>
@@ -79,7 +78,7 @@ const searchableText = (row: ReviewRowT) =>
     row.workerDescription ?? '',
   ].join(' ')
 
-export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
+export function WorkerReportReview({ report, onDecided }: PropsT) {
   const { rows, stages, sections, workCatalogue, acceptReport } = useKosztorysEditorContext()
   const catalogue = workCatalogue ?? []
   const isPending = report.status === 'pending'
@@ -371,12 +370,9 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       </div>
 
       <DialogFooter>
-        <p className="text-muted-foreground mr-auto self-center text-sm">
+        <p className="text-foreground mr-auto self-center text-sm">
           {decisionSummary(report.lines, drafts)}
         </p>
-        <Button variant="outline" onClick={onBack}>
-          Wszystkie zgłoszenia
-        </Button>
         <Button disabled={isSaving || changeCount === 0 || !isReady} onClick={accept}>
           {isFirstAccept
             ? `Przyjmij ${tickedLines.length} ${itemNounAccusative(tickedLines.length)}`

@@ -19,10 +19,7 @@ export function WorkerReportsDialog({ action }: PropsT) {
   return (
     <Dialog open={action.open} onOpenChange={action.setOpen}>
       <DialogContent className="sm:max-w-dialog-2xl">
-        <DialogHeader
-          title="Zgłoszenia wykonanych prac"
-          description="Pracownicy zgłaszają wykonane ilości ze swojego linku. Zaznacz, co przyjmujesz — trafi do rozpiski."
-        />
+        <DialogHeader title="Zgłoszenia wykonanych prac" />
         {/* Mounted only while open, so every open rereads what the workers sent. */}
         {action.open && (
           <WorkerReportsBody
@@ -87,14 +84,7 @@ function WorkerReportsBody({ investmentId, initialReportId, onPendingCount }: Bo
   }
 
   if (openReport) {
-    return (
-      <WorkerReportReview
-        key={openReport.id}
-        report={openReport}
-        onBack={() => setOpenReport(undefined)}
-        onDecided={backToList}
-      />
-    )
+    return <WorkerReportReview key={openReport.id} report={openReport} onDecided={backToList} />
   }
   if (!reports) return <p className="text-muted-foreground py-8 text-sm">Wczytywanie…</p>
   return <WorkerReportsList reports={reports} onOpen={open} />
