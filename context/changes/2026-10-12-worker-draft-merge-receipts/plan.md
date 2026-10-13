@@ -480,13 +480,13 @@ after the merge to staging.
 
 #### Automated
 
-- [x] 4.1 migration applies locally and on 5435
-- [x] 4.2 worker-expense-drafts DB spec: read_rows stored and range-checked
-- [x] 4.3 expense-duplicate-candidates DB spec: merged booking candidate
-- [x] 4.4 worker-expense-drafts actions DB spec
+- [x] 4.1 migration applies locally and on 5435 — 182fabd4d
+- [x] 4.2 worker-expense-drafts DB spec: read_rows stored and range-checked — 182fabd4d
+- [x] 4.3 expense-duplicate-candidates DB spec: merged booking candidate — 182fabd4d
+- [x] 4.4 worker-expense-drafts actions DB spec — 182fabd4d
 
 ### Phase 5: Docs
 
 #### Automated
 
-- [ ] 5.1 none — prose only
+- [x] 5.1 none — prose only

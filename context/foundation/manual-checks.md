@@ -4820,11 +4820,10 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 ## 2026-10-12 — worker-draft-one-expense-per-photo — każdy paragon na zdjęciu osobno
 
-- [ ] Pracownik, własna `/pracownicy/[id]` (390px) → „Wydatek”, dodaj dwa zdjęcia: zaznaczone jest „Kilka wydatków”; kliknięcie „Jeden wydatek” otwiera pytanie „Czy wszystkie zdjęcia to na pewno jedna faktura?”, „Anuluj” zostawia „Kilka wydatków”, „Tak, jedna faktura” przełącza.
-- [ ] Ten sam formularz: wybierz „Jeden wydatek”, potem zostaw tylko jedno zdjęcie → przełącznik znika; po wysłaniu zgłoszenie kierownik widzi jako czytane paragon po paragonie, nie jako jedną sumę.
+- [ ] Pracownik, własna `/pracownicy/[id]` (390px) → „Wydatek”, dodaj dwa zdjęcia: nie ma wyboru „Jeden wydatek” / „Kilka wydatków”; po wysłaniu kierownik widzi zgłoszenie czytane paragon po paragonie.
 - [ ] Wysłane, nierozpatrzone zgłoszenie na liście pracownika: da się je tylko usunąć — nie ma „Edytuj wydatek”, dodawania ani usuwania zdjęć.
 - [ ] Kierownik → zgłoszenie z jednym zdjęciem, na którym leży kilka paragonów obok siebie → „Zobacz”: każdy paragon to osobna pozycja ze swoją kwotą; NIP wpisany tylko tam, gdzie jest wydrukowany.
-- [ ] Zgłoszenie z jednym zdjęciem wysłane przed 2026-10-12 (zapisane jako „Jeden wydatek”), jeszcze bez odczytu → „Zobacz”: paragony ze zdjęcia rozpisane na osobne pozycje.
+- [ ] Zgłoszenie z jednym zdjęciem wysłane przed 2026-10-12 (pracownik wybrał wtedy „Jeden wydatek”), jeszcze bez odczytu → „Zobacz”: paragony ze zdjęcia rozpisane na osobne pozycje.
 - [ ] Kierownik przyjmuje zgłoszenie, pomijając jeden z paragonów → pominięty paragon w historii → „Przywróć”: wraca jako osobne zgłoszenie z jednym pustym wierszem do uzupełnienia, bez paragonów już zaksięgowanych z tego samego zdjęcia.
 
 ## 2026-10-13 — planned-done-percent-red — „% wykonania (względem przedmiaru ofertowego)” na czerwono
@@ -4874,3 +4873,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] „Zgłoszenia wydatków” → to samo dla inwestycji i pracownika; zgłoszenie bez inwestycji pokazuje „bez inwestycji” jako zwykły tekst.
 - [ ] Strona pracownika jako zarząd → w tabelach zgłoszeń prac i wydatków nazwa inwestycji jest linkiem.
 - [ ] Zalogowany jako pracownik (EMPLOYEE) → na własnej stronie nazwa inwestycji w obu tabelach zgłoszeń NIE jest linkiem.
+
+## 2026-10-13 — worker-draft-merge-receipts — „Połącz zaznaczone” / „Rozłącz” w „Przyjmij” (EX-1048)
+
+- [ ] Kierownik → zgłoszenie z kilkoma bilecikami (na jednym lub kilku zdjęciach) → „Przyjmij”: przy każdej pozycji z paragonu jest pole zaznaczenia; zaznacz dwie → „Połącz zaznaczone (2)” robi z nich jedną pozycję w miejscu pierwszej zaznaczonej, Kwota to suma, wspólne zdjęcie pokazane raz.
+- [ ] Połącz pozycję, której Kwoty nie odczytano, z inną → przy połączonej Kwocie jest „nie odczytano”.
+- [ ] Na połączonej pozycji nie ma „Odczytaj ponownie”, jest „Rozłącz”: zmień Opis połączonej pozycji, kliknij „Rozłącz” → wracają pierwotne pozycje z odczytu, wpisany Opis znika.
+- [ ] Zapisz zgłoszenie z połączoną pozycją → w tabeli jeden wydatek z sumą i wszystkimi zdjęciami; zgłoszenie w historii jako przyjęte, żaden z połączonych paragonów nie jest na liście pominiętych.
+- [ ] Usuń połączoną pozycję i zapisz resztę → w historii każdy z jej paragonów osobno jako pominięty; „Przywróć” jeden z nich wraca jako osobne zgłoszenie z odczytem tylko tego paragonu.
+- [ ] Wyślij ponownie jeden bilecik, który został zaksięgowany w połączonym wydatku → w jego „Przyjmij” podpowiedź duplikatu wskazuje ten połączony wydatek.
+- [ ] Pozycja dodana ręcznie w „Przyjmij” nie ma pola zaznaczenia; z jedną pozycją z paragonu przycisku „Połącz zaznaczone” nie ma.
