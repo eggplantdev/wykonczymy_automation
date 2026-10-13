@@ -55,7 +55,6 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     reportedQty,
   })
 
-  // Settles the record only; the lines stay as the spec set them.
   const decide = (reportId: number, status: 'accepted' | 'rejected') =>
     db.execute(sql`
       UPDATE worker_reports SET status = ${status}, decided_at = now(), decided_by = ${otherWorkerId}

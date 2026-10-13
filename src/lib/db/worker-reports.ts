@@ -531,11 +531,9 @@ export async function setLinesRejected(
 }
 
 /**
- * The report follows its lines: do sprawdzenia while one still waits for a decision, then przyjęte if
- * any went into an etap, else odrzucone. It keeps its etap only while a line sits in it, and who
- * decided only while anything is decided. Two decisions on one report are serialised by the
- * investment row lock the caller holds (`lockInvestmentGates`). The etap's ordinal and label are
- * copied, so a later rename or delete of it does not rewrite the record.
+ * Two decisions on one report are serialised by the investment row lock the caller holds
+ * (`lockInvestmentGates`). The etap's ordinal and label are copied, so a later rename or delete of it
+ * does not rewrite the record.
  */
 export async function settleReport(
   db: DbExecutorT,

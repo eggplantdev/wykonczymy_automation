@@ -114,7 +114,6 @@ export type AcceptReportResultT = {
   revision: string
 }
 
-// „Przyjęto" of one line: odrzucona only by an explicit decision, never by being left out.
 export type ReportLineOutcomeT =
   | { kind: 'accepted'; qty: number }
   | { kind: 'pending' }
