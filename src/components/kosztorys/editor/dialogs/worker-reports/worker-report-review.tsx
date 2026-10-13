@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -79,9 +78,21 @@ const searchableText = (row: ReviewRowT) =>
     row.workerDescription ?? '',
   ].join(' ')
 
+// The report stays do sprawdzenia until every line is przyjęta or odrzucona.
+function decisionSummary({
+  status,
+  lineCount,
+  acceptedLineCount,
+  rejectedLineCount,
+}: Pick<WorkerReportT, 'status' | 'lineCount' | 'acceptedLineCount' | 'rejectedLineCount'>) {
+  const decided = acceptedLineCount + rejectedLineCount
+  if (status === 'pending') return decided === 0 ? '' : `Rozpatrzono ${decided} z ${lineCount}.`
+  if (status === 'rejected') return 'Wszystkie pozycje odrzucone.'
+  return `Przyjęto ${acceptedLineCount} z ${lineCount}.`
+}
+
 export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
-  const { rows, stages, sections, workCatalogue, acceptReport, rejectReport } =
-    useKosztorysEditorContext()
+  const { rows, stages, sections, workCatalogue, acceptReport } = useKosztorysEditorContext()
   const catalogue = workCatalogue ?? []
   const isPending = report.status === 'pending'
   const rowById = new Map(rows.map((row) => [row.id, row]))
@@ -105,7 +116,6 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   )
   const [plane, setPlane] = useState<ToolPlaneT | undefined>()
   const [isSaving, setIsSaving] = useState(false)
-  const [isRejectOpen, setIsRejectOpen] = useState(false)
   // A retry's answer, laid over the report this dialog was opened with — no refetch of the whole report.
   const [retranslated, setRetranslated] = useState<
     Record<number, Pick<ReportLineT, 'polishDescription' | 'descriptionLanguage'>>
@@ -194,6 +204,8 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     accepted: acceptedLines,
     changed: changedLines,
     undone: undoneLines,
+    rejected: rejectedLines,
+    unrejected: unrejectedLines,
   } = partitionLines(report.lines, drafts)
   // The rest joins the report's etap, so none can go anywhere while that etap is gone or no longer his.
   const isTiedToLostStage = acceptedLines.length > undoneLines.length && !recordedStage
@@ -204,7 +216,11 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     : needsPlane && !needsPlanePick
       ? ACCEPT_REFUSALS.unsettledPlane
       : undefined
-  const changeCount = tickedLines.length + changedLines.length + undoneLines.length
+  const flagCount =
+    rejectedLines.filter((line) => line.acceptedQty === undefined).length + unrejectedLines.length
+  const changeCount = tickedLines.length + changedLines.length + undoneLines.length + flagCount
+  // A plain first accept says how many go in; anything else is an edit of the decisions.
+  const isFirstAccept = acceptedLines.length === 0 && flagCount === 0
   // Only a line going into an etap for the first time needs one chosen.
   const isTargetReady =
     tickedLines.length === 0 ||
@@ -253,9 +269,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     const { input, cells } = buildAccept(report, drafts, acceptTarget, itemIdOf)
     void decide(
       () => acceptReport(input, cells),
-      acceptedLines.length === 0
-        ? 'Zgłoszenie przyjęte do rozpiski'
-        : 'Zapisano zmiany w zgłoszeniu',
+      isFirstAccept ? 'Zgłoszenie przyjęte do rozpiski' : 'Zapisano zmiany w zgłoszeniu',
     )
   }
 
@@ -369,43 +383,18 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       </div>
 
       <DialogFooter>
-        {isPending ? (
-          <Button
-            variant="ghost"
-            className="text-destructive mr-auto"
-            disabled={isSaving}
-            onClick={() => setIsRejectOpen(true)}
-          >
-            Odrzuć zgłoszenie
-          </Button>
-        ) : (
-          <p className="text-muted-foreground mr-auto self-center text-sm">
-            {report.status === 'rejected'
-              ? 'Zgłoszenie odrzucone w całości.'
-              : `Przyjęto ${report.acceptedLineCount} z ${report.lineCount}.`}
-          </p>
-        )}
+        <p className="text-muted-foreground mr-auto self-center text-sm">
+          {decisionSummary(report)}
+        </p>
         <Button variant="outline" onClick={onBack}>
           Wszystkie zgłoszenia
         </Button>
         <Button disabled={isSaving || changeCount === 0 || !isReady} onClick={accept}>
-          {acceptedLines.length === 0
+          {isFirstAccept
             ? `Przyjmij ${tickedLines.length} ${itemNounAccusative(tickedLines.length)}`
             : 'Zapisz zmiany'}
         </Button>
       </DialogFooter>
-
-      <ConfirmDialog
-        open={isRejectOpen}
-        title="Odrzucić całe zgłoszenie?"
-        description="Nic nie trafi do rozpiski. Zgłoszenie zostanie w historii jako odrzucone."
-        confirmLabel="Odrzuć"
-        onConfirm={() => {
-          setIsRejectOpen(false)
-          void decide(() => rejectReport(report.id), 'Zgłoszenie odrzucone')
-        }}
-        onCancel={() => setIsRejectOpen(false)}
-      />
     </div>
   )
 }

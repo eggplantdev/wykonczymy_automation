@@ -3,7 +3,6 @@
 import type { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
-import { investmentEntityOpts } from '@/lib/cache/tags'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { lockInvestmentGates } from '@/lib/db/investment-gate'
 import { bumpInvestmentRevision } from '@/lib/db/investment-revision'
@@ -13,11 +12,10 @@ import { insertWorkerStage } from '@/lib/db/stage-split'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
 import {
-  claimPendingReport,
   clearLinesAcceptance,
-  markReportAccepted,
   readWorkerReport,
-  reopenReportIfNoneAccepted,
+  setLinesRejected,
+  settleReport,
   updateReportLines,
   type ReportLineDecisionT,
   type WorkerReportLineRowT,
@@ -41,46 +39,23 @@ import {
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
 import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
-import { acceptSchema, reportIdSchema } from '@/lib/kosztorys/worker-report/schemas'
+import { acceptSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { AcceptReportInputT, AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import { round6 } from '@/lib/utils/round'
 import type { ActionResultT } from '@/types/action'
-
-const NOT_PENDING = 'To zgłoszenie zostało już rozpatrzone.'
 
 // Thrown inside the transaction so everything it already wrote rolls back.
 class AcceptRefusal extends Error {}
 
 const STALE = 'Zgłoszenie zmieniło się w innym oknie — odśwież je.'
 
-export async function rejectWorkerReportAction(
-  investmentId: number,
-  reportId: number,
-): Promise<ActionResultT> {
-  return investmentAction(
-    'rejectWorkerReportAction',
-    { investmentId },
-    async ({ payload, user }) => {
-      const parsed = validateAction(reportIdSchema, reportId)
-      if (!parsed.success) return parsed
-      const db = await getDb(payload)
-      const workerId = await claimPendingReport(db, investmentId, parsed.data, 'rejected', user.id)
-      if (workerId === null) return { success: false, error: NOT_PENDING }
-      return { success: true }
-    },
-    // Nothing cached reads a report; the expiry is only what re-renders the shell's nav badge.
-    undefined,
-    investmentEntityOpts(investmentId),
-  )
-}
-
 /**
  * Brings the etap in line with the kierownik's decision: a newly accepted line adds its ilość, an
  * already accepted one adds only the difference to what it was accepted at, and an undone one takes
- * its ilość back out. Everything — the claim, the auto version, a new etap, the new pozycje, the
- * figures and the report's record — is one transaction, so a failure anywhere leaves the report and
- * the rozpiska as they were.
+ * its ilość back out. An odrzucona line touches only the report. Everything — the auto version, a new
+ * etap, the new pozycje, the figures and the report's record — is one transaction, so a failure
+ * anywhere leaves the report and the rozpiska as they were.
  */
 export async function acceptWorkerReportAction(
   input: AcceptReportInputT,
@@ -142,28 +117,36 @@ async function acceptInTransaction(
   const { workerId } = report.report
 
   const lineById = new Map(report.lines.map((line) => [line.id, line]))
-  const decidedIds = [
-    ...[...request.lines, ...request.extras].map((decision) => decision.lineId),
-    ...request.undone,
-  ]
-  if (new Set(decidedIds).size !== decidedIds.length) {
+  const acceptedIds = [...request.lines, ...request.extras].map((decision) => decision.lineId)
+  const decidedIds = [...acceptedIds, ...request.undone]
+  const flaggedIds = [...request.rejected, ...request.unrejected]
+  if (
+    new Set(decidedIds).size !== decidedIds.length ||
+    new Set(flaggedIds).size !== flaggedIds.length ||
+    flaggedIds.some((lineId) => acceptedIds.includes(lineId))
+  ) {
     throw new AcceptRefusal('Pozycja zgłoszenia powtarza się w decyzji.')
   }
-  if (decidedIds.some((lineId) => !lineById.has(lineId))) {
+  if ([...decidedIds, ...flaggedIds].some((lineId) => !lineById.has(lineId))) {
     throw new AcceptRefusal('Część pozycji nie należy do tego zgłoszenia.')
   }
   const isAccepted = (lineId: number) => lineById.get(lineId)?.acceptedQty !== null
+  const isRejected = (lineId: number) => lineById.get(lineId)?.isRejected === true
   // A decision states what the window saw; another window's accept since then makes it a different
   // decision, never silently a change of that one.
   const isStale =
     request.lines.some(
       (decision) => decision.seenQty !== (lineById.get(decision.lineId)?.acceptedQty ?? undefined),
-    ) || request.extras.some((extra) => isAccepted(extra.lineId))
+    ) ||
+    request.extras.some((extra) => isAccepted(extra.lineId)) ||
+    request.rejected.some((lineId) => isAccepted(lineId) && !request.undone.includes(lineId))
   if (isStale) throw new AcceptRefusal(STALE)
   const freshLines = request.lines.filter((decision) => !isAccepted(decision.lineId))
   const changedLines = request.lines.filter((decision) => isAccepted(decision.lineId))
-  // A line undone in another window meanwhile has nothing left to take back.
+  // A line undone, odrzucona or sent back in another window meanwhile has nothing left to change.
   const undoneIds = request.undone.filter(isAccepted)
+  const rejectedIds = request.rejected.filter((lineId) => !isRejected(lineId))
+  const unrejectedIds = request.unrejected.filter(isRejected)
   const isAdding = freshLines.length + request.extras.length > 0
 
   // One report, one etap: a change or an untick lands in the etap the report names, so the rest may
@@ -220,7 +203,10 @@ async function acceptInTransaction(
     return [{ itemId, delta: -(line.acceptedQty as number) }]
   })
 
-  if (!isAdding && changes.length === 0 && undoneIds.length === 0) throw new AcceptRefusal(STALE)
+  const isFlagging = rejectedIds.length + unrejectedIds.length > 0
+  if (!isAdding && changes.length === 0 && undoneIds.length === 0 && !isFlagging) {
+    throw new AcceptRefusal(STALE)
+  }
 
   for (const extra of request.extras) {
     const line = lineById.get(extra.lineId) as WorkerReportLineRowT
@@ -242,7 +228,9 @@ async function acceptInTransaction(
   const target = isAdding ? resolveTarget(tree.stages, request.target, workerId) : undefined
 
   // Before any tree write, so the version holds the rozpiska as it was before the decision.
-  await captureAutoSnapshot(tx, investmentId, userId)
+  if (isAdding || changes.length + removals.length > 0) {
+    await captureAutoSnapshot(tx, investmentId, userId)
+  }
 
   const stage =
     target === undefined
@@ -337,10 +325,11 @@ async function acceptInTransaction(
       catalogueItemId: extra.catalogueItemId,
     })),
   ]
-  await markReportAccepted(tx, reportId, userId, stage)
   await updateReportLines(tx, reportId, decisions)
   await clearLinesAcceptance(tx, reportId, undoneIds)
-  await reopenReportIfNoneAccepted(tx, reportId)
+  await setLinesRejected(tx, reportId, rejectedIds, true)
+  await setLinesRejected(tx, reportId, unrejectedIds, false)
+  await settleReport(tx, reportId, userId, stage)
 
   return {
     stage: target?.kind === 'new' ? stage : undefined,

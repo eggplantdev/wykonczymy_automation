@@ -6,14 +6,27 @@ import {
 } from '@/lib/kosztorys/worker-report/report-status'
 import { cn } from '@/lib/utils/cn'
 
-type PropsT = { status: ReportStatusT; lineCount: number; acceptedLineCount: number }
+type PropsT = {
+  status: ReportStatusT
+  lineCount: number
+  acceptedLineCount: number
+  rejectedLineCount: number
+}
 
-export function WorkerReportStatusBadge({ status, lineCount, acceptedLineCount }: PropsT) {
+export function WorkerReportStatusBadge({
+  status,
+  lineCount,
+  acceptedLineCount,
+  rejectedLineCount,
+}: PropsT) {
   const { t } = useTranslation('workerReports')
   if (status === 'pending') {
+    const decided = acceptedLineCount + rejectedLineCount
     return (
       <span className={cn(BADGE_BASE, BADGE_TONE.pending)}>
-        {t(REPORT_STATUS_LABEL_KEYS.pending)}
+        {decided === 0
+          ? t(REPORT_STATUS_LABEL_KEYS.pending)
+          : t('pendingProgress', { decided, total: lineCount })}
       </span>
     )
   }

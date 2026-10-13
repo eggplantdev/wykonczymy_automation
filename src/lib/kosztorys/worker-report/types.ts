@@ -57,8 +57,9 @@ export type ReportLineT = {
   unit: string
   sectionName: string | undefined
   reportedQty: number
-  // Undefined on a pending report, and on a decided one for a line that was not accepted.
+  // Undefined until the line is przyjęta — while it waits and once it is odrzucona.
   acceptedQty: number | undefined
+  isRejected: boolean
   createdItemId: number | undefined
   catalogueItemId: number | undefined
   // Extras only, filled after the send. Both undefined = not translated (yet); a `pl` language with
@@ -95,6 +96,7 @@ export type WorkerReportSummaryT = {
   target: ReportTargetT | undefined
   lineCount: number
   acceptedLineCount: number
+  rejectedLineCount: number
 }
 
 export type WorkerReportT = WorkerReportSummaryT & { lines: ReportLineT[]; photos: MediaFileT[] }
@@ -112,7 +114,7 @@ export type AcceptReportResultT = {
   revision: string
 }
 
-// „Przyjęto" of one line: on a decided report a line nobody took counts as refused.
+// „Przyjęto" of one line: odrzucona only by an explicit decision, never by being left out.
 export type ReportLineOutcomeT =
   | { kind: 'accepted'; qty: number }
   | { kind: 'pending' }
@@ -148,6 +150,7 @@ export type ReportPreviewT = {
   decidedByName: string | undefined
   lineCount: number
   acceptedLineCount: number
+  rejectedLineCount: number
   photos: MediaFileT[]
   lines: ReportPreviewLineT[]
 }

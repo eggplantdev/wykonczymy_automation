@@ -27,8 +27,6 @@ export const sendLineSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
-export const reportIdSchema = idSchema
-
 export const acceptSchema = z
   .object({
     investmentId: idSchema,
@@ -59,10 +57,21 @@ export const acceptSchema = z
     ),
     // Accepted lines the kierownik unticked: their ilość comes back out of the etap.
     undone: z.array(idSchema),
+    // Lines odrzucone, one by one — an accepted one also sits in `undone`, which takes its ilość
+    // back out. `unrejected` are odrzucone ones sent back to waiting.
+    rejected: z.array(idSchema),
+    unrejected: z.array(idSchema),
   })
-  .refine((input) => input.lines.length + input.extras.length + input.undone.length > 0, {
-    message: 'Nic się nie zmieniło',
-  })
+  .refine(
+    (input) =>
+      input.lines.length +
+        input.extras.length +
+        input.undone.length +
+        input.rejected.length +
+        input.unrejected.length >
+      0,
+    { message: 'Nic się nie zmieniło' },
+  )
 
 const scanQtySchema = z.number().nullable()
 

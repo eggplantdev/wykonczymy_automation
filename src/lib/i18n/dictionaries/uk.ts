@@ -185,6 +185,7 @@ export const uk: TranslationsT = {
     statusPending: 'На перевірці',
     statusAccepted: 'Прийнято',
     statusRejected: 'Відхилено',
+    pendingProgress: 'На перевірці · {{decided}} з {{total}}',
     acceptedPartial: 'Прийнято {{accepted}} з {{total}}',
     works: 'Роботи',
     source: 'Джерело',

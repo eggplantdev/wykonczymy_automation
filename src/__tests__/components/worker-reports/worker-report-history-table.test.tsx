@@ -24,6 +24,7 @@ const report = (id: number, overrides: Partial<ReportListRowT> = {}): ReportList
   decidedByName: null,
   lineCount: 2,
   acceptedLineCount: 0,
+  rejectedLineCount: 0,
   ...overrides,
 })
 

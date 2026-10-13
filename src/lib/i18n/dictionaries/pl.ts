@@ -194,6 +194,7 @@ export const pl = {
     statusPending: 'Do sprawdzenia',
     statusAccepted: 'Przyjęte',
     statusRejected: 'Odrzucone',
+    pendingProgress: 'Do sprawdzenia · {{decided}} z {{total}}',
     acceptedPartial: 'Przyjęte {{accepted}} z {{total}}',
     works: 'Prace',
     source: 'Źródło',

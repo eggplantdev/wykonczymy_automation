@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  acceptWorkerReportAction,
-  rejectWorkerReportAction,
-} from '@/lib/actions/accept-worker-report'
+import { acceptWorkerReportAction } from '@/lib/actions/accept-worker-report'
 import type { StageCellT } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
@@ -13,7 +10,6 @@ import { settleAction } from '@/lib/utils/settle-action'
 import type { ActionErrorCodeT } from '@/types/action'
 
 type ArgsT = {
-  investmentId: number
   flushUndoBuffer: () => void
   drain: (keys: string[]) => Promise<void>
   adoptStage: (stage: KosztorysStageT) => void
@@ -37,7 +33,6 @@ type ArgsT = {
  * afterwards the grid takes the server's figure rather than adding locally.
  */
 export function useWorkerReportAcceptance({
-  investmentId,
   flushUndoBuffer,
   drain,
   adoptStage,
@@ -77,14 +72,5 @@ export function useWorkerReportAcceptance({
     return true
   }
 
-  async function rejectReport(reportId: number): Promise<boolean> {
-    const res = await settleAction(() => rejectWorkerReportAction(investmentId, reportId))
-    if (!res.success) {
-      reportFailure(res.error, res.code)
-      return false
-    }
-    return true
-  }
-
-  return { acceptReport, rejectReport }
+  return { acceptReport }
 }

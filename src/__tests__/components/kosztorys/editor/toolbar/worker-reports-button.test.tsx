@@ -24,6 +24,7 @@ const PENDING: WorkerReportSummaryT = {
   target: undefined,
   lineCount: 2,
   acceptedLineCount: 0,
+  rejectedLineCount: 0,
 }
 vi.mock('@/lib/queries/worker-reports', () => ({
   listInvestmentReports: vi.fn(async () => [PENDING]),

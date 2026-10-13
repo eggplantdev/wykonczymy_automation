@@ -10,7 +10,6 @@ import type { AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
 
 vi.mock('@/lib/actions/accept-worker-report', () => ({
   acceptWorkerReportAction: vi.fn(),
-  rejectWorkerReportAction: vi.fn(),
 }))
 
 const NEW_STAGE = { id: 30, ordinal: 3 } as KosztorysStageT
@@ -24,7 +23,6 @@ function renderAcceptance() {
       calls.push(name)
     }
   const args = {
-    investmentId: 1,
     flushUndoBuffer: vi.fn(record('flush')),
     drain: vi.fn(async () => {
       calls.push('drain')
@@ -69,6 +67,8 @@ describe('useWorkerReportAcceptance', () => {
         lines: [{ lineId: 1, acceptedQty: 7 }],
         extras: [],
         undone: [2],
+        rejected: [],
+        unrejected: [],
       },
       [
         { itemId: 10, stageId: 30 },
@@ -94,7 +94,16 @@ describe('useWorkerReportAcceptance', () => {
     const { result, args } = renderAcceptance()
 
     await result.current.acceptReport(
-      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [], undone: [] },
+      {
+        investmentId: 1,
+        reportId: 7,
+        target: { kind: 'new' },
+        lines: [],
+        extras: [],
+        undone: [],
+        rejected: [],
+        unrejected: [],
+      },
       [],
     )
 
@@ -127,7 +136,16 @@ describe('useWorkerReportAcceptance', () => {
     })
 
     await result.current.acceptReport(
-      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [], undone: [] },
+      {
+        investmentId: 1,
+        reportId: 7,
+        target: { kind: 'new' },
+        lines: [],
+        extras: [],
+        undone: [],
+        rejected: [],
+        unrejected: [],
+      },
       [],
     )
 
@@ -148,7 +166,16 @@ describe('useWorkerReportAcceptance', () => {
     })
 
     const accepted = await result.current.acceptReport(
-      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [], undone: [] },
+      {
+        investmentId: 1,
+        reportId: 7,
+        target: { kind: 'new' },
+        lines: [],
+        extras: [],
+        undone: [],
+        rejected: [],
+        unrejected: [],
+      },
       [],
     )
 

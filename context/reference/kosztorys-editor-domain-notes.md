@@ -471,17 +471,22 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   wiersze, które ukrywa reguła pustych pozycji (przy 0 bez licznika). W nagłówku nie ma tytułu.
 - **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
   spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
-  zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na
-  zakończonej inwestycji wysyłka jest zablokowana.
+  zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe pozycje kierownik
+  odrzuca. Na zakończonej inwestycji wysyłka jest zablokowana.
 - **Kierownik** widzi zgłoszenia w nawigacji („Zgłoszenia wykonanych prac", z licznikiem oczekujących we
   wszystkich inwestycjach) i w przycisku na pasku rozpiski. Przyjęcie dzieje się w rozpisce: wybiera
   etap zgłaszającego albo „Nowy etap" (następny numer, zgłaszający na 100%), może poprawić ilości,
   a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.
 - **Przyjęcie DODAJE** do ilości etapu — pracownik zgłasza do tego samego etapu wiele razy. Przed
   przyjęciem zapisuje się automatyczna wersja, więc da się je cofnąć z „Wczytaj".
+- **Każda pozycja dostaje decyzję: „Przyjmij” albo „Odrzuć” (EX-1049, 2026-10-13).** Odrzuca się
+  tylko pozycja po pozycji — nie ma „Odrzuć zgłoszenie” ani zbiorczego odrzucenia; zbiorczo tylko
+  „Przyjmij” (zaznacz wszystkie, z pominięciem odrzuconych). Zgłoszenie stoi „Do sprawdzenia · X z N”,
+  dopóki choć jedna pozycja czeka; potem „Przyjęte” (jeśli cokolwiek przyjęto) albo „Odrzucone”.
+  Pracownik widzi przy każdej pozycji przyjęta / odrzucona / czeka.
 - **Decyzję da się zmienić.** Przyjęta praca zostaje zaznaczona i edytowalna: zmiana ilości
-  przesuwa etap o różnicę, odznaczenie zdejmuje ją z etapu. Odrzucone zgłoszenie — i odznaczona
-  praca — można przyjąć później. Póki coś w zgłoszeniu jest przyjęte, resztę dodaje się do tego
+  przesuwa etap o różnicę, odznaczenie zdejmuje ją z etapu i wraca do „czeka”. „Odrzuć” na przyjętej
+  zdejmuje ją z etapu i odrzuca. Odrzuconą pozycję można przyjąć później albo cofnąć do „czeka”. Póki coś w zgłoszeniu jest przyjęte, resztę dodaje się do tego
   samego etapu; jeśli ten etap usunięto albo pracownika w nim już nie ma, najpierw trzeba odznaczyć
   przyjęte prace. Zmiana zrobiona w innym oknie odmawia zapisu z prośbą o odświeżenie.
 - **„Przyjęte" nie wraca po przywróceniu wersji.** Przywrócenie wersji sprzed przyjęcia zdejmuje

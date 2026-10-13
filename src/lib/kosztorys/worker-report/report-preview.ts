@@ -12,7 +12,6 @@ import type {
   ReportPreviewLineT,
   ReportPreviewT,
 } from '@/lib/kosztorys/worker-report/types'
-import type { ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 
 type WorkerDescriptionT = {
   workerDescription: string | undefined
@@ -47,9 +46,9 @@ export function workerDescriptionOf(
   }
 }
 
-function outcomeOf(line: ReportPreviewLineRowT, status: ReportStatusT): ReportLineOutcomeT {
+function outcomeOf(line: ReportPreviewLineRowT): ReportLineOutcomeT {
   if (line.acceptedQty !== null) return { kind: 'accepted', qty: line.acceptedQty }
-  return status === 'pending' ? { kind: 'pending' } : { kind: 'rejected' }
+  return line.isRejected ? { kind: 'rejected' } : { kind: 'pending' }
 }
 
 type ViewerT = {
@@ -101,7 +100,7 @@ export function buildReportPreview(
         : { workerDescription: undefined, workerDescriptionLanguage: undefined }),
       unit: translateUnit(line.unit, language),
       reportedQty: line.reportedQty,
-      outcome: outcomeOf(line, report.status),
+      outcome: outcomeOf(line),
     }
   }
 
@@ -125,6 +124,7 @@ export function buildReportPreview(
     decidedByName: report.decidedByName ?? undefined,
     lineCount: report.lineCount,
     acceptedLineCount: report.acceptedLineCount,
+    rejectedLineCount: report.rejectedLineCount,
     photos: media,
     lines: sorted.map(toLine),
   }

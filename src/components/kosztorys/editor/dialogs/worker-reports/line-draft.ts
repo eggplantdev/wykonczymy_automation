@@ -18,6 +18,8 @@ import { round6 } from '@/lib/utils/round'
 
 export type LineDraftT = {
   isTicked: boolean
+  // Odrzucona — never ticked at the same time. Neither = the line still waits for a decision.
+  isRejected: boolean
   qty: string
   // The pozycja a line is re-pointed to once its own was deleted.
   itemId: number | undefined
@@ -144,6 +146,7 @@ export function initialDrafts(
       const isGone = line.kind === 'rozpiska' && !isLive(line.itemId)
       const draft: LineDraftT = {
         isTicked: line.acceptedQty !== undefined,
+        isRejected: line.isRejected,
         qty: qtyInputText(line.acceptedQty ?? line.reportedQty),
         itemId: isGone && line.acceptedQty === undefined ? exactItemMatch(line, rows) : undefined,
         isExtra: line.kind === 'rozpiska' && line.createdItemId !== undefined,
@@ -162,6 +165,12 @@ export function initialDrafts(
 export function partitionLines(lines: ReportLineT[], drafts: Record<number, LineDraftT>) {
   const accepted = lines.filter((line) => line.acceptedQty !== undefined)
   return {
+    // An accepted one too — it is also undone, which takes its ilość back out.
+    rejected: lines.filter((line) => !line.isRejected && drafts[line.id].isRejected),
+    // Back to waiting; one ticked instead is simply accepted, which clears its rejection.
+    unrejected: lines.filter(
+      (line) => line.isRejected && !drafts[line.id].isRejected && !drafts[line.id].isTicked,
+    ),
     // Not yet in an etap — odrzucona too, which can still be przyjęta.
     open: lines.filter((line) => line.acceptedQty === undefined),
     ticked: lines.filter((line) => line.acceptedQty === undefined && drafts[line.id].isTicked),
@@ -183,7 +192,7 @@ export function buildAccept(
   target: AcceptTargetT,
   itemIdOf: (line: ReportLineT) => number | undefined,
 ): { input: AcceptReportInputT; cells: StageCellT[] } {
-  const { ticked, changed, undone } = partitionLines(report.lines, drafts)
+  const { ticked, changed, undone, rejected, unrejected } = partitionLines(report.lines, drafts)
   const input: AcceptReportInputT = {
     investmentId: report.investmentId,
     reportId: report.id,
@@ -195,6 +204,8 @@ export function buildAccept(
     })),
     extras: [],
     undone: undone.map((line) => line.id),
+    rejected: rejected.map((line) => line.id),
+    unrejected: unrejected.map((line) => line.id),
   }
   const cells: StageCellT[] = []
   const recordedStageId = report.target?.stageId

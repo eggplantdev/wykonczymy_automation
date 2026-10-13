@@ -186,6 +186,7 @@ export const ru: TranslationsT = {
     statusPending: 'На проверке',
     statusAccepted: 'Принято',
     statusRejected: 'Отклонено',
+    pendingProgress: 'На проверке · {{decided}} из {{total}}',
     acceptedPartial: 'Принято {{accepted}} из {{total}}',
     works: 'Работы',
     source: 'Источник',
