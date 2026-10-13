@@ -18,6 +18,8 @@ import {
   MONEY_AXES,
   MONEY_PAIR_CONFIG,
 } from '@/components/kosztorys/editor/toolbar/kosztorys-view-axis-options'
+import { KosztorysViewStagesSection } from '@/components/kosztorys/editor/toolbar/kosztorys-view-stages-section'
+import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import {
   derivePairChecks,
   togglePairAxis,
@@ -80,11 +82,16 @@ export function KosztorysViewMenu() {
     offer,
     setOffer,
     isTemplate,
+    stages,
+    isStageHidden,
+    engagedStageConditionIds,
   } = useKosztorysEditorContext()
 
   // „Oferta" is a closed column list: no tick and no axis would move a column, so only the lens
   // stays — and the menu must stay, or there is no way back out of „Oferta".
   const items = offer ? [] : columnToggleItems
+  // The workbench has no etapy to pick, and „Oferta" answers to its own list like the ticks above.
+  const pickableStages = offer || isTemplate ? [] : stagesForView(stages, view)
 
   // Both axis controls belong to „Inwestor" alone, for two different reasons: subcontractors are paid
   // without VAT (EX-558), so netto/brutto is meaningless in their views, and a subcontractor view IS
@@ -95,9 +102,14 @@ export function KosztorysViewMenu() {
   // least shortens it, while a column that is gone looks exactly like a column that never existed.
   // A column an engaged problem reveals is on screen whatever its tick says, so it is not hidden and
   // must not be counted: the number has to answer „czego nie widzę", not „co odznaczyłem".
-  const hiddenCount = items.filter(
-    (item) => !item.visible && !revealedColumnIds.has(item.id),
-  ).length
+  // An engaged etap problem puts its etapy on screen whatever their tick, so it counts none of them.
+  const hiddenStageCount =
+    engagedStageConditionIds.size > 0
+      ? 0
+      : pickableStages.filter((stage) => isStageHidden(stage.id)).length
+  const hiddenCount =
+    items.filter((item) => !item.visible && !revealedColumnIds.has(item.id)).length +
+    hiddenStageCount
 
   return (
     <ColumnToggleMenu
@@ -114,6 +126,11 @@ export function KosztorysViewMenu() {
       }
       // The hint is about the axis options above the list, which the workbench does not have.
       hint={isTemplate ? undefined : <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
+      footer={
+        pickableStages.length > 0 ? (
+          <KosztorysViewStagesSection stages={pickableStages} />
+        ) : undefined
+      }
       order={
         offer
           ? undefined

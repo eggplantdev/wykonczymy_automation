@@ -3,7 +3,7 @@ import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kos
 import { appendTrailingGap, withResize } from '@/components/kosztorys/editor/grid/column-sizing'
 import { withColumnColor } from '@/components/kosztorys/editor/grid/column-color'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import { stageGroupOfKey } from '@/lib/kosztorys/stage-keys'
+import { stageGroupOfKey, stageIdOfKey } from '@/lib/kosztorys/stage-keys'
 import {
   baseRanksFromKeys,
   groupColumns,
@@ -121,6 +121,10 @@ export function selectV2Columns(
   // Only the two documents subtract a hidden set here.
   const documentHidden =
     opts.previewVisible || opts.workerSurface ? opts.documentHiddenColumns : undefined
+  // An engaged etap problem has already narrowed the etapy to the ones it is about (assembly), and
+  // those must show whatever the per-etap tick says — the reveal rule `revealedColumnIds` applies to
+  // a column tick.
+  const stageProblemEngaged = [...(opts.engagedStageConditionIds ?? [])].length > 0
   // Tested on the full id as well as the group key: the owner hides a per-etap family whole, while
   // an etap with no entries goes alone (`emptySettlementColumnIds`).
   const keep = (id: string): boolean => {
@@ -142,6 +146,8 @@ export function selectV2Columns(
     }
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
     if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(key)) return false
+    const stageId = stageIdOfKey(id)
+    if (stageId !== null && !stageProblemEngaged && opts.isStageHidden?.(stageId)) return false
     // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
     // tick hide this right now" — and it overrules the crew axis for the same reason: six diagnostics
     // are plane-bound („Stawka ujemna — z narzędziami" and its five siblings), so with that crew's
