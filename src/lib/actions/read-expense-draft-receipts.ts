@@ -52,11 +52,13 @@ async function readPhoto(
 /**
  * Runs in `after()` and from the manager's „Zobacz": a failed read is only a missing prefill, so it
  * never throws. Returns the read the draft holds, which is an overlapping read's when that one
- * was stored first.
+ * was stored first. `blobStoreId` lets a script read production's pages from a machine whose token
+ * names the preview store.
  */
 export async function readExpenseDraftReceipts(
   db: DbExecutorT,
   draftId: number,
+  blobStoreId?: string,
 ): Promise<ExpenseDraftReadT | undefined> {
   try {
     const draft = await loadExpenseDraftForRead(db, draftId)
@@ -68,7 +70,7 @@ export async function readExpenseDraftReceipts(
     const isInvoice = draft.scanMode === 'one-invoice' && draft.pages.length > 1
     // A draft from before the 8-photo cap can still be pending; the manager reads it by eye.
     if (isInvoice && draft.pages.length > MAX_RECEIPT_PAGES) return
-    const storeId = blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)
+    const storeId = blobStoreId ?? blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)
     if (!storeId) throw new Error('BLOB_READ_WRITE_TOKEN names no Blob store')
 
     const mediaIds = draft.pages.map((page) => page.id)
