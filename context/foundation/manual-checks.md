@@ -4882,3 +4882,11 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Telefon → kosztorys: opis prac, ilości, „Razem” sekcji i pasek sekcji mniejsze; opis zawija się całymi liniami, a „…” pojawia się tylko przy faktycznie uciętym tekście.
 - [ ] Telefon (iPhone) → raport pracownika (`/z/…`): stuknij w komórkę ilości i zacznij pisać — strona się NIE przybliża, a w trakcie edycji cyfra jest większa (16px); po wyjściu wraca do 12px.
 - [ ] Desktop → kosztorys: „Dopasuj wysokość do treści” daje te same wysokości wierszy co przed zmianą.
+
+## 2026-10-13 — review-gate-fixes — poprawki z przeglądu commitów z 13.10
+
+- [ ] Kosztorys → pozycja spoza oferty (Przedmiar ofertowy 0, Aktualizacja przedmiaru > 0, w etapach wykonano więcej niż Aktualizacja): „% wykonania (względem przedmiaru ofertowego)" pokazuje szare „—", nie czerwone; „% wykonania" obok jest czerwony.
+- [ ] Dowolna tabela poza kosztorysem (np. Transakcje) → „Kolumny": przy długiej liście przewija się sama lista kolumn, a pole wyszukiwania zostaje na górze.
+- [ ] Kosztorys → „Kolumny": sekcja „Etapy" pod listą kolumn jest osiągalna przewijaniem całego menu.
+- [ ] Kosztorys na telefonie (390px) → komórka z uciętym tekstem: „…" stoi w linii ostatniego wiersza tekstu, nie nad nim ani pod nim.
+- [ ] Kosztorys → zakończony etap: zielony ptaszek z podpowiedzią „Etap zakończony" w nagłówku kolumny i przy etapie w „Kolumny" → „Etapy"; ptaszek etapu w menu chowa i pokazuje jego kolumnę (zachowanie jak przed refaktorem).
