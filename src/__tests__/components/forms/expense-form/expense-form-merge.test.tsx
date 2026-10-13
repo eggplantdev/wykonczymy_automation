@@ -113,7 +113,18 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
 
     await merge(user, [1, 2])
 
-    expect(screen.getAllByText('zdjecie-101.jpg')).toHaveLength(1)
+    expect(screen.getAllByText('parking')).toHaveLength(1)
+    expect(screen.queryByText('bilet')).toBeNull()
+  })
+
+  it('names the merged pages after the first read paragon, not the camera file', async () => {
+    const user = renderDraft()
+    await screen.findByDisplayValue('Paliwo')
+
+    await merge(user, [1, 3])
+
+    expect(screen.getByText('parking')).toBeInTheDocument()
+    expect(screen.queryByText(/zdjecie-/)).toBeNull()
   })
 
   it('says „nie odczytano” when a merged paragon had no Kwota', async () => {
@@ -123,6 +134,20 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
 
     await merge(user, [1, 2])
 
+    expect(screen.getByText('nie odczytano')).toBeInTheDocument()
+  })
+
+  it('keeps „nie odczytano” when a short merged row is merged again', async () => {
+    const user = renderDraft()
+    await screen.findByDisplayValue('Paliwo')
+    await merge(user, [1, 2])
+
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 2' }))
+    await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone (2)' }))
+    await waitFor(() => expect(descriptions()).toEqual(['Parking']))
+
+    expect(screen.getByDisplayValue('212.45')).toBeInTheDocument()
     expect(screen.getByText('nie odczytano')).toBeInTheDocument()
   })
 

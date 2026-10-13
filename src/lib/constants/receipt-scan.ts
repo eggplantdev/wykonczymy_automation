@@ -1,5 +1,4 @@
-export const RECEIPT_SCAN_MODES = ['one-invoice', 'one-per-photo'] as const
-export type ScanModeT = (typeof RECEIPT_SCAN_MODES)[number]
+export type ScanModeT = 'one-invoice' | 'one-per-photo'
 
 // The product deliberately puts no cap on how many pages an invoice HAS; this caps how many go into
 // one scan, and exists purely so the per-page budget in `lib/ai/openrouter.ts` stays inside the

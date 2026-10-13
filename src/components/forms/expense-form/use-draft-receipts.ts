@@ -1,18 +1,19 @@
 import { useState } from 'react'
-import { makeLineItem, type BulkLineItemT } from '@/components/forms/expense-form/bulk-expense-form'
-import { lineItemForPart } from '@/components/worker-expenses/draft-prefill'
+import {
+  makeLineItem,
+  type BulkLineItemT,
+  type ReceiptGroupingT,
+} from '@/components/forms/expense-form/bulk-expense-form'
+import { mergeLineItems } from '@/components/forms/expense-form/merge-line-items'
+import { lineItemForPart, pagesFor, readOf } from '@/components/worker-expenses/draft-prefill'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
-import { bookedReceipt, mergeLineItems } from '@/lib/worker-expenses/merge-receipts'
-import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
-
-export type ReceiptGroupingT = {
-  selectableIds: Set<string>
-  selectedIds: Set<string>
-  mergedIds: Set<string>
-  disabled: boolean
-  onToggle: (id: string) => void
-  onSplit: (id: string) => void
-}
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
+import {
+  bookedReceipt,
+  mergeParts,
+  splitParts,
+  type DraftReceiptT,
+} from '@/lib/worker-expenses/receipt-decision'
 
 type DraftReceiptsSourceT = {
   receipts: Map<string, DraftReceiptT[]>
@@ -28,11 +29,8 @@ type OptionsT = {
   isBusy: boolean
 }
 
-/**
- * The paragony behind each row of a worker's zgłoszenie, and „Połącz” / „Rozłącz” over them. A merge
- * or split rewrites the parts, the rows and their files in one handler: a merged-away row left in the
- * parts would be booked as a refused paragon.
- */
+// A merge or split rewrites the parts, the rows and their files in one handler: a merged-away row
+// left in the parts would be booked as a refused paragon.
 export function useDraftReceipts({
   source,
   lineItems,
@@ -44,47 +42,32 @@ export function useDraftReceipts({
     () => source?.receipts ?? new Map<string, DraftReceiptT[]>(),
   )
   const [selected, setSelected] = useState(() => new Set<string>())
-  // A merged Kwota summed over a paragon the AI could not read is short, and must say so.
+  // Grows only: a row id is never reused, so a merged-away or split row's id can't match again.
   const [incompleteIds, setIncompleteIds] = useState(() => new Set<string>())
 
   const rowIds = new Set(lineItems.map((item) => item.id))
   const selectedIds = new Set([...selected].filter((id) => rowIds.has(id)))
   const selectedItems = lineItems.filter((item) => selectedIds.has(item.id))
-  const mergedIds = new Set(
-    lineItems.filter((item) => (receipts.get(item.id)?.length ?? 0) > 1).map((item) => item.id),
-  )
-
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
 
   function merge() {
     if (!source || selectedItems.length < 2) return
     const { values, isAmountIncomplete } = mergeLineItems(selectedItems)
     const merged = makeLineItem(values)
-    const parts = selectedItems.flatMap((item) => receipts.get(item.id) ?? [])
     const mergedAwayIds = selectedItems.map((item) => item.id)
-    const pages = bookedReceipt(parts).mediaIds.flatMap((id) => source.pagesByMediaId.get(id) ?? [])
+    const parts = mergedAwayIds.flatMap((id) => receipts.get(id) ?? [])
+    // Named like the rows it came from, so the merged invoice doesn't upload under camera names.
+    const filename = parts.map((part) => readOf(part, source.aiReadRows)?.filename).find(Boolean)
+    // A merged-in row's own blank Kwota is already hidden inside its sum.
+    const isIncomplete = isAmountIncomplete || mergedAwayIds.some((id) => incompleteIds.has(id))
 
     const at = lineItems.findIndex((item) => item.id === mergedAwayIds[0])
     const rest = lineItems.filter((item) => !selectedIds.has(item.id))
     setLineItems([...rest.slice(0, at), merged, ...rest.slice(at)])
-    replaceRows(mergedAwayIds, [[merged.id, pages]])
-    setReceipts((prev) => {
-      const next = new Map(prev)
-      mergedAwayIds.forEach((id) => next.delete(id))
-      return next.set(merged.id, parts)
-    })
-    setIncompleteIds((prev) => {
-      const next = new Set(prev)
-      mergedAwayIds.forEach((id) => next.delete(id))
-      return isAmountIncomplete ? next.add(merged.id) : next
-    })
+    replaceRows(mergedAwayIds, [
+      [merged.id, pagesFor(bookedReceipt(parts).mediaIds, source.pagesByMediaId, filename)],
+    ])
+    setReceipts((prev) => mergeParts(prev, mergedAwayIds, merged.id))
+    if (isIncomplete) setIncompleteIds((prev) => new Set(prev).add(merged.id))
     setSelected(new Set())
   }
 
@@ -95,10 +78,9 @@ export function useDraftReceipts({
     if (!source || !parts || parts.length < 2 || at === -1) return
     const { expenseCategory, worker } = lineItems[at]
     const rows = parts.map((part) => {
-      const read = part.readRow === undefined ? undefined : source.aiReadRows[part.readRow]
       const { lineItem, pages } = lineItemForPart(
         part,
-        read,
+        source.aiReadRows,
         source.pagesByMediaId,
         expenseCategory,
       )
@@ -114,17 +96,13 @@ export function useDraftReceipts({
       [id],
       rows.map((row) => [row.lineItem.id, row.pages]),
     )
-    setReceipts((prev) => {
-      const next = new Map(prev)
-      next.delete(id)
-      rows.forEach((row) => next.set(row.lineItem.id, [row.part]))
-      return next
-    })
-    setIncompleteIds((prev) => {
-      const next = new Set(prev)
-      next.delete(id)
-      return next
-    })
+    setReceipts((prev) =>
+      splitParts(
+        prev,
+        id,
+        rows.map((row) => [row.lineItem.id, row.part]),
+      ),
+    )
   }
 
   function itemIdOfReadRow(readRow: number): string | undefined {
@@ -134,21 +112,15 @@ export function useDraftReceipts({
   }
 
   const grouping: ReceiptGroupingT | undefined = source && {
-    // A row the manager added himself stands for no paragon, so there is nothing to merge it with.
     selectableIds: new Set([...rowIds].filter((id) => receipts.has(id))),
     selectedIds,
-    mergedIds,
+    mergedIds: new Set([...rowIds].filter((id) => (receipts.get(id)?.length ?? 0) > 1)),
+    incompleteIds,
     disabled: isBusy,
-    onToggle: toggle,
+    onToggle: (id) => setSelected((prev) => toggleInSet(prev, id)),
+    onMerge: merge,
     onSplit: split,
   }
 
-  return {
-    receipts,
-    grouping,
-    selectedCount: selectedIds.size,
-    merge,
-    incompleteIds: new Set([...incompleteIds].filter((id) => rowIds.has(id))),
-    itemIdOfReadRow,
-  }
+  return { receipts, grouping, itemIdOfReadRow }
 }

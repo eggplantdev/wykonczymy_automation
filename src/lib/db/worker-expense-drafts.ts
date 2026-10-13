@@ -365,10 +365,9 @@ export async function decideExpenseDraft(
     SELECT unnest(r.media_ids) INTERSECT
     SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
   )`
-  // Likewise a read row lands only if the draft's AI read has it.
   const ownReadRows = sql`ARRAY(
     SELECT unnest(r.read_rows) INTERSECT
-    SELECT generate_series(0, jsonb_array_length(decided.read_rows) - 1)
+    SELECT generate_series(0, decided.read_count - 1)
     ORDER BY 1
   )`
   const res = await db.execute(sql`
@@ -378,8 +377,8 @@ export async function decideExpenseDraft(
         duplicate_of = ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
       WHERE id = ${decision.draftId} AND status = 'pending'
       RETURNING id,
-        CASE WHEN jsonb_typeof(ai_read -> 'rows') = 'array' THEN ai_read -> 'rows' ELSE '[]' END
-          AS read_rows
+        CASE WHEN jsonb_typeof(ai_read -> 'rows') = 'array' THEN jsonb_array_length(ai_read -> 'rows') ELSE 0 END
+          AS read_count
     ), linked AS (
       INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
       SELECT r.id, decided.id, ${ownPages}, ${ownReadRows}

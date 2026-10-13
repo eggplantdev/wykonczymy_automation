@@ -116,6 +116,30 @@ describe('ExpenseDraftDuplicateHints', () => {
     expect(screen.getAllByRole('button', { name: 'Duplikat' })).toHaveLength(1)
   })
 
+  it('keeps one hint per paragon when two merged into one row match the same transakcja', async () => {
+    render(
+      <ExpenseDraftDuplicateHints
+        state={{
+          status: 'ready',
+          paragons: [
+            { readRow: 0, description: 'Klej', amount: 89.9, matches: [match({})] },
+            { readRow: 1, description: 'Fuga', amount: 45, matches: [match({})] },
+          ],
+        }}
+        lineItemIds={['row-a']}
+        itemIdOfReadRow={onRowA}
+        onMarkDuplicate={vi.fn()}
+      />,
+    )
+    expect(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })).toHaveLength(2)
+
+    await userEvent
+      .setup()
+      .click(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })[0])
+
+    expect(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })).toHaveLength(1)
+  })
+
   it.each<[DuplicateHintsStateT, string]>([
     [{ status: 'reading' }, 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.'],
     [{ status: 'checking' }, 'Sprawdzanie duplikatów…'],

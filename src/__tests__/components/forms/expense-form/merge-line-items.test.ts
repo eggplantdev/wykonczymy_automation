@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { makeLineItem } from '@/components/forms/expense-form/bulk-expense-form'
-import { bookedReceipt, mergeLineItems } from '@/lib/worker-expenses/merge-receipts'
+import { mergeLineItems } from '@/components/forms/expense-form/merge-line-items'
 
 describe('mergeLineItems', () => {
   it('sums Kwota in grosze, not in floats', () => {
@@ -77,24 +77,5 @@ describe('mergeLineItems', () => {
 
     expect(same.values.documentNumber).toBe('FV 1')
     expect(different.values.documentNumber).toBe('')
-  })
-})
-
-describe('bookedReceipt', () => {
-  it('books a shared photo once, in first-seen order, with every read row', () => {
-    expect(
-      bookedReceipt([
-        { mediaIds: [2], readRow: 3 },
-        { mediaIds: [1, 2], readRow: 0 },
-        { mediaIds: [4] },
-      ]),
-    ).toEqual({ mediaIds: [2, 1, 4], readRows: [3, 0] })
-  })
-
-  // The server-action decoder counts a shared array once per reference (98ee7f439).
-  it('hands back a fresh page list, never a part’s own', () => {
-    const part = { mediaIds: [1], readRow: 0 }
-
-    expect(bookedReceipt([part]).mediaIds).not.toBe(part.mediaIds)
   })
 })

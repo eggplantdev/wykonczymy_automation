@@ -1,5 +1,4 @@
 import type { DuplicateOfT, SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
-import { bookedReceipt } from '@/lib/worker-expenses/merge-receipts'
 
 // One paragon of a zgłoszenie: its pages, and which row of the draft's AI read it was filled from.
 // The pages alone don't name it — one photo can hold several paragony.
@@ -24,5 +23,34 @@ export function receiptDecision(
         const duplicateOf = duplicateOfByItemId.get(id)
         return parts.map((part) => (duplicateOf ? { ...part, duplicateOf } : part))
       }),
+  }
+}
+
+export function mergeParts(
+  receipts: Map<string, DraftReceiptT[]>,
+  ids: string[],
+  mergedId: string,
+): Map<string, DraftReceiptT[]> {
+  const next = new Map(receipts)
+  const parts = ids.flatMap((id) => next.get(id) ?? [])
+  ids.forEach((id) => next.delete(id))
+  return next.set(mergedId, parts)
+}
+
+export function splitParts(
+  receipts: Map<string, DraftReceiptT[]>,
+  id: string,
+  rows: [id: string, part: DraftReceiptT][],
+): Map<string, DraftReceiptT[]> {
+  const next = new Map(receipts)
+  next.delete(id)
+  rows.forEach(([rowId, part]) => next.set(rowId, [part]))
+  return next
+}
+
+export function bookedReceipt(parts: DraftReceiptT[]): { mediaIds: number[]; readRows: number[] } {
+  return {
+    mediaIds: [...new Set(parts.flatMap((part) => part.mediaIds))],
+    readRows: parts.flatMap((part) => (part.readRow === undefined ? [] : [part.readRow])),
   }
 }

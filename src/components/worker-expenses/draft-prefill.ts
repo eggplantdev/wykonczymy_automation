@@ -13,25 +13,32 @@ type DraftPrefillT = {
   lineItems: BulkExpenseFormValuesT['lineItems']
   // Keyed by row position, the shape `ExpenseFormPrefillT.files` takes.
   files: Map<number, File[]>
-  // Keyed by line item id: the paragony each row stands for — one until the manager merges rows.
   receipts: Map<string, DraftReceiptT[]>
-  // The downloaded page of each photo, which a split row takes its files from again.
   pagesByMediaId: Map<number, File>
 }
 
-type PartWithReadT = { part: DraftReceiptT; read?: ExpenseDraftReadRowT }
+export const readOf = (part: DraftReceiptT, aiReadRows: ExpenseDraftReadRowT[]) =>
+  part.readRow === undefined ? undefined : aiReadRows[part.readRow]
 
-/** One paragon as a form row, filled from its read row when there is one, with its own pages. */
+export function pagesFor(
+  mediaIds: number[],
+  pagesByMediaId: Map<number, File>,
+  filename: string | undefined,
+): File[] {
+  const downloaded = mediaIds.flatMap((id) => pagesByMediaId.get(id) ?? [])
+  return filename ? renamePages(downloaded, filename) : downloaded
+}
+
 export function lineItemForPart(
   part: DraftReceiptT,
-  read: ExpenseDraftReadRowT | undefined,
+  aiReadRows: ExpenseDraftReadRowT[],
   pagesByMediaId: Map<number, File>,
   expenseCategory: string,
 ): { lineItem: BulkLineItemT; pages: File[] } {
-  const downloaded = part.mediaIds.flatMap((id) => pagesByMediaId.get(id) ?? [])
+  const read = readOf(part, aiReadRows)
   return {
     lineItem: makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) }),
-    pages: read?.filename ? renamePages(downloaded, read.filename) : downloaded,
+    pages: pagesFor(part.mediaIds, pagesByMediaId, read?.filename),
   }
 }
 
@@ -52,22 +59,23 @@ export function buildDraftPrefill(
   )
   const ownIds = new Set(draft.media.map((page) => page.id))
   // `readRow` is the read's own position, which names the paragon where its pages cannot.
-  const readParts = (draft.aiRead?.rows ?? []).flatMap((read, readRow): PartWithReadT[] =>
+  const aiReadRows = draft.aiRead?.rows ?? []
+  const readParts = aiReadRows.flatMap((read, readRow): DraftReceiptT[] =>
     read.mediaIds.length > 0 && read.mediaIds.every((id) => ownIds.has(id))
       ? // A copy per paragon: the server-action decoder counts a shared array once per reference,
         // and ~20 paragony on one photo tripped its nesting limit.
-        [{ part: { mediaIds: [...read.mediaIds], readRow }, read }]
+        [{ mediaIds: [...read.mediaIds], readRow }]
       : [],
   )
-  const covered = new Set(readParts.flatMap(({ part }) => part.mediaIds))
+  const covered = new Set(readParts.flatMap((part) => part.mediaIds))
   const blankParts = draft.media
     .filter((page) => !covered.has(page.id))
-    .map((page): PartWithReadT => ({ part: { mediaIds: [page.id] } }))
+    .map((page): DraftReceiptT => ({ mediaIds: [page.id] }))
 
   const rowFiles = new Map<number, File[]>()
   const receipts = new Map<string, DraftReceiptT[]>()
-  const lineItems = [...readParts, ...blankParts].map(({ part, read }, row) => {
-    const { lineItem, pages } = lineItemForPart(part, read, pagesByMediaId, expenseCategory)
+  const lineItems = [...readParts, ...blankParts].map((part, row) => {
+    const { lineItem, pages } = lineItemForPart(part, aiReadRows, pagesByMediaId, expenseCategory)
     if (pages.length > 0) rowFiles.set(row, pages)
     receipts.set(lineItem.id, [part])
     return lineItem

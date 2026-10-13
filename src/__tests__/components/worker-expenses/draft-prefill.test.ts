@@ -242,8 +242,11 @@ describe('lineItemForPart', () => {
 
   it('rebuilds one paragon from its read row, pages renamed', () => {
     const { lineItem, pages } = lineItemForPart(
-      { mediaIds: [2, 3], readRow: 4 },
-      { mediaIds: [2, 3], description: 'Leroy', amount: 12, filename: 'leroy.jpg' },
+      { mediaIds: [2, 3], readRow: 1 },
+      [
+        { mediaIds: [1], description: 'Inny' },
+        { mediaIds: [2, 3], description: 'Leroy', amount: 12, filename: 'leroy.jpg' },
+      ],
       pagesByMediaId,
       CATEGORY,
     )
@@ -253,7 +256,7 @@ describe('lineItemForPart', () => {
   })
 
   it('a part with no read row comes back blank with its photos', () => {
-    const { lineItem, pages } = lineItemForPart({ mediaIds: [1] }, undefined, pagesByMediaId, CATEGORY)
+    const { lineItem, pages } = lineItemForPart({ mediaIds: [1] }, [], pagesByMediaId, CATEGORY)
 
     expect(lineItem).toMatchObject({ description: '', amount: '' })
     expect(pages).toEqual([FILES[0]])

@@ -48,6 +48,13 @@ const amountOrNumber = (amount: SqlT, numbers: SqlT[], filter: CandidateFilterT)
     sql.raw(' OR '),
   )})`
 
+const readRowMatches = (readRow: SqlT, filter: CandidateFilterT) =>
+  amountOrNumber(
+    sql`(${readRow} ->> 'amount')::numeric`,
+    [sql`(${readRow} ->> 'documentNumber')`, noteLine1(sql`(${readRow} ->> 'invoiceNote')`)],
+    filter,
+  )
+
 export async function loadDraftProbes(db: DbExecutorT, draftId: number): Promise<DraftProbeT[]> {
   const res = await db.execute(sql`
     SELECT r.value AS read_row, r.ordinality
@@ -131,11 +138,7 @@ async function loadMergedParagony(
     LEFT JOIN investments i ON i.id = t.investment_id
     LEFT JOIN users w ON w.id = p.worker_id
     WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE
-      AND ${amountOrNumber(
-        sql`(p.read_row ->> 'amount')::numeric`,
-        [sql`(p.read_row ->> 'documentNumber')`, noteLine1(sql`(p.read_row ->> 'invoiceNote')`)],
-        filter,
-      )}
+      AND ${readRowMatches(sql`p.read_row`, filter)}
   `)
   return res.rows.flatMap((row) => {
     const read = expenseDraftReadRowSchema.safeParse(row.read_row)
@@ -175,11 +178,7 @@ export async function loadDraftCandidates(
     FROM read_rows rr
     JOIN users w ON w.id = rr.worker_id
     LEFT JOIN investments i ON i.id = rr.investment_id
-    WHERE ${amountOrNumber(
-      sql`(rr.read_row ->> 'amount')::numeric`,
-      [sql`(rr.read_row ->> 'documentNumber')`, noteLine1(sql`(rr.read_row ->> 'invoiceNote')`)],
-      filter,
-    )}
+    WHERE ${readRowMatches(sql`rr.read_row`, filter)}
   `)
   return res.rows.flatMap((row) => {
     const read = expenseDraftReadRowSchema.safeParse(row.read_row)

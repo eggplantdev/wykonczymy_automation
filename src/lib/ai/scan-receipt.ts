@@ -25,13 +25,6 @@ export async function scanReceipt(
       filename: file.name || `receipt.${file.type.split('/')[1] ?? 'pdf'}`,
     })),
   )
-  return scanReceiptPages(pages, otherCategoryNames)
-}
-
-export async function scanReceiptPages(
-  pages: ReceiptPageT[],
-  otherCategoryNames: string[],
-): Promise<ReceiptFillResultT> {
   return shapeForForm(await extractReceipt(pages, otherCategoryNames), pages)
 }
 

@@ -1,13 +1,12 @@
 import type { BulkLineItemT } from '@/components/forms/expense-form/bulk-expense-form'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 
 type MergedValuesT = Omit<BulkLineItemT, 'id'>
 
-// In grosze: 0.1 + 0.2 summed as floats renders a Kwota nobody typed.
-const toGrosze = (text: string) => Math.round(roundToCents(Number(text)) * 100)
 const sumText = (texts: string[]) =>
-  texts.some(Boolean) ? String(texts.reduce((sum, text) => sum + toGrosze(text), 0) / 100) : ''
+  texts.some(Boolean)
+    ? String(roundToCents(texts.reduce((sum, text) => sum + Number(text), 0)))
+    : ''
 
 /**
  * One row out of several: Kwota is the plain sum of what the rows show, a blank one counting 0 —
@@ -41,13 +40,5 @@ export function mergeLineItems(items: BulkLineItemT[]): {
       documentNumber: numbers.size === 1 ? [...numbers][0] : '',
     },
     isAmountIncomplete: items.some((item) => !item.amount),
-  }
-}
-
-/** What one row books: every photo once, and the paragony behind it. */
-export function bookedReceipt(parts: DraftReceiptT[]): { mediaIds: number[]; readRows: number[] } {
-  return {
-    mediaIds: [...new Set(parts.flatMap((part) => part.mediaIds))],
-    readRows: parts.flatMap((part) => (part.readRow === undefined ? [] : [part.readRow])),
   }
 }

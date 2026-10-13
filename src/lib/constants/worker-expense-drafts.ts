@@ -1,4 +1,3 @@
-import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { MessageKeyT } from '@/lib/i18n/translations'
 
@@ -14,8 +13,7 @@ export const DRAFT_STATUS_LABEL_KEYS: Record<ExpenseDraftStatusT, MessageKeyT<'e
   rejected: 'statusRejected',
 }
 
-// The AI reads a draft in one call at send, so a draft never holds more pages than one call takes.
-export const MAX_DRAFT_PAGES = MAX_RECEIPT_PAGES
+export const MAX_DRAFT_PAGES = 8
 
 export const DRAFT_ALREADY_DECIDED = pl.notices.draftAlreadyDecided
 

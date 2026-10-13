@@ -32,8 +32,7 @@ function toReadRow(mediaIds: number[], data: ReceiptFillResultT): ExpenseDraftRe
 // asking again.
 const hasAnswer = (row: ExpenseDraftReadRowT) => Object.keys(row).some((key) => key !== 'mediaIds')
 
-// One photo can hold several paragony, each its own row on that photo. The category is never
-// applied from a draft, so the model gets none to pick from.
+// The category is never applied from a draft, so the model gets none to pick from.
 async function readPhoto(
   storeId: string,
   page: ExpenseDraftMediaT,

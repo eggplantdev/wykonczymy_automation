@@ -29,14 +29,13 @@ import {
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
-import { pl } from '@/lib/i18n/dictionaries/pl'
 import {
   isBlankRow,
   makeLineItem,
   type BulkExpenseFormApiT,
   type BulkExpenseFormValuesT,
+  type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import type { ReceiptGroupingT } from '@/components/forms/expense-form/use-draft-receipts'
 
 // Structural on purpose — name only the members we call, since the full FieldApi generic is
 // unnameable and the real inferred field is assignable to this.
@@ -58,13 +57,13 @@ const isReceiptFile = (file: File) =>
   file.type.startsWith('image/') || file.type === 'application/pdf'
 
 const SCAN_MODE_OPTIONS: OptionT<ScanModeT>[] = [
-  { value: 'one-per-photo', label: pl.expenseDrafts.scanModeOnePerPhoto },
-  { value: 'one-invoice', label: pl.expenseDrafts.scanModeOneInvoice },
+  { value: 'one-per-photo', label: 'Kilka wydatków' },
+  { value: 'one-invoice', label: 'Jeden wydatek' },
 ]
 
 const SCAN_MODE_HINT: Record<ScanModeT, string> = {
-  'one-per-photo': pl.expenseDrafts.scanModeOnePerPhotoHint,
-  'one-invoice': pl.expenseDrafts.scanModeOneInvoiceHint,
+  'one-per-photo': 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
+  'one-invoice': 'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
 }
 
 type LineItemsFieldPropsT = {
@@ -91,7 +90,6 @@ type LineItemsFieldPropsT = {
   ingestingIds?: Set<string>
   failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
-  // A worker's zgłoszenie only: rows the manager may merge, and the merged ones he may split again.
   receiptGrouping?: ReceiptGroupingT
 }
 
@@ -271,6 +269,19 @@ export function LineItemsField({
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: LineItemsArrayFieldT) => (
         <div className="space-y-4">
+          {receiptGrouping && receiptGrouping.selectableIds.size > 1 && (
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={receiptGrouping.selectedIds.size < 2 || receiptGrouping.disabled}
+                onClick={receiptGrouping.onMerge}
+              >
+                Połącz zaznaczone ({receiptGrouping.selectedIds.size})
+              </Button>
+            </div>
+          )}
           <div className="space-y-6">
             {lineItemsField.state.value.map((item, index: number) => (
               <Fragment key={item.id}>
@@ -343,7 +354,7 @@ export function LineItemsField({
                       {/* No icon: this row is already Kwota + Netto + Opis + kategoria + the delete
                       slot, and a `shrink-0` glyph would take its ~1rem straight off the flex-1
                       inputs. `tone="error"` alone carries the alarm here. */}
-                      {failedIds?.has(item.id) && (
+                      {(failedIds?.has(item.id) || receiptGrouping?.incompleteIds.has(item.id)) && (
                         <Description
                           tone="error"
                           size="xs"

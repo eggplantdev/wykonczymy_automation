@@ -16,6 +16,7 @@ export type ExpenseDuplicateRowT = DuplicateMatchT & {
   paragon: string
   // The acceptance form's line item the paragon was prefilled into.
   paragonItemId: string
+  paragonReadRow: number
 }
 
 type ColumnsOptionsT = {

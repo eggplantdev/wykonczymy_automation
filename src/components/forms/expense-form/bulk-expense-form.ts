@@ -30,6 +30,18 @@ export type BulkExpenseFormValuesT = {
 
 export type BulkLineItemT = BulkExpenseFormValuesT['lineItems'][number]
 
+export type ReceiptGroupingT = {
+  selectableIds: Set<string>
+  selectedIds: Set<string>
+  mergedIds: Set<string>
+  // Merged rows whose sum is short a Kwota.
+  incompleteIds: Set<string>
+  disabled: boolean
+  onToggle: (id: string) => void
+  onMerge: () => void
+  onSplit: (id: string) => void
+}
+
 // A fresh row with a stable client-side `id` that keys its out-of-form state (invoice file,
 // generation markers). Call it per push — reusing one object would collide ids across rows.
 export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT {

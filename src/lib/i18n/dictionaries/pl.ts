@@ -177,11 +177,6 @@ export const pl = {
     deleteTitle: 'Usunąć wydatek?',
     delete: 'Usuń',
     deletedToast: 'Wydatek usunięty',
-    scanModeOneInvoice: 'Jeden wydatek',
-    scanModeOnePerPhoto: 'Kilka wydatków',
-    scanModeOneInvoiceHint:
-      'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
-    scanModeOnePerPhotoHint: 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
     tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
   },
   workerReports: {

@@ -169,11 +169,6 @@ export const ru: TranslationsT = {
     deleteTitle: 'Удалить расход?',
     delete: 'Удалить',
     deletedToast: 'Расход удалён',
-    scanModeOneInvoice: 'Один расход',
-    scanModeOnePerPhoto: 'Несколько расходов',
-    scanModeOneInvoiceHint:
-      'Все фото — это один счёт: будет одна позиция с несколькими страницами.',
-    scanModeOnePerPhotoHint: 'Каждое фото — отдельный чек: из него будет отдельная позиция.',
     tooManyPhotos: 'Не больше {{max}} фото в одном расходе — остальные отправьте отдельно.',
   },
   workerReports: {

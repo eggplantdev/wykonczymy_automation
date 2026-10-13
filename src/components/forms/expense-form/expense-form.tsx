@@ -7,7 +7,6 @@ import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceIngest } from '@/components/forms/expense-form/use-invoice-ingest'
 import { useReceiptGeneration } from '@/components/forms/expense-form/use-receipt-generation'
 import { useDraftReceipts } from '@/components/forms/expense-form/use-draft-receipts'
-import { Button } from '@/components/ui/button'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -84,7 +83,6 @@ export type ExpenseFormPrefillT = {
   files: Map<number, File[]>
   expenseDraftId: number
   receipts: Map<string, DraftReceiptT[]>
-  // What „Rozłącz" rebuilds a merged row's paragony from.
   aiReadRows: ExpenseDraftReadRowT[]
   pagesByMediaId: Map<number, File>
 }
@@ -455,20 +453,6 @@ export function ExpenseForm({
             itemIdOfReadRow: draftReceipts.itemIdOfReadRow,
           })}
 
-          {(draftReceipts.grouping?.selectableIds.size ?? 0) > 1 && (
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={draftReceipts.selectedCount < 2 || draftReceipts.grouping?.disabled}
-                onClick={draftReceipts.merge}
-              >
-                Połącz zaznaczone ({draftReceipts.selectedCount})
-              </Button>
-            </div>
-          )}
-
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
@@ -485,11 +469,7 @@ export function ExpenseForm({
               isGenerating={isGenerating || isPrefillReading}
               generatingIds={generatingIds}
               ingestingIds={ingestingIds}
-              failedIds={
-                draftReceipts.incompleteIds.size > 0
-                  ? new Set([...failedIds, ...draftReceipts.incompleteIds])
-                  : failedIds
-              }
+              failedIds={failedIds}
               receiptGrouping={draftReceipts.grouping}
               generationProgress={generationProgress}
               transferType={currentType}

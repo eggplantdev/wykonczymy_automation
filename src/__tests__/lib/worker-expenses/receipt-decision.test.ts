@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
-import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
+import {
+  bookedReceipt,
+  mergeParts,
+  receiptDecision,
+  splitParts,
+  type DraftReceiptT,
+} from '@/lib/worker-expenses/receipt-decision'
 
 const RECEIPTS = new Map<string, DraftReceiptT[]>([
   ['a', [{ mediaIds: [11, 12] }]],
@@ -102,31 +108,25 @@ describe('receiptDecision', () => {
   })
 })
 
-// What the „Przyjmij” dialog does to its parts map, reduced to the map: a merge replaces the
-// selected rows with one row holding all their parts; a split gives each part its row back.
+// The „Przyjmij” dialog's row order beside the real parts-map updates it makes.
 type StateT = { receipts: Map<string, DraftReceiptT[]>; order: string[] }
 
 function merge({ receipts, order }: StateT, ids: string[], mergedId: string): StateT {
-  const next = new Map(receipts)
-  const parts = ids.flatMap((id) => next.get(id) ?? [])
-  ids.forEach((id) => next.delete(id))
-  next.set(mergedId, parts)
   const at = order.indexOf(ids[0])
   const rest = order.filter((id) => !ids.includes(id))
   rest.splice(at, 0, mergedId)
-  return { receipts: next, order: rest }
+  return { receipts: mergeParts(receipts, ids, mergedId), order: rest }
 }
 
 function split({ receipts, order }: StateT, id: string): StateT {
-  const next = new Map(receipts)
-  const parts = next.get(id) ?? []
-  next.delete(id)
-  const newIds = parts.map((part, index) => {
-    next.set(`${id}.${index}`, [part])
-    return `${id}.${index}`
-  })
+  const rows = (receipts.get(id) ?? []).map(
+    (part, index): [string, DraftReceiptT] => [`${id}.${index}`, part],
+  )
   const at = order.indexOf(id)
-  return { receipts: next, order: [...order.slice(0, at), ...newIds, ...order.slice(at + 1)] }
+  return {
+    receipts: splitParts(receipts, id, rows),
+    order: [...order.slice(0, at), ...rows.map(([rowId]) => rowId), ...order.slice(at + 1)],
+  }
 }
 
 const remove = ({ receipts, order }: StateT, id: string): StateT => ({
@@ -169,5 +169,24 @@ describe('receiptDecision across merge → split → remove', () => {
     ],
   ])('every read row ends booked or skipped, exactly once, after %s', (_, steps) => {
     expect(settledReadRows(steps(start))).toEqual(ALL)
+  })
+})
+
+describe('bookedReceipt', () => {
+  it('books a shared photo once, in first-seen order, with every read row', () => {
+    expect(
+      bookedReceipt([
+        { mediaIds: [2], readRow: 3 },
+        { mediaIds: [1, 2], readRow: 0 },
+        { mediaIds: [4] },
+      ]),
+    ).toEqual({ mediaIds: [2, 1, 4], readRows: [3, 0] })
+  })
+
+  // The server-action decoder counts a shared array once per reference (98ee7f439).
+  it('hands back a fresh page list, never a part’s own', () => {
+    const part = { mediaIds: [1], readRow: 0 }
+
+    expect(bookedReceipt([part]).mediaIds).not.toBe(part.mediaIds)
   })
 })
