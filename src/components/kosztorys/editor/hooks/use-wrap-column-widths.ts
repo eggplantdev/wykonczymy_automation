@@ -1,16 +1,22 @@
 'use client'
 
 import { useCallback, useEffect, useState, type RefObject } from 'react'
+import { DESKTOP_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import { wrapColumnClass, type ColumnWidthsT } from '@/lib/kosztorys/row-content-lines'
 
 // A cell's 1px right border plus ReadOnlyCellText's px-2, i.e. everything between the cell's edge
 // and the first glyph.
 const CELL_TEXT_CHROME_PX = 17
 
-// text-sm, the class every cell's text carries. Composed rather than read off a rendered cell so
-// the first measurement doesn't have to wait for one to exist.
+// text-sm / max-sm:text-xs, the classes every cell's text carries. Composed rather than read off a
+// rendered cell so the first measurement doesn't have to wait for one to exist.
 const CELL_FONT_SIZE = '14px'
+const PHONE_CELL_FONT_SIZE = '12px'
 const CELL_FONT_WEIGHT = '400'
+
+function cellFontSize(): string {
+  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches ? CELL_FONT_SIZE : PHONE_CELL_FONT_SIZE
+}
 
 export type WrapWidthsT = {
   widths: ColumnWidthsT
@@ -37,7 +43,7 @@ export function useWrapColumnWidths(
     const container = containerRef.current
     if (!container) return
     const family = window.getComputedStyle(container).fontFamily
-    const font = `${CELL_FONT_WEIGHT} ${CELL_FONT_SIZE} ${family}`
+    const font = `${CELL_FONT_WEIGHT} ${cellFontSize()} ${family}`
     setMeasured((prev) => {
       const widths: Record<string, number> = { ...prev.widths }
       // A column the current view doesn't render at all keeps no width — that is what stops a

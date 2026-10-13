@@ -4874,3 +4874,11 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] „Zgłoszenia wydatków” → to samo dla inwestycji i pracownika; zgłoszenie bez inwestycji pokazuje „bez inwestycji” jako zwykły tekst.
 - [ ] Strona pracownika jako zarząd → w tabelach zgłoszeń prac i wydatków nazwa inwestycji jest linkiem.
 - [ ] Zalogowany jako pracownik (EMPLOYEE) → na własnej stronie nazwa inwestycji w obu tabelach zgłoszeń NIE jest linkiem.
+
+## 2026-10-13 — mobile-table-font — 12px w tabelach i kosztorysie na telefonie
+
+- [ ] Telefon (390px) → „Inwestycje”, „Pracownicy”, „Zgłoszenia wykonanych prac”, „Sprzęt”: treść tabeli mniejsza (12px), nagłówki bez zmian; na desktopie (≥768px) wszystko jak dotąd (14px).
+- [ ] Telefon → „Katalog prac” i „Sprzęt”: kolumny szare (stawka, źródło ceny, opis) też w 12px, nie większe od reszty wiersza.
+- [ ] Telefon → kosztorys: opis prac, ilości, „Razem” sekcji i pasek sekcji mniejsze; opis zawija się całymi liniami, a „…” pojawia się tylko przy faktycznie uciętym tekście.
+- [ ] Telefon (iPhone) → raport pracownika (`/z/…`): stuknij w komórkę ilości i zacznij pisać — strona się NIE przybliża, a w trakcie edycji cyfra jest większa (16px); po wyjściu wraca do 12px.
+- [ ] Desktop → kosztorys: „Dopasuj wysokość do treści” daje te same wysokości wierszy co przed zmianą.

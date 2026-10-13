@@ -46,7 +46,7 @@ function TotalsRowCell({ content }: { content: string }) {
     <div
       className={cn(
         TOTALS_CELL_CLASS,
-        'bg-muted text-foreground border-border flex size-full items-center border-t-2 px-2 text-base font-semibold tabular-nums',
+        'bg-muted text-foreground border-border flex size-full items-center border-t-2 px-2 text-base font-semibold tabular-nums max-sm:text-sm',
       )}
     >
       {content}

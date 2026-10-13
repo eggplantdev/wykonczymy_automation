@@ -466,6 +466,10 @@
   font-size: 0.875rem;
   line-height: 1.25rem;
   pointer-events: none;
+
+  @variant max-sm {
+    font-size: 0.75rem;
+  }
 }
 
 /* A span that only exists to be a tooltip trigger around a cell's input. The rule above is written

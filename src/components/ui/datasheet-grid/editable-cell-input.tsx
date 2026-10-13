@@ -44,8 +44,11 @@ export const EditableCellInput = forwardRef<HTMLInputElement, PropsT>(function E
         else if (ref) ref.current = node
       }}
       className={cn(
-        'typing-surface size-full bg-transparent px-2 text-left outline-none',
-        focus === false && 'pointer-events-none',
+        'size-full bg-transparent px-2 text-left outline-none',
+        // Only an input at rest drops to the grid's phone size: iOS reads the font-size at the moment
+        // of focus to decide whether to zoom, and the class flips back before the layout effect
+        // below focuses the node.
+        focus === false ? 'pointer-events-none text-sm max-sm:text-xs' : 'typing-surface',
         className,
       )}
       // Never a tab stop of its own: the grid moves between cells with Tab itself, and a natively
