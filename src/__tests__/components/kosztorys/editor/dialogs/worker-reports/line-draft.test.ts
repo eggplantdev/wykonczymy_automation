@@ -4,6 +4,7 @@ import {
   acceptedQtyNote,
   buildAccept,
   catalogueSwap,
+  decisionSummary,
   initialDrafts,
   isLineReady,
   lineGroup,
@@ -209,6 +210,24 @@ describe('odrzucenie pozycja po pozycji', () => {
     const drafts = initialDrafts(report([line({ isRejected: true })]), liveRows)
 
     expect(drafts[1]).toMatchObject({ isTicked: false, isRejected: true })
+  })
+})
+
+describe('licznik w stopce zgłoszenia', () => {
+  const lines = [line({ id: 1 }), line({ id: 2 }), line({ id: 3 })]
+  const waiting = { ...draft, isTicked: false }
+  const rejected = { ...waiting, isRejected: true }
+
+  it('liczy niezapisane decyzje, zanim kierownik kliknie „Zapisz zmiany”', () => {
+    expect(decisionSummary(lines, { 1: waiting, 2: waiting, 3: waiting })).toBe('')
+    expect(decisionSummary(lines, { 1: draft, 2: rejected, 3: waiting })).toBe('Rozpatrzono 2 z 3.')
+  })
+
+  it('gdy każda pozycja ma decyzję, mówi, czym zgłoszenie stanie się po zapisie', () => {
+    expect(decisionSummary(lines, { 1: draft, 2: rejected, 3: rejected })).toBe('Przyjęto 1 z 3.')
+    expect(decisionSummary(lines, { 1: rejected, 2: rejected, 3: rejected })).toBe(
+      'Wszystkie pozycje odrzucone.',
+    )
   })
 })
 

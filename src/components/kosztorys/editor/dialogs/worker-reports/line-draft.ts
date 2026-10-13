@@ -182,6 +182,20 @@ export function partitionLines(lines: ReportLineT[], drafts: Record<number, Line
   }
 }
 
+// Read off the drafts, not the saved report: the footer sits beside „Zapisz zmiany” and has to
+// say what that save produces. The report stays do sprawdzenia until every line is decided.
+export function decisionSummary(lines: ReportLineT[], drafts: Record<number, LineDraftT>) {
+  const acceptedCount = lines.filter((line) => drafts[line.id].isTicked).length
+  const decidedCount = lines.filter(
+    (line) => drafts[line.id].isTicked || drafts[line.id].isRejected,
+  ).length
+  if (decidedCount < lines.length) {
+    return decidedCount === 0 ? '' : `Rozpatrzono ${decidedCount} z ${lines.length}.`
+  }
+  if (acceptedCount === 0) return 'Wszystkie pozycje odrzucone.'
+  return `Przyjęto ${acceptedCount} z ${lines.length}.`
+}
+
 export type StageCellT = { itemId: number; stageId: number }
 
 // A first accept goes to the chosen etap; a change or an untick moves the etap the report already

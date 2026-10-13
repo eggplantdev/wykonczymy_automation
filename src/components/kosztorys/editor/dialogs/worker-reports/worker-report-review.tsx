@@ -12,6 +12,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import {
   buildAccept,
   catalogueSwap,
+  decisionSummary,
   initialDrafts,
   isLineReady,
   lineGroup,
@@ -77,19 +78,6 @@ const searchableText = (row: ReviewRowT) =>
     row.itemDescription ?? '',
     row.workerDescription ?? '',
   ].join(' ')
-
-// The report stays do sprawdzenia until every line is przyjęta or odrzucona.
-function decisionSummary({
-  status,
-  lineCount,
-  acceptedLineCount,
-  rejectedLineCount,
-}: Pick<WorkerReportT, 'status' | 'lineCount' | 'acceptedLineCount' | 'rejectedLineCount'>) {
-  const decided = acceptedLineCount + rejectedLineCount
-  if (status === 'pending') return decided === 0 ? '' : `Rozpatrzono ${decided} z ${lineCount}.`
-  if (status === 'rejected') return 'Wszystkie pozycje odrzucone.'
-  return `Przyjęto ${acceptedLineCount} z ${lineCount}.`
-}
 
 export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   const { rows, stages, sections, workCatalogue, acceptReport } = useKosztorysEditorContext()
@@ -384,7 +372,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
 
       <DialogFooter>
         <p className="text-muted-foreground mr-auto self-center text-sm">
-          {decisionSummary(report)}
+          {decisionSummary(report.lines, drafts)}
         </p>
         <Button variant="outline" onClick={onBack}>
           Wszystkie zgłoszenia
