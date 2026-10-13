@@ -4890,3 +4890,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Kosztorys → „Kolumny": sekcja „Etapy" pod listą kolumn jest osiągalna przewijaniem całego menu.
 - [ ] Kosztorys na telefonie (390px) → komórka z uciętym tekstem: „…" stoi w linii ostatniego wiersza tekstu, nie nad nim ani pod nim.
 - [ ] Kosztorys → zakończony etap: zielony ptaszek z podpowiedzią „Etap zakończony" w nagłówku kolumny i przy etapie w „Kolumny" → „Etapy"; ptaszek etapu w menu chowa i pokazuje jego kolumnę (zachowanie jak przed refaktorem).
+
+## 2026-10-13 — report-review-layout — kolejność grup i stopka w „Zgłoszenia wykonanych prac”
+
+- [ ] Kosztorys → „Zgłoszenia wykonanych prac”: pod tytułem okna nie ma już opisu.
+- [ ] Otwórz zgłoszenie z pracami spoza rozpiski i z rozpiski → „Spoza rozpiski” stoi nad „Z rozpiski”.
+- [ ] Stopka zgłoszenia: brak przycisku „Wszystkie zgłoszenia”; „Rozpatrzono X z Y.” czarną czcionką; po „Przyjmij…” / „Zapisz zmiany” okno wraca do listy zgłoszeń.
