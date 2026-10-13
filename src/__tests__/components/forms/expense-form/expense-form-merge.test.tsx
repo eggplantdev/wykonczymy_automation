@@ -113,18 +113,17 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
 
     await merge(user, [1, 2])
 
-    expect(screen.getAllByText('parking')).toHaveLength(1)
-    expect(screen.queryByText('bilet')).toBeNull()
+    expect(screen.getAllByText(/zdjecie-101/)).toHaveLength(1)
   })
 
-  it('names the merged pages after the first read paragon, not the camera file', async () => {
+  it('keeps the camera filename on the merged pages', async () => {
     const user = renderDraft()
     await screen.findByDisplayValue('Paliwo')
 
     await merge(user, [1, 3])
 
-    expect(screen.getByText('parking')).toBeInTheDocument()
-    expect(screen.queryByText(/zdjecie-/)).toBeNull()
+    expect(screen.getAllByText(/zdjecie-10[12]/).length).toBeGreaterThan(0)
+    expect(screen.queryByText('parking')).toBeNull()
   })
 
   it('says „nie odczytano” when a merged paragon had no Kwota', async () => {

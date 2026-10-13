@@ -5,7 +5,7 @@ import {
   type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { mergeLineItems } from '@/components/forms/expense-form/merge-line-items'
-import { lineItemForPart, pagesFor, readOf } from '@/components/worker-expenses/draft-prefill'
+import { lineItemForPart, pagesFor } from '@/components/worker-expenses/draft-prefill'
 import type { LineItemStatusT } from '@/components/forms/form-fields/collapsible-line-item'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
@@ -80,8 +80,6 @@ export function useDraftReceipts({
     const merged = makeLineItem(values)
     const mergedAwayIds = selectedItems.map((item) => item.id)
     const parts = mergedAwayIds.flatMap((id) => receipts.get(id) ?? [])
-    // Named like the rows it came from, so the merged invoice doesn't upload under camera names.
-    const filename = parts.map((part) => readOf(part, source.aiReadRows)?.filename).find(Boolean)
     // A merged-in row's own blank Kwota is already hidden inside its sum.
     const isIncomplete = isAmountIncomplete || mergedAwayIds.some((id) => incompleteIds.has(id))
 
@@ -89,7 +87,7 @@ export function useDraftReceipts({
     const rest = lineItems.filter((item) => !selectedIds.has(item.id))
     setLineItems([...rest.slice(0, at), merged, ...rest.slice(at)])
     replaceRows(mergedAwayIds, [
-      [merged.id, pagesFor(bookedReceipt(parts).mediaIds, source.pagesByMediaId, filename)],
+      [merged.id, pagesFor(bookedReceipt(parts).mediaIds, source.pagesByMediaId)],
     ])
     setReceipts((prev) => mergeParts(prev, mergedAwayIds, merged.id))
     if (isIncomplete) setIncompleteIds((prev) => new Set(prev).add(merged.id))

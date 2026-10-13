@@ -498,15 +498,15 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Draft DB spec passes
-- [x] 1.2 Duplicate-candidates DB spec passes
-- [x] 1.3 The four fixture specs pass
+- [x] 1.1 Draft DB spec passes — 7e186eeba
+- [x] 1.2 Duplicate-candidates DB spec passes — 7e186eeba
+- [x] 1.3 The four fixture specs pass — 7e186eeba
 
 ### Phase 2: Speed
 
 #### Automated
 
-- [ ] 2.1 Unit spec for the existing-vs-new split and orphan-cleanup exclusion passes
+- [x] 2.1 Unit spec for the existing-vs-new split and orphan-cleanup exclusion passes
 
 ### Phase 3: Dialog hardening
 

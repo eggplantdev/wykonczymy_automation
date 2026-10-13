@@ -10,6 +10,8 @@ type FormDialogPropsT = {
   description?: string
   showKeepOpen?: boolean
   className?: string
+  // Fires however the dialog closes — a dismiss or a successful submit.
+  onClose?: () => void
   children: (onSubmitSuccess: () => void, keepOpen: boolean) => React.ReactNode
 }
 
@@ -20,6 +22,7 @@ export function FormDialog({
   description,
   showKeepOpen = true,
   className,
+  onClose,
   children,
 }: FormDialogPropsT) {
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
@@ -36,11 +39,14 @@ export function FormDialog({
       openDialog(formId, showKeepOpen)
     } else {
       closeDialog()
+      onClose?.()
     }
   }
 
   function handleSuccess() {
-    if (!keepOpen) closeDialog()
+    if (keepOpen) return
+    closeDialog()
+    onClose?.()
   }
 
   return (

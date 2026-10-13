@@ -55,16 +55,37 @@ export function submitWithUploads<TResult extends ActionResultT<unknown> | Actio
   )
 }
 
-/** Files per line-item row, positional — `rows[i]` are the files of `lineItems[i]`. */
+/**
+ * Files per line-item row, positional — `rows[i]` are the files of `lineItems[i]`. A file
+ * `existingIdOf` recognises is already a media row and is linked by its id instead of uploaded; it
+ * is never discarded on failure, since the row it came from still holds it.
+ */
 export function submitWithUploadRows(
   rowCount: number,
   files: Map<number, File[]>,
   submit: (uploadedIdRows: number[][] | undefined) => Promise<ActionResultT>,
+  existingIdOf: (file: File) => number | undefined = () => undefined,
 ): Promise<ActionResultT> {
-  if (files.size === 0) return submit(undefined)
+  const newFiles = new Map(
+    [...files]
+      .map(
+        ([row, rowFiles]) =>
+          [row, rowFiles.filter((file) => existingIdOf(file) === undefined)] as const,
+      )
+      .filter(([, rowFiles]) => rowFiles.length > 0),
+  )
+  // Each row keeps its page order: a linked page takes its own id, an uploaded one the next id
+  // its row's upload returned.
+  const linkRows = (uploadedRows: number[][]) =>
+    Array.from({ length: rowCount }, (_, row) => {
+      const uploaded = [...(uploadedRows[row] ?? [])]
+      return (files.get(row) ?? []).flatMap((file) => existingIdOf(file) ?? uploaded.shift() ?? [])
+    })
+
+  if (newFiles.size === 0) return submit(files.size === 0 ? undefined : linkRows([]))
   return withOrphanCleanup(
-    () => resolveUploadIdRows(rowCount, files),
+    () => resolveUploadIdRows(rowCount, newFiles),
     (rows) => rows.flat(),
-    submit,
+    (rows) => submit(linkRows(rows)),
   )
 }

@@ -6,7 +6,6 @@ import {
 } from '@/components/forms/expense-form/bulk-expense-form'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { renamePages } from '@/lib/utils/receipt-filename'
 import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 
 type DraftPrefillT = {
@@ -17,17 +16,13 @@ type DraftPrefillT = {
   pagesByMediaId: Map<number, File>
 }
 
-export const readOf = (part: DraftReceiptT, aiReadRows: ExpenseDraftReadRowT[]) =>
+const readOf = (part: DraftReceiptT, aiReadRows: ExpenseDraftReadRowT[]) =>
   part.readRow === undefined ? undefined : aiReadRows[part.readRow]
 
-export function pagesFor(
-  mediaIds: number[],
-  pagesByMediaId: Map<number, File>,
-  filename: string | undefined,
-): File[] {
-  const downloaded = mediaIds.flatMap((id) => pagesByMediaId.get(id) ?? [])
-  return filename ? renamePages(downloaded, filename) : downloaded
-}
+// The downloaded File objects themselves: the booking recognises them by identity and links their
+// media ids, so a copy would upload again.
+export const pagesFor = (mediaIds: number[], pagesByMediaId: Map<number, File>): File[] =>
+  mediaIds.flatMap((id) => pagesByMediaId.get(id) ?? [])
 
 export function lineItemForPart(
   part: DraftReceiptT,
@@ -38,7 +33,7 @@ export function lineItemForPart(
   const read = readOf(part, aiReadRows)
   return {
     lineItem: makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) }),
-    pages: pagesFor(part.mediaIds, pagesByMediaId, read?.filename),
+    pages: pagesFor(part.mediaIds, pagesByMediaId),
   }
 }
 

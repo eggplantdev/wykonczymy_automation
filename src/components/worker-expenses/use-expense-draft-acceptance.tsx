@@ -57,6 +57,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
   const [loadingId, setLoadingId] = useState<number | undefined>()
   const [accepting, setAccepting] = useState<AcceptingT | undefined>()
   const [rejecting, setRejecting] = useState<ExpenseDraftRowT | undefined>()
+  // Each decision's response already re-renders the dialog; the list behind it catches up once, on close.
+  const hasDecided = useRef(false)
   // A reopen mid-read waits for the read already paid for; its landing finds the dialog by draft id.
   const readsInFlight = useRef(new Set<number>())
 
@@ -91,8 +93,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     }
   }
 
-  // The pages are re-uploaded on save rather than reused by id: „Generuj" renames the files, and the
-  // regular upload path is what files a page under its row.
+  // The pages are downloaded for the dialog's previews; a booking links them by their media ids.
   async function open(draft: ExpenseDraftRowT) {
     setLoadingId(draft.id)
     // Needs only the id, so it runs alongside the page download.
@@ -200,6 +201,11 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
           title={`Zgłoszenie wydatków · ${accepting.draft.workerName}`}
           description={accepting.draft.note ?? undefined}
           className="sm:max-w-dialog-2xl"
+          onClose={() => {
+            if (!hasDecided.current) return
+            hasDecided.current = false
+            router.refresh()
+          }}
         >
           {(onSubmitSuccess) => (
             <ExpenseForm
@@ -211,7 +217,9 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
               prefill={accepting.prefill}
               isPrefillReading={isPrefillReading}
               isSaveBlocked={!accepting.hasPages}
-              onDecided={() => router.refresh()}
+              onDecided={() => {
+                hasDecided.current = true
+              }}
               onRemoveLastItem={(duplicateOf) =>
                 duplicateOf
                   ? handleReject(accepting.draft.id, duplicateOf)

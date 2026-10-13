@@ -96,7 +96,11 @@ describe('buildDraftPrefill', () => {
     const prefill = buildDraftPrefill({ media: MEDIA, aiRead: undefined }, FILES, CATEGORY)
 
     expect(fieldsOf(prefill)).toEqual([BLANK, BLANK, BLANK])
-    expect(partsOf(prefill)).toEqual([[{ mediaIds: [1] }], [{ mediaIds: [2] }], [{ mediaIds: [3] }]])
+    expect(partsOf(prefill)).toEqual([
+      [{ mediaIds: [1] }],
+      [{ mediaIds: [2] }],
+      [{ mediaIds: [3] }],
+    ])
   })
 
   it('a photo no read row names → a blank row of its own after the read rows', () => {
@@ -127,7 +131,11 @@ describe('buildDraftPrefill', () => {
       ],
     }
 
-    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 2), aiRead }, FILES.slice(0, 2), CATEGORY)
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 2), aiRead },
+      FILES.slice(0, 2),
+      CATEGORY,
+    )
 
     expect(fieldsOf(prefill).map(({ description, amount }) => [description, amount])).toEqual([
       ['Leroy', '12'],
@@ -135,8 +143,8 @@ describe('buildDraftPrefill', () => {
       ['Castorama', '40'],
     ])
     expect(namesOf(prefill)).toEqual([
-      [0, ['leroy.jpg']],
-      [1, ['parking.jpg']],
+      [0, ['1.jpg']],
+      [1, ['1.jpg']],
       [2, ['2.jpg']],
     ])
     expect(partsOf(prefill)).toEqual([
@@ -156,7 +164,11 @@ describe('buildDraftPrefill', () => {
       ],
     }
 
-    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 1), aiRead }, FILES.slice(0, 1), CATEGORY)
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 1), aiRead },
+      FILES.slice(0, 1),
+      CATEGORY,
+    )
 
     const [[first], [second]] = partsOf(prefill)
     expect(first.mediaIds).toEqual(second.mediaIds)
@@ -164,15 +176,20 @@ describe('buildDraftPrefill', () => {
     expect(first.mediaIds).not.toBe(aiRead.rows[0].mediaIds)
   })
 
-  it('names the pages from the read the way „Generuj” would', () => {
+  // The booking links a page it recognises by identity, so a renamed copy would upload again.
+  it('hands over the downloaded pages themselves, under their camera names', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [{ mediaIds: [1, 2], description: 'Leroy', filename: 'leroy.jpg' }],
     }
 
-    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 2), aiRead }, FILES.slice(0, 2), CATEGORY)
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 2), aiRead },
+      FILES.slice(0, 2),
+      CATEGORY,
+    )
 
-    expect(namesOf(prefill)).toEqual([[0, ['leroy.jpg', 'leroy-2.jpg']]])
-    expect(prefill.files.get(0)?.[1].type).toBe('image/jpeg')
+    expect(prefill.files.get(0)).toEqual([FILES[0], FILES[1]])
+    expect(prefill.files.get(0)?.[0]).toBe(FILES[0])
   })
 
   it('a read with the document identity prefills number, NIP and date', () => {
@@ -208,7 +225,11 @@ describe('buildDraftPrefill', () => {
       rows: [{ mediaIds: [1], description: 'Leroy 01.02.2026', amount: 12.5, invoiceNote: 'P/1' }],
     })
 
-    const prefill = buildDraftPrefill({ media: MEDIA.slice(0, 1), aiRead }, FILES.slice(0, 1), CATEGORY)
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 1), aiRead },
+      FILES.slice(0, 1),
+      CATEGORY,
+    )
 
     expect(fieldsOf(prefill)).toEqual([
       { ...BLANK, description: 'Leroy 01.02.2026', amount: '12.5', invoiceNote: 'P/1' },
@@ -240,7 +261,7 @@ describe('buildDraftPrefill', () => {
 describe('lineItemForPart', () => {
   const pagesByMediaId = new Map(MEDIA.map((m, index) => [m.id, FILES[index]]))
 
-  it('rebuilds one paragon from its read row, pages renamed', () => {
+  it('rebuilds one paragon from its read row, on its own pages', () => {
     const { lineItem, pages } = lineItemForPart(
       { mediaIds: [2, 3], readRow: 1 },
       [
@@ -252,7 +273,8 @@ describe('lineItemForPart', () => {
     )
 
     expect(lineItem).toMatchObject({ description: 'Leroy', amount: '12', expenseCategory: '5' })
-    expect(pages.map((file) => file.name)).toEqual(['leroy.jpg', 'leroy-2.jpg'])
+    expect(pages).toEqual([FILES[1], FILES[2]])
+    expect(pages[0]).toBe(FILES[1])
   })
 
   it('a part with no read row comes back blank with its photos', () => {

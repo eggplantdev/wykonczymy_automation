@@ -186,6 +186,12 @@ export function ExpenseForm({
       : { recoveredFiles, storedLineItems: storedValues?.lineItems },
   )
 
+  // The zgłoszenie's photos are already media rows: booking links them instead of uploading again.
+  const draftMediaIds = new Map(
+    [...(prefill?.pagesByMediaId ?? [])].map(([id, page]) => [page, id]),
+  )
+  const draftMediaIdOf = (file: File) => draftMediaIds.get(file)
+
   const defaultExpenseCategory = resolveExpenseCategoryId(
     DEFAULT_EXPENSE_CATEGORY_NAME,
     referenceData.expenseCategories,
@@ -282,15 +288,19 @@ export function ExpenseForm({
         // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
         // every attached file is uploaded once here.
         action: () =>
-          submitWithUploadRows(value.lineItems.length, files, (invoicePageRows) =>
-            createBulkTransferAction(
-              data,
-              invoicePageRows,
-              prefill && {
-                expenseDraftId: prefill.expenseDraftId,
-                ...receiptDecision(draftReceipts.receipts, value.lineItems, duplicateOfByItemId),
-              },
-            ),
+          submitWithUploadRows(
+            value.lineItems.length,
+            files,
+            (invoicePageRows) =>
+              createBulkTransferAction(
+                data,
+                invoicePageRows,
+                prefill && {
+                  expenseDraftId: prefill.expenseDraftId,
+                  ...receiptDecision(draftReceipts.receipts, value.lineItems, duplicateOfByItemId),
+                },
+              ),
+            draftMediaIdOf,
           ),
         // No stored draft backs this form, so an optimistic close would lose it on a failed save.
         awaitBeforeClose: !!prefill,
@@ -336,12 +346,16 @@ export function ExpenseForm({
     try {
       await submit(true, {
         action: () =>
-          submitWithUploadRows(subset.length, files, (invoicePageRows) =>
-            createBulkTransferAction(data, invoicePageRows, {
-              expenseDraftId: prefill.expenseDraftId,
-              ...receiptDecision(draftReceipts.receipts, subset),
-              skippedReceipts: [],
-            }),
+          submitWithUploadRows(
+            subset.length,
+            files,
+            (invoicePageRows) =>
+              createBulkTransferAction(data, invoicePageRows, {
+                expenseDraftId: prefill.expenseDraftId,
+                ...receiptDecision(draftReceipts.receipts, subset),
+                skippedReceipts: [],
+              }),
+            draftMediaIdOf,
           ),
         successMessage: subset.length === 1 ? 'Paragon przyjęty' : `Przyjęto ${subset.length}`,
         files,
@@ -414,7 +428,8 @@ export function ExpenseForm({
     form,
     otherCategories: referenceData.otherCategories,
     getFiles,
-    renameFile,
+    // A renamed zgłoszenie photo is a new File, which would upload again instead of linking.
+    renameFile: prefill ? () => {} : renameFile,
   })
 
   // The reactive file store re-renders each FV label as generateFromReceipts renames its file — no

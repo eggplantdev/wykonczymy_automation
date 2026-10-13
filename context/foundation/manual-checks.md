@@ -4922,7 +4922,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Wyślij ponownie jeden bilecik, który został zaksięgowany w połączonym wydatku → w jego „Przyjmij” podpowiedź duplikatu wskazuje ten połączony wydatek.
 - [ ] Pozycja dodana ręcznie w „Przyjmij” nie ma pola zaznaczenia; z jedną pozycją z paragonu przycisku „Połącz zaznaczone” nie ma.
 - [ ] Połącz pozycję oznaczoną „nie odczytano” z kolejną → połączona pozycja nadal ma „nie odczytano”.
-- [ ] Zapisz połączoną pozycję z odczytanego paragonu → w szczegółach wydatku załączniki noszą nazwę paragonu (jak po „Generuj”), nie nazwy plików z aparatu.
+- [ ] Zapisz połączoną pozycję z odczytanego paragonu → w szczegółach wydatku załączniki noszą nazwy plików z aparatu (to te same zdjęcia, co w zgłoszeniu — bez ponownego wysyłania; EX-1053 odwraca dawną zmianę nazwy).
 - [ ] Dwa bileciki połączone w jedną pozycję pasują do tej samej transakcji → pod formularzem dwie podpowiedzi duplikatu, „OK” na jednej chowa tylko ją; po „Rozłącz” schowana nie wraca.
 - [ ] Zgłoszenie z kilkoma bilecikami → „Przyjmij”, zmień „Typ wydatku” na wpłatę → pozycje razem z przyciskiem „Połącz zaznaczone” znikają.
 
