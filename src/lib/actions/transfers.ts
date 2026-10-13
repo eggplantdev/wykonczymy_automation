@@ -116,6 +116,8 @@ export async function createBulkTransferAction(
   opts?: {
     expenseDraftId: number
     receiptMediaIds: number[][]
+    // Positional to the line items: the AI read rows each transakcja was booked from.
+    receiptReadRows: number[][]
     skippedReceipts: SkippedReceiptT[]
   },
 ) {
@@ -133,6 +135,11 @@ export async function createBulkTransferAction(
         opts?.skippedReceipts ?? [],
       )
       if (!skippedReceipts.success) return skippedReceipts
+      const receiptReadRows = validateAction(
+        z.array(z.array(z.number().int().nonnegative())).max(lineCount),
+        opts?.receiptReadRows ?? [],
+      )
+      if (!receiptReadRows.success) return receiptReadRows
       console.log(`[PERF]   validateAction ${step()}ms`)
       if (!canBookTransferType(user.role, parsed.data.type)) {
         return { success: false, error: BONUS_FORBIDDEN_MESSAGE }

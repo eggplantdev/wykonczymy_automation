@@ -48,6 +48,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map(),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map([[0, [receipt]]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
@@ -79,6 +81,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map(),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map([[0, [receipt]]]),
           values: expenseValues({
             investment: '3',
@@ -115,6 +119,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map(),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map([[0, pages]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
@@ -149,6 +155,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map(),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map([[0, [new File(['jpg'], 'od-pracownika.jpg', { type: 'image/jpeg' })]]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}
@@ -190,6 +198,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map(),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map([[0, [receipt]]]),
           values: expenseValues({
             investment: '3',
@@ -224,9 +234,11 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map([
-            [kept.id, { mediaIds: [101] }],
-            [removed.id, { mediaIds: [102, 103] }],
+            [kept.id, [{ mediaIds: [101] }]],
+            [removed.id, [{ mediaIds: [102, 103] }]],
           ]),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map(),
           values: expenseValues({
             investment: '3',
@@ -247,6 +259,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
       expenseDraftId: 42,
       receiptMediaIds: [[101]],
+      receiptReadRows: [[]],
       skippedReceipts: [{ mediaIds: [102, 103] }],
     })
   })
@@ -262,6 +275,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         prefill={{
           expenseDraftId: 42,
           receipts: new Map(),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files: new Map([[0, [new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })]]]),
           values: expenseValues({ investment: '3', sourceRegister: '7' }),
         }}

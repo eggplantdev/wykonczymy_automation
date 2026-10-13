@@ -81,6 +81,18 @@ export function useInvoiceFiles(initialFiles?: Map<string, File[]>) {
     return { blocked }
   }
 
+  // One commit, so a merge or split never renders a row between losing its files and gaining them.
+  function replaceRows(removeIds: string[], add: [id: string, files: File[]][]) {
+    commit((prev) => {
+      const next = new Map(prev)
+      removeIds.forEach((id) => next.delete(id))
+      add.forEach(([id, rowFiles]) => {
+        if (rowFiles.length > 0) next.set(id, rowFiles)
+      })
+      return next
+    })
+  }
+
   function removeFileAt(id: string, index: number) {
     commit((prev) => {
       const existing = prev.get(id)
@@ -118,6 +130,7 @@ export function useInvoiceFiles(initialFiles?: Map<string, File[]>) {
     handleRemoveLineItem,
     handleFileChange,
     registerFilesAt,
+    replaceRows,
     removeFileAt,
     getRowFiles,
     getFiles,

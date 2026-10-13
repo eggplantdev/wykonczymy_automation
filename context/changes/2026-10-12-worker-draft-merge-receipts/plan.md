@@ -463,18 +463,18 @@ after the merge to staging.
 
 #### Automated
 
-- [x] 2.1 dialog spec: no mode control, sends one-per-photo
-- [x] 2.2 dialog language spec
-- [x] 2.3 worker actions DB spec: stored scan_mode
+- [x] 2.1 dialog spec: no mode control, sends one-per-photo — 6312da194
+- [x] 2.2 dialog language spec — 6312da194
+- [x] 2.3 worker actions DB spec: stored scan_mode — 6312da194
 
 ### Phase 3: „Połącz” / „Rozłącz” in the „Przyjmij” dialog
 
 #### Automated
 
-- [ ] 3.1 expense-form-merge DOM spec
-- [ ] 3.2 expense-form-prefill spec
-- [ ] 3.3 duplicate-mark spec on merged rows
-- [ ] 3.4 file-map setter covered
+- [x] 3.1 expense-form-merge DOM spec
+- [x] 3.2 expense-form-prefill spec
+- [x] 3.3 duplicate-mark spec on merged rows
+- [x] 3.4 file-map setter covered
 
 ### Phase 4: Booked paragony stay visible to the duplicate check
 

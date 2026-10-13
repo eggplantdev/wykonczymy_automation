@@ -51,12 +51,14 @@ function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
   }
 }
 
-function readyState(itemId: string, matches: DuplicateMatchT[]): DuplicateHintsStateT {
+function readyState(matches: DuplicateMatchT[]): DuplicateHintsStateT {
   return {
     status: 'ready',
-    paragons: [{ itemId, readRow: 0, description: 'Klej', amount: 89.9, matches }],
+    paragons: [{ readRow: 0, description: 'Klej', amount: 89.9, matches }],
   }
 }
+
+const onRowA = () => 'row-a'
 
 function scanned(description: string, amount: number): ReceiptFillResultT {
   return { description, amount, netAmount: null, invoiceNote: '' } as ReceiptFillResultT
@@ -72,11 +74,12 @@ describe('ExpenseDraftDuplicateHints', () => {
     const onMarkDuplicate = vi.fn()
     render(
       <ExpenseDraftDuplicateHints
-        state={readyState('row-a', [
+        state={readyState([
           match({ key: 'transaction-501', source: 'transaction', id: 501 }),
           match({ key: 'draft-7-1', source: 'draft', id: 7, documentNumber: 'PAR/2026/0002' }),
         ])}
         lineItemIds={['row-a']}
+        itemIdOfReadRow={onRowA}
         onMarkDuplicate={onMarkDuplicate}
       />,
     )
@@ -93,11 +96,12 @@ describe('ExpenseDraftDuplicateHints', () => {
   it('dismisses only the clicked match when two come from the same zgłoszenie', async () => {
     render(
       <ExpenseDraftDuplicateHints
-        state={readyState('row-a', [
+        state={readyState([
           match({ key: 'draft-7-1', source: 'draft', id: 7, documentNumber: 'PAR/2026/0001' }),
           match({ key: 'draft-7-2', source: 'draft', id: 7, documentNumber: 'PAR/2026/0002' }),
         ])}
         lineItemIds={['row-a']}
+        itemIdOfReadRow={onRowA}
         onMarkDuplicate={vi.fn()}
       />,
     )
@@ -125,6 +129,7 @@ describe('ExpenseDraftDuplicateHints', () => {
       <ExpenseDraftDuplicateHints
         state={state}
         lineItemIds={['row-a']}
+        itemIdOfReadRow={onRowA}
         onMarkDuplicate={vi.fn()}
       />,
     )
@@ -145,8 +150,8 @@ describe('ExpenseForm with duplicate hints', () => {
     rows: Partial<BulkExpenseFormValuesT['lineItems'][number]>[],
     files: Map<number, File[]>,
   ) {
-    const [first, second] = rows.map((row) => makeLineItem({ expenseCategory: '1', ...row }))
-    const duplicates = readyState(first.id, [match({ source: 'transaction', id: 501 })])
+    const items = rows.map((row) => makeLineItem({ expenseCategory: '1', ...row }))
+    const duplicates = readyState([match({ source: 'transaction', id: 501 })])
     render(
       <ExpenseForm
         referenceData={expenseReferenceData}
@@ -154,17 +159,19 @@ describe('ExpenseForm with duplicate hints', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
-          receipts: new Map([
-            [first.id, { mediaIds: [101] }],
-            [second.id, { mediaIds: [102] }],
-          ]),
+          receipts: new Map(
+            items.map((item, readRow) => [item.id, [{ mediaIds: [101 + readRow], readRow }]]),
+          ),
+          aiReadRows: [],
+          pagesByMediaId: new Map(),
           files,
-          values: expenseValues({ lineItems: [first, second] }),
+          values: expenseValues({ lineItems: items }),
         }}
-        renderAboveLineItems={({ lineItemIds, markDuplicate }) => (
+        renderAboveLineItems={({ lineItemIds, markDuplicate, itemIdOfReadRow }) => (
           <ExpenseDraftDuplicateHints
             state={duplicates}
             lineItemIds={lineItemIds}
+            itemIdOfReadRow={itemIdOfReadRow}
             onMarkDuplicate={markDuplicate}
           />
         )}
@@ -216,7 +223,44 @@ describe('ExpenseForm with duplicate hints', () => {
     expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
       expenseDraftId: 42,
       receiptMediaIds: [[102]],
-      skippedReceipts: [{ mediaIds: [101], duplicateOf: { source: 'transaction', id: 501 } }],
+      receiptReadRows: [[1]],
+      skippedReceipts: [
+        { mediaIds: [101], readRow: 0, duplicateOf: { source: 'transaction', id: 501 } },
+      ],
+    })
+  })
+
+  it('moves a paragon’s hint onto the merged row, and „Duplikat" there skips every paragon', async () => {
+    renderAcceptance(
+      [
+        { description: 'Klej do płytek', amount: '89.9' },
+        { description: 'Fuga szara', amount: '45' },
+        { description: 'Silikon', amount: '20' },
+      ],
+      new Map(),
+    )
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Zaznacz pozycję 2' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
+    await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone (2)' }))
+    await waitFor(() => expect(screen.getAllByRole('textbox', { name: 'Opis' })).toHaveLength(2))
+
+    await user.click(screen.getByRole('button', { name: 'Duplikat' }))
+    await waitFor(() => expect(screen.getAllByRole('textbox', { name: 'Opis' })).toHaveLength(1))
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }))
+    await user.click(await screen.findByRole('button', { name: 'Zapisz bez faktury' }))
+
+    await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
+    const duplicateOf = { source: 'transaction', id: 501 }
+    expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
+      expenseDraftId: 42,
+      receiptMediaIds: [[103]],
+      receiptReadRows: [[2]],
+      skippedReceipts: [
+        { mediaIds: [101], readRow: 0, duplicateOf },
+        { mediaIds: [102], readRow: 1, duplicateOf },
+      ],
     })
   })
 })

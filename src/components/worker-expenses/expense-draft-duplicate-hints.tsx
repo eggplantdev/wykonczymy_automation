@@ -12,19 +12,19 @@ import { isWeakMatch } from '@/lib/expense-duplicates/match'
 import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
 import { cn } from '@/lib/utils/cn'
 
-export type ItemDuplicatesT = ParagonDuplicatesT & { itemId: string }
-
 export type DuplicateHintsStateT =
   | { status: 'reading' }
   | { status: 'checking' }
   | { status: 'no-read' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; paragons: ItemDuplicatesT[] }
+  | { status: 'ready'; paragons: ParagonDuplicatesT[] }
 
 type PropsT = {
   state: DuplicateHintsStateT
   // The form's current rows: a paragon removed or marked a duplicate takes its hints with it.
   lineItemIds: string[]
+  // Resolved at render: a merge or split moves a paragon to another row.
+  itemIdOfReadRow: (readRow: number) => string | undefined
   onMarkDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
 }
 
@@ -36,7 +36,12 @@ const STATUS_MESSAGES = {
   'no-read': 'Bez odczytu paragonów nie da się sprawdzić duplikatów.',
 } as const
 
-export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate }: PropsT) {
+export function ExpenseDraftDuplicateHints({
+  state,
+  lineItemIds,
+  itemIdOfReadRow,
+  onMarkDuplicate,
+}: PropsT) {
   // „OK" only hides the row for this dialog; nothing is stored.
   const [dismissed, setDismissed] = useState(() => new Set<string>())
 
@@ -47,7 +52,10 @@ export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate
     return <p className="text-muted-foreground text-sm">{STATUS_MESSAGES[state.status]}</p>
   }
   const rows = state.paragons
-    .filter((paragon) => lineItemIds.includes(paragon.itemId))
+    .flatMap((paragon) => {
+      const itemId = itemIdOfReadRow(paragon.readRow)
+      return itemId ? [{ ...paragon, itemId }] : []
+    })
     .flatMap((paragon) =>
       paragon.matches.map(
         (match): ExpenseDuplicateRowT => ({
