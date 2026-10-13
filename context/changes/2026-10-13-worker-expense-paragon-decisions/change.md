@@ -1,11 +1,11 @@
 ---
 change_id: worker-expense-paragon-decisions
 title: Accept or reject a worker expense zgłoszenie paragon by paragon
-status: new
+status: implementing
 created: 2026-10-13
 updated: 2026-10-13
 archived_at: null
-branch: null
+branch: main
 worktree: null
 ---
 
@@ -38,6 +38,12 @@ Shaped with the user 2026-10-13 (follow-up to EX-1048, mirrors the per-line deci
 No schema change. The status is derived by `settleExpenseDraft` after every decision (pending while a read row is undecided → accepted if any transakcja → rejected). Booking and refusing each lock the zgłoszenie (`FOR UPDATE`) and are refused if any requested read row is already decided. A refusal reopens in place (`reopenSkippedReceipt`). Verified against the local DB in a rolled-back transaction: reject 2 → 35 pending; a double reject is refused; reject the rest → rejected; reopen → back to pending.
 
 Open for the plan:
+
+- **Duplicates inside a merged zgłoszenie (owner, 2026-10-13 — follow-up after the slice review,
+  must be handled):** before a merge, the same paragon sent in two one-photo zgłoszenia is flagged
+  „Duplikat zgłoszenia #X” draft against draft. After „Połącz zgłoszenia” both are read rows of
+  one zgłoszenie, and the duplicate check skips the zgłoszenie it probes, so they stop flagging each
+  other. Needed: read rows of the same zgłoszenie matched against each other.
 
 - **No read → still paragony (done in the spike):** the draft read now saves its row per photo even
   when every row came back blank (`read-expense-draft-receipts.ts`), so a photo the AI got nothing
