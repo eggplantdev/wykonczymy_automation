@@ -124,7 +124,11 @@ function WorkerReportsBody({
         setOpenReport(report)
         setReviewVersion((version) => version + 1)
       })
-      .catch(() => toastMessage(LOAD_FAILED, 'error', 4000))
+      .catch(() => {
+        toastMessage(LOAD_FAILED, 'error', 4000)
+        // Back to the list: the review still shows the report as it was before the save.
+        setOpenReport(undefined)
+      })
   }
 
   if (openReport) {

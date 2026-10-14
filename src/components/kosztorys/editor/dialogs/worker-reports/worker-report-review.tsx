@@ -266,9 +266,13 @@ export function WorkerReportReview({
   const decide = async (run: () => Promise<boolean>, doneMessage: string) => {
     setIsSaving(true)
     const isDone = await run()
-    setIsSaving(false)
-    if (!isDone) return
+    if (!isDone) {
+      setIsSaving(false)
+      return
+    }
     toastMessage(doneMessage)
+    // Stays disabled until the reread report remounts this review — the saved decisions are not
+    // in these drafts' baseline yet, so a second click would send them again.
     onDecided()
   }
 
