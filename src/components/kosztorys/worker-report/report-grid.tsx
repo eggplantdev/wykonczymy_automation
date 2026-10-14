@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
-import { reportScrollsSideways } from '@/components/kosztorys/editor/grid/report-column'
 import { WorkerSummary } from '@/components/kosztorys/worker-report/worker-summary'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
 import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
@@ -16,11 +15,16 @@ import {
 import { SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
-import { DropdownMenuCheckboxRow } from '@/components/ui/dropdown-menu'
+import { DropdownMenuCheckboxRow, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
+import {
+  GRID_TEXT_SIZES,
+  type GridTextSizeT,
+} from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 import { translateTree } from '@/lib/kosztorys/worker-view/translate-tree'
 import { opensOnSummaryView } from '@/lib/kosztorys/worker-view/worker-links'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
-import { usePersistedFlag } from '@/hooks/use-persisted-value'
+import { usePersistedEnum, usePersistedFlag } from '@/hooks/use-persisted-value'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { decimalText } from '@/lib/utils/decimal-text'
@@ -77,8 +81,14 @@ export function ReportGrid({
   )
   const [showDoneSum, setShowDoneSum] = usePersistedFlag('worker-report:done-sum', SHOWN, true)
   const [showProgress, setShowProgress] = usePersistedFlag('worker-report:progress', SHOWN, true)
+  const [textSize, setTextSize] = usePersistedEnum<GridTextSizeT>(
+    'worker-report:text-size',
+    GRID_TEXT_SIZES,
+    'sm',
+  )
   const isReport = mode === 'report'
-  const scrollsSideways = reportScrollsSideways({ isSummary: !isReport, showDoneSum, showProgress })
+  // The full sheet is wider than a phone; the compact form is sized to fit one.
+  const scrollsSideways = !isReport
   const { locale, t, tp } = useTranslation('report')
   const qtyByItem = draftQtyByItem(draft.draft.qtyByItem)
 
@@ -108,6 +118,7 @@ export function ReportGrid({
           isSummary: !isReport,
           showDoneSum,
           showProgress,
+          textSize,
           // A negative stays in the draft as typed, so the send bar can refuse it.
           onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
           header: (controls) => (
@@ -156,6 +167,12 @@ export function ReportGrid({
                         />
                       </>
                     )}
+                    <DropdownMenuSeparator />
+                    <TextSizeMenuSection
+                      sizes={GRID_TEXT_SIZES}
+                      value={textSize}
+                      onChange={setTextSize}
+                    />
                   </>
                 }
               />

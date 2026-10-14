@@ -5091,3 +5091,12 @@ Stan: kosztorys ze zgłoszeniem pracy od pracownika czekającym na przyjęcie.
 - [ ] Safari, to samo okno zwężone: nagłówek, który zawija się do dwóch linii, nadal mieści się
       w swojej kolumnie.
 - [ ] Chrome, to samo okno: pionowe nagłówki wyglądają jak dotąd (wyśrodkowane, czytane od dołu).
+
+## 2026-10-14 — worker-report-text-size — wielkość czcionki i wąskie kolumny w raporcie pracownika
+
+- [ ] Raport pracownika (`/z/…`) → „Opcje” → „Wielkość tekstu”: Bardzo mała / Mała / Średnia zmienia tekst siatki; wybór przetrwa przeładowanie i nie zmienia wielkości wybranej w edytorze kosztorysu (i odwrotnie).
+- [ ] Telefon 390px, raport pracownika: Mała i Średnia dają widocznie różny tekst; nazwa sekcji jest mniejsza niż dawniej i przy długiej nazwie wychodzi na sąsiednie puste komórki.
+- [ ] Telefon 390px, raport z włączonymi „Wykonano” i „Postęp”: nagłówki trzech kolumn stoją pionowo, wyśrodkowane, bez podpowiedzi; Opis prac i trzy kolumny mieszczą się na ekranie bez przewijania w bok.
+- [ ] Telefon 390px: pozycja z ilością typu `123,45` — „Wykonano” nie łamie liczby w środku; „Postęp” przechodzi do drugiej linii po „/”, a wiersz rośnie, gdy po wpisaniu ilości w „Zgłaszam” postęp się zawija (i maleje po skasowaniu).
+- [ ] Liczby w „Wykonano”, „Zgłaszam” i „Postęp” są wyśrodkowane — na telefonie i na desktopie.
+- [ ] Widok „Inwestycja” na telefonie nadal przewija się w bok (pełny arkusz).

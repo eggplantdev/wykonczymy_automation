@@ -2,6 +2,7 @@ import type { CellProps, Column } from 'react-datasheet-grid'
 import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { pinnedWidth } from '@/components/kosztorys/editor/grid/column-sizing'
+import { HeaderLabel } from '@/components/ui/datasheet-grid/header-label'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { useTranslation } from '@/hooks/use-translation'
 import type { MessageKeyT } from '@/lib/i18n/translations'
@@ -13,6 +14,7 @@ import { REPORT_FIELD, REPORT_STAGE_ID } from '@/lib/kosztorys/worker-report/rep
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import type { PreviewSeamsT } from '@/components/kosztorys/editor/use-kosztorys-editor'
+import type { GridTextSizeT } from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 
 // His rozpiska grid as a report form. His etapy stay read-only; he types into one extra „Zgłaszam”
 // column, and every edit lands in his draft instead of the server. Which etap it goes to is the
@@ -26,14 +28,7 @@ export type ReportModeT = {
   onReportQty: (itemId: number, qty: number) => void
   showDoneSum: boolean
   showProgress: boolean
-}
-
-// Past the screen's width, the page scrolls sideways — the full sheet always, the compact form once
-// either figure is on (a phone has room for Opis prac and „Zgłaszam” alone).
-export function reportScrollsSideways(
-  report: Pick<ReportModeT, 'isSummary' | 'showDoneSum' | 'showProgress'>,
-): boolean {
-  return report.isSummary || report.showDoneSum || report.showProgress
+  textSize: GridTextSizeT
 }
 
 // His etapy for „Wykonano”, every crew's for „Postęp”: like „Pozostało” on his sheet (design #9), an
@@ -46,16 +41,18 @@ export type ReportFiguresT = {
 // globals.css frames the column, so the one place he may type stands out of a read-only sheet.
 const REPORT_COLUMN_CLASS = 'kosztorys-report-column'
 const REPORT_HEADER_CLASS = 'kosztorys-report-header'
+// The three number columns; globals.css centres their figures.
+const REPORT_FIGURE_CLASS = 'kosztorys-report-figure'
 const REPORT_WIDTH = 170
-// On a phone the description needs every pixel; the header hint wraps to four lines and still fits.
-const PHONE_REPORT_WIDTH = 110
-// A phone's narrower columns wrap the headers — „Zgłaszam”'s hint most of all — past the sheet's
-// resting header height.
-export const PHONE_REPORT_HEADER_HEIGHT = 100
+// A phone stands the titles on end, so these fit the figures alone (`123,45`; Postęp wraps after its
+// „/”), and with Opis prac's phone minimum all four columns fit a 360px screen without scrolling.
+const PHONE_REPORT_WIDTH = 64
 const COMPACT_UNIT_WIDTH = 80
 const FIGURE_WIDTH = 130
-const PHONE_FIGURE_WIDTH = 100
+const PHONE_DONE_SUM_WIDTH = 60
+const PHONE_PROGRESS_WIDTH = 56
 const COMPACT_DESCRIPTION_MIN_WIDTH = 240
+const PHONE_COMPACT_DESCRIPTION_MIN_WIDTH = 160
 
 // A component, not inline JSX: the column is a module constant, so only a render can read the language.
 function ReportHeader({
@@ -66,11 +63,14 @@ function ReportHeader({
   hint: MessageKeyT<'report'>
 }) {
   const { t } = useTranslation('report')
-  // The preview bolds every header span, and the hint must stay quiet.
+  // The preview bolds every header span, and the hint must stay quiet. A phone gets the title alone,
+  // on end: either one lying flat is what set the column's width.
   return (
     <div className="flex flex-col gap-0.5 whitespace-normal">
-      <div className="font-bold">{t(label)}</div>
-      <div className="text-muted-foreground text-xs leading-tight">{t(hint)}</div>
+      <HeaderLabel className="max-sm:vertical-text max-sm:whitespace-nowrap">
+        {t(label)}
+      </HeaderLabel>
+      <div className="text-muted-foreground text-2xs leading-tight max-sm:hidden">{t(hint)}</div>
     </div>
   )
 }
@@ -82,20 +82,25 @@ const reportColumn: Column<KosztorysV2RowT> = {
     numericFieldPolicy<StageKeyT, KosztorysV2RowT>(REPORT_FIELD, formatQty),
   ),
   ...pinnedWidth(REPORT_WIDTH),
-  cellClassName: REPORT_COLUMN_CLASS,
+  cellClassName: `${REPORT_COLUMN_CLASS} ${REPORT_FIGURE_CLASS}`,
   headerClassName: `${REPORT_COLUMN_CLASS} ${REPORT_HEADER_CLASS}`,
 }
 
 type ProgressDataT = { executedQtyByItem: Record<number, number> }
 
+function progressFigures(row: KosztorysV2RowT, executedQtyByItem: Record<number, number>) {
+  const done = (executedQtyByItem[row.id] ?? 0) + (row[REPORT_FIELD] ?? 0)
+  const plannedQty = resolvedCurrentPlannedQty(row)
+  return { done, plannedQty, text: `${formatQty(done)} / ${formatQty(plannedQty)}` }
+}
+
 // Module-level for one component identity across renders, like ComputedCell: it reads the row's
 // „Zgłaszam” live, so the figure moves as he types.
 function ProgressCell({ rowData, columnData }: CellProps<KosztorysV2RowT, ProgressDataT>) {
-  const done = (columnData.executedQtyByItem[rowData.id] ?? 0) + (rowData[REPORT_FIELD] ?? 0)
-  const plannedQty = resolvedCurrentPlannedQty(rowData)
+  const { done, plannedQty, text } = progressFigures(rowData, columnData.executedQtyByItem)
   return (
     <ReadOnlyCellText muted danger={done > plannedQty}>
-      {formatQty(done)} / {formatQty(plannedQty)}
+      {text}
     </ReadOnlyCellText>
   )
 }
@@ -110,10 +115,11 @@ function figureColumns(
   { stages, worker }: ReportFiguresT,
   isWide: boolean,
 ): FigureColumnsT {
-  const sizing = {
-    ...pinnedWidth(isWide ? FIGURE_WIDTH : PHONE_FIGURE_WIDTH),
+  const sizing = (phoneWidth: number) => ({
+    ...pinnedWidth(isWide ? FIGURE_WIDTH : phoneWidth),
+    cellClassName: REPORT_FIGURE_CLASS,
     headerClassName: REPORT_HEADER_CLASS,
-  }
+  })
   const doneSum: Column<KosztorysV2RowT> = {
     ...computedColumn(
       'reportDoneSum',
@@ -122,7 +128,7 @@ function figureColumns(
       {},
       (value) => formatQty(value ?? 0),
     ),
-    ...sizing,
+    ...sizing(PHONE_DONE_SUM_WIDTH),
   }
   const progress: Column<KosztorysV2RowT> = {
     id: 'reportProgress',
@@ -130,7 +136,9 @@ function figureColumns(
     disabled: true,
     columnData: { executedQtyByItem: worker.executedQtyByItem },
     component: ProgressCell,
-    ...sizing,
+    // Also what measures the row: a phone's narrow column wraps the figure after its „/”.
+    copyValue: ({ rowData }) => progressFigures(rowData, worker.executedQtyByItem).text,
+    ...sizing(PHONE_PROGRESS_WIDTH),
   }
   return {
     doneSum: report.showDoneSum ? doneSum : undefined,
@@ -183,12 +191,15 @@ function compactReportColumns(
   // Fixed like „Zgłaszam”, so all the room a wide screen adds goes to Opis prac.
   const unit = shownUnit && { ...shownUnit, ...pinnedWidth(COMPACT_UNIT_WIDTH) }
   // Unpinned: a width the owner dragged on the full sheet would leave the compact one half empty.
+  const descriptionMinWidth = isWide
+    ? COMPACT_DESCRIPTION_MIN_WIDTH
+    : PHONE_COMPACT_DESCRIPTION_MIN_WIDTH
   const stretched = description && {
     ...description,
-    basis: COMPACT_DESCRIPTION_MIN_WIDTH,
+    basis: descriptionMinWidth,
     grow: 1,
     shrink: 1,
-    minWidth: COMPACT_DESCRIPTION_MIN_WIDTH,
+    minWidth: descriptionMinWidth,
     maxWidth: undefined,
   }
   const report = isWide ? reportColumn : { ...reportColumn, ...pinnedWidth(PHONE_REPORT_WIDTH) }

@@ -32,7 +32,8 @@ export type SectionHeaderContextT = {
   sortActive: boolean
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
-  // The worker's compact report: the name alone, cut at the cell, so the band never widens the page.
+  // The worker's compact report: the name alone. It still runs over the blank cells; the compact
+  // grid's `overflow-x: clip` is what keeps a long one from widening the page.
   isBare?: boolean
 }
 
@@ -130,22 +131,20 @@ export function SectionHeaderCell({
         // `w-max` + the `overflow: visible` rule in globals.css let the band out of the cell, so a
         // long name isn't clipped at the „Sekcja" column's width.
         className={cn(
-          'grid-band-text flex h-full items-center gap-2 px-2 font-semibold',
-          context.isBare ? 'w-full min-w-0' : 'w-max',
+          'grid-band-text flex h-full w-max items-center gap-2 px-2 font-semibold',
           foldable && 'hover:bg-accent/50 cursor-pointer',
         )}
       >
         <SectionDot />
-        {context.isBare ? (
-          <span className="truncate">{rowData.sectionName ?? ''}</span>
-        ) : onRename ? (
+        {onRename ? (
           <SectionNameCell
             rowData={rowData}
             onRename={onRename}
             // `field-sizing-content`, not w-fit: an input's fit-content is its ~20-char default
             // width. w-auto beats the base cell's w-full. `shrink-0` because a field-sizing input
-            // contributes no max-content width, so the band's `w-max` under-measures.
-            className="grid-band-text field-sizing-content w-auto shrink-0 px-0 font-semibold"
+            // contributes no max-content width, so the band's `w-max` under-measures. The band size
+            // only from `sm:` up: on a phone `typing-surface`'s 16px floor must win, or iOS zooms in.
+            className="sm:grid-band-text field-sizing-content w-auto shrink-0 px-0 font-semibold"
             onClick={(event) => event.stopPropagation()}
           />
         ) : (

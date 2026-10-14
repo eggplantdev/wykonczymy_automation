@@ -1,16 +1,19 @@
 import { countWrappedLines, type MeasureTextWidthT } from '@/lib/utils/text-wrap'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 
 // Every column is measured by default — an allowlist is how „Komentarz do pracy" shipped without
 // ever growing a row. Excluded: a column whose copied value is a code rather than the label it
 // shows, which would size the row for a word nobody sees, and „j.m.", whose combobox never wraps, so
-// a taller row would show nothing more. A plane-qualified id is matched by its base.
+// a taller row would show nothing more — nor does the worker's „Zgłaszam” input, which a phone
+// squeezes narrower than a long figure. A plane-qualified id is matched by its base.
 const UNMEASURED_COLUMN_IDS: ReadonlySet<string> = new Set([
   'reviewStatus',
   'discountType',
   'priceMode',
   'unit',
+  REPORT_FIELD,
 ])
 
 export type MeasuredColumnT = { id: string; text: (row: KosztorysV2RowT) => string }
