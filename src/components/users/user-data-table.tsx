@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/filters/column-toggle'
+import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { ListFilter } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'

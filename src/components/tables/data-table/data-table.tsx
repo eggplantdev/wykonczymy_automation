@@ -79,10 +79,7 @@ type DataTablePropsT<TData> = {
   /** Renders the sorted rows in place of the <table> — a card layout keeps the toolbar, sort and
    * column state the table already owns. */
   renderRows?: (rows: Row<TData>[], visibleColumnIds: string[]) => React.ReactNode
-  /** Size before the viewer picks one in the column menu. */
   defaultTextSize?: TableTextSizeT
-  /** A vertical line between columns — for a table read across the row, figure against figure. */
-  hasColumnDividers?: boolean
   className?: string
 }
 
@@ -105,7 +102,6 @@ export function DataTable<TData>({
   aboveToolbar,
   belowToolbar,
   renderRows,
-  hasColumnDividers = false,
   defaultTextSize = 'sm',
   className,
 }: DataTablePropsT<TData>) {
@@ -230,13 +226,7 @@ export function DataTable<TData>({
       {renderRows ? (
         renderRows(rows, visibleColumnIdList)
       ) : (
-        <div
-          className={cn(
-            'border-border overflow-x-auto rounded-lg border',
-            hasColumnDividers &&
-              '[&_td+td]:border-border [&_th+th]:border-border [&_td+td]:border-l [&_th+th]:border-l',
-          )}
-        >
+        <div className="border-border overflow-x-auto rounded-lg border">
           {enableVirtualization ? (
             <VirtualizedTableBody
               parentRef={parentRef}

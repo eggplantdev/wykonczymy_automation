@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/filters/column-toggle'
+import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'

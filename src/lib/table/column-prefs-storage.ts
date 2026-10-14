@@ -10,17 +10,20 @@ const TEXT_SIZE_PREFIX = 'table-text-size:'
 // stored `null` parses fine, then reaches consumers that index it (`columnVisibility[id] !== false`)
 // and white-screens the table.
 export function readVisibility(key: string): VisibilityState {
-  if (typeof window === 'undefined') return {}
+  const parsed = readStored(VISIBILITY_PREFIX + key)
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
+  return Object.fromEntries(
+    Object.entries(parsed).filter(([, hidden]) => typeof hidden === 'boolean'),
+  )
+}
+
+function readStored(key: string): unknown {
+  if (typeof window === 'undefined') return undefined
   try {
-    const raw = localStorage.getItem(VISIBILITY_PREFIX + key)
-    if (!raw) return {}
-    const parsed: unknown = JSON.parse(raw)
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
-    return Object.fromEntries(
-      Object.entries(parsed).filter(([, hidden]) => typeof hidden === 'boolean'),
-    )
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : undefined
   } catch {
-    return {}
+    return undefined
   }
 }
 
@@ -39,14 +42,9 @@ export function writeVisibility(key: string, state: VisibilityState) {
 }
 
 export function readOrder(key: string): ColumnRanksT {
-  if (typeof window === 'undefined') return {}
-  try {
-    const raw = localStorage.getItem(ORDER_PREFIX + key)
-    if (!raw) return {}
-    return dropNonFiniteRanks(JSON.parse(raw) as ColumnRanksT)
-  } catch {
-    return {}
-  }
+  const parsed = readStored(ORDER_PREFIX + key)
+  if (typeof parsed !== 'object' || parsed === null) return {}
+  return dropNonFiniteRanks(parsed as ColumnRanksT)
 }
 
 export function writeOrder(key: string, ranks: ColumnRanksT) {
@@ -54,14 +52,8 @@ export function writeOrder(key: string, ranks: ColumnRanksT) {
 }
 
 // Unvalidated: the caller knows which sizes exist and drops anything else.
-export function readTextSize(key: string): string | undefined {
-  if (typeof window === 'undefined') return undefined
-  try {
-    const raw = localStorage.getItem(TEXT_SIZE_PREFIX + key)
-    return raw ? (JSON.parse(raw) as string) : undefined
-  } catch {
-    return undefined
-  }
+export function readTextSize(key: string): unknown {
+  return readStored(TEXT_SIZE_PREFIX + key)
 }
 
 export function writeTextSize(key: string, size: string) {

@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/filters/column-toggle'
+import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { getInvestmentWithoutSheetColumns } from '@/components/tables/sheets'
 import type { InvestmentWithoutSheetRowT } from '@/types/table-rows'

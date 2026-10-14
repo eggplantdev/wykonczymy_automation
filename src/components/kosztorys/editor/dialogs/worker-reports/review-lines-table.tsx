@@ -11,7 +11,7 @@ import { HintTooltip } from '@/components/ui/tooltip'
 import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-select'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
-import { ColumnToggle } from '@/components/filters/column-toggle'
+import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { SectionPill } from '@/components/worker-reports/section-pill'
 import { WorkerDescription } from '@/components/worker-reports/worker-description'
@@ -516,7 +516,6 @@ const stageQtySumColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   meta: {
     align: 'center',
     vertical: true,
-    label: STAGE_QTY_SUM_LABEL,
     description: 'ile jest aktualnie zgłoszone',
   },
   cell: ({ row }) => row.original.figures && formatQty(row.original.figures.measuredQty),
@@ -612,7 +611,8 @@ export function ReviewLinesTable({
         storageKey={`worker-report-${group}`}
         defaultColumnVisibility={{ [OFFERED_PLANNED_ID]: false }}
         renderRows={isCollapsed ? () => null : undefined}
-        hasColumnDividers
+        // Read across the row, figure against figure.
+        className="[&_td+td]:border-border [&_th+th]:border-border [&_td+td]:border-l [&_th+th]:border-l"
         defaultTextSize="xs"
         toolbar={({ table, columnVisibility, ...order }) => (
           <div className="flex items-end justify-between gap-4">
