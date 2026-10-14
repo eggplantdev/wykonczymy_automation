@@ -4965,3 +4965,11 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Połącz zgłoszenia na tej stronie → połączone wiersze znikają i z kolejki, i z historii.
 - [ ] Historia bez wybranego sortowania → przyjęte, odrzucone i oczekujące wymieszane, najnowsza „Data wysłania” na górze, strzałka przy tej kolumnie; kliknięcie nagłówka odwraca kolejność.
 - [ ] Zgłoszenie z jednym paragonem przyjętym, jednym odrzuconym i jednym czekającym → w historii wiersz przyjętego paragonu pokazuje swój status, odrzuconego swój, a licznik tylko wiersz oczekujący; w kolejce to samo zgłoszenie pokazuje licznik „Przyjęte 1 · Odrzucone 1 · Do sprawdzenia 1”.
+
+## 2026-10-14 — nav-labels
+
+- [ ] Menu boczne (zalogowany jako manager): pozycje „Zgłoszenia prac” i „Zapytania z formularzy”
+      (zamiast „Zgłoszenia wykonanych prac” / „Zgłoszenia z formularzy kontaktowych”); licznik przy
+      każdej nadal się pokazuje.
+- [ ] Wejście w każdą z nich: nagłówek strony i tytuł podczas ładowania brzmią tak samo jak pozycja w
+      menu — bez mignięcia starej nazwy.
