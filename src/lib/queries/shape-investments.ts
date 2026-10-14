@@ -109,6 +109,7 @@ export function shapeInvestments(
       contactPerson: inv.contactPerson,
       reviewRequested: inv.reviewRequested,
       notes: inv.notes,
+      aiNotes: inv.aiNotes,
       hasSheet: inv.hasSheet,
       createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,

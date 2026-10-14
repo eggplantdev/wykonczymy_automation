@@ -57,7 +57,6 @@ describe('buildInvestmentInfoFields', () => {
         status: 'planowana',
         reviewRequested: false,
         aiStage: null,
-        aiNotes: '',
       },
       { isReadOnly: true },
     )

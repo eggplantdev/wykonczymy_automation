@@ -59,6 +59,7 @@ export type InvestmentRowT = {
   contactPerson: string
   reviewRequested: boolean
   notes: string
+  aiNotes: string
   hasSheet: boolean
   createdAt: string
   /** Whether the investment HAS a kosztorys, which none of the figures above can answer: „pomiar z
