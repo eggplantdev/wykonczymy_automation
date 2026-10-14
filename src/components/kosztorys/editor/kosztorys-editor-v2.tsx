@@ -25,6 +25,7 @@ export function KosztorysEditorV2(props: PropsT) {
   // close over the unmounted body's setRows/refs.
   const undoRedo = useUndoRedo()
   const [versionsOpen, setVersionsOpen] = useState(false)
+  const flushBodySavesRef = useRef(async () => {})
   // The latch's freshness token. `revision` (investment.updatedAt) alone answers a restore and an
   // import — both bump it — but not a row deleted in ANOTHER tab, which changes nothing on the
   // investment and is one of the ways a write comes back NOT_FOUND. The item and section counts close
@@ -75,7 +76,10 @@ export function KosztorysEditorV2(props: PropsT) {
         key={remountKey}
         {...props}
         undoRedo={undoRedo}
-        onOpenVersions={() => setVersionsOpen(true)}
+        onOpenVersions={(flushPendingSaves) => {
+          flushBodySavesRef.current = flushPendingSaves
+          setVersionsOpen(true)
+        }}
         onTreeReplaced={handleTreeReplaced}
         onStaleTree={handleStaleTree}
       />
@@ -85,6 +89,7 @@ export function KosztorysEditorV2(props: PropsT) {
         open={versionsOpen}
         onOpenChange={setVersionsOpen}
         onRestored={handleTreeReplaced}
+        flushPendingSaves={() => flushBodySavesRef.current()}
       />
     </>
   )

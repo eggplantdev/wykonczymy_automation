@@ -109,7 +109,9 @@ type PropsT = KosztorysEditorDataT & {
   history?: InvestorHistoryT
   // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
-  onOpenVersions?: () => void
+  // Hands over the flush because the versions drawer lives outside this body, where a restore must
+  // wait for the cell saves still pending in it.
+  onOpenVersions?: (flushPendingSaves: () => Promise<void>) => void
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<unknown>
@@ -519,7 +521,10 @@ export function KosztorysEditorBody({
         investmentId,
         investmentName,
         tree: gridTree,
-        onOpenVersions: editor.readOnly ? undefined : onOpenVersions,
+        onOpenVersions:
+          editor.readOnly || !onOpenVersions
+            ? undefined
+            : () => onOpenVersions(editor.flushPendingSaves),
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
@@ -806,7 +811,13 @@ export function KosztorysEditorBody({
                     document.body,
                   )}
                 {/* One instance for both triggers — the „Opcje" menu and the empty-kosztorys screen. */}
-                {!preview && <SheetImportDialog {...importDialogProps} workers={editor.workers} />}
+                {!preview && (
+                  <SheetImportDialog
+                    {...importDialogProps}
+                    workers={editor.workers}
+                    flushPendingSaves={editor.flushPendingSaves}
+                  />
+                )}
                 {/* Rendered here, not next to the pickers: the same confirm stands in front of the inline
             controls in „Podsumowanie"/„Materiały" and of their twins in „Opcje rozliczenia". */}
                 {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}

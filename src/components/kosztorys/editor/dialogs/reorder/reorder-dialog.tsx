@@ -189,8 +189,8 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
 
   function handleSave() {
     startTransition(async () => {
-      await flushPendingSaves()
       const replaced = await settleTreeReplace(
+        flushPendingSaves,
         () => writeKosztorysLayoutAction(investmentId, layout),
         `Zapis kolejności przerwany — odświeżam ${noun.nominative}`,
         () => toastMessage('Kolejność zapisana', 'success'),

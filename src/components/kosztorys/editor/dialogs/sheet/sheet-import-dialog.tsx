@@ -49,6 +49,7 @@ type PropsT = {
   error: string | null
   loaded: boolean
   onImported: OnTreeReplacedT
+  flushPendingSaves: () => Promise<void>
   // Re-reads the sheet with the new pointing in place, so the window answers in place instead of
   // asking the owner to close it and try again.
   onMappingSaved: () => void
@@ -71,6 +72,7 @@ export function SheetImportDialog({
   loaded,
   onImported,
   onMappingSaved,
+  flushPendingSaves,
 }: PropsT) {
   const [pending, startTransition] = useTransition()
   const [plane, setPlane] = useState<PlanePickT>(NO_PLANE)
@@ -92,6 +94,7 @@ export function SheetImportDialog({
   function handleConfirm() {
     startTransition(async () => {
       const replaced = await settleTreeReplace(
+        flushPendingSaves,
         () => applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane, workerId),
         'Pobieranie przerwane — odświeżam kosztorys',
         ({ data: { sections, items, stages } }) =>

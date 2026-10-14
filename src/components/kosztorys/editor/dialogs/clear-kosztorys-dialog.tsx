@@ -13,7 +13,8 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 // The one action in „Opcje" that leaves nothing behind, so it states the counts it is about to
 // delete rather than asking „na pewno?" over an unnamed amount.
 export function ClearKosztorysDialog() {
-  const { tree, investmentId, onTreeReplaced, isTemplate, noun } = useKosztorysEditorContext()
+  const { tree, investmentId, onTreeReplaced, isTemplate, noun, flushPendingSaves } =
+    useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().clear
   const [pending, startTransition] = useTransition()
 
@@ -23,6 +24,7 @@ export function ClearKosztorysDialog() {
   function handleConfirm() {
     startTransition(async () => {
       const replaced = await settleTreeReplace(
+        flushPendingSaves,
         () => clearKosztorysAction(investmentId),
         `Czyszczenie przerwane — odświeżam ${noun.nominative}`,
         () => toastMessage(`${noun.Nominative} wyczyszczony`, 'success'),

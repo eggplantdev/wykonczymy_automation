@@ -17,12 +17,14 @@ export function useTreeRewriteAction<DataT>(
   failedMessage: string,
   onDone: (data: DataT) => boolean,
 ): TreeRewriteActionT {
-  const { investmentId, onTreeReplaced } = useKosztorysEditorContext()
+  const { investmentId, onTreeReplaced, flushPendingSaves } = useKosztorysEditorContext()
   const [pending, setPending] = useState(false)
 
   function start() {
     setPending(true)
-    void settleAction(() => run(investmentId))
+    // The rewrite reads the stored rows, so a cell edit still in its debounce would be overwritten.
+    void flushPendingSaves()
+      .then(() => settleAction(() => run(investmentId)))
       .then((res) => {
         if (!res.success && res.code === 'REQUEST_FAILED') {
           // A request that never completed may still have committed the rewrite; refetch so the
