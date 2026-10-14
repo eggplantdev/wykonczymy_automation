@@ -1,11 +1,12 @@
 // Step 2 of a case on PRODUCTION: writes the agent's result into the investment `new-case-prod.ts`
 // created — Przedmiar + Komentarz on the szablon positions, the new works appended to their sections
 // (a section the kosztorys lacks is created at the end, a bathroom or WC one as a copy of „Łazienka"
-// — see BATHROOM_TEMPLATE), and the notes appendix as the investment's „Uwagi AI”. Everything it needs is in `cases/<CASE>/case.json`.
+// — see BATHROOM_TEMPLATE), and the notes appendix as the investment's „Uwagi AI”. Everything it
+// needs is in `cases/<CASE>/case.json`.
 //
 // A case with a `draft` goes to AI przedmiar instead, which no app action writes (owner, 2026-10-07):
-// this only creates the sections the draft needs and writes „Uwagi AI”, and `src/scripts/load-ai-draft.ts`
-// — run from a checkout of what production runs — loads the rows.
+// this only creates the sections the draft needs and writes „Uwagi AI”, and
+// `src/scripts/load-ai-draft.ts` — run from a checkout of what production runs — loads the rows.
 //   TOKEN_FILE=… CASE=02-<slug> [DRY=1] [SKIP_ROWS=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/fill-case-prod.ts
 import { existsSync, readFileSync } from 'node:fs'
