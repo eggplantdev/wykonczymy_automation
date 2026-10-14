@@ -2,15 +2,8 @@
 
 import { type Table, type VisibilityState } from '@tanstack/react-table'
 import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import {
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from '@/components/ui/dropdown-menu'
-import {
-  isTableTextSize,
-  type TableTextSizeT,
-} from '@/components/tables/data-table/table-text-size'
+import { type TableTextSizeT } from '@/components/tables/data-table/table-text-size'
+import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
 import { type ColumnRanksT } from '@/lib/table/column-order'
 import { columnLabel } from '@/lib/table/column-label'
 import { useTranslation } from '@/hooks/use-translation'
@@ -26,12 +19,7 @@ type ColumnTogglePropsT<TData> = {
   setTextSize: (size: TableTextSizeT) => void
 }
 
-const TEXT_SIZE_OPTIONS = [
-  { size: '2xs', labelKey: 'textSizeExtraSmall' },
-  { size: 'xs', labelKey: 'textSizeSmall' },
-  { size: 'sm', labelKey: 'textSizeMedium' },
-  { size: 'base', labelKey: 'textSizeLarge' },
-] as const satisfies { size: TableTextSizeT; labelKey: string }[]
+const TEXT_SIZES: readonly TableTextSizeT[] = ['2xs', 'xs', 'sm', 'base']
 
 export function ColumnToggle<TData>({
   table,
@@ -73,28 +61,7 @@ export function ColumnToggle<TData>({
         onSetRank: setRank,
         onReset: resetOrder,
       }}
-      footer={
-        <>
-          <DropdownMenuLabel>{t('textSize')}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={textSize}
-            onValueChange={(value) => {
-              if (isTableTextSize(value)) setTextSize(value)
-            }}
-          >
-            {TEXT_SIZE_OPTIONS.map(({ size, labelKey }) => (
-              <DropdownMenuRadioItem
-                key={size}
-                value={size}
-                // Open, so the table behind shows the size before the menu goes.
-                onSelect={(event) => event.preventDefault()}
-              >
-                {t(labelKey)}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </>
-      }
+      footer={<TextSizeMenuSection sizes={TEXT_SIZES} value={textSize} onChange={setTextSize} />}
     />
   )
 }

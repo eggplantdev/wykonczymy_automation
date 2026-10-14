@@ -19,6 +19,11 @@ import {
   MONEY_PAIR_CONFIG,
 } from '@/components/kosztorys/editor/toolbar/kosztorys-view-axis-options'
 import { KosztorysViewStagesSection } from '@/components/kosztorys/editor/toolbar/kosztorys-view-stages-section'
+import {
+  GRID_TEXT_SIZES,
+  useGridTextSize,
+} from '@/components/kosztorys/editor/hooks/use-grid-text-size'
+import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import {
   derivePairChecks,
@@ -86,6 +91,7 @@ export function KosztorysViewMenu() {
     isStageOff,
     engagedStageConditionIds,
   } = useKosztorysEditorContext()
+  const [textSize, setTextSize] = useGridTextSize()
 
   // „Oferta" is a closed column list: no tick and no axis would move a column, so only the lens
   // stays — and the menu must stay, or there is no way back out of „Oferta".
@@ -127,9 +133,15 @@ export function KosztorysViewMenu() {
       // The hint is about the axis options above the list, which the workbench does not have.
       hint={isTemplate ? undefined : <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
       footer={
-        pickableStages.length > 0 ? (
-          <KosztorysViewStagesSection stages={pickableStages} />
-        ) : undefined
+        <>
+          {pickableStages.length > 0 && (
+            <>
+              <KosztorysViewStagesSection stages={pickableStages} />
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <TextSizeMenuSection sizes={GRID_TEXT_SIZES} value={textSize} onChange={setTextSize} />
+        </>
       }
       order={
         offer
