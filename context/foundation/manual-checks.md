@@ -5032,3 +5032,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Chrome → ta sama notatka → „Edytuj notatkę”: pole wygląda i rośnie przy pisaniu jak wcześniej.
 - [ ] Safari 18.x → dowolne inne pole wielolinijkowe (np. powód anulowania, notatka pozycji
       w katalogu prac): puste ma tę samą wysokość co wcześniej, po wpisaniu kilku linii rośnie.
+
+## 2026-10-14 — media-plan-hint — wyjaśnienie przy „To jest rzut lub projekt”
+
+- [ ] Strona inwestycji → „Dodaj zdjęcia lub pliki”: pod „To jest rzut lub projekt” widać szary
+      dopisek „AI analizuje tylko pliki oznaczone jako rzut lub projekt.”; okno dodawania faktury
+      (bez tego pola) wygląda jak wcześniej.

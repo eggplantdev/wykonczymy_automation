@@ -116,7 +116,7 @@ list. Re-list `quote` investments without a kosztorys for the next batch.
 
    **When the owner already created the investment** (mail in Notatki, files in „Pliki”), run
    `scripts/adopt-case-prod.ts` instead (`TOKEN_FILE=… INVESTMENT=<id> CASE=<n>-<slug> [DRY=1]`). It
-   downloads the files outside the repo (`~/.local/share/wykonczymy-ai-cases/<CASE>/`), seeds the
+   downloads only the files marked „To jest rzut lub projekt” — the upload dialog promises that — outside the repo (`~/.local/share/wykonczymy-ai-cases/<CASE>/`), seeds the
    kosztorys from the szablon only when it is empty, and scaffolds the case the same way. Case 7 is
    the worked example.
 

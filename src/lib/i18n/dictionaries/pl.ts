@@ -572,6 +572,7 @@ export const pl = {
     mimeText: 'tekst',
     addInvoice: 'Dodaj fakturę',
     isPlan: 'To jest rzut lub projekt',
+    planHint: 'AI analizuje tylko pliki oznaczone jako rzut lub projekt.',
     uploadFailedRetry: 'Nie udało się przesłać pliku — spróbuj ponownie.',
     ingestFailed: 'Nie udało się przetworzyć pliku — spróbuj ponownie.',
     convertFailed: 'Nie udało się przekonwertować „{{name}}” — zapisz jako JPG i spróbuj ponownie.',

@@ -26,7 +26,11 @@ async function run() {
     throw new Error(`${CASE_DIR} already has a case.json`)
 
   const investment = await api<InvestmentT>(`/investments/${INVESTMENT}?depth=1`)
-  const assets = investment.assets ?? []
+  // The upload dialog promises that only files marked „To jest rzut lub projekt” reach the AI.
+  const allAssets = investment.assets ?? []
+  const assets = allAssets.filter((asset) => asset.kind === 'projekt')
+  const skipped = allAssets.length - assets.length
+  if (skipped) console.log(`${skipped} files not marked as rzut/projekt → skipped`)
   const items = await itemsOf(INVESTMENT)
   const template = await itemsOf(PRESET_ID)
   if (!template.length) throw new Error(`szablon #${PRESET_ID} has no items`)

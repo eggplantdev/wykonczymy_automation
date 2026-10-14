@@ -54,9 +54,12 @@ export function MediaUploadDialog({
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader title={title ?? t('addInvoice')} />
         {allowPlanMarker && (
-          <CheckboxRow checked={asPlan} onCheckedChange={setAsPlan}>
-            {t('isPlan')}
-          </CheckboxRow>
+          <div>
+            <CheckboxRow checked={asPlan} onCheckedChange={setAsPlan}>
+              {t('isPlan')}
+            </CheckboxRow>
+            <p className="text-muted-foreground px-2 text-xs">{t('planHint')}</p>
+          </div>
         )}
         <FileInput multiple onChange={handlePicked} className="h-28 flex-col" />
       </DialogContent>
