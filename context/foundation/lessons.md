@@ -2617,9 +2617,9 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 
 ## A hand-set label on `investments` stays out of `investmentSchema` — a whole-record save would overwrite it
 
-- **Context**: „Etap AI" (EX-1046, 2026-10-12; `investments.ai_stage`, `src/lib/constants/investment-ai-stage.ts`, `ai-stage-select.tsx`). A nullable enum set by hand, with a derived listing step „Przeanalizowana" folded from the stage plus whether an AI draft is loaded.
+- **Context**: „Etap AI" (EX-1046, 2026-10-12; `investments.ai_stage`, `src/lib/constants/investment-ai-stage.ts`, `ai-stage-select.tsx`). A nullable enum set by hand (and by `load-ai-draft.ts`, which stores „Przeanalizowana"). Until 2026-10-14 the listing also lifted the step to „Przeanalizowana" whenever an AI draft was loaded — which hid every stage the owner set below it, while the page's select showed the stored one.
 - **Problem**: `updateInvestmentAction` and the notes save both send the whole record, so a field in `investmentSchema` gets a default written over the owner's choice on every unrelated save. The reference-data SELECT names `ai_stage` on every page, so code shipped before the additive migration breaks all pages (42703).
-- **Rule**: A field set by its own control gets its own narrow action and stays out of `investmentSchema`; Payload's `update` leaves absent fields alone. `null` is a real value (the first step, „Uzupełnianie informacji"), not "unset". Derive the later listing step in one pure function so cell, sort and filter read one derivation. Additive migration goes to prod before the push.
+- **Rule**: A field set by its own control gets its own narrow action and stays out of `investmentSchema`; Payload's `update` leaves absent fields alone. `null` is a real value (the first step, „Uzupełnianie informacji"), not "unset". The listing shows the stored stage and nothing else: a derived step beside a hand-set one means a manual change can be silently overruled — the event that implies a stage (a loaded draft) writes it instead. Additive migration goes to prod before the push.
 - **Applies to**: plan, implement — any new hand-set status on `investments`, or any field a whole-record save would clobber
 
 ## A URL-driven list never goes inside the kosztorys editor route — a URL change re-renders the whole editor

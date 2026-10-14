@@ -59,14 +59,3 @@ export const AI_PROGRESS_LABELS: Record<AiProgressStepT, string> = {
   review_done: INVESTMENT_AI_STAGE_LABELS.review_done.pl,
   knowledge_extracted: INVESTMENT_AI_STAGE_LABELS.knowledge_extracted.pl,
 }
-
-// A loaded draft IS the analysis, so it lifts the step to „Przeanalizowana” even when nobody moved the
-// stage by hand — but never pulls back a stage that is already further on.
-export function aiProgressOf(
-  aiStage: InvestmentAiStageT | null,
-  hasAiDraft: boolean,
-): AiProgressStepT {
-  const step = aiStage ?? 'none'
-  const isBehindAnalysis = AI_PROGRESS_STEPS.indexOf(step) < AI_PROGRESS_STEPS.indexOf('analyzed')
-  return hasAiDraft && isBehindAnalysis ? 'analyzed' : step
-}

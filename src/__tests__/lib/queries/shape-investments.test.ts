@@ -26,7 +26,6 @@ const kosztorysTotals: KosztorysClientTotalsMapT = {
     laborCostsNetFromKosztorys: 5000,
     discountNetFromKosztorys: 500,
     globalDiscountNet: 0,
-    hasAiDraft: false,
   },
 }
 
@@ -78,7 +77,6 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 3900,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
-          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -220,7 +218,6 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 3900,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
-          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -259,7 +256,6 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 270951,
           discountNetFromKosztorys: 100000,
           globalDiscountNet: 100000,
-          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -297,7 +293,6 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 1000,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
-          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -449,7 +444,6 @@ describe('shapeInvestments robocizna source', () => {
           laborCostsNetFromKosztorys: 0,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
-          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -483,20 +477,15 @@ describe('shapeInvestments robocizna source', () => {
     ).toBe(false)
   })
 
-  it('folds the AI-draft flag into the step, and reads no entry as no draft', () => {
-    const withDraft: KosztorysClientTotalsMapT = {
-      '5': { ...kosztorysTotals['5'], hasAiDraft: true },
-    }
-    const step = (inv: InvestmentRefT, totals: KosztorysClientTotalsMapT) =>
-      shapeInvestments([inv], transactionFinancials, totals, NO_MAP, NO_DEPOSITS)[0].aiProgress
+  // The owner set a stage by hand and the listing kept „Przeanalizowana”: a loaded draft lifted it.
+  it('shows the stored stage, whatever the kosztorys carries', () => {
+    const step = (inv: InvestmentRefT) =>
+      shapeInvestments([inv], transactionFinancials, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
+        .aiProgress
 
-    expect(step(baseInv, withDraft)).toBe('analyzed')
-    expect(step(baseInv, kosztorysTotals)).toBe('none')
-    expect(step({ ...baseInv, id: 6 }, withDraft)).toBe('none')
-    expect(step({ ...baseInv, aiStage: 'review_done' }, withDraft)).toBe('review_done')
-    expect(step({ ...baseInv, id: 6, aiStage: 'ready_for_analysis' }, withDraft)).toBe(
-      'ready_for_analysis',
-    )
+    expect(step(baseInv)).toBe('none')
+    expect(step({ ...baseInv, aiStage: 'ready_for_analysis' })).toBe('ready_for_analysis')
+    expect(step({ ...baseInv, aiStage: 'review_done' })).toBe('review_done')
   })
 })
 
@@ -645,7 +634,6 @@ describe('shapeInvestments wpłaty', () => {
       laborCostsNetFromKosztorys: 10_000,
       discountNetFromKosztorys: 0,
       globalDiscountNet: 0,
-      hasAiDraft: false,
     },
   }
 

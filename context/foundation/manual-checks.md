@@ -4799,7 +4799,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] `/inwestycje/[id]` → przyciski w nagłówku („Edytuj”, „Dodaj”/„Otwórz”, „Otwórz kosztorys_v2”) mają jedną wysokość.
 - [ ] Zakończona inwestycja → select jest i zapisuje; inwestycja w `/kosz` → selecta nie ma.
 - [ ] Zapis notatki i „Edytuj inwestycję” nie zmieniają wybranego etapu.
-- [ ] `/inwestycje` → inwestycja ze szkicem AI i bez etapu pokazuje „Przeanalizowana”; po ustawieniu „Recenzja zakończona” na jej stronie lista pokazuje „Recenzja zakończona”.
+- [ ] `/inwestycje` → inwestycja ze szkicem AI: po ustawieniu na jej stronie „Gotowa do analizy”, a potem „Recenzja zakończona”, lista pokazuje za każdym razem dokładnie ten etap, który stoi w selekcie (szkic go nie podnosi).
 - [ ] `/inwestycje` → kolumna „Analiza AI” to plakietki jak „Status”, każdy etap innym kolorem; „Uzupełnianie informacji” szara, w jednej linii, nie łamie wiersza. Select „Etap AI” na stronie inwestycji i w Podsumowaniu → „Inwestycja”: obramowanie i tekst w kolorze plakietki z listy (tło bez koloru), zmienia się od razu po wyborze; po rozwinięciu każda opcja ma ikonę i nazwę w swoim kolorze, opis szary.
 - [ ] Sortowanie „Analiza AI”: Uzupełnianie informacji / Gotowa do analizy / Przeanalizowana / Recenzja zakończona / Wiedza wyekstraktowana.
 - [ ] Filtr „Analiza AI” → „Recenzja zakończona” zostawia tylko te wiersze; razem z filtrem statusu i wyszukiwaniem wszystkie trzy zawężają naraz; pozycja „Uzupełnianie informacji” = inwestycje bez etapu i bez szkicu.
