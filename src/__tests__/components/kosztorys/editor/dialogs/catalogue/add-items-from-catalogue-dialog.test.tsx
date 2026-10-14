@@ -75,6 +75,7 @@ function renderDialog(catalogue = CATALOGUE) {
       open
       onOpenChange={vi.fn()}
       onInserted={vi.fn()}
+      onNewItem={vi.fn()}
     />,
   )
 }
