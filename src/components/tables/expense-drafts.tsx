@@ -110,6 +110,7 @@ export function useExpenseDraftColumns({
           col.accessor('workerName', {
             header: t('worker'),
             enableSorting: sortable('workerName'),
+            meta: { minWidth: 'min-w-40' },
             cell: ({ row: { original: draft } }) => (
               <OptionalLink href={`/pracownicy/${draft.workerId}`}>{draft.workerName}</OptionalLink>
             ),
@@ -119,6 +120,7 @@ export function useExpenseDraftColumns({
     col.accessor('investmentName', {
       header: t('investment'),
       enableSorting: sortable('investmentName'),
+      meta: { minWidth: 'min-w-56' },
       cell: ({ row: { original: draft } }) => (
         <OptionalLink
           href={
@@ -134,6 +136,7 @@ export function useExpenseDraftColumns({
     col.accessor('sentAt', {
       header: t('sentAt'),
       enableSorting: sortable('sentAt'),
+      meta: { minWidth: 'min-w-40' },
       cell: (info) => formatPLDateTime(info.getValue()),
     }),
     col.display({
@@ -147,6 +150,7 @@ export function useExpenseDraftColumns({
     col.accessor('note', {
       header: t('note'),
       enableSorting: false,
+      meta: { minWidth: 'min-w-64' },
       cell: (info) => <span className="break-words">{info.getValue() ?? '—'}</span>,
     }),
     ...(isPendingQueue
@@ -154,6 +158,7 @@ export function useExpenseDraftColumns({
           col.display({
             id: 'progress',
             header: t('receipts'),
+            meta: { minWidth: 'min-w-48' },
             cell: ({ row: { original: draft } }) =>
               draft.progress ? <DecisionProgressBadge {...draft.progress} /> : '—',
           }),
@@ -162,6 +167,7 @@ export function useExpenseDraftColumns({
           col.accessor('status', {
             header: t('status'),
             enableSorting: sortable('status'),
+            meta: { minWidth: 'min-w-48' },
             cell: ({ row: { original: draft } }) => (
               <span className="flex flex-wrap items-center gap-2">
                 {draft.progress ? (
@@ -181,6 +187,7 @@ export function useExpenseDraftColumns({
           col.accessor('decidedAt', {
             header: t('decision'),
             enableSorting: sortable('decidedAt'),
+            meta: { minWidth: 'min-w-56' },
             cell: ({ row: { original: draft } }) =>
               draft.decidedAt
                 ? [formatPLDateTime(draft.decidedAt), draft.decidedByName]
@@ -191,7 +198,7 @@ export function useExpenseDraftColumns({
           col.accessor('transfers', {
             header: t('transfers'),
             enableSorting: false,
-            meta: { align: 'right' },
+            meta: { align: 'right', minWidth: 'min-w-28' },
             cell: ({ row: { original: draft } }) => (
               <TransferCell draft={draft} isLinked={canOpenTransfers} />
             ),

@@ -13,7 +13,7 @@ type PropsT = {
 // width while the zgłoszenie's pages download.
 export function OpenExpenseDraftButton({ isLoading, disabled, onClick }: PropsT) {
   return (
-    <Button size="sm" disabled={disabled} onClick={onClick}>
+    <Button size="xs" disabled={disabled} onClick={onClick}>
       {isLoading ? <Loader2 className="animate-spin" /> : <Eye />}
       Zweryfikuj
     </Button>

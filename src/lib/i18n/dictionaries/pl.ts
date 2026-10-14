@@ -188,7 +188,7 @@ export const pl = {
     deletedToast: 'Wydatek usunięty',
     tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
     receipts: 'Paragony',
-    queueTitle: 'Wydatki zgłoszone przez pracowników',
+    queueTitle: 'Wydatki do sprawdzenia',
     mergeHint:
       'Zaznacz kilka zgłoszeń jednego pracownika, z tą samą inwestycją i kasą, aby połączyć je w jedno.',
     selectDraft: 'Zaznacz zgłoszenie {{name}}',

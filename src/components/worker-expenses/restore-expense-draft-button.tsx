@@ -33,7 +33,7 @@ export function RestoreExpenseDraftButton({ restore, successMessage }: PropsT) {
   }
 
   return (
-    <Button size="sm" variant="outline" disabled={isRestoring} onClick={handleRestore}>
+    <Button size="xs" variant="outline" disabled={isRestoring} onClick={handleRestore}>
       {isRestoring && <Loader2 className="animate-spin" />}
       Przywróć
     </Button>
