@@ -4978,6 +4978,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] `/zgloszenia-wydatkow?zgloszenie=<już rozpatrzone>`: toast „To zgłoszenie zostało już rozpatrzone.”, żadne okno się nie otwiera.
 - [ ] Zakres „Wszystko” → „Analizuj”: wyniki w kilka sekund, bez przekroczenia czasu.
 - [ ] Strona inwestycji i strona kasy: w pasku nad listą transakcji nie ma przycisku „Szukaj duplikatów”.
+- [ ] „Szukaj duplikatów” → „Analizuj”: każdy wiersz grupy ma kolumnę „Kasa” — przy transakcji kasa, z której poszedł wydatek (ta sama co na liście transakcji), przy zgłoszeniu kasa wybrana przez pracownika. To samo w „Możliwe duplikaty” w oknie „Zweryfikuj” zgłoszenia.
 
 ## 2026-10-14 — nav-labels
 
