@@ -269,7 +269,7 @@ describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => 
     const out = html([percentRow], showing('plannedDonePercent'))
     expect(out).toMatch(header(label))
     expect(out).toMatch(/>40%<\/td>/)
-    expect(out).toMatch(/>33%<\/td>/)
+    expect(out).toMatch(/>33,3%<\/td>/)
   })
 })
 
