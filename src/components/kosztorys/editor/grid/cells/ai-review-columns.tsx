@@ -2,11 +2,12 @@ import { useState, type ReactNode } from 'react'
 import type { Column, CellProps } from 'react-datasheet-grid'
 import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/save-item-to-catalogue-dialog'
 import { WorkNoteDialog } from '@/components/kosztorys/editor/dialogs/catalogue/work-note-dialog'
+import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
-import { aiCommentLines } from '@/lib/kosztorys/ai-review-columns'
+import { aiCommentLines, aiNewInformationLines } from '@/lib/kosztorys/ai-review-columns'
 import {
   RECHECK_LABEL,
   REVIEW_STATUS_LABELS,
@@ -22,6 +23,7 @@ import {
 } from '@/lib/kosztorys/review-status'
 import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { KosztorysV2RowT, ReviewStatusT } from '@/lib/kosztorys/types'
+import { cn } from '@/lib/utils/cn'
 
 export const AI_REVIEW_COLUMN_CLASS = {
   headerClassName: 'kosztorys-ai-column',
@@ -45,7 +47,13 @@ function statusOptions(row: KosztorysV2RowT) {
 function RecheckFlag({ children }: { children: ReactNode }) {
   return (
     <div className="flex size-full flex-col">
-      <span className="grid-cell-text shrink-0 truncate px-2 pt-1.5 font-medium text-amber-700 dark:text-amber-400">
+      <span
+        className={cn(
+          BADGE_BASE,
+          BADGE_TONE.pending,
+          'mx-2 mt-1.5 block w-fit max-w-full shrink-0 truncate',
+        )}
+      >
         {RECHECK_LABEL}
       </span>
       <div className="min-h-0 flex-1">{children}</div>
@@ -81,18 +89,24 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   }
 }
 
-function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
-  const lines = aiCommentLines(rowData)
+// Komentarz AI and Nowe informacje read alike: the label plain, the answer bold, a gap between lines.
+function AiLabelledLines({ lines }: { lines: { label: string | null; answer: string }[] }) {
   if (lines.length === 0) return null
   return (
     <ReadOnlyCellText>
-      {lines.map(({ field, question, answer }) => (
-        <span key={field} className="block not-first:mt-5">
-          {question}: <strong>{answer}</strong>
+      {lines.map(({ label, answer }, index) => (
+        <span key={index} className="block not-first:mt-5">
+          {label && `${label}: `}
+          <strong>{answer}</strong>
         </span>
       ))}
     </ReadOnlyCellText>
   )
+}
+
+function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
+  const lines = aiCommentLines(rowData).map(({ question, answer }) => ({ label: question, answer }))
+  return <AiLabelledLines lines={lines} />
 }
 
 export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
@@ -112,9 +126,7 @@ export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
 }
 
 function AiNewInformationCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
-  const text = rowData.aiNewInformation ?? ''
-  if (!text.trim()) return null
-  return <ReadOnlyCellText>{text}</ReadOnlyCellText>
+  return <AiLabelledLines lines={aiNewInformationLines(rowData.aiNewInformation)} />
 }
 
 export function aiNewInformationColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {

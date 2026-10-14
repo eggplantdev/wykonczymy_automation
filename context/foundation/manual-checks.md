@@ -5115,6 +5115,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] „Problemy” → „do ponownego sprawdzenia”: liczba równa liczbie pozycji z flagą, kliknięcie
       zostawia tylko je.
 - [ ] Podgląd klienta tego kosztorysu: żaden wiersz nie jest wyższy, nie widać żadnej kolumny AI.
+- [ ] Pozycja z wczytaną rundą: „Nowe informacje” wyglądają dokładnie jak „Komentarz AI” — etykieta
+      zwykłą czcionką, odpowiedź pogrubiona, odstęp między liniami. „Do ponownego sprawdzenia” to mały
+      bursztynowy badge nad Statusem i nie wychodzi poza kolumnę.
 
 ## 2026-10-14 — worker-report-text-size — wielkość czcionki i wąskie kolumny w raporcie pracownika
 

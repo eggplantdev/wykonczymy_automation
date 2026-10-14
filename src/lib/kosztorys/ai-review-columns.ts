@@ -26,3 +26,16 @@ export const aiCommentLines = (row: Pick<KosztorysV2RowT, 'aiMissingData' | 'aiA
       .join(', ')
     return answer ? [{ field, question, answer }] : []
   })
+
+// Each round appends „Label: answer” lines; split at the first colon so an answer may carry its own.
+export const aiNewInformationLines = (text: string | null | undefined) =>
+  (text ?? '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const colon = line.indexOf(': ')
+      return colon > 0
+        ? { label: line.slice(0, colon), answer: line.slice(colon + 2).trim() }
+        : { label: null, answer: line }
+    })
