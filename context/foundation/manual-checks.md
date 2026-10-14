@@ -5022,3 +5022,11 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Strona inwestycji bez „Uwag AI”: sekcji „Uwagi AI” nie ma wcale.
 - [ ] Kosztorys → podsumowanie → zakładka „Inwestycja”: te same „Uwagi AI” pod „Notatkami”, tylko do
       odczytu; bez uwag sekcji nie ma.
+
+## 2026-10-14 — textarea-safari-rows — pole tekstowe rośnie z treścią w starszym Safari
+
+- [ ] Safari 18.x → strona inwestycji z długą, wielolinijkową notatką → „Edytuj notatkę”: pole
+      otwiera się mniej więcej na wysokość treści, nie na ~3 linie ze scrollem.
+- [ ] Chrome → ta sama notatka → „Edytuj notatkę”: pole wygląda i rośnie przy pisaniu jak wcześniej.
+- [ ] Safari 18.x → dowolne inne pole wielolinijkowe (np. powód anulowania, notatka pozycji
+      w katalogu prac): puste ma tę samą wysokość co wcześniej, po wpisaniu kilku linii rośnie.
