@@ -118,5 +118,10 @@
     "manual": "Schody i balustrady — czego nie robimy",
     "op": "create",
     "text": "— Drewnianych stopni na razie nie robimy, zapytaj czy już robimy.\n— Balustrady i poręcze robią ludzie od schodów."
+  },
+  {
+    "manual": "Łazienki i WC — osobna sekcja",
+    "op": "create",
+    "text": "— Każda łazienka i każde WC to osobna sekcja: kopia sekcji „Łazienka”, nazwana po pomieszczeniu („Łazienka parter”, „Łazienka piętro”, „WC parter”, „Łazienka dzieci”).\n— Ilości liczymy osobno dla każdej łazienki — nigdy jedna pozycja z sumą dwóch łazienek.\n— Łazienki i WC nigdy nie łączymy w jednej sekcji.\n— Pozostałe sekcje (podłogi, ściany i sufity, kuchnia, elektryka…) są jedne na cały kosztorys."
   }
 ]

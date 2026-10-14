@@ -15,6 +15,10 @@ export type ItemT = {
   unit: string | null
   plannedQty: number
   clientPrice: number
+  wToolsOverrideValue: number | null
+  wToolsOverrideCoeff: number | null
+  ownToolsOverrideValue: number | null
+  ownToolsOverrideCoeff: number | null
   section: { id: number; name: string; displayOrder: number }
 }
 

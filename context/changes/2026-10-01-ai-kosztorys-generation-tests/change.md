@@ -41,6 +41,13 @@ no kosztorys. Per investment, one at a time:
    rozpiska id, the opis copied from the dump by id (so the loader's sekcja + opis match never
    misses), measured areas as named variables, totals per sekcja printed. It writes
    `measure/ai-draft-load.json`; add `"draft"` and `"notesAppendix"` to `case.json`.
+   **One sekcja per bathroom and per WC, and only for those** (owner, 2026-10-14; Manual „Łazienki
+   i WC — osobna sekcja”). Give the rows of a „Łazienka” id a `section` named after the room
+   („Łazienka parter”, „Łazienka piętro”, „WC parter”) and quantities for that room alone, never
+   one row summing two bathrooms. `fill-case-prod.ts` renames the szablon „Łazienka” to the first
+   such name and adds every further one as a full copy of it, each pozycja at Przedmiar 0, so the
+   owner reviews each room's whole rozpiska. Every other sekcja stays one per kosztorys: 88
+   kosztorysy in prod split nothing but łazienki and WC.
 5. `investment-notes-appendix.txt` in Notatki markdown (`##` headings, `- ` lists, `**bold**`;
    case 07's layout): `## Wycena AI (test, <date>)` with the **bold total** and how it was
    measured, then `## Do ustalenia z klientem` (bold key word + zł impact),
@@ -156,8 +163,8 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
    Przedmiar ≠ 0; `SKIP_ROWS=1` adds only the new works and the notes.
 
    **AI przedmiar instead of Przedmiar** (`draft` in `case.json`, the `load-ai-draft.ts` shape): no app
-   action writes AI przedmiar, so `fill-case-prod.ts` only creates the sekcje the draft lacks and adds
-   the notes. `scripts/load-draft-prod.sh` (`TOKEN_FILE=… CASE=…`) then writes the rows **straight into
+   action writes AI przedmiar, so `fill-case-prod.ts` only creates the sekcje the draft lacks (a
+   bathroom or WC one as a copy of „Łazienka”, see step 4 of the fast path) and adds the notes. `scripts/load-draft-prod.sh` (`TOKEN_FILE=… CASE=…`) then writes the rows **straight into
    the production DB** — ask the user before every run. It runs `src/scripts/load-ai-draft.ts` without
    its `assertLocalDb` from a throwaway worktree of `origin/main` (staging's code reads columns
    production may not have), refuses if main's Payload config lost `push: false`, then runs

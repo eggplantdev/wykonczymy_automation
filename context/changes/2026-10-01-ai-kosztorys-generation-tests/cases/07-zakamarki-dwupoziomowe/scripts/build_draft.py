@@ -68,8 +68,9 @@ A_HDOWN = "wysokość parteru 2,66 m — przekrój A-A (rys. 7)"
 A_HUP = "wysokość piętra 2,60 m — rysunek jej nie podaje, Manual: rynek wtórny"
 
 draft = []
-def add(i, qty, assumptions=None, missing=None, price=None):
+def add(i, qty, assumptions=None, missing=None, price=None, section=None):
     r = dict(rows[i]); r['qty'] = round(qty, 2)
+    if section: r['section'] = section  # a second bathroom / WC: its own copy of „Łazienka"
     if price is not None: r['clientPrice'] = float(price)
     if missing: r['missingData'] = missing
     if assumptions: r['assumptions'] = assumptions
