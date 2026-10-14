@@ -192,8 +192,8 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
      powykonawczo”) is not lifted: the AI quantity was right, and the owner wrote the reason so the
      lowered figure isn't read as an AI error (gładzie and akrylowanie on #203).
    - `scripts/apply-knowledge-prod.ts` with `DRY=1` prints „było → będzie”, then writes after the
-     user's go through the app's own actions. An edit already in place is skipped, so a second
-     `DRY=1` printing „prod zgodny z plikiem” is the check.
+     user's go through the app's own actions. An edit already in place is skipped. A completed real
+     run empties the file: left in, an old entry would overwrite a later fix made in the app.
    - Then set „Etap AI: Wiedza wyekstraktowana” by hand on each source investment, so the next
      collect skips it. A Powód zmiany written after that is not picked up unless the stage is set
      back to „Recenzja zakończona”.

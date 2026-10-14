@@ -1,9 +1,9 @@
 // Steps 3–4 of the knowledge flow: writes the agreed Komentarze do pracy and Manual entries from
-// knowledge-edits.json through the app's own actions. An edit already in place is skipped, so a second
-// DRY run printing nothing to change IS the check that prod matches the file.
+// knowledge-edits.json through the app's own actions, skipping an edit already in place, then empties
+// the file — so it only ever holds edits not yet on prod.
 //   TOKEN_FILE=… [DRY=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/apply-knowledge-prod.ts
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { api, callAction, norm, resolveActions } from './prod-client'
 
@@ -107,6 +107,12 @@ async function run() {
   console.log(
     `\n${edits.length} wpisów w pliku — ${verdict}${isDry || !changed ? '' : ' (zapisane)'}`,
   )
+  if (isDry) return
+
+  // Prod is now the copy of record: an entry left in the file would later overwrite whatever someone
+  // edited in the app since (it once nearly reverted a sentence the owner added to katalog 706).
+  writeFileSync(file, '[]\n')
+  console.log('Plik wyczyszczony')
 }
 
 run().catch((error) => {
