@@ -23,7 +23,7 @@ export const isWeakMatch = (reasons: MatchReasonT[]) =>
   reasons.every((reason) => reason === 'same-amount')
 
 // The booking (or sending) moment, needed only for the same-amount window.
-type DatedDocT = ExpenseDocT & { date?: string }
+export type DatedDocT = ExpenseDocT & { date?: string }
 
 const SAME_AMOUNT_WINDOW_MONTHS = 3
 
@@ -85,11 +85,7 @@ function isProvablyDifferent(probe: ExpenseDocT, candidate: ExpenseDocT): boolea
   )
 }
 
-export function matchExpense(
-  probe: ExpenseDocT,
-  candidate: DatedDocT,
-  today: DayT,
-): MatchVerdictT | null {
+export function matchExpense(probe: DatedDocT, candidate: DatedDocT): MatchVerdictT | null {
   const probeCents = cents(probe.amount)
   const isSameAmount = probeCents !== null && probeCents === cents(candidate.amount)
   // Without a read amount the number has nothing to be checked against, so it counts alone.
@@ -122,10 +118,14 @@ export function matchExpense(
   }
 
   if (reasons.length > 0) return { reasons }
-  if (!isSameAmount || !candidate.date) return null
+  if (!isSameAmount || !probe.date || !candidate.date) return null
 
   // Mostly a row booked before the identity columns, with nothing read that could clear it. A
-  // different printed day, seller or number is a second purchase of the same thing.
-  const isRecent = toWarsawDay(candidate.date) >= addMonthsToDay(today, -SAME_AMOUNT_WINDOW_MONTHS)
-  return isRecent && !isProvablyDifferent(probe, candidate) ? { reasons: ['same-amount'] } : null
+  // different printed day, seller or number is a second purchase of the same thing. The window runs
+  // between the two documents, so a scan of an old period still finds its twins.
+  const [earlier, later] = [toWarsawDay(probe.date), toWarsawDay(candidate.date)].sort()
+  const isWithinWindow = later <= addMonthsToDay(earlier, SAME_AMOUNT_WINDOW_MONTHS)
+  return isWithinWindow && !isProvablyDifferent(probe, candidate)
+    ? { reasons: ['same-amount'] }
+    : null
 }

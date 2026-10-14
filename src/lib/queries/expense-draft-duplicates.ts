@@ -4,18 +4,16 @@ import { protectedAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import {
   loadDraftCandidates,
-  loadDraftProbes,
   loadTransactionCandidates,
   type CandidateT,
 } from '@/lib/db/expense-duplicate-candidates'
+import { findDuplicatePairs } from '@/lib/expense-duplicates/find-duplicates'
 import {
   cents,
   documentNumberOf,
   isWeakMatch,
-  matchExpense,
   type MatchVerdictT,
 } from '@/lib/expense-duplicates/match'
-import { warsawToday } from '@/lib/utils/days'
 import type { ActionResultT } from '@/types/action'
 
 export type DuplicateMatchT = MatchVerdictT & CandidateT
@@ -32,30 +30,34 @@ export async function findExpenseDraftDuplicates(
 ): Promise<ActionResultT<ParagonDuplicatesT[]>> {
   return protectedAction('findExpenseDraftDuplicates', async ({ payload }) => {
     const db = await getDb(payload)
-    const probes = await loadDraftProbes(db, draftId)
+    // Only the undecided paragony: a decided one can't be booked again.
+    const probes = await loadDraftCandidates(db, { draftId })
     if (probes.length === 0) return { success: true, data: [] }
 
     const filter = {
       amountsCents: probes.flatMap((probe) => cents(probe.amount) ?? []),
       documentNumbers: probes.flatMap((probe) => documentNumberOf(probe) ?? []),
     }
+    // The zgłoszenie's own paragony are candidates too — a paragon sent twice in it is a duplicate.
     const [transactions, drafts] = await Promise.all([
-      loadTransactionCandidates(db, { ...filter, excludeDraftId: draftId }),
-      loadDraftCandidates(db, { ...filter, excludeDraftId: draftId }),
+      loadTransactionCandidates(db, filter),
+      loadDraftCandidates(db, { filter }),
     ])
-    const candidates = [...transactions, ...drafts]
-    const today = warsawToday()
+    const pairs = findDuplicatePairs(
+      [...probes, ...transactions, ...drafts],
+      (doc) => doc.source === 'draft' && doc.id === draftId,
+    )
 
     return {
       success: true,
       data: probes.map((probe) => ({
-        readRow: probe.readRow,
+        readRow: probe.readRows[0],
         description: probe.description,
         amount: probe.amount,
-        matches: candidates
-          .flatMap((candidate) => {
-            const verdict = matchExpense(probe, candidate, today)
-            return verdict ? [{ ...candidate, ...verdict }] : []
+        matches: pairs
+          .flatMap(({ a, b, reasons }): DuplicateMatchT[] => {
+            if (a.key === probe.key) return [{ ...b, reasons }]
+            return b.key === probe.key ? [{ ...a, reasons }] : []
           })
           .sort(
             (a, b) =>

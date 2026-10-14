@@ -4,7 +4,6 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
   loadDraftCandidates,
-  loadDraftProbes,
   loadTransactionCandidates,
   type CandidateT,
 } from '@/lib/db/expense-duplicate-candidates'
@@ -175,34 +174,43 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
   })
 
   const FILTER = { amountsCents: [AMOUNT_CENTS], documentNumbers: [NUMBER, LEGACY_NUMBER] }
-  // No draft has this id, so nothing is excluded as booked from the probed zgłoszenie.
-  const NO_DRAFT = 0
   const ourTransactionIds = (candidates: CandidateT[]) =>
     candidates.map((c) => c.id).filter((id) => Object.values(tx).includes(id))
+  const matchKeys = (matches: { key: string }[]) => matches.map((m) => m.key)
 
-  it('reads one probe per read row of the pending draft, in read order', async () => {
-    const probes = await loadDraftProbes(db, probeDraftId)
-    expect(probes.map((probe) => [probe.amount, probe.documentNumber])).toEqual([
-      [AMOUNT, null],
-      [null, 'FV 1025/TST/77'],
-      [null, LEGACY_NUMBER],
+  it('reads one probe per undecided read row of a pending draft, in read order', async () => {
+    const probes = await loadDraftCandidates(db, { draftId: probeDraftId })
+    expect(probes.map((probe) => [probe.amount, probe.documentNumber, probe.readRows])).toEqual([
+      [AMOUNT, null, [0]],
+      [null, 'FV 1025/TST/77', [1]],
+      [null, LEGACY_NUMBER, [2]],
     ])
-    expect(await loadDraftProbes(db, rejectedDraftId)).toEqual([])
+    expect(probes.map((probe) => probe.key)).toEqual([
+      `draft-${probeDraftId}-1`,
+      `draft-${probeDraftId}-2`,
+      `draft-${probeDraftId}-3`,
+    ])
+    expect(probes.every((probe) => probe.draftId === probeDraftId)).toBe(true)
+    expect(await loadDraftCandidates(db, { draftId: rejectedDraftId })).toEqual([])
   })
 
   it('returns a booked receipt by amount, by number, and by „Notatka" line 1 — nothing else', async () => {
-    const ids = ourTransactionIds(
-      await loadTransactionCandidates(db, { ...FILTER, excludeDraftId: NO_DRAFT }),
-    )
+    const ids = ourTransactionIds(await loadTransactionCandidates(db, FILTER))
     expect(ids.sort((a, b) => a - b)).toEqual(
       [tx.byAmount, tx.byNumber, tx.legacyNote].sort((a, b) => a - b),
     )
   })
 
-  it('returns each matching paragon of another pending zgłoszenie under its own key, never the probe’s own', async () => {
-    const candidates = await loadDraftCandidates(db, { ...FILTER, excludeDraftId: probeDraftId })
+  it('selects transakcje by id, with their investment and no zgłoszenie', async () => {
+    const candidates = await loadTransactionCandidates(db, { transactionIds: [tx.byNumber] })
+    expect(candidates.map((c) => [c.key, c.investmentId, c.draftId, c.readRows])).toEqual([
+      [`transaction-${tx.byNumber}`, investmentId, null, []],
+    ])
+  })
+
+  it('returns each matching paragon of every pending zgłoszenie under its own key, never a rejected one', async () => {
+    const candidates = await loadDraftCandidates(db, { filter: FILTER })
     const ids = candidates.map((c) => c.id)
-    expect(ids).not.toContain(probeDraftId)
     expect(ids).not.toContain(rejectedDraftId)
 
     const fromOther = candidates.filter((c) => c.id === otherDraftId)
@@ -212,6 +220,7 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     ])
     expect(fromOther.every((c) => c.submitterName === 'Dup Worker')).toBe(true)
     expect(fromOther.every((c) => c.pages.length === 1)).toBe(true)
+    expect(candidates.filter((c) => c.id === probeDraftId)).toHaveLength(3)
   })
 
   it('the accept dialog’s check matches each probe paragon to its booked twin, never to a different purchase', async () => {
@@ -252,11 +261,12 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     const candidates = await loadTransactionCandidates(db, {
       amountsCents: [432109],
       documentNumbers: [],
-      excludeDraftId: NO_DRAFT,
     })
-    expect(candidates.filter((c) => c.id === tx.merged).map((c) => [c.key, c.amount])).toEqual([
-      [`transaction-${tx.merged}-0`, MERGED],
-    ])
+    expect(
+      candidates
+        .filter((c) => c.id === tx.merged)
+        .map((c) => [c.key, c.amount, c.draftId, c.readRows]),
+    ).toEqual([[`transaction-${tx.merged}-0`, MERGED, bookedDraftId, [0, 1]]])
 
     const { draftId: againId } = await pendingDraftWithRead('again', [
       { amount: MERGED, description: 'Bilet' },
@@ -268,31 +278,59 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     )
   })
 
-  // A booking whose response was lost left these paragony waiting in the dialog; they must not
-  // then flag as duplicates of the transakcje booked from them.
-  it('a paragon booked from the probed zgłoszenie is not its duplicate, booked whole or merged', async () => {
+  // EX-1053 follow-up: one receipt photographed twice inside one zgłoszenie.
+  it('flags two undecided paragony of one zgłoszenie as duplicates of each other', async () => {
+    const TWICE = 2718.28
+    const receipt = { amount: TWICE, description: 'Leroy Merlin', documentDate: '2026-10-05' }
+    const { draftId } = await pendingDraftWithRead('twice', [
+      receipt,
+      { amount: 9.99, description: 'Żabka' },
+      receipt,
+    ])
+
+    const result = await findExpenseDraftDuplicates(draftId)
+    if (!result.success) throw new Error(result.error)
+    const [first, other, second] = result.data
+    expect(matchKeys(first.matches)).toEqual([`draft-${draftId}-3`])
+    expect(first.matches[0].reasons).toEqual(['same-receipt'])
+    expect(matchKeys(second.matches)).toEqual([`draft-${draftId}-1`])
+    expect(other.matches).toEqual([])
+  })
+
+  // A booking whose response was lost left the dialog open: a decided paragon is no longer probed,
+  // and its waiting twin is still flagged against the transakcja booked from it.
+  it('skips decided paragony and matches a waiting one to the transakcja booked from its twin', async () => {
     const SIBLING = 6182.47
     const { draftId } = await pendingDraftWithRead('sibling', [
       { amount: SIBLING, description: 'Farba' },
       { amount: 5.5, description: 'Bilet' },
       { amount: 2.25, description: 'Bilet' },
       { amount: SIBLING, description: 'Farba' },
+      { amount: SIBLING, description: 'Farba' },
     ])
-    await insertTransaction('sibling', { amount: SIBLING })
+    await insertTransaction('sibling', { amount: SIBLING, description: 'Farba' })
     await insertTransaction('siblingMerged', { amount: 7.75 })
     await db.execute(sql`
       INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
       VALUES (${tx.sibling}, ${draftId}, '{}', '{0}'), (${tx.siblingMerged}, ${draftId}, '{}', '{1,2}')
     `)
-    const filter = { amountsCents: [618247, 550], documentNumbers: [] }
+    await db.execute(sql`
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row)
+      VALUES (${draftId}, '{}', 4)
+    `)
 
-    const own = await loadTransactionCandidates(db, { ...filter, excludeDraftId: draftId })
-    expect(own.map((c) => c.id)).not.toContain(tx.sibling)
-    expect(own.map((c) => c.id)).not.toContain(tx.siblingMerged)
+    const undecided = await loadDraftCandidates(db, { draftId })
+    expect(undecided.map((c) => c.readRows)).toEqual([[3]])
+    const filtered = await loadDraftCandidates(db, {
+      filter: { amountsCents: [618247, 550, 225], documentNumbers: [] },
+    })
+    expect(filtered.filter((c) => c.id === draftId).map((c) => c.readRows)).toEqual([[3]])
 
-    const elsewhere = await loadTransactionCandidates(db, { ...filter, excludeDraftId: NO_DRAFT })
-    expect(elsewhere.map((c) => c.key)).toEqual(
-      expect.arrayContaining([`transaction-${tx.sibling}`, `transaction-${tx.siblingMerged}-1`]),
-    )
+    const result = await findExpenseDraftDuplicates(draftId)
+    if (!result.success) throw new Error(result.error)
+    expect(result.data.map((paragon) => paragon.readRow)).toEqual([3])
+    const keys = matchKeys(result.data[0].matches)
+    expect(keys).toContain(`transaction-${tx.sibling}`)
+    expect(keys.filter((key) => key.startsWith(`draft-${draftId}-`))).toEqual([])
   })
 })

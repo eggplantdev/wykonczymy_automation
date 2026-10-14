@@ -13,10 +13,8 @@ const doc = (fields: Partial<ExpenseDocT> = {}): ExpenseDocT => ({
 
 const NIP_A = '1112223334'
 const NIP_B = '5556667778'
-const TODAY = '2026-10-08'
 
-const match = (probe: ExpenseDocT, candidate: Parameters<typeof matchExpense>[1]) =>
-  matchExpense(probe, candidate, TODAY)
+const match = matchExpense
 
 describe('matchExpense — same document number', () => {
   it('is a strong same-number match when the numbers differ only by spacing and case', () => {
@@ -98,9 +96,13 @@ describe('matchExpense — same amount only', () => {
     ...doc(fields),
     date: '2026-09-01 10:00:00+00',
   })
+  const sent = (fields: Partial<ExpenseDocT> = {}) => ({
+    ...doc(fields),
+    date: '2026-10-08T10:00:00Z',
+  })
 
   it('is a weak match when nothing read on both sides tells the two apart', () => {
-    const probe = doc({
+    const probe = sent({
       documentNumber: 'FV/0042/2026',
       sellerNip: NIP_A,
       documentDate: '2026-10-06',
@@ -110,24 +112,40 @@ describe('matchExpense — same amount only', () => {
   })
 
   it('is no match when the seller, the number or the printed day differs', () => {
-    const probe = doc({ documentDate: '2026-10-06', description: 'Castorama' })
+    const probe = sent({ documentDate: '2026-10-06', description: 'Castorama' })
 
     expect(match(probe, booked({ description: 'Bricoman' }))).toBeNull()
     expect(match(probe, booked({ description: 'Castorama 05.10.2026' }))).toBeNull()
     expect(
-      match(doc({ sellerNip: NIP_A }), booked({ sellerNip: NIP_B, description: 'Castorama' })),
+      match(sent({ sellerNip: NIP_A }), booked({ sellerNip: NIP_B, description: 'Castorama' })),
     ).toBeNull()
     expect(
-      match(doc({ documentNumber: 'PAR 778812' }), booked({ documentNumber: 'PAR 990001' })),
+      match(sent({ documentNumber: 'PAR 778812' }), booked({ documentNumber: 'PAR 990001' })),
     ).toBeNull()
   })
 
-  it('is no match for a twin booked more than three months ago', () => {
-    const probe = doc()
+  it('is no match for twins more than three months apart, whichever side is the probe', () => {
+    const later = sent()
+    const withinWindow = { ...doc(), date: '2026-07-08T10:00:00Z' }
+    const beyondWindow = { ...doc(), date: '2026-07-07T10:00:00Z' }
 
-    expect(match(probe, { ...doc(), date: '2026-07-08T10:00:00Z' })).toEqual({
-      reasons: ['same-amount'],
-    })
-    expect(match(probe, { ...doc(), date: '2026-07-07T10:00:00Z' })).toBeNull()
+    expect(match(later, withinWindow)).toEqual({ reasons: ['same-amount'] })
+    expect(match(withinWindow, later)).toEqual({ reasons: ['same-amount'] })
+    expect(match(later, beyondWindow)).toBeNull()
+    expect(match(beyondWindow, later)).toBeNull()
+  })
+
+  it('measures the window between the two documents, not from today', () => {
+    const march2025 = { ...doc(), date: '2025-03-01 09:00:00+00' }
+    const tenDaysLater = { ...doc(), date: '2025-03-11 09:00:00+00' }
+    const fourMonthsLater = { ...doc(), date: '2025-07-02 09:00:00+00' }
+
+    expect(match(march2025, tenDaysLater)).toEqual({ reasons: ['same-amount'] })
+    expect(match(march2025, fourMonthsLater)).toBeNull()
+  })
+
+  it('is no match when either side has no date', () => {
+    expect(match(doc(), booked())).toBeNull()
+    expect(match(sent(), doc())).toBeNull()
   })
 })
