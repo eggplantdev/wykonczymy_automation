@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { aiCommentLines } from '@/lib/kosztorys/ai-review-columns'
+import { AI_REVIEW_COLUMN_IDS, aiCommentLines } from '@/lib/kosztorys/ai-review-columns'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 
 const lines = (aiMissingData: string | null, aiAssumptions: string | null) =>
   aiCommentLines({ aiMissingData, aiAssumptions }).map(
@@ -21,5 +22,14 @@ describe('aiCommentLines — Komentarz AI', () => {
 
   it('reads one item per line as one comma-separated answer', () => {
     expect(lines('a\n\n b \n', null)).toEqual(['Czego nie było wiadomo: a, b'])
+  })
+})
+
+// EX-1057: „Nowe informacje” sits beside Komentarz AI, so the reveal and the picker carry it with the rest.
+describe('AI_REVIEW_COLUMN_IDS — Nowe informacje', () => {
+  it('follows Komentarz AI and has its label', () => {
+    const ids: readonly string[] = AI_REVIEW_COLUMN_IDS
+    expect(ids.indexOf('aiNewInformation')).toBe(ids.indexOf('aiComment') + 1)
+    expect(COLUMN_LABELS.aiNewInformation).toBe('Nowe informacje')
   })
 })

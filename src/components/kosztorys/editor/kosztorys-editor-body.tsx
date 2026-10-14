@@ -398,16 +398,34 @@ export function KosztorysEditorBody({
   const [reportFooterAnchor, setReportFooterAnchor] = useState<HTMLElement | null>(null)
   const reportFooterHost =
     reportFooterAnchor?.parentElement?.querySelector<HTMLElement>('.dsg-container') ?? undefined
+  // The flag stacks a second line above the Status (EX-1057), so the row grows while it is up.
+  const showsRecheckFloor = !preview && columns.some((column) => column.id === 'reviewStatus')
+  const recheckLines = useMemo(
+    () => (row: KosztorysV2RowT) => (showsRecheckFloor && row.aiRecheck === true ? 2 : 0),
+    [showsRecheckFloor],
+  )
+  const recheckRowIds = useMemo(
+    () =>
+      showsRecheckFloor
+        ? viewRows
+            .filter((row) => row.aiRecheck === true)
+            .map((row) => row.id)
+            .join(',')
+        : '',
+    [showsRecheckFloor, viewRows],
+  )
   // Postęp moves as he types and can wrap after its „/”, so what he has typed is content too.
   const tracksReportedQty = report?.showProgress === true && !report.isSummary
   const reportedQtys = useMemo(
     () => (tracksReportedQty ? viewRows.map((row) => row[REPORT_FIELD] ?? 0).join(',') : ''),
     [tracksReportedQty, viewRows],
   )
+  // Lowering the flag changes one row's height without touching the keys or the drags, so the set of
+  // flagged rows is fed in as content too.
   const rowHeightContent = useMemo(() => {
     const base = sizeToContent ? wrap : undefined
-    return reportedQtys ? [base, reportedQtys] : base
-  }, [sizeToContent, wrap, reportedQtys])
+    return recheckRowIds || reportedQtys ? [base, recheckRowIds, reportedQtys] : base
+  }, [sizeToContent, wrap, recheckRowIds, reportedQtys])
   useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, rowHeightContent)
   // The empty grid names what emptied it. The two kinds empty it for opposite reasons: an unticked
   // filter because EVERY pozycja fell into what was unticked, a diagnostic because NONE matched —
@@ -430,8 +448,11 @@ export function KosztorysEditorBody({
       preview
         ? undefined
         : (row: KosztorysV2RowT) =>
-            setRowHeight(String(row.id), fitRowHeight(row.id, contentLinesFor(row))),
-    [preview, setRowHeight, contentLinesFor],
+            setRowHeight(
+              String(row.id),
+              fitRowHeight(row.id, Math.max(contentLinesFor(row), recheckLines(row))),
+            ),
+    [preview, setRowHeight, contentLinesFor, recheckLines],
   )
   const rowHeightFor = useMemo(
     () => (row: KosztorysV2RowT) =>
@@ -442,8 +463,9 @@ export function KosztorysEditorBody({
         // the offer they open to check.
         override: preview ? undefined : rowHeights[String(row.id)],
         contentLines: sizeToContent && !isSyntheticRow(row.id) ? contentLinesFor(row) : undefined,
+        minLines: recheckLines(row) || undefined,
       }),
-    [preview, rowHeights, sizeToContent, contentLinesFor],
+    [preview, rowHeights, sizeToContent, contentLinesFor, recheckLines],
   )
   // Measured against the very height the grid gives the row, so the cue and the fit can't disagree.
   // No cue in the preview: its rows are sized from this measurement.

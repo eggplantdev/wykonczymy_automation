@@ -31,6 +31,7 @@ import {
 import {
   AI_REVIEW_COLUMN_CLASS,
   aiCommentColumn,
+  aiNewInformationColumn,
   reviewStatusColumn,
   workNoteColumn,
 } from '@/components/kosztorys/editor/grid/cells/ai-review-columns'
@@ -201,6 +202,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         },
         { ...resolvedColumn('aiPlannedNet'), ...AI_REVIEW_COLUMN_CLASS },
         aiCommentColumn(columnTitle('aiComment', opts)),
+        aiNewInformationColumn(columnTitle('aiNewInformation', opts)),
         reviewStatusColumn(columnTitle('reviewStatus', opts)),
         keyCol('changeReason', longTextColumn, {
           id: 'changeReason',

@@ -73,4 +73,16 @@ describe('„Przegląd AI" diagnostics', () => {
     expect(columnsRevealedBy(['ai-to-review'])).toEqual(new Set(AI_REVIEW_COLUMN_IDS))
     expect(columnsRevealedBy(['ai-without-reason'])).toEqual(new Set(AI_REVIEW_COLUMN_IDS))
   })
+
+  it('„do ponownego sprawdzenia" counts flagged rows on an AI kosztorys only', () => {
+    const rows = [
+      row({ id: 1, aiPlannedQty: 12, reviewStatus: 'accepted', aiRecheck: true }),
+      row({ id: 2, aiPlannedQty: 12, aiRecheck: true }),
+      row({ id: 3, aiPlannedQty: 12, reviewStatus: 'accepted', aiRecheck: false }),
+      row({ id: 4, aiPlannedQty: 12, reviewStatus: 'accepted' }),
+    ]
+    expect(countMatching(rows, 'ai-recheck', AI)).toBe(2)
+    expect(countMatching(rows, 'ai-recheck', CTX)).toBe(0)
+    expect(columnsRevealedBy(['ai-recheck'])).toEqual(new Set(AI_REVIEW_COLUMN_IDS))
+  })
 })

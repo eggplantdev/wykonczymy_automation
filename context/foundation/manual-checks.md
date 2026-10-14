@@ -5092,6 +5092,37 @@ Stan: kosztorys ze zgłoszeniem pracy od pracownika czekającym na przyjęcie.
       w swojej kolumnie.
 - [ ] Chrome, to samo okno: pionowe nagłówki wyglądają jak dotąd (wyśrodkowane, czytane od dołu).
 
+## EX-1057 — kosztorys-ai-rounds — kolejne rundy AI: „Nowe informacje” i „Do ponownego sprawdzenia”
+
+Stan: kosztorys AI (z AI przedmiarem) i drugi, zwykły kosztorys. Pozycje z flagą daje lokalne
+wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
+
+- [ ] Zwykły kosztorys: zmiana Przedmiaru i ceny, dodanie i usunięcie pozycji, Ctrl+Z — wszystko jak
+      dotąd, wysokość wierszy bez zmian, w domyślnym widoku nie ma nowej kolumny.
+- [ ] Kosztorys AI bez wczytanej rundy: wybór Statusu (Zaakceptowana / Odrzucona / Edytowana), wpisany
+      Przedmiar i Ctrl+Z działają jak dotąd; w „Problemach” nie ma „do ponownego sprawdzenia”.
+- [ ] Kosztorys AI → „Zapisz jako szablon”, potem ten szablon na innej inwestycji: zastosowane pozycje
+      nie mają „Komentarza AI” ani „Nowych informacji”.
+- [ ] Kosztorys AI z „Komentarzem AI” → przywrócenie wcześniejszej wersji: „Komentarz AI” zostaje,
+      żadna pozycja nie pokazuje „Do ponownego sprawdzenia”.
+- [ ] Wczytanie szkicu rundy 2 z trzema wierszami (jedna pozycja zmieniona, jedna na 0, jedna nowa):
+      flagę i blok „Runda 2 — …” mają tylko te trzy; pozostałe pozycje oraz każdy Przedmiar, Status
+      i Powód zmiany bez zmian; Etap AI to „Przeanalizowana”. To samo wczytanie drugi raz — odmowa,
+      nic się nie zapisuje.
+- [ ] „Przegląd AI”: pozycja z flagą ma dwie linie — „Do ponownego sprawdzenia” nad poprzednim
+      Statusem; kolumna „Nowe informacje” za „Komentarzem AI” pokazuje blok rundy.
+- [ ] Pozycja z flagą i Statusem Zaakceptowana → ponowny wybór Zaakceptowana: flaga znika, Przedmiar
+      przyjmuje nowy AI przedmiar, wiersz wraca do jednej linii; po odświeżeniu tak samo. Ctrl+Z
+      przywraca flagę i stary Przedmiar.
+- [ ] Pozycja, którą runda 2 zeszła do AI przedmiaru 0 → ponowny wybór Zaakceptowana: flaga znika,
+      Przedmiar to 0.
+- [ ] Pozycja z flagą i jednolinijkową treścią → „Dopasuj wysokość”: wiersz zostaje na dwóch liniach,
+      etykieta „Do ponownego sprawdzenia” się mieści.
+- [ ] Pozycja z flagą → wpisanie Przedmiaru: flaga znika, Status idzie za wpisaną liczbą.
+- [ ] „Problemy” → „do ponownego sprawdzenia”: liczba równa liczbie pozycji z flagą, kliknięcie
+      zostawia tylko je.
+- [ ] Podgląd klienta tego kosztorysu: żaden wiersz nie jest wyższy, nie widać żadnej kolumny AI.
+
 ## 2026-10-14 — worker-report-text-size — wielkość czcionki i wąskie kolumny w raporcie pracownika
 
 - [ ] Raport pracownika (`/z/…`) → „Opcje” → „Wielkość tekstu”: Bardzo mała / Mała / Średnia zmienia tekst siatki; wybór przetrwa przeładowanie i nie zmienia wielkości wybranej w edytorze kosztorysu (i odwrotnie).

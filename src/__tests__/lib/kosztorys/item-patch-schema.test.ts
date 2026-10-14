@@ -59,4 +59,11 @@ describe('itemPatchSchema — przegląd AI', () => {
     })
     expect(() => parse({ reviewStatus: 'maybe' })).toThrow()
   })
+
+  it("passes the recheck flag both ways and strips the round's text", () => {
+    expect(parse({ aiRecheck: false })).toEqual({ aiRecheck: false })
+    expect(parse({ aiRecheck: true })).toEqual({ aiRecheck: true })
+    expect(parse({ aiNewInformation: 'Runda 2 — x' })).toEqual({})
+    expect(() => parse({ aiRecheck: null })).toThrow()
+  })
 })

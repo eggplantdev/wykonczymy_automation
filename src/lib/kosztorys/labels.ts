@@ -46,3 +46,5 @@ export const REVIEW_STATUS_LABELS: Record<ReviewStatusT, string> = {
 }
 
 export const REVIEW_STATUS_UNSET_LABEL = 'Do sprawdzenia'
+
+export const RECHECK_LABEL = 'Do ponownego sprawdzenia'

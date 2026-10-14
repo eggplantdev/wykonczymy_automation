@@ -19,6 +19,7 @@ const ITEM_FIELDS = [
   'note',
   'changeReason',
   'reviewStatus',
+  'aiRecheck',
 ] as const satisfies readonly (keyof ItemPatchT)[]
 
 export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
