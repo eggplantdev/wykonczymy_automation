@@ -255,7 +255,11 @@ export function KosztorysEditorBody({
 
   useUndoKeyboard(editor.undo, editor.redo)
 
-  const { openImport, importDialogProps } = useSheetImport({ investmentId, onTreeReplaced })
+  const { openImport, importDialogProps } = useSheetImport({
+    investmentId,
+    onTreeReplaced,
+    flushPendingSaves: editor.flushPendingSaves,
+  })
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
@@ -811,13 +815,7 @@ export function KosztorysEditorBody({
                     document.body,
                   )}
                 {/* One instance for both triggers — the „Opcje" menu and the empty-kosztorys screen. */}
-                {!preview && (
-                  <SheetImportDialog
-                    {...importDialogProps}
-                    workers={editor.workers}
-                    flushPendingSaves={editor.flushPendingSaves}
-                  />
-                )}
+                {!preview && <SheetImportDialog {...importDialogProps} workers={editor.workers} />}
                 {/* Rendered here, not next to the pickers: the same confirm stands in front of the inline
             controls in „Podsumowanie"/„Materiały" and of their twins in „Opcje rozliczenia". */}
                 {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}

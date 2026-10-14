@@ -117,8 +117,8 @@ async function acceptInTransaction(
   const unrejectedIds = request.unrejected.filter(isRejected)
   const isFlagging = rejectedIds.length + unrejectedIds.length > 0
 
-  // Odrzucenie touches only the report: no rozpiska read, and no revision bump that would tell
-  // another open editor its kosztorys changed.
+  // Odrzucenie touches only the report: no rozpiska read while the investment row lock is held, and
+  // no revision bump that would tell another open editor its kosztorys changed.
   if (decidedIds.length === 0) {
     if (!isFlagging) throw new AcceptRefusal(STALE)
     await setLinesRejected(tx, reportId, rejectedIds, true)

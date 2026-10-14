@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 const OVERRUN = 1
 const OWED = 2
@@ -52,7 +52,7 @@ const tree = makeTree({
       ],
     },
   ],
-  stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false }],
+  stages: [makeStage({ id: 100 })],
   progress: [
     { itemId: OVERRUN, stageId: 100, qtyDone: 1 },
     { itemId: OWED, stageId: 100, qtyDone: 1 },

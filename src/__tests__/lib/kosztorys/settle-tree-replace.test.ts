@@ -14,22 +14,15 @@ const settle = (result: FailureT) =>
   )
 
 describe('settleTreeReplace', () => {
-  // A cell edit still in its debounce would otherwise land on an id the replacement deleted, or miss
-  // the auto version taken before it (EX-1002).
   it('sends the write only after the pending cell saves have settled', async () => {
-    let flushed!: () => void
+    const flush = Promise.withResolvers<void>()
     const write = vi.fn(async () => ({ success: true as const }))
 
-    const result = settleTreeReplace(
-      () => new Promise<void>((resolve) => (flushed = resolve)),
-      write,
-      'przerwane',
-      vi.fn(),
-    )
+    const result = settleTreeReplace(() => flush.promise, write, 'przerwane', vi.fn())
     await Promise.resolve()
     expect(write).not.toHaveBeenCalled()
 
-    flushed()
+    flush.resolve()
     expect(await result).toEqual({ refetch: false })
     expect(write).toHaveBeenCalledTimes(1)
   })

@@ -3,26 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const STAGE_ID = 7
 
-const stage = (completed: boolean): KosztorysStageT => ({
-  id: STAGE_ID,
-  ordinal: 1,
-  label: 'Łazienka',
-  plane: 'w_tools',
-  split: null,
-  completed,
-})
-
-const onSetCompleted = vi.fn()
+const stage = (completed: boolean) => makeStage({ id: STAGE_ID, label: 'Łazienka', completed })
 
 const OPS = {
   rename: vi.fn(),
   remove: vi.fn(),
   setPlane: vi.fn(),
-  setCompleted: onSetCompleted,
+  setCompleted: vi.fn(),
   setSplit: vi.fn(),
 }
 
@@ -53,7 +44,7 @@ describe('Nagłówek etapu — etap zakończony (EX-1034)', () => {
     expect(completedRow()).toHaveAttribute('aria-checked', 'false')
     await user.click(completedRow())
 
-    expect(onSetCompleted).toHaveBeenCalledWith(STAGE_ID, true)
+    expect(OPS.setCompleted).toHaveBeenCalledWith(STAGE_ID, true)
   })
 
   it('otwiera ponownie etap zakończony', async () => {
@@ -61,7 +52,7 @@ describe('Nagłówek etapu — etap zakończony (EX-1034)', () => {
     await openMenu(user)
     await user.click(completedRow())
 
-    expect(onSetCompleted).toHaveBeenCalledWith(STAGE_ID, false)
+    expect(OPS.setCompleted).toHaveBeenCalledWith(STAGE_ID, false)
   })
 
   it('podgląd nie dostaje menu etapu', () => {

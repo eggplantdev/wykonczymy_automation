@@ -49,18 +49,20 @@ export function useWorkerReportAcceptance({
     if (stage) adoptStage(stage)
     // One pozycja may move in two etapy: an untick out of the old one, an accept into a new one.
     const cellsByItem = Map.groupBy(res.data.cells, (cell) => cell.itemId)
-    patchRows(
-      (row) => cellsByItem.has(row.id),
-      (row) => ({
-        ...row,
-        ...Object.fromEntries(
-          (cellsByItem.get(row.id) ?? []).map((cell) => [stageKey(cell.stageId), cell.qtyDone]),
-        ),
-      }),
-    )
-    // An undo of an earlier edit to one of these cells would write its old absolute figure back
-    // over the addition.
-    pruneByIds([...cellsByItem.keys()])
+    if (cellsByItem.size > 0) {
+      patchRows(
+        (row) => cellsByItem.has(row.id),
+        (row) => ({
+          ...row,
+          ...Object.fromEntries(
+            (cellsByItem.get(row.id) ?? []).map((cell) => [stageKey(cell.stageId), cell.qtyDone]),
+          ),
+        }),
+      )
+      // An undo of an earlier edit to one of these cells would write its old absolute figure back
+      // over the addition.
+      pruneByIds([...cellsByItem.keys()])
+    }
     if (revision) adoptRevision(revision)
     return true
   }

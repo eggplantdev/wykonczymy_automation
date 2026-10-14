@@ -15,8 +15,7 @@ import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { TranslatorT } from '@/lib/i18n/translations'
 
-// One bundle, so a read-only mount is its absence rather than five handlers that are always all
-// present or all missing.
+// One bundle, so a read-only mount is its absence.
 export type StageOpsT = {
   rename: (stageId: number, label: string) => void
   remove: (stageId: number) => void

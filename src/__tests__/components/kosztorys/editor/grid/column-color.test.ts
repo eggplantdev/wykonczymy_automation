@@ -3,20 +3,12 @@ import type { Column } from 'react-datasheet-grid'
 import { withColumnColor } from '@/components/kosztorys/editor/grid/column-color'
 import { sectionColorColumnTint } from '@/lib/kosztorys/section-colors'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-
-const stage = (id: number, completed: boolean): KosztorysStageT => ({
-  id,
-  ordinal: id,
-  label: null,
-  plane: 'w_tools',
-  split: null,
-  completed,
-})
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const DONE = 7
 const OPEN = 9
-const STAGES = [stage(DONE, true), stage(OPEN, false)]
+const STAGES = [makeStage({ id: DONE, completed: true }), makeStage({ id: OPEN })]
 
 const GREEN = sectionColorColumnTint('green')
 const BLUE = sectionColorColumnTint('blue')

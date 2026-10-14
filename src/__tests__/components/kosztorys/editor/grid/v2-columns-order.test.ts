@@ -3,13 +3,14 @@ import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-col
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { STAGES_COLUMN_GROUP, stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // What the pure ordering function (lib/table/column-order) cannot assert on its own: how the
 // rank map behaves against the REAL column set.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: null, completed: false },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: 'w_tools', split: null, completed: false },
+  makeStage({ id: 7, label: 'Etap 1' }),
+  makeStage({ id: 9, ordinal: 2, label: 'Etap 2' }),
 ]
 
 const grid = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>

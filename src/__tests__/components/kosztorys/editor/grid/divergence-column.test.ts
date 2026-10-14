@@ -8,6 +8,7 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { ALL_TRANSLATION_COLUMN_KEYS } from '@/lib/kosztorys/translation-column-keys'
 import type { MeasureDiscrepancyT } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // „Rozjazd między arkuszem Google a apką" is the only column that rides a FILTER rather than the picker — it
 // exists exactly while the „z pomiarem do rozpisania na etapy" diagnostic is pressed. So what is
@@ -15,8 +16,8 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 // alone decides, no stored tick can override it, and it is unreachable from a client's document.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null, completed: false },
+  makeStage({ id: 7, label: 'Etap 1', plane: null }),
+  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
 ]
 
 const DIVERGED = {

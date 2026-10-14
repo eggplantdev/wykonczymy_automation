@@ -72,8 +72,8 @@ describe.each([
   beforeEach(() => vi.clearAllMocks())
 
   it('runs only after the pending cell saves have settled (EX-1002)', async () => {
-    let flushed!: () => void
-    flushPendingSaves.mockReturnValueOnce(new Promise<void>((resolve) => (flushed = resolve)))
+    const flush = Promise.withResolvers<void>()
+    flushPendingSaves.mockReturnValueOnce(flush.promise)
     action.mockResolvedValue({ success: true, data })
     renderMenu()
 
@@ -83,7 +83,7 @@ describe.each([
     expect(flushPendingSaves).toHaveBeenCalledTimes(1)
     expect(action).not.toHaveBeenCalled()
 
-    flushed()
+    flush.resolve()
     await vi.waitFor(() => expect(action).toHaveBeenCalledTimes(1))
   })
 

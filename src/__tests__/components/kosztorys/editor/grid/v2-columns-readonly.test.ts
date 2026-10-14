@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // One etap per plane, so a subcontractor view has both something to keep and something to drop —
 // with both planes null every view-scoped assertion below would compare against an empty axis.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: null, completed: false },
-  { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
+  makeStage({ id: 100, label: 'Etap 1' }),
+  makeStage({ id: 101, ordinal: 2, plane: 'own_tools' }),
 ]
 
 // The editor's own opts: mutation callbacks present, so the actions column is built and cells are live.

@@ -9,15 +9,14 @@ import { layerAllows } from '@/lib/kosztorys/layer'
 import { axisAllows } from '@/lib/kosztorys/money-axis'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // Both crews' rates on screen at once, in every view — the reading the owner asked for. The point of
 // the columns is comparison, so the assertions are about the two planes standing SIDE BY SIDE and
 // staying distinguishable; a spec that exercised one plane would pass on a build that renders the
 // same plane twice.
 
-const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
-]
+const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
 
 const PLANES: ToolPlaneT[] = ['w_tools', 'own_tools']
 const VIEWS = ['client', 'w_tools', 'own_tools'] as const

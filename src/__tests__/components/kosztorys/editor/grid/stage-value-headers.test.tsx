@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const DEMOLITION = 7
 const PAINTING = 9
@@ -15,7 +16,7 @@ const PER_STAGE_IDS = [DEMOLITION, PAINTING].flatMap((id) => [
 ])
 
 function stage(id: number, ordinal: number, label: string): KosztorysStageT {
-  return { id, ordinal, label, plane: 'w_tools', split: null, completed: false }
+  return makeStage({ id, ordinal, label })
 }
 
 function headerTexts(stages: KosztorysStageT[], stageId: number) {

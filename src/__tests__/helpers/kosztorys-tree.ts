@@ -24,8 +24,7 @@ export function makeTree(
   }
 }
 
-// Same reason as makeTree: each new KosztorysStageT field (split, then completed) forced an edit in
-// every spec that spelled a stage out (EX-1035). The defaults are the values those literals used most.
+// Same reason as makeTree.
 export function makeStage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
   return {
     id: 100,
