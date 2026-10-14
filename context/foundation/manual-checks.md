@@ -4982,9 +4982,10 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] `/` jako OWNER → „Szukaj duplikatów” → zakres ostatnich 3 miesięcy → „Analizuj”: mocne grupy są rozwinięte, „Słabe (N)” zwinięte; po rozwinięciu jeden blok na kwotę.
 - [ ] Najpierw filtr listy na jedną inwestycję, potem „Analizuj”: każda grupa ma transakcję tej inwestycji, a jej bliźniak może być z innej.
 - [ ] Klik w transakcję w grupie: w nowej karcie lista transakcji tej inwestycji zawężona do tej jednej; okno w pierwszej karcie zachowuje wyniki.
-- [ ] Klik w zgłoszenie w grupie: w nowej karcie „Zgłoszenia wydatków” z otwartym oknem „Zweryfikuj” tego zgłoszenia; odświeżenie strony nie otwiera go ponownie.
-- [ ] `/zgloszenia-wydatkow?zgloszenie=<już rozpatrzone>`: toast „To zgłoszenie jest już rozpatrzone”, żadne okno się nie otwiera.
+- [ ] Klik w zgłoszenie w grupie (zgłoszenie już odczytane): w nowej karcie „Zgłoszenia wydatków” z otwartym oknem „Zweryfikuj” tego zgłoszenia, a „Możliwe duplikaty” wczytują się i nie wiszą na sprawdzaniu. Adres ma `?zgloszenie=` do zamknięcia okna; po zamknięciu odświeżenie strony go nie otwiera.
+- [ ] `/zgloszenia-wydatkow?zgloszenie=<już rozpatrzone>`: toast „To zgłoszenie zostało już rozpatrzone.”, żadne okno się nie otwiera.
 - [ ] Zakres „Wszystko” → „Analizuj”: wyniki w kilka sekund, bez przekroczenia czasu.
+- [ ] Strona inwestycji i strona kasy: w pasku nad listą transakcji nie ma przycisku „Szukaj duplikatów”.
 
 ## 2026-10-14 — nav-labels
 
@@ -4996,3 +4997,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Kosztorys inwestycji, w której pracownik ma zgłoszenie do sprawdzenia: przycisk w pasku narzędzi
       brzmi „Zgłoszenia prac (N)”, menu „Pracownicy” ma pozycję „Zgłoszenia prac”, a okno po kliknięciu
       ma ten sam tytuł.
+
+## 2026-10-14 — review-gate-fixes-14 — poprawki z przeglądu commitów z 14.10
+
+- [ ] Kosztorys → „Zgłoszenia prac” → otwórz zgłoszenie, zaznacz pozycję → „Przyjmij”: przycisk od
+      razu robi się nieaktywny i zostaje taki, aż okno pokaże zgłoszenie po zapisie (pozycja jako
+      przyjęta); drugi szybki klik nie dodaje ilości drugi raz.
+- [ ] Lista transakcji, lista inwestycji i tabela w oknie „Zgłoszenia prac”: menu „Kolumny” nadal
+      ukrywa i pokazuje kolumny i zmienia rozmiar tekstu jak wcześniej.
+- [ ] „Szukaj duplikatów” na `/` i okno „Zweryfikuj” zgłoszenia z możliwymi duplikatami: te same
+      grupy i te same podpowiedzi co przed poprawkami.

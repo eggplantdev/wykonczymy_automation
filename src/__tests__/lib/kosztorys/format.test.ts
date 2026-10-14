@@ -4,7 +4,7 @@ import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 describe('formatPercent', () => {
   it('fraction → percent with at most one decimal, none when it is zero', () => {
     expect(formatPercent(0.75)).toBe('75%')
-    expect(formatPercent(0.746)).toBe('74,6%') // pl-PL comma
+    expect(formatPercent(0.746)).toBe('74,6%')
   })
 
   it('rounds rather than truncates', () => {
