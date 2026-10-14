@@ -2636,3 +2636,19 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   `useUrlFilterParams` is only the storage of a param map, so swapping it for state leaves the filter
   logic untouched. Neither the paginated read nor the state-backed filters exist yet; that is the cost.
 - **Applies to**: plan, plan-review — any table, filter or pagination proposed for the kosztorys editor
+
+## A custom font-size utility must be registered with tailwind-merge — or a shared primitive's baked-in `text-*` silently wins
+
+- **Context**: `kosztorys-editor-text-size` (2026-10-14) added `@utility grid-cell-text` / `grid-band-text`
+  in `globals.css`, driven by a CSS variable on the editor grid wrapper. Every cell primitive took the
+  utility in place of `text-sm`.
+- **Problem**: the „Jednostka miary” cell renders the shared `Combobox`, which bakes in `text-sm`.
+  `cn()` did not know `grid-cell-text` is a font size, so it kept both classes, and `text-sm` sits
+  later in the stylesheet, so it won. The column ignored the picked size. The review dropped the
+  registration finding on „no caller passes a `text-*` beside it”, which was a guess and not a grep. The
+  owner caught the bug in the browser after the merge. jsdom has no layout, so no spec could see it.
+- **Rule**: every custom `@utility` that sets `font-size` goes into the `font-size` group in
+  `src/lib/utils/cn.ts` (`extendTailwindMerge`) in the same change. Never decide "no caller collides"
+  from memory: a shared primitive (`Combobox`, `SimpleSelect`, …) carries its own `text-*`. The same
+  applies to any other custom utility that overlaps a stock Tailwind group.
+- **Applies to**: implement, impl-review, simplify, tailwind-v4-audit

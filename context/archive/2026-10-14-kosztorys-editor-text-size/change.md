@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-editor-text-size
 title: Text size control in the kosztorys editor grid
-status: implemented
+status: archived
 created: 2026-10-14
 updated: 2026-10-14
-archived_at: null
+archived_at: 2026-10-14T16:00:38Z
 branch: kosztorys-editor-text-size
 worktree: ../wykonczymy-worktrees/kosztorys-editor-text-size
 ---
