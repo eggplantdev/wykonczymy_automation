@@ -3,6 +3,7 @@
 // (folded like the sheet import's, so case, diacritics and known typos don't break a match), else 0 (the agent left it out) — and its Status, Powód zmiany and Komentarz AI are reset.
 // A draft row matching no pozycja is a praca the agent added beyond the kosztorys: it becomes a new
 // pozycja in its sekcja with Przedmiar 0, so the review shows it as an offer awaiting a verdict.
+// The investment's Etap AI is set to „Przeanalizowana”.
 //
 //   INV=<id> DRAFT=<path.json> node --env-file=.env --conditions=react-server --import tsx src/scripts/load-ai-draft.ts
 //
@@ -109,6 +110,15 @@ async function run() {
     })
     added++
   }
+
+  // The listing reads „Analiza AI” off the stored stage alone. A reload also wipes every Status and
+  // Powód zmiany above, so a later stage would no longer be true either.
+  await payload.update({
+    collection: 'investments',
+    id: INVESTMENT_ID,
+    data: { aiStage: 'analyzed' },
+    context: { skipRevalidation: true },
+  })
 
   console.log(
     `#${INVESTMENT_ID}: ${items.length} pozycji, ${matchedKeys.size}/${draft.length} wierszy szkicu dopasowanych, ${added} dodanych`,
