@@ -28,6 +28,7 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
   ])
 
   const referenceData = { ...referenceDataBase, currentUserId: user.id, currentUserRole: user.role }
+  const openDraftId = Number(sp.zgloszenie)
 
   return (
     <PageWrapper title={PAGE_TITLES.expenseDrafts}>
@@ -35,6 +36,7 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
         drafts={pendingDrafts}
         referenceData={referenceData}
         storageKey="expense-drafts-page:pending"
+        openDraftId={Number.isInteger(openDraftId) && openDraftId > 0 ? openDraftId : undefined}
       />
       <ExpenseDraftsDataTable
         data={drafts.rows}

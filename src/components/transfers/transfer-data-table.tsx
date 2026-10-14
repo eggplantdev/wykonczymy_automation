@@ -9,6 +9,7 @@ import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvoiceDownloadDialog } from '@/components/transfers/invoice-download-dialog'
 import { PrintTransfersButton } from '@/components/transfers/print-transfers-button'
+import { DuplicateFinderDialog } from '@/components/transfers/duplicate-finder-dialog'
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
 import type { TransferRowT } from '@/types/transfers'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -18,6 +19,7 @@ import type {
   TransferTableConfigT,
 } from '@/components/transfers/transfer-table-config'
 import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
+import { findExpenseDuplicateGroups } from '@/lib/queries/expense-duplicate-groups'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
@@ -53,6 +55,7 @@ export function TransferDataTable({
     listsCancelled,
     invoiceDownload,
     print,
+    duplicateFinder,
     uncoloredAmounts,
   } = config
 
@@ -119,6 +122,11 @@ export function TransferDataTable({
               <>
                 <TransferViewSwitch view={view} onChange={setView} />
                 {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
+                {duplicateFinder && (
+                  <DuplicateFinderDialog
+                    findGroups={(range) => findExpenseDuplicateGroups(config.query.where, range)}
+                  />
+                )}
                 {print && (
                   <PrintTransfersButton
                     fetchRows={fetchRows}

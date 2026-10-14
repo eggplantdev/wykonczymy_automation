@@ -9,9 +9,10 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 
+const replace = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ refresh: vi.fn(), replace }),
 }))
 const { readExpenseDraftAction, rejectExpenseDraftAction } = vi.hoisted(() => ({
   readExpenseDraftAction: vi.fn(),
@@ -130,5 +131,42 @@ describe('zgłoszenie bez inwestycji', () => {
     )
 
     expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
+  })
+})
+
+describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
+  beforeEach(() => {
+    readExpenseDraftAction.mockResolvedValue({ success: true, data: { aiRead: read } })
+  })
+
+  it('otwiera dialog wskazanego zgłoszenia raz i zdejmuje parametr z adresu', async () => {
+    const { rerender } = render(
+      <PendingExpenseDrafts
+        drafts={[draft]}
+        referenceData={referenceData}
+        openDraftId={draft.id}
+      />,
+    )
+
+    expect(await screen.findByDisplayValue('Klej do płytek')).toBeInTheDocument()
+    expect(replace).toHaveBeenCalledTimes(1)
+    expect(replace.mock.calls[0][0]).not.toContain('zgloszenie')
+
+    rerender(
+      <PendingExpenseDrafts
+        drafts={[{ ...draft }]}
+        referenceData={referenceData}
+        openDraftId={draft.id}
+      />,
+    )
+    expect(readExpenseDraftAction).toHaveBeenCalledTimes(1)
+  })
+
+  it('o rozpatrzonym już zgłoszeniu mówi toastem i niczego nie otwiera, także przy pustej kolejce', () => {
+    render(<PendingExpenseDrafts drafts={[]} referenceData={referenceData} openDraftId={99} />)
+
+    expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie jest już rozpatrzone', 'warning')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(replace).toHaveBeenCalledTimes(1)
   })
 })

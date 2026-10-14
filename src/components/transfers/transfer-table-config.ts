@@ -35,6 +35,12 @@ export type TransferTableConfigT = {
    */
   print?: boolean
   /**
+   * Opt in to „Szukaj duplikatów”. The table's `where` only picks which transakcje are checked —
+   * each is compared with the whole company — so it belongs on the company-wide list, not an
+   * entity page.
+   */
+  duplicateFinder?: boolean
+  /**
    * The type hue is the company's in/out — a wypłata is red to the company and income to the worker
    * — so a page seen from a worker's side drops it from the amount. The badge keeps the type.
    */

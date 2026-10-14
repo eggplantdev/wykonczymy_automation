@@ -94,7 +94,7 @@ export function ExpenseDraftDuplicateHints({
       <h3 className={cn('font-medium', isAlarm && 'text-destructive')}>Możliwe duplikaty</h3>
       <DataTable
         data={rows}
-        columns={getExpenseDuplicateColumns({
+        columns={getExpenseDuplicateColumns<ExpenseDuplicateRowT>({
           showParagon: lineItemIds.length > 1,
           actions: (row) => (
             <div className="flex justify-end gap-2">

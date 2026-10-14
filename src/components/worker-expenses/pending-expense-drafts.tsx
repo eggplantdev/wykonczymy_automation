@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -25,16 +25,20 @@ type PropsT = {
   referenceData: ReferenceDataT
   // Per surface, so collapsing the queue on one page leaves it open on the other.
   storageKey?: string
+  // A link from the duplicate finder; its dialog opens once, on arrival.
+  openDraftId?: number
 }
 
 export function PendingExpenseDrafts({
   drafts,
   referenceData,
   storageKey = 'pending-expense-drafts',
+  openDraftId,
 }: PropsT) {
   const router = useRouter()
   const { t, tp, locale } = useTranslation('expenseDrafts')
-  const { openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
+  const { open, openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
+  const hasOpenedFromUrl = useRef(false)
   // Pruned to the rows still listed whenever `drafts` changes, so a merged-away id drops out.
   const [selection, setSelection] = useState({ drafts, ids: NO_SELECTION })
   if (selection.drafts !== drafts) {
@@ -57,6 +61,20 @@ export function PendingExpenseDrafts({
           ids: pageIds.every((id) => prev.ids.has(id)) ? NO_SELECTION : new Set(pageIds),
         })),
     },
+  })
+
+  // Above the empty-queue return: a link to a zgłoszenie decided since must still say so.
+  useEffect(() => {
+    if (openDraftId === undefined || hasOpenedFromUrl.current) return
+    hasOpenedFromUrl.current = true
+    const linked = drafts.find((draft) => draft.id === openDraftId)
+    if (linked) void open(linked)
+    else toastMessage('To zgłoszenie jest już rozpatrzone', 'warning')
+    // Dropped so a refresh or a back navigation does not open it again.
+    const params = new URLSearchParams(window.location.search)
+    params.delete('zgloszenie')
+    const query = params.toString()
+    router.replace(`${window.location.pathname}${query ? `?${query}` : ''}`, { scroll: false })
   })
 
   async function merge() {

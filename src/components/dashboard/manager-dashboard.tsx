@@ -74,6 +74,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
           },
           baseUrl: '/',
           cancelledTransactionAudit: searchParams.cancelledTransactionAudit === '1',
+          duplicateFinder: true,
           // TODO: Consider restricting manager's transaction table to only transactions
           // from/to registers they own (currently managers see all transactions).
           // Intentionally inline — manager sees only visible registers and active investments.

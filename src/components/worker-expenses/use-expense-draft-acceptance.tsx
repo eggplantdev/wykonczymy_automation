@@ -269,5 +269,5 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     />
   )
 
-  return { openButton, dialogs }
+  return { open, openButton, dialogs }
 }
