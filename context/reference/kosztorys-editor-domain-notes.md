@@ -2047,3 +2047,10 @@ wybrał, równe Przedmiar i AI przedmiar czytają się jako „Zaakceptowana", a
 przedmiarze 0 lub pustym jako „Dodana" — w bazie stoi wtedy NULL. Każdy przyszły eksport, zapytanie
 SQL czy snapshot dla pętli wiedzy liczy statusy przez `effectiveReviewStatus`, inaczej policzy te
 pozycje jako niesprawdzone.
+
+## Komentarz AI: osobno od Komentarza (EX-1030, 2026-10-08)
+
+„Komentarz AI" (`ai_missing_data`, `ai_assumptions`) pisze tylko loader szkicu, nigdy do zwykłego
+Komentarza — ten może zobaczyć inwestor. To nie jest piąty Status: pozycja bez danych czeka na dane,
+nie na werdykt. Agent wolno zakładać, ale każde założenie trafia do „Co / ile założono"; pytanie bez
+odpowiedzi nie jest zapisywane, więc pusta komórka znaczy „nic do zgłoszenia".

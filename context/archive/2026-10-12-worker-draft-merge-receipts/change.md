@@ -1,10 +1,10 @@
 ---
 change_id: worker-draft-merge-receipts
 title: Merge and split paragon rows when accepting a worker's expense draft
-status: implemented
+status: archived
 created: 2026-10-12
-updated: 2026-10-13
-archived_at: null
+updated: 2026-10-14
+archived_at: 2026-10-14T08:19:53Z
 branch: worker-draft-merge-receipts
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-draft-merge-receipts
 ---

@@ -1,10 +1,10 @@
 ---
 change_id: worker-expense-paragon-decisions
 title: Accept or reject a worker expense zgłoszenie paragon by paragon
-status: implemented
+status: archived
 created: 2026-10-13
-updated: 2026-10-13
-archived_at: null
+updated: 2026-10-14
+archived_at: 2026-10-14T08:19:53Z
 branch: main
 worktree: null
 ---
