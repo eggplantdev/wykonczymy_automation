@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-editor-text-size
 title: Text size control in the kosztorys editor grid
-status: implementing
+status: implemented
 created: 2026-10-14
 updated: 2026-10-14
 archived_at: null

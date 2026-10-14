@@ -336,4 +336,4 @@ Run once after the final phase, **only when the user asks**:
 
 #### Automated
 
-- [ ] 3.1 Registry section exists
+- [x] 3.1 Registry section exists
