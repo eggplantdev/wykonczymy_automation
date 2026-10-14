@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-ai-rounds
 title: AI kosztorys later rounds — „Nowe informacje” and the „Do ponownego sprawdzenia” flag on a pozycja
-status: implemented
+status: archived
 created: 2026-10-14
 updated: 2026-10-14
-archived_at: null
+archived_at: 2026-10-14T17:34:59Z
 branch: main
 worktree: null
 ---

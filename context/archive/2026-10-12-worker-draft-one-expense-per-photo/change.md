@@ -1,10 +1,10 @@
 ---
 change_id: worker-draft-one-expense-per-photo
 title: Worker expense drafts read every paragon on each photo
-status: in-review
+status: archived
 created: 2026-10-12
-updated: 2026-10-12
-archived_at: null
+updated: 2026-10-14
+archived_at: 2026-10-14T17:34:59Z
 branch: staging
 worktree: null
 ---

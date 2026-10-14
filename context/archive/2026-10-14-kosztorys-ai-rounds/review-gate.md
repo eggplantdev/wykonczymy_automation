@@ -12,34 +12,14 @@ Fan-out: `/10x-impl-review`, `/code-review`, `feature-first-structure`, `module-
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · impl-review · `scripts/prod-client.ts` · REST returns `aiNewInformation` only once the code is deployed, so on a migrated-but-not-deployed prod the double-load guard sees no blocks and lets a second load through (and the round baseline reads Nowe informacje as empty) — `assertRoundFieldsDeployed`, called first by `round-case-prod.ts` and the `ROUND` branch of `load-draft-sql-prod.ts`
-      test: no automated test — change-folder prod script with no harness; the read-only dry run hits the guard until EX-1057 is deployed
-- [x] 🟡 WARNING · fixed · impl-review · `src/scripts/load-ai-draft.ts` · a draft row with a missing sekcja was skipped after earlier rows were written, leaving a half-loaded round the re-run guard then refuses — sekcje resolved and checked before the first write
-      test: no automated test — local operator script with no harness; runbook step documents the refusal
 - [x] 🟡 WARNING · dismissed · code-review · `scripts/load-draft-sql-prod.ts` · round sets Etap AI back to `analyzed` — intended cycle `new_information` → `analyzed` (plan line 304)
-- [x] 🔵 OBSERVATION · fixed · impl-review / code-review · `kosztorys-editor-body.tsx` · „Dopasuj wysokość” ignored the 2-line recheck floor and shrank a flagged row to one line — `fitRowToContent` takes `max(contentLines, recheckLines)`, one `recheckLines` shared with `rowHeightFor`
-      test: no automated test — one-line `Math.max` in the body; manual check added (§ EX-1057 „Dopasuj wysokość”)
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/lib/kosztorys/ai-round.ts` · `assertRoundDraft` let a row without a numeric `qty` through — rows now need a finite qty
-      test: TDD · unit — `ai-round.test.ts` „refuses a row whose qty is undefined / NaN”
-- [x] 🔵 OBSERVATION · fixed · impl-review / code-review · `scripts/load-draft-sql-prod.ts` · SQL `btrim` stripped spaces only while `appendRoundBlock`'s JS `trim` strips all whitespace — a field holding only a newline got the separator prepended; now `btrim(…, E' \t\r\n')`
-      test: no automated test — SQL string inside a prod script; the dry run prints the statement
-- [x] 🔵 OBSERVATION · fixed · impl-review · `src/lib/kosztorys/review-status.ts` · re-picking Zaakceptowana after a round dropped the work (AI przedmiar 0) didn't copy the 0 — `aiOffered` treats 0 as no offer; a lowered flag now copies any non-null AI przedmiar
-      test: TDD · unit — `review-status.test.ts` „re-picking Zaakceptowana after the round dropped the work writes Przedmiar 0”
-- [x] 🔵 OBSERVATION · fixed · code-review · runbook (`2026-10-01-…/change.md`) · draft rows match by sekcja + opis, so a pozycja the owner renamed since `kosztorys.txt` would be added again — runbook says to match on the current name; step 5 lists the new refusals
-      test: no automated test — process rule, not code
 - [x] 🔵 OBSERVATION · dismissed · code-review · `load-draft-sql-prod.ts` · a round could run before the prod migration — superseded by the deploy guard (a field the code declares but the DB lacks fails the REST read)
 - [x] 🔵 OBSERVATION · dismissed · code-review · `review-status.ts` · re-pick of Zaakceptowana overwrites a hand-typed Przedmiar — that is the meaning of accepting the round's figure; undo restores it
-- [x] 🔵 OBSERVATION · fixed · impl-review / code-review · `row-conditions/registry.ts` · `ai-recheck` inserted under `ai-to-review`'s comment — moved below `ai-to-review`, diff is a pure insertion
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `KosztorysItemT` · AI fields stay optional, so tsc won't catch a builder that omits them — accepted deviation; every copy path sets them (now via `NO_AI_DRAFT`) and `insert-rows` defaults `?? false`
 - [x] 🔵 OBSERVATION · dismissed · impl-review · success criteria · Progress rows and manual checks unverified — the gate ticks them as legs pass (see Tests & suite); manual checks stay with the human
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `prod-client.ts` · `forAiAnalysis` / `AssetT` moved from `adopt-case-prod.ts`, outside the plan — plain move of shared code `round-case-prod.ts` needs, no behaviour change
 - [x] filed · gate (E2E) · editor round flow · flag lowered by a Status re-pick / typed Przedmiar must persist across reload (client → action → DB → revalidation) — filed `EX-1015` (steps 8–10, `e2e-backlog`)
       test: e2e — deferred into EX-1015
-- [x] fixed · feature-first-structure · `ai-review-columns.tsx` · `pickStatus` was a domain rule inside a cell file — moved to `lib/kosztorys/review-status.ts` beside `applyReviewRules`
-- [x] fixed · module-cohesion-audit · `ai-review-columns.tsx` · `RECHECK_LABEL` defined in the cell — moved to `lib/kosztorys/labels.ts` with the other status labels
-- [x] fixed · structure-scatter-audit · `collect-reasons-prod.ts`, `round-case-prod.ts` · each declared its own `ReviewedItemT` over the prod item — one `ItemT` in `prod-client.ts`
-- [x] fixed · primitive-reuse-scan · `item-from-fields.ts`, `serialize-preset.ts`, `item-to-catalogue.ts`, `parse-labor-tab.ts`, `create-case-local.ts` · same five-field AI-null block in five builders — `NO_AI_DRAFT` in `lib/kosztorys/constants.ts`
-- [x] fixed · comment-noise-audit · 9 comments across `review-status.ts`, `ai-review-columns.tsx`, `kosztorys-editor-body.tsx`, `kosztorys-items.ts`, `load-draft-sql-prod.ts`, `prod-client.ts`, two specs — deleted or trimmed to the why; „Placed once” rewritten, not deleted
 - [x] dropped · structure-scatter-audit · `kosztorys-editor-body.tsx` · recheck height logic (~20 lines) could be its own hook — file is shared with a parallel session's in-flight hunk; not worth the churn
 - [x] dropped · feature-first-structure · `prod-client.ts` `forAiAnalysis` · arguably belongs in `lib/` — the change scripts get archived with the change
 - [x] dropped · structure-scatter-audit · `lib/kosztorys/` · crowded, could take an `ai-review/` folder — predates this slice
