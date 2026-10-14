@@ -5014,3 +5014,11 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       pliku z plusem) z opisem o ponownej analizie; wybór zapisuje się i zostaje po odświeżeniu.
 - [ ] Lista inwestycji → kolumna „Analiza AI”: inwestycja z „Nowe informacje” ma pomarańczową
       plakietkę, a sortowanie po tej kolumnie stawia ją za „Wiedza wyekstraktowana”.
+
+## 2026-10-14 — investment-ai-notes — „Uwagi AI” przy inwestycji
+
+- [ ] Strona inwestycji z wypełnionymi „Uwagami AI”: pod „Notatkami” jest zwijana sekcja „Uwagi AI”
+      z treścią, bez przycisku edycji; „Notatki” wyglądają i edytują się jak wcześniej.
+- [ ] Strona inwestycji bez „Uwag AI”: sekcji „Uwagi AI” nie ma wcale.
+- [ ] Kosztorys → podsumowanie → zakładka „Inwestycja”: te same „Uwagi AI” pod „Notatkami”, tylko do
+      odczytu; bez uwag sekcji nie ma.

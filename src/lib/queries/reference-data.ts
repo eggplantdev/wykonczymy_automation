@@ -75,7 +75,7 @@ export const fetchReferenceData = cache(
         // dropped: /kosz still opens it read-only, while every listing and picker reads the live half.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
-               i.address, i.phone, i.email, i.contact_person, i.notes, i.review_requested,
+               i.address, i.phone, i.email, i.contact_person, i.notes, i.ai_notes, i.review_requested,
                i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8, i.ai_stage::text,
                i.created_at, (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
@@ -134,6 +134,7 @@ export const fetchReferenceData = cache(
           email: (row.email as string) ?? '',
           contactPerson: (row.contact_person as string) ?? '',
           notes: (row.notes as string) ?? '',
+          aiNotes: (row.ai_notes as string) ?? '',
           reviewRequested: row.review_requested === true,
           materialsNetRate: row.materials_net_rate == null ? null : Number(row.materials_net_rate),
           settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,

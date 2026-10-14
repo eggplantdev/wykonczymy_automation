@@ -88,6 +88,13 @@ export const Investments: CollectionConfig = {
       type: 'textarea',
       label: { en: 'Notes', pl: 'Notatki' },
     },
+    // Only the AI kosztorys script writes it (REST update), and the app shows it read-only: a rerun
+    // overwrites the doubts without touching what people wrote in Notatki.
+    {
+      name: 'aiNotes',
+      type: 'textarea',
+      label: { en: 'AI notes', pl: 'Uwagi AI' },
+    },
     {
       name: 'reviewRequested',
       type: 'checkbox',

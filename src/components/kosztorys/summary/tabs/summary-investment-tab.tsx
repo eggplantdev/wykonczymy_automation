@@ -4,6 +4,7 @@ import { InfoList } from '@/components/ui/info-list'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
+import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
@@ -24,6 +25,7 @@ export function SummaryInvestmentTab({ investment, assets }: PropsT) {
       </div>
       <InfoList items={buildInvestmentInfoFields(investment)} />
       <InvestmentNotes investment={investment} />
+      <InvestmentAiNotes aiNotes={investment.aiNotes} />
     </div>
   )
 }

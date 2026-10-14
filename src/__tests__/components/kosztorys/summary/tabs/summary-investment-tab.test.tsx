@@ -34,6 +34,7 @@ const INVESTMENT: InvestmentRefT = {
   reviewRequested: false,
   hasSheet: false,
   aiStage: null,
+  aiNotes: '',
   createdAt: '2026-01-15T10:00:00.000Z',
   materialsNetRate: null,
   settlementMode: 'NET',

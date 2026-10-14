@@ -26,6 +26,7 @@ export type InvestmentRefT = ReferenceItemT & {
   email: string
   contactPerson: string
   notes: string
+  aiNotes: string
   reviewRequested: boolean
   hasSheet: boolean
   aiStage: InvestmentAiStageT | null

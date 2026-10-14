@@ -47,6 +47,7 @@ const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => 
   hasKosztorys: false,
   aiProgress: 'none',
   aiStage: null,
+  aiNotes: '',
   materialsNetRate: null,
   settlementMode: 'NET',
   vatRate: 8,

@@ -11,6 +11,7 @@ const FULL = {
   status: 'active' as const,
   reviewRequested: true,
   aiStage: null,
+  aiNotes: '',
 }
 
 describe('buildInvestmentInfoFields', () => {
@@ -56,6 +57,7 @@ describe('buildInvestmentInfoFields', () => {
         status: 'planowana',
         reviewRequested: false,
         aiStage: null,
+        aiNotes: '',
       },
       { isReadOnly: true },
     )
