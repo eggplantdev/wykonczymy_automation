@@ -3,6 +3,9 @@
 Scope: `f5ab44a87...kosztorys-editor-text-size` (94e3445e2, 73ccf4c8b, b2536d928). Step 0.5 skipped —
 browser verification is not driven unasked; the slice's checks are in the registry.
 
+Post-merge follow-up: `23954535d` (unit cell + section band) was not run through the fan-out; the
+two findings it closes are reopened below.
+
 Fan-out: `/10x-impl-review`, `/code-review`, `/tailwind-v4-audit`, `feature-first-structure`,
 `module-cohesion-audit`, `structure-scatter-audit`, `comment-noise-audit` (flag-only).
 
@@ -27,7 +30,8 @@ Fan-out: `/10x-impl-review`, `/code-review`, `/tailwind-v4-audit`, `feature-firs
 - [x] fixed · comment-noise-audit · `editable-cell-input.tsx` · „phone size” described the wrong case — now „drops to the grid's size”
 - [x] fixed · comment-noise-audit · `use-wrap-column-widths.test.tsx` · helper comment restated the helper — removed
 - [x] dismissed · comment-noise-audit · `use-grid-text-size.ts:11` · flagged as noise — kept, it explains why the key is not shared with the tables
-- [x] dropped · tailwind-v4-audit · `src/lib/utils.ts` `cn` · register `grid-cell-text` with tailwind-merge — no caller passes a `text-*` override beside it
+- [x] fixed (reopened — wrongly dropped) · tailwind-v4-audit · `src/lib/utils/cn.ts` · register `grid-cell-text` with tailwind-merge — dropped on „no caller passes a `text-*` override beside it", which was false: the unit cell renders the shared `Combobox`, whose `text-sm` sits later in the stylesheet than `grid-cell-text` and won, so „Jednostka miary" ignored the size. Caught by the owner in the browser after the merge; fixed in `23954535d` (`grid-cell-text` / `grid-band-text` in the `font-size` group, `grid-cell-text` on the unit cell)
+      test: no automated test · unit — stylesheet order, jsdom has no layout; manual check box covers „Jednostka miary"
 - [x] dropped · tailwind-v4-audit · class order nit in `editable-cell-input.tsx` — churn only
 - [x] dropped · code-review · `use-wrap-column-widths.ts` `EMPTY` 14px placeholder — replaced by the first real read in the same frame
 - [x] dropped · module-cohesion-audit · moving the preview rule into `useGridTextSize` — one caller, the body owns preview
@@ -37,7 +41,7 @@ Fan-out: `/10x-impl-review`, `/code-review`, `/tailwind-v4-audit`, `feature-firs
 - [x] fixed · simplify (simplification) · `use-wrap-column-widths.ts` · `textSize: string` → `GridTextSizeT`
 - [x] fixed · simplify (altitude) · `stage-header.tsx` · per-input `[--grid-cell-text:initial]` replaced by the one `.dsg-row-header` CSS rule (see the code-review finding above)
 - [x] fixed · simplify (altitude) · `kosztorys-editor-body.tsx:382` · `preview || report` → `preview` — `report` only ever arrives with `preview`
-- [x] dismissed · simplify (reuse) · `section-header-cell.tsx:155,162` · the band's count and net could take the grid size — the band stays at its size by the owner's scope
+- [x] fixed (reopened — scope changed) · simplify (reuse) · `section-header-cell.tsx:155,162` · the band's count and net could take the grid size — dismissed on the owner's scope (band unchanged); after the merge the owner ruled the full-size band looks out of place beside small rows, so in `23954535d` the count and net take `grid-cell-text` and the title a new `grid-band-text` scale (18/16/14px, 16px floor on phones)
 - [x] dropped · simplify (efficiency) · `use-wrap-column-widths.ts` · the font is re-read on every fit frame — one `getComputedStyle` on one span, negligible
 - [x] dismissed · simplify (simplification) · `use-wrap-column-widths.ts` · the `prev.font` fallback is unreachable once the probe exists — the hook specs render without a probe and pin that path
 - [x] skipped · simplify (altitude) · `use-wrap-column-widths.ts` · a `ResizeObserver` on the probe instead of the `textSize` cue + `fonts.ready` — would also re-fit on the app-wide „Rozmiar” switch (a pre-existing gap: the old composed font ignored it), but it changes the re-measure mechanism; not auto-applied
