@@ -35,8 +35,8 @@ export function WorkerReportsDialog({ action }: PropsT) {
           else close()
         }}
       >
-        <DialogContent className="sm:max-w-dialog-2xl">
-          <DialogHeader title="Zgłoszenia wykonanych prac" />
+        <DialogContent className="sm:max-w-dialog-3xl sm:max-h-[95vh]">
+          <DialogHeader title="Zgłoszenia prac" />
           {/* Mounted only while open, so every open rereads what the workers sent. */}
           {action.open && (
             <WorkerReportsBody
@@ -77,6 +77,10 @@ function WorkerReportsBody({
   const [reports, setReports] = useState<WorkerReportSummaryT[] | undefined>()
   const [openReport, setOpenReport] = useState<WorkerReportT | undefined>()
   const [listVersion, setListVersion] = useState(0)
+  // Bumped by a save, so the review remounts on the saved report instead of keeping its drafts.
+  const [reviewVersion, setReviewVersion] = useState(0)
+  // Here rather than in the review, which a save remounts.
+  const [isHidingVerified, setIsHidingVerified] = useState(false)
 
   // Every list read also corrects the toolbar count — a decision here, or another window's.
   useEffect(() => {
@@ -112,19 +116,26 @@ function WorkerReportsBody({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const backToList = () => {
+  const reloadReport = (reportId: number) => {
     onHasEdits(false)
-    setOpenReport(undefined)
     setListVersion((version) => version + 1)
+    readInvestmentReport(investmentId, reportId)
+      .then((report) => {
+        setOpenReport(report)
+        setReviewVersion((version) => version + 1)
+      })
+      .catch(() => toastMessage(LOAD_FAILED, 'error', 4000))
   }
 
   if (openReport) {
     return (
       <WorkerReportReview
-        key={openReport.id}
+        key={`${openReport.id}-${reviewVersion}`}
         report={openReport}
         onEdit={() => onHasEdits(true)}
-        onDecided={backToList}
+        onDecided={() => reloadReport(openReport.id)}
+        isHidingVerified={isHidingVerified}
+        onHidingVerifiedChange={setIsHidingVerified}
       />
     )
   }

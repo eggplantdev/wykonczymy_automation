@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
@@ -59,6 +60,8 @@ type PropsT = {
   report: WorkerReportT
   onEdit: () => void
   onDecided: () => void
+  isHidingVerified: boolean
+  onHidingVerifiedChange: (isHiding: boolean) => void
 }
 
 const NEW_STAGE = 'new'
@@ -83,7 +86,13 @@ const searchableText = (row: ReviewRowT) =>
     row.workerDescription ?? '',
   ].join(' ')
 
-export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
+export function WorkerReportReview({
+  report,
+  onEdit,
+  onDecided,
+  isHidingVerified,
+  onHidingVerifiedChange,
+}: PropsT) {
   const { rows, stages, sections, workCatalogue, acceptReport } = useKosztorysEditorContext()
   const catalogue = workCatalogue ?? []
   const [swapRequest, setSwapRequest] = useState<{ lineId: number; entryId?: number }>()
@@ -128,6 +137,7 @@ export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
     return {
       stageQty: targetStageId === undefined ? 0 : (row[stageKey(targetStageId)] ?? 0),
       measuredQty: rowTotalQtyDone(row, stages, 'client'),
+      plannedQty: row.plannedQty,
       currentPlannedQty: resolvedCurrentPlannedQty(row),
     }
   }
@@ -165,11 +175,15 @@ export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
     })
     .toSorted((first, second) => first.sectionOrder - second.sectionOrder)
   const hasWorkerDescription = reviewRows.some((row) => row.workerDescription !== undefined)
+  // By the saved decision, not the draft: a row would vanish under the click that ticks it.
+  const unverifiedRows = isHidingVerified
+    ? reviewRows.filter((row) => !row.isAccepted && !row.isRejected)
+    : reviewRows
   const {
     filteredData: visibleRows,
     searchTerm,
     setSearchTerm,
-  } = useSearchFilter(reviewRows, searchableText)
+  } = useSearchFilter(unverifiedRows, searchableText)
   // Scored once per dopisana praca, not per render of a cell: dice over the whole cennik is the
   // expensive part of „Porównaj z katalogiem" too.
   const candidates = hintCandidates(catalogue)
@@ -331,6 +345,13 @@ export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
           onChange: setSearchTerm,
           placeholder: 'Szukaj po nr, sekcji lub opisie…',
         }}
+        filters={
+          <ActiveFilterButton
+            isActive={isHidingVerified}
+            onChange={onHidingVerifiedChange}
+            activeLabel="Ukryj zweryfikowane"
+          />
+        }
         actions={
           report.photos.length > 0 && (
             <MediaPreviewButton
@@ -343,10 +364,12 @@ export function WorkerReportReview({ report, onEdit, onDecided }: PropsT) {
         }
       />
 
-      <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
+      <div className="flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
         {reviewRows.length > 0 && visibleRows.length === 0 && (
           <p className="text-muted-foreground py-8 text-center text-sm">
-            Brak prac pasujących do wyszukiwania.
+            {unverifiedRows.length === 0
+              ? 'Wszystkie prace są już zweryfikowane.'
+              : 'Brak prac pasujących do wyszukiwania.'}
           </p>
         )}
         {GROUPS.map(({ group, title, hint }) => {

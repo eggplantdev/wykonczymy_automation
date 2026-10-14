@@ -43,7 +43,7 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
           Wg pracownika
         </Button>
       </div>
-      <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-4 overflow-y-auto">
+      <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
         {[...groups.entries()].map(([groupKey, groupReports]) => (
           <section key={groupKey}>
             <h3 className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">

@@ -6,6 +6,8 @@ import { PlusIcon } from 'lucide-react'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { AlertIcon } from '@/components/ui/alert-icon'
+import { HintTooltip } from '@/components/ui/tooltip'
 import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-select'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
@@ -150,7 +152,7 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
         disabled={!draft.isTicked}
         aria-invalid={draft.isTicked && parseReportQty(draft.qty).kind !== 'value'}
         onChange={(event) => onChange(row.id, { qty: event.target.value })}
-        className="h-8 w-20 tabular-nums"
+        className="mx-auto h-8 w-20 tabular-nums"
       />
       {note && (
         <span className="text-muted-foreground block text-xs whitespace-nowrap">{note}</span>
@@ -247,18 +249,35 @@ function StageCell({ row }: { row: ReviewRowT }) {
   return <GrowingQty before={row.figures.stageQty} added={added} />
 }
 
+function StageQtySumAfterCell({ row }: { row: ReviewRowT }) {
+  const added = previewQtyChange(row, useReviewTable().drafts[row.id], row.isFigureLive)
+  if (!row.figures) return null
+  return <GrowingQty before={row.figures.measuredQty} added={added} />
+}
+
 function MeasuredCell({ row }: { row: ReviewRowT }) {
   const added = previewQtyChange(row, useReviewTable().drafts[row.id], row.isFigureLive)
   if (!row.figures) return null
   const { measuredQty, currentPlannedQty } = row.figures
-  const isOverPlanned = currentPlannedQty > 0 && measuredQty + added > currentPlannedQty
-  return (
-    <span>
-      <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
-        <GrowingQty before={measuredQty} added={added} />
-      </span>
-      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono aktualizację przedmiaru</span>}
+  const measuredAfter = measuredQty + added
+  if (currentPlannedQty === 0) return formatQty(measuredAfter)
+  const figure = (
+    <span className="whitespace-nowrap">
+      {formatQty(measuredAfter)} / {formatQty(currentPlannedQty)}
     </span>
+  )
+  if (measuredAfter <= currentPlannedQty) return figure
+  return (
+    <HintTooltip
+      content="Przekroczono aktualizację przedmiaru"
+      className="flex-col items-center text-amber-600 dark:text-amber-400"
+    >
+      {figure}
+      <span className="inline-flex items-center gap-1 text-xs">
+        <AlertIcon className="size-3 text-current" />
+        przekroczono
+      </span>
+    </HintTooltip>
   )
 }
 
@@ -397,17 +416,20 @@ const tickColumn = col.display({
   id: 'tick',
   enableHiding: false,
   header: () => <TickHeader />,
+  meta: { align: 'center' },
   cell: ({ row }) => <TickCell row={row.original} />,
 })
 const rejectColumn = col.display({
   id: 'reject',
   enableHiding: false,
   header: 'Akcje',
+  meta: { align: 'center' },
   cell: ({ row }) => <RejectCell row={row.original} />,
 })
 const refColumn = col.accessor((row) => row.ref ?? 0, {
   id: 'ref',
   header: 'Nr',
+  meta: { align: 'center' },
   cell: ({ row }) =>
     row.original.ref !== undefined && (
       <span className="whitespace-nowrap tabular-nums">{formatFormRef(row.original.ref)}</span>
@@ -417,6 +439,7 @@ const refColumn = col.accessor((row) => row.ref ?? 0, {
 const sectionColumn = col.accessor((row) => row.sectionOrder, {
   id: 'section',
   header: 'Sekcja',
+  meta: { align: 'center' },
   cell: ({ row }) => <SectionPill name={row.original.sectionName} />,
 })
 const reviewDescriptionColumn = col.accessor('description', {
@@ -438,32 +461,46 @@ const workerDescriptionColumn = col.accessor('workerDescription', {
 })
 const reportedColumn = col.accessor('reportedQty', {
   header: 'Zgłoszono',
+  meta: { align: 'center', vertical: true },
   cell: ({ row }) => (
     <span className="whitespace-nowrap tabular-nums">
       {formatQtyWithUnit(row.original.reportedQty, row.original.unit)}
     </span>
   ),
 })
+// „Spoza rozpiski” has one figure, so its header has the width to lie flat.
+const extraReportedColumn = {
+  ...reportedColumn,
+  meta: { align: 'center' },
+} satisfies typeof reportedColumn
 const acceptedColumn = col.display({
   id: 'accepted',
   header: 'Przyjmuję',
+  meta: { align: 'center', vertical: true },
   cell: ({ row }) => <AcceptedQtyCell row={row.original} />,
 })
 const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   id: 'stage',
   header: () => <StageHeader />,
-  meta: { label: 'Etap' },
+  meta: {
+    align: 'center',
+    label: 'Etap',
+    description: 'wartości etapu, do którego przyjmujesz zgłoszenie',
+    vertical: true,
+  },
   cell: ({ row }) => <StageCell row={row.original} />,
 })
-// The shared header never wraps; these two kosztorys labels are the widest in the dialog.
-const wrappedHeader = (label: string) => () => (
-  <span className="block w-28 whitespace-normal">{label}</span>
-)
-
+const OFFERED_PLANNED_ID = 'plannedQty'
+const offeredPlannedColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
+  id: OFFERED_PLANNED_ID,
+  header: COLUMN_LABELS.plannedQty,
+  meta: { align: 'center', vertical: true },
+  cell: ({ row }) => row.original.figures && formatQty(row.original.figures.plannedQty),
+})
 const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0, {
   id: 'planned',
-  header: wrappedHeader(COLUMN_LABELS.currentPlannedQty),
-  meta: { label: COLUMN_LABELS.currentPlannedQty },
+  header: COLUMN_LABELS.currentPlannedQty,
+  meta: { align: 'center', vertical: true },
   cell: ({ row }) =>
     row.original.figures &&
     (row.original.figures.currentPlannedQty > 0 ? (
@@ -472,10 +509,34 @@ const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0,
       <span className="text-muted-foreground">—</span>
     )),
 })
+const STAGE_QTY_SUM_LABEL = 'Pomiar z natury'
+const stageQtySumColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
+  id: 'stageQtySum',
+  header: STAGE_QTY_SUM_LABEL,
+  meta: {
+    align: 'center',
+    vertical: true,
+    label: STAGE_QTY_SUM_LABEL,
+    description: 'ile jest aktualnie zgłoszone',
+  },
+  cell: ({ row }) => row.original.figures && formatQty(row.original.figures.measuredQty),
+})
+const stageQtySumAfterColumn = col.display({
+  id: 'stageQtySumAfter',
+  header: STAGE_QTY_SUM_LABEL,
+  meta: {
+    align: 'center',
+    vertical: true,
+    label: `${STAGE_QTY_SUM_LABEL} po przyjęciu`,
+    description: 'po przyjęciu zgłoszenia',
+  },
+  cell: ({ row }) => <StageQtySumAfterCell row={row.original} />,
+})
+const MEASURED_LABEL = `Pomiar z natury / ${COLUMN_LABELS.currentPlannedQty}`
 const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'measured',
-  header: wrappedHeader(COLUMN_LABELS.stageQtySum),
-  meta: { align: 'right', label: COLUMN_LABELS.stageQtySum },
+  header: MEASURED_LABEL,
+  meta: { align: 'center', vertical: true },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
 // The worker's opis and its podpowiedź are read side by side, so they split the width evenly rather
@@ -502,9 +563,12 @@ const COLUMNS_BY_GROUP = {
     sectionColumn,
     reviewDescriptionColumn,
     workerDescriptionColumn,
+    stageQtySumColumn,
     reportedColumn,
     acceptedColumn,
     stageColumn,
+    stageQtySumAfterColumn,
+    offeredPlannedColumn,
     plannedColumn,
     measuredColumn,
     rejectColumn,
@@ -514,7 +578,7 @@ const COLUMNS_BY_GROUP = {
     manualDescriptionColumn,
     catalogueHintsColumn,
     workerDescriptionColumn,
-    reportedColumn,
+    extraReportedColumn,
   ],
 }
 
@@ -546,7 +610,10 @@ export function ReviewLinesTable({
             : COLUMNS_BY_GROUP[group].filter((column) => column !== workerDescriptionColumn)
         }
         storageKey={`worker-report-${group}`}
+        defaultColumnVisibility={{ [OFFERED_PLANNED_ID]: false }}
         renderRows={isCollapsed ? () => null : undefined}
+        hasColumnDividers
+        defaultTextSize="xs"
         toolbar={({ table, columnVisibility, ...order }) => (
           <div className="flex items-end justify-between gap-4">
             <div className="min-w-0">{heading}</div>
