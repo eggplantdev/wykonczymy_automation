@@ -5154,3 +5154,13 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 - [x] iPhone (Safari), raport pracownika (`/z/…`): przewijaj w górę i w dół, także szybkim
       „rzutem” — nagłówek tabeli trzyma się górnej krawędzi bez drgania i nie odjeżdża od wierszy.
+
+## EX-1004 — przełącznik „Zgłoszone wydatki” w transakcjach
+
+- [ ] Pulpit (`/`) → włącz „Zgłoszone wydatki”: zostają tylko transakcje z plakietką „od pracownika”;
+      „Suma kwot” liczy tylko je; wyłączenie przywraca pełną listę.
+- [ ] Pulpit → „Zgłoszone wydatki” + filtr „Kasa” = kasa pracownika, który coś zgłaszał: tylko jego
+      przyjęte zgłoszenia, bez wydatków wpisanych ręcznie z tej kasy.
+- [ ] Strona kasy pracownika (`/kasa/[id]`) → „Zgłoszone wydatki”: tylko wydatki z jego zgłoszeń.
+      „Drukuj” i „Faktury” na tak przefiltrowanej liście obejmują tylko te transakcje.
+- [ ] „Wyczyść filtry” wyłącza przełącznik.

@@ -406,6 +406,7 @@ export const uk: TranslationsT = {
     filterPaymentMethod: 'Спосіб оплати',
     filterCategory: 'Категорія',
     filterExpenseCategory: "Тип витрати на об'єкт",
+    filterWorkerDrafts: 'Подані витрати',
     filterCancelled: 'Скасовані',
     onlyCancelled: 'Лише скасовані транзакції',
     showCancelled: 'Показати скасовані',

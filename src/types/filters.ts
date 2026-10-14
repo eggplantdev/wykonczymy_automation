@@ -15,6 +15,7 @@ export type FilterConfigT = {
   showPayoutStatusFilter?: boolean
   showCancelledFilter?: boolean
   showSearchFilters?: boolean
+  showWorkerDraftsFilter?: boolean
 }
 
 /** `null` leaves a dimension unfiltered; an empty list matches nothing (the URL named no valid value). */

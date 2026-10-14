@@ -418,6 +418,7 @@ export const pl = {
     filterPaymentMethod: 'Metoda płatności',
     filterCategory: 'Kategoria',
     filterExpenseCategory: EXPENSE_CATEGORY_LABEL,
+    filterWorkerDrafts: 'Zgłoszone wydatki',
     filterCancelled: 'Anulowane',
     onlyCancelled: 'Tylko anulowane transakcje',
     showCancelled: 'Pokaż anulowane',

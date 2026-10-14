@@ -22,6 +22,8 @@ export type TransferTableConfigT = {
   /** Defaults to true. Set to false to hide the "Suma kwot" button in TransferFilters. */
   showTotalAmount?: boolean
   cancelledTransactionAudit?: boolean
+  /** „Zgłoszone wydatki”: only transfers booked from a worker's expense report. */
+  onlyWorkerDrafts?: boolean
   /**
    * Opt in to the invoice-download button. The fetch behind it is unpaginated over the table's own
    * `where`, so on a page not anchored to one entity it ZIPs every invoice the filters let through —
