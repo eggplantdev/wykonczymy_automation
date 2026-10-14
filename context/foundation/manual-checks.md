@@ -4564,14 +4564,6 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
       „Glazura…”, „Malowanie i gładź” i „Szlifowanie płytek na 45°” wyświetlają się w punktach,
       każdy punkt w osobnej linii.
 
-## 2026-10-09 — investments-listing-ai-draft-column — „Analiza AI” na liście inwestycji
-
-- [x] `/inwestycje` (staging): inwestycja, do której wgrano szkic AI, ma w kolumnie „Analiza AI” „Tak”,
-      a jej kosztorys pokazuje w „Przeglądzie AI” kolumnę „AI przedmiar”. (zweryfikowano LOKALNIE na db-test 5435, nie na stagingu: inwestycje 183 i 185 mają „Tak”, ich „Przegląd AI” pokazuje „AI przedmiar”)
-- [x] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”. (lokalnie: 51 inwestycji z kosztorysem i 16 bez — wszystkie „—”)
-- [x] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem. (lokalnie: „Tak” na początku/końcu, 2 wiersze)
-- [x] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa. (lokalnie)
-
 ## 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie
 
 - [x] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart bez zmiany adresu i strony listy; wybór zostaje po odświeżeniu i obowiązuje też na liście transakcji pracownika, kasy i inwestycji. (lokalnie 390px: obie ikony w x=18–90, bez zmiany URL; `transfers:view=list` przeżywa reload; przełącznik zapamiętany na `/`, `/kasa/5`, `/inwestycje/26`, `/pracownicy/24`)
