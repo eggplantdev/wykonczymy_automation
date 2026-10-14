@@ -110,7 +110,8 @@ export type AcceptReportResultT = {
   stage: KosztorysStageT | undefined
   // Absolute figures after the addition — the client never re-adds.
   cells: StageProgressCellT[]
-  revision: string
+  // Only when the save moved a figure in the rozpiska.
+  revision: string | undefined
 }
 
 export type ReportLineOutcomeT =

@@ -149,6 +149,30 @@ describe('useWorkerReportAcceptance', () => {
     expect(args.pruneByIds).toHaveBeenCalledWith([10])
   })
 
+  it('keeps the editor revision when the save only odrzuca lines (EX-1052)', async () => {
+    const { result, args } = renderAcceptance()
+    vi.mocked(acceptWorkerReportAction).mockResolvedValueOnce({
+      success: true,
+      data: { stage: undefined, cells: [], revision: undefined },
+    })
+
+    const accepted = await result.current.acceptReport(
+      {
+        investmentId: 1,
+        reportId: 7,
+        target: { kind: 'new' },
+        lines: [],
+        undone: [],
+        rejected: [1],
+        unrejected: [],
+      },
+      [],
+    )
+
+    expect(accepted).toBe(true)
+    expect(args.adoptRevision).not.toHaveBeenCalled()
+  })
+
   it('touches nothing in the grid when the accept is refused', async () => {
     const { result, args } = renderAcceptance()
     vi.mocked(acceptWorkerReportAction).mockResolvedValueOnce({

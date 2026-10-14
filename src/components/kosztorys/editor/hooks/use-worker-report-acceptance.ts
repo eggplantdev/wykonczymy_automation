@@ -61,7 +61,7 @@ export function useWorkerReportAcceptance({
     // An undo of an earlier edit to one of these cells would write its old absolute figure back
     // over the addition.
     pruneByIds([...cellsByItem.keys()])
-    adoptRevision(revision)
+    if (revision) adoptRevision(revision)
     return true
   }
 

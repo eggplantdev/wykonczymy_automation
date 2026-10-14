@@ -83,8 +83,7 @@ async function acceptInTransaction(
   if (gate.lockMessage) throw new AcceptRefusal(gate.lockMessage)
 
   const report = await readWorkerReport(tx, investmentId, reportId)
-  const tree = await selectKosztorysTreeData(tx, investmentId)
-  if (!report || !tree) throw new AcceptRefusal('Zgłoszenie nie istnieje.')
+  if (!report) throw new AcceptRefusal('Zgłoszenie nie istnieje.')
   const { workerId } = report.report
 
   const lineById = new Map(report.lines.map((line) => [line.id, line]))
@@ -116,6 +115,20 @@ async function acceptInTransaction(
   const undoneIds = request.undone.filter(isAccepted)
   const rejectedIds = request.rejected.filter((lineId) => !isRejected(lineId))
   const unrejectedIds = request.unrejected.filter(isRejected)
+  const isFlagging = rejectedIds.length + unrejectedIds.length > 0
+
+  // Odrzucenie touches only the report: no rozpiska read, and no revision bump that would tell
+  // another open editor its kosztorys changed.
+  if (decidedIds.length === 0) {
+    if (!isFlagging) throw new AcceptRefusal(STALE)
+    await setLinesRejected(tx, reportId, rejectedIds, true)
+    await setLinesRejected(tx, reportId, unrejectedIds, false)
+    await settleReport(tx, reportId, userId, undefined)
+    return { stage: undefined, cells: [], revision: undefined }
+  }
+
+  const tree = await selectKosztorysTreeData(tx, investmentId)
+  if (!tree) throw new AcceptRefusal('Zgłoszenie nie istnieje.')
   const isAdding = freshLines.length > 0
 
   // One report, one etap: a change or an untick lands in the etap the report names, so the rest may
@@ -172,17 +185,15 @@ async function acceptInTransaction(
     return [{ itemId, delta: -(line.acceptedQty as number) }]
   })
 
-  const isFlagging = rejectedIds.length + unrejectedIds.length > 0
   if (!isAdding && changes.length === 0 && undoneIds.length === 0 && !isFlagging) {
     throw new AcceptRefusal(STALE)
   }
 
   const target = isAdding ? resolveTarget(tree.stages, request.target, workerId) : undefined
+  const movesFigures = isAdding || changes.length + removals.length > 0
 
   // Before any tree write, so the version holds the rozpiska as it was before the decision.
-  if (isAdding || changes.length + removals.length > 0) {
-    await captureAutoSnapshot(tx, investmentId, userId)
-  }
+  if (movesFigures) await captureAutoSnapshot(tx, investmentId, userId)
 
   const stage =
     target === undefined
@@ -235,7 +246,7 @@ async function acceptInTransaction(
   return {
     stage: target?.kind === 'new' ? stage : undefined,
     cells,
-    revision: await bumpInvestmentRevision(tx, investmentId),
+    revision: movesFigures ? await bumpInvestmentRevision(tx, investmentId) : undefined,
   }
 }
 
