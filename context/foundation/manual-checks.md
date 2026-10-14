@@ -5127,3 +5127,8 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Telefon 390px: pozycja z ilością typu `123,45` — „Wykonano” nie łamie liczby w środku; „Postęp” przechodzi do drugiej linii po „/”, a wiersz rośnie, gdy po wpisaniu ilości w „Zgłaszam” postęp się zawija (i maleje po skasowaniu).
 - [ ] Liczby w „Wykonano”, „Zgłaszam” i „Postęp” są wyśrodkowane — na telefonie i na desktopie.
 - [ ] Widok „Inwestycja” na telefonie nadal przewija się w bok (pełny arkusz).
+
+## 2026-10-14 — worker-report-sticky-wobble — nagłówek tabeli w raporcie pracownika nie drga
+
+- [ ] iPhone (Safari), raport pracownika (`/z/…`): przewijaj w górę i w dół, także szybkim
+      „rzutem” — nagłówek tabeli trzyma się górnej krawędzi bez drgania i nie odjeżdża od wierszy.
