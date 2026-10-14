@@ -4982,3 +4982,6 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       każdej nadal się pokazuje.
 - [ ] Wejście w każdą z nich: nagłówek strony i tytuł podczas ładowania brzmią tak samo jak pozycja w
       menu — bez mignięcia starej nazwy.
+- [ ] Kosztorys inwestycji, w której pracownik ma zgłoszenie do sprawdzenia: przycisk w pasku narzędzi
+      brzmi „Zgłoszenia prac (N)”, menu „Pracownicy” ma pozycję „Zgłoszenia prac”, a okno po kliknięciu
+      ma ten sam tytuł.
