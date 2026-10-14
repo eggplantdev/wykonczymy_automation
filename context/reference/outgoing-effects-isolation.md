@@ -35,6 +35,12 @@ rozwiąże. Pusta wartość nie zadziała — `serverEnv` wymaga `.min(1)`. Praw
 zakomentowany tuż nad aktywną linią w `.env`; do pracy nad szablonami maila podmienia się go ręcznie.
 `EMAIL_USER` / `EMAIL_PASS` zostają wspólne — bez hosta nie mają dokąd się połączyć.
 
+**Przechwytywanie maili na stagingu (Mailpit / Ethereal) odrzucone, 2026-09-30.** Dostawę z
+produkcji potwierdził właściciel, treść pokrywają testy jednostkowe (`notify.test.ts`,
+`should-notify.test.ts`), a błąd DNS na `disabled.invalid` sam dowodzi, że kod doszedł do wysyłki.
+Przechwycenie dałoby tylko podgląd treści okiem — za mało na drugą konfigurację poczty. Mailowe
+sprawdzenia ręczne zostają więc nie do sprawdzenia poza produkcją z założenia, nie „do czasu".
+
 **Listy odbiorców żyją w bazie, nie w env.** Global Payloada `notification-recipients`
 (`src/globals/notification-recipients.ts`), czytany przez `src/lib/email/recipients.ts`. Konsekwencja:
 po każdym `db:import` każde środowisko ma prawdziwe adresy prawdziwych pracowników, a

@@ -82,7 +82,7 @@ produkcję.
 (`added:0, scanned:30`), a `vercel crons ls` potwierdza rejestrację `0 4 * * *` na Production.
 
 - [ ] Wywołanie z poprawnym `CRON_SECRET` zwraca liczniki, a przebieg, który odzyskał leada, dostarcza
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       mail alertowy na listę „Alerty techniczne" — **blokady 2 i 3**. Połowa licznikowa domknięta
       (200 + liczniki z produkcji). Zostaje wyłącznie noga mailowa i jej **nie da się wymusić bez
       szkody**: `notifyReconcileRecovery` leci tylko przy `added > 0`
@@ -123,14 +123,14 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 `skipped`), **nie jest odtwarzalny** — `notify_status` siada na `failed`, czyli próbowano.
 
 - [ ] Przebieg sweepa (cron `/api/cron/leads-reconcile`) → skrzynka sprzedaży dostaje jedno zwykłe
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       „Nowe zgłoszenie", nieodróżnialne od webhookowego — **blokada 2**. Kod gwarantuje
       nieodróżnialność strukturalnie: obie ścieżki wołają ten sam `captureLead` → `notifyNewLead`
       (`src/lib/leads/capture-lead.ts:71`),
       różni je wyłącznie opcja `autoReply`. Została sama dostawa.
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
 - [ ] Dokładnie jeden mail podsumowujący, wyłącznie na „Alerty techniczne" (nie do sprzedaży), bez
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       danych kontaktowych i bez instrukcji „zadzwoń sam" — **blokady 2, 3 i 4**. Alert
       (`notifyReconcileFailure`/`notifyReconcileRecovery`) leci z trasy crona, która jest dziś
       jedynym wołającym sweepa — ręczny przycisk „Pobierz z Facebooka" został usunięty.
@@ -159,7 +159,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 11/13 odhaczonych (ostatni przebieg 2026-09-04, staging). Pełny zapis: archiwum.
 
 - [ ] Ręczne `GET /api/cron/equipment-reminders` z `Bearer $CRON_SECRET` wysyła mail o właściwej
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       treści — **blokady 2 i 4**. Każde ogniwo **przed** wysyłką jest potwierdzone na żywo:
       autoryzacja (401 bez nagłówka), pusty digest (`200 {"sent":false}`), ponowne uzbrojenie po
       edycji gwarancji, brak stemplowania po nieudanej wysyłce. Fixture jest gotowy — sprzęt id 1
@@ -543,19 +543,19 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
            Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
            Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: POST podpisany HMAC-SHA256 (scope „landing-submission") z `LANDING_WEBHOOK_SECRET` z `.env` → 403 na stagingu, czyli sekret z `.env` nie jest sekretem Preview. Brakuje wartości sekretu Preview; do tego realny plik w blobie landingu (callback release dotyka landingu). Nic nie utworzono._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: jak wyżej — brak sekretu Preview (403 na poprawnie podpisany request z sekretem z `.env`)._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: jak wyżej — brak sekretu Preview; bez ważnego podpisu request nie dochodzi do walidacji hosta._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z podmienionym body jest odrzucony (403)
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: 403 obserwowane, ale nie do zaliczenia — poprawnie podpisany request też dostał 403 (zły sekret), więc odrzucenie nie dowodzi kontroli podpisu._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
@@ -2501,7 +2501,7 @@ Przebieg staging 2026-09-29 (OWNER + MANAGER, dane z dumpu prod).
   _Test disposition:_ test-driven-debugging · dom.
   (czerwony bez poprawki). Czeka na deploy. _Test disposition:_ test-driven-debugging · unit.
 - [x] **Luka udostępnień v1** — konto reader nie czyta arkuszy v1 inwestycji 130/139/141/143/144/145.
-  **Linear: EX-939.**
+  Naprawione: reader jest Przeglądającym na wszystkich 56 arkuszach.
 - [x] **Okno udostępniania otwarte offline** pokazuje „Nie udało się przygotować linku" bez toastu.
   **Odrzucone:** komunikat jest w samym oknie, na które użytkownik patrzy; toast by go powtórzył.
 - [x] **Przesłanka boksu „Edytuj transakcję — zmień kwotę" nieaktualna** — **naprawione:** boks
