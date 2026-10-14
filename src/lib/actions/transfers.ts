@@ -31,7 +31,6 @@ import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'
 import { normalizeNip } from '@/lib/utils/nip'
 import { warsawToday } from '@/lib/utils/days'
-import { logError } from '@/lib/utils/log-error'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { uploadFieldIds } from '@/lib/media/upload-field'
 import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
@@ -210,7 +209,9 @@ export async function createBulkTransferAction(
           }
           return ids
         },
-        { skipSheetSync: true },
+        // From a zgłoszenie the hook's immediate expiry would re-render the dashboard inside every
+        // booking (EX-850).
+        { skipSheetSync: true, ...(opts && { deferRefresh: true }) },
       ).catch((error: unknown) => {
         if (error instanceof DraftAlreadyDecided) return error.refusal
         throw error
@@ -232,6 +233,7 @@ export async function createBulkTransferAction(
       return { success: true }
     },
     ['transfers'],
+    opts && { deferRefresh: true },
   )
 }
 

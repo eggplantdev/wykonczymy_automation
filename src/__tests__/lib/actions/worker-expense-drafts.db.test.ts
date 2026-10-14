@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
 import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
+import { EXPIRE_NEXT, EXPIRE_NOW } from '@/lib/cache/tags'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
@@ -24,6 +25,8 @@ vi.mock('@/lib/auth/require-auth', () => ({
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
+const { revalidateTag } = await import('@/__tests__/stubs/next-cache')
+const { revalidateCollections } = await import('@/__tests__/stubs/cache-revalidate')
 const { rejectExpenseDraftAction } = await import('@/lib/actions/worker-expense-drafts')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -147,6 +150,19 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
       status: 'accepted',
       transfer_ids: expenses,
     })
+  })
+
+  // An immediate expiry re-renders the dashboard inside the booking's response (EX-850).
+  it('accepting expires the kasa, investment and transfers tags deferred, never immediately', async () => {
+    const draftId = await createDraft('deferred')
+    vi.clearAllMocks()
+
+    expect(await accept(draftId, `EX-1053 deferred ${draftId}`)).toMatchObject({ success: true })
+
+    expect(revalidateTag).not.toHaveBeenCalledWith(expect.anything(), EXPIRE_NOW)
+    expect(revalidateTag).toHaveBeenCalledWith(`cash-register:${registerId}`, EXPIRE_NEXT)
+    expect(revalidateTag).toHaveBeenCalledWith(`investment:${investmentId}`, EXPIRE_NEXT)
+    expect(revalidateCollections).toHaveBeenCalledWith(['transfers'], { deferRefresh: true })
   })
 
   // Two managers on one draft: the loser's expense must roll back with the refusal, or the

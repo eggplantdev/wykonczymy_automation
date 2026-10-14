@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { revalidateTag } from 'next/cache'
-import { CACHE_TAGS, entityTag, EXPIRE_NOW } from '@/lib/cache/tags'
+import { CACHE_TAGS, entityTag, EXPIRE_NEXT, EXPIRE_NOW } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { resolveId } from '@/lib/utils/resolve-id'
 
@@ -13,6 +13,9 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   // `revalidateTag` needs a Next request context, so a non-request caller (seed script, DB spec)
   // opts out with the same `skipRevalidation` flag `revalidate-collection` already honours.
   if (context?.skipRevalidation) return doc
+  // An action that must not re-render its route inside every booking asks for the deferred expiry
+  // (EX-850) — the same tags, so the list stays here instead of being copied into the action.
+  const expiry = context?.deferRefresh ? EXPIRE_NEXT : EXPIRE_NOW
   const elapsed = perfStart()
   console.log(`[PERF] recalcAfterChange START id=${doc.id} type=${doc.type}`)
 
@@ -23,17 +26,17 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   const investmentId = resolveId(doc.investment)
   const prevInvestmentId = resolveId(previousDoc?.investment)
 
-  if (registerId) revalidateTag(entityTag('cash-register', registerId), EXPIRE_NOW)
+  if (registerId) revalidateTag(entityTag('cash-register', registerId), expiry)
   if (prevRegisterId && prevRegisterId !== registerId)
-    revalidateTag(entityTag('cash-register', prevRegisterId), EXPIRE_NOW)
-  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), EXPIRE_NOW)
+    revalidateTag(entityTag('cash-register', prevRegisterId), expiry)
+  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), expiry)
   if (prevTargetRegisterId && prevTargetRegisterId !== targetRegisterId)
-    revalidateTag(entityTag('cash-register', prevTargetRegisterId), EXPIRE_NOW)
-  if (investmentId) revalidateTag(entityTag('investment', investmentId), EXPIRE_NOW)
+    revalidateTag(entityTag('cash-register', prevTargetRegisterId), expiry)
+  if (investmentId) revalidateTag(entityTag('investment', investmentId), expiry)
   if (prevInvestmentId && prevInvestmentId !== investmentId)
-    revalidateTag(entityTag('investment', prevInvestmentId), EXPIRE_NOW)
+    revalidateTag(entityTag('investment', prevInvestmentId), expiry)
 
-  revalidateTag(CACHE_TAGS.transfers, EXPIRE_NOW)
+  revalidateTag(CACHE_TAGS.transfers, expiry)
 
   console.log(`[PERF] recalcAfterChange TOTAL ${elapsed()}ms`)
 

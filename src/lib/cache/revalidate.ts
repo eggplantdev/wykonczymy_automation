@@ -30,7 +30,8 @@ function expire(tag: string, deferRefresh: boolean) {
  *
  * `deferRefresh` only helps raw-SQL writes (the EX-597 autosaves). A `payload.update` on a collection
  * with a revalidating afterChange hook fires `revalidateTag(…, EXPIRE_NOW)` in the same request, so
- * the route re-renders regardless (EX-850).
+ * the route re-renders regardless (EX-850) — unless the hook honours `context.deferRefresh`, as the
+ * transactions `recalcAfterChange` does.
  *
  * Default (`updateTag`) is right whenever the caller's own UI reads a cached value it just changed.
  */
