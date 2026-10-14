@@ -64,8 +64,11 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
               >
                 {isVertical ? (
                   // Left-aligned explicitly: a right-aligned label, once rotated, pins a wrapped one
-                  // to the top while a one-line one sits at the bottom.
-                  <span className="vertical-text inline-block max-h-48 text-left">
+                  // to the top while a one-line one sits at the bottom. `h-max` is the line length:
+                  // left to the browser, a vertical box takes it from its ancestors' heights, which
+                  // in an auto-height dialog wrapped „Pomiar z natury” one word per line and spilled
+                  // the column's text into its neighbour.
+                  <span className="vertical-text inline-block h-max max-h-48 text-left">
                     {label}
                     {description && (
                       <span className={cn('block font-normal', sizes.headerDescription)}>
