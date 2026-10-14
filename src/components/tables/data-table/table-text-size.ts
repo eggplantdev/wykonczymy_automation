@@ -1,4 +1,6 @@
-export type TableTextSizeT = '2xs' | 'xs' | 'sm' | 'base'
+export const TABLE_TEXT_SIZES = ['2xs', 'xs', 'sm', 'base'] as const
+
+export type TableTextSizeT = (typeof TABLE_TEXT_SIZES)[number]
 
 type TextSizeClassesT = { body: string; header: string; headerDescription: string }
 

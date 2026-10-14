@@ -38,12 +38,7 @@ export function TextSizeMenuSection<T extends TableTextSizeT>({
         }}
       >
         {sizes.map((size) => (
-          <DropdownMenuRadioItem
-            key={size}
-            value={size}
-            // Open, so the table behind shows the size before the menu goes.
-            onSelect={(event) => event.preventDefault()}
-          >
+          <DropdownMenuRadioItem key={size} value={size}>
             {t(LABEL_KEYS[size])}
           </DropdownMenuRadioItem>
         ))}

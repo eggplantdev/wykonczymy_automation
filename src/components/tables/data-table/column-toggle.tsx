@@ -2,7 +2,10 @@
 
 import { type Table, type VisibilityState } from '@tanstack/react-table'
 import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import { type TableTextSizeT } from '@/components/tables/data-table/table-text-size'
+import {
+  TABLE_TEXT_SIZES,
+  type TableTextSizeT,
+} from '@/components/tables/data-table/table-text-size'
 import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
 import { type ColumnRanksT } from '@/lib/table/column-order'
 import { columnLabel } from '@/lib/table/column-label'
@@ -18,8 +21,6 @@ type ColumnTogglePropsT<TData> = {
   textSize: TableTextSizeT
   setTextSize: (size: TableTextSizeT) => void
 }
-
-const TEXT_SIZES: readonly TableTextSizeT[] = ['2xs', 'xs', 'sm', 'base']
 
 export function ColumnToggle<TData>({
   table,
@@ -61,7 +62,7 @@ export function ColumnToggle<TData>({
         onSetRank: setRank,
         onReset: resetOrder,
       }}
-      footer={<TextSizeMenuSection sizes={TEXT_SIZES} value={textSize} onChange={setTextSize} />}
+      footer={<TextSizeMenuSection sizes={TABLE_TEXT_SIZES} value={textSize} onChange={setTextSize} />}
     />
   )
 }
