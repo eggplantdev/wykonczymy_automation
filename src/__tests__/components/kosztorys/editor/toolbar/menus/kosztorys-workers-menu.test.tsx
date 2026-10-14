@@ -11,30 +11,17 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
 import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/labels'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const INVESTMENT_ID = 12
 
 // Anna holds two etapy (listed once), Bogdan one with no rozliczenie yet (blocked), Celina none.
 // Bogdan is inactive: a person deactivated mid-investment still owns their etapy.
 const STAGES: KosztorysStageT[] = [
-  {
-    id: 1,
-    ordinal: 1,
-    label: 'Etap 1',
-    plane: 'w_tools',
-    split: oneWorkerSplit(10),
-    completed: false,
-  },
-  { id: 2, ordinal: 2, label: 'Etap 2', plane: null, split: oneWorkerSplit(20), completed: false },
-  {
-    id: 3,
-    ordinal: 3,
-    label: 'Etap 3',
-    plane: 'w_tools',
-    split: oneWorkerSplit(10),
-    completed: false,
-  },
-  { id: 4, ordinal: 4, label: 'Etap 4', plane: 'own_tools', split: null, completed: false },
+  makeStage({ id: 1, label: 'Etap 1', split: oneWorkerSplit(10) }),
+  makeStage({ id: 2, ordinal: 2, label: 'Etap 2', plane: null, split: oneWorkerSplit(20) }),
+  makeStage({ id: 3, ordinal: 3, label: 'Etap 3', split: oneWorkerSplit(10) }),
+  makeStage({ id: 4, ordinal: 4, label: 'Etap 4', plane: 'own_tools' }),
 ]
 let stages = STAGES
 const ROSTER = [

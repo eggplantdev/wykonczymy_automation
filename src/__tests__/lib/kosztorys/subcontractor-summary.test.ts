@@ -7,6 +7,7 @@ import type { WorkerRefT } from '@/types/reference-data'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SubcontractorPayoutRowT } from '@/types/transfers'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const payout = (workerId: number | null, total: number, name = 'x'): SubcontractorPayoutRowT => ({
   workerId,
@@ -15,14 +16,8 @@ const payout = (workerId: number | null, total: number, name = 'x'): Subcontract
   name,
 })
 
-const stage = (id: number, workerId: number | null): KosztorysStageT => ({
-  id,
-  ordinal: id,
-  label: null,
-  plane: 'w_tools',
-  split: workerId == null ? null : oneWorkerSplit(workerId),
-  completed: false,
-})
+const stage = (id: number, workerId: number | null): KosztorysStageT =>
+  makeStage({ id, ordinal: id, split: workerId == null ? null : oneWorkerSplit(workerId) })
 
 const worker = (id: number, name: string): WorkerRefT => ({
   id,
@@ -143,18 +138,9 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
     // `stages`, not off the money — a plane-less etap is absent from byWorker entirely.
     it('no_executed_work — etapy assigned, nothing earned on them yet', () => {
       expect(stateFor(0, 150, [stage(10, 1)])).toBe('no_executed_work')
-      expect(
-        stateFor(0, 150, [
-          {
-            id: 10,
-            ordinal: 1,
-            label: null,
-            plane: null,
-            split: oneWorkerSplit(1),
-            completed: false,
-          },
-        ]),
-      ).toBe('no_executed_work')
+      expect(stateFor(0, 150, [makeStage({ id: 10, plane: null, split: oneWorkerSplit(1) })])).toBe(
+        'no_executed_work',
+      )
     })
 
     it('settled — nothing negative to explain', () => {

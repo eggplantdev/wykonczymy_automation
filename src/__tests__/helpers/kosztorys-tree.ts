@@ -1,4 +1,4 @@
-import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { KosztorysItemT, KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 
 // The tree-level envelope (globalCoeffs / vatRate / settlementMode / materialsNetRate /
 // globalDiscount / revision) is the same in every pure-calculation spec and is not what any of them
@@ -21,6 +21,20 @@ export function makeTree(
     globalDiscount: { type: null, value: 0 },
     revision: '2026-01-01T00:00:00.000Z',
     ...scenario,
+  }
+}
+
+// Same reason as makeTree: each new KosztorysStageT field (split, then completed) forced an edit in
+// every spec that spelled a stage out (EX-1035). The defaults are the values those literals used most.
+export function makeStage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
+  return {
+    id: 100,
+    ordinal: 1,
+    label: null,
+    plane: 'w_tools',
+    split: null,
+    completed: false,
+    ...overrides,
   }
 }
 

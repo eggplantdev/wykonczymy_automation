@@ -12,7 +12,7 @@ import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { POLISH_GRID } from '@/lib/i18n/translations'
 
@@ -29,22 +29,8 @@ const NET_HEADER = 'Suma etapów z narzędziami (podwykonawca) netto'
 // The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
 const stages: KosztorysStageT[] = [
-  {
-    id: 100,
-    ordinal: 1,
-    label: 'Tynki',
-    plane: 'w_tools',
-    split: oneWorkerSplit(WORKER),
-    completed: false,
-  },
-  {
-    id: 102,
-    ordinal: 3,
-    label: null,
-    plane: 'w_tools',
-    split: oneWorkerSplit(WORKER),
-    completed: false,
-  },
+  makeStage({ id: 100, label: 'Tynki', split: oneWorkerSplit(WORKER) }),
+  makeStage({ id: 102, ordinal: 3, split: oneWorkerSplit(WORKER) }),
 ]
 const rates = { wToolsOverrideValue: RATE, ownToolsOverrideValue: OWN_RATE }
 const treeWith = (progress: { itemId: number; stageId: number; qtyDone: number }[]) =>

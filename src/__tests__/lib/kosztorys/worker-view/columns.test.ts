@@ -4,25 +4,12 @@ import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // Already narrowed to his etapy, as the projection hands them over.
 const STAGES: KosztorysStageT[] = [
-  {
-    id: 7,
-    ordinal: 1,
-    label: 'Etap 1',
-    plane: 'w_tools',
-    split: oneWorkerSplit(3),
-    completed: false,
-  },
-  {
-    id: 9,
-    ordinal: 2,
-    label: 'Etap 2',
-    plane: 'w_tools',
-    split: oneWorkerSplit(3),
-    completed: false,
-  },
+  makeStage({ id: 7, label: 'Etap 1', split: oneWorkerSplit(3) }),
+  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', split: oneWorkerSplit(3) }),
 ]
 
 const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>

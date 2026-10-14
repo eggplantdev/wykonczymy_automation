@@ -7,17 +7,10 @@ import {
 } from '@/lib/kosztorys/stage-conditions'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 function stage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
-  return {
-    id: 1,
-    ordinal: 1,
-    label: null,
-    plane: 'w_tools',
-    split: oneWorkerSplit(5),
-    completed: false,
-    ...overrides,
-  }
+  return makeStage({ id: 1, split: oneWorkerSplit(5), ...overrides })
 }
 
 const BARE = stage({ id: 1, plane: null, split: null })

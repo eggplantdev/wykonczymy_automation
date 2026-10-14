@@ -3,7 +3,7 @@ import { countMatching, sectionIdsWhereAllMatch } from '@/lib/kosztorys/row-cond
 import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
-import { makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> = {}) {
   return {
@@ -32,9 +32,7 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
   } satisfies KosztorysItemT
 }
 
-const STAGES = [
-  { id: 100, ordinal: 1, label: null, plane: 'w_tools' as const, split: null, completed: false },
-]
+const STAGES = [makeStage({ id: 100 })]
 
 // A: worked and priced. B: nothing executed. C: fully executed but never priced — its subtotal is
 // zero for a reason that is a defect, not a state, which is what the cases below separate.

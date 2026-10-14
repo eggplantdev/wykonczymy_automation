@@ -2,10 +2,11 @@ import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const STAGES: KosztorysStageT[] = [
-  { id: 1, ordinal: 1, label: null, plane: null, split: null, completed: false },
-  { id: 2, ordinal: 2, label: null, plane: 'w_tools', split: oneWorkerSplit(5), completed: false },
+  makeStage({ id: 1, plane: null }),
+  makeStage({ id: 2, ordinal: 2, split: oneWorkerSplit(5) }),
 ]
 export const CTX = {
   stages: STAGES,

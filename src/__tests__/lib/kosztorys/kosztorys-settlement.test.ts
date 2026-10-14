@@ -7,7 +7,7 @@ import {
 } from '@/lib/kosztorys/settlement-client-totals'
 import { rowValueForView } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 // Two rows across two etapy: row 1 executes 2+3 (of planned 5) at client price 20; row 2 executes
 // 4+0 at client price 10, with a flat 'amount' rabat of 8 on the whole row.
@@ -34,10 +34,7 @@ const tree: KosztorysTreeT = makeTree({
   ],
   // Mixed planes on purpose: with both stages left unassigned every subcontractor-view assertion
   // below reduces to 0-vs-something and passes without exercising the plane filter at all.
-  stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
-  ],
+  stages: [makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2, plane: 'own_tools' })],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 2 },
     { itemId: 1, stageId: 101, qtyDone: 3 },

@@ -4,7 +4,7 @@ import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import { subcontractorStageBreakdown } from '@/lib/kosztorys/subcontractor-stage-breakdown'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 const ANNA = 1
 const BARTEK = 2
@@ -18,11 +18,9 @@ const WORKERS = [
 
 // One pozycja at stawka 10 z narzędziami: etap 100 holds 4 (40 zł), 101 holds 2 (20 zł), 102 nothing.
 const stages: KosztorysStageT[] = [
-  {
+  makeStage({
     id: 100,
-    ordinal: 1,
     label: 'Tynki',
-    plane: 'w_tools',
     split: {
       mode: 'percent',
       members: [
@@ -30,17 +28,9 @@ const stages: KosztorysStageT[] = [
         { workerId: CELINA, value: 0, takesRest: true },
       ],
     },
-    completed: false,
-  },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null, completed: false },
-  {
-    id: 102,
-    ordinal: 3,
-    label: null,
-    plane: 'w_tools',
-    split: oneWorkerSplit(BARTEK),
-    completed: false,
-  },
+  }),
+  makeStage({ id: 101, ordinal: 2 }),
+  makeStage({ id: 102, ordinal: 3, split: oneWorkerSplit(BARTEK) }),
 ]
 const tree = makeTree({
   sections: [

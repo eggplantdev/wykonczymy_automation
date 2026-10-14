@@ -6,6 +6,7 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const RATES = [
   { description: 'zakup, transport i wniesienie towaru budowlanego', wTools: 975, ownTools: 750 },
@@ -56,14 +57,9 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         reviewStatus: null,
       },
     ],
-    stages: Array.from({ length: 6 }, (_, index) => ({
-      id: 700 + index,
-      ordinal: index + 1,
-      label: null,
-      plane: null,
-      split: null,
-      completed: false,
-    })),
+    stages: Array.from({ length: 6 }, (_, index) =>
+      makeStage({ id: 700 + index, ordinal: index + 1, plane: null }),
+    ),
     progress: [],
     settings: { wToolsCoeff: 0.71, ownToolsCoeff: 0.42, vatRate: 8 },
     ...overrides,
