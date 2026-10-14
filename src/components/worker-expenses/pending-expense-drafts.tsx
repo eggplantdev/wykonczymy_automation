@@ -12,8 +12,11 @@ import { useTranslation } from '@/hooks/use-translation'
 import { useExpenseDraftAcceptance } from '@/components/worker-expenses/use-expense-draft-acceptance'
 import { mergeExpenseDraftsAction } from '@/lib/actions/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import { OPEN_DRAFT_PARAM } from '@/lib/constants/worker-expense-drafts'
 import { failureMessage } from '@/lib/i18n/failure-message'
+import { translate } from '@/lib/i18n/translations'
 import { settleAction } from '@/lib/utils/settle-action'
+import { stripSearchParam } from '@/lib/utils/strip-search-param'
 import { toastMessage } from '@/lib/utils/toast'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import type { ReferenceDataT } from '@/types/reference-data'
@@ -68,13 +71,13 @@ export function PendingExpenseDrafts({
     if (openDraftId === undefined || hasOpenedFromUrl.current) return
     hasOpenedFromUrl.current = true
     const linked = drafts.find((draft) => draft.id === openDraftId)
-    if (linked) void open(linked)
-    else toastMessage('To zgłoszenie jest już rozpatrzone', 'warning')
-    // Dropped so a refresh or a back navigation does not open it again.
-    const params = new URLSearchParams(window.location.search)
-    params.delete('zgloszenie')
-    const query = params.toString()
-    router.replace(`${window.location.pathname}${query ? `?${query}` : ''}`, { scroll: false })
+    // An opened dialog drops the parameter when it closes.
+    if (linked) {
+      void open(linked)
+      return
+    }
+    toastMessage(translate(locale, 'notices', 'draftAlreadyDecided'), 'warning')
+    stripSearchParam(OPEN_DRAFT_PARAM)
   })
 
   async function merge() {

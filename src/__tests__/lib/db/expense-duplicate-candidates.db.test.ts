@@ -5,8 +5,8 @@ import { getDb } from '@/lib/db/get-db'
 import {
   loadDraftCandidates,
   loadTransactionCandidates,
-  type CandidateT,
 } from '@/lib/db/expense-duplicate-candidates'
+import type { CandidateT } from '@/lib/expense-duplicates/types'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'

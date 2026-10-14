@@ -276,7 +276,6 @@ export function stripOriginalScopedFilters(where: Where): Where {
   )
 }
 
-/** The scope with its date window dropped — the all-time counterpart of `withDateRange`. */
 export function withoutDateRange(where: Where): Where {
   return mapWhereLeaves(where, (field, condition) =>
     field === 'date' ? undefined : [field, condition],

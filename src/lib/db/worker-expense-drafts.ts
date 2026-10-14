@@ -481,12 +481,15 @@ export async function decideExpenseDraft(
 const asIntArray = (values: number[]) =>
   sql`ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(values)}::jsonb)::int)`
 
-const DECIDED_READ_ROWS = sql`
-  SELECT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id
+/** The read rows of one zgłoszenie already booked or refused — neither can be decided again. */
+export const decidedReadRows = (draftId: SqlT) => sql`
+  SELECT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt WHERE dt.draft_id = ${draftId}
   UNION
   SELECT sr.read_row FROM worker_expense_draft_skipped_receipts sr
-  WHERE sr.draft_id = d.id AND sr.read_row IS NOT NULL
+  WHERE sr.draft_id = ${draftId} AND sr.read_row IS NOT NULL
 `
+
+const DECIDED_READ_ROWS = decidedReadRows(sql`d.id`)
 
 /**
  * A zgłoszenie stays pending while any paragon of its read waits; then it is przyjęte if anything

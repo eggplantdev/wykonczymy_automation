@@ -3,8 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DuplicateFinderDialog } from '@/components/transfers/duplicate-finder-dialog'
-import type { CandidateT } from '@/lib/db/expense-duplicate-candidates'
-import type { DuplicateGroupsT } from '@/lib/queries/expense-duplicate-groups'
+import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/types'
 import type { DateRangeT } from '@/lib/utils/date-range'
 import type { ActionResultT } from '@/types/action'
 
@@ -14,7 +13,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
 
-type FindGroupsT = (range: DateRangeT) => Promise<ActionResultT<DuplicateGroupsT>>
+type FindGroupsT = (range: DateRangeT) => Promise<ActionResultT<DuplicateGroupsT<CandidateT>>>
 
 const candidate = (
   fields: Partial<CandidateT> & Pick<CandidateT, 'source' | 'id'>,
@@ -36,7 +35,7 @@ const candidate = (
   ...fields,
 })
 
-const GROUPS: DuplicateGroupsT = {
+const GROUPS: DuplicateGroupsT<CandidateT> = {
   strong: [
     {
       key: 'strong-1',
@@ -99,7 +98,7 @@ describe('DuplicateFinderDialog', () => {
   })
 
   it('says so when nothing was found', async () => {
-    const empty: DuplicateGroupsT = { strong: [], weak: [] }
+    const empty: DuplicateGroupsT<CandidateT> = { strong: [], weak: [] }
     const { dialog } = await analyse(
       vi.fn<FindGroupsT>(async () => ({ success: true, data: empty })),
     )

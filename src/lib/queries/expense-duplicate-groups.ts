@@ -6,21 +6,14 @@ import { getDb } from '@/lib/db/get-db'
 import {
   loadDraftCandidates,
   loadTransactionCandidates,
-  type CandidateT,
+  matchFilterOf,
 } from '@/lib/db/expense-duplicate-candidates'
+import { RECEIPT_TYPES } from '@/lib/expense-duplicates/constants'
 import { findDuplicatePairs, groupDuplicates } from '@/lib/expense-duplicates/find-duplicates'
-import { cents, documentNumberOf } from '@/lib/expense-duplicates/match'
-import type { DuplicateGroupT } from '@/lib/expense-duplicates/types'
+import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/types'
 import { withDateRange, withoutDateRange } from '@/lib/queries/transfer-filters'
-import { isClosedRange, type DateRangeT } from '@/lib/utils/date-range'
+import { isAllTime, isClosedRange, type DateRangeT } from '@/lib/utils/date-range'
 import type { ActionResultT } from '@/types/action'
-
-export type DuplicateGroupsT = {
-  strong: DuplicateGroupT<CandidateT>[]
-  weak: DuplicateGroupT<CandidateT>[]
-}
-
-const RECEIPT_TYPES = ['INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET', 'OTHER']
 
 /**
  * The table's scope picks which transakcje are checked; each is compared with the whole company,
@@ -29,40 +22,39 @@ const RECEIPT_TYPES = ['INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET', 'OTHER']
 export async function findExpenseDuplicateGroups(
   where: Where,
   range: DateRangeT,
-): Promise<ActionResultT<DuplicateGroupsT>> {
-  const isAllTime = range.from === undefined && range.to === undefined
-  if (!isAllTime && !isClosedRange(range)) {
+): Promise<ActionResultT<DuplicateGroupsT<CandidateT>>> {
+  if (!isAllTime(range) && !isClosedRange(range)) {
     return { success: false, error: 'Nieprawidłowy zakres dat' }
   }
 
   return protectedAction('findExpenseDuplicateGroups', async ({ payload }) => {
-    const scoped = await payload.find({
-      collection: 'transactions',
-      where: {
-        and: [
-          isClosedRange(range) ? withDateRange(where, range) : withoutDateRange(where),
-          { type: { in: RECEIPT_TYPES } },
-          { cancelled: { not_equals: true } },
-        ],
-      },
-      depth: 0,
-      pagination: false,
-      // Only the ids are read, and `id` comes back with any select.
-      select: { type: true },
-    })
     const db = await getDb(payload)
-    // Every undecided paragon in the queue is a probe whatever the table shows: each can still be
-    // booked, and the queue is short.
-    const probes = (
-      await Promise.all([
-        loadTransactionCandidates(db, { transactionIds: scoped.docs.map((doc) => doc.id) }),
-        loadDraftCandidates(db),
-      ])
-    ).flat()
-    const filter = {
-      amountsCents: probes.flatMap((probe) => cents(probe.amount) ?? []),
-      documentNumbers: probes.flatMap((probe) => documentNumberOf(probe) ?? []),
-    }
+    const [scoped, draftProbes] = await Promise.all([
+      payload.find({
+        collection: 'transactions',
+        where: {
+          and: [
+            isClosedRange(range) ? withDateRange(where, range) : withoutDateRange(where),
+            { type: { in: [...RECEIPT_TYPES] } },
+            { cancelled: { not_equals: true } },
+          ],
+        },
+        depth: 0,
+        pagination: false,
+        // Only the ids are read, and `id` comes back with any select.
+        select: { type: true },
+      }),
+      // Every undecided paragon in the queue is a probe whatever the table shows: each can still be
+      // booked, and the queue is short.
+      loadDraftCandidates(db),
+    ])
+    const probes = [
+      ...(await loadTransactionCandidates(db, {
+        transactionIds: scoped.docs.map((doc) => doc.id),
+      })),
+      ...draftProbes,
+    ]
+    const filter = matchFilterOf(probes)
     const [transactions, drafts] = await Promise.all([
       loadTransactionCandidates(db, filter),
       loadDraftCandidates(db, { filter }),

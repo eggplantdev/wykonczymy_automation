@@ -45,6 +45,9 @@ export const isClosedRange = (range: DateRangeT): range is ClosedDateRangeT => {
   return Boolean(from && to && from <= to)
 }
 
+export const isAllTime = (range: DateRangeT): boolean =>
+  range.from === undefined && range.to === undefined
+
 /** Lexical on purpose: `YYYY-MM-DD` sorts chronologically, so no date parsing is involved. */
 export const isWithinRange = (day: string, { from, to }: DateRangeT): boolean =>
   (from === undefined || day >= from) && (to === undefined || day <= to)

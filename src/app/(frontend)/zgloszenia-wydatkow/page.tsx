@@ -4,10 +4,11 @@ import {
   fetchPendingExpenseDrafts,
 } from '@/lib/queries/worker-expense-drafts'
 import { parseQueueFilters } from '@/lib/queries/queue-filters'
-import { isExpenseDraftStatus } from '@/lib/constants/worker-expense-drafts'
+import { isExpenseDraftStatus, OPEN_DRAFT_PARAM } from '@/lib/constants/worker-expense-drafts'
 import { parseExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { parsePagination } from '@/lib/utils/pagination'
+import { parseIdParam } from '@/lib/utils/parse-id-param'
 import { ExpenseDraftsDataTable } from '@/components/worker-expenses/expense-drafts-data-table'
 import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expense-drafts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -28,7 +29,6 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
   ])
 
   const referenceData = { ...referenceDataBase, currentUserId: user.id, currentUserRole: user.role }
-  const openDraftId = Number(sp.zgloszenie)
 
   return (
     <PageWrapper title={PAGE_TITLES.expenseDrafts}>
@@ -36,7 +36,7 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
         drafts={pendingDrafts}
         referenceData={referenceData}
         storageKey="expense-drafts-page:pending"
-        openDraftId={Number.isInteger(openDraftId) && openDraftId > 0 ? openDraftId : undefined}
+        openDraftId={parseIdParam(sp[OPEN_DRAFT_PARAM])}
       />
       <ExpenseDraftsDataTable
         data={drafts.rows}

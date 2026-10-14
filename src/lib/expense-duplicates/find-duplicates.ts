@@ -1,5 +1,5 @@
 import { cents, documentNumberOf, isWeakMatch, matchExpense, type MatchReasonT } from './match'
-import type { DocumentT, DuplicateGroupT, DuplicatePairT } from './types'
+import type { DocumentT, DuplicateGroupT, DuplicateGroupsT, DuplicatePairT } from './types'
 
 const REASON_ORDER: MatchReasonT[] = ['same-number', 'same-receipt', 'same-amount']
 
@@ -24,16 +24,10 @@ function areSiblings(a: DocumentT, b: DocumentT): boolean {
   return booked.readRows.length === 0 || booked.readRows.some((read) => row.readRows.includes(read))
 }
 
-function bucketBy<D>(documents: D[], keyOf: (doc: D) => string | number | null) {
-  const buckets = new Map<string | number, D[]>()
-  for (const doc of documents) {
-    const key = keyOf(doc)
-    if (key === null) continue
-    const bucket = buckets.get(key)
-    if (bucket) bucket.push(doc)
-    else buckets.set(key, [doc])
-  }
-  return buckets
+function bucketBy<D, K>(documents: D[], keyOf: (doc: D) => K | null): Map<K, D[]> {
+  const buckets = Map.groupBy(documents, keyOf)
+  buckets.delete(null)
+  return buckets as Map<K, D[]>
 }
 
 const timestamp = (doc: DocumentT) => (doc.date ? Date.parse(doc.date) || 0 : 0)
@@ -43,12 +37,14 @@ const newestFirst = (a: DocumentT, b: DocumentT) =>
 /**
  * Every match needs equal cents or an equal number, so a probe is compared only with the documents
  * sharing one of its buckets — never all pairs. Each unordered pair comes back once, with at least
- * one probe in it.
+ * one probe in it. A probe is loaded again as a candidate when it matches itself, so documents are
+ * deduplicated by key first.
  */
 export function findDuplicatePairs<D extends DocumentT>(
-  documents: D[],
+  loaded: D[],
   isProbe: (doc: D) => boolean,
 ): DuplicatePairT<D>[] {
+  const documents = [...new Map(loaded.map((doc) => [doc.key, doc])).values()]
   const byCents = bucketBy(documents, (doc) => cents(doc.amount))
   const byNumber = bucketBy(documents, documentNumberOf)
   const seen = new Set<string>()
@@ -109,7 +105,7 @@ const byNewestMember = <D extends DocumentT>(a: DuplicateGroupT<D>, b: Duplicate
  */
 export function groupDuplicates<D extends DocumentT>(
   pairs: DuplicatePairT<D>[],
-): { strong: DuplicateGroupT<D>[]; weak: DuplicateGroupT<D>[] } {
+): DuplicateGroupsT<D> {
   const strongPairs = pairs.filter((pair) => !isWeakMatch(pair.reasons))
   const root = strongComponents(strongPairs)
 

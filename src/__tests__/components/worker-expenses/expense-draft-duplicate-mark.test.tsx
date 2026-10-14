@@ -14,7 +14,7 @@ import {
 import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense-form'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
-import type { DuplicateMatchT } from '@/lib/queries/expense-draft-duplicates'
+import type { DuplicateMatchT } from '@/lib/expense-duplicates/types'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 

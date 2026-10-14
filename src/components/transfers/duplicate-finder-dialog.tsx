@@ -13,22 +13,30 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { settleAction } from '@/lib/utils/settle-action'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { pluralize } from '@/lib/utils/polish-plural'
-import { ALL_TIME, isClosedRange, urlDateRange, type DateRangeT } from '@/lib/utils/date-range'
-import type { CandidateT } from '@/lib/db/expense-duplicate-candidates'
-import type { DuplicateGroupT } from '@/lib/expense-duplicates/types'
-import type { DuplicateGroupsT } from '@/lib/queries/expense-duplicate-groups'
-import type { DuplicateMatchT } from '@/lib/queries/expense-draft-duplicates'
+import {
+  ALL_TIME,
+  isAllTime,
+  isClosedRange,
+  urlDateRange,
+  type DateRangeT,
+} from '@/lib/utils/date-range'
+import type {
+  CandidateT,
+  DuplicateGroupT,
+  DuplicateGroupsT,
+  DuplicateMatchT,
+} from '@/lib/expense-duplicates/types'
 import type { ActionResultT } from '@/types/action'
 
 type DuplicateFinderDialogPropsT = {
-  findGroups: (range: DateRangeT) => Promise<ActionResultT<DuplicateGroupsT>>
+  findGroups: (range: DateRangeT) => Promise<ActionResultT<DuplicateGroupsT<CandidateT>>>
 }
 
 type FinderStateT =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'done'; groups: DuplicateGroupsT }
+  | { status: 'done'; groups: DuplicateGroupsT<CandidateT> }
 
 const IDLE: FinderStateT = { status: 'idle' }
 const DOCUMENT_FORMS = ['dokument', 'dokumenty', 'dokumentów'] as const
@@ -47,10 +55,9 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
   const [state, setState] = useState<FinderStateT>(IDLE)
   const request = useLatestRequest()
 
-  const isAllTime = range.from === undefined && range.to === undefined
   const isComplete = Boolean(range.from && range.to)
   const isInverted = isComplete && !isClosedRange(range)
-  const canAnalyse = (isAllTime || isClosedRange(range)) && state.status !== 'loading'
+  const canAnalyse = (isAllTime(range) || isClosedRange(range)) && state.status !== 'loading'
 
   async function analyse() {
     const isLatest = request.start()
@@ -105,7 +112,7 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
                 Analizuj
               </Button>
             </div>
-            {!isAllTime && !isComplete && (
+            {!isAllTime(range) && !isComplete && (
               <span className="text-muted-foreground text-sm">
                 Wybierz obie daty albo wyczyść zakres, żeby sprawdzić cały okres.
               </span>

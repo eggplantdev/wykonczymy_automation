@@ -5,18 +5,12 @@ import { getDb } from '@/lib/db/get-db'
 import {
   loadDraftCandidates,
   loadTransactionCandidates,
-  type CandidateT,
+  matchFilterOf,
 } from '@/lib/db/expense-duplicate-candidates'
 import { findDuplicatePairs } from '@/lib/expense-duplicates/find-duplicates'
-import {
-  cents,
-  documentNumberOf,
-  isWeakMatch,
-  type MatchVerdictT,
-} from '@/lib/expense-duplicates/match'
+import { isWeakMatch } from '@/lib/expense-duplicates/match'
+import type { DuplicateMatchT } from '@/lib/expense-duplicates/types'
 import type { ActionResultT } from '@/types/action'
-
-export type DuplicateMatchT = MatchVerdictT & CandidateT
 
 export type ParagonDuplicatesT = {
   readRow: number
@@ -34,10 +28,7 @@ export async function findExpenseDraftDuplicates(
     const probes = await loadDraftCandidates(db, { draftId })
     if (probes.length === 0) return { success: true, data: [] }
 
-    const filter = {
-      amountsCents: probes.flatMap((probe) => cents(probe.amount) ?? []),
-      documentNumbers: probes.flatMap((probe) => documentNumberOf(probe) ?? []),
-    }
+    const filter = matchFilterOf(probes)
     // The zgłoszenie's own paragony are candidates too — a paragon sent twice in it is a duplicate.
     const [transactions, drafts] = await Promise.all([
       loadTransactionCandidates(db, filter),

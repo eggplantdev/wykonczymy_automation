@@ -5,7 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
 import type { RoleT } from '@/lib/auth/roles'
 import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
-import type { DuplicateGroupsT } from '@/lib/queries/expense-duplicate-groups'
+import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/types'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
@@ -159,7 +159,10 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  async function groupsOf(where: Where, range: DateRangeT = OCTOBER): Promise<DuplicateGroupsT> {
+  async function groupsOf(
+    where: Where,
+    range: DateRangeT = OCTOBER,
+  ): Promise<DuplicateGroupsT<CandidateT>> {
     authState.role = 'OWNER'
     const result = await findExpenseDuplicateGroups(where, range)
     if (!result.success) throw new Error(result.error)
@@ -167,7 +170,7 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
   }
 
   // The shared test DB carries the restored dump's own duplicates, so only our fixtures are read.
-  const ourGroups = (groups: DuplicateGroupsT['strong']) =>
+  const ourGroups = (groups: DuplicateGroupsT<CandidateT>['strong']) =>
     groups
       .map((group) =>
         group.members

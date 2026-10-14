@@ -137,9 +137,13 @@ describe('zgłoszenie bez inwestycji', () => {
 describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
   beforeEach(() => {
     readExpenseDraftAction.mockResolvedValue({ success: true, data: { aiRead: read } })
+    window.history.replaceState(null, '', '/zgloszenia-wydatkow?zgloszenie=7&status=pending')
   })
 
-  it('otwiera dialog wskazanego zgłoszenia raz i zdejmuje parametr z adresu', async () => {
+  // A navigation on arrival discarded the dialog's in-flight server actions, so the duplicate
+  // check never settled; the parameter now goes only when the dialog closes.
+  it('otwiera dialog wskazanego zgłoszenia raz, a parametr zdejmuje dopiero przy zamknięciu', async () => {
+    const user = userEvent.setup()
     const { rerender } = render(
       <PendingExpenseDrafts
         drafts={[draft]}
@@ -149,8 +153,8 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
     )
 
     expect(await screen.findByDisplayValue('Klej do płytek')).toBeInTheDocument()
-    expect(replace).toHaveBeenCalledTimes(1)
-    expect(replace.mock.calls[0][0]).not.toContain('zgloszenie')
+    expect(replace).not.toHaveBeenCalled()
+    expect(window.location.search).toBe('?zgloszenie=7&status=pending')
 
     rerender(
       <PendingExpenseDrafts
@@ -160,13 +164,18 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
       />,
     )
     expect(readExpenseDraftAction).toHaveBeenCalledTimes(1)
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(window.location.search).toBe('?status=pending')
   })
 
   it('o rozpatrzonym już zgłoszeniu mówi toastem i niczego nie otwiera, także przy pustej kolejce', () => {
     render(<PendingExpenseDrafts drafts={[]} referenceData={referenceData} openDraftId={99} />)
 
-    expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie jest już rozpatrzone', 'warning')
+    expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie zostało już rozpatrzone.', 'warning')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(replace).toHaveBeenCalledTimes(1)
+    expect(replace).not.toHaveBeenCalled()
+    expect(window.location.search).toBe('?status=pending')
   })
 })

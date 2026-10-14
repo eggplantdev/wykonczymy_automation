@@ -1,28 +1,25 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { ExpenseDocT } from '@/lib/expense-duplicates/match'
-import type { DocumentT } from '@/lib/expense-duplicates/types'
+import { RECEIPT_TYPES } from '@/lib/expense-duplicates/constants'
+import { cents, documentNumberOf, type ExpenseDocT } from '@/lib/expense-duplicates/match'
+import type { CandidateT } from '@/lib/expense-duplicates/types'
 import type { DbExecutorT } from './get-db'
 import { expenseDraftReadRowSchema, type ExpenseDraftReadRowT } from './expense-draft-read'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 import { normalizedNumber, noteLine1 } from './document-number-sql'
 import { MEDIA_JSON, transactionInvoicesJson } from './media-json'
+import { decidedReadRows } from './worker-expense-drafts'
 import { inList, type SqlT } from './sql-list'
 import type { PreviewFileT } from '@/types/media'
 
-// The types a receipt gets booked under — Orlen 614,42 zł went in three times as OTHER.
-const RECEIPT_TYPES = sql`('INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET', 'OTHER')`
-
-// A pending zgłoszenie can match through several of its paragony, so `id` alone repeats — `key`
-// tells them apart.
-export type CandidateT = DocumentT & {
-  date: string
-  investmentId: number | null
-  submitterName: string | null
-  investmentName: string | null
-  pages: PreviewFileT[]
-}
+const IS_RECEIPT = inList(sql`t.type`, RECEIPT_TYPES)
 
 type MatchFilterT = { amountsCents: number[]; documentNumbers: string[] }
+
+/** What could match the probes — each value bound once, however many probes share it. */
+export const matchFilterOf = (probes: ExpenseDocT[]): MatchFilterT => ({
+  amountsCents: [...new Set(probes.flatMap((probe) => cents(probe.amount) ?? []))],
+  documentNumbers: [...new Set(probes.flatMap((probe) => documentNumberOf(probe) ?? []))],
+})
 
 // The finder probes the transakcje its scope resolved to; everyone else loads by what could match.
 export type TransactionSelectorT = MatchFilterT | { transactionIds: number[] }
@@ -88,7 +85,7 @@ async function loadBookedTransactions(
     LEFT JOIN worker_expense_draft_transfers dt ON dt.transfer_id = t.id
     LEFT JOIN worker_expense_drafts src ON src.id = dt.draft_id
     LEFT JOIN users drafter ON drafter.id = src.worker_id
-    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE
+    WHERE ${IS_RECEIPT} AND t.cancelled IS NOT TRUE
       AND ${selected(selector, (filter) => amountOrNumber(sql`t.amount`, [sql`t.document_number`, noteLine1(sql`t.invoice_note`)], filter))}
   `)
   return res.rows.map((row) => ({
@@ -132,7 +129,7 @@ async function loadMergedParagony(
     JOIN transactions t ON t.id = p.transfer_id
     LEFT JOIN investments i ON i.id = t.investment_id
     LEFT JOIN users w ON w.id = p.worker_id
-    WHERE t.type IN ${RECEIPT_TYPES} AND t.cancelled IS NOT TRUE
+    WHERE ${IS_RECEIPT} AND t.cancelled IS NOT TRUE
       AND ${selected(selector, (filter) => readRowMatches(sql`p.read_row`, filter))}
   `)
   return res.rows.flatMap((row) => {
@@ -158,23 +155,13 @@ async function loadMergedParagony(
 
 type DraftReadSelectorT = { filter?: MatchFilterT; draftId?: number }
 
-// A decided read row is booked or refused — it can't be booked again, and probing it would only
-// match the transakcja booked from it.
-const DECIDED_READ_ROWS = sql`
-  SELECT dt.draft_id, unnest(dt.read_rows) AS read_row FROM worker_expense_draft_transfers dt
-  UNION
-  SELECT sr.draft_id, sr.read_row FROM worker_expense_draft_skipped_receipts sr
-  WHERE sr.read_row IS NOT NULL
-`
-
 /** The undecided read rows of pending zgłoszenia — every one, one zgłoszenie's, or those that could match. */
 export async function loadDraftCandidates(
   db: DbExecutorT,
   { filter, draftId }: DraftReadSelectorT = {},
 ): Promise<CandidateT[]> {
   const res = await db.execute(sql`
-    WITH decided AS (${DECIDED_READ_ROWS}),
-    read_rows AS (
+    WITH read_rows AS (
       SELECT d.id, d.sent_at, d.worker_id, d.investment_id, r.value AS read_row, r.ordinality
       FROM worker_expense_drafts d
       CROSS JOIN LATERAL jsonb_array_elements(d.ai_read -> 'rows') WITH ORDINALITY r(value, ordinality)
@@ -190,16 +177,14 @@ export async function loadDraftCandidates(
     FROM read_rows rr
     JOIN users w ON w.id = rr.worker_id
     LEFT JOIN investments i ON i.id = rr.investment_id
-    WHERE NOT EXISTS (
-        SELECT 1 FROM decided dc WHERE dc.draft_id = rr.id AND dc.read_row = rr.ordinality - 1
-      )
+    -- Probing a decided read row would only match the transakcja booked from it.
+    WHERE rr.ordinality - 1 NOT IN (${decidedReadRows(sql`rr.id`)})
       ${filter ? sql`AND ${readRowMatches(sql`rr.read_row`, filter)}` : sql``}
     ORDER BY rr.id, rr.ordinality
   `)
   return res.rows.flatMap((row) => {
     const read = expenseDraftReadRowSchema.safeParse(row.read_row)
     if (!read.success) return []
-    // The key keeps the 1-based ordinality it always had; the origin is the 0-based read row.
     const readRow = Number(row.ordinality) - 1
     return [
       {

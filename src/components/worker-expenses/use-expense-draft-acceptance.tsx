@@ -19,10 +19,12 @@ import {
 } from '@/lib/actions/worker-expense-drafts'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicates'
+import { OPEN_DRAFT_PARAM } from '@/lib/constants/worker-expense-drafts'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { ExpenseDraftMediaT, ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { settleAction } from '@/lib/utils/settle-action'
+import { stripSearchParam } from '@/lib/utils/strip-search-param'
 import { toastMessage } from '@/lib/utils/toast'
 import { warsawToday } from '@/lib/utils/days'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
@@ -184,6 +186,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     toastMessage(duplicateOf ? 'Zgłoszenie odrzucone jako duplikat' : 'Zgłoszenie odrzucone')
     closeDialog()
     setAccepting(undefined)
+    stripSearchParam(OPEN_DRAFT_PARAM)
     router.refresh()
   }
 
@@ -201,6 +204,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
           description={accepting.draft.note ?? undefined}
           className="sm:max-w-dialog-2xl"
           onClose={() => {
+            // So a reload does not reopen the zgłoszenie the duplicate finder linked to.
+            stripSearchParam(OPEN_DRAFT_PARAM)
             if (!hasDecided.current) return
             hasDecided.current = false
             router.refresh()
