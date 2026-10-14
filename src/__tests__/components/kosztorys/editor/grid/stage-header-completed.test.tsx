@@ -18,15 +18,16 @@ const stage = (completed: boolean): KosztorysStageT => ({
 
 const onSetCompleted = vi.fn()
 
+const OPS = {
+  rename: vi.fn(),
+  remove: vi.fn(),
+  setPlane: vi.fn(),
+  setCompleted: onSetCompleted,
+  setSplit: vi.fn(),
+}
+
 function renderEditorHeader(completed: boolean) {
-  render(
-    <StageHeader
-      stage={stage(completed)}
-      onRename={vi.fn()}
-      onRemove={vi.fn()}
-      onSetCompleted={onSetCompleted}
-    />,
-  )
+  render(<StageHeader stage={stage(completed)} ops={OPS} />)
   return userEvent.setup()
 }
 

@@ -35,17 +35,16 @@ const stage = (plane: ToolPlaneT | null): KosztorysStageT => ({
 const onSetPlane = vi.fn()
 const onSetSplit = vi.fn()
 
+const OPS = {
+  rename: vi.fn(),
+  remove: vi.fn(),
+  setPlane: onSetPlane,
+  setCompleted: vi.fn(),
+  setSplit: onSetSplit,
+}
+
 function renderHeader(plane: ToolPlaneT | null) {
-  render(
-    <StageHeader
-      stage={stage(plane)}
-      onRename={vi.fn()}
-      onRemove={vi.fn()}
-      onSetPlane={onSetPlane}
-      workers={WORKERS}
-      onSetSplit={onSetSplit}
-    />,
-  )
+  render(<StageHeader stage={stage(plane)} ops={OPS} workers={WORKERS} />)
   return userEvent.setup()
 }
 
@@ -136,7 +135,7 @@ describe('Nagłówek etapu — kto pracuje', () => {
           },
         }}
         workers={TWO}
-        onSetSplit={onSetSplit}
+        ops={OPS}
       />,
     )
     expect(screen.getByText('Anna +1')).toBeInTheDocument()
@@ -147,7 +146,7 @@ describe('Nagłówek etapu — kto pracuje', () => {
       <StageHeader
         stage={{ ...stage('w_tools'), split: oneWorkerSplit(ANNA) }}
         workers={WORKERS}
-        onSetSplit={onSetSplit}
+        ops={OPS}
         scaledDown
       />,
     )

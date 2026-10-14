@@ -17,6 +17,7 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import type { ActionErrorCodeT, ActionResultT } from '@/types/action'
+import type { StageOpsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 
 type ArgsT = {
   investmentId: number
@@ -143,10 +144,12 @@ export function useKosztorysStageOps({
     stages,
     adoptStage,
     handleAddStage,
-    handleRemoveStage,
-    handleRenameStage,
-    handleSetStagePlane,
-    handleSetStageCompleted,
-    handleSetStageSplit,
+    stageOps: {
+      rename: handleRenameStage,
+      remove: handleRemoveStage,
+      setPlane: handleSetStagePlane,
+      setCompleted: handleSetStageCompleted,
+      setSplit: handleSetStageSplit,
+    } satisfies StageOpsT,
   }
 }

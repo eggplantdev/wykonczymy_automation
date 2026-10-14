@@ -31,17 +31,14 @@ import { cn } from '@/lib/utils/cn'
 import type { SortPickT } from '@/lib/kosztorys/row-view'
 import { resolveWorkerName } from '@/lib/kosztorys/payouts-by-worker'
 import { restHolderId } from '@/lib/kosztorys/stage-split'
-import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type { StageOpsT } from './kosztorys-v2-column-opts'
+import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type PropsT = {
   stage: KosztorysStageT
-  onRename?: (stageId: number, label: string) => void
-  onRemove?: (stageId: number) => void
-  onSetPlane?: (stageId: number, plane: ToolPlaneT) => void
-  onSetCompleted?: (stageId: number, completed: boolean) => void
+  ops?: StageOpsT
   workers?: WorkerRefT[]
-  onSetSplit?: (stageId: number, split: StageSplitT | null) => void
   // Sorting by this etap's quantity — its header is the only place that offers it.
   sort?: SortPickT | null
   onSort?: (pick: SortPickT | null) => void
@@ -56,12 +53,8 @@ type PropsT = {
 
 export function StageHeader({
   stage,
-  onRename,
-  onRemove,
-  onSetPlane,
-  onSetCompleted,
+  ops,
   workers,
-  onSetSplit,
   sort = null,
   onSort,
   onPersistOrder,
@@ -73,7 +66,7 @@ export function StageHeader({
   const gridDictionary = useTranslation('grid')
   const label = stageLabel(stage, gridDictionary)
   const { editing, start, inputProps } = useInlineRename((name) =>
-    onRename?.(stage.id, name.trim()),
+    ops?.rename(stage.id, name.trim()),
   )
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [splitOpen, setSplitOpen] = useState(false)
@@ -89,9 +82,9 @@ export function StageHeader({
 
   const completedMark = stage.completed && <StageCompletedMark />
 
-  // No handlers = a read-only mount (preview): render the bare label, no menu/rename/delete AND no
-  // plane icon or warning — the rozliczenie is internal subcontractor information, never client-facing.
-  if (!onRename && !onRemove && !onSetPlane && !onSetCompleted && !onSetSplit) {
+  // No ops = a read-only mount (preview): render the bare label, no menu/rename/delete AND no plane
+  // icon or warning — the rozliczenie is internal subcontractor information, never client-facing.
+  if (!ops) {
     return (
       <span className="inline-flex min-w-0 items-center gap-1 px-1">
         {completedMark}
@@ -154,33 +147,25 @@ export function StageHeader({
         triggerClassName={cn(sort && 'text-primary')}
         triggerTitle="Opcje etapu"
       >
-        {onSetPlane && (
-          <>
-            <DropdownMenuLabel>{COPY.planeSectionLabel}</DropdownMenuLabel>
-            {/* Single-select skinned as checkboxes. onCheckedChange ignores its arg — re-picking the
-                active plane can't unset it. */}
-            {TOOL_PLANES.map((plane) => (
-              <DropdownMenuCheckboxRow
-                key={plane}
-                checked={stage.plane === plane}
-                onCheckedChange={() => onSetPlane(stage.id, plane)}
-                label={PLANE_LABELS[plane]}
-                trailing={planeIcon(plane)}
-              />
-            ))}
-            <DropdownMenuSeparator />
-          </>
-        )}
-        {onSetCompleted && (
-          <>
-            <DropdownMenuCheckboxRow
-              checked={stage.completed}
-              onCheckedChange={(checked) => onSetCompleted(stage.id, checked === true)}
-              label={gridDictionary.t('stageCompleted')}
-            />
-            <DropdownMenuSeparator />
-          </>
-        )}
+        <DropdownMenuLabel>{COPY.planeSectionLabel}</DropdownMenuLabel>
+        {/* Single-select skinned as checkboxes. onCheckedChange ignores its arg — re-picking the
+            active plane can't unset it. */}
+        {TOOL_PLANES.map((plane) => (
+          <DropdownMenuCheckboxRow
+            key={plane}
+            checked={stage.plane === plane}
+            onCheckedChange={() => ops.setPlane(stage.id, plane)}
+            label={PLANE_LABELS[plane]}
+            trailing={planeIcon(plane)}
+          />
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuCheckboxRow
+          checked={stage.completed}
+          onCheckedChange={(checked) => ops.setCompleted(stage.id, checked === true)}
+          label={gridDictionary.t('stageCompleted')}
+        />
+        <DropdownMenuSeparator />
         {onSort && (
           <>
             <SortMenuItems active={sort} onSort={onSort} onPersistOrder={onPersistOrder} />
@@ -197,27 +182,21 @@ export function StageHeader({
           <Pencil />
           {COPY.renameAction}
         </DropdownMenuItem>
-        {onRemove && (
-          <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
-            <Trash2 />
-            {COPY.removeAction}
-          </DropdownMenuItem>
-        )}
-        {onSetSplit && (
-          <>
-            <DropdownMenuSeparator />
-            {/* Disabled until a rozliczenie exists: the settlement pass skips a plane-less etap
-                before it computes any value, so a split made here would divide a silent 0 zł. */}
-            <DropdownMenuItem disabled={stage.plane == null} onSelect={() => setSplitOpen(true)}>
-              <Users />
-              {COPY.splitAction}
-            </DropdownMenuItem>
-            {stage.plane == null && (
-              <Description size="xs" className="px-2 py-1.5">
-                {COPY.workerNeedsPlane}
-              </Description>
-            )}
-          </>
+        <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
+          <Trash2 />
+          {COPY.removeAction}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {/* Disabled until a rozliczenie exists: the settlement pass skips a plane-less etap before it
+            computes any value, so a split made here would divide a silent 0 zł. */}
+        <DropdownMenuItem disabled={stage.plane == null} onSelect={() => setSplitOpen(true)}>
+          <Users />
+          {COPY.splitAction}
+        </DropdownMenuItem>
+        {stage.plane == null && (
+          <Description size="xs" className="px-2 py-1.5">
+            {COPY.workerNeedsPlane}
+          </Description>
         )}
       </HeaderMenu>
 
@@ -227,19 +206,19 @@ export function StageHeader({
         description={COPY.removeConfirm.description}
         confirmLabel={COPY.removeConfirm.confirmLabel}
         onConfirm={() => {
-          onRemove?.(stage.id)
+          ops.remove(stage.id)
           setConfirmOpen(false)
         }}
         onCancel={() => setConfirmOpen(false)}
       />
 
-      {splitOpen && onSetSplit && (
+      {splitOpen && (
         <StageSplitDialog
           stageLabel={label}
           split={stage.split}
           pool={executedValue}
           workers={allWorkers}
-          onSave={(split) => onSetSplit(stage.id, split)}
+          onSave={(split) => ops.setSplit(stage.id, split)}
           onClose={() => setSplitOpen(false)}
         />
       )}

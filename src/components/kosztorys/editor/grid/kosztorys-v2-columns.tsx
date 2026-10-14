@@ -272,12 +272,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const header = (
       <StageHeader
         stage={st}
-        onRename={opts.onRenameStage}
-        onRemove={opts.onRemoveStage}
-        onSetPlane={opts.onSetStagePlane}
-        onSetCompleted={opts.onSetStageCompleted}
+        ops={opts.stageOps}
         workers={opts.workers}
-        onSetSplit={opts.onSetStageSplit}
         sort={activeSortPick(opts.sort, qtyField)}
         onSort={opts.onSetSort && ((pick) => opts.onSetSort?.(qtyField, pick))}
         onPersistOrder={opts.onPersistKosztorysOrder}
