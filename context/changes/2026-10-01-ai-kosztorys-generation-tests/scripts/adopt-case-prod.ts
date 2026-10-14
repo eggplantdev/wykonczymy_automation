@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
-import { api, BASE, callAction, itemsOf, NOTES_SEPARATOR, resolveActions } from './prod-client'
+import { api, BASE, callAction, itemsOf, resolveActions } from './prod-client'
 
 type AssetT = { id: number; kind: string | null; mimeType: string; filename: string; url: string }
 type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
@@ -71,13 +71,16 @@ async function run() {
         ' | ',
       ),
     )
-  const mail = (investment.notes ?? '').split(NOTES_SEPARATOR).at(-1)?.trim() ?? ''
   mkdirSync(path.join(CASE_DIR, 'inputs'), { recursive: true })
   writeFileSync(
     path.join(CASE_DIR, `inputs/rozpiska-szablon-${PRESET_ID}.txt`),
     rozpiska.join('\n') + '\n',
   )
-  writeFileSync(path.join(CASE_DIR, 'inputs/client-inquiry.md'), mail + '\n')
+  // All of Notatki: people write the new information wherever they like.
+  writeFileSync(
+    path.join(CASE_DIR, 'inputs/client-inquiry.md'),
+    (investment.notes ?? '').trim() + '\n',
+  )
   writeFileSync(
     path.join(CASE_DIR, 'case.json'),
     JSON.stringify(

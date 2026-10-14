@@ -20,7 +20,7 @@ surfaces above all, because those are what the agent computes rather than reads.
 
 **The output is the kosztorys itself, not a message.** The end state is an agent that writes
 Przedmiar, a per-row source (Komentarz) and the missing positions straight into the investment's
-kosztorys in the app, and puts its open questions in the investment notes. A markdown proposal is
+kosztorys in the app, and puts its open questions in the investment's „Uwagi AI”. A markdown proposal is
 an intermediate artifact of the experiment. The point is to automate as much of drafting an offer
 as possible.
 
@@ -93,8 +93,7 @@ list. Re-list `quote` investments without a kosztorys for the next batch.
    `scripts/new-case-prod.ts`. It needs three things, all of which stay outside the repo:
    - `TOKEN_FILE`: a file holding a user's `payload-token`;
    - `SOURCE_JSON`: the client fields `{ name, address, phone, email, contactPerson, notes }`. `notes` is
-     the agent's doubts, the `NOTES_SEPARATOR` line (`prod-client.ts`), then the email text, so the
-     doubts sit above the mail from the start;
+     the email text; step 7 adds the doubts;
    - `FILES_DIR`: the folder of files the client sent.
 
    It uploads every PDF and image in the folder. The kind is guessed from the name: an image is a
@@ -156,15 +155,16 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
    - `measure/przedmiar.json`, `[{ id, qty, note }]` by rozpiska id: Przedmiar and Komentarz on the
      szablon positions;
    - `measure/new-works.json`: new positions appended to their section;
-   - `investment-notes-appendix.txt`: the doubts, put **above** the mail in the investment notes behind
-     `NOTES_SEPARATOR`. A rerun replaces whatever sits above the separator.
+   - `investment-notes-appendix.txt`: the doubts, written to the investment's „Uwagi AI” — a field
+     only this script writes and the app shows read-only. A rerun overwrites it; Notatki are the
+     people's and the script never touches them.
 
    It matches every row before writing anything. It refuses a kosztorys that already has any
-   Przedmiar ≠ 0; `SKIP_ROWS=1` adds only the new works and the notes.
+   Przedmiar ≠ 0; `SKIP_ROWS=1` adds only the new works and „Uwagi AI”.
 
    **AI przedmiar instead of Przedmiar** (`draft` in `case.json`, the `load-ai-draft.ts` shape): no app
    action writes AI przedmiar, so `fill-case-prod.ts` only creates the sekcje the draft lacks (a
-   bathroom or WC one as a copy of „Łazienka”, see step 4 of the fast path) and adds the notes. `scripts/load-draft-prod.sh` (`TOKEN_FILE=… CASE=…`) then writes the rows **straight into
+   bathroom or WC one as a copy of „Łazienka”, see step 4 of the fast path) and writes „Uwagi AI”. `scripts/load-draft-prod.sh` (`TOKEN_FILE=… CASE=…`) then writes the rows **straight into
    the production DB** — ask the user before every run. It runs `src/scripts/load-ai-draft.ts` without
    its `assertLocalDb` from a throwaway worktree of `origin/main` (staging's code reads columns
    production may not have), refuses if main's Payload config lost `push: false`, then runs

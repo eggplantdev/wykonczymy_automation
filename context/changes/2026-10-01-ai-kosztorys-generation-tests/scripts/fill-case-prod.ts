@@ -1,11 +1,10 @@
 // Step 2 of a case on PRODUCTION: writes the agent's result into the investment `new-case-prod.ts`
 // created — Przedmiar + Komentarz on the szablon positions, the new works appended to their sections
 // (a section the kosztorys lacks is created at the end, a bathroom or WC one as a copy of „Łazienka"
-// — see BATHROOM_TEMPLATE), and the notes appendix put above the mail in
-// the investment notes. Everything it needs is in `cases/<CASE>/case.json`.
+// — see BATHROOM_TEMPLATE), and the notes appendix as the investment's „Uwagi AI”. Everything it needs is in `cases/<CASE>/case.json`.
 //
 // A case with a `draft` goes to AI przedmiar instead, which no app action writes (owner, 2026-10-07):
-// this only creates the sections the draft needs and adds the notes, and `src/scripts/load-ai-draft.ts`
+// this only creates the sections the draft needs and writes „Uwagi AI”, and `src/scripts/load-ai-draft.ts`
 // — run from a checkout of what production runs — loads the rows.
 //   TOKEN_FILE=… CASE=02-<slug> [DRY=1] [SKIP_ROWS=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/fill-case-prod.ts
@@ -19,7 +18,6 @@ import {
   itemsOf,
   keyed,
   norm,
-  NOTES_SEPARATOR,
   resolveActions,
   type ItemT,
 } from './prod-client'
@@ -144,7 +142,6 @@ async function run() {
     'insertSectionAction',
     'updateSectionFieldAction',
   ])
-  if (appendix) await resolveActions(`/inwestycje/${kase.investmentId}`, ['updateInvestmentAction'])
   const rowsLine = draft
     ? `draft ${draft.matched} matched + ${newWorks.length} new (the loader writes them)`
     : `${fills.length} rows, ${newWorks.length} new works`
@@ -152,7 +149,7 @@ async function run() {
     ? `, ${renamedTo ? `„${BATHROOM_TEMPLATE}" → „${renamedTo}", ` : ''}copies of „${BATHROOM_TEMPLATE}" (${template.length} rows): ${copies.join(', ') || 'none'}`
     : ''
   console.log(
-    `ok: ${rowsLine}, new sections: ${emptySections.join(', ') || 'none'}${bathroomsLine}, notes appendix: ${appendix ? 'yes' : 'no'}`,
+    `ok: ${rowsLine}, new sections: ${emptySections.join(', ') || 'none'}${bathroomsLine}, Uwagi AI: ${appendix ? 'yes' : 'no'}`,
   )
   // Katalog-matched new works take the katalog's price at write time, so this is exact only when
   // every new work carries its own clientPrice.
@@ -256,27 +253,13 @@ async function run() {
   if (!draft) console.log(`${newWorks.length} new works added`)
 
   if (appendix) {
-    const inv = await api<Record<string, string | null>>(
-      `/investments/${kase.investmentId}?depth=0`,
-    )
-    const fields = [
-      'name',
-      'address',
-      'phone',
-      'email',
-      'contactPerson',
-      'review',
-      'status',
-    ] as const
-    const data = Object.fromEntries(fields.map((f) => [f, inv[f] ?? '']))
-    // Doubts go above the mail; a rerun replaces the previous doubts instead of stacking them.
-    const mail = (inv.notes ?? '').split(NOTES_SEPARATOR).at(-1)?.trim() ?? ''
-    const notes = [appendix, NOTES_SEPARATOR, mail].join('\n\n')
-    await callAction('updateInvestmentAction', `/inwestycje/${kase.investmentId}`, [
-      kase.investmentId,
-      { ...data, notes, presetId: '' },
-    ])
-    console.log('notes appendix added')
+    // „Uwagi AI” are the script's alone, so a rerun overwrites them; Notatki stay the people's.
+    await api(`/investments/${kase.investmentId}?depth=0`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aiNotes: appendix }),
+    })
+    console.log('„Uwagi AI” written')
   }
 
   const total = (await itemsOf(kase.investmentId)).reduce(
