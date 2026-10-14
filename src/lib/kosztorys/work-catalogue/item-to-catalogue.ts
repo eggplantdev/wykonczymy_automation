@@ -7,6 +7,7 @@ import type {
   CatalogueCandidateT,
   CatalogueSourceItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
+import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
 // Pricing reads a whole row; the fields it never touches on this path (quantities, rabat, notatka)
 // are supplied at their neutral values so the two planes can be asked the same question they answer
@@ -30,7 +31,7 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   ownToolsOverrideCoeff: source.ownToolsOverrideCoeff,
   note: null,
   catalogueItemId: null,
-  aiPlannedQty: null,
+  ...NO_AI_DRAFT,
   changeReason: null,
   reviewStatus: null,
   globalDiscountActive: false,

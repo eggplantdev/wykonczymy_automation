@@ -10,6 +10,7 @@ import { HEADER_BLOCK_ROWS, isFooterLabel } from './columns'
 import { referencesAnyColumn } from './formula-refs'
 import { round6 } from '@/lib/utils/round'
 import type { ResolvedLaborColumnsT } from './resolve-columns'
+import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
 // The marker the owner types into Przedmiar + Pomiar on a row that is not a praca. A section header
 // and a footer row are BOTH marked this way — the section name is the only thing separating them.
@@ -194,7 +195,7 @@ export function parseLaborTab(
       ),
       note: null,
       catalogueItemId: null,
-      aiPlannedQty: null,
+      ...NO_AI_DRAFT,
       changeReason: null,
       reviewStatus: null,
     })

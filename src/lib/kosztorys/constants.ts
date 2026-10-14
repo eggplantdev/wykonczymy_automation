@@ -1,4 +1,4 @@
-import type { PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
+import type { KosztorysItemT, PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // „Cena j.m." and „Źródło" are two columns over one field, and both have to agree on which. Literal
 // rather than `keyof ViewPricingT` so a computed-key write still type-checks against the row.
@@ -44,3 +44,16 @@ export const DEFAULT_SECTION_NAME = 'Nowa sekcja'
 // The grid's identity column. Every synthetic row (the „Razem" band and both section bands) puts its
 // caption here instead of a figure, so the three cells must agree on which column that is.
 export const IDENTITY_COLUMN_ID = 'description'
+
+export const NO_AI_DRAFT = {
+  aiPlannedQty: null,
+  aiMissingData: null,
+  aiAssumptions: null,
+  aiNewInformation: null,
+  aiRecheck: false,
+} as const satisfies Required<
+  Pick<
+    KosztorysItemT,
+    'aiPlannedQty' | 'aiMissingData' | 'aiAssumptions' | 'aiNewInformation' | 'aiRecheck'
+  >
+>

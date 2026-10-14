@@ -48,6 +48,10 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         catalogueItemId: null,
         currentPlannedQty: null,
         aiPlannedQty: null,
+        aiMissingData: null,
+        aiAssumptions: null,
+        aiNewInformation: null,
+        aiRecheck: false,
         changeReason: null,
         reviewStatus: null,
       },
@@ -326,6 +330,10 @@ describe('buildImportPlan', () => {
     current.items[0] = {
       ...current.items[0],
       aiPlannedQty: 3,
+      aiMissingData: 'brak rzutu',
+      aiAssumptions: 'przyjęto 3 szt.',
+      aiNewInformation: 'Runda 2 — klient dopisał trzecią jednostkę',
+      aiRecheck: true,
       changeReason: 'AI policzyło za mało',
       reviewStatus: 'edited',
     }
@@ -333,11 +341,23 @@ describe('buildImportPlan', () => {
 
     expect(items.find((row) => row.description === 'montaż jednostki wewnętrznej')).toMatchObject({
       aiPlannedQty: 3,
+      aiMissingData: 'brak rzutu',
+      aiAssumptions: 'przyjęto 3 szt.',
+      aiNewInformation: 'Runda 2 — klient dopisał trzecią jednostkę',
+      aiRecheck: true,
       changeReason: 'AI policzyło za mało',
       reviewStatus: 'edited',
     })
     for (const row of items.filter((r) => r.description !== 'montaż jednostki wewnętrznej')) {
-      expect(row).toMatchObject({ aiPlannedQty: null, changeReason: null, reviewStatus: null })
+      expect(row).toMatchObject({
+        aiPlannedQty: null,
+        aiMissingData: null,
+        aiAssumptions: null,
+        aiNewInformation: null,
+        aiRecheck: false,
+        changeReason: null,
+        reviewStatus: null,
+      })
     }
   })
 

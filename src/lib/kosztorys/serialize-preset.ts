@@ -2,6 +2,7 @@ import 'server-only'
 import type { PayloadRequest } from 'payload'
 import { serializeKosztorys } from './serialize-kosztorys'
 import type { SnapshotPayloadT } from './snapshot-format'
+import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
 // A preset = a snapshot with the job-specific fields stripped, so it seeds a DIFFERENT investment
 // with only the reusable skeleton (sekcje + prace + prices + coefficients/overrides) and the katalog
@@ -34,7 +35,7 @@ export async function serializeKosztorysAsPreset(
       discountValue: 0,
       note: null,
       // The agent's draft and its review are about one job's przedmiar, which the szablon zeroes.
-      aiPlannedQty: null,
+      ...NO_AI_DRAFT,
       changeReason: null,
       reviewStatus: null,
     })),

@@ -1,5 +1,6 @@
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
 // A katalog entry and a praca typed into „Nowa praca" are both spelled in the katalog's columns.
 export type ItemFieldsT = Pick<
@@ -55,7 +56,7 @@ export const itemFromFields = (
   discountValue: 0,
   note: null,
   catalogueItemId,
-  aiPlannedQty: null,
+  ...NO_AI_DRAFT,
   changeReason: null,
   reviewStatus: null,
 })

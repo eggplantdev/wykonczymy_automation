@@ -80,6 +80,10 @@ export type KosztorysItemT = {
   // assumed in its place. Never Komentarz — that one the investor may be shown.
   aiMissingData?: string | null
   aiAssumptions?: string | null
+  // A later AI round (EX-1057): one „Runda N — …” block appended per round that moved this pozycja,
+  // and the flag that round raised. Only the owner's Status pick or typed Przedmiar lowers it.
+  aiNewInformation?: string | null
+  aiRecheck?: boolean
   changeReason: string | null
   reviewStatus: ReviewStatusT | null
 }
@@ -112,6 +116,7 @@ export type ItemPatchT = Partial<
     | 'note'
     | 'changeReason'
     | 'reviewStatus'
+    | 'aiRecheck'
   >
 >
 
