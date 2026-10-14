@@ -662,18 +662,64 @@ the house rules. The owner's kosztorysy are the answer key.
   - the total is within ±10%;
   - every large discrepancy is in the notes as a question.
 
-## Later rounds: the client sends more (decided 2026-10-14, not built)
+## Later rounds: the client sends more (decided 2026-10-14, built in EX-1057)
 
 The usual path, not an edge case: a preliminary offer goes out, the owner reviews it, the client
 answers with a projekt wykonawczy or a list of extras, and the investment gets re-quoted — possibly
-several times. #190 is the first real one (stage „Nowe informacje”).
+several times. #190 is the first real one (stage „Nowe informacje”) and the pilot.
+
+**What a round is made of** — the round-1 pipeline, reused:
+
+| Part                  | Round 1 (today)                  | A later round                                          |
+| --------------------- | -------------------------------- | ------------------------------------------------------ |
+| New files and Notatki | `adopt-case-prod.ts`             | the same download; the round record says which are new |
+| House knowledge       | `dump-knowledge-prod.ts`         | run again — it may have changed since round 1          |
+| Sekcje                | `fill-case-prod.ts`              | the same, without renaming „Łazienka”                  |
+| Pozycje               | `load-draft-sql-prod.ts`         | its round mode                                         |
+| „Uwagi AI”            | the PATCH in `fill-case-prod.ts` | the same PATCH, the whole current state                |
+| Cache + total check   | `touch-kosztorys-prod.ts`        | the same                                               |
+
+**Runbook for round N** (every script takes `TOKEN_FILE=…`; each production write needs the user's go):
+
+1. `CASE=<case> ROUND=N DRY=1 … round-case-prod.ts` — lists the new files and new Notatki lines;
+   without `DRY` it downloads the files and writes `rounds/N/` (`notes.md`, `new-notes.md`,
+   `new-files.txt`, `kosztorys.txt` — every pozycja with the owner's Przedmiar, Status and Powód
+   zmiany, AI przedmiar, Komentarz AI and Nowe informacje) and the record `rounds/N.json`, all under
+   `~/.local/share/wykonczymy-ai-cases/<case>/`. Read-only against production.
+2. `dump-knowledge-prod.ts` — the house knowledge may have changed since the last round.
+3. The agent re-measures everything from the previous reading, `kosztorys.txt` and the new
+   information, and writes only the differences that have a source (below) to
+   `measure/ai-draft-round-N.json`, plus the whole current „Uwagi AI” to
+   `investment-notes-appendix-round-N.txt`.
+4. `ROUND=N DRY=1 … fill-case-prod.ts`, then without `DRY` — sekcje a round needs, Uwagi AI. From
+   round 2 it never renames „Łazienka”.
+5. `ROUND=N DRY=1 … load-draft-sql-prod.ts`, then without `DRY` on the user's go — AI przedmiar, the
+   round block appended to Nowe informacje, the flag raised. It refuses a draft row without its
+   „Runda N — ” block or a qty, a round already loaded, and a production that doesn't return Nowe
+   informacje yet (code not deployed).
+6. `INVESTMENT=<id> … touch-kosztorys-prod.ts` — cache, and the total read back.
+
+A round-draft row is a round-1 row plus its block:
+
+```json
+{
+  "section": "Salon",
+  "description": "…",
+  "qty": 6.4,
+  "newInformation": "Runda 2 — AI przedmiar: 7,5 → 6,4 m²\nPowód: projekt wykonawczy — ściana TV 240 cm"
+}
+```
+
+`clientPrice` only on a pozycja the kosztorys lacks, as in round 1. A row matches by sekcja + opis
+as `kosztorys.txt` shows them **now** — a pozycja the owner renamed since the last round is matched by
+its new name, or the loader adds a duplicate.
 
 - **The AI never writes an owner field.** Inviolable (owner). Przedmiar, Status, Powód zmiany,
   Komentarz and prices belong to people; the AI writes only its own fields — AI przedmiar, „Czego nie
-  było wiadomo”, „Co / ile założono”, and the new „Nowe informacje”. It is not a policy the agent
-  follows but something the loader enforces: an update to an existing pozycja that names any other
-  field throws before writing. Both paths already hold to it: `fill-case-prod.ts` writes no pozycja
-  field, and `load-draft-sql-prod.ts` and the local `load-ai-draft.ts` name only the AI fields.
+  było wiadomo”, „Co / ile założono”, and the new „Nowe informacje” and recheck flag. The SQL loader
+  enforces it by construction: its statements name only those columns, and the draft supplies values,
+  never columns, so no guard is needed. The round mode adds „Nowe informacje” and the flag to that
+  list and nothing else. A pozycja a round adds is a new row (Przedmiar 0), as in round 1.
 - **„Do ponownego sprawdzenia” is a flag, not a Status.** A round that changes a pozycja fills its
   „Nowe informacje” (what changed and why — e.g. „projekt wykonawczy: ściana TV 240 cm → 7,5 → 6,4 m²”)
   and raises a recheck flag. The Status column shows „Do ponownego sprawdzenia” above the owner's
@@ -682,10 +728,10 @@ several times. #190 is the first real one (stage „Nowe informacje”).
   round's record. The flag is needed because a Status the owner clicked never reacts to AI przedmiar,
   while a derived one (Przedmiar = AI przedmiar → Zaakceptowana) silently changes with it — without
   the flag, a round's change on a reviewed pozycja is invisible.
-- **Sections:** a round may add a sekcja (a new bathroom or WC the new information reveals), as a
-  copy of „Łazienka” from the szablon, Przedmiar 0. Renaming the szablon „Łazienka” is a first-round
-  act only; from round 2 a section name may already be the owner's, so the AI proposes a rename in
-  „Uwagi AI” and the owner makes it.
+- **Sekcje:** a round may add a bathroom or WC the new information reveals — `fill-case-prod.ts`
+  imports it from the szablon's „Łazienka” as in round 1, Przedmiar 0. Renaming the szablon
+  „Łazienka” is a first-round act only: from round 2 a section name may already be the owner's, so
+  the script skips the rename, and the AI proposes one in „Uwagi AI” for the owner to make.
 - **The first reading is frozen; every later round appends to „Nowe informacje”** (owner,
   2026-10-14: „chcę widzieć dokładnie, co było w pierwotnej wersji, a co się zmieniło”). „Czego nie
   było wiadomo” and „Co / ile założono” are round 1 and no later round writes them. AI przedmiar
@@ -707,44 +753,52 @@ several times. #190 is the first real one (stage „Nowe informacje”).
   round-1 fields empty. An unknown the client answered is written into the round's block
   („Wyjaśnione: wysokość — projekt podaje 2,70 m”); the original „Nie wiadomo” stays as history.
 
-- **A round re-estimates everything, but loads only a difference** (owner, 2026-10-14). The agent
-  measures the whole kosztorys afresh with everything as input: its previous reading, the owner's
-  Przedmiar / Status / Powód zmiany, and the new information. Each pozycja is then compared with the
-  kosztorys as it stands:
+- **A round re-estimates everything, but its draft holds only a difference** (owner, 2026-10-14).
+  The agent measures the whole kosztorys afresh with everything as input: its previous reading, the
+  owner's Przedmiar / Status / Powód zmiany, and the new information. Each pozycja is then compared
+  with the kosztorys as it stands — and the comparison is the agent's, because only the agent knows
+  whether a difference has a source:
   1. new qty = the owner's Przedmiar → the AI agrees with him: AI przedmiar aligns, no flag;
-  2. a difference with no source in the new information is measuring noise (12,4 vs 12,6 m²) → not
-     loaded, the previous value stays. Where the owner corrected the AI and nothing new touches it,
-     his number is the truth the agent works from;
-  3. a difference with a source — a named new file or a sentence of the new message → new value,
-     „Nowe informacje”, flag.
+  2. a difference with no source in the new information is measuring noise (12,4 vs 12,6 m²) → left
+     out of the draft, the previous value stays. Where the owner corrected the AI and nothing new
+     touches it, his number is the truth the agent works from;
+  3. a difference with a source — a named new file or a sentence of the new message → in the draft
+     with its round block; the loader writes the value, appends the block and raises the flag.
 
   A better document is a source too: on #190 the projekt wykonawczy replaces the brief, so many
   quantities change legitimately without the client mentioning them. A flag costs the owner a
   re-check, which is why noise must not raise one.
 
+  **The round mode differs from round 1 in what it leaves alone:** a pozycja missing from the draft
+  is untouched (round 1 sets it to 0), and the round-1 fields are never written.
+
 - **What is new comes from a per-round record, not from the owner** (owner, 2026-10-14). Each round
-  saves into the case folder what it read: the full Notatki text and the file list (name + date
-  added). The next round diffs the app against it — new sentences and new files are the new
+  saves what it read: the full Notatki text, the file list (name + date added) and the „Uwagi AI” it
+  replaced. The next round diffs the app against it — new sentences and new files are the new
   information. The app keeps no earlier Notatki, so without the record the owner would have to mark
-  what is new by hand.
+  what is new by hand. **The record stays outside the repo** (`~/.local/share/wykonczymy-ai-cases/<CASE>/`,
+  beside the files): Notatki carry the client's name and contacts, and the repo is public.
 - **„Uwagi AI” are rewritten as the current state, and nothing still true may drop out** (owner,
   2026-10-14). Every point of the previous version either stays (a question still open for the
   client stays a question) or is listed in the round's „co się zmieniło” block at the top as answered
   or obsolete, with its source. A point that vanishes without that line is a defect of the round.
-  The previous version is kept in the round record.
-- **Knowledge extraction stays manual and out of this flow** (owner, 2026-10-14): the owner starts it
-  himself, picking investments by stage, and it only adds comments to the Manual and the katalog —
-  nothing worth automating.
 - **A round may change any AI przedmiar, in either direction** (owner, 2026-10-14): raise it, lower
   it, take it to 0 („nie uwzględniajcie okapu”), or add a pozycja beyond the kosztorys (Przedmiar 0).
   Every change carries its reason in „Nowe informacje” and raises the flag — it is a proposal, and
   the owner's Przedmiar does not move until he decides. A pozycja the owner rejected is not offered
   again unless the new information changes it, and then „Nowe informacje” says why.
+- **Knowledge extraction stays manual and out of this flow** (owner, 2026-10-14): the owner starts it
+  himself, picking investments by stage (step 9). One seam: a round sets Etap AI back to
+  „Przeanalizowana”, so after the owner's next review the investment reaches „Recenzja zakończona”
+  again and `collect-reasons-prod.ts` lists every Powód zmiany on it, the lifted ones included.
+  Collect keeps no record: a Powód already in `context/ai-knowledge/` is skipped by hand.
 
 ## Next
 
 - [x] Get the owner's offer for case 1 and compare v1 and v2 against it, position by position
       (2026-10-05, `cases/01-bemowo-125m2/owner-comparison.md`).
+- [ ] **Later rounds** (see that section): built in EX-1057 — run the #190 round 2 pilot with the
+      runbook once the migration is on production.
 - [ ] Confirm the house-rule candidates from `owner-comparison.md` with the owner (15 min).
 - [ ] Ask the client the "do weryfikacji" questions from `measurement.md`: walls behind built-ins,
       karnisz behind maskownice, window heights.

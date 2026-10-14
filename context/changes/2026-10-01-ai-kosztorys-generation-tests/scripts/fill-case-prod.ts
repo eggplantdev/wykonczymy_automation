@@ -4,7 +4,10 @@
 // appendix as „Uwagi AI”. It writes no pozycja field: the AI przedmiar goes in with
 // `load-draft-sql-prod.ts`, and Przedmiar, Status, Powód zmiany and Komentarz are the owner's.
 // Everything it needs is in `cases/<CASE>/case.json`.
-//   TOKEN_FILE=… CASE=02-<slug> [DRY=1] \
+// ROUND=N (a later round, EX-1057) reads `measure/ai-draft-round-<N>.json` and
+// `investment-notes-appendix-round-<N>.txt` instead, and never renames „Łazienka": by then a sekcja
+// name may be the owner's, so every new bathroom is a copy.
+//   TOKEN_FILE=… CASE=02-<slug> [ROUND=2] [DRY=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/fill-case-prod.ts
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -26,6 +29,7 @@ type DraftRowT = {
 }
 
 const DRY = process.env.DRY === '1'
+const ROUND = process.env.ROUND ? Number(process.env.ROUND) : undefined
 const CASE_DIR = path.join(import.meta.dirname, '../cases', process.env.CASE ?? '')
 const read = (file: string) => readFileSync(path.join(CASE_DIR, file), 'utf8')
 const has = (file?: string) => !!file && existsSync(path.join(CASE_DIR, file))
@@ -64,9 +68,13 @@ function fromDraft(draftFile: string, items: ItemT[]) {
 
 async function run() {
   const kase: CaseT = JSON.parse(read('case.json'))
-  if (!has(kase.draft)) throw new Error(`case.json names no draft file that exists (${kase.draft})`)
+  if (ROUND !== undefined && (!Number.isInteger(ROUND) || ROUND < 2))
+    throw new Error(`ROUND must be an integer ≥ 2, got ${process.env.ROUND}`)
+  const draftFile = ROUND ? `measure/ai-draft-round-${ROUND}.json` : kase.draft
+  const appendixFile = ROUND ? `investment-notes-appendix-round-${ROUND}.txt` : kase.notesAppendix
+  if (!has(draftFile)) throw new Error(`no draft file ${draftFile}`)
   const page = `/inwestycje/${kase.investmentId}/kosztorys_v2`
-  const appendix = has(kase.notesAppendix) ? read(kase.notesAppendix).trim() : ''
+  const appendix = has(appendixFile) ? read(appendixFile).trim() : ''
 
   // The analysis runs offline, so seeding from the szablon is the first write of the result rather
   // than of the adopt step. A dry run matches against the szablon instead.
@@ -80,7 +88,7 @@ async function run() {
       items = await itemsOf(kase.investmentId)
     }
   }
-  const draft = fromDraft(kase.draft, items)
+  const draft = fromDraft(draftFile, items)
   const sectionNames = new Set(items.map((i) => sectionKey(i.section.name)))
   const missingSections = [
     ...new Set(draft.sections.filter((s) => !sectionNames.has(sectionKey(s)))),
@@ -95,7 +103,7 @@ async function run() {
   // When no row stays in „Łazienka" itself, it becomes the first bathroom rather than an empty
   // sekcja beside its copies.
   const keepsTemplate = draft.sections.some((s) => sectionKey(s) === sectionKey(BATHROOM_TEMPLATE))
-  const renamedTo = bathrooms.length && !keepsTemplate ? bathrooms[0] : undefined
+  const renamedTo = !ROUND && bathrooms.length && !keepsTemplate ? bathrooms[0] : undefined
   const copies = renamedTo ? bathrooms.slice(1) : bathrooms
   await resolveActions(page, [
     'appendPresetSectionsAction',
@@ -106,7 +114,7 @@ async function run() {
     ? `, ${renamedTo ? `„${BATHROOM_TEMPLATE}" → „${renamedTo}", ` : ''}copies of „${BATHROOM_TEMPLATE}" (${template.length} rows): ${copies.join(', ') || 'none'}`
     : ''
   console.log(
-    `ok: draft ${draft.matched} matched + ${draft.added} new (the loader writes them), new sections: ${emptySections.join(', ') || 'none'}${bathroomsLine}, Uwagi AI: ${appendix ? 'yes' : 'no'}`,
+    `ok: ${ROUND ? `round ${ROUND} (no „${BATHROOM_TEMPLATE}" rename), ` : ''}draft ${draft.matched} matched + ${draft.added} new (the loader writes them), new sections: ${emptySections.join(', ') || 'none'}${bathroomsLine}, Uwagi AI: ${appendix ? 'yes' : 'no'}`,
   )
   console.log(`expected AI przedmiar: ${draft.aiTotal.toFixed(2)} zł`)
   if (DRY) return
