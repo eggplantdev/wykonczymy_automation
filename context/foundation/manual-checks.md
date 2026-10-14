@@ -5038,3 +5038,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Strona inwestycji → „Dodaj zdjęcia lub pliki”: pole nazywa się „Do analizy AI”, a pod nim
       szary dopisek „Zaznacz, jeśli AI ma analizować te pliki — rzuty, projekty, zdjęcia poglądowe.
       Nieoznaczonych AI nie widzi.”; okno dodawania faktury (bez tego pola) wygląda jak wcześniej.
+
+## 2026-10-14 — input-shadow — delikatny cień pól tekstowych
+
+- [ ] Dowolny formularz (np. „Dodaj transakcję”, wyszukiwarka na liście transakcji): pola tekstowe mają
+      lekki cień pod ramką, w trybie jasnym i ciemnym; pole z błędem nadal ma czerwoną ramkę.
