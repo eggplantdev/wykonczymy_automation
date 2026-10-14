@@ -5050,7 +5050,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       „Bardzo mała”, „Mała”, „Średnia” (bez „Duża”); domyślnie zaznaczona „Średnia”, a tabela wygląda
       tak samo jak przed zmianą.
 - [ ] Wybór „Mała”, potem „Bardzo mała”: menu zostaje otwarte, a tekst pozycji i wiersza „Razem”
-      sekcji maleje od razu; tytuł sekcji, nagłówki kolumn i podsumowanie na dole się nie zmieniają.
+      sekcji maleje od razu, razem z kolumną „Jednostka miary”; pasek sekcji (nazwa, liczba pozycji,
+      kwota netto) maleje o ten sam krok i nadal jest wyraźnie większy niż pozycje. Nagłówki kolumn
+      i podsumowanie na dole się nie zmieniają.
       Wysokość wierszy i szerokości kolumn zostają te same.
 - [ ] Z włączonym „Dopasuj wysokość do treści” i długim opisem pozycji: po zmianie wielkości wiersze
       dopasowują wysokość do nowego zawinięcia tekstu (mniejsza czcionka → mniej linii).
@@ -5061,6 +5063,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       niezależnie od wyboru w edytorze.
 - [ ] Lista transakcji → menu „Kolumny”: nadal cztery wielkości (z „Duża”), działają jak wcześniej.
       Wybór wielkości tam też zostawia menu otwarte.
+- [ ] Przy „Bardzo mała” zmiana nazwy sekcji w pasku: pole edycji ma tę samą wielkość co nazwa
+      sekcji przed kliknięciem.
 - [ ] Przy „Bardzo mała” zmiana nazwy etapu w nagłówku kolumny: pole edycji ma tę samą wielkość co
       nazwa etapu przed kliknięciem (nie maleje razem z pozycjami).
 - [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy

@@ -275,12 +275,24 @@
   }
 }
 
+/* The section band's title, one step above the rows at every size so it still reads as a heading
+   without towering over them. Phones keep 16px: the band's rename field is typed into there. */
+@utility grid-band-text {
+  font-size: var(--text-base);
+
+  @variant sm {
+    font-size: var(--grid-band-text, var(--text-lg));
+  }
+}
+
 [data-grid-text-size='2xs'] {
   --grid-cell-text: var(--text-2xs);
+  --grid-band-text: var(--text-sm);
 }
 
 [data-grid-text-size='xs'] {
   --grid-cell-text: var(--text-xs);
+  --grid-band-text: var(--text-base);
 }
 
 /* The size is picked for the rows' text; a header input (the etap rename) must not follow it. */
