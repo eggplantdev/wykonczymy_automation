@@ -9,6 +9,7 @@ import type { WorkerRefT } from '@/types/reference-data'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { bare } from '@/__tests__/helpers/money'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const INVESTMENT_ID = 4
 
@@ -27,14 +28,8 @@ const worker = (id: number, name: string): WorkerRefT => ({
 
 const WORKERS = [worker(ANNA, 'Anna'), worker(BARTEK, 'Bartek'), worker(CELINA, 'Celina')]
 
-const stage = (id: number, workerId: number | null): KosztorysStageT => ({
-  id,
-  ordinal: id,
-  label: null,
-  plane: 'w_tools',
-  split: workerId == null ? null : oneWorkerSplit(workerId),
-  completed: false,
-})
+const stage = (id: number, workerId: number | null): KosztorysStageT =>
+  makeStage({ id, ordinal: id, split: workerId == null ? null : oneWorkerSplit(workerId) })
 
 // Bartek ma przypisany etap, na którym nic jeszcze nie wykonano — to jego zaliczka, nie nadpłata.
 const STAGES = [stage(1, ANNA), stage(2, BARTEK), stage(3, CELINA), stage(4, null)]

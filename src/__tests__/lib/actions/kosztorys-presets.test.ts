@@ -13,6 +13,7 @@ import {
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so every assertion is on
 // PERSISTED state: a success result would hide a failed write, and „odwracalne" is real only if the
@@ -72,8 +73,8 @@ function brokenPresetPayload(): SnapshotPayloadT {
     sections: [{ id: 1, name: 'Z szablonu', displayOrder: 0, color: null }],
     items: [],
     stages: [
-      { id: 1, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
-      { id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null, split: null, completed: false },
+      makeStage({ id: 1, ordinal: 1, label: 'Etap 1', plane: null }),
+      makeStage({ id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null }),
     ],
     progress: [],
     settings: TEMPLATE_SETTINGS,

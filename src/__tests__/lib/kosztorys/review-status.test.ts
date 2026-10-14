@@ -7,6 +7,7 @@ type RowT = {
   aiPlannedQty: number | null
   plannedQty: number
   reviewStatus: ReviewStatusT | null
+  aiRecheck?: boolean
 }
 
 const row = (overrides: Partial<RowT> = {}): RowT => ({
@@ -71,6 +72,50 @@ describe('applyReviewRules — scope', () => {
   it('skips a row with no snapshot', () => {
     const next = [row({ id: 9, plannedQty: 10 })]
     expect(applyReviewRules(next, new Map(), true)).toBe(next)
+  })
+})
+
+describe("applyReviewRules — a later round's recheck flag (EX-1057)", () => {
+  // The round moved AI przedmiar from 3 to 10 after the owner had accepted 3.
+  const flagged = row({
+    aiPlannedQty: 10,
+    plannedQty: 3,
+    reviewStatus: 'accepted',
+    aiRecheck: true,
+  })
+
+  it("re-picking the stored Zaakceptowana copies the round's AI przedmiar", () => {
+    const next = apply(flagged, { aiRecheck: false })
+    expect(next.plannedQty).toBe(10)
+    expect(next.reviewStatus).toBe('accepted')
+    expect(next.aiRecheck).toBe(false)
+  })
+
+  it('re-picking Zaakceptowana after the round dropped the work writes Przedmiar 0', () => {
+    const dropped = { ...flagged, aiPlannedQty: 0 }
+    expect(apply(dropped, { aiRecheck: false }).plannedQty).toBe(0)
+  })
+
+  it("re-picking Edytowana keeps the owner's Przedmiar", () => {
+    const before = { ...flagged, reviewStatus: 'edited' as const }
+    expect(apply(before, { aiRecheck: false }).plannedQty).toBe(3)
+  })
+
+  it('a typed Przedmiar lowers the flag and sets the Status', () => {
+    const next = apply(flagged, { plannedQty: 7 })
+    expect(next.aiRecheck).toBe(false)
+    expect(next.reviewStatus).toBe('edited')
+  })
+
+  it('leaves an unflagged row exactly as before — no aiRecheck key appears', () => {
+    const next = apply(row({ plannedQty: 3, reviewStatus: 'edited' }), { plannedQty: 7 })
+    expect(next).not.toHaveProperty('aiRecheck')
+  })
+
+  it('the flag alone, with nothing else changed, derives nothing on an unflagged row', () => {
+    const before = row({ plannedQty: 3, reviewStatus: 'accepted', aiRecheck: false })
+    const next = [{ ...before }]
+    expect(applyReviewRules(next, new Map([[1, before]]), true)).toBe(next)
   })
 })
 

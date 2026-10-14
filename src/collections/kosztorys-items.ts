@@ -84,6 +84,21 @@ export const KosztorysItems: CollectionConfig = {
       access: { create: () => false, update: () => false },
       label: { en: 'AI: assumed', pl: 'Co / ile założono' },
     },
+    // EX-1057: a later AI round raises the flag; the grid lowers it through `updateItemFieldAction`
+    // (Local API), so REST stays closed like above.
+    {
+      name: 'aiNewInformation',
+      type: 'textarea',
+      access: { create: () => false, update: () => false },
+      label: { en: 'AI: new information', pl: 'Nowe informacje' },
+    },
+    {
+      name: 'aiRecheck',
+      type: 'checkbox',
+      defaultValue: false,
+      access: { create: () => false, update: () => false },
+      label: { en: 'AI: recheck', pl: 'Do ponownego sprawdzenia' },
+    },
     { name: 'changeReason', type: 'text', label: { en: 'Change reason', pl: 'Powód zmiany' } },
     {
       name: 'reviewStatus',

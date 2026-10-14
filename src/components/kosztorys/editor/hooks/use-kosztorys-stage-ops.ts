@@ -17,6 +17,7 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import type { ActionErrorCodeT, ActionResultT } from '@/types/action'
+import type { StageOpsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 
 type ArgsT = {
   investmentId: number
@@ -68,22 +69,6 @@ export function useKosztorysStageOps({
     )
   }
 
-  async function handleRemoveStage(stageId: number) {
-    const res = await settleAction(() => removeStageAction(stageId))
-    if (!res.success) return reportFailure(res.error, res.code)
-    setStages((s) => s.filter((st) => st.id !== stageId))
-    const key = stageKey(stageId)
-    dropWidth(key, stageValueNetKey(stageId), stageValueGrossKey(stageId))
-    patchRows(
-      () => true,
-      (r) => {
-        const next = { ...r }
-        delete next[key]
-        return next
-      },
-    )
-  }
-
   // Shared by the header edits so they inherit the cell edits' revert-on-error discipline.
   // The revert restores the prior value only if nothing newer landed on the field meanwhile (it
   // still reads `value`) — which is what makes a slow rejected write safe to roll back.
@@ -113,40 +98,50 @@ export function useKosztorysStageOps({
     )
   }
 
-  // An empty label reverts to null (the header shows the "Etap N" placeholder). The no-op guard in
-  // patchStageField earns its keep here: the header's onBlur fires on every focus-out, and it has no
-  // diff of its own, unlike item cells via diffRow.
-  function handleRenameStage(stageId: number, label: string) {
-    const trimmed = label.trim()
-    patchStageField(stageId, 'label', trimmed === '' ? null : trimmed, 'stage-label')
-  }
-
-  // Fired from the header's onValueChange (an event handler, never inside a state updater). Picking
-  // any plane (even the default w_tools) writes it, which is what clears the unconfirmed warning.
-  function handleSetStagePlane(stageId: number, plane: ToolPlaneT) {
-    patchStageField(stageId, 'plane', plane, 'stage-plane')
-  }
-
-  function handleSetStageCompleted(stageId: number, completed: boolean) {
-    patchStageField(stageId, 'completed', completed, 'stage-completed')
-  }
-
-  // The whole split in one write, never field by field (see updateStageSplitAction). `null` is „Bez
-  // przypisania". No undo push, matching plane.
-  function handleSetStageSplit(stageId: number, split: StageSplitT | null) {
-    patchStageField(stageId, 'split', split, 'stage-split', () =>
-      updateStageSplitAction(stageId, split),
-    )
+  const stageOps: StageOpsT = {
+    async remove(stageId) {
+      const res = await settleAction(() => removeStageAction(stageId))
+      if (!res.success) return reportFailure(res.error, res.code)
+      setStages((s) => s.filter((st) => st.id !== stageId))
+      const key = stageKey(stageId)
+      dropWidth(key, stageValueNetKey(stageId), stageValueGrossKey(stageId))
+      patchRows(
+        () => true,
+        (r) => {
+          const next = { ...r }
+          delete next[key]
+          return next
+        },
+      )
+    },
+    // An empty label reverts to null (the header shows the "Etap N" placeholder). The no-op guard in
+    // patchStageField earns its keep here: the header's onBlur fires on every focus-out, and it has no
+    // diff of its own, unlike item cells via diffRow.
+    rename(stageId, label) {
+      const trimmed = label.trim()
+      patchStageField(stageId, 'label', trimmed === '' ? null : trimmed, 'stage-label')
+    },
+    // Fired from the header's onValueChange (an event handler, never inside a state updater). Picking
+    // any plane (even the default w_tools) writes it, which is what clears the unconfirmed warning.
+    setPlane(stageId, plane) {
+      patchStageField(stageId, 'plane', plane, 'stage-plane')
+    },
+    setCompleted(stageId, completed) {
+      patchStageField(stageId, 'completed', completed, 'stage-completed')
+    },
+    // The whole split in one write, never field by field (see updateStageSplitAction). `null` is „Bez
+    // przypisania". No undo push, matching plane.
+    setSplit(stageId, split) {
+      patchStageField(stageId, 'split', split, 'stage-split', () =>
+        updateStageSplitAction(stageId, split),
+      )
+    },
   }
 
   return {
     stages,
     adoptStage,
     handleAddStage,
-    handleRemoveStage,
-    handleRenameStage,
-    handleSetStagePlane,
-    handleSetStageCompleted,
-    handleSetStageSplit,
+    stageOps,
   }
 }

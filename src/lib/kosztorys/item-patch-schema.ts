@@ -35,5 +35,7 @@ export const itemPatchSchema = z
     note: z.string().nullable(),
     changeReason: z.string().nullable(),
     reviewStatus: z.enum(REVIEW_STATUSES).nullable(),
+    // The grid only ever lowers it, but undo writes the raised flag back — so not `literal(false)`.
+    aiRecheck: z.boolean(),
   })
   .partial()

@@ -1,0 +1,573 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł; katalog: łazienka na rynku pierwotnym ok. 700 zł — tu dwa pomieszczenia i dom poza Warszawą (Lesznowola), do korekty ręcznie",
+    "assumptions": "1 kpl na cały zakres: łazienka i WC na parterze domu, rynek pierwotny"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "assumptions": "Manual: rynek pierwotny bez wyburzeń — 2 big bagi total (docinki płytek, GK, opakowania)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 10,
+    "missingData": "czy reszta domu jest już wykończona — wtedy cała droga do łazienek po podłodze (25 zł/m²)",
+    "assumptions": "katalog: łazienka w stanie deweloperskim bez reszty domu — zabezpieczamy głównie okna; okno w łazience 0,85 × 3,24, wejście i droga do obu pomieszczeń ok. 7 m² — szacunek agenta"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 3,
+    "assumptions": "przedłużenie podejść pod baterie podtynkowe: łazienka ok. 2 mb (katalog), WC ok. 1 mb (bateria ścienna na wys. 1,05, podejścia na zdjęciu nisko pod zwykłą umywalkę)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 12.5,
+    "missingData": "na zdjęciach kable już doprowadzone — część punktów może być gotowa",
+    "assumptions": "katalog: ok. 2,5 mb na punkt × 5 nowych punktów (łazienka 3 punkty oświetleniowe, WC 1 punkt oświetleniowy + 1 gniazdo)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 4,
+    "missingData": "czy podejścia są już na wysokości baterii podtynkowych z projektu (każdy punkt 250 zł)",
+    "assumptions": "katalog: stan deweloperski ok. 4 pkt — podejścia są (zdjęcia łaz1–3), przedłużenia pod baterie podtynkowe: prysznic z deszczownicą + 2 umywalki ścienne. stan deweloperski ze zdjęć: tynki na ścianach, wylewka, kable i podejścia wod-kan doprowadzone"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 0,
+    "assumptions": "stelaż WC już zamontowany (zdjęcie łaz3) — montażu geberitu nie liczę"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż bidetu podtynkowego",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 0,
+    "assumptions": "stelaż bidetu już zamontowany (zdjęcie łaz3) — montażu nie liczę; bateria bidetowa to biały montaż klienta"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 2,
+    "missingData": "czy liczyć jako jedną zabudowę (−450 zł)",
+    "assumptions": "zabudowa GK nad stelażami WC i bidetu: półka 1,80 × wys. 1,17 × gł. 0,20 z LED (rzut, widok) — 2 kpl, po jednym na stelaż"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy",
+    "unit": "kpl",
+    "clientPrice": 1600.0,
+    "qty": 1,
+    "missingData": "odpływ jednospadkowy czy koperta (+300 zł)",
+    "assumptions": "Notatki: „Odpływ liniowy viega przyszykowany do zalania. Nie zalewaliśmy żeby wykonawca sam sobie dopasował wysokość” — osadzenie, wypoziomowanie i spadek; prysznic 1,47 × 1,17 bez brodzika (rzut)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Sufit podwieszany z LED wg. projektu",
+    "unit": "kpl",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "missingData": "czy sufit robi ta sama ekipa, która postawiła stelaż sufitu w WC — wtedy −1800 zł",
+    "assumptions": "Manual: małego sufitu w łazience nie liczymy z metra — 1 kpl; sufit podwieszany na wys. 3,24 z LED (widoki: konstrukcja 3,70, pas 0,46)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 52.4,
+    "assumptions": "ściany 34,90 + podłoga i sufit 8,75 × 2 (katalog: dwukrotne gruntowanie ścian, sufitów i podłóg)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Szlifowanie mleczka z tynków deweloperskich",
+    "unit": "m²",
+    "clientPrice": 7.0,
+    "qty": 32.79,
+    "assumptions": "Manual: tynki deweloperskie zawsze szlifujemy przed dalszymi pracami; praca w łazience idzie do sekcji łazienki — ściany pod płytki 34,90 minus front zabudowy GK 2,11 = 32,79 m²; sufit podwieszany bez szlifowania"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 43.29,
+    "assumptions": "Manual: folia w płynie na wszystkich ścianach i podłodze — 34,90 + 8,39"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 20,
+    "assumptions": "Manual: ok. 15 mb na 4 m² (można lekko niedoszacować); łazienka 8,75 m², ale prysznic tylko 1,47 × 1,17 — obwód podłogi ok. 12,7 mb + narożniki w strefie prysznica 2 × 2,0 + odpływ ≈ 20 mb"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Układanie glazury na ścianie wielki format 120x270",
+    "unit": "m²",
+    "clientPrice": 550.0,
+    "qty": 22.36,
+    "assumptions": "wielki format: Laminam Bruno 1,80 × 3,24 za WC i bidetem, Laminam na widoku 1 0,57 × 3,24, Stromboli 162 × 324 na ścianie z drzwiami 3,18, bok prysznica 1,47 × 3,24, ściana z oknem 6,74 = 22,36 m². Płytki do sufitu podwieszanego (3,24). wymiary z projektu (rzut + widoki, 1:25)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 12.54,
+    "assumptions": "Bands 60 × 120 → format standard: górna ściana 2,07 × 3,24, widok 1 0,60 × 3,24, ściana z umywalkami między lustrami 1,20 × 3,24 = 12,54 m²; za lustrami (2 × 0,60 × 3,24 = 3,89) bez płytek; umywalki zwykłe podwieszane, bez okładziny (Notatki: „Umywalki zwykła podwieszanie (nie z płytek)”)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe",
+    "unit": "m²",
+    "clientPrice": 45.0,
+    "qty": 22.36,
+    "assumptions": "katalog: mata kompensacyjna pod płytki wielkoformatowe — powierzchnia wielkiego formatu 22,36 m²"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format",
+    "unit": "mb",
+    "clientPrice": 350.0,
+    "qty": 10.3,
+    "missingData": "czy glify okna są w płytkach (bez nich −2565,50 zł)",
+    "assumptions": "wielki format do 20 cm: półka nad stelażami (wierzch 1,80 + bok 1,17) + glify okna od podłogi do sufitu (2 × 3,24 + 0,85) = 10,30 mb"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Układanie glazury na podłodze duży format 120x120",
+    "unit": "m²",
+    "clientPrice": 300.0,
+    "qty": 8.39,
+    "assumptions": "ReGea Stromboli 120 × 120 (rzut): podłoga 8,75 minus półka nad stelażami 0,36 = 8,39 m²"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 43.29,
+    "missingData": "fuga cementowa czy epoksydowa",
+    "assumptions": "fugowanie = wszystkie płytki (Manual): 34,90 + 8,39"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 25,
+    "assumptions": "Manual: 20–30 mb na łazienkę — środek, prysznic z odpływem liniowym"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 23,
+    "assumptions": "WC 5 + bidet 4 + prysznic podtynkowy 3 + deszczownica 1 + 2 umywalki z baterią podtynkową 2 × 3 + grzejnik 2 + puszki 2 = 23 (Manual)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 13.6,
+    "assumptions": "styk płytek z sufitem podwieszanym — obwód 13,60 mb"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 9.45,
+    "missingData": "narożniki glifów okna nie liczone (Manual: przy wątpliwościach nie zawyżaj) — z nimi +14,66 mb",
+    "assumptions": "narożnik zewnętrzny przy prysznicu 3,24 × 2 + krawędzie półki nad stelażami 2,97 = 9,45 mb"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 8.75,
+    "assumptions": "Manual: malowanie w łazience tylko bez płytek — sufit podwieszany 8,75 m² (gładź + malowanie)"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 900.0,
+    "qty": 1,
+    "assumptions": "bateria prysznicowa podtynkowa z deszczownicą (rzut: oś baterii prysznicowej) — korpus osadzany przed płytkami; biały montaż po stronie klienta"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 2,
+    "assumptions": "2 baterie umywalkowe podtynkowe (rzut: 2 osie baterii, 2 umywalki) — korpusy przed płytkami"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
+    "unit": "kpl",
+    "clientPrice": 200.0,
+    "qty": 0,
+    "assumptions": "Notatki: „Bez białego montażu, później zamontujemy sami.” — biały montaż baterii (prysznic, umywalki, bidet), syfony, lustra z LED i akcesoria po stronie klienta"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 0,
+    "assumptions": "Notatki: „Bez białego montażu, później zamontujemy sami.” — WC podwieszane montuje klient"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż umywalki wiszącej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 0,
+    "missingData": "czy montaż umywalek wiszących jest jednak po naszej stronie (2 × 250 zł)",
+    "assumptions": "Notatki: „Umywalki zwykła podwieszanie” + Notatki: „Bez białego montażu, później zamontujemy sami.” — 2 umywalki montuje klient"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "qty": 0,
+    "missingData": "czy szkło montujemy my (550 zł jak szyba stała)",
+    "assumptions": "przesuwna ścianka szklana prysznica (rzut) — montaż dostawcy szkła / biały montaż klienta"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 0,
+    "missingData": "czy grzejnik to biały montaż klienta (+250 zł, jeśli nasz)",
+    "assumptions": "grzejnik na górnej ścianie (rzut: oś grzejnika) — Notatki: „Bez białego montażu, później zamontujemy sami.”"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 0,
+    "missingData": "czy drzwi są w zakresie (+380 zł)",
+    "assumptions": "drzwi łazienkowe — zakładam montaż dostawcy drzwi do całego domu"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Wykonanie przedścianki pod prysznicem z 1 półką",
+    "unit": "szt",
+    "clientPrice": 1200.0,
+    "qty": 0,
+    "missingData": "czy jest wnęka w prysznicu (przedścianka z półką 1200–1800 zł)",
+    "assumptions": "wnęka/półka w prysznicu widoczna na wizualizacji, widoki jej nie rysują — nie liczę"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 3,
+    "missingData": "na zdjęciach kable już doprowadzone (tymczasowe żarówki) — część punktów może być gotowa",
+    "assumptions": "nowe zasilania LED: półka nad stelażami + pionowa taśma LED na styku Laminamu i Bands + zasilanie przy lustrach — 3 punkty"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "unit": "mb",
+    "clientPrice": 150.0,
+    "qty": 5.04,
+    "missingData": "rzut ma 4 oznaczenia LED przy lustrach — jeśli to taśmy przy lustrach (ok. 4 × 2,3 mb), ok. +1,4 tys. zł",
+    "assumptions": "taśma LED w półce nad stelażami 1,80 + pionowa listwa LED 3,24 = 5,04 mb"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż i podłączenie transformatora",
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "zasilacz LED"
+  },
+  {
+    "section": "Łazienka parter",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 6,
+    "missingData": "liczba opraw",
+    "assumptions": "oprawy w suficie podwieszanym — ok. 6 szt. z wizualizacji (projekt nie ma rzutu sufitu)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "czy podejścia są już na wysokości baterii ściennej",
+    "assumptions": "bateria umywalkowa ścienna na wys. 1,05 (rzut: oś baterii, h = 105) — podejścia na zdjęciu wc2 są nisko, pod zwykłą umywalkę: przedłużenie 1 pkt"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 0,
+    "assumptions": "stelaż WC już zamontowany i zabudowany (zdjęcie wc1)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 0,
+    "assumptions": "zabudowa GK stelaża z wnęką na szafki już wykonana przez inną ekipę (zielone płyty GK na zdjęciu wc1)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Sufit podwieszany z LED wg. projektu",
+    "unit": "kpl",
+    "clientPrice": 1800.0,
+    "qty": 0,
+    "missingData": "czy płyty na suficie i LED w suficie są po naszej stronie (sufit z LED 1800 zł kpl)",
+    "assumptions": "stelaż sufitu podwieszanego w WC już stoi (zdjęcia wc1, wc3) — zakładam, że sufit kończy ta sama ekipa"
+  },
+  {
+    "section": "WC parter",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 23.52,
+    "assumptions": "ściany 16,34 + podłoga 3,28 + sufit 3,90 (katalog: dwukrotne gruntowanie ścian, sufitów i podłóg)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Szlifowanie mleczka z tynków deweloperskich",
+    "unit": "m²",
+    "clientPrice": 7.0,
+    "qty": 14.63,
+    "assumptions": "Manual: tynki deweloperskie zawsze szlifujemy przed dalszymi pracami — ściany pod płytki 16,34 minus front zabudowy GK 1,72 = 14,63 m²"
+  },
+  {
+    "section": "WC parter",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 19.63,
+    "assumptions": "folia w płynie na ścianach z płytkami i podłodze (Manual; jak w łazience): 16,34 + 3,28"
+  },
+  {
+    "section": "WC parter",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 8,
+    "assumptions": "WC bez prysznica — taśma w narożnikach ściana–podłoga i przy stelażu, ok. 8 mb (szacunek agenta)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Układanie glazury na ścianie wielki format 120x270",
+    "unit": "m²",
+    "clientPrice": 550.0,
+    "qty": 16.34,
+    "assumptions": "Laminam Nero i Bruno 1620 × 3240 → wielki format, do wys. 2,70 na wszystkich ścianach (widoki 1–4): ściana z drzwiami (widok 1) 2,64, ściana za umywalką we wnęce 2,65, bok wnęki 1,08, ściana za blatem (widok 2) 2,81, front zabudowy WC do wys. 1,20 (widok 3) 1,72, ściana naprzeciw wnęki (widok 4) 5,45 = 16,34 m² (drzwi 0,92 × 2,50 odjęte). wymiary z projektu (rzut + widoki, 1:25)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe",
+    "unit": "m²",
+    "clientPrice": 45.0,
+    "qty": 16.34,
+    "assumptions": "katalog: mata kompensacyjna pod płytki wielkoformatowe — 16,34 m²"
+  },
+  {
+    "section": "WC parter",
+    "description": "Układanie glazury na podłodze duży format 120x120",
+    "unit": "m²",
+    "clientPrice": 300.0,
+    "qty": 3.28,
+    "missingData": "projekt WC nie podaje płytki podłogowej",
+    "assumptions": "podłoga 3,28 m² (2,02 × 1,43 przed zabudową + wnęka 0,98 × 0,40) — na wizualizacji jasna płytka jak w łazience, przyjęta Stromboli 120 × 120"
+  },
+  {
+    "section": "WC parter",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 19.63,
+    "missingData": "fuga cementowa czy epoksydowa",
+    "assumptions": "fugowanie = wszystkie płytki (Manual): 16,34 + 3,28"
+  },
+  {
+    "section": "WC parter",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 10,
+    "assumptions": "WC bez prysznica: styk ściana–podłoga, WC, blat — ok. 10 mb"
+  },
+  {
+    "section": "WC parter",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 10,
+    "assumptions": "WC 5 + bateria ścienna 3 + zawór w zabudowie 1 + gniazdo przy blacie 1 = 10 (Manual; minimum 15 dotyczy łazienki — WC ma 3,3 m²)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 7.7,
+    "assumptions": "styk płytek z sufitem — 7,70 mb"
+  },
+  {
+    "section": "WC parter",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 5.4,
+    "assumptions": "narożnik zewnętrzny przy wnęce na umywalkę 2,70 × 2 (Manual)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 3.9,
+    "assumptions": "czarny sufit (wizualizacje) — gładź + malowanie 3,90 m²"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "assumptions": "bateria umywalkowa podtynkowa ścienna (rzut: h = 105, nad blatem) — korpus przed płytkami; biały montaż po stronie klienta"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 0,
+    "assumptions": "Notatki: „Bez białego montażu, później zamontujemy sami.” — czarne WC podwieszane montuje klient"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 0,
+    "missingData": "kto robi i montuje kamienny blat",
+    "assumptions": "umywalka wpuszczana w czarny kamienny blat 20 cm (widok 2) — Notatki: „Bez białego montażu, później zamontujemy sami.”; blat z szufladami robi stolarz/kamieniarz"
+  },
+  {
+    "section": "WC parter",
+    "description": "Złożenie i montaż szafki nad geberitem",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 0,
+    "assumptions": "szafki nad WC we wnęce zabudowy (widok 3: trzy fronty 1,43 × 1,48) — praca stolarza"
+  },
+  {
+    "section": "WC parter",
+    "description": "Klejenie płytek Laminam na fronty szafek nad WC (płyta meblowa)",
+    "unit": "m²",
+    "clientPrice": 0.0,
+    "qty": 2.12,
+    "missingData": "brak w szablonie i w katalogu — do wyceny (Cena j.m. pusta); najbliżej „Układanie glazury na ścianie wielki format 120x270” 550 zł/m² (≈ +1164,02 zł); płyta meblowa po stronie stolarza",
+    "assumptions": "Notatki: „Jeśli można to płytki laminam też na szafki nad wc (trzeba płyta meblowa i na to nakleić). Jeśli nie to damy stolarzowi do przyklejenia” — fronty 1,43 × 1,48 = 2,12 m²"
+  },
+  {
+    "section": "WC parter",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "taśma LED w szczelinie nad szafkami (wizualizacja wc6, widoki: szczelina 2 cm) — 1 nowy punkt; kabel pod szynoprzewód już wisi z sufitu (zdjęcie wc1)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "unit": "mb",
+    "clientPrice": 150.0,
+    "qty": 1.43,
+    "assumptions": "LED nad szafkami wzdłuż zabudowy — 1,43 mb"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż i podłączenie transformatora",
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "zasilacz LED"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "missingData": "liczba opraw na szynie",
+    "assumptions": "szynoprzewód z reflektorem nad blatem (wizualizacja wc8) — 2 szt."
+  },
+  {
+    "section": "WC parter",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 1,
+    "missingData": "czy puszka jest już w tym miejscu",
+    "assumptions": "gniazdo podwójne nad blatem (widok 1, 60 cm od narożnika)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 2,
+    "assumptions": "gniazdo podwójne — 2 mechanizmy"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 0,
+    "missingData": "czy drzwi są w zakresie (+380 zł)",
+    "assumptions": "drzwi do WC — zakładam montaż dostawcy drzwi do całego domu"
+  }
+]

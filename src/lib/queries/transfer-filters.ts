@@ -45,11 +45,12 @@ function normalizeAmountSearch(raw: string | undefined): AmountSearchT | null {
   return { mode: 'range', low, high }
 }
 
+const NO_RESULTS = { equals: -1 } as const
+
 export function buildTransferFilters(
   searchParams: ResolvedSearchParamsT,
   userContext: UserContextT,
 ): Where {
-  const NO_RESULTS = { equals: -1 } as const
   const where: Where = {}
 
   if (userContext.onlyOwnTransfers) {
@@ -178,6 +179,20 @@ export function buildPayoutFilters(
   userContext: UserContextT,
 ): Where {
   return buildTransferFilters({ ...searchParams, type: 'PAYOUT' }, userContext)
+}
+
+/**
+ * Under `and` because `id` may already hold the search by id or a NO_RESULTS short-circuit. The audit
+ * list holds only CANCELLATION rows, which no draft ever became — there the ids are the originals'.
+ */
+export function narrowToTransferIds(
+  where: Where,
+  transferIds: number[],
+  { throughOriginal = false }: { throughOriginal?: boolean } = {},
+): Where {
+  const ids = transferIds.length > 0 ? { in: transferIds } : NO_RESULTS
+  const field = throughOriginal ? 'cancelledTransaction' : 'id'
+  return { ...where, and: [...(where.and ?? []), { [field]: ids }] }
 }
 
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,

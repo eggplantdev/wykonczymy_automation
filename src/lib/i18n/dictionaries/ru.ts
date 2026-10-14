@@ -406,6 +406,7 @@ export const ru: TranslationsT = {
     filterPaymentMethod: 'Способ оплаты',
     filterCategory: 'Категория',
     filterExpenseCategory: 'Тип расхода на объект',
+    filterWorkerDrafts: 'Поданные расходы',
     filterCancelled: 'Отменённые',
     onlyCancelled: 'Только отменённые транзакции',
     showCancelled: 'Показать отменённые',

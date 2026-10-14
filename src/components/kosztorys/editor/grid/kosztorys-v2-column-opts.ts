@@ -15,15 +15,20 @@ import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { TranslatorT } from '@/lib/i18n/translations'
 
+// One bundle, so a read-only mount is its absence.
+export type StageOpsT = {
+  rename: (stageId: number, label: string) => void
+  remove: (stageId: number) => void
+  setPlane: (stageId: number, plane: ToolPlaneT) => void
+  setCompleted: (stageId: number, completed: boolean) => void
+  setSplit: (stageId: number, split: StageSplitT | null) => void
+}
+
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
   stages: KosztorysStageT[]
-  onRemoveStage?: (stageId: number) => void
-  onRenameStage?: (stageId: number, label: string) => void
-  onSetStagePlane?: (stageId: number, plane: ToolPlaneT) => void
-  onSetStageCompleted?: (stageId: number, completed: boolean) => void
+  stageOps?: StageOpsT
   workers?: WorkerRefT[]
-  onSetStageSplit?: (stageId: number, split: StageSplitT | null) => void
   executedValueByStage?: Map<number, number>
   scaledDownStageIds?: ReadonlySet<number>
   sort?: SortStateT

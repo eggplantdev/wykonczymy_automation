@@ -50,7 +50,8 @@ const COPY = {
 // stated before the confirm. The same replace on a kosztorys and on a szablon — only the wording
 // differs, because on a szablon it is that szablon's content being swapped.
 export function ReloadFromPresetDialog() {
-  const { tree, investmentId, onTreeReplaced, isTemplate } = useKosztorysEditorContext()
+  const { tree, investmentId, onTreeReplaced, isTemplate, flushPendingSaves } =
+    useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().reloadPreset
   const { sections, resetSections } = usePresetSections(open)
   const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null)
@@ -81,6 +82,7 @@ export function ReloadFromPresetDialog() {
     if (!selected) return
     startTransition(async () => {
       const replaced = await settleTreeReplace(
+        flushPendingSaves,
         () => reloadFromPresetAction(investmentId, selected.presetId),
         'Wczytywanie przerwane — odświeżam kosztorys',
         ({ data }) => toastMessage(`Wczytano: ${summary(data.sections, data.items)}`, 'success'),

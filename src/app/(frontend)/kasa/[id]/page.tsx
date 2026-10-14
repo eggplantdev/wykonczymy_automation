@@ -83,10 +83,11 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/kasa/${id}`,
-          filters: buildFilterConfig(refData, 'cashRegisters'),
+          filters: { ...buildFilterConfig(refData, 'cashRegisters'), showWorkerDraftsFilter: true },
           invoiceDownload: true,
           print: true,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
+          onlyWorkerDrafts: sp.workerDrafts === '1',
         }}
       />
     </PageWrapper>

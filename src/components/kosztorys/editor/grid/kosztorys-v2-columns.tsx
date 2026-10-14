@@ -31,6 +31,7 @@ import {
 import {
   AI_REVIEW_COLUMN_CLASS,
   aiCommentColumn,
+  aiNewInformationColumn,
   reviewStatusColumn,
   workNoteColumn,
 } from '@/components/kosztorys/editor/grid/cells/ai-review-columns'
@@ -201,6 +202,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         },
         { ...resolvedColumn('aiPlannedNet'), ...AI_REVIEW_COLUMN_CLASS },
         aiCommentColumn(columnTitle('aiComment', opts)),
+        aiNewInformationColumn(columnTitle('aiNewInformation', opts)),
         reviewStatusColumn(columnTitle('reviewStatus', opts)),
         keyCol('changeReason', longTextColumn, {
           id: 'changeReason',
@@ -270,12 +272,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const header = (
       <StageHeader
         stage={st}
-        onRename={opts.onRenameStage}
-        onRemove={opts.onRemoveStage}
-        onSetPlane={opts.onSetStagePlane}
-        onSetCompleted={opts.onSetStageCompleted}
+        ops={opts.stageOps}
         workers={opts.workers}
-        onSetSplit={opts.onSetStageSplit}
         sort={activeSortPick(opts.sort, qtyField)}
         onSort={opts.onSetSort && ((pick) => opts.onSetSort?.(qtyField, pick))}
         onPersistOrder={opts.onPersistKosztorysOrder}

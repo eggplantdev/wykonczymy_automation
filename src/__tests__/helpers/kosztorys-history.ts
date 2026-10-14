@@ -6,7 +6,7 @@ import type {
 } from '@/lib/kosztorys/types'
 import { liveVersion } from '@/lib/kosztorys/history/snapshot-to-tree'
 import type { HistoryVersionT } from '@/lib/kosztorys/history/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 export const SECTION_ID = 10
 
@@ -21,7 +21,7 @@ export function item(
 }
 
 export function stage(id: number, ordinal: number, label: string | null = null): KosztorysStageT {
-  return { id, ordinal, label, plane: null, split: null, completed: false }
+  return makeStage({ id, ordinal, label, plane: null })
 }
 
 export function tree(

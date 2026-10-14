@@ -6,6 +6,7 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const RATES = [
   { description: 'zakup, transport i wniesienie towaru budowlanego', wTools: 975, ownTools: 750 },
@@ -48,18 +49,17 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         catalogueItemId: null,
         currentPlannedQty: null,
         aiPlannedQty: null,
+        aiMissingData: null,
+        aiAssumptions: null,
+        aiNewInformation: null,
+        aiRecheck: false,
         changeReason: null,
         reviewStatus: null,
       },
     ],
-    stages: Array.from({ length: 6 }, (_, index) => ({
-      id: 700 + index,
-      ordinal: index + 1,
-      label: null,
-      plane: null,
-      split: null,
-      completed: false,
-    })),
+    stages: Array.from({ length: 6 }, (_, index) =>
+      makeStage({ id: 700 + index, ordinal: index + 1, plane: null }),
+    ),
     progress: [],
     settings: { wToolsCoeff: 0.71, ownToolsCoeff: 0.42, vatRate: 8 },
     ...overrides,
@@ -326,6 +326,10 @@ describe('buildImportPlan', () => {
     current.items[0] = {
       ...current.items[0],
       aiPlannedQty: 3,
+      aiMissingData: 'brak rzutu',
+      aiAssumptions: 'przyjęto 3 szt.',
+      aiNewInformation: 'Runda 2 — klient dopisał trzecią jednostkę',
+      aiRecheck: true,
       changeReason: 'AI policzyło za mało',
       reviewStatus: 'edited',
     }
@@ -333,11 +337,23 @@ describe('buildImportPlan', () => {
 
     expect(items.find((row) => row.description === 'montaż jednostki wewnętrznej')).toMatchObject({
       aiPlannedQty: 3,
+      aiMissingData: 'brak rzutu',
+      aiAssumptions: 'przyjęto 3 szt.',
+      aiNewInformation: 'Runda 2 — klient dopisał trzecią jednostkę',
+      aiRecheck: true,
       changeReason: 'AI policzyło za mało',
       reviewStatus: 'edited',
     })
     for (const row of items.filter((r) => r.description !== 'montaż jednostki wewnętrznej')) {
-      expect(row).toMatchObject({ aiPlannedQty: null, changeReason: null, reviewStatus: null })
+      expect(row).toMatchObject({
+        aiPlannedQty: null,
+        aiMissingData: null,
+        aiAssumptions: null,
+        aiNewInformation: null,
+        aiRecheck: false,
+        changeReason: null,
+        reviewStatus: null,
+      })
     }
   })
 

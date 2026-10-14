@@ -60,6 +60,23 @@ describe('resolveRowHeight', () => {
   })
 })
 
+describe("resolveRowHeight · the recheck flag's floor (EX-1057)", () => {
+  it('grows an untouched row to the floor', () => {
+    expect(resolveRowHeight({ isSectionBand: false, minLines: 2 })).toBe(heightForLines(2))
+  })
+
+  it('lets taller content win over the floor', () => {
+    expect(resolveRowHeight({ isSectionBand: false, minLines: 2, contentLines: 5 })).toBe(
+      heightForLines(5),
+    )
+  })
+
+  it('stays below a drag and a band', () => {
+    expect(resolveRowHeight({ isSectionBand: false, minLines: 2, override: 32 })).toBe(32)
+    expect(resolveRowHeight({ isSectionBand: true, minLines: 2 })).toBe(SECTION_BAND_ROW_HEIGHT)
+  })
+})
+
 describe('resolveRowHeight · the client preview never sees a drag', () => {
   // The owner drags rows flat in the editor and opens „Widok inwestora" in the same browser, so the
   // same localStorage map is in scope — and a leak clips exactly the descriptions the fit exists for.

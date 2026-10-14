@@ -42,6 +42,7 @@ function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
     date: '2026-10-01',
     investmentId: 7,
     submitterName: 'Jan Kowalski',
+    registerName: 'Kasa Jana',
     investmentName: 'Mieszkanie Mokotów',
     pages: [],
     amount: 89.9,

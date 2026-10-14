@@ -17,11 +17,10 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import {
-  PHONE_REPORT_HEADER_HEIGHT,
   reportEditorSeams,
-  reportScrollsSideways,
   type ReportModeT,
 } from '@/components/kosztorys/editor/grid/report-column'
+import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { DESKTOP_MEDIA_QUERY, TABLET_LARGE_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import {
@@ -110,7 +109,9 @@ type PropsT = KosztorysEditorDataT & {
   history?: InvestorHistoryT
   // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
-  onOpenVersions?: () => void
+  // Hands over the flush because the versions drawer lives outside this body, where a restore must
+  // wait for the cell saves still pending in it.
+  onOpenVersions?: (flushPendingSaves: () => Promise<void>) => void
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<unknown>
@@ -254,7 +255,11 @@ export function KosztorysEditorBody({
 
   useUndoKeyboard(editor.undo, editor.redo)
 
-  const { openImport, importDialogProps } = useSheetImport({ investmentId, onTreeReplaced })
+  const { openImport, importDialogProps } = useSheetImport({
+    investmentId,
+    onTreeReplaced,
+    flushPendingSaves: editor.flushPendingSaves,
+  })
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
@@ -377,9 +382,9 @@ export function KosztorysEditorBody({
   // and dsg sizing its `grow` columns, and it is the hook's only cue to re-read the header widths.
   const measuredIds = useMemo(() => measured.map((column) => column.id), [measured])
   const [storedTextSize] = useGridTextSize()
-  // Only the editor offers the choice, so a client's preview or a worker's report never inherits a
-  // size picked in this browser for editing.
-  const textSize = preview ? 'sm' : storedTextSize
+  // The report keeps its own choice, so neither it nor a client's preview inherits a size picked in
+  // this browser for editing.
+  const textSize = report?.textSize ?? (preview ? 'sm' : storedTextSize)
   const wrap = useWrapColumnWidths(gridNode, measuredIds, textSize)
   // Cached per row because the row's height and every one of its cells' „…" read the same counts.
   const columnLinesFor = useMemo(() => {
@@ -399,7 +404,35 @@ export function KosztorysEditorBody({
   const [reportFooterAnchor, setReportFooterAnchor] = useState<HTMLElement | null>(null)
   const reportFooterHost =
     reportFooterAnchor?.parentElement?.querySelector<HTMLElement>('.dsg-container') ?? undefined
-  useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, sizeToContent ? wrap : undefined)
+  // The flag stacks a second line above the Status (EX-1057), so the row grows while it is up.
+  const showsRecheckFloor = !preview && columns.some((column) => column.id === 'reviewStatus')
+  const recheckLines = useMemo(
+    () => (row: KosztorysV2RowT) => (showsRecheckFloor && row.aiRecheck === true ? 2 : 0),
+    [showsRecheckFloor],
+  )
+  const recheckRowIds = useMemo(
+    () =>
+      showsRecheckFloor
+        ? viewRows
+            .filter((row) => row.aiRecheck === true)
+            .map((row) => row.id)
+            .join(',')
+        : '',
+    [showsRecheckFloor, viewRows],
+  )
+  // Postęp moves as he types and can wrap after its „/”, so what he has typed is content too.
+  const tracksReportedQty = report?.showProgress === true && !report.isSummary
+  const reportedQtys = useMemo(
+    () => (tracksReportedQty ? viewRows.map((row) => row[REPORT_FIELD] ?? 0).join(',') : ''),
+    [tracksReportedQty, viewRows],
+  )
+  // Lowering the flag changes one row's height without touching the keys or the drags, so the set of
+  // flagged rows is fed in as content too.
+  const rowHeightContent = useMemo(() => {
+    const base = sizeToContent ? wrap : undefined
+    return recheckRowIds || reportedQtys ? [base, recheckRowIds, reportedQtys] : base
+  }, [sizeToContent, wrap, recheckRowIds, reportedQtys])
+  useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, rowHeightContent)
   // The empty grid names what emptied it. The two kinds empty it for opposite reasons: an unticked
   // filter because EVERY pozycja fell into what was unticked, a diagnostic because NONE matched —
   // the goal state, worth saying out loud. The client's „ukryj puste pozycje" counts here too.
@@ -421,8 +454,11 @@ export function KosztorysEditorBody({
       preview
         ? undefined
         : (row: KosztorysV2RowT) =>
-            setRowHeight(String(row.id), fitRowHeight(row.id, contentLinesFor(row))),
-    [preview, setRowHeight, contentLinesFor],
+            setRowHeight(
+              String(row.id),
+              fitRowHeight(row.id, Math.max(contentLinesFor(row), recheckLines(row))),
+            ),
+    [preview, setRowHeight, contentLinesFor, recheckLines],
   )
   const rowHeightFor = useMemo(
     () => (row: KosztorysV2RowT) =>
@@ -433,8 +469,9 @@ export function KosztorysEditorBody({
         // the offer they open to check.
         override: preview ? undefined : rowHeights[String(row.id)],
         contentLines: sizeToContent && !isSyntheticRow(row.id) ? contentLinesFor(row) : undefined,
+        minLines: recheckLines(row) || undefined,
       }),
-    [preview, rowHeights, sizeToContent, contentLinesFor],
+    [preview, rowHeights, sizeToContent, contentLinesFor, recheckLines],
   )
   // Measured against the very height the grid gives the row, so the cue and the fit can't disagree.
   // No cue in the preview: its rows are sized from this measurement.
@@ -455,13 +492,12 @@ export function KosztorysEditorBody({
   )
   // A phone's compact report is Opis + „Zgłaszam” first; Lp would take width he needs.
   const hidesGutter = isReportCompact && !isWide
-  // A sideways-scrolling report is wider than a phone, but dsg renders only the columns inside its own
+  // The report's full sheet is wider than a phone, but dsg renders only the columns inside its own
   // box — so the box gets the columns' width up front. Not `max-content`: dsg answers a box that fits
   // with `width: 100%`, which collapses it again, and the two loop.
-  const reportMinWidth =
-    report && reportScrollsSideways(report)
-      ? gridMinWidth(gridColumns, hidesGutter ? 0 : (gutterColumn.basis ?? 40))
-      : undefined
+  const reportMinWidth = report?.isSummary
+    ? gridMinWidth(gridColumns, hidesGutter ? 0 : (gutterColumn.basis ?? 40))
+    : undefined
 
   // Kosztorys client-view nets against the investment's transaction sums — net to net, since the
   // ledger carries no VAT. Through the same lib fn the investment page calls, so the two can't
@@ -489,7 +525,10 @@ export function KosztorysEditorBody({
         investmentId,
         investmentName,
         tree: gridTree,
-        onOpenVersions: editor.readOnly ? undefined : onOpenVersions,
+        onOpenVersions:
+          editor.readOnly || !onOpenVersions
+            ? undefined
+            : () => onOpenVersions(editor.flushPendingSaves),
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
@@ -613,13 +652,9 @@ export function KosztorysEditorBody({
                       // Tall enough that verbose column labels („Pozostało netto (względem aktualizacji przedmiaru)" etc.)
                       // wrap onto two rows instead of truncating — and draggable from the same handle as a
                       // row, since which labels wrap depends on how wide the owner made their columns.
-                      headerRowHeight={
-                        report && !isWide
-                          ? PHONE_REPORT_HEADER_HEIGHT
-                          : resolveHeaderRowHeight(
-                              preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
-                            )
-                      }
+                      headerRowHeight={resolveHeaderRowHeight(
+                        preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
+                      )}
                       lockRows
                       rowKey={({ rowData }) => String(rowData.id)}
                       cellClassName={({ rowData, columnId }) =>

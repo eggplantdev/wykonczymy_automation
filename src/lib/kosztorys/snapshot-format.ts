@@ -123,6 +123,10 @@ export type StoredSnapshotPayloadT = {
     | 'ownToolsOverrideCoeff'
     | 'descriptionTranslations'
     | 'aiPlannedQty'
+    | 'aiMissingData'
+    | 'aiAssumptions'
+    | 'aiNewInformation'
+    | 'aiRecheck'
     | 'catalogueItemId'
     | 'changeReason'
     | 'reviewStatus'
@@ -186,6 +190,11 @@ export function itemWithColumnDefaults(
     descriptionTranslations: toDescriptionTranslations(item.descriptionTranslations),
     // A snapshot older than EX-1006 had no agent draft to carry.
     aiPlannedQty: item.aiPlannedQty ?? null,
+    // Older than EX-1030 / EX-1057. The flag binds false, never NULL: its column is NOT NULL.
+    aiMissingData: item.aiMissingData ?? null,
+    aiAssumptions: item.aiAssumptions ?? null,
+    aiNewInformation: item.aiNewInformation ?? null,
+    aiRecheck: item.aiRecheck ?? false,
     // A snapshot older than EX-1017 knew no katalog entry.
     catalogueItemId: item.catalogueItemId ?? null,
     changeReason: item.changeReason ?? null,

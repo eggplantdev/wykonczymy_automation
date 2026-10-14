@@ -1,4 +1,4 @@
-import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { KosztorysItemT, KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 
 // The tree-level envelope (globalCoeffs / vatRate / settlementMode / materialsNetRate /
 // globalDiscount / revision) is the same in every pure-calculation spec and is not what any of them
@@ -24,6 +24,19 @@ export function makeTree(
   }
 }
 
+// Same reason as makeTree.
+export function makeStage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
+  return {
+    id: 100,
+    ordinal: 1,
+    label: null,
+    plane: 'w_tools',
+    split: null,
+    completed: false,
+    ...overrides,
+  }
+}
+
 // The fields a row's arithmetic doesn't turn on, so a spec only spells out id / description /
 // plannedQty / clientPrice. The 'amount' overrides (flat 12/10) preserve the subcontractor values
 // these specs used before the coefficient migration.
@@ -43,6 +56,10 @@ export const baseItem: Omit<KosztorysItemT, 'id' | 'description' | 'plannedQty' 
   catalogueItemId: null,
   currentPlannedQty: null,
   aiPlannedQty: null,
+  aiMissingData: null,
+  aiAssumptions: null,
+  aiNewInformation: null,
+  aiRecheck: false,
   changeReason: null,
   reviewStatus: null,
 }

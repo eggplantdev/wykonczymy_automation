@@ -111,5 +111,10 @@ context/**/cases/**/*.webp
 context/**/cases/**/*.heic
 context/**/cases/**/*.pdf
 
+# Per-case snapshots of the szablon and the house knowledge — the same dump copied into every case.
+# The scripts rewrite them whenever a case is scaffolded.
+context/**/cases/*/inputs/rozpiska-szablon-*.txt
+context/**/cases/*/inputs/manual-i-komentarze-do-prac.md
+
 # Review-gate scratch ledgers
 .review-gate/

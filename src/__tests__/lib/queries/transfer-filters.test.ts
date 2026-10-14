@@ -3,6 +3,7 @@ import type { Where } from 'payload'
 import {
   buildPayoutFilters,
   buildTransferFilters,
+  narrowToTransferIds,
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
   stripCancelledFilters,
@@ -332,5 +333,28 @@ describe('withDateRange → stats SQL', () => {
     const sql = await sqlFor(withDateRange(tableWhere, SEPTEMBER))
     expect(sql).toContain('investment_id = 31')
     expect(sql).not.toContain('2026-03-')
+  })
+})
+
+describe('narrowToTransferIds', () => {
+  it('keeps the URL filters and adds the id list', () => {
+    const where = narrowToTransferIds(buildTransferFilters({ investment: '31' }, { id: 0 }), [4, 9])
+    const sql = buildSqlConditions(where)
+
+    expect(sql).toContain('investment_id IN (31)')
+    expect(sql).toContain('(id IN (4, 9))')
+  })
+
+  it('an empty list matches nothing', () => {
+    expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
+  })
+
+  it('in audit mode narrows the CANCELLATION rows by the original they cancel', () => {
+    const audit = buildTransferFilters({ cancelledTransactionAudit: '1' }, { id: 0 })
+    const sql = buildSqlConditions(narrowToTransferIds(audit, [4], { throughOriginal: true }))
+
+    expect(sql).toContain("type IN ('CANCELLATION')")
+    expect(sql).toContain('(cancelled_transaction_id IN (4))')
+    expect(sql).not.toContain('(id IN (4))')
   })
 })

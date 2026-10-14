@@ -67,14 +67,18 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
                   // to the top while a one-line one sits at the bottom. `h-max` is the line length:
                   // left to the browser, a vertical box takes it from its ancestors' heights, which
                   // in an auto-height dialog wrapped „Pomiar z natury” one word per line and spilled
-                  // the column's text into its neighbour.
-                  <span className="vertical-text inline-block h-max max-h-48 text-left">
-                    {label}
-                    {description && (
-                      <span className={cn('block font-normal', sizes.headerDescription)}>
-                        {description}
-                      </span>
-                    )}
+                  // the column's text into its neighbour. The flex wrapper is for WebKit: straight in
+                  // the cell, a vertical box counts as ONE line toward the column's minimum width, so
+                  // a squeezed column spilled its description (or a wrapped label) into the next one.
+                  <span className="flex justify-center">
+                    <span className="vertical-text h-max max-h-48 text-left">
+                      {label}
+                      {description && (
+                        <span className={cn('block font-normal', sizes.headerDescription)}>
+                          {description}
+                        </span>
+                      )}
+                    </span>
                   </span>
                 ) : (
                   <>

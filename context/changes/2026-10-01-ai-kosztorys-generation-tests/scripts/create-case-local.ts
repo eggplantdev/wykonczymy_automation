@@ -16,6 +16,7 @@ import { serializeTree } from '@/lib/kosztorys/serialize-tree'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { assertLocalDb } from '@/scripts/assert-local-db'
+import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
 const PRESET_ID = Number(process.env.PRESET_ID ?? 165)
 assertLocalDb('create-case-local')
@@ -55,7 +56,7 @@ async function run() {
           discountType: null,
           discountValue: 0,
           note: null,
-          aiPlannedQty: null,
+          ...NO_AI_DRAFT,
           changeReason: null,
           reviewStatus: null,
         })),

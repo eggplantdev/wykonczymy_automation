@@ -2054,3 +2054,15 @@ pozycje jako niesprawdzone.
 Komentarza — ten może zobaczyć inwestor. To nie jest piąty Status: pozycja bez danych czeka na dane,
 nie na werdykt. Agent wolno zakładać, ale każde założenie trafia do „Co / ile założono"; pytanie bez
 odpowiedzi nie jest zapisywane, więc pusta komórka znaczy „nic do zgłoszenia".
+
+**Kolejne rundy (EX-1057): flaga „Do ponownego sprawdzenia" opada tylko po stronie klienta.** Regułę
+„wybór Statusu zdejmuje flagę" można by dać serwerowi, ale cofnięcie (undo) wpisuje z powrotem
+poprzedni Status, więc ta sama reguła odpaliłaby się drugi raz i ścigała z osobnym zapisem flagi —
+undo mogłoby zostawić flagę opuszczoną. Dlatego Status, flaga i Przedmiar to osobne zapisy w jednej
+paczce undo, jak Status + Przedmiar, a schemat patcha przyjmuje `aiRecheck` jako zwykły boolean.
+Wybór tego samego Statusu zdejmuje flagę tylko dlatego, że komórka sama dokłada ją do wiersza —
+bez tego `diffRow` nie widzi zmiany i nic się nie zapisuje. Przy okazji wyszły dwie dziury w
+Komentarzu AI: szablon go przenosił na inne inwestycje, a ponowny import z arkusza go kasował
+(import to wipe-and-reinsert). Obie brały się stąd, że `aiMissingData` / `aiAssumptions` były w
+`KosztorysItemT` opcjonalne; teraz są wymagane, więc `tsc` wskazuje każdy builder, który o nich
+zapomniał.

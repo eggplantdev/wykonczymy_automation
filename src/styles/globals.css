@@ -263,11 +263,12 @@
   }
 }
 
-/* `--grid-cell-text` is set only by the editor's text-size choice (below), so wherever it is unset
+/* `--grid-cell-text` is set only by the grid's text-size choice (below), so wherever it is unset
    this is plain text-xs / text-sm. The line stays 20px at every size: rows are sized from ROW_LINE_HEIGHT, so
-   only the glyphs shrink and a smaller font fits more words per line. */
+   only the glyphs shrink and a smaller font fits more words per line. A phone runs its own scale one
+   step down, the default included — sharing desktop's would make „Mała” and „Średnia” both 12px. */
 @utility grid-cell-text {
-  font-size: var(--grid-cell-text, var(--text-xs));
+  font-size: var(--grid-cell-text-phone, var(--text-xs));
   line-height: calc(var(--spacing) * 5);
 
   @variant sm {
@@ -275,17 +276,34 @@
   }
 }
 
+/* The section band's title, one step above the rows at every size so it still reads as a heading
+   without towering over them. */
+@utility grid-band-text {
+  font-size: var(--grid-band-text-phone, var(--text-sm));
+
+  @variant sm {
+    font-size: var(--grid-band-text, var(--text-base));
+  }
+}
+
 [data-grid-text-size='2xs'] {
   --grid-cell-text: var(--text-2xs);
+  --grid-cell-text-phone: var(--text-3xs);
+  --grid-band-text: var(--text-xs);
+  --grid-band-text-phone: var(--text-2xs);
 }
 
 [data-grid-text-size='xs'] {
   --grid-cell-text: var(--text-xs);
+  --grid-cell-text-phone: var(--text-2xs);
+  --grid-band-text: var(--text-sm);
+  --grid-band-text-phone: var(--text-xs);
 }
 
 /* The size is picked for the rows' text; a header input (the etap rename) must not follow it. */
 [data-grid-text-size] .dsg-row-header {
   --grid-cell-text: initial;
+  --grid-cell-text-phone: initial;
 }
 
 /* Bottom-to-top text. Put it on an inline-block INSIDE the cell, never on the th: WebKit ignores
@@ -434,6 +452,10 @@
   height: auto !important;
   overflow: visible;
   padding-bottom: 0;
+  /* dsg's `will-change: transform` is for its own scroller. Here it only promotes the container to a
+     layer iOS moves on the compositor while the sticky header inside is placed on the main thread,
+     so the header wobbles against the page on a touch scroll. */
+  will-change: auto;
 }
 
 /* The compact report fits the screen, so anything past its edge is cut rather than scrolled to.
@@ -710,10 +732,22 @@
     0 1px var(--dsg-border-color);
 }
 
-/* Hints of uneven length would centre each title at a different height. */
+/* Unlayered, so it outranks the cells' own `text-left` utility. */
+.kosztorys-grid .dsg-cell.kosztorys-report-figure * {
+  text-align: center;
+}
+
+/* Hints of uneven length would centre each title at a different height. A phone has no hint and
+   stands the title on end, so there it is centred both ways. */
 .kosztorys-grid .dsg-cell-header.kosztorys-report-header {
   align-items: flex-start;
   padding-top: 0.75rem;
+
+  @variant max-sm {
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+  }
 }
 
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell-header.kosztorys-report-column {

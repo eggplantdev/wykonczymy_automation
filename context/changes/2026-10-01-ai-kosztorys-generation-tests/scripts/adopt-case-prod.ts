@@ -6,16 +6,8 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
-import { api, BASE, itemsOf } from './prod-client'
+import { api, BASE, forAiAnalysis, itemsOf, type AssetT } from './prod-client'
 
-type AssetT = {
-  id: number
-  kind: string | null
-  mimeType: string
-  filename: string
-  url: string
-  createdAt: string
-}
 type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
 
 const INVESTMENT = Number(process.env.INVESTMENT)
@@ -23,10 +15,6 @@ const PRESET_ID = Number(process.env.PRESET_ID ?? 166)
 const DRY = process.env.DRY === '1'
 const CASE = process.env.CASE ?? ''
 const CASE_DIR = path.join(import.meta.dirname, '../cases', CASE)
-// When the upload dialog started promising that only files marked „Do analizy AI” reach the AI. A file
-// uploaded before then was left unmarked under the old meaning of the tick („Rzut/projekt”), not to
-// keep it from the AI, so it still goes in.
-const MARKER_PROMISE_SINCE = new Date('2026-10-15T00:00:00+02:00')
 const FILES_DIR =
   process.env.FILES_DIR ?? path.join(homedir(), '.local/share/wykonczymy-ai-cases', CASE)
 
@@ -37,9 +25,7 @@ async function run() {
 
   const investment = await api<InvestmentT>(`/investments/${INVESTMENT}?depth=1`)
   const allAssets = investment.assets ?? []
-  const assets = allAssets.filter(
-    (asset) => asset.kind === 'projekt' || new Date(asset.createdAt) < MARKER_PROMISE_SINCE,
-  )
+  const assets = allAssets.filter(forAiAnalysis)
   const skipped = allAssets.length - assets.length
   if (skipped) console.log(`${skipped} files not marked „Do analizy AI” → skipped`)
   const items = await itemsOf(INVESTMENT)

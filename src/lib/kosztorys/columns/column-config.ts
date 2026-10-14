@@ -54,6 +54,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   aiPlannedQty: 'AI przedmiar (na ile AI wyceniło pracę)',
   aiPlannedNet: 'AI wartość netto przedmiar',
   aiComment: 'Komentarz AI',
+  aiNewInformation: 'Nowe informacje',
   reviewStatus: 'Status',
   changeReason: 'Powód zmiany (co AI zrobiło źle)',
   workNote: 'Komentarz do pracy (niewidoczny dla klienta)',

@@ -3,6 +3,7 @@
 // user's `payload-token`, read from a file outside the repo.
 import { readFileSync } from 'node:fs'
 import { put } from '@vercel/blob'
+import type { ReviewStatusT } from '@/lib/kosztorys/types'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 
 export const BASE = 'https://wykonczymy.vercel.app'
@@ -19,12 +20,43 @@ export type ItemT = {
   wToolsOverrideCoeff: number | null
   ownToolsOverrideValue: number | null
   ownToolsOverrideCoeff: number | null
+  aiPlannedQty: number | null
+  aiMissingData: string | null
+  aiAssumptions: string | null
+  reviewStatus: ReviewStatusT | null
+  changeReason: string | null
+  catalogueItemId: number | null
+  // EX-1057. REST returns a field only once the deployed code declares it, migrated or not.
+  aiNewInformation?: string | null
   section: { id: number; name: string; displayOrder: number }
 }
 
 export type MediaKindT = 'projekt' | 'zdjecie' | 'inne'
 
+export type AssetT = {
+  id: number
+  kind: string | null
+  mimeType: string
+  filename: string
+  url: string
+  createdAt: string
+}
+
+// When the upload dialog started promising that only files marked „Do analizy AI” reach the AI. A file
+// uploaded before then was left unmarked under the old meaning of the tick („Rzut/projekt”), not to
+// keep it from the AI, so it still goes in.
+const MARKER_PROMISE_SINCE = new Date('2026-10-15T00:00:00+02:00')
+export const forAiAnalysis = (asset: AssetT) =>
+  asset.kind === 'projekt' || new Date(asset.createdAt) < MARKER_PROMISE_SINCE
+
 export const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
+
+// Without it a round reads every Nowe informacje as empty: the re-run guard passes and the baseline
+// the next round diffs against loses what is already there.
+export function assertRoundFieldsDeployed(items: readonly ItemT[]) {
+  if (items.some((item) => !('aiNewInformation' in item)))
+    throw new Error('production does not return aiNewInformation yet — deploy EX-1057 first')
+}
 
 // Every request to the app carries the session.
 const plainFetch = globalThis.fetch

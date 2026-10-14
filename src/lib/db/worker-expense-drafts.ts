@@ -841,6 +841,11 @@ export async function listDraftTransferIds(
   return res.rows.map((row) => Number(row.transfer_id))
 }
 
+export async function listAllDraftTransferIds(db: DbExecutorT): Promise<number[]> {
+  const res = await db.execute(sql`SELECT transfer_id FROM worker_expense_draft_transfers`)
+  return res.rows.map((row) => Number(row.transfer_id))
+}
+
 /**
  * Which of `mediaIds` a draft holds. The draft's pages live in a raw table, so the Payload-relation
  * scan of the media reclaim cannot see them and would take a waiting receipt for an orphan.

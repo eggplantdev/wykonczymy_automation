@@ -201,11 +201,11 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     )
   })
 
-  it('selects transakcje by id, with their investment and no zgłoszenie', async () => {
+  it('selects transakcje by id, with their investment, kasa and no zgłoszenie', async () => {
     const candidates = await loadTransactionCandidates(db, { transactionIds: [tx.byNumber] })
-    expect(candidates.map((c) => [c.key, c.investmentId, c.draftId, c.readRows])).toEqual([
-      [`transaction-${tx.byNumber}`, investmentId, null, []],
-    ])
+    expect(
+      candidates.map((c) => [c.key, c.investmentId, c.registerName, c.draftId, c.readRows]),
+    ).toEqual([[`transaction-${tx.byNumber}`, investmentId, 'Kasa Dup', null, []]])
   })
 
   it('returns each matching paragon of every pending zgłoszenie under its own key, never a rejected one', async () => {
@@ -219,6 +219,7 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
       `draft-${otherDraftId}-2`,
     ])
     expect(fromOther.every((c) => c.submitterName === 'Dup Worker')).toBe(true)
+    expect(fromOther.every((c) => c.registerName === 'Kasa Dup')).toBe(true)
     expect(fromOther.every((c) => c.pages.length === 1)).toBe(true)
     expect(candidates.filter((c) => c.id === probeDraftId)).toHaveLength(3)
   })

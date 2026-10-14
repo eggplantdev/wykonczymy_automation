@@ -1,0 +1,133 @@
+=== Wycena AI — runda 2 (test, 2026-10-14) — mieszkanie 61 m², Ursynów, stan deweloperski ===
+Źródła rundy 2:
+- projekt wykonawczy architekta (18 arkuszy: wyburzenia, nowe ściany, elektryka, oświetlenie, posadzki, wod-kan, sufity, rozwinięcia łazienki);
+- nowy mail klienta (prośba o wycenę finalną, lista dopisków i krótki FAQ);
+- zdjęcie przykładowej umywalki z blatem z gresu.
+Projekt wykonawczy zastępuje brief. Runda 1 (wstępna wycena z briefu i rzutu dewelopera) zostaje w kolumnach Komentarz AI; zmiany rundy 2 są w kolumnie „Nowe informacje” i oznaczone „Do ponownego sprawdzenia”.
+
+CO SIĘ ZMIENIŁO (runda 2)
+- Nowe ściany łazienki są MUROWANE z cegły silikatowej (12 cm i 10 cm), nie z GK — projekt wykonawczy. GK z wełną → 0; murowanie ok. 16,5 m²; tynk na nowych ścianach ok. 25,2 m².
+  Katalog nie ma murowania z cegły silikatowej — przyjęte bloczki komórkowe 10 / 7,5 cm (110 zł/m²). Do decyzji, czy cegła silikatowa ma wyższą stawkę.
+- Oba otwory drzwiowe w łazience są „bez nadproża” — projekt. Nadproża 0.
+- Uskok ściany w pokoju: projekt podaje „1x GK” — GK na klej ok. 7,2 m² zamiast tynkowania.
+- Łazienka: projekt podaje ok. 1,62 × 3,46 m (w rundzie 1: 1,61 × 3,24 bez wymiaru). Założenie 6 z rundy 1 — rozwiązane.
+- Płytki w łazience: gres 120×120 na podłodze i na ścianach, 60×120 tylko na jednej ścianie — projekt. Podłoga 5,4 m² + mata kompensacyjna, ściany 14,2 m² (120×120) + 3,9 m² (60×120). Folia, fugowanie i gruntowanie przeliczone.
+- Ściana TV: gres ok. 240 cm szerokości w formacie jak w łazience — mail klienta. 6,4 m² w pozycji 120×120 (300 zł/m²) zamiast 7,5 m² formatu standard. Pytanie z rundy 1 o ścianę TV — częściowo wyjaśnione.
+- Wyburzenia: ok. 8,80 mb × 2,68 = 23,6 m² (w rundzie 1: 8,1 mb) — projekt.
+- LED w łazience: także pod szafką (mail) i za lustrem (projekt) — 5,3 mb.
+- Blat umywalki: 140 cm — projekt.
+- Oświetlenie z rzutu: 19 punktów (z zasilaniem oświetlenia szafy przy drzwiach — mail), 9 lamp, 2 kinkiety, szynoprzewody 10,6 mb (dodatkowy w pokoju).
+- Okap: 0 — mail („zintegrowany z płytą, nie uwzględniajcie go”).
+- Ogrzewanie podłogowe w łazience (mail) — było już w rundzie 1: mata 3,86 m² + termostat. Bez zmian.
+- Drzwi bezościeżnicowe 2 szt. i uchwyty TV 2 szt. — mail potwierdza rundę 1. Bez zmian.
+- Pralka w korytarzu — mail potwierdza, że spadki są. Podłączenie pralki wg rundy 1.
+- Wartość netto przeliczona (patrz niżej). Kwoty z rundy 1 nie są już aktualne — od rundy 1 zmieniły się też ceny pozycji w kosztorysie.
+
+Wartość netto wg AI przedmiaru, ceny z kosztorysu (robocizna):
+- mieszkanie: 101 773,41 zł;
+- KLIMATYZACJA — SYPIALNIA (OPCJA), osobna sekcja: 5 890,00 zł;
+- razem: 107 663,41 zł, 116 pozycji (po rundzie 1, przy dzisiejszych cenach: 103 030,36 zł; runda 2: +4 633 zł).
+
+Największe bloki:
+- Łazienka 32 471 zł;
+- Ściany i sufity 24 057 zł;
+- Elektryka 13 135 zł;
+- Podłogi 11 238 zł;
+- Wyburzenia i zabezpieczenia 7 881 zł.
+
+Materiały, meble na wymiar, AGD i jednostki klimatyzacji NIE są w kwocie.
+
+KOMENTARZ AI
+Każda pozycja z Przedmiarem ma w kolumnie Komentarz AI dwa pola z rundy 1:
+- „Co / ile założono” — skąd jest ilość i co przyjęto bez danych;
+- „Czego nie było wiadomo” — czego brakowało do pewnej wyceny.
+Od rundy 2 kolumna „Nowe informacje” mówi, co się zmieniło i dlaczego („Runda 2 — AI przedmiar: X → Y”, Powód, Założono, Nie wiadomo, Wyjaśnione). Pozycja bez komentarza ma ilość odczytaną wprost z rzutu albo z maila. Te komentarze są dla nas, nie dla klienta.
+
+ZAŁOŻENIA (do weryfikacji — każde przelicza wiele pozycji)
+1. Wysokość pomieszczeń 2,68 m (stan deweloperski, Wiedza firmowa). Projekt wykonawczy też jej nie podaje. Każde ±10 cm to ok. ±900 zł (wyburzenia, murowanie, tynk, glazura, gładzie, malowanie).
+2. Gładź tylko miejscowo, zgodnie z briefem: na nowych ścianach i na ok. 20 % pozostałych ścian, łącznie z miejscami po bruzdach — razem 32,1 m². Reszta ścian i sufity: szlifowanie mleczka, grunt, farba podkładowa, malowanie.
+   - Gładź Q3 na wszystkich ścianach: ok. +5 060 zł.
+   - Bez gładzi poza nowymi ścianami: ok. −1 260 zł.
+   Bez gładzi zostają ściana pod szafę w holu (4,95 mb) i ściana za zabudową kuchni (ok. 3,5 mb).
+3. Elektryka:
+   - 28 nowych gniazd i włączników (brief; rzut elektryki projektu daje podobną liczbę);
+   - 19 punktów oświetleniowych z rzutu oświetlenia: hol 5, salon 8, pokój 5, szafa 1 — liczone z symboli, ±1–2;
+   - w łazience 5 punktów oświetleniowych i 3 elektryczne.
+   Bruzdy wg zasady 2,5 mb na punkt. Każdy punkt z bruzdą i naprawą to ok. 290 zł (gniazdo z osprzętem) albo ok. 225 zł (światło).
+   Nie wiemy, co zrobił deweloper. Jeśli połowa gniazd już stoi we właściwych miejscach: ok. −4 000 zł.
+4. Wyburzenia (ok. 8,8 mb × 2,68 = 23,6 m²) przyjęte jako ściany działowe do 12 cm z materiału miękkiego. Jeżeli to żelbet: ok. +4 480 zł.
+5. Ściana TV w salonie: gres 120×120 na ok. 2,40 × 2,68 m = 6,4 m², 300 zł/m², na całą wysokość.
+6. Łazienka wg projektu: ok. 1,62 × 3,46 m, ściany murowane z cegły silikatowej, otwory bez nadproża.
+   W łazience:
+   - gres 120×120 na podłodze (z matą kompensacyjną) i na ścianach, 60×120 na jednej ścianie;
+   - walk-in z odpływem liniowym jednospadkowym i szybą stałą;
+   - przedścianka z 2 półkami i LED;
+   - wanna wolnostojąca z baterią podtynkową;
+   - umywalka z blatem z gresu (blat 1,4 mb, wg zdjęcia od klienta);
+   - lustro LED, LED we wnęce, za lustrem i pod szafką (5,3 mb);
+   - mata grzewcza 3,86 m²;
+   - sufit podwieszany z LED nad częścią łazienki (ok. 1,42 × 1,27 m, 4 oczka);
+   - grzejnik zdemontowany i zamontowany w nowym miejscu (2 punkty c.o.).
+7. Podłogi: winyl jodełka KLEJONY, 57,4 m² (salon, kuchnia, hol, sypialnia). Klient: jodełka KLASYCZNA, nie francuska. Pływający jodełka: −290 zł.
+8. Ściany w kolorze wg projektu. Na biało: −480 zł.
+9. Drzwi ukryte 2 szt. (sypialnia, łazienka) — mail potwierdza 2 szt. Każde kolejne: +1 000 zł.
+10. Klimatyzacja w salonie: jednostka przy drzwiach balkonowych, agregat na balkonie, ok. 4 mb rur, 3 mb bruzdy, skropliny grawitacyjnie na balkon.
+    Sypialnia jest osobno, w sekcji „Klimatyzacja — sypialnia (opcja)”: ok. 8 mb rur przez hol do agregatu na balkonie.
+    Klient: klimatyzacja to usługa dodatkowa — możemy ją zrobić albo nie, przebieg ustala z wybranym wykonawcą.
+
+PYTANIA DO KLIENTA / WŁAŚCICIELA (z wpływem na kwotę)
+- Murowanie z cegły silikatowej: jaka stawka? W kosztorysie stawka bloczków komórkowych (110 zł/m²) na ok. 16,5 m².
+- Czy pozycja „Wykonanie przedścianki pod prysznicem z 2 półkami” nie dubluje murowania ścianki 10 cm przy prysznicu (ok. 0,7 mb)?
+- Ścianka w salonie (ok. 0,65 mb): projekt nie podaje grubości — przyjęte 10 cm.
+- Podłoga: projekt przy drzwiach łazienki pisze o styku „gres i drewno”. Jeżeli to parkiet / deska jodełka, a nie winyl: „Układanie parkietu jodełka” 110 zł/m² zamiast 95 → ok. +860 zł. Klient dopuszcza też, że podłogę położy firma zewnętrzna (najwcześniej w listopadzie) — wtedy −5 450 zł (winyl) z harmonogramem pod jej wejście.
+- Jaki jest stan tynków dewelopera — czy wystarczy szlifowanie i malowanie? Patrz założenie 2: od −1 260 zł do +5 060 zł.
+- Co z elektryki zrobił deweloper?
+  - Rozmieszczenie punktów — projekt pokazuje docelowe, nie wiemy, ile z nich już jest.
+  - Czy jest osprzęt. Jeśli go nie ma, osprzęt w istniejących punktach to 39 zł/szt.
+  - Czy rozdzielnia ma miejsce na nowe obwody. Projekt ma ok. 22 obwody oświetlenia — jeśli sterowanie ma być inteligentne (np. KNX / DALI), to inny zakres rozdzielni i osprzętu, do wyceny osobno.
+- Z czego są ściany do wyburzenia i ściana zewnętrzna przy balkonie? Przy żelbecie: wyburzenie +4 480 zł, przebicie +250 zł, kanał TV +300 zł.
+- Ściana TV: wysokość okładziny (przyjęte na całą wysokość) i kto wykańcza krawędzie.
+- Przedpokój: brief wspomina lekki spadek sufitu. Projekt nie ma sufitu podwieszanego w holu. Czy oprawy w holu mają być wpuszczane? Sufit podwieszany w holu to ok. 13,45 m² × 160 zł = +2 150 zł.
+- Kuchnia:
+  - czy zlew zostaje w miejscu przyłączy dewelopera (przeniesienie to 250 zł/punkt) — rzut wod-kan pokazuje przyłącza w kuchni;
+  - lista AGD;
+  - długość LED pod szafkami;
+  - fartuch między szafkami — płytki to ok. 220 zł/m².
+- Drzwi między holem a salonem — zostają, czy jest przejście bez drzwi? Mail wymienia 2 drzwi bezościeżnicowe (sypialnia, łazienka).
+- Szafka nad geberitem i szafka pod umywalkę: meble na wymiar (osobne zlecenie stolarskie), czy montujemy gotowe? Montaż 250 zł/szt.
+- Lustro w sypialni: wymiar i waga, czyli wzmocnienie ściany. Ściana z uskokiem to ściana w pokoju z „1x GK”.
+- Listwy podtynkowe: jaki system i kto go dostarcza? W kosztorysie 100 zł/mb, 40,3 mb.
+- Gruz: klient może zamówić kontener tylko u firmy obsługującej osiedle (7 m³ — 700 zł, 10 m³ — 1 000 zł, big bag 350 zł netto + VAT). Czy kontener jest po stronie klienta, a my liczymy tylko wynoszenie?
+- Dla właściciela (pytania z maila, bez wpływu na robociznę):
+  - czy kwoty są netto czy brutto — klient nie jest przedsiębiorcą (VAT do doliczenia / stawka 8 %);
+  - materiały budowlane jako osobne widełki;
+  - harmonogram płatności i system zaliczek / etapów;
+  - termin rozpoczęcia — mieszkanie gotowe, prąd podłączony;
+  - czas trwania z uwzględnieniem okresu świątecznego;
+  - szablon umowy do wglądu;
+  - OC i gwarancja;
+  - krótka notka o firmie: lata, liczba remontów, liczba ludzi;
+  - które pozycje wyceniamy osobno albo których nie robimy (klient zatrudni kogoś innego);
+  - czy realizujemy meble na wymiar — projekty stolarskie będą pod koniec miesiąca, jako osobne zlecenie;
+  - klimatyzacja — patrz założenie 10.
+
+NOWE PRACE BEZ CENY (brak w katalogu — do wyceny)
+- Murowanie z cegły silikatowej — przyjęte jako bloczki komórkowe (patrz pytania).
+- Montaż listew przypodłogowych podtynkowych („wisząca ściana”), 40,3 mb — cena ustalona w kosztorysie: 100 zł/mb.
+
+DOPISANE Z KATALOGU (nie ma ich w rozpisce)
+- Gres 120×120 na ścianie TV: „Układanie glazury na ścianie format duży 120x120”, 300 zł/m², sekcja Ściany i sufity (cena z pozycji łazienkowej).
+- „Montaż blatu do umywalki”, 250 zł/mb, sekcja Łazienka.
+- „Wykonanie punktu elektrycznego”, 120 zł, w opcji klimatyzacji w sypialni.
+
+POZYCJE ŚWIADOMIE POMINIĘTE (Przedmiar 0)
+- Meble na wymiar: szafa w holu, zabudowa kuchni z wyspą, komoda, szafka pod umywalkę, szafka nad geberitem. To osobne zlecenie stolarskie. W kosztorysie są tylko przygotowania: instalacje w szafie, LED, ściany bez gładzi za zabudową.
+- Wylewki, tynki i parapety — stan deweloperski. Deweloper zrobił też drzwi wejściowe.
+- Skuwanie i demontaże poza grzejnikiem łazienkowym — mieszkanie jest puste.
+- Gładź na sufitach — brief jej nie wymienia, sufity tylko szlifowane i malowane.
+- Wzmocnienie OSB pod szafki kuchenne — ściany murowane.
+- Nadproża — oba otwory w łazience są „bez nadproża” (projekt).
+- Okap — zintegrowany z płytą (mail).
+- Płytki między szafkami w kuchni — brak w briefie i w projekcie (patrz pytania).
+- Kratka i wentylator w łazience — brak w briefie i w projekcie.
+- Wod-kan w kuchni — zlew zostaje na przyłączach dewelopera (patrz pytania).

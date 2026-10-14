@@ -107,6 +107,10 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
               note: 'uwaga do pozycji',
               catalogueItemId: null,
               aiPlannedQty: 8,
+              aiMissingData: 'brak rzutu',
+              aiAssumptions: 'przyjęto 2,6 m wysokości',
+              aiNewInformation: 'Runda 2 — projekt podaje 2,8 m',
+              aiRecheck: true,
               changeReason: 'AI zaniżyło metraż',
               reviewStatus: 'edited',
             },
@@ -186,6 +190,10 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
       expect(item.discountValue).toBe(0)
       // The AI review judges one job's draft, so a szablon must not hand it to the next one.
       expect(item.aiPlannedQty).toBeNull()
+      expect(item.aiMissingData).toBeNull()
+      expect(item.aiAssumptions).toBeNull()
+      expect(item.aiNewInformation).toBeNull()
+      expect(item.aiRecheck).toBe(false)
       expect(item.changeReason).toBeNull()
       expect(item.reviewStatus).toBeNull()
     }

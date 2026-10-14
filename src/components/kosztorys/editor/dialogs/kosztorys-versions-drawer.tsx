@@ -18,6 +18,7 @@ type PropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onRestored: OnTreeReplacedT
+  flushPendingSaves: () => Promise<void>
 }
 
 // History panel: named manual versions are the prominent targetable entries; auto snapshots are the
@@ -29,6 +30,7 @@ export function KosztorysVersionsDrawer({
   open,
   onOpenChange,
   onRestored,
+  flushPendingSaves,
 }: PropsT) {
   const { snapshots, reset: resetSnapshots } = useSnapshotList(investmentId, open)
   const [restoringId, setRestoringId] = useState<number | null>(null)
@@ -43,6 +45,7 @@ export function KosztorysVersionsDrawer({
     setPendingRestore(null)
     setRestoringId(snapshot.id)
     const replaced = await settleTreeReplace(
+      flushPendingSaves,
       () => restoreSnapshotAction(snapshot.id, investmentId),
       'Przywracanie przerwane — odświeżam kosztorys',
       ({ data }) => {

@@ -44,6 +44,7 @@ describe('KosztorysVersionsDrawer — a restore whose request never completed (E
         open
         onOpenChange={onOpenChange}
         onRestored={onRestored}
+        flushPendingSaves={async () => {}}
       />,
     )
     const user = userEvent.setup()

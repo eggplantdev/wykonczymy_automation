@@ -31,6 +31,7 @@ const candidate = (
   investmentId: null,
   investmentName: null,
   submitterName: null,
+  registerName: null,
   pages: [],
   ...fields,
 })

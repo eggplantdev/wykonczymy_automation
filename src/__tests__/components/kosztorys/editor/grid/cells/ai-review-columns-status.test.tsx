@@ -30,3 +30,64 @@ describe('Status — the menu offers only what a pick can change', () => {
     expect(options).toContain('Zaakceptowana')
   })
 })
+
+describe("Status — a later round's recheck flag (EX-1057)", () => {
+  function renderCell(
+    rowData: KosztorysV2RowT,
+    setRowData: (row: KosztorysV2RowT) => void,
+    disabled = false,
+  ) {
+    const Cell = reviewStatusColumn('Status').component!
+    const props = { rowData, setRowData, disabled }
+    render(<Cell {...(props as unknown as CellProps<KosztorysV2RowT, unknown>)} />)
+  }
+
+  it("shows the flag above the owner's Status, which stays readable", () => {
+    renderCell(
+      row({ aiPlannedQty: 12, plannedQty: 8, reviewStatus: 'edited', aiRecheck: true }),
+      () => {},
+    )
+    expect(screen.getByText('Do ponownego sprawdzenia')).toBeTruthy()
+    expect(screen.getByRole('button').textContent).toContain('Edytowana')
+  })
+
+  it('shows it on a disabled cell too', () => {
+    renderCell(
+      row({ aiPlannedQty: 12, plannedQty: 8, reviewStatus: 'edited', aiRecheck: true }),
+      () => {},
+      true,
+    )
+    expect(screen.getByText('Do ponownego sprawdzenia')).toBeTruthy()
+  })
+
+  it('shows nothing extra on an unflagged row', () => {
+    renderCell(row({ aiPlannedQty: 12, plannedQty: 8, reviewStatus: 'edited' }), () => {})
+    expect(screen.queryByText('Do ponownego sprawdzenia')).toBeNull()
+  })
+
+  it('re-picking the stored Status lowers the flag', async () => {
+    const written: KosztorysV2RowT[] = []
+    renderCell(
+      row({ aiPlannedQty: 12, plannedQty: 8, reviewStatus: 'edited', aiRecheck: true }),
+      (next) => written.push(next),
+    )
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button'))
+    await user.click(screen.getByRole('menuitem', { name: /Edytowana/ }))
+    expect(written.at(-1)).toMatchObject({ reviewStatus: 'edited', aiRecheck: false })
+  })
+
+  it('Delete lowers it as well', () => {
+    const column = reviewStatusColumn('Status')
+    const flagged = row({
+      aiPlannedQty: 12,
+      plannedQty: 8,
+      reviewStatus: 'edited',
+      aiRecheck: true,
+    })
+    expect(column.deleteValue!({ rowData: flagged, rowIndex: 0 })).toMatchObject({
+      reviewStatus: null,
+      aiRecheck: false,
+    })
+  })
+})

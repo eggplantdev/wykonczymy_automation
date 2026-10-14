@@ -2,14 +2,7 @@
 // Recenzja zakończona”, as one markdown list to discuss. Read-only. `INVESTMENTS` overrides the list.
 //   TOKEN_FILE=… [INVESTMENTS=188,189] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/collect-reasons-prod.ts
-import { api, itemsOf, type ItemT } from './prod-client'
-
-type ReviewedItemT = ItemT & {
-  aiPlannedQty: number | null
-  changeReason: string | null
-  reviewStatus: string | null
-  catalogueItemId: number | null
-}
+import { api, itemsOf } from './prod-client'
 
 async function reviewedInvestmentIds() {
   const { docs } = await api<{ docs: { id: number }[] }>(
@@ -28,7 +21,7 @@ async function run() {
 
   for (const id of ids) {
     const investment = await api<{ name: string }>(`/investments/${id}?depth=0`)
-    const items = ((await itemsOf(id)) as ReviewedItemT[])
+    const items = (await itemsOf(id))
       .filter((item) => item.changeReason?.trim())
       .sort(
         (a, b) =>

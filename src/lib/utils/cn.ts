@@ -17,7 +17,9 @@ const twMerge = extendTailwindMerge({
         'max-w-dialog-2xl',
         'max-w-dialog-3xl',
       ],
-      'font-size': ['text-2xs', 'text-3xs'],
+      // The grid utilities too: a shared control (Combobox) bakes in `text-sm`, which sits later in
+      // the stylesheet and would beat a `grid-cell-text` passed to it.
+      'font-size': ['text-2xs', 'text-3xs', 'grid-cell-text', 'grid-band-text'],
     },
   },
 })

@@ -74,6 +74,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
           },
           baseUrl: '/',
           cancelledTransactionAudit: searchParams.cancelledTransactionAudit === '1',
+          onlyWorkerDrafts: searchParams.workerDrafts === '1',
           duplicateFinder: true,
           // TODO: Consider restricting manager's transaction table to only transactions
           // from/to registers they own (currently managers see all transactions).
@@ -89,6 +90,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             expenseCategories,
             transferTypes: TRANSFER_TYPES,
             showPaymentMethodFilter: false,
+            showWorkerDraftsFilter: true,
           },
         }}
       />

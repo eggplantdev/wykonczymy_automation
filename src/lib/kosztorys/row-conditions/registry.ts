@@ -515,6 +515,17 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     matches: (row, ctx) =>
       (ctx.hasAiDraft ?? false) && aiOffered(row) && !effectiveReviewStatus(row),
   },
+  // A later round (EX-1057) moved this pozycja and the owner has not looked again since. Its own entry,
+  // not folded into „do sprawdzenia": the row may already carry a verdict, and the round is the reason
+  // to doubt it.
+  {
+    id: 'ai-recheck',
+    label: 'do ponownego sprawdzenia',
+    kind: 'diagnostic',
+    problemGroup: 'ai-review',
+    revealsColumns: AI_REVIEW_COLUMN_IDS,
+    matches: (row, ctx) => (ctx.hasAiDraft ?? false) && row.aiRecheck === true,
+  },
   {
     id: 'ai-without-reason',
     label: 'zmienione bez powodu',

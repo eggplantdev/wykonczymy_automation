@@ -1,0 +1,160 @@
+[
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wyburzanie ścian do 12 cm grubości - materiał miękki",
+    "qty": 23.58,
+    "newInformation": "Runda 2 — AI przedmiar: 21,73 → 23,58 m²\nPowód: projekt wykonawczy (rzut wyburzeń) — ściany do wyburzenia ok. 8,80 mb × 2,68 m\nZałożono: wysokość 2,68 m i materiał miękki, jak w rundzie 1\nNie wiadomo: z czego są wyburzane ściany — projekt tego nie podaje"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Uzupełnianie posadzki po wyburzeniach",
+    "qty": 8.8,
+    "newInformation": "Runda 2 — AI przedmiar: 8,11 → 8,8 mb\nPowód: projekt wykonawczy — długość wyburzanych ścian ok. 8,80 mb"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 8,84 → 0 m²\nPowód: projekt wykonawczy — nowe ściany łazienki są murowane z cegły silikatowej, nie z GK\nWyjaśnione: z czego jest nowa ściana łazienki — murowana"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Murowanie ścian z bloczków komórkowych 10 cm",
+    "qty": 6.89,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 6,89 m²\nPowód: projekt wykonawczy — ściana łazienka/pokój 12 cm z cegły silikatowej ok. 1,92 mb + ścianka w salonie ok. 0,65 mb, × 2,68 m\nZałożono: w katalogu nie ma murowania z cegły silikatowej — najbliżej bloczki komórkowe 10 cm\nNie wiadomo: grubość ścianki w salonie; czy stawka za cegłę silikatową (cięższa od bloczków) ma być wyższa"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Murowanie ścian z bloczków komórkowych 7,5 cm",
+    "qty": 9.59,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 9,59 m²\nPowód: projekt wykonawczy — ścianki 10 cm z cegły silikatowej w łazience: 0,70 mb + 2,88 mb (wzdłuż ściany, z wnęką 20 cm), × 2,68 m\nZałożono: w katalogu nie ma murowania z cegły silikatowej — najbliżej bloczki komórkowe 7,5 cm\nNie wiadomo: czy pozycja „Wykonanie przedścianki pod prysznicem z 2 półkami” nie dubluje części tej ścianki przy prysznicu"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Montaż płyt GK na klej na ścianach",
+    "qty": 7.24,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 7,24 m²\nPowód: projekt wykonawczy — w pokoju wyrównanie uskoku ściany „1x GK”, ok. 2,70 mb × 2,68 m\nZałożono: w rundzie 1 ten uskok był w tynkowaniu ręcznym"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Tynkowanie ręczne ścian lub sufitów do 1 cm",
+    "qty": 25.2,
+    "newInformation": "Runda 2 — AI przedmiar: 3,61 → 25,2 m²\nPowód: projekt wykonawczy — nowe ściany murowane trzeba otynkować; uskok w pokoju przechodzi na GK na klej\nZałożono: tynk po obu stronach nowych ścian, także od łazienki pod płytki, bez otworów"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)",
+    "qty": 8,
+    "newInformation": "Runda 2 — AI przedmiar: 15 → 8 mb\nPowód: projekt wykonawczy — zostaje tylko GK na klej w pokoju (nowe ściany łazienki są murowane)\nZałożono: łączenia płyt i styki ze ścianą i sufitem ok. 8 mb"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 7,5 → 0 m²\nPowód: mail klienta — gres na ścianie TV w formacie jak w łazience (120×120); przeniesione do pozycji wielkoformatowej"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Układanie glazury na ścianie format duży 120x120",
+    "qty": 6.43,
+    "newInformation": "Runda 2 — nowa pozycja: 0 → 6,43 m²\nPowód: mail klienta — gres na ścianie TV ok. 240 cm szerokości, płytki jak w łazience; × 2,68 m\nWyjaśnione: która ściana i jaki format — ściana TV w salonie, 120×120\nZałożono: okładzina na całą wysokość ściany; cena z katalogu łazienki (300 zł/m²)\nNie wiadomo: wysokość okładziny; kto wykańcza krawędzie",
+    "unit": "m²",
+    "clientPrice": 300.0
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 5,22 → 0 m²\nPowód: projekt wykonawczy — na podłodze łazienki gres 120×120; przeniesione do pozycji wielkoformatowej"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze duży format 120x120",
+    "qty": 5.37,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 5,37 m²\nPowód: projekt wykonawczy — gres 120×120 na podłodze; łazienka ok. 1,62 × 3,46 m\nWyjaśnione: wymiar łazienki — projekt podaje 1,62 × 3,46 m\nZałożono: bez powierzchni pod zabudową geberitu i przedścianką"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe",
+    "qty": 5.37,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 5,37 m²\nPowód: projekt wykonawczy — gres 120×120 na podłodze\nZałożono: Wiedza firmowa: mata kompensacyjna pod płytki wielkoformatowe; cała podłoga łazienki\nNie wiadomo: czy mata jest potrzebna razem z matą grzewczą"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format duży 120x120",
+    "qty": 14.2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 14,2 m²\nPowód: projekt wykonawczy (rozwinięcia ścian łazienki) — gres 120×120 na ścianach\nZałożono: ściany do wysokości z rozwinięć, bez otworów i bez ściany 60×120"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "qty": 3.9,
+    "newInformation": "Runda 2 — AI przedmiar: 24,96 → 3,9 m²\nPowód: projekt wykonawczy (rozwinięcia ścian łazienki) — 60×120 tylko na jednej ścianie, reszta to 120×120\nWyjaśnione: format płytek — projekt podaje 120×120 i 60×120"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "qty": 23.47,
+    "newInformation": "Runda 2 — AI przedmiar: 30,17 → 23,47 m²\nPowód: projekt wykonawczy — powierzchnia płytek: podłoga 5,37 + ściany 14,2 + 3,9 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 23.47,
+    "newInformation": "Runda 2 — AI przedmiar: 30,17 → 23,47 m²\nPowód: projekt wykonawczy — powierzchnia płytek: podłoga 5,37 + ściany 14,2 + 3,9 m²\nZałożono: folia pod wszystkimi płytkami, jak w rundzie 1"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 28.84,
+    "newInformation": "Runda 2 — AI przedmiar: 34,79 → 28,84 m²\nPowód: projekt wykonawczy — płytki 23,47 m² + sufit 5,37 m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 5.37,
+    "newInformation": "Runda 2 — AI przedmiar: 5,22 → 5,37 m²\nPowód: projekt wykonawczy — sufit łazienki ok. 1,62 × 3,46 m bez zabudów"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "qty": 5.3,
+    "newInformation": "Runda 2 — AI przedmiar: 3 → 5,3 mb\nPowód: projekt wykonawczy (LED we wnęce pionowo 2,6 mb, za lustrem 1,32 mb) + mail klienta (LED także pod szafką, ok. 1,4 mb)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż blatu do umywalki minimalna metraż 1mb.",
+    "qty": 1.4,
+    "newInformation": "Runda 2 — AI przedmiar: 1,2 → 1,4 mb\nPowód: projekt wykonawczy — blat umywalki 140 cm"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 19,
+    "newInformation": "Runda 2 — AI przedmiar: 17 → 19 szt\nPowód: projekt wykonawczy (rzut oświetlenia) + mail klienta (zasilanie oświetlenia szafy przy drzwiach)\nZałożono: hol 5, salon 8 (2 szynoprzewody, lampa nad wyspą, lampa liniowa, 2 kinkiety, 2 obwody LED), pokój 5 (szynoprzewód, 2 obwody LED, 2 lampki przy łóżku), szafa 1 — liczone z symboli rzutu, ±1–2"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż prostych lamp (bez składania)",
+    "qty": 9,
+    "newInformation": "Runda 2 — AI przedmiar: 8 → 9 szt\nPowód: projekt wykonawczy (rzut oświetlenia) — hol 5 opraw, lampa nad wyspą, lampa liniowa, 2 lampki przy łóżku\nZałożono: liczone z symboli rzutu, ±1"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż kinkietów",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 2 szt\nPowód: projekt wykonawczy (rzut oświetlenia) — 2 kinkiety na ścianie w salonie"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż szynoprzewodów natynkowych",
+    "qty": 10.6,
+    "newInformation": "Runda 2 — AI przedmiar: 8 → 10,6 mb\nPowód: projekt wykonawczy (rzut oświetlenia) — salon 2 × ok. 4,0 mb + pokój ok. 2,6 mb"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż okapu i podłączenie do wentylacji",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 0 kpl\nPowód: mail klienta — okap zintegrowany z płytą, „nie uwzględniajcie go”"
+  }
+]

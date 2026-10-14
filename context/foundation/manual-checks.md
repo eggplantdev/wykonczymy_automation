@@ -82,7 +82,7 @@ produkcję.
 (`added:0, scanned:30`), a `vercel crons ls` potwierdza rejestrację `0 4 * * *` na Production.
 
 - [ ] Wywołanie z poprawnym `CRON_SECRET` zwraca liczniki, a przebieg, który odzyskał leada, dostarcza
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       mail alertowy na listę „Alerty techniczne" — **blokady 2 i 3**. Połowa licznikowa domknięta
       (200 + liczniki z produkcji). Zostaje wyłącznie noga mailowa i jej **nie da się wymusić bez
       szkody**: `notifyReconcileRecovery` leci tylko przy `added > 0`
@@ -123,14 +123,14 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 `skipped`), **nie jest odtwarzalny** — `notify_status` siada na `failed`, czyli próbowano.
 
 - [ ] Przebieg sweepa (cron `/api/cron/leads-reconcile`) → skrzynka sprzedaży dostaje jedno zwykłe
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       „Nowe zgłoszenie", nieodróżnialne od webhookowego — **blokada 2**. Kod gwarantuje
       nieodróżnialność strukturalnie: obie ścieżki wołają ten sam `captureLead` → `notifyNewLead`
       (`src/lib/leads/capture-lead.ts:71`),
       różni je wyłącznie opcja `autoReply`. Została sama dostawa.
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
 - [ ] Dokładnie jeden mail podsumowujący, wyłącznie na „Alerty techniczne" (nie do sprzedaży), bez
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       danych kontaktowych i bez instrukcji „zadzwoń sam" — **blokady 2, 3 i 4**. Alert
       (`notifyReconcileFailure`/`notifyReconcileRecovery`) leci z trasy crona, która jest dziś
       jedynym wołającym sweepa — ręczny przycisk „Pobierz z Facebooka" został usunięty.
@@ -159,7 +159,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 11/13 odhaczonych (ostatni przebieg 2026-09-04, staging). Pełny zapis: archiwum.
 
 - [ ] Ręczne `GET /api/cron/equipment-reminders` z `Bearer $CRON_SECRET` wysyła mail o właściwej
-      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       treści — **blokady 2 i 4**. Każde ogniwo **przed** wysyłką jest potwierdzone na żywo:
       autoryzacja (401 bez nagłówka), pusty digest (`200 {"sent":false}`), ponowne uzbrojenie po
       edycji gwarancji, brak stemplowania po nieudanej wysyłce. Fixture jest gotowy — sprzęt id 1
@@ -543,19 +543,19 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
            Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
            Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: POST podpisany HMAC-SHA256 (scope „landing-submission") z `LANDING_WEBHOOK_SECRET` z `.env` → 403 na stagingu, czyli sekret z `.env` nie jest sekretem Preview. Brakuje wartości sekretu Preview; do tego realny plik w blobie landingu (callback release dotyka landingu). Nic nie utworzono._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: jak wyżej — brak sekretu Preview (403 na poprawnie podpisany request z sekretem z `.env`)._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: jak wyżej — brak sekretu Preview; bez ważnego podpisu request nie dochodzi do walidacji hosta._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z podmienionym body jest odrzucony (403)
-      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: 403 obserwowane, ale nie do zaliczenia — poprawnie podpisany request też dostał 403 (zły sekret), więc odrzucenie nie dowodzi kontroli podpisu._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
@@ -2501,7 +2501,7 @@ Przebieg staging 2026-09-29 (OWNER + MANAGER, dane z dumpu prod).
   _Test disposition:_ test-driven-debugging · dom.
   (czerwony bez poprawki). Czeka na deploy. _Test disposition:_ test-driven-debugging · unit.
 - [x] **Luka udostępnień v1** — konto reader nie czyta arkuszy v1 inwestycji 130/139/141/143/144/145.
-  **Linear: EX-939.**
+  Naprawione: reader jest Przeglądającym na wszystkich 56 arkuszach.
 - [x] **Okno udostępniania otwarte offline** pokazuje „Nie udało się przygotować linku" bez toastu.
   **Odrzucone:** komunikat jest w samym oknie, na które użytkownik patrzy; toast by go powtórzył.
 - [x] **Przesłanka boksu „Edytuj transakcję — zmień kwotę" nieaktualna** — **naprawione:** boks
@@ -4564,14 +4564,6 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
       „Glazura…”, „Malowanie i gładź” i „Szlifowanie płytek na 45°” wyświetlają się w punktach,
       każdy punkt w osobnej linii.
 
-## 2026-10-09 — investments-listing-ai-draft-column — „Analiza AI” na liście inwestycji
-
-- [x] `/inwestycje` (staging): inwestycja, do której wgrano szkic AI, ma w kolumnie „Analiza AI” „Tak”,
-      a jej kosztorys pokazuje w „Przeglądzie AI” kolumnę „AI przedmiar”. (zweryfikowano LOKALNIE na db-test 5435, nie na stagingu: inwestycje 183 i 185 mają „Tak”, ich „Przegląd AI” pokazuje „AI przedmiar”)
-- [x] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”. (lokalnie: 51 inwestycji z kosztorysem i 16 bez — wszystkie „—”)
-- [x] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem. (lokalnie: „Tak” na początku/końcu, 2 wiersze)
-- [x] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa. (lokalnie)
-
 ## 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie
 
 - [x] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart bez zmiany adresu i strony listy; wybór zostaje po odświeżeniu i obowiązuje też na liście transakcji pracownika, kasy i inwestycji. (lokalnie 390px: obie ikony w x=18–90, bez zmiany URL; `transfers:view=list` przeżywa reload; przełącznik zapamiętany na `/`, `/kasa/5`, `/inwestycje/26`, `/pracownicy/24`)
@@ -4986,6 +4978,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] `/zgloszenia-wydatkow?zgloszenie=<już rozpatrzone>`: toast „To zgłoszenie zostało już rozpatrzone.”, żadne okno się nie otwiera.
 - [ ] Zakres „Wszystko” → „Analizuj”: wyniki w kilka sekund, bez przekroczenia czasu.
 - [ ] Strona inwestycji i strona kasy: w pasku nad listą transakcji nie ma przycisku „Szukaj duplikatów”.
+- [ ] „Szukaj duplikatów” → „Analizuj”: każdy wiersz grupy ma kolumnę „Kasa” — przy transakcji kasa, z której poszedł wydatek (ta sama co na liście transakcji), przy zgłoszeniu kasa wybrana przez pracownika. To samo w „Możliwe duplikaty” w oknie „Zweryfikuj” zgłoszenia.
 
 ## 2026-10-14 — nav-labels
 
@@ -5050,7 +5043,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       „Bardzo mała”, „Mała”, „Średnia” (bez „Duża”); domyślnie zaznaczona „Średnia”, a tabela wygląda
       tak samo jak przed zmianą.
 - [ ] Wybór „Mała”, potem „Bardzo mała”: menu zostaje otwarte, a tekst pozycji i wiersza „Razem”
-      sekcji maleje od razu; tytuł sekcji, nagłówki kolumn i podsumowanie na dole się nie zmieniają.
+      sekcji maleje od razu, razem z kolumną „Jednostka miary”; pasek sekcji (nazwa, liczba pozycji,
+      kwota netto) maleje o ten sam krok i nadal jest wyraźnie większy niż pozycje. Nagłówki kolumn
+      i podsumowanie na dole się nie zmieniają.
       Wysokość wierszy i szerokości kolumn zostają te same.
 - [ ] Z włączonym „Dopasuj wysokość do treści” i długim opisem pozycji: po zmianie wielkości wiersze
       dopasowują wysokość do nowego zawinięcia tekstu (mniejsza czcionka → mniej linii).
@@ -5061,6 +5056,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       niezależnie od wyboru w edytorze.
 - [ ] Lista transakcji → menu „Kolumny”: nadal cztery wielkości (z „Duża”), działają jak wcześniej.
       Wybór wielkości tam też zostawia menu otwarte.
+- [ ] Przy „Bardzo mała” zmiana nazwy sekcji w pasku: pole edycji ma tę samą wielkość co nazwa
+      sekcji przed kliknięciem.
 - [ ] Przy „Bardzo mała” zmiana nazwy etapu w nagłówku kolumny: pole edycji ma tę samą wielkość co
       nazwa etapu przed kliknięciem (nie maleje razem z pozycjami).
 - [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
@@ -5076,3 +5073,104 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       widoczne przy transakcji.
 - [ ] Staging → kosztorys: „Dodaj pracę" w środku sekcji, „Wczytaj szablon" i zmiana kolejności
       działają jak wcześniej — bez zawieszenia, bez błędu klucza, kolejność pozycji poprawna.
+
+## 2026-10-14 — komentarz-ai-odstep — odstęp między polami „Komentarza AI”
+
+Stan: kosztorys ze szkicem AI, pozycja z wypełnionym i „Czego nie było wiadomo”, i „Co / ile założono”.
+
+- [ ] Przegląd AI → kolumna „Komentarz AI” tej pozycji: między „Czego nie było wiadomo: …” a
+      „Co / ile założono: …” jest pusta linia; pozycja z jednym polem nie ma odstępu nad nim.
+- [ ] Przy „Dopasuj wysokość do treści” wiersz tej pozycji mieści oba pola wraz z pustą linią
+      (nic nie jest ucięte).
+- [ ] Skopiuj komórkę „Komentarz AI” i wklej do edytora tekstu: oba pola rozdziela pusta linia.
+
+## 2026-10-14 — vertical-header-safari — pionowe nagłówki w Safari
+
+Stan: kosztorys ze zgłoszeniem pracy od pracownika czekającym na przyjęcie.
+
+- [ ] **Safari** → okno przyjmowania zgłoszenia, tabela „Z rozpiski”: nagłówki „Pomiar z natury”
+      z dopiskami („ile jest aktualnie zgłoszone”, „po przyjęciu zgłoszenia”) mieszczą się w swojej
+      kolumnie — żaden tekst nie wchodzi na sąsiednią kolumnę (np. „Przedmiar ofertowy”).
+- [ ] Safari, to samo okno zwężone: nagłówek, który zawija się do dwóch linii, nadal mieści się
+      w swojej kolumnie.
+- [ ] Chrome, to samo okno: pionowe nagłówki wyglądają jak dotąd (wyśrodkowane, czytane od dołu).
+
+## EX-1057 — kosztorys-ai-rounds — kolejne rundy AI: „Nowe informacje” i „Do ponownego sprawdzenia”
+
+Stan: kosztorys AI (z AI przedmiarem) i drugi, zwykły kosztorys. Pozycje z flagą daje lokalne
+wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
+
+- [ ] Zwykły kosztorys: zmiana Przedmiaru i ceny, dodanie i usunięcie pozycji, Ctrl+Z — wszystko jak
+      dotąd, wysokość wierszy bez zmian, w domyślnym widoku nie ma nowej kolumny.
+- [ ] Kosztorys AI bez wczytanej rundy: wybór Statusu (Zaakceptowana / Odrzucona / Edytowana), wpisany
+      Przedmiar i Ctrl+Z działają jak dotąd; w „Problemach” nie ma „do ponownego sprawdzenia”.
+- [ ] Kosztorys AI → „Zapisz jako szablon”, potem ten szablon na innej inwestycji: zastosowane pozycje
+      nie mają „Komentarza AI” ani „Nowych informacji”.
+- [ ] Kosztorys AI z „Komentarzem AI” → przywrócenie wcześniejszej wersji: „Komentarz AI” zostaje,
+      żadna pozycja nie pokazuje „Do ponownego sprawdzenia”.
+- [ ] Wczytanie szkicu rundy 2 z trzema wierszami (jedna pozycja zmieniona, jedna na 0, jedna nowa):
+      flagę i blok „Runda 2 — …” mają tylko te trzy; pozostałe pozycje oraz każdy Przedmiar, Status
+      i Powód zmiany bez zmian; Etap AI to „Przeanalizowana”. To samo wczytanie drugi raz — odmowa,
+      nic się nie zapisuje.
+- [ ] „Przegląd AI”: pozycja z flagą ma dwie linie — „Do ponownego sprawdzenia” nad poprzednim
+      Statusem; kolumna „Nowe informacje” za „Komentarzem AI” pokazuje blok rundy.
+- [ ] Pozycja z flagą i Statusem Zaakceptowana → ponowny wybór Zaakceptowana: flaga znika, Przedmiar
+      przyjmuje nowy AI przedmiar, wiersz wraca do jednej linii; po odświeżeniu tak samo. Ctrl+Z
+      przywraca flagę i stary Przedmiar.
+- [ ] Pozycja, którą runda 2 zeszła do AI przedmiaru 0 → ponowny wybór Zaakceptowana: flaga znika,
+      Przedmiar to 0.
+- [ ] Pozycja z flagą i jednolinijkową treścią → „Dopasuj wysokość”: wiersz zostaje na dwóch liniach,
+      etykieta „Do ponownego sprawdzenia” się mieści.
+- [ ] Pozycja z flagą → wpisanie Przedmiaru: flaga znika, Status idzie za wpisaną liczbą.
+- [ ] „Problemy” → „do ponownego sprawdzenia”: liczba równa liczbie pozycji z flagą, kliknięcie
+      zostawia tylko je.
+- [ ] Podgląd klienta tego kosztorysu: żaden wiersz nie jest wyższy, nie widać żadnej kolumny AI.
+- [ ] Pozycja z wczytaną rundą: „Nowe informacje” wyglądają dokładnie jak „Komentarz AI” — etykieta
+      zwykłą czcionką, odpowiedź pogrubiona, odstęp między liniami. „Do ponownego sprawdzenia” to mały
+      bursztynowy badge nad Statusem i nie wychodzi poza kolumnę.
+
+## 2026-10-14 — worker-report-text-size — wielkość czcionki i wąskie kolumny w raporcie pracownika
+
+- [ ] Raport pracownika (`/z/…`) → „Opcje” → „Wielkość tekstu”: Bardzo mała / Mała / Średnia zmienia tekst siatki; wybór przetrwa przeładowanie i nie zmienia wielkości wybranej w edytorze kosztorysu (i odwrotnie).
+- [ ] Telefon 390px, raport pracownika: Mała i Średnia dają widocznie różny tekst; nazwa sekcji jest mniejsza niż dawniej i przy długiej nazwie wychodzi na sąsiednie puste komórki.
+- [ ] Telefon 390px, raport z włączonymi „Wykonano” i „Postęp”: nagłówki trzech kolumn stoją pionowo, wyśrodkowane, bez podpowiedzi; Opis prac i trzy kolumny mieszczą się na ekranie bez przewijania w bok.
+- [ ] Telefon 390px: pozycja z ilością typu `123,45` — „Wykonano” nie łamie liczby w środku; „Postęp” przechodzi do drugiej linii po „/”, a wiersz rośnie, gdy po wpisaniu ilości w „Zgłaszam” postęp się zawija (i maleje po skasowaniu).
+- [ ] Liczby w „Wykonano”, „Zgłaszam” i „Postęp” są wyśrodkowane — na telefonie i na desktopie.
+- [ ] Widok „Inwestycja” na telefonie nadal przewija się w bok (pełny arkusz).
+
+## 2026-10-14 — backlog-fixes-14 — poprawki z backlogu: odrzucenie w zgłoszeniu, zapis przed podmianą rozpiski, menu etapu (EX-1052, EX-1002, EX-1036)
+
+- [ ] EX-1052: ten sam kosztorys w dwóch kartach. W karcie A „Zgłoszenia prac” → zgłoszenie → przy
+      jednej pozycji tylko „Odrzuć” → zapisz. Przejdź do karty B: **nie** pojawia się „Rozpiska
+      zmieniła się w innym oknie — wczytano aktualną wersję.”, a w „Wersje” nie przybyła wersja
+      automatyczna. Po ponownym otwarciu zgłoszenia pozycja jest odrzucona.
+- [ ] EX-1052: to samo z „Przyjmij” jednej pozycji zamiast „Odrzuć” — karta B **pokazuje** ten
+      komunikat i ilość w etapie.
+- [ ] EX-1002: wpisz ilość w komórkę etapu i od razu otwórz „Wersje” → „Przywróć” starszą wersję.
+      Bez komunikatu o błędzie ani o zmianie „w innym miejscu”; w „Wersje” wersja automatyczna
+      sprzed przywrócenia zawiera wpisaną ilość. (Żeby trafić w okno zapisu, włącz w DevTools
+      Network → „Slow 4G”.)
+- [ ] EX-1002: tak samo — świeża zmiana w komórce, od razu „Wyczyść kosztorys”, „Wczytaj z
+      szablonu”, import z arkusza i „Ustaw kolejność”: każda kończy się bez komunikatu o błędzie
+      i bez „Kosztorys zmienił się w innym miejscu”.
+- [ ] EX-1002: wpisz literówkę w „Opis prac” i od razu „Popraw literówki w opisie prac i j.m.” —
+      wpisany opis nie wraca do poprzedniej treści (najwyżej zostaje poprawiony).
+- [ ] EX-1036: edytor → menu nagłówka etapu ma, jak dotąd, „Rozliczenie”, „Etap zakończony”,
+      sortowanie, kolor, „Zmień nazwę”, „Usuń etap” i „Pracownicy etapu…”; każda pozycja działa.
+- [ ] EX-1036: „Podgląd dla inwestora” i „Podgląd linku pracownika” — nagłówek etapu to sama
+      nazwa: bez menu, bez ikony rozliczenia i bez ostrzeżenia o niepotwierdzonym rozliczeniu.
+
+## 2026-10-14 — worker-report-sticky-wobble — nagłówek tabeli w raporcie pracownika nie drga
+
+- [x] iPhone (Safari), raport pracownika (`/z/…`): przewijaj w górę i w dół, także szybkim
+      „rzutem” — nagłówek tabeli trzyma się górnej krawędzi bez drgania i nie odjeżdża od wierszy.
+
+## EX-1004 — przełącznik „Zgłoszone wydatki” w transakcjach
+
+- [ ] Pulpit (`/`) → włącz „Zgłoszone wydatki”: zostają tylko transakcje z plakietką „od pracownika”;
+      „Suma kwot” liczy tylko je; wyłączenie przywraca pełną listę.
+- [ ] Pulpit → „Zgłoszone wydatki” + filtr „Kasa” = kasa pracownika, który coś zgłaszał: tylko jego
+      przyjęte zgłoszenia, bez wydatków wpisanych ręcznie z tej kasy.
+- [ ] Strona kasy pracownika (`/kasa/[id]`) → „Zgłoszone wydatki”: tylko wydatki z jego zgłoszeń.
+      „Drukuj” i „Faktury” na tak przefiltrowanej liście obejmują tylko te transakcje.
+- [ ] „Wyczyść filtry” wyłącza przełącznik.

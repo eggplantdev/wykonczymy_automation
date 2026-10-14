@@ -4,13 +4,14 @@ import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kos
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // „Wartość netto aktualizacji przedmiaru — <rozliczenie>" (owner, 2026-09-28; EX-921): the aktualizacja
 // at the crew's stawka, beside the client-priced figures, in both crew views and never in the client one.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: null, completed: false },
-  { id: 8, ordinal: 2, label: 'Etap 2', plane: 'own_tools', split: null, completed: false },
+  makeStage({ id: 7, label: 'Etap 1' }),
+  makeStage({ id: 8, ordinal: 2, label: 'Etap 2', plane: 'own_tools' }),
 ]
 
 function grid(view: PriceViewT, extra: Partial<BuildV2ColumnsOptsT> = {}) {

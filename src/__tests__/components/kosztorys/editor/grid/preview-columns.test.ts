@@ -9,14 +9,15 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // The client-facing preview: which columns it renders, and what pins the price plane they compute at.
 // Asserted on rendered ids rather than on the constant, because the ids are the document a client
 // reads — a constant can be right while the selection still drops half of it.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null, completed: false },
+  makeStage({ id: 7, label: 'Etap 1', plane: null }),
+  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
 ]
 
 const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>

@@ -4,7 +4,11 @@ import { useCallback, useState } from 'react'
 import { previewKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-type OptionsT = { investmentId: number; onTreeReplaced?: OnTreeReplacedT }
+type OptionsT = {
+  investmentId: number
+  onTreeReplaced?: OnTreeReplacedT
+  flushPendingSaves: () => Promise<void>
+}
 
 /**
  * „Pobierz z arkusza Google" as a single piece of state, because it has two triggers — the
@@ -14,7 +18,7 @@ type OptionsT = { investmentId: number; onTreeReplaced?: OnTreeReplacedT }
  * The preview is fetched on the click rather than by the dialog: a programmatically-opened Radix
  * dialog never fires `onOpenChange`, so it cannot fetch its own report.
  */
-export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
+export function useSheetImport({ investmentId, onTreeReplaced, flushPendingSaves }: OptionsT) {
   const [open, setOpen] = useState(false)
   const [preview, setPreview] = useState<ImportPreviewT | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,6 +63,7 @@ export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
       loaded,
       onMappingSaved: readPreview,
       onImported,
+      flushPendingSaves,
     },
   }
 }

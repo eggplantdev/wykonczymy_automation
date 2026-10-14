@@ -4,6 +4,7 @@ import { SummaryStagesTab } from '@/components/kosztorys/summary/tabs/summary-st
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const editorContext = vi.hoisted(() => ({ rows: [] as KosztorysV2RowT[] }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
@@ -11,8 +12,8 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 }))
 
 const STAGES: KosztorysStageT[] = [
-  { id: 1, ordinal: 1, label: 'Tynki', plane: null, split: null, completed: false },
-  { id: 2, ordinal: 2, label: 'Malowanie', plane: null, split: null, completed: false },
+  makeStage({ id: 1, label: 'Tynki', plane: null }),
+  makeStage({ id: 2, ordinal: 2, label: 'Malowanie', plane: null }),
 ]
 
 function renderTab(rows: KosztorysV2RowT[], preview: boolean) {

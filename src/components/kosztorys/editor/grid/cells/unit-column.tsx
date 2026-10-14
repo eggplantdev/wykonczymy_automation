@@ -15,7 +15,7 @@ function UnitCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, 
       options={UNIT_SUGGESTIONS}
       allowCustom
       hideChevron
-      className="hover:bg-accent size-full cursor-pointer px-2"
+      className="hover:bg-accent grid-cell-text size-full cursor-pointer px-2"
     />
   )
 }

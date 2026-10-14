@@ -1,0 +1,45 @@
+## Wycena AI (test, 2026-10-14)
+**AI przedmiar: 39 687,49 zł netto — tylko za pozycje z ilością** — 86 pozycji, z tego 78 z ilością i 8 wybranych przy ilości 0 (ilość nieznana albo wariant B), bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. Dodana 1 pozycja spoza szablonu łazienki: gładź rynek wtórny 85 zł/m² (z katalogu) w sekcji „Łazienka duża”.
+Łazienka i nowa łazienka to dwie osobne sekcje: „Łazienka duża” (obecna łazienka nr 5) i „Łazienka mała” (dawny schowek / W.C nr 6).
+Źródło: mail klienta, rzut bazowy mieszkania J (Pu 61,52 m², łaz. 5,83 m², W.C 1,53 m²), dwa zrzuty z programu klienta z wymiarami (łazienka 1: 315 cm, 5,84 m²; mała łazienka: 90 × 169,5 cm, „?,33 m²”) i dwa zdjęcia starej łazienki. Wysokości nie ma nigdzie — przyjęta 2,60 m (Manual: rynek wtórny).
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Rozbiórka**: które prace klient robi sam („w większości sami”) — skucie płytek, demontaż wanny, WC, umywalki, zabudowy; skuwanie i demontaże są wybrane przy ilości 0 (skucie łazienki dużej ok. 22 m² × 70 zł ≈ 1,5 tys. zł, demontaże zwykle 800–1500 zł).
+- **Wywóz gruzu**: czy po stronie firmy — kontener 1800 zł albo 2 big bagi 900 zł; piętro, winda i dojazd (transport bez windy ok. 2500 zł zamiast 1500 zł).
+- **Drzwi z ościeżnicami**: ile do usunięcia i czy ościeżnice drewniane (100 zł) czy metalowe (200 zł).
+- **Mikro ścianki**: długość i materiał 2 ścianek do wyburzenia (przyjęte po ok. 1,10 m) i czy wyburza klient.
+- **Nowa ścianka przy wejściu**: GK czy bloczki (bloczki z nadprożem ≈ −0,5 tys. zł), gdzie dokładnie stanie; czy stare wejście do schowka trzeba zamurować.
+- **Łazienka duża — płytki**: do jakiej wysokości w części kąpielowej (przyjęte 2,10 m; do sufitu +1,68 m² płytek zamiast gładzi ≈ +0,3 tys. zł); czy zabudowa WC też w płytkach (≈ +0,5 tys. zł).
+- **Łazienka duża — gładź na suficie** (5,83 m² ≈ 0,5 tys. zł) i czy hydroizolacja tylko w strefie mokrej, czy na wszystkich ścianach (+17,32 m² ≈ +0,5 tys. zł).
+- **Grzejnik w łazience dużej**: czy wymiana możliwa w sezonie grzewczym (decyzja administracji) i czy trzeba przerobić podejścia c.o. (250 zł/pkt).
+- **Gniazdka w łazience dużej**: ile z 3 gniazdek z projektu to nowe punkty (120 zł/pkt).
+- **Podejścia wanny i umywalki** w łazience dużej: zostają czy wymiana (250 zł/pkt).
+- **Baterie**: natynkowe i stojąca na umywalce przyjęte; podtynkowa wannowa +850 zł, umywalkowa +380 zł.
+- **Łazienka mała — metraż**: na zrzucie zasłonięta pierwsza cyfra „?,33 m²”; ze skali 3,33 m² (każdy 1 m² więcej ≈ +0,7 tys. zł).
+- **Łazienka mała — brodzik czy odpływ liniowy**: klient prosi o oba warianty; w sumie jest brodzik z kabiną (wariant A), odpływ liniowy z szybą stoi przy 0 (wariant B ≈ +0,8 tys. zł razem z gresem pod prysznicem; jeśli spadek wymaga schodka, +1000 zł).
+- **Łazienka mała — stan schowka**: ściany (wyrównanie do 18,61 m² × 80 zł ≈ 1,5 tys. zł), piony do zabudowy GK (250 zł/mb), co jest za drzwiczkami rewizyjnymi i gdzie zostaje rewizja, gdzie pion kanalizacji; narożniki kanału w płytkach (+10,4 mb szlifu 45° ≈ +0,8 tys. zł).
+- **Łazienka mała — szafka z umywalką i sufit**: czy szafkę montuje stolarz (250 zł), czy sufit maluje klient.
+- **Kuchnia — gniazda**: ile gniazd ogólnych nad blatem (projekt: 21 gniazdek i 3 włączniki w całym pokoju z kuchnią; każde ≈ +0,2 tys. zł z osprzętem i bruzdą).
+- **Kuchnia — płyta i rozdzielnica**: indukcja przyjęta (przebudowa rozdzielnicy do 18 modułów 1500 zł); płyta na 3 fazy +370 zł; przy gazie wystarczy dołożenie bezpieczników.
+- **Kuchnia — wod-kan**: gdzie stanie zlew, długość podejścia przez ścianę z małej łazienki (80 zł/mb bruzdy) i czy ściana jest nośna.
+- **Kuchnia — płytki**: 5 czy 6 płytek 60×60 i gdzie na ścianie.
+- **Zamieszkanie**: czy w trakcie prac ktoś mieszka (zabezpieczenia 45 zł/m² zamiast 25 zł, ≈ +1,2 tys. zł).
+- **Termin**: klient pyta o cennik wyburzeń, wywozu gruzu i demontażu drzwi oraz o czas realizacji; klucze ma pod koniec października.
+
+## Najważniejsze założenia
+- **Wysokość 2,60 m** we wszystkich pomieszczeniach (Manual: rynek wtórny) — ani rzut, ani projekt jej nie podają.
+- **Łazienka duża 3,15 × 1,85 m (5,83 m²)**: wanna ok. 1,80 × 0,75 m z zabudową z bloczków i rewizją, gres na podłodze 4,48 m², płytki w strefie kąpielowej od rantu wanny do 2,10 m + front zabudowy (6,18 m²), stare płytki do ok. 1,75 m (zdjęcia).
+- **Gładź rynek wtórny 85 zł/m² na 23,16 m²** (ściany poza strefą kąpielową 17,32 + sufit 5,83) — po skuciu płytek potrzebny podkład z tynku; malowanie robi klient, nie liczone.
+- **Hydroizolacja w łazience dużej tylko w strefie mokrej** (podłoga + ściany przy wannie, 12,87 m²) — Manual mówi o wszystkich ścianach, ale reszta ścian idzie pod gładź i farbę.
+- **Łazienka mała 2,02 × 1,70 m (3,33 m²)**: gres od podłogi do sufitu 18,61 m², brodzik 100 × 80 z kabiną, bateria natynkowa, 8 punktów wod-kan, WC podtynkowy, szafka z umywalką, grzejnik elektryczny z gniazdkiem, 3 punkty elektryczne.
+- **Nowa ścianka GK z wełną 3,03 m²** z drzwiami do małej łazienki (1,80 mb × 2,60 m minus drzwi); wyburzenie 2 mikro ścianek 5,72 m².
+- **Kuchnia**: 5 nowych punktów (płyta, piekarnik, zmywarka, okap, lodówka), przebudowa rozdzielnicy do 18 modułów (indukcja), 3 punkty wod-kan zlewu przez ścianę, 6 płytek 60×60 (2,16 m²).
+- **Kontener 1800 zł, transport 1500 zł, zabezpieczenie całego mieszkania 61,52 m² po 25 zł** (puste mieszkanie).
+
+## Przedmiar 0 świadomie
+- Skuwanie płytek i demontaże w łazience dużej — robi klient (pozycje wybrane przy 0).
+- Malowanie łazienki dużej — robi klient (mail).
+- Montaż AGD, okapu, zlewu i baterii kuchennej — zwykle stolarz (Manual), mail prosi tylko o przyłącza i obwody.
+- Akcesoria łazienkowe i lustra — mail ich nie wymienia.
+- Sprzątanie po remoncie — Manual: nie wyceniamy.

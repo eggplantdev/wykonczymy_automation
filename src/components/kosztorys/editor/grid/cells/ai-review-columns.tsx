@@ -2,21 +2,28 @@ import { useState, type ReactNode } from 'react'
 import type { Column, CellProps } from 'react-datasheet-grid'
 import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/save-item-to-catalogue-dialog'
 import { WorkNoteDialog } from '@/components/kosztorys/editor/dialogs/catalogue/work-note-dialog'
+import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
-import { aiCommentLines } from '@/lib/kosztorys/ai-review-columns'
-import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys/labels'
+import { aiCommentLines, aiNewInformationLines } from '@/lib/kosztorys/ai-review-columns'
+import {
+  RECHECK_LABEL,
+  REVIEW_STATUS_LABELS,
+  REVIEW_STATUS_UNSET_LABEL,
+} from '@/lib/kosztorys/labels'
 import {
   aiOffered,
   derivedReviewStatus,
   effectiveReviewStatus,
   isReviewStatus,
+  pickStatus,
   REVIEW_STATUSES,
 } from '@/lib/kosztorys/review-status'
 import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { KosztorysV2RowT, ReviewStatusT } from '@/lib/kosztorys/types'
+import { cn } from '@/lib/utils/cn'
 
 export const AI_REVIEW_COLUMN_CLASS = {
   headerClassName: 'kosztorys-ai-column',
@@ -35,23 +42,37 @@ function statusOptions(row: KosztorysV2RowT) {
   return [{ value: '', label: unsetLabel(row) }, ...picked]
 }
 
+// Above the owner's Status, never in its place: the verdict they gave stays readable until they give
+// the next one.
+function RecheckFlag({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex size-full flex-col">
+      <span
+        className={cn(
+          BADGE_BASE,
+          BADGE_TONE.pending,
+          'mx-2 mt-1.5 block w-fit max-w-full shrink-0 truncate',
+        )}
+      >
+        {RECHECK_LABEL}
+      </span>
+      <div className="min-h-0 flex-1">{children}</div>
+    </div>
+  )
+}
+
 function ReviewStatusCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
   const value = effectiveReviewStatus(rowData) ?? ''
-  if (disabled) {
-    return (
-      <ReadOnlyCellText>
-        {value ? REVIEW_STATUS_LABELS[value] : unsetLabel(rowData)}
-      </ReadOnlyCellText>
-    )
-  }
-  const options = statusOptions(rowData)
-  return (
+  const cell = disabled ? (
+    <ReadOnlyCellText>{value ? REVIEW_STATUS_LABELS[value] : unsetLabel(rowData)}</ReadOnlyCellText>
+  ) : (
     <CellSelectMenu
       value={value}
-      options={options}
-      onChange={(next) => setRowData({ ...rowData, reviewStatus: toStatus(next) })}
+      options={statusOptions(rowData)}
+      onChange={(next) => setRowData(pickStatus(rowData, toStatus(next)))}
     />
   )
+  return rowData.aiRecheck ? <RecheckFlag>{cell}</RecheckFlag> : cell
 }
 
 export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
@@ -63,23 +84,29 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
     component: ReviewStatusCell,
     keepFocus: true,
     copyValue: ({ rowData }) => effectiveReviewStatus(rowData) ?? '',
-    deleteValue: ({ rowData }) => ({ ...rowData, reviewStatus: null }),
-    pasteValue: ({ rowData, value }) => ({ ...rowData, reviewStatus: toStatus(value.trim()) }),
+    deleteValue: ({ rowData }) => pickStatus(rowData, null),
+    pasteValue: ({ rowData, value }) => pickStatus(rowData, toStatus(value.trim())),
   }
 }
 
-function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
-  const lines = aiCommentLines(rowData)
+// Komentarz AI and Nowe informacje read alike: the label plain, the answer bold, a gap between lines.
+function AiLabelledLines({ lines }: { lines: { label: string | null; answer: string }[] }) {
   if (lines.length === 0) return null
   return (
     <ReadOnlyCellText>
-      {lines.map(({ field, question, answer }) => (
-        <span key={field} className="block">
-          {question}: <strong>{answer}</strong>
+      {lines.map(({ label, answer }, index) => (
+        <span key={index} className="block not-first:mt-5">
+          {label && `${label}: `}
+          <strong>{answer}</strong>
         </span>
       ))}
     </ReadOnlyCellText>
   )
+}
+
+function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
+  const lines = aiCommentLines(rowData).map(({ question, answer }) => ({ label: question, answer }))
+  return <AiLabelledLines lines={lines} />
 }
 
 export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
@@ -94,7 +121,24 @@ export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
     copyValue: ({ rowData }) =>
       aiCommentLines(rowData)
         .map(({ question, answer }) => `${question}: ${answer}`)
-        .join('\n') || null,
+        .join('\n\n') || null,
+  }
+}
+
+function AiNewInformationCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
+  return <AiLabelledLines lines={aiNewInformationLines(rowData.aiNewInformation)} />
+}
+
+export function aiNewInformationColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
+  return {
+    id: 'aiNewInformation',
+    title: titleNode,
+    disabled: true,
+    minWidth: 280,
+    grow: 1,
+    ...AI_REVIEW_COLUMN_CLASS,
+    component: AiNewInformationCell,
+    copyValue: ({ rowData }) => rowData.aiNewInformation?.trim() || null,
   }
 }
 

@@ -238,6 +238,10 @@ export function buildImportPlan(
         currentPlannedQty: current?.currentPlannedQty ?? null,
         // The sheet knows nothing of the agent's draft or its review, so a matched praca keeps them.
         aiPlannedQty: current?.aiPlannedQty ?? null,
+        aiMissingData: current?.aiMissingData ?? null,
+        aiAssumptions: current?.aiAssumptions ?? null,
+        aiNewInformation: current?.aiNewInformation ?? null,
+        aiRecheck: current?.aiRecheck ?? false,
         changeReason: current?.changeReason ?? null,
         reviewStatus: current?.reviewStatus ?? null,
         // Carried on the same key as the note, so a form printed before the import still resolves

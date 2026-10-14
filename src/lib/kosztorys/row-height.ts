@@ -49,9 +49,17 @@ type ResolveOptsT = {
   override?: number
   // What the content needs — the client's preview, where nobody can drag and everything must show.
   contentLines?: number
+  // A floor for a cell that stacks a line of its own — a later AI round's flag above the Status
+  // (EX-1057). Below a drag like the content: a flattened row stays flat.
+  minLines?: number
 }
 
-export function resolveRowHeight({ isSectionBand, override, contentLines }: ResolveOptsT): number {
+export function resolveRowHeight({
+  isSectionBand,
+  override,
+  contentLines,
+  minLines,
+}: ResolveOptsT): number {
   // A drag outranks everything, the band's fixed height included: a flat row means a flat row even
   // where the description no longer fits — that is what the popover is for. Finite, not merely
   // present: the map is parsed out of localStorage, and a corrupted value would reach dsg's layout
@@ -60,6 +68,7 @@ export function resolveRowHeight({ isSectionBand, override, contentLines }: Reso
     return Math.max(ITEM_ROW_HEIGHT, Math.round(override))
   }
   if (isSectionBand) return SECTION_BAND_ROW_HEIGHT
+  if (minLines !== undefined) return heightForLines(Math.max(contentLines ?? 0, minLines))
   if (contentLines !== undefined) return heightForLines(contentLines)
   return ITEM_ROW_HEIGHT
 }

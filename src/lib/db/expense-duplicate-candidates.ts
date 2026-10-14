@@ -77,10 +77,11 @@ async function loadBookedTransactions(
   const res = await db.execute(sql`
     SELECT t.id, t.amount, t.date, t.description, t.invoice_note, t.document_number, t.seller_nip,
       t.document_date, t.investment_id, i.name AS investment_name, dt.draft_id, dt.read_rows,
-      COALESCE(drafter.name, creator.name) AS submitter_name,
+      COALESCE(drafter.name, creator.name) AS submitter_name, cr.name AS register_name,
       ${transactionInvoicesJson(sql`t.id`)} AS pages
     FROM transactions t
     LEFT JOIN investments i ON i.id = t.investment_id
+    LEFT JOIN cash_registers cr ON cr.id = t.source_register_id
     LEFT JOIN users creator ON creator.id = t.created_by_id
     LEFT JOIN worker_expense_draft_transfers dt ON dt.transfer_id = t.id
     LEFT JOIN worker_expense_drafts src ON src.id = dt.draft_id
@@ -97,6 +98,7 @@ async function loadBookedTransactions(
     date: text(row.date),
     investmentId: numOrNull(row.investment_id),
     submitterName: textOrNull(row.submitter_name),
+    registerName: textOrNull(row.register_name),
     investmentName: textOrNull(row.investment_name),
     amount: numOrNull(row.amount),
     documentNumber: textOrNull(row.document_number),
@@ -124,10 +126,12 @@ async function loadMergedParagony(
       WHERE cardinality(dt.read_rows) > 1
     )
     SELECT t.id, t.date, t.investment_id, p.draft_id, p.read_rows, p.read_row, p.position,
-      i.name AS investment_name, w.name AS submitter_name, ${transactionInvoicesJson(sql`t.id`)} AS pages
+      i.name AS investment_name, w.name AS submitter_name, cr.name AS register_name,
+      ${transactionInvoicesJson(sql`t.id`)} AS pages
     FROM paragony p
     JOIN transactions t ON t.id = p.transfer_id
     LEFT JOIN investments i ON i.id = t.investment_id
+    LEFT JOIN cash_registers cr ON cr.id = t.source_register_id
     LEFT JOIN users w ON w.id = p.worker_id
     WHERE ${IS_RECEIPT} AND t.cancelled IS NOT TRUE
       AND ${selected(selector, (filter) => readRowMatches(sql`p.read_row`, filter))}
@@ -145,6 +149,7 @@ async function loadMergedParagony(
         date: text(row.date),
         investmentId: numOrNull(row.investment_id),
         submitterName: textOrNull(row.submitter_name),
+        registerName: textOrNull(row.register_name),
         investmentName: textOrNull(row.investment_name),
         ...docOfReadRow(read.data),
         pages: toPages(row.pages),
@@ -162,13 +167,14 @@ export async function loadDraftCandidates(
 ): Promise<CandidateT[]> {
   const res = await db.execute(sql`
     WITH read_rows AS (
-      SELECT d.id, d.sent_at, d.worker_id, d.investment_id, r.value AS read_row, r.ordinality
+      SELECT d.id, d.sent_at, d.worker_id, d.investment_id, d.cash_register_id,
+        r.value AS read_row, r.ordinality
       FROM worker_expense_drafts d
       CROSS JOIN LATERAL jsonb_array_elements(d.ai_read -> 'rows') WITH ORDINALITY r(value, ordinality)
       WHERE d.status = 'pending' ${draftId === undefined ? sql`` : sql`AND d.id = ${draftId}`}
     )
     SELECT rr.id, rr.sent_at, rr.investment_id, rr.read_row, rr.ordinality,
-      w.name AS submitter_name, i.name AS investment_name,
+      w.name AS submitter_name, i.name AS investment_name, cr.name AS register_name,
       COALESCE((SELECT json_agg(${MEDIA_JSON})
         FROM media m
         WHERE m.id IN (SELECT jsonb_array_elements_text(rr.read_row -> 'mediaIds')::int)
@@ -176,6 +182,7 @@ export async function loadDraftCandidates(
         '[]'::json) AS pages
     FROM read_rows rr
     JOIN users w ON w.id = rr.worker_id
+    JOIN cash_registers cr ON cr.id = rr.cash_register_id
     LEFT JOIN investments i ON i.id = rr.investment_id
     -- Probing a decided read row would only match the transakcja booked from it.
     WHERE rr.ordinality - 1 NOT IN (${decidedReadRows(sql`rr.id`)})
@@ -196,6 +203,7 @@ export async function loadDraftCandidates(
         date: isoOrNull(row.sent_at) ?? '',
         investmentId: numOrNull(row.investment_id),
         submitterName: textOrNull(row.submitter_name),
+        registerName: textOrNull(row.register_name),
         investmentName: textOrNull(row.investment_name),
         ...docOfReadRow(read.data),
         pages: toPages(row.pages),

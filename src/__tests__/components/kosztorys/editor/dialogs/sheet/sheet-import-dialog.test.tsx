@@ -91,6 +91,7 @@ function DialogHost() {
         loaded
         onImported={onImported}
         onMappingSaved={vi.fn()}
+        flushPendingSaves={async () => {}}
       />
     </>
   )

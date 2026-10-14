@@ -7,6 +7,7 @@ import {
   type MeasuredColumnT,
 } from '@/lib/kosztorys/row-content-lines'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 
 // Ten pixels a character, so a width of 101 fits exactly ten characters once the 1px edge tolerance
 // comes off — the expectations below are countable by hand.
@@ -69,6 +70,7 @@ describe('measuredColumns', () => {
       { id: 'reviewStatus', copyValue: () => 'accepted' },
       { id: 'priceMode__w_tools', copyValue: () => 'catalogue' },
       { id: 'unit', copyValue: () => 'komplet na pomieszczenie' },
+      { id: REPORT_FIELD, copyValue: () => '1234,5' },
       keyColumn('note'),
     ]).map((column) => column.id)
     expect(ids).toEqual(['note'])

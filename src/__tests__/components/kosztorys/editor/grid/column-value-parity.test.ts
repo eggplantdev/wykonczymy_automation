@@ -7,7 +7,7 @@ import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 // A computed cell and its sort key must be one figure: EX-487 and EX-894 were each a sort ordering
 // rows by a number no cell showed. Iterates the columns the grid ACTUALLY assembles, so a computed
@@ -57,9 +57,9 @@ const tree: KosztorysTreeT = makeTree({
     },
   ],
   stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 200, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
-    { id: 300, ordinal: 3, label: null, plane: null, split: null, completed: false },
+    makeStage({ id: 100 }),
+    makeStage({ id: 200, ordinal: 2, plane: 'own_tools' }),
+    makeStage({ id: 300, ordinal: 3, plane: null }),
   ],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 1 },

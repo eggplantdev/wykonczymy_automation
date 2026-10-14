@@ -2,20 +2,21 @@ import { describe, expect, it } from 'vitest'
 import { reportScopeRefusal, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const stage = (
   id: number,
   plane: KosztorysStageT['plane'],
   workerId: number | null,
   completed = false,
-): KosztorysStageT => ({
-  id,
-  ordinal: id,
-  label: null,
-  plane,
-  split: workerId == null ? null : oneWorkerSplit(workerId),
-  completed,
-})
+) =>
+  makeStage({
+    id,
+    ordinal: id,
+    plane,
+    split: workerId == null ? null : oneWorkerSplit(workerId),
+    completed,
+  })
 
 describe('resolveWorkerScope', () => {
   it('is ready on the one plane of a worker holding two etapy of it, and keeps only his etapy', () => {
