@@ -1,0 +1,37 @@
+## Wycena AI (test, 2026-10-14)
+**AI przedmiar: 32 757,67 zł netto** — 52 pozycje, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. Dodana 1 pozycja spoza szablonu bez ceny: montaż gotowej ściany ażurowej klienta (brak w katalogu — do wyceny), więc suma jest o nią zaniżona.
+Źródło: karta branżowa lokalu 75 (wymiary w świetle ścian bez tynku, punkty elektryczne i wod-kan), jej legenda i karta informacyjna (hol 3,63 m², pokój z aneksem 20,56 m², łazienka 4,90 m²). Wysokość 2,70 m z Notatek — karty jej nie podają (Manual: 2,68 m). Łazienka 187,5 × 212 + wnęka prysznicowa 123,5 × 80.
+Zakres z Notatek: łazienka (biały montaż, zamiana pralki z umywalką, płytki 60 × 60, folia, malowanie), gładź i malowanie holu i pokoju bez ściany kuchennej i ściany za szafą, panele z listwami, ściana GK 1,6 × 2,7 m, ściana ażurowa, przeróbki elektryki w pokoju.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Rzut z kolorami**: miejsce nowej ściany GK (pomarańczowa) i ściany ażurowej (brązowa) — tego rzutu nie było w plikach.
+- **Ściana ażurowa**: wymiar i produkt; bez ceny w kosztorysie (najbliższa praca z katalogu: montaż paneli ściennych, lamele 150 zł/m²); czy stawiana na panelach.
+- **Ściana GK**: stawka 150 zł/m² z szablonu — katalog daje 150–250 zł/m², przy jednej małej ściance do ≈ +430 zł.
+- **„Oświetlenie, gniazdka i włączniki po mojej stronie”**: przyjęte jako osprzęt i lampy klienta; jeśli to cała elektryka, punkty w pokoju wypadają (≈ −2,4 tys. zł).
+- **Gniazda i łączniki**: gniazdo podwójne w jednej puszce to 1 punkt (−260 zł); łączniki krzyżowe g, h mogą wymagać 1–2 łączników schodowych (+130 zł za punkt).
+- **Odpływy umywalki i pralki**: Notatki mówią tylko o wodzie — jeśli odpływy zostają, −500 zł.
+- **Prawa ściana łazienki**: działowa czy żelbet — przy żelbecie wkucie +750 zł.
+- **Płytki na prawej ścianie łazienki**: wysokość pasa (przyjęto 1,80 m; przy 3/4 ≈ +40 zł), szerokość pasa przy umywalce (80 cm), zlicowanie z malowaną ścianą (licowanie GK ≈ +143 zł) albo krawędzie szlifowane na czysto (≈ +290 zł).
+- **Zabudowa stelaża WC**: wymiar (przyjęto 60 × 120 cm) — od niego zależą krawędzie 45°.
+- **Szafka podumywalkowa**: liczona, bo Notatki ją wymieniają — jeśli zestaw przychodzi złożony, −250 zł.
+- **Panele pod szafą w holu**: +76 zł, jeśli tak.
+- **Kolory ścian**: malowanie w kolorze 26 zł/m² zamiast 22 zł/m².
+- **Listwy**: gotowe białe czy malowane (malowanie listew 25 zł/mb).
+
+## Najważniejsze założenia
+- **Wysokość 2,70 m z Notatek** — ściany holu i pokoju 41,48 m² (z nową ścianą GK obustronnie), sufity 24,19 m²; wymiary z karty bez 1,5 cm tynku, więc m² ścian lekko zawyżone (1–2%).
+- **Bez gładzi i malowania**: ściana kuchenna 356,5 cm i ściana za szafą w holu (Notatki); panele bez pasa pod szafkami kuchennymi (22,00 m²).
+- **Łazienka**: płytki na ścianach 14,32 m² (wnęka i pas przy umywalce do sufitu, czoło uskoku pionu, reszta prawej ściany do 1,80 m, zabudowa stelaża), podłoga 3,94 m², malowane 10,37 m² ścian + sufit.
+- **Folia w płynie tylko pod płytkami** (19,22 m²) — katalog każe na wszystkich ścianach, ale lewa ściana i ściana od holu idą pod farbę wodoodporną; z nimi ≈ +311 zł.
+- **Wod-kan**: zamiana pralki z umywalką = 5 punktów z odpływami; 3 zespoły do wkucia (instalacja dewelopera zakończona korkami, przed ścianą).
+- **Grzejniki**: demontaż i ponowny montaż obu (łazienka, pokój) — katalog: na rynku pierwotnym prawie zawsze.
+- **Elektryka**: 3 punkty świetlne (a,b przeniesiony, g, h nowe) i 8 gniazd/łączników (a,b,c,s jako 2 łączniki, 2 gniazda podwójne = 4, łączniki g, h) + gniazdo pralki; bruzdy 2 mb na punkt.
+
+## Przedmiar 0 świadomie
+- Osprzęt (gniazda, łączniki, także krzyżowe) i lampy — po stronie klienta (Notatki).
+- Kuchnia — bez przeniesień przyłączy, meble dewelopera (Notatki); bez płytek i montażu AGD.
+- Drzwi wewnętrzne, lustro, akcesoria i lampa w łazience — Notatki ich nie wymieniają.
+- Gruntowanie podłóg — panele pływające (katalog: tylko pod klejone, wylewki i płytki).
+- Profile pod ościeżnice — nowa ściana GK jest bez drzwi.
+- Sprzątanie (Manual).

@@ -1,0 +1,80 @@
+{
+  "investmentId": 214,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "WC-rzut-03ce2ab893ef.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "łazienka-na-parterze-widok-4-5f1ae5e260f5.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "łazienka-na-parterze-widok-3-9431537ac400.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "łazienka-na-parterze-widok-2-879757182b16.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "łazienka-na-parterze-widok-1-3165bdece193.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "łazienka-na-parterze-rzut-0393a2f4f28e.pdf",
+      "kind": null
+    },
+    {
+      "name": "Łazienka-na-parterze-8-83a8fb046b20.png",
+      "kind": null
+    },
+    {
+      "name": "Łazienka-na-parterze-7-79a6414a7db9.png",
+      "kind": null
+    },
+    {
+      "name": "łaz3-7bab71d835a7.jpeg",
+      "kind": null
+    },
+    {
+      "name": "łaz2-89f47d2fc4bf.jpeg",
+      "kind": null
+    },
+    {
+      "name": "łaz1-0611c46690a0.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wc8-01bc062826f1.jpg",
+      "kind": null
+    },
+    {
+      "name": "wc6-ff4ad9b2fe7e.png",
+      "kind": null
+    },
+    {
+      "name": "wc3-45ee1fa6ab41.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wc2-2c9c5ec7ac5e.jpeg",
+      "kind": null
+    },
+    {
+      "name": "wc1-8475d963eca7.jpeg",
+      "kind": null
+    },
+    {
+      "name": "WC-widok-3i4-63f81141d38d.pdf",
+      "kind": null
+    },
+    {
+      "name": "WC-widok-1i2-d92b0c9b74a1.pdf",
+      "kind": null
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

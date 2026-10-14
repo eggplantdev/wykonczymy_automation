@@ -1,0 +1,737 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "piętro i winda — wyższe piętra bez windy ok. 2500 zł (Manual)",
+    "assumptions": "1 kpl na cały zakres — Manual: małe mieszkanie w całości 1500 zł (łazienka wtórna 1000, remont wtórny 2000); cena z szablonu"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - 2 piętro i sporo gruzu",
+    "unit": "kontener",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "missingData": "czy wywóz gruzu po stronie firmy (klient robi rozbiórkę sam i pyta o cennik wywozu) — kontener 1800 zł, 2 big bagi 900 zł; piętro i dojazd dla kontenera",
+    "assumptions": "kontener — Manual: rynek wtórny z wyburzeniami zawsze z kontenerem, przy rynku wtórnym od 1800 zł; gruz z 2 łazienek i 2 ścianek"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 61.52,
+    "missingData": "czy w trakcie prac ktoś już mieszka — zamieszkane 45 zł/m²",
+    "assumptions": "cała podłoga mieszkania Pu 61,52 m² (rzut) — Manual: zabezpieczenia liczymy po podłodze mieszkania; mieszkanie puste do odbioru kluczy pod koniec października"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić",
+    "unit": "kpl",
+    "clientPrice": 1000.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: które prace rozbiórkowe klient robi sam („w większości sami”) — skucie płytek, demontaż wanny, WC, umywalki, starej zabudowy; Manual: demontaże zwykle 800–1500 zł",
+    "assumptions": "demontaże zostają po stronie klienta: „prace rozbiórkowe wykonamy w większości sami”"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: czy skuwanie płytek robi klient, czy firma — które prace rozbiórkowe klient robi sam („w większości sami”) — skucie płytek, demontaż wanny, WC, umywalki, starej zabudowy",
+    "assumptions": "stare płytki łazienki dużej do ok. 1,75 m (16,10 m² ścian + 5,83 m² podłogi) — klient skuwa sam"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż drewnianych ościeżnic",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: ile drzwi z ościeżnicami do usunięcia i czy ościeżnice są drewniane (metalowe 200 zł)",
+    "assumptions": "klient pyta o cennik „usuwania drzwi z ościeżnicami”"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie ścian po kleju, przygotowanie do dalszych prac",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 21.93,
+    "missingData": "które prace rozbiórkowe klient robi sam („w większości sami”) — skucie płytek, demontaż wanny, WC, umywalki, starej zabudowy",
+    "assumptions": "łazienka duża po skuciu: ściany ze starymi płytkami 9,20 mb × 1,75 m = 16,10 m² + podłoga 5,83 m² — katalog: zawsze po skuwaniu płytek; wysokość starych płytek ze zdjęć"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zdzieranie starej farby z tynkiem",
+    "unit": "m²",
+    "clientPrice": 40.0,
+    "qty": 1.17,
+    "missingData": "do jakiej wysokości płytki w części kąpielowej — do sufitu to +1,68 m² płytek zamiast gładzi",
+    "assumptions": "łazienka duża: pas farby nad starymi płytkami w strefie kąpielowej, 3,35 mb × (2,10 − 1,75) m — katalog: zrywamy tylko część ponad starymi płytkami"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wyburzanie ścian do 12 cm grubości - materiał miękki",
+    "unit": "m²",
+    "clientPrice": 110.0,
+    "qty": 5.72,
+    "missingData": "długość i materiał mikro ścianek oraz czy wyburzenie robi klient",
+    "assumptions": "2 mikro ścianki z rzutu (ok. 6,5 cm, po ok. 1,10 m) × 2,60 m — wymiar odczytany z rzutu, materiał przyjęty miękki; wysokość 2,60 m — rysunki jej nie podają, Manual: rynek wtórny 2,60 m; mail: „2 mikro ścianki które trzeba będzie wyburzyć”"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 4,
+    "missingData": "długość podejścia wod-kan do kuchni przez ścianę z małej łazienki (+80 zł/mb)",
+    "assumptions": "Manual: ok. 2 mb na łazienkę — łazienka duża (WC podtynkowy, pralka) i mała"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 16,
+    "missingData": "ile gniazd ogólnych w kuchni — każdy punkt +2 mb bruzdy",
+    "assumptions": "Manual: ok. 2 mb na punkt — 5 punktów w kuchni + 3 w małej łazience"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż grzejników",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "czy wymiana grzejnika możliwa w sezonie grzewczym — katalog: zawsze decyzja administracji",
+    "assumptions": "łazienka duża: demontaż „nieprawidłowo zamontowanego” grzejnika ściennego (mail)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Uzupełnianie posadzki po wyburzeniach",
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "qty": 2.2,
+    "missingData": "długość mikro ścianek",
+    "assumptions": "po 2 mikro ściankach, po ok. 1,10 m (rzut) — pod płytki małej łazienki"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac",
+    "unit": "m²",
+    "clientPrice": 150.0,
+    "qty": 3.03,
+    "missingData": "GK czy bloczki (bloczki 10 cm 110 zł/m² + nadproże 150 zł) i gdzie dokładnie stanie ścianka przy wejściu; czy stare wejście do schowka trzeba zamurować",
+    "assumptions": "nowa ścianka wzdłuż boku łazienki 1,80 mb × 2,60 m minus drzwi 0,80 × 2,05 — długość z projektu (169,5 cm + grubość ścian), materiał przyjęty GK z wełną; wysokość 2,60 m — rysunki jej nie podają, Manual: rynek wtórny 2,60 m"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Montaż profili wzmocnionych pod ościeżnice",
+    "unit": "kpl",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "GK czy bloczki (bloczki 10 cm 110 zł/m² + nadproże 150 zł) i gdzie dokładnie stanie ścianka przy wejściu; czy stare wejście do schowka trzeba zamurować",
+    "assumptions": "drzwi do małej łazienki w nowej ściance GK — katalog: otwór w ściance GK wzmocniony profilami UA"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)",
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "qty": 7.0,
+    "missingData": "GK czy bloczki (bloczki 10 cm 110 zł/m² + nadproże 150 zł) i gdzie dokładnie stanie ścianka przy wejściu; czy stare wejście do schowka trzeba zamurować",
+    "assumptions": "styki nowej ścianki GK: 2 pionowe przy murze + sufit"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian",
+    "unit": "mb",
+    "clientPrice": 40.0,
+    "qty": 7.4,
+    "missingData": "długość mikro ścianek",
+    "assumptions": "poprawki po wyburzeniu 2 mikro ścianek: pas na ścianie i suficie przy każdej"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "qty": 3.03,
+    "missingData": "malowanie strony korytarza — mail o nim nie mówi, nie liczone (22 zł/m²)",
+    "assumptions": "gładź na nowej ściance GK od strony wejścia (strona łazienki pod płytki)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 3.03,
+    "assumptions": "przed i po gładzi na nowej ściance od strony wejścia"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 10,
+    "assumptions": "tynkowanie bruzd elektrycznych w kuchni (5 punktów × 2 mb); bruzdy w łazienkach idą pod płytki"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 4,
+    "missingData": "czy podejścia wanny i umywalki zostają, czy wymiana instalacji (+250 zł/pkt)",
+    "assumptions": "WC podtynkowy w tym samym miejscu (zimna + kanalizacja) + pralka (zimna + kanalizacja) — mail: przyłącza pralki „poprowadzone w dziwny sposób”; wanna i umywalka zostają na swoich podejściach"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "„zestaw podtynkowy wc” (mail)"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "missingData": "czy zabudowa geberitu w płytkach (+ok. 1,2 m² płytek i 5 otworów) — mail daje płytki tylko w części kąpielowej",
+    "assumptions": "„z zabudową z gk” (mail)"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "assumptions": "WC podwieszane na stelażu"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż wanny z zabudową z bloczków i rewizją",
+    "unit": "kpl",
+    "clientPrice": 1800.0,
+    "qty": 1,
+    "missingData": "rodzaj wanny (wolnostojąca 600 zł bez zabudowy)",
+    "assumptions": "wanna ok. 1,80 × 0,75 m wzdłuż krótkiej ściany (projekt), rant 0,55 m — „wstawić nową wannę”, zabudowa z bloczków z rewizją"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "bateria podtynkowa: 900 zł + biały montaż 200 zł zamiast 250 zł",
+    "assumptions": "bateria wannowa natynkowa — standard"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 33.82,
+    "assumptions": "pod gładź 23,16 + płytki ścienne 6,18 + podłoga 4,48 m²"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 5.19,
+    "missingData": "do jakiej wysokości płytki w części kąpielowej — do sufitu to +1,68 m² płytek zamiast gładzi",
+    "assumptions": "ściany pod nowe płytki w strefie kąpielowej po skuciu starych — katalog: po skuwaniu zawsze wyrównanie. płytki w strefie kąpielowej od rantu wanny do 2,10 m na ścianie za wanną i dwóch jej bokach (3,35 mb) — mail nie podaje wysokości"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 12.87,
+    "missingData": "czy hydroizolacja na wszystkich ścianach (+17,32 m² × 30 zł)",
+    "assumptions": "podłoga 5,83 m² + ściany strefy kąpielowej 3,35 mb × 2,10 m — Manual: w łazience wszystkie ściany i podłoga, tu tylko strefa mokra, bo reszta ścian idzie pod gładź i farbę"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 21.86,
+    "assumptions": "katalog: ok. 15 mb na łazienkę 4 m² → 5,83 m²"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 4.48,
+    "missingData": "format płytek (standard 30×30–120×60)",
+    "assumptions": "gres na podłodze 5,83 m² minus wanna 1,35 m². wanna ok. 1,80 × 0,75 m wzdłuż krótkiej ściany (projekt), rant 0,55 m"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 6.18,
+    "missingData": "do jakiej wysokości płytki w części kąpielowej — do sufitu to +1,68 m² płytek zamiast gładzi",
+    "assumptions": "płytki w strefie kąpielowej od rantu wanny do 2,10 m na ścianie za wanną i dwóch jej bokach (3,35 mb) — mail nie podaje wysokości: 5,19 m² + front zabudowy wanny 1,80 × 0,55 = 0,99 m². łazienka duża 3,15 × 1,85 m = 5,83 m² (rzut nr 5, projekt 315 cm), wysokość 2,60 m — rysunki jej nie podają, Manual: rynek wtórny 2,60 m"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 10.66,
+    "assumptions": "fugowanie = wszystkie płytki (Manual)"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 20,
+    "assumptions": "Manual: 20–30 mb na łazienkę — dolna granica, bo płytki tylko w strefie kąpielowej"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 2,
+    "missingData": "jeśli zabudowa WC w płytkach: +5 otworów",
+    "assumptions": "bateria natynkowa wannowa 2 (katalog); WC, grzejnik i pralka poza płytkami"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 10.0,
+    "assumptions": "styk gładzi ze ścianą i sufitem — obwód łazienki 10,00 mb"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa",
+    "unit": "m²",
+    "clientPrice": 85.0,
+    "qty": 23.16,
+    "missingData": "czy gładź także na suficie (5,83 m²)",
+    "assumptions": "„w reszcie łazienki trzeba będzie zrobić gładzie” (mail): ściany 24,36 m² (obwód 10,00 mb × 2,60 m minus drzwi) minus strefa kąpielowa 3,35 mb × 2,10 m = 17,32 m² + sufit 5,83 m²; stawka rynek wtórny, bo po skuciu płytek potrzebny podkład z tynku; malowanie robi klient (mail), nie liczone; wysokość 2,60 m — rysunki jej nie podają, Manual: rynek wtórny 2,60 m"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "czy wymiana grzejnika możliwa w sezonie grzewczym; czy trzeba przerobić podejścia c.o. (250 zł/pkt)",
+    "assumptions": "wymiana grzejnika ściennego (mail) — grzejnik na c.o. z zaworami"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Podłączenie pralki",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "pralka zostaje w tym samym miejscu (mail)"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 3,
+    "missingData": "bateria umywalkowa podtynkowa: 550 zł + biały montaż 100 zł",
+    "assumptions": "pralka 1 + umywalka 2 — katalog: zawory czerpalne do pralki i pod umywalkę z baterią stojącą; bateria umywalki przyjęta stojąca"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "umywalka zostaje w tym samym miejscu (mail) — na szafce, jak na zdjęciu"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: ile z 3 gniazdek z projektu to nowe punkty, a ile istniejące",
+    "assumptions": "projekt łazienki 1: „3 gniazdka”"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 3,
+    "assumptions": "osprzęt na 3 gniazdka z projektu („3 gniazdka”) — zakładany na nowo po gładzi"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "istniejąca lampa (zdjęcie) — ponowny montaż po gładzi"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "istniejąca kratka (zdjęcie) — ponowny montaż"
+  },
+  {
+    "section": "Łazienka duża",
+    "description": "Montaż rewizji z glazury",
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "missingData": "czy rewizja do pionu zostaje w strefie płytek",
+    "assumptions": "rewizja w płytkach strefy kąpielowej — na zdjęciu w obecnej zabudowie są drzwiczki rewizyjne"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 8,
+    "missingData": "gdzie jest pion kanalizacji w schowku",
+    "assumptions": "WC: zimna + kanalizacja 2, umywalka: zimna + ciepła + kanalizacja 3, prysznic: zimna + ciepła + odpływ 3 — katalog: każdy punkt osobno; w schowku są rury z ciepłą i zimną wodą (mail), kanalizacja z dawnego W.C (rzut)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "„wc zestaw podtynkowy” (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "wariant B — odpływ liniowy z szybą (pozycje przy 0)",
+    "assumptions": "wariant A z mailem: brodzik 100 × 80 z kabiną"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "„zestaw natynkowy” (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy",
+    "unit": "kpl",
+    "clientPrice": 1600.0,
+    "qty": 0,
+    "missingData": "Wariant B (klient prosi o oba): odpływ liniowy 1600 zł + szyba 550 zł zamiast brodzika z kabiną 1500 zł, + 0,80 m² gresu na podłodze; czy da się zejść ze spadkiem bez schodka (schodek 1000 zł)",
+    "assumptions": "wariant B z maila: odpływ liniowy zamiast brodzika"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "qty": 0,
+    "missingData": "Wariant B (klient prosi o oba): szyba stała 550 zł razem z odpływem liniowym",
+    "assumptions": "wariant B: szyba stała do odpływu liniowego"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 25.27,
+    "assumptions": "ściany 18,61 + podłoga i sufit po 3,33 m²"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: w jakim stanie są ściany schowka (tynk, stare płytki) — wyrównanie 80 zł/m² na do 18,61 m²",
+    "assumptions": "ściany obecnego schowka pod płytki"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Wykonanie zabudowy rur z gk",
+    "unit": "mb",
+    "clientPrice": 250.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: czy rury/piony w schowku trzeba zabudować GK (np. 1 pion × 2,60 mb)",
+    "assumptions": "rury z ciepłą i zimną wodą w schowku (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż rewizji z glazury",
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "missingData": "co jest za drzwiczkami rewizyjnymi (liczniki, zawory) i gdzie ma zostać rewizja",
+    "assumptions": "schowek ma drzwiczki rewizyjne do rur (mail) — przy płytkach do sufitu dostęp przez rewizję z glazury"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 21.94,
+    "assumptions": "folia w płynie na wszystkich ścianach i podłodze (katalog)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 12.49,
+    "assumptions": "katalog: ok. 15 mb na łazienkę 4 m² → 3,33 m²"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 18.61,
+    "missingData": "metraż małej łazienki — na zrzucie zasłonięta pierwsza cyfra „?,33 m²” — każdy 1 m² więcej to więcej płytek, folii i fugi",
+    "assumptions": "„gres od dołu do samej góry” (mail): obwód 7,79 mb × 2,60 m minus drzwi 0,80 × 2,05. łazienka mała 2,02 × 1,70 m z wnęką kanału = 3,33 m² (projekt: „?,33 m²”, 169,5 i 90 cm podane; pierwsza cyfra zasłonięta, odczytana ze skali), wysokość 2,60 m — rysunki jej nie podają, Manual: rynek wtórny 2,60 m"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 2.53,
+    "missingData": "wariant B (odpływ liniowy): +0,80 m² gresu",
+    "assumptions": "podłoga 3,33 m² minus brodzik 1,00 × 0,80 (wariant A)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 21.14,
+    "assumptions": "fugowanie = wszystkie płytki (Manual)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 20,
+    "assumptions": "Manual: 20–30 mb na łazienkę — dolna granica dla 3,33 m²"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 15,
+    "assumptions": "WC 5 + bateria natynkowa 2 + umywalka 3 + 3 puszki + kratka 1 = 14 → Manual: minimum 15 przy płytkach na wszystkich ścianach"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 2,
+    "missingData": "narożniki kanału przy WC (projekt: wnęka 0,62 × 0,18 m) — jeśli w płytkach do sufitu, +2 × 2,60 × 2 = 10,4 mb (katalog: nie zawyżaj, do weryfikacji)",
+    "assumptions": "krawędzie zabudowy geberitu ok. 0,9 m × 2 (katalog)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 7.79,
+    "assumptions": "styk płytek z sufitem — obwód 7,79 mb"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 3.33,
+    "missingData": "czy malowanie sufitu robi klient (gładź na suficie zostaje)",
+    "assumptions": "sufit — jedyna powierzchnia bez płytek"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "„powiesić szafkę z umywalką” (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Złożenie i montaż szafki podumywalkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "czy szafkę montuje stolarz",
+    "assumptions": "klient wprost prosi o powieszenie szafki z umywalką — gotowa szafka łazienkowa (Manual: zwykle montuje stolarz)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki (brodzik ma syfon w komplecie)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 2,
+    "missingData": "bateria umywalkowa podtynkowa: 550 zł + biały montaż 100 zł",
+    "assumptions": "katalog: zawory pod umywalkę z baterią stojącą — bateria przyjęta stojąca"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż grzejnika elektrycznego",
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "qty": 1,
+    "assumptions": "„grzejnik elektryczny naścienny z gniazdkiem do niego” (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 3,
+    "assumptions": "projekt: „2 gniazdka 1 włącznik” — gniazdko pod grzejnik, gniazdko przy umywalce, przeniesiony włącznik (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 3,
+    "assumptions": "osprzęt na 2 gniazdka i włącznik"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "czy nowy punkt świetlny (100 zł)",
+    "assumptions": "oprawa w miejscu obecnego światła schowka"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "schowek ma wentylację (mail)"
+  },
+  {
+    "section": "Łazienka mała",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "missingData": "GK czy bloczki (bloczki 10 cm 110 zł/m² + nadproże 150 zł) i gdzie dokładnie stanie ścianka przy wejściu; czy stare wejście do schowka trzeba zamurować",
+    "assumptions": "„wstawić drzwi do łazienki” w nowej ściance (mail)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Położenie płytek między szafkami format standard od 30x30 do 60x120",
+    "unit": "m²",
+    "clientPrice": 220.0,
+    "qty": 2.16,
+    "missingData": "5 czy 6 płytek i gdzie na ścianie",
+    "assumptions": "„kilka płytek 60x60 pewnie z 5 albo 6” (mail) — przyjęto 6 × 0,36 m²"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 5,
+    "missingData": "ile gniazd ogólnych nad blatem „pod sprzęty” (projekt: 21 gniazdek i 3 włączniki w całym pokoju z kuchnią) — każde +130 zł + osprzęt 39 zł; czy płyta na 3 fazy (+370 zł)",
+    "assumptions": "nowe obwody z mailu: płyta, piekarnik, zmywarka, okap, lodówka — po 1 punkcie"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 5,
+    "assumptions": "osprzęt / puszka przyłączeniowa na 5 nowych punktów kuchni"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "rodzaj płyty i stan rozdzielnicy — przy płycie gazowej wystarczy dołożenie bezpieczników (200 zł/szt.)",
+    "assumptions": "nowe obwody kuchni i łazienki małej w rozdzielnicy nad wejściem — Manual: przy indukcji minimum przebudowa do 18 modułów; płyta przyjęta indukcyjna"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 3,
+    "missingData": "gdzie stanie zlew i czy ściana między łazienką a kuchnią jest nośna (przebicie w żelbecie drożej)",
+    "assumptions": "zlew: zimna + ciepła + kanalizacja, przez ścianę z małej łazienki (mail); zmywarka na tym samym podejściu"
+  }
+]

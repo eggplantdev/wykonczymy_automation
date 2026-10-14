@@ -1,0 +1,1195 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "cena j.m. z szablonu 1500 zł, katalog dla większego remontu na rynku wtórnym mówi ok. 2000 zł — do podniesienia ręcznie",
+    "assumptions": "1 kpl na cały remont: dom, cztery pomieszczenia (2 łazienki na parterze, pralnia i WC w piwnicy)"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc.",
+    "unit": "kontener",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "czy kontener zapewnia inwestor (np. na cały remont domu) — wtedy −1500 zł; jeśli w pralni nie ma płytek do skucia, wystarczą ok. 3 big bagi (1350 zł)",
+    "assumptions": "Manual: rynek wtórny z wyburzeniami → kontener, przy 4+ big bagach kontener; gruz: tynk z sufitów 4 pomieszczeń (13,47 m²) + skuwanie płytek w pralni; parter/piwnica → 1500 zł"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "qty": 30,
+    "missingData": "czy dom jest zamieszkany w trakcie (stawka 45 zł/m², +0,6 tys. zł) i jaka jest droga do łazienek",
+    "assumptions": "droga do łazienek po podłodze: hol i korytarz parteru, schody, korytarz piwnicy — ok. 30 m², szacunek agenta (projekty nie pokazują reszty domu)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie tynków cementowo-wapiennych i cementowych",
+    "unit": "m²",
+    "clientPrice": 50.0,
+    "qty": 13.47,
+    "missingData": "grubość i stan tynku na suficie (strop drewniany czy betonowy)",
+    "assumptions": "Notatki: „we wszystkich łazienkach zdjęcie tynku z sufitu i wyrównanie do kątów prostych”: skucie tynku z sufitu w 4 pomieszczeniach — Łazienka z prysznicem 2,68, Łazienka z wanną 4,21, Łazienka pralnia 4,64, WC piwnica 1,94 m²"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "qty": 21.18,
+    "missingData": "czy w pralni są płytki na ścianach i podłodze (brak zdjęcia) — bez skuwania ≈ −1,7 tys. zł razem ze szlifowaniem, i kontener może zejść do big bagów",
+    "assumptions": "Łazienka pralnia: obecny brodzik 12 cm („brodzik obecnie ma 12 cm”) → pomieszczenie wykończone, zakładam stare płytki na ścianach (16,54) i podłodze (4,64) — brak zdjęcia pralni"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie ścian po kleju, przygotowanie do dalszych prac",
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "qty": 16.54,
+    "missingData": "jak skuwanie w pralni — zależy od tego, czy są płytki",
+    "assumptions": "Łazienka pralnia: ściany po skuciu płytek, przed tynkowaniem pod glazurę (Manual: szlifowanie po kleju idzie ze skuwaniem)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić",
+    "unit": "kpl",
+    "clientPrice": 1000.0,
+    "qty": 1,
+    "missingData": "co dokładnie zostało w pralni (brak zdjęcia)",
+    "assumptions": "Łazienka pralnia: obecny brodzik z kabiną, umywalka/zlew, pralka, grzejnik; WC piwnica: stara armatura i rury (zdjęcie IMG_0427); łazienki na parterze puste (zdjęcia)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż drewnianych ościeżnic",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "missingData": "czy drzwi w piwnicy są wymieniane",
+    "assumptions": "stare ościeżnice w pralni i WC w piwnicy — projekt pokazuje nowe drzwi, a w pralni otwór do zmniejszenia"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 6,
+    "missingData": "materiał ścian w piwnicy (beton/żelbet: 150 zł/mb)",
+    "assumptions": "nowe punkty wod-kan w piwnicy: Łazienka pralnia ok. 2 mb (suszarka/druga pralka), WC piwnica ok. 4 mb (nowe podejścia pod WC podwieszane i umywalkę) — szacunek agenta"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 34,
+    "missingData": "czy instalację elektryczną na parterze robi elektryk całego domu — wtedy bez bruzd i punktów na parterze (≈ −1,4 tys. zł)",
+    "assumptions": "ok. 2 mb na punkt (katalog) × 17 punktów elektrycznych i oświetleniowych w 4 pomieszczeniach"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Wylewka samopoziomująca w całym mieszkaniu do 5 mm",
+    "unit": "m²",
+    "clientPrice": 55.0,
+    "qty": 6.58,
+    "missingData": "czy wylewkę betonową na ogrzewaniu podłogowym w łazienkach na parterze robimy my — 6,89 m² × 80 zł ≈ +551 zł",
+    "assumptions": "piwnica: Łazienka pralnia 4,64 po skuciu płytek + WC piwnica 1,94 na surowym betonie (zdjęcie IMG_0427) — wyrównanie pod glazurę. Parter bez wylewki w tej wycenie: na pętlach ogrzewania podłogowego wylewkę zakładam robioną przez ekipę od wylewek razem z resztą domu"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 6.58,
+    "assumptions": "gruntowanie pod wylewkę samopoziomującą w piwnicy (katalog)"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Dopasowanie otworów pod montaż drzwi - zmniejszenie otworu",
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "qty": 1,
+    "missingData": "czy zmniejszamy otwór w pralni (−200 zł, jeśli nie)",
+    "assumptions": "Łazienka pralnia: notatka na projekcie „drzwi można zmniejszyć do 70 cm” (obecne 80 cm)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "stelaż WC podwieszanego (projekt, kład D)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "zabudowa GK stelaża z półką na wys. 1,20 (projekt)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Wykonanie zabudowy rur z gk",
+    "unit": "mb",
+    "clientPrice": 250.0,
+    "qty": 2.7,
+    "missingData": "czy pion przy drzwiach jest zabudowany GK, czy obmurowany",
+    "assumptions": "zabudowa pionu kanalizacyjnego obok drzwi — pas 14 cm na całą wysokość (rzut, kład C; pion widać na zdjęciu IMG_0426), 2,70 mb"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy",
+    "unit": "kpl",
+    "clientPrice": 1600.0,
+    "qty": 1,
+    "missingData": "koperta zamiast jednospadkowego (+300 zł); czy odpływ zmieści się w wylewce na ogrzewaniu podłogowym",
+    "assumptions": "prysznic bez brodzika z odpływem liniowym (rzut: strefa 0,92 × 1,23 przy oknie) — odpływ jednospadkowy"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "missingData": "projekt rysuje drzwi przesuwne — montaż może być droższy niż szyba stała",
+    "assumptions": "ścianka szklana prysznica (kład A) — przyjęta jako szyba stała"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 20.97,
+    "assumptions": "ściany 15,61 + podłoga i sufit 2,68 × 2 (katalog: dwukrotne gruntowanie ścian, sufitów i podłóg)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 15.61,
+    "assumptions": "zdjęcia parteru: ściany z gołej cegły, nowe rury wod-kan i pętle ogrzewania podłogowego bez wylewki, stary tynk na suficie (IMG_0426) — tynk pod glazurę na całej wysokości: obwód 6,82 mb × 2,70 − drzwi 1,66 − okno 1,15. wymiary i wysokość z projektu (rzut + kłady)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 2.68,
+    "missingData": "czy wystarczy tynk do 1 cm (60 zł/m²), jeśli strop jest równy",
+    "assumptions": "Notatki: „we wszystkich łazienkach zdjęcie tynku z sufitu i wyrównanie do kątów prostych” — nowy tynk na suficie po skuciu, 2,68 m²; praca z sekcji „Ściany i sufity bez łazienek”, wstawiona do łazienki (Manual: prace w łazience idą do sekcji łazienki)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 2.68,
+    "assumptions": "sufit po nowym tynku: gładź + malowanie, 2,68 m² — ściany w całości w płytkach"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 18.29,
+    "assumptions": "folia w płynie na wszystkich ścianach i podłodze (Manual): 15,61 + 2,68"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 12,
+    "assumptions": "ok. 15 mb na 4 m² (Manual) → mała łazienka 2,7 m², ok. 12 mb"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 15.61,
+    "assumptions": "płytki do sufitu na wszystkich ścianach, Gl 59,8 × 119,8 → format standard (kłady A–D): 15,61 m²"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard",
+    "unit": "mb",
+    "clientPrice": 130.0,
+    "qty": 4.4,
+    "missingData": "czy okno ma parapet z płytek czy konglomerat",
+    "assumptions": "glify okna 0,85 × 1,35 w płytkach do sufitu (parapet + boki + nadproże) = 4,40 mb"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 2.68,
+    "assumptions": "podłoga Gr 59,8 × 59,8 → format standard, 2,68 m²"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 18.29,
+    "missingData": "fuga cementowa czy epoksydowa (80 zł/m²)",
+    "assumptions": "fugowanie = wszystkie płytki (Manual), format standard"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 20,
+    "assumptions": "Manual: 20–30 mb na łazienkę — dolna granica, łazienka 2,7 m²"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 17,
+    "assumptions": "WC 5 + prysznic natynkowy 2 + umywalka z baterią stojącą 3 + grzejnik 2 + puszki 2 + 2 punkty natynkowe + kratka 1 (Manual)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 6.82,
+    "assumptions": "styk płytek z sufitem — obwód 6,82 mb"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 4,
+    "assumptions": "krawędzie półki nad stelażem WC i narożniki glifów okna — zaniżone (Manual: przy wątpliwościach nie zawyżaj)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "kolumna prysznicowa natynkowa z termostatem (kład B)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "umywalka na szafce (rzut, kład C); szafka podumywalkowa to praca stolarza"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "bateria stojąca na umywalce (kład C)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 2,
+    "assumptions": "bateria stojąca → zawory kątowe pod umywalką (Manual)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "assumptions": "WC podwieszane na stelażu (kład D)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "grzejnik wodny czy elektryczny (elektryczny 200 zł)",
+    "assumptions": "grzejnik drabinkowy (kład A, C)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż lustra",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 1,
+    "missingData": "czy szafkę lustrzaną montuje stolarz",
+    "assumptions": "szafka z lustrem nad umywalką (kład C) — montaż jak lustro"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 3,
+    "assumptions": "wieszak na ręcznik i akcesoria — 3 szt. (szacunek agenta)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "kratka wentylacyjna"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "missingData": "czy elektrykę na parterze robi elektryk całego domu",
+    "assumptions": "projekt: „2 punkty natynkowe” (kład A)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "assumptions": "2 lampy na punktach natynkowych"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 1,
+    "assumptions": "gniazdko przy umywalce/szafce lustrzanej — szacunek agenta (projekt nie ma warstwy elektrycznej)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 2,
+    "assumptions": "gniazdko + włącznik"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "missingData": "czy drzwi są w zakresie (dom w remoncie — może je montuje stolarz)",
+    "assumptions": "drzwi 0,81 × 2,046 rysowane w projekcie (kład C)"
+  },
+  {
+    "section": "Łazienka z prysznicem",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 0,
+    "missingData": "Praca wybrana, ilość nieznana: czy podejścia pod prysznic, umywalkę i WC są już w miejscach z projektu (każdy punkt do przeniesienia 250 zł)",
+    "assumptions": "instalacja wod-kan na parterze: na zdjęciu IMG_0426 nowe rury i pion — zakładam, że podejścia są gotowe"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "czy przenosi się też odpływ wanny",
+    "assumptions": "Notatki: „przeniesienie kranu na wannie na środek” — 1 punkt (zasilanie baterii wannowej)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż wanny z zabudową z bloczków i rewizją oraz LED",
+    "unit": "kpl",
+    "clientPrice": 2000.0,
+    "qty": 1,
+    "assumptions": "wanna 1,60 z zabudową wys. 0,48, podcięcie z LED (kład) → zabudowa z rewizją i LED"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 28.45,
+    "assumptions": "ściany 20,03 + podłoga i sufit 4,21 × 2"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 20.03,
+    "assumptions": "zdjęcia parteru: ściany z gołej cegły, nowe rury wod-kan i pętle ogrzewania podłogowego bez wylewki, stary tynk na suficie (IMG_0424/0425) — tynk pod glazurę: obwód 8,38 mb × 2,70 − drzwi 1,64 − okno 0,96. wymiary i wysokość z projektu (rzut + kłady)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 4.21,
+    "missingData": "czy wystarczy tynk do 1 cm (60 zł/m²), jeśli strop jest równy",
+    "assumptions": "Notatki: „we wszystkich łazienkach zdjęcie tynku z sufitu i wyrównanie do kątów prostych” — nowy tynk na suficie po skuciu, 4,21 m² (2,04 × 2,15 minus wnęka 0,27 × 0,65); praca z sekcji „Ściany i sufity bez łazienek”, wstawiona do łazienki"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 4.21,
+    "assumptions": "sufit po nowym tynku: gładź + malowanie, 4,21 m²"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 25.01,
+    "assumptions": "folia w płynie na ścianach, zabudowie wanny i podłodze: 20,79 + 4,21"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 15,
+    "assumptions": "ok. 15 mb na 4 m² (Manual), łazienka 4,2 m²"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 20.79,
+    "missingData": "wysokość płytek — projekt i Notatki nie zmieniają „do sufitu”, ale nowy format może zmienić układ",
+    "assumptions": "Notatki: „łazienka z wanną będzie mieć inne kafle 120 na 60” (projekt: 30 × 60) — format standard, do sufitu: ściany 20,03 + front zabudowy wanny 0,77"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard",
+    "unit": "mb",
+    "clientPrice": 130.0,
+    "qty": 4.0,
+    "assumptions": "glify okna 0,80 × 1,20 = 4,00 mb"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 4.21,
+    "assumptions": "podłoga Gr 59,8 × 59,8 → format standard, 4,21 m²"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 25.01,
+    "missingData": "fuga cementowa czy epoksydowa",
+    "assumptions": "fugowanie = wszystkie płytki (Manual)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 25,
+    "assumptions": "Manual: 20–30 mb na łazienkę — środek, wanna z zabudową"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 15,
+    "assumptions": "bateria wannowa natynkowa 2 + umywalka 3 + grzejnik 2 + puszki 2 + 2 punkty przy lustrze + kratka 1 = 12 → Manual: minimum 15 przy płytkach na wszystkich ścianach"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 8.38,
+    "assumptions": "styk płytek z sufitem — obwód 8,38 mb"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 5,
+    "assumptions": "krawędź zabudowy wanny (1,60 + 0,48) i narożniki glifów — zaniżone"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "bateria wannowa natynkowa, przeniesiona na środek wanny (Notatki)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż parawanu nawannowego",
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "qty": 1,
+    "assumptions": "parawan nawannowy (projekt)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "assumptions": "umywalka na szafce 0,90 (projekt)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "bateria stojąca na umywalce (projekt)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 2,
+    "assumptions": "bateria stojąca → zawory kątowe (Manual)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki (syfon wanny w kpl wanny)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "grzejnik wodny czy elektryczny",
+    "assumptions": "grzejnik drabinkowy na ścianie 0,65 (projekt)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż lustra z LED",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "lustro podświetlane (projekt)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 3,
+    "assumptions": "akcesoria — 3 szt. (szacunek agenta); wysoka szafka 0,30 × 1,73 to praca stolarza"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "kratka wentylacyjna"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 5,
+    "missingData": "czy elektrykę na parterze robi elektryk całego domu",
+    "assumptions": "2 punkty przy lustrze + 3 punkty natynkowe na suficie (projekt)"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 5,
+    "assumptions": "lampy na 5 punktach"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 1,
+    "assumptions": "gniazdko przy umywalce — szacunek agenta"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 2,
+    "assumptions": "gniazdko + włącznik"
+  },
+  {
+    "section": "Łazienka z wanną",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "missingData": "czy drzwi są w zakresie",
+    "assumptions": "drzwi rysowane w projekcie"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 2,
+    "missingData": "czy obecne podejścia pod brodzik, zlew i pralkę zostają w tych samych miejscach",
+    "assumptions": "nowe podejścia: druga maszyna (suszarka/pralka) — odpływ + zasilanie; reszta punktów zakładam na miejscu (pralnia istnieje)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "qty": 1,
+    "missingData": "projekt: „brodzik obecnie ma 12 cm… niższy brodzik?” — niższy brodzik może wymagać obniżenia odpływu w posadzce piwnicy",
+    "assumptions": "brodzik 0,90 × 0,90 z kabiną (rzut) — pralnia liczona jak łazienka, bo ma prysznic: hydroizolacja, płytki do sufitu, biały montaż"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 25.82,
+    "assumptions": "ściany 16,54 + podłoga i sufit 4,64 × 2"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 16.54,
+    "missingData": "jak skuwanie — zależy od tego, czy w pralni są płytki",
+    "assumptions": "Manual: po skuciu płytek zawsze tynk pod glazurę — obwód 8,63 mb × 2,16 − drzwi 1,60 − okno 0,51. wymiary i wysokość z projektu (rzut + kłady)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 4.64,
+    "missingData": "czy wystarczy tynk do 1 cm (60 zł/m²)",
+    "assumptions": "Notatki: „we wszystkich łazienkach zdjęcie tynku z sufitu i wyrównanie do kątów prostych” — nowy tynk na suficie po skuciu, 4,64 m²; praca z sekcji „Ściany i sufity bez łazienek”, wstawiona do łazienki"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 4.64,
+    "assumptions": "sufit po nowym tynku: gładź + malowanie, 4,64 m²"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 21.18,
+    "assumptions": "folia w płynie na wszystkich ścianach i podłodze (Manual): 16,54 + 4,64"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 15,
+    "assumptions": "ok. 15 mb na 4 m² (Manual), pralnia 4,6 m²"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Układanie glazury na ścianie mały format np. 6,5 x 15",
+    "unit": "m²",
+    "clientPrice": 380.0,
+    "qty": 16.54,
+    "assumptions": "płytki Gl 7,8 × 23,7 do sufitu na wszystkich ścianach → mały format: 16,54 m² (wysokość 2,16 z kładu A: 0,91 + 1,251)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Układanie glazury na glify i małe ściany - mały format",
+    "unit": "mb",
+    "clientPrice": 345.0,
+    "qty": 2.86,
+    "assumptions": "glify okna 0,78 × 0,65 pod sufitem, mały format = 2,86 mb"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 4.64,
+    "assumptions": "podłoga Gr 29,8 × 29,8 → format standard, 4,64 m²"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Fugowanie ścian i podłóg fuga cementowa płytka mały format",
+    "unit": "m²",
+    "clientPrice": 50.0,
+    "qty": 16.54,
+    "missingData": "fuga cementowa czy epoksydowa",
+    "assumptions": "fugowanie płytek ściennych — mały format, fuga cementowa"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 4.64,
+    "assumptions": "fugowanie podłogi — format standard"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 25,
+    "assumptions": "Manual: 20–30 mb na łazienkę — brodzik, blat 1,385 + 0,60"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 18,
+    "assumptions": "prysznic natynkowy 2 + zlew 3 + zawór i odpływ dla 2 maszyn 4 + gniazdka 3 + włącznik 1 + 2 punkty natynkowe + grzejnik 2 + kratka 1 = 18 (Manual)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 8.63,
+    "assumptions": "styk płytek z sufitem — obwód 8,63 mb"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 3,
+    "assumptions": "narożniki glifów okna — zaniżone"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "assumptions": "bateria natynkowa w kabinie (rzut, kład D)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "missingData": "zlewozmywak podwieszany pod blatem może wymagać więcej pracy",
+    "assumptions": "zlew/umywalka w blacie nad szafką 0,60 (kład A)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "bateria stojąca przy zlewie (kład A)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 3,
+    "assumptions": "zlew z baterią stojącą 2 + pralka 1 (Manual: zawory czerpalne dla pralki)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon zlewu"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Podłączenie pralki",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "czy to pralka i suszarka, czy dwie pralki (+100 zł, +1 zawór)",
+    "assumptions": "dwie maszyny pod blatem 1,385 (kład A) — przyjęte pralka + suszarka"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Podłączenie suszarki",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "suszarka pod blatem (kład A)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "grzejnik wodny czy elektryczny",
+    "assumptions": "grzejnik drabinkowy (rzut, ściana B)"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 2,
+    "assumptions": "akcesoria — 2 szt. (szacunek agenta); blat i szafka pod zlewem to praca stolarza"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "kratka wentylacyjna"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 3,
+    "assumptions": "projekt: „2 punkty natynkowe do oświetlenia blatu” + 1 punkt na suficie"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 3,
+    "assumptions": "lampy na 3 punktach"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Wykonanie punktów elektrycznych pod włącznik, gniazdko",
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "qty": 3,
+    "assumptions": "gniazdka: pralka, suszarka, blat — szacunek agenta"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 4,
+    "assumptions": "3 gniazdka + włącznik"
+  },
+  {
+    "section": "Łazienka pralnia",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "missingData": "czy drzwi są w zakresie",
+    "assumptions": "drzwi 0,70 po zmniejszeniu otworu (notatka na projekcie)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "qty": 5,
+    "missingData": "czy stare podejścia w WC w piwnicy zostają (każdy punkt 250 zł; razem ≈ −1,6 tys. zł z bruzdami)",
+    "assumptions": "na zdjęciu IMG_0427 stare rury i pion — nowe podejścia: WC podwieszane 2 + umywalka 3 (katalog)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż geberitu",
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "stelaż WC podwieszanego (projekt)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "qty": 1,
+    "assumptions": "zabudowa GK stelaża (projekt)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż WC podwieszanego",
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "qty": 1,
+    "assumptions": "WC podwieszane (projekt)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Wykonanie zabudowy rur z gk",
+    "unit": "mb",
+    "clientPrice": 250.0,
+    "qty": 2.16,
+    "missingData": "czy pion jest w tym pomieszczeniu zabudowany (projekt go nie rysuje)",
+    "assumptions": "zabudowa pionu kanalizacyjnego widocznego na zdjęciu IMG_0427, 2,16 mb"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "qty": 16.17,
+    "assumptions": "ściany 12,28 (płytki 6,77 + malowane 5,51) + podłoga i sufit 1,94 × 2"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Tynkowanie/wyrównanie ścian pod układanie glazury",
+    "unit": "m²",
+    "clientPrice": 80.0,
+    "qty": 12.28,
+    "missingData": "czy stary tynk nad 1,5 m zostaje (tynk tylko na skutej części ≈ −0,2 tys. zł)",
+    "assumptions": "zdjęcie IMG_0427: ściany skute do cegły do ok. 1,5 m, wyżej stary tynk — tynk na całej wysokości, żeby wyrównać do kątów prostych: pod płytki do 1,20 (6,77) i pod farbę wyżej (5,51)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 1.94,
+    "missingData": "czy wystarczy tynk do 1 cm (60 zł/m²)",
+    "assumptions": "Notatki: „we wszystkich łazienkach zdjęcie tynku z sufitu i wyrównanie do kątów prostych” — nowy tynk na suficie po skuciu (na zdjęciu tynk odpada), 1,94 m²; praca z sekcji „Ściany i sufity bez łazienek”, wstawiona do WC"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "qty": 7.45,
+    "assumptions": "Manual: malowanie w łazience tylko ścian bez płytek — ściany nad 1,20 (farba Optiva na projekcie) 5,51 + sufit 1,94"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Położenie folii w płynie (izolacji)",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 8.72,
+    "assumptions": "folia w płynie na ścianach z płytkami i podłodze: 6,77 + 1,94"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "qty": 8,
+    "assumptions": "WC bez prysznica — taśma w narożnikach ściana–podłoga i przy stelażu, ok. 8 mb (szacunek agenta)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Układanie glazury na ścianie mały format np. 6,5 x 15",
+    "unit": "m²",
+    "clientPrice": 380.0,
+    "qty": 6.77,
+    "assumptions": "płytki Gl 7,8 × 23,7 do wys. 1,20 (projekt) → mały format: obwód 6,41 mb × 1,20 − drzwi = 6,77 m²"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "qty": 1.94,
+    "assumptions": "podłoga Gr 29,8 × 29,8 → format standard; WC w kształcie L 0,915 × 1,28 + 0,765 × 1,01 = 1,94 m²"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Fugowanie ścian i podłóg fuga cementowa płytka mały format",
+    "unit": "m²",
+    "clientPrice": 50.0,
+    "qty": 6.77,
+    "missingData": "fuga cementowa czy epoksydowa",
+    "assumptions": "fugowanie płytek ściennych — mały format"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "qty": 1.94,
+    "assumptions": "fugowanie podłogi — format standard"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Silikonowanie",
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "qty": 10,
+    "assumptions": "WC bez prysznica: styk ściana–podłoga, WC, umywalka — ok. 10 mb (Manual 20–30 mb dotyczy łazienki z prysznicem/wanną)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Wiercenie otworów w płytkach",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 10,
+    "assumptions": "WC 5 + umywalka 3 + grzejnik 2 (Manual); płytki tylko do 1,20, więc bez minimum 15"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Akrylowanie",
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "qty": 12.82,
+    "assumptions": "styk farby z sufitem (6,41 mb) i górna krawędź płytek na 1,20 (6,41 mb)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "qty": 2,
+    "assumptions": "krawędź półki nad stelażem WC — zaniżone"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "qty": 1,
+    "missingData": "umywalka wisząca (250 zł) czy na szafce",
+    "assumptions": "umywalka 0,40 (projekt)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż baterii do umywalki",
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "qty": 1,
+    "assumptions": "bateria stojąca (projekt)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "qty": 2,
+    "assumptions": "bateria stojąca → zawory kątowe (Manual)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż syfonów",
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "qty": 1,
+    "assumptions": "syfon umywalki"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż grzejnika z zaworami",
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "qty": 1,
+    "missingData": "grzejnik wodny czy elektryczny",
+    "assumptions": "grzejnik drabinkowy (projekt)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "unit": "mb",
+    "clientPrice": 150.0,
+    "qty": 0.6,
+    "missingData": "długość szafki",
+    "assumptions": "LED pod szafką wiszącą (projekt; szafka to praca stolarza) — ok. 0,6 mb"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż i podłączenie transformatora",
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "assumptions": "zasilacz LED"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż akcesoriów łazienkowych",
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "qty": 2,
+    "assumptions": "akcesoria — 2 szt. (szacunek agenta)"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż kratki wentylacyjnej",
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "qty": 1,
+    "missingData": "WC w piwnicy bez okna — czy potrzebny wentylator (+120 zł)",
+    "assumptions": "kratka wentylacyjna"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Wykonanie punktów oświetleniowych",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "assumptions": "projekt: 2 punkty natynkowe"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż lamp",
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "qty": 2,
+    "assumptions": "lampy na 2 punktach"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż gniazdek i włączników standard",
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "qty": 2,
+    "assumptions": "włącznik światła + włącznik LED pod szafką"
+  },
+  {
+    "section": "WC piwnica",
+    "description": "Montaż ościeżnicy z drzwiami i klamkami",
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "qty": 1,
+    "missingData": "czy drzwi są w zakresie",
+    "assumptions": "drzwi 0,765 × 2,046 rysowane w projekcie"
+  }
+]

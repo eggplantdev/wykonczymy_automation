@@ -1,0 +1,20 @@
+{
+  "investmentId": 209,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "WLO-3-PX-AR-KM-100-75-6551c5afbd72.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "WLO-3-PX-AR-KB-LM-848dac14502a.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "WLO-3-PX-AR-KB-100-75-d0124c079853.pdf",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

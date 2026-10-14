@@ -1,0 +1,34 @@
+## Wycena AI (test, 2026-10-14)
+**AI przedmiar: 74 197,28 zł netto** — 143 pozycje, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 1 pozycja z ilością 0 (przeniesienie podejść wod-kan w łazience z prysznicem — nie wiadomo, czy są potrzebne). 4 prace spoza szablonu łazienki: „Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.” — nowy tynk na suficie, po jednej w każdym pomieszczeniu.
+Źródło: cztery projekty (rzut + kłady z wymiarami i wysokością) i cztery zdjęcia. Cztery pomieszczenia, każde w osobnej sekcji: łazienka z prysznicem (parter, 2,68 m², wys. 2,70), łazienka z wanną (parter, 4,21 m², wys. 2,70), pralnia (piwnica, 4,64 m², wys. 2,16), WC (piwnica, 1,94 m², wys. 2,16). Pralnia liczona jak łazienka, bo ma prysznic (brodzik z kabiną) — stąd hydroizolacja, płytki do sufitu i biały montaż jak w łazience.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Wylewka na ogrzewaniu podłogowym w łazienkach na parterze**: czy robimy ją my (6,9 m² × 80 zł ≈ +0,6 tys. zł) — wycena zakłada ekipę od wylewek dla całego domu.
+- **Elektryka na parterze**: czy punkty i bruzdy robi elektryk całego domu (≈ −1,4 tys. zł).
+- **Podejścia wod-kan w łazience z prysznicem**: czy są już tam, gdzie pokazuje projekt (każdy punkt do przeniesienia +250 zł).
+- **Pralnia**: czy są w niej płytki do skucia — brak zdjęcia (bez skuwania i szlifowania ≈ −1,7 tys. zł, kontener może zejść do big bagów); niższy brodzik („brodzik obecnie ma 12 cm”) może wymagać obniżenia odpływu; czy zmniejszamy drzwi do 70 cm (200 zł); pralka i suszarka czy dwie pralki.
+- **WC w piwnicy**: czy stare podejścia zostają (5 nowych punktów z bruzdami ≈ 1,6 tys. zł); czy stary tynk nad 1,5 m zostaje (≈ −0,2 tys. zł); wentylator, bo WC nie ma okna (+120 zł).
+- **Drzwi**: czy montujemy drzwi w czterech pomieszczeniach (4 × 380 zł + demontaż 2 ościeżnic w piwnicy 200 zł).
+- **Grzejniki drabinkowe**: wodne czy elektryczne (elektryczny 200 zł zamiast 250 zł).
+- **Tynk na sufitach**: na listwach do kątów prostych (100 zł/m²) czy wystarczy do 1 cm (60 zł/m², ≈ −0,5 tys. zł) — zależy od stropu.
+- **Dostęp**: czy dom jest zamieszkany w trakcie (zabezpieczenia 45 zł/m², ≈ +0,6 tys. zł) i czy kontener zapewnia inwestor (−1,5 tys. zł).
+- **Fuga**: cementowa czy epoksydowa, we wszystkich pomieszczeniach.
+- **Łazienka z prysznicem**: projekt rysuje drzwi przesuwne do prysznica, wyceniona jest szyba stała; odpływ jednospadkowy czy koperta (+300 zł).
+
+## Najważniejsze założenia
+- **Stan łazienek na parterze ze zdjęć**: ściany z gołej cegły, nowe rury wod-kan i pętle ogrzewania podłogowego bez wylewki, stary tynk na suficie — dlatego tynk pod glazurę na wszystkich ścianach, a podejścia wod-kan uznane za gotowe.
+- **Sufity we wszystkich czterech pomieszczeniach** („zdjęcie tynku z sufitu i wyrównanie do kątów prostych”): skucie tynku 13,47 m², nowy tynk na listwach, gładź i malowanie.
+- **Płytki 120 × 60 w łazience z wanną** (Notatki, zamiast 30 × 60 z projektu) — ten sam format standard, ta sama cena; do sufitu, razem z frontem zabudowy wanny.
+- **Przeniesienie baterii wannowej na środek**: 1 punkt wod-kan.
+- **Pralnia ze starymi płytkami** (pomieszczenie istnieje, ma brodzik): skuwanie ścian i podłogi, szlifowanie, tynk pod glazurę, wylewka samopoziomująca; płytki ścienne 7,8 × 23,7 liczone jako mały format (380 zł/m²).
+- **WC w piwnicy**: płytki do 1,20, wyżej farba (malowanie z gładzią na suficie); tynk na całej wysokości ścian; nowe podejścia pod WC podwieszane i umywalkę.
+- **Kontener zamiast big bagów**: gruz z sufitów i z pralni to więcej niż 3 big bagi.
+- **Transport materiałów 1500 zł** z szablonu — katalog dla większego remontu na rynku wtórnym mówi ok. 2000 zł.
+- **Elektryka bez warstwy w projekcie**: punkty oświetleniowe z opisów na kładach, gniazdka szacowane przez agenta.
+
+## Przedmiar 0 świadomie
+- Wylewka betonowa na ogrzewaniu podłogowym na parterze — zakładam, że robi ją ekipa od wylewek dla całego domu.
+- Szafki (podumywalkowe, wysoka szafka, blat w pralni, szafka w WC) — praca stolarza.
+- Przeniesienie podejść wod-kan w łazience z prysznicem — pozycja z ilością 0, czeka na odpowiedź.
+- Sprzątanie końcowe.

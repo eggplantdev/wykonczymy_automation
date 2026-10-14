@@ -1,0 +1,38 @@
+## Wycena AI (test, 2026-10-14)
+**AI przedmiar: 57 573,24 zł netto** — 68 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 16 pozycji z ilością 0: prace świadomie poza wyceną, każda z wyjaśnieniem w komentarzu. 3 prace spoza szablonu łazienki: „Szlifowanie mleczka z tynków deweloperskich” w łazience i w WC (pozycja z sekcji ścian, wstawiona do łazienek) oraz klejenie Laminamu na fronty szafek nad WC — bez ceny, do wyceny.
+Źródło: projekt (rzut i widoki łazienki oraz WC, 1:25), cztery wizualizacje i sześć zdjęć stanu deweloperskiego. Dwa pomieszczenia, każde w osobnej sekcji: łazienka parter (8,75 m², płytki do sufitu podwieszanego na 3,24 m) i WC parter (3,28 m² podłogi, płytki do 2,70 m).
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Sufit podwieszany w łazience**: czy robi go ekipa, która postawiła stelaż sufitu w WC (−1,8 tys. zł). W WC: czy płyty i LED w suficie są po naszej stronie (sufit z LED 1800 zł kpl).
+- **Biały montaż**: wyceniony bez niego, zgodnie z Notatkami. Jeśli jednak montujemy umywalki wiszące (+500 zł), grzejnik (+250 zł) albo szkło prysznica (+550 zł) — do dopisania.
+- **Laminam na frontach szafek nad WC**: 2,12 m², brak w katalogu. Najbliżej jest wielki format 550 zł/m² (≈ +1,2 tys. zł); płyta meblowa po stronie stolarza.
+- **Kamienny blat w WC**: kto go robi i montuje.
+- **Glify okna w łazience**: czy są w płytkach (bez nich −2,6 tys. zł). Narożniki 45° glifów nie są liczone (+6,48 mb ≈ +0,5 tys. zł).
+- **LED przy lustrach w łazience**: jeśli to taśmy (ok. 4 × 2,3 mb), ok. +1,4 tys. zł.
+- **Wnęka w prysznicu** z wizualizacji: przedścianka z półką 1200–1800 zł.
+- **Podejścia wod-kan**: czy są już na wysokości baterii podtynkowych (łazienka 4 pkt, WC 1 pkt, po 250 zł).
+- **Punkty elektryczne**: kable są już doprowadzone, więc część z 5 nowych punktów (i bruzd) może być gotowa.
+- **Drzwi**: czy montujemy drzwi łazienki i WC (2 × 380 zł).
+- **Odpływ liniowy**: jednospadkowy czy koperta (+300 zł).
+- **Zabudowa nad stelażami WC i bidetu**: liczona jako 2 kpl; jako jedna zabudowa −450 zł.
+- **Fuga**: cementowa czy epoksydowa, w obu pomieszczeniach.
+- **Zabezpieczenia**: czy reszta domu jest wykończona — wtedy zabezpieczamy całą drogę do łazienek po podłodze (25 zł/m²).
+- **Transport materiałów**: 1500 zł z szablonu, a katalog dla łazienki na rynku pierwotnym mówi ok. 700 zł.
+- **Liczba opraw** w suficie łazienki (przyjęte 6) i **płytka podłogowa w WC** (projekt jej nie podaje, przyjęta jak w łazience).
+
+## Najważniejsze założenia
+- **Stan deweloperski ze zdjęć**: w łazience stelaże WC i bidetu już stoją; w WC zabudowa GK stelaża z wnęką na szafki oraz stelaż sufitu są zrobione przez inną ekipę — tego nie liczę.
+- **Odpływ Viega leży niezalany**: liczone osadzenie z wypoziomowaniem i spadkiem (odpływ jednospadkowy).
+- **Płytki w łazience**: wielki format (Laminam, Stromboli 162 × 324) 22,36 m², Bands 60 × 120 12,54 m², podłoga Stromboli 120 × 120 8,39 m². Za lustrami bez płytek; umywalki zwykłe podwieszane, bez okładziny.
+- **WC**: Laminam na wszystkich ścianach do 2,70 m = 16,34 m². Mata kompensacyjna pod wielkim formatem w obu pomieszczeniach.
+- **Baterie podtynkowe** (korpusy przed płytkami) są w zakresie: prysznic z deszczownicą i 2 umywalkowe w łazience, 1 ścienna w WC.
+- **Szlifowanie mleczka** z tynków deweloperskich pod płytkami, w obu pomieszczeniach.
+- **Gruz**: 2 big bagi na całość.
+
+## Przedmiar 0 świadomie
+- Biały montaż: WC, umywalki, baterie, syfony, lustra, akcesoria, grzejnik i szkło prysznica — Notatki.
+- Montaż stelaży WC i bidetu oraz zabudowa GK i sufit w WC — już wykonane.
+- Szafki nad WC i kamienny blat — stolarz / kamieniarz.
+- Drzwi łazienki i WC.
+- Wnęka w prysznicu.

@@ -1,0 +1,40 @@
+{
+  "investmentId": 213,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "klient_łaz_08092026-projekt-wanna-biała-c16a45f2ac2e.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "klient_wc_12092026-projekt-toaleta-piwnica-c4473e15ca9d.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "klient_łaz_12092026-projekt-pralnia-ccad66d278db.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "klient_łąz_07092026-projekt-toaleta-prysznic-46069dc6ef7a.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "IMG_0424-4774e9f4fafd.jpeg",
+      "kind": "projekt"
+    },
+    {
+      "name": "IMG_0425-8f0ecd57a418.jpeg",
+      "kind": "projekt"
+    },
+    {
+      "name": "IMG_0426-e842645dbeba.jpeg",
+      "kind": "projekt"
+    },
+    {
+      "name": "IMG_0427-18cb1a1a2e93.jpeg",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}
