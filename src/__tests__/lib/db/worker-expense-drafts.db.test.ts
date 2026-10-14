@@ -418,7 +418,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         await deleteTestInvestment(payload, refusedOnlyInvestmentId).catch(() => {})
     })
 
-    // The queue sits above the history on the page, so the history no longer lifts pending first.
+    // The queue sits above the history on the page, so the history doesn't lift pending first.
     it('lists every status newest first, a pending zgłoszenie below a newer decided one', async () => {
       expect(await historyIds()).toEqual([
         unbookedId,
@@ -963,6 +963,41 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         acceptedReadRows: [0],
         rejectedReceipts: [],
       })
+    })
+
+    it('a paragon refused off the end of the read settles nothing', async () => {
+      const { draftId } = await readDraft('paragon-out-of-range', 2)
+      expect(await skip(draftId, [5])).toEqual({ rejected: [] })
+
+      await skip(draftId, [0])
+
+      expect(await statusOf(draftId)).toBe('pending')
+    })
+
+    it('in the history each paragon row shows its own status, the waiting row the counter', async () => {
+      const { draftId } = await readDraft('paragon-history-rows', 3)
+      await book(draftId, [[0]])
+      await skip(draftId, [1])
+
+      const rows = (await listWorkerExpenseDrafts(db, workerId)).filter((row) => row.id === draftId)
+
+      expect(rows.map(({ status, progress }) => ({ status, progress }))).toEqual(
+        expect.arrayContaining([
+          { status: 'accepted', progress: undefined },
+          { status: 'rejected', progress: undefined },
+          { status: 'pending', progress: { accepted: 1, rejected: 1, pending: 1 } },
+        ]),
+      )
+      expect(rows).toHaveLength(3)
+    })
+
+    it('in the pending queue a partly decided zgłoszenie keeps its counter', async () => {
+      const { draftId } = await readDraft('paragon-queue-counter', 3)
+      await book(draftId, [[0]])
+
+      const queued = (await listPendingExpenseDrafts(db)).find((draft) => draft.id === draftId)
+
+      expect(queued?.progress).toEqual({ accepted: 1, rejected: 0, pending: 2 })
     })
 
     it('reads nothing for a zgłoszenie that is gone', async () => {

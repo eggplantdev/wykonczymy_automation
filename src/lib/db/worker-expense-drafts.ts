@@ -193,12 +193,10 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     ...(duplicateOf.success && { duplicateOf: duplicateOf.data }),
     media: toDraftMedia(row.media),
     aiRead: toDraftRead(row.ai_read),
-    progress: toProgress(
-      draftStatus,
-      Number(row.read_count ?? 0),
-      bookedReadRows,
-      rejectedReceipts,
-    ),
+    // A paragon's own row shows its own status; the zgłoszenie's counter belongs on the draft row.
+    progress: row.is_paragon_row
+      ? undefined
+      : toProgress(draftStatus, Number(row.read_count ?? 0), bookedReadRows, rejectedReceipts),
     acceptedReadRows: bookedReadRows,
     rejectedReceipts,
   }
@@ -283,6 +281,7 @@ const PARAGON_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, pr.row_status AS status, d.sent_at, d.decided_at,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, pr.receipt_id,
+    (pr.transfer_id IS NOT NULL OR pr.receipt_id IS NOT NULL) AS is_paragon_row,
     (pr.receipt_id IS NOT NULL AND ${PARTIES_NOT_TRASHED}) AS is_restorable,
     COALESCE((
       SELECT json_agg(${MEDIA_JSON} ORDER BY dm.position)
@@ -402,36 +401,33 @@ export async function listExpenseDraftFilterOptions(
   return { investments: investmentsRes.rows.map(toItem), workers: workersRes.rows.map(toItem) }
 }
 
-/**
- * Only a pending draft moves, so two managers deciding at once cannot both win — the loser's
- * update matches no row and the caller reports it.
- */
-export async function decideExpenseDraft(
-  db: DbExecutorT,
-  decision: {
-    draftId: number
-    decidedBy: number
-    status: Exclude<ExpenseDraftStatusT, 'pending'>
-    transferIds: number[]
-    // Positional to `transferIds`: the draft's pages each transakcja was booked from.
-    transferMediaIds?: number[][]
-    // Positional to `transferIds`: the rows of the draft's AI read each transakcja was booked from.
-    transferReadRows?: number[][]
-    skippedReceipts?: SkippedReceiptT[]
-    duplicateOf?: DuplicateOfT
-  },
-): Promise<boolean> {
-  const transfers = decision.transferIds.map((id, i) => ({
-    id,
-    media_ids: decision.transferMediaIds?.[i] ?? [],
-    read_rows: decision.transferReadRows?.[i] ?? [],
-  }))
-  const skipped = (decision.skippedReceipts ?? []).map((receipt) => ({
-    media_ids: receipt.mediaIds,
-    read_row: receipt.readRow ?? null,
-    duplicate_of: receipt.duplicateOf ?? null,
-  }))
-  // A page id the client sends lands only if it is one of this draft's pages.
+type DecisionRowsT = {
+  transferIds: number[]
+  // Positional to `transferIds`: the draft's pages each transakcja was booked from.
+  transferMediaIds?: number[][]
+  // Positional to `transferIds`: the rows of the draft's AI read each transakcja was booked from.
+  transferReadRows?: number[][]
+  skippedReceipts?: SkippedReceiptT[]
+}
+
+function decisionRows(decision: DecisionRowsT) {
+  return {
+    transfers: decision.transferIds.map((id, i) => ({
+      id,
+      media_ids: decision.transferMediaIds?.[i] ?? [],
+      read_rows: decision.transferReadRows?.[i] ?? [],
+    })),
+    skipped: (decision.skippedReceipts ?? []).map((receipt) => ({
+      media_ids: receipt.mediaIds,
+      read_row: receipt.readRow ?? null,
+      duplicate_of: receipt.duplicateOf ?? null,
+    })),
+  }
+}
+
+// A page id or read row the client sends lands only if it is one of this draft's own. Follows a
+// `decided` CTE carrying the draft's `id` and `read_count`.
+function insertDecisions({ transfers, skipped }: ReturnType<typeof decisionRows>) {
   const ownPages = sql`ARRAY(
     SELECT unnest(r.media_ids) INTERSECT
     SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
@@ -441,16 +437,7 @@ export async function decideExpenseDraft(
     SELECT generate_series(0, decided.read_count - 1)
     ORDER BY 1
   )`
-  const res = await db.execute(sql`
-    WITH decided AS (
-      UPDATE worker_expense_drafts
-      SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
-        duplicate_of = ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
-      WHERE id = ${decision.draftId} AND status = 'pending'
-      RETURNING id,
-        CASE WHEN jsonb_typeof(ai_read -> 'rows') = 'array' THEN jsonb_array_length(ai_read -> 'rows') ELSE 0 END
-          AS read_count
-    ), linked AS (
+  return sql`linked AS (
       INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
       SELECT r.id, decided.id, ${ownPages}, ${ownReadRows}
       FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb)
@@ -460,7 +447,32 @@ export async function decideExpenseDraft(
       SELECT decided.id, ${ownPages}, r.read_row, r.duplicate_of
       FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb)
         AS r(media_ids int[], read_row int, duplicate_of jsonb)
-    )
+      WHERE r.read_row IS NULL OR r.read_row BETWEEN 0 AND decided.read_count - 1
+      RETURNING id, read_row, media_ids
+    )`
+}
+
+/**
+ * Only a pending draft moves, so two managers deciding at once cannot both win — the loser's
+ * update matches no row and the caller reports it.
+ */
+export async function decideExpenseDraft(
+  db: DbExecutorT,
+  decision: DecisionRowsT & {
+    draftId: number
+    decidedBy: number
+    status: Exclude<ExpenseDraftStatusT, 'pending'>
+    duplicateOf?: DuplicateOfT
+  },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    WITH decided AS (
+      UPDATE worker_expense_drafts d
+      SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
+        duplicate_of = ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
+      WHERE d.id = ${decision.draftId} AND d.status = 'pending'
+      RETURNING d.id, ${READ_COUNT} AS read_count
+    ), ${insertDecisions(decisionRows(decision))}
     SELECT id FROM decided
   `)
   return res.rows.length > 0
@@ -515,25 +527,9 @@ export type ParagonRefusalT = { refusal: 'not-pending' } | { refusal: 'clash'; r
  */
 export async function decideExpenseParagons(
   db: DbExecutorT,
-  decision: {
-    draftId: number
-    decidedBy: number
-    transferIds: number[]
-    transferMediaIds?: number[][]
-    transferReadRows?: number[][]
-    skippedReceipts?: SkippedReceiptT[]
-  },
+  decision: DecisionRowsT & { draftId: number; decidedBy: number },
 ): Promise<{ rejected: RejectedReceiptT[] } | ParagonRefusalT> {
-  const transfers = decision.transferIds.map((id, i) => ({
-    id,
-    media_ids: decision.transferMediaIds?.[i] ?? [],
-    read_rows: decision.transferReadRows?.[i] ?? [],
-  }))
-  const skipped = (decision.skippedReceipts ?? []).map((receipt) => ({
-    media_ids: receipt.mediaIds,
-    read_row: receipt.readRow ?? null,
-    duplicate_of: receipt.duplicateOf ?? null,
-  }))
+  const { transfers, skipped } = decisionRows(decision)
   const requested = [
     ...transfers.flatMap((t) => t.read_rows),
     ...skipped.flatMap((r) => (r.read_row === null ? [] : [r.read_row])),
@@ -554,31 +550,11 @@ export async function decideExpenseParagons(
     return { refusal: 'clash', readRows: clash.rows.map((row) => Number(row.read_row)) }
   }
 
-  const ownPages = sql`ARRAY(
-    SELECT unnest(r.media_ids) INTERSECT
-    SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
-  )`
-  const ownReadRows = sql`ARRAY(
-    SELECT unnest(r.read_rows) INTERSECT
-    SELECT generate_series(0, decided.read_count - 1)
-    ORDER BY 1
-  )`
   const res = await db.execute(sql`
     WITH decided AS (
       SELECT d.id, ${READ_COUNT} AS read_count FROM worker_expense_drafts d
       WHERE d.id = ${decision.draftId}
-    ), linked AS (
-      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids, read_rows)
-      SELECT r.id, decided.id, ${ownPages}, ${ownReadRows}
-      FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb)
-        AS r(id int, media_ids int[], read_rows int[])
-    ), skipped AS (
-      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row, duplicate_of)
-      SELECT decided.id, ${ownPages}, r.read_row, r.duplicate_of
-      FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb)
-        AS r(media_ids int[], read_row int, duplicate_of jsonb)
-      RETURNING id, read_row, media_ids
-    )
+    ), ${insertDecisions({ transfers, skipped })}
     SELECT json_build_object('id', id, 'readRow', read_row, 'mediaIds', media_ids) AS receipt
     FROM skipped
   `)
@@ -623,16 +599,11 @@ export async function rejectPendingParagons(
       FOR UPDATE
     ), skipped AS (
       INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, read_row, duplicate_of)
-      SELECT draft.id,
-        ARRAY(SELECT jsonb_array_elements_text(draft.ai_read -> 'rows' -> g -> 'mediaIds')::int),
+      SELECT d.id,
+        ARRAY(SELECT jsonb_array_elements_text(d.ai_read -> 'rows' -> g -> 'mediaIds')::int),
         g, ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
-      FROM draft, generate_series(0, draft.read_count - 1) g
-      WHERE g NOT IN (
-        SELECT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt WHERE dt.draft_id = draft.id
-        UNION
-        SELECT sr.read_row FROM worker_expense_draft_skipped_receipts sr
-        WHERE sr.draft_id = draft.id AND sr.read_row IS NOT NULL
-      )
+      FROM draft d, generate_series(0, d.read_count - 1) g
+      WHERE g NOT IN (${DECIDED_READ_ROWS})
     )
     SELECT read_count FROM draft
   `)
