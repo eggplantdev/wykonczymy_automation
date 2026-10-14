@@ -33,6 +33,7 @@ import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { NewItemHost } from '@/components/kosztorys/editor/actions/new-item-host'
 import { useRowHeightCacheReset } from '@/components/kosztorys/editor/hooks/use-row-height-cache-reset'
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
+import { useGridTextSize } from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
 import { useSheetImport } from '@/components/kosztorys/editor/hooks/use-sheet-import'
 import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
@@ -375,7 +376,11 @@ export function KosztorysEditorBody({
   // Deliberately keyed on `columns` identity, not on the ids: a rebuild is what follows a column drag
   // and dsg sizing its `grow` columns, and it is the hook's only cue to re-read the header widths.
   const measuredIds = useMemo(() => measured.map((column) => column.id), [measured])
-  const wrap = useWrapColumnWidths(gridNode, measuredIds)
+  const [storedTextSize] = useGridTextSize()
+  // Only the editor offers the choice, so a client's preview or a worker's report never inherits a
+  // size picked in this browser for editing.
+  const textSize = preview ? 'sm' : storedTextSize
+  const wrap = useWrapColumnWidths(gridNode, measuredIds, textSize)
   // Cached per row because the row's height and every one of its cells' „…" read the same counts.
   const columnLinesFor = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
@@ -578,11 +583,17 @@ export function KosztorysEditorBody({
               grid-cols-1 still gives the grid a definite width (anti-flicker). */}
                   <div
                     ref={gridRef}
+                    data-grid-text-size={textSize}
                     className={cn(
                       'grid min-h-0 min-w-0 flex-1 grid-cols-1',
                       !pageScroll && 'overflow-hidden',
                     )}
                   >
+                    {/* What useWrapColumnWidths reads the font from — there before the first row is. */}
+                    <span
+                      aria-hidden
+                      className="grid-cell-text pointer-events-none invisible absolute"
+                    />
                     <DynamicDataSheetGrid
                       ref={datasheetRef}
                       className={cn(

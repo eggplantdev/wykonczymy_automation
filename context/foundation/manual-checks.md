@@ -5043,3 +5043,26 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Dowolny formularz (np. „Dodaj transakcję”, wyszukiwarka na liście transakcji): pola tekstowe mają
       lekki cień pod ramką, w trybie jasnym i ciemnym; pole z błędem nadal ma czerwoną ramkę.
+
+## 2026-10-14 — kosztorys-editor-text-size — wielkość czcionki w edytorze kosztorysu
+
+- [ ] Kosztorys → menu „Kolumny”: na końcu blok „Ustal wielkość czcionki w tabeli” z trzema opcjami
+      „Bardzo mała”, „Mała”, „Średnia” (bez „Duża”); domyślnie zaznaczona „Średnia”, a tabela wygląda
+      tak samo jak przed zmianą.
+- [ ] Wybór „Mała”, potem „Bardzo mała”: menu zostaje otwarte, a tekst pozycji i wiersza „Razem”
+      sekcji maleje od razu; tytuł sekcji, nagłówki kolumn i podsumowanie na dole się nie zmieniają.
+      Wysokość wierszy i szerokości kolumn zostają te same.
+- [ ] Z włączonym „Dopasuj wysokość do treści” i długim opisem pozycji: po zmianie wielkości wiersze
+      dopasowują wysokość do nowego zawinięcia tekstu (mniejsza czcionka → mniej linii).
+- [ ] Edycja komórki przy „Bardzo mała”: wpisywana wartość ma tę samą wielkość co tekst w spoczynku
+      (nie skacze przy wejściu i wyjściu z edycji); to samo dla komórki z listą wyboru.
+- [ ] Odśwież stronę, a potem otwórz inny kosztorys: wybrana wielkość zostaje w obu.
+- [ ] Podgląd dla klienta oraz okno zgłoszenia pracownika z tabelą kosztorysu: zawsze „Średnia”,
+      niezależnie od wyboru w edytorze.
+- [ ] Lista transakcji → menu „Kolumny”: nadal cztery wielkości (z „Duża”), działają jak wcześniej.
+      Wybór wielkości tam też zostawia menu otwarte.
+- [ ] Przy „Bardzo mała” zmiana nazwy etapu w nagłówku kolumny: pole edycji ma tę samą wielkość co
+      nazwa etapu przed kliknięciem (nie maleje razem z pozycjami).
+- [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
+      włączonym „Dopasuj wysokość do treści”: wiersz od razu ma wysokość pasującą do małej czcionki.
+- [ ] Telefon (390px), kosztorys: wejście w edycję komórki nie powiększa strony (brak zoomu iOS).

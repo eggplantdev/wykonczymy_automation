@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
 import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
+import type { GridTextSizeT } from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 
 // The cell's own chrome (border + px-2), subtracted from every measurement by the hook.
 const CHROME = 17
@@ -29,11 +30,20 @@ function renderGrid(cells: readonly HTMLElement[]) {
 
 function renderWidths(container: HTMLElement, columnIds: readonly string[] = COLUMN_IDS) {
   return renderHook(
-    ({ ids }: { ids: readonly string[] }) => useWrapColumnWidths({ current: container }, ids),
+    ({ ids, textSize = 'sm' }: { ids: readonly string[]; textSize?: GridTextSizeT }) =>
+      useWrapColumnWidths({ current: container }, ids, textSize),
     {
-      initialProps: { ids: columnIds },
+      initialProps: { ids: columnIds } as { ids: readonly string[]; textSize?: GridTextSizeT },
     },
   )
+}
+
+function cellText(container: HTMLElement, fontSize: string) {
+  const text = document.createElement('span')
+  text.className = 'grid-cell-text'
+  text.style.fontSize = fontSize
+  container.append(text)
+  return text
 }
 
 afterEach(() => {
@@ -112,5 +122,50 @@ describe('useWrapColumnWidths — a column scrolled out of the horizontal window
 
     await waitFor(() => expect(result.current.widths.note).toBeUndefined())
     expect(result.current.widths.description).toBe(317 - CHROME)
+  })
+})
+
+describe('useWrapColumnWidths — the font rows are fitted to', () => {
+  it('follows the size the cells render at, so a smaller text size fits rows to fewer lines', async () => {
+    const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
+    const text = cellText(container, '14px')
+    const { result, rerender } = renderWidths(container)
+    await waitFor(() => expect(result.current.font).toContain('14px'))
+
+    text.style.fontSize = '12px'
+    rerender({ ids: COLUMN_IDS, textSize: 'xs' })
+
+    await waitFor(() => expect(result.current.font).toContain('12px'))
+    expect(result.current.widths.description).toBe(317 - CHROME)
+  })
+
+  // The object keys the row-height cache reset, so a needless new one would re-fit every row.
+  it('returns the same object when the size is picked again unchanged', async () => {
+    const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
+    cellText(container, '14px')
+    const { result, rerender } = renderWidths(container)
+    await waitFor(() => expect(result.current.widths.description).toBe(317 - CHROME))
+    const before = result.current
+
+    rerender({ ids: COLUMN_IDS, textSize: 'sm' })
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+
+    expect(result.current).toBe(before)
+  })
+
+  it('keeps the last font while no text node is rendered', async () => {
+    const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
+    const text = cellText(container, '12px')
+    const { result } = renderWidths(container)
+    await waitFor(() => expect(result.current.font).toContain('12px'))
+
+    text.remove()
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+
+    expect(result.current.font).toContain('12px')
   })
 })

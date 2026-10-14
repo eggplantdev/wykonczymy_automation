@@ -39,7 +39,7 @@ export function SectionFooterCell({
     // the name, and the footer's own vertical rules are what line its figures up with the columns
     // above — letting the label cross one would break that alignment for a name it rarely needs.
     return (
-      <div className="text-foreground flex size-full items-center gap-1 overflow-hidden px-2 text-sm font-bold whitespace-nowrap max-sm:text-xs">
+      <div className="text-foreground grid-cell-text flex size-full items-center gap-1 overflow-hidden px-2 font-bold whitespace-nowrap">
         <span>{t('total')}</span>
         <span>{rowData.sectionName ?? ''}</span>
       </div>
@@ -51,7 +51,7 @@ export function SectionFooterCell({
   // Left-aligned like the data cells and like „Razem", so a section's figure sits directly under the
   // column's values and directly above the grand total.
   return (
-    <div className="flex size-full items-center px-2 text-sm font-semibold tabular-nums max-sm:text-xs">
+    <div className="grid-cell-text flex size-full items-center px-2 font-semibold tabular-nums">
       {formatNet(value)}
     </div>
   )

@@ -1,29 +1,25 @@
 'use client'
 
 import { useCallback, useEffect, useState, type RefObject } from 'react'
-import { DESKTOP_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import { wrapColumnClass, type ColumnWidthsT } from '@/lib/kosztorys/row-content-lines'
+import type { GridTextSizeT } from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 
 // A cell's 1px right border plus ReadOnlyCellText's px-2, i.e. everything between the cell's edge
 // and the first glyph.
 const CELL_TEXT_CHROME_PX = 17
 
-// text-sm / max-sm:text-xs, the classes every cell's text carries. Composed rather than read off a
-// rendered cell so the first measurement doesn't have to wait for one to exist.
-const CELL_FONT_SIZE = '14px'
-const PHONE_CELL_FONT_SIZE = '12px'
+// Read off the grid's hidden text probe rather than composed: its size follows the breakpoint, the
+// editor's text size and the app-wide „Rozmiar” switch, and a composed font would fit rows to text
+// that isn't there.
+const CELL_TEXT_SELECTOR = '.grid-cell-text'
 const CELL_FONT_WEIGHT = '400'
-
-function cellFontSize(): string {
-  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches ? CELL_FONT_SIZE : PHONE_CELL_FONT_SIZE
-}
 
 export type WrapWidthsT = {
   widths: ColumnWidthsT
   font: string
 }
 
-const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} ${CELL_FONT_SIZE} sans-serif` }
+const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} 14px sans-serif` }
 
 /**
  * Rendered text width of each measured column, remeasured whenever the grid's box changes — a
@@ -36,15 +32,20 @@ const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} ${CELL_FONT_
 export function useWrapColumnWidths(
   containerRef: RefObject<HTMLElement | null>,
   columnIds: readonly string[],
+  textSize: GridTextSizeT,
 ): WrapWidthsT {
   const [measured, setMeasured] = useState<WrapWidthsT>(EMPTY)
 
   const measure = useCallback(() => {
     const container = containerRef.current
     if (!container) return
-    const family = window.getComputedStyle(container).fontFamily
-    const font = `${CELL_FONT_WEIGHT} ${cellFontSize()} ${family}`
+    const cellText = container.querySelector(CELL_TEXT_SELECTOR)
+    const cellStyle = cellText ? window.getComputedStyle(cellText) : undefined
     setMeasured((prev) => {
+      // Nothing to read means no grid to fit either, so the last font stands.
+      const font = cellStyle
+        ? `${CELL_FONT_WEIGHT} ${cellStyle.fontSize} ${cellStyle.fontFamily}`
+        : prev.font
       const widths: Record<string, number> = { ...prev.widths }
       // A column the current view doesn't render at all keeps no width — that is what stops a
       // column the client cannot see from making their rows taller.
@@ -69,7 +70,8 @@ export function useWrapColumnWidths(
   // resize, a drag or a toggle (both rebuild `columnIds`) and the first layout — rAF because dsg
   // sizes its columns from its own measurement a frame after mount. `fonts.ready` is the fourth:
   // the family name is the same before and after the file loads, so the first measurement can
-  // silently be taken in the fallback's metrics and would never be revisited.
+  // silently be taken in the fallback's metrics and would never be revisited. A new `textSize` moves
+  // no edge but changes the font, which is the fifth.
   useEffect(() => {
     const frame = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)
@@ -94,7 +96,8 @@ export function useWrapColumnWidths(
       window.removeEventListener('resize', measure)
       container?.removeEventListener('scroll', schedule, true)
     }
-  }, [measure, containerRef])
+    // textSize is only the cue: the size itself is read off a cell, after the new one has rendered.
+  }, [measure, containerRef, textSize])
 
   return measured
 }

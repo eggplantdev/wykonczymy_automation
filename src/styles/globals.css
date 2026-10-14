@@ -255,10 +255,37 @@
     line-height: var(--text-sm--line-height);
   }
 
+  /* Inside the kosztorys grid a cell being edited keeps the size chosen for the grid's text, so
+     the value doesn't jump size the moment it is opened. Unset everywhere else. */
   @variant sm {
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
+    font-size: var(--grid-cell-text, var(--text-sm));
+    line-height: calc(var(--spacing) * 5);
   }
+}
+
+/* `--grid-cell-text` is set only by the editor's text-size choice (below), so wherever it is unset
+   this is plain text-xs / text-sm. The line stays 20px at every size: rows are sized from ROW_LINE_HEIGHT, so
+   only the glyphs shrink and a smaller font fits more words per line. */
+@utility grid-cell-text {
+  font-size: var(--grid-cell-text, var(--text-xs));
+  line-height: calc(var(--spacing) * 5);
+
+  @variant sm {
+    font-size: var(--grid-cell-text, var(--text-sm));
+  }
+}
+
+[data-grid-text-size='2xs'] {
+  --grid-cell-text: var(--text-2xs);
+}
+
+[data-grid-text-size='xs'] {
+  --grid-cell-text: var(--text-xs);
+}
+
+/* The size is picked for the rows' text; a header input (the etap rename) must not follow it. */
+[data-grid-text-size] .dsg-row-header {
+  --grid-cell-text: initial;
 }
 
 /* Bottom-to-top text. Put it on an inline-block INSIDE the cell, never on the th: WebKit ignores

@@ -38,7 +38,7 @@ export function CellSelectMenu({
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
       {/* size-full: whole cell is the click target, else dsg selects the dead space around the text. */}
-      <DropdownMenuTrigger className="hover:bg-accent flex size-full cursor-pointer items-center justify-between gap-1 px-2 text-sm outline-none max-sm:text-xs">
+      <DropdownMenuTrigger className="hover:bg-accent grid-cell-text flex size-full cursor-pointer items-center justify-between gap-1 px-2 outline-none">
         <span className="truncate">{active?.label}</span>
         {!hideChevron && <ChevronDown className="opacity-50" />}
       </DropdownMenuTrigger>
