@@ -5066,3 +5066,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
       włączonym „Dopasuj wysokość do treści”: wiersz od razu ma wysokość pasującą do małej czcionki.
 - [ ] Telefon (390px), kosztorys: wejście w edycję komórki nie powiększa strony (brak zoomu iOS).
+
+## 2026-10-14 — komentarz-ai-odstep — odstęp między polami „Komentarza AI”
+
+Stan: kosztorys ze szkicem AI, pozycja z wypełnionym i „Czego nie było wiadomo”, i „Co / ile założono”.
+
+- [ ] Przegląd AI → kolumna „Komentarz AI” tej pozycji: między „Czego nie było wiadomo: …” a
+      „Co / ile założono: …” jest pusta linia; pozycja z jednym polem nie ma odstępu nad nim.
+- [ ] Przy „Dopasuj wysokość do treści” wiersz tej pozycji mieści oba pola wraz z pustą linią
+      (nic nie jest ucięte).
+- [ ] Skopiuj komórkę „Komentarz AI” i wklej do edytora tekstu: oba pola rozdziela pusta linia.

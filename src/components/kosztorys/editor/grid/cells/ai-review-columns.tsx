@@ -74,7 +74,7 @@ function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
   return (
     <ReadOnlyCellText>
       {lines.map(({ field, question, answer }) => (
-        <span key={field} className="block">
+        <span key={field} className="block not-first:mt-5">
           {question}: <strong>{answer}</strong>
         </span>
       ))}
@@ -94,7 +94,7 @@ export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
     copyValue: ({ rowData }) =>
       aiCommentLines(rowData)
         .map(({ question, answer }) => `${question}: ${answer}`)
-        .join('\n') || null,
+        .join('\n\n') || null,
   }
 }
 
