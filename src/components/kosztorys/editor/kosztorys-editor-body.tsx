@@ -379,7 +379,7 @@ export function KosztorysEditorBody({
   const [storedTextSize] = useGridTextSize()
   // Only the editor offers the choice, so a client's preview or a worker's report never inherits a
   // size picked in this browser for editing.
-  const textSize = preview || report ? 'sm' : storedTextSize
+  const textSize = preview ? 'sm' : storedTextSize
   const wrap = useWrapColumnWidths(gridNode, measuredIds, textSize)
   // Cached per row because the row's height and every one of its cells' „…" read the same counts.
   const columnLinesFor = useMemo(() => {
@@ -589,6 +589,8 @@ export function KosztorysEditorBody({
                       !pageScroll && 'overflow-hidden',
                     )}
                   >
+                    {/* What useWrapColumnWidths reads the font from — there before the first row is. */}
+                    <span aria-hidden className="grid-cell-text pointer-events-none invisible absolute" />
                     <DynamicDataSheetGrid
                       ref={datasheetRef}
                       className={cn(

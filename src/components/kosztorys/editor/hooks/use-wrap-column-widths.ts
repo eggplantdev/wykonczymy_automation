@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useState, type RefObject } from 'react'
 import { wrapColumnClass, type ColumnWidthsT } from '@/lib/kosztorys/row-content-lines'
+import type { GridTextSizeT } from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 
 // A cell's 1px right border plus ReadOnlyCellText's px-2, i.e. everything between the cell's edge
 // and the first glyph.
 const CELL_TEXT_CHROME_PX = 17
 
-// Read off a rendered cell rather than composed: its size follows the breakpoint, the editor's text
-// size and the app-wide „Rozmiar” switch, and a composed font would fit rows to text that isn't there.
+// Read off the grid's hidden text probe rather than composed: its size follows the breakpoint, the
+// editor's text size and the app-wide „Rozmiar” switch, and a composed font would fit rows to text
+// that isn't there.
 const CELL_TEXT_SELECTOR = '.grid-cell-text'
 const CELL_FONT_WEIGHT = '400'
 
@@ -30,7 +32,7 @@ const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} 14px sans-se
 export function useWrapColumnWidths(
   containerRef: RefObject<HTMLElement | null>,
   columnIds: readonly string[],
-  textSize: string,
+  textSize: GridTextSizeT,
 ): WrapWidthsT {
   const [measured, setMeasured] = useState<WrapWidthsT>(EMPTY)
 
@@ -40,7 +42,7 @@ export function useWrapColumnWidths(
     const cellText = container.querySelector(CELL_TEXT_SELECTOR)
     const cellStyle = cellText ? window.getComputedStyle(cellText) : undefined
     setMeasured((prev) => {
-      // No cell rendered yet (an empty kosztorys) means no row to fit either, so the last font stands.
+      // Nothing to read means no grid to fit either, so the last font stands.
       const font = cellStyle
         ? `${CELL_FONT_WEIGHT} ${cellStyle.fontSize} ${cellStyle.fontFamily}`
         : prev.font

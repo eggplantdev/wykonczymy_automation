@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztorys-view-menu'
 
 // The workbench keeps the menu down to its column list, so the text-size block is the only other
-// thing on screen — the subject here.
+// radio group on screen.
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     view: 'client',
@@ -38,6 +38,8 @@ const openMenu = async () => {
 }
 
 describe('KosztorysViewMenu — wielkość czcionki', () => {
+  beforeEach(() => window.localStorage.clear())
+
   // No „Duża”: the grid's line is fixed at the default's height, so anything larger would clip.
   it('offers the three sizes the grid can hold, „Średnia” by default', async () => {
     await openMenu()

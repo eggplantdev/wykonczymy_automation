@@ -5031,4 +5031,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Podgląd dla klienta oraz okno zgłoszenia pracownika z tabelą kosztorysu: zawsze „Średnia”,
       niezależnie od wyboru w edytorze.
 - [ ] Lista transakcji → menu „Kolumny”: nadal cztery wielkości (z „Duża”), działają jak wcześniej.
+      Wybór wielkości tam też zostawia menu otwarte.
+- [ ] Przy „Bardzo mała” zmiana nazwy etapu w nagłówku kolumny: pole edycji ma tę samą wielkość co
+      nazwa etapu przed kliknięciem (nie maleje razem z pozycjami).
+- [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
+      włączonym „Dopasuj wysokość do treści”: wiersz od razu ma wysokość pasującą do małej czcionki.
 - [ ] Telefon (390px), kosztorys: wejście w edycję komórki nie powiększa strony (brak zoomu iOS).

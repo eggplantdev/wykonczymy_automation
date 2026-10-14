@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
 import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
+import type { GridTextSizeT } from '@/components/kosztorys/editor/hooks/use-grid-text-size'
 
 // The cell's own chrome (border + px-2), subtracted from every measurement by the hook.
 const CHROME = 17
@@ -29,7 +30,7 @@ function renderGrid(cells: readonly HTMLElement[]) {
 
 function renderWidths(container: HTMLElement, columnIds: readonly string[] = COLUMN_IDS) {
   return renderHook(
-    ({ ids, textSize = 'sm' }: { ids: readonly string[]; textSize?: string }) =>
+    ({ ids, textSize = 'sm' }: { ids: readonly string[]; textSize?: GridTextSizeT }) =>
       useWrapColumnWidths({ current: container }, ids, textSize),
     {
       initialProps: { ids: columnIds },
@@ -37,7 +38,6 @@ function renderWidths(container: HTMLElement, columnIds: readonly string[] = COL
   )
 }
 
-// What the editor's text-size choice resolves to, as the cell's computed font-size.
 function cellText(container: HTMLElement, fontSize: string) {
   const text = document.createElement('span')
   text.className = 'grid-cell-text'
@@ -139,7 +139,23 @@ describe('useWrapColumnWidths — the font rows are fitted to', () => {
     expect(result.current.widths.description).toBe(317 - CHROME)
   })
 
-  it('keeps the last font while no cell is rendered', async () => {
+  // The object keys the row-height cache reset, so a needless new one would re-fit every row.
+  it('returns the same object when the size is picked again unchanged', async () => {
+    const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
+    cellText(container, '14px')
+    const { result, rerender } = renderWidths(container)
+    await waitFor(() => expect(result.current.font).toContain('14px'))
+    const before = result.current
+
+    rerender({ ids: COLUMN_IDS, textSize: 'sm' })
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+
+    expect(result.current).toBe(before)
+  })
+
+  it('keeps the last font while no text node is rendered', async () => {
     const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
     const text = cellText(container, '12px')
     const { result } = renderWidths(container)
