@@ -5080,3 +5080,14 @@ Stan: kosztorys ze szkicem AI, pozycja z wypełnionym i „Czego nie było wiado
 - [ ] Przy „Dopasuj wysokość do treści” wiersz tej pozycji mieści oba pola wraz z pustą linią
       (nic nie jest ucięte).
 - [ ] Skopiuj komórkę „Komentarz AI” i wklej do edytora tekstu: oba pola rozdziela pusta linia.
+
+## 2026-10-14 — vertical-header-safari — pionowe nagłówki w Safari
+
+Stan: kosztorys ze zgłoszeniem pracy od pracownika czekającym na przyjęcie.
+
+- [ ] **Safari** → okno przyjmowania zgłoszenia, tabela „Z rozpiski”: nagłówki „Pomiar z natury”
+      z dopiskami („ile jest aktualnie zgłoszone”, „po przyjęciu zgłoszenia”) mieszczą się w swojej
+      kolumnie — żaden tekst nie wchodzi na sąsiednią kolumnę (np. „Przedmiar ofertowy”).
+- [ ] Safari, to samo okno zwężone: nagłówek, który zawija się do dwóch linii, nadal mieści się
+      w swojej kolumnie.
+- [ ] Chrome, to samo okno: pionowe nagłówki wyglądają jak dotąd (wyśrodkowane, czytane od dołu).
