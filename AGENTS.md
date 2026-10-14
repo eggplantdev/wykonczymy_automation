@@ -363,6 +363,10 @@ All mutations go through `protectedAction()` in `src/lib/actions`:
 - return `ActionResultT`
 - trigger cache revalidation where needed
 
+`protectedAction` admits management roles only. A mutation every role may call (an EMPLOYEE's own
+credentials, expense drafts) uses its twin `sessionAction` — same wrapper, every role — so its handler
+must scope the write to `ctx.user` and never take whose data it is as an argument.
+
 ## Data Fetching And Cache
 
 - Financial calculations use raw SQL via `@vercel/postgres` (in `src/lib/db`), not the Payload ORM.
