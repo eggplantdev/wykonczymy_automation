@@ -142,7 +142,7 @@ describe('sekcja bez pozycji w edytorze', () => {
 
     act(() => result.current.handleAddItem(20))
 
-    expect(open).toHaveBeenCalledWith({ kind: 'end', sectionId: 20 })
+    expect(open).toHaveBeenCalledWith({ kind: 'end', sectionId: 20 }, undefined)
   })
 
   it('places the first pozycja of the middle itemless section between its neighbours', () => {

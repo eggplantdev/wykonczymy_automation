@@ -56,6 +56,10 @@ export const baseItem: Omit<KosztorysItemT, 'id' | 'description' | 'plannedQty' 
   catalogueItemId: null,
   currentPlannedQty: null,
   aiPlannedQty: null,
+  aiMissingData: null,
+  aiAssumptions: null,
+  aiNewInformation: null,
+  aiRecheck: false,
   changeReason: null,
   reviewStatus: null,
 }
