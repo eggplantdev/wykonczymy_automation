@@ -462,6 +462,11 @@ export const uk: TranslationsT = {
     columnsHidden: 'Колонки ({{count}})',
     visibleColumns: 'Видимі колонки',
     orderColumnsItem: 'Змінити порядок колонок…',
+    textSize: 'Розмір шрифту в таблиці',
+    textSizeExtraSmall: 'Дуже малий',
+    textSizeSmall: 'Малий',
+    textSizeMedium: 'Середній',
+    textSizeLarge: 'Великий',
     orderColumnsTitle: 'Порядок колонок',
     orderColumnsDescription:
       'Перетягніть позицію, щоб змінити порядок колонок у цій таблиці. Налаштування запам’ятовує цей браузер.',

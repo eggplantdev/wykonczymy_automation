@@ -4,6 +4,7 @@ import { dropNonFiniteRanks, type ColumnRanksT } from '@/lib/table/column-order'
 const VISIBILITY_PREFIX = 'table-columns:'
 // Its own prefix, so fixing an order can't clobber what is hidden and vice versa.
 const ORDER_PREFIX = 'table-column-order:'
+const TEXT_SIZE_PREFIX = 'table-text-size:'
 
 // The shape check is not paranoia about our own writes: localStorage is client-writable, and a
 // stored `null` parses fine, then reaches consumers that index it (`columnVisibility[id] !== false`)
@@ -50,4 +51,19 @@ export function readOrder(key: string): ColumnRanksT {
 
 export function writeOrder(key: string, ranks: ColumnRanksT) {
   persist(ORDER_PREFIX + key, ranks)
+}
+
+// Unvalidated: the caller knows which sizes exist and drops anything else.
+export function readTextSize(key: string): string | undefined {
+  if (typeof window === 'undefined') return undefined
+  try {
+    const raw = localStorage.getItem(TEXT_SIZE_PREFIX + key)
+    return raw ? (JSON.parse(raw) as string) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+export function writeTextSize(key: string, size: string) {
+  persist(TEXT_SIZE_PREFIX + key, size)
 }

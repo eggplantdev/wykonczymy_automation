@@ -16,12 +16,15 @@ import { cn } from '@/lib/utils/cn'
 import { DataTableRow } from './data-table-row'
 import { VirtualizedTableBody } from './virtualized-table-body'
 import { TableHeader } from './table-header'
+import { isTableTextSize, TABLE_TEXT_SIZE, type TableTextSizeT } from './table-text-size'
 import { TableFooter } from './table-footer'
 import { EmptyRow } from './empty-row'
 import {
   readOrder,
+  readTextSize,
   readVisibility,
   writeOrder,
+  writeTextSize,
   writeVisibility,
 } from '@/lib/table/column-prefs-storage'
 import { baseRanksFromKeys, orderColumnKeys, type ColumnRanksT } from '@/lib/table/column-order'
@@ -38,6 +41,8 @@ export type DataTableToolbarContextT<TData> = {
   baseRanks: ColumnRanksT
   setRank: (key: string, rank: number) => void
   resetOrder: () => void
+  textSize: TableTextSizeT
+  setTextSize: (size: TableTextSizeT) => void
 }
 
 type DataTablePropsT<TData> = {
@@ -74,6 +79,10 @@ type DataTablePropsT<TData> = {
   /** Renders the sorted rows in place of the <table> — a card layout keeps the toolbar, sort and
    * column state the table already owns. */
   renderRows?: (rows: Row<TData>[], visibleColumnIds: string[]) => React.ReactNode
+  /** Size before the viewer picks one in the column menu. */
+  defaultTextSize?: TableTextSizeT
+  /** A vertical line between columns — for a table read across the row, figure against figure. */
+  hasColumnDividers?: boolean
   className?: string
 }
 
@@ -96,6 +105,8 @@ export function DataTable<TData>({
   aboveToolbar,
   belowToolbar,
   renderRows,
+  hasColumnDividers = false,
+  defaultTextSize = 'sm',
   className,
 }: DataTablePropsT<TData>) {
   const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
@@ -104,13 +115,22 @@ export function DataTable<TData>({
   const [storedVisibility, setStoredVisibility] = useState<VisibilityState>({})
   const columnVisibility = { ...defaultColumnVisibility, ...storedVisibility }
   const [ranks, setRanks] = useState<ColumnRanksT>({})
+  const [storedTextSize, setStoredTextSize] = useState<TableTextSizeT>()
+  const textSize = storedTextSize ?? defaultTextSize
 
   // Apply persisted visibility and order after hydration to avoid server/client mismatch
   useEffect(() => {
     if (!storageKey) return
     setStoredVisibility(readVisibility(storageKey))
     setRanks(readOrder(storageKey))
+    const storedSize = readTextSize(storageKey)
+    if (isTableTextSize(storedSize)) setStoredTextSize(storedSize)
   }, [storageKey])
+
+  function setTextSize(size: TableTextSizeT) {
+    setStoredTextSize(size)
+    if (storageKey) writeTextSize(storageKey, size)
+  }
 
   function persistRanks(next: ColumnRanksT) {
     setRanks(next)
@@ -203,12 +223,20 @@ export function DataTable<TData>({
         baseRanks: baseRanksFromKeys(rankedColumnIds),
         setRank,
         resetOrder,
+        textSize,
+        setTextSize,
       })}
       {belowToolbar}
       {renderRows ? (
         renderRows(rows, visibleColumnIdList)
       ) : (
-        <div className="border-border overflow-x-auto rounded-lg border">
+        <div
+          className={cn(
+            'border-border overflow-x-auto rounded-lg border',
+            hasColumnDividers &&
+              '[&_td+td]:border-border [&_th+th]:border-border [&_td+td]:border-l [&_th+th]:border-l',
+          )}
+        >
           {enableVirtualization ? (
             <VirtualizedTableBody
               parentRef={parentRef}
@@ -221,10 +249,21 @@ export function DataTable<TData>({
               getRowHref={getRowHref}
               getRowClassName={getRowClassName}
               footer={footer}
+              textSize={textSize}
             />
           ) : (
-            <table className="w-full text-sm max-sm:text-xs">
-              <TableHeader headerGroups={headerGroups} />
+            <table className={cn('w-full', TABLE_TEXT_SIZE[textSize].body)}>
+              {visibleLeafColumns.some((column) => column.columnDef.meta?.fill) && (
+                <colgroup>
+                  {visibleLeafColumns.map((column) => (
+                    <col
+                      key={column.id}
+                      className={column.columnDef.meta?.fill ? 'w-full' : undefined}
+                    />
+                  ))}
+                </colgroup>
+              )}
+              <TableHeader headerGroups={headerGroups} textSize={textSize} />
               <tbody>
                 {rows.length === 0 ? (
                   <EmptyRow colSpan={visibleColCount} />

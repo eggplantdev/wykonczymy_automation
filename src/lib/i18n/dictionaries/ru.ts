@@ -462,6 +462,11 @@ export const ru: TranslationsT = {
     columnsHidden: 'Колонки ({{count}})',
     visibleColumns: 'Видимые колонки',
     orderColumnsItem: 'Изменить порядок колонок…',
+    textSize: 'Размер шрифта в таблице',
+    textSizeExtraSmall: 'Очень мелкий',
+    textSizeSmall: 'Мелкий',
+    textSizeMedium: 'Средний',
+    textSizeLarge: 'Крупный',
     orderColumnsTitle: 'Порядок колонок',
     orderColumnsDescription:
       'Перетащите позицию, чтобы изменить порядок колонок в этой таблице. Настройку запоминает этот браузер.',

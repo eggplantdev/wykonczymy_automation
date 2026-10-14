@@ -15,7 +15,9 @@ const twMerge = extendTailwindMerge({
         'max-w-dialog-lg',
         'max-w-dialog-xl',
         'max-w-dialog-2xl',
+        'max-w-dialog-3xl',
       ],
+      'font-size': ['text-2xs', 'text-3xs'],
     },
   },
 })

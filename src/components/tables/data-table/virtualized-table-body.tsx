@@ -6,6 +6,7 @@ import { type useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@/lib/utils/cn'
 import { DataTableRow } from './data-table-row'
 import { TableHeader } from './table-header'
+import { TABLE_TEXT_SIZE, type TableTextSizeT } from './table-text-size'
 import { TableFooter } from './table-footer'
 import { EmptyRow } from './empty-row'
 
@@ -22,6 +23,7 @@ type VirtualizedTableBodyPropsT<TData> = {
   getRowHref?: (row: TData) => string | undefined
   getRowClassName?: (row: TData) => string
   footer?: (visibleColumnIds: string[]) => React.ReactNode
+  textSize: TableTextSizeT
 }
 
 export function VirtualizedTableBody<TData>({
@@ -35,6 +37,7 @@ export function VirtualizedTableBody<TData>({
   getRowHref,
   getRowClassName,
   footer,
+  textSize,
 }: VirtualizedTableBodyPropsT<TData>) {
   const virtualItems = virtualizer.getVirtualItems()
   const colCount = visibleColumnIdList.length
@@ -49,7 +52,10 @@ export function VirtualizedTableBody<TData>({
       className={cn('overflow-auto', containerClassName)}
       style={containerClassName ? undefined : { height: containerHeight }}
     >
-      <table className="w-full table-fixed text-sm max-sm:text-xs" style={{ minWidth: totalWidth }}>
+      <table
+        className={cn('w-full table-fixed', TABLE_TEXT_SIZE[textSize].body)}
+        style={{ minWidth: totalWidth }}
+      >
         <colgroup>
           {leafHeaders.map((header) => (
             <col
@@ -60,7 +66,7 @@ export function VirtualizedTableBody<TData>({
             />
           ))}
         </colgroup>
-        <TableHeader headerGroups={headerGroups} />
+        <TableHeader headerGroups={headerGroups} textSize={textSize} />
         <tbody>
           {rows.length === 0 ? (
             <EmptyRow colSpan={colCount} />

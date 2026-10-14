@@ -475,6 +475,11 @@ export const pl = {
     columnsHidden: 'Kolumny ({{count}})',
     visibleColumns: 'Widoczne kolumny',
     orderColumnsItem: 'Ustaw kolejność kolumn…',
+    textSize: 'Ustal wielkość czcionki w tabeli',
+    textSizeExtraSmall: 'Bardzo mała',
+    textSizeSmall: 'Mała',
+    textSizeMedium: 'Średnia',
+    textSizeLarge: 'Duża',
     orderColumnsTitle: 'Ustaw kolejność kolumn',
     orderColumnsDescription:
       'Przeciągnij pozycję, żeby przestawić kolumny w tej tabeli. Ustawienie zapamiętuje ta przeglądarka.',

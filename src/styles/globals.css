@@ -58,10 +58,12 @@
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 
   --text-2xs: 0.625rem;
+  /* Only under a header in the smallest table text size, one step below its 2xs body. */
+  --text-3xs: 0.5625rem;
 
   /* Dialog widths, from `sm:` up — below that a dialog is a full-bleed sheet and takes none of
      these. The `min(90vw, …)` is the shared half: the cap is what the content wants, 90vw is what
-     stops it touching the edges on a narrow laptop. Five sizes, not an open scale.
+     stops it touching the edges on a narrow laptop. Six sizes, not an open scale.
      They only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
      tailwind-merge leaves an override beside the base class and stylesheet order eats it. */
   --container-dialog-sm: min(90vw, 26.25rem);
@@ -75,6 +77,9 @@
   /* A table whose rows carry their own inputs (ilość, etap, pomiar side by side) — at xl the last
      columns scroll out of view. */
   --container-dialog-2xl: min(95vw, 87.5rem);
+  /* The worker-report review: on top of 2xl's inputs it carries the pomiar before and after the
+     accept, so 1400px still squeezed the opis. */
+  --container-dialog-3xl: min(95vw, 112.5rem);
 
   /* Viewport minus the shell's chrome — 3.5rem IS the TopNav's h-14, and two files were carrying it
      as a bare number. Anything that must fill the page UNDER the top bar takes h-below-top-nav. */
@@ -254,6 +259,13 @@
     font-size: var(--text-sm);
     line-height: var(--text-sm--line-height);
   }
+}
+
+/* Bottom-to-top text. Put it on an inline-block INSIDE the cell, never on the th: WebKit ignores
+   writing-mode on a table cell but still applies the transform (see print/styles.ts). */
+@utility vertical-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
 }
 
 @utility scrollbar-hidden {
