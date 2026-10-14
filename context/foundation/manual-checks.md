@@ -5128,7 +5128,29 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Liczby w „Wykonano”, „Zgłaszam” i „Postęp” są wyśrodkowane — na telefonie i na desktopie.
 - [ ] Widok „Inwestycja” na telefonie nadal przewija się w bok (pełny arkusz).
 
+## 2026-10-14 — backlog-fixes-14 — poprawki z backlogu: odrzucenie w zgłoszeniu, zapis przed podmianą rozpiski, menu etapu (EX-1052, EX-1002, EX-1036)
+
+- [ ] EX-1052: ten sam kosztorys w dwóch kartach. W karcie A „Zgłoszenia prac” → zgłoszenie → przy
+      jednej pozycji tylko „Odrzuć” → zapisz. Przejdź do karty B: **nie** pojawia się „Rozpiska
+      zmieniła się w innym oknie — wczytano aktualną wersję.”, a w „Wersje” nie przybyła wersja
+      automatyczna. Po ponownym otwarciu zgłoszenia pozycja jest odrzucona.
+- [ ] EX-1052: to samo z „Przyjmij” jednej pozycji zamiast „Odrzuć” — karta B **pokazuje** ten
+      komunikat i ilość w etapie.
+- [ ] EX-1002: wpisz ilość w komórkę etapu i od razu otwórz „Wersje” → „Przywróć” starszą wersję.
+      Bez komunikatu o błędzie ani o zmianie „w innym miejscu”; w „Wersje” wersja automatyczna
+      sprzed przywrócenia zawiera wpisaną ilość. (Żeby trafić w okno zapisu, włącz w DevTools
+      Network → „Slow 4G”.)
+- [ ] EX-1002: tak samo — świeża zmiana w komórce, od razu „Wyczyść kosztorys”, „Wczytaj z
+      szablonu”, import z arkusza i „Ustaw kolejność”: każda kończy się bez komunikatu o błędzie
+      i bez „Kosztorys zmienił się w innym miejscu”.
+- [ ] EX-1002: wpisz literówkę w „Opis prac” i od razu „Popraw literówki w opisie prac i j.m.” —
+      wpisany opis nie wraca do poprzedniej treści (najwyżej zostaje poprawiony).
+- [ ] EX-1036: edytor → menu nagłówka etapu ma, jak dotąd, „Rozliczenie”, „Etap zakończony”,
+      sortowanie, kolor, „Zmień nazwę”, „Usuń etap” i „Pracownicy etapu…”; każda pozycja działa.
+- [ ] EX-1036: „Podgląd dla inwestora” i „Podgląd linku pracownika” — nagłówek etapu to sama
+      nazwa: bez menu, bez ikony rozliczenia i bez ostrzeżenia o niepotwierdzonym rozliczeniu.
+
 ## 2026-10-14 — worker-report-sticky-wobble — nagłówek tabeli w raporcie pracownika nie drga
 
-- [ ] iPhone (Safari), raport pracownika (`/z/…`): przewijaj w górę i w dół, także szybkim
+- [x] iPhone (Safari), raport pracownika (`/z/…`): przewijaj w górę i w dół, także szybkim
       „rzutem” — nagłówek tabeli trzyma się górnej krawędzi bez drgania i nie odjeżdża od wierszy.
