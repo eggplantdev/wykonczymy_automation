@@ -5022,6 +5022,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Strona inwestycji bez „Uwag AI”: sekcji „Uwagi AI” nie ma wcale.
 - [ ] Kosztorys → podsumowanie → zakładka „Inwestycja”: te same „Uwagi AI” pod „Notatkami”, tylko do
       odczytu; bez uwag sekcji nie ma.
+- [ ] Inwestycja wyceniona przez AI przed tą zmianą (np. 188): wątpliwości AI są w „Uwagach AI”,
+      a w „Notatkach” został sam mail klienta — bez linii „———— mail klienta ————”.
 
 ## 2026-10-14 — textarea-safari-rows — pole tekstowe rośnie z treścią w starszym Safari
 
