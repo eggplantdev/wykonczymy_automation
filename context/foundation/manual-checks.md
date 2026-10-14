@@ -5033,8 +5033,8 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Safari 18.x → dowolne inne pole wielolinijkowe (np. powód anulowania, notatka pozycji
       w katalogu prac): puste ma tę samą wysokość co wcześniej, po wpisaniu kilku linii rośnie.
 
-## 2026-10-14 — media-plan-hint — wyjaśnienie przy „To jest rzut lub projekt”
+## 2026-10-14 — media-plan-hint — pole „Do analizy AI” przy dodawaniu plików
 
-- [ ] Strona inwestycji → „Dodaj zdjęcia lub pliki”: pod „To jest rzut lub projekt” widać szary
-      dopisek „AI analizuje tylko pliki oznaczone jako rzut lub projekt.”; okno dodawania faktury
-      (bez tego pola) wygląda jak wcześniej.
+- [ ] Strona inwestycji → „Dodaj zdjęcia lub pliki”: pole nazywa się „Do analizy AI”, a pod nim
+      szary dopisek „Zaznacz, jeśli AI ma analizować te pliki — rzuty, projekty, zdjęcia poglądowe.
+      Nieoznaczonych AI nie widzi.”; okno dodawania faktury (bez tego pola) wygląda jak wcześniej.

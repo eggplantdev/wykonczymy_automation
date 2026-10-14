@@ -12,7 +12,7 @@ type MediaUploadDialogPropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onFiles: (files: File[], asPlan: boolean) => void
-  /** Offers the „to jest rzut" marker. Invoice surfaces omit it — a faktura is never a rysunek. */
+  /** Offers the „Do analizy AI" marker. Invoice surfaces omit it — a faktura is never analysed. */
   allowPlanMarker?: boolean
 }
 

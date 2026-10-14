@@ -571,8 +571,9 @@ export const pl = {
     mimeAudio: 'audio',
     mimeText: 'tekst',
     addInvoice: 'Dodaj fakturę',
-    isPlan: 'To jest rzut lub projekt',
-    planHint: 'AI analizuje tylko pliki oznaczone jako rzut lub projekt.',
+    isPlan: 'Do analizy AI',
+    planHint:
+      'Zaznacz, jeśli AI ma analizować te pliki — rzuty, projekty, zdjęcia poglądowe. Nieoznaczonych AI nie widzi.',
     uploadFailedRetry: 'Nie udało się przesłać pliku — spróbuj ponownie.',
     ingestFailed: 'Nie udało się przetworzyć pliku — spróbuj ponownie.',
     convertFailed: 'Nie udało się przekonwertować „{{name}}” — zapisz jako JPG i spróbuj ponownie.',
