@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { listWorkersWithActiveStages } from '@/lib/db/stage-memberships'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
@@ -18,10 +18,17 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
   const investmentIds: number[] = []
   const workers: Record<string, number> = {}
 
-  async function investmentWithStage(status: InvestmentStatusT, workerId: number, completed = false) {
+  async function investmentWithStage(
+    status: InvestmentStatusT,
+    workerId: number,
+    completed = false,
+  ) {
     const id = await createTestInvestment(payload, `EX-949 scan workers ${status}`, { status })
     investmentIds.push(id)
-    await createKosztorysTree(payload, id, { sections: [], stages: [{ worker: workerId, completed }] })
+    await createKosztorysTree(payload, id, {
+      sections: [],
+      stages: [{ worker: workerId, completed }],
+    })
   }
 
   beforeAll(async () => {

@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { Payload, Where } from 'payload'

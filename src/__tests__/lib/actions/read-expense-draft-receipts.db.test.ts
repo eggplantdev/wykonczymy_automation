@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { UNREADABLE_RECEIPT, type ReceiptExtractionT } from '@/lib/ai/receipt-extraction-schema'
 import { getDb } from '@/lib/db/get-db'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
@@ -64,7 +64,9 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
     if (draftId === null) throw new Error('draft fixture refused')
     // Drafts sent before EX-1048 still carry the worker's „Jeden wydatek”.
-    await db.execute(sql`UPDATE worker_expense_drafts SET scan_mode = ${scanMode} WHERE id = ${draftId}`)
+    await db.execute(
+      sql`UPDATE worker_expense_drafts SET scan_mode = ${scanMode} WHERE id = ${draftId}`,
+    )
     return { draftId, mediaIds }
   }
 

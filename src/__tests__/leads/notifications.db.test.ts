@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 
 // storeLead's collection hook calls revalidateTag, which throws outside a Next request
 // context. Stub it — cache invalidation is not under test here.

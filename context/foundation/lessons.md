@@ -2214,6 +2214,15 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   open, and vanish with that transaction's rollback. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
   `pnpm why pg` that only one `pg` copy exists, and prove it on **staging under overlap**, never
   locally.
+- **Update (EX-855, 2026-10-13)**: fixed by moving to `@payloadcms/db-postgres`, which builds a real
+  `pg.Pool` everywhere — local and Neon take the same branch now. Measured on the preview DB before
+  the switch, same wiring as `connect.js`: tx A commit + overlapping tx B rollback lost A's row and
+  kept B's in **20/20** runs; `FOR UPDATE` held with two transactions but, with a third on the pool,
+  **hung** 7/10 (a lock wait Postgres cannot see as a deadlock — the cycle runs through the JS client)
+  or **lost the update** 9/10. A `pg.Pool` passed all of it. The overlap rule above is lifted; what
+  stays is the check: **any change of DB adapter or driver re-verifies that the client is an
+  `instanceof` the `pg` copy Drizzle imports** — a pool with the right shape and the wrong class
+  turns every transaction into `pool.query()` without one error.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.
 
 ## A fact injected into the session by a vendor's own plugin is a claim, not documentation — check it against the docs before planning on it

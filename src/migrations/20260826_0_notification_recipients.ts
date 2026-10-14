@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // Shapes copied from what Payload's Drizzle layer emits for an array field — the row `id` is a

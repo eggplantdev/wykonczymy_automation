@@ -3,7 +3,7 @@
 import { after } from 'next/server'
 import { z } from 'zod'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'

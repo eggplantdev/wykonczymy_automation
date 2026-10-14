@@ -8,7 +8,7 @@
 //
 // Every write is guarded on the value it expects to replace; one miss rolls the whole run back. A
 // manual snapshot of the szablon is taken in the same transaction first.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'

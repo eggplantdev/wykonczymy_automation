@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (mirrors 20260611_add_rabat_enum) — migrate:create's snapshot
 // baseline is stale on this branch (see AGENTS.md / project memory).

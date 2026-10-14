@@ -12,7 +12,7 @@
 // The pages are always read from the production Blob store: the local DB is a prod dump, and the
 // preview store lacks every photo newer than its last restore. A second run refuses while a copy of
 // the same zgłoszenie is still pending.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-receipts'

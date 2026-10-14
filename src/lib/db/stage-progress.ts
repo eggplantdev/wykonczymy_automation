@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from './get-db'
 
 export type StageProgressCellT = { itemId: number; stageId: number; qtyDone: number }

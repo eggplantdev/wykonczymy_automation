@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // One sheet per investment: two investments sharing a tab would each treat the
 // other's rows as orphans and delete them on sync (review T1.3). Postgres allows

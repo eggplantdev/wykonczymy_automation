@@ -5066,3 +5066,13 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
       włączonym „Dopasuj wysokość do treści”: wiersz od razu ma wysokość pasującą do małej czcionki.
 - [ ] Telefon (390px), kosztorys: wejście w edycję komórki nie powiększa strony (brak zoomu iOS).
+
+## EX-855 — pg-pool-adapter — transakcje na Neonie z własnym połączeniem (staging)
+
+- [ ] Staging → OWNER: utwórz pracownika z kasą Pracownicze, „Usuń pracownika", potem w `/kosz`
+      „Usuń na zawsze" (pełne imię i nazwisko): usunięcie przechodzi bez „jest powiązany z danymi
+      (kasy: 1)", pracownik i jego kasa znikają z `/kosz`.
+- [ ] Staging → wydatek z kilkoma fakturami naraz (3+ pliki): zapis przechodzi, wszystkie pliki są
+      widoczne przy transakcji.
+- [ ] Staging → kosztorys: „Dodaj pracę" w środku sekcji, „Wczytaj szablon" i zmiana kolejności
+      działają jak wcześniej — bez zawieszenia, bez błędu klucza, kolejność pozycji poprawna.

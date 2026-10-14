@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'

@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { Investment } from '@/payload-types'

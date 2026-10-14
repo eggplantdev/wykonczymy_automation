@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // The same shape as `investments.trashed_at`, and for the same reason not Payload's `trash: true`.
 //

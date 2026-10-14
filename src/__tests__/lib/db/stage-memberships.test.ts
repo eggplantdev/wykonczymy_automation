@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
@@ -105,7 +105,7 @@ describe.skipIf(!ENV_READY)('listWorkerStageInvestments (DB)', () => {
     for (const row of rows) expect(row.token).toEqual(expect.any(String))
   })
 
-  it("drops a site for the coworker whose only etap there is zakończony, not for him", async () => {
+  it('drops a site for the coworker whose only etap there is zakończony, not for him', async () => {
     const coworkerSites = await listWorkerStageInvestments(db, coworkerId)
 
     expect(coworkerSites.map((row) => row.investmentId)).not.toContain(

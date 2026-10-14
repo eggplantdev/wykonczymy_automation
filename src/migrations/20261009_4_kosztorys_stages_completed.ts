@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Additive: every existing etap starts open, so production migrates BEFORE the push that selects it.
 export async function up({ db }: MigrateUpArgs): Promise<void> {

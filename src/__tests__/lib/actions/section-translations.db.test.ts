@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 
 // Asserted on the TABLE: one entry serves every rozpiska with that name, so a refused save that

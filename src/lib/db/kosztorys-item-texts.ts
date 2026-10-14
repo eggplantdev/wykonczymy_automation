@@ -1,6 +1,6 @@
 // No `server-only` here (half of src/lib/db skips it too): the bulk script runs these same helpers
 // under tsx, where that import throws.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { textOrNull } from '@/lib/db/row-coerce'
 import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'

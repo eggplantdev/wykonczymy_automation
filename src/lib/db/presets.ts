@@ -1,6 +1,6 @@
 // No `server-only` here (half of src/lib/db skips it too): the katalog seed script reaches this
 // module under tsx, where that import throws.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { DbExecutorT } from './get-db'

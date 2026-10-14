@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // EX-949: a stable number per pozycja, printed on the fill-in form. The id cannot serve — restore,
 // sheet import and „Wczytaj szablon" wipe and reinsert, reminting every id — so restore and import

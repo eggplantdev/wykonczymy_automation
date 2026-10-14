@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import {
   EXPENSE_DRAFT_STATUSES,
   type ExpenseDraftStatusT,

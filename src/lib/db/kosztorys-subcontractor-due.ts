@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { DbExecutorT } from './get-db'

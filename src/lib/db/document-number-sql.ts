@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { SqlT } from './sql-list'
 
 // The SQL twin of `normalizeDocumentNumber`, close enough to pre-filter; the matcher decides.

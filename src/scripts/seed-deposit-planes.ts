@@ -33,7 +33,7 @@
 // still put through `getNetAmountError` below — the same single instance of the rule the dialog
 // uses — so skipping the hook is not skipping validation.
 import { getPayload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import config from '../payload.config'
 import { getDb } from '@/lib/db/get-db'
 import { getNetAmountError } from '@/lib/utils/validation'

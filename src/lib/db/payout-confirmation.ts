@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import {
   CANCELLED_PAYOUT_VISIBLE_DAYS,
   type PayoutStatusT,

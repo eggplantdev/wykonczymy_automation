@@ -19,7 +19,7 @@
 // texts until their tags expire. Flush them with a katalog edit and a rozpiska edit of any cell but
 // a tłumaczenie — that one writes back the whole stale map the grid holds.
 import { readFileSync } from 'node:fs'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { getDb, type DbExecutorT } from '../lib/db/get-db'

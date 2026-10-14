@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // Parity with the owner's vehicle-control sheet: the five of its columns that had nowhere to go.

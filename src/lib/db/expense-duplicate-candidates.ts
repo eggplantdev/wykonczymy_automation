@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { RECEIPT_TYPES } from '@/lib/expense-duplicates/constants'
 import { cents, documentNumberOf, type ExpenseDocT } from '@/lib/expense-duplicates/match'
 import type { CandidateT } from '@/lib/expense-duplicates/types'

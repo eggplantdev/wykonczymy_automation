@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { RoleT } from '@/lib/auth/roles'
 import type { DbExecutorT } from '@/lib/db/get-db'
 

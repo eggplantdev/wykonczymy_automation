@@ -1,6 +1,6 @@
 // No `server-only` here: kosztorys-item-texts.ts and work-catalogue.ts skip it for the tsx scripts,
 // and both import this.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { mergeRowWrites, type RowWriteT } from '@/lib/i18n/ai-translation-fill'
 

@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written fix (see AGENTS.md — migrate:create's snapshot is stale, internal
 // Payload tables must be adjusted by hand). The kosztorys sections/items

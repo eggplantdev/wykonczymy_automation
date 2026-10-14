@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { Payload, PayloadRequest } from 'payload'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'

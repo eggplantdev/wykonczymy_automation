@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from './get-db'
 
 // Takes the investment row for the rest of the caller's transaction, serializing the wholesale

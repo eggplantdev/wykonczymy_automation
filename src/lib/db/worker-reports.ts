@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import {
   toDescriptionTranslations,
