@@ -116,8 +116,9 @@ list. Re-list `quote` investments without a kosztorys for the next batch.
 
    **When the owner already created the investment** (mail in Notatki, files in „Pliki”), run
    `scripts/adopt-case-prod.ts` instead (`TOKEN_FILE=… INVESTMENT=<id> CASE=<n>-<slug> [DRY=1]`). It
-   downloads only the files marked „To jest rzut lub projekt” — the upload dialog promises that — outside the repo (`~/.local/share/wykonczymy-ai-cases/<CASE>/`), seeds the
-   kosztorys from the szablon only when it is empty, and scaffolds the case the same way. Case 7 is
+   downloads only the files marked „Do analizy AI” (stored as kind `projekt`; the upload dialog promises it), plus every file uploaded before that promise (`MARKER_PROMISE_SINCE`), when the tick still meant „rzut” — outside the repo (`~/.local/share/wykonczymy-ai-cases/<CASE>/`), and
+   scaffolds the case the same way. It writes nothing to production: an empty kosztorys is seeded
+   from the szablon by `fill-case-prod.ts`, as the first write of the result. Case 7 is
    the worked example.
 
 3. (Done by step 2.) The rozpiska dump keeps the szablon's ids. The fill matches by section and

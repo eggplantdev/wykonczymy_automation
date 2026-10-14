@@ -110,8 +110,19 @@ async function run() {
   const page = `/inwestycje/${kase.investmentId}/kosztorys_v2`
   const appendix = has(kase.notesAppendix) ? read(kase.notesAppendix).trim() : ''
 
+  // The analysis runs offline, so seeding from the szablon is the first write of the result rather
+  // than of the adopt step. A dry run matches against the szablon instead.
+  let items = await itemsOf(kase.investmentId)
+  if (!items.length) {
+    console.log(`kosztorys empty → seed from szablon #${kase.presetId}`)
+    if (DRY) items = await itemsOf(kase.presetId)
+    else {
+      await resolveActions(page, ['reloadFromPresetAction'])
+      await callAction('reloadFromPresetAction', page, [kase.investmentId, kase.presetId])
+      items = await itemsOf(kase.investmentId)
+    }
+  }
   // Matching every row before anything is written: a run never stops halfway on a bad rozpiska id.
-  const items = await itemsOf(kase.investmentId)
   const draft = kase.draft && has(kase.draft) ? fromDraft(kase.draft, items) : undefined
   const { fills, newWorks } = draft
     ? { fills: [] as FillT[], newWorks: draft.newWorks }

@@ -1,15 +1,21 @@
 // Step 1 of a case whose investment the owner already created on PRODUCTION, with the client's mail in
 // its notes and the files in „Pliki". The counterpart of `new-case-prod.ts`: it downloads the files
-// (outside the repo — they are a real client's documents), seeds an empty kosztorys from the szablon,
-// and scaffolds `cases/<CASE>/` the same way, so the rest of the method runs unchanged.
+// (outside the repo — they are a real client's documents) and scaffolds `cases/<CASE>/` the same way, so the rest of the method runs unchanged.
 //   TOKEN_FILE=… INVESTMENT=207 CASE=07-<slug> [FILES_DIR=…] [PRESET_ID=166] [DRY=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/adopt-case-prod.ts
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
-import { api, BASE, callAction, itemsOf, resolveActions } from './prod-client'
+import { api, BASE, itemsOf } from './prod-client'
 
-type AssetT = { id: number; kind: string | null; mimeType: string; filename: string; url: string }
+type AssetT = {
+  id: number
+  kind: string | null
+  mimeType: string
+  filename: string
+  url: string
+  createdAt: string
+}
 type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
 
 const INVESTMENT = Number(process.env.INVESTMENT)
@@ -17,6 +23,10 @@ const PRESET_ID = Number(process.env.PRESET_ID ?? 166)
 const DRY = process.env.DRY === '1'
 const CASE = process.env.CASE ?? ''
 const CASE_DIR = path.join(import.meta.dirname, '../cases', CASE)
+// When the upload dialog started promising that only files marked „Do analizy AI” reach the AI. A file
+// uploaded before then was left unmarked under the old meaning of the tick („Rzut/projekt”), not to
+// keep it from the AI, so it still goes in.
+const MARKER_PROMISE_SINCE = new Date('2026-10-15T00:00:00+02:00')
 const FILES_DIR =
   process.env.FILES_DIR ?? path.join(homedir(), '.local/share/wykonczymy-ai-cases', CASE)
 
@@ -26,25 +36,26 @@ async function run() {
     throw new Error(`${CASE_DIR} already has a case.json`)
 
   const investment = await api<InvestmentT>(`/investments/${INVESTMENT}?depth=1`)
-  // The upload dialog promises that only files marked „To jest rzut lub projekt” reach the AI.
   const allAssets = investment.assets ?? []
-  const assets = allAssets.filter((asset) => asset.kind === 'projekt')
+  const assets = allAssets.filter(
+    (asset) => asset.kind === 'projekt' || new Date(asset.createdAt) < MARKER_PROMISE_SINCE,
+  )
   const skipped = allAssets.length - assets.length
-  if (skipped) console.log(`${skipped} files not marked as rzut/projekt → skipped`)
+  if (skipped) console.log(`${skipped} files not marked „Do analizy AI” → skipped`)
   const items = await itemsOf(INVESTMENT)
   const template = await itemsOf(PRESET_ID)
   if (!template.length) throw new Error(`szablon #${PRESET_ID} has no items`)
   const page = `/inwestycje/${INVESTMENT}/kosztorys_v2`
   // A kosztorys the owner already filled is an answer key: the draft goes in beside it as AI
-  // przedmiar, so it is never reloaded over.
+  // przedmiar, so it is never reloaded over. An empty one is seeded by fill-case-prod, so this step
+  // writes nothing to production.
   const isEmpty = items.length === 0
-  if (isEmpty) await resolveActions(page, ['reloadFromPresetAction'])
 
   for (const asset of assets) console.log(`${(asset.kind ?? '—').padEnd(8)} ${asset.filename}`)
   console.log(
     `ok: #${INVESTMENT} „${investment.name.trim()}", ${assets.length} files → ${FILES_DIR}, ` +
       (isEmpty
-        ? `kosztorys empty → seed from szablon #${PRESET_ID} (${template.length} positions)`
+        ? `kosztorys empty → rozpiska from szablon #${PRESET_ID} (${template.length} positions)`
         : `kosztorys has ${items.length} positions → left as is`),
   )
   if (DRY) return
@@ -57,16 +68,7 @@ async function run() {
   }
   console.log(`${assets.length} files downloaded`)
 
-  if (isEmpty) {
-    const result = await callAction<{ data: { sections: number; items: number } }>(
-      'reloadFromPresetAction',
-      page,
-      [INVESTMENT, PRESET_ID],
-    )
-    console.log(`seeded: ${result.data.sections} sections, ${result.data.items} positions`)
-  }
-
-  const rozpiska = (isEmpty ? await itemsOf(INVESTMENT) : items)
+  const rozpiska = (isEmpty ? template : items)
     .toSorted(
       (a, b) => a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder,
     )
