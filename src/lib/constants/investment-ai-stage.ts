@@ -4,6 +4,7 @@ export const INVESTMENT_AI_STAGES = [
   'analyzed',
   'review_done',
   'knowledge_extracted',
+  'new_information',
 ] as const
 
 export type InvestmentAiStageT = (typeof INVESTMENT_AI_STAGES)[number]
@@ -38,6 +39,12 @@ export const INVESTMENT_AI_STAGE_LABELS: Record<
     description:
       'Oznacz, gdy powody zmian z tej inwestycji trafią do Manuala i Komentarzy do prac.',
   },
+  new_information: {
+    pl: 'Nowe informacje',
+    en: 'New information',
+    description:
+      'Oznacz, gdy po analizie dojdą nowe informacje — plan, projekt, kolejna wiadomość. Dodaj je do inwestycji, a AI przeanalizuje ją ponownie.',
+  },
 }
 
 // No stored stage — where every investment starts.
@@ -58,4 +65,5 @@ export const AI_PROGRESS_LABELS: Record<AiProgressStepT, string> = {
   analyzed: INVESTMENT_AI_STAGE_LABELS.analyzed.pl,
   review_done: INVESTMENT_AI_STAGE_LABELS.review_done.pl,
   knowledge_extracted: INVESTMENT_AI_STAGE_LABELS.knowledge_extracted.pl,
+  new_information: INVESTMENT_AI_STAGE_LABELS.new_information.pl,
 }

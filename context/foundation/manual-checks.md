@@ -5007,3 +5007,10 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       ukrywa i pokazuje kolumny i zmienia rozmiar tekstu jak wcześniej.
 - [ ] „Szukaj duplikatów” na `/` i okno „Zweryfikuj” zgłoszenia z możliwymi duplikatami: te same
       grupy i te same podpowiedzi co przed poprawkami.
+
+## 2026-10-14 — ai-stage-new-information — status AI „Nowe informacje”
+
+- [ ] Strona inwestycji → wybór etapu AI: na końcu listy jest „Nowe informacje” (pomarańczowy, ikona
+      pliku z plusem) z opisem o ponownej analizie; wybór zapisuje się i zostaje po odświeżeniu.
+- [ ] Lista inwestycji → kolumna „Analiza AI”: inwestycja z „Nowe informacje” ma pomarańczową
+      plakietkę, a sortowanie po tej kolumnie stawia ją za „Wiedza wyekstraktowana”.

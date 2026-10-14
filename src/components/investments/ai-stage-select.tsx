@@ -4,6 +4,7 @@ import { useOptimistic, useTransition } from 'react'
 import {
   BookOpenCheck,
   ClipboardList,
+  FilePlus,
   FolderInput,
   SearchCheck,
   Sparkles,
@@ -30,6 +31,7 @@ const STAGE_ICONS: Record<InvestmentAiStageT, LucideIcon> = {
   analyzed: Sparkles,
   review_done: SearchCheck,
   knowledge_extracted: BookOpenCheck,
+  new_information: FilePlus,
 }
 
 const OPTIONS = [
