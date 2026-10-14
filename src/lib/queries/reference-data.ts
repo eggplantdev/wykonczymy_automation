@@ -187,7 +187,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v9'],
+    ['reference-data-v10'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,
