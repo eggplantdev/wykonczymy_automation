@@ -189,7 +189,7 @@ describe('buildWorkerPrintHtml', () => {
       cells.map((cell) => `<td class="value">${cell}</td>`).join('')
 
     expect(out).toContain(
-      `<td class="label">Tynki</td>${values(formatPLN(2 * RATE), '40,0%', formatPLN(0.4 * 2 * RATE))}`,
+      `<td class="label">Tynki</td>${values(formatPLN(2 * RATE), '40%', formatPLN(0.4 * 2 * RATE))}`,
     )
     expect(out).toContain(
       `<td class="label">Razem</td>${values(formatPLN(whole), '', formatPLN(summary.executedNet))}`,

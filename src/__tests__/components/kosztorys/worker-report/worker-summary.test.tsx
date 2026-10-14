@@ -63,13 +63,13 @@ describe('WorkerSummary', () => {
     expect(rowCells(within(executed).getByText('Etap 1'))).toEqual([
       'Etap 1',
       '3000,00',
-      '100,0%',
+      '100%',
       '3000,00',
     ])
     expect(rowCells(within(executed).getByText('Etap 2'))).toEqual([
       'Etap 2',
       '6000,00',
-      '25,0%',
+      '25%',
       '1500,00',
     ])
     expect(rowCells(within(executed).getByText('Razem'))).toEqual([

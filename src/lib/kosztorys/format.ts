@@ -49,18 +49,18 @@ export const formatRate = (
 }
 
 // A fraction (0.746) as a percentage; `null` (no denominator — see rowDoneFraction) renders as a
-// dash. One decimal everywhere (owner, 2026-10-14).
+// dash. At most one decimal, dropped when it is zero (owner, 2026-10-14): „75%", „74,6%".
 //
-// Only an exact 100% prints as „100,0%": the cell is red past the agreed scope, so a red „100,0%"
-// reads as a false alarm, and a grey one reads as done when a sliver is still owed. A sliver either
-// side shows as „100,1%" / „99,9%".
+// Only an exact 100% prints as „100%": the cell is red past the agreed scope, so a red „100%" reads
+// as a false alarm, and a grey one reads as done when a sliver is still owed. A sliver either side
+// shows as „100,1%" / „99,9%".
 export const formatPercent = (fraction: number | null) => {
   if (fraction == null) return '—'
   const percent = fraction * 100
   const roundsToHundred = Number(percent.toFixed(1)) === 100
   const shown =
     roundsToHundred && percent > 100 ? 100.1 : roundsToHundred && percent < 100 ? 99.9 : percent
-  return `${shown.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+  return `${shown.toLocaleString('pl-PL', { maximumFractionDigits: 1 })}%`
 }
 
 // A stored VAT/materiały rate (0,075) as the percent a rate FIELD shows and re-commits. Distinct from

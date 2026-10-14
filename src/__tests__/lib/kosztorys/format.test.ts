@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 
 describe('formatPercent', () => {
-  it('fraction → percent with one decimal, everywhere', () => {
-    expect(formatPercent(0.75)).toBe('75,0%')
+  it('fraction → percent with at most one decimal, none when it is zero', () => {
+    expect(formatPercent(0.75)).toBe('75%')
     expect(formatPercent(0.746)).toBe('74,6%') // pl-PL comma
   })
 
@@ -15,28 +15,28 @@ describe('formatPercent', () => {
     expect(formatPercent(null)).toBe('—')
   })
 
-  it('zero is a real 0,0%, not a dash', () => {
-    expect(formatPercent(0)).toBe('0,0%')
+  it('zero is a real 0%, not a dash', () => {
+    expect(formatPercent(0)).toBe('0%')
   })
 
   it('overshoot past 100% shows literally', () => {
-    expect(formatPercent(1.2)).toBe('120,0%')
+    expect(formatPercent(1.2)).toBe('120%')
   })
 
   // REGRESSION (owner, 2026-10-13): 14,30 done against 14,25 agreed is 100,35% — a red overrun cell
   // that printed „100%", so the red read as a false alarm.
-  it('an overrun never prints as 100,0%', () => {
+  it('an overrun never prints as 100%', () => {
     expect(formatPercent(14.3 / 14.25)).toBe('100,4%')
     expect(formatPercent(63.3 / 63.25)).toBe('100,1%')
     expect(formatPercent(1.0001)).toBe('100,1%')
   })
 
-  it('a sliver short never prints as 100,0%', () => {
+  it('a sliver short never prints as 100%', () => {
     expect(formatPercent(0.9996)).toBe('99,9%')
   })
 
-  it('exactly 100% prints as 100,0%', () => {
-    expect(formatPercent(1)).toBe('100,0%')
+  it('exactly 100% prints as 100%', () => {
+    expect(formatPercent(1)).toBe('100%')
   })
 })
 
