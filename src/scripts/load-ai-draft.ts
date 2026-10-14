@@ -1,6 +1,8 @@
 // Loads an agent's przedmiar draft into a LOCAL investment's kosztorys as AI przedmiar, so it can be
 // reviewed in the editor. Every pozycja gets a value — the draft's qty where sekcja + opis match
-// (folded like the sheet import's, so case, diacritics and known typos don't break a match), else 0 (the agent left it out) — and its Status, Powód zmiany and Komentarz AI are reset.
+// (folded like the sheet import's, so case, diacritics and known typos don't break a match), else 0
+// (the agent left it out) — and its Komentarz AI is replaced. Status and Powód zmiany are the owner's,
+// so the loader never writes them.
 // A draft row matching no pozycja is a praca the agent added beyond the kosztorys: it becomes a new
 // pozycja in its sekcja with Przedmiar 0, so the review shows it as an offer awaiting a verdict.
 // The investment's Etap AI is set to „Przeanalizowana”.
@@ -61,8 +63,6 @@ async function run() {
       id: item.id,
       data: {
         aiPlannedQty: row?.qty ?? 0,
-        reviewStatus: null,
-        changeReason: null,
         aiMissingData: row?.missingData ?? null,
         aiAssumptions: row?.assumptions ?? null,
       },
@@ -111,8 +111,7 @@ async function run() {
     added++
   }
 
-  // The listing reads „Analiza AI” off the stored stage alone. A reload also wipes every Status and
-  // Powód zmiany above, so a later stage would no longer be true either.
+  // The listing reads „Analiza AI” off the stored stage alone.
   await payload.update({
     collection: 'investments',
     id: INVESTMENT_ID,

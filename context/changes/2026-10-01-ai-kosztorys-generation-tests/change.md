@@ -100,7 +100,8 @@ list. Re-list `quote` investments without a kosztorys for the next batch.
    It uploads every PDF and image in the folder. The kind is guessed from the name: an image is a
    `zdjecie`, a shopping list or offer is `inne`, and everything else is `projekt`. It then creates the
    investment (`quote` — „Wycena”, the stage before „Planowana” — kosztorys seeded from szablon `PRESET_ID`, default 166 — #165 went to the
-   kosz on 2026-10-08) and writes `cases/<CASE>/case.json` and `inputs/rozpiska-szablon-<id>.txt`.
+   kosz on 2026-10-08) and writes `cases/<CASE>/case.json` and `inputs/rozpiska-szablon-<id>.txt`
+   (that snapshot and the step-4 knowledge dump stay out of git — the same dump in every case).
    Run `DRY=1` first: it checks the name is free, that the szablon is live, and the action ids, and it
    prints the kind it picked for each file. The app only warns when the seed fails, so the script
    prints that warning instead of swallowing it.
@@ -322,7 +323,7 @@ verdict. **Local DB only**; staging has neither investment (its ids 168/175 are 
   `[{ section, description, qty, unit?, clientPrice? }]`. A row matching a pozycja by sekcja + opis
   (folded like the sheet import) sets its AI przedmiar; every other pozycja gets 0 (the agent left it
   out); a row matching no pozycja is a praca the agent added and becomes a new pozycja in its sekcja
-  with Przedmiar 0, carrying the draft's j.m. and Cena j.m. Status and Powód zmiany reset on every run.
+  with Przedmiar 0, carrying the draft's j.m. and Cena j.m. Status and Powód zmiany are never written.
 - Draft from the AI kosztorys, then load:
 
   ```bash
@@ -671,9 +672,8 @@ several times. #190 is the first real one (stage „Nowe informacje”).
   Komentarz and prices belong to people; the AI writes only its own fields — AI przedmiar, „Czego nie
   było wiadomo”, „Co / ile założono”, and the new „Nowe informacje”. It is not a policy the agent
   follows but something the loader enforces: an update to an existing pozycja that names any other
-  field throws before writing. The production path already holds to it (`fill-case-prod.ts` writes no
-  pozycja field, `load-draft-sql-prod.ts` names only the AI columns); the local `load-ai-draft.ts`
-  still resets Status and Powód zmiany on every row.
+  field throws before writing. Both paths already hold to it: `fill-case-prod.ts` writes no pozycja
+  field, and `load-draft-sql-prod.ts` and the local `load-ai-draft.ts` name only the AI fields.
 - **„Do ponownego sprawdzenia” is a flag, not a Status.** A round that changes a pozycja fills its
   „Nowe informacje” (what changed and why — e.g. „projekt wykonawczy: ściana TV 240 cm → 7,5 → 6,4 m²”)
   and raises a recheck flag. The Status column shows „Do ponownego sprawdzenia” above the owner's
