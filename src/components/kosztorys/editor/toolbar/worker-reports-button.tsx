@@ -18,7 +18,7 @@ export function WorkerReportsButton() {
       onClick={() => workerReports.openReport()}
     >
       <FileUser />
-      Zgłoszenia wykonanych prac ({workerReports.pendingCount})
+      Zgłoszenia prac ({workerReports.pendingCount})
     </Button>
   )
 }

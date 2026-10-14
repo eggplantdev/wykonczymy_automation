@@ -250,7 +250,7 @@ export type KosztorysEditorDataT = {
 
 export type WorkerReportsSeedT = {
   pendingCount: number
-  // From a „Zgłoszenia wykonanych prac" row: the report the dialog opens on.
+  // From a „Zgłoszenia prac" row: the report the dialog opens on.
   openReportId: number | undefined
 }
 

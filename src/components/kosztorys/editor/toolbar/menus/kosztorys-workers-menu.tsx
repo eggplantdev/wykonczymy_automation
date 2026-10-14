@@ -54,7 +54,7 @@ export function KosztorysWorkersMenu() {
             <ScanReportMenuItem workers={scannable} />
             <DropdownMenuItem onSelect={() => workerReports.openReport()}>
               <FileUser />
-              Zgłoszenia wykonanych prac
+              Zgłoszenia prac
               {workerReports.pendingCount > 0 && (
                 <span className="text-muted-foreground ml-auto text-xs">
                   {workerReports.pendingCount} do sprawdzenia
