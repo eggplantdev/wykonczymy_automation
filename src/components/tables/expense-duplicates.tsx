@@ -105,6 +105,11 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT & { paragon
       header: 'Kto',
       cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
     }),
+    col.accessor((row) => row.registerName, {
+      id: 'registerName',
+      header: 'Kasa',
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
+    }),
     col.display({
       id: 'preview',
       header: 'Podgląd',

@@ -31,6 +31,7 @@ export type CandidateT = DocumentT & {
   date: string
   investmentId: number | null
   submitterName: string | null
+  registerName: string | null
   investmentName: string | null
   pages: PreviewFileT[]
 }
