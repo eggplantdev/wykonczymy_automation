@@ -29,11 +29,21 @@ function renderGrid(cells: readonly HTMLElement[]) {
 
 function renderWidths(container: HTMLElement, columnIds: readonly string[] = COLUMN_IDS) {
   return renderHook(
-    ({ ids }: { ids: readonly string[] }) => useWrapColumnWidths({ current: container }, ids),
+    ({ ids, textSize = 'sm' }: { ids: readonly string[]; textSize?: string }) =>
+      useWrapColumnWidths({ current: container }, ids, textSize),
     {
       initialProps: { ids: columnIds },
     },
   )
+}
+
+// What the editor's text-size choice resolves to, as the cell's computed font-size.
+function cellText(container: HTMLElement, fontSize: string) {
+  const text = document.createElement('span')
+  text.className = 'grid-cell-text'
+  text.style.fontSize = fontSize
+  container.append(text)
+  return text
 }
 
 afterEach(() => {
@@ -112,5 +122,34 @@ describe('useWrapColumnWidths — a column scrolled out of the horizontal window
 
     await waitFor(() => expect(result.current.widths.note).toBeUndefined())
     expect(result.current.widths.description).toBe(317 - CHROME)
+  })
+})
+
+describe('useWrapColumnWidths — the font rows are fitted to', () => {
+  it('follows the size the cells render at, so a smaller text size fits rows to fewer lines', async () => {
+    const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
+    const text = cellText(container, '14px')
+    const { result, rerender } = renderWidths(container)
+    await waitFor(() => expect(result.current.font).toContain('14px'))
+
+    text.style.fontSize = '12px'
+    rerender({ ids: COLUMN_IDS, textSize: 'xs' })
+
+    await waitFor(() => expect(result.current.font).toContain('12px'))
+    expect(result.current.widths.description).toBe(317 - CHROME)
+  })
+
+  it('keeps the last font while no cell is rendered', async () => {
+    const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
+    const text = cellText(container, '12px')
+    const { result } = renderWidths(container)
+    await waitFor(() => expect(result.current.font).toContain('12px'))
+
+    text.remove()
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+
+    expect(result.current.font).toContain('12px')
   })
 })

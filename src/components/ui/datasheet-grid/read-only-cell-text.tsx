@@ -28,7 +28,7 @@ export function ReadOnlyCellText({
         // and the row's own height is what limits how much shows. `break-words` keeps a single
         // unbroken word (a pasted URL, a long part number) inside the column instead of widening it.
         // `whitespace-pre-line` preserves the newlines the editing textarea lets people type.
-        'block w-full px-2 text-left text-sm break-words whitespace-pre-line max-sm:text-xs/5',
+        'grid-cell-text block w-full px-2 text-left break-words whitespace-pre-line',
         muted && 'text-muted-foreground',
         danger && 'text-destructive',
         emphasize && 'font-medium',
