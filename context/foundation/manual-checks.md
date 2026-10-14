@@ -4935,7 +4935,14 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 ## 2026-10-13 — percent-overrun-label — przekroczenie nigdy nie pokazuje „100%”
 
 - [ ] Kosztorys → pozycja, w której etapy dają minimalnie więcej niż Aktualizacja przedmiaru (np. 14,3 przy 14,25): „% wykonania” pokazuje czerwone „100,4%”, nie czerwone „100%”; „% wykonania (względem przedmiaru ofertowego)” tak samo.
-- [ ] Kosztorys → pozycja wykonana dokładnie do Aktualizacji przedmiaru: „100%” szare, bez części dziesiętnej.
+- [ ] Kosztorys → pozycja wykonana dokładnie do Aktualizacji przedmiaru: „100,0%” szare.
+
+## 2026-10-14 — percent-one-decimal — każdy procent z jednym miejscem po przecinku
+
+- [ ] Kosztorys → „% wykonania” i „% wykonania (względem przedmiaru ofertowego)” w siatce: każda wartość z jednym miejscem po przecinku („75,0%”, „33,3%”), kolumna jej nie ucina.
+- [ ] Kosztorys → pozycja minimalnie poniżej Aktualizacji przedmiaru (np. 14,249 przy 14,25): szare „99,9%”, nie „100,0%”.
+- [ ] Wydruk kosztorysu z kolumną „% wykonania”: procenty z jednym miejscem po przecinku, jak w siatce.
+- [ ] Podsumowanie kosztorysu (licznik postępu, legendy wykresów kołowych, rozbicie podwykonawców) i „Katalog prac”: procenty jak wcześniej, z jednym miejscem po przecinku.
 
 ## 2026-10-13 — worker-expense-paragon-decisions — „Przyjmij / Odrzuć” paragon po paragonie, „Połącz zgłoszenia” (EX-1053)
 

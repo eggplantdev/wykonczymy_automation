@@ -49,28 +49,19 @@ export const formatRate = (
 }
 
 // A fraction (0.746) as a percentage; `null` (no denominator — see rowDoneFraction) renders as a
-// dash. Two precisions: integer for the dense grid cells, one decimal for the headline figures where
-// the whole kosztorys hangs on a single number.
+// dash. One decimal everywhere (owner, 2026-10-14).
 //
-// An overrun never prints as „100%": the cell is red past the agreed scope, and a red „100%" reads
-// as a false alarm. A sliver over (14,30 against 14,25) shows one decimal, at least „100,1%".
-const percentFormat = (fraction: number | null, fractionDigits: number) => {
+// Only an exact 100% prints as „100,0%": the cell is red past the agreed scope, so a red „100,0%"
+// reads as a false alarm, and a grey one reads as done when a sliver is still owed. A sliver either
+// side shows as „100,1%" / „99,9%".
+export const formatPercent = (fraction: number | null) => {
   if (fraction == null) return '—'
   const percent = fraction * 100
-  const roundsToHundred = Number(percent.toFixed(fractionDigits)) === 100
-  const [shown, digits] =
-    percent > 100 && roundsToHundred
-      ? [Math.max(percent, 100.1), Math.max(fractionDigits, 1)]
-      : [percent, fractionDigits]
-  return `${shown.toLocaleString('pl-PL', {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  })}%`
+  const roundsToHundred = Number(percent.toFixed(1)) === 100
+  const shown =
+    roundsToHundred && percent > 100 ? 100.1 : roundsToHundred && percent < 100 ? 99.9 : percent
+  return `${shown.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
 }
-
-export const formatPercent = (fraction: number | null) => percentFormat(fraction, 0)
-
-export const formatPercentPrecise = (fraction: number | null) => percentFormat(fraction, 1)
 
 // A stored VAT/materiały rate (0,075) as the percent a rate FIELD shows and re-commits. Distinct from
 // `formatPercent` above, which renders a progress fraction as display text — this one has to survive

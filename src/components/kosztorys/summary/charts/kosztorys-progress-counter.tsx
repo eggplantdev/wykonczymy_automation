@@ -1,7 +1,7 @@
 'use client'
 
 import { InfoTooltip } from '@/components/ui/info-tooltip'
-import { formatPercentPrecise } from '@/lib/kosztorys/format'
+import { formatPercent } from '@/lib/kosztorys/format'
 
 type PropsT = {
   // Both figures are netto over the FULL dataset — the counter answers for the whole kosztorys, so the
@@ -23,9 +23,7 @@ export function KosztorysProgressCounter({ doneNet, plannedNet }: PropsT) {
   return (
     <div className="flex min-h-8 items-center gap-1.5">
       <span className="text-muted-foreground text-xs">Postęp prac</span>
-      <span className="text-muted-foreground text-xs tabular-nums">
-        {formatPercentPrecise(ratio)}
-      </span>
+      <span className="text-muted-foreground text-xs tabular-nums">{formatPercent(ratio)}</span>
       <span
         role="progressbar"
         aria-label="Wykonano"

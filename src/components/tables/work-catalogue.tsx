@@ -9,7 +9,7 @@ import {
 } from '@/lib/kosztorys/translation-column-keys'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
+import { formatPercent, formatRate } from '@/lib/kosztorys/format'
 import { namesFigure } from '@/lib/kosztorys/calc'
 import { clientShareCeilingLabel } from '@/lib/kosztorys/subcontractor-price-guard'
 import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
@@ -63,9 +63,7 @@ const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
     <span className="text-muted-foreground">—</span>
   ) : (
-    <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>
-      {formatPercentPrecise(value)}
-    </span>
+    <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
   )
 
 // The break is written, not guessed from a width: these four labels are long enough to wrap on

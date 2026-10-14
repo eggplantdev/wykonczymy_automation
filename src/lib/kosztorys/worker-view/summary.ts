@@ -1,5 +1,5 @@
 import { rowCurrentPlannedNetForView } from '@/lib/kosztorys/calc'
-import { formatPercentPrecise } from '@/lib/kosztorys/format'
+import { formatPercent } from '@/lib/kosztorys/format'
 import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import type {
@@ -122,6 +122,6 @@ function shareOf(
  * one-person etap is all his; an amount split with no executed work yet has no percent to show.
  */
 export function stageShareLabel(line: WorkerStageLineT): string {
-  if (!line.share) return formatPercentPrecise(1)
-  return line.share.percent == null ? '—' : formatPercentPrecise(line.share.percent / 100)
+  if (!line.share) return formatPercent(1)
+  return line.share.percent == null ? '—' : formatPercent(line.share.percent / 100)
 }

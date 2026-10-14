@@ -8,7 +8,7 @@ import {
   SummaryTable,
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
-import { formatNet, formatPercentPrecise } from '@/lib/kosztorys/format'
+import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import type { StageBreakdownT } from '@/lib/kosztorys/subcontractor-stage-breakdown'
 import { workerKey } from '@/lib/kosztorys/worker-key'
 
@@ -36,7 +36,7 @@ export function SubcontractorStageBreakdown({ breakdown }: { breakdown: StageBre
             <SummaryValueCell
               key={workerKey(workers[column].workerId)}
               muted={share === null}
-              note={share === null ? null : { text: formatPercentPrecise(share / row.wholeNet) }}
+              note={share === null ? null : { text: formatPercent(share / row.wholeNet) }}
             >
               {share === null ? '—' : formatNet(share)}
             </SummaryValueCell>

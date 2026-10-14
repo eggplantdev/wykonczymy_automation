@@ -5,7 +5,7 @@ import { Cell, Pie, PieChart } from 'recharts'
 import { AlertIcon } from '@/components/ui/alert-icon'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { PieSliceLegend, type PieSliceT } from '@/components/ui/pie-legend'
-import { formatPercentPrecise } from '@/lib/kosztorys/format'
+import { formatPercent } from '@/lib/kosztorys/format'
 
 // Shared skeleton for the footer pies: recharts donut + legend. `caption` is optional — the legend
 // names every slice and the surrounding tab supplies the context, so a pie only titles itself when it
@@ -72,7 +72,7 @@ export function SlicePie({
                   valueFormatter={(v) =>
                     formatValue
                       ? formatValue(Number(v))
-                      : formatPercentPrecise(total > 0 ? Number(v) / total : null)
+                      : formatPercent(total > 0 ? Number(v) / total : null)
                   }
                 />
               }
