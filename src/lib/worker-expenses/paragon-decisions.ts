@@ -1,6 +1,5 @@
 import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
-import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
-import { isReceiptOf } from '@/lib/worker-expenses/receipt-refusal'
+import { isReceiptOf, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 
 export type ParagonDecisionT = 'accepted' | 'rejected'
 

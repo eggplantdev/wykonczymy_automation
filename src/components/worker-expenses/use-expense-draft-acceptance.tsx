@@ -93,7 +93,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     }
   }
 
-  // The pages are downloaded for the dialog's previews; a booking links them by their media ids.
   async function open(draft: ExpenseDraftRowT) {
     setLoadingId(draft.id)
     // Needs only the id, so it runs alongside the page download.

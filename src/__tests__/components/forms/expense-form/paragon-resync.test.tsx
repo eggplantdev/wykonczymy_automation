@@ -118,6 +118,22 @@ describe('a paragon decision the server refused or never answered', () => {
     expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie zostało już rozpatrzone.', 'warning')
   })
 
+  it('says so when the re-read fails too, instead of leaving a list the server disowns', async () => {
+    vi.mocked(createBulkTransferAction).mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(fetchExpenseDraftDecisions).mockRejectedValue(new TypeError('Failed to fetch'))
+    const user = renderDraft()
+    await screen.findByDisplayValue('Paliwo')
+
+    await user.click(screen.getAllByRole('button', { name: 'Przyjmij' })[0])
+
+    await waitFor(() =>
+      expect(toastMessage).toHaveBeenCalledWith(
+        'Nie udało się odświeżyć paragonów — otwórz zgłoszenie ponownie',
+        'error',
+      ),
+    )
+  })
+
   it('leaves the list as it was when the business refusal needs no re-read', async () => {
     vi.mocked(createBulkTransferAction).mockResolvedValue({ success: false, error: 'Kasa w koszu' })
     const user = renderDraft()

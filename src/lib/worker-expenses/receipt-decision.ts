@@ -1,3 +1,4 @@
+import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT, SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
 
 // One paragon of a zgłoszenie: its pages, and which row of the draft's AI read it was filled from.
@@ -11,7 +12,11 @@ export function receiptDecision(
   receipts: Map<string, DraftReceiptT[]>,
   lineItems: { id: string }[],
   duplicateOfByItemId: Map<string, DuplicateOfT> = new Map(),
-): { receiptMediaIds: number[][]; receiptReadRows: number[][]; skippedReceipts: SkippedReceiptT[] } {
+): {
+  receiptMediaIds: number[][]
+  receiptReadRows: number[][]
+  skippedReceipts: SkippedReceiptT[]
+} {
   const keptIds = new Set(lineItems.map((item) => item.id))
   const booked = lineItems.map((item) => bookedReceipt(receipts.get(item.id) ?? []))
   return {
@@ -54,3 +59,18 @@ export function bookedReceipt(parts: DraftReceiptT[]): { mediaIds: number[]; rea
     readRows: parts.flatMap((part) => (part.readRow === undefined ? [] : [part.readRow])),
   }
 }
+
+// A merged row sits where its earliest paragon did.
+export function readRowOf(parts: DraftReceiptT[]): number | undefined {
+  const readRows = parts.flatMap((part) => part.readRow ?? [])
+  return readRows.length > 0 ? Math.min(...readRows) : undefined
+}
+
+// A paragon's refusal names it by its read row, or by its photos when the read never covered it.
+// A refusal naming no photos names nothing: `every` over an empty list would match every paragon.
+export const isReceiptOf = (receipt: RejectedReceiptT, part: DraftReceiptT) =>
+  receipt.readRow === null
+    ? part.readRow === undefined &&
+      receipt.mediaIds.length > 0 &&
+      receipt.mediaIds.every((id) => part.mediaIds.includes(id))
+    : receipt.readRow === part.readRow

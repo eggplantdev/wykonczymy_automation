@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import {
   bookedReceipt,
+  isReceiptOf,
   mergeParts,
+  readRowOf,
   receiptDecision,
   splitParts,
   type DraftReceiptT,
@@ -119,9 +122,10 @@ function merge({ receipts, order }: StateT, ids: string[], mergedId: string): St
 }
 
 function split({ receipts, order }: StateT, id: string): StateT {
-  const rows = (receipts.get(id) ?? []).map(
-    (part, index): [string, DraftReceiptT] => [`${id}.${index}`, part],
-  )
+  const rows = (receipts.get(id) ?? []).map((part, index): [string, DraftReceiptT] => [
+    `${id}.${index}`,
+    part,
+  ])
   const at = order.indexOf(id)
   return {
     receipts: splitParts(receipts, id, rows),
@@ -161,7 +165,8 @@ describe('receiptDecision across merge → split → remove', () => {
     ['a merge then a split', (s: StateT) => split(merge(s, ['r1', 'r3'], 'm'), 'm')],
     [
       'merge, split, remove one, merge again',
-      (s: StateT) => merge(remove(split(merge(s, ['r0', 'r2'], 'm'), 'm'), 'm.0'), ['m.1', 'r4'], 'n'),
+      (s: StateT) =>
+        merge(remove(split(merge(s, ['r0', 'r2'], 'm'), 'm'), 'm.0'), ['m.1', 'r4'], 'n'),
     ],
     [
       'a merge of a merge, then a removal',
@@ -188,5 +193,46 @@ describe('bookedReceipt', () => {
     const part = { mediaIds: [1], readRow: 0 }
 
     expect(bookedReceipt([part]).mediaIds).not.toBe(part.mediaIds)
+  })
+})
+
+describe('readRowOf', () => {
+  it('places a merged row at its earliest paragon', () => {
+    expect(
+      readRowOf([
+        { readRow: 5, mediaIds: [1] },
+        { readRow: 2, mediaIds: [2] },
+      ]),
+    ).toBe(2)
+  })
+
+  it('has no place for a row with no read', () => {
+    expect(readRowOf([{ readRow: undefined, mediaIds: [1] }])).toBeUndefined()
+    expect(readRowOf([])).toBeUndefined()
+  })
+})
+
+const refusal = (overrides: Partial<RejectedReceiptT>): RejectedReceiptT =>
+  ({ id: 1, readRow: null, mediaIds: [], ...overrides }) as RejectedReceiptT
+
+describe('isReceiptOf', () => {
+  it('matches a read paragon by its read row', () => {
+    expect(isReceiptOf(refusal({ readRow: 2 }), { readRow: 2, mediaIds: [7] })).toBe(true)
+    expect(isReceiptOf(refusal({ readRow: 2 }), { readRow: 3, mediaIds: [7] })).toBe(false)
+  })
+
+  it('matches an unread paragon by its photos', () => {
+    expect(isReceiptOf(refusal({ mediaIds: [7] }), { readRow: undefined, mediaIds: [7, 8] })).toBe(
+      true,
+    )
+    expect(isReceiptOf(refusal({ mediaIds: [9] }), { readRow: undefined, mediaIds: [7] })).toBe(
+      false,
+    )
+  })
+
+  it('never matches through a refusal that names no photos', () => {
+    expect(isReceiptOf(refusal({ mediaIds: [] }), { readRow: undefined, mediaIds: [7] })).toBe(
+      false,
+    )
   })
 })

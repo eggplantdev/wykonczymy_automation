@@ -24,8 +24,7 @@ import { fetchExpenseDraftDecisions } from '@/lib/queries/expense-draft-decision
 import { missingInvoiceConfirm } from '@/lib/transfers/missing-invoice-confirm'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
-import { isReceiptOf } from '@/lib/worker-expenses/receipt-refusal'
+import { isReceiptOf, receiptDecision } from '@/lib/worker-expenses/receipt-decision'
 import type { FailureT } from '@/types/action'
 
 type OptionsT = {
@@ -86,6 +85,7 @@ export function useParagonDecisions({
     const result = await settleAction(() => fetchExpenseDraftDecisions(prefill.expenseDraftId))
     if (!result.success) {
       if (result.messageKey === 'draftAlreadyDecided') close(failure)
+      else toastMessage('Nie udało się odświeżyć paragonów — otwórz zgłoszenie ponownie', 'error')
       return
     }
     if (result.data.status !== 'pending') {
@@ -238,5 +238,5 @@ export function useParagonDecisions({
     }),
   }
 
-  return { draftReceipts, receiptGrouping, isDeciding, rejectRows }
+  return { draftReceipts, receiptGrouping, rejectRows }
 }

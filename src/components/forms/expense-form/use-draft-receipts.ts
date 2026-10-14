@@ -14,10 +14,10 @@ import {
   type ParagonOutcomesT,
 } from '@/lib/worker-expenses/paragon-decisions'
 import { paragonProgress } from '@/lib/worker-expenses/paragon-progress'
-import { readRowOf } from '@/lib/worker-expenses/read-row-of'
 import {
   bookedReceipt,
   mergeParts,
+  readRowOf,
   splitParts,
   type DraftReceiptT,
 } from '@/lib/worker-expenses/receipt-decision'
