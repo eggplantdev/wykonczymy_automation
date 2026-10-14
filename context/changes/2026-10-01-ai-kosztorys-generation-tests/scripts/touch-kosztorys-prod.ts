@@ -1,4 +1,4 @@
-// After `load-draft-prod.sh` writes AI przedmiar straight into the DB, nothing has expired the editor's
+// After `load-draft-sql-prod.ts` writes AI przedmiar straight into the DB, nothing has expired the editor's
 // cache. Saving the first sekcja under its own name goes through the app and bumps the kosztorys tree
 // tags; the total printed after it is read back from production, as the check that the load landed.
 //   TOKEN_FILE=… INVESTMENT=207 \
