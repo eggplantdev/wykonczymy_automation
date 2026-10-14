@@ -323,14 +323,14 @@ Run once after the final phase, **only when the user asks**:
 
 #### Automated
 
-- [ ] 1.1 Wrap-widths spec passes
+- [x] 1.1 Wrap-widths spec passes
 
 ### Phase 2: The control in the view menu
 
 #### Automated
 
-- [ ] 2.1 View-menu spec passes
-- [ ] 2.2 Wrap-widths spec still passes
+- [x] 2.1 View-menu spec passes
+- [x] 2.2 Wrap-widths spec still passes
 
 ### Phase 3: Manual checks
 

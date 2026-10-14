@@ -33,7 +33,7 @@ function renderWidths(container: HTMLElement, columnIds: readonly string[] = COL
     ({ ids, textSize = 'sm' }: { ids: readonly string[]; textSize?: GridTextSizeT }) =>
       useWrapColumnWidths({ current: container }, ids, textSize),
     {
-      initialProps: { ids: columnIds },
+      initialProps: { ids: columnIds } as { ids: readonly string[]; textSize?: GridTextSizeT },
     },
   )
 }
@@ -144,7 +144,7 @@ describe('useWrapColumnWidths — the font rows are fitted to', () => {
     const container = renderGrid([headerCell(wrapColumnClass('description'), 317)])
     cellText(container, '14px')
     const { result, rerender } = renderWidths(container)
-    await waitFor(() => expect(result.current.font).toContain('14px'))
+    await waitFor(() => expect(result.current.widths.description).toBe(317 - CHROME))
     const before = result.current
 
     rerender({ ids: COLUMN_IDS, textSize: 'sm' })
