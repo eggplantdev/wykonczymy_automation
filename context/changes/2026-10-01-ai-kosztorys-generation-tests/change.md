@@ -188,6 +188,9 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
      to its Komentarz do pracy (`set` / `append`, by katalog id plus the opis start as a guard). Only
      a rule that names no single praca, or a praca outside the katalog, goes to the Manual (`set` /
      `create` / `delete`, by topic).
+   - A Powód zmiany that only explains a deliberate understatement („zaniżamy, liczymy
+     powykonawczo”) is not lifted: the AI quantity was right, and the owner wrote the reason so the
+     lowered figure isn't read as an AI error (gładzie and akrylowanie on #203).
    - `scripts/apply-knowledge-prod.ts` with `DRY=1` prints „było → będzie”, then writes after the
      user's go through the app's own actions. An edit already in place is skipped, so a second
      `DRY=1` printing „prod zgodny z plikiem” is the check.

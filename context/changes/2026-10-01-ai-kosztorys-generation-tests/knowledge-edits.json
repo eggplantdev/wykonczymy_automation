@@ -112,7 +112,7 @@
   {
     "manual": "Kontenery i big bagi",
     "op": "set",
-    "text": "Przy 4 big bagach i więcej na inwestycję zamieniamy je na kontener - opłaca się bardziej.\n\nCena za kontener jest dynamiczna i zależy od ilości czy wysokości piętra.\nPrzyjmujemy widełki 1500 (parter, pierwsze piętro) i od 1800 w górę przy rynku wtórnym i wyższych piętrach.\n\nRynek wtórny z wyburzeniami zakładamy zawsze z kontenerem chyba, że kontener na przykład zapewnia inwestor.\n\n2 kontenery indywidualnie, przy większym remoncie i większej ilości wyburzeń.\n\nPrzykładowe wartości:\nRynek wtórny bez wyburzeń - 2 big bagi total.\nRemont łazienki - 2 big bagi total."
+    "text": "Przy 4 big bagach i więcej na inwestycję zamieniamy je na kontener - opłaca się bardziej.\n\nCena za kontener jest dynamiczna i zależy od ilości czy wysokości piętra.\nPrzyjmujemy widełki 1500 (parter, pierwsze piętro) i od 1800 w górę przy rynku wtórnym i wyższych piętrach.\n\nRynek wtórny z wyburzeniami zakładamy zawsze z kontenerem chyba, że kontener na przykład zapewnia inwestor.\n\n2 kontenery indywidualnie, przy większym remoncie i większej ilości wyburzeń.\n\nPrzykładowe wartości:\nRynek wtórny bez wyburzeń - 2 big bagi total.\nRemont łazienki - 2 big bagi total.\n\nSkuwanie płytek liczymy jak wyburzenia — przy dużej ilości glazury do skucia dajemy kontener."
   },
   {
     "manual": "Schody i balustrady — czego nie robimy",
@@ -123,5 +123,57 @@
     "manual": "Łazienki i WC — osobna sekcja",
     "op": "create",
     "text": "— Każda łazienka i każde WC to osobna sekcja: kopia sekcji „Łazienka”, nazwana po pomieszczeniu („Łazienka parter”, „Łazienka piętro”, „WC parter”, „Łazienka dzieci”).\n— Ilości liczymy osobno dla każdej łazienki — nigdy jedna pozycja z sumą dwóch łazienek.\n— Łazienki i WC nigdy nie łączymy w jednej sekcji.\n— Pozostałe sekcje (podłogi, ściany i sufity, kuchnia, elektryka…) są jedne na cały kosztorys."
+  },
+  {
+    "catalogue": 63,
+    "description": "Wykonanie/przesunięcie punktów elektrycznych",
+    "op": "append",
+    "text": "Sprawdź legendę rysunku — nowe włączniki bywają oznaczone osobnym kolorem; je też liczymy."
+  },
+  {
+    "catalogue": 164,
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica",
+    "op": "set",
+    "text": "Ilość zawsze taka sama jak w „Montaż baterii prysznicowej/wannowej podtynkowej” — każda bateria podtynkowa ma montaż w ścianie i biały montaż. Bateria wanno-prysznicowa (jedna bateria na wannę i prysznic) to 1 kpl, nie 2."
+  },
+  {
+    "catalogue": 260,
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "op": "set",
+    "text": "Z projektu: każdy narożnik zewnętrzny (np. pion) — jego wysokość × 2; zabudowy: skrzynka baterii podtynkowej, półka z LED, narożniki przy półeczkach w zabudowie, krawędzie nad stelażem WC (geberit). Przy wątpliwościach nie zawyżaj — oznacz do weryfikacji."
+  },
+  {
+    "catalogue": 308,
+    "description": "Złożenie i montaż szafki podumywalkowej",
+    "op": "set",
+    "text": "Zwykle montuje stolarz — nie dodajemy."
+  },
+  {
+    "catalogue": 282,
+    "description": "Wiercenie otworów w płytkach",
+    "op": "append",
+    "text": "Minimum 15 otworów na łazienkę, jeśli płytki są na wszystkich ścianach."
+  },
+  {
+    "catalogue": 235,
+    "description": "Wykonanie zabudowy rur z gk",
+    "op": "set",
+    "text": "Na rynku deweloperskim piony są już zabudowane — nie dodajemy."
+  },
+  {
+    "manual": "Nie dopisuj pracy, którą pokrywa praca z katalogu",
+    "op": "create",
+    "text": "— Zanim dopiszesz pracę, sprawdź, czy nie pokrywa jej praca z katalogu. Dopisane → co liczymy zamiast:\n  — „Przedścianka z GK płyta pojedyncza + folia paroizolacyjna” w łazience (np. pod umywalkę) → „Wzmocnienie płytą OSB pod szafki kuchenne min. m2”;\n  — „Wykonanie przedścianki przy wannie - stworzenie półki pod baterię wannową” → „Wykonanie przedścianki pod prysznicem z 1 półką” / „z 2 półkami” / „z 3 półkami”;\n  — „Wykonanie wnęk w zabudowie GK” → „Wykonanie przedścianki pod prysznicem z 1 półką” / „z 2 półkami” / „z 3 półkami” (sekcja łazienki);\n  — „Wykonanie wnęk na głośniki w suficie GK” → nic, wnęki są w cenie „Sufit podwieszany montaż stelaża z płytami”.\n— „Przedścianka z GK płyta pojedyncza + folia paroizolacyjna” poza łazienką — na wstępnej wycenie nie liczymy."
+  },
+  {
+    "manual": "Czego nie wyceniamy",
+    "op": "create",
+    "text": "— Sprzątania po remoncie nie wyceniamy — każda ekipa zostawia mieszkanie w miarę posprzątane."
+  },
+  {
+    "catalogue": 298,
+    "description": "Wykonanie przedścianki przy wannie - stworzenie półki pod baterię wannową",
+    "op": "set",
+    "text": "Jeśli w łazience jest przedścianka z półkami („Wykonanie przedścianki pod prysznicem z 1 półką” / „z 2 półkami” / „z 3 półkami”), półka pod baterię jest w niej — nie liczymy jej osobno."
   }
 ]
