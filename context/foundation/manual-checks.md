@@ -4975,6 +4975,17 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Historia bez wybranego sortowania → przyjęte, odrzucone i oczekujące wymieszane, najnowsza „Data wysłania” na górze, strzałka przy tej kolumnie; kliknięcie nagłówka odwraca kolejność.
 - [ ] Zgłoszenie z jednym paragonem przyjętym, jednym odrzuconym i jednym czekającym → w historii wiersz przyjętego paragonu pokazuje swój status, odrzuconego swój, a licznik tylko wiersz oczekujący; w kolejce to samo zgłoszenie pokazuje licznik „Przyjęte 1 · Odrzucone 1 · Do sprawdzenia 1”.
 
+## 2026-10-14 — expense-duplicate-finder — „Szukaj duplikatów” na liście transakcji (EX-1026)
+
+- [ ] Zgłoszenie czekające na sprawdzenie, w którym ten sam paragon jest dwa razy (dwa zdjęcia jednego paragonu) → „Zweryfikuj”: oba paragony pokazują „Możliwe duplikaty” wskazujące na siebie nawzajem.
+- [ ] Zgłoszenie z jednym paragonem przyjętym i jego bliźniakiem jeszcze czekającym → czekający pokazuje przyjętą transakcję jako możliwy duplikat; przyjęty nie podpowiada duplikatu samego siebie.
+- [ ] `/` jako OWNER → „Szukaj duplikatów” → zakres ostatnich 3 miesięcy → „Analizuj”: mocne grupy są rozwinięte, „Słabe (N)” zwinięte; po rozwinięciu jeden blok na kwotę.
+- [ ] Najpierw filtr listy na jedną inwestycję, potem „Analizuj”: każda grupa ma transakcję tej inwestycji, a jej bliźniak może być z innej.
+- [ ] Klik w transakcję w grupie: w nowej karcie lista transakcji tej inwestycji zawężona do tej jednej; okno w pierwszej karcie zachowuje wyniki.
+- [ ] Klik w zgłoszenie w grupie: w nowej karcie „Zgłoszenia wydatków” z otwartym oknem „Zweryfikuj” tego zgłoszenia; odświeżenie strony nie otwiera go ponownie.
+- [ ] `/zgloszenia-wydatkow?zgloszenie=<już rozpatrzone>`: toast „To zgłoszenie jest już rozpatrzone”, żadne okno się nie otwiera.
+- [ ] Zakres „Wszystko” → „Analizuj”: wyniki w kilka sekund, bez przekroczenia czasu.
+
 ## 2026-10-14 — nav-labels
 
 - [ ] Menu boczne (zalogowany jako manager): pozycje „Zgłoszenia prac” i „Zapytania z formularzy”
