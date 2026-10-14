@@ -521,6 +521,64 @@ second.
 
 Not evaluated: there is no owner kosztorys for this client yet.
 
+### 2026-10-14 — #190 round 2: the first later round (pilot of the runbook)
+
+Input: the architect's executive projekt (18 sheets, A3; the plans are 1:50 and the łazienka 1:25),
+a client example image of the blat, and a new mail. Steps 1–2 of the runbook (`round-case-prod.ts`,
+`dump-knowledge-prod.ts`) ran without trouble. Problems with the AI kosztorys found while working,
+written down as they come up:
+
+- **An executive projekt is drawings only, with no text in it.** Every dimension, symbol and legend
+  has to be read off the rendered sheets, room by room. That makes it the slowest input a round
+  gets, and the least exact: plan dimensions are reliable, while counts are not (see below).
+- **Round 1's main assumptions were wrong, and the projekt overturns them:**
+  - the new walls are built of cegła silikatowa (12 cm = 10 + 2 × 1 cm tynk, 10 = 8 + tynk), not GK;
+  - both new openings are drawn „otwór bez nadproża”;
+  - the łazienka is gres 120×120 on the floor and most walls, plus 60×120 on one wall, not „standard”;
+  - only part of the door wall is tiled.
+    So a round can move whole groups of pozycje, not single quantities: the GK → murowanie switch alone
+    touches the GK walls, taśmy, tynkowanie, gładź and narożniki.
+- **Round 1's Komentarz AI still states the old geometry, and it is frozen by design** („łazienka
+  powiększona o ok. 0,5 m…, 1,61 × 3,24”). The owner reads it next to the new block, so each „Nowe
+  informacje” has to say plainly which number the projekt replaces. The two texts contradict each other on
+  purpose, and the newer one wins.
+- **The catalogue has no pozycja for cegła silikatowa.** The nearest is „Murowanie ścian z bloczków
+  komórkowych 10 / 7,5 cm”. Mapping onto it is a „Założono” for the owner to check, not a fact.
+- **Symbol counts are approximate.** Gniazda, lampy and włączniki come from counting plan symbols at 150 dpi.
+  A double symbol and a single one are easy to confuse. Counts go into „Założono” with the room
+  breakdown, so the owner can check them against the sheet.
+- **The round-1 totals in „Uwagi AI” go stale even without new information.** Since round 1 the owner
+  has changed prices in the kosztorys: jednostka klimatyzacji went from 0 to 2 500, listwy podtynkowe
+  got 100 zł/mb, sprzątanie 1 000. So round-1 AI przedmiar × today's prices is 103 030 zł, not the
+  90 130 zł Uwagi AI say. A round has to recompute every figure in Uwagi AI from `kosztorys.txt`,
+  and has to state both totals, before and after the round, at today's prices.
+- **A round has to borrow a pozycja across sekcje.** Gres 120×120 on the ściana TV has a catalogue
+  pozycja only in „Łazienka”. The round adds it to „Ściany i sufity” as a new pozycja with the
+  łazienka price. That is a „Dopisane z katalogu” entry, not a fact the projekt states.
+- **A round can open double counts that round 1 hid.** Once the shower przedścianka is a murowana
+  ścianka in the projekt, the murowanie m² and the kpl „Wykonanie przedścianki pod prysznicem z 2
+  półkami” may cover the same work. The round leaves both and asks in „Nie wiadomo” and in Uwagi AI.
+- **The joinery boundary moves with the projekt.** It draws a szafka nad geberitem that round 1 did
+  not know about. The client says joinery is a separate order. A round should not quietly add its
+  montaż, so it asks instead.
+- **The projekt contradicts the brief on material, and the round does not switch it.** Next to the
+  łazienka door the projekt notes the join between „gres i drewno”, while the brief and round 1 say
+  winyl jodełka. Moving 57 m² to parkiet on one word is too weak a source, so the round asks in
+  Uwagi AI and gives the price difference.
+- **Draft size: 26 pozycje changed, 1 of them new.** 18 of the 26 were „Zaakceptowana” by the owner,
+  so after loading the owner has 18 reviewed pozycje to re-check. This is the flag doing its job, and it is
+  also the measure of what a projekt round costs the owner.
+- **In a round, the scripts' „expected AI przedmiar” is not the kosztorys total.** `fill-case-prod.ts`
+  and `load-draft-sql-prod.ts` both print 23 700,05 zł. That is Σ qty × cena over the 26 draft rows only,
+  because in round 1 the draft was the whole kosztorys and the two meant the same thing. The check
+  that counts in a round is the total `touch-kosztorys-prod.ts` reads back after loading. It has to
+  equal the „po rundzie” total in Uwagi AI over every sekcja, the option included: 107 663,41 zł.
+  Production read back exactly that after the load: 116 pozycje, 26 flagged, 26 with one „Runda 2” block.
+- **„Nowe informacje” rendered raw, unlike Komentarz AI next to it** (owner, first look at #190). The
+  cell printed the stored text as-is, while Komentarz AI shows a plain label with a bold answer. The
+  two columns now share one renderer, so they look the same and can't drift apart. The „Do ponownego
+  sprawdzenia” flag above Status was bare amber text, and is now a small badge in the app's `pending` tone.
+
 ## Reliability by quantity class (case 1, after measuring; checked against the owner 2026-10-05)
 
 | Class                          | Example                                | Best source                                           | Observed spread v1 → v2                                                            |
