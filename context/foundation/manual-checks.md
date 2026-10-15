@@ -6133,3 +6133,21 @@ Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marsz
       pobrać zdjęć — zgłoszenie można tylko odrzucić.”, „Zapisz” wyłączone.
 - [ ] „Szukaj duplikatów” na liście transakcji: tabela działa jak dotąd (kolumny w nowej kolejności,
       linki do dokumentów, podgląd zdjęcia).
+
+## 2026-10-15 — staging-sweep-review-2 — druk z PDF, scalanie paragonów, ustawienia widoków kosztorysu
+
+- [ ] Podgląd z kilkoma plikami, wśród nich PDF (np. faktura + zdjęcie) → „Drukuj”: okno wydruku
+      pokazuje wszystkie strony, z PDF-em włącznie, i otwiera się systemowe okno drukowania; po wydruku
+      lub anulowaniu okno się zamyka.
+- [ ] Odczytane zgłoszenie, którego zdjęć nie udało się pobrać → „Zweryfikuj”: „Połącz” i „Rozłącz”
+      wyłączone; plik dodany ręcznie w „FV” zostaje przy paragonie.
+- [ ] Zgłoszenie z możliwym duplikatem → „OK, to nie duplikat”, potem „Połącz” ten paragon z innym
+      (i „Rozłącz”): schowana podpowiedź nie wraca.
+- [ ] Zgłoszenie, w którym dwa paragony pasują do siebie nawzajem → „Połącz” je: w scalonej pozycji
+      nie ma podpowiedzi „Pozycja N tego zgłoszenia”.
+- [ ] Kosztorys → ustawienia „Widok dla klienta” i „Widok dla pracownika”: ukryj jedną kolumnę, pokaż
+      inną, zapisz, zamknij i otwórz ponownie — oba wybory zostają, podgląd pokazuje je od razu.
+- [ ] Bez zmiany zachowania (przeniesione pliki): podgląd faktury z tabeli przelewów i z galerii
+      inwestycji otwiera się i przewija jak dotąd; „Nowy wydatek” z kilkoma pozycjami działa jak dotąd;
+      pickery inwestycji w „Wpłata” / „Wydatek” / edycji przelewu dalej pokazują tylko Aktywne
+      i Planowane.
