@@ -25,3 +25,15 @@ export const PICKABLE_INVESTMENT_STATUSES = [
   'rejected',
 ] as const satisfies readonly InvestmentStatusT[]
 
+// Owner rulings: Planowana stays (money is booked on planned work, 2026-10-15); Wycena is out pending
+// the owner's decision (EX-1066). A status set, not the ref's `active` flag — widening that flag
+// would leak Planowana into every other „aktywne” picker and count. The server still refuses only
+// Zakończona; this only decides what a booking form offers.
+export const BOOKING_PICKER_STATUSES = [
+  'active',
+  'planowana',
+] as const satisfies readonly InvestmentStatusT[]
+
+export function isOfferedForBooking(investment: { status: string }): boolean {
+  return (BOOKING_PICKER_STATUSES as readonly string[]).includes(investment.status)
+}

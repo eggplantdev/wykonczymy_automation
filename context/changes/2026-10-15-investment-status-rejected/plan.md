@@ -365,8 +365,8 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Local migration applies against the docker DB
-- [x] 1.2 Types regenerated
+- [x] 1.1 Local migration applies against the docker DB — 06af1643f
+- [x] 1.2 Types regenerated — 06af1643f
 - [ ] 1.3 Status / lock / hook specs pass
 - [ ] 1.4 DB specs pass against 5435
 

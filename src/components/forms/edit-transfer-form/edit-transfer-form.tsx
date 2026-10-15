@@ -28,6 +28,7 @@ import { useInvoiceRemoval } from '@/hooks/use-invoice-removal'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
 import type { TransferRowT } from '@/types/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import { isOfferedForBooking } from '@/lib/constants/investment-status'
 import { updateTransferAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/lib/utils/toast'
 import { planeFillIn, UNANSWERED_PAYMENT_METHOD } from '@/lib/transfers/plane-fill-in'
@@ -172,6 +173,7 @@ export function EditTransferForm({
               form={form}
               variant="investment"
               items={referenceData.investments}
+              fixedFilter={isOfferedForBooking}
             />
           )}
 
