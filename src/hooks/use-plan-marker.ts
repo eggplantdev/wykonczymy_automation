@@ -6,7 +6,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { MediaFileT, PreviewFileT } from '@/types/media'
 
 /**
- * The „Oznacz jako rzut" affordance for an already-stored gallery.
+ * The „Oznacz do analizy AI" affordance for an already-stored gallery.
  *
  * The marked ids are held locally on top of `files` because the server row does not refresh until
  * the revalidation lands — without it the button would keep offering „Oznacz" on a file that is
@@ -39,13 +39,13 @@ export function usePlanMarker(files: MediaFileT[]) {
     }
 
     setMarkedIds((current) => [...current, id])
-    toastMessage('Plik oznaczony jako rzut', 'success')
+    toastMessage('Plik oznaczony do analizy AI', 'success')
   }
 
   return {
     isMarked,
     onMark: (file: PreviewFileT) => void mark(file),
-    label: 'Oznacz jako rzut',
-    markedLabel: 'Oznaczony jako rzut',
+    label: 'Oznacz do analizy AI',
+    markedLabel: 'Oznaczony do analizy AI',
   }
 }
