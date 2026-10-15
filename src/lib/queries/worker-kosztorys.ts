@@ -1,5 +1,5 @@
 import 'server-only'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -109,11 +109,9 @@ async function buildWorkerKosztorysData(
 }
 
 // The guard cannot live inside: `requireAuth` reads cookies, which throws inside unstable_cache.
-const cachedWorkerKosztorysData = unstable_cache(
-  buildWorkerKosztorysData,
-  ['worker-kosztorys-data-v7'],
-  { tags: WORKER_KOSZTORYS_TAGS },
-)
+const cachedWorkerKosztorysData = cached(buildWorkerKosztorysData, ['worker-kosztorys-data'], {
+  tags: WORKER_KOSZTORYS_TAGS,
+})
 
 async function withWorkerSettings(
   investmentId: number,

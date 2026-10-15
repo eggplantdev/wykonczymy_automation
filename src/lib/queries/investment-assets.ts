@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -12,7 +12,7 @@ import type { MediaFileT, MediaKindT } from '@/types/media'
  * that dataset is company-wide and every page pays for it, while this is one row's gallery.
  */
 export async function fetchInvestmentAssets(investmentId: number): Promise<MediaFileT[]> {
-  return unstable_cache(
+  return cached(
     async () => {
       const elapsed = perfStart()
       const db = await getDb(await getPayload({ config }))

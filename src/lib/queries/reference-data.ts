@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-postgres'
@@ -29,7 +29,7 @@ import type {
 
 // `fetchReferenceData` also returns every user and every investment with their contact details —
 // company-wide PII that must not be one identifier away on the unauthenticated share path.
-export const fetchExpenseCategories = unstable_cache(
+export const fetchExpenseCategories = cached(
   async (): Promise<ExpenseCategoryRefT[]> => {
     const payload = await getPayload({ config })
     const db = await getDb(payload)
@@ -55,7 +55,7 @@ function splitTrashed<T>(rows: { isTrashed: boolean; ref: T }[]): [live: T[], tr
 // table and the nav each call this, so it ran 3× per render (EX-597). Safe only because nothing reads
 // reference data before a mutation in the same request.
 export const fetchReferenceData = cache(
-  unstable_cache(
+  cached(
     async (): Promise<ReferenceDataBaseT> => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })
@@ -184,10 +184,7 @@ export const fetchReferenceData = cache(
         expenseCategories,
       }
     },
-    // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
-    // the old payload once, and one missing a field the reader now dereferences crashes the page or
-    // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v11'],
+    ['reference-data'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,
@@ -209,7 +206,7 @@ type InvestmentNotesMapT = Record<number, InvestmentNotesT>
 // Payload, whose afterChange hook bumps `collection:investments`. Server-only by design: see
 // `InvestmentWithNotesT`.
 export const fetchInvestmentNotes = cache(
-  unstable_cache(
+  cached(
     async (): Promise<InvestmentNotesMapT> => {
       const payload = await getPayload({ config })
       const db = await getDb(payload)
@@ -224,7 +221,7 @@ export const fetchInvestmentNotes = cache(
         ]),
       )
     },
-    ['investment-notes-v1'],
+    ['investment-notes'],
     { tags: [CACHE_TAGS.investments] },
   ),
 )

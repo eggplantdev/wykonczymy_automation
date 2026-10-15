@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -25,7 +25,7 @@ export async function findTransfersRaw({
   limit,
   sort = DEFAULT_TRANSFER_SORT,
 }: FindTransfersOptsT) {
-  return unstable_cache(
+  return cached(
     async () => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })
@@ -102,7 +102,7 @@ async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
   if (ids.length === 0) return []
   // Sort so the cache key is stable regardless of input order.
   const sortedIds = [...ids].sort((a, b) => a - b)
-  return unstable_cache(
+  return cached(
     async () => {
       const payload = await getPayload({ config })
       const result = await payload.find({

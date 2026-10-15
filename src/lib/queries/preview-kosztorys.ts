@@ -1,6 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -92,9 +92,9 @@ async function buildPreviewKosztorysEditorData(
 // client's link are the same bytes, not two independently-cached derivations that could disagree.
 // The guard cannot live inside here: `requireAuth` reads cookies, and a dynamic API inside an
 // unstable_cache callback throws.
-const cachedPreviewKosztorysEditorData = unstable_cache(
+const cachedPreviewKosztorysEditorData = cached(
   buildPreviewKosztorysEditorData,
-  ['preview-kosztorys-editor-data-v5'],
+  ['preview-kosztorys-editor-data'],
   { tags: PREVIEW_KOSZTORYS_TAGS },
 )
 

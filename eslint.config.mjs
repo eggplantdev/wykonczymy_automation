@@ -20,6 +20,14 @@ const NO_RAW_ENV = {
     'Read env through the validated env layer (env/index.ts / env/server.ts), never raw process.env.',
 }
 
+// The Data Cache outlives a deploy; `cached()` keys every entry on the deployment so new code never
+// reads a payload the previous build shaped (EX-1063). A direct `unstable_cache` reopens that hole.
+const NO_RAW_UNSTABLE_CACHE = {
+  name: 'next/cache',
+  importNames: ['unstable_cache'],
+  message: 'Use cached() from @/lib/cache/cached — it keys the entry on the deployment.',
+}
+
 // A server action rejects client-side when its request never arrives (offline, a deploy invalidating
 // the action id) — `protectedAction` only catches handler throws. Matched by the `…Action` naming
 // convention, so a `'use server'` export named otherwise (`getPresetOptions`) slips through. Any call
@@ -95,6 +103,13 @@ export default ts.config(
     },
   },
   {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lib/cache/cached.ts', 'src/__tests__/**'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: [NO_RAW_UNSTABLE_CACHE] }],
+    },
+  },
+  {
     // Payload hooks run in a Route Handler context where `updateTag` throws. `lib/cache/revalidate.ts`
     // calls `updateTag`, so a hook must never import it — use `revalidateTag(tag, 'default')` directly.
     // A bad import here builds and deploys green, then throws only on a live transfer create/delete.
@@ -104,6 +119,7 @@ export default ts.config(
         'error',
         {
           paths: [
+            NO_RAW_UNSTABLE_CACHE,
             {
               name: '@/lib/cache/revalidate',
               message:

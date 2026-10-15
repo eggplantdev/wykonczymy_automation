@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -19,12 +19,12 @@ import type {
 // The whole cennik, in one argument-free cache entry — the katalog is global and a few hundred rows,
 // so there is nothing to paginate or scope. Same shape as `getPresets`; invalidated by the
 // collection's own hooks and by every action that writes through the `workCatalogue` tag.
-export const getWorkCatalogue = unstable_cache(
+export const getWorkCatalogue = cached(
   async (): Promise<WorkCatalogueItemT[]> => {
     const payload = await getPayload({ config })
     return listCatalogueItems(await getDb(payload))
   },
-  ['work-catalogue-v3'],
+  ['work-catalogue'],
   { tags: [CACHE_TAGS.workCatalogue] },
 )
 

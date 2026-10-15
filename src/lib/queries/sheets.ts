@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -20,7 +20,7 @@ export type SheetRowT = {
 
 // All kosztoryses + their linked investment (depth: 1). Sorted newest first
 // so freshly-added unlinked rows surface to the top.
-export const fetchAllSheets = unstable_cache(
+export const fetchAllSheets = cached(
   async (): Promise<SheetRowT[]> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })

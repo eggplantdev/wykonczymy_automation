@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -17,7 +17,7 @@ import {
 // cross-investment library. Invalidated through the `presets` tag by every szablon lifecycle action
 // and by `investmentAction`'s tail on a szablon edit. Deliberately not tagged with the kosztorys
 // tables: those move on every investment's edit anywhere (EX-849).
-export const getPresets = unstable_cache(
+export const getPresets = cached(
   async (): Promise<PresetMetaT[]> => {
     const payload = await getPayload({ config })
     const db = await getDb(payload)
@@ -29,7 +29,7 @@ export const getPresets = unstable_cache(
 
 // Section-granular view of the same library, for the "append a section from a szablon" picker.
 // Shares the `presets` tag with getPresets, so one invalidation refreshes both.
-export const getPresetSections = unstable_cache(
+export const getPresetSections = cached(
   async (): Promise<PresetSectionMetaT[]> => {
     const payload = await getPayload({ config })
     const db = await getDb(payload)

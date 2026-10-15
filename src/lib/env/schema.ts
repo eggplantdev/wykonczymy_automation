@@ -124,6 +124,7 @@ export const serverSchema = z
     OPENROUTER_APP_NAME: z.string().optional(),
     // Vercel-injected at runtime; absent locally (where NODE_ENV is the right signal).
     VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
+    VERCEL_DEPLOYMENT_ID: z.string().min(1).optional(),
     CRON_SECRET: z.string().min(1),
     // Web Push. A subscription is bound to the public key it was made with, and the push service
     // refuses a push signed by any other pair — so with the pair on Vercel Production only, the
@@ -147,6 +148,19 @@ export const serverSchema = z
         message:
           'GOOGLE_SERVICE_ACCOUNT_WRITE_JSON is required in production — without it Google Sheets ' +
           'sync fails silently on every transfer. Set the Editor service-account JSON on Vercel Production.',
+      })
+    }
+
+    // Without it `cached()` falls back to a per-process key, so no two lambdas share a cache entry —
+    // a silent slowdown rather than an error, hence fail the boot on every deployment. Not on
+    // `development`: that is what `vercel env pull` writes into a laptop's `.env.local`.
+    const isDeployment = env.VERCEL_ENV === 'production' || env.VERCEL_ENV === 'preview'
+    if (isDeployment && env.VERCEL_DEPLOYMENT_ID === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['VERCEL_DEPLOYMENT_ID'],
+        message:
+          'VERCEL_DEPLOYMENT_ID is required on Vercel — enable "Automatically expose System Environment Variables".',
       })
     }
 

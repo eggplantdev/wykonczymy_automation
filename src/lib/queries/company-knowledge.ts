@@ -1,6 +1,6 @@
 'use server'
 
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { protectedAction } from '@/lib/actions/run-action'
@@ -10,7 +10,7 @@ import { getDb } from '@/lib/db/get-db'
 import type { ActionResultT } from '@/types/action'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 
-const getCompanyKnowledge = unstable_cache(
+const getCompanyKnowledge = cached(
   async (): Promise<CompanyKnowledgeEntryT[]> => {
     const payload = await getPayload({ config })
     return listCompanyKnowledge(await getDb(payload))

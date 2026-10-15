@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -83,7 +83,7 @@ export async function getInvestmentName(id: string): Promise<string | null> {
 }
 
 export async function getInvestment(id: string) {
-  return unstable_cache(
+  return cached(
     async () => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })
