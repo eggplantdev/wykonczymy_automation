@@ -43,8 +43,8 @@ export function KosztorysEditorV2(props: PropsT) {
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
 
-  function reseed(since?: string) {
-    triggerRestore(since)
+  function reseed(since?: string, ownsRefresh = false) {
+    triggerRestore(since, ownsRefresh)
     // Reseeding the whole grid via a body remount — drop the stack whose commands close over
     // the outgoing body's state.
     undoRedo.reset()
@@ -54,9 +54,10 @@ export function KosztorysEditorV2(props: PropsT) {
 
   // Runs in the action's continuation, by which point the action's own render may already have
   // committed — so the latch is armed from `treeToken` as this closure saw it, the tree from before
-  // the action.
-  const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
-    reseed(treeToken)
+  // the action. A stale refusal arms from the seed instead, like `handleStaleTree`: the tree on screen
+  // may already hold the other session's change, and waiting for it to move again would never end.
+  const handleTreeReplaced: OnTreeReplacedT = ({ refetch = false, stale = false } = {}) => {
+    reseed(stale ? undefined : treeToken, refetch)
     if (refetch) whenOnline(() => startRefresh(() => router.refresh()))
   }
 

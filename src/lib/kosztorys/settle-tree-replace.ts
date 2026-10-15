@@ -10,14 +10,15 @@ type SucceededT<R> = Extract<R, { success: true }>
  * taken before it. `null` means refused and already toasted — the dialog stays open. Otherwise the
  * caller closes and reseeds, refetching when the request never
  * completed (it may still have committed, so the grid may be rendering rows that no longer exist) or
- * when the refusal is `NOT_FOUND`: the editor's copy is stale, and a retry would resend it.
+ * when the refusal is `NOT_FOUND`: the editor's copy is stale, and a retry would resend it. `stale`
+ * says the rows, not the tree on screen, are behind — the tree prop may already hold the change.
  */
 export async function settleTreeReplace<R extends { success: true } | FailureT>(
   flushPendingSaves: () => Promise<void>,
   call: () => Promise<R>,
   interrupted: string,
   onSuccess: (result: SucceededT<R>) => void,
-): Promise<{ refetch: boolean } | null> {
+): Promise<{ refetch: boolean; stale?: boolean } | null> {
   await flushPendingSaves()
   const result = await settleAction(call)
   if (result.success) {
@@ -29,5 +30,5 @@ export async function settleTreeReplace<R extends { success: true } | FailureT>(
     return { refetch: true }
   }
   toastMessage(result.error, 'error', 6000)
-  return result.code === 'NOT_FOUND' ? { refetch: true } : null
+  return result.code === 'NOT_FOUND' ? { refetch: true, stale: true } : null
 }

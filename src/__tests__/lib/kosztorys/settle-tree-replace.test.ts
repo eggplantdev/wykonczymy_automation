@@ -32,11 +32,12 @@ describe('settleTreeReplace', () => {
     expect(toastMessage).toHaveBeenCalledWith('Nie wolno', 'error', 6000)
   })
 
-  // Retrying or reopening would rebuild the same stale copy from the grid's rows.
+  // Retrying or reopening would rebuild the same stale copy from the grid's rows. `stale` sends the
+  // reseed through the seed's token: the tree prop may already hold the change the rows lack.
   it('reloads the tree when the refusal says the editor’s copy is stale', async () => {
     const result = await settle({ success: false, error: 'Układ się zmienił', code: 'NOT_FOUND' })
 
-    expect(result).toEqual({ refetch: true })
+    expect(result).toEqual({ refetch: true, stale: true })
     expect(toastMessage).toHaveBeenCalledWith('Układ się zmienił', 'error', 6000)
   })
 })
