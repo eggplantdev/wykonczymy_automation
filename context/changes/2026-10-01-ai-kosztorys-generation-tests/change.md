@@ -50,8 +50,9 @@ no kosztorys. Per investment, one at a time:
    owner reviews each room's whole rozpiska. Every other sekcja stays one per kosztorys: 88
    kosztorysy in prod split nothing but łazienki and WC.
 5. `investment-notes-appendix.txt` in Notatki markdown (`##` headings, `- ` lists, `**bold**`;
-   case 07's layout): `## Wycena AI (test, <date>)` with the **bold total** and how it was
-   measured, then `## Do ustalenia z klientem` (bold key word + zł impact),
+   case 07's layout): `## Wycena AI (<date>)` with the **bold total** and how it was
+   measured — never „test” in it: the inquiry and the kosztorys are real, and the word made later
+   agents treat a real client's quote as a test (2026-10-15). Then `## Do ustalenia z klientem` (bold key word + zł impact),
    `## Najważniejsze założenia`, `## Przedmiar 0 świadomie` — no repo paths — and
    `measurement.md`. Every line of it also on its pozycja's Komentarz AI (see „Every point lives in
    both places” below).

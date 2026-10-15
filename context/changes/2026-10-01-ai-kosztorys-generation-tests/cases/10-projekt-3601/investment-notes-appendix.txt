@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-12)
+## Wycena AI (2026-10-12)
 **AI przedmiar: 90 961,72 zł netto** — 104 pozycje, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”; 12 pozycji spoza szablonu — 7 z ceną z katalogu, 5 z ceną 0 zł (do wyceny, niżej).
 Źródło ilości: „Kosztorys wykonawczy” projektanta (zakres prac z ilościami) i projekt A.00–A.09 z wymiarami. Mieszkanie 58,6 m² (rzut A.01), stan deweloperski, bez wyburzeń; wysokość 2,75 m, pod sufitem podwieszanym 2,71 m, w łazience 2,63 m.
 Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.

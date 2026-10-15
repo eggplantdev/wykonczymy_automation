@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-14)
+## Wycena AI (2026-10-14)
 **AI przedmiar: 74 197,28 zł netto** — 143 pozycje, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 1 pozycja z ilością 0 (przeniesienie podejść wod-kan w łazience z prysznicem — nie wiadomo, czy są potrzebne). 4 prace spoza szablonu łazienki: „Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.” — nowy tynk na suficie, po jednej w każdym pomieszczeniu.
 Źródło: cztery projekty (rzut + kłady z wymiarami i wysokością) i cztery zdjęcia. Cztery pomieszczenia, każde w osobnej sekcji: łazienka z prysznicem (parter, 2,68 m², wys. 2,70), łazienka z wanną (parter, 4,21 m², wys. 2,70), pralnia (piwnica, 4,64 m², wys. 2,16), WC (piwnica, 1,94 m², wys. 2,16). Pralnia liczona jak łazienka, bo ma prysznic (brodzik z kabiną) — stąd hydroizolacja, płytki do sufitu i biały montaż jak w łazience.
 Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.

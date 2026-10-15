@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-14)
+## Wycena AI (2026-10-14)
 **AI przedmiar: 57 573,24 zł netto** — 68 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 16 pozycji z ilością 0: prace świadomie poza wyceną, każda z wyjaśnieniem w komentarzu. 3 prace spoza szablonu łazienki: „Szlifowanie mleczka z tynków deweloperskich” w łazience i w WC (pozycja z sekcji ścian, wstawiona do łazienek) oraz klejenie Laminamu na fronty szafek nad WC — bez ceny, do wyceny.
 Źródło: projekt (rzut i widoki łazienki oraz WC, 1:25), cztery wizualizacje i sześć zdjęć stanu deweloperskiego. Dwa pomieszczenia, każde w osobnej sekcji: łazienka parter (8,75 m², płytki do sufitu podwieszanego na 3,24 m) i WC parter (3,28 m² podłogi, płytki do 2,70 m).
 Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.

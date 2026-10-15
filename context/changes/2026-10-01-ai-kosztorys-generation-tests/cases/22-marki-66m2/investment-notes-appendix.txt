@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-15)
+## Wycena AI (2026-10-15)
 **AI przedmiar: 54 363,06 zł netto** — 66 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 6 pozycji z ilością 0: prace świadomie poza wyceną, każda z wyjaśnieniem w komentarzu. 3 pozycje z innych sekcji szablonu wstawione do łazienki (Manual): „Szlifowanie mleczka z tynków deweloperskich”, „Naprawy ścian i sufitów po kuciu, bruzdowaniu…” i „Montaż wentylatora łazienkowego”, po cenie z szablonu.
 Źródło: rzut parteru lokalu 1 w zabudowie szeregowej dwulokalowej (1:100, pow. użytkowa 66,56 m², powierzchnie pomieszczeń podane na rzucie) i zakres prac klienta. Wiatrołap, komunikacja, pokój z aneksem, dwa pokoje, łazienka. Wysokość 2,68 m przyjęta z Manuala — rzut jej nie podaje.
 Ilości z zakresu klienta to jego szacunki. Liczby sztuk (drzwi, lampy, armatura, wanna, WC) przyjęte z zakresu. Ściany przeliczone z rzutu, bo klient liczył je przelicznikiem podłoga × 2,5. Płytki, hydroizolacja, szlif 45°, wiercenie, akrylowanie, naprawy po bruzdach i listwy policzone wg Manuala.

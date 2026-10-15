@@ -1,4 +1,4 @@
-=== Wycena AI (test, 2026-10-09) — AI przedmiar z pomiaru projektu wnętrza ===
+=== Wycena AI (2026-10-09) — AI przedmiar z pomiaru projektu wnętrza ===
 Kosztorys wypełnił agent: 103 pozycje, AI przedmiar razem 105 079,14 zł netto, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. Ilości zmierzone z wektorowego projektu (rzuty 1:50, rozwinięcia łazienki i kuchni); wysokość 2,65 m — wydrukowana przy każdym pomieszczeniu.
 Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”). Pozycja z ilością odczytaną z rysunku nie ma tam nic.
 
@@ -27,4 +27,3 @@ Do ustalenia z klientem:
 - LED w łazience: 1,86 mb z rozwinięcia czy 1,35 mb z rysunku oświetlenia;
 - ościeżnice do demontażu: drewniane czy metalowe; piętro i winda.
 
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/06-remont-45m2

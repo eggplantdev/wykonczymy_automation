@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-15)
+## Wycena AI (2026-10-15)
 **AI przedmiar: 93 194,94 zł netto** — 107 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 2 pozycje z ilością 0: prace świadomie poza wyceną, każda z wyjaśnieniem w komentarzu. 2 prace spoza szablonu z ceną z katalogu: lamele w pokoju 3 (150 zł/m²) i „Szlifowanie mleczka z tynków deweloperskich” w łazience (pozycja z sekcji ścian, wstawiona do łazienki); trzecia, przedścianka GK w łazience, na 0.
 Źródło: jeden rzut (układ funkcjonalny, stan docelowy, wymiary w cm) i 29 wizualizacji. Mieszkanie ok. 61 m²: salon z aneksem, hol, sypialnia, pokój 3, nowa pralnia i łazienka z dawnej toalety. Wysokość 2,68 m przyjęta z Manuala — rzut jej nie podaje.
 Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.

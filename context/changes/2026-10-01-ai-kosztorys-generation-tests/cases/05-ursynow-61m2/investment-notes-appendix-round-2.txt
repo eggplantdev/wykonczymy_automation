@@ -1,4 +1,4 @@
-=== Wycena AI — runda 2 (test, 2026-10-14) — mieszkanie 61 m², Ursynów, stan deweloperski ===
+=== Wycena AI — runda 2 (2026-10-14) — mieszkanie 61 m², Ursynów, stan deweloperski ===
 Źródła rundy 2:
 - projekt wykonawczy architekta (18 arkuszy: wyburzenia, nowe ściany, elektryka, oświetlenie, posadzki, wod-kan, sufity, rozwinięcia łazienki);
 - nowy mail klienta (prośba o wycenę finalną, lista dopisków i krótki FAQ);

@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-12)
+## Wycena AI (2026-10-12)
 **AI przedmiar: 76 268,74 zł netto — za JEDEN lokal** (oba lokale z rzutu: ×2, +76,3 tys. zł). 54 pozycje (53 z szablonu + 1 nowa: sprzątanie i przygotowanie do odbioru, Cena j.m. pusta), bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”.
 Źródło: rzuty dewelopera — dwa lustrzane lokale (Lokal 1 i Lokal 2) o tych samych powierzchniach. Rzuty podają tylko m² pomieszczeń i wymiary okien/drzwi, bez wymiarów ścian: długości odczytane ze zdjęć rzutów w skali z podanych m². Parter 37,52 m² (łazienka 3,97), piętro 35,29 m² (łazienka 4,63), razem 72,81 m² ze schodami. Wysokość 2,68 m na obu poziomach — rzut jej nie podaje, Manual: stan deweloperski.
 Transport zostawiony na 1500 zł z szablonu — katalog dla dużych mieszkań deweloperskich mówi ok. 2000 zł.
