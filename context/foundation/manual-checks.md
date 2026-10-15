@@ -5784,6 +5784,9 @@ inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
       otwarciu, na zimno.
 - [ ] Ta sama dokumentacja → klikaj „Następna strona” co kilka sekund: kolejne zdjęcia i PDF-y
       pokazują się praktycznie od razu, bez spinnera; „Poprzednia strona” o jeden krok też.
-- [ ] W podglądzie pojedynczego PDF-a (np. faktura przy transakcji) w stopce są „Drukuj” i „Pobierz”;
-      „Pobierz” zapisuje plik pod jego prawdziwą nazwą.
+- [ ] W podglądzie pojedynczego PDF-a (np. faktura przy transakcji) w stopce jest „Pobierz” — zapisuje
+      plik pod jego prawdziwą nazwą; drukuje się z paska samego PDF-a.
+- [ ] Dokumentacja z kilkoma plikami, w tym PDF-ami → „Drukuj”: otwiera się okno wydruku z każdą
+      stroną (a nie puste okno, które nigdy nie drukuje).
+- [ ] PDF → „Następna strona” na zdjęcie → „Poprzednia strona”: PDF wraca, bez pustej ramki.
 - [ ] Formularz wydatku → dodaj PDF, który nie jest jeszcze wysłany → podgląd: PDF się pokazuje.

@@ -73,7 +73,7 @@ export function MediaPreviewDialog({
 }: MediaPreviewDialogPropsT) {
   // Removing the last page must not leave the pager pointing past the end.
   const [pageIndex, setPageIndex] = useState(initialIndex)
-  const [isMediaLoading, setIsMediaLoading] = useState(true)
+  const [loadedImageUrl, setLoadedImageUrl] = useState<string>()
   const { downloadFiles } = useFileArchive()
   const labels = usePreviewLabels(callerLabels)
   const { t } = useTranslation('media')
@@ -89,11 +89,6 @@ export function MediaPreviewDialog({
 
   if (open)
     preloadPreviewNeighbours(files, activeIndex, { sizes: PREVIEW_IMAGE_SIZES, unoptimized })
-
-  function goToPage(index: number) {
-    setPageIndex(index)
-    setIsMediaLoading(true)
-  }
 
   function handlePrint() {
     // Must open a blank window (about:blank inherits our origin + base URL), then build the
@@ -169,7 +164,7 @@ export function MediaPreviewDialog({
         <DialogHeader title={title} />
 
         <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
-          {((isImage && isMediaLoading) || pdf?.status === 'loading') && (
+          {((isImage && loadedImageUrl !== active?.url) || pdf?.status === 'loading') && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
               <Spinner />
             </div>
@@ -183,8 +178,8 @@ export function MediaPreviewDialog({
               alt={displayName}
               sizes={PREVIEW_IMAGE_SIZES}
               unoptimized={unoptimized}
-              onLoad={() => setIsMediaLoading(false)}
-              onError={() => setIsMediaLoading(false)}
+              onLoad={() => setLoadedImageUrl(active.url)}
+              onError={() => setLoadedImageUrl(active.url)}
             />
           )}
           {pdf?.status === 'ready' && (
@@ -210,7 +205,7 @@ export function MediaPreviewDialog({
               variant="outline"
               size="icon"
               disabled={activeIndex === 0}
-              onClick={() => goToPage(activeIndex - 1)}
+              onClick={() => setPageIndex(activeIndex - 1)}
               aria-label={t('previousPage')}
             >
               <ChevronLeft />
@@ -222,7 +217,7 @@ export function MediaPreviewDialog({
               variant="outline"
               size="icon"
               disabled={activeIndex === files.length - 1}
-              onClick={() => goToPage(activeIndex + 1)}
+              onClick={() => setPageIndex(activeIndex + 1)}
               aria-label={t('nextPage')}
             >
               <ChevronRight />
@@ -259,12 +254,16 @@ export function MediaPreviewDialog({
               {labels.add}
             </Button>
           )}
+          {/* A single PDF renders in the browser's native viewer, which already has print in its
+              toolbar. A multi-page set has no such toolbar for the set as a whole. */}
+          {(!isPdf || isMultiPage) && (
+            <Button variant="outline" onClick={handlePrint}>
+              <Printer />
+              {t('print')}
+            </Button>
+          )}
           {/* Shown for a single PDF too: the native viewer's own download names the file after the
               blob: URL it was handed, not after the faktura. */}
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer />
-            {t('print')}
-          </Button>
           {isMultiPage ? (
             <Button variant="outline" onClick={handleDownloadAll}>
               <Download />

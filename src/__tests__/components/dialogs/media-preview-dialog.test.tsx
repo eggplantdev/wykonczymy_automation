@@ -98,8 +98,13 @@ describe('MediaPreviewDialog — zoom', () => {
 // open). jsdom never fires an iframe's `load` either, so a spinner gated on it hangs here the same way.
 describe('MediaPreviewDialog — PDF', () => {
   beforeEach(() => {
-    URL.createObjectURL = vi.fn(() => 'blob:pdf-1')
+    let created = 0
+    URL.createObjectURL = vi.fn(() => `blob:pdf-${++created}`)
     URL.revokeObjectURL = vi.fn()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(new Blob(['%PDF-1.7']), { status: 200 })),
+    )
   })
 
   afterEach(() => {
@@ -107,14 +112,26 @@ describe('MediaPreviewDialog — PDF', () => {
   })
 
   it('zdejmuje spinner, gdy plik się pobierze, i podaje go ramce jako blob', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(new Blob(['%PDF-1.7']), { status: 200 })),
-    )
     renderDialog(PDF)
 
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
     expect(screen.getByTitle('faktura.pdf')).toHaveAttribute('src', 'blob:pdf-1')
+  })
+
+  it('po powrocie do PDF-a nie podaje ramce zwolnionego adresu', async () => {
+    renderDialog([...PDF, IMAGES[0]])
+    await waitFor(() =>
+      expect(screen.getByTitle('faktura.pdf')).toHaveAttribute('src', 'blob:pdf-1'),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Następna strona' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Poprzednia strona' }))
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:pdf-1')
+    expect(screen.queryByTitle('faktura.pdf')?.getAttribute('src')).not.toBe('blob:pdf-1')
+    await waitFor(() =>
+      expect(screen.getByTitle('faktura.pdf')).toHaveAttribute('src', 'blob:pdf-2'),
+    )
   })
 
   it('zamiast kręcić się bez końca mówi, że podgląd się nie wczytał', async () => {
