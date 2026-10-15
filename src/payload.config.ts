@@ -39,6 +39,9 @@ import { CompanyKnowledge } from '@/collections/company-knowledge'
 import { Equipment } from '@/collections/equipment'
 import { EquipmentEvents } from '@/collections/equipment-events'
 import { Warehouses } from '@/collections/warehouses'
+import { Templates } from '@/collections/templates'
+import { TemplateSections } from '@/collections/template-sections'
+import { TemplateItems } from '@/collections/template-items'
 import { KosztorysClientViewDefaults } from '@/globals/kosztorys-client-view-defaults'
 import { KosztorysWorkerViewSettings } from '@/globals/kosztorys-worker-view-settings'
 import { NotificationRecipients } from '@/globals/notification-recipients'
@@ -97,6 +100,9 @@ export default buildConfig({
     Sheets,
     KosztorysSections,
     KosztorysItems,
+    Templates,
+    TemplateSections,
+    TemplateItems,
     KosztorysStages,
     KosztorysShares,
     WorkerReportShares,
