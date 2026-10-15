@@ -382,4 +382,4 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 No phase-scoped automated check (prose only)
+- [x] 3.1 No phase-scoped automated check (prose only) — 0a0c60897

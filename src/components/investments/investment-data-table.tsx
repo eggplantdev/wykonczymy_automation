@@ -22,6 +22,7 @@ import {
 } from '@/components/dialogs/settle-payouts-dialog'
 import type { PresetMetaT } from '@/lib/db/presets'
 import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
+import { isClosedStatus } from '@/lib/constants/investment-status'
 
 const getStatus = (row: InvestmentRowT) => row.status
 const getAiProgress = (row: InvestmentRowT) => row.aiProgress
@@ -82,9 +83,7 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         storageKey="investments"
         initialSorting={INITIAL_SORTING}
         getRowHref={(row) => `/inwestycje/${row.id}`}
-        getRowClassName={(row) =>
-          row.status === 'completed' || row.status === 'rejected' ? 'opacity-50' : ''
-        }
+        getRowClassName={(row) => (isClosedStatus(row.status) ? 'opacity-50' : '')}
         toolbar={({ table, columnVisibility: cv, ...order }) => {
           // Ticked unless the picker (or a previous untick) has switched one off — absent from the
           // stored state means visible, which is what „domyślnie zaznaczony" has to mean here.

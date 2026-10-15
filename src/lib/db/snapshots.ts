@@ -5,6 +5,7 @@ import {
   LOCKED_INVESTMENT_STATUS,
   TEMPLATE_INVESTMENT_STATUS,
 } from '@/lib/constants/investment-lock'
+import { CLOSED_INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 import {
   SNAPSHOT_SCHEMA_VERSION,
   assertReadableSchemaVersion,
@@ -75,12 +76,12 @@ export async function insertSnapshot(
   return Number(res.rows[0].id)
 }
 
-// The investments whose kosztorys may still change: szablony, completed (locked) and rejected (a
-// declined offer) fall out by status, the trash by its own column.
+// The investments whose kosztorys may still change: szablony and closed ones fall out by status, the
+// trash by its own column.
 export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
   const res = await db.execute(sql`
     SELECT id FROM investments
-    WHERE status NOT IN (${LOCKED_INVESTMENT_STATUS}, ${TEMPLATE_INVESTMENT_STATUS}, 'rejected')
+    WHERE status NOT IN (${sqlList([...CLOSED_INVESTMENT_STATUSES, TEMPLATE_INVESTMENT_STATUS])})
       AND trashed_at IS NULL
     ORDER BY id
   `)

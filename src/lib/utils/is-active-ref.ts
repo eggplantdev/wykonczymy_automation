@@ -17,7 +17,6 @@ export function matchingOrSelected<ItemT extends { id: number }>(
   return items.filter((item) => matches(item) || String(item.id) === selected)
 }
 
-// „Aktywni" is a filter the user can widen, not a hard exclusion.
 export function activeOrSelected<ItemT extends { id: number; active?: boolean }>(
   items: ItemT[],
   activeOnly: boolean,

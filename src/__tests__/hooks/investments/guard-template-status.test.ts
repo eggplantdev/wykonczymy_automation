@@ -3,6 +3,8 @@ import {
   guardTemplateStatus,
   TEMPLATE_STATUS_CHANGE_MESSAGE,
 } from '@/hooks/investments/guard-template-status'
+import { INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
 type ArgsT = Parameters<typeof guardTemplateStatus>[0]
 
@@ -21,24 +23,20 @@ function hookArgs(
   } as unknown as ArgsT
 }
 
-describe('guardTemplateStatus', () => {
-  it.each(['active', 'completed', 'planowana', 'quote', 'rejected'])(
-    'refuses turning a %s investment into a szablon',
-    (from) => {
-      expect(() => guardTemplateStatus(hookArgs({ status: 'szablon' }, from))).toThrow(
-        TEMPLATE_STATUS_CHANGE_MESSAGE,
-      )
-    },
-  )
+const NON_TEMPLATE = INVESTMENT_STATUSES.filter((s) => s !== TEMPLATE_INVESTMENT_STATUS)
 
-  it.each(['active', 'completed', 'planowana', 'quote', 'rejected'])(
-    'refuses turning a szablon into %s',
-    (to) => {
-      expect(() => guardTemplateStatus(hookArgs({ status: to }, 'szablon'))).toThrow(
-        TEMPLATE_STATUS_CHANGE_MESSAGE,
-      )
-    },
-  )
+describe('guardTemplateStatus', () => {
+  it.each(NON_TEMPLATE)('refuses turning a %s investment into a szablon', (from) => {
+    expect(() => guardTemplateStatus(hookArgs({ status: 'szablon' }, from))).toThrow(
+      TEMPLATE_STATUS_CHANGE_MESSAGE,
+    )
+  })
+
+  it.each(NON_TEMPLATE)('refuses turning a szablon into %s', (to) => {
+    expect(() => guardTemplateStatus(hookArgs({ status: to }, 'szablon'))).toThrow(
+      TEMPLATE_STATUS_CHANGE_MESSAGE,
+    )
+  })
 
   it('lets a szablon update that never names the status through', () => {
     expect(() => guardTemplateStatus(hookArgs({ name: 'Łazienka' }, 'szablon'))).not.toThrow()
