@@ -5768,3 +5768,11 @@ inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
       pozycję: wpisana wartość zostaje po odświeżeniu strony.
 - [ ] „Wersje” → przywróć wcześniejszą wersję (z siecią): siatka przebudowuje się na przywróconą
       wersję, jak dotąd.
+
+## 2026-10-15 — ungated-commits-review — „Do analizy AI” w galerii + cień pola wieloliniowego
+
+- [ ] Strona inwestycji → galeria → podgląd pliku bez oznaczenia: przycisk mówi „Oznacz do analizy AI”;
+      po kliknięciu toast „Plik oznaczony do analizy AI”, a przycisk zmienia się na wyłączony
+      „Oznaczony do analizy AI” (to samo pole co „Do analizy AI” przy dodawaniu plików).
+- [ ] Pole wieloliniowe (np. „Uwagi” w „Edytuj inwestycję”) ma ten sam lekki cień pod ramką co pola
+      tekstowe, w trybie jasnym i ciemnym; pole z błędem nadal ma czerwoną ramkę.
