@@ -74,16 +74,17 @@ flowchart TD
 
     T --> ROUTE{type}
     ROUTE -->|INVESTMENT_EXPENSE / CORRECTION| MAT[materiały]
-    ROUTE -->|CORRECTION ±| KOR[korekty]
     ROUTE -->|INVESTOR_DEPOSIT<br/>COMPANY_FUNDING<br/>OTHER_DEPOSIT| INC[wpłaty / income]
     ROUTE -->|LABOR_COST| ROB[robocizna]
     ROUTE -->|PAYOUT| PAY[wypłaty]
 ```
 
 - `materiały` = `Σ INVESTMENT_EXPENSE + Σ CORRECTION`, **excluding rows flagged `settled`**
-  (`investment-financials.ts:41`). Corrections fold into the material total.
-- `korekty` is the **same CORRECTION rows** surfaced as their own line. A CORRECTION can be
-  negative (invoice credit).
+  (`deriveFinancials`, `investment-financials.ts`). Corrections fold into the material total.
+- A korekta counts **once, inside its expense category** — there is no separate „Korekty" line;
+  it double-counted the same rows into the bilans. Only a legacy korekta with no category
+  surfaces on its own, as „Korekta (bez kategorii)" (`investment-financial-fields.ts`). A
+  CORRECTION can be negative (invoice credit).
 - `robocizna` = `Σ LABOR_COST`; `wypłaty` = `Σ PAYOUT`.
 
 ---
@@ -107,6 +108,12 @@ aggregate flows from there into the two formulas:
 
 That holds for "materiały osobno, robocizna osobno" jobs. The `settled` flag (R+M jobs) is
 the exception — material the company eats, so it _does_ hit marża.
+
+Check: **bilans + marża (v1) = the investment's cash.** Every concession (rabat, strata, the
+materiały netto discount) raises one by what it lowers the other, so the sum is always
+`wpłaty − materiały − wypłaty − settled`. Wpłata 1000, materiał 200, settled materiał 100,
+robocizna 500 → bilans +300, marża +400, together 700 = what is left in the kasa. Marża v2
+counts what the crews are owed rather than wypłaty, so the identity does not hold there.
 
 **Settled material is a netto cost — owner ruling, 2026-07-26** (not a mode, nothing to gate). Open
 gap: `totalSettled` still sums the brutto `amount` of a brutto-booked settled expense, so marża is
@@ -239,11 +246,11 @@ It is also the one worker editable after save; on PAYOUT / BONUS it is a settlem
 
 | Type / flag               | source_register | marża | bilans | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------------- | --------------- | ----- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CORRECTION` (korekta)    | optional        | —     | ↓/↑    | Folds into materiały; may be negative. Moves only the balance.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `CORRECTION` (korekta)    | required        | —     | ↓/↑    | Folds into materiały; may be negative. Moves only the balance.                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `RABAT` (rabat)           | **none**        | ↓     | ↑      | Labour discount: company earns less, client owes less. Positive amount. Requires investment.                                                                                                                                                                                                                                                                                                                                                                                |
 | `LOSS` (strata)           | **none**        | ↓     | ↑      | Company-absorbed cost the client stops owing (EX-675). Positive amount, investment **required**. Deducts at **face value** on netto and brutto alike — unlike the rabat, a concession on the price, which grosses by VAT.                                                                                                                                                                                                                                                   |
 | `BONUS` (premia)          | **none**        | ↓ v2  | —      | Non-cash entitlement on one investment × worker pair (EX-979): raises that pair's „Pozostało do wypłaty" (`due + premia − wypłaty`), lowers **marża v2 only**. v1 leaves it out — there the cash wypłata that pays it already lowers the marża, so subtracting the premia too would count it twice. Investment and worker **required**; a premia with no investment is booked as a wypłata. Never reaches the investor (bilans, share link, protokół) or the owner's sheet. |
-| `settled` flag on expense | required        | ↓     | —      | "Wliczone w robociznę": R+M material the company buys but already priced into robocizna. Leaves a register, lowers marża, off the client bill. Valid on `INVESTMENT_EXPENSE` and `CORRECTION` (`transfers.ts:227-239`).                                                                                                                                                                                                                                                     |
+| `settled` flag on expense | required        | ↓     | —      | "Wliczone w robociznę": R+M material the company buys but already priced into robocizna. Leaves a register, lowers marża, off the client bill. Valid on `INVESTMENT_EXPENSE` and `CORRECTION` (`settleable`).                                                                                                                                                                                                                                                               |
 
 `RABAT` and `LOSS` are positive-amount types with **no source register** (billing figures,
 not cash movements). `settled` is a boolean on an otherwise normal material expense, so it
@@ -253,6 +260,11 @@ keeps `source_register` required.
 type approach would need one type _per category_ (`INTERNAL_BUILDING_MATERIAL`,
 `INTERNAL_FINISHING_MATERIAL`, …), multiplying every time a category is added — disqualifying.
 A boolean stays orthogonal to the category axis.
+
+A **korekta must stay settleable**. It does not link to the expense it corrects, so correcting
+material already priced into robocizna has only one right form: a settled korekta — it moves the
+marża and stays off the bilans, as the original did. Left unsettled, it would move a bilans the
+client was never billed on. Pairing it with the original expense is the user's call.
 
 Display: `RABAT` and `LOSS` are both green tiles in the credit row of `financial-stats.tsx`
 (settled material keeps its own block). `LOSS` now goes **through** `buildFinancialFields` — its
@@ -297,10 +309,6 @@ question with the owner.
 the bilans moves twice. Accepted knowingly (EX-675). Related: the owner types the amount by which
 the client's bill should drop — the app never grosses a strata up, so the figure entered is the
 figure deducted.
-
-Specs: `context/reference/superpowers/archive/2026-06-11-investment-rabat.md`,
-`context/reference/superpowers/archive/2026-06-11-loss-strata-transfer-type.md`,
-`context/reference/superpowers/archive/2026-06-12-settled-internal-material-design.md`.
 
 ## MANAGER sees the settled materiały, not the marża (owner ruling, 2026-07-28)
 

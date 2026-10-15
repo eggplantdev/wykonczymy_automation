@@ -25,11 +25,14 @@ Authorization: Bearer {META_PAGE_ACCESS_TOKEN}
    a Zod safety net alerts the `opsAlerts` list on an unexpected shape.
 4. **Store** once per `(source, externalId)` in the `leads` collection (idempotent — Meta
    redelivers on any non-200), keeping the full `field_data` (`rawData`) + `formQuestions`.
+   `leads` is an append-only log of submissions, **never merged by person** — someone who submits
+   twice is two rows, by design.
 5. **Notify** the `newLead` list (internal heads-up — name/email/phone plus a **"Treść
    formularza"** section with every extra form answer; fields already shown up top are
    de-duplicated) and **auto-reply** the lead from `LEADS_REPLY_FROM` (branded confirmation)
    — each retried 3×, tracked per lead in `notifyStatus` / `autoReplyStatus`. Store-then-notify:
-   a mail failure never loses a lead.
+   a mail failure never loses a lead. `sent` means the SMTP server **accepted** the message —
+   delivery is not tracked, so a mail dropped downstream goes unnoticed.
 
 Leads surface at **`/zgloszenia`** (table + editable follow-up status + a details modal
 rendering each form answer against its real question). Historical leads were loaded with the
