@@ -36,6 +36,8 @@ type AcceptingT = {
   draft: ExpenseDraftRowT
   prefill: ExpenseFormPrefillT
   duplicates: DuplicateHintsStateT
+  // Held above the rows: a merge or split remounts them under new item ids.
+  dismissedDuplicates: ReadonlySet<string>
   hasPages: boolean
 }
 
@@ -118,7 +120,13 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       : draft.aiRead
         ? { status: 'checking' }
         : { status: 'no-read' }
-    setAccepting({ draft, prefill: prefillFor(draft, files), duplicates, hasPages })
+    setAccepting({
+      draft,
+      prefill: prefillFor(draft, files),
+      duplicates,
+      dismissedDuplicates: new Set(),
+      hasPages,
+    })
     openDialog(formIdOf(draft.id), false)
     // A reopen mid-read stays on „reading"; the read already in flight loads the duplicates.
     if (isReading && !readsInFlight.current.has(draft.id)) await readOnOpen(draft, files)
@@ -241,7 +249,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
                   <ExpenseDraftDuplicateStatus state={accepting.duplicates} />
                 </>
               }
-              wrapLineItem={({ itemId, markDuplicate, paragonOfReadRow, renderRow }) => (
+              wrapLineItem={({ itemId, markDuplicate, paragonOfReadRow, disabled, renderRow }) => (
                 // Mounted before the check lands too, so its landing does not remount every row.
                 <ExpenseDraftDuplicateHints
                   paragons={
@@ -251,6 +259,17 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
                   itemId={itemId}
                   paragonOfReadRow={paragonOfReadRow}
                   onMarkDuplicate={markDuplicate}
+                  dismissed={accepting.dismissedDuplicates}
+                  onDismiss={(key) =>
+                    setAccepting(
+                      (prev) =>
+                        prev && {
+                          ...prev,
+                          dismissedDuplicates: new Set(prev.dismissedDuplicates).add(key),
+                        },
+                    )
+                  }
+                  disabled={disabled}
                   renderRow={renderRow}
                 />
               )}

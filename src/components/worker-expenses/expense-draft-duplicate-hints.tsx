@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import {
@@ -18,11 +17,14 @@ import { formatPLNOrDash } from '@/lib/utils/format-currency'
 type PropsT = {
   paragons: ParagonDuplicatesT[]
   draftId: number
-  // The form row these hints frame.
   itemId: string
   // Resolved at render: a merge or split moves a paragon to another row.
   paragonOfReadRow: (readRow: number) => ParagonRowT | undefined
   onMarkDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
+  // „OK" only hides the match for this dialog; nothing is stored.
+  dismissed: ReadonlySet<string>
+  onDismiss: (key: string) => void
+  disabled: boolean
   renderRow: (hint: React.ReactNode) => React.ReactNode
 }
 
@@ -35,12 +37,11 @@ export function ExpenseDraftDuplicateHints({
   itemId,
   paragonOfReadRow,
   onMarkDuplicate,
+  dismissed,
+  onDismiss,
+  disabled,
   renderRow,
 }: PropsT) {
-  // „OK" only hides the match for this dialog; nothing is stored.
-  const [dismissed, setDismissed] = useState(() => new Set<string>())
-
-  // A paragon of this same zgłoszenie, which sits in this dialog as one of its rows.
   const twinOf = (match: DuplicateMatchT) =>
     match.source === 'draft' && match.id === draftId
       ? match.readRows.map(paragonOfReadRow).find((row) => row !== undefined)
@@ -60,8 +61,12 @@ export function ExpenseDraftDuplicateHints({
           paragonReadRow: paragon.readRow,
         }),
       )
-      // A refused twin is no longer a second booking of this paragon; an accepted one still is.
-      .filter((row) => !dismissed.has(rowKey(row)) && twinOf(row)?.status !== 'rejected')
+      // A refused twin is no longer a second booking of this paragon; an accepted one still is. A
+      // twin merged into this very row was declared the same expense by the merge.
+      .filter((row) => {
+        const twin = twinOf(row)
+        return !dismissed.has(rowKey(row)) && twin?.status !== 'rejected' && twin?.itemId !== itemId
+      })
     if (rows.length === 0) return []
     // The row's own title names a lone paragon; a merged row needs each of its paragony named.
     const label =
@@ -83,18 +88,14 @@ export function ExpenseDraftDuplicateHints({
     },
     actions: (row) => (
       <div className="flex gap-2">
-        <Button
-          type="button"
-          size="xs"
-          variant="outline"
-          onClick={() => setDismissed((prev) => new Set(prev).add(rowKey(row)))}
-        >
+        <Button type="button" size="xs" variant="outline" onClick={() => onDismiss(rowKey(row))}>
           OK, to nie duplikat
         </Button>
         <Button
           type="button"
           size="xs"
           variant="destructive"
+          disabled={disabled}
           onClick={() => onMarkDuplicate(row.paragonItemId, { source: row.source, id: row.id })}
         >
           Duplikat

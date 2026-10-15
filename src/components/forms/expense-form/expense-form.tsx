@@ -57,15 +57,14 @@ import {
   EntityComboboxField,
   PaymentMethodField,
   SourceRegisterField,
-  LineItemsField,
 } from '@/components/forms/form-fields'
+import { LineItemsField } from '@/components/forms/expense-form/line-items-field'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 import { FormShell } from '../form-components/form-shell'
 import { RegisterBalanceSummary } from '../form-components/register-balance-summary'
 import { useExpenseFormStore } from '@/stores/form-stores'
-import { isBookableInvestment } from '@/lib/constants/investment-lock'
-import { isOfferedForBooking } from '@/lib/constants/investment-status'
+import { isBookableInvestment, isOfferedForBooking } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
@@ -112,6 +111,7 @@ type TransferFormPropsT = {
     itemId: string
     markDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
     paragonOfReadRow: (readRow: number) => ParagonRowT | undefined
+    disabled: boolean
     renderRow: (hint: React.ReactNode) => React.ReactNode
   }) => React.ReactNode
 }
@@ -345,6 +345,7 @@ export function ExpenseForm({
     isBusy: isGenerating || isIngesting || isPrefillReading,
     // A file added by hand stands in for the page that failed to download.
     isAcceptBlocked: (id) => isSaveBlocked && !getRowFiles(id)?.length,
+    isRegroupBlocked: isSaveBlocked,
     getFiles,
     ask,
     submit,
@@ -522,6 +523,7 @@ export function ExpenseForm({
                     itemId,
                     markDuplicate,
                     paragonOfReadRow: (readRow) => paragonOfReadRow(readRow, positionOf),
+                    disabled: receiptGrouping?.disabled ?? false,
                     renderRow,
                   }))
               }

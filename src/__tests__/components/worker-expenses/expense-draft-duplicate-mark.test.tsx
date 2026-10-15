@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -61,6 +62,24 @@ function oneParagon(matches: DuplicateMatchT[]): ParagonDuplicatesT[] {
   return [{ readRow: 0, description: 'Klej', amount: 89.9, matches }]
 }
 
+// The dialog holds the dismissals above the rows; this stands in for it.
+function Hints(
+  props: Omit<
+    React.ComponentProps<typeof ExpenseDraftDuplicateHints>,
+    'dismissed' | 'onDismiss' | 'disabled'
+  >,
+) {
+  const [dismissed, setDismissed] = useState(() => new Set<string>())
+  return (
+    <ExpenseDraftDuplicateHints
+      {...props}
+      dismissed={dismissed}
+      onDismiss={(key) => setDismissed((prev) => new Set(prev).add(key))}
+      disabled={false}
+    />
+  )
+}
+
 const onRowA = () => ({ itemId: 'row-a', position: 0, status: 'pending' as const })
 const renderRow = (hint: React.ReactNode) => hint
 
@@ -77,7 +96,7 @@ describe('ExpenseDraftDuplicateHints', () => {
   it('lists every match of a paragon and marks the chosen one as its duplicate', async () => {
     const onMarkDuplicate = vi.fn()
     render(
-      <ExpenseDraftDuplicateHints
+      <Hints
         paragons={oneParagon([
           match({ key: 'transaction-501', source: 'transaction', id: 501 }),
           match({ key: 'draft-7-1', source: 'draft', id: 7, documentNumber: 'PAR/2026/0002' }),
@@ -101,7 +120,7 @@ describe('ExpenseDraftDuplicateHints', () => {
 
   it('dismisses only the clicked match when two come from the same zgłoszenie', async () => {
     render(
-      <ExpenseDraftDuplicateHints
+      <Hints
         paragons={oneParagon([
           match({ key: 'draft-7-1', source: 'draft', id: 7, documentNumber: 'PAR/2026/0001' }),
           match({ key: 'draft-7-2', source: 'draft', id: 7, documentNumber: 'PAR/2026/0002' }),
@@ -126,7 +145,7 @@ describe('ExpenseDraftDuplicateHints', () => {
 
   it('keeps one hint per paragon when two merged into one row match the same transakcja', async () => {
     render(
-      <ExpenseDraftDuplicateHints
+      <Hints
         paragons={[
           { readRow: 0, description: 'Klej', amount: 89.9, matches: [match({})] },
           { readRow: 1, description: 'Fuga', amount: 45, matches: [match({})] },
@@ -148,7 +167,7 @@ describe('ExpenseDraftDuplicateHints', () => {
   it('names a match from this same zgłoszenie by its row, and drops it once that row is refused', () => {
     const twin = match({ key: 'draft-42-1', source: 'draft', id: 42, readRows: [1] })
     const hints = (twinStatus: ParagonRowT['status']) => (
-      <ExpenseDraftDuplicateHints
+      <Hints
         paragons={oneParagon([twin])}
         draftId={42}
         itemId="row-a"
@@ -168,6 +187,23 @@ describe('ExpenseDraftDuplicateHints', () => {
     expect(screen.getByText('Pozycja 2 tego zgłoszenia')).toBeInTheDocument()
 
     rerender(hints('rejected'))
+    expect(screen.queryByText('Możliwe duplikaty')).toBeNull()
+  })
+
+  it('drops a match from this same zgłoszenie once a merge put both paragony in this row', () => {
+    render(
+      <Hints
+        paragons={oneParagon([
+          match({ key: 'draft-42-1', source: 'draft', id: 42, readRows: [1] }),
+        ])}
+        draftId={42}
+        itemId="row-a"
+        paragonOfReadRow={onRowA}
+        onMarkDuplicate={vi.fn()}
+        renderRow={renderRow}
+      />,
+    )
+
     expect(screen.queryByText('Możliwe duplikaty')).toBeNull()
   })
 
@@ -213,7 +249,7 @@ describe('ExpenseForm with duplicate hints', () => {
           values: expenseValues({ lineItems: items }),
         }}
         wrapLineItem={({ itemId, markDuplicate, paragonOfReadRow, renderRow }) => (
-          <ExpenseDraftDuplicateHints
+          <Hints
             paragons={paragons}
             draftId={42}
             itemId={itemId}

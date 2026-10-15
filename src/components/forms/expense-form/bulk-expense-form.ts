@@ -45,6 +45,9 @@ export type ReceiptGroupingT = {
   onDecide?: (ids: string[], decision: 'accept' | 'reject') => void
   // A booking files the pages as its invoices; a refusal names them by id and needs none.
   isAcceptBlocked?: (id: string) => boolean
+  // Merge and split rebuild a row's files from the downloaded pages; with none, they would drop the
+  // file added by hand that lifts `isAcceptBlocked`.
+  isRegroupBlocked?: boolean
   // The paragon's place in the worker's photos, so the rows keep the worker's order.
   readRowOf: (id: string) => number | undefined
   statusOf: (id: string) => DecisionStatusT

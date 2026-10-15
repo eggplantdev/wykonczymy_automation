@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { FileInput } from '@/components/ui/file-input'
 import { useObjectUrls } from '@/hooks/use-object-urls'
 import { FieldLabel } from '@/components/ui/field'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { cn } from '@/lib/utils/cn'
 

@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
-import { LineItemInvoiceField } from '@/components/forms/form-fields/line-item-invoice-field'
+import { LineItemInvoiceField } from '@/components/forms/expense-form/line-item-invoice-field'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils/cn'
 import {
@@ -37,7 +37,7 @@ import {
   type BulkLineItemT,
   type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import { CollapsibleLineItem } from '@/components/forms/form-fields/collapsible-line-item'
+import { CollapsibleLineItem } from '@/components/forms/expense-form/collapsible-line-item'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
@@ -435,7 +435,7 @@ export function LineItemsField({
                   variant="outline"
                   className="sm:mt-6"
                   onClick={() => receiptGrouping.onSplit(item.id)}
-                  disabled={receiptGrouping.disabled}
+                  disabled={receiptGrouping.disabled || receiptGrouping.isRegroupBlocked}
                 >
                   <Unlink />
                   Rozłącz

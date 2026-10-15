@@ -42,7 +42,7 @@ export function ReceiptSelectionActions({
           type="button"
           variant="outline"
           size="sm"
-          disabled={ids.length < 2 || disabled}
+          disabled={ids.length < 2 || disabled || grouping.isRegroupBlocked}
           onClick={grouping.onMerge}
         >
           Połącz zaznaczone w 1 transakcję
