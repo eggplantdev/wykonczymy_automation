@@ -2677,3 +2677,19 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   from memory: a shared primitive (`Combobox`, `SimpleSelect`, …) carries its own `text-*`. The same
   applies to any other custom utility that overlaps a stock Tailwind group.
 - **Applies to**: implement, impl-review, simplify, tailwind-v4-audit
+
+## The root layout renders twice per request — a shell read without React `cache()` runs twice
+
+- **Context**: EX-1019 round-trip audit (2026-10-15), measured with a per-statement SQL log on a local
+  `next start` against the preview DB.
+- **Problem**: every management request ran the six badge counts in `(frontend)/layout.tsx` **twice**:
+  12 statements per document, RSC navigation and `router.refresh`. Next 16 renders the root layout a
+  second time for the root not-found fallback. The counts went through no cache, so the second render
+  repeated them all. With a pg pool of **10** per instance, that took more than the whole pool before
+  the page issued its first read.
+- **Rule**: a read in the root layout (or anything it renders) is wrapped in React `cache()`, even
+  when it is uncached by design. Per-request dedup is exactly what the second render needs. Count a
+  shell's statements with a log, not by reading the code: the duplication is invisible in source.
+  When measuring cold loads, `unstable_cache` survives a restart in `.next/cache/fetch-cache`; clear it,
+  or the "cold" run is warm.
+- **Applies to**: implement, impl-review — any read added to the app shell or a layout; any perf measurement

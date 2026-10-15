@@ -5768,3 +5768,31 @@ inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
       pozycję: wpisana wartość zostaje po odświeżeniu strony.
 - [ ] „Wersje” → przywróć wcześniejszą wersję (z siecią): siatka przebudowuje się na przywróconą
       wersję, jak dotąd.
+
+## EX-1019 — roundtrip-audit — mniej zapytań na stronę i lżejsza strona (bez zmiany wyglądu)
+
+Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
+
+- [ ] Menu (dzwonek / liczniki przy „Zgłoszenia”, „Zgłoszone wydatki”, „Wypłaty” itd.) jako
+      zarząd: liczby zgadzają się z liczbą pozycji na tych listach; po obsłużeniu jednej pozycji
+      licznik spada o 1 po odświeżeniu.
+- [ ] Transakcje (`/`) jako OWNER: kafelki kas, „Zgłoszone wydatki” i „Odrzucone wypłaty” są nad
+      tabelą jak wcześniej; filtry (kasa, inwestycja, pracownik, typ) mają te same opcje co przed
+      zmianą — MANAGER widzi tylko widoczne kasy i aktywne inwestycje.
+- [ ] Inwestycja → widok v2 (domyślny): strona i podsumowanie ładują się; przełącz na v1: kafelki
+      v1 (materiały, robocizna, marża, bilans) pokazują te same kwoty co przed zmianą.
+- [ ] Lista inwestycji (`/inwestycje`): kolumny Robocizna v1 / v2, Marża, Bilans i „Pozostało do
+      wypłaty” mają te same wartości co na stagingu przed zmianą dla 2–3 inwestycji.
+- [ ] Inwestycja z notatką i z notatkami AI: notatka i „Notatki AI” widoczne na stronie inwestycji,
+      w edytorze kosztorysu → panel Podsumowanie → zakładka „Inwestycja”.
+- [ ] „Edytuj inwestycję” (ze strony inwestycji, z zakładki „Inwestycja” w kosztorysie i z wiersza
+      listy inwestycji): pole „Notatki” jest wypełnione prawdziwą notatką; zapisz bez zmian —
+      notatka zostaje.
+- [ ] Edytuj notatkę na stronie inwestycji → zapisz: nowa treść widoczna od razu i po przejściu na
+      listę inwestycji → „Edytuj inwestycję”.
+- [ ] Pracownik (EMPLOYEE) na telefonie (390px) → własna strona `/pracownicy/[id]`: transakcje
+      wyświetlają się, bez kolumny akcji, jak wcześniej.
+- [ ] Link pracownika do zgłoszenia prac (`/z/…`): otwiera się i wysyła zgłoszenie; dla inwestycji
+      zakończonej / w koszu / szablonu pokazuje ten sam komunikat odmowy co przed zmianą.
+- [ ] Pracownik → „Zgłoś wydatek” ze zdjęciem → wyślij: dialog zamyka się, zgłoszenie od razu
+      widoczne na liście bez ręcznego odświeżania.
