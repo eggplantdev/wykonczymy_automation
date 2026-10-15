@@ -145,6 +145,21 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   a reference count of 0 means "safe to ignore", a count of 1 means "an invoice is missing".
   **The bytes survive in the preview store**, which is a point-in-time copy of production, so the
   recovery path is a targeted pull from preview rather than an FTP restore.
+- **The reverse case — a row with a live blob that nothing references — is a known, unswept leak.**
+  On 2026-10-15 production held **104** such `media` rows of 2445 (no row in any of the seven
+  `media_id` FK tables except `payload_locked_documents_rels`), almost all created 2026-04…08, all with
+  no `kind`; only 2 in the preceding 30 days, both invoices. Nothing sweeps them, because
+  `deleteUnreferencedMedia` runs only on a write that drops a reference. A sweep cron would delete
+  those 104 old invoices from a store with no undelete, so it waits on an owner decision (raised in
+  EX-1023's planning).
+  One known source is the reclaim itself: it is best-effort per id, so one `payload.delete` that throws
+  is logged as `[media] delete unreferenced media failed` and its row and blob stay. The EX-1014
+  harness hit this 4 times in ~16 runs of „add 10 photos → Usuń wszystkie" back to back. Ids from
+  consecutive runs were exactly 10 apart, so no extra row was created: one attached photo survived
+  its reclaim. The reclaim ran in `after()` while the next run was already uploading to the same
+  investment. Why that one delete threw was never established: the preview DB was re-restored and
+  the logs had expired before anyone looked. If it recurs, grep the Vercel runtime logs for that line
+  the same day, before any preview restore. Production showed no gallery-shaped orphan.
 
 ### The Hobby plan cannot execute a restore (found the hard way, 2026-08-19)
 
