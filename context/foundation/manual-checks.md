@@ -4585,14 +4585,14 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 ## EX-1010 — catalogue-usage-counter — podpowiedź „Kosztorysy” z aktualizacją przedmiaru, bez filtrów użycia
 
-- [ ] Katalog prac → najedź na nagłówek „Kosztorysy”: podpowiedź mówi „Przedmiar, aktualizację przedmiaru albo ilość w etapach”.
-- [ ] Katalog prac → „Filtry”: nie ma już grup „Kosztorysy” ani „Szablony”; zostały „Źródło stawki” i „Udział w cenie”. Sortowanie kolumn „Kosztorysy” i „Szablony” od 0 nadal działa.
-- [ ] Ktoś, kto wcześniej zostawił włączony filtr „w kosztorysach”: po wejściu na katalog tabela pokazuje wszystkie prace, bez chipa tego filtra.
+- [x] Katalog prac → najedź na nagłówek „Kosztorysy”: podpowiedź mówi „Przedmiar, aktualizację przedmiaru albo ilość w etapach”.
+- [x] Katalog prac → „Filtry”: nie ma już grup „Kosztorysy” ani „Szablony”; zostały „Źródło stawki” i „Udział w cenie”. Sortowanie kolumn „Kosztorysy” i „Szablony” od 0 nadal działa.
+- [x] Ktoś, kto wcześniej zostawił włączony filtr „w kosztorysach”: po wejściu na katalog tabela pokazuje wszystkie prace, bez chipa tego filtra.
 
 ## EX-1065 — catalogue-auto-translate — nocny cron dotłumacza katalog prac
 
-- [ ] Katalog prac z pracą bez tłumaczenia (licznik przy „Uzupełnij tłumaczenia (AI)” > 0) → wywołaj `GET /api/cron/translate-catalogue` z nagłówkiem `Authorization: Bearer <CRON_SECRET>`: odpowiedź `ok: true` z liczbą `items`, a po odświeżeniu katalogu licznik spada do 0 i praca ma tłumaczenie.
-- [ ] To samo wywołanie bez nagłówka zwraca 401 i nic nie tłumaczy.
+- [x] Katalog prac z pracą bez tłumaczenia (licznik przy „Uzupełnij tłumaczenia (AI)” > 0) → wywołaj `GET /api/cron/translate-catalogue` z nagłówkiem `Authorization: Bearer <CRON_SECRET>`: odpowiedź `ok: true` z liczbą `items`, a po odświeżeniu katalogu licznik spada do 0 i praca ma tłumaczenie.
+- [x] To samo wywołanie bez nagłówka zwraca 401 i nic nie tłumaczy.
 - [ ] Katalog prac → „Uzupełnij tłumaczenia (AI)” nadal tłumaczy i zeruje licznik, jak dotąd.
 - [ ] Vercel → Settings → Cron Jobs po wdrożeniu na produkcję: jest `/api/cron/translate-catalogue` o `0 2 * * *`.
 
@@ -6072,19 +6072,26 @@ Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
 
 ## EX-1066 — investment-status-rejected — status „Odrzucona” + inwestycje w formularzach przelewów
 
-- [ ] Formularz inwestycji (konto MANAGER): status „Odrzucona” jest do wyboru; Wycena → Odrzucona
+- [x] Formularz inwestycji (konto MANAGER): status „Odrzucona” jest do wyboru; Wycena → Odrzucona
       → Wycena zapisuje się za każdym razem.
-- [ ] Lista inwestycji: inwestycja Odrzucona jest domyślnie ukryta; po zaznaczeniu „Odrzucona”
+- [x] Lista inwestycji: inwestycja Odrzucona jest domyślnie ukryta; po zaznaczeniu „Odrzucona”
       w filtrze statusu pojawia się z różowym badge'em i wyszarzona jak Zakończona.
-- [ ] „Dodaj wpłatę” i „Dodaj wydatek”: pole Inwestycja pokazuje tylko Aktywne i Planowane (bez
+- [x] „Dodaj wpłatę” i „Dodaj wydatek”: pole Inwestycja pokazuje tylko Aktywne i Planowane (bez
       Wycen, Odrzuconych, Zakończonych) i nie ma checkboxa „Aktywne / Wszystkie”.
-- [ ] „Dodaj wydatek” ze strony inwestycji w Wycenie zostawia Inwestycję pustą; ze strony Aktywnej
+- [x] „Dodaj wydatek” ze strony inwestycji w Wycenie zostawia Inwestycję pustą; ze strony Aktywnej
       albo Planowanej jest wybrana.
-- [ ] Edycja przelewu zaksięgowanego na inwestycji w Wycenie: pole pokazuje tę inwestycję, zapis bez
+- [x] Edycja przelewu zaksięgowanego na inwestycji w Wycenie: pole pokazuje tę inwestycję, zapis bez
       zmiany pola ją zostawia, a lista poza nią ma tylko Aktywne i Planowane.
-- [ ] Wybór celu sprzętu nadal ma checkbox „Aktywne / Wszystkie”.
-- [ ] Tabela transakcji: przy przelewie na inwestycji w Wycenie przyciski edycji i anulowania są
+- [x] Wybór celu sprzętu nadal ma checkbox „Aktywne / Wszystkie”.
+- [x] Tabela transakcji: przy przelewie na inwestycji w Wycenie przyciski edycji i anulowania są
       aktywne.
+### Findings — 2026-10-15 (pass całego rejestru, staging, deploy 409e612d3)
+
+Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marszałkowska 55/73 lok 75 - Agatha” Wycena → Odrzucona → Wycena, przywrócona do `quote`), EX-1010 ×3 i EX-1065 (cron bez nagłówka 401; z `CRON_SECRET` `ok:true, items:5` i licznik → 0).
+
+- [x] **EX-1065 „Uzupełnij tłumaczenia (AI)” nieprzeklikany** — dropped: nie defekt, tylko brak stanu (cron wyzerował licznik); sam boks zostaje otwarty w sekcji EX-1065 i to on jest długiem.
+- [x] **~100 pozostałych boksów wymaga telefonu / PWA / push / Safari / druku / maila / produkcji** — dropped jako finding: nie defekt, każdy boks zostaje otwarty w swojej sekcji.
+
 
 ## 2026-10-15 — investment-status-badge — status na stronie inwestycji jako badge
 
