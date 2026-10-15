@@ -2221,7 +2221,11 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   the switch, same wiring as `connect.js`: tx A commit + overlapping tx B rollback lost A's row and
   kept B's in **20/20** runs; `FOR UPDATE` held with two transactions but, with a third on the pool,
   **hung** 7/10 (a lock wait Postgres cannot see as a deadlock — the cycle runs through the JS client)
-  or **lost the update** 9/10. A `pg.Pool` passed all of it. The overlap rule above is lifted; what
+  or **lost the update** 9/10. After the switch, the same probes through the new adapter on the same
+  DB (2026-10-14): the client is `instanceof pg.Pool`, every transaction runs on **1 backend pid and
+  1 txid**, the rollback isolates **20/20**, `FOR UPDATE` serialises **10/10** with no hang. The
+  probes (`payload-adapter-probe.ts`, `tx-*-repro.mjs`) live outside git in
+  `~/.local/share/wykonczymy-ex855/` — rerun them on any adapter change. The overlap rule above is lifted; what
   stays is the check: **any change of DB adapter or driver re-verifies that the client is an
   `instanceof` the `pg` copy Drizzle imports** — a pool with the right shape and the wrong class
   turns every transaction into `pool.query()` without one error.
