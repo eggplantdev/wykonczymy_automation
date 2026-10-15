@@ -30,7 +30,8 @@ type ComputedCellDataT = {
 // ({rowData}) => …` is a fresh function type on each assembleV2Columns call (every render), which
 // makes react-datasheet-grid remount each computed cell's DOM instead of reconciling it — the
 // per-cell compute/format travels via `columnData` instead. Not a remount `key` (see EX-422,
-// lessons.md:119-135): identity is stabilised, the grid stays reactive.
+// lessons.md, „react-datasheet-grid: the API facts that bit"): identity is stabilised, the grid
+// stays reactive.
 function ComputedCell({ rowData, columnData }: CellProps<KosztorysV2RowT, ComputedCellDataT>) {
   const { compute, tone, emphasize, format, tip } = columnData
   const resolvedTone = typeof tone === 'function' ? tone(rowData) : tone

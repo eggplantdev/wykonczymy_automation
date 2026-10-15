@@ -46,7 +46,7 @@ import type { InvestmentWithNotesT } from '@/types/reference-data'
 //
 // Both sides read robocizna and rabat from the KOSZTORYS, because that is the plane the listing is
 // on; the v1 cards render the transactions plane by design. What this guards is `shapeInvestments`
-// drifting from the detail formulas (lessons.md:19).
+// drifting from the detail formulas (lessons.md, „A parity test runs the real per-surface code").
 //
 // Skips with no DB env, FAILS if env is set but the DB is unreachable. Run via `pnpm test:parity`.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -165,8 +165,9 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       if (transactionFin.materialsNetDiscount !== 0) covered.concession++
 
       // The REAL row builder, not a re-derivation of its formulas — a figure wrong ONLY inside
-      // `shapeInvestments` is what slipped past this spec before (lessons.md:19). Through it even
-      // with no transfers: the listing renders such an investment too.
+      // `shapeInvestments` is what slipped past this spec before (lessons.md, „A parity test runs
+      // the real per-surface code"). Through it even with no transfers: the listing renders such
+      // an investment too.
       const listingFin = listingMap.get(inv.id)
       const [listingRow] = shapeInvestments(
         [inv],
