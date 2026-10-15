@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from '@/hooks/use-translation'
 import { setMediaKindAction } from '@/lib/actions/media-kind'
 import { toastMessage } from '@/lib/utils/toast'
 import type { MediaFileT, PreviewFileT } from '@/types/media'
@@ -14,6 +15,7 @@ import type { MediaFileT, PreviewFileT } from '@/types/media'
  */
 export function usePlanMarker(files: MediaFileT[]) {
   const [markedIds, setMarkedIds] = useState<number[]>([])
+  const { t } = useTranslation('media')
 
   const isMarked = (file: PreviewFileT) =>
     file.id !== undefined &&
@@ -34,18 +36,18 @@ export function usePlanMarker(files: MediaFileT[]) {
         return
       }
     } catch {
-      toastMessage('Nie udało się oznaczyć pliku — spróbuj ponownie.', 'error')
+      toastMessage(t('markFailed'), 'error')
       return
     }
 
     setMarkedIds((current) => [...current, id])
-    toastMessage('Plik oznaczony do analizy AI', 'success')
+    toastMessage(t('markedForAiToast'), 'success')
   }
 
   return {
     isMarked,
     onMark: (file: PreviewFileT) => void mark(file),
-    label: 'Oznacz do analizy AI',
-    markedLabel: 'Oznaczony do analizy AI',
+    label: t('markForAi'),
+    markedLabel: t('markedForAi'),
   }
 }

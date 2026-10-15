@@ -576,6 +576,10 @@ export const pl = {
     isPlan: 'Do analizy AI',
     planHint:
       'Zaznacz, jeśli AI ma analizować te pliki — rzuty, projekty, zdjęcia poglądowe. Nieoznaczonych AI nie widzi.',
+    markForAi: 'Oznacz do analizy AI',
+    markedForAi: 'Oznaczony do analizy AI',
+    markedForAiToast: 'Plik oznaczony do analizy AI',
+    markFailed: 'Nie udało się oznaczyć pliku — spróbuj ponownie.',
     uploadFailedRetry: 'Nie udało się przesłać pliku — spróbuj ponownie.',
     ingestFailed: 'Nie udało się przetworzyć pliku — spróbuj ponownie.',
     convertFailed: 'Nie udało się przekonwertować „{{name}}” — zapisz jako JPG i spróbuj ponownie.',

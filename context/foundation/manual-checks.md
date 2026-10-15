@@ -5779,6 +5779,8 @@ inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
 
 ## 2026-10-15 — media-preview-pdf-preload — podgląd PDF nie kręci się bez końca + wczytywanie sąsiednich stron
 
+- [ ] To samo na koncie z językiem Українська: przycisk „Позначити для аналізу AI”, toast
+      „Файл позначено для аналізу AI”, po kliknięciu „Позначено для аналізу AI” — bez polskich napisów.
 - [ ] Inwestycja z dokumentacją, w której pierwszy plik to PDF (np. rzut) → „Dokumentacja inwestycji”:
       PDF pokazuje się po chwili, spinner znika, nic nie kręci się bez końca — także przy pierwszym
       otwarciu, na zimno.
