@@ -123,7 +123,7 @@ describe('worker transfer scope → stats SQL', () => {
   })
 
   // The list goes through Payload, whose parseParams keeps only the LAST of a top-level `or` and
-  // `and` — the „Kasa” filter vanished from /pracownicy/[id] while the stats (ours) applied it.
+  // `and`.
   it('never leaves the kasa filter as a top-level `or` beside the scope', () => {
     const where = buildWorkerTransferWhere(
       buildTransferFilters({ sourceRegister: '99' }, { id: 1 }),
@@ -360,9 +360,8 @@ describe('narrowToTransferIds', () => {
     expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
   })
 
-  // Payload's drizzle parseParams keeps only the LAST of top-level `or` / `and` — the register
-  // scope (an `or` of source/target) vanished under „Zgłoszone wydatki” on /kasa/[id] and the
-  // dashboard's register filter. Our translator ANDs both, so this is pinned on the Where.
+  // Payload's drizzle parseParams keeps only the LAST of top-level `or` / `and`. Our translator ANDs
+  // both, so this is pinned on the Where.
   it('never leaves a top-level `or` beside the `and` it adds', () => {
     const where = narrowToTransferIds(
       buildTransferFilters({ sourceRegister: '50' }, { id: 0 }),

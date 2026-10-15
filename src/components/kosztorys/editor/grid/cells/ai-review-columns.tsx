@@ -79,7 +79,7 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   return {
     id: 'reviewStatus',
     title: titleNode,
-    // The recheck badge's full label needs ~190px; at 150 it always ended in „…”.
+    // The recheck badge's full label needs ~190px.
     minWidth: 200,
     ...AI_REVIEW_COLUMN_CLASS,
     component: ReviewStatusCell,
@@ -90,7 +90,6 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   }
 }
 
-// Komentarz AI and Nowe informacje read alike: the label plain, the answer bold, a gap between lines.
 function AiLabelledLines({ lines }: { lines: { label: string | null; answer: string }[] }) {
   if (lines.length === 0) return null
   return (

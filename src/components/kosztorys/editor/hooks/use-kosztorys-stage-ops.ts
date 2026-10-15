@@ -121,7 +121,7 @@ export function useKosztorysStageOps({
       const trimmed = label.trim()
       patchStageField(stageId, 'label', trimmed === '' ? null : trimmed, 'stage-label')
     },
-    // Fired from the header's onValueChange (an event handler, never inside a state updater). Picking
+    // Fired from the header's onCheckedChange (an event handler, never inside a state updater). Picking
     // any plane (even the default w_tools) writes it, which is what clears the unconfirmed warning.
     setPlane(stageId, plane) {
       patchStageField(stageId, 'plane', plane, 'stage-plane')

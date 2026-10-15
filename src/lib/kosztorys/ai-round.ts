@@ -1,5 +1,4 @@
-// A later AI round (EX-1057) appends one block per pozycja it moved to „Nowe informacje”. The rules
-// live here so the local loader and the production SQL loader can't drift apart.
+// The rules live here so the local loader and the production SQL loader can't drift apart.
 
 export const ROUND_BLOCK_SEPARATOR = '\n\n'
 

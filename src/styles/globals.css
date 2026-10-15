@@ -276,8 +276,6 @@
   }
 }
 
-/* The section band's title, one step above the rows at every size so it still reads as a heading
-   without towering over them. */
 @utility grid-band-text {
   font-size: var(--grid-band-text-phone, var(--text-sm));
 

@@ -82,8 +82,8 @@ export function StageHeader({
 
   const completedMark = stage.completed && <StageCompletedMark />
 
-  // No ops = a read-only mount (preview): render the bare label, no menu/rename/delete AND no plane
-  // icon or warning — the rozliczenie is internal subcontractor information, never client-facing.
+  // No ops = a read-only mount (preview): no plane icon or warning — the rozliczenie is internal
+  // subcontractor information, never client-facing.
   if (!ops) {
     return (
       <span className="inline-flex min-w-0 items-center gap-1 px-1">

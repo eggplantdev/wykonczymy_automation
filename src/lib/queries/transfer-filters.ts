@@ -198,7 +198,7 @@ export function narrowToTransferIds(
 /**
  * Add `conditions` under `and`, keeping the other leaves top-level where their readers look. A
  * top-level `or` moves into the `and` list: Payload's drizzle parseParams keeps only the LAST of a
- * top-level `or` and `and`, so leaving both drops one silently — the kasa filter's `or` vanished.
+ * top-level `or` and `and`, so leaving both drops one silently.
  */
 export function andWith(where: Where, ...conditions: Where[]): Where {
   const { or, and = [], ...rest } = where

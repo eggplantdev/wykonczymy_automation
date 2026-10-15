@@ -76,7 +76,6 @@ describe('applyReviewRules — scope', () => {
 })
 
 describe("applyReviewRules — a later round's recheck flag (EX-1057)", () => {
-  // The round moved AI przedmiar from 3 to 10 after the owner had accepted 3.
   const flagged = row({
     aiPlannedQty: 10,
     plannedQty: 3,
