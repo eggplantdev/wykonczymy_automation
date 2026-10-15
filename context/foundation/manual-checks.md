@@ -6114,3 +6114,22 @@ Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marsz
       pozycję” są jak dotąd.
 - [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
       nadal jest i otwiera okno zapisu do katalogu.
+- [ ] Szablony → „Nowy szablon”, zmiana nazwy, otwarcie: działa; nazwa już zajęta (także przez szablon
+      w koszu) jest odrzucana.
+- [ ] Kosztorys z pracą spoza katalogu → „Zapisz jako szablon”: zapisany, ostrzeżenie wymienia pominiętą
+      pracę.
+- [ ] „Nadpisz” istniejący szablon: zastąpiony; w „Wersjach” tego szablonu jest „Przed nadpisaniem: …”.
+- [ ] Nowa inwestycja z szablonu (także z leada): kosztorys ma sekcje i prace szablonu, przedmiar 0.
+- [ ] Kosztorys → „Wczytaj szablon…” i „Sekcja z szablonu…”: właściwe sekcje i prace.
+- [ ] Katalog prac → usuń pracę, która stoi w szablonie: znika z szablonu; kolumna „Szablony” liczy
+      szablony poprawnie.
+- [ ] Szablon → „Zapisz wersję”, zmień coś, „Przywróć”: układ wraca, opisy w dzisiejszym brzmieniu
+      katalogu.
+- [ ] Usuń z katalogu pracę, przywróć wersję szablonu, która ją miała: przywrócona bez niej,
+      z ostrzeżeniem.
+- [ ] Szablony → „Do kosza”: znika z listy i ze wszystkich pickerów szablonu; w `/kosz` widać go jako
+      szablon. Przywrócenie: wraca z pracami i wersjami. „Usuń na zawsze” pyta o nazwę.
+- [ ] Lista inwestycji, filtr statusu, formularz inwestycji: brak opcji „Szablon”; reszta jak dotąd.
+- [ ] Raport pracownika i pickery wypłat: bez zmian dla prawdziwych inwestycji; szablony się w nich
+      nie pojawiają.
+- [ ] Ładowarka kosztorysu AI na szablonie (lokalnie): pozycje w brzmieniu katalogu, bez duplikatów.

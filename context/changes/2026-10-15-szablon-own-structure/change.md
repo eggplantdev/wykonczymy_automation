@@ -1,7 +1,7 @@
 ---
 change_id: szablon-own-structure
 title: Szablon — własna struktura danych zamiast pozycji kosztorysu z martwą kopią
-status: implementing
+status: implemented
 created: 2026-10-15
 updated: 2026-10-15
 archived_at: null

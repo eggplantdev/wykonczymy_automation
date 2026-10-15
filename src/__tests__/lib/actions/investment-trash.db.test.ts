@@ -9,7 +9,6 @@ import {
   TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE,
 } from '@/lib/constants/trash'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
 // Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a

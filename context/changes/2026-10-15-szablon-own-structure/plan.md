@@ -636,8 +636,8 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [ ] 8.1 No reference to deleted scripts (Whole-tree Gate typecheck)
-- [x] 8.2 The two one-off scripts are deleted
+- [x] 8.1 No reference to deleted scripts (Whole-tree Gate typecheck)
+- [x] 8.2 The two one-off scripts are deleted — 493371787
 
 ### Phase 9: Migration 2 — after the deploy is live
 

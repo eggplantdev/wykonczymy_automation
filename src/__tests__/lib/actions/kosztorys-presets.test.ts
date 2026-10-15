@@ -461,7 +461,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     const res = await db.execute(sql`
       SELECT s.name,
              coalesce(array_agg(w.description ORDER BY i.display_order, i.id)
-                        FILTER (WHERE i.id IS NOT NULL), '{}') AS prace
+                        FILTER (WHERE i.id IS NOT NULL), '{}') AS items
       FROM template_sections s
       LEFT JOIN template_items i ON i.section_id = s.id
       LEFT JOIN work_catalogue_items w ON w.id = i.catalogue_item_id
@@ -471,7 +471,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     `)
     return res.rows.map((row) => ({
       name: String(row.name),
-      prace: (row.prace as unknown[]).map(String),
+      items: (row.items as unknown[]).map(String),
     }))
   }
 
@@ -482,7 +482,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     return res.rows.map((row) => row.label)
   }
 
-  const SOURCE_LAYOUT = () => [{ name: 'Łazienka', prace: [tiles] }]
+  const SOURCE_LAYOUT = () => [{ name: 'Łazienka', items: [tiles] }]
 
   // Never written into the katalog on the way: that would put one client's price in the cennik.
   it.each(['new', 'overwrite'] as const)(
@@ -516,7 +516,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
         warning: 'Pominięto 1 pracę spoza katalogu — najpierw zapisz je do katalogu.',
       })
       const presetId = targetId ?? Number((await templateByName(name))[0].id)
-      expect(await layoutOf(presetId)).toEqual([{ name: 'Kuchnia', prace: [linked] }])
+      expect(await layoutOf(presetId)).toEqual([{ name: 'Kuchnia', items: [linked] }])
       const typedInCatalogue = await db.execute(sql`
         SELECT 1 FROM work_catalogue_items WHERE match_key = ${catalogueKey(typed, 'm2')}
       `)
@@ -615,7 +615,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
       success: false,
       error: 'Nie znaleziono szablonu',
     })
-    expect(await layoutOf(trashed)).toEqual([{ name: 'W koszu', prace: [] }])
+    expect(await layoutOf(trashed)).toEqual([{ name: 'W koszu', items: [] }])
   })
 
   it('„Nadpisz” replaces the target’s layout and leaves it a version „Przed nadpisaniem”', async () => {

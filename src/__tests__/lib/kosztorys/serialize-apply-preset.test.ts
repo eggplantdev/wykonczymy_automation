@@ -147,7 +147,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   const entryIds: number[] = []
 
   // A szablon of two sekcje and three katalog prace.
-  async function createTemplateWithPrace(name: string) {
+  async function createTemplateWithItems(name: string) {
     const id = await createTestTemplate(payload, `${PRESET_PREFIX}${name}`)
     templateIds.push(id)
     const entries = [
@@ -227,7 +227,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   })
 
   it('seed from a szablon yields its prace, with no etapy, no progress, no przedmiar and no rabat', async () => {
-    const presetId = await createTemplateWithPrace('oneetap')
+    const presetId = await createTemplateWithItems('oneetap')
 
     const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-oneetap`, 0.23, 0.7, 0.5)
     expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
@@ -246,7 +246,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   })
 
   it('seed onto an investment that already has etapy keeps them and adds none', async () => {
-    const presetId = await createTemplateWithPrace('hasetapy')
+    const presetId = await createTemplateWithItems('hasetapy')
 
     // The live shape behind the original bug: an empty tree (no sections) that nonetheless already
     // carries etapy, because „Dodaj etap" works on an empty kosztorys.
@@ -266,7 +266,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   })
 
   it('seed rejects a non-empty investment and writes nothing', async () => {
-    const presetId = await createTemplateWithPrace('guard')
+    const presetId = await createTemplateWithItems('guard')
 
     // A second investment that ALREADY has a tree — seeding it must be refused.
     const occupiedId = await createInvestment(`${PRESET_PREFIX}target-guard`, 0.23, 0.7, 0.5)
@@ -289,7 +289,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   })
 
   it('editing a szablon never propagates to a tree already spawned from it', async () => {
-    const presetId = await createTemplateWithPrace('frozen')
+    const presetId = await createTemplateWithItems('frozen')
 
     const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-frozen`, 0.23, 0.7, 0.5)
     expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
