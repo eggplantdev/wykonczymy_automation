@@ -12,6 +12,7 @@ import { usePreviewLabels } from '@/hooks/use-preview-labels'
 import { useTranslation } from '@/hooks/use-translation'
 import { dedupeFilename } from '@/lib/media/file-archive'
 import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
+import { fetchPdfObjectUrl } from '@/lib/media/pdf-object-url'
 import { splitExtension } from '@/lib/utils/append-short-id'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
 import {
@@ -112,28 +113,39 @@ export function MediaPreviewDialog({
       if (pending > 0) return
       printThenClose(printWindow)
     }
+    const load = (media: HTMLImageElement | HTMLIFrameElement, src: string) => {
+      media.addEventListener('load', onPageReady, { once: true })
+      media.addEventListener('error', onPageReady, { once: true })
+      media.src = src
+    }
+    const objectUrls: string[] = []
+    printWindow.addEventListener('afterprint', () => objectUrls.forEach(URL.revokeObjectURL))
 
     for (const file of printable) {
-      let media: HTMLImageElement | HTMLIFrameElement
       if (isImageMime(file.mimeType)) {
         const img = doc.createElement('img')
-        img.src = file.url
         img.alt = file.filename ?? displayName
         img.style.maxWidth = '100%'
         img.style.height = 'auto'
-        media = img
-      } else {
-        const frame = doc.createElement('iframe')
-        frame.src = file.url
-        frame.style.width = '100%'
-        frame.style.height = '100vh'
-        frame.style.border = 'none'
-        media = frame
+        doc.body.appendChild(img)
+        load(img, file.url)
+        continue
       }
-
-      media.addEventListener('load', onPageReady)
-      media.addEventListener('error', onPageReady)
-      doc.body.appendChild(media)
+      // Appended at once to keep the page order; its listeners wait for the src, so the empty
+      // frame's own about:blank `load` is not counted as this page.
+      const frame = doc.createElement('iframe')
+      frame.style.width = '100%'
+      frame.style.height = '100vh'
+      frame.style.border = 'none'
+      doc.body.appendChild(frame)
+      if (file.url.startsWith('blob:')) {
+        load(frame, file.url)
+        continue
+      }
+      fetchPdfObjectUrl(file.url).then((objectUrl) => {
+        objectUrls.push(objectUrl)
+        load(frame, objectUrl)
+      }, onPageReady)
     }
   }
 

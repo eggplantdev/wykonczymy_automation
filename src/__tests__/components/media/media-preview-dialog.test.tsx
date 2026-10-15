@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MediaPreviewDialog } from '@/components/dialogs/media-preview-dialog'
+import { MediaPreviewDialog } from '@/components/media/media-preview-dialog'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { PreviewFileT } from '@/types/media'
 

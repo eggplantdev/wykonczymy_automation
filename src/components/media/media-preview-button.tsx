@@ -4,11 +4,11 @@ import { useState } from 'react'
 import {
   MediaPreviewDialog,
   type MediaPreviewDialogPropsT,
-} from '@/components/dialogs/media-preview-dialog'
+} from '@/components/media/media-preview-dialog'
 import {
   MediaPreviewTrigger,
   type MediaPreviewTriggerPropsT,
-} from '@/components/dialogs/media-preview-trigger'
+} from '@/components/media/media-preview-trigger'
 import { usePreviewLabels } from '@/hooks/use-preview-labels'
 import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
 

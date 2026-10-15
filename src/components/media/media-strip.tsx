@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { FileText, ImageOff, Search, Trash2 } from 'lucide-react'
-import { MediaPreviewDialog } from '@/components/dialogs/media-preview-dialog'
+import { MediaPreviewDialog } from '@/components/media/media-preview-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { usePreviewLabels } from '@/hooks/use-preview-labels'

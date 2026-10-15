@@ -30,7 +30,7 @@ export function preloadPreviewNeighbours(
       preload(props.src, { as: 'image', imageSrcSet: props.srcSet, imageSizes: props.sizes })
     } else if (isPdfMime(file.mimeType)) {
       // `anonymous` is fetch()'s default mode and credentials, which is what lets
-      // `usePdfObjectUrl`'s plain fetch take over the preloaded response.
+      // `fetchPdfObjectUrl`'s plain fetch take over the preloaded response.
       preload(file.url, { as: 'fetch', crossOrigin: 'anonymous' })
     }
   }

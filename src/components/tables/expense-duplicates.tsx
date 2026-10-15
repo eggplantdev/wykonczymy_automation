@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { documentHref } from '@/lib/expense-duplicates/document-href'
 import { dayOf, isWeakMatch, type MatchReasonT } from '@/lib/expense-duplicates/match'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'

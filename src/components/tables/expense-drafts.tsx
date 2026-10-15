@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { SelectPageHeader, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
