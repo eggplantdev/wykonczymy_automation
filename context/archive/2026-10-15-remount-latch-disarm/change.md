@@ -1,10 +1,10 @@
 ---
 change_id: remount-latch-disarm
 title: The reseed latch disarms when an interrupted replace's refresh brings back the same tree
-status: implemented
+status: archived
 created: 2026-10-15
 updated: 2026-10-15
-archived_at: null
+archived_at: 2026-10-15T11:53:23Z
 branch: null
 worktree: null
 ---
