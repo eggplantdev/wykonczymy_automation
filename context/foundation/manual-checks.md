@@ -5714,3 +5714,11 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       w rozpisce na tej pozycji.
 - [ ] Po dodaniu do rozpiski → „Cofnij podmianę” → zamknij bez zapisu → otwórz ponownie: praca wraca do
       „Spoza rozpiski” (pusta pozycja zostaje w rozpisce).
+
+## EX-862 — usun-wszystkie-ukryte — „Usuń wszystkie” schowane w dokumentacji inwestycji do czasu kosza
+
+- [ ] Inwestycja z co najmniej dwoma plikami → „Dokumentacja (N)” → podgląd: nie ma przycisku
+      „Usuń wszystkie”; „Usuń ten plik” jest i po potwierdzeniu usuwa jeden plik.
+- [ ] To samo z edytora kosztorysu → panel Podsumowanie → zakładka „Inwestycja” → „Dokumentacja”:
+      brak „Usuń wszystkie”.
+- [ ] Transakcja z co najmniej dwoma fakturami → podgląd faktur: „Usuń wszystkie” nadal jest (bez zmian).

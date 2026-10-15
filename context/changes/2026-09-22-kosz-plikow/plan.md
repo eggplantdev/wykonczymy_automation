@@ -93,6 +93,11 @@ więc `media` puchnie do czasu fazy 2.
   trafia do kosza na 7 dni; kontraktowy docstring w `use-media-removal.ts:12` („każde usunięcie
   odzyskuje plik z Bloba, który nie ma undelete") opisuje stan sprzed zmiany i idzie razem z nimi.
   Docstring nad `LEAD_ASSET_REMOVAL_LABELS` też — jego pierwsze zdanie stoi na słowie „bezpowrotnie".
+- **„Usuń wszystkie" wraca do galerii inwestycji** (schowane 2026-10-15, EX-862): w
+  `use-investment-assets-removal.ts` dochodzą z powrotem `removeAll: () =>
+removeAllInvestmentAssetsAction(investmentId)` i etykieta `confirmAll`, a w
+  `investment-assets-control.tsx` prop `onRemoveAll={!isBusy && visibleFiles.length > 1 ?
+handleRemoveAll : undefined}`. Spec `offers no bulk removal, even with several files` odwraca się.
 - **Bez zmian, świadomie:** `deleteInvoiceMediaAfterDelete` (kasowanie wydatku kasuje fakturę od razu),
   `deleteOrphanedMediaAction` i rollback webhooka landingu (pliki nigdy nieprzypięte),
   `preventReferencedMediaDelete` (panel nie dostaje blokady).
@@ -233,6 +238,7 @@ Raz, po fazie 3 — nie po każdej fazie.
 - [ ] Faza 1 — `investment-assets.db.test.ts` odwrócony: plik przeżywa, wpis w koszu istnieje
 - [ ] Faza 1 — `transfer-actions.test.ts` (2 przypadki) przenosi asercję z `mockDelete` na zapis odpięcia
 - [ ] Faza 1 — `invoice-cell.test.tsx` + `investment-assets-control.test.tsx` na nowe zdanie
+- [ ] Faza 1 — „Usuń wszystkie" z powrotem w galerii inwestycji (EX-862) + odwrócony spec
 - [ ] Faza 2 — `MEDIA_RELATIONS` dostaje `relsTable`
 - [ ] Faza 2 — `src/lib/media/gc-media.ts` (zapisz sieroty → zalecz → skasuj szeregowo)
 - [ ] Faza 2 — `/api/cron/cleanup` dokłada krok `media`, `try/catch`, `maxDuration`
