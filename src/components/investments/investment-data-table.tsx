@@ -82,7 +82,9 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         storageKey="investments"
         initialSorting={INITIAL_SORTING}
         getRowHref={(row) => `/inwestycje/${row.id}`}
-        getRowClassName={(row) => (row.status === 'completed' ? 'opacity-50' : '')}
+        getRowClassName={(row) =>
+          row.status === 'completed' || row.status === 'rejected' ? 'opacity-50' : ''
+        }
         toolbar={({ table, columnVisibility: cv, ...order }) => {
           // Ticked unless the picker (or a previous untick) has switched one off — absent from the
           // stored state means visible, which is what „domyślnie zaznaczony" has to mean here.

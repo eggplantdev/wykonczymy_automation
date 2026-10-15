@@ -22,7 +22,7 @@ function hookArgs(
 }
 
 describe('guardTemplateStatus', () => {
-  it.each(['active', 'completed', 'planowana', 'quote'])(
+  it.each(['active', 'completed', 'planowana', 'quote', 'rejected'])(
     'refuses turning a %s investment into a szablon',
     (from) => {
       expect(() => guardTemplateStatus(hookArgs({ status: 'szablon' }, from))).toThrow(
@@ -31,7 +31,7 @@ describe('guardTemplateStatus', () => {
     },
   )
 
-  it.each(['active', 'completed', 'planowana', 'quote'])(
+  it.each(['active', 'completed', 'planowana', 'quote', 'rejected'])(
     'refuses turning a szablon into %s',
     (to) => {
       expect(() => guardTemplateStatus(hookArgs({ status: to }, 'szablon'))).toThrow(

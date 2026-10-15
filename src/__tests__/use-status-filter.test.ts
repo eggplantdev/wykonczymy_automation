@@ -9,6 +9,7 @@ const rows: RowT[] = [
   { id: 2, status: 'active' },
   { id: 3, status: 'completed' },
   { id: 4, status: 'quote' },
+  { id: 5, status: 'rejected' },
 ]
 
 const idsFor = (selected: InvestmentStatusT[]) =>
@@ -17,7 +18,7 @@ const idsFor = (selected: InvestmentStatusT[]) =>
     .sort()
 
 describe('filterByStatuses', () => {
-  it('default (planowana + quote + active) → hides completed', () => {
+  it('default (planowana + quote + active) → hides completed and rejected', () => {
     expect(idsFor(['planowana', 'quote', 'active'])).toEqual([1, 2, 4])
   })
 
@@ -37,8 +38,14 @@ describe('filterByStatuses', () => {
     expect(idsFor(['quote'])).toEqual([4])
   })
 
+  it('rejected only → only rejected', () => {
+    expect(idsFor(['rejected'])).toEqual([5])
+  })
+
   it('all selected → every row', () => {
-    expect(idsFor(['planowana', 'quote', 'active', 'completed'])).toEqual([1, 2, 3, 4])
+    expect(idsFor(['planowana', 'quote', 'active', 'completed', 'rejected'])).toEqual([
+      1, 2, 3, 4, 5,
+    ])
   })
 
   it('none selected → no rows', () => {
@@ -94,6 +101,13 @@ describe('selectionFrom — a map saved before quote existed', () => {
 
   it('keeps an explicit all-false empty', () => {
     expect([...selectionFrom({ planowana: false, active: false, completed: false })]).toEqual([])
+  })
+
+  // Unlike quote, rejected has no inherited flag: a declined offer stays hidden until ticked.
+  it('hides rejected from a map saved before it existed', () => {
+    expect(selectionFrom({ planowana: true, active: true, completed: true }).has('rejected')).toBe(
+      false,
+    )
   })
 
   it('lets a saved quote flag override planowana', () => {

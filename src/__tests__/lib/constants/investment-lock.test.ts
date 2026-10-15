@@ -10,6 +10,7 @@ describe('investment status gates', () => {
     ['planowana', true, false],
     ['quote', true, false],
     ['completed', false, true],
+    ['rejected', true, false],
     ['szablon', true, false],
   ] as const)('%s: bookable=%s locked=%s', (status, bookable, locked) => {
     expect(isBookableInvestment({ status })).toBe(bookable)

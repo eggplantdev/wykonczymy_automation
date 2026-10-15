@@ -75,12 +75,12 @@ export async function insertSnapshot(
   return Number(res.rows[0].id)
 }
 
-// The investments whose kosztorys may still change: szablony and completed (locked) fall out by
-// status, the trash by its own column.
+// The investments whose kosztorys may still change: szablony, completed (locked) and rejected (a
+// declined offer) fall out by status, the trash by its own column.
 export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
   const res = await db.execute(sql`
     SELECT id FROM investments
-    WHERE status NOT IN (${LOCKED_INVESTMENT_STATUS}, ${TEMPLATE_INVESTMENT_STATUS})
+    WHERE status NOT IN (${LOCKED_INVESTMENT_STATUS}, ${TEMPLATE_INVESTMENT_STATUS}, 'rejected')
       AND trashed_at IS NULL
     ORDER BY id
   `)
