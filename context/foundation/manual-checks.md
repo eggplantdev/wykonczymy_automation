@@ -5818,3 +5818,12 @@ Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
       zakończonej / w koszu / szablonu pokazuje ten sam komunikat odmowy co przed zmianą.
 - [ ] Pracownik → „Zgłoś wydatek” ze zdjęciem → wyślij: dialog zamyka się, zgłoszenie od razu
       widoczne na liście bez ręcznego odświeżania.
+
+## 2026-10-15 — workers-menu-scan-bottom — „Wczytaj zgłoszenie z kartki (AI)” na dole menu „Pracownicy”
+
+- [ ] Edytor kosztorysu → „Pracownicy”: pierwsza pozycja to „Zgłoszenia prac”, bez dopisku
+      „N do sprawdzenia” — także gdy są zgłoszenia czekające na sprawdzenie (licznik nadal widać na
+      przycisku „Zgłoszenia prac (N)” na pasku).
+- [ ] To samo menu: „Wczytaj zgłoszenie z kartki (AI)” jest ostatnią pozycją, pod „Ustawieniami
+      widoku pracownika”, oddzieloną od nich linią; dalej otwiera okno wczytania kartki, a w
+      kosztorysie bez przypisanego pracownika jest wyszarzona.
