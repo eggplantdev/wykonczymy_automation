@@ -44,9 +44,26 @@ export const TEMPLATE_INVESTMENT_STATUS = 'szablon' satisfies InvestmentStatusT
 /**
  * What the server accepts a booking on (the real gate is the collection hook) — the transfers table
  * reads it for edit / cancel. Booking pickers offer a narrower set, `isOfferedForBooking`; widening
- * one into the other silently re-offers Wycena or locks its transfers. Deliberately asks ONE question: szablony are excluded upstream by
- * fetchReferenceData, not here, so folding "is a real investment" into this check can't silently
- * leak into a caller that only meant to ask "is bookable".
+ * one into the other silently re-offers Wycena or locks its transfers. Deliberately asks ONE
+ * question: szablony are excluded upstream by fetchReferenceData, not here, so folding "is a real
+ * investment" into this check can't silently leak into a caller that only meant to ask "is bookable".
  */
 export const isBookableInvestment = (investment: { status: string }): boolean =>
   !isLockedStatus(investment.status)
+
+// Owner rulings: Planowana stays (money is booked on planned work, 2026-10-15); Wycena is out pending
+// the owner's decision (EX-1066). A status set, not the ref's `active` flag — widening that flag
+// would leak Planowana into every other „aktywne” picker and count. The server still refuses only
+// Zakończona; this only decides what a booking form offers.
+const OFFERED_FOR_BOOKING: Record<InvestmentStatusT, boolean> = {
+  quote: false,
+  planowana: true,
+  active: true,
+  completed: false,
+  rejected: false,
+  szablon: false,
+}
+
+export function isOfferedForBooking(investment: { status: InvestmentStatusT }): boolean {
+  return OFFERED_FOR_BOOKING[investment.status]
+}

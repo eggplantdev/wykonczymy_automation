@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import type { InvestmentRefT } from '@/types/reference-data'
-import { isOfferedForBooking } from '@/lib/constants/investment-status'
+import { isOfferedForBooking } from '@/lib/constants/investment-lock'
 
 // `[id]` is also /kasa/[id] and /pracownicy/[id], so useParams alone would hand a cash-register or
 // worker id to the investment select — the path prefix is what makes the segment mean "investment".
