@@ -34,6 +34,7 @@ const editorContext = {
   hasSheet: false,
   globalDiscount: { type: null, value: 0 },
   engagedConditionIds: new Set<string>(),
+  engagedStageConditionIds: new Set<string>(),
   conditionCounts: new Map<string, number>(),
   toggleCondition: vi.fn(),
   toggleConditionExclusive: vi.fn(),

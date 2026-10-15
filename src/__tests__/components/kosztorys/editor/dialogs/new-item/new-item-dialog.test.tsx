@@ -81,14 +81,17 @@ beforeEach(() => {
 describe('NewItemDialog — kategoria', () => {
   it('opens with the katalog checkbox ticked and kategoria prefilled from the sekcja', async () => {
     const { toggleCatalogue } = renderDialog()
+    const categoryCombobox = () => screen.getAllByRole('combobox', { name: COMBOBOX })[1]
 
     expect(screen.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' })).toBeChecked()
     expect(screen.getByText('Kategoria')).toBeInTheDocument()
-    expect(screen.getAllByRole('combobox', { name: COMBOBOX })[1]).toHaveTextContent(/^Łazienka$/)
+    expect(categoryCombobox()).toHaveTextContent(/^Łazienka$/)
+    expect(categoryCombobox()).toBeEnabled()
+    expect(screen.getByLabelText(WORK_NOTE)).toBeEnabled()
 
     await toggleCatalogue()
-    expect(screen.queryByText('Kategoria')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(WORK_NOTE)).not.toBeInTheDocument()
+    expect(categoryCombobox()).toBeDisabled()
+    expect(screen.getByLabelText(WORK_NOTE)).toBeDisabled()
   })
 
   it('sends no katalog write and no kategoria once the checkbox is unticked', async () => {
