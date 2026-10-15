@@ -13,9 +13,8 @@ import { countPendingExpenseDrafts } from '@/lib/db/worker-expense-drafts'
 import { countPendingReports } from '@/lib/db/worker-reports'
 import { warsawToday } from '@/lib/utils/days'
 
-// The shell reads every badge in one statement; each section page still counts its own stream.
-// Two readers of one figure drift apart silently, so the merged statement is pinned to the six
-// per-stream counters on whatever the shared test DB holds — read-only, no fixtures.
+// The per-stream counters are what each stream's own spec pins, so the merged statement is pinned to
+// them: a badge wired to the wrong column would otherwise go unnoticed.
 
 vi.mock('server-only', () => ({}))
 

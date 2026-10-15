@@ -78,17 +78,34 @@ describe('sumAllInvestmentFinancials', () => {
     mockExecute
       .mockResolvedValueOnce({
         rows: [
-          { investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '3000' },
-          { investment_id: '1', type: 'INVESTOR_DEPOSIT', settled: false, total: '10000' },
-          { investment_id: '1', type: 'LABOR_COST', settled: false, total: '200' },
-          { investment_id: '1', type: 'PAYOUT', settled: false, total: '150' },
-          { investment_id: '1', type: 'RABAT', settled: false, total: '50' },
-          { investment_id: '1', type: 'LOSS', settled: false, total: '120' },
-          { investment_id: '1', type: 'BONUS', settled: false, total: '70' },
-          { investment_id: '2', type: 'INVESTMENT_EXPENSE', settled: false, total: '500' },
+          {
+            investment_id: '1',
+            is_total: 1,
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '3000',
+          },
+          {
+            investment_id: '1',
+            is_total: 1,
+            type: 'INVESTOR_DEPOSIT',
+            settled: false,
+            total: '10000',
+          },
+          { investment_id: '1', is_total: 1, type: 'LABOR_COST', settled: false, total: '200' },
+          { investment_id: '1', is_total: 1, type: 'PAYOUT', settled: false, total: '150' },
+          { investment_id: '1', is_total: 1, type: 'RABAT', settled: false, total: '50' },
+          { investment_id: '1', is_total: 1, type: 'LOSS', settled: false, total: '120' },
+          { investment_id: '1', is_total: 1, type: 'BONUS', settled: false, total: '70' },
+          {
+            investment_id: '2',
+            is_total: 1,
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '500',
+          },
         ],
       })
-      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({
         rows: [{ id: '1', materials_net_rate: null, settlement_mode: 'NET' }],
       })
@@ -117,11 +134,16 @@ describe('sumAllInvestmentFinancials', () => {
     mockExecute
       .mockResolvedValueOnce({
         rows: [
-          { investment_id: '1', type: 'CORRECTION', settled: true, total: '-200' },
-          { investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '1000' },
+          { investment_id: '1', is_total: 1, type: 'CORRECTION', settled: true, total: '-200' },
+          {
+            investment_id: '1',
+            is_total: 1,
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '1000',
+          },
         ],
       })
-      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({
         rows: [{ id: '1', materials_net_rate: null, settlement_mode: 'NET' }],
       })
@@ -134,14 +156,23 @@ describe('sumAllInvestmentFinancials', () => {
     mockExecute
       .mockResolvedValueOnce({
         rows: [
-          { investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '7000' },
-          { investment_id: '1', type: 'INVESTOR_DEPOSIT', settled: false, total: '10000' },
-        ],
-      })
-      .mockResolvedValueOnce({
-        rows: [
           {
             investment_id: '1',
+            is_total: 1,
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '7000',
+          },
+          {
+            investment_id: '1',
+            is_total: 1,
+            type: 'INVESTOR_DEPOSIT',
+            settled: false,
+            total: '10000',
+          },
+          {
+            investment_id: '1',
+            is_total: 0,
             expense_category_id: '1',
             type: 'INVESTMENT_EXPENSE',
             settled: false,
@@ -149,10 +180,21 @@ describe('sumAllInvestmentFinancials', () => {
           },
           {
             investment_id: '1',
+            is_total: 0,
             expense_category_id: '2',
             type: 'INVESTMENT_EXPENSE',
             settled: false,
             total: '2000',
+          },
+          // The category grouping set also yields the uncategorised remainder; it is already in
+          // the per-type total and must not become a category of its own.
+          {
+            investment_id: '1',
+            is_total: 0,
+            expense_category_id: null,
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '999',
           },
         ],
       })
@@ -170,10 +212,7 @@ describe('sumAllInvestmentFinancials', () => {
   })
 
   it('returns empty Map for no rows', async () => {
-    mockExecute
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
+    mockExecute.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] })
     const map = await sumAllInvestmentFinancials(fakePayload)
     expect(map.size).toBe(0)
   })
@@ -183,9 +222,16 @@ describe('sumAllInvestmentFinancials', () => {
   it('applies the per-investment materiały netto rate it looked up', async () => {
     mockExecute
       .mockResolvedValueOnce({
-        rows: [{ investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '123' }],
+        rows: [
+          {
+            investment_id: '1',
+            is_total: 1,
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '123',
+          },
+        ],
       })
-      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({
         rows: [{ id: '1', materials_net_rate: 0.23, settlement_mode: 'NET' }],
       })

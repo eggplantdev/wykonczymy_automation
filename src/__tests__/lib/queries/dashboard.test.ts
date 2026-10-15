@@ -112,15 +112,6 @@ vi.mock('@/lib/queries/balances', () => ({
   fetchRegisterBalances: vi
     .fn()
     .mockResolvedValue({ '1': 10000, '2': 5000, '3': 3000, '5': 200, '6': -50 }),
-  fetchInvestmentFinancials: vi.fn().mockResolvedValue({
-    '10': {
-      categoryCosts: [],
-      totalMaterialCosts: 2000,
-      totalIncome: 8000,
-      totalLaborCosts: 500,
-      totalPayouts: 300,
-    },
-  }),
 }))
 
 const { dashboardFilterOptions } = await import('@/lib/queries/dashboard')

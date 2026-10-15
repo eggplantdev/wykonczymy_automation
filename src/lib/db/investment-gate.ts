@@ -35,6 +35,13 @@ export function lockMessageOf(row: Record<string, unknown> | undefined): string 
   return undefined
 }
 
+export function investmentGateOf(row: Record<string, unknown> | undefined): InvestmentGateT {
+  return {
+    lockMessage: lockMessageOf(row),
+    isTemplate: row?.status === TEMPLATE_INVESTMENT_STATUS,
+  }
+}
+
 export async function investmentGateFor(
   db: DbExecutorT,
   investmentId: number,
@@ -42,11 +49,7 @@ export async function investmentGateFor(
   const res = await db.execute(
     sql`SELECT status, trashed_at FROM investments WHERE id = ${investmentId}`,
   )
-  const row = res.rows[0]
-  return {
-    lockMessage: lockMessageOf(row),
-    isTemplate: row?.status === TEMPLATE_INVESTMENT_STATUS,
-  }
+  return investmentGateOf(res.rows[0])
 }
 
 /**
@@ -103,11 +106,7 @@ export async function investmentGateForRow(
   )
   const row = res.rows[0]
   if (!row) return undefined
-  return {
-    investmentId: Number(row.id),
-    lockMessage: lockMessageOf(row),
-    isTemplate: row.status === TEMPLATE_INVESTMENT_STATUS,
-  }
+  return { investmentId: Number(row.id), ...investmentGateOf(row) }
 }
 
 /**

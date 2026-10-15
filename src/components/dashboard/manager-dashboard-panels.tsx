@@ -6,9 +6,13 @@ import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expen
 import { RejectedPayouts } from '@/components/payouts/rejected-payouts'
 import type { ReferenceDataT } from '@/types/reference-data'
 
-// Rendered beside the transfers table, not above an await of it: the table's query runs alongside
-// these three reads instead of after them.
-export async function ManagerDashboardPanels({ referenceData }: { referenceData: ReferenceDataT }) {
+type PropsT = {
+  referenceData: ReferenceDataT
+}
+
+// Rendered beside the transfers table: the table's query runs alongside these three reads instead of
+// after them.
+export async function ManagerDashboardPanels({ referenceData }: PropsT) {
   const [{ registers, isAdminOrOwner }, pendingDrafts, rejectedPayouts] = await Promise.all([
     fetchVisibleRegisters(),
     fetchPendingExpenseDrafts(),

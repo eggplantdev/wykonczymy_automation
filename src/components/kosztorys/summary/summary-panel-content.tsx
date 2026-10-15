@@ -28,7 +28,7 @@ import { type KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { InvestmentRefT, InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 import type {
   PayoutTransactionRowT,

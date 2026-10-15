@@ -11,7 +11,7 @@ import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { MediaFileT } from '@/types/media'
 import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
-import type { InvestmentRefT, InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
   PayoutTransactionRowT,

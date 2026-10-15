@@ -1,4 +1,5 @@
 import { canViewRegister, isManagementRole, type RoleT } from '@/lib/auth/roles'
+import { toOptions } from '@/lib/utils/build-filter-config'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 /**
@@ -7,16 +8,10 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
  */
 export function dashboardFilterOptions(refData: ReferenceDataBaseT, role: RoleT) {
   return {
-    cashRegisters: refData.cashRegisters
-      .filter((cr) => canViewRegister(role, cr.type))
-      .map((cr) => ({ id: cr.id, name: cr.name })),
-    investments: refData.investments
-      .filter((i) => i.active)
-      .map((i) => ({ id: i.id, name: i.name })),
-    users: refData.workers
-      .filter((w) => isManagementRole(w.role))
-      .map((w) => ({ id: w.id, name: w.name })),
-    otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
-    expenseCategories: refData.expenseCategories.map((c) => ({ id: c.id, name: c.name })),
+    cashRegisters: toOptions(refData.cashRegisters.filter((cr) => canViewRegister(role, cr.type))),
+    investments: toOptions(refData.investments.filter((i) => i.active)),
+    users: toOptions(refData.workers.filter((w) => isManagementRole(w.role))),
+    otherCategories: toOptions(refData.otherCategories),
+    expenseCategories: toOptions(refData.expenseCategories),
   }
 }

@@ -3,8 +3,7 @@ import type { DbExecutorT } from './get-db'
 import { text } from './row-coerce'
 import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
 import { newShareToken } from '@/lib/kosztorys/share-token'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { lockMessageOf } from './investment-gate'
+import { investmentGateOf, type InvestmentGateT } from './investment-gate'
 
 export type ReportShareT = {
   investmentId: number
@@ -13,10 +12,7 @@ export type ReportShareT = {
   workerName: string
   isWorkerLive: boolean
   language: LanguageT | null
-  // The investment gate, read off the join the share already makes rather than in a second trip.
-  lockMessage: string | undefined
-  isTemplate: boolean
-}
+} & InvestmentGateT
 
 const SHARE_SELECT = sql`
   SELECT s.investment_id, i.name AS investment_name, i.status, i.trashed_at,
@@ -63,8 +59,7 @@ function toShare(row: Record<string, unknown> | undefined): ReportShareT | null 
     workerName: text(row.worker_name),
     isWorkerLive: row.worker_live === true,
     language: toLanguage(row.worker_language),
-    lockMessage: lockMessageOf(row),
-    isTemplate: row.status === TEMPLATE_INVESTMENT_STATUS,
+    ...investmentGateOf(row),
   }
 }
 

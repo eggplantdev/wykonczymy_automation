@@ -7,8 +7,8 @@ import { PENDING_EXPENSE_DRAFTS_COUNT } from './worker-expense-drafts'
 import { PENDING_REPORTS_COUNT } from './worker-reports'
 
 /**
- * Every nav badge in one statement. The shell runs on every management request, and six parallel
- * counts took six of the pool's ten connections before the page's own queries could start.
+ * The shell runs on every management request, and six parallel counts took six of the pool's ten
+ * connections before the page's own queries could start.
  */
 export async function countShellBadges(
   db: DbExecutorT,

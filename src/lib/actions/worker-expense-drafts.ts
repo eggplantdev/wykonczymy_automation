@@ -58,7 +58,7 @@ async function findDraftTargetError(
   },
 ): Promise<NoticeKeyT | undefined> {
   const { workerId, investmentId, cashRegisterId } = target
-  // Both checks read at once; the investment's refusal still wins when both fail.
+  // The investment's refusal still wins when both fail.
   const [isInvestmentAllowed, isRegisterAllowed] = await Promise.all([
     investmentId === null
       ? canAddExpensesWithoutInvestment(db, workerId)
