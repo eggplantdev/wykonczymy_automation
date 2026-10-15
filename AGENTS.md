@@ -266,8 +266,9 @@ suites at once on this laptop take ~5× as long and fail on the clock. A single
 - **The build does not migrate.** A human applies prod migrations with `pnpm db:migrate:prod` (dumps
   Neon first). Order follows the migration's direction: **additive** → migrate prod before pushing;
   **destructive** (`DROP COLUMN`) or a data rewrite the old code would misread → push first, migrate
-  once the new deploy is live. A data rewrite says so with a `RUN-AFTER-DEPLOY` header marker, which
-  the `.husky/pre-push` gate reads. Skill: `payload-prod-migrate`.
+  once the new deploy is live. A data rewrite says so with a `RUN-AFTER-DEPLOY` header marker; the
+  `.husky/pre-push` gate reads it and detects a `DROP` in `up()` on its own. Skill:
+  `payload-prod-migrate`.
 - This is a **deploy-time** gate, not a phase gate — writing the migration and the code that reads it is
   one local task; never mark a plan phase "blocked on prod" while nothing is being pushed.
 

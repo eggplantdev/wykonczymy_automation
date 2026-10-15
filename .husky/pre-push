@@ -23,10 +23,18 @@ if [ -n "$push_to_prod" ]; then
   added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$')
   if [ -n "$added" ]; then
     # A migration that rewrites what the OLD code reads must run once the new deploy is live —
-    # migrating first serves the old code a shape it misreads. It says so with a RUN-AFTER-DEPLOY
-    # marker in its header. `payload migrate` applies every pending migration at once, so a push
-    # mixing both directions cannot be ordered and has to be split.
-    after_deploy=$(for f in $added; do git show "$sha_to:$f" | grep -q 'RUN-AFTER-DEPLOY' && echo "     $f"; done)
+    # migrating first serves the old code a shape it misreads. A data rewrite says so with a
+    # RUN-AFTER-DEPLOY marker in its header; a DROP COLUMN/TABLE is detected on its own, because
+    # the old code still SELECTs what it drops (42703). Only up() counts — nearly every down() drops.
+    # `payload migrate` applies every pending migration at once, so a push mixing both directions
+    # cannot be ordered and has to be split.
+    after_deploy=$(for f in $added; do
+      src=$(git show "$sha_to:$f")
+      if echo "$src" | grep -q 'RUN-AFTER-DEPLOY' \
+        || echo "$src" | awk '/function up/{u=1} /function down/{u=0} u' | grep -Eiq 'DROP (COLUMN|TABLE)'; then
+        echo "     $f"
+      fi
+    done)
     if { : < /dev/tty; } 2>/dev/null; then
       if [ -n "$after_deploy" ]; then
         printf '\n⚠  Push to %s adds migrations that must run AFTER this deploy is live:\n%s\n   Push now, then run `pnpm db:migrate:prod` (backup-first) once the deploy serves traffic.\n   If this push also adds a migration the new code needs FIRST, abort and split the release.\n   Push the code now? [y/N] ' "$PROD_BRANCH" "$after_deploy" > /dev/tty
