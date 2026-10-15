@@ -5715,6 +5715,42 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Po dodaniu do rozpiski → „Cofnij podmianę” → zamknij bez zapisu → otwórz ponownie: praca wraca do
       „Spoza rozpiski” (pusta pozycja zostaje w rozpisce).
 
+## EX-1033 — document-settings-column-map — ustawienia kolumn dokumentów zapisane jako wybór per kolumna
+
+Sprawdzane na **stagingu**, w tej kolejności: deploy → kroki 1–2 → `pnpm db:migrate:preview` → kroki
+3–7. Inwestycje to prawdziwe wiersze z bazy preview (stan z 15.10.2026), dobrane tak, że każda
+pokazuje inne ryzyko. Przed migracją wpisz, które kolumny widać na każdej z nich — po migracji
+porównujesz z tym zapisem.
+
+- [ ] **1. Przed migracją: nowy kod czyta stary zapis jak dotąd.** Po deployu, jeszcze bez migracji:
+      `/podglad-inwestora/186` (Marcin Bójko ul. Obwodowej 5) **nie** pokazuje „Wartość netto (razem
+      etapy)”, „Etapy — ilość”, „Etapy — kwota netto” ani „% wykonania (względem aktualizacji
+      przedmiaru)”, a pokazuje „Komentarz”. `/podglad-inwestora/119` (Kulisiewicza 16) pokazuje
+      „Wartość netto aktualizacji przedmiaru”, „Pozostało netto (względem aktualizacji przedmiaru)”
+      i „% wykonania (względem przedmiaru ofertowego)”.
+- [ ] **2. Przed migracją: widok pracownika jak dotąd.** Podgląd pracownika dowolnej inwestycji z
+      kosztorysem **nie** pokazuje „Przedmiar ofertowy”, „Pozostało netto (względem aktualizacji
+      przedmiaru)” ani „% wykonania (względem przedmiaru ofertowego)”.
+- [ ] **3. Migracja.** `pnpm db:migrate:preview` stosuje `20261015_0_document_settings_column_map`;
+      potem `psql "$DB_POSTGRES_URL_PREVIEW" -c "select jsonb_typeof(hidden_columns), count(*) from
+      kosztorys_client_view group by 1"` → same `object` (34), żadnego `array`.
+- [ ] **4. Po migracji: te same kolumny co w kroku 1.** `/podglad-inwestora/186` i `/119` — kolumna w
+      kolumnę jak przed migracją, także na linku `/k/<token>` inwestycji 186. Inwestycja 186 to
+      przypadek, który by wyciekł, gdyby migracja poszła przed deployem.
+- [ ] **5. Po migracji: widok pracownika jak w kroku 2.**
+- [ ] **6. Zapis po migracji — inwestor.** Na inwestycji 186: „Ustawienia podglądu inwestora” →
+      zaznacz „Etapy — ilość” i odznacz „Komentarz” → zapisz → otwórz ponownie: wybór został, podgląd
+      pokazuje „Etapy — ilość” i nie pokazuje „Komentarz”. Przywróć oba haczyki.
+- [ ] **7. Zapis po migracji — pracownik.** „Ustawienia widoku pracownika” → zaznacz „Przedmiar
+      ofertowy” → zapisz → otwórz ponownie: zaznaczony, podgląd pracownika go pokazuje. Odznacz z
+      powrotem i zapisz.
+- [ ] **8. „Zapisz jako domyślne”.** Na dowolnej inwestycji odznacz „Cena j.m. netto” → „Zapisz jako
+      domyślne” → inwestycja **bez** własnych ustawień (jest ich 59 z kosztorysem) też jej nie
+      pokazuje. Przywróć: zaznacz z powrotem i znów „Zapisz jako domyślne”.
+
+Produkcja: deploy, a **potem** `pnpm db:migrate:prod` (człowiek). Odwrotna kolejność pokazałaby
+inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
+
 ## EX-862 — usun-wszystkie-ukryte — „Usuń wszystkie” schowane w dokumentacji inwestycji do czasu kosza
 
 - [ ] Inwestycja z co najmniej dwoma plikami → „Dokumentacja (N)” → podgląd: nie ma przycisku

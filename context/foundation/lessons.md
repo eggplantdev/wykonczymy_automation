@@ -1332,6 +1332,16 @@ The corollary is that the default has to stay live in code, not be copied into s
 third, and the pattern is now the repo's answer. Related: „Hierarchical visibility is ONE set of leaf
 exclusions" above — same instinct, applied to a parent/child toggle.
 
+**Exception — a disclosure setting (EX-1033).** For the investor and worker documents, „an addition
+flows to everyone who never touched the setting" is the leak, not the feature: a new column shows on
+every `/k/<token>` and every worker link whose stored hidden list predates it. Storing exclusions
+cost one append migration per hidden-by-default column — three in two days — and a forgotten one was
+a disclosure. Those settings therefore store a full `{ key: hidden }` map over the ceiling and read a
+key the map does not mention as its **code default** (`resolveHiddenColumns`). The default still
+lives in code, which is the half of this rule that survives; what changes is that an unmentioned key
+falls to that default rather than to „shown". See „A disclosure setting subtracts from a code ceiling,
+and fails CLOSED" below.
+
 ## A disclosure setting subtracts from a code ceiling, and fails CLOSED
 
 `PREVIEW_VISIBLE_COLUMNS` decides what a client at `/k/<token>` may ever see (no subcontractor prices,
