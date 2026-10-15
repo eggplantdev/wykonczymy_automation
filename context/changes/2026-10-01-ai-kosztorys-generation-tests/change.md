@@ -55,9 +55,20 @@ no kosztorys. Per investment, one at a time:
    `## Najważniejsze założenia`, `## Przedmiar 0 świadomie` — no repo paths — and
    `measurement.md`. Every line of it also on its pozycja's Komentarz AI (see „Every point lives in
    both places” below).
-6. `fill-case-prod.ts` with `DRY=1` — its „expected AI przedmiar” must equal the script's total —
+6. **A fresh agent reviews the draft** (since 2026-10-15; see the research log, #218 / #219). First
+   freeze the drafter's output: copy `measure/ai-draft-load.json` to `measure/ai-draft-pre-review.json`
+   and `investment-notes-appendix.txt` to `measure/investment-notes-appendix-pre-review.txt`. Then a
+   new agent that did not draft checks the draft against every Manual rule and Komentarz do pracy,
+   plus the scope (a szablon row at 0 with no reason), both places, the bathroom sekcja, the
+   arithmetic (a sum against its own components) and the text (no client data, no code). It does not
+   re-measure. What it is sure of it fixes in `build_draft.py` and reruns. What it cannot settle goes
+   into „Do ustalenia z klientem” and onto the pozycja. It writes `review.md`, one checkbox per
+   finding: `fixed` / `asked` / `dismissed`, the rule quoted, qty before → after, the zł delta. Only
+   the reviewed draft is loaded. The pre-review files stay as the baseline the measurement compares
+   against.
+7. `fill-case-prod.ts` with `DRY=1` — its „expected AI przedmiar” must equal the script's total —
    then without, then `load-draft-sql-prod.ts` after the user's go (step 7 below).
-7. Add the case to the Cases table.
+8. Add the case to the Cases table.
 
 **The owner hears the AI only through the kosztorys.** Anything the owner has to check or decide —
 a doubt, a price that may be off, a reading that could double the scope — goes into the kosztorys,
@@ -69,7 +80,7 @@ pozycja is where the owner meets the point while editing that row. So every „z
 „Do ustalenia z klientem” line in the appendix is also in the `assumptions` / `missingData` of each
 pozycja it concerns. The zł impact may stay in the notes only. A point with no pozycja to carry it
 (a whole trade at 0, a demontaż the szablon has no row for) stays in the notes only. **Check before
-step 6:** walk the appendix line by line against `ai-draft-load.json` and fix the draft, not the
+step 7:** walk the appendix line by line against `ai-draft-load.json` and fix the draft, not the
 notes. The 2026-10-12 audit of cases 7–16 found 10 of 172 points only in the notes.
 
 Drawings with no printed room dimensions (case 7): take the scale from any printed dimension —
@@ -221,6 +232,8 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
 | 19  | `cases/19-dom-lazienki-wc-pralnia`        | House: 2 bathrooms, a pralnia with a shower, WC in the piwnica; the client's 4 PDF room projects + 4 photos                                                                                                                                                                                                                                                                                                | **#213 production** (szablon #166)                    | AI przedmiar **74 197,28 zł**, 143 rows, 1 at qty 0 (wod-kan relocation), 4 added (new ceiling plaster per room); 4 bathroom sekcje, the pralnia counted as one                                                                                                                                                                                                                                        | No                                                                                                                           |
 | 20  | `cases/20-lazienka-parter-wc`             | Ground-floor bathroom + WC; 5 files marked „Do analizy AI” (WC rzut, 4 bathroom views) + 13 from before the marker (bathroom rzut, renders, photos)                                                                                                                                                                                                                                                        | **#214 production** (szablon #166)                    | AI przedmiar **57 573,24 zł**, 68 rows, 16 at qty 0 (biały montaż excluded, stelaże already built, doors, stolarz's szafki and blat), 3 added (szlifowanie mleczka ×2, Laminam fronts unpriced)                                                                                                                                                                                                        | No                                                                                                                           |
 | 21  | `cases/21-wyburzenie-sciany-pralnia-wc`   | ~61 m² flat, stan deweloperski assumed: wall salon/pokój 3 demolished, new GK pralnia (floor tiles + lighting only), toilet → bathroom with walk-in; 1 projekt PDF (target state only) + 29 renders                                                                                                                                                                                                        | **#217 production** (szablon #166)                    | AI przedmiar **93 194,94 zł**, 107 rows, 2 at qty 0 (stone backsplash, optional przedścianka), 3 added (lamele 150 zł/m², szlifowanie mleczka in Łazienka, GK przedścianka at 0). The reseed writes the katalog wording for the gruz/kontener rows while DRY matches szablon #166's older wording — the kontener row loaded as a duplicate and was moved onto the szablon row by hand; rozpiska synced | No                                                                                                                           |
+| 22  | `cases/22-marki-66m2`                     | ~66 m² flat, the client's zakres prac (PDF) + a rzut PDF, both marked „Do analizy AI”                                                                                                                                                                                                                                                                                                                      | **#219 production** (szablon #166)                    | AI przedmiar **54 363,06 zł** after review (draft 53 995,08), 66 rows, 6 at qty 0, 3 moved into Łazienka; first case with a separate reviewer (`review.md`)                                                                                                                                                                                                                                            | No                                                                                                                           |
+| 23  | `cases/23-odebrane-projekt-architekta`    | Flat received from the developer, the architect's projekt PDF + visualisations; both unmarked at adopt time, downloaded by hand, marked by the owner after the draft                                                                                                                                                                                                                                       | **#218 production** (szablon #166)                    | AI przedmiar **69 100,39 zł** after review (draft 69 113,14), 105 rows, 3 at qty 0, 9 added; reviewed (`review.md`)                                                                                                                                                                                                                                                                                    | No                                                                                                                           |
 
 ## Research log
 
@@ -579,6 +592,27 @@ written down as they come up:
   cell printed the stored text as-is, while Komentarz AI shows a plain label with a bold answer. The
   two columns now share one renderer, so they look the same and can't drift apart. The „Do ponownego
   sprawdzenia” flag above Status was bare amber text, and is now a small badge in the app's `pending` tone.
+
+### 2026-10-15 — #218 / #219: a separate reviewer after the drafter
+
+Each case got one drafting agent, then a fresh agent that only reviews. The reviewer checks every
+Manual rule and Komentarz, the scope, „both places” (the appendix and the pozycja), the bathroom
+sekcja, the arithmetic and the text. It fixes what it is sure of, asks the client about the rest, and
+writes `review.md` with one box per finding. The drafter's output is frozen first as
+`measure/ai-draft-pre-review.json` + `measure/investment-notes-appendix-pre-review.txt`. Only the
+reviewed version is loaded; the owner reviews one version, as before.
+
+- #219: 17 fixed, 1 asked, 8 dismissed. 6 were a missed rule, 5 both places, 5 arithmetic, 1 text.
+  +367,98 zł.
+- #218: 6 fixed, 1 asked, 16 dismissed. −12,75 zł.
+- The owner's first read (2026-10-15) is that the reviewer helps: what it catches is mostly missed
+  company knowledge (Manual / Komentarze), not measuring.
+
+**How to measure it once the owner has reviewed both**, with the owner's final Przedmiar as the
+reference: the share of pozycje accepted as they were, Σ|AI − Przedmiar| × cena for the pre-review
+and the reviewed draft, the rows the owner had to add, and the Powody that repeat a rule already in
+the Manual at analysis time. Bias: the owner only sees the reviewed version, so their numbers can
+anchor on it, which favours the reviewer. With two cases that is accepted, not corrected.
 
 ## Reliability by quantity class (case 1, after measuring; checked against the owner 2026-10-05)
 
