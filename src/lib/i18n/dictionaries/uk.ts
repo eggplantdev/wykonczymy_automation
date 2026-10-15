@@ -171,6 +171,7 @@ export const uk: TranslationsT = {
     register: 'Каса',
     chooseRegister: 'Виберіть касу',
     photoInput: 'Фото чека або рахунку',
+    photoLimit: 'Фото або PDF, не більше {{max}} одночасно.',
     noteOptional: "Примітка (необов'язково)",
     send: 'Надіслати',
     sending: 'Надсилання...',

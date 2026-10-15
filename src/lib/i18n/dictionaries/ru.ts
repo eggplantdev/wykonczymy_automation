@@ -170,6 +170,7 @@ export const ru: TranslationsT = {
     register: 'Касса',
     chooseRegister: 'Выберите кассу',
     photoInput: 'Фото чека или счёта',
+    photoLimit: 'Фото или PDF, не больше {{max}} одновременно.',
     noteOptional: 'Примечание (необязательно)',
     send: 'Отправить',
     sending: 'Отправка...',

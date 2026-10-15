@@ -179,6 +179,7 @@ export const pl = {
     register: 'Kasa',
     chooseRegister: 'Wybierz kasę',
     photoInput: 'Zdjęcie paragonu lub faktury',
+    photoLimit: 'Zdjęcia lub PDF, max {{max}} jednocześnie.',
     noteOptional: 'Notatka (opcjonalnie)',
     send: 'Wyślij',
     sending: 'Wysyłanie...',
