@@ -25,6 +25,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { fillSectionNameTranslations } from '../lib/actions/translate-section-name'
+import { fillCatalogueTranslations } from '../lib/ai/fill-catalogue-translations'
 import { translateRows } from '../lib/ai/translate-new-row'
 import { fillDescriptionTranslations } from '../lib/db/fill-description-translations'
 import { getDb, type DbExecutorT } from '../lib/db/get-db'
@@ -115,14 +116,9 @@ async function fillWithAi(db: DbExecutorT, apply: boolean) {
     return
   }
 
-  const catalogueFill = await translateRows(catalogue)
-  const catalogueWritten = await fillDescriptionTranslations(
-    db,
-    'work_catalogue_items',
-    catalogueFill.writes,
-  )
+  const catalogueFill = await fillCatalogueTranslations(db)
   console.log(
-    `\n1. katalog: zapisano ${catalogueWritten}, AI nie przetłumaczyło ${catalogueFill.failed}`,
+    `\n1. katalog: zapisano ${catalogueFill.items}, AI nie przetłumaczyło ${catalogueFill.failed}`,
   )
 
   const itemsFill = await translateRows(

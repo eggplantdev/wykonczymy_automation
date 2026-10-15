@@ -76,8 +76,7 @@ export async function insertSnapshot(
   return Number(res.rows[0].id)
 }
 
-// The investments whose kosztorys may still change: szablony and closed ones fall out by status, the
-// trash by its own column.
+// The investments still worth a nightly version.
 export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
   const res = await db.execute(sql`
     SELECT id FROM investments

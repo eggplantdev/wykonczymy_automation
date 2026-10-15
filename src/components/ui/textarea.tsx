@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils/cn'
 
 // Safari before 26.2 ignores `field-sizing: content`, so a controlled textarea would sit at its
 // min-height there. One row per hard line break, plus one to type into; a soft-wrapped paragraph still
-// comes out a little short.
+// comes out a little short. A caller's `rows` stays the floor.
 function fallbackRows(value: React.ComponentProps<'textarea'>['value'], rows: number | undefined) {
   if (typeof value !== 'string') return rows
   return Math.max(rows ?? 0, value.split('\n').length + 1)

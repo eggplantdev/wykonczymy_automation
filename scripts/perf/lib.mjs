@@ -18,14 +18,14 @@ export function credentials(role) {
   return { email, password: process.env.STAGING_QA_PASSWORD }
 }
 
-/** Logs in over plain fetch; returns the cookie header and the account's id. */
 export async function login(role) {
   const res = await fetch(`${BASE}/api/users/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(credentials(role)),
   })
-  if (!res.ok) throw new Error(`login ${role}: ${res.status} — does the account exist? pnpm qa:staging-user`)
+  if (!res.ok)
+    throw new Error(`login ${role}: ${res.status} — does the account exist? pnpm qa:staging-user`)
   const { user } = await res.json()
   const cookie = res.headers
     .getSetCookie()
@@ -34,7 +34,6 @@ export async function login(role) {
   return { cookie, userId: user.id }
 }
 
-/** RSC = the client-navigation payload; prefetch = what a <Link> in the viewport asks for. */
 export function headersFor(cookie, mode) {
   const headers = { cookie }
   if (mode !== 'html') headers.rsc = '1'

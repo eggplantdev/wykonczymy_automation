@@ -7,8 +7,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { MediaFileT, PreviewFileT } from '@/types/media'
 
 /**
- * The „Oznacz do analizy AI" affordance for an already-stored gallery.
- *
  * The marked ids are held locally on top of `files` because the server row does not refresh until
  * the revalidation lands — without it the button would keep offering „Oznacz" on a file that is
  * already oznaczony, which reads as a click that did nothing.
