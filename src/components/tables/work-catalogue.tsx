@@ -274,7 +274,8 @@ const countColumn = (id: string, header: string, tooltip: string, count: (id: nu
   })
 
 const KOSZTORYS_COUNT_TOOLTIP =
-  'W ilu inwestycjach praca ma Przedmiar albo ilość w etapach. Liczone tylko z kosztorysów ' +
+  'W ilu inwestycjach praca ma Przedmiar, aktualizację przedmiaru albo ilość w etapach. ' +
+  'Liczone tylko z kosztorysów ' +
   'w aplikacji — stare arkusze Google się nie liczą, więc praca używana tylko tam ma tu 0.'
 
 export function getWorkCatalogueColumns({

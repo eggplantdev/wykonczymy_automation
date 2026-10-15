@@ -10,7 +10,7 @@ import {
   catalogueSourceOf,
   isCatalogueOverCeiling,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 export type CatalogueConditionT = {
@@ -124,33 +124,6 @@ export function catalogueDuplicateCondition(
     label: 'z możliwym duplikatem',
     matches: (entry) => nearDuplicates.has(entry.id),
   }
-}
-
-const usagePair = (
-  key: string,
-  group: string,
-  [none, some]: readonly [string, string],
-  isUsed: (entry: WorkCatalogueItemT) => boolean,
-): CatalogueConditionT[] => [
-  { id: `${key}-unused`, kind: 'filter', group, label: none, matches: (entry) => !isUsed(entry) },
-  { id: `${key}-used`, kind: 'filter', group, label: some, matches: isUsed },
-]
-
-export function catalogueUsageConditions(usage: CatalogueUsageT): CatalogueConditionT[] {
-  return [
-    ...usagePair(
-      'catalogue-usage',
-      'Kosztorysy',
-      ['w żadnym kosztorysie', 'w kosztorysach'],
-      (entry) => (usage.byId[entry.id] ?? 0) > 0,
-    ),
-    ...usagePair(
-      'catalogue-template',
-      'Szablony',
-      ['w żadnym szablonie', 'w szablonach'],
-      (entry) => (usage.templateNamesById[entry.id]?.length ?? 0) > 0,
-    ),
-  ]
 }
 
 export function countCatalogueConditions(

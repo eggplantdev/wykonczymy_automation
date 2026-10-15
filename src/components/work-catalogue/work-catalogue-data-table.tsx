@@ -39,7 +39,6 @@ import {
   CATALOGUE_PROBLEM_IDS,
   applyCatalogueConditions,
   catalogueDuplicateCondition,
-  catalogueUsageConditions,
   countCatalogueConditions,
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
@@ -72,11 +71,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
   const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
 
-  const conditions = [
-    ...CATALOGUE_CONDITIONS,
-    catalogueDuplicateCondition(nearDuplicates),
-    ...catalogueUsageConditions(usage),
-  ]
+  const conditions = [...CATALOGUE_CONDITIONS, catalogueDuplicateCondition(nearDuplicates)]
 
   // Every control ANDs, so the order only decides what gets recomputed: search runs first because it
   // folds its haystacks once per input array, and a condition toggle would otherwise refold them all.

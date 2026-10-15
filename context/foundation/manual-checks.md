@@ -4531,6 +4531,12 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [x] Szablon (warsztat szablonu) → „Filtry”: proponuje tylko filtry stawek, jak dotąd.
       Lokalnie 2026-10-09 (5435): Szablon: Filtry proponuje tylko filtry stawek (oś ekipy ustawiona w inwestycji).
 
+## EX-1010 — catalogue-usage-counter — podpowiedź „Kosztorysy” z aktualizacją przedmiaru, bez filtrów użycia
+
+- [ ] Katalog prac → najedź na nagłówek „Kosztorysy”: podpowiedź mówi „Przedmiar, aktualizację przedmiaru albo ilość w etapach”.
+- [ ] Katalog prac → „Filtry”: nie ma już grup „Kosztorysy” ani „Szablony”; zostały „Źródło stawki” i „Udział w cenie”. Sortowanie kolumn „Kosztorysy” i „Szablony” od 0 nadal działa.
+- [ ] Ktoś, kto wcześniej zostawił włączony filtr „w kosztorysach”: po wejściu na katalog tabela pokazuje wszystkie prace, bez chipa tego filtra.
+
 ## 2026-10-08 — expense-draft-missing-pages — odrzucenie zgłoszenia, którego zdjęć nie da się pobrać
 
 - [x] Transakcje → „Wydatki zgłoszone przez pracowników” → „Zweryfikuj” na zgłoszeniu, którego
