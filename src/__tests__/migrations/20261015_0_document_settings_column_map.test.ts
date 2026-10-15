@@ -119,6 +119,32 @@ describe.skipIf(!ENV_READY)('20261015_0_document_settings_column_map (DB)', () =
     })
   })
 
+  it('leaves a row that never chose (NULL) as it is', async () => {
+    await inRolledBackTx(async (tx) => {
+      await tx.execute(sql`
+        INSERT INTO "kosztorys_client_view" ("investment_id", "hidden_columns")
+        VALUES (${investmentId}, NULL)
+      `)
+      await up(migrationArgs(tx))
+
+      expect(await readClientRow(tx)).toBeNull()
+    })
+  })
+
+  // A worker row inserted without the column must not come up as the legacy „hide nothing".
+  it('defaults a new worker row to an empty map', async () => {
+    await inRolledBackTx(async (tx) => {
+      await up(migrationArgs(tx))
+      await tx.execute(sql`DELETE FROM "kosztorys_worker_view_settings"`)
+      await tx.execute(sql`INSERT INTO "kosztorys_worker_view_settings" DEFAULT VALUES`)
+
+      const result = await tx.execute(
+        sql`SELECT "hidden_columns" FROM "kosztorys_worker_view_settings"`,
+      )
+      expect((result.rows[0] as { hidden_columns: unknown }).hidden_columns).toEqual({})
+    })
+  })
+
   it('down turns the map back into the hidden list', async () => {
     await inRolledBackTx(async (tx) => {
       await seedClientRow(tx, ['price', 'note'])

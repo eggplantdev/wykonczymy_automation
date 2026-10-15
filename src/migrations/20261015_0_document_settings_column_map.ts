@@ -1,14 +1,14 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// Document column settings stop storing the HIDDEN list and store one choice per column,
-// `{ key: hidden }`, so a column added later reads as its code default instead of showing (EX-1033).
 // Each stored array becomes a map over the ceiling as it stands today — copied here, not imported,
 // because a migration must keep converting to the same map after the code ceiling moves on.
 //
-// Run straight AFTER the deploy: the old code reads an object as „never chosen" and serves the code
-// default, which shows `price` and the other default-visible columns an owner may have hidden. The new
-// code reads both shapes, so until this runs every link is served exactly as today.
+// RUN-AFTER-DEPLOY (`.husky/pre-push` reads this marker): the old code reads an object as „never
+// chosen" and serves the code default, which shows `price` and the other default-visible columns an
+// owner may have hidden. The new code reads both shapes, so until this runs every link is served
+// exactly as today. For the same reason, rolling the deploy back past EX-1033 means running `down`
+// first.
 const CLIENT_KEYS = [
   'note',
   'plannedQty',
@@ -50,6 +50,10 @@ const TABLES = [
 ]
 
 export async function up({ db }: MigrateUpArgs): Promise<void> {
+  // The Payload field defaults to `{}`; a raw insert landing on `[]` would read as „hide nothing".
+  await db.execute(
+    sql`ALTER TABLE "kosztorys_worker_view_settings" ALTER COLUMN "hidden_columns" SET DEFAULT '{}'::jsonb`,
+  )
   for (const { table, keys } of TABLES) {
     const keyArray = `ARRAY[${keys.map((key) => `'${key}'`).join(', ')}]::text[]`
     await db.execute(
@@ -65,6 +69,9 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
 }
 
 export async function down({ db }: MigrateDownArgs): Promise<void> {
+  await db.execute(
+    sql`ALTER TABLE "kosztorys_worker_view_settings" ALTER COLUMN "hidden_columns" SET DEFAULT '[]'::jsonb`,
+  )
   for (const { table } of TABLES) {
     await db.execute(
       sql.raw(`

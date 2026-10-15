@@ -5,9 +5,9 @@ import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
 import {
-  DOCUMENT_PINNED_COLUMN,
   documentBaseRanks,
   orderDocumentKeys,
+  unpinned,
 } from '@/lib/kosztorys/columns/document-column-order'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import { sameItems } from '@/lib/utils/same-items'
@@ -38,9 +38,11 @@ export function DocumentColumnOrderButton<T extends ValueT>({
   const [open, setOpen] = useState(false)
   const hidden = new Set(value.hiddenColumns)
   const ordered = orderDocumentKeys(keys, value.columnRanks)
-  const items = ordered
-    .filter((key) => key !== DOCUMENT_PINNED_COLUMN)
-    .map((key) => ({ id: key, label: labelFor(key) ?? key, visible: !hidden.has(key) }))
+  const items = unpinned(ordered).map((key) => ({
+    id: key,
+    label: labelFor(key) ?? key,
+    visible: !hidden.has(key),
+  }))
 
   return (
     <>

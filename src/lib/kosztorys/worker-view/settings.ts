@@ -34,6 +34,21 @@ const WORKER_DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
   'plannedDonePercent',
 ])
 
+// The ceiling as it stood while the hidden ARRAY was the stored shape — frozen, never extended.
+const LEGACY_WORKER_COLUMNS: ReadonlySet<string> = new Set([
+  'plannedQty',
+  'currentPlannedQty',
+  'stageQtySum',
+  'unit',
+  'rate',
+  'plannedNetForPlane',
+  'net',
+  'remainingForPlane',
+  'stages',
+  'stageValueNet',
+  'plannedDonePercent',
+])
+
 export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
   hiddenColumns: [...WORKER_DEFAULT_HIDDEN_COLUMNS],
   hideEmptyRows: true,
@@ -43,8 +58,7 @@ export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
 
 // Same fail-closed contract as `sanitizeClientViewSettings`: a key outside the worker ceiling is
 // dropped on read and on write, so a hand-edited `price` in the global's JSON is inert rather than a
-// way onto a worker's screen, and a column the stored choices do not mention reads as its code
-// default. „Closed" rests on the ceiling, not on the default hidden set — which is
+// way onto a worker's screen. „Closed" rests on the ceiling, not on the default hidden set — which is
 // why `workerVisibleColumns` builds from the groups and only ever subtracts.
 export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT {
   if (typeof source !== 'object' || source === null) return WORKER_VIEW_DEFAULT_SETTINGS
@@ -55,9 +69,12 @@ export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT
     columnRanks?: unknown
   }
   return {
-    hiddenColumns:
-      resolveHiddenColumns(hiddenColumns, WORKER_VIEW_KEYS, WORKER_DEFAULT_HIDDEN_COLUMNS) ??
-      WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
+    hiddenColumns: resolveHiddenColumns(
+      hiddenColumns,
+      WORKER_VIEW_KEYS,
+      WORKER_DEFAULT_HIDDEN_COLUMNS,
+      LEGACY_WORKER_COLUMNS,
+    ),
     hideEmptyRows: hideEmptyRows !== false,
     hidePlannedOnceExecuted: hidePlannedOnceExecuted !== false,
     columnRanks: sanitizeDocumentRanks(columnRanks, WORKER_VIEW_KEYS),

@@ -5733,7 +5733,7 @@ porównujesz z tym zapisem.
       przedmiaru)” ani „% wykonania (względem przedmiaru ofertowego)”.
 - [ ] **3. Migracja.** `pnpm db:migrate:preview` stosuje `20261015_0_document_settings_column_map`;
       potem `psql "$DB_POSTGRES_URL_PREVIEW" -c "select jsonb_typeof(hidden_columns), count(*) from
-      kosztorys_client_view group by 1"` → same `object` (34), żadnego `array`.
+      kosztorys_client_view group by 1"` → same `object`, żadnego `array`.
 - [ ] **4. Po migracji: te same kolumny co w kroku 1.** `/podglad-inwestora/186` i `/119` — kolumna w
       kolumnę jak przed migracją, także na linku `/k/<token>` inwestycji 186. Inwestycja 186 to
       przypadek, który by wyciekł, gdyby migracja poszła przed deployem.

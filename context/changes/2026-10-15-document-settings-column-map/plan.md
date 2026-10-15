@@ -191,7 +191,9 @@ subtracts from a code ceiling, and fails CLOSED".
 ## Migration Notes
 
 Prod: deploy first, then `pnpm db:migrate:prod` (human). Preview: `pnpm db:migrate:preview` after the
-staging deploy. Until it runs, the new code reads the legacy arrays exactly as today.
+staging deploy. Until it runs, the new code reads the legacy arrays exactly as today. The migration
+carries the `RUN-AFTER-DEPLOY` marker the pre-push gate reads. Rolling the deploy back past EX-1033
+after it ran means running `down` first — the old code reads a map as „never chosen".
 
 ## Whole-tree Gate
 

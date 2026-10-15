@@ -1,30 +1,32 @@
-import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/columns/document-column-order'
+import { unpinned } from '@/lib/kosztorys/columns/document-column-order'
 
 export type HiddenColumnMapT = Record<string, boolean>
-
-function unpinnedCeiling(ceiling: ReadonlySet<string>): string[] {
-  return [...ceiling].filter((key) => key !== DOCUMENT_PINNED_COLUMN)
-}
 
 /**
  * Stored settings → the hidden keys. A document setting stores one choice per column it offered at
  * save time, and a column it does not mention reads as its CODE default — so a column added later
  * starts where the code declares it, with no migration, instead of showing because no stored list
- * names it (EX-1033). The legacy hidden array is still read as it always was, until every row is
- * converted. `null` means the value is neither shape, and the caller falls back to its defaults.
+ * names it (EX-1033). A legacy hidden array speaks only for the columns it was written against
+ * (`legacyCeiling`), so a row `20261015_0` has not converted yet cannot show a later column either.
+ * Anything that is neither shape reads as the code default.
  */
 export function resolveHiddenColumns(
   stored: unknown,
   ceiling: ReadonlySet<string>,
   defaultHidden: ReadonlySet<string>,
-): string[] | null {
+  legacyCeiling: ReadonlySet<string>,
+): string[] {
   if (Array.isArray(stored)) {
     const legacyHidden = new Set(stored)
-    return unpinnedCeiling(ceiling).filter((key) => legacyHidden.has(key))
+    return unpinned([...ceiling]).filter((key) =>
+      legacyCeiling.has(key) ? legacyHidden.has(key) : defaultHidden.has(key),
+    )
   }
-  if (typeof stored !== 'object' || stored === null) return null
-  const choices = stored as Record<string, unknown>
-  return unpinnedCeiling(ceiling).filter((key) => {
+  const choices = (typeof stored === 'object' && stored !== null ? stored : {}) as Record<
+    string,
+    unknown
+  >
+  return unpinned([...ceiling]).filter((key) => {
     const choice = choices[key]
     return typeof choice === 'boolean' ? choice : defaultHidden.has(key)
   })
@@ -37,5 +39,5 @@ export function toHiddenColumnMap(
   ceiling: ReadonlySet<string>,
 ): HiddenColumnMapT {
   const hiddenSet = new Set(hidden)
-  return Object.fromEntries(unpinnedCeiling(ceiling).map((key) => [key, hiddenSet.has(key)]))
+  return Object.fromEntries(unpinned([...ceiling]).map((key) => [key, hiddenSet.has(key)]))
 }
