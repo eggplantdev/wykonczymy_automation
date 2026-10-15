@@ -6,15 +6,15 @@ import {
   insertTemplateLayout,
   readTemplateLayout,
 } from '@/lib/db/template-structure'
-import { bumpTemplateRevision, markTemplateEdited } from '@/lib/db/templates'
-import { sql } from '@payloadcms/db-postgres'
+import { markTemplateTreeReplaced } from '@/lib/db/templates'
 import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import type { TemplateSnapshotPayloadT } from './snapshot-payload'
 
 // Swap a szablon's whole layout, reversibly: a version of what stands is written first, on the
 // caller's transaction, so a rollback takes it too and the overwrite stays one click back in
 // „Wersje" — a labelled `manual` one by default, an `auto` one as a restore's restore point. The
-// szablon row is locked before the read, so the version describes exactly the layout the wipe deletes.
+// stamp write comes first: it locks the szablon row before the read, so the version describes
+// exactly the layout the wipe deletes.
 export async function replaceTemplateLayout(
   db: DbExecutorT,
   templateId: number,
@@ -30,7 +30,7 @@ export async function replaceTemplateLayout(
     kind?: SnapshotKindT
   },
 ): Promise<void> {
-  await db.execute(sql`SELECT id FROM templates WHERE id = ${templateId} FOR UPDATE`)
+  await markTemplateTreeReplaced(db, templateId)
   await insertTemplateSnapshot(db, {
     templateId,
     kind,
@@ -40,6 +40,4 @@ export async function replaceTemplateLayout(
   })
   await deleteTemplateSections(db, templateId)
   await insertTemplateLayout(db, templateId, layout)
-  await bumpTemplateRevision(db, templateId)
-  await markTemplateEdited(db, templateId)
 }

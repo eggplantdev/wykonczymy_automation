@@ -1,7 +1,7 @@
 import 'server-only'
 import type { Payload, PayloadRequest } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { nextSectionDisplayOrder } from '@/lib/kosztorys/display-order'
+import { nextDisplayOrder } from '@/lib/kosztorys/display-order'
 import { insertItems, insertSections } from '@/lib/kosztorys/insert-rows'
 import { liveCatalogueIds, withLiveCatalogueId } from '@/lib/kosztorys/insert-kosztorys-tree'
 import {
@@ -42,7 +42,7 @@ export async function appendPresetSections(
   if (slices.length === 0) return []
   const db = await getDb(payload, req)
 
-  const base = await nextSectionDisplayOrder(db, investmentId)
+  const base = await nextDisplayOrder(db, 'kosztorys-sections', investmentId)
 
   const newSectionIds = await insertSections(
     db,

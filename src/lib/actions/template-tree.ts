@@ -15,7 +15,11 @@ import {
 } from '@/lib/db/template-structure'
 import { bumpTemplateRevision, readTemplateRevision } from '@/lib/db/templates'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { renumberDisplayOrder, renumberDisplayOrderSchema } from '@/lib/kosztorys/display-order'
+import {
+  numberWithinSections,
+  renumberDisplayOrder,
+  renumberDisplayOrderSchema,
+} from '@/lib/kosztorys/display-order'
 import {
   kosztorysLayoutSchema,
   LAYOUT_STALE,
@@ -45,14 +49,11 @@ export async function renumberTemplateOrderAction(
           if (parsed.data.some((id) => !sectionById.has(id))) {
             return { success: false, error: ITEMS_NOT_IN_TEMPLATE }
           }
-          const nextIndex = new Map<number, number>()
-          const refs = parsed.data.map((id) => {
-            const sectionId = sectionById.get(id) as number
-            const index = nextIndex.get(sectionId) ?? 0
-            nextIndex.set(sectionId, index + 1)
-            return { id, displayOrder: index }
-          })
-          await renumberDisplayOrder(txDb, 'template-items', refs)
+          await renumberDisplayOrder(
+            txDb,
+            'template-items',
+            numberWithinSections(parsed.data, sectionById),
+          )
           return { success: true }
         },
         { skipRevalidation: true },

@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { EditorActionsContext } from '@/components/kosztorys/editor/actions/editor-actions-context'
-import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
+import type { EditorActionsT } from '@/components/kosztorys/editor/actions/editor-actions'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
 import { useAutoSnapshot } from '@/components/kosztorys/editor/hooks/use-auto-snapshot'
@@ -14,7 +14,7 @@ import { refreshDataAction } from '@/lib/actions/refresh'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { whenOnline } from '@/lib/utils/when-online'
 
-type PropsT = KosztorysEditorDataT & {
+type PropsT = Omit<KosztorysEditorDataT, 'isTemplate'> & {
   // Required: a szablon id and a kosztorys id share one number space, so the route must say which
   // plane its writes land on.
   actions: EditorActionsT
@@ -84,6 +84,7 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
       <KosztorysEditorBody
         key={remountKey}
         {...props}
+        isTemplate={actions.isTemplate}
         undoRedo={undoRedo}
         onOpenVersions={(flushPendingSaves) => {
           flushBodySavesRef.current = flushPendingSaves

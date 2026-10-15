@@ -3,7 +3,7 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import {
   EMPTY_ITEM_TEXT_ERROR,
   catalogueUpdateFor,
-  splitTemplatePatch,
+  pickCataloguePatch,
 } from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -22,12 +22,9 @@ const ENTRY: WorkCatalogueItemT = {
   workNote: null,
 }
 
-describe('splitTemplatePatch', () => {
-  it('sends the katalog its content and keeps the rest on the row', () => {
-    expect(splitTemplatePatch({ clientPrice: 40, plannedQty: 2 })).toEqual({
-      cataloguePatch: { clientPrice: 40 },
-      rowPatch: { plannedQty: 2 },
-    })
+describe('pickCataloguePatch', () => {
+  it('keeps the katalog content and drops what a szablon row does not store', () => {
+    expect(pickCataloguePatch({ clientPrice: 40, plannedQty: 2 })).toEqual({ clientPrice: 40 })
   })
 })
 

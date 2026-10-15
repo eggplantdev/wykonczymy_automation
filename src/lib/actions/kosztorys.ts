@@ -2,7 +2,6 @@
 
 import { after } from 'next/server'
 import { z } from 'zod'
-import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
@@ -15,27 +14,25 @@ import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 import { addItemSchema, type AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
-import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
 import { applyLayout, lockAndCheckLayout } from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { addedItemResult, prepareNewItemRow } from '@/lib/kosztorys/new-item-row'
 import {
   kosztorysLayoutSchema,
   LAYOUT_STALE,
   type KosztorysLayoutT,
 } from '@/lib/kosztorys/reorder-layout'
-import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   applyCatalogueWrite,
-  catalogueRow,
   DUPLICATE_ERROR,
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
-import { EMPTY_ITEM_TEXT_ERROR } from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
 import {
   insertDirectionSchema,
+  numberWithinSections,
   renumberDisplayOrder,
   renumberDisplayOrderSchema,
   resolveInsertSlot,
@@ -70,18 +67,12 @@ import {
 } from '@/lib/db/stage-split'
 import { selectOtherPlaneWorkerNames, trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { mixedPlaneWorkersMessage } from '@/lib/constants/worker-lock'
-import { translateNewRow } from '@/lib/ai/translate-new-row'
-import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
 const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
-
-// --- Patch schemas (all fields optional — autosave sends one field at a time) ---
-// The item patch schema lives beside ItemPatchT in lib/kosztorys/item-patch-schema.ts.
-
 
 // Floor only: above 0,65 the mnożnik warns but saves (owner, 2026-09-21); below 0 is a typo.
 const investmentCoeffsSchema = z
@@ -420,12 +411,6 @@ export async function insertSectionAction(
 
 export type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 
-
-async function catalogueTranslationsFor(db: DbExecutorT, matchKey: string) {
-  const entry = await findCatalogueItemByKey(db, matchKey)
-  return new Map(entry ? [[matchKey, entry.descriptionTranslations]] : [])
-}
-
 // One slot per placement, both under the transaction: an append takes MAX+1, an insert-at locks the
 // anchor's position and moves the tail down by one.
 async function resolveNewItemSlot(
@@ -467,17 +452,9 @@ export async function addItemAction(
       if (!parsed.success) return parsed
       const { placement, data, catalogue, translate } = parsed.data
 
-      const fields = catalogueRow(data)
-      if (!fields.description || !fields.unit) {
-        return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
-      }
-      const translated = translate
-        ? await translateNewRow(
-            { description: fields.description, unit: fields.unit, descriptionTranslations: {} },
-            await catalogueTranslationsFor(await getDb(payload), fields.matchKey),
-          )
-        : { translations: {}, failed: false }
-      const row = { ...fields, descriptionTranslations: translated.translations }
+      const prepared = await prepareNewItemRow(payload, data, translate)
+      if ('error' in prepared) return prepared
+      const { row, translationFailed } = prepared
 
       return withPayloadTransaction(
         payload,
@@ -508,16 +485,7 @@ export async function addItemAction(
             : null
           const item = itemFromFields(row, slot.sectionId, slot.displayOrder, catalogueItemId)
           const [id] = await insertItems(txDb, investmentId, [{ sectionId: slot.sectionId, item }])
-
-          const warnings = [
-            ...ceilingWarnings([item]),
-            ...(translated.failed ? [SAVED_UNTRANSLATED_WARNING] : []),
-          ]
-          return {
-            success: true,
-            data: { item: { ...item, id } },
-            ...(warnings.length > 0 && { warning: warnings.join(' ') }),
-          }
+          return addedItemResult(item, id, translationFailed)
         },
         { skipRevalidation: true },
       )
@@ -583,14 +551,11 @@ export async function renumberKosztorysOrderAction(
           if (parsed.data.some((id) => !sectionById.has(id))) {
             return { success: false, error: ITEMS_NOT_IN_KOSZTORYS }
           }
-          const nextIndex = new Map<number, number>()
-          const refs = parsed.data.map((id) => {
-            const sectionId = sectionById.get(id) as number
-            const index = nextIndex.get(sectionId) ?? 0
-            nextIndex.set(sectionId, index + 1)
-            return { id, displayOrder: index }
-          })
-          await renumberDisplayOrder(txDb, 'kosztorys-items', refs)
+          await renumberDisplayOrder(
+            txDb,
+            'kosztorys-items',
+            numberWithinSections(parsed.data, sectionById),
+          )
           return { success: true }
         },
         { skipRevalidation: true },

@@ -2,7 +2,7 @@ import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { bumpInvestmentRevision } from '@/lib/db/investment-revision'
-import type { KosztorysLayoutT } from '@/lib/kosztorys/reorder-layout'
+import { coversExactly, type KosztorysLayoutT } from '@/lib/kosztorys/reorder-layout'
 
 // Refuses anything but a permutation of the sheet as it stands under the lock: a row added or
 // deleted in another tab would otherwise be silently dropped from, or smuggled into, the order.
@@ -28,15 +28,11 @@ export async function lockAndCheckLayout(
     SELECT id FROM kosztorys_items WHERE investment_id = ${investmentId}
     ORDER BY id FOR NO KEY UPDATE
   `)
-  const sectionIds = new Set(sectionRes.rows.map((row) => Number(row.id)))
-  const itemIds = new Set(itemRes.rows.map((row) => Number(row.id)))
-  const sentItems = layout.flatMap((section) => section.itemIds)
-  const sentSections = layout.map((section) => section.sectionId)
-  const isPermutation = (sent: number[], owned: Set<number>) =>
-    sent.length === owned.size &&
-    new Set(sent).size === sent.length &&
-    sent.every((id) => owned.has(id))
-  return isPermutation(sentSections, sectionIds) && isPermutation(sentItems, itemIds)
+  return coversExactly(
+    layout,
+    new Set(sectionRes.rows.map((row) => Number(row.id))),
+    new Set(itemRes.rows.map((row) => Number(row.id))),
+  )
 }
 
 export async function applyLayout(

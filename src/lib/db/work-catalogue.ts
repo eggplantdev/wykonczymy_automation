@@ -42,6 +42,18 @@ export function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItem
  * The cennik rows named by id, returned in the CALLER's order — the wstawianie writes them in the
  * order the user ticked them, and SQL has no opinion about that order.
  */
+// Which of these katalog ids still name an entry.
+export async function existingCatalogueIds(
+  db: DbExecutorT,
+  ids: readonly number[],
+): Promise<Set<number>> {
+  if (ids.length === 0) return new Set()
+  const res = await db.execute(
+    sql`SELECT id FROM work_catalogue_items WHERE id IN (${sqlList(ids)})`,
+  )
+  return new Set(res.rows.map((row) => Number(row.id)))
+}
+
 export async function listCatalogueItemsByIds(
   db: DbExecutorT,
   ids: readonly number[],
@@ -231,7 +243,6 @@ export async function findCatalogueItemByKey(
   return row ? toCatalogueItem(row) : undefined
 }
 
-/** The live katalog entry a pozycja remembers — none for an unlinked row or a deleted entry. */
 export async function findTemplateItemCatalogueEntry(
   db: DbExecutorT,
   templateItemId: number,
@@ -245,6 +256,7 @@ export async function findTemplateItemCatalogueEntry(
   return row ? toCatalogueItem(row) : undefined
 }
 
+/** The live katalog entry a pozycja remembers — none for an unlinked row or a deleted entry. */
 export async function findLinkedCatalogueItem(
   db: DbExecutorT,
   itemId: number,

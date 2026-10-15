@@ -11,27 +11,21 @@ import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import {
   insertTemplateItems,
   insertTemplateSection,
-  nextTemplateSectionOrder,
   readTemplateLayout,
-  updateTemplateSection,
 } from '@/lib/db/template-structure'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
+import { existingCatalogueIds } from '@/lib/db/work-catalogue'
 import {
   getTemplateRecordName,
   isLiveTemplate,
   renameTemplate,
   templateNameHolder,
-  templateOwnersOfSections,
   type TemplateNameHolderT,
 } from '@/lib/db/templates'
-import {
-  appendPresetSections,
-  type AppendedSliceT,
-  type SectionSliceT,
-} from '@/lib/kosztorys/append-preset-sections'
+import { appendPresetSections, type AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import { keepCataloguedItems, skippedItemsWarning } from '@/lib/kosztorys/catalogued-preset-items'
-import { createTemplate } from '@/lib/kosztorys/create-template'
+import { createTemplate } from '@/lib/kosztorys/templates/create-template'
+import { nextDisplayOrder } from '@/lib/kosztorys/display-order'
 import { preOverwriteLabel, preReloadLabel } from '@/lib/kosztorys/preset-labels'
 import {
   reloadInvestmentFromPreset,
@@ -40,7 +34,7 @@ import {
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import { replaceTemplateLayout } from '@/lib/kosztorys/templates/replace-template-layout'
-import { serializeTemplate } from '@/lib/kosztorys/templates/serialize-template'
+import { resolveSectionSlices } from '@/lib/kosztorys/templates/resolve-section-slices'
 import { toTemplateLayout } from '@/lib/kosztorys/templates/template-layout'
 import type { ActionResultT } from '@/types/action'
 
@@ -74,8 +68,7 @@ async function cataloguedPresetTree(db: DbExecutorT, tree: SnapshotPayloadT) {
   const ids = tree.items.flatMap((item) =>
     item.catalogueItemId == null ? [] : [item.catalogueItemId],
   )
-  const live = await listCatalogueItemsByIds(db, [...new Set(ids)])
-  return keepCataloguedItems(tree, new Set(live.map((entry) => entry.id)))
+  return keepCataloguedItems(tree, await existingCatalogueIds(db, ids))
 }
 
 const savedPreset = (skipped: number): ActionResultT =>
@@ -222,25 +215,8 @@ export async function appendPresetSectionsAction(
       const parsed = validateAction(appendSectionsSchema, { investmentId, sectionIds })
       if (!parsed.success) return parsed
 
-      const db = await getDb(payload)
-      const owners = await templateOwnersOfSections(db, parsed.data.sectionIds)
-      // A szablon can contribute several sections, so each is serialized once; the loop keeps the
-      // client's order so appended sections land in the order they were picked.
-      const trees = new Map<number, SnapshotPayloadT>()
-      const slices: SectionSliceT[] = []
-      for (const sectionId of parsed.data.sectionIds) {
-        const templateId = owners.get(sectionId)
-        if (templateId == null) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-        let tree = trees.get(templateId)
-        if (!tree) {
-          tree = await serializeTemplate(db, templateId)
-          if (!tree) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-          trees.set(templateId, tree)
-        }
-        const section = tree.sections.find((s) => s.id === sectionId)
-        if (!section) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-        slices.push({ section, items: tree.items.filter((it) => it.sectionId === sectionId) })
-      }
+      const slices = await resolveSectionSlices(await getDb(payload), parsed.data.sectionIds)
+      if (!slices) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
 
       const created = await withPayloadTransaction(
         payload,
@@ -302,7 +278,7 @@ export async function saveTemplateAsPresetAction(
         return { success: false, error: 'Szablonu nie nadpisuje się nim samym' }
       }
 
-      const result = await withPayloadTransaction(
+      return withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
           const db = await getDb(payload, req)
@@ -326,7 +302,6 @@ export async function saveTemplateAsPresetAction(
         },
         SKIP_HOOK_REVALIDATION,
       )
-      return result
     },
     ['presets'],
   )
@@ -390,27 +365,18 @@ export async function appendPresetSectionsToTemplateAction(
         payload,
         async (req): Promise<ActionResultT<AppendedSliceT>> => {
           const db = await getDb(payload, req)
-          const owners = await templateOwnersOfSections(db, parsed.data.sectionIds)
-          const trees = new Map<number, SnapshotPayloadT>()
-          let next = await nextTemplateSectionOrder(db, templateId)
+          const slices = await resolveSectionSlices(db, parsed.data.sectionIds)
+          if (!slices) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
+          let next = await nextDisplayOrder(db, 'template-sections', templateId)
           const created: AppendedSliceT = []
-          for (const sectionId of parsed.data.sectionIds) {
-            const sourceId = owners.get(sectionId)
-            if (sourceId == null) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-            let tree = trees.get(sourceId)
-            if (!tree) {
-              tree = await serializeTemplate(db, sourceId)
-              if (!tree) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-              trees.set(sourceId, tree)
-            }
-            const section = tree.sections.find((s) => s.id === sectionId)
-            if (!section) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-            const items = tree.items.filter((item) => item.sectionId === sectionId)
-
-            const newSectionId = await insertTemplateSection(db, templateId, section.name, next)
-            if (section.color) {
-              await updateTemplateSection(db, newSectionId, { color: section.color })
-            }
+          for (const { section, items } of slices) {
+            const newSectionId = await insertTemplateSection(
+              db,
+              templateId,
+              section.name,
+              next,
+              section.color,
+            )
             const newItemIds = await insertTemplateItems(
               db,
               newSectionId,

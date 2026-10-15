@@ -5,7 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import {
   getTemplateRecordName,
   isLiveTemplate,
-  listTemplateNamesByCatalogueItem,
   listTemplateSections,
   listTemplates,
   markTemplateEdited,
@@ -305,40 +304,5 @@ describe.skipIf(!ENV_READY)('templateOwnersOfSections (DB)', () => {
 
     const owners = await templateOwnersOfSections(db, [sectionId, missing])
     expect([...owners]).toEqual([[sectionId, template]])
-  })
-})
-
-// „Szablony" on /katalog-prac is the length of this list, so a praca repeated in two sekcje of one
-// szablon names it once, and a trashed szablon names nothing.
-describe.skipIf(!ENV_READY)('listTemplateNamesByCatalogueItem (DB)', () => {
-  let payload: Payload
-  let db: Awaited<ReturnType<typeof getDb>>
-  const created: number[] = []
-  let entryId: number
-  let live: number
-
-  beforeAll(async () => {
-    payload = await bootPayload()
-    db = await getDb(payload)
-
-    entryId = await createTestCatalogueEntry(payload, 'Szpachlowanie')
-    live = await createTestTemplate(payload, 'catalogue-names-live')
-    const trashed = await createTestTemplate(payload, 'catalogue-names-trashed')
-    created.push(live, trashed)
-
-    await addTestTemplateSection(payload, live, 'Salon', [entryId])
-    await addTestTemplateSection(payload, live, 'Kuchnia', [entryId], { displayOrder: 1 })
-    await addTestTemplateSection(payload, trashed, 'Salon', [entryId])
-    await trash(db, trashed)
-  })
-
-  afterAll(async () => {
-    for (const id of created) await deleteTestTemplate(payload, id)
-    await deleteTestCatalogueEntries(payload, [entryId])
-  })
-
-  it('names each live szablon once, however many sekcje repeat the praca', async () => {
-    const names = await listTemplateNamesByCatalogueItem(db)
-    expect(names[entryId]).toEqual([await getTemplateRecordName(db, live)])
   })
 })

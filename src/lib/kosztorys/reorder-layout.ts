@@ -10,6 +10,28 @@ export type KosztorysLayoutT = z.infer<typeof kosztorysLayoutSchema>
 
 export const LAYOUT_STALE = 'Układ się zmienił w międzyczasie — odśwież i spróbuj ponownie.'
 
+// A sent layout may only reorder what the owner holds: every section and item exactly once.
+export function coversExactly(
+  layout: KosztorysLayoutT,
+  ownedSectionIds: ReadonlySet<number>,
+  ownedItemIds: ReadonlySet<number>,
+): boolean {
+  const isPermutation = (sent: number[], owned: ReadonlySet<number>) =>
+    sent.length === owned.size &&
+    new Set(sent).size === sent.length &&
+    sent.every((id) => owned.has(id))
+  return (
+    isPermutation(
+      layout.map((section) => section.sectionId),
+      ownedSectionIds,
+    ) &&
+    isPermutation(
+      layout.flatMap((section) => section.itemIds),
+      ownedItemIds,
+    )
+  )
+}
+
 // Where a dragged block lands: before `beforeItemId` in that section, or at its end when undefined.
 export type ItemDropTargetT = { sectionId: number; beforeItemId: number | undefined }
 

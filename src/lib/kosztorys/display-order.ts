@@ -29,6 +29,19 @@ export type DisplayOrderRefT = { id: number; displayOrder: number }
 //
 // A duplicate id is still refused: it makes the VALUES join ambiguous (two rows claim one target) and
 // it makes the sequence itself meaningless.
+export function numberWithinSections(
+  orderedIds: readonly number[],
+  sectionById: ReadonlyMap<number, number>,
+): DisplayOrderRefT[] {
+  const nextIndex = new Map<number, number>()
+  return orderedIds.map((id) => {
+    const sectionId = sectionById.get(id) as number
+    const index = nextIndex.get(sectionId) ?? 0
+    nextIndex.set(sectionId, index + 1)
+    return { id, displayOrder: index }
+  })
+}
+
 export const renumberDisplayOrderSchema = z
   .array(z.number().int())
   .min(1)
@@ -36,13 +49,15 @@ export const renumberDisplayOrderSchema = z
 
 // Append slot for a new row = MAX(display_order)+1, not COUNT — a delete leaves a gap, so counting
 // would collide with a surviving row.
-export async function nextSectionDisplayOrder(
+export async function nextDisplayOrder(
   db: DbExecutorT,
-  investmentId: number,
+  scope: OrderScopeT,
+  ownerId: number,
 ): Promise<number> {
+  const { table, owner } = ORDER_SCOPES[scope]
   const res = await db.execute(sql`
     SELECT COALESCE(MAX(display_order) + 1, 0) AS next
-    FROM kosztorys_sections WHERE investment_id = ${investmentId}
+    FROM ${table} WHERE ${owner} = ${ownerId}
   `)
   return Number(res.rows[0]?.next ?? 0)
 }

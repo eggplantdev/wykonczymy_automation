@@ -5,7 +5,7 @@ import { getTemplateTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
-import { templateEditorActions } from '@/components/kosztorys/editor/template-editor-actions'
+import { templateEditorActions } from '@/components/kosztorys/editor/actions/template-editor-actions'
 import type { DynamicPagePropsT } from '@/types/page'
 
 // A szablon has its own tables, read into the kosztorys tree shape — but none of the investment
@@ -32,7 +32,6 @@ export default async function TemplatePage({ params }: DynamicPagePropsT) {
       investmentId={templateId}
       tree={tree}
       investmentName={name}
-      isTemplate
       actions={templateEditorActions}
       workCatalogue={workCatalogue}
       materialsGrossBase={0}

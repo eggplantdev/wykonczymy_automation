@@ -1,6 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
-import { DAILY_BAND_DAYS, FULL_DENSITY_DAYS, MAX_AGE_DAYS } from '@/lib/db/snapshots'
+import { gcRetentionBands, snapshotMetaOf } from '@/lib/db/snapshots'
 import { assertReadableSchemaVersion, type SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import {
   TEMPLATE_SNAPSHOT_SCHEMA_VERSION,
@@ -9,7 +9,7 @@ import {
 import type { DbExecutorT } from './get-db'
 
 // The raw `template_snapshots` table — a szablon's „Wersje", refs only. Retention follows the
-// kosztorys bands (`gcSnapshots`), minus the investor clause: a szablon has no investor and is never
+// kosztorys bands (`gcRetentionBands`), minus the investor clause: a szablon has no investor and is never
 // completed, so a `named` version lives as long as the szablon does.
 
 export type TemplateSnapshotMetaT = {
@@ -52,14 +52,7 @@ export async function listTemplateSnapshots(
     WHERE template_id = ${templateId}
     ORDER BY taken_at DESC, id DESC
   `)
-  return res.rows.map((row) => ({
-    id: Number(row.id),
-    templateId: Number(row.template_id),
-    kind: row.kind as SnapshotKindT,
-    label: (row.label as string | null) ?? null,
-    takenAt: String(row.taken_at),
-    takenBy: row.taken_by == null ? null : Number(row.taken_by),
-  }))
+  return res.rows.map((row) => ({ ...snapshotMetaOf(row), templateId: Number(row.template_id) }))
 }
 
 export async function getTemplateSnapshot(
@@ -81,48 +74,6 @@ export async function getTemplateSnapshot(
 export async function gcTemplateSnapshots(
   db: DbExecutorT,
 ): Promise<{ deleted: number; ceiling: number; daily: number; weekly: number }> {
-  const ceiling = await db.execute(sql`
-    DELETE FROM template_snapshots
-    WHERE kind IN ('auto', 'manual')
-      AND taken_at < now() - make_interval(days => ${MAX_AGE_DAYS})
-    RETURNING id
-  `)
-
-  const daily = await db.execute(sql`
-    DELETE FROM template_snapshots WHERE id IN (
-      SELECT id FROM (
-        SELECT id, row_number() OVER (
-          PARTITION BY template_id, date_trunc('day', taken_at AT TIME ZONE 'Europe/Warsaw')
-          ORDER BY taken_at DESC, id DESC
-        ) AS rn
-        FROM template_snapshots
-        WHERE kind = 'auto'
-          AND taken_at < now() - make_interval(days => ${FULL_DENSITY_DAYS})
-          AND taken_at >= now() - make_interval(days => ${DAILY_BAND_DAYS})
-      ) ranked WHERE rn > 1
-    )
-    RETURNING id
-  `)
-
-  const weekly = await db.execute(sql`
-    DELETE FROM template_snapshots WHERE id IN (
-      SELECT id FROM (
-        SELECT id, row_number() OVER (
-          PARTITION BY template_id, date_trunc('week', taken_at AT TIME ZONE 'Europe/Warsaw')
-          ORDER BY taken_at DESC, id DESC
-        ) AS rn
-        FROM template_snapshots
-        WHERE kind = 'auto'
-          AND taken_at < now() - make_interval(days => ${DAILY_BAND_DAYS})
-      ) ranked WHERE rn > 1
-    )
-    RETURNING id
-  `)
-
-  const counts = {
-    ceiling: ceiling.rows.length,
-    daily: daily.rows.length,
-    weekly: weekly.rows.length,
-  }
+  const counts = await gcRetentionBands(db, 'template')
   return { deleted: counts.ceiling + counts.daily + counts.weekly, ...counts }
 }

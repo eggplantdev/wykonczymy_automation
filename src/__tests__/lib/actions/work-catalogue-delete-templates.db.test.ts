@@ -60,7 +60,8 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
       (await createKosztorysTree(payload, kosztorysId, { sections: [{ name: 'Salon', items: [row] }] }))
         .itemIds[0] ?? 0
     await db.execute(sql`
-      UPDATE templates SET content_edited_at = now() - interval '2 days'
+      UPDATE templates
+      SET content_edited_at = now() - interval '2 days', updated_at = now() - interval '2 days'
       WHERE id IN (${liveTemplateId}, ${trashedTemplateId})
     `)
     await db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${trashedTemplateId}`)
@@ -77,9 +78,9 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
   const exists = async (table: 'template_items' | 'kosztorys_items', id: number) =>
     (await db.execute(sql`SELECT 1 FROM ${sql.raw(table)} WHERE id = ${id}`)).rows.length > 0
 
-  const editedToday = async (id: number) => {
+  const movedToday = async (id: number, column: 'content_edited_at' | 'updated_at') => {
     const res = await db.execute(sql`
-      SELECT content_edited_at > now() - interval '1 hour' AS fresh FROM templates WHERE id = ${id}
+      SELECT ${sql.raw(column)} > now() - interval '1 hour' AS fresh FROM templates WHERE id = ${id}
     `)
     return res.rows[0]?.fresh === true
   }
@@ -94,7 +95,9 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
     expect(await exists('template_items', itemIds.trashed)).toBe(false)
     expect(await exists('kosztorys_items', itemIds.kosztorys)).toBe(true)
     // The szablon's content changed, so the list's „ostatnia zmiana" moves with it.
-    expect(await editedToday(liveTemplateId)).toBe(true)
-    expect(await editedToday(trashedTemplateId)).toBe(true)
+    expect(await movedToday(liveTemplateId, 'content_edited_at')).toBe(true)
+    expect(await movedToday(trashedTemplateId, 'content_edited_at')).toBe(true)
+    // An open editor of the szablon notices the vanished praca by its revision.
+    expect(await movedToday(liveTemplateId, 'updated_at')).toBe(true)
   })
 })

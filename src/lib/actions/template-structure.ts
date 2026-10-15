@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { templateAction } from '@/lib/actions/template-action'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 import { validateAction } from '@/lib/actions/run-action'
-import { translateNewRow } from '@/lib/ai/translate-new-row'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import {
   deleteTemplateItem,
@@ -28,6 +27,7 @@ import {
   type InsertDirectionT,
 } from '@/lib/kosztorys/display-order'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { addedItemResult, prepareNewItemRow } from '@/lib/kosztorys/new-item-row'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
@@ -35,14 +35,13 @@ import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { ItemPatchT, KosztorysItemT, KosztorysSectionT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import {
   catalogueUpdateFor,
-  EMPTY_ITEM_TEXT_ERROR,
-  splitTemplatePatch,
+  pickCataloguePatch,
 } from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
 import {
   createSectionWithCatalogueItemsSchema,
   insertCatalogueItemsSchema,
-  readCatalogueItems,
-} from '@/lib/kosztorys/work-catalogue/read-catalogue-items'
+} from '@/lib/kosztorys/work-catalogue/insert-catalogue-items-schema'
+import { readCatalogueItems } from '@/lib/kosztorys/work-catalogue/read-catalogue-items'
 import type {
   AppendedCatalogueSliceT,
   NewSectionCatalogueSliceT,
@@ -50,11 +49,9 @@ import type {
 } from '@/lib/kosztorys/work-catalogue/types'
 import {
   applyCatalogueWrite,
-  catalogueRow,
   DUPLICATE_ERROR,
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
-import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import type { ActionResultT } from '@/types/action'
 
 // The szablon plane's twins of the structural writes in `kosztorys.ts`. A szablon praca is a link to
@@ -72,7 +69,7 @@ export async function updateTemplateItemFieldAction(itemId: number, patch: ItemP
     async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
-      const { cataloguePatch } = splitTemplatePatch(normalizeOverridePatch(parsed.data))
+      const cataloguePatch = pickCataloguePatch(normalizeOverridePatch(parsed.data))
       if (Object.keys(cataloguePatch).length === 0) return { success: true }
 
       return withPayloadTransaction(
@@ -238,22 +235,9 @@ export async function addTemplateItemAction(
       const { placement, data, catalogue, translate } = parsed.data
       if (!catalogue) return { success: false, error: TEMPLATE_ITEM_NEEDS_CATALOGUE }
 
-      const fields = catalogueRow(data)
-      if (!fields.description || !fields.unit) {
-        return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
-      }
-      const existingEntry = translate
-        ? await findCatalogueItemByKey(await getDb(payload), fields.matchKey)
-        : undefined
-      const translated = translate
-        ? await translateNewRow(
-            { description: fields.description, unit: fields.unit, descriptionTranslations: {} },
-            new Map(
-              existingEntry ? [[fields.matchKey, existingEntry.descriptionTranslations]] : [],
-            ),
-          )
-        : { translations: {}, failed: false }
-      const row = { ...fields, descriptionTranslations: translated.translations }
+      const prepared = await prepareNewItemRow(payload, data, translate)
+      if ('error' in prepared) return prepared
+      const { row, translationFailed } = prepared
 
       return withPayloadTransaction(
         payload,
@@ -276,16 +260,7 @@ export async function addTemplateItemAction(
           const [id] = await insertTemplateItems(txDb, slot.sectionId, slot.displayOrder, [
             catalogueItemId,
           ])
-
-          const warnings = [
-            ...ceilingWarnings([item]),
-            ...(translated.failed ? [SAVED_UNTRANSLATED_WARNING] : []),
-          ]
-          return {
-            success: true,
-            data: { item: { ...item, id } },
-            ...(warnings.length > 0 && { warning: warnings.join(' ') }),
-          }
+          return addedItemResult(item, id, translationFailed)
         },
         { skipRevalidation: true },
       )

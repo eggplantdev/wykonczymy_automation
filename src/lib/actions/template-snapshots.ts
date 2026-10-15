@@ -6,6 +6,7 @@ import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { templateAction } from '@/lib/actions/template-action'
 import type { RestoreResultT, SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { TEMPLATE_TRASHED_MESSAGE } from '@/lib/constants/template-lock'
+import { snapshotLabelSchema } from '@/lib/kosztorys/snapshot-label-schema'
 import { getDb } from '@/lib/db/get-db'
 import { templateGateFor } from '@/lib/db/template-gate'
 import { readTemplateLayout } from '@/lib/db/template-structure'
@@ -50,14 +51,12 @@ export async function templateSnapshotAction(templateId: number): Promise<Action
   )
 }
 
-const saveSnapshotSchema = z.object({ label: z.string().trim().min(1, 'Podaj nazwę wersji') })
-
 export async function saveTemplateSnapshotAction(
   templateId: number,
   label: string,
 ): Promise<ActionResultT> {
   return protectedAction('saveTemplateSnapshotAction', async ({ payload, user }) => {
-    const parsed = validateAction(saveSnapshotSchema, { label })
+    const parsed = validateAction(snapshotLabelSchema, { label })
     if (!parsed.success) return parsed
     return captureTemplateSnapshot(payload, templateId, {
       kind: 'named',

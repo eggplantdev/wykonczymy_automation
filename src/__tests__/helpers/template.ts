@@ -57,7 +57,6 @@ export async function deleteTestCatalogueEntries(payload: Payload, ids: number[]
   }
 }
 
-// One section with its prace in the order given.
 export async function addTestTemplateSection(
   payload: Payload,
   templateId: number,

@@ -1,13 +1,22 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
+import { listTemplateNamesByCatalogueItem } from '@/lib/db/catalogue-usage'
 import { getDb } from '@/lib/db/get-db'
+import { getTemplateRecordName } from '@/lib/db/templates'
 import {
   createTestInvestment,
   trashDaysAgo,
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import {
+  addTestTemplateSection,
+  createTestCatalogueEntry,
+  createTestTemplate,
+  deleteTestCatalogueEntries,
+  deleteTestTemplate,
+} from '@/__tests__/helpers/template'
 
 // „Kosztorysy" counts a praca as used only where real work was offered or measured; an
 // inwestycja in the kosz counted in would inflate every figure with pozycje nobody sold. The
@@ -93,5 +102,42 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
   // would surface in „Używane, a brak w katalogu" as a bare j.m.
   it('skips a pozycja without an opis', () => {
     expect(blankInvestmentRows).toBe(0)
+  })
+})
+
+// „Szablony" on /katalog-prac is the length of this list, so a praca repeated in two sekcje of one
+// szablon names it once, and a trashed szablon names nothing.
+describe.skipIf(!ENV_READY)('listTemplateNamesByCatalogueItem (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  const created: number[] = []
+  let entryId: number
+  let live: number
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    entryId = await createTestCatalogueEntry(payload, 'Szpachlowanie')
+    live = await createTestTemplate(payload, 'catalogue-names-live')
+    const trashed = await createTestTemplate(payload, 'catalogue-names-trashed')
+    created.push(live, trashed)
+
+    await addTestTemplateSection(payload, live, 'Salon', [entryId])
+    await addTestTemplateSection(payload, live, 'Kuchnia', [entryId], { displayOrder: 1 })
+    await addTestTemplateSection(payload, trashed, 'Salon', [entryId])
+    await db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${trashed}`)
+  })
+
+  afterAll(async () => {
+    for (const id of created) await deleteTestTemplate(payload, id)
+    await deleteTestCatalogueEntries(payload, [entryId])
+  })
+
+  it('names each live szablon once, however many sekcje repeat the praca', async () => {
+    const names = await listTemplateNamesByCatalogueItem(db)
+    expect(names[entryId]).toEqual([await getTemplateRecordName(db, live)])
   })
 })

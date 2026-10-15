@@ -3,7 +3,7 @@ import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
-import { listTemplateNamesUsingCatalogueItem } from '@/lib/db/templates'
+import { listTemplateNamesUsingCatalogueItem } from '@/lib/db/catalogue-usage'
 import {
   findCatalogueItemByKey,
   findLinkedCatalogueItem,

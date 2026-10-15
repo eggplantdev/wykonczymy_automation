@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
+import { snapshotLabelSchema } from '@/lib/kosztorys/snapshot-label-schema'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { getSnapshot, insertSnapshot, listSnapshots, type SnapshotMetaT } from '@/lib/db/snapshots'
@@ -25,8 +26,6 @@ export async function snapshotAction(investmentId: number): Promise<ActionResult
   })
 }
 
-const saveSnapshotSchema = z.object({ label: z.string().trim().min(1, 'Podaj nazwę wersji') })
-
 // Named manual snapshot („Zapisz jako…") — required label, exempt from the auto thinning bands.
 export async function saveSnapshotAction(
   investmentId: number,
@@ -36,7 +35,7 @@ export async function saveSnapshotAction(
     'saveSnapshotAction',
     { investmentId },
     async ({ payload, user }) => {
-      const parsed = validateAction(saveSnapshotSchema, { label })
+      const parsed = validateAction(snapshotLabelSchema, { label })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
       const snapshot = await serializeKosztorys(investmentId)

@@ -61,7 +61,6 @@ describe.skipIf(!ENV_READY)('template structure actions (DB)', () => {
     return { items: Number(res.rows[0].items), sections: Number(res.rows[0].sections) }
   }
 
-  // Asserts the szablon write, then that the kosztorys plane did not move under it.
   async function onTemplatePlaneOnly<ResultT>(write: () => Promise<ResultT>): Promise<ResultT> {
     const before = await kosztorysCounts()
     const result = await write()

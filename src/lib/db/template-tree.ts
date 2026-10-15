@@ -88,5 +88,4 @@ const mapTemplateItem = (row: RowT) => ({
     Number(row.catalogue_item_id),
   ),
   id: Number(row.id),
-  sectionId: Number(row.section_id),
 })

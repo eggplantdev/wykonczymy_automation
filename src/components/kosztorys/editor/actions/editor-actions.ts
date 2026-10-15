@@ -16,13 +16,14 @@ import type {
 import type { ActionResultT } from '@/types/action'
 
 /**
- * The writes the shared editor makes against the tree it shows. The route hands in the set for its
- * plane — a kosztorys id and a szablon id share one number space, so a szablon calling a kosztorys
- * action would write into whichever investment carries its id. `ownerId` is the kosztorys's
- * investment or the szablon. Writes a szablon never shows (etapy, rozliczenie, arkusz) stay direct
- * imports.
+ * The route hands in the set for its plane — a kosztorys id and a szablon id share one number
+ * space, so a szablon calling a kosztorys action would write into whichever investment carries its
+ * id. `ownerId` is the kosztorys's investment or the szablon. Writes a szablon never shows (etapy,
+ * rozliczenie, arkusz) stay direct imports.
  */
 export type EditorActionsT = {
+  // The editor's plane is read from here, never passed beside the set, so the two can't disagree.
+  isTemplate: boolean
   updateItemField: (itemId: number, patch: ItemPatchT) => Promise<ActionResultT>
   updateSectionField: (sectionId: number, patch: SectionPatchT) => Promise<ActionResultT>
   addSection: (ownerId: number) => Promise<ActionResultT<CreatedSectionT>>

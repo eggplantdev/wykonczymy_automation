@@ -1,4 +1,4 @@
-import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
+import type { EditorActionsT } from '@/components/kosztorys/editor/actions/editor-actions'
 import {
   appendPresetSectionsAction,
   reloadFromPresetAction,
@@ -30,6 +30,7 @@ import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-transla
 import { readKosztorysRevision } from '@/lib/queries/kosztorys-revision'
 
 export const kosztorysEditorActions: EditorActionsT = {
+  isTemplate: false,
   updateItemField: updateItemFieldAction,
   updateSectionField: updateSectionFieldAction,
   addSection: addSectionAction,

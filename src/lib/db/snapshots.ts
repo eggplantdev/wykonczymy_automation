@@ -1,5 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
+import { numOrNull, textOrNull } from '@/lib/db/row-coerce'
 import { sqlList } from '@/lib/db/sql-list'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { CLOSED_INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
@@ -14,7 +15,7 @@ import type { HistoryKindT, HistoryMetaT } from '@/lib/kosztorys/history/types'
 import type { DbExecutorT } from './get-db'
 
 // The single reader/writer of the raw kosztorys_snapshots table (no Payload collection — the
-// notification_reads pattern). Retention has one authority, gcSnapshots, swept daily by the cron;
+// notification_reads pattern). Retention has one authority, gcRetentionBands, swept daily by the cron;
 // nothing prunes on the insert path, so a capture is a plain INSERT.
 
 // THE RETENTION POLICY, in full:
@@ -32,9 +33,9 @@ import type { DbExecutorT } from './get-db'
 // them: they live as long as the investment is open, and go a year after it was completed
 // (`completed_at`). A completed investment with no `completed_at` keeps them — investor history is
 // never deleted on missing data. `auto` and `manual` are the owner's restore points only.
-export const FULL_DENSITY_DAYS = 30
-export const DAILY_BAND_DAYS = 120
-export const MAX_AGE_DAYS = 365
+const FULL_DENSITY_DAYS = 30
+const DAILY_BAND_DAYS = 120
+const MAX_AGE_DAYS = 365
 const INVESTOR_HISTORY_DAYS_AFTER_COMPLETION = 365
 
 // Without the jsonb `payload`: a list must never load ~1000 rows × N snapshots of tree data.
@@ -131,15 +132,16 @@ export async function listSnapshots(
     WHERE investment_id = ${investmentId}
     ORDER BY taken_at DESC, id DESC
   `)
-  return res.rows.map((row) => ({
-    id: Number(row.id),
-    investmentId: Number(row.investment_id),
-    kind: row.kind as SnapshotKindT,
-    label: (row.label as string | null) ?? null,
-    takenAt: String(row.taken_at),
-    takenBy: row.taken_by == null ? null : Number(row.taken_by),
-  }))
+  return res.rows.map((row) => ({ ...snapshotMetaOf(row), investmentId: Number(row.investment_id) }))
 }
+
+export const snapshotMetaOf = (row: Record<string, unknown>) => ({
+  id: Number(row.id),
+  kind: row.kind as SnapshotKindT,
+  label: textOrNull(row.label),
+  takenAt: String(row.taken_at),
+  takenBy: numOrNull(row.taken_by),
+})
 
 const historyMeta = (row: Record<string, unknown>): HistoryMetaT => ({
   id: Number(row.id),
@@ -202,10 +204,66 @@ export async function getHistorySnapshots(
   )
 }
 
+// A szablon's „Wersje" follow the same bands; only the table and the column a bucket groups by differ.
+const RETENTION_SCOPES = {
+  kosztorys: { table: sql.raw('kosztorys_snapshots'), owner: sql.raw('investment_id') },
+  template: { table: sql.raw('template_snapshots'), owner: sql.raw('template_id') },
+} as const
+
 // Three statements rather than one, because each band is a separate sentence mapping 1:1 onto a test
 // case. STATELESS and IDEMPOTENT — the set of survivors IS the state, so a missed cron night costs
 // nothing and a second run deletes zero. The per-band breakdown is returned so the log says WHICH
 // band deleted: a band firing when it should not is otherwise silent and irreversible.
+export async function gcRetentionBands(
+  db: DbExecutorT,
+  scope: keyof typeof RETENTION_SCOPES,
+): Promise<{ ceiling: number; daily: number; weekly: number }> {
+  const { table, owner } = RETENTION_SCOPES[scope]
+  const ceiling = await db.execute(sql`
+    DELETE FROM ${table}
+    WHERE kind IN ('auto', 'manual')
+      AND taken_at < now() - make_interval(days => ${MAX_AGE_DAYS})
+    RETURNING id
+  `)
+
+  // The only date bucketing done in SQL in this repo (every other is JS, src/lib/utils/days.ts): the
+  // sweep has to decide what to delete WITHOUT shipping every row to the app, so don't „fix" it into
+  // the JS convention. Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would
+  // otherwise land in the previous calendar day.
+  const daily = await db.execute(sql`
+    DELETE FROM ${table} WHERE id IN (
+      SELECT id FROM (
+        SELECT id, row_number() OVER (
+          PARTITION BY ${owner}, date_trunc('day', taken_at AT TIME ZONE 'Europe/Warsaw')
+          ORDER BY taken_at DESC, id DESC
+        ) AS rn
+        FROM ${table}
+        WHERE kind = 'auto'
+          AND taken_at < now() - make_interval(days => ${FULL_DENSITY_DAYS})
+          AND taken_at >= now() - make_interval(days => ${DAILY_BAND_DAYS})
+      ) ranked WHERE rn > 1
+    )
+    RETURNING id
+  `)
+
+  const weekly = await db.execute(sql`
+    DELETE FROM ${table} WHERE id IN (
+      SELECT id FROM (
+        SELECT id, row_number() OVER (
+          PARTITION BY ${owner}, date_trunc('week', taken_at AT TIME ZONE 'Europe/Warsaw')
+          ORDER BY taken_at DESC, id DESC
+        ) AS rn
+        FROM ${table}
+        WHERE kind = 'auto'
+          AND taken_at < now() - make_interval(days => ${DAILY_BAND_DAYS})
+      ) ranked WHERE rn > 1
+    )
+    RETURNING id
+  `)
+
+  return { ceiling: ceiling.rows.length, daily: daily.rows.length, weekly: weekly.rows.length }
+}
+
 export async function gcSnapshots(db: DbExecutorT): Promise<{
   deleted: number
   ceiling: number
@@ -213,12 +271,7 @@ export async function gcSnapshots(db: DbExecutorT): Promise<{
   weekly: number
   investorExpired: number
 }> {
-  const ceiling = await db.execute(sql`
-    DELETE FROM kosztorys_snapshots
-    WHERE kind IN ('auto', 'manual')
-      AND taken_at < now() - make_interval(days => ${MAX_AGE_DAYS})
-    RETURNING id
-  `)
+  const bands = await gcRetentionBands(db, 'kosztorys')
 
   // A NULL completed_at fails the comparison, so it keeps.
   const investorExpired = await db.execute(sql`
@@ -231,47 +284,7 @@ export async function gcSnapshots(db: DbExecutorT): Promise<{
     RETURNING s.id
   `)
 
-  // The only date bucketing done in SQL in this repo (every other is JS, src/lib/utils/days.ts): the
-  // sweep has to decide what to delete WITHOUT shipping every row to the app, so don't „fix" it into
-  // the JS convention. Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would
-  // otherwise land in the previous calendar day.
-  const daily = await db.execute(sql`
-    DELETE FROM kosztorys_snapshots WHERE id IN (
-      SELECT id FROM (
-        SELECT id, row_number() OVER (
-          PARTITION BY investment_id, date_trunc('day', taken_at AT TIME ZONE 'Europe/Warsaw')
-          ORDER BY taken_at DESC, id DESC
-        ) AS rn
-        FROM kosztorys_snapshots
-        WHERE kind = 'auto'
-          AND taken_at < now() - make_interval(days => ${FULL_DENSITY_DAYS})
-          AND taken_at >= now() - make_interval(days => ${DAILY_BAND_DAYS})
-      ) ranked WHERE rn > 1
-    )
-    RETURNING id
-  `)
-
-  const weekly = await db.execute(sql`
-    DELETE FROM kosztorys_snapshots WHERE id IN (
-      SELECT id FROM (
-        SELECT id, row_number() OVER (
-          PARTITION BY investment_id, date_trunc('week', taken_at AT TIME ZONE 'Europe/Warsaw')
-          ORDER BY taken_at DESC, id DESC
-        ) AS rn
-        FROM kosztorys_snapshots
-        WHERE kind = 'auto'
-          AND taken_at < now() - make_interval(days => ${DAILY_BAND_DAYS})
-      ) ranked WHERE rn > 1
-    )
-    RETURNING id
-  `)
-
-  const counts = {
-    ceiling: ceiling.rows.length,
-    daily: daily.rows.length,
-    weekly: weekly.rows.length,
-    investorExpired: investorExpired.rows.length,
-  }
+  const counts = { ...bands, investorExpired: investorExpired.rows.length }
   return {
     deleted: counts.ceiling + counts.daily + counts.weekly + counts.investorExpired,
     ...counts,

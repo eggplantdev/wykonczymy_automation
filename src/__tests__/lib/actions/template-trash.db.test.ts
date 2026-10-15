@@ -11,6 +11,7 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { trashDaysAgo } from '@/__tests__/helpers/investment'
 
 // A szablon in /kosz must vanish from every reader, come back intact, and leave nothing behind when
 // deleted forever — its sections, prace and versions hang off it by cascade only.
@@ -39,11 +40,6 @@ describe.skipIf(!ENV_READY)('template trash actions (DB)', () => {
 
   const exists = async (id: number) =>
     (await db.execute(sql`SELECT 1 FROM templates WHERE id = ${id}`)).rows.length > 0
-
-  const trashDaysAgo = (id: number, days: number) =>
-    db.execute(sql`
-      UPDATE templates SET trashed_at = now() - make_interval(days => ${days}) WHERE id = ${id}
-    `)
 
   async function template(name: string): Promise<number> {
     const id = await createTestTemplate(payload, `template-trash ${name}`)
@@ -126,8 +122,8 @@ describe.skipIf(!ENV_READY)('template trash actions (DB)', () => {
   it('purges past the retention and keeps a szablon trashed within it', async () => {
     const old = await template('purge-old')
     const recent = await template('purge-recent')
-    await trashDaysAgo(old, 31)
-    await trashDaysAgo(recent, 5)
+    await trashDaysAgo(db, old, 31, 'templates')
+    await trashDaysAgo(db, recent, 5, 'templates')
 
     await purgeTemplateTrash(db)
 

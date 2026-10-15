@@ -1,4 +1,4 @@
-import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
+import type { EditorActionsT } from '@/components/kosztorys/editor/actions/editor-actions'
 import {
   appendPresetSectionsToTemplateAction,
   reloadTemplateFromPresetAction,
@@ -30,6 +30,7 @@ import {
 } from '@/lib/actions/template-tree'
 
 export const templateEditorActions: EditorActionsT = {
+  isTemplate: true,
   updateItemField: updateTemplateItemFieldAction,
   updateSectionField: updateTemplateSectionFieldAction,
   addSection: addTemplateSectionAction,

@@ -1,7 +1,6 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { sqlList } from '@/lib/db/sql-list'
+import { existingCatalogueIds } from '@/lib/db/work-catalogue'
 import { replaceTemplateLayout } from './replace-template-layout'
 import type { TemplateSnapshotPayloadT } from './snapshot-payload'
 
@@ -14,13 +13,7 @@ export async function restoreTemplateSnapshot(
   takenBy: number,
 ): Promise<{ skippedCatalogueItems: number }> {
   const referenced = [...new Set(payload.sections.flatMap((section) => section.catalogueItemIds))]
-  const existing = new Set<number>()
-  if (referenced.length > 0) {
-    const res = await db.execute(sql`
-      SELECT id FROM work_catalogue_items WHERE id IN (${sqlList(referenced)})
-    `)
-    for (const row of res.rows) existing.add(Number(row.id))
-  }
+  const existing = await existingCatalogueIds(db, referenced)
 
   let skippedCatalogueItems = 0
   const layout: TemplateSnapshotPayloadT = {

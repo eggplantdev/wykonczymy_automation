@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, type RefObject } from 'react'
-import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
+import type { EditorActionsT } from '@/components/kosztorys/editor/actions/editor-actions'
 import { settleAction } from '@/lib/utils/settle-action'
 
 // S-06 durable net: while the editor is open, take an auto snapshot on a plain interval, gated on the

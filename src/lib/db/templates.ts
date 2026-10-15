@@ -89,6 +89,30 @@ export async function markTemplateEdited(db: DbExecutorT, id: number): Promise<v
   await db.execute(sql`UPDATE templates SET content_edited_at = now() WHERE id = ${id}`)
 }
 
+// A replaced tree moves both stamps in one write — the revision remounts an open editor, and
+// „ostatnio edytowany" moves with it.
+export async function markTemplateTreeReplaced(db: DbExecutorT, id: number): Promise<void> {
+  await db.execute(sql`
+    UPDATE templates SET updated_at = now(), content_edited_at = now() WHERE id = ${id}
+  `)
+}
+
+// Every szablon (trashed included) holding a katalog entry — its delete cascades their prace out.
+// Runs before the delete, while the rows naming the entry still exist.
+export async function markTemplatesHoldingCatalogueItemReplaced(
+  db: DbExecutorT,
+  catalogueItemId: number,
+): Promise<void> {
+  await db.execute(sql`
+    UPDATE templates SET updated_at = now(), content_edited_at = now()
+    WHERE id IN (
+      SELECT s.template_id FROM template_items i
+      JOIN template_sections s ON s.id = i.section_id
+      WHERE i.catalogue_item_id = ${catalogueItemId}
+    )
+  `)
+}
+
 /** The editor's revision token; other windows compare against it to notice a replaced tree. */
 export async function bumpTemplateRevision(db: DbExecutorT, id: number): Promise<string> {
   const res = await db.execute(sql`
@@ -156,50 +180,4 @@ export async function templateOwnersOfSections(
     WHERE t.trashed_at IS NULL AND s.id IN (${sqlList(sectionIds)})
   `)
   return new Map(res.rows.map((row) => [Number(row.id), Number(row.template_id)]))
-}
-
-// The szablony a katalog praca appears in — what an edit or delete in /katalog-prac reaches. Live
-// only: a trashed szablon is nowhere the owner would look for the effect.
-export async function listTemplateNamesUsingCatalogueItem(
-  db: DbExecutorT,
-  catalogueItemId: number,
-): Promise<string[]> {
-  const res = await db.execute(sql`
-    SELECT DISTINCT t.name FROM template_items i
-    JOIN template_sections s ON s.id = i.section_id
-    JOIN templates t ON t.id = s.template_id
-    WHERE i.catalogue_item_id = ${catalogueItemId} AND t.trashed_at IS NULL
-    ORDER BY t.name
-  `)
-  return res.rows.map((row) => String(row.name))
-}
-
-export async function listTemplateNamesByCatalogueItem(
-  db: DbExecutorT,
-): Promise<Record<number, string[]>> {
-  const res = await db.execute(sql`
-    SELECT i.catalogue_item_id, array_agg(DISTINCT t.name ORDER BY t.name) AS names
-    FROM template_items i
-    JOIN template_sections s ON s.id = i.section_id
-    JOIN templates t ON t.id = s.template_id
-    WHERE t.trashed_at IS NULL
-    GROUP BY i.catalogue_item_id
-  `)
-  return Object.fromEntries(
-    res.rows.map((row) => [Number(row.catalogue_item_id), (row.names as unknown[]).map(String)]),
-  )
-}
-
-// The szablony (trashed included) holding a katalog entry, read before the entry is deleted: the
-// FK cascade removes their prace, and each one needs its edit stamp moved.
-export async function templatesUsingCatalogueItem(
-  db: DbExecutorT,
-  catalogueItemId: number,
-): Promise<number[]> {
-  const res = await db.execute(sql`
-    SELECT DISTINCT s.template_id FROM template_items i
-    JOIN template_sections s ON s.id = i.section_id
-    WHERE i.catalogue_item_id = ${catalogueItemId}
-  `)
-  return res.rows.map((row) => Number(row.template_id))
 }

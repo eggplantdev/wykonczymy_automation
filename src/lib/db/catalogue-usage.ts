@@ -32,3 +32,35 @@ export async function selectUsedKosztorysItems(db: DbExecutorT): Promise<UsedKos
         : Number(row.catalogue_item_id),
   }))
 }
+
+// The szablony a katalog praca appears in — what an edit or delete in /katalog-prac reaches. Live
+// only: a trashed szablon is nowhere the owner would look for the effect.
+export async function listTemplateNamesUsingCatalogueItem(
+  db: DbExecutorT,
+  catalogueItemId: number,
+): Promise<string[]> {
+  const res = await db.execute(sql`
+    SELECT DISTINCT t.name FROM template_items i
+    JOIN template_sections s ON s.id = i.section_id
+    JOIN templates t ON t.id = s.template_id
+    WHERE i.catalogue_item_id = ${catalogueItemId} AND t.trashed_at IS NULL
+    ORDER BY t.name
+  `)
+  return res.rows.map((row) => String(row.name))
+}
+
+export async function listTemplateNamesByCatalogueItem(
+  db: DbExecutorT,
+): Promise<Record<number, string[]>> {
+  const res = await db.execute(sql`
+    SELECT i.catalogue_item_id, array_agg(DISTINCT t.name ORDER BY t.name) AS names
+    FROM template_items i
+    JOIN template_sections s ON s.id = i.section_id
+    JOIN templates t ON t.id = s.template_id
+    WHERE t.trashed_at IS NULL
+    GROUP BY i.catalogue_item_id
+  `)
+  return Object.fromEntries(
+    res.rows.map((row) => [Number(row.catalogue_item_id), (row.names as unknown[]).map(String)]),
+  )
+}

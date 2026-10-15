@@ -3,6 +3,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { insertStageMembers } from '@/lib/db/stage-split'
+import { existingCatalogueIds } from '@/lib/db/work-catalogue'
 import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
 import {
   itemWithColumnDefaults,
@@ -59,16 +60,11 @@ export async function liveCatalogueIds(
   db: DbExecutorT,
   items: readonly KosztorysItemT[],
 ): Promise<Set<number>> {
-  const ids = [
+  return existingCatalogueIds(db, [
     ...new Set(
       items.flatMap((item) => (item.catalogueItemId === null ? [] : [item.catalogueItemId])),
     ),
-  ]
-  if (ids.length === 0) return new Set()
-  const res = await db.execute(
-    sql`SELECT id FROM work_catalogue_items WHERE id IN (${sqlList(ids)})`,
-  )
-  return new Set(res.rows.map((row) => Number(row.id)))
+  ])
 }
 
 export const withLiveCatalogueId = (item: KosztorysItemT, live: Set<number>): KosztorysItemT =>

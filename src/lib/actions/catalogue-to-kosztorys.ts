@@ -19,8 +19,8 @@ import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import {
   createSectionWithCatalogueItemsSchema,
   insertCatalogueItemsSchema,
-  readCatalogueItems,
-} from '@/lib/kosztorys/work-catalogue/read-catalogue-items'
+} from '@/lib/kosztorys/work-catalogue/insert-catalogue-items-schema'
+import { readCatalogueItems } from '@/lib/kosztorys/work-catalogue/read-catalogue-items'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
 import type {
@@ -128,7 +128,6 @@ const RATE_COLUMNS = [
     { plane: 'own_tools', value: 'ownToolsOverrideValue', coeff: 'ownToolsOverrideCoeff' },
   ],
 ] as const
-
 
 /**
  * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every

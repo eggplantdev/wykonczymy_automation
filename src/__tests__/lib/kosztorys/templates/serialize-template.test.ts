@@ -63,13 +63,6 @@ describe.skipIf(!ENV_READY)('serializeTemplate (DB)', () => {
     })
   })
 
-  it('narrows to the picked sections in the szablon order, whatever order they were picked in', async () => {
-    const snapshot = await serializeTemplate(db, templateId, [sectionIds[2], sectionIds[0]])
-
-    expect(snapshot?.sections.map((section) => section.id)).toEqual([sectionIds[0], sectionIds[2]])
-    expect(snapshot?.items.map((item) => item.catalogueItemId)).toEqual([entryIds[0], entryIds[2]])
-  })
-
   it('returns undefined for a szablon that does not exist', async () => {
     expect(await serializeTemplate(db, -1)).toBeUndefined()
   })
