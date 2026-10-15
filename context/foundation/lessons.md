@@ -1340,7 +1340,11 @@ a disclosure. Those settings therefore store a full `{ key: hidden }` map over t
 key the map does not mention as its **code default** (`resolveHiddenColumns`). The default still
 lives in code, which is the half of this rule that survives; what changes is that an unmentioned key
 falls to that default rather than to „shown". See „A disclosure setting subtracts from a code ceiling,
-and fails CLOSED" below.
+and fails CLOSED" below. An investment's row still wins as a whole — a key it does not mention falls
+to the code default, not to the firm-wide „Zapisz jako domyślne" global: a key new since the row was
+saved is equally absent from the global, so a per-key chain would add a path that changes nothing.
+A legacy hidden array speaks only for the columns it was written against (frozen
+`LEGACY_*_COLUMNS`), so an unconverted row is safe too.
 
 ## A disclosure setting subtracts from a code ceiling, and fails CLOSED
 
