@@ -367,16 +367,16 @@ Run once, after the final phase:
 
 - [x] 1.1 Local migration applies against the docker DB — 06af1643f
 - [x] 1.2 Types regenerated — 06af1643f
-- [ ] 1.3 Status / lock / hook specs pass
-- [ ] 1.4 DB specs pass against 5435
+- [x] 1.3 Status / lock / hook specs pass — 825e2300c
+- [x] 1.4 DB specs pass against 5435 — 825e2300c
 
 ### Phase 2: Booking pickers list only Aktywne and Planowane
 
 #### Automated
 
-- [ ] 2.1 Status-set spec passes
-- [ ] 2.2 URL-seed spec passes
-- [ ] 2.3 Selection-helper spec passes
+- [x] 2.1 Status-set spec passes — 825e2300c
+- [x] 2.2 URL-seed spec passes — 825e2300c
+- [x] 2.3 Selection-helper spec passes — 825e2300c
 
 ### Phase 3: Docs
 

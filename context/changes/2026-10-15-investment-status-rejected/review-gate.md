@@ -5,7 +5,7 @@ unprompted; manual checks live in `context/foundation/manual-checks.md` § EX-10
 
 ## Findings
 
-- [ ] 🟡 WARNING · open · impl-review · `plan.md` Progress 1.3, 1.4, 2.1–2.3 · touched specs + typecheck not run — the test hook blocks them without an explicit „odpal testy”; waiting on the user's call
+- [x] 🟡 WARNING · fixed · impl-review · `plan.md` Progress 1.3, 1.4, 2.1–2.3 · touched specs + typecheck not run — run on the user's go (typecheck + touched specs), all green
 - [x] 🟡 WARNING · fixed · impl-review · `src/lib/constants/investment-status.ts:4` · `INVESTMENT_STATUSES` over 100 cols — wrapped like its siblings
 - [x] 🔵 OBSERVATION · fixed · impl-review / code-review / reuse / altitude · `src/lib/db/snapshots.ts:83` · bare `'rejected'` literal in the snapshot SQL — now `sqlList([...CLOSED_INVESTMENT_STATUSES, TEMPLATE_INVESTMENT_STATUS])`
       test: no automated test — rename-safety only; the exclusion itself is pinned by `capture-daily-snapshots.test.ts`
@@ -34,3 +34,7 @@ unprompted; manual checks live in `context/foundation/manual-checks.md` § EX-10
 Ran /simplify (4 angles) — 4 applied, 0 proposed, 6 dismissed/dropped/skipped; each folded into ## Findings (tagged simplify). No separate report file.
 
 ## Tests & suite
+- typecheck — OK
+- unit specs (7 files, 67 tests: use-status-filter, investment-lock, stamp-completed-at, guard-template-status, investment-status, use-investment-from-url, is-active-ref) — OK
+- DB specs vs 5435 (investments-status.db, capture-daily-snapshots; 2 files, 8 tests) — OK
+- full suite / lint / build / e2e — not run (user chose typecheck + touched specs)
