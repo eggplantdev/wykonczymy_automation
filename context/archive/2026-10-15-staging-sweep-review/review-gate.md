@@ -19,16 +19,8 @@ the one active `plan.md`). Step 0.5 browser pass dropped: Playwright only on exp
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · code-review A · `src/components/kosztorys/editor/kosztorys-editor-v2.tsx` `handleTreeReplaced` ·
-      a NOT_FOUND refusal armed the latch from `treeToken`; when the tree prop already held the other session's
-      change, the refresh settled unchanged, a59c41303's disarm fired, and the grid stayed stale for good (every
-      „Ustaw kolejność” refused) — `settleTreeReplace` now returns `stale: true` and the reseed arms from the seed
-      test: test-driven-debugging · unit — `settle-tree-replace.test.ts` expects `{ refetch: true, stale: true }`; box checks once run green
-- [x] 🟡 WARNING · fixed · impl-review · `src/components/kosztorys/editor/hooks/use-restore-remount.ts:44` ·
-      the settle-disarm didn't check which arm owned the refresh: interrupted replace → `router.refresh` in flight
-      → a version restore re-arms → the first refresh settles unchanged and disarmed the newer arm — `ownsRefresh`
-      now limits the disarm to the arm that started that refresh
-      test: test-driven-debugging · dom — renderHook „keeps a later arm the settling refresh does not own”; box checks once run green
+_Trimmed at archive (2026-10-15): `fixed` findings dropped — their record is the commit. Pre-trim tally: 16 fixed, 3 skipped, 10 dismissed, 12 dropped, 0 open._
+
 - [x] 🔵 OBSERVATION · skipped · code-review A · `ai-review-columns.tsx` `deleteValue` · Delete/paste-blank on the
       Status column lowers the recheck flag along with the verdict — owner's call whether clearing the verdict
       should also clear „Do ponownego sprawdzenia”; raised in the close-out, no change until ruled
@@ -44,28 +36,8 @@ the one active `plan.md`). Step 0.5 browser pass dropped: Playwright only on exp
       unaccepted extra's pozycja early — matches how an undone extra already reads there
 - [x] dropped · code-review B · `harden-file-headers.ts` · forced `attachment` drops the filename — no stored file
       is served through that path with a meaningful name today
-- [x] fixed · comment-noise · `use-kosztorys-stage-ops.ts:124` · named `onValueChange`; now `onCheckedChange`
-- [x] fixed · comment-noise · `ai-review-columns.tsx:93` · deleted — restated the JSX below
-- [x] fixed · comment-noise · `ai-review-columns.tsx:82` · trimmed the vanished-state tail
-- [x] fixed · comment-noise · `stage-header.tsx:85` · trimmed the „bare label, no menu” narration
-- [x] fixed · comment-noise · `ai-round.ts:1` · kept only the drift reason
-- [x] fixed · comment-noise · `ai-review-columns.test.ts:41` · trimmed the bug-story tail
-- [x] fixed · comment-noise · `review-status.test.ts:79` · deleted — retold the fixture
-- [x] fixed · comment-noise · `globals.css:279` · deleted — described the token values
-- [x] fixed · comment-noise · `transfer-filters.ts:199`, `transfer-filters.test.ts:125,363` · cut incident tails
 - [x] dropped · comment-noise · `media-response-headers.test.ts:4` · near-duplicate of the `harden-file-headers.ts`
       JSDoc, but it carries the dated external verification — not worth the churn
-- [x] fixed · simplify · `actions/use-tree-rewrite-action.ts:23` · re-implemented `settleTreeReplace`'s
-      flush → settle → refetch-on-interrupt by hand and had already drifted (no NOT_FOUND → stale path, shorter
-      toast) — now calls `settleTreeReplace`; `tree-rewrite-menu-items.test.tsx` expects the 6000 ms toast
-- [x] fixed · simplify · `hooks/media/harden-file-headers.ts:12` · rebuilt `fetch-landing-asset.ts`'s private
-      `normalizeType` + `isAcceptedType` Content-Type parse — both now call `normalizeContentType` /
-      `isAllowedContentType` in `lib/media/sniff-mime.ts`
-- [x] fixed · simplify · `hooks/use-sheet-import.ts`, `kosztorys-editor-body.tsx:261`, `sheet-import-dialog.tsx` ·
-      `flushPendingSaves` threaded through hook → props into a dialog that renders inside
-      `KosztorysEditorProvider` — the dialog reads it from context like the other tree-replace dialogs
-- [x] fixed · simplify · `use-restore-remount.ts:35` · `armedFrom` + `armOwnsRefresh` were two states set
-      together — merged into one `armed: { from, ownsRefresh } | null`
 - [x] skipped · simplify · `use-restore-remount.ts` · altitude: let the latch run its own refresh transition
       (counter-stamped arms) instead of reading the caller's `isRefreshing` + `ownsRefresh` — a review-worthy
       rewrite of a latch that has regressed three times; today's fix is behaviour-correct and tested
@@ -93,9 +65,6 @@ the one active `plan.md`). Step 0.5 browser pass dropped: Playwright only on exp
       reset every row height per keystroke — ~1-3 ms on a few hundred rows
 - [x] dropped · simplify · `transfer-table-server.tsx:31` · `fetchAllDraftTransferIds` awaited before the
       `Promise.all` — the parallel candidate `fetchReferenceData` is cached (`unstable_cache` + `cache`), nothing to win
-- [x] fixed · reuse-scan · `snapshot-format.ts:192`, `sheet-import/build-import-plan.ts:240` · the same five-field
-      AI-draft carry written twice beside `NO_AI_DRAFT`, which owns that set — both spread `aiDraftOf` (new
-      `lib/kosztorys/ai-draft.ts`)
 - [x] dropped · reuse-scan · `scripts/load-ai-draft.ts:76` · item key built twice — one-off script (same as the
       simplify line above)
 - [x] dismissed · module-cohesion-audit · `transfer-filters.ts:203` · `andWith` is a generic `Where` combinator —

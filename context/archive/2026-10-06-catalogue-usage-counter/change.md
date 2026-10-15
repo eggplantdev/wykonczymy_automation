@@ -1,10 +1,10 @@
 ---
 change_id: catalogue-usage-counter
 title: Katalog prac — licznik użyć (przedmiar / etapy) i podział prac spoza katalogu
-status: new
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-15
+archived_at: 2026-10-15T17:07:02Z
 branch: null
 worktree: null
 ---
@@ -75,7 +75,7 @@ ta sama zasada.
 
 ```bash
 pnpm db:dump   # opcjonalnie: świeży dump prod → dumps/dump-latest.sql
-bash context/changes/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql] > /tmp/catalogue-usage.md
+bash context/archive/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql] > /tmp/catalogue-usage.md
 ```
 
 Wczytuje dump do osobnej bazy `dump_scratch` na kontenerze dev (baza `wykonczymy-db` nietknięta),

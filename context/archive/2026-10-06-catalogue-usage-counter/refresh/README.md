@@ -9,9 +9,9 @@ edytorze ignoruje szerokości kolumn, dlatego raporty nie są plikami `.md`.
 
 ```bash
 pnpm db:dump   # opcjonalnie: świeży dump prod → dumps/dump-latest.sql
-bash context/changes/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql] > /tmp/catalogue-usage.md
-open context/changes/2026-10-06-catalogue-usage-counter/template-usage.html
-open context/changes/2026-10-06-catalogue-usage-counter/catalogue-usage.html
+bash context/archive/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql] > /tmp/catalogue-usage.md
+open context/archive/2026-10-06-catalogue-usage-counter/template-usage.html
+open context/archive/2026-10-06-catalogue-usage-counter/catalogue-usage.html
 ```
 
 Inny szablon: `TEMPLATE='nazwa inwestycji-szablonu' bash …/refresh.sh`. Uruchamiać z katalogu

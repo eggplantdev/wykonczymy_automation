@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Re-measures the catalogue usage findings in ../change.md against a prod dump.
-# Usage (repo root): [TEMPLATE='Kosztorys 2026 kolory'] bash context/changes/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql]
+# Usage (repo root): [TEMPLATE='Kosztorys 2026 kolory'] bash context/archive/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql]
 # Prints the measurement to stdout and writes ../template-usage.html and ../catalogue-usage.html
 # (prac of the szablon / of the whole katalog nobody uses).
 # Restores into a throwaway `dump_scratch` DB on the dev container — never touches `wykonczymy-db`.

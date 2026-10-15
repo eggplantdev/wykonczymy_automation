@@ -1,10 +1,10 @@
 ---
 change_id: catalogue-auto-translate
 title: Katalog prac — cron dotłumacza brakujące i nieaktualne tłumaczenia (EX-1065)
-status: implemented
+status: archived
 created: 2026-10-15
 updated: 2026-10-15
-archived_at: null
+archived_at: 2026-10-15T17:07:02Z
 branch: null
 worktree: null
 ---

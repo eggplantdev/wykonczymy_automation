@@ -1,10 +1,10 @@
 ---
 change_id: investment-status-rejected
 title: Status inwestycji „Odrzucona” + przelewy tylko na aktywnej (EX-1066)
-status: implemented
+status: archived
 created: 2026-10-15
 updated: 2026-10-15
-archived_at: null
+archived_at: 2026-10-15T17:07:02Z
 branch: investment-status-rejected
 worktree: ../wykonczymy-worktrees/investment-status-rejected
 ---
