@@ -1,4 +1,4 @@
-# EX-1019 — round-trip audit (in flight)
+# EX-1019 — round-trip audit
 
 Measured on a local `next start` against the **preview (staging) DB** with a per-statement SQL log
 (`src/instrumentation.ts`, worktree-only). Laptop → Neon is ~35 ms per round trip, Vercel → Neon

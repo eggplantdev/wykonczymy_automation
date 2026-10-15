@@ -8,8 +8,6 @@ simplification, efficiency, altitude).
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · suite · `src/__tests__/sum-transfers.test.ts:76` · `sumAllInvestmentFinancials` spec still mocked the old two-statement shape (totals + categories) — 4 tests red after the GROUPING SETS merge; mocks moved to one `is_total`-tagged result
-      test: test-driven-debugging · unit — added the NULL-category grouping row (new in GROUPING SETS) and assert it never becomes a category; spec green
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/db/notifications.ts:39` (+5 `count*` wrappers) · per-stream counters have no production caller — they are the seam each stream's own DB spec (`leads`, `notifications`, `payout-confirmation`, `worker-expense-drafts`) pins its semantics through; the merged-statement spec checks the composition (column→badge wiring, user binding), not the fragments, so it is not a tautology
       test: no automated test — no defect; existing per-stream specs + `shell-badge-counts.db.test.ts` already cover both halves
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/components/investments/investment-v1-stats.tsx` · v1 tiles behind `Suspense fallback={null}` pop in / error after shell streams — same pattern as the v2 panel beside it; manual check covers the v1 tab
@@ -18,15 +16,6 @@ simplification, efficiency, altitude).
       test: no automated test — no reachable failure
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/queries/reference-data.ts:206` · notes map is one Data Cache entry (2 MB cap) — ~111 KB today and the reference-data entry is already larger
       test: no automated test — capacity note, not a defect
-- [x] fixed · simplify (reuse/simplification/altitude) · `src/lib/db/worker-report-share.ts:15` · third hand-built investment gate — extracted `investmentGateOf(row)` in `investment-gate.ts`, used by `investmentGateFor`, `investmentGateForRow` and `toShare`; `ReportShareT` now `… & InvestmentGateT`
-- [x] fixed · simplify (reuse/simplification) · `src/lib/queries/dashboard.ts:8` · five hand-written `{id,name}` maps — `toOptions`
-- [x] fixed · simplify · `src/components/kosztorys/summary/summary-panel-content.tsx:31`, `src/lib/kosztorys/types.ts:14` · unused `InvestmentRefT` imports left by the retype
-- [x] fixed · simplify (efficiency) · `src/app/(frontend)/layout.tsx:74` · comment said „three DB counts" — six, one statement
-- [x] fixed · simplify · `src/__tests__/lib/queries/dashboard.test.ts:115` · dead `fetchInvestmentFinancials` mock
-- [x] fixed · structure-scatter-audit · `src/__tests__/dashboard-aggregation.test.ts` · rewritten spec sat outside the mirror — moved to `src/__tests__/lib/queries/dashboard.test.ts`
-- [x] fixed · feature-first-structure · `src/components/dashboard/manager-dashboard-panels.tsx:11` · inline props → `PropsT`
-- [x] fixed · comment-noise-audit · `src/__tests__/lib/db/shell-badge-counts.db.test.ts:16` · comment claimed section pages still count their own stream (false) — rewritten to the real reason
-- [x] fixed · comment-noise-audit · `manager-dashboard-panels.tsx:9`, `worker-expense-drafts.ts:61`, `shell-badge-counts.ts:10`, `worker-report-share.ts` · trimmed restating / contrast clauses
 - [x] skipped · simplify (efficiency) · `src/lib/queries/shape-investments.ts:112` · listing rows still ship `aiNotes` (~80 KB) nobody there reads — staging's 231040966 already drops `aiNotes` from the listing row; resolved by the merge, not duplicated here
 - [x] skipped · simplify (efficiency) · `shape-investments.ts:111` · listing ships every `notes` to prefill the edit dialog — on-demand fetch trades ~35 ms + a loading state on open; not a clear win
 - [x] dropped · simplify (efficiency) · `reference-data.ts:226` · detail/kosztorys read the whole notes map for one row — same one round trip, gain a few ms of cache parse
@@ -58,4 +47,4 @@ User chose typecheck + touched specs (2026-10-15).
 
 ## Status
 
-In review — every finding box checked; manual verification (`manual-checks.md` § EX-1019, 10 boxes) pending on staging. Not archived.
+Archived 2026-10-15 — every finding box checked. The 10 manual checks (`manual-checks.md` § EX-1019) stay open in the registry; they no longer gate Done.
