@@ -6098,3 +6098,11 @@ Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marsz
 - [ ] Strona inwestycji → karta z danymi: „Status” to kolorowy badge, identyczny jak w kolumnie
       Status na liście inwestycji (np. Odrzucona — różowy, Aktywna — zielony).
 - [ ] Edytor kosztorysu → podsumowanie, zakładka „Inwestycja”: „Status” pokazuje ten sam badge.
+
+## 2026-10-15 — staging-sweep-review — siatka kosztorysu po odmowie „Ustaw kolejność” + porządki
+
+- [ ] Kosztorys otwarty w dwóch kartach: w karcie B dodaj albo usuń pozycję, w karcie A (bez
+      odświeżania) „Ustaw kolejność” → odmowa z komunikatem, a siatka w A sama pokazuje stan z B;
+      kolejne „Ustaw kolejność” w A przechodzi.
+- [ ] Kosztorys → „Importuj z arkusza” i „Ustaw kolejność” działają jak wcześniej (porządki bez
+      zmiany zachowania): import podmienia pozycje, kolejność zapisuje się po odświeżeniu strony.
