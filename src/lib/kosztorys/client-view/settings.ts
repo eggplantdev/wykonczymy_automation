@@ -107,9 +107,14 @@ export function toStoredClientViewSettings(
   settings: ClientViewSettingsT,
 ): Omit<ClientViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
   const sanitized = sanitizeClientViewSettings(settings)
+  // The in-memory list is the owner's answer for every column; `sanitized` would read it as the
+  // legacy stored array and put a column added since back on its code default.
+  const hidden = Array.isArray(settings.hiddenColumns)
+    ? settings.hiddenColumns
+    : sanitized.hiddenColumns
   return {
     ...sanitized,
-    hiddenColumns: toHiddenColumnMap(sanitized.hiddenColumns, PREVIEW_VISIBLE_COLUMNS),
+    hiddenColumns: toHiddenColumnMap(hidden, PREVIEW_VISIBLE_COLUMNS),
   }
 }
 

@@ -9,7 +9,10 @@ import {
   saveClientViewDefaultsAction,
   saveClientViewSettingsAction,
 } from '@/lib/actions/kosztorys-client-view'
-import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
+import {
+  sanitizeClientViewSettings,
+  toStoredClientViewSettings,
+} from '@/lib/kosztorys/client-view/settings'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -39,8 +42,8 @@ export function KosztorysClientViewDialog() {
       if (!res.success) return toastMessage(res.error, 'error')
       // Published before the second write is attempted: that row IS saved, so leaving the parent on
       // the old value after a failed defaults write would make the editor and the DB disagree. The
-      // sanitized copy, not the draft, for the same reason — the server stored that one.
-      onSaved(sanitizeClientViewSettings(draft))
+      // stored copy read back, not the draft, for the same reason — the server stored that one.
+      onSaved(sanitizeClientViewSettings(toStoredClientViewSettings(draft)))
       if (asDefaults) {
         const defaults = await settleAction(() => saveClientViewDefaultsAction(draft))
         if (!defaults.success) {
