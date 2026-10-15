@@ -20,6 +20,8 @@ const SNAPSHOT: SnapshotListItemT = {
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/actions/kosztorys-snapshots', () => ({
+  saveSnapshotAction: vi.fn(),
+  snapshotAction: vi.fn(),
   listSnapshotsAction: vi.fn(async () => ({ success: true, data: [SNAPSHOT] })),
   restoreSnapshotAction,
 }))

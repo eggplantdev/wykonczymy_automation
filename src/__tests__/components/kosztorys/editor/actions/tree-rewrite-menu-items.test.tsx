@@ -23,7 +23,19 @@ const flushPendingSaves = vi.hoisted(() => vi.fn(async () => {}))
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/actions/kosztorys-translations', () => ({ fillKosztorysTranslationsAction }))
-vi.mock('@/lib/actions/kosztorys', () => ({ cleanItemTextsAction }))
+vi.mock('@/lib/actions/kosztorys', () => ({
+  addItemAction: vi.fn(),
+  addSectionAction: vi.fn(),
+  clearKosztorysAction: vi.fn(),
+  insertSectionAction: vi.fn(),
+  removeItemAction: vi.fn(),
+  removeSectionAction: vi.fn(),
+  renumberKosztorysOrderAction: vi.fn(),
+  updateItemFieldAction: vi.fn(),
+  updateSectionFieldAction: vi.fn(),
+  writeKosztorysLayoutAction: vi.fn(),
+  cleanItemTextsAction,
+}))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: 7,

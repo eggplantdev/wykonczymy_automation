@@ -154,7 +154,10 @@ describe('useKosztorysSettings — rabat kwotowy', () => {
     } as KosztorysTreeT)
 
     await act(async () => {
-      result.current.handleGlobalDiscountChange({ type: 'amount', value: discountNetFromGross(5000, 0.08) })
+      result.current.handleGlobalDiscountChange({
+        type: 'amount',
+        value: discountNetFromGross(5000, 0.08),
+      })
     })
 
     expect(updateInvestmentGlobalDiscountAction).toHaveBeenCalledWith(1, {

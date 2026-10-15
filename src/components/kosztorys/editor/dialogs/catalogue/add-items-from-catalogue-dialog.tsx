@@ -10,10 +10,7 @@ import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { Combobox } from '@/components/ui/combobox'
 import { CataloguePickerTable } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-picker-table'
 import { useCatalogueFilters } from '@/components/kosztorys/editor/hooks/use-catalogue-filters'
-import {
-  createSectionWithCatalogueItemsAction,
-  insertCatalogueItemsAction,
-} from '@/lib/actions/catalogue-to-kosztorys'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import {
   kosztorysCatalogueRefs,
   partitionAlreadyInKosztorys,
@@ -68,6 +65,7 @@ export function AddItemsFromCatalogueDialog({
   // Ordered in state, because the prace land in the rozpiska in the order they were ticked; a Set
   // beside it for membership, which is asked once per visible row and once per already-added row —
   // `includes` over the whole cennik made that quadratic on a „zaznacz widoczne".
+  const { insertCatalogueItems, createSectionWithCatalogueItems } = useEditorActions()
   const [selected, setSelected] = useState<number[]>([])
   const selectedIds = new Set(selected)
   const [sectionName, setSectionName] = useState(
@@ -132,9 +130,9 @@ export function AddItemsFromCatalogueDialog({
     let createdSection = false
     try {
       if (target.kind === 'existing') {
-        res = await insertCatalogueItemsAction(target.sectionId, selected)
+        res = await insertCatalogueItems(target.sectionId, selected)
       } else {
-        res = await createSectionWithCatalogueItemsAction(investmentId, target.name, selected)
+        res = await createSectionWithCatalogueItems(investmentId, target.name, selected)
         if (res.success) createdSection = res.data.createdSection
       }
     } catch {

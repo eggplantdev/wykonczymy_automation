@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { listSnapshotsAction, type SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
+import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { toastMessage } from '@/lib/utils/toast'
 
 type SnapshotListT = {
@@ -18,12 +19,13 @@ type SnapshotListT = {
 // tomorrow an auto-open after restore), which a trigger-click handler would miss. `active` drops a
 // response that lands after a close/reopen so a stale fetch can't populate the reopened list.
 export function useSnapshotList(investmentId: number, open: boolean): SnapshotListT {
+  const { listSnapshots } = useEditorActions()
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
 
   useEffect(() => {
     if (!open) return
     let active = true
-    listSnapshotsAction(investmentId)
+    listSnapshots(investmentId)
       .then((res) => {
         if (!active) return
         if (!res.success) {
@@ -43,7 +45,7 @@ export function useSnapshotList(investmentId: number, open: boolean): SnapshotLi
     return () => {
       active = false
     }
-  }, [open, investmentId])
+  }, [open, investmentId, listSnapshots])
 
   return { snapshots, reset: () => setSnapshots(null) }
 }

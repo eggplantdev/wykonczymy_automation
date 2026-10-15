@@ -10,7 +10,7 @@ import { AiTranslateCheckbox } from '@/components/forms/form-components/ai-trans
 import { useAiTranslate } from '@/components/forms/hooks/use-ai-translate'
 import { RateField } from '@/components/forms/work-catalogue-item/rate-fields'
 import { catalogueFigures } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-import type { AddItemInputT } from '@/lib/actions/kosztorys'
+import type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'

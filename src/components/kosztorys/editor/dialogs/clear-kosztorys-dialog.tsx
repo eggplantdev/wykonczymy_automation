@@ -3,7 +3,7 @@
 import { useTransition } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
-import { clearKosztorysAction } from '@/lib/actions/kosztorys'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
@@ -16,6 +16,7 @@ export function ClearKosztorysDialog() {
   const { tree, investmentId, onTreeReplaced, isTemplate, noun, flushPendingSaves } =
     useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().clear
+  const { clear } = useEditorActions()
   const [pending, startTransition] = useTransition()
 
   const sections = tree.sections.length
@@ -25,7 +26,7 @@ export function ClearKosztorysDialog() {
     startTransition(async () => {
       const replaced = await settleTreeReplace(
         flushPendingSaves,
-        () => clearKosztorysAction(investmentId),
+        () => clear(investmentId),
         `Czyszczenie przerwane — odświeżam ${noun.nominative}`,
         () => toastMessage(`${noun.Nominative} wyczyszczony`, 'success'),
       )

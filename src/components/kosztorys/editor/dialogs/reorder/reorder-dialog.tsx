@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { undoRedoIntent } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
-import { writeKosztorysLayoutAction } from '@/lib/actions/kosztorys'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import {
   moveItems,
   moveSection,
@@ -68,6 +68,7 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
   const [collapsed, setCollapsed] = useState<ReadonlySet<number>>(new Set())
   const [drop, setDrop] = useState<ReorderDropT | undefined>()
   const [pending, startTransition] = useTransition()
+  const { writeLayout } = useEditorActions()
   const anchorRef = useRef<number | undefined>(undefined)
   const dragRef = useRef<ReorderDragT | undefined>(undefined)
 
@@ -191,7 +192,7 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
     startTransition(async () => {
       const replaced = await settleTreeReplace(
         flushPendingSaves,
-        () => writeKosztorysLayoutAction(investmentId, layout),
+        () => writeLayout(investmentId, layout),
         `Zapis kolejności przerwany — odświeżam ${noun.nominative}`,
         () => toastMessage('Kolejność zapisana', 'success'),
       )

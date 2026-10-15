@@ -595,16 +595,16 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 2.1 `template-tree.test.ts` passes
-- [x] 2.2 `template-action.test.ts` passes
-- [x] 2.3 `serialize-template.test.ts` passes
+- [x] 2.1 `template-tree.test.ts` passes — 3184c2074
+- [x] 2.2 `template-action.test.ts` passes — 3184c2074
+- [x] 2.3 `serialize-template.test.ts` passes — 3184c2074
 
 ### Phase 3: Template actions + editor injection
 
 #### Automated
 
-- [ ] 3.1 `template-structure.test.ts` passes (table isolation, katalog write)
-- [ ] 3.2 Editor DOM specs pass with the kosztorys set injected
+- [x] 3.1 `template-structure.test.ts` passes (table isolation, katalog write)
+- [x] 3.2 Editor DOM specs pass with the kosztorys set injected
 
 ### Phase 4: Szablony in circulation
 

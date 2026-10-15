@@ -12,6 +12,12 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
+import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
+import {
+  addItemSchema,
+  TEMPLATE_ITEM_NEEDS_CATALOGUE,
+  type AddItemInputT,
+} from '@/lib/kosztorys/add-item-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import { applyLayout, lockAndCheckLayout } from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
@@ -35,7 +41,6 @@ import {
   EMPTY_ITEM_TEXT_ERROR,
   splitTemplatePatch,
 } from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
-import { workCatalogueItemSchema } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import {
   insertDirectionSchema,
   renumberDisplayOrder,
@@ -46,7 +51,6 @@ import {
 } from '@/lib/kosztorys/display-order'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
-import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
@@ -86,14 +90,6 @@ const ITEM_MISSING = 'Pozycja nie istnieje.'
 // --- Patch schemas (all fields optional — autosave sends one field at a time) ---
 // The item patch schema lives beside ItemPatchT in lib/kosztorys/item-patch-schema.ts.
 
-const sectionPatchSchema = z
-  .object({
-    name: z.string(),
-    displayOrder: z.coerce.number().int().min(0),
-    // null clears the pin (back to the pie's positional palette).
-    color: z.custom<SectionColorKeyT>(isSectionColorKey).nullable(),
-  })
-  .partial()
 
 // Floor only: above 0,65 the mnożnik warns but saves (owner, 2026-09-21); below 0 is a typo.
 const investmentCoeffsSchema = z
@@ -126,7 +122,7 @@ const investmentGlobalDiscountSchema = z.object({
   globalDiscountValue: z.coerce.number().min(0),
 })
 
-export type SectionPatchT = z.infer<typeof sectionPatchSchema>
+export type { SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDiscountSchema>
 
@@ -476,37 +472,8 @@ export async function insertSectionAction(
   )
 }
 
-const newItemPlacementSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('end'), sectionId: z.number().int() }),
-  z.object({
-    kind: z.literal('next-to'),
-    anchorItemId: z.number().int(),
-    dir: insertDirectionSchema,
-  }),
-])
+export type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 
-const addItemSchema = z.object({
-  placement: newItemPlacementSchema,
-  // The katalog's own domain schema, not a copy: the dialog's praca and a katalog entry are the same
-  // fields, and `insertItems` bypasses Payload's field rules, so this is the only backstop against a
-  // negative cena or both columns of one płaszczyzna set.
-  data: workCatalogueItemSchema,
-  catalogue: z
-    .object({
-      mode: z.enum(['new', 'overwrite']),
-      keepCatalogueCategory: z.boolean(),
-      workNote: z.string().optional(),
-    })
-    .nullable(),
-  // „Tłumacz automatycznie przy pomocy AI" — off unless the dialog asks, so no other caller pays an AI wait.
-  translate: z.boolean().optional(),
-})
-
-export type AddItemInputT = z.infer<typeof addItemSchema>
-
-// A szablon row with no katalog entry would be the only praca in the szablon whose content lives
-// nowhere else (EX-1017).
-const TEMPLATE_ITEM_NEEDS_CATALOGUE = 'Praca w szablonie musi być w katalogu prac.'
 
 async function catalogueTranslationsFor(db: DbExecutorT, matchKey: string) {
   const entry = await findCatalogueItemByKey(db, matchKey)

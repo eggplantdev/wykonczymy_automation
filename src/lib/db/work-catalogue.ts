@@ -72,6 +72,22 @@ export async function listCatalogueItemsLinkedFrom(
   return result.rows.map(toCatalogueItem)
 }
 
+export async function listCatalogueItemsInTemplate(
+  db: DbExecutorT,
+  templateId: number,
+): Promise<WorkCatalogueItemT[]> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id IN (
+      SELECT ti.catalogue_item_id FROM template_items ti
+      JOIN template_sections ts ON ts.id = ti.section_id
+      WHERE ts.template_id = ${templateId}
+    )
+  `)
+  return result.rows.map(toCatalogueItem)
+}
+
 /** The whole cennik, in the order the katalog screen reads it. */
 export async function listCatalogueItems(db: DbExecutorT): Promise<WorkCatalogueItemT[]> {
   const result = await db.execute(sql`
@@ -229,6 +245,19 @@ export async function findCatalogueItemByKey(
 }
 
 /** The live katalog entry a pozycja remembers — none for an unlinked row or a deleted entry. */
+export async function findTemplateItemCatalogueEntry(
+  db: DbExecutorT,
+  templateItemId: number,
+): Promise<WorkCatalogueItemT | undefined> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id = (SELECT catalogue_item_id FROM template_items WHERE id = ${templateItemId})
+  `)
+  const row = result.rows[0]
+  return row ? toCatalogueItem(row) : undefined
+}
+
 export async function findLinkedCatalogueItem(
   db: DbExecutorT,
   itemId: number,

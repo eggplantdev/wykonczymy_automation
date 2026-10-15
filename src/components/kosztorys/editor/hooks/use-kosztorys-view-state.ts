@@ -43,7 +43,7 @@ export function useKosztorysViewState({
   isTemplate = false,
   aiDraft = false,
 }: ArgsT) {
-  const [persistedView, setView] = usePriceView(investmentId)
+  const [persistedView, setView] = usePriceView(investmentId, isTemplate)
   const [search, setSearch] = useState('')
   // Persisted per investment, so yesterday's filter is still on. Under the preview the owner's picks
   // are dropped and `clientConditionIds` answers — it owns what may reach a client.
@@ -53,7 +53,7 @@ export function useKosztorysViewState({
     toggleExclusive: toggleConditionExclusive,
     setMany: setConditions,
     clear: clearConditions,
-  } = useEngagedConditions(investmentId)
+  } = useEngagedConditions(investmentId, isTemplate)
   // „Pokaż wszystkie pozycje" — the investor's one-visit override of the owner's hide. Not persisted:
   // every visit opens on the document the owner curated.
   const [showAllRows, setShowAllRows] = useState(false)

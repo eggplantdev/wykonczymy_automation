@@ -95,16 +95,8 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { sectionFooterRowId, sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { settleAction } from '@/lib/utils/settle-action'
-import {
-  addSectionAction,
-  insertSectionAction,
-  removeItemAction,
-  removeSectionAction,
-  renumberKosztorysOrderAction,
-  setStageProgressAction,
-  updateItemFieldAction,
-  updateSectionFieldAction,
-} from '@/lib/actions/kosztorys'
+import { setStageProgressAction } from '@/lib/actions/kosztorys'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosztorys'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
@@ -190,6 +182,7 @@ export function useKosztorysEditor({
   filledStageIds,
   seams,
 }: ArgsT) {
+  const actions = useEditorActions()
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
   // anything may be written.
   const readOnly = preview || lock !== undefined
@@ -256,7 +249,7 @@ export function useKosztorysEditor({
   // Committed on handle release, not per pointermove — that would be a write per pixel.
   const { widths, setWidth, dropWidth } = useColumnWidths()
   const { colors: columnColors, setColor: setColumnColor, dropColor } = useColumnColors()
-  const { heights: rowHeights, setHeight: setRowHeight, dropHeight } = useRowHeights()
+  const { heights: rowHeights, setHeight: setRowHeight, dropHeight } = useRowHeights(isTemplate)
   const columnPrefsScope = isTemplate ? 'workshop' : 'kosztorys'
   const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns(columnPrefsScope)
   const {
@@ -809,7 +802,7 @@ export function useKosztorysEditor({
         w.kind === 'field'
           ? runNow(
               w.lane,
-              () => updateItemFieldAction(w.id, { [w.field]: w.value } as ItemPatchT),
+              () => actions.updateItemField(w.id, { [w.field]: w.value } as ItemPatchT),
               () => revertOne(w.id, w.field as keyof KosztorysV2RowT, w.restore, w.value),
             )
           : runNow(
@@ -885,7 +878,7 @@ export function useKosztorysEditor({
     // against a dead id, and `setStageProgressAction` (an absolute upsert) could recreate an orphan (EX-526 #2).
     flushUndoBuffer()
     pruneByIds([row.id])
-    const res = await settleAction(() => removeItemAction(row.id))
+    const res = await settleAction(() => actions.removeItem(row.id))
     if (!res.success) {
       // Server rejected: restore the row after the neighbour it followed, resolved against the current rows
       // so a concurrent edit during the await can't misplace it. The pruned undo history stays gone.
@@ -901,7 +894,7 @@ export function useKosztorysEditor({
   // `revertTo` is the fallback when one stale id rejects the entire write.
   async function runKosztorysRenumber(next: number[], revertTo: number[]) {
     setRows((rs) => applyKosztorysOrder(rs, next))
-    const res = await settleAction(() => renumberKosztorysOrderAction(investmentId, next))
+    const res = await settleAction(() => actions.renumberOrder(investmentId, next))
     if (!res.success) {
       setRows((rs) => applyKosztorysOrder(rs, revertTo))
       reportFailure(res.error, res.code)
@@ -936,7 +929,7 @@ export function useKosztorysEditor({
 
   async function handleInsertSection(anchorSectionId: number, dir: 'above' | 'below') {
     if (!orderCommandsEnabled(sort)) return
-    const res = await settleAction(() => insertSectionAction(anchorSectionId, dir))
+    const res = await settleAction(() => actions.insertSection(anchorSectionId, dir))
     if (!res.success) return reportFailure(res.error, res.code)
     const meta = newSectionMeta(res.data.section.id)
     commitSections(insertSection(sectionsRef.current, meta, anchorSectionId, dir))
@@ -944,7 +937,7 @@ export function useKosztorysEditor({
 
   // Resolves to the new section's id, so „Dodaj → Praca" on an empty kosztorys can put a pozycja in it.
   async function handleAddSection(): Promise<number | undefined> {
-    const res = await settleAction(() => addSectionAction(investmentId))
+    const res = await settleAction(() => actions.addSection(investmentId))
     if (!res.success) {
       reportFailure(res.error, res.code)
       return undefined
@@ -1054,7 +1047,7 @@ export function useKosztorysEditor({
     pruneByIds([sectionHeaderRowId(sectionId), ...removed.map((r) => r.id)])
     // collapsedSectionIds is left alone: an id whose section left the list folds nothing, and it keeps
     // the fold state if the server rejects and the section comes back.
-    const res = await settleAction(() => removeSectionAction(sectionId))
+    const res = await settleAction(() => actions.removeSection(sectionId))
     if (!res.success) {
       // Server rejected (predicate drift).
       for (const r of removed) prevById.current.set(r.id, r)
@@ -1088,7 +1081,7 @@ export function useKosztorysEditor({
     // yanking the swatch back mid-browse costs more than the stale tint.
     const persist = immediate ? runNow : save
     persist(`section-field:${sectionId}:${rowKey}`, () =>
-      updateSectionFieldAction(sectionId, { [SECTION_ROW_FIELDS[rowKey]]: value }),
+      actions.updateSectionField(sectionId, { [SECTION_ROW_FIELDS[rowKey]]: value }),
     )
   }
 
@@ -1171,7 +1164,7 @@ export function useKosztorysEditor({
       (r) => r.id === itemId,
       (r) => ({ ...r, ...patch }),
     )
-    const res = await settleAction(() => updateItemFieldAction(itemId, patch))
+    const res = await settleAction(() => actions.updateItemField(itemId, patch))
     if (!res.success) {
       if (before)
         patchRows(
@@ -1227,7 +1220,7 @@ export function useKosztorysEditor({
       const key = c.field as keyof KosztorysV2RowT
       save(
         itemFieldLane(c.id, c.field),
-        () => updateItemFieldAction(c.id, { [c.field]: c.after } as ItemPatchT),
+        () => actions.updateItemField(c.id, { [c.field]: c.after } as ItemPatchT),
         () => {
           revertOne(c.id, key, c.before, c.after)
           dropPendingField(c.id, c.field)

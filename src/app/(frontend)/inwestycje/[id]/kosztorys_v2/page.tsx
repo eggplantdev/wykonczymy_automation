@@ -21,6 +21,7 @@ import {
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
+import { kosztorysEditorActions } from '@/components/kosztorys/editor/kosztorys-editor-actions'
 import { perfStart } from '@/lib/perf'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { countInvestmentPendingReports } from '@/lib/queries/worker-reports-list'
@@ -104,6 +105,7 @@ export default async function InvestmentKosztorysV2Page({
       investmentId={investmentId}
       tree={tree}
       investmentName={investment.name}
+      actions={kosztorysEditorActions}
       materialsGrossBase={financials.materialsGrossBase}
       materialsNetBilled={financials.materialsNetBilled}
       materialsBreakdown={materialsBreakdown}

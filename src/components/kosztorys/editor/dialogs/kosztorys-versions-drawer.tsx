@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { useSnapshotList } from '@/components/kosztorys/editor/hooks/use-snapshot-list'
-import { restoreSnapshotAction, type SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
+import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { pluralize } from '@/lib/utils/polish-plural'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
@@ -32,6 +33,7 @@ export function KosztorysVersionsDrawer({
   onRestored,
   flushPendingSaves,
 }: PropsT) {
+  const { restoreSnapshot } = useEditorActions()
   const { snapshots, reset: resetSnapshots } = useSnapshotList(investmentId, open)
   const [restoringId, setRestoringId] = useState<number | null>(null)
   const [pendingRestore, setPendingRestore] = useState<SnapshotListItemT | null>(null)
@@ -46,7 +48,7 @@ export function KosztorysVersionsDrawer({
     setRestoringId(snapshot.id)
     const replaced = await settleTreeReplace(
       flushPendingSaves,
-      () => restoreSnapshotAction(snapshot.id, investmentId),
+      () => restoreSnapshot(snapshot.id, investmentId),
       'Przywracanie przerwane — odświeżam kosztorys',
       ({ data }) => {
         // A warning, not a success, when assignments were dropped: the restore moved money the owner

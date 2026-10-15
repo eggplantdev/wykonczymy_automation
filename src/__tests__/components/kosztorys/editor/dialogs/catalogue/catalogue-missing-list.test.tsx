@@ -115,7 +115,13 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
         row({
           hints: [
             hint({ description: 'Montaż syfonów', score: 0.99 }),
-            hint({ id: 8, description: 'Montaż syfonów', unit: 'm2', clientPrice: 60, score: 0.99 }),
+            hint({
+              id: 8,
+              description: 'Montaż syfonów',
+              unit: 'm2',
+              clientPrice: 60,
+              score: 0.99,
+            }),
           ],
         }),
       ],
@@ -142,9 +148,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
     renderList({
       missing: [
         row({
-          hints: [
-            hint(),
-          ],
+          hints: [hint()],
         }),
       ],
     })
@@ -188,9 +192,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
     renderList({
       missing: [
         row({
-          hints: [
-            hint(),
-          ],
+          hints: [hint()],
         }),
       ],
       readOnly: true,

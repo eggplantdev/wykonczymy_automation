@@ -12,6 +12,7 @@ import {
   type PresetMetaT,
   type PresetSectionMetaT,
 } from '@/lib/db/presets'
+import { getTemplateRecordName } from '@/lib/db/templates'
 
 // Single cached read backing every preset picker. Argument-free — one global entry, correct for a
 // cross-investment library. Invalidated through the `presets` tag by every szablon lifecycle action
@@ -67,14 +68,12 @@ export async function getPresetRows(): Promise<PresetRowT[]> {
   })
 }
 
-// The page and its crumb both ask within one render, so `cache` saves the second read of the whole
-// library. Safe to read from the cache because every szablon writer expires `presets` inline — a
-// create included, so the szablon exists here before its page renders. The role gate is the crumb's:
-// a slot can't redirect, and without it a non-management session would read the library.
+// The page and its crumb both ask within one render, so `cache` dedupes the read. The role gate is
+// the crumb's: a slot can't redirect, and without it a non-management session would read the name.
 export const getTemplateName = cache(async (id: number): Promise<string | undefined> => {
   const { success } = await requireAuth(MANAGEMENT_ROLES)
   if (!success) return undefined
 
-  const presets = await getPresets()
-  return presets.find((preset) => preset.id === id)?.name
+  const payload = await getPayload({ config })
+  return getTemplateRecordName(await getDb(payload), id)
 })

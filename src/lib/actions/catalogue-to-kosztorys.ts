@@ -1,13 +1,12 @@
 'use server'
 
 import { after } from 'next/server'
-import type { Payload } from 'payload'
 import { z } from 'zod'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { listCatalogueItemsByIds, listCatalogueItemsByMatchKeys } from '@/lib/db/work-catalogue'
+import { listCatalogueItemsByMatchKeys } from '@/lib/db/work-catalogue'
 import {
   applyCatalogueValues,
   listItemsForCatalogueApply,
@@ -17,6 +16,11 @@ import {
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import {
+  createSectionWithCatalogueItemsSchema,
+  insertCatalogueItemsSchema,
+  readCatalogueItems,
+} from '@/lib/kosztorys/work-catalogue/read-catalogue-items'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
 import type {
@@ -24,41 +28,9 @@ import type {
   AppliedCatalogueValueT,
   NewSectionCatalogueSliceT,
   SeedConflictFieldT,
-  WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import type { ActionResultT } from '@/types/action'
 import { validateAction } from './run-action'
-
-const catalogueItemIdsSchema = z
-  .array(z.number().int().positive())
-  .min(1, 'Wybierz co najmniej jedną pracę')
-
-const insertCatalogueItemsSchema = z.object({
-  sectionId: z.number().int().positive(),
-  catalogueItemIds: catalogueItemIdsSchema,
-})
-
-const createSectionWithCatalogueItemsSchema = z.object({
-  investmentId: z.number().int().positive(),
-  sectionName: z.string().trim().min(1, 'Podaj nazwę sekcji'),
-  catalogueItemIds: catalogueItemIdsSchema,
-})
-
-// The client sends ONLY ids: every number that lands in the rozpiska is re-read from the cennik
-// server-side, so a tampered payload cannot price a praca.
-async function readCatalogueItems(
-  payload: Payload,
-  catalogueItemIds: number[],
-): Promise<WorkCatalogueItemT[] | { error: string }> {
-  const db = await getDb(payload)
-  // Before the existence check: `listCatalogueItemsByIds` returns one row per REQUESTED id, so
-  // `[5, 5, 5]` would pass the length test and append the same praca three times.
-  const ids = [...new Set(catalogueItemIds)]
-  const items = await listCatalogueItemsByIds(db, ids)
-  if (items.length !== ids.length)
-    return { error: 'Część wybranych prac nie istnieje już w katalogu.' }
-  return items
-}
 
 export async function insertCatalogueItemsAction(
   sectionId: number,
@@ -99,7 +71,7 @@ export async function createSectionWithCatalogueItemsAction(
     { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(createSectionWithCatalogueItemsSchema, {
-        investmentId,
+        ownerId: investmentId,
         sectionName,
         catalogueItemIds,
       })
@@ -114,7 +86,7 @@ export async function createSectionWithCatalogueItemsAction(
           createSectionWithCatalogueItems(
             payload,
             req,
-            parsed.data.investmentId,
+            parsed.data.ownerId,
             parsed.data.sectionName,
             items,
           ),

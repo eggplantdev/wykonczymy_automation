@@ -2,6 +2,8 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { EditorActionsContext } from '@/components/kosztorys/editor/actions/editor-actions-context'
+import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
 import { useAutoSnapshot } from '@/components/kosztorys/editor/hooks/use-auto-snapshot'
@@ -12,12 +14,16 @@ import { refreshDataAction } from '@/lib/actions/refresh'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { whenOnline } from '@/lib/utils/when-online'
 
-type PropsT = KosztorysEditorDataT
+type PropsT = KosztorysEditorDataT & {
+  // Required: a szablon id and a kosztorys id share one number space, so the route must say which
+  // plane its writes land on.
+  actions: EditorActionsT
+}
 
 // Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje"
 // drawer, and the restore-driven remount. Each of them lives here so a restore's
 // body remount doesn't disturb them.
-export function KosztorysEditorV2(props: PropsT) {
+export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   const { investmentId, tree, investmentName } = props
   const router = useRouter()
   // One undo/redo stack per editor mount, passed to the body as a prop. It outlives the body's
@@ -41,7 +47,7 @@ export function KosztorysEditorV2(props: PropsT) {
   const revisionRef = useRef(undoRedo.revision)
   // eslint-disable-next-line react-hooks/refs
   revisionRef.current = undoRedo.revision
-  const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
+  const autoSnapshot = useAutoSnapshot(investmentId, revisionRef, actions.autoSnapshot)
 
   function reseed(since?: string, ownsRefresh = false) {
     triggerRestore(since, ownsRefresh)
@@ -74,7 +80,7 @@ export function KosztorysEditorV2(props: PropsT) {
   }
 
   return (
-    <>
+    <EditorActionsContext value={actions}>
       <KosztorysEditorBody
         key={remountKey}
         {...props}
@@ -94,6 +100,6 @@ export function KosztorysEditorV2(props: PropsT) {
         onRestored={handleTreeReplaced}
         flushPendingSaves={() => flushBodySavesRef.current()}
       />
-    </>
+    </EditorActionsContext>
   )
 }

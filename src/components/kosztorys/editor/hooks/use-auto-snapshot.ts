@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, type RefObject } from 'react'
-import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
+import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
 import { settleAction } from '@/lib/utils/settle-action'
 
 // S-06 durable net: while the editor is open, take an auto snapshot on a plain interval, gated on the
@@ -28,6 +28,7 @@ type AutoSnapshotT = {
 export function useAutoSnapshot(
   investmentId: number,
   revisionRef: RefObject<number>,
+  autoSnapshot: EditorActionsT['autoSnapshot'],
 ): AutoSnapshotT {
   const lastSnapshotRevision = useRef<number | null>(null)
 
@@ -37,10 +38,10 @@ export function useAutoSnapshot(
     const id = setInterval(() => {
       if (revisionRef.current === lastSnapshotRevision.current) return
       lastSnapshotRevision.current = revisionRef.current
-      void settleAction(() => snapshotAction(investmentId))
+      void settleAction(() => autoSnapshot(investmentId))
     }, AUTO_SNAPSHOT_INTERVAL_MS)
     return () => clearInterval(id)
-  }, [investmentId, revisionRef])
+  }, [investmentId, revisionRef, autoSnapshot])
 
   // undoRedo.reset() bumps the revision by one, so advance the marker past that pending bump.
   return { skipNext: () => void (lastSnapshotRevision.current = revisionRef.current + 1) }

@@ -15,6 +15,9 @@ import {
 } from '@/lib/actions/kosztorys'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
+  addItemAction: vi.fn(),
+  clearKosztorysAction: vi.fn(),
+  writeKosztorysLayoutAction: vi.fn(),
   addSectionAction: vi.fn(),
   insertSectionAction: vi.fn(),
   removeItemAction: vi.fn(async () => ({ success: true })),

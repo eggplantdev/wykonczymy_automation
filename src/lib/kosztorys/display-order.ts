@@ -13,6 +13,8 @@ import { sqlList } from '@/lib/db/sql-list'
 const ORDER_SCOPES = {
   'kosztorys-sections': { table: sql.raw('kosztorys_sections'), owner: sql.raw('investment_id') },
   'kosztorys-items': { table: sql.raw('kosztorys_items'), owner: sql.raw('section_id') },
+  'template-sections': { table: sql.raw('template_sections'), owner: sql.raw('template_id') },
+  'template-items': { table: sql.raw('template_items'), owner: sql.raw('section_id') },
 } as const
 
 export type OrderScopeT = keyof typeof ORDER_SCOPES

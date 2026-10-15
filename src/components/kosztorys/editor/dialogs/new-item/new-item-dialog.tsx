@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { addItemAction } from '@/lib/actions/kosztorys'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import type { KosztorysItemT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
@@ -59,6 +59,7 @@ export function NewItemDialog({
   onStaleTree: () => void
   onClose: () => void
 }) {
+  const { addItem } = useEditorActions()
   const [landing, setLanding] = useState<LandingT>({ placement, anchorDescription })
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
   const openDialog = useOptimisticFormStore((s) => s.openDialog)
@@ -86,7 +87,7 @@ export function NewItemDialog({
             keepOpen={keepOpen}
             action={async (payload) => {
               const result = await settleAction(() =>
-                addItemAction({ ...payload, placement: landing.placement }),
+                addItem({ ...payload, placement: landing.placement }),
               )
               if (result.success) {
                 onPlaced(result.data.item, landing.placement)

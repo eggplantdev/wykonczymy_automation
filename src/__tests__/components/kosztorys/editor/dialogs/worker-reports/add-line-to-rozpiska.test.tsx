@@ -12,7 +12,10 @@ const { pointReportLineAction, insertCatalogueItemsAction, captured } = vi.hoist
 }))
 
 vi.mock('@/lib/actions/accept-worker-report', () => ({ pointReportLineAction }))
-vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({ insertCatalogueItemsAction }))
+vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
+  createSectionWithCatalogueItemsAction: vi.fn(),
+  insertCatalogueItemsAction,
+}))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
