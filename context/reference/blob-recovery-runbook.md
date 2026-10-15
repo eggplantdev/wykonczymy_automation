@@ -150,8 +150,7 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   `media_id` FK tables except `payload_locked_documents_rels`), almost all created 2026-04…08, all with
   no `kind`; only 2 in the preceding 30 days, both invoices. Nothing sweeps them, because
   `deleteUnreferencedMedia` runs only on a write that drops a reference. A sweep cron would delete
-  those 104 old invoices from a store with no undelete, so it waits on an owner decision (raised in
-  EX-1023's planning).
+  those 104 old invoices from a store with no undelete, so it waits on an owner decision.
   One known source is the reclaim itself: it is best-effort per id, so one `payload.delete` that throws
   is logged as `[media] delete unreferenced media failed` and its row and blob stay. The EX-1014
   harness hit this 4 times in ~16 runs of „add 10 photos → Usuń wszystkie" back to back. Ids from
