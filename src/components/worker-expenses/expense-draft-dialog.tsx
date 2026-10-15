@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { Label } from '@/components/ui/label'
+import { Loader } from '@/components/ui/loader/loader'
 import {
   Select,
   SelectContent,
@@ -130,6 +132,11 @@ export function ExpenseDraftDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+        <Loader
+          loading={isIngesting || isSending}
+          loaderComponent={<GradientSpinner className="size-12" />}
+          portal
+        />
         <DialogHeader title={t('newTitle')} />
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -174,10 +181,12 @@ export function ExpenseDraftDialog({
             className="h-28 flex-col"
             {...fileInputProps}
           />
-          {hasTooManyPhotos && (
+          {hasTooManyPhotos ? (
             <Description size="xs" tone="error" role="alert">
               {t('tooManyPhotos', { max: MAX_DRAFT_PAGES })}
             </Description>
+          ) : (
+            <Description size="xs">{t('photoLimit', { max: MAX_DRAFT_PAGES })}</Description>
           )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="expense-draft-note">{t('noteOptional')}</Label>

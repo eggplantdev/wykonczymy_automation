@@ -5840,3 +5840,14 @@ Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
       transakcji odfiltrowana po typie tego wiersza, z nim na liście.
 - [ ] `/sprzet` i `/szablony` otwierają się po deployu i pokazują dane (listy odbiorców, szablony
       z sekcjami).
+
+## 2026-10-15 — expense-draft-loader — „Nowy wydatek” pracownika: loader na środku ekranu + limit zdjęć
+
+- [ ] Telefon 390px, konto pracownika → „Nowy wydatek”: pod polem zdjęć widać „Zdjęcia lub PDF, max 8
+      jednocześnie.”, zanim cokolwiek wybierzesz.
+- [ ] Wybierz kilka zdjęć: na środku ekranu kręci się gradientowy pierścień (fuksja→cyjan), dopóki
+      zdjęcia się przygotowują; znika, gdy pole pokazuje ich nazwy.
+- [ ] „Wyślij”: ten sam pierścień kręci się na środku ekranu aż do toasta o wysłaniu.
+- [ ] Wybierz 9 zdjęć: podpowiedź znika, a w jej miejscu czerwony komunikat o limicie; „Wyślij” wyłączony.
+- [ ] Inne ekrany z loaderem (logowanie, filtry transakcji, zapis formularza) wyglądają jak dotąd —
+      🚧 dalej podskakuje.

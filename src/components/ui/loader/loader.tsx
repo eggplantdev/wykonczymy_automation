@@ -20,11 +20,7 @@ export const Loader = ({
 }: PropsT) => {
   if (!loading) return null
 
-  const spinner = loaderComponent ? (
-    <div className={`animate-bounce`}>{loaderComponent}</div>
-  ) : (
-    <ContentLoading />
-  )
+  const spinner = loaderComponent ?? <ContentLoading />
 
   const comp = (
     <div
