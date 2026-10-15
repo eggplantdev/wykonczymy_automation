@@ -50,6 +50,12 @@ const sectionsOf = async (investmentId: number) =>
       `/kosztorys-sections?where[investment][equals]=${investmentId}&limit=0&pagination=false&depth=0`,
     )
   ).docs
+const templateSectionsOf = async (templateId: number) =>
+  (
+    await api<{ docs: { id: number; name: string }[] }>(
+      `/template-sections?where[template][equals]=${templateId}&limit=0&pagination=false&depth=0`,
+    )
+  ).docs
 
 // The szablon has one „Łazienka"; each bathroom and each WC is its own full copy of it, named after
 // the room (owner, 2026-10-14; on #188: „nie robimy nigdy razem łazienki i wc w jednej sekcji").
@@ -148,7 +154,7 @@ async function run() {
   // the sekcje below the previous bathroom are shifted by hand to keep the bathrooms together in the
   // agent's order.
   if (copies.length) {
-    const presetBathroom = (await sectionsOf(kase.presetId)).find(
+    const presetBathroom = (await templateSectionsOf(kase.presetId)).find(
       (s) => sectionKey(s.name) === sectionKey(BATHROOM_TEMPLATE),
     )
     if (!presetBathroom) throw new Error(`szablon #${kase.presetId} has no „${BATHROOM_TEMPLATE}"`)

@@ -629,15 +629,15 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 7.1 `'szablon'` grep returns only migrations and UI copy
-- [x] 7.2 Affected specs pass
+- [x] 7.1 `'szablon'` grep returns only migrations and UI copy — 00a0bd5b2
+- [x] 7.2 Affected specs pass — 00a0bd5b2
 
 ### Phase 8: Scripts, E2E, docs
 
 #### Automated
 
 - [ ] 8.1 No reference to deleted scripts (Whole-tree Gate typecheck)
-- [ ] 8.2 The two one-off scripts are deleted
+- [x] 8.2 The two one-off scripts are deleted
 
 ### Phase 9: Migration 2 — after the deploy is live
 

@@ -1,24 +1,21 @@
 // Creates the case's investment on the LOCAL DB, kosztorys seeded from szablon PRESET_ID.
 // SOURCE_JSON stays outside the repo — it carries the client's contacts and the e-mail as notes.
-// Not `createInvestment`: its create runs the revalidate hook (revalidateTag throws outside Next),
-// and its seed reads the szablon through `getKosztorysTree`, which needs a session. The seed below
-// is `seedInvestmentFromPreset` with the auth-free `buildKosztorysTree` read; the strip mirrors
-// `serializeKosztorysAsPreset`. INV=<id> seeds an existing empty investment instead of creating one.
+// Not `createInvestment`: its create runs the revalidate hook (revalidateTag throws outside Next).
+// The seed is `seedInvestmentFromPreset` itself, which needs no session. INV=<id> seeds an existing
+// empty investment instead of creating one.
 // Restart dev afterwards so the cached listing picks the row up.
-//   SOURCE_JSON=… [PRESET_ID=165] [INV=…] node --env-file=.env --conditions=react-server --import tsx \
+//   SOURCE_JSON=… PRESET_ID=<szablon id> [INV=…] node --env-file=.env --conditions=react-server --import tsx \
 //     context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/create-case-local.ts
 import { readFileSync } from 'node:fs'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { applyPreset } from '@/lib/kosztorys/apply-preset'
-import { serializeTree } from '@/lib/kosztorys/serialize-tree'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
-import { buildKosztorysTree } from '@/lib/queries/kosztorys'
+import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { assertLocalDb } from '@/scripts/assert-local-db'
-import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
-const PRESET_ID = Number(process.env.PRESET_ID ?? 165)
+// A szablon is a `templates` row: its id is not the id of the investment it was before EX-1075.
+const PRESET_ID = Number(process.env.PRESET_ID)
+if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
 assertLocalDb('create-case-local')
 
 async function run() {
@@ -40,32 +37,8 @@ async function run() {
         ).id,
       )
 
-  await withPayloadTransaction(
-    payload,
-    async (req) => {
-      const { globalDiscount: _globalDiscount, ...snapshot } = serializeTree(
-        await buildKosztorysTree(PRESET_ID, req),
-      )
-      await applyPreset(payload, req, investmentId, {
-        ...snapshot,
-        items: snapshot.items.map(({ ref: _ref, ...item }) => ({
-          ...item,
-          plannedQty: 0,
-          currentPlannedQty: null,
-          sheetMeasuredQty: null,
-          discountType: null,
-          discountValue: 0,
-          note: null,
-          ...NO_AI_DRAFT,
-          changeReason: null,
-          reviewStatus: null,
-        })),
-        stages: [],
-        progress: [],
-      })
-    },
-    { skipRevalidation: true },
-  )
+  const seeded = await seedInvestmentFromPreset(payload, investmentId, PRESET_ID)
+  if (seeded !== 'ok') throw new Error(`seed from szablon #${PRESET_ID}: ${seeded}`)
   console.log(`investment #${investmentId}, seeded from szablon #${PRESET_ID}`)
   process.exit(0)
 }

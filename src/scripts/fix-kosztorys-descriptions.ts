@@ -1,5 +1,5 @@
 // Bulk run of the „Popraw literówki" cleanup (opis prac + j.m.) — the same rules the Opcje button
-// applies, but over many inwestycje at once — szablony included, since a szablon is an investment.
+// applies, but over many inwestycje at once. A szablon has no texts of its own: CATALOGUE=1 covers it.
 // Dry by default; pass APPLY=1 to write.
 //
 //   INV=90 node --env-file=.env --import tsx src/scripts/fix-kosztorys-descriptions.ts
@@ -10,7 +10,7 @@
 //   CATALOGUE  1 = clean „Katalog prac" too, and only it (skips inwestycje)
 //
 // Raw SQL expires no cache: after an APPLY the deployed app keeps serving the old texts until their
-// tags expire. One edit in the katalog, one szablon save and one kosztorys cell edit flush them.
+// tags expire. One edit in the katalog and one kosztorys cell edit flush them.
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'

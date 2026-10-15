@@ -1,5 +1,5 @@
 // Re-runnable: fills the empty opis translations of the katalog and of the pozycje of open
-// investments (szablony included) from a hand-made table in `data/`.
+// investments from a hand-made table in `data/` — a szablon's prace are the katalog's own texts.
 //
 //   node --env-file=.env --import tsx src/scripts/fill-description-translations.ts export --lang uk \
 //     > /tmp/untranslated-uk.json

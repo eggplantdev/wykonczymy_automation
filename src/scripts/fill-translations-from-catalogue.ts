@@ -1,6 +1,6 @@
 // Re-runnable: fills the missing or stale opis translations of the pozycje of every investment not in
-// the kosz (szablony and zakończone included — Problemy flags a gap on a closed one too) from the
-// katalog prac — the same reuse „Uzupełnij tłumaczenia (AI)" makes before it asks the AI. With --ai
+// the kosz (zakończone included — Problemy flags a gap on a closed one too) from the katalog prac
+// — the same reuse „Uzupełnij tłumaczenia (AI)" makes before it asks the AI. With --ai
 // it also does what the buttons do, across every kosztorys at once: the katalog's own gaps first (so
 // the pozycje then reuse them), then one AI call per distinct opis still missing, then the section
 // names.
