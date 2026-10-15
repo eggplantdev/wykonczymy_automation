@@ -5,6 +5,7 @@ import { STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import {
   WORKER_VIEW_DEFAULT_SETTINGS,
   sanitizeWorkerViewSettings,
+  toStoredWorkerViewSettings,
   workerDocumentColumns,
   workerVisibleColumns,
 } from '@/lib/kosztorys/worker-view/settings'
@@ -145,5 +146,23 @@ describe('worker view settings', () => {
     for (const group of WORKER_VIEW_GROUPS) {
       for (const key of group.keys) expect(workerColumnLabel(key), key).toBeTypeOf('string')
     }
+  })
+})
+
+describe('stored worker view settings', () => {
+  it('reads a column the stored map does not mention as its code default', () => {
+    const settings = sanitizeWorkerViewSettings({
+      hiddenColumns: { unit: true, plannedQty: false },
+    })
+
+    expect(settings.hiddenColumns.sort()).toEqual(['plannedDonePercent', 'unit'])
+  })
+
+  it('stores one choice per offered column and reads back to the same settings', () => {
+    const settings = sanitizeWorkerViewSettings({ hiddenColumns: ['rate'], hideEmptyRows: false })
+    const stored = toStoredWorkerViewSettings(settings)
+
+    expect(stored.hiddenColumns).toMatchObject({ rate: true, plannedQty: false, unit: false })
+    expect(sanitizeWorkerViewSettings(stored)).toEqual(settings)
   })
 })

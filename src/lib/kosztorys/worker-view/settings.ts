@@ -1,8 +1,12 @@
 import {
-  DOCUMENT_PINNED_COLUMN,
   orderDocumentKeys,
   sanitizeDocumentRanks,
 } from '@/lib/kosztorys/columns/document-column-order'
+import {
+  resolveHiddenColumns,
+  toHiddenColumnMap,
+  type HiddenColumnMapT,
+} from '@/lib/kosztorys/columns/document-column-visibility'
 import {
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,
@@ -25,8 +29,13 @@ const WORKER_VIEW_KEYS: ReadonlySet<string> = new Set(
   WORKER_VIEW_GROUPS.flatMap((group) => group.keys),
 )
 
+const WORKER_DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
+  'plannedQty',
+  'plannedDonePercent',
+])
+
 export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
-  hiddenColumns: ['plannedQty', 'plannedDonePercent'],
+  hiddenColumns: [...WORKER_DEFAULT_HIDDEN_COLUMNS],
   hideEmptyRows: true,
   hidePlannedOnceExecuted: true,
   columnRanks: {},
@@ -34,7 +43,8 @@ export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
 
 // Same fail-closed contract as `sanitizeClientViewSettings`: a key outside the worker ceiling is
 // dropped on read and on write, so a hand-edited `price` in the global's JSON is inert rather than a
-// way onto a worker's screen. „Closed" rests on the ceiling, not on the default hidden set — which is
+// way onto a worker's screen, and a column the stored choices do not mention reads as its code
+// default. „Closed" rests on the ceiling, not on the default hidden set — which is
 // why `workerVisibleColumns` builds from the groups and only ever subtracts.
 export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT {
   if (typeof source !== 'object' || source === null) return WORKER_VIEW_DEFAULT_SETTINGS
@@ -45,15 +55,22 @@ export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT
     columnRanks?: unknown
   }
   return {
-    hiddenColumns: Array.isArray(hiddenColumns)
-      ? [...new Set(hiddenColumns)].filter(
-          (key): key is string =>
-            typeof key === 'string' && WORKER_VIEW_KEYS.has(key) && key !== DOCUMENT_PINNED_COLUMN,
-        )
-      : WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
+    hiddenColumns:
+      resolveHiddenColumns(hiddenColumns, WORKER_VIEW_KEYS, WORKER_DEFAULT_HIDDEN_COLUMNS) ??
+      WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
     hideEmptyRows: hideEmptyRows !== false,
     hidePlannedOnceExecuted: hidePlannedOnceExecuted !== false,
     columnRanks: sanitizeDocumentRanks(columnRanks, WORKER_VIEW_KEYS),
+  }
+}
+
+export function toStoredWorkerViewSettings(
+  settings: WorkerViewSettingsT,
+): Omit<WorkerViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
+  const sanitized = sanitizeWorkerViewSettings(settings)
+  return {
+    ...sanitized,
+    hiddenColumns: toHiddenColumnMap(sanitized.hiddenColumns, WORKER_VIEW_KEYS),
   }
 }
 
