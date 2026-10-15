@@ -70,6 +70,7 @@ function renderTable(
       itemOptions={[]}
       catalogue={[]}
       onOpenCatalogue={vi.fn()}
+      onUndoSwap={vi.fn()}
       hintsByLine={{}}
       stageTitle="Etap 1"
       onRetranslate={onRetranslate}
@@ -143,6 +144,7 @@ function renderRozpiska(
       itemOptions={[]}
       catalogue={[]}
       onOpenCatalogue={vi.fn()}
+      onUndoSwap={vi.fn()}
       hintsByLine={{}}
       stageTitle="Etap 1"
       onRetranslate={undefined}

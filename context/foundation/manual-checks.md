@@ -5695,3 +5695,14 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [x] · **dropped** · „Flota”: sortowanie po dacie decyzji malejąco z pustymi na górze — to `/wyplaty`, nie Flota, i duplikat znaleziska już odrzuconego wyżej (domyślne NULLS FIRST Postgresa).
 - [ ] **Stan QA zostawiony na stagingu (inw. 210, pracownik 79)**: zgłoszenie prac „Do sprawdzenia 3” (wysłane 14.10.2026 22:53, 62051-6 ×3, 62052-7 ×2, 62054-2 ×5) pozostawione niezatwierdzone — nie zmienia ilości w kosztorysie. **W toku:** cały stan QA EX-855 (inw. 210, kasy 48/50, pracownik 79) zostaje do ponownego sprawdzenia EX-1004 na kasie 50 po deployu; potem odrzucić to zgłoszenie i posprzątać stan QA. **Test disposition**: no automated test.
 - [x] · **dropped** · 136 znalezisk „boks wymaga człowieka” — to nie defekty, tylko boksy, których automat nie mógł domknąć; każdy z tych boksów zostaje otwarty (`[ ]`), z notatką pod spodem tam, gdzie sprawdzono część. Powody: częściowo sprawdzone (notatka pod boksem) ×39; AI nie odczytuje syntetycznych zdjęć ×14; PWA / prawdziwy telefon ×12; Safari / iPhone ×10; push na prawdziwym urządzeniu ×9; brak stanu na preview, którego UI nie tworzy ×8; druk / PDF / papier ×7; rekord w koszu (nie kasujemy prawdziwych) ×7; zoom / ellipsis na prawdziwym iPhonie ×5; cron z `CRON_SECRET` / poczta ×4; podpisany webhook (HMAC) ×4; tylko produkcja ×4; wyścig zapisu w dwóch kartach ×4; prawdziwy plik (PDF / zdjęcie z telefonu) ×4; komenda e2e uruchamiana przez człowieka ×3; cron `cleanup` (skasowałby prawdziwe wiersze z kosza) ×2.
+
+## EX-1055 — pozycja ze zgłoszenia zapamiętana przed zapisem
+
+- [ ] Zgłoszenie prac z pracą „Spoza rozpiski” → „Dodaj do rozpiski” z katalogu (praca, której
+      rozpiska jeszcze nie ma) → zamknij okno zgłoszenia **bez** „Zapisz zmiany” → otwórz zgłoszenie
+      ponownie: praca stoi w grupie rozpiski na swojej nowej pozycji, da się ją przyjąć, a rozpiska ma
+      tylko jedną taką pozycję (bez bliźniaka).
+- [ ] To samo przez „Dodaj nową pracę…” (nowa praca spoza katalogu): po ponownym otwarciu praca jest
+      w rozpisce na tej pozycji.
+- [ ] Po dodaniu do rozpiski → „Cofnij podmianę” → zamknij bez zapisu → otwórz ponownie: praca wraca do
+      „Spoza rozpiski” (pusta pozycja zostaje w rozpisce).

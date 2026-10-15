@@ -10,6 +10,7 @@ import type {
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
 import { insertCatalogueItemsAction } from '@/lib/actions/catalogue-to-kosztorys'
+import { pointReportLineAction } from '@/lib/actions/accept-worker-report'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -26,9 +27,11 @@ type PropsT = {
 }
 
 // The praca goes into the rozpiska now, not on „Zapisz zmiany”: from here on the line is an ordinary
-// rozpiska line. A pozycja the sekcja already holds takes the ilość instead of a twin.
+// rozpiska line, and the server remembers its pozycja so a review closed unsaved finds it again. A
+// pozycja the sekcja already holds takes the ilość instead of a twin.
 export function AddLineToRozpiska({ line, entryId, onChange, onClose }: PropsT) {
   const {
+    investmentId,
     rows,
     sections,
     workCatalogue,
@@ -40,12 +43,19 @@ export function AddLineToRozpiska({ line, entryId, onChange, onClose }: PropsT) 
   const catalogue = workCatalogue ?? []
   const [newItem, setNewItem] = useState<{ sectionId: number; description: string }>()
 
-  const pointAt = (item: Pick<KosztorysItemT, 'id' | 'catalogueItemId'>) =>
+  const pointAt = (item: Pick<KosztorysItemT, 'id' | 'catalogueItemId'>) => {
     onChange(line.id, {
       catalogueId: item.catalogueItemId ?? undefined,
       matchedItemIds: [item.id],
       itemId: item.id,
     })
+    if (line.kind !== 'extra') return
+    void settleAction(() => pointReportLineAction(investmentId, line.id, item.id)).then(
+      (result) => {
+        if (!result.success) toastMessage(result.error, 'error')
+      },
+    )
+  }
 
   const swapInto = async (
     entry: WorkCatalogueItemT,

@@ -14,6 +14,7 @@ import {
   clearLinesAcceptance,
   readWorkerReport,
   setLinesRejected,
+  setPendingExtraItem,
   settleReport,
   updateReportLines,
   type ReportLineDecisionT,
@@ -68,6 +69,19 @@ export async function acceptWorkerReportAction(
     },
     ['kosztorysStages', 'stageProgress', 'kosztorysItems', 'investments'],
   )
+}
+
+// Nothing reads report lines through a cache, so there is no tag to expire.
+export async function pointReportLineAction(
+  investmentId: number,
+  lineId: number,
+  itemId: number | undefined,
+): Promise<ActionResultT> {
+  return investmentAction('pointReportLineAction', { investmentId }, async ({ payload }) => {
+    const db = await getDb(payload)
+    const isWritten = await setPendingExtraItem(db, investmentId, lineId, itemId ?? null)
+    return isWritten ? { success: true } : { success: false, error: STALE }
+  })
 }
 
 async function acceptInTransaction(

@@ -517,6 +517,31 @@ export async function clearLinesAcceptance(
   `)
 }
 
+/**
+ * A praca spoza rozpiski goes into the rozpiska the moment it is picked, long before „Zapisz zmiany”,
+ * and the review's drafts live only in memory — so the pozycja it became is kept on the line right
+ * away, or a reopened review offers it as spoza rozpiski again and a second add mints a twin. `null`
+ * forgets it. Returns whether the line was still waiting to be written.
+ */
+export async function setPendingExtraItem(
+  db: DbExecutorT,
+  investmentId: number,
+  lineId: number,
+  itemId: number | null,
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE worker_report_lines l SET item_id = ${itemId}::int
+    FROM worker_reports r
+    WHERE l.id = ${lineId} AND r.id = l.report_id AND r.investment_id = ${investmentId}
+      AND l.kind = 'extra' AND l.accepted_qty IS NULL
+      AND (${itemId}::int IS NULL OR EXISTS (
+        SELECT 1 FROM kosztorys_items k WHERE k.id = ${itemId}::int AND k.investment_id = ${investmentId}
+      ))
+    RETURNING l.id
+  `)
+  return res.rows.length > 0
+}
+
 export async function setLinesRejected(
   db: DbExecutorT,
   reportId: number,
