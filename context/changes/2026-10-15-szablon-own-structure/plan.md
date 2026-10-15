@@ -586,18 +586,18 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 1.1 `pnpm generate:types` emits the three collections
-- [x] 1.2 M1 applies on the local DB restored from the latest prod dump
-- [x] 1.3 Count check: sections / items / snapshots match the source szablon; converted ids exist
-- [x] 1.4 `down()` then `up()` applies cleanly
+- [x] 1.1 `pnpm generate:types` emits the three collections — 3548dad4e
+- [x] 1.2 M1 applies on the local DB restored from the latest prod dump — 3548dad4e
+- [x] 1.3 Count check: sections / items / snapshots match the source szablon; converted ids exist — 3548dad4e
+- [x] 1.4 `down()` then `up()` applies cleanly — 3548dad4e
 
 ### Phase 2: Data layer + template gate
 
 #### Automated
 
-- [ ] 2.1 `template-tree.test.ts` passes
-- [ ] 2.2 `template-action.test.ts` passes
-- [ ] 2.3 `serialize-template.test.ts` passes
+- [x] 2.1 `template-tree.test.ts` passes
+- [x] 2.2 `template-action.test.ts` passes
+- [x] 2.3 `serialize-template.test.ts` passes
 
 ### Phase 3: Template actions + editor injection
 

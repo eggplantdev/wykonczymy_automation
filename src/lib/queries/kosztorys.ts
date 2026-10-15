@@ -4,7 +4,8 @@ import config from '@payload-config'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { getDb } from '@/lib/db/get-db'
-import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
+import { selectKosztorysTreeData, type KosztorysTreeDataT } from '@/lib/db/kosztorys-tree'
+import { selectTemplateTreeData } from '@/lib/db/template-tree'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { perfStart } from '@/lib/perf'
 import type { KosztorysItemT, KosztorysSectionT, KosztorysTreeT } from '@/lib/kosztorys/types'
@@ -46,8 +47,33 @@ export async function buildKosztorysTree(
   const queriesMs = elapsed()
 
   if (!data) throw new Error(`Investment ${investmentId} not found`)
-  const { sections: sectionRows, items, stages, progress, investment } = data
+  const tree = shapeKosztorysTree(data)
+  // Split from the query time because they answer different questions: a slow `queries` number argues
+  // for caching or aggregating in SQL, a slow `map` number argues that materialising the tree in JS is
+  // itself the cost — and only one of those is fixed by a cache.
+  const mapMs = elapsed()
+  console.log(
+    `[PERF] buildKosztorysTree ${setupMs + queriesMs + mapMs}ms ` +
+      `(setup ${setupMs}ms, queries ${queriesMs}ms, map ${mapMs}ms) ` +
+      `[inv ${investmentId}: ${tree.sections.length} sections, ${data.items.length} items, ` +
+      `${tree.stages.length} stages, ${tree.progress.length} progress]`,
+  )
+  return tree
+}
 
+// A szablon is read from its own tables (EX-1075) into the same tree, so the editor renders both.
+export async function getTemplateTree(templateId: number): Promise<KosztorysTreeT> {
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) throw new Error(session.error)
+
+  const payload = await getPayload({ config })
+  const data = await selectTemplateTreeData(await getDb(payload), templateId)
+  if (!data) throw new Error(`Template ${templateId} not found`)
+  return shapeKosztorysTree(data)
+}
+
+function shapeKosztorysTree(data: KosztorysTreeDataT): KosztorysTreeT {
+  const { sections: sectionRows, items, stages, progress, investment } = data
   // Distinguish an unset coefficient from a legitimate 0 — `|| default` would rewrite a stored 0.
   const globalCoeffs = {
     wTools: investment.wToolsCoeff ?? DEFAULT_COEFFS.wTools,
@@ -65,17 +91,6 @@ export async function buildKosztorysTree(
 
   const sections: (KosztorysSectionT & { items: KosztorysItemT[] })[] = sectionRows.map(
     (section) => ({ ...section, items: itemsBySection.get(section.id) ?? [] }),
-  )
-
-  // Split from the query time because they answer different questions: a slow `queries` number argues
-  // for caching or aggregating in SQL, a slow `map` number argues that materialising the tree in JS is
-  // itself the cost — and only one of those is fixed by a cache.
-  const mapMs = elapsed()
-  console.log(
-    `[PERF] buildKosztorysTree ${setupMs + queriesMs + mapMs}ms ` +
-      `(setup ${setupMs}ms, queries ${queriesMs}ms, map ${mapMs}ms) ` +
-      `[inv ${investmentId}: ${sections.length} sections, ${items.length} items, ` +
-      `${stages.length} stages, ${progress.length} progress]`,
   )
 
   return {
