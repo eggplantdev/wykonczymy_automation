@@ -192,7 +192,17 @@ export function narrowToTransferIds(
 ): Where {
   const ids = transferIds.length > 0 ? { in: transferIds } : NO_RESULTS
   const field = throughOriginal ? 'cancelledTransaction' : 'id'
-  return { ...where, and: [...(where.and ?? []), { [field]: ids }] }
+  return andWith(where, { [field]: ids })
+}
+
+/**
+ * Add `conditions` under `and`, keeping the other leaves top-level where their readers look. A
+ * top-level `or` moves into the `and` list: Payload's drizzle parseParams keeps only the LAST of a
+ * top-level `or` and `and`, so leaving both drops one silently — the kasa filter's `or` vanished.
+ */
+export function andWith(where: Where, ...conditions: Where[]): Where {
+  const { or, and = [], ...rest } = where
+  return { ...rest, and: [...and, ...(or ? [{ or }] : []), ...conditions] }
 }
 
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,

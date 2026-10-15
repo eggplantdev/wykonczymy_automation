@@ -117,8 +117,19 @@ describe('worker transfer scope → stats SQL', () => {
 
   it('ANDs a foreign kasa filter with the scope instead of replacing it', async () => {
     const sql = await workerSql({ sourceRegister: '99' })
-    expect(sql).toContain('AND (source_register_id IN (99) OR target_register_id IN (99))')
-    expect(sql).toContain(`AND ${SCOPE_SQL}`)
+    expect(sql).toContain(
+      '(source_register_id IN (99) OR target_register_id IN (99)) AND (worker_id = 25 OR source_register_id IN (37) OR target_register_id IN (37))',
+    )
+  })
+
+  // The list goes through Payload, whose parseParams keeps only the LAST of a top-level `or` and
+  // `and` — the „Kasa” filter vanished from /pracownicy/[id] while the stats (ours) applied it.
+  it('never leaves the kasa filter as a top-level `or` beside the scope', () => {
+    const where = buildWorkerTransferWhere(
+      buildTransferFilters({ sourceRegister: '99' }, { id: 1 }),
+      workerTransferScope(25, [37]),
+    )
+    expect(where.or).toBeUndefined()
   })
 })
 
@@ -347,6 +358,21 @@ describe('narrowToTransferIds', () => {
 
   it('an empty list matches nothing', () => {
     expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
+  })
+
+  // Payload's drizzle parseParams keeps only the LAST of top-level `or` / `and` — the register
+  // scope (an `or` of source/target) vanished under „Zgłoszone wydatki” on /kasa/[id] and the
+  // dashboard's register filter. Our translator ANDs both, so this is pinned on the Where.
+  it('never leaves a top-level `or` beside the `and` it adds', () => {
+    const where = narrowToTransferIds(
+      buildTransferFilters({ sourceRegister: '50' }, { id: 0 }),
+      [4],
+    )
+
+    expect(where.or).toBeUndefined()
+    const sql = buildSqlConditions(where)
+    expect(sql).toContain('source_register_id IN (50) OR target_register_id IN (50)')
+    expect(sql).toContain('id IN (4)')
   })
 
   it('in audit mode narrows the CANCELLATION rows by the original they cancel', () => {
