@@ -6106,3 +6106,11 @@ Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marsz
       kolejne „Ustaw kolejność” w A przechodzi.
 - [ ] Kosztorys → „Importuj z arkusza” i „Ustaw kolejność” działają jak wcześniej (porządki bez
       zmiany zachowania): import podmienia pozycje, kolejność zapisuje się po odświeżeniu strony.
+
+## 2026-10-15 — szablon-own-structure — bez „Aktualizuj pozycję w katalogu prac” w szablonie
+
+- [ ] Szablony → otwórz szablon → menu „…” przy dowolnej pracy: nie ma „Aktualizuj pozycję w katalogu
+      prac” ani „Zapisz pozycję do katalogu prac”; „Wstaw powyżej/poniżej”, „Ustaw kolejność…” i „Usuń
+      pozycję” są jak dotąd.
+- [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
+      nadal jest i otwiera okno zapisu do katalogu.

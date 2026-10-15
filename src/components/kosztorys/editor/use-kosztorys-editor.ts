@@ -614,7 +614,9 @@ export function useKosztorysEditor({
     onInsertSection: editorOnly(handleInsertSection),
     onSetSectionColor: editorOnly(handleSetSectionColor),
     onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
-    canSaveItemToCatalogue: editorOnly(true),
+    // A szablon cell edit already writes the katalog (EX-1017); its row's own columns are a stale
+    // copy, so pushing them would revert the cennik.
+    canSaveItemToCatalogue: editorOnly(!isTemplate),
     globalDiscountActive,
     divergenceFilterEngaged,
     engagedStageConditionIds,
