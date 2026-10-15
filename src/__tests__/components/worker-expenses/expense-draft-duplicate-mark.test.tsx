@@ -2,11 +2,13 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { ExpenseDraftDuplicateHints } from '@/components/worker-expenses/expense-draft-duplicate-hints'
 import {
-  ExpenseDraftDuplicateHints,
+  ExpenseDraftDuplicateStatus,
   type DuplicateHintsStateT,
-} from '@/components/worker-expenses/expense-draft-duplicate-hints'
-import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
+} from '@/components/worker-expenses/expense-draft-duplicate-status'
+import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
+import { ExpenseForm, type ParagonRowT } from '@/components/forms/expense-form/expense-form'
 import {
   makeLineItem,
   type BulkExpenseFormValuesT,
@@ -55,14 +57,12 @@ function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
   }
 }
 
-function readyState(matches: DuplicateMatchT[]): DuplicateHintsStateT {
-  return {
-    status: 'ready',
-    paragons: [{ readRow: 0, description: 'Klej', amount: 89.9, matches }],
-  }
+function oneParagon(matches: DuplicateMatchT[]): ParagonDuplicatesT[] {
+  return [{ readRow: 0, description: 'Klej', amount: 89.9, matches }]
 }
 
-const onRowA = () => 'row-a'
+const onRowA = () => ({ itemId: 'row-a', position: 0, status: 'pending' as const })
+const renderRow = (hint: React.ReactNode) => hint
 
 function scanned(description: string, amount: number): ReceiptFillResultT {
   return { description, amount, netAmount: null, invoiceNote: '' } as ReceiptFillResultT
@@ -78,13 +78,15 @@ describe('ExpenseDraftDuplicateHints', () => {
     const onMarkDuplicate = vi.fn()
     render(
       <ExpenseDraftDuplicateHints
-        state={readyState([
+        paragons={oneParagon([
           match({ key: 'transaction-501', source: 'transaction', id: 501 }),
           match({ key: 'draft-7-1', source: 'draft', id: 7, documentNumber: 'PAR/2026/0002' }),
         ])}
-        lineItemIds={['row-a']}
-        itemIdOfReadRow={onRowA}
+        draftId={42}
+        itemId="row-a"
+        paragonOfReadRow={onRowA}
         onMarkDuplicate={onMarkDuplicate}
+        renderRow={renderRow}
       />,
     )
 
@@ -100,13 +102,15 @@ describe('ExpenseDraftDuplicateHints', () => {
   it('dismisses only the clicked match when two come from the same zgłoszenie', async () => {
     render(
       <ExpenseDraftDuplicateHints
-        state={readyState([
+        paragons={oneParagon([
           match({ key: 'draft-7-1', source: 'draft', id: 7, documentNumber: 'PAR/2026/0001' }),
           match({ key: 'draft-7-2', source: 'draft', id: 7, documentNumber: 'PAR/2026/0002' }),
         ])}
-        lineItemIds={['row-a']}
-        itemIdOfReadRow={onRowA}
+        draftId={42}
+        itemId="row-a"
+        paragonOfReadRow={onRowA}
         onMarkDuplicate={vi.fn()}
+        renderRow={renderRow}
       />,
     )
 
@@ -123,16 +127,15 @@ describe('ExpenseDraftDuplicateHints', () => {
   it('keeps one hint per paragon when two merged into one row match the same transakcja', async () => {
     render(
       <ExpenseDraftDuplicateHints
-        state={{
-          status: 'ready',
-          paragons: [
-            { readRow: 0, description: 'Klej', amount: 89.9, matches: [match({})] },
-            { readRow: 1, description: 'Fuga', amount: 45, matches: [match({})] },
-          ],
-        }}
-        lineItemIds={['row-a']}
-        itemIdOfReadRow={onRowA}
+        paragons={[
+          { readRow: 0, description: 'Klej', amount: 89.9, matches: [match({})] },
+          { readRow: 1, description: 'Fuga', amount: 45, matches: [match({})] },
+        ]}
+        draftId={42}
+        itemId="row-a"
+        paragonOfReadRow={onRowA}
         onMarkDuplicate={vi.fn()}
+        renderRow={renderRow}
       />,
     )
     expect(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })).toHaveLength(2)
@@ -142,20 +145,39 @@ describe('ExpenseDraftDuplicateHints', () => {
     expect(screen.getAllByRole('button', { name: 'OK, to nie duplikat' })).toHaveLength(1)
   })
 
+  it('names a match from this same zgłoszenie by its row, and drops it once that row is refused', () => {
+    const twin = match({ key: 'draft-42-1', source: 'draft', id: 42, readRows: [1] })
+    const hints = (twinStatus: ParagonRowT['status']) => (
+      <ExpenseDraftDuplicateHints
+        paragons={oneParagon([twin])}
+        draftId={42}
+        itemId="row-a"
+        paragonOfReadRow={(readRow) =>
+          readRow === 0
+            ? { itemId: 'row-a', position: 0, status: 'pending' }
+            : { itemId: 'row-b', position: 1, status: twinStatus }
+        }
+        onMarkDuplicate={vi.fn()}
+        renderRow={renderRow}
+      />
+    )
+    const { rerender } = render(hints('pending'))
+    expect(screen.getByText('Pozycja 2 tego zgłoszenia')).toBeInTheDocument()
+
+    rerender(hints('accepted'))
+    expect(screen.getByText('Pozycja 2 tego zgłoszenia')).toBeInTheDocument()
+
+    rerender(hints('rejected'))
+    expect(screen.queryByText('Możliwe duplikaty')).toBeNull()
+  })
+
   it.each<[DuplicateHintsStateT, string]>([
     [{ status: 'reading' }, 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.'],
     [{ status: 'checking' }, 'Sprawdzanie duplikatów…'],
     [{ status: 'no-read' }, 'Bez odczytu paragonów nie da się sprawdzić duplikatów.'],
     [{ status: 'error', retry: vi.fn() }, 'Nie udało się sprawdzić duplikatów.'],
   ])('shows the %o notice and offers no „Duplikat"', (state, notice) => {
-    render(
-      <ExpenseDraftDuplicateHints
-        state={state}
-        lineItemIds={['row-a']}
-        itemIdOfReadRow={onRowA}
-        onMarkDuplicate={vi.fn()}
-      />,
-    )
+    render(<ExpenseDraftDuplicateStatus state={state} />)
 
     expect(screen.getByText(notice)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Duplikat' })).toBeNull()
@@ -172,9 +194,9 @@ describe('ExpenseForm with duplicate hints', () => {
   function renderAcceptance(
     rows: Partial<BulkExpenseFormValuesT['lineItems'][number]>[],
     files: Map<number, File[]>,
+    paragons = oneParagon([match({ source: 'transaction', id: 501 })]),
   ) {
     const items = rows.map((row) => makeLineItem({ expenseCategory: '1', ...row }))
-    const duplicates = readyState([match({ source: 'transaction', id: 501 })])
     render(
       <ExpenseForm
         referenceData={expenseReferenceData}
@@ -190,17 +212,64 @@ describe('ExpenseForm with duplicate hints', () => {
           files,
           values: expenseValues({ lineItems: items }),
         }}
-        renderAboveLineItems={({ lineItemIds, markDuplicate, itemIdOfReadRow }) => (
+        wrapLineItem={({ itemId, markDuplicate, paragonOfReadRow, renderRow }) => (
           <ExpenseDraftDuplicateHints
-            state={duplicates}
-            lineItemIds={lineItemIds}
-            itemIdOfReadRow={itemIdOfReadRow}
+            paragons={paragons}
+            draftId={42}
+            itemId={itemId}
+            paragonOfReadRow={paragonOfReadRow}
             onMarkDuplicate={markDuplicate}
+            renderRow={renderRow}
           />
         )}
       />,
     )
   }
+
+  it('puts each paragon’s match inside its own row, above its fields, not beside the other paragon’s', async () => {
+    renderAcceptance(
+      [
+        { description: 'Castorama 06.10.2026', amount: '107.4' },
+        { description: 'Castorama 07.10.2026', amount: '117.4' },
+      ],
+      new Map(),
+      [
+        {
+          readRow: 0,
+          description: 'Castorama 06.10.2026',
+          amount: 107.4,
+          matches: [
+            match({
+              reasons: ['same-receipt'],
+              key: 'transaction-5747',
+              id: 5747,
+              amount: 107.4,
+              date: '2026-10-07',
+              documentDate: null,
+              description: 'Castorama 06.10.2026',
+            }),
+          ],
+        },
+        {
+          readRow: 1,
+          description: 'Castorama 07.10.2026',
+          amount: 117.4,
+          matches: [match({ key: 'transaction-5746', id: 5746, amount: 117.4 })],
+        },
+      ],
+    )
+
+    const [firstRow, secondRow] = await screen.findAllByRole('textbox', { name: 'Opis' })
+    const firstHint = screen.getByText('Transakcja #5747').closest('section')!
+    const secondHint = screen.getByText('Transakcja #5746').closest('section')!
+    const isBefore = (a: Node, b: Node) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(isBefore(firstHint, firstRow)).toBe(true)
+    expect(isBefore(firstRow, secondHint)).toBe(true)
+    expect(isBefore(secondHint, secondRow)).toBe(true)
+    // Booked 07.10 before the printed-date column existed; matched on the 06.10 in its „Opis".
+    expect(within(firstHint).getByText('06.10.2026')).toBeInTheDocument()
+  })
 
   it('lands an in-flight scan on its own row after „Duplikat" removes the row above it', async () => {
     const releases = new Map<string, (data: ReceiptFillResultT) => void>()

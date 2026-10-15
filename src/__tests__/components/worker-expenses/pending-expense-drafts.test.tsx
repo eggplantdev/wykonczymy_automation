@@ -27,6 +27,9 @@ vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
   findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+vi.mock('@/lib/media/ingest-files', () => ({
+  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
+}))
 
 const draft: ExpenseDraftRowT = {
   id: 7,
@@ -109,7 +112,9 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
 
     expect(await screen.findByRole('button', { name: 'Zapisz' })).toBeDisabled()
-    expect(toastMessage).toHaveBeenCalledWith(expect.stringContaining('zdjęć'), 'warning')
+    expect(
+      screen.getByText('Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.'),
+    ).toBeInTheDocument()
     expect(readExpenseDraftAction).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Odrzuć' }))
@@ -118,6 +123,29 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
     )
 
     expect(rejectExpenseDraftAction).toHaveBeenCalledWith(draft.id, undefined)
+  })
+
+  it('w odczytanym zgłoszeniu blokuje przyjęcie paragonu bez zdjęcia, a zdjęcie dodane ręcznie je zdejmuje', async () => {
+    const user = userEvent.setup()
+    render(
+      <PendingExpenseDrafts drafts={[{ ...draft, aiRead: read }]} referenceData={referenceData} />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
+
+    expect(
+      await screen.findByText(
+        'Nie udało się pobrać zdjęcia paragonu — dodaj je w polu „FV”, żeby go przyjąć.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Przyjmij' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Odrzuć' })).toBeEnabled()
+
+    const fvInput = document.querySelector<HTMLInputElement>('input[type="file"]')!
+    await user.upload(fvInput, new File(['jpg'], 'paragon.jpg', { type: 'image/jpeg' }))
+
+    expect(await screen.findByRole('button', { name: 'Przyjmij' })).toBeEnabled()
+    expect(screen.queryByText(/Nie udało się pobrać zdjęcia paragonu/)).toBeNull()
   })
 })
 

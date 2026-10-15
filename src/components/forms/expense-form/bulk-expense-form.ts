@@ -43,6 +43,8 @@ export type ReceiptGroupingT = {
   onSplit: (id: string) => void
   // Set when each paragon is booked or refused on its own.
   onDecide?: (ids: string[], decision: 'accept' | 'reject') => void
+  // A booking files the pages as its invoices; a refusal names them by id and needs none.
+  isAcceptBlocked?: (id: string) => boolean
   // The paragon's place in the worker's photos, so the rows keep the worker's order.
   readRowOf: (id: string) => number | undefined
   statusOf: (id: string) => DecisionStatusT

@@ -47,7 +47,8 @@ export const documentNumberOf = (doc: ExpenseDocT) =>
   normalizeDocumentNumber(doc.documentNumber) ??
   normalizeDocumentNumber(firstNoteLine(doc.invoiceNote))
 
-function dayOf(doc: ExpenseDocT): DayT | null {
+/** The printed date — the column, else the date in „Opis" on a row booked before it existed. */
+export function dayOf(doc: ExpenseDocT): DayT | null {
   if (doc.documentDate && ISO_DATE.test(doc.documentDate)) return doc.documentDate
   const printed = doc.description?.match(PRINTED_DATE)
   return printed ? `${printed[3]}-${printed[2]}-${printed[1]}` : null

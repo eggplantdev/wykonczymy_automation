@@ -7,10 +7,11 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
 import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
+import { ExpenseDraftDuplicateHints } from '@/components/worker-expenses/expense-draft-duplicate-hints'
 import {
-  ExpenseDraftDuplicateHints,
+  ExpenseDraftDuplicateStatus,
   type DuplicateHintsStateT,
-} from '@/components/worker-expenses/expense-draft-duplicate-hints'
+} from '@/components/worker-expenses/expense-draft-duplicate-status'
 import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import {
@@ -106,7 +107,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     } catch {
       // Still opened: the dialog is the only place a zgłoszenie is rejected.
       hasPages = false
-      toastMessage('Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić', 'warning')
     } finally {
       setLoadingId(undefined)
     }
@@ -229,12 +229,29 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
                   ? handleReject(accepting.draft.id, duplicateOf)
                   : setRejecting(accepting.draft)
               }
-              renderAboveLineItems={({ lineItemIds, markDuplicate, itemIdOfReadRow }) => (
+              aboveLineItems={
+                <>
+                  {/* Stays up, unlike a toast: it is why „Zapisz" is greyed out. A read zgłoszenie
+                  says it on each paragon instead, where a file added by hand lifts it. */}
+                  {!accepting.hasPages && accepting.prefill.aiReadRows.length === 0 && (
+                    <p className="text-destructive text-sm">
+                      Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.
+                    </p>
+                  )}
+                  <ExpenseDraftDuplicateStatus state={accepting.duplicates} />
+                </>
+              }
+              wrapLineItem={({ itemId, markDuplicate, paragonOfReadRow, renderRow }) => (
+                // Mounted before the check lands too, so its landing does not remount every row.
                 <ExpenseDraftDuplicateHints
-                  state={accepting.duplicates}
-                  lineItemIds={lineItemIds}
-                  itemIdOfReadRow={itemIdOfReadRow}
+                  paragons={
+                    accepting.duplicates.status === 'ready' ? accepting.duplicates.paragons : []
+                  }
+                  draftId={accepting.draft.id}
+                  itemId={itemId}
+                  paragonOfReadRow={paragonOfReadRow}
                   onMarkDuplicate={markDuplicate}
+                  renderRow={renderRow}
                 />
               )}
               secondaryAction={

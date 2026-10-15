@@ -41,7 +41,7 @@ type FinderStateT =
 const IDLE: FinderStateT = { status: 'idle' }
 const DOCUMENT_FORMS = ['dokument', 'dokumenty', 'dokumentów'] as const
 
-const columns = getExpenseDuplicateColumns<DuplicateMatchT>({ showParagon: false, linkMatch: true })
+const columns = getExpenseDuplicateColumns<DuplicateMatchT>({ linkMatch: true })
 
 const toRows = (group: DuplicateGroupT<CandidateT>): DuplicateMatchT[] =>
   group.members.map((member) => ({ ...member, reasons: group.reasons }))

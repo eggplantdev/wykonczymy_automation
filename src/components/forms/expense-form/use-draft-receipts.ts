@@ -132,9 +132,7 @@ export function useDraftReceipts({
   }
 
   function itemIdOfReadRow(readRow: number): string | undefined {
-    return [...receipts].find(
-      ([id, parts]) => pendingIds.has(id) && parts.some((part) => part.readRow === readRow),
-    )?.[0]
+    return [...receipts].find(([, parts]) => parts.some((part) => part.readRow === readRow))?.[0]
   }
 
   const progress = paragonProgress(receipts, [...rowIds], decisions)

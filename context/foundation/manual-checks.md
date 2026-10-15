@@ -6114,3 +6114,22 @@ Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marsz
       pozycję” są jak dotąd.
 - [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
       nadal jest i otwiera okno zapisu do katalogu.
+
+## 2026-10-15 — expense-draft-duplicates-per-row — duplikaty przy własnym paragonie + paragon bez zdjęcia
+
+- [ ] Zgłoszenie pracownika z kilkoma odczytanymi paragonami, z których dwa mają możliwe duplikaty →
+      „Zweryfikuj”: „Możliwe duplikaty” stoją w ramce nad polami **własnego** paragonu, nie zbiorczo
+      nad listą; „Akcje” są pierwszą kolumną tabeli, widoczne bez przewijania.
+- [ ] Scal dwa paragony z duplikatami w jedną pozycję: w ramce każdy ma swój nagłówek
+      „Paragon: opis · kwota”; „Rozdziel” wraca do ramek przy osobnych pozycjach.
+- [ ] Zgłoszenie, w którym dwa paragony pasują do siebie nawzajem: duplikat podpisany
+      „Pozycja N tego zgłoszenia”; po „Odrzuć” tamtej pozycji podpowiedź znika, po „Przyjmij” zostaje.
+- [ ] „OK, to nie duplikat” chowa tylko kliknięty wiersz; „Duplikat” odrzuca paragon jako duplikat.
+- [ ] Odczytane zgłoszenie, którego zdjęć nie udało się pobrać: przy każdym paragonie komunikat
+      „Nie udało się pobrać zdjęcia paragonu — dodaj je w polu „FV”…”, „Przyjmij” i „Przyjmij
+      zaznaczone” wyłączone, „Odrzuć” działa; dodanie pliku w „FV” zdejmuje komunikat i odblokowuje
+      „Przyjmij” tego paragonu.
+- [ ] Nieodczytane zgłoszenie bez pobranych zdjęć: nad pozycjami stały komunikat „Nie udało się
+      pobrać zdjęć — zgłoszenie można tylko odrzucić.”, „Zapisz” wyłączone.
+- [ ] „Szukaj duplikatów” na liście transakcji: tabela działa jak dotąd (kolumny w nowej kolejności,
+      linki do dokumentów, podgląd zdjęcia).

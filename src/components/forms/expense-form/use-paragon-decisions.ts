@@ -34,6 +34,7 @@ type OptionsT = {
   lineItems: BulkLineItemT[]
   replaceRows: (removeIds: string[], add: [id: string, files: File[]][]) => void
   isBusy: boolean
+  isAcceptBlocked: (id: string) => boolean
   getFiles: () => Map<string, File[]>
   ask: (copy: SubmitConfirmCopyT) => Promise<boolean>
   submit: ReturnType<typeof useFormSubmit>['submit']
@@ -54,6 +55,7 @@ export function useParagonDecisions({
   lineItems,
   replaceRows,
   isBusy,
+  isAcceptBlocked,
   getFiles,
   ask,
   submit,
@@ -226,6 +228,7 @@ export function useParagonDecisions({
   const receiptGrouping = draftReceipts.grouping && {
     ...draftReceipts.grouping,
     ...(isParagonMode && {
+      isAcceptBlocked,
       onDecide: (ids: string[], decision: 'accept' | 'reject') =>
         decision === 'accept' ? bookRows(ids) : rejectRows(ids),
       // A photo refused without a read has no row the restore can name.

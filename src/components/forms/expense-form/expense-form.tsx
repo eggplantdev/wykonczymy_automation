@@ -77,6 +77,8 @@ import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 // Numeric conversion happens in the server action.
 type FormValuesT = BulkExpenseFormValuesT
 
+export type ParagonRowT = { itemId: string; position: number; status: DecisionStatusT }
+
 export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
@@ -104,11 +106,13 @@ type TransferFormPropsT = {
   onDecided?: () => void
   // `duplicateOf` when the last row went as a duplicate — it takes the whole zgłoszenie with it.
   onRemoveLastItem?: (duplicateOf?: DuplicateOfT) => void
-  // Reads the live rows, so a hint follows the row it is about as rows are removed.
-  renderAboveLineItems?: (api: {
-    lineItemIds: string[]
+  aboveLineItems?: React.ReactNode
+  // Wraps each row, so a hint stays on the row it is about as rows merge, split or go.
+  wrapLineItem?: (api: {
+    itemId: string
     markDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
-    itemIdOfReadRow: (readRow: number) => string | undefined
+    paragonOfReadRow: (readRow: number) => ParagonRowT | undefined
+    renderRow: (hint: React.ReactNode) => React.ReactNode
   }) => React.ReactNode
 }
 
@@ -124,7 +128,8 @@ export function ExpenseForm({
   isSaveBlocked = false,
   secondaryAction,
   onRemoveLastItem,
-  renderAboveLineItems,
+  aboveLineItems,
+  wrapLineItem,
   onDecided,
 }: TransferFormPropsT) {
   // With an AI read, each paragon is booked or refused by its own button; without one, the
@@ -337,7 +342,9 @@ export function ExpenseForm({
     form,
     lineItems,
     replaceRows,
-    isBusy: isGenerating || isIngesting || isPrefillReading || isSaveBlocked,
+    isBusy: isGenerating || isIngesting || isPrefillReading,
+    // A file added by hand stands in for the page that failed to download.
+    isAcceptBlocked: (id) => isSaveBlocked && !getRowFiles(id)?.length,
     getFiles,
     ask,
     submit,
@@ -366,6 +373,17 @@ export function ExpenseForm({
     }
     handleRemoveLineItem(itemId, index, (i) => form.removeFieldValue('lineItems', i))
     setDuplicateOfByItemId((prev) => new Map(prev).set(itemId, duplicateOf))
+  }
+
+  function paragonOfReadRow(
+    readRow: number,
+    positionOf: (itemId: string) => number | undefined,
+  ): ParagonRowT | undefined {
+    const itemId = draftReceipts.itemIdOfReadRow(readRow)
+    if (itemId === undefined) return undefined
+    const position = positionOf(itemId)
+    if (position === undefined) return undefined
+    return { itemId, position, status: receiptGrouping?.statusOf(itemId) ?? 'pending' }
   }
 
   // Blanked, never reset — see clear-fields-for-type. Top-level fields ONLY: the rows, their queued
@@ -476,13 +494,7 @@ export function ExpenseForm({
             <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
           )}
 
-          {renderAboveLineItems?.({
-            lineItemIds: lineItems
-              .map((item) => item.id)
-              .filter((id) => draftReceipts.pendingIds.has(id)),
-            markDuplicate,
-            itemIdOfReadRow: draftReceipts.itemIdOfReadRow,
-          })}
+          {aboveLineItems}
 
           {!isDepositType(currentType) && (
             <LineItemsField
@@ -503,6 +515,16 @@ export function ExpenseForm({
               failedIds={failedIds}
               receiptGrouping={receiptGrouping}
               hiddenStatuses={isParagonMode ? hiddenStatuses : undefined}
+              wrapRow={
+                wrapLineItem &&
+                ((itemId, renderRow, positionOf) =>
+                  wrapLineItem({
+                    itemId,
+                    markDuplicate,
+                    paragonOfReadRow: (readRow) => paragonOfReadRow(readRow, positionOf),
+                    renderRow,
+                  }))
+              }
               generationProgress={generationProgress}
               transferType={currentType}
               referenceData={referenceData}

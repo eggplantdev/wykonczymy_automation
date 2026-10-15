@@ -98,6 +98,13 @@ type LineItemsFieldPropsT = {
   generationProgress?: { done: number; total: number } | null
   receiptGrouping?: ReceiptGroupingT
   hiddenStatuses?: ReadonlySet<DecisionStatusT>
+  // Encloses the whole row, collapsed or not; `hint` lands under its title, above its fields.
+  wrapRow?: (
+    itemId: string,
+    renderRow: (hint: React.ReactNode) => React.ReactNode,
+    // The number another row is titled with, so a hint can point at it.
+    positionOf: (itemId: string) => number | undefined,
+  ) => React.ReactNode
 }
 
 const rowTitle = (item: BulkLineItemT) =>
@@ -193,6 +200,7 @@ export function LineItemsField({
   generationProgress,
   receiptGrouping,
   hiddenStatuses,
+  wrapRow,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
@@ -283,14 +291,15 @@ export function LineItemsField({
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: LineItemsArrayFieldT) => {
         // Numbered before filtering, so a paragon keeps its number whatever is hidden around it.
-        const entries = orderedEntries(
+        const numbered = orderedEntries(
           lineItemsField.state.value,
           receiptGrouping?.onDecide && receiptGrouping.readRowOf,
+        ).map((entry, position) => ({ ...entry, position }))
+        const positionOf = (itemId: string) =>
+          numbered.find((entry) => entry.item.id === itemId)?.position
+        const entries = numbered.filter(
+          (entry) => !hiddenStatuses?.has(receiptGrouping?.statusOf(entry.item.id) ?? 'pending'),
         )
-          .map((entry, position) => ({ ...entry, position }))
-          .filter(
-            (entry) => !hiddenStatuses?.has(receiptGrouping?.statusOf(entry.item.id) ?? 'pending'),
-          )
 
         const selectCheckbox = (id: string, position: number, className?: string) =>
           receiptGrouping?.selectableIds.has(id) && (
@@ -303,8 +312,9 @@ export function LineItemsField({
             />
           )
 
-        const renderFields = (item: BulkLineItemT, index: number) => (
+        const renderFields = (item: BulkLineItemT, index: number, hint: React.ReactNode) => (
           <div className="min-w-0 flex-1 space-y-2">
+            {hint}
             {/* Top-aligned, not bottom: every field here carries a label, so their inputs
         line up on their own — and a validation error growing under one field can no
         longer drag its neighbours (and the delete button) down a line. The label-less
@@ -404,13 +414,20 @@ export function LineItemsField({
                   fieldClassName="min-w-0 flex-1"
                 />
               ))}
-              <LineItemInvoiceField
-                id={item.id}
-                files={getRowFiles(item.id)}
-                fieldClassName="min-w-0 flex-1"
-                onFileChange={onFileChange}
-                onRemoveFile={onRemoveFile}
-              />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <LineItemInvoiceField
+                  id={item.id}
+                  files={getRowFiles(item.id)}
+                  onFileChange={onFileChange}
+                  onRemoveFile={onRemoveFile}
+                />
+                {receiptGrouping?.statusOf(item.id) === 'pending' &&
+                  receiptGrouping.isAcceptBlocked?.(item.id) && (
+                    <Description tone="error" size="xs">
+                      Nie udało się pobrać zdjęcia paragonu — dodaj je w polu „FV”, żeby go przyjąć.
+                    </Description>
+                  )}
+              </div>
               {/* A re-read would put one paragon's values over the whole merged row. */}
               {receiptGrouping?.mergedIds.has(item.id) ? (
                 <Button
@@ -476,7 +493,7 @@ export function LineItemsField({
               <Button
                 type="button"
                 size="sm"
-                disabled={receiptGrouping.disabled}
+                disabled={receiptGrouping.disabled || receiptGrouping.isAcceptBlocked?.(itemId)}
                 onClick={() => receiptGrouping.onDecide?.([itemId], 'accept')}
               >
                 Przyjmij
@@ -504,45 +521,47 @@ export function LineItemsField({
                 const { position } = entry
                 const status = receiptGrouping?.statusOf(entry.item.id) ?? 'pending'
                 const undo = status === 'rejected' && receiptGrouping?.undoFor?.(entry.item.id)
+                const renderRow = (hint: React.ReactNode) =>
+                  isDecideMode ? (
+                    // Remounts on a decision, so the row folds as it is decided.
+                    <CollapsibleLineItem
+                      key={status}
+                      title={`${position + 1}. ${rowTitle(entry.item)}`}
+                      status={status}
+                      defaultOpen={status === 'pending'}
+                      leading={status === 'pending' && selectCheckbox(entry.item.id, position)}
+                      action={
+                        undo ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={receiptGrouping?.disabled}
+                            onClick={undo}
+                          >
+                            Cofnij
+                          </Button>
+                        ) : (
+                          status === 'pending' && decideActions(entry.item.id)
+                        )
+                      }
+                    >
+                      {renderFields(entry.item, entry.index, hint)}
+                    </CollapsibleLineItem>
+                  ) : (
+                    <div className="flex gap-2">
+                      {selectCheckbox(entry.item.id, position, 'mt-8.5')}
+                      {lineItemsField.state.value.length > 1 && (
+                        <span className="text-muted-foreground mt-6 flex h-9 shrink-0 items-center text-xs tabular-nums">
+                          {position + 1}.
+                        </span>
+                      )}
+                      {renderFields(entry.item, entry.index, hint)}
+                    </div>
+                  )
                 return (
                   <Fragment key={entry.item.id}>
-                    {isDecideMode ? (
-                      // Remounts on a decision, so the row folds as it is decided.
-                      <CollapsibleLineItem
-                        key={status}
-                        title={`${position + 1}. ${rowTitle(entry.item)}`}
-                        status={status}
-                        defaultOpen={status === 'pending'}
-                        leading={status === 'pending' && selectCheckbox(entry.item.id, position)}
-                        action={
-                          undo ? (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={receiptGrouping?.disabled}
-                              onClick={undo}
-                            >
-                              Cofnij
-                            </Button>
-                          ) : (
-                            status === 'pending' && decideActions(entry.item.id)
-                          )
-                        }
-                      >
-                        {renderFields(entry.item, entry.index)}
-                      </CollapsibleLineItem>
-                    ) : (
-                      <div className="flex gap-2">
-                        {selectCheckbox(entry.item.id, position, 'mt-8.5')}
-                        {lineItemsField.state.value.length > 1 && (
-                          <span className="text-muted-foreground mt-6 flex h-9 shrink-0 items-center text-xs tabular-nums">
-                            {position + 1}.
-                          </span>
-                        )}
-                        {renderFields(entry.item, entry.index)}
-                      </div>
-                    )}
+                    {wrapRow ? wrapRow(entry.item.id, renderRow, positionOf) : renderRow(null)}
                     {visibleIndex < entries.length - 1 && (
                       <Separator orientation="horizontal" className="bg-foreground" />
                     )}

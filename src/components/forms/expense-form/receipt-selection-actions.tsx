@@ -10,7 +10,7 @@ export function ReceiptSelectionActions({
   grouping: ReceiptGroupingT
   className?: string
 }) {
-  const { selectedIds, disabled, onDecide } = grouping
+  const { selectedIds, disabled, isAcceptBlocked, onDecide } = grouping
   const ids = [...selectedIds]
 
   return (
@@ -21,7 +21,7 @@ export function ReceiptSelectionActions({
           <Button
             type="button"
             size="sm"
-            disabled={ids.length === 0 || disabled}
+            disabled={ids.length === 0 || disabled || ids.some((id) => isAcceptBlocked?.(id))}
             onClick={() => onDecide(ids, 'accept')}
           >
             Przyjmij zaznaczone
