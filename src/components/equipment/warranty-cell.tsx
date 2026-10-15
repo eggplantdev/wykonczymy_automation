@@ -34,7 +34,6 @@ export function WarrantyCell({ warrantyUntil, daysLeft, bucket, muted }: Warrant
     <div className="flex flex-col leading-tight">
       <span
         className={cn(
-          'text-sm',
           urgent && 'text-chart-orange font-medium',
           (muted || expired) && 'text-muted-foreground',
         )}
