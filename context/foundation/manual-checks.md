@@ -5667,6 +5667,13 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [x] iPhone (Safari), raport pracownika (`/z/…`): przewijaj w górę i w dół, także szybkim
       „rzutem” — nagłówek tabeli trzyma się górnej krawędzi bez drgania i nie odjeżdża od wierszy.
 
+## EX-1021 — media-file-headers — pliki spoza dozwolonych typów pobierają się zamiast otwierać
+
+- [ ] Transakcja z fakturą PDF → kliknij fakturę: PDF otwiera się w przeglądarce jak dotąd.
+- [ ] Transakcja ze zdjęciem (JPEG/PNG) → kliknij zdjęcie: wyświetla się w przeglądarce jak dotąd.
+- [ ] Plik SVG wgrany w pliki z ominięciem formularza (`/api/media/file/<nazwa>.svg`) → otwarcie
+      linku pobiera plik zamiast wyświetlać obraz lub stronę.
+
 ## EX-1004 — przełącznik „Zgłoszone wydatki” w transakcjach
 
 - [x] Pulpit (`/`) → włącz „Zgłoszone wydatki”: zostają tylko transakcje z plakietką „od pracownika”;
