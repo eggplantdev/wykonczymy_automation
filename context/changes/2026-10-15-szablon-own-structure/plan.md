@@ -617,13 +617,13 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 5.1 `template-snapshots.test.ts` passes
+- [x] 5.1 `template-snapshots.test.ts` passes — b68eb31bb
 
 ### Phase 6: Kosz szablonu
 
 #### Automated
 
-- [ ] 6.1 `template-trash.test.ts` passes
+- [x] 6.1 `template-trash.test.ts` passes
 
 ### Phase 7: Szablon leaves the investment code
 

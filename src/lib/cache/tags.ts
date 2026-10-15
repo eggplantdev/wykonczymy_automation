@@ -61,14 +61,15 @@ export const KOSZTORYS_TREE_TAGS = [
   'investments',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
-// Moving an investment or a szablon in or out of the trash changes only which rows the investment
-// readers and the szablon library return — the leads list already keys on `investments` too. Both
-// kinds ride one set because the /kosz buttons serve both and the tags are fixed before the handler
-// learns which kind it holds.
+// Moving an investment in or out of the trash changes only which rows the investment readers return
+// — the leads list already keys on `investments` too.
 export const INVESTMENT_TRASH_TAGS = [
   'investments',
-  'presets',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// A szablon's trash, restore and delete all move only the szablon library and its pickers: the
+// cascade stays inside the template tables, and a kosztorys seeded from it keeps its own copy.
+export const TEMPLATE_TRASH_TAGS = ['presets'] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
 // A hard delete adds the rows the DB cascade removes or unlinks without firing a Payload hook — the
 // linked sheets, the kosztorys tree, cancelled transactions and equipment events — so nobody else

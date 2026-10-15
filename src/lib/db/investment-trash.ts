@@ -1,6 +1,5 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { isUndeletableStatus, UNDELETABLE_INVESTMENT_STATUS } from '@/lib/constants/trash'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
@@ -27,7 +26,6 @@ export type TrashedInvestmentRowT = {
   name: string
   trashedAt: Date
   isKosztorysUsed: boolean
-  isTemplate: boolean
   isUndeletable: boolean
   hasSheet: boolean
 }
@@ -47,7 +45,6 @@ export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedI
     name: String(row.name),
     trashedAt: new Date(row.trashed_at as string),
     isKosztorysUsed: row.used === true,
-    isTemplate: row.status === TEMPLATE_INVESTMENT_STATUS,
     isUndeletable: isUndeletableStatus(row.status as string),
     hasSheet: row.has_sheet === true,
   }))

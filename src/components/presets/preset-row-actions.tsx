@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
-import { trashInvestmentAction } from '@/lib/actions/investment-trash'
+import { trashTemplateAction } from '@/lib/actions/template-trash'
 import { renamePresetAction } from '@/lib/actions/kosztorys-presets'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -39,7 +39,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
         label="Przenieś szablon do kosza"
         title="Przenieść szablon do kosza?"
         description={`„${preset.name}" zniknie z listy szablonów i z wyboru szablonu. Możesz go przywrócić z Kosza. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
-        trash={() => trashInvestmentAction(preset.id)}
+        trash={() => trashTemplateAction(preset.id)}
         trashed="Szablon przeniesiony do kosza."
       />
 

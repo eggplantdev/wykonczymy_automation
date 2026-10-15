@@ -10,6 +10,7 @@ import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/wo
 import { deleteVehicleForeverAction, restoreVehicleAction } from '@/lib/actions/vehicle-trash'
 import { deleteEquipmentForeverAction, restoreEquipmentAction } from '@/lib/actions/equipment-trash'
 import { deleteLeadForeverAction, restoreLeadAction } from '@/lib/actions/lead-trash'
+import { deleteTemplateForeverAction, restoreTemplateAction } from '@/lib/actions/template-trash'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT, TrashRowT } from '@/types/trash'
@@ -40,9 +41,9 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
   },
   template: {
     sectionTitle: 'Szablony',
-    restore: restoreInvestmentAction,
+    restore: restoreTemplateAction,
     restored: 'Szablon przywrócony.',
-    deleteForever: deleteInvestmentForeverAction,
+    deleteForever: deleteTemplateForeverAction,
     lost: 'sekcje, pozycje i wersje szablonu',
     note: () => 'Kosztorysy założone z tego szablonu zostają bez zmian.',
     nameLabel: 'Nazwa szablonu',

@@ -20,7 +20,6 @@ const investment = (id: number, flags: Partial<TrashedInvestmentRowT>): TrashedI
   name: `Inwestycja ${id}`,
   trashedAt: TRASHED_AT,
   isKosztorysUsed: false,
-  isTemplate: false,
   isUndeletable: false,
   hasSheet: false,
   ...flags,
@@ -43,6 +42,7 @@ const worker = (id: number, role: RoleT, registerNames: string[] = []): TrashedW
 
 const NO_ROWS = {
   investments: [],
+  templates: [],
   cashRegisters: [],
   workers: [],
   vehicles: [],
@@ -81,15 +81,12 @@ const lead = (id: number, flags: Partial<TrashedLeadRowT> = {}): TrashedLeadRowT
 })
 
 describe('shapeTrashRows', () => {
-  it('keeps the investment semantics: a used kosztorys never auto-purges', () => {
+  it('keeps the investment semantics: a used kosztorys never auto-purges, a szablon always does', () => {
     const rows = shapeTrashRows(
       {
         ...NO_ROWS,
-        investments: [
-          investment(1, {}),
-          investment(2, { isKosztorysUsed: true }),
-          investment(3, { isTemplate: true }),
-        ],
+        investments: [investment(1, {}), investment(2, { isKosztorysUsed: true })],
+        templates: [{ id: 3, name: 'Szablon 3', trashedAt: TRASHED_AT }],
       },
       { viewerRole: 'OWNER', now: NOW },
     )

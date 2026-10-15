@@ -12,6 +12,7 @@ import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
 import { purgeVehicleTrash } from '@/lib/fleet/purge-trash'
 import { purgeTrash } from '@/lib/investments/purge-trash'
 import { purgeLeadTrash } from '@/lib/leads/purge-trash'
+import { purgeTemplateTrash } from '@/lib/kosztorys/templates/purge-trash'
 import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 
 export const maxDuration = 300
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
   const vehicleTrash = await runStep('vehicleTrash', () => purgeVehicleTrash(payload, db))
   const equipmentTrash = await runStep('equipmentTrash', () => purgeEquipmentTrash(payload, db))
   const leadTrash = await runStep('leadTrash', () => purgeLeadTrash(payload, db))
+  const templateTrash = await runStep('templateTrash', () => purgeTemplateTrash(db))
   const results = {
     snapshots,
     templateSnapshots,
@@ -47,6 +49,7 @@ export async function GET(request: NextRequest) {
     vehicleTrash,
     equipmentTrash,
     leadTrash,
+    templateTrash,
   }
   const steps = Object.values(results)
   const threw = steps.filter((step) => step === null).length
