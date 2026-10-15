@@ -121,6 +121,25 @@ export const itemsOf = async (investmentId: number) =>
     )
   ).docs
 
+// A seeded pozycja takes its katalog entry's opis and j.m., not the szablon row's own (EX-1017), and the
+// two drift apart when a praca is renamed in the katalog. Read a szablon through this, or a draft
+// copied from it misses the seeded row and the loader adds a near-duplicate beside it.
+export async function itemsOfTemplate(presetId: number) {
+  const items = await itemsOf(presetId)
+  const ids = [
+    ...new Set(items.flatMap((item) => (item.catalogueItemId ? [item.catalogueItemId] : []))),
+  ]
+  if (!ids.length) return items
+  const { docs } = await api<{ docs: { id: number; description: string; unit: string | null }[] }>(
+    `/work-catalogue-items?where[id][in]=${ids.join(',')}&depth=0&limit=0&pagination=false`,
+  )
+  const entries = new Map(docs.map((entry) => [entry.id, entry]))
+  return items.map((item) => {
+    const entry = item.catalogueItemId ? entries.get(item.catalogueItemId) : undefined
+    return entry ? { ...item, description: entry.description, unit: entry.unit } : item
+  })
+}
+
 export function keyed(items: ItemT[]) {
   const byKey = new Map<string, ItemT[]>()
   for (const item of items) {

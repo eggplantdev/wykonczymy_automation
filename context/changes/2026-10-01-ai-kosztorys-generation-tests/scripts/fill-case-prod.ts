@@ -13,7 +13,16 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { sectionItemKey } from '@/lib/kosztorys/sheet-import/item-key'
-import { api, BASE, callAction, itemsOf, norm, resolveActions, type ItemT } from './prod-client'
+import {
+  api,
+  BASE,
+  callAction,
+  itemsOf,
+  itemsOfTemplate,
+  norm,
+  resolveActions,
+  type ItemT,
+} from './prod-client'
 
 type CaseT = {
   investmentId: number
@@ -82,7 +91,7 @@ async function run() {
   let items = await itemsOf(kase.investmentId)
   if (!items.length) {
     console.log(`kosztorys empty → seed from szablon #${kase.presetId}`)
-    if (DRY) items = await itemsOf(kase.presetId)
+    if (DRY) items = await itemsOfTemplate(kase.presetId)
     else {
       await resolveActions(page, ['reloadFromPresetAction'])
       await callAction('reloadFromPresetAction', page, [kase.investmentId, kase.presetId])

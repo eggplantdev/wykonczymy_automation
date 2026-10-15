@@ -6,7 +6,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
-import { api, BASE, forAiAnalysis, itemsOf, type AssetT } from './prod-client'
+import { api, BASE, forAiAnalysis, itemsOf, itemsOfTemplate, type AssetT } from './prod-client'
 
 type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
 
@@ -29,7 +29,7 @@ async function run() {
   const skipped = allAssets.length - assets.length
   if (skipped) console.log(`${skipped} files not marked „Do analizy AI” → skipped`)
   const items = await itemsOf(INVESTMENT)
-  const template = await itemsOf(PRESET_ID)
+  const template = await itemsOfTemplate(PRESET_ID)
   if (!template.length) throw new Error(`szablon #${PRESET_ID} has no items`)
   const page = `/inwestycje/${INVESTMENT}/kosztorys_v2`
   // A kosztorys the owner already filled is an answer key: the draft goes in beside it as AI
