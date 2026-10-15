@@ -1,0 +1,57 @@
+## Wycena AI — runda 2 (2026-10-15)
+**AI przedmiar: 170 344,82 zł netto** — ceny j.m. z kosztorysu. Dom dwupoziomowy: parter + piętro.
+Runda 1 (12.10) przy dzisiejszych cenach: 166 275,72 zł. Runda 2: +4 069 zł — sam podział jest bez zmiany kwoty; dopłata to prace w łazienkach, których runda 1 nie liczyła (niżej).
+Źródło rundy 2: Notatki — „przeliczy same łazienki jeszcze raz i podzieli. W domu mamy na parterze wc oraz na górze dwie łazienki” — oraz Powód zmiany przy „Montaż geberitu”. Nowych plików nie było; łazienki przeliczone z tych samych rysunków (piętro, arkusz 05 hydraulika: co stoi w której łazience; parter, arkusz 05: WC) i wg reguł Manuala dopisanych po rundzie 1.
+
+## Co się zmieniło (runda 2)
+- **Łazienki rozdzielone na 3 sekcje.** Runda 1 liczyła wszystkie trzy razem w „Łazienka”.
+  - **Łazienka piętro z prysznicem** (dawna „Łazienka”, 6,35 m²): WC, bidet, umywalka nablatowa, prysznic z odpływem liniowym i deszczownicą, pralka we wnęce przy gebericie — 24 483 zł.
+  - **Łazienka piętro z wanną** (9,14 m²): wanna wolnostojąca, 2 umywalki nablatowe, bez WC — 13 367 zł.
+  - **WC parter** (2,11 m²): WC podwieszany, umywalka wisząca z baterią podtynkową, płytka 120 × 120 do sufitu, sufit podwieszany z LED — 12 509 zł.
+- **Wyszło z łazienek, bo nie należy do żadnej:**
+  - spiek Laminam 8,75 m² i jego fugowanie → sekcja Kuchnia (5 075 zł, cena j.m. z pozycji łazienkowej);
+  - 6 z 7 luster klejonych (parter 3 moduły, sypialnia, ściana przy schodach) → „Ściany i sufity bez łazienek” (720 zł). W łazience z wanną zostaje lustro 1,27 m².
+- **Weszło do łazienek z innych sekcji** (Manual: „Jeżeli praca dotyczy pracy w łazience to dodajemy do sekcji łazienka”; bez zmiany kwoty poza gruntowaniem):
+  - sufit podwieszany GK 6,61 m² (4 oprawy) z „Ściany i sufity bez łazienek” → łazienka z prysznicem;
+  - tapeta „Enchanted River” 7,46 m² z „Ściany i sufity bez łazienek” → łazienka z wanną;
+  - gruntowanie podłóg łazienek (17,6 m²) wychodzi z „Gruntowanie podłóg” w Podłogach (102,91 → 85,31 m²) — Manual: „łazienki robimy osobno”. W każdej łazience „Dwukrotne gruntowanie ścian, sufitów i podłóg” pod płytki: 31,73 / 23,14 / 18,14 m² (+554 zł).
+- **Dopisane, bo runda 1 ich nie liczyła** (+3 640 zł):
+  - wiercenie otworów w płytkach: 19 / 12 / 15 szt. (+2 760 zł) — z przykładowych ilości w Manualu; WC parter i łazienka z prysznicem mają płytki na wszystkich ścianach, więc minimum 15;
+  - zawory czerpalne pod umywalki z baterią stojącą i do pralki: 3 / 4 / 0 (+420 zł);
+  - biały montaż baterii podtynkowej bidetka (łazienka z prysznicem) i umywalki (WC parter): po 1 (+200 zł);
+  - podłączenie pralki: 1 (+100 zł) — rysunek piętra pokazuje pralkę we wnęce przy gebericie;
+  - szlif 45° krawędzi nad stelażem WC w płytkach: +2 mb (+160 zł) — nowa reguła Manuala.
+- Silikon w WC parter 20 mb zamiast 25 (−125 zł) — dolna granica Manuala, WC bez prysznica i wanny.
+- **Do zrobienia przez Ciebie w „Łazienka piętro z prysznicem”** — AI nie zmienia Przedmiaru, więc Twoje liczby z rundy 1 są tam nadal na cały dom:
+  - Montaż geberitu 2 i zabudowa stelaża 2 → tu 1, drugi w „WC parter”;
+  - Punkty wod-kan 4 (świadomie zaniżone) — były na cały dom; AI: 6 / 3 / 2;
+  - sufit podwieszany z LED 1, płytka 120 × 120 na podłodze 2,11 m² i na ścianach 16,03 m² — to WC na parterze: tu 0, w „WC parter” do zaakceptowania;
+  - folia 56 m², szlif 45° 40 mb, podłoga standard 15,49 m² — to obie łazienki piętra: tu 31,73 m² / 28 mb / 6,35 m², reszta w „Łazienka piętro z wanną”.
+- **I poza łazienkami:** sufit podwieszany 6,61 m² i tapetowanie 7,46 m² w „Ściany i sufity bez łazienek” oraz „Gruntowanie podłóg” 102,91 m² w Podłogach są zaakceptowane — AI przedmiar tam spada (0 / 0 / 85,31), Twój Przedmiar zostaje, dopóki go nie przeniesiesz.
+- Zmienione pozycje mają „Nowe informacje” (Runda 2 — AI przedmiar: X → Y, Powód) i są oznaczone „Do ponownego sprawdzenia”.
+- Malowanie w łazience z wanną: sufit i ściany bez płytek (poza tapetą i lustrem) siedzą nadal w „Malowanie sufitu w kolorze” / „Malowanie ścian w kolorze” w „Ściany i sufity bez łazienek” — rysunek sufitów nie wydziela tej łazienki z 28,17 m², więc AI ich nie przeniosło. Do rozdzielenia ręcznie albo na oględzinach.
+- Odrzucone wkucie podejść („dopiero po obejrzeniu”) zostaje odrzucone i nie jest proponowane w nowych sekcjach.
+
+## Do ustalenia z klientem
+- **Stan ścian i wylewek** (oględziny): stan deweloperski/surowy to pełna gładź na ok. 155 m² (≈ +11,6 tys. zł); równe wylewki — wylewka samopoziomująca wypada (−5 660 zł).
+- **Ściana do wyburzenia na piętrze**: materiał (żelbet przy bruzdach: ≈ +4 tys. zł).
+- **Deska Kahrs 10 mm**: klejona czy pływająca (cena j.m. parkietu 60083 może nie pasować).
+- **Montaż**: kto montuje karnisze i drzwi/przegrodę stalowo-szklaną.
+- **Zamieszkanie**: czy dom jest zamieszkany w trakcie prac (zabezpieczenie 45 zł/m²).
+- **Gruz**: rzeczywista ilość (kontener).
+
+## Najważniejsze założenia
+- **Ściany istniejące, gładkie** — tylko malowanie z poprawkami; stan deweloperski/surowy: pełna gładź na ok. 155 m² ≈ +11 600 zł.
+- **Bruzdy elektryczne 200 mb w materiale miękkim** (limit domu > 100 m²) — żelbet (45 zł/mb zamiast 25): ≈ +4 000 zł.
+- **Wylewka samopoziomująca na całym domu**, 102,9 m² = 5 660 zł — wypada, jeśli istniejące wylewki są równe.
+- **Listwy aluminiowe 57 mb** po 120 zł = 6 840 zł; długość szacowana (obwód minus zabudowy).
+- **Płytka na ścianach łazienki z wanną**: rysunki podają tylko podłogę, założone 14 m² (ok. 2 520 zł).
+- **Spiek w kuchni 8,75 m²** po 550 zł/m² = 4 813 zł — przy dużym formacie stawka może być wyższa. Od rundy 2 w sekcji Kuchnia.
+- **Podział między łazienki piętra** (runda 2): szlif 45° (40 mb) i drobne akcesoria (8 szt.) rozdzielone wg powierzchni płytek — rysunki nie przypisują ich do łazienki.
+
+## Przedmiar 0 świadomie
+- Stolarka meblowa i zabudowy, blaty ze spieku i wyspa.
+- Schody (stopnie, beton, impregnat, balustrada).
+- Przegroda stalowo-szklana z drzwiami podwójnymi.
+- Klimatyzacja (osobny projekt), zasłony, panel z roślinami.
+- Nisze kosmetyczne wkute w ścianę — brak pozycji w szablonie.

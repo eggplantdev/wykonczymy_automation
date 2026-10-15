@@ -1,0 +1,74 @@
+[
+  {
+    "investment": 190,
+    "item": 55555,
+    "reason": "lepiej dać kontener gdyż jest to równowartość 4 big bagów i wychodzi taniej niż 4 big bagi.",
+    "decision": "lifted",
+    "note": "Manual „Kontenery i big bagi” (#200–#205 batch)",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 55557,
+    "reason": "kontener w miejsce big bag.",
+    "decision": "lifted",
+    "note": "Manual „Kontenery i big bagi” (#200–#205 batch)",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 55567,
+    "reason": "5 mb trzeba liczyć zawsze jako minimum.",
+    "decision": "lifted",
+    "note": "katalog 109 Komentarz „Zawsze liczymy minimum 5 mb” — lifted 2026-10-12 (#188–#191 batch)",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 55569,
+    "reason": "robimy później remont całego mieszkania więc i tak będą ściany robienie w całości gładzią.",
+    "decision": "lifted",
+    "note": "katalog 112 Komentarz „Nie dodajemy, jeśli robimy gładź na całych ścianach” — lifted 2026-10-12 (#188–#191 batch)",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 55631,
+    "reason": "trzeba to dać do sekcji ściany a nie podłogi.",
+    "decision": "lifted",
+    "note": "katalog 384 Komentarz „Dodajemy w sekcji, w której są fugowane płytki” — lifted 2026-10-12 (#188–#191 batch)",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 56531,
+    "reason": "na projekcie było zaznaczone czerwoną linią gdzie idę listwy i to jest ok 20mb",
+    "decision": "skipped",
+    "note": "measured off this projekt’s red line; not a rule",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 55660,
+    "reason": "nie ma sensu powielać pozycji 108",
+    "decision": "lifted",
+    "note": "katalog 799 Komentarz „Nie dublujemy z naprawami ścian po kuciu i bruzdowaniu” — lifted 2026-10-12 (#188–#191 batch)",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 190,
+    "item": 55767,
+    "reason": "to ma być umywalka wykonana z glazury. koszt takiej około 3000 zł",
+    "decision": "skipped",
+    "note": "AI picked the right praca and the owner accepted it; the Powód only explains the price",
+    "date": "2026-10-15"
+  },
+  {
+    "investment": 204,
+    "item": 61965,
+    "reason": "na projekcie jest ścianka oddzialająca prysznic od umywalki. na 100% nie ma jej od dewelopera, więc trzeba ją dobudować.",
+    "decision": "lifted",
+    "note": "katalog 966 Komentarz „Jeśli mieszkanie jest w stanie deweloperskim, a ścianka jest na projekcie — liczymy zawsze, deweloper jej nie stawia.”",
+    "date": "2026-10-15"
+  }
+]

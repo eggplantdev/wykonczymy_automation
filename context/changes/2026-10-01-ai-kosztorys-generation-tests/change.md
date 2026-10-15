@@ -191,11 +191,15 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
    never reads a Powód zmiany, so a correction stays in that one kosztorys until it is lifted.
    - The owner marks a reviewed investment „Etap AI: Recenzja zakończona” on its page (EX-1046).
    - `scripts/collect-reasons-prod.ts` (`TOKEN_FILE=…`) lists the Powody zmiany of every investment
-     at „Recenzja zakończona”, read-only; `INVESTMENTS=188,189` overrides the list.
+     at „Recenzja zakończona”, read-only; `INVESTMENTS=188,189` overrides the list. It leaves out
+     every Powód already decided in `knowledge-ledger.json`.
    - Each is discussed with the user and lands in `knowledge-edits.json`. A rule about one praca goes
      to its Komentarz do pracy (`set` / `append`, by katalog id plus the opis start as a guard). Only
      a rule that names no single praca, or a praca outside the katalog, goes to the Manual (`set` /
      `create` / `delete`, by topic).
+   - Every discussed Powód, lifted or not, gets an entry in `knowledge-ledger.json` (pozycja id, the
+     exact Powód text, `lifted` / `skipped` with a note). An edited Powód no longer matches and is
+     listed again.
    - A Powód zmiany that only explains a deliberate understatement („zaniżamy, liczymy
      powykonawczo”) is not lifted: the AI quantity was right, and the owner wrote the reason so the
      lowered figure isn't read as an AI error (gładzie and akrylowanie on #203).
@@ -218,7 +222,7 @@ context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-
 | 5   | `cases/05-ursynow-61m2`                   | 61 m² flat, stan deweloperski; brief PDF with a rzut, scope list and visualisations, the working project still to come                                                                                                                                                                                                                                                                                     | **#190 production** (szablon #166)                    | AI przedmiar **90 130,36 zł**, 113 rows, 4 at 0 zł; the flat 86 740 + optional bedroom AC 3 390 (own sekcja)                                                                                                                                                                                                                                                                                           | No                                                                                                                           |
 | 6   | `cases/06-remont-45m2`                    | 45 m² flat, kapitalny remont, one-sentence mail; full vector technical project (A.04–A.10), height printed (2,65 m)                                                                                                                                                                                                                                                                                        | **#191 production** (szablon #166)                    | AI przedmiar **105 079,14 zł**, 103 rows, 2 at 0 zł; floors follow the floor plan, not the room schedule (all mikrocement ≈ +14,9 tys. zł)                                                                                                                                                                                                                                                             | No                                                                                                                           |
 | 7   | `cases/07-zakamarki-dwupoziomowe`         | Two-level flat with an antresola, rynek wtórny; architect's mail + 9 raster working drawings with **no room dimensions** (scale taken from the stairs), visualisations                                                                                                                                                                                                                                     | **Owner's #207 production** (szablon #166)            | AI przedmiar **117 186,83 zł**, 97 rows, 0 added; panels only on the antresola (whole piętro + bedrooms ≈ +6,1 tys. zł), no full gładź under the structural paint (+9,1 tys. zł)                                                                                                                                                                                                                       | No                                                                                                                           |
-| 8   | `cases/08-dom-parter-pietro`              | Two-level house (parter + piętro); interior designer's drawing sets with printed dimensions and areas, no mail                                                                                                                                                                                                                                                                                             | **Owner's #198 production** (szablon #166)            | AI przedmiar **166 628,82 zł**, 86 rows, 0 added; walls assumed smooth (full gładź ≈ +11,6 tys. zł), bruzdy el. 200 mb in soft material (żelbet ≈ +4 tys. zł)                                                                                                                                                                                                                                          | No                                                                                                                           |
+| 8   | `cases/08-dom-parter-pietro`              | Two-level house (parter + piętro); interior designer's drawing sets with printed dimensions and areas, no mail                                                                                                                                                                                                                                                                                             | **Owner's #198 production** (szablon #166)            | AI przedmiar **166 628,82 zł**, 86 rows, 0 added; round 2 (15.10, bathrooms split into 3 sekcje): **170 344,82 zł**; walls assumed smooth (full gładź ≈ +11,6 tys. zł), bruzdy el. 200 mb in soft material (żelbet ≈ +4 tys. zł)                                                                                                                                                                       | No                                                                                                                           |
 | 9   | `cases/09-piastow-48m2`                   | 48 m² flat, rynek wtórny, 1st floor without a lift, partial remodel; scope mail, a photo of the 2001 rzut with printed m² and handwritten inner dimensions, 5 photos                                                                                                                                                                                                                                       | **#199 production** (szablon #166)                    | AI przedmiar **38 500,59 zł**, 58 rows, 2 added (1 at 0 zł); no full gładź (+12,0 tys. zł), the demolished ścianka read as the 2,28 mb kitchen-zone partition in soft material                                                                                                                                                                                                                         | No                                                                                                                           |
 | 10  | `cases/10-projekt-3601`                   | ~59 m² flat, stan deweloperski; the design firm's kosztorys wykonawczy **with quantities** + full vector projekt A.00–A.09 with dimensions + 12 visualisations; mail: Murso panels → spiek kamienny                                                                                                                                                                                                        | **#201 production** (szablon #166)                    | AI przedmiar **90 961,72 zł**, 104 rows, 12 added (7 at katalog prices, 5 at 0 zł); spiek 10,35 m² at 550 zł ≈ 5,7 tys. zł, gładź Q3 (Q4 ≈ +2,9 tys. zł), LED as plain tape (podtynkowe profile ≈ +2,6 tys. zł)                                                                                                                                                                                        | No                                                                                                                           |
 | 11  | `cases/11-salon-fryzjerski`               | Hair salon (lokal usługowy) refresh; **no files** — only the scope the owner typed into Notatki (one door, two lump sums, no areas)                                                                                                                                                                                                                                                                        | **Owner's #200 production** (szablon #166)            | Selection only: 21 rows, 6 quantified, **15 selected at qty 0** („Praca wybrana, ilość nieznana”), 4 added (2 Notatki lump sums, gres na stopniach from the katalog, sprzątanie unpriced). AI przedmiar **3 080,00 zł** covers the quantified rows only; every 10 m² of floor ≈ +3,8 tys. zł                                                                                                           | No                                                                                                                           |
@@ -593,6 +597,31 @@ written down as they come up:
   two columns now share one renderer, so they look the same and can't drift apart. The „Do ponownego
   sprawdzenia” flag above Status was bare amber text, and is now a small badge in the app's `pending` tone.
 
+### 2026-10-15 — #198 round 2: split the bathrooms, no new files
+
+The trigger was the owner's Notatki („przeliczy same łazienki jeszcze raz i podzieli”) and a Powód
+zmiany on „Montaż geberitu” („połączone dwie łazienki”). Round 1 (12.10) predates the per-bathroom rule,
+so it counted all three rooms in one „Łazienka”. The round re-reads the same drawings. Findings:
+
+- **The split alone changes no money. The Manual is what does.** Since round 1 the Manual gained
+  „dodajemy do sekcji łazienka” and per-bathroom counts for wiercenie, zawory, biały montaż, szlif
+  over the stelaż, silikon and gruntowanie („łazienki robimy osobno”). The first draft only split the
+  rows and missed all of it. It took a review against the regenerated `manual-i-komentarze-do-prac.md`
+  to add +3 640 zł of work round 1 never counted. **A round re-reads the Manual, not just the new
+  inputs:** it can have changed under a round-1 draft.
+- **„Into the bathroom” moves rows out of other sekcje.** The GK ceiling, the wallpaper and bathroom
+  floor primer were booked in „Ściany i sufity bez łazienek” and „Podłogi”. The round zeroes them
+  there and adds them in the bathroom. The owner's accepted Przedmiar stays in the old sekcja, so
+  Uwagi AI lists it as „do przeniesienia”. Painting the untiled walls in the bathroom with the bath
+  stays where it was: the ceiling drawing does not separate that room from 28,17 m².
+- **The rename needed a guard.** From round 2 on, `fill-case-prod.ts` renames „Łazienka” only while it
+  is still the kosztorys's one bathroom sekcja, so it never overwrites a name the owner gave.
+  `isBathroomSection` has to run on names, not on `sectionKey`: the key folds „ł” away.
+- Loaded: 70 updated, 5 new, all 75 flagged. The read-back total is 170 344,82 zł (round 1 at today's
+  prices: 166 275,72), and it matches Uwagi AI per sekcja. The scripts' „expected” 51 556,20 zł is again
+  the draft rows only (see #190). `touch-kosztorys-prod.ts` takes `INVESTMENT` from the env, not
+  from argv.
+
 ### 2026-10-15 — #218 / #219: a separate reviewer after the drafter
 
 Each case got one drafting agent, then a fresh agent that only reviews. The reviewer checks every
@@ -785,7 +814,7 @@ several times. #190 is the first real one (stage „Nowe informacje”) and the 
    `measure/ai-draft-round-N.json`, plus the whole current „Uwagi AI” to
    `investment-notes-appendix-round-N.txt`.
 4. `ROUND=N DRY=1 … fill-case-prod.ts`, then without `DRY` — sekcje a round needs, Uwagi AI. From
-   round 2 it never renames „Łazienka”.
+   round 2 it renames „Łazienka” only while it is the kosztorys's one bathroom sekcja (below).
 5. `ROUND=N DRY=1 … load-draft-sql-prod.ts`, then without `DRY` on the user's go — AI przedmiar, the
    round block appended to Nowe informacje, the flag raised. It refuses a draft row without its
    „Runda N — ” block or a qty, a round already loaded, and a production that doesn't return Nowe
@@ -822,9 +851,10 @@ its new name, or the loader adds a duplicate.
   while a derived one (Przedmiar = AI przedmiar → Zaakceptowana) silently changes with it — without
   the flag, a round's change on a reviewed pozycja is invisible.
 - **Sekcje:** a round may add a bathroom or WC the new information reveals — `fill-case-prod.ts`
-  imports it from the szablon's „Łazienka” as in round 1, Przedmiar 0. Renaming the szablon
-  „Łazienka” is a first-round act only: from round 2 a section name may already be the owner's, so
-  the script skips the rename, and the AI proposes one in „Uwagi AI” for the owner to make.
+  imports it from the szablon's „Łazienka” as in round 1, Przedmiar 0. From round 2 the script
+  renames „Łazienka” only while it is still the kosztorys's one bathroom sekcja under the szablon's
+  name — a first round drafted before the per-bathroom rule (#198, 12.10). Once any other bathroom
+  sekcja exists, a name may be the owner's: no rename, and the AI proposes one in „Uwagi AI”.
 - **The first reading is frozen; every later round appends to „Nowe informacje”** (owner,
   2026-10-14: „chcę widzieć dokładnie, co było w pierwotnej wersji, a co się zmieniło”). „Czego nie
   było wiadomo” and „Co / ile założono” are round 1 and no later round writes them. AI przedmiar
@@ -883,8 +913,8 @@ its new name, or the loader adds a duplicate.
 - **Knowledge extraction stays manual and out of this flow** (owner, 2026-10-14): the owner starts it
   himself, picking investments by stage (step 9). One seam: a round sets Etap AI back to
   „Przeanalizowana”, so after the owner's next review the investment reaches „Recenzja zakończona”
-  again and `collect-reasons-prod.ts` lists every Powód zmiany on it, the lifted ones included.
-  Collect keeps no record: a Powód already in `context/ai-knowledge/` is skipped by hand.
+  again. The owner's Powody stay on their pozycje through the round, so `collect-reasons-prod.ts`
+  leaves out the ones already in `knowledge-ledger.json` (#190's 8 came back this way on 2026-10-15).
 
 ## Next
 

@@ -5,8 +5,9 @@
 // `load-draft-sql-prod.ts`, and Przedmiar, Status, Powód zmiany and Komentarz are the owner's.
 // Everything it needs is in `cases/<CASE>/case.json`.
 // ROUND=N (a later round, EX-1057) reads `measure/ai-draft-round-<N>.json` and
-// `investment-notes-appendix-round-<N>.txt` instead, and never renames „Łazienka": by then a sekcja
-// name may be the owner's, so every new bathroom is a copy.
+// `investment-notes-appendix-round-<N>.txt` instead. It renames „Łazienka" only while that is still
+// the investment's one bathroom sekcja under the szablon's name — a first round that predates the
+// per-bathroom rule (#198) — so a name the owner gave is never overwritten.
 //   TOKEN_FILE=… CASE=02-<slug> [ROUND=2] [DRY=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/fill-case-prod.ts
 import { existsSync, readFileSync } from 'node:fs'
@@ -103,7 +104,14 @@ async function run() {
   // When no row stays in „Łazienka" itself, it becomes the first bathroom rather than an empty
   // sekcja beside its copies.
   const keepsTemplate = draft.sections.some((s) => sectionKey(s) === sectionKey(BATHROOM_TEMPLATE))
-  const renamedTo = !ROUND && bathrooms.length && !keepsTemplate ? bathrooms[0] : undefined
+  // Names, not keys: the key folds „ł” away, and `isBathroomSection` matches the written name.
+  const isOnlyBathroom = !items.some(
+    (i) =>
+      isBathroomSection(i.section.name) &&
+      sectionKey(i.section.name) !== sectionKey(BATHROOM_TEMPLATE),
+  )
+  const renamedTo =
+    (!ROUND || isOnlyBathroom) && bathrooms.length && !keepsTemplate ? bathrooms[0] : undefined
   const copies = renamedTo ? bathrooms.slice(1) : bathrooms
   await resolveActions(page, [
     'appendPresetSectionsAction',
@@ -114,7 +122,7 @@ async function run() {
     ? `, ${renamedTo ? `„${BATHROOM_TEMPLATE}" → „${renamedTo}", ` : ''}copies of „${BATHROOM_TEMPLATE}" (${template.length} rows): ${copies.join(', ') || 'none'}`
     : ''
   console.log(
-    `ok: ${ROUND ? `round ${ROUND} (no „${BATHROOM_TEMPLATE}" rename), ` : ''}draft ${draft.matched} matched + ${draft.added} new (the loader writes them), new sections: ${emptySections.join(', ') || 'none'}${bathroomsLine}, Uwagi AI: ${appendix ? 'yes' : 'no'}`,
+    `ok: ${ROUND ? `round ${ROUND}, ` : ''}draft ${draft.matched} matched + ${draft.added} new (the loader writes them), new sections: ${emptySections.join(', ') || 'none'}${bathroomsLine}, Uwagi AI: ${appendix ? 'yes' : 'no'}`,
   )
   console.log(`expected AI przedmiar: ${draft.aiTotal.toFixed(2)} zł`)
   if (DRY) return
