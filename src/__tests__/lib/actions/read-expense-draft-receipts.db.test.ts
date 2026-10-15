@@ -136,7 +136,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  it('„Kilka wydatków” stores a row per paragon on each photo; an unreadable photo keeps the sentinel, an unfetched one stays bare', async () => {
+  it('„Kilka wydatków” stores a row per paragon on each photo; an unreadable or unfetched photo keeps the sentinel', async () => {
     const { draftId, mediaIds } = await createDraft('per-photo', 3, 'one-per-photo')
     extractReceipts.mockImplementation(async (pages: { filename: string }[]) =>
       pages[0].filename.endsWith('-1.jpg')
@@ -155,7 +155,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     expect(extractReceipt).not.toHaveBeenCalled()
     expect(await readOf(draftId)).toEqual({
       rows: [
-        { mediaIds: [mediaIds[0]] },
+        { mediaIds: [mediaIds[0]], description: UNREADABLE_RECEIPT },
         { mediaIds: [mediaIds[1]], description: UNREADABLE_RECEIPT },
         {
           mediaIds: [mediaIds[2]],
@@ -223,13 +223,19 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     expect(extractReceipts).not.toHaveBeenCalled()
   })
 
-  it('writes nothing when no photo reached the AI', async () => {
-    const { draftId } = await createDraft('all-unfetched', 2, 'one-per-photo')
+  // A row per photo is what makes each one a paragon to decide, even when none reached the AI.
+  it('stores the sentinel per photo when no photo reached the AI', async () => {
+    const { draftId, mediaIds } = await createDraft('all-unfetched', 2, 'one-per-photo')
     fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))
 
     await readExpenseDraftReceipts(db, draftId)
 
-    expect(await readOf(draftId)).toBeNull()
+    expect(await readOf(draftId)).toEqual({
+      rows: [
+        { mediaIds: [mediaIds[0]], description: UNREADABLE_RECEIPT },
+        { mediaIds: [mediaIds[1]], description: UNREADABLE_RECEIPT },
+      ],
+    })
   })
 
   // A skipped paragon and a duplicate hint name their row by its position in the stored read, so a
