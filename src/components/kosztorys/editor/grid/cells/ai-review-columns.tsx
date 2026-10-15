@@ -79,7 +79,8 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   return {
     id: 'reviewStatus',
     title: titleNode,
-    minWidth: 150,
+    // The recheck badge's full label needs ~190px; at 150 it always ended in „…”.
+    minWidth: 200,
     ...AI_REVIEW_COLUMN_CLASS,
     component: ReviewStatusCell,
     keepFocus: true,
