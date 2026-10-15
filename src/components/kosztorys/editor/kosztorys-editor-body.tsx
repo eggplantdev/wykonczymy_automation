@@ -115,7 +115,10 @@ type PropsT = KosztorysEditorDataT & {
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<unknown>
-  // Only ever with `worker`.
+  // Only ever with `worker`. The report's layout branches stay in this shared body rather than in
+  // `ReportGrid` because report work lands in its own files, so a split wouldn't pay. Split the grid
+  // out once report layout changes start landing here, where they silently move the editor and the
+  // investor link too.
   report?: ReportModeT & {
     header: (controls: ReportGridControlsT) => ReactNode
     // Rendered inside dsg's container, right after the last row.
