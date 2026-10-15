@@ -6133,3 +6133,7 @@ Zweryfikowano 7/7 boksów EX-1066 (MANAGER dla formularza statusu; inw. „Marsz
 - [ ] Raport pracownika i pickery wypłat: bez zmian dla prawdziwych inwestycji; szablony się w nich
       nie pojawiają.
 - [ ] Ładowarka kosztorysu AI na szablonie (lokalnie): pozycje w brzmieniu katalogu, bez duplikatów.
+- [ ] Kosztorys i szablon → „Dodaj pracę” (z tłumaczeniem i bez): praca dodana; pusty opis lub
+      jednostka odrzucone; „Zapisz wersję” bez nazwy odrzucone; „Wersje” pokazują autora i datę;
+      „Sekcja z szablonu…” dokłada sekcje w kolejności wyboru (porządki po przeglądzie — bez zmian
+      w zachowaniu).
