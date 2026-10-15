@@ -1085,49 +1085,46 @@ index, data)`) and spec it with a stub. The hook keeps the `useState`/concurrenc
 - **Rule**: A status column records **what happened**, not what a caller assumed. Only the component that owns the send may write its outcome — give the backfill an _option_ on that component (`captureLead(…, { autoReply: 'skip' })`) instead of letting it stamp the row itself. Suppress a channel only where lateness genuinely degrades it: a customer-facing reply days late is embarrassing, an internal heads-up never is — so the internal one gets **no** suppression option at all, deliberately. Resist a freshness window as the fix: once the internal channel is unconditional, a threshold has nothing left to decide and a wrong N just reintroduces the same defect in a narrower band. Tell: a record whose status says "settled" while no one can name the message that was sent.
 - **Applies to**: plan, implement, impl-review, plan-review
 
-## Widening a type that flows through an `unstable_cache` payload needs a KEY bump — tags don't help
+## A cached payload from the previous deploy reaches the new code — key every entry on the deployment (EX-1063)
 
 **Symptom.** The investments listing threw `Cannot read properties of undefined (reading 'find')` in
 `costForCategory`, and before that rendered `NaN zł` in three columns — on a branch whose typecheck,
-2036 unit tests, DB parity spec and cross-path audit were all green.
+2036 unit tests, DB parity spec and cross-path audit were all green. EX-893 (prod 2026-09-29) was the
+same failure from the other side: `/szablony` listed both szablony with 0 sekcji, because the type
+stayed the same while its source moved to another table and an `id` started meaning something else.
 
-**Cause.** `investments-listing-expense-plane` widened two shapes: `InvestmentFinancialsT` gained
-`netCategoryCosts`, and the investment reference row gained `vatRate`. Both travel through
-`unstable_cache` — `['investment-financials']` and `['reference-data']`. A cache entry written before
-the change carries the OLD shape. The new reader dereferences a field that entry doesn't have, so it
-crashes (`.find` on `undefined`) or prints `NaN`.
+**Cause.** The Vercel Data Cache outlives a deploy. An entry written by the previous build carries the
+previous build's SHAPE (or meaning), and the new reader dereferences a field that entry doesn't have.
+Next does put `cb.toString()` into the key, but that is only the callback's own text — the mappers
+and shapers it calls, which is where the shape actually lives here, are invisible to it.
 
 **Why a tag doesn't save you.** A tag marks an entry stale; the request that finds it stale still
-serves the old payload once and revalidates behind it. That is exactly right for a value that is
-merely out of date, and exactly wrong for one that is structurally incompatible — the "one last
-serve" is the crash. Adding more tags, or revalidating harder, cannot fix it.
+serves the old payload once and revalidates behind it. That is right for a value that is merely out
+of date and wrong for one that is structurally incompatible — the "one last serve" is the crash.
 
-**The rule.** The cache key is the schema version of its payload. **Change the shape → bump the key**
-(`['reference-data-v2']`). The old entry becomes unreachable instead of being served once more. A
-field ADDED is as breaking as one removed the moment a reader dereferences it.
+**Why no test caught it.** Every gate calls the query functions directly, and a fresh cache is always
+the right shape. The failure needs an entry written by OLDER code, which only a live deploy has.
 
-**Why no test caught it, and what would.** Every gate we ran calls the query functions directly or
-re-derives them — none goes through the cache layer, and a fresh cache is always the right shape.
-The failure needs an OLD entry, which only exists in a long-running dev server or a live deploy. So
-this is not a coverage gap to close with another spec; it is a **checklist item at the moment of the
-edit**: widening a type, grep for the `unstable_cache` keys its payload passes through and bump them
-in the same commit.
+**The mechanism.** Every cached read goes through `cached()` (`src/lib/cache/cached.ts`), never
+`unstable_cache` directly. It appends `VERCEL_DEPLOYMENT_ID` to the key, so a deploy can only ever
+read entries its own code wrote. This replaced 18 hand-bumped `-vN` suffixes and a "grep the keys and
+bump them in the same commit" checklist that had already been missed twice. The price is a cold cache
+after every deploy — one extra query per entry, negligible at this scale.
 
-**Same type, new source: bump the key there too (EX-893, prod 2026-09-29).**
+**What it does not cover.**
 
-- **What changed.** `getPresets` / `getPresetSections` kept the type and the keys (`['presets']`,
-  `['preset-sections']`). What changed was the source: the `kosztorys_presets` jsonb table became
-  investments with status `szablon`, so an `id` now means a different thing.
-- **What production showed.** After deploy + migration, `/szablony` listed both szablony with
-  0 sekcji / 0 pozycji. Their links went to `/szablony/8`, an old jsonb id, which returned „Nie
-  znaleziono”.
-- **Why nothing caught it.** A migration isn't a write through an action, so no `updateTag` fired,
-  and the Vercel Data Cache outlives a deploy. The type didn't change, so the checklist above never
-  triggered.
-- **Rule.** Bump the key whenever the **meaning** of a payload changes (source table, id space),
-  not only its shape.
-- **Recovery without a deploy.** Purge the Data Cache in Vercel, or run any action that expires the
-  tag. Here that was creating a szablon and deleting it.
+- **A running dev server.** Locally the key carries the process id instead, so a restart starts
+  fresh; an HMR edit to a mapper inside one running server still reads its own older entries.
+  Restart `pnpm dev` after changing a cached shape.
+- **A change to the data that bypasses the app** — a dump restore, raw SQL, and above all a
+  `RUN-AFTER-DEPLOY` data migration: it lands after the new deployment has already cached the old
+  rows, so the deploy id doesn't change and no tag fires. Purge the Data Cache in Vercel right after
+  such a migration. The old `-vN` bump never covered this either — it shipped with the deploy, before
+  the migration ran.
+
+In those two gaps a consumer dereferencing a field it doesn't own still meets a payload without it,
+so the consumer-side guard below (`emails?.length ?? 0`) remains the backstop where a missing field
+would take the whole page down.
 
 ## A guard running on REAL data is still blind if the real data predates the feature
 
@@ -1790,11 +1787,11 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 - **Rule**: (1) Reguła biznesowa odrzucająca zapis rzuca `APIError(komunikat, 400)`, nigdy `Error` — `Error` jest dla awarii, `APIError` dla odmowy. (2) Zanim zapytasz właściciela, czy zachowanie jest zamierzone, przeczytaj komentarze **w tym samym pliku**; „wymaga człowieka" postawione nad odpowiedzią, która już tam stoi, kosztuje tydzień. (3) Strażnik jest tani i należy do granicy: spec pinujący **typ** rzutu i status (`APIError` + 400 + treść), nie samą odmowę — odmowa działała przez cały czas.
 - **Applies to**: /10x-implement, /10x-impl-review, code-review — każdy hook kolekcji odmawiający zapisu
 
-## Wersjonowany klucz `unstable_cache` chroni dokładnie tyle, ile ktoś pamięta — trwałym strażnikiem jest konsument, który nie jest właścicielem kształtu
+## Wpis `unstable_cache` sprzed zmiany kształtu wywala konsumenta, nie czytnik — i spec na czytnik tego nie złapie
 
-- **Context**: `src/lib/queries/notification-recipients.ts` (`fetchRecipientLists`, klucz `['notification-recipients']`) po tym, jak EX-758 dołożyło `equipmentDigest` do `RECIPIENT_LISTS`. Rozszerza lekcję „Widening a type that flows through an `unstable_cache` payload needs a KEY bump" o to, czego bump nie załatwia.
+- **Context**: `src/lib/queries/notification-recipients.ts` (`fetchRecipientLists`, klucz `['notification-recipients']`) po tym, jak EX-758 dołożyło `equipmentDigest` do `RECIPIENT_LISTS`. Przypadek do lekcji „A cached payload from the previous deploy reaches the new code" — od EX-1063 `cached()` dokleja do klucza id deploymentu, więc ta konkretna ścieżka (nowy deploy czyta wpis starego) jest zamknięta mechanicznie.
 - **Problem**: Wpis w cache'u powstał **przed** dodaniem klucza i nic go nie przelicza przy deployu — wygasa wyłącznie przez `updateTag(NOTIFICATION_RECIPIENTS_TAG)` z akcji zapisu, której po tym deployu nikt nie zawołał. `recipients.equipmentDigest` rozpakowało się więc do `undefined`, a `RecipientListCard` czytające `emails.length` wywaliło **całą stronę `/sprzet` każdemu odwiedzającemu** w granicę błędu — przy poprawnym renderze serwerowym (RSC oddawał komplet danych; `"emails":"$undefined"` widać dopiero w serializowanych propsach klienta). Spec na `readRecipientLists()` („zwraca każdy klucz z `RECIPIENT_LISTS`") **nie złapałby tego** — ta funkcja mapuje po rejestrze z `?? []`, więc wypełnia każdy klucz i dziś, i w zepsutym buildzie. Zły kształt przyszedł z CACHE'U, nie z czytnika.
-- **Rule**: (1) Bump klucza jest mitygacją zależną od pamięci człowieka — trwały strażnik siedzi na **konsumencie**: komponent, który rozpakowuje pole, którego kształtu nie jest właścicielem, musi znieść jego brak (`emails?.length ?? 0`), bo to on pada. (2) Nie pisz specu na czytnik, gdy defekt jest w cache'u — sprawdź najpierw, czy proponowana asercja przechodzi na zepsutej wersji; jeśli tak, jest tautologią. (3) **Nieświeży wpis odtyka się bez deployu**: zawołaj dowolną akcję, która robi `updateTag` na tym samym tagu (tu: zapisz z UI niezmienioną inną listę odbiorców) — jeden tag unieważnia wpis obsługujący wszystkie listy. To pierwsza rzecz do zrobienia przy takim wysypie na produkcji, przed jakimkolwiek redeployem. (4) Obraz odwrotny: po zapisie, który zmienia treść **poza aplikacją** (restore bazy, przełączenie branchu), bezterminowy wpis trzyma stare liczby w nieskończoność — figury finansowe z takiego środowiska cross-check'uj SQL-em, zanim uznasz rozjazd za defekt.
+- **Rule**: (1) Pada **konsument**, nie czytnik: komponent rozpakowujący pole, którego kształtu nie jest właścicielem, wywala całą stronę w granicę błędu — więc tam, gdzie brak pola zabiłby całą stronę, konsument znosi jego brak (`emails?.length ?? 0`). Ścieżkę „nowy deploy czyta wpis starego" zamyka `cached()` (EX-1063); zostają luki z tamtej lekcji (serwer dev, dane zmienione z pominięciem aplikacji). (2) Nie pisz specu na czytnik, gdy defekt jest w cache'u — sprawdź najpierw, czy proponowana asercja przechodzi na zepsutej wersji; jeśli tak, jest tautologią. (3) **Nieświeży wpis odtyka się bez deployu**: zawołaj dowolną akcję, która robi `updateTag` na tym samym tagu (tu: zapisz z UI niezmienioną inną listę odbiorców) — jeden tag unieważnia wpis obsługujący wszystkie listy. To pierwsza rzecz do zrobienia przy takim wysypie na produkcji, przed jakimkolwiek redeployem. (4) Obraz odwrotny: po zapisie, który zmienia treść **poza aplikacją** (restore bazy, przełączenie branchu), bezterminowy wpis trzyma stare liczby w nieskończoność — figury finansowe z takiego środowiska cross-check'uj SQL-em, zanim uznasz rozjazd za defekt.
 - **Applies to**: /10x-implement, /10x-impl-review, code-review, verify-manual-checks — każde poszerzenie kształtu przechodzącego przez `unstable_cache`
 
 ## `formId` szkicu formularza nazywa **typ** formularza, a nie jego instancję — okno przypięte do encji jest osobną instancją i potrzebuje klucza

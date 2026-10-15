@@ -5829,3 +5829,14 @@ Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
 - [ ] To samo menu: „Wczytaj zgłoszenie z kartki (AI)” jest ostatnią pozycją, pod „Ustawieniami
       widoku pracownika”, oddzieloną od nich linią; dalej otwiera okno wczytania kartki, a w
       kosztorysie bez przypisanego pracownika jest wyszarzona.
+
+## EX-1063 — deploy-scoped-cache — cache kluczowany deploymentem zamiast ręcznych `-vN` (bez zmiany wyglądu)
+
+- [ ] Staging po deployu → lista inwestycji: kolumny marży, robocizny i materiałów pokazują liczby
+      (żadnego `NaN zł`, żadnej pustej strony), tak jak przed deployem.
+- [ ] Inwestycja → dodaj transakcję (np. wydatek), wróć na listę inwestycji: liczby uwzględniają nową
+      transakcję bez przeładowania cache'u ręcznie (unieważnianie po zapisie działa jak dotąd).
+- [ ] Podgląd kosztorysu dla klienta → zakładka wydatków → kliknij wiersz wydatku: otwiera się lista
+      transakcji odfiltrowana po typie tego wiersza, z nim na liście.
+- [ ] `/sprzet` i `/szablony` otwierają się po deployu i pokazują dane (listy odbiorców, szablony
+      z sekcjami).
