@@ -7,7 +7,6 @@ import {
 import {
   INVESTMENT_LOCKED_MESSAGE,
   INVESTMENT_TRASHED_MESSAGE,
-  TEMPLATE_TRASHED_MESSAGE,
 } from '@/lib/constants/investment-lock'
 import { fakePayload, mockExecute, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
 import { getDb } from '@/lib/db/get-db'
@@ -35,8 +34,6 @@ describe('investment lock', () => {
         ['completed', INVESTMENT_LOCKED_MESSAGE],
         ['active', undefined],
         ['planowana', undefined],
-        // A szablon is editable on purpose — it is unbookable, not locked.
-        ['szablon', undefined],
       ] as const) {
         mockExecute.mockResolvedValueOnce({ rows: [{ status, trashed_at: null }] })
         expect(await investmentLockMessage(db, 1)).toBe(expected)
@@ -49,13 +46,6 @@ describe('investment lock', () => {
         mockExecute.mockResolvedValueOnce({ rows: [{ status, trashed_at: new Date() }] })
         expect(await investmentLockMessage(db, 1)).toBe(INVESTMENT_TRASHED_MESSAGE)
       }
-    })
-
-    // An editor tab left open on a szablon trashed meanwhile must not tell the user about an investment.
-    it('locks a trashed szablon with the szablon sentence', async () => {
-      const db = await getDb(fakePayload)
-      mockExecute.mockResolvedValueOnce({ rows: [{ status: 'szablon', trashed_at: new Date() }] })
-      expect(await investmentLockMessage(db, 1)).toBe(TEMPLATE_TRASHED_MESSAGE)
     })
 
     // A nonexistent investment is the caller's problem to report — locked would answer „zakończona"
@@ -78,7 +68,6 @@ describe('investment lock', () => {
       expect(await investmentGateForRow(db, kind, 7)).toEqual({
         investmentId: 42,
         lockMessage: undefined,
-        isTemplate: false,
       })
       expect(lastSqlChunks()).toContain(table)
     })
@@ -91,7 +80,6 @@ describe('investment lock', () => {
       expect(await investmentGateForRow(db, 'item', 7)).toEqual({
         investmentId: 42,
         lockMessage: INVESTMENT_LOCKED_MESSAGE,
-        isTemplate: false,
       })
     })
 
@@ -103,18 +91,6 @@ describe('investment lock', () => {
       expect((await investmentGateForRow(db, 'item', 7))?.lockMessage).toBe(
         INVESTMENT_TRASHED_MESSAGE,
       )
-    })
-
-    // The third fact the same row already carries: a write into a szablon moves its „ostatnio
-    // edytowany", and asking for the status separately would double the round trip.
-    it('marks a szablon row as a template', async () => {
-      const db = await getDb(fakePayload)
-      mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'szablon' }] })
-      expect(await investmentGateForRow(db, 'item', 7)).toEqual({
-        investmentId: 42,
-        lockMessage: undefined,
-        isTemplate: true,
-      })
     })
 
     // Distinguishable from „locked" on purpose — the caller reports this one as NOT_FOUND.

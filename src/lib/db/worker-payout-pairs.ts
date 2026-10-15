@@ -1,7 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
 import { foldWorkerPayoutPairs } from '@/lib/kosztorys/worker-payout-pairs-fold'
 import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
@@ -27,8 +26,7 @@ export async function selectWorkerPayoutPairs(
   if (investmentIds?.length === 0) return []
 
   const listed = sql`
-    inv.status <> ${TEMPLATE_INVESTMENT_STATUS}
-    AND inv.trashed_at IS NULL
+    inv.trashed_at IS NULL
     AND EXISTS (SELECT 1 FROM kosztorys_items ki WHERE ki.investment_id = inv.id)
     ${investmentIds ? sql`AND inv.id IN (${sqlList(investmentIds)})` : sql``}
   `

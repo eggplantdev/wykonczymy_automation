@@ -4,7 +4,6 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import { isoOrNull } from '@/lib/db/row-coerce'
@@ -82,7 +81,6 @@ export const fetchReferenceData = cache(
                i.created_at, (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
-        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS}
         ORDER BY i.name
       `),
         db.execute(sql`

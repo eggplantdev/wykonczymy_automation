@@ -4,7 +4,6 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
-import { guardTemplateStatus } from '@/hooks/investments/guard-template-status'
 import { guardTrashedInvestment } from '@/hooks/investments/guard-trashed-investment'
 import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
@@ -43,7 +42,6 @@ export const Investments: CollectionConfig = {
     beforeChange: [
       guardTrashedInvestment,
       guardInvestmentStatusUnlock,
-      guardTemplateStatus,
       stampCompletedAt,
     ],
     beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],

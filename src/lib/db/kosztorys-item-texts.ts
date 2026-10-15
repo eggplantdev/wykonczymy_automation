@@ -36,20 +36,6 @@ const toItemTextRow = (row: Record<string, unknown>): ItemTextRowT => ({
   descriptionTranslations: toDescriptionTranslations(row.description_translations),
 })
 
-/** A szablon's rows that read their opis from no katalog entry — the only ones whose text is their own. */
-export async function getUnlinkedItemTexts(
-  db: DbExecutorT,
-  investmentId: number,
-): Promise<ItemTextRowT[]> {
-  const res = await db.execute(sql`
-    SELECT ki.id, ki.description, ki.unit, ki.description_translations
-    FROM kosztorys_items ki
-    LEFT JOIN work_catalogue_items w ON w.id = ki.catalogue_item_id
-    WHERE ki.investment_id = ${investmentId} AND w.id IS NULL
-  `)
-  return res.rows.map(toItemTextRow)
-}
-
 /** One statement, because a kosztorys runs to hundreds of rows and one button drives all of them. */
 export async function setItemTexts(
   db: DbExecutorT,

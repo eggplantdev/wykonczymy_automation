@@ -38,7 +38,7 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    for (const name of ['active', 'inactive', 'szablon', 'completed', 'stage-closed']) {
+    for (const name of ['active', 'inactive', 'completed', 'stage-closed']) {
       const created = await payload.create({
         collection: 'users',
         data: {
@@ -55,7 +55,6 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
 
     await investmentWithStage('active', workers.active)
     await investmentWithStage('active', workers.inactive)
-    await investmentWithStage('szablon', workers.szablon)
     await investmentWithStage('completed', workers.completed)
     await investmentWithStage('active', workers['stage-closed'], true)
   })

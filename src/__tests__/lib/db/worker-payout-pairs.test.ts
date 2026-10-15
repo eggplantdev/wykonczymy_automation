@@ -8,10 +8,7 @@ import { sumAllInvestmentFinancials } from '@/lib/db/sum-transfers'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import type { StageSplitT } from '@/lib/kosztorys/types'
 import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
-import {
-  LOCKED_INVESTMENT_STATUS,
-  TEMPLATE_INVESTMENT_STATUS,
-} from '@/lib/constants/investment-lock'
+import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { derivePayoutsByWorker } from '@/lib/kosztorys/payouts-by-worker'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
@@ -60,7 +57,6 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
     locked: 0,
     split: 0,
     splitWithheld: 0,
-    template: 0,
     trashed: 0,
     bare: 0,
   }
@@ -209,8 +205,8 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
       ]),
     )
 
-    // Trees are written while the investment is still active — a zakończona or szablon refuses them.
-    for (const key of ['locked', 'template', 'trashed'] as const) {
+    // Trees are written while the investment is still active — a zakończona refuses them.
+    for (const key of ['locked', 'trashed'] as const) {
       await createKosztorysTree(
         payload,
         created[key],
@@ -220,7 +216,6 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
     }
     await payout(created.bare, worker.a, 999)
     await setStatus(created.locked, LOCKED_INVESTMENT_STATUS)
-    await setStatus(created.template, TEMPLATE_INVESTMENT_STATUS)
     await trashDaysAgo(db, created.trashed, 1)
   })
 
@@ -339,9 +334,9 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
     expect(pairs[0].investmentStatus).toBe(LOCKED_INVESTMENT_STATUS)
   })
 
-  it('leaves out a szablon, the kosz and an investment with no kosztorys', async () => {
+  it('leaves out the kosz and an investment with no kosztorys', async () => {
     const pairs = await selectWorkerPayoutPairs(db, {
-      investmentIds: [created.template, created.trashed, created.bare],
+      investmentIds: [created.trashed, created.bare],
     })
     expect(pairs).toEqual([])
   })

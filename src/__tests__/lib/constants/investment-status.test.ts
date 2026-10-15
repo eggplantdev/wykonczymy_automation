@@ -8,7 +8,6 @@ describe('isOfferedForBooking', () => {
     active: true,
     completed: false,
     rejected: false,
-    szablon: false,
   }
 
   it.each(Object.entries(OFFERED) as [InvestmentStatusT, boolean][])(

@@ -13,7 +13,6 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
-import { withCatalogueFields, type ItemFieldsT } from '@/lib/kosztorys/item-from-fields'
 import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type { DbExecutorT } from './get-db'
 import { numOrNull, textOrNull } from './row-coerce'
@@ -76,20 +75,8 @@ export async function selectKosztorysTreeData(
                  ki.w_tools_override_coeff, ki.own_tools_override_coeff,
                  ki.note, ki.ref, ki.catalogue_item_id, ki.ai_planned_qty, ki.ai_missing_data, ki.ai_assumptions,
                  ki.ai_new_information, ki.ai_recheck, ki.change_reason,
-                 ki.review_status,
-                 w.id AS catalogue_entry_id, w.description AS catalogue_description,
-                 w.description_translations AS catalogue_description_translations,
-                 w.unit AS catalogue_unit, w.client_price AS catalogue_client_price,
-                 w.w_tools_rate AS catalogue_w_tools_rate,
-                 w.w_tools_rate_coeff AS catalogue_w_tools_rate_coeff,
-                 w.own_tools_rate AS catalogue_own_tools_rate,
-                 w.own_tools_rate_coeff AS catalogue_own_tools_rate_coeff
+                 ki.review_status
           FROM kosztorys_items ki
-          JOIN investments host ON host.id = ki.investment_id
-          -- Only a szablon reads its prace from the katalog (EX-1017); a kosztorys keeps its own copy
-          -- even where it remembers the entry.
-          LEFT JOIN work_catalogue_items w
-            ON w.id = ki.catalogue_item_id AND host.status = 'szablon'
           WHERE ki.investment_id = ${investmentId}
         ) i
       ) AS items,
@@ -165,24 +152,7 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
-const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } =>
-  withCatalogueFields(mapOwnItem(row), mapCatalogueFields(row))
-
-const mapCatalogueFields = (row: RowT): ItemFieldsT | null =>
-  row.catalogue_entry_id == null
-    ? null
-    : {
-        description: String(row.catalogue_description),
-        descriptionTranslations: toDescriptionTranslations(row.catalogue_description_translations),
-        unit: String(row.catalogue_unit),
-        clientPrice: num(row.catalogue_client_price),
-        wToolsRate: numOrNull(row.catalogue_w_tools_rate),
-        wToolsRateCoeff: numOrNull(row.catalogue_w_tools_rate_coeff),
-        ownToolsRate: numOrNull(row.catalogue_own_tools_rate),
-        ownToolsRateCoeff: numOrNull(row.catalogue_own_tools_rate_coeff),
-      }
-
-const mapOwnItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
+const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   ref: Number(row.ref),
   sectionId: Number(row.section_id),

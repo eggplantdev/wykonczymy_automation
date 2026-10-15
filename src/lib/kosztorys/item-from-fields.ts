@@ -31,14 +31,6 @@ const itemColumnsFromFields = (fields: ItemFieldsT) => ({
   ownToolsOverrideCoeff: fields.ownToolsRateCoeff,
 })
 
-// A szablon row linked to a katalog entry shows the entry, not its own copy (EX-1017): the katalog is
-// the one place a szablon praca's content lives. `null` = no entry to show — an unlinked row, a dead
-// id, or a kosztorys row, which keeps its own values whatever it is linked to.
-export const withCatalogueFields = <T extends KosztorysItemT>(
-  item: T,
-  fields: ItemFieldsT | null,
-): T => (fields ? { ...item, ...itemColumnsFromFields(fields) } : item)
-
 export const itemFromFields = (
   fields: ItemFieldsT,
   sectionId: number,

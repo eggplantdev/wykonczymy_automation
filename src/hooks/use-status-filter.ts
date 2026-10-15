@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
 import {
-  PICKABLE_INVESTMENT_STATUSES,
+  INVESTMENT_STATUSES,
   type InvestmentStatusT,
 } from '@/lib/constants/investment-status'
 
@@ -31,12 +31,12 @@ function storeFor(storageKey: string): JsonMapStoreT<boolean> {
 // wybierał" from „wybrano nic". An absent map falls back to the defaults, an explicit all-false is
 // honoured as the empty selection it is.
 export function selectionFrom(persisted: Record<string, boolean>): Set<InvestmentStatusT> {
-  const answered = PICKABLE_INVESTMENT_STATUSES.filter(
+  const answered = INVESTMENT_STATUSES.filter(
     (status) => typeof persisted[status] === 'boolean',
   )
   if (answered.length === 0) return new Set(DEFAULT_STATUSES)
   return new Set(
-    PICKABLE_INVESTMENT_STATUSES.filter((status) => flagOf(persisted, status) === true),
+    INVESTMENT_STATUSES.filter((status) => flagOf(persisted, status) === true),
   )
 }
 
@@ -70,7 +70,7 @@ export function useStatusFilter<TItem>(
     store.update((prev) => {
       const current = selectionFrom(prev)
       return Object.fromEntries(
-        PICKABLE_INVESTMENT_STATUSES.map((valid) => [
+        INVESTMENT_STATUSES.map((valid) => [
           valid,
           valid === status ? !current.has(valid) : current.has(valid),
         ]),

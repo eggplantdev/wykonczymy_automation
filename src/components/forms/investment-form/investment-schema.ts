@@ -10,8 +10,6 @@ export const investmentFormSchema = z.object({
   contactPerson: z.string(),
   notes: z.string(),
   reviewRequested: z.boolean(),
-  // Accepted so an edit that round-trips a szablon's status validates; no <SelectItem> offers it,
-  // and guardTemplateStatus refuses setting or dropping it.
   status: z.enum(INVESTMENT_STATUSES),
   // Optional seed template, only meaningful on create ('' = start empty). Not an investments
   // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.

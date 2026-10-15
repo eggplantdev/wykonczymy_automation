@@ -183,15 +183,6 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     expect(result).toMatchObject({ success: false, error: expect.stringMatching(/żadnej/) })
   })
 
-  it('refuses a szablon', async () => {
-    await db.execute(sql`UPDATE investments SET status = 'szablon' WHERE id = ${investmentId}`)
-    try {
-      expect(await scan('template')).toMatchObject({ success: false })
-    } finally {
-      await db.execute(sql`UPDATE investments SET status = 'active' WHERE id = ${investmentId}`)
-    }
-  })
-
   it('refuses an inactive worker, in the kierownik’s voice', async () => {
     await setUserActive(workerId, false)
     try {

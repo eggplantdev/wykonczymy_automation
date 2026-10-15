@@ -623,14 +623,14 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 6.1 `template-trash.test.ts` passes
+- [x] 6.1 `template-trash.test.ts` passes — c9b0c202d
 
 ### Phase 7: Szablon leaves the investment code
 
 #### Automated
 
-- [ ] 7.1 `'szablon'` grep returns only migrations and UI copy
-- [ ] 7.2 Affected specs pass
+- [x] 7.1 `'szablon'` grep returns only migrations and UI copy
+- [x] 7.2 Affected specs pass
 
 ### Phase 8: Scripts, E2E, docs
 

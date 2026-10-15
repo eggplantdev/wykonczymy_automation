@@ -13,12 +13,9 @@ import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
-import {
-  addItemSchema,
-  TEMPLATE_ITEM_NEEDS_CATALOGUE,
-  type AddItemInputT,
-} from '@/lib/kosztorys/add-item-schema'
+import { addItemSchema, type AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
+import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
 import { applyLayout, lockAndCheckLayout } from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
@@ -36,11 +33,7 @@ import {
   DUPLICATE_ERROR,
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
-import {
-  catalogueUpdateFor,
-  EMPTY_ITEM_TEXT_ERROR,
-  splitTemplatePatch,
-} from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
+import { EMPTY_ITEM_TEXT_ERROR } from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
 import {
   insertDirectionSchema,
   renumberDisplayOrder,
@@ -77,7 +70,6 @@ import {
 } from '@/lib/db/stage-split'
 import { selectOtherPlaneWorkerNames, trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { mixedPlaneWorkersMessage } from '@/lib/constants/worker-lock'
-import { findCatalogueItemByKey, findLinkedCatalogueItem } from '@/lib/db/work-catalogue'
 import { translateNewRow } from '@/lib/ai/translate-new-row'
 import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
@@ -134,60 +126,17 @@ export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
   return investmentAction(
     'updateItemFieldAction',
     { kind: 'item', id: itemId },
-    async ({ payload, isTemplate }) => {
+    async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
       // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole
       // here — one write, never two orderings (EX-865).
       const data = normalizeOverridePatch(parsed.data)
-      const templateResult = isTemplate
-        ? await updateLinkedTemplateRow(payload, itemId, data)
-        : null
-      if (templateResult) return templateResult
       await payload.update({ collection: 'kosztorys-items', id: itemId, data })
       return { success: true }
     },
     ['kosztorysItems', 'workCatalogue'],
     { deferRefresh: true },
-  )
-}
-
-// A linked szablon row shows its katalog entry, so its content is edited there (EX-1017) and every
-// szablon holding the praca sees the change. `null` = not a linked row, or no katalog field touched:
-// the patch takes the ordinary path.
-async function updateLinkedTemplateRow(
-  payload: Payload,
-  itemId: number,
-  patch: ItemPatchT,
-): Promise<ActionResultT | null> {
-  const { cataloguePatch, rowPatch } = splitTemplatePatch(patch)
-  if (Object.keys(cataloguePatch).length === 0) return null
-  return withPayloadTransaction(
-    payload,
-    async (req): Promise<ActionResultT | null> => {
-      const txDb = await getDb(payload, req)
-      const entry = await findLinkedCatalogueItem(txDb, itemId)
-      if (!entry) return null
-      const update = catalogueUpdateFor(entry, cataloguePatch)
-      if ('error' in update) return { success: false, error: update.error }
-      // Before the write: a returned refusal still commits the transaction.
-      const { matchKey } = update.data
-      if (matchKey && matchKey !== entry.matchKey) {
-        const holder = await findCatalogueItemByKey(txDb, matchKey)
-        if (holder && holder.id !== entry.id) return { success: false, error: DUPLICATE_ERROR }
-      }
-      await payload.update({
-        collection: 'work-catalogue-items',
-        id: entry.id,
-        data: update.data,
-        req,
-      })
-      if (Object.keys(rowPatch).length > 0) {
-        await payload.update({ collection: 'kosztorys-items', id: itemId, data: rowPatch, req })
-      }
-      return { success: true }
-    },
-    { skipRevalidation: true },
   )
 }
 
@@ -328,16 +277,13 @@ export async function applyPercentDiscountToAllItemsAction(
   )
 }
 
-const TEMPLATE_TEXTS_IN_CATALOGUE = 'Opisy prac szablonu poprawia się w katalogu prac.'
-
 // „Popraw literówki". Bulk overwrite of hand-typed text, irrecoverable by in-session undo, so it
 // snapshots first like applyPercentDiscountToAllItemsAction.
 export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
     'cleanItemTextsAction',
     { investmentId },
-    async ({ payload, user, isTemplate }) => {
-      if (isTemplate) return { success: false, error: TEMPLATE_TEXTS_IN_CATALOGUE }
+    async ({ payload, user }) => {
       const db = await getDb(payload)
       const changed = cleanItemTexts(await getItemTexts(db, investmentId))
       if (changed.length === 0) return { success: true, data: 0 }
@@ -516,11 +462,10 @@ export async function addItemAction(
   return investmentAction(
     'addItemAction',
     target,
-    async ({ payload, investmentId, isTemplate }) => {
+    async ({ payload, investmentId }) => {
       const parsed = validateAction(addItemSchema, input)
       if (!parsed.success) return parsed
       const { placement, data, catalogue, translate } = parsed.data
-      if (isTemplate && !catalogue) return { success: false, error: TEMPLATE_ITEM_NEEDS_CATALOGUE }
 
       const fields = catalogueRow(data)
       if (!fields.description || !fields.unit) {

@@ -18,7 +18,7 @@ import type { ActionResultT } from '@/types/action'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
 import {
   INVESTMENT_STATUS_LABELS,
-  PICKABLE_INVESTMENT_STATUSES,
+  INVESTMENT_STATUSES,
 } from '@/lib/constants/investment-status'
 
 type InvestmentFormPropsT = {
@@ -166,7 +166,7 @@ export function InvestmentForm({
             <form.AppField name="status">
               {(field) => (
                 <field.Select label="Status" showError>
-                  {PICKABLE_INVESTMENT_STATUSES.map((status) => (
+                  {INVESTMENT_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
                       {INVESTMENT_STATUS_LABELS[status].pl}
                     </SelectItem>

@@ -31,7 +31,6 @@ export const pl = {
   notices: {
     unknownToken: 'Ten link wygasł albo został cofnięty. Poproś kierownika o nowy.',
     closed: 'Ta inwestycja jest zamknięta — zgłoszenia prac nie są już przyjmowane.',
-    template: 'Szablon nie przyjmuje zgłoszeń prac.',
     inactiveWorker: 'Twoje konto jest nieaktywne. Skontaktuj się z kierownikiem.',
     foreignItem: 'Część prac zniknęła z rozpiski. Odśwież stronę i sprawdź zgłoszenie.',
     stagesCompleted: 'Twoje etapy na tej inwestycji są zakończone — nie można już zgłaszać prac.',

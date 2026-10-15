@@ -1,9 +1,7 @@
 import 'server-only'
 import type { Payload } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
-import { revalidateCollections } from '@/lib/cache/revalidate'
 import { getDb } from '@/lib/db/get-db'
-import { markPresetEdited } from '@/lib/db/presets'
 import {
   investmentGateFor,
   investmentGateForRow,
@@ -40,7 +38,6 @@ export function investmentAction<TData = undefined>(
     payload: Payload
     user: SessionUserT
     investmentId: number
-    isTemplate: boolean
   }) => Promise<ActionResultT<TData>>,
   revalidate?: (keyof typeof CACHE_TAGS)[],
   opts?: { deferRefresh?: boolean; entityTags?: string[] },
@@ -51,8 +48,8 @@ export function investmentAction<TData = undefined>(
       const db = await getDb(ctx.payload)
 
       // The two targets differ only in how the investment is NAMED — given outright, or reached
-      // through the row's parent. Resolving both into one gate keeps the lock check, the handler and
-      // the szablon bookkeeping on a single tail: written as two branches, each of those was spelled twice.
+      // through the row's parent. Resolving both into one gate keeps the lock check and the handler
+      // on a single tail.
       let gate: { investmentId: number } & InvestmentGateT
 
       if ('investmentId' in target) {
@@ -81,21 +78,7 @@ export function investmentAction<TData = undefined>(
         return { success: false, error: gate.lockMessage } as ActionResultT<TData>
       }
 
-      const result = await handler({
-        ...ctx,
-        investmentId: gate.investmentId,
-        isTemplate: gate.isTemplate,
-      })
-
-      // HERE because this is the one point every one of the few dozen ways to change the tree passes
-      // through. Raw SQL, not `payload.update`: that would bump `updated_at`, the editor's remount
-      // token, and reset the owner's sort and filters on every cell. The library expiry follows the
-      // caller's `deferRefresh`, so a szablon autosave costs no more than any other.
-      if (result.success && gate.isTemplate) {
-        await markPresetEdited(db, gate.investmentId)
-        revalidateCollections(['presets'], opts)
-      }
-      return result
+      return handler({ ...ctx, investmentId: gate.investmentId })
     },
     revalidate,
     opts,

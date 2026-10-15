@@ -3,7 +3,7 @@ import type { Payload, RequiredDataFromCollectionSlug } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { PICKABLE_INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
+import { INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 
 // No type spans the collection's select options and the Postgres enum — a status the form offers but
@@ -36,7 +36,7 @@ describe.skipIf(!ENV_READY)('investment status values (DB)', () => {
     for (const id of createdIds) await deleteTestInvestment(payload, id)
   })
 
-  it.each(PICKABLE_INVESTMENT_STATUSES)('stores a %s investment', async (status) => {
+  it.each(INVESTMENT_STATUSES)('stores a %s investment', async (status) => {
     const id = await createTestInvestment(payload, `${MARKER} ${status}`, { status })
     createdIds.push(id)
 

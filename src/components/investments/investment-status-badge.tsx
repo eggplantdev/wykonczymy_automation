@@ -8,13 +8,14 @@ const STATUS_CLASSNAMES: Record<InvestmentStatusT, string> = {
   active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
   completed: 'bg-muted text-muted-foreground',
   rejected: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
-  szablon: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
 }
 
+// Optional lookup: a row whose status left the enum (the szablony, until their migration drops
+// them) renders its raw value instead of taking the page down.
 export function InvestmentStatusBadge({ status }: { status: InvestmentStatusT }) {
   return (
     <span className={cn(BADGE_BASE, STATUS_CLASSNAMES[status])}>
-      {INVESTMENT_STATUS_LABELS[status].pl}
+      {INVESTMENT_STATUS_LABELS[status]?.pl ?? status}
     </span>
   )
 }

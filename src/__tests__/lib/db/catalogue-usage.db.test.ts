@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
 import {
   createTestInvestment,
@@ -10,8 +9,8 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// „Kosztorysy" counts a praca as used only where real work was offered or measured; a szablon or
-// an inwestycja in the kosz counted in would inflate every figure with pozycje nobody sold. The
+// „Kosztorysy" counts a praca as used only where real work was offered or measured; an
+// inwestycja in the kosz counted in would inflate every figure with pozycje nobody sold. The
 // kosz exclusion can only be proved here — the local dump has no trashed inwestycje.
 
 vi.mock('server-only', () => ({}))
@@ -57,10 +56,6 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
       stages: [{}],
       progress: [{ item: 0, stage: 0, qtyDone: 0 }],
     })
-    const template = await withItem('template', `${PREFIX} template`)
-    await db.execute(
-      sql`UPDATE investments SET status = ${TEMPLATE_INVESTMENT_STATUS} WHERE id = ${template}`,
-    )
     const trashed = await withItem('trashed', `${PREFIX} trashed`)
     await trashDaysAgo(db, trashed, WITHIN_RETENTION_DAYS)
     const blank = await withItem('blank', '  ')
@@ -90,8 +85,7 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
     expect(usedDescriptions.has(`${PREFIX} zero`)).toBe(false)
   })
 
-  it('skips szablony and inwestycje in the kosz', () => {
-    expect(usedDescriptions.has(`${PREFIX} template`)).toBe(false)
+  it('skips inwestycje in the kosz', () => {
     expect(usedDescriptions.has(`${PREFIX} trashed`)).toBe(false)
   })
 

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { TEMPLATE_TRASHED_MESSAGE } from '@/lib/constants/investment-lock'
+import { TEMPLATE_TRASHED_MESSAGE } from '@/lib/constants/template-lock'
 import {
   addTestTemplateSection,
   createTestCatalogueEntry,

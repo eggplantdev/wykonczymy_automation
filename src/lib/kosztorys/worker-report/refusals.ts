@@ -10,7 +10,6 @@ export const REPORT_REFUSALS = {
   unknownToken: pl.notices.unknownToken,
   // The gate's own sentences tell a kierownik to reopen the investment — a control the worker has not got.
   closed: pl.notices.closed,
-  template: pl.notices.template,
   inactiveWorker: pl.notices.inactiveWorker,
   foreignItem: pl.notices.foreignItem,
   stagesCompleted: pl.notices.stagesCompleted,
