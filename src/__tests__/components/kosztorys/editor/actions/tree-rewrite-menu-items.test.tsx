@@ -135,7 +135,11 @@ describe.each([
     await vi.waitFor(() =>
       expect(screen.getByRole('menuitem', { name: label })).not.toHaveAttribute('data-disabled'),
     )
-    expect(toastMessage).toHaveBeenCalledWith(expect.stringContaining('Nie udało się'), 'error')
+    expect(toastMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Nie udało się'),
+      'error',
+      6000,
+    )
     expect(onTreeReplaced).toHaveBeenCalledWith({ refetch: true })
   })
 })

@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { settleAction } from '@/lib/utils/settle-action'
-import { toastMessage } from '@/lib/utils/toast'
+import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import type { FailureT } from '@/types/action'
 
 export type TreeRewriteActionT = { pending: boolean; start: () => void }
@@ -20,22 +19,22 @@ export function useTreeRewriteAction<DataT>(
   const { investmentId, onTreeReplaced, flushPendingSaves } = useKosztorysEditorContext()
   const [pending, setPending] = useState(false)
 
+  async function settle() {
+    let changed = false
+    const replaced = await settleTreeReplace(
+      flushPendingSaves,
+      () => run(investmentId),
+      `${failedMessage} — odświeżam kosztorys`,
+      ({ data }) => {
+        changed = onDone(data)
+      },
+    )
+    if (replaced && (replaced.refetch || changed)) onTreeReplaced?.(replaced)
+  }
+
   function start() {
     setPending(true)
-    // The rewrite reads the stored rows, so a cell edit still in its debounce would be overwritten.
-    void flushPendingSaves()
-      .then(() => settleAction(() => run(investmentId)))
-      .then((res) => {
-        if (!res.success && res.code === 'REQUEST_FAILED') {
-          // A request that never completed may still have committed the rewrite; refetch so the
-          // grid doesn't autosave the old text back over it.
-          toastMessage(`${failedMessage} — odświeżam kosztorys`, 'error')
-          return onTreeReplaced?.({ refetch: true })
-        }
-        if (!res.success) return toastMessage(res.error, 'error')
-        if (onDone(res.data)) onTreeReplaced?.()
-      })
-      .finally(() => setPending(false))
+    void settle().finally(() => setPending(false))
   }
 
   return { pending, start }

@@ -7,7 +7,6 @@ import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztory
 type OptionsT = {
   investmentId: number
   onTreeReplaced?: OnTreeReplacedT
-  flushPendingSaves: () => Promise<void>
 }
 
 /**
@@ -18,7 +17,7 @@ type OptionsT = {
  * The preview is fetched on the click rather than by the dialog: a programmatically-opened Radix
  * dialog never fires `onOpenChange`, so it cannot fetch its own report.
  */
-export function useSheetImport({ investmentId, onTreeReplaced, flushPendingSaves }: OptionsT) {
+export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
   const [open, setOpen] = useState(false)
   const [preview, setPreview] = useState<ImportPreviewT | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -63,7 +62,6 @@ export function useSheetImport({ investmentId, onTreeReplaced, flushPendingSaves
       loaded,
       onMappingSaved: readPreview,
       onImported,
-      flushPendingSaves,
     },
   }
 }

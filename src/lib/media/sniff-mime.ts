@@ -16,6 +16,13 @@ type AllowedMimeT = (typeof ALLOWED_UPLOAD_MIMES)[number]
 export const isAllowedUploadMime = (type: string): type is AllowedMimeT =>
   (ALLOWED_UPLOAD_MIMES as readonly string[]).includes(type)
 
+/** Drop `; charset=…` and case, so a well-formed header is not refused for its spelling. */
+export const normalizeContentType = (contentType: string): string =>
+  contentType.split(';')[0]?.trim().toLowerCase() ?? ''
+
+export const isAllowedContentType = (contentType: string): boolean =>
+  isAllowedUploadMime(normalizeContentType(contentType))
+
 // PDF readers accept the `%PDF-` header anywhere in the first KB, and generated e-faktury do put a
 // BOM or whitespace before it.
 export const SNIFF_BYTES = 1024

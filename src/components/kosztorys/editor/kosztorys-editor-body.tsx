@@ -258,11 +258,7 @@ export function KosztorysEditorBody({
 
   useUndoKeyboard(editor.undo, editor.redo)
 
-  const { openImport, importDialogProps } = useSheetImport({
-    investmentId,
-    onTreeReplaced,
-    flushPendingSaves: editor.flushPendingSaves,
-  })
+  const { openImport, importDialogProps } = useSheetImport({ investmentId, onTreeReplaced })
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.

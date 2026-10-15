@@ -8,6 +8,7 @@ import type {
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit, oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
+import { aiDraftOf } from '@/lib/kosztorys/ai-draft'
 
 export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 
@@ -188,13 +189,8 @@ export function itemWithColumnDefaults(
     ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
     // NOT NULL DEFAULT '{}': a snapshot older than the translations reads as „no translation".
     descriptionTranslations: toDescriptionTranslations(item.descriptionTranslations),
-    // A snapshot older than EX-1006 had no agent draft to carry.
-    aiPlannedQty: item.aiPlannedQty ?? null,
-    // Older than EX-1030 / EX-1057. The flag binds false, never NULL: its column is NOT NULL.
-    aiMissingData: item.aiMissingData ?? null,
-    aiAssumptions: item.aiAssumptions ?? null,
-    aiNewInformation: item.aiNewInformation ?? null,
-    aiRecheck: item.aiRecheck ?? false,
+    // A snapshot older than EX-1006 / EX-1030 / EX-1057 had no agent draft to carry.
+    ...aiDraftOf(item),
     // A snapshot older than EX-1017 knew no katalog entry.
     catalogueItemId: item.catalogueItemId ?? null,
     changeReason: item.changeReason ?? null,

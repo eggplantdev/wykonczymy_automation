@@ -1,4 +1,4 @@
-import { isAllowedUploadMime } from '@/lib/media/sniff-mime'
+import { isAllowedContentType } from '@/lib/media/sniff-mime'
 
 /**
  * `/api/media/file/<name>` is served from the app's origin with whatever type the uploading browser
@@ -9,8 +9,7 @@ import { isAllowedUploadMime } from '@/lib/media/sniff-mime'
  */
 export function hardenMediaFileHeaders({ headers }: { headers: Headers }): Headers {
   headers.set('X-Content-Type-Options', 'nosniff')
-  const type = headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() ?? ''
-  if (!isAllowedUploadMime(type)) {
+  if (!isAllowedContentType(headers.get('Content-Type') ?? '')) {
     headers.set('Content-Type', 'application/octet-stream')
     headers.set('Content-Disposition', 'attachment')
   }

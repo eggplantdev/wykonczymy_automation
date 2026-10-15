@@ -18,6 +18,9 @@ vi.mock('@/lib/actions/kosztorys-import', () => ({
   applyKosztorysImport: (...args: unknown[]) => applyKosztorysImport(...args),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
+  useKosztorysEditorContext: () => ({ flushPendingSaves: async () => {} }),
+}))
 
 const onImported = vi.fn()
 
@@ -91,7 +94,6 @@ function DialogHost() {
         loaded
         onImported={onImported}
         onMappingSaved={vi.fn()}
-        flushPendingSaves={async () => {}}
       />
     </>
   )

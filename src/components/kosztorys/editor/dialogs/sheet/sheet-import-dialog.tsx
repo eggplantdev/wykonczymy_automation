@@ -38,7 +38,10 @@ import type { WorkerRefT } from '@/types/reference-data'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
-import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import {
+  useKosztorysEditorContext,
+  type OnTreeReplacedT,
+} from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type PropsT = {
   investmentId: number
@@ -49,7 +52,6 @@ type PropsT = {
   error: string | null
   loaded: boolean
   onImported: OnTreeReplacedT
-  flushPendingSaves: () => Promise<void>
   // Re-reads the sheet with the new pointing in place, so the window answers in place instead of
   // asking the owner to close it and try again.
   onMappingSaved: () => void
@@ -72,8 +74,8 @@ export function SheetImportDialog({
   loaded,
   onImported,
   onMappingSaved,
-  flushPendingSaves,
 }: PropsT) {
+  const { flushPendingSaves } = useKosztorysEditorContext()
   const [pending, startTransition] = useTransition()
   const [plane, setPlane] = useState<PlanePickT>(NO_PLANE)
   const [workerId, setWorkerId] = useState<number | null>(null)
