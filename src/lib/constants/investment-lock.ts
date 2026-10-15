@@ -42,8 +42,9 @@ export const investmentLockOf = (investment: {
 export const TEMPLATE_INVESTMENT_STATUS = 'szablon' satisfies InvestmentStatusT
 
 /**
- * The pickers' courtesy filter — the real gate is the collection hook; this just spares an
- * avoidable refusal. Deliberately asks ONE question: szablony are excluded upstream by
+ * What the server accepts a booking on (the real gate is the collection hook) — the transfers table
+ * reads it for edit / cancel. Booking pickers offer a narrower set, `isOfferedForBooking`; widening
+ * one into the other silently re-offers Wycena or locks its transfers. Deliberately asks ONE question: szablony are excluded upstream by
  * fetchReferenceData, not here, so folding "is a real investment" into this check can't silently
  * leak into a caller that only meant to ask "is bookable".
  */

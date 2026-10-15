@@ -993,7 +993,8 @@ wybierać, co inwestor może sprawdzić. Z tego samego powodu właściciel nie m
 365 → koniec). `daily` i `named` nie podlegają pasmom ani limitowi 365 dni: żyją, dopóki inwestycja
 jest w Wycenie, Planowana lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
 przy przejściu na Zakończoną, zerowane przy ponownym otwarciu). Zakończona bez `completed_at` trzyma
-historię — brak danych nigdy jej nie kasuje. Planowana liczy się jako żywa, bo to negocjacje, kiedy
+historię — brak danych nigdy jej nie kasuje. Odrzucona nie dostaje już nocnych wersji, a te, które
+ma, zostają bez terminu. Planowana liczy się jako żywa, bo to negocjacje, kiedy
 zmiany oferty ważą najbardziej; `named` żyją tak samo, bo to je inwestor najbardziej chce odnaleźć
 („Oferta podpisana"), a wcześniej ginęły po 365 dniach jak wszystko. Inwestycja w koszu nie potrzebuje
 osobnej reguły: nocny job jej nie obejmuje, a `selectPurgeableInvestmentIds` kasuje tylko te

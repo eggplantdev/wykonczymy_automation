@@ -150,6 +150,7 @@ import * as migration_20261014_4_add_kosztorys_item_ai_round from './20261014_4_
 import * as migration_20261014_5_drop_kosztorys_worker_shares from './20261014_5_drop_kosztorys_worker_shares'
 import * as migration_20261014_6_drop_worker_expense_drafts_transfer_id from './20261014_6_drop_worker_expense_drafts_transfer_id'
 import * as migration_20261015_0_document_settings_column_map from './20261015_0_document_settings_column_map'
+import * as migration_20261015_1_add_rejected_investment_status from './20261015_1_add_rejected_investment_status'
 
 export const migrations = [
   {
@@ -911,5 +912,10 @@ export const migrations = [
     up: migration_20261015_0_document_settings_column_map.up,
     down: migration_20261015_0_document_settings_column_map.down,
     name: '20261015_0_document_settings_column_map',
+  },
+  {
+    up: migration_20261015_1_add_rejected_investment_status.up,
+    down: migration_20261015_1_add_rejected_investment_status.down,
+    name: '20261015_1_add_rejected_investment_status',
   },
 ]

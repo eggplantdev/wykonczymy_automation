@@ -65,6 +65,7 @@ import { FormShell } from '../form-components/form-shell'
 import { RegisterBalanceSummary } from '../form-components/register-balance-summary'
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
+import { isOfferedForBooking } from '@/lib/constants/investment-status'
 import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
@@ -435,6 +436,7 @@ export function ExpenseForm({
               form={form}
               variant="investment"
               items={referenceData.investments.filter(isBookableInvestment)}
+              fixedFilter={isOfferedForBooking}
             />
           )}
 

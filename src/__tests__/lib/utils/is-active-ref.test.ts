@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activeOrSelected } from '@/lib/utils/is-active-ref'
+import { activeOrSelected, matchingOrSelected } from '@/lib/utils/is-active-ref'
 
 const ANNA = { id: 1, name: 'Anna', active: true }
 const BOGDAN = { id: 2, name: 'Bogdan', active: false }
@@ -27,5 +27,17 @@ describe('activeOrSelected', () => {
 
   it('lists everyone once the active filter is widened', () => {
     expect(activeOrSelected(ROSTER, false, null)).toEqual(ROSTER)
+  })
+})
+
+describe('matchingOrSelected', () => {
+  const startsWithA = (item: { name: string }) => item.name.startsWith('A')
+
+  it('keeps only the items the predicate accepts', () => {
+    expect(matchingOrSelected(ROSTER, startsWithA, null)).toEqual([ANNA])
+  })
+
+  it('keeps the current selection even when the predicate rejects it', () => {
+    expect(matchingOrSelected(ROSTER, startsWithA, '3')).toEqual([ANNA, CEZARY])
   })
 })
