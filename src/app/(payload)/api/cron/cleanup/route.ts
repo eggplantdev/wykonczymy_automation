@@ -6,6 +6,7 @@ import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
 import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots } from '@/lib/db/snapshots'
+import { gcTemplateSnapshots } from '@/lib/db/template-snapshots'
 import { purgeCashRegisterTrash } from '@/lib/cash-registers/purge-trash'
 import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
 import { purgeVehicleTrash } from '@/lib/fleet/purge-trash'
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
 
   const snapshots = await runStep('snapshots', () => gcSnapshots(db))
   if (snapshots && snapshots.deleted > 0) revalidateTag(CACHE_TAGS.kosztorysSnapshots, EXPIRE_NOW)
+  const templateSnapshots = await runStep('templateSnapshots', () => gcTemplateSnapshots(db))
   const trash = await runStep('trash', () => purgeTrash(payload, db))
   const cashRegisterTrash = await runStep('cashRegisterTrash', () =>
     purgeCashRegisterTrash(payload, db),
@@ -38,6 +40,7 @@ export async function GET(request: NextRequest) {
   const leadTrash = await runStep('leadTrash', () => purgeLeadTrash(payload, db))
   const results = {
     snapshots,
+    templateSnapshots,
     trash,
     cashRegisterTrash,
     workerTrash,

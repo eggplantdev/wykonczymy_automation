@@ -610,14 +610,14 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 4.1 The 9 `createTestTemplate` specs pass on the new tables
-- [x] 4.2 Trashed-name refusal case passes
+- [x] 4.1 The 9 `createTestTemplate` specs pass on the new tables — d1648a678
+- [x] 4.2 Trashed-name refusal case passes — d1648a678
 
 ### Phase 5: „Wersje” szablonu
 
 #### Automated
 
-- [ ] 5.1 `template-snapshots.test.ts` passes
+- [x] 5.1 `template-snapshots.test.ts` passes
 
 ### Phase 6: Kosz szablonu
 

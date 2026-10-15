@@ -35,9 +35,9 @@ import type { DbExecutorT } from './get-db'
 // them: they live as long as the investment is open, and go a year after it was completed
 // (`completed_at`). A completed investment with no `completed_at` keeps them — investor history is
 // never deleted on missing data. `auto` and `manual` are the owner's restore points only.
-const FULL_DENSITY_DAYS = 30
-const DAILY_BAND_DAYS = 120
-const MAX_AGE_DAYS = 365
+export const FULL_DENSITY_DAYS = 30
+export const DAILY_BAND_DAYS = 120
+export const MAX_AGE_DAYS = 365
 const INVESTOR_HISTORY_DAYS_AFTER_COMPLETION = 365
 
 // Without the jsonb `payload`: a list must never load ~1000 rows × N snapshots of tree data.

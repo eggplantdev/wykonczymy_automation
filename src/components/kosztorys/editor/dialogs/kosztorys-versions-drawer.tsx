@@ -55,7 +55,14 @@ export function KosztorysVersionsDrawer({
         // did not ask to move — należne recorded for a since-deleted person now sits in „Bez
         // przypisanego pracownika". Their name can't be shown; the row they were on is gone from `users`.
         const dropped = data.droppedWorkerAssignments
-        if (dropped > 0) {
+        const skipped = data.skippedCatalogueItems ?? 0
+        if (skipped > 0) {
+          toastMessage(
+            `Przywrócono wersję bez ${skipped} ${pluralize(skipped, ['pracy', 'prac', 'prac'])} — usunięto je z katalogu.`,
+            'warning',
+            8000,
+          )
+        } else if (dropped > 0) {
           toastMessage(
             // The count is per etap, not per person — n etapy may have named one deleted worker or n
             // of them — so the cause clause stays number-free rather than asserting a headcount it

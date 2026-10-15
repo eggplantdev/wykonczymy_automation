@@ -10,6 +10,7 @@ import { getSnapshot, insertSnapshot, listSnapshots, type SnapshotMetaT } from '
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
+import { withTakenByNames } from '@/lib/kosztorys/snapshot-taken-by-names'
 import type { ActionResultT } from '@/types/action'
 
 // --- Capture triggers ---
@@ -57,7 +58,8 @@ export async function saveSnapshotAction(
 
 const restoreSchema = z.object({ snapshotId: z.number(), investmentId: z.number() })
 
-export type RestoreResultT = { droppedWorkerAssignments: number }
+// `skippedCatalogueItems` is the template plane's: prace whose katalog entry was deleted since.
+export type RestoreResultT = { droppedWorkerAssignments: number; skippedCatalogueItems?: number }
 
 // Restore a snapshot into the CURRENT investment: `investmentId` is the editor's open context and the
 // snapshot must belong to it — a snapshot from another investment is refused as "not found" (a bare
@@ -101,7 +103,8 @@ export async function restoreSnapshotAction(
   )
 }
 
-export type SnapshotListItemT = SnapshotMetaT & { takenByName: string | null }
+// Without the owner id: the template plane lists its versions in the same drawer.
+export type SnapshotListItemT = Omit<SnapshotMetaT, 'investmentId'> & { takenByName: string | null }
 
 // Snapshot metadata for the "Wersje" drawer — newest first, WITHOUT the jsonb payload, with
 // taken_by resolved to a display name for attribution.
@@ -111,27 +114,9 @@ export async function listSnapshotsAction(
   // Reads only — a locked kosztorys keeps its history browsable; restoring it is what's refused.
   return protectedAction('listSnapshotsAction', async ({ payload }) => {
     const db = await getDb(payload)
-    const snapshots = await listSnapshots(db, investmentId)
-
-    const userIds = [
-      ...new Set(snapshots.map((s) => s.takenBy).filter((id): id is number => id != null)),
-    ]
-    const nameById = new Map<number, string>()
-    if (userIds.length > 0) {
-      const users = await payload.find({
-        collection: 'users',
-        where: { id: { in: userIds } },
-        limit: userIds.length,
-        depth: 0,
-        overrideAccess: true,
-      })
-      for (const u of users.docs) nameById.set(Number(u.id), u.name ?? u.email)
+    return {
+      success: true,
+      data: await withTakenByNames(payload, await listSnapshots(db, investmentId)),
     }
-
-    const data = snapshots.map((s) => ({
-      ...s,
-      takenByName: s.takenBy == null ? null : (nameById.get(s.takenBy) ?? null),
-    }))
-    return { success: true, data }
   })
 }

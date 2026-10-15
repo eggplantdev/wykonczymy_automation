@@ -8,21 +8,32 @@ import {
 } from '@/lib/db/template-structure'
 import { bumpTemplateRevision, markTemplateEdited } from '@/lib/db/templates'
 import { sql } from '@payloadcms/db-postgres'
+import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import type { TemplateSnapshotPayloadT } from './snapshot-payload'
 
-// Swap a szablon's whole layout, reversibly: a labelled `manual` version of what stands is written
-// first, on the caller's transaction, so a rollback takes it too and the overwrite stays one click
-// back in „Wersje". The szablon row is locked before the read, so the version describes exactly the
-// layout the wipe deletes.
+// Swap a szablon's whole layout, reversibly: a version of what stands is written first, on the
+// caller's transaction, so a rollback takes it too and the overwrite stays one click back in
+// „Wersje" — a labelled `manual` one by default, an `auto` one as a restore's restore point. The
+// szablon row is locked before the read, so the version describes exactly the layout the wipe deletes.
 export async function replaceTemplateLayout(
   db: DbExecutorT,
   templateId: number,
-  { label, takenBy, layout }: { label: string; takenBy: number; layout: TemplateSnapshotPayloadT },
+  {
+    label,
+    takenBy,
+    layout,
+    kind = 'manual',
+  }: {
+    label: string | null
+    takenBy: number
+    layout: TemplateSnapshotPayloadT
+    kind?: SnapshotKindT
+  },
 ): Promise<void> {
   await db.execute(sql`SELECT id FROM templates WHERE id = ${templateId} FOR UPDATE`)
   await insertTemplateSnapshot(db, {
     templateId,
-    kind: 'manual',
+    kind,
     label,
     takenBy,
     payload: await readTemplateLayout(db, templateId),
