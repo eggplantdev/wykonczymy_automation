@@ -67,6 +67,8 @@ export async function acceptWorkerReportAction(
         throw error
       }
     },
+    // Expired on a save that only odrzuca lines too: the report queue is an uncached read, and these
+    // tags are what re-render it — narrowed, a rejected report keeps showing as pending.
     ['kosztorysStages', 'stageProgress', 'kosztorysItems', 'investments'],
   )
 }
@@ -117,7 +119,9 @@ async function acceptInTransaction(
   const isAccepted = (lineId: number) => lineById.get(lineId)?.acceptedQty !== null
   const isRejected = (lineId: number) => lineById.get(lineId)?.isRejected === true
   // A decision states what the window saw; another window's accept since then makes it a different
-  // decision, never silently a change of that one.
+  // decision, never silently a change of that one. The one accepted exception: accepting a line that
+  // another window odrzuciła meanwhile goes through — last write wins, and the line ends visibly
+  // accepted rather than lost.
   const isStale =
     request.lines.some(
       (decision) => decision.seenQty !== (lineById.get(decision.lineId)?.acceptedQty ?? undefined),

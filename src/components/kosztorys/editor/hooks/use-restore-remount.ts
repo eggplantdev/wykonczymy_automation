@@ -24,6 +24,9 @@ type RestoreRemountT = {
 // Latching, rather than remounting straight from the caller's `await`, is what makes the reseed correct:
 // the router applies a fresh tree in a transition whose commit nothing can await, so a remount dispatched
 // from an action's continuation renders first — reseeding the body from the tree it already holds.
+// Accepted race: a row added or removed between an action's click and its render moves the token by
+// itself, firing the latch on that tree instead of the replaced one. Closing it would need every
+// tree-replacing action to return its new revision to arm on — too much for a ~100 ms window.
 //
 // `isRefreshing` is the caller's own transition around the refresh that should bring the new tree. When
 // it settles with the token unchanged, the write it was refetching never committed: left armed, the

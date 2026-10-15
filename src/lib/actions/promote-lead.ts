@@ -38,6 +38,8 @@ export async function promoteLeadAction(
         depth: 0,
         overrideAccess: true,
       })
+      // A lead trashed from another tab meanwhile still promotes, files included: the input is the
+      // human's own form data and the result an ordinary investment, so nothing is lost.
       if (lead.investment) {
         return { success: false, error: 'To zgłoszenie ma już swoją inwestycję.' }
       }

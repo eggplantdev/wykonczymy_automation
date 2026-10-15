@@ -20,6 +20,10 @@ const rejectPayoutSchema = z.object({
 
 type RejectPayoutInputT = z.infer<typeof rejectPayoutSchema>
 
+// Both decisions expire the whole `transfers` tag rather than an entity tag: a payout's status is
+// read by many transfer caches, and re-tagging each risks one left showing a stale status. At a few
+// decisions per worker a month, the recompute is the cheaper side.
+
 export async function acceptPayoutAction(transactionId: number): Promise<ActionResultT> {
   return sessionAction(
     `acceptPayoutAction transaction=${transactionId}`,

@@ -29,7 +29,8 @@ export function KosztorysEditorV2(props: PropsT) {
   // The latch's freshness token. `revision` (investment.updatedAt) alone answers a restore and an
   // import — both bump it — but not a row deleted in ANOTHER tab, which changes nothing on the
   // investment and is one of the ways a write comes back NOT_FOUND. The item and section counts close
-  // that half — a sekcja bez pozycji moves only the second.
+  // that half — a sekcja bez pozycji moves only the second. Blind spot, accepted: another tab deleting
+  // one row and adding one leaves both counts, and so the token, unchanged.
   const treeToken = `${tree.revision}:${tree.sections.length}:${tree.sections.reduce((n, section) => n + section.items.length, 0)}`
   // Owns the refetch after an interrupted replace, so the latch learns when that refresh has landed.
   const [isRefreshing, startRefresh] = useTransition()

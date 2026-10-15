@@ -58,6 +58,8 @@ type RowSelectConfigT = {
 }
 
 // Mirrors the receipt picker's accept="image/*,application/pdf" for dropped files, which carry no filter.
+// The raw browser type, not ALLOWED_UPLOAD_MIMES: this runs before ingest re-encodes e.g. a BMP to
+// PNG, so the upload allowlist would refuse files ingest can fix.
 const isReceiptFile = (file: File) =>
   file.type.startsWith('image/') || file.type === 'application/pdf'
 

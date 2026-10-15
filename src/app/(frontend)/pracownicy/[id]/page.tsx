@@ -200,6 +200,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
                 investments: offeredIfChoice(toOptions(transferInvestments)),
                 transferTypes: offeredIfChoice(transferTypes),
                 otherCategories: toOptions(refData.otherCategories),
+                // Off for management as well — the owner wants this page simplified for every viewer.
                 showCancelledFilter: false,
                 showSearchFilters: false,
               },

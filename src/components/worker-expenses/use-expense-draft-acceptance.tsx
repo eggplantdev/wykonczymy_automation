@@ -185,6 +185,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     }
   }
 
+  // A reject is one decision with one `duplicate_of`, so „Duplikat" marks already set on other
+  // paragony are dropped — accepted: the „Duplikaty" filter still finds the zgłoszenie.
   async function handleReject(draftId: number, duplicateOf?: DuplicateOfT) {
     const result = await settleAction(() => rejectExpenseDraftAction(draftId, duplicateOf))
     if (!result.success) {

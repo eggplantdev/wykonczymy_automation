@@ -112,6 +112,8 @@ async function loadBookedTransactions(
 
 // A transakcja booked from merged paragony carries their summed Kwota, which matches none of them —
 // so each paragon behind it is a candidate of its own, read off the zgłoszenie it came from.
+// Known gap: a merge of one read paragon with blank ones books a single read row, so `> 1` skips it
+// and its read part gets no candidate — telling it apart needs the merge's part count.
 async function loadMergedParagony(
   db: DbExecutorT,
   selector: TransactionSelectorT,

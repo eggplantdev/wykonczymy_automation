@@ -13,6 +13,9 @@ type PreviewImageOptionsT = { sizes: string; unoptimized?: boolean }
  * instead of waiting out a cold round-trip through `/api/media/file` (0.5–0.7 s TTFB on prod,
  * 2026-10-15). One path for both kinds because a PDF has no `<Image>` to carry a `preload` prop.
  * Called during render — `preload` dedupes by URL, so a re-render costs nothing.
+ *
+ * A PDF neighbour is the whole file, on a phone too: the owner accepted that bandwidth for the
+ * instant page turn.
  */
 export function preloadPreviewNeighbours(
   files: PreviewFileT[],
