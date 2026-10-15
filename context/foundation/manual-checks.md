@@ -4589,6 +4589,13 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Katalog prac → „Filtry”: nie ma już grup „Kosztorysy” ani „Szablony”; zostały „Źródło stawki” i „Udział w cenie”. Sortowanie kolumn „Kosztorysy” i „Szablony” od 0 nadal działa.
 - [ ] Ktoś, kto wcześniej zostawił włączony filtr „w kosztorysach”: po wejściu na katalog tabela pokazuje wszystkie prace, bez chipa tego filtra.
 
+## EX-1065 — catalogue-auto-translate — nocny cron dotłumacza katalog prac
+
+- [ ] Katalog prac z pracą bez tłumaczenia (licznik przy „Uzupełnij tłumaczenia (AI)” > 0) → wywołaj `GET /api/cron/translate-catalogue` z nagłówkiem `Authorization: Bearer <CRON_SECRET>`: odpowiedź `ok: true` z liczbą `items`, a po odświeżeniu katalogu licznik spada do 0 i praca ma tłumaczenie.
+- [ ] To samo wywołanie bez nagłówka zwraca 401 i nic nie tłumaczy.
+- [ ] Katalog prac → „Uzupełnij tłumaczenia (AI)” nadal tłumaczy i zeruje licznik, jak dotąd.
+- [ ] Vercel → Settings → Cron Jobs po wdrożeniu na produkcję: jest `/api/cron/translate-catalogue` o `0 2 * * *`.
+
 ## 2026-10-08 — expense-draft-missing-pages — odrzucenie zgłoszenia, którego zdjęć nie da się pobrać
 
 - [x] Transakcje → „Wydatki zgłoszone przez pracowników” → „Zweryfikuj” na zgłoszeniu, którego

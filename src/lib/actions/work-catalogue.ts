@@ -1,17 +1,13 @@
 'use server'
 
 import { z } from 'zod'
-import { translateNewRow, translateRows } from '@/lib/ai/translate-new-row'
+import { fillCatalogueTranslations } from '@/lib/ai/fill-catalogue-translations'
+import { translateNewRow } from '@/lib/ai/translate-new-row'
 import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
-import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
 import { getDb } from '@/lib/db/get-db'
 import { deleteTemplateRowsOfCatalogueItem, markPresetEdited } from '@/lib/db/presets'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import {
-  findCatalogueItemByKey,
-  listCatalogueItems,
-  listCatalogueItemsByIds,
-} from '@/lib/db/work-catalogue'
+import { findCatalogueItemByKey, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
 import { translationsFromTexts } from '@/lib/i18n/description-translations'
 import { catalogueSaveState } from '@/lib/queries/work-catalogue'
 import type { CatalogueSeedItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -233,10 +229,7 @@ export async function fillCatalogueTranslationsAction() {
   return protectedAction<{ items: number; failed: number }>(
     'fillCatalogueTranslationsAction',
     async ({ payload }) => {
-      const db = await getDb(payload)
-      const { writes, failed } = await translateRows(await listCatalogueItems(db))
-      const written = await fillDescriptionTranslations(db, 'work_catalogue_items', writes)
-      return { success: true, data: { items: written, failed } }
+      return { success: true, data: await fillCatalogueTranslations(await getDb(payload)) }
     },
     ['workCatalogue'],
   )
