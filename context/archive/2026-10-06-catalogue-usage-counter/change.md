@@ -73,26 +73,8 @@ ta sama zasada.
 
 ### Odświeżenie pomiaru
 
-```bash
-pnpm db:dump   # opcjonalnie: świeży dump prod → dumps/dump-latest.sql
-bash context/archive/2026-10-06-catalogue-usage-counter/refresh/refresh.sh [dump.sql] > /tmp/catalogue-usage.md
-```
-
-Wczytuje dump do osobnej bazy `dump_scratch` na kontenerze dev (baza `wykonczymy-db` nietknięta),
-wypisuje markdown: liczniki, dopasowanie arkusz/aplikacja, rozkład powtórzeń i listę powtarzających
-się z podpowiedziami katalogu. Kolumna A?/B?/C? to automatyczny pierwszy podział (ten sam opis inna
-j.m. / podpowiedź ≥ 0,9 / słabsza podpowiedź / brak) — „Montaż zaworów" ląduje w B? przez słabe
-podpowiedzi, więc grupy weryfikować ręcznie. ~5 s.
-
-Ten sam skrypt pisze też `template-usage.html` (otwierać w przeglądarce): użycie każdej pracy
-szablonu (`TEMPLATE=…`, domyślnie „Kosztorys 2026 kolory”), z pracami pod inną nazwą lub j.m.
-doliczonymi do „łącznie”. Kandydatów na duplikaty szuka automat (podobna nazwa, ten sam opis w innej
-j.m.) wśród prac użytych w aplikacji i w starych arkuszach Google, a o tym, czy to ta sama praca,
-decyduje ręczna ocena w `refresh/template-verdicts.tsv`. Para bez oceny wychodzi w raporcie jako
-NIESPRAWDZONE, więc po świeżym dumpie trzeba ocenić tylko nowe pary. Cały przepis — kroki, zasady
-oceniania par, ograniczenia — w `refresh/README.md`.
-
-Drugi raport z tego samego przebiegu, `catalogue-usage.html`, liczy to samo dla całego katalogu prac.
+Skrypt pomiaru i ręczne oceny par (`refresh/`) skasowane 2026-10-15 — w historii gita:
+`git show 736eb09b2:context/archive/2026-10-06-catalogue-usage-counter/refresh/README.md`.
 
 ### Źródła użycia: aplikacja + stare arkusze Google
 
@@ -102,7 +84,7 @@ podstawa do kasowania (owner, 2026-10-06): wpisy katalogu spisano ze starych sza
 potem przemianowano, więc ich użycie stoi pod starymi nazwami w arkuszach, których aplikacja nie
 zna. Poprawki:
 
-- drugim źródłem są zrzuty starych arkuszy Google (`refresh/legacy.ts`) — 54 przeczytane: 27
+- drugim źródłem są zrzuty starych arkuszy Google — 54 przeczytane: 27
   inwestycji bez kosztorysu w aplikacji i 27 starszych kopii kosztorysów, które w aplikacji są, a
   mimo to niosą 515 użytych pozycji, których aplikacja nie ma;
 - liczy się liczba inwestycji, każda raz, niezależnie od tego, w ilu kopiach kosztorysu praca stoi;
