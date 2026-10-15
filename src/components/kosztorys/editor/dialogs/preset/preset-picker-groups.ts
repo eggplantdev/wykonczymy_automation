@@ -1,11 +1,11 @@
-import type { PresetSectionMetaT } from '@/lib/db/presets'
+import type { TemplateSectionMetaT } from '@/lib/db/templates'
 
-export const getPresetName = (group: PresetGroupT) => group.presetName
+export const getPresetName = (group: PresetGroupT) => group.templateName
 
 export type PresetGroupT = {
-  presetId: number
-  presetName: string
-  metas: PresetSectionMetaT[]
+  templateId: number
+  templateName: string
+  metas: TemplateSectionMetaT[]
   selectedCount: number
 }
 
@@ -17,19 +17,19 @@ export function isGroupFullySelected(group: PresetGroupT | undefined): boolean {
   return group.selectedCount === group.metas.length
 }
 
-// Consecutive metas sharing a presetId form one group. Grouping never re-sorts: the query's order IS
+// Consecutive metas sharing a templateId form one group. Grouping never re-sorts: the query's order IS
 // the left pane's order (newest szablon first).
 export function groupPresetSections(
-  metas: PresetSectionMetaT[],
+  metas: TemplateSectionMetaT[],
   selected: Set<number>,
 ): PresetGroupT[] {
   const groups: PresetGroupT[] = []
   for (const meta of metas) {
     const last = groups.at(-1)
-    if (!last || last.presetId !== meta.presetId) {
+    if (!last || last.templateId !== meta.templateId) {
       groups.push({
-        presetId: meta.presetId,
-        presetName: meta.presetName,
+        templateId: meta.templateId,
+        templateName: meta.templateName,
         metas: [],
         selectedCount: 0,
       })

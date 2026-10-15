@@ -603,15 +603,15 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [x] 3.1 `template-structure.test.ts` passes (table isolation, katalog write)
-- [x] 3.2 Editor DOM specs pass with the kosztorys set injected
+- [x] 3.1 `template-structure.test.ts` passes (table isolation, katalog write) — bcde016f9
+- [x] 3.2 Editor DOM specs pass with the kosztorys set injected — bcde016f9
 
 ### Phase 4: Szablony in circulation
 
 #### Automated
 
-- [ ] 4.1 The 9 `createTestTemplate` specs pass on the new tables
-- [ ] 4.2 Trashed-name refusal case passes
+- [x] 4.1 The 9 `createTestTemplate` specs pass on the new tables
+- [x] 4.2 Trashed-name refusal case passes
 
 ### Phase 5: „Wersje” szablonu
 

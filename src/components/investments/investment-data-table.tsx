@@ -20,7 +20,7 @@ import {
   SettlePayoutsDialog,
   type SettleDialogTargetT,
 } from '@/components/dialogs/settle-payouts-dialog'
-import type { PresetMetaT } from '@/lib/db/presets'
+import type { TemplateMetaT } from '@/lib/db/templates'
 import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { isClosedStatus } from '@/lib/constants/investment-status'
 
@@ -36,7 +36,7 @@ const INITIAL_SORTING = [{ id: 'createdAt', desc: true }]
 
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
-  presets: PresetMetaT[]
+  presets: TemplateMetaT[]
 }
 
 export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT) {

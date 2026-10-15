@@ -6,7 +6,7 @@ import { FormDialog } from '@/components/ui/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { createInvestmentAction } from '@/lib/actions/investments'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
-import type { PresetMetaT } from '@/lib/db/presets'
+import type { TemplateMetaT } from '@/lib/db/templates'
 
 const EMPTY_DEFAULTS: InvestmentFormValuesT = {
   name: '',
@@ -20,7 +20,7 @@ const EMPTY_DEFAULTS: InvestmentFormValuesT = {
   presetId: '',
 }
 
-export function AddInvestmentDialog({ presets }: { presets: PresetMetaT[] }) {
+export function AddInvestmentDialog({ presets }: { presets: TemplateMetaT[] }) {
   return (
     <FormDialog
       formId="add-investment"

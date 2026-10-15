@@ -1,5 +1,10 @@
 import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
 import {
+  appendPresetSectionsToTemplateAction,
+  reloadTemplateFromPresetAction,
+  saveTemplateAsPresetAction,
+} from '@/lib/actions/kosztorys-presets'
+import {
   listTemplateSnapshotsAction,
   restoreTemplateSnapshotAction,
   saveTemplateSnapshotAction,
@@ -43,4 +48,7 @@ export const templateEditorActions: EditorActionsT = {
   restoreSnapshot: restoreTemplateSnapshotAction,
   fillTranslations: fillTemplateTranslationsAction,
   readRevision: readTemplateRevisionAction,
+  savePreset: saveTemplateAsPresetAction,
+  reloadFromPreset: reloadTemplateFromPresetAction,
+  appendPresetSections: appendPresetSectionsToTemplateAction,
 }

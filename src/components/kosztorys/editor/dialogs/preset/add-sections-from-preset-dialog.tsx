@@ -5,7 +5,7 @@ import { Check, ChevronLeft } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
-import { appendPresetSectionsAction } from '@/lib/actions/kosztorys-presets'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import type { AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import { cn } from '@/lib/utils/cn'
@@ -31,6 +31,7 @@ export function AddSectionsFromPresetDialog({
   onOpenChange,
   onAppended,
 }: PropsT) {
+  const { appendPresetSections } = useEditorActions()
   const { sections, resetSections } = usePresetSections(open)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [activePresetId, setActivePresetId] = useState<number | null>(null)
@@ -48,7 +49,7 @@ export function AddSectionsFromPresetDialog({
   // Falling back to the first szablon keeps the right pane filled from the moment the list lands,
   // without an effect that writes state during render. `.at(0)` rather than `[0]`: it types as
   // `| undefined`, so the empty-library case can't be read past without narrowing first.
-  const activeGroup = groups.find((group) => group.presetId === activePresetId) ?? groups.at(0)
+  const activeGroup = groups.find((group) => group.templateId === activePresetId) ?? groups.at(0)
 
   // Every close routes through here (cancel / esc / overlay / post-confirm), so resetting on close
   // guarantees the next open re-fetches fresh instead of showing the previous list — without an
@@ -85,7 +86,7 @@ export function AddSectionsFromPresetDialog({
       .filter((id) => selected.has(id))
     if (sectionIds.length === 0) return
     setPending(true)
-    const res = await settleAction(() => appendPresetSectionsAction(investmentId, sectionIds))
+    const res = await settleAction(() => appendPresetSections(investmentId, sectionIds))
     setPending(false)
     if (!res.success) {
       toastMessage(res.error, 'error', 4000)
@@ -135,20 +136,20 @@ export function AddSectionsFromPresetDialog({
                 ) : (
                   filteredGroups.map((group) => (
                     <button
-                      key={group.presetId}
+                      key={group.templateId}
                       type="button"
                       // Ticking a whole szablon goes through „Zaznacz wszystkie", not this row.
                       onClick={() => {
-                        setActivePresetId(group.presetId)
+                        setActivePresetId(group.templateId)
                         setPane('sections')
                       }}
-                      aria-current={group.presetId === activeGroup.presetId}
+                      aria-current={group.templateId === activeGroup.templateId}
                       className={cn(
                         'hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-                        group.presetId === activeGroup.presetId && 'bg-accent',
+                        group.templateId === activeGroup.templateId && 'bg-accent',
                       )}
                     >
-                      <span className="flex-1 truncate">{group.presetName}</span>
+                      <span className="flex-1 truncate">{group.templateName}</span>
                       {group.selectedCount > 0 && (
                         <span className="text-primary text-xs font-medium">
                           {group.selectedCount}/{group.metas.length}
@@ -177,10 +178,10 @@ export function AddSectionsFromPresetDialog({
                 className="hover:bg-accent flex items-center gap-1 border-b px-3 py-2 text-left text-sm sm:hidden"
               >
                 <ChevronLeft />
-                <span className="truncate">{activeGroup.presetName}</span>
+                <span className="truncate">{activeGroup.templateName}</span>
               </button>
               <p className="hidden truncate border-b px-3 py-2 text-sm font-medium sm:block">
-                {activeGroup.presetName}
+                {activeGroup.templateName}
               </p>
               <div className="min-h-0 flex-1 overflow-y-auto py-2">
                 {/* Lives in the unfiltered pane by construction: mass-select can never reach sekcje

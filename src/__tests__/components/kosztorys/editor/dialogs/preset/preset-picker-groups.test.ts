@@ -3,15 +3,15 @@ import {
   groupPresetSections,
   isGroupFullySelected,
 } from '@/components/kosztorys/editor/dialogs/preset/preset-picker-groups'
-import type { PresetSectionMetaT } from '@/lib/db/presets'
+import type { TemplateSectionMetaT } from '@/lib/db/templates'
 
 const meta = (
-  presetId: number,
+  templateId: number,
   sectionId: number,
-  presetName = `szablon-${presetId}`,
-): PresetSectionMetaT => ({
-  presetId,
-  presetName,
+  templateName = `szablon-${templateId}`,
+): TemplateSectionMetaT => ({
+  templateId,
+  templateName,
   sectionId,
   sectionName: `sekcja-${sectionId}`,
   itemCount: 3,
@@ -28,7 +28,7 @@ describe('groupPresetSections', () => {
       new Set(),
     )
 
-    expect(groups.map((group) => group.presetId)).toEqual([2, 1])
+    expect(groups.map((group) => group.templateId)).toEqual([2, 1])
     expect(groups[0].metas.map((item) => item.sectionId)).toEqual([10, 11])
     expect(groups[1].metas.map((item) => item.sectionId)).toEqual([20, 21, 22])
   })
@@ -36,15 +36,15 @@ describe('groupPresetSections', () => {
   it('takes the group name from its metas', () => {
     const groups = groupPresetSections([meta(1, 10, 'Białostocka bazowy')], new Set())
 
-    expect(groups[0].presetName).toBe('Białostocka bazowy')
+    expect(groups[0].templateName).toBe('Białostocka bazowy')
   })
 
   // The precondition the picker's React keys rest on: `listPresetSections` returns one preset's
-  // metas consecutively. Fed interleaved, grouping splits them — two groups with one presetId.
+  // metas consecutively. Fed interleaved, grouping splits them — two groups with one templateId.
   it('splits a preset whose metas arrive non-consecutively', () => {
     const groups = groupPresetSections([meta(1, 10), meta(2, 20), meta(1, 11)], new Set())
 
-    expect(groups.map((group) => group.presetId)).toEqual([1, 2, 1])
+    expect(groups.map((group) => group.templateId)).toEqual([1, 2, 1])
   })
 
   it('counts selections per group', () => {

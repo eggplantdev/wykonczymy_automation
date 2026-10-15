@@ -1,10 +1,18 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { appendPresetSectionsAction } from '@/lib/actions/kosztorys-presets'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createTestTemplate } from '@/__tests__/helpers/template'
+import {
+  addTestTemplateSection,
+  createTestCatalogueEntry,
+  createTestTemplate,
+  deleteTestCatalogueEntries,
+  deleteTestTemplate,
+} from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 // Same discipline as serialize-apply-preset: exercise against the REAL DB and assert PERSISTED state
@@ -24,6 +32,8 @@ const PRESET_PREFIX = 'append-spec-'
 describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   let payload: Payload
   const investmentIds: number[] = []
+  const templateIds: number[] = []
+  const entryIds: number[] = []
 
   async function createInvestment(name: string) {
     const id = await createTestInvestment(payload, name, { wToolsCoeff: 0.7, ownToolsCoeff: 0.5 })
@@ -64,12 +74,19 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     return sectionIds[0]
   }
 
-  // A szablon with one named section whose live tree carries przedmiar and rabat — the append must
-  // strip both. Returns the live section id the picker addresses it by.
+  // A szablon with one named section holding one katalog praca. Returns the section id the picker
+  // addresses it by.
   async function buildPreset(nameSuffix: string, sectionName: string, color: string | null = null) {
-    const presetId = await createTestTemplate(payload, `${PRESET_PREFIX}${nameSuffix}`)
-    investmentIds.push(presetId)
-    const sectionId = await addSection(presetId, sectionName, 0, color)
+    const templateId = await createTestTemplate(payload, `${PRESET_PREFIX}${nameSuffix}`)
+    templateIds.push(templateId)
+    const entryId = await createTestCatalogueEntry(payload, `Praca w ${sectionName}`, {
+      clientPrice: 150,
+      wToolsRate: 97.5,
+    })
+    entryIds.push(entryId)
+    const { sectionId } = await addTestTemplateSection(payload, templateId, sectionName, [entryId], {
+      color,
+    })
     return { sectionId }
   }
 
@@ -86,9 +103,11 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     for (const id of investmentIds) {
       await deleteTestInvestment(payload, id)
     }
+    for (const id of templateIds) await deleteTestTemplate(payload, id)
+    await deleteTestCatalogueEntries(payload, entryIds)
   })
 
-  it('(a) appends a section after existing ones, values intact and job fields zeroed', async () => {
+  it('(a) appends a section after existing ones, katalog values in and job fields empty', async () => {
     const { sectionId } = await buildPreset('a', 'Malowanie')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-a`)
@@ -105,12 +124,11 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(appended.displayOrder).toBe(1)
 
     const item = after.items.find((it) => it.sectionId === appended.id)!
-    expect(item.description).toBe('Praca w Malowanie')
+    expect(item.description).toMatch(/^Praca w Malowanie /)
     expect(item.unit).toBe('m2')
     expect(item.clientPrice).toBe(150)
     expect(item.wToolsOverrideValue).toBe(97.5)
-    // Job figures — the pozycja's komentarz among them — are zeroed at serialize time, and the
-    // append inserts the cleaned values verbatim.
+    // A szablon praca carries no job figures, so the copy starts the job empty.
     expect(item.plannedQty).toBe(0)
     expect(item.discountType).toBeNull()
     expect(item.discountValue).toBe(0)
@@ -197,11 +215,12 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(after.sections.find((s) => s.name === 'Sekcja G')?.color).toBeNull()
   })
 
-  // A section id names its investment on its own, so an ordinary investment's section must not be
-  // copyable by guessing its id — only a szablon is a source.
-  it('(h) refuses a section of an ordinary investment and persists nothing', async () => {
-    const sourceId = await createInvestment(`${PRESET_PREFIX}not-a-template`)
-    const sectionId = await addSection(sourceId, 'Klienta', 0)
+  // Only a live szablon is a source: a trashed one is gone from the picker, and an open picker must
+  // not still copy from it.
+  it('(h) refuses a section of a trashed szablon and persists nothing', async () => {
+    const { sectionId } = await buildPreset('h', 'Z kosza')
+    const db = await getDb(payload)
+    await db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${templateIds.at(-1)!}`)
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-h`)
     const result = await appendPresetSectionsAction(targetId, [sectionId])

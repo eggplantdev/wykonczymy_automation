@@ -1,31 +1,21 @@
 import 'server-only'
-import type { Payload, PayloadRequest } from 'payload'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { getDb } from '@/lib/db/get-db'
-import { markPresetEdited, presetNameHolder, type PresetNameHolderT } from '@/lib/db/presets'
-import { applyPreset } from './apply-preset'
-import { SETTLEMENT_MODE_DEFAULT } from './settlement-mode'
-import type { StoredSnapshotPayloadT } from './snapshot-format'
+import type { DbExecutorT } from '@/lib/db/get-db'
+import { insertTemplateLayout } from '@/lib/db/template-structure'
+import { insertTemplate, templateNameHolder, type TemplateNameHolderT } from '@/lib/db/templates'
+import type { TemplateSnapshotPayloadT } from './templates/snapshot-payload'
 
 // Both ways a szablon is born — empty, or „Zapisz jako nowy szablon" from a kosztorys — go through
-// here. THE CALLER OWNS THE TRANSACTION (`req`), so a failed tree insert takes the new investment
-// with it. The name check words the refusal in Polish; `investments_szablon_name_idx` stays the real
+// here. THE CALLER OWNS THE TRANSACTION (`db` on its handle), so a failed tree insert takes the new
+// szablon with it. The name check words the refusal in Polish; `templates_name_idx` stays the real
 // guard against a concurrent create with the same name.
 export async function createTemplate(
-  payload: Payload,
-  req: PayloadRequest,
-  { name, tree }: { name: string; tree?: StoredSnapshotPayloadT },
-): Promise<{ id: number } | PresetNameHolderT> {
-  const db = await getDb(payload, req)
-  const holder = await presetNameHolder(db, name)
+  db: DbExecutorT,
+  { name, layout }: { name: string; layout?: TemplateSnapshotPayloadT },
+): Promise<{ id: number } | TemplateNameHolderT> {
+  const holder = await templateNameHolder(db, name)
   if (holder) return holder
 
-  const created = await payload.create({
-    collection: 'investments',
-    data: { name, status: TEMPLATE_INVESTMENT_STATUS, settlementMode: SETTLEMENT_MODE_DEFAULT },
-    req,
-  })
-  if (tree) await applyPreset(payload, req, created.id, tree)
-  await markPresetEdited(db, created.id)
-  return { id: created.id }
+  const id = await insertTemplate(db, name)
+  if (layout) await insertTemplateLayout(db, id, layout)
+  return { id }
 }

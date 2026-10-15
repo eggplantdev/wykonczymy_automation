@@ -1,0 +1,34 @@
+import 'server-only'
+import type { DbExecutorT } from '@/lib/db/get-db'
+import { insertTemplateSnapshot } from '@/lib/db/template-snapshots'
+import {
+  deleteTemplateSections,
+  insertTemplateLayout,
+  readTemplateLayout,
+} from '@/lib/db/template-structure'
+import { bumpTemplateRevision, markTemplateEdited } from '@/lib/db/templates'
+import { sql } from '@payloadcms/db-postgres'
+import type { TemplateSnapshotPayloadT } from './snapshot-payload'
+
+// Swap a szablon's whole layout, reversibly: a labelled `manual` version of what stands is written
+// first, on the caller's transaction, so a rollback takes it too and the overwrite stays one click
+// back in „Wersje". The szablon row is locked before the read, so the version describes exactly the
+// layout the wipe deletes.
+export async function replaceTemplateLayout(
+  db: DbExecutorT,
+  templateId: number,
+  { label, takenBy, layout }: { label: string; takenBy: number; layout: TemplateSnapshotPayloadT },
+): Promise<void> {
+  await db.execute(sql`SELECT id FROM templates WHERE id = ${templateId} FOR UPDATE`)
+  await insertTemplateSnapshot(db, {
+    templateId,
+    kind: 'manual',
+    label,
+    takenBy,
+    payload: await readTemplateLayout(db, templateId),
+  })
+  await deleteTemplateSections(db, templateId)
+  await insertTemplateLayout(db, templateId, layout)
+  await bumpTemplateRevision(db, templateId)
+  await markTemplateEdited(db, templateId)
+}

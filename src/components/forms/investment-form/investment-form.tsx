@@ -13,7 +13,7 @@ import FormFooter from '@/components/forms/form-components/form-footer'
 import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
 import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from './investment-schema'
-import type { PresetMetaT } from '@/lib/db/presets'
+import type { TemplateMetaT } from '@/lib/db/templates'
 import type { ActionResultT } from '@/types/action'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
 import {
@@ -33,7 +33,7 @@ type InvestmentFormPropsT = {
   /** False on the edit dialogs — see `useManagedForm`. */
   persistDraft?: boolean
   // Create-only seed-from-szablon picker; omitted on edit.
-  presetOptions?: PresetMetaT[]
+  presetOptions?: TemplateMetaT[]
   /** Create-only file picker. On edit the gallery on the investment's page owns `assets` — routing
    * them through the update action would send an empty list and wipe what is already attached. */
   collectAssets?: boolean

@@ -1,9 +1,12 @@
 import type { TranslationFillResultT } from '@/lib/actions/kosztorys-translations'
+import type { SavePresetInputT } from '@/lib/actions/kosztorys-presets'
 import type { RestoreResultT, SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
+import type { AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import type { CreatedSectionT } from '@/lib/kosztorys/create-section'
 import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 import type { KosztorysLayoutT } from '@/lib/kosztorys/reorder-layout'
+import type { ReloadFromPresetResultT } from '@/lib/kosztorys/reload-from-preset'
 import type { SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 import type { ItemPatchT, KosztorysItemT } from '@/lib/kosztorys/types'
 import type {
@@ -51,4 +54,13 @@ export type EditorActionsT = {
   ) => Promise<ActionResultT<RestoreResultT>>
   fillTranslations: (ownerId: number) => Promise<ActionResultT<TranslationFillResultT>>
   readRevision: (ownerId: number) => Promise<string | undefined>
+  savePreset: (ownerId: number, input: SavePresetInputT) => Promise<ActionResultT>
+  reloadFromPreset: (
+    ownerId: number,
+    presetId: number,
+  ) => Promise<ActionResultT<ReloadFromPresetResultT>>
+  appendPresetSections: (
+    ownerId: number,
+    sectionIds: number[],
+  ) => Promise<ActionResultT<AppendedSliceT>>
 }

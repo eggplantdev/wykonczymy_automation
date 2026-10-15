@@ -7,22 +7,22 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { getDb } from '@/lib/db/get-db'
 import {
-  listPresets,
-  listPresetSections,
-  type PresetMetaT,
-  type PresetSectionMetaT,
-} from '@/lib/db/presets'
-import { getTemplateRecordName } from '@/lib/db/templates'
+  getTemplateRecordName,
+  listTemplateSections,
+  listTemplates,
+  type TemplateMetaT,
+  type TemplateSectionMetaT,
+} from '@/lib/db/templates'
 
 // Single cached read backing every preset picker. Argument-free — one global entry, correct for a
 // cross-investment library. Invalidated through the `presets` tag by every szablon lifecycle action
-// and by `investmentAction`'s tail on a szablon edit. Deliberately not tagged with the kosztorys
+// and by `templateAction`'s tail on a szablon edit. Deliberately not tagged with the kosztorys
 // tables: those move on every investment's edit anywhere (EX-849).
 export const getPresets = cached(
-  async (): Promise<PresetMetaT[]> => {
+  async (): Promise<TemplateMetaT[]> => {
     const payload = await getPayload({ config })
     const db = await getDb(payload)
-    return listPresets(db)
+    return listTemplates(db)
   },
   ['presets'],
   { tags: [CACHE_TAGS.presets] },
@@ -31,10 +31,10 @@ export const getPresets = cached(
 // Section-granular view of the same library, for the "append a section from a szablon" picker.
 // Shares the `presets` tag with getPresets, so one invalidation refreshes both.
 export const getPresetSections = cached(
-  async (): Promise<PresetSectionMetaT[]> => {
+  async (): Promise<TemplateSectionMetaT[]> => {
     const payload = await getPayload({ config })
     const db = await getDb(payload)
-    return listPresetSections(db)
+    return listTemplateSections(db)
   },
   ['preset-sections'],
   { tags: [CACHE_TAGS.presets] },
@@ -42,7 +42,7 @@ export const getPresetSections = cached(
 
 // The /szablony listing row: preset metadata plus per-szablon tallies, folded from the section
 // metas rather than counted again.
-export type PresetRowT = PresetMetaT & {
+export type PresetRowT = TemplateMetaT & {
   sectionCount: number
   itemCount: number
 }
@@ -52,10 +52,10 @@ export async function getPresetRows(): Promise<PresetRowT[]> {
 
   const tallies = new Map<number, { sections: number; items: number }>()
   for (const section of sections) {
-    const tally = tallies.get(section.presetId) ?? { sections: 0, items: 0 }
+    const tally = tallies.get(section.templateId) ?? { sections: 0, items: 0 }
     tally.sections += 1
     tally.items += section.itemCount
-    tallies.set(section.presetId, tally)
+    tallies.set(section.templateId, tally)
   }
 
   return presets.map((preset) => {

@@ -5,7 +5,7 @@ import { fillCatalogueTranslations } from '@/lib/ai/fill-catalogue-translations'
 import { translateNewRow } from '@/lib/ai/translate-new-row'
 import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { getDb } from '@/lib/db/get-db'
-import { deleteTemplateRowsOfCatalogueItem, markPresetEdited } from '@/lib/db/presets'
+import { markTemplateEdited, templatesUsingCatalogueItem } from '@/lib/db/templates'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { findCatalogueItemByKey, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
 import { translationsFromTexts } from '@/lib/i18n/description-translations'
@@ -135,21 +135,22 @@ export async function deleteCatalogueItemAction(id: number) {
     'deleteCatalogueItemAction',
     async ({ payload }) => {
       // A kosztorys keeps its own copy (and the now dead id); a szablon's prace ARE their katalog
-      // entries (EX-1017), so the praca leaves every szablon with it.
+      // entries, so the FK cascade takes the praca out of every szablon. Their ids are read first,
+      // while the rows that name them still exist.
       await withPayloadTransaction(
         payload,
         async (req) => {
           const db = await getDb(payload, req)
-          const templateIds = await deleteTemplateRowsOfCatalogueItem(db, id)
-          for (const templateId of templateIds) await markPresetEdited(db, templateId)
+          const templateIds = await templatesUsingCatalogueItem(db, id)
           await payload.delete({ collection: 'work-catalogue-items', id, req })
+          for (const templateId of templateIds) await markTemplateEdited(db, templateId)
         },
         { skipRevalidation: true },
       )
 
       return { success: true }
     },
-    ['workCatalogue', 'kosztorysItems', 'presets'],
+    ['workCatalogue', 'presets'],
   )
 }
 

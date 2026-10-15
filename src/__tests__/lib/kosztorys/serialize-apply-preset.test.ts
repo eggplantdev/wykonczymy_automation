@@ -8,7 +8,13 @@ import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { createTestTemplate } from '@/__tests__/helpers/template'
+import {
+  addTestTemplateSection,
+  createTestCatalogueEntry,
+  createTestTemplate,
+  deleteTestCatalogueEntries,
+  deleteTestTemplate,
+} from '@/__tests__/helpers/template'
 
 // Presets reuse the snapshot serialize/apply core, so we exercise it against the REAL DB and assert
 // PERSISTED state (re-serialize after apply), the same discipline as serialize-restore-roundtrip.
@@ -137,12 +143,21 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     })
   }
 
-  // A szablon whose LIVE tree carries przedmiar, rabat, etapy and progress — everything a seed from it
-  // must strip, since the szablon's own editor lets anyone type them in.
-  async function createTemplateWithJobFigures(name: string) {
+  const templateIds: number[] = []
+  const entryIds: number[] = []
+
+  // A szablon of two sekcje and three katalog prace.
+  async function createTemplateWithPrace(name: string) {
     const id = await createTestTemplate(payload, `${PRESET_PREFIX}${name}`)
-    investmentIds.push(id)
-    await buildSourceTree(id)
+    templateIds.push(id)
+    const entries = [
+      await createTestCatalogueEntry(payload, 'Malowanie', { clientPrice: 30 }),
+      await createTestCatalogueEntry(payload, 'Gruntowanie', { clientPrice: 10 }),
+      await createTestCatalogueEntry(payload, 'Płytki', { clientPrice: 120 }),
+    ]
+    entryIds.push(...entries)
+    await addTestTemplateSection(payload, id, 'Salon', entries.slice(0, 2))
+    await addTestTemplateSection(payload, id, 'Łazienka', entries.slice(2), { displayOrder: 1 })
     return id
   }
 
@@ -164,6 +179,8 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     for (const id of investmentIds) {
       await deleteTestInvestment(payload, id)
     }
+    for (const id of templateIds) await deleteTestTemplate(payload, id)
+    await deleteTestCatalogueEntries(payload, entryIds)
   })
 
   it('apply(serializeAsPreset()) reproduces the structural tree, zeroes the job figures and the komentarz, leaves target settings', async () => {
@@ -209,12 +226,8 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     })
   })
 
-  it('seed from a szablon yields no etapy, no progress, no przedmiar and no rabat', async () => {
-    const presetId = await createTemplateWithJobFigures('oneetap')
-    // A preset carries no etapy — they are per-job execution structure, not reusable scope.
-    const preset = await serializeKosztorysAsPreset(presetId)
-    expect(preset.stages).toEqual([])
-    expect(preset.progress).toEqual([])
+  it('seed from a szablon yields its prace, with no etapy, no progress, no przedmiar and no rabat', async () => {
+    const presetId = await createTemplateWithPrace('oneetap')
 
     const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-oneetap`, 0.23, 0.7, 0.5)
     expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
@@ -223,6 +236,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     // No etap is installed: its plane is forced at creation, and the seed has nothing to base one on.
     expect(after.stages).toEqual([])
     expect(after.progress).toEqual([])
+    expect(after.sections.map((section) => section.name)).toEqual(['Salon', 'Łazienka'])
     expect(after.items).toHaveLength(3)
     for (const item of after.items) {
       expect(item.plannedQty).toBe(0)
@@ -232,7 +246,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   })
 
   it('seed onto an investment that already has etapy keeps them and adds none', async () => {
-    const presetId = await createTemplateWithJobFigures('hasetapy')
+    const presetId = await createTemplateWithPrace('hasetapy')
 
     // The live shape behind the original bug: an empty tree (no sections) that nonetheless already
     // carries etapy, because „Dodaj etap" works on an empty kosztorys.
@@ -252,7 +266,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   })
 
   it('seed rejects a non-empty investment and writes nothing', async () => {
-    const presetId = await createTemplateWithJobFigures('guard')
+    const presetId = await createTemplateWithPrace('guard')
 
     // A second investment that ALREADY has a tree — seeding it must be refused.
     const occupiedId = await createInvestment(`${PRESET_PREFIX}target-guard`, 0.23, 0.7, 0.5)
@@ -267,26 +281,22 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     expect(canonicalTree(after)).toEqual(canonicalTree(before))
   })
 
-  // Only a szablon is a source: seeding from an ordinary investment's id would copy a client's
-  // rozpiska into someone else's offer.
-  it('seed refuses a source that is not a szablon and writes nothing', async () => {
-    const sourceId = await createInvestment(`${PRESET_PREFIX}source-ordinary`, 0.23, 0.7, 0.5)
-    await buildSourceTree(sourceId)
+  it('seed refuses a source that is not a live szablon and writes nothing', async () => {
     const targetId = await createInvestment(`${PRESET_PREFIX}target-ordinary`, 0.23, 0.7, 0.5)
 
-    expect(await seedInvestmentFromPreset(payload, targetId, sourceId)).toBe('not-found')
+    expect(await seedInvestmentFromPreset(payload, targetId, 2_000_000_000)).toBe('not-found')
     expect((await serializeKosztorys(targetId)).sections).toEqual([])
   })
 
   it('editing a szablon never propagates to a tree already spawned from it', async () => {
-    const presetId = await createTemplateWithJobFigures('frozen')
+    const presetId = await createTemplateWithPrace('frozen')
 
     const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-frozen`, 0.23, 0.7, 0.5)
     expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
     const spawnBefore = await serializeKosztorys(spawnId)
 
     // The szablon grows a section after the spawn.
-    await createKosztorysTree(payload, presetId, { sections: [{ name: 'Nowa treść' }] })
+    await addTestTemplateSection(payload, presetId, 'Nowa treść', [], { displayOrder: 2 })
 
     // The spawned tree is frozen — no FK back to the szablon, so the edit is invisible to it.
     const spawnAfter = await serializeKosztorys(spawnId)

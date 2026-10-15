@@ -1,5 +1,10 @@
 import type { EditorActionsT } from '@/components/kosztorys/editor/editor-actions'
 import {
+  appendPresetSectionsAction,
+  reloadFromPresetAction,
+  savePresetAction,
+} from '@/lib/actions/kosztorys-presets'
+import {
   createSectionWithCatalogueItemsAction,
   insertCatalogueItemsAction,
 } from '@/lib/actions/catalogue-to-kosztorys'
@@ -43,4 +48,7 @@ export const kosztorysEditorActions: EditorActionsT = {
   restoreSnapshot: restoreSnapshotAction,
   fillTranslations: fillKosztorysTranslationsAction,
   readRevision: readKosztorysRevision,
+  savePreset: savePresetAction,
+  reloadFromPreset: reloadFromPresetAction,
+  appendPresetSections: appendPresetSectionsAction,
 }

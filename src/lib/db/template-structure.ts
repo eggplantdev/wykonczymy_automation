@@ -5,6 +5,7 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysLayoutT } from '@/lib/kosztorys/reorder-layout'
 import type { KosztorysSectionT } from '@/lib/kosztorys/types'
+import type { TemplateSnapshotPayloadT } from '@/lib/kosztorys/templates/snapshot-payload'
 
 // The szablon plane's statements. Its tables are read-only to Payload, so every write is raw SQL;
 // display order goes through the shared `display-order.ts` scopes, so the lock order (ascending id)
@@ -224,4 +225,55 @@ export async function applyTemplateLayout(
   }
 
   await bumpTemplateRevision(db, templateId)
+}
+
+// A szablon as refs: its sections in order, each with its katalog ids in order. What a version
+// stores and what an overwrite or a restore writes back.
+export async function readTemplateLayout(
+  db: DbExecutorT,
+  templateId: number,
+): Promise<TemplateSnapshotPayloadT> {
+  const res = await db.execute(sql`
+    SELECT s.name, s.color,
+           coalesce(
+             array_agg(i.catalogue_item_id ORDER BY i.display_order, i.id)
+               FILTER (WHERE i.id IS NOT NULL),
+             '{}'
+           ) AS catalogue_item_ids
+    FROM template_sections s
+    LEFT JOIN template_items i ON i.section_id = s.id
+    WHERE s.template_id = ${templateId}
+    GROUP BY s.id
+    ORDER BY s.display_order, s.id
+  `)
+  return {
+    sections: res.rows.map((row) => ({
+      name: String(row.name),
+      color: row.color == null ? null : String(row.color),
+      catalogueItemIds: (row.catalogue_item_ids as unknown[]).map(Number),
+    })),
+  }
+}
+
+// Into a szablon with no sections — the caller has just created it or wiped it.
+export async function insertTemplateLayout(
+  db: DbExecutorT,
+  templateId: number,
+  layout: TemplateSnapshotPayloadT,
+): Promise<void> {
+  for (const [index, section] of layout.sections.entries()) {
+    const sectionId = await insertTemplateSection(db, templateId, section.name, index)
+    if (isSectionColorKey(section.color)) {
+      await updateTemplateSection(db, sectionId, { color: section.color })
+    }
+    await insertTemplateItems(db, sectionId, 0, section.catalogueItemIds)
+  }
+}
+
+export async function nextTemplateSectionOrder(db: DbExecutorT, templateId: number): Promise<number> {
+  const res = await db.execute(sql`
+    SELECT COALESCE(MAX(display_order) + 1, 0) AS next
+    FROM template_sections WHERE template_id = ${templateId}
+  `)
+  return Number(res.rows[0]?.next ?? 0)
 }
