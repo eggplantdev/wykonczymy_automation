@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
@@ -31,7 +31,9 @@ export function KosztorysEditorV2(props: PropsT) {
   // investment and is one of the ways a write comes back NOT_FOUND. The item and section counts close
   // that half — a sekcja bez pozycji moves only the second.
   const treeToken = `${tree.revision}:${tree.sections.length}:${tree.sections.reduce((n, section) => n + section.items.length, 0)}`
-  const { remountKey, triggerRestore } = useRestoreRemount(treeToken)
+  // Owns the refetch after an interrupted replace, so the latch learns when that refresh has landed.
+  const [isRefreshing, startRefresh] = useTransition()
+  const { remountKey, triggerRestore } = useRestoreRemount(treeToken, isRefreshing)
 
   // Live stack revision for the interval closure (which captures values at setup time, so it can't
   // read the render-fresh `undoRedo.revision`). The eslint rule is too strict for this "latest value"
@@ -55,7 +57,7 @@ export function KosztorysEditorV2(props: PropsT) {
   // the action.
   const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
     reseed(treeToken)
-    if (refetch) whenOnline(() => router.refresh())
+    if (refetch) whenOnline(() => startRefresh(() => router.refresh()))
   }
 
   // Recovery from the other direction: the tree was replaced somewhere ELSE (another tab, another

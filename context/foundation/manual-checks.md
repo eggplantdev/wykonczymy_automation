@@ -5722,3 +5722,13 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] To samo z edytora kosztorysu → panel Podsumowanie → zakładka „Inwestycja” → „Dokumentacja”:
       brak „Usuń wszystkie”.
 - [ ] Transakcja z co najmniej dwoma fakturami → podgląd faktur: „Usuń wszystkie” nadal jest (bez zmian).
+
+## EX-950 — remount-latch-disarm — przerwane „Wyczyść” nie przebudowuje edytora przy następnej zmianie
+
+- [ ] Edytor kosztorysu z pozycjami → ustaw sortowanie i filtr → DevTools: Offline → „Wyczyść
+      kosztorys” → potwierdź (zapis pada, toast „…odświeżam kosztorys”) → wróć Online: kosztorys
+      jest nietknięty. Potem zmień VAT: sortowanie i filtr zostają, siatka się nie przebudowuje.
+- [ ] Jak wyżej, ale po powrocie Online od razu wpisz wartość w komórkę i w ciągu pół sekundy dodaj
+      pozycję: wpisana wartość zostaje po odświeżeniu strony.
+- [ ] „Wersje” → przywróć wcześniejszą wersję (z siecią): siatka przebudowuje się na przywróconą
+      wersję, jak dotąd.

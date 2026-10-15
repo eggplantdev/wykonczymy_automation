@@ -23,17 +23,26 @@ type RestoreRemountT = {
 // Latching, rather than remounting straight from the caller's `await`, is what makes the reseed correct:
 // the router applies a fresh tree in a transition whose commit nothing can await, so a remount dispatched
 // from an action's continuation renders first — reseeding the body from the tree it already holds.
-export function useRestoreRemount(token: string): RestoreRemountT {
+//
+// `isRefreshing` is the caller's own transition around the refresh that should bring the new tree. When
+// it settles with the token unchanged, the write it was refetching never committed: left armed, the
+// latch would fire on the next ordinary write instead and drop the edit still in the body's debounce.
+export function useRestoreRemount(token: string, isRefreshing = false): RestoreRemountT {
   const [remountKey, setRemountKey] = useState(0)
   const [armedFrom, setArmedFrom] = useState<string | null>(null)
   // Not the token on screen: any ordinary write renders the route, so by the time a write comes back
   // NOT_FOUND the tree prop can already hold the other tab's change while the mount-seeded rows don't.
   // Arming from that token would wait for a change that has already landed.
   const [seededFrom, setSeededFrom] = useState(token)
+  const [wasRefreshing, setWasRefreshing] = useState(isRefreshing)
+  if (wasRefreshing !== isRefreshing) setWasRefreshing(isRefreshing)
+  // The fresh tree commits in the same render the refresh settles in, so the fire check goes first.
   if (armedFrom !== null && token !== armedFrom) {
     setArmedFrom(null)
     setSeededFrom(token)
     setRemountKey((k) => k + 1)
+  } else if (armedFrom !== null && wasRefreshing && !isRefreshing) {
+    setArmedFrom(null)
   }
 
   return {
