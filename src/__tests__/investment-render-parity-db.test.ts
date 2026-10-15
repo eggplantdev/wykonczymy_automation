@@ -38,7 +38,7 @@ import type {
 } from '@/lib/queries/balances'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 
 // REAL-PATH parity: assemble each figure the way each PAGE assembles it, over the real DB, for every
 // investment — the listing through `shapeInvestments` itself, the detail through
@@ -55,7 +55,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
   let payload: Payload | null = null
   // Rate and mode ride along because the LISTING side gets them, and without them the detail side is
   // a different formula the moment any investment has a rate saved.
-  let investments: InvestmentRefT[] = []
+  let investments: InvestmentWithNotesT[] = []
   let expenseCategories: { id: number; name: string }[] = []
   let setupError: unknown = null
 

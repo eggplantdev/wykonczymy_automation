@@ -5,10 +5,10 @@ import { FormDialog } from '@/components/ui/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { updateInvestmentAction } from '@/lib/actions/investments'
 import { useReviewPromptStore } from '@/stores/review-prompt-store'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 
 type EditInvestmentDialogPropsT = {
-  investment: InvestmentRefT
+  investment: InvestmentWithNotesT
   showLabel?: boolean
 }
 

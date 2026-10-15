@@ -1,32 +1,22 @@
-import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { isManagementRole } from '@/lib/auth/roles'
-import { fetchVisibleRegisters } from '@/lib/queries/cash-registers'
-import { perfStart } from '@/lib/perf'
+import { canViewRegister, isManagementRole, type RoleT } from '@/lib/auth/roles'
+import type { ReferenceDataBaseT } from '@/types/reference-data'
 
-export async function fetchManagerDashboardData() {
-  const elapsed = perfStart()
-
-  const [{ registers: visibleRegisters, isAdminOrOwner }, refData] = await Promise.all([
-    fetchVisibleRegisters(),
-    fetchReferenceData(),
-  ])
-
-  const activeInvestments = refData.investments
-    .filter((i) => i.active)
-    .map((i) => ({ id: i.id, name: i.name }))
-
-  const managementUsers = refData.workers
-    .filter((w) => isManagementRole(w.role))
-    .map((w) => ({ id: w.id, name: w.name }))
-
-  console.log(`[PERF] query.fetchManagerDashboardData ${elapsed()}ms`)
-
+/**
+ * The dashboard table's filter lists, derived from reference data alone — no balances — so the
+ * table's own query can start without waiting on the register stats above it.
+ */
+export function dashboardFilterOptions(refData: ReferenceDataBaseT, role: RoleT) {
   return {
-    visibleRegisters,
-    activeInvestments,
-    managementUsers,
+    cashRegisters: refData.cashRegisters
+      .filter((cr) => canViewRegister(role, cr.type))
+      .map((cr) => ({ id: cr.id, name: cr.name })),
+    investments: refData.investments
+      .filter((i) => i.active)
+      .map((i) => ({ id: i.id, name: i.name })),
+    users: refData.workers
+      .filter((w) => isManagementRole(w.role))
+      .map((w) => ({ id: w.id, name: w.name })),
     otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
     expenseCategories: refData.expenseCategories.map((c) => ({ id: c.id, name: c.name })),
-    isAdminOrOwner,
   }
 }

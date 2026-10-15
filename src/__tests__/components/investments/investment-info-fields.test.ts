@@ -7,11 +7,9 @@ const FULL = {
   phone: '500600700',
   email: 'test@example.com',
   contactPerson: 'Jan Testowy',
-  notes: 'Notatka',
   status: 'active' as const,
   reviewRequested: true,
   aiStage: null,
-  aiNotes: '',
 }
 
 describe('buildInvestmentInfoFields', () => {

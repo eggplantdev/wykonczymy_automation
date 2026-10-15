@@ -53,7 +53,7 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
     messageKey,
   })
 
-  const refusal = await reportShareRefusal(db, share)
+  const refusal = reportShareRefusal(share)
   if (refusal) return notice(refusal)
 
   const page = await assembleReportPage(

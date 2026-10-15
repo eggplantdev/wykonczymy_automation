@@ -36,11 +36,9 @@ const mockRefData: ReferenceDataBaseT = {
       phone: '123',
       email: 'e@e.com',
       contactPerson: 'CP',
-      notes: '',
       reviewRequested: false,
       hasSheet: false,
       aiStage: null,
-      aiNotes: '',
       createdAt: '2026-01-15T10:00:00.000Z',
       materialsNetRate: null,
       settlementMode: 'NET' as const,
@@ -55,11 +53,9 @@ const mockRefData: ReferenceDataBaseT = {
       phone: '',
       email: '',
       contactPerson: '',
-      notes: '',
       reviewRequested: false,
       hasSheet: false,
       aiStage: null,
-      aiNotes: '',
       createdAt: '2026-01-15T10:00:00.000Z',
       materialsNetRate: null,
       settlementMode: 'NET' as const,
@@ -127,7 +123,8 @@ vi.mock('@/lib/queries/balances', () => ({
   }),
 }))
 
-const { fetchManagerDashboardData } = await import('@/lib/queries/dashboard')
+const { dashboardFilterOptions } = await import('@/lib/queries/dashboard')
+const { fetchVisibleRegisters } = await import('@/lib/queries/cash-registers')
 
 beforeEach(() => {
   mockRequireAuth.mockResolvedValue({ success: true, user: mockUser })
@@ -135,54 +132,40 @@ beforeEach(() => {
 
 // ── Tests ────────────────────────────────────────────────────────────────
 
-describe('fetchManagerDashboardData', () => {
-  it('returns all expected fields', async () => {
-    const data = await fetchManagerDashboardData()
-    expect(data).toHaveProperty('visibleRegisters')
-    expect(data).toHaveProperty('activeInvestments')
-    expect(data).toHaveProperty('managementUsers')
-    expect(data).toHaveProperty('otherCategories')
-    expect(data).toHaveProperty('expenseCategories')
-    expect(data).toHaveProperty('isAdminOrOwner')
+describe('fetchVisibleRegisters', () => {
+  it('admin sees all registers', async () => {
+    const data = await fetchVisibleRegisters()
+    expect(data.registers.length).toBe(6)
+    expect(data.isAdminOrOwner).toBe(true)
   })
 
-  // Investment balance/margin math moved to shapeInvestments — see shape-rows.test.ts.
-  // totalBalance / ownedBalance / virtualRegisters / currentUserId were unused dead
-  // returns removed when fetchManagerDashboardData was slimmed (dashboard-split).
-
-  describe('admin/owner view', () => {
-    it('admin sees all registers', async () => {
-      const data = await fetchManagerDashboardData()
-      expect(data.visibleRegisters.length).toBe(6)
-      expect(data.isAdminOrOwner).toBe(true)
+  it('manager cannot see MAIN registers', async () => {
+    mockRequireAuth.mockResolvedValue({
+      success: true,
+      user: { ...mockUser, id: 2, role: 'MANAGER' },
     })
+    const data = await fetchVisibleRegisters()
+    expect(data.registers.every((cr) => cr.type !== 'MAIN')).toBe(true)
+    expect(data.isAdminOrOwner).toBe(false)
+  })
+})
+
+describe('dashboardFilterOptions', () => {
+  it('offers a manager no MAIN register', () => {
+    const ids = dashboardFilterOptions(mockRefData, 'MANAGER').cashRegisters.map((cr) => cr.id)
+    expect(ids).not.toContain(1)
+    expect(dashboardFilterOptions(mockRefData, 'ADMIN').cashRegisters.map((cr) => cr.id)).toContain(
+      1,
+    )
   })
 
-  describe('manager view', () => {
-    it('manager cannot see MAIN registers', async () => {
-      mockRequireAuth.mockResolvedValue({
-        success: true,
-        user: { ...mockUser, id: 2, role: 'MANAGER' },
-      })
-      const data = await fetchManagerDashboardData()
-      expect(data.visibleRegisters.every((cr) => cr.type !== 'MAIN')).toBe(true)
-      expect(data.isAdminOrOwner).toBe(false)
-    })
+  it('users contains ADMIN and MANAGER only', () => {
+    const { users } = dashboardFilterOptions(mockRefData, 'ADMIN')
+    expect(users.map((u) => u.id).sort()).toEqual([1, 2])
   })
 
-  describe('user filtering', () => {
-    it('managementUsers contains ADMIN and MANAGER', async () => {
-      const data = await fetchManagerDashboardData()
-      expect(data.managementUsers.length).toBe(2)
-      expect(data.managementUsers.map((u) => u.id)).toEqual(expect.arrayContaining([1, 2]))
-    })
-  })
-
-  describe('activeInvestments', () => {
-    it('only includes active investments', async () => {
-      const data = await fetchManagerDashboardData()
-      expect(data.activeInvestments.length).toBe(1)
-      expect(data.activeInvestments[0].name).toBe('Inv A')
-    })
+  it('only includes active investments', () => {
+    const { investments } = dashboardFilterOptions(mockRefData, 'ADMIN')
+    expect(investments).toEqual([{ id: 10, name: 'Inv A' }])
   })
 })

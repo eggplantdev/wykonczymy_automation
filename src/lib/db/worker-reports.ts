@@ -479,12 +479,14 @@ export async function listReportFilterOptions(
   return { investments: investmentsRes.rows.map(toItem), workers: workersRes.rows.map(toItem) }
 }
 
+export const PENDING_REPORTS_COUNT = sql`
+  SELECT count(*)::int AS total
+  FROM worker_reports r JOIN investments i ON i.id = r.investment_id
+  WHERE r.status = 'pending' AND ${DECIDABLE_INVESTMENT}
+`
+
 export async function countPendingReports(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(sql`
-    SELECT count(*)::int AS total
-    FROM worker_reports r JOIN investments i ON i.id = r.investment_id
-    WHERE r.status = 'pending' AND ${DECIDABLE_INVESTMENT}
-  `)
+  const res = await db.execute(PENDING_REPORTS_COUNT)
   return Number(res.rows[0]?.total ?? 0)
 }
 

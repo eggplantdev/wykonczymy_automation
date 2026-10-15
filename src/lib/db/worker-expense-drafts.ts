@@ -325,12 +325,14 @@ export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<Expense
   return res.rows.map(toDraftRow)
 }
 
+export const PENDING_EXPENSE_DRAFTS_COUNT = sql`
+  SELECT count(*)::int AS total
+  FROM worker_expense_drafts d LEFT JOIN investments i ON i.id = d.investment_id
+  WHERE ${PENDING_DRAFT}
+`
+
 export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(sql`
-    SELECT count(*)::int AS total
-    FROM worker_expense_drafts d LEFT JOIN investments i ON i.id = d.investment_id
-    WHERE ${PENDING_DRAFT}
-  `)
+  const res = await db.execute(PENDING_EXPENSE_DRAFTS_COUNT)
   return Number(res.rows[0]?.total ?? 0)
 }
 

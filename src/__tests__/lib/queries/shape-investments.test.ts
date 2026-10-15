@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import { shapeInvestments } from '@/lib/queries/shape-investments'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 import type {
   DepositPlaneSumsMapT,
   InvestmentFinancialsMapT,
@@ -29,7 +29,7 @@ const kosztorysTotals: KosztorysClientTotalsMapT = {
   },
 }
 
-const baseInv: InvestmentRefT = {
+const baseInv: InvestmentWithNotesT = {
   id: 5,
   name: 'Grojecka',
   status: 'active',
@@ -480,7 +480,7 @@ describe('shapeInvestments robocizna source', () => {
 
   // The owner set a stage by hand and the listing kept „Przeanalizowana”: a loaded draft lifted it.
   it('shows the stored stage, whatever the kosztorys carries', () => {
-    const step = (inv: InvestmentRefT) =>
+    const step = (inv: InvestmentWithNotesT) =>
       shapeInvestments([inv], transactionFinancials, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
         .aiProgress
 
@@ -685,7 +685,7 @@ describe('shapeInvestments wpłaty', () => {
   // in `components/tables/investments.tsx` projects it through `settlementModeToMoneyAxis`, whose own
   // spec owns that table). All this row builder owes is carrying the tryb through untouched.
   it('carries the tryb the listing gates its two bilans columns on', () => {
-    const carried = (mode: InvestmentRefT['settlementMode']) =>
+    const carried = (mode: InvestmentWithNotesT['settlementMode']) =>
       shapeInvestments(
         [{ ...baseInv, settlementMode: mode }],
         { '5': ZERO_FINANCIALS },
@@ -713,7 +713,7 @@ describe('shapeInvestments wpłaty osierocone przez tryb brutto', () => {
     },
   }
 
-  const shape = (settlementMode: InvestmentRefT['settlementMode']) =>
+  const shape = (settlementMode: InvestmentWithNotesT['settlementMode']) =>
     shapeInvestments(
       [{ ...baseInv, settlementMode, vatRate: 0.23 }],
       { '5': ZERO_FINANCIALS },

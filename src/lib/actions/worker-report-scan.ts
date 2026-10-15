@@ -45,7 +45,7 @@ export async function createScannedReportAction(
 
       const target = await readReportTarget(db, investmentId, workerId)
       if (!target) return { success: false, error: 'Pracownik nie ma etapu na tej inwestycji.' }
-      const refusal = await reportShareRefusal(db, target)
+      const refusal = reportShareRefusal(target)
       if (refusal) return { success: false, error: refusalMessage(refusal) }
 
       const tree = await buildKosztorysTree(investmentId)

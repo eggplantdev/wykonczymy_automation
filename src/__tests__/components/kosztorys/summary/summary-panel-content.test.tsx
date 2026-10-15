@@ -7,7 +7,7 @@ import { SummaryPanelContent } from '@/components/kosztorys/summary/summary-pane
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 
 // The kosztorys reading the host resolved, deliberately nowhere near the transactions figures below:
 // a „Marża" tab reading `financials` again prints 999 999, naming the plane it fell back to.
@@ -41,7 +41,7 @@ const SUBCONTRACTOR_DUE: SubcontractorDueByPlaneT = {
   scaledDownStageIds: new Set(),
 }
 
-const INVESTMENT: InvestmentRefT = {
+const INVESTMENT: InvestmentWithNotesT = {
   id: 1,
   name: 'Inwestycja testowa',
   status: 'active',

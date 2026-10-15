@@ -104,7 +104,9 @@ export async function TransferTableServer({ config: pageConfig }: TransferTableS
       data={rows}
       paginationMeta={rawTxResult.paginationMeta}
       config={{ ...config, totalFilteredAmount, listsCancelled }}
-      referenceData={refData}
+      // Only the actions column reads it, and it is serialized whole into the page — on the
+      // worker's phone, where that column is hidden, it was most of the payload.
+      referenceData={config.excludeColumns?.includes('actions') ? undefined : refData}
     />
   )
 }

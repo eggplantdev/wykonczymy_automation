@@ -11,7 +11,7 @@ import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { MediaFileT } from '@/types/media'
 import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
-import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
+import type { InvestmentRefT, InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
   PayoutTransactionRowT,
@@ -248,7 +248,7 @@ export type KosztorysEditorDataT = {
   // The investment record behind this kosztorys, for the panel's „Inwestycja" tab. Same contract as
   // `assets` above: `undefined` means this surface has no investment at all (the szablon workbench,
   // both shares).
-  investment?: InvestmentRefT
+  investment?: InvestmentWithNotesT
   // Only the investment page reads the reports; every other surface has none to show.
   workerReports?: WorkerReportsSeedT
 }

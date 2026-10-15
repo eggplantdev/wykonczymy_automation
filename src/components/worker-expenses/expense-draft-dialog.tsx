@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
@@ -50,7 +49,6 @@ export function ExpenseDraftDialog({
   canSkipInvestment,
   triggerClassName,
 }: PropsT) {
-  const router = useRouter()
   const { locale, t } = useTranslation('expenseDrafts')
   const offeredIds = [
     ...investments.map((investment) => String(investment.investmentId)),
@@ -118,7 +116,6 @@ export function ExpenseDraftDialog({
       }
       toastMessage(t('sentToast'), 'success')
       close()
-      router.refresh()
     } finally {
       setIsSending(false)
     }

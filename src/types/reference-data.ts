@@ -25,8 +25,6 @@ export type InvestmentRefT = ReferenceItemT & {
   phone: string
   email: string
   contactPerson: string
-  notes: string
-  aiNotes: string
   reviewRequested: boolean
   hasSheet: boolean
   aiStage: InvestmentAiStageT | null
@@ -39,6 +37,16 @@ export type InvestmentRefT = ReferenceItemT & {
   settlementMode: SettlementModeT
   vatRate: number
 }
+
+export type InvestmentNotesT = {
+  notes: string
+  aiNotes: string
+}
+
+// Kept off `InvestmentRefT` because reference data crosses into the browser on every management
+// render (~111 KB of notes). The edit dialog takes this type, not the slim one: it sends every field
+// back, so a ref with blank notes would overwrite the real ones.
+export type InvestmentWithNotesT = InvestmentRefT & InvestmentNotesT
 
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   role: RoleT

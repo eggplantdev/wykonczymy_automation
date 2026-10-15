@@ -1,6 +1,7 @@
 'use server'
 
 import { after } from 'next/server'
+import { refresh } from 'next/cache'
 import { z } from 'zod'
 import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-receipts'
 import { protectedAction, sessionAction, validateAction } from '@/lib/actions/run-action'
@@ -57,16 +58,17 @@ async function findDraftTargetError(
   },
 ): Promise<NoticeKeyT | undefined> {
   const { workerId, investmentId, cashRegisterId } = target
-  if (investmentId === null) {
-    if (!(await canAddExpensesWithoutInvestment(db, workerId))) return 'chooseInvestment'
-  } else {
-    const investments = await listWorkerStageInvestments(db, workerId)
-    const isListed = investments.some((investment) => investment.investmentId === investmentId)
-    if (!isListed) return 'notOnInvestment'
-  }
-  if (!(await isWorkerLiveRegister(db, workerId, cashRegisterId))) {
-    return 'notYourRegister'
-  }
+  // Both checks read at once; the investment's refusal still wins when both fail.
+  const [isInvestmentAllowed, isRegisterAllowed] = await Promise.all([
+    investmentId === null
+      ? canAddExpensesWithoutInvestment(db, workerId)
+      : listWorkerStageInvestments(db, workerId).then((investments) =>
+          investments.some((investment) => investment.investmentId === investmentId),
+        ),
+    isWorkerLiveRegister(db, workerId, cashRegisterId),
+  ])
+  if (!isInvestmentAllowed) return investmentId === null ? 'chooseInvestment' : 'notOnInvestment'
+  if (!isRegisterAllowed) return 'notYourRegister'
   return undefined
 }
 
@@ -91,6 +93,8 @@ export async function sendExpenseDraftAction(
     })
     if (draftId === null) return noticeFailure('attachFailed')
     after(() => readExpenseDraftReceipts(db, draftId))
+    // The fresh page rides back on this response — a client `router.refresh()` was a third request.
+    refresh()
     return { success: true, data: { draftId } }
   })
 }
