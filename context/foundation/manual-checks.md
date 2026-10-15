@@ -6069,3 +6069,19 @@ Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
 - [ ] Wybierz 9 zdjęć: podpowiedź znika, a w jej miejscu czerwony komunikat o limicie; „Wyślij” wyłączony.
 - [ ] Inne ekrany z loaderem (logowanie, filtry transakcji, zapis formularza) wyglądają jak dotąd —
       🚧 dalej podskakuje.
+
+## EX-1066 — investment-status-rejected — status „Odrzucona” + inwestycje w formularzach przelewów
+
+- [ ] Formularz inwestycji (konto MANAGER): status „Odrzucona” jest do wyboru; Wycena → Odrzucona
+      → Wycena zapisuje się za każdym razem.
+- [ ] Lista inwestycji: inwestycja Odrzucona jest domyślnie ukryta; po zaznaczeniu „Odrzucona”
+      w filtrze statusu pojawia się z różowym badge'em i wyszarzona jak Zakończona.
+- [ ] „Dodaj wpłatę” i „Dodaj wydatek”: pole Inwestycja pokazuje tylko Aktywne i Planowane (bez
+      Wycen, Odrzuconych, Zakończonych) i nie ma checkboxa „Aktywne / Wszystkie”.
+- [ ] „Dodaj wydatek” ze strony inwestycji w Wycenie zostawia Inwestycję pustą; ze strony Aktywnej
+      albo Planowanej jest wybrana.
+- [ ] Edycja przelewu zaksięgowanego na inwestycji w Wycenie: pole pokazuje tę inwestycję, zapis bez
+      zmiany pola ją zostawia, a lista poza nią ma tylko Aktywne i Planowane.
+- [ ] Wybór celu sprzętu nadal ma checkbox „Aktywne / Wszystkie”.
+- [ ] Tabela transakcji: przy przelewie na inwestycji w Wycenie przyciski edycji i anulowania są
+      aktywne.
