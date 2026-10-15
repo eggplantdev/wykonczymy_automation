@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAuthenticated } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { hardenMediaFileHeaders } from '@/hooks/media/harden-file-headers'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
 import { ALLOWED_UPLOAD_MIMES } from '@/lib/media/sniff-mime'
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
@@ -50,6 +51,7 @@ export const Media: CollectionConfig = {
   upload: {
     staticDir: 'media',
     mimeTypes: [...ALLOWED_UPLOAD_MIMES],
+    modifyResponseHeaders: hardenMediaFileHeaders,
     imageSizes: [
       {
         name: 'thumbnail',
