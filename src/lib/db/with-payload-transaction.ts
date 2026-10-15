@@ -74,7 +74,7 @@ export async function retryOnConcurrentWrite<T>(
     } catch (error) {
       if (!hasPgCode(error, CONCURRENT_WRITE_CODES)) throw error
       if (n >= MAX_ATTEMPTS) {
-        // TODO(EX-449) SENTRY-REQUIRED: the pg code and constraint name are the only thing separating
+        // TODO(EX-958) SENTRY-REQUIRED: the pg code and constraint name are the only thing separating
         // a genuine race from a bug that merely looks like one — the toast can't carry them.
         console.error(`[${logLabel}] concurrent write, attempts exhausted`, error)
         throw new Error(failedMessage)

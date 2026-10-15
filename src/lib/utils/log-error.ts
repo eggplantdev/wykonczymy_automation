@@ -1,5 +1,5 @@
 /**
- * Single sink for runtime error logging — the seam where Sentry capture lands (EX-433).
+ * Single sink for runtime error logging — the seam where Sentry capture lands (EX-958).
  * Migrating a `console.error` here swaps prod visibility from N call sites to one body.
  *
  * Unwraps a Payload `ValidationError`'s `.data` (the per-field reason the default console

@@ -87,7 +87,7 @@ async function readInvestorHistory(
     ])
     return { entries, version }
   } catch (error) {
-    // TODO(EX-449) SENTRY-REQUIRED: the investor silently loses the history until someone looks.
+    // TODO(EX-958) SENTRY-REQUIRED: the investor silently loses the history until someone looks.
     console.error(`[investor-history] investment ${investmentId}:`, error)
     return null
   }

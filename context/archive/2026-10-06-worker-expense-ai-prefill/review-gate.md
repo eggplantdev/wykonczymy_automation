@@ -11,7 +11,7 @@ Step 0.5 (browser verification) skipped: no Playwright pass asked this turn, and
       test: no automated test — already pinned by `draft-prefill.test.ts` „ignores a read row for a different set of pages”
 - [x] 🔵 OBSERVATION · dropped · `impl-review` · restore from `/kosz` schedules no read — a restored draft opens blank with the button, same as any unread draft; not worth a code path
       test: no automated test — no defect
-- [x] 🔵 OBSERVATION · dismissed · `impl-review` · `read-expense-draft-receipts.ts` · no `TODO(EX-449) SENTRY-REQUIRED` marker — `logError` is the single seam Sentry will hook
+- [x] 🔵 OBSERVATION · dismissed · `impl-review` · `read-expense-draft-receipts.ts` · no `TODO(EX-958) SENTRY-REQUIRED` marker — `logError` is the single seam Sentry will hook
       test: no automated test — no defect
 - [x] 🔵 OBSERVATION · dismissed · `impl-review` · plan drift: `receipt-scan.ts` filename, `MAX_RECEIPT_PAGES` moved (import-only change in `/api/extract-receipt`), labels not moved — all benign, behaviour identical
 - [x] skipped · `feature-first-structure` + `structure-scatter-audit` · `src/lib/db/expense-draft-read.ts` · schema-only file in `lib/db` — the two audits pull opposite ways (fold into a 450-LOC module vs. move statements out through a `DRAFT_MEDIA` cycle); no move is cheaper than the gain

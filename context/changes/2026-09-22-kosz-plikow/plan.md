@@ -149,7 +149,7 @@ fazie odzysk pliku jest już możliwy — przez panel Payloada, przypięciem w p
 - `src/app/(payload)/api/cron/cleanup/route.ts` dokłada `gcMedia` jako drugi krok →
   `{ ok, snapshots, media }`. Nagłówek `:8-10` wprost zaprasza kolejne zamiatania, więc **nie** powstaje
   piąty cron. Przy okazji trasa dorabia to, czym różni się od trzech sióstr: całe ciało w `try/catch`,
-  `console.error('[cron/cleanup] …')` z markerem `// TODO(EX-449) SENTRY-REQUIRED:`, częściowa porażka
+  `console.error('[cron/cleanup] …')` z markerem `// TODO(EX-958) SENTRY-REQUIRED:`, częściowa porażka
   jako `ok: false` @ 500 **z prawdziwymi licznikami w ciele** (wzorzec `leads-reconcile/route.ts:45-51`),
   oraz `export const maxDuration`.
 - **Zamiana godzin.** `vercel.json`: `/api/cron/cleanup` z `0 3` na `30 3`.

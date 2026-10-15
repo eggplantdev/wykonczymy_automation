@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     if (err instanceof SyntaxError) {
       return NextResponse.json({ error: 'Nieprawidłowa lista kategorii' }, { status: 400 })
     }
-    // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
+    // TODO(EX-958) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.
     logError('[extract-receipt] Scan failed:', err)
     const message = err instanceof Error ? err.message : 'Błąd odczytu paragonu'

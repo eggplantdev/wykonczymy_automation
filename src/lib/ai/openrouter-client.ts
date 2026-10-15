@@ -30,7 +30,7 @@ export async function withModelFallback<T>(
   try {
     return await call(primary)
   } catch (primaryError) {
-    // TODO(EX-449) SENTRY-REQUIRED: a silent fallback hides that the primary model is broken.
+    // TODO(EX-958) SENTRY-REQUIRED: a silent fallback hides that the primary model is broken.
     logError(`[${label}] primary model ${primary} failed — falling back`, primaryError)
     return call(FALLBACK_MODEL)
   }

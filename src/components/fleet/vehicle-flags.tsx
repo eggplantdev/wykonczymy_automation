@@ -36,7 +36,7 @@ export function VehicleFlags({
       } catch {
         // The action never rejects on a handler throw — `protectedAction` catches those. Reaching
         // here means the request itself failed, so nothing was persisted.
-        // TODO(EX-449) SENTRY-REQUIRED: transport failure on setVehicleFlagsAction
+        // TODO(EX-958) SENTRY-REQUIRED: transport failure on setVehicleFlagsAction
         toastMessage('Nie udało się zapisać oznaczenia — spróbuj ponownie.', 'error')
       }
     })

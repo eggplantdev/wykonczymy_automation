@@ -210,7 +210,7 @@ Do skopiowania z `gcSnapshots` (`src/lib/db/snapshots.ts:118-170`):
 
 Czego **nie** kopiować: `gcSnapshots` nie ma `try/catch`, bo jego porażka nic nie kosztuje. Tu kosztuje
 — `del()` jest nieodwracalne. Trzy pozostałe crony mają `try/catch` + `console.error('[cron/…]')` +
-marker `// TODO(EX-449) SENTRY-REQUIRED:`, a `leads-reconcile/route.ts:45-51` daje wzorzec na częściową
+marker `// TODO(EX-958) SENTRY-REQUIRED:`, a `leads-reconcile/route.ts:45-51` daje wzorzec na częściową
 porażkę: **`ok: false` @ 500 z prawdziwymi licznikami w ciele**, żeby log crona pokazał nieudany przebieg.
 `deleteUnreferencedMedia` połyka dziś błędy per id (`:25-27,45-47`) — słusznie, bo chroni mutację
 użytkownika. **W cronie ta polityka jest zła**: nie ma czego chronić, a połknięcie znaczy cichy no-op

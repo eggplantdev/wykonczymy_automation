@@ -7,7 +7,7 @@ import { toastMessage } from '@/lib/utils/toast'
  * a blocked batch identically, so the guard and the toast's duration live here rather than at each
  * call site.
  */
-// TODO(EX-449) SENTRY-REQUIRED: blocked-file ingest failures (unconvertible HEIC) must be captured
+// TODO(EX-958) SENTRY-REQUIRED: blocked-file ingest failures (unconvertible HEIC) must be captured
 // once Sentry is wired — currently surfaced only as a user toast.
 export function reportBlockedFiles(
   blocked: BlockedFileError[],

@@ -80,7 +80,7 @@ export function remapNewIds<K>(
   for (const row of returned) byKey.set(keyOf(row), Number(row.id))
 
   if (byKey.size !== returned.length) {
-    // TODO(EX-449) SENTRY-REQUIRED: a tie is legal but rare enough to be worth seeing.
+    // TODO(EX-958) SENTRY-REQUIRED: a tie is legal but rare enough to be worth seeing.
     console.error(
       `${table}: natural key ties within the insert batch (${byKey.size} distinct keys for ${returned.length} rows) — falling back to positional id mapping`,
     )

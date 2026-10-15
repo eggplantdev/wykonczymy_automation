@@ -54,7 +54,7 @@ export async function captureDailySnapshots(
     try {
       result[await captureDailySnapshot(db, investmentId, takenAt)]++
     } catch (err) {
-      // TODO(EX-449) SENTRY-REQUIRED: a tree that fails every night silently loses the investor's history.
+      // TODO(EX-958) SENTRY-REQUIRED: a tree that fails every night silently loses the investor's history.
       console.error(`[daily-snapshots] investment ${investmentId} failed`, err)
       result.failed++
     }

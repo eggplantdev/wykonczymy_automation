@@ -72,7 +72,7 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
       setParsed(out)
       const rejected = out.filter((p) => p.doc.problems.length > 0)
       if (rejected.length > 0) {
-        // TODO(EX-449) SENTRY-REQUIRED: a Telmak document the parser rejects means the supplier's
+        // TODO(EX-958) SENTRY-REQUIRED: a Telmak document the parser rejects means the supplier's
         // layout may have changed — capture file name + problems once Sentry is wired.
         toastMessage(
           `${rejected.length} z ${out.length} faktur ma nieznany format — Telmak mógł zmienić wzór dokumentu. Zgłoś to, proszę.`,

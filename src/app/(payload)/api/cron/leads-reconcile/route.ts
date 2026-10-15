@@ -28,14 +28,14 @@ export async function GET(request: NextRequest) {
       revalidateTag(CACHE_TAGS.leads, EXPIRE_NOW)
       await notifyReconcileRecovery(payload, { recovered, scanned, saturatedForms }).catch(
         (err) => {
-          // TODO(EX-449) SENTRY-REQUIRED: the recovery is silent if this mail is lost.
+          // TODO(EX-958) SENTRY-REQUIRED: the recovery is silent if this mail is lost.
           console.error('[cron/leads-reconcile] Recovery alert failed', err)
         },
       )
     }
 
     if (failedForms.length > 0) {
-      // TODO(EX-449) SENTRY-REQUIRED: a form the sweep can't read is a permanent hole.
+      // TODO(EX-958) SENTRY-REQUIRED: a form the sweep can't read is a permanent hole.
       console.error('[cron/leads-reconcile] Forms failed to sweep', failedForms)
       await notifyReconcileFailure(payload, {
         reason: 'Nie udało się przeskanować części formularzy',
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     // Surface a total outage as a failed run — a silent `ok: true` would make the
     // backstop look healthy while it recovers nothing. The alert matters more than
     // the status: nobody reads cron logs until they already suspect a problem.
-    // TODO(EX-449) SENTRY-REQUIRED: this is the only record that the backstop is dead.
+    // TODO(EX-958) SENTRY-REQUIRED: this is the only record that the backstop is dead.
     console.error('[cron/leads-reconcile] Sweep failed', err)
     await alertSweepFailure(err)
 

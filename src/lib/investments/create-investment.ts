@@ -38,12 +38,12 @@ export async function createInvestment(
   try {
     const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
     if (result === 'ok') return { id: Number(created.id) }
-    // TODO(EX-449) SENTRY-REQUIRED: silent seed skip the user can't self-report.
+    // TODO(EX-958) SENTRY-REQUIRED: silent seed skip the user can't self-report.
     logError(
       `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
     )
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: silent seed failure the user can't self-report.
+    // TODO(EX-958) SENTRY-REQUIRED: silent seed failure the user can't self-report.
     logError(
       `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
       err,

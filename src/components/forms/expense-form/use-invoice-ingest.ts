@@ -58,7 +58,7 @@ export function useInvoiceIngest({ recoveredFiles, storedLineItems }: ArgsT) {
     try {
       reportBlockedFiles((await ingest()).blocked)
     } catch {
-      // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
+      // TODO(EX-958) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
       // once Sentry is wired; for now the user gets a generic retry toast.
       toastMessage('Nie udało się przetworzyć pliku — spróbuj ponownie.', 'error', 6000)
     } finally {

@@ -18,7 +18,7 @@ pass skipped — Playwright is not driven unasked; manual checks live in
 - [x] dropped · simplify · `src/lib/telmak/read-package.ts` · worker pool / parallel parse — only if a real package still reads slowly after the shared worker
 - [x] dropped · simplify · `src/lib/queries/telmak-check.ts` · merge the two server calls into one — skipping the empty call covers the common case
 - [x] dismissed · simplify · `src/components/telmak-check/telmak-check-dialog.tsx:44` · `useObjectUrls` — needs a parallel `File[]` state; current single effect + superseded-run revoke is already one owner
-- [x] dismissed · simplify · `TelmakDocT.fileName` / `kind` unused outside parser — `fileName` is what the EX-449 capture will log; `kind` is asserted by the parser spec
+- [x] dismissed · simplify · `TelmakDocT.fileName` / `kind` unused outside parser — `fileName` is what the EX-958 capture will log; `kind` is asserted by the parser spec
 - [x] dismissed · simplify · `src/lib/telmak/read-package.ts` O(n²) line grouping, `pkg.find` per row, `indexOf` in sort — n≈100, microseconds
 - [x] dropped · simplify · `src/lib/telmak/parse-telmak.ts:52` · rename `money` (clashes with the Zod helper name) — local, no import collision
 

@@ -66,7 +66,7 @@ export async function readWorkerReportPage(
   try {
     return await withModelFallback('worker-report-scan', RECEIPT_MODEL, callModel)
   } catch (error) {
-    // TODO(EX-449) SENTRY-REQUIRED: a failed paper read is a silent provider error the kierownik
+    // TODO(EX-958) SENTRY-REQUIRED: a failed paper read is a silent provider error the kierownik
     // can't self-report.
     throw new Error(providerErrorDetail(error, 'Błąd odczytu kartki'))
   }

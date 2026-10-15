@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     if (result.stored > 0) revalidateTag(CACHE_TAGS.kosztorysSnapshots, EXPIRE_NOW)
     return NextResponse.json({ ok: result.failed === 0, ...result }, { status: 200 })
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a night with no history run is otherwise invisible.
+    // TODO(EX-958) SENTRY-REQUIRED: a night with no history run is otherwise invisible.
     console.error('[cron/daily-snapshots] Run failed', err)
     return NextResponse.json({ error: 'Daily snapshot run failed' }, { status: 500 })
   }
