@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url'
 
 import { blobTokenRefusal } from '@/lib/env/schema'
 import { isAuthenticatedBoolean } from '@/access'
+import { logIdlePoolErrors } from '@/lib/db/log-pool-errors'
 
 import { AmountEdits } from '@/collections/amount-edits'
 import { CashRegisters } from '@/collections/cash-registers'
@@ -75,6 +76,7 @@ export default buildConfig({
     push: false,
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
+  onInit: logIdlePoolErrors,
   email: nodemailerAdapter({
     defaultFromAddress: process.env.EMAIL_USER ?? '',
     defaultFromName: 'Wykonczymy',

@@ -548,6 +548,7 @@ export const ru: TranslationsT = {
     downloadAll: 'Скачать все',
     download: 'Скачать',
     previewUnavailable: 'Просмотр недоступен для этого типа файла.',
+    previewLoadFailed: 'Не удалось загрузить просмотр.',
     previousPage: 'Предыдущая страница',
     nextPage: 'Следующая страница',
     dropOrClick: 'Перетащите или нажмите',

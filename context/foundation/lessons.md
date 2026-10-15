@@ -1340,7 +1340,11 @@ a disclosure. Those settings therefore store a full `{ key: hidden }` map over t
 key the map does not mention as its **code default** (`resolveHiddenColumns`). The default still
 lives in code, which is the half of this rule that survives; what changes is that an unmentioned key
 falls to that default rather than to „shown". See „A disclosure setting subtracts from a code ceiling,
-and fails CLOSED" below.
+and fails CLOSED" below. An investment's row still wins as a whole — a key it does not mention falls
+to the code default, not to the firm-wide „Zapisz jako domyślne" global: a key new since the row was
+saved is equally absent from the global, so a per-key chain would add a path that changes nothing.
+A legacy hidden array speaks only for the columns it was written against (frozen
+`LEGACY_*_COLUMNS`), so an unconverted row is safe too.
 
 ## A disclosure setting subtracts from a code ceiling, and fails CLOSED
 
@@ -1667,7 +1671,7 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 
 - **Context**: both subcontractor planes' „Cena j.m. netto" had to stand next to the client price in the Inwestor view, so the column id stopped being a constant and became a function of the plane (`price__w_tools`, `price__own_tools`, built by `plane-price-keys.ts` on the `stage-keys.ts` pattern). Everything downstream keys off that id: labels, header tips, the money axis, the Praca/Postęp layer, the preview allowlist, the „Problemy" reveal, sorting, widths, the hidden-columns set. `kosztorys-contractor-price-columns-in-client-view`, 2026-09-01.
 - **Problem**: the two obvious answers are both wrong. Adding an entry per plane to every config map means one map eventually gets forgotten — the exact divergence the change exists to prevent, and the invariant specs (`COLUMN_MONEY_AXIS` ⊆ `COLUMN_LABELS`, same for `COLUMN_LAYER`) only catch the half that was added. Resolving every lookup through the base key is worse in the opposite direction: `PREVIEW_VISIBLE_COLUMNS` would then read `price__own_tools` as `price`, and a subcontractor rate would inherit the client price's pass into the offer the client reads. The two lookups look identical at the call site and have opposite failure modes — one fails by drifting, the other by leaking.
-- **Rule**: (1) A namespaced id needs an explicit split: configuration that describes _what kind of figure this is_ (label, axis, layer, tip) resolves through the base key so one concept keeps one entry; anything that decides _who may see it_ matches the full id, and says so in a comment at the definition. (2) The gate on an audience is the audience flag (`previewVisible`), never the view — a view flag read as an audience flag is a regression this repo has already paid for once. (3) Never rename an id that is persisted in a client's **hidden**-columns set: the sanitizer drops unknown keys, so a lost key does not hide the column, it reveals it — renaming fails open, in the one direction that matters. That is why the client's own `price` kept its bare id while the crew rates took the suffix. (4) An id that carries a dimension must not collapse in the picker the way stage keys do: the point of two ids is showing one plane without the other.
+- **Rule**: (1) A namespaced id needs an explicit split: configuration that describes _what kind of figure this is_ (label, axis, layer, tip) resolves through the base key so one concept keeps one entry; anything that decides _who may see it_ matches the full id, and says so in a comment at the definition. (2) The gate on an audience is the audience flag (`previewVisible`), never the view — a view flag read as an audience flag is a regression this repo has already paid for once. (3) Never rename an id that is persisted in a client's **hidden**-columns set: a lost key falls to its code default (EX-1033), which for a default-visible column like `price` reveals it — renaming fails open, in the one direction that matters. That is why the client's own `price` kept its bare id while the crew rates took the suffix. (4) An id that carries a dimension must not collapse in the picker the way stage keys do: the point of two ids is showing one plane without the other.
 - **Applies to**: implement, plan, code-review, kosztorys grid work
 
 ## A counter's UNIT is part of its meaning — two honest counts of one defect differ by 4×

@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { MediaPreviewDialog } from '@/components/dialogs/media-preview-dialog'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
@@ -90,5 +90,58 @@ describe('MediaPreviewDialog — zoom', () => {
     renderDialog(IMAGES, { unoptimized: true })
 
     expect((await previewImage('rzut-parter.jpg')).src).not.toContain('/_next/image')
+  })
+})
+
+// The browser's own PDF viewer may abandon the response and re-fetch it in byte ranges, and on that
+// path the iframe's `load` never fires (prod, 2026-10-15: a 30-file rzut set spun forever on first
+// open). jsdom never fires an iframe's `load` either, so a spinner gated on it hangs here the same way.
+describe('MediaPreviewDialog — PDF', () => {
+  beforeEach(() => {
+    let created = 0
+    URL.createObjectURL = vi.fn(() => `blob:pdf-${++created}`)
+    URL.revokeObjectURL = vi.fn()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(new Blob(['%PDF-1.7']), { status: 200 })),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('zdejmuje spinner, gdy plik się pobierze, i podaje go ramce jako blob', async () => {
+    renderDialog(PDF)
+
+    await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
+    expect(screen.getByTitle('faktura.pdf')).toHaveAttribute('src', 'blob:pdf-1')
+  })
+
+  it('po powrocie do PDF-a nie podaje ramce zwolnionego adresu', async () => {
+    renderDialog([...PDF, IMAGES[0]])
+    await waitFor(() =>
+      expect(screen.getByTitle('faktura.pdf')).toHaveAttribute('src', 'blob:pdf-1'),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Następna strona' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Poprzednia strona' }))
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:pdf-1')
+    expect(screen.queryByTitle('faktura.pdf')?.getAttribute('src')).not.toBe('blob:pdf-1')
+    await waitFor(() =>
+      expect(screen.getByTitle('faktura.pdf')).toHaveAttribute('src', 'blob:pdf-2'),
+    )
+  })
+
+  it('zamiast kręcić się bez końca mówi, że podgląd się nie wczytał', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 500 })),
+    )
+    renderDialog(PDF)
+
+    expect(await screen.findByText('Nie udało się wczytać podglądu.')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })

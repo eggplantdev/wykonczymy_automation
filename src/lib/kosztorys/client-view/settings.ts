@@ -22,7 +22,7 @@ export type ClientViewSettingsT = {
   columnRanks: ColumnRanksT
 }
 
-// Expressed as what the client SEES, because that is what an owner reads off the dialog; the stored
+// Expressed as what the client SEES, because that is what an owner reads off the dialog; the default
 // hidden set is its complement against the ceiling and is computed below, never written by hand.
 // The settlement columns are in it from day one: they stay off the investor's screen until there is
 // an entry to show (`settlement-columns.ts`), so an offer and a settlement need no separate sets.
@@ -41,12 +41,33 @@ const DEFAULT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'donePercent',
 ])
 
-const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set(
+const CLIENT_DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set(
   [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !DEFAULT_VISIBLE_COLUMNS.has(key)),
 )
 
+// The ceiling as it stood while the hidden ARRAY was the stored shape — frozen, never extended.
+const LEGACY_CLIENT_COLUMNS: ReadonlySet<string> = new Set([
+  'note',
+  'plannedQty',
+  'currentPlannedQty',
+  'stageQtySum',
+  'unit',
+  'price',
+  'discountType',
+  'discountValue',
+  'discountAmount',
+  'plannedNet',
+  'currentPlannedNet',
+  'net',
+  'remaining',
+  'stages',
+  'stageValueNet',
+  'donePercent',
+  'plannedDonePercent',
+])
+
 const DEFAULT_SETTINGS: ClientViewSettingsT = {
-  hiddenColumns: [...DEFAULT_HIDDEN_COLUMNS],
+  hiddenColumns: [...CLIENT_DEFAULT_HIDDEN_COLUMNS],
   hideEmptyRows: true,
   columnRanks: {},
 }
@@ -71,9 +92,12 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
     columnRanks?: unknown
   }
   return {
-    hiddenColumns:
-      resolveHiddenColumns(hiddenColumns, PREVIEW_VISIBLE_COLUMNS, DEFAULT_HIDDEN_COLUMNS) ??
-      DEFAULT_SETTINGS.hiddenColumns,
+    hiddenColumns: resolveHiddenColumns(
+      hiddenColumns,
+      PREVIEW_VISIBLE_COLUMNS,
+      CLIENT_DEFAULT_HIDDEN_COLUMNS,
+      LEGACY_CLIENT_COLUMNS,
+    ),
     hideEmptyRows: hideEmptyRows !== false,
     columnRanks: sanitizeDocumentRanks(columnRanks, PREVIEW_VISIBLE_COLUMNS),
   }

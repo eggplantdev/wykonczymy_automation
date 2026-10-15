@@ -5733,7 +5733,7 @@ porównujesz z tym zapisem.
       przedmiaru)” ani „% wykonania (względem przedmiaru ofertowego)”.
 - [ ] **3. Migracja.** `pnpm db:migrate:preview` stosuje `20261015_0_document_settings_column_map`;
       potem `psql "$DB_POSTGRES_URL_PREVIEW" -c "select jsonb_typeof(hidden_columns), count(*) from
-      kosztorys_client_view group by 1"` → same `object` (34), żadnego `array`.
+      kosztorys_client_view group by 1"` → same `object`, żadnego `array`.
 - [ ] **4. Po migracji: te same kolumny co w kroku 1.** `/podglad-inwestora/186` i `/119` — kolumna w
       kolumnę jak przed migracją, także na linku `/k/<token>` inwestycji 186. Inwestycja 186 to
       przypadek, który by wyciekł, gdyby migracja poszła przed deployem.
@@ -5768,6 +5768,28 @@ inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
       pozycję: wpisana wartość zostaje po odświeżeniu strony.
 - [ ] „Wersje” → przywróć wcześniejszą wersję (z siecią): siatka przebudowuje się na przywróconą
       wersję, jak dotąd.
+
+## 2026-10-15 — ungated-commits-review — „Do analizy AI” w galerii + cień pola wieloliniowego
+
+- [ ] Strona inwestycji → galeria → podgląd pliku bez oznaczenia: przycisk mówi „Oznacz do analizy AI”;
+      po kliknięciu toast „Plik oznaczony do analizy AI”, a przycisk zmienia się na wyłączony
+      „Oznaczony do analizy AI” (to samo pole co „Do analizy AI” przy dodawaniu plików).
+- [ ] Pole wieloliniowe (np. „Uwagi” w „Edytuj inwestycję”) ma ten sam lekki cień pod ramką co pola
+      tekstowe, w trybie jasnym i ciemnym; pole z błędem nadal ma czerwoną ramkę.
+
+## 2026-10-15 — media-preview-pdf-preload — podgląd PDF nie kręci się bez końca + wczytywanie sąsiednich stron
+
+- [ ] Inwestycja z dokumentacją, w której pierwszy plik to PDF (np. rzut) → „Dokumentacja inwestycji”:
+      PDF pokazuje się po chwili, spinner znika, nic nie kręci się bez końca — także przy pierwszym
+      otwarciu, na zimno.
+- [ ] Ta sama dokumentacja → klikaj „Następna strona” co kilka sekund: kolejne zdjęcia i PDF-y
+      pokazują się praktycznie od razu, bez spinnera; „Poprzednia strona” o jeden krok też.
+- [ ] W podglądzie pojedynczego PDF-a (np. faktura przy transakcji) w stopce jest „Pobierz” — zapisuje
+      plik pod jego prawdziwą nazwą; drukuje się z paska samego PDF-a.
+- [ ] Dokumentacja z kilkoma plikami, w tym PDF-ami → „Drukuj”: otwiera się okno wydruku z każdą
+      stroną (a nie puste okno, które nigdy nie drukuje).
+- [ ] PDF → „Następna strona” na zdjęcie → „Poprzednia strona”: PDF wraca, bez pustej ramki.
+- [ ] Formularz wydatku → dodaj PDF, który nie jest jeszcze wysłany → podgląd: PDF się pokazuje.
 
 ## EX-1019 — roundtrip-audit — mniej zapytań na stronę i lżejsza strona (bez zmiany wyglądu)
 

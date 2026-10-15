@@ -3,7 +3,7 @@ import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { SheetStatusT } from '@/lib/constants/sheets'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
-import type { AiProgressStepT, InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
+import type { AiProgressStepT } from '@/lib/constants/investment-ai-stage'
 import type { StrandedDepositsT } from '@/lib/kosztorys/off-plane-deposits'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 
@@ -59,7 +59,6 @@ export type InvestmentRowT = {
   contactPerson: string
   reviewRequested: boolean
   notes: string
-  aiNotes: string
   hasSheet: boolean
   createdAt: string
   /** Whether the investment HAS a kosztorys, which none of the figures above can answer: „pomiar z
@@ -69,10 +68,6 @@ export type InvestmentRowT = {
    *  it too. */
   hasKosztorys: boolean
   aiProgress: AiProgressStepT
-  // No column renders these — the whole row is handed to EditInvestmentDialog, whose form needs
-  // them. `vatRate` is the exception that also prices `balanceGross`.
-  aiStage: InvestmentAiStageT | null
-  materialsNetRate: number | null
   settlementMode: SettlementModeT
   vatRate: number
 }

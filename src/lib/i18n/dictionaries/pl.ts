@@ -563,6 +563,7 @@ export const pl = {
     downloadAll: 'Pobierz wszystkie',
     download: 'Pobierz',
     previewUnavailable: 'Podgląd niedostępny dla tego typu pliku.',
+    previewLoadFailed: 'Nie udało się wczytać podglądu.',
     previousPage: 'Poprzednia strona',
     nextPage: 'Następna strona',
     dropOrClick: 'Przeciągnij lub kliknij',

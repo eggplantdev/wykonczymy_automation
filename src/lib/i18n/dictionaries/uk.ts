@@ -548,6 +548,7 @@ export const uk: TranslationsT = {
     downloadAll: 'Завантажити всі',
     download: 'Завантажити',
     previewUnavailable: 'Перегляд недоступний для цього типу файлу.',
+    previewLoadFailed: 'Не вдалося завантажити перегляд.',
     previousPage: 'Попередня сторінка',
     nextPage: 'Наступна сторінка',
     dropOrClick: 'Перетягніть або натисніть',

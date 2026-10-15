@@ -6,10 +6,8 @@ import { isAdminOrOwnerOrManager } from '@/access'
 // row there at all, and a client-disclosure decision is not a property of the investment record.
 //
 // `hiddenColumns` stores one choice per column — `{ key: hidden }` — and `PREVIEW_VISIBLE_COLUMNS`
-// stays the ceiling. A column the map does not mention reads as its code default, so a column added
-// to the allowlist later starts where the code declares it, without rewriting a stored row (EX-1033).
-// No default on `hiddenColumns` — absent means „never chosen" and resolves to the whole code default
-// (`sanitizeClientViewSettings`).
+// stays the ceiling. No default on `hiddenColumns` — absent means „never chosen" and resolves to the
+// whole code default (`sanitizeClientViewSettings`).
 export const KosztorysClientView: CollectionConfig = {
   slug: 'kosztorys-client-view',
   labels: {
