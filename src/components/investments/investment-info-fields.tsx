@@ -1,6 +1,6 @@
 import { AiStageSelect } from '@/components/investments/ai-stage-select'
 import { ContactLink } from '@/components/ui/contact-link'
-import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
+import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import type { InvestmentRefT } from '@/types/reference-data'
 
 // One list for two surfaces — the investment card and the editor's „Inwestycja" tab. Written out
@@ -32,7 +32,7 @@ export function buildInvestmentInfoFields(
       value: investment.email && <ContactLink type="email" value={investment.email} />,
     },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
-    { label: 'Status', value: INVESTMENT_STATUS_LABELS[investment.status].pl },
+    { label: 'Status', value: <InvestmentStatusBadge status={investment.status} /> },
     { label: 'Opinia', value: investment.reviewRequested && 'Wysłano' },
     {
       label: 'Etap AI',

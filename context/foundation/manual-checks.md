@@ -6085,3 +6085,9 @@ Refaktor wydajnościowy: każdy boks sprawdza, że ekran działa **jak dotąd**.
 - [ ] Wybór celu sprzętu nadal ma checkbox „Aktywne / Wszystkie”.
 - [ ] Tabela transakcji: przy przelewie na inwestycji w Wycenie przyciski edycji i anulowania są
       aktywne.
+
+## 2026-10-15 — investment-status-badge — status na stronie inwestycji jako badge
+
+- [ ] Strona inwestycji → karta z danymi: „Status” to kolorowy badge, identyczny jak w kolumnie
+      Status na liście inwestycji (np. Odrzucona — różowy, Aktywna — zielony).
+- [ ] Edytor kosztorysu → podsumowanie, zakładka „Inwestycja”: „Status” pokazuje ten sam badge.
