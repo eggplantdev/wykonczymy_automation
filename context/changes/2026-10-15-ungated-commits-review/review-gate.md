@@ -26,8 +26,8 @@ Checks: code-review, comment-noise-audit (flag-only), feature-first-structure + 
 
 ## Findings
 
-- [ ] · 🟡 WARNING · fixed (pending green test) · `src/payload.config.ts:66` · nothing listens to the pg `Pool`'s `error` event after the db-postgres swap — Neon dropping an idle client re-emits it on the pool, and an unlistened `error` is an uncaught exception that kills the instance. `onInit: logIdlePoolErrors` (`src/lib/db/log-pool-errors.ts`) now logs it with a `TODO(EX-958) SENTRY-REQUIRED` marker. Box stays open until the spec runs green.
-      test: test-driven-debugging · unit — `src/__tests__/lib/db/log-pool-errors.test.ts` (an `error` emit on the pool must not throw, and must be logged); not run yet, because the tests hook needs an explicit ask
+- [x] · 🟡 WARNING · fixed · `src/payload.config.ts:66` · nothing listens to the pg `Pool`'s `error` event after the db-postgres swap — Neon dropping an idle client re-emits it on the pool, and an unlistened `error` is an uncaught exception that kills the instance. `onInit: logIdlePoolErrors` (`src/lib/db/log-pool-errors.ts`) now logs it with a `TODO(EX-958) SENTRY-REQUIRED` marker.
+      test: test-driven-debugging · unit — `src/__tests__/lib/db/log-pool-errors.test.ts` (an `error` emit on the pool must not throw, and must be logged); green 2026-10-15
 - [x] · 🔵 OBSERVATION · fixed · `src/hooks/use-plan-marker.ts` · 8fe92bde6 made the tick „Do analizy AI”, but the gallery button, its toast and its marked state still said „rzut/projekt” — now „Oznacz do analizy AI” / „Plik oznaczony do analizy AI” / „Oznaczony do analizy AI”. The same rename was applied to the `AGENTS.md` cache section and the `lib/queries/investment-assets.ts:46` comment.
       test: no automated test · — copy only; manual check added to `manual-checks.md`
 - [x] · 🔵 OBSERVATION · dropped · `src/migrations/20261014_3*` · `down()` doesn't reverse the notes data move — the migration is already applied on prod and run by a human; a reversible down for a one-off ~16-row move isn't worth writing
@@ -59,4 +59,4 @@ Reuse + simplification + efficiency + altitude over the scope. Applied: the type
 
 ## Tests & suite
 
-Not run — the agent tests hook requires an explicit ask. Owed: `pnpm typecheck` (gates the row-field deletion and the `payload.db.pool` typing), `src/__tests__/lib/db/log-pool-errors.test.ts`, `src/__tests__/hooks/use-plan-marker.test.tsx`, `src/__tests__/components/tables/investments.test.tsx`, `src/__tests__/lib/queries/shape-investments.test.ts`.
+2026-10-15, on the owner's „run tests”: `pnpm typecheck` clean; `log-pool-errors.test.ts`, `use-plan-marker.test.tsx`, `components/tables/investments.test.tsx` and `lib/queries/shape-investments.test.ts` — 4 files, 41 tests green. The full suite was not run (not asked).
