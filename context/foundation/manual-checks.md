@@ -5776,3 +5776,14 @@ inwestorom ukryte kolumny (jak inwestycja 186) do czasu deployu.
       „Oznaczony do analizy AI” (to samo pole co „Do analizy AI” przy dodawaniu plików).
 - [ ] Pole wieloliniowe (np. „Uwagi” w „Edytuj inwestycję”) ma ten sam lekki cień pod ramką co pola
       tekstowe, w trybie jasnym i ciemnym; pole z błędem nadal ma czerwoną ramkę.
+
+## 2026-10-15 — media-preview-pdf-preload — podgląd PDF nie kręci się bez końca + wczytywanie sąsiednich stron
+
+- [ ] Inwestycja z dokumentacją, w której pierwszy plik to PDF (np. rzut) → „Dokumentacja inwestycji”:
+      PDF pokazuje się po chwili, spinner znika, nic nie kręci się bez końca — także przy pierwszym
+      otwarciu, na zimno.
+- [ ] Ta sama dokumentacja → klikaj „Następna strona” co kilka sekund: kolejne zdjęcia i PDF-y
+      pokazują się praktycznie od razu, bez spinnera; „Poprzednia strona” o jeden krok też.
+- [ ] W podglądzie pojedynczego PDF-a (np. faktura przy transakcji) w stopce są „Drukuj” i „Pobierz”;
+      „Pobierz” zapisuje plik pod jego prawdziwą nazwą.
+- [ ] Formularz wydatku → dodaj PDF, który nie jest jeszcze wysłany → podgląd: PDF się pokazuje.

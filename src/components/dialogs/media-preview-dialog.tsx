@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { useFileArchive } from '@/hooks/use-file-archive'
+import { usePdfObjectUrl } from '@/hooks/use-pdf-object-url'
+import { preloadPreviewNeighbours } from './preload-preview-neighbours'
 import { usePreviewLabels } from '@/hooks/use-preview-labels'
 import { useTranslation } from '@/hooks/use-translation'
 import { dedupeFilename } from '@/lib/media/file-archive'
@@ -30,6 +32,8 @@ const ZoomablePreviewImage = dynamic(
   () => import('./zoomable-preview-image').then((m) => m.ZoomablePreviewImage),
   { ssr: false },
 )
+
+const PREVIEW_IMAGE_SIZES = '(max-width: 767.98px) calc(100vw - 2rem), calc(100vw - 3rem)'
 
 export type MediaPreviewDialogPropsT = {
   files: PreviewFileT[]
@@ -79,8 +83,12 @@ export function MediaPreviewDialog({
   const isMultiPage = files.length > 1
   const isImage = isImageMime(active?.mimeType)
   const isPdf = isPdfMime(active?.mimeType)
+  const pdf = usePdfObjectUrl(isPdf ? active?.url : undefined)
   const displayName = active?.filename ?? labels.fallbackTitle
   const title = isMultiPage ? `${displayName} (${activeIndex + 1}/${files.length})` : displayName
+
+  if (open)
+    preloadPreviewNeighbours(files, activeIndex, { sizes: PREVIEW_IMAGE_SIZES, unoptimized })
 
   function goToPage(index: number) {
     setPageIndex(index)
@@ -161,7 +169,7 @@ export function MediaPreviewDialog({
         <DialogHeader title={title} />
 
         <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
-          {(isImage || isPdf) && isMediaLoading && (
+          {((isImage && isMediaLoading) || pdf?.status === 'loading') && (
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
               <Spinner />
             </div>
@@ -173,20 +181,22 @@ export function MediaPreviewDialog({
               key={active.url}
               src={active.url}
               alt={displayName}
-              sizes="(max-width: 767.98px) calc(100vw - 2rem), calc(100vw - 3rem)"
+              sizes={PREVIEW_IMAGE_SIZES}
               unoptimized={unoptimized}
               onLoad={() => setIsMediaLoading(false)}
               onError={() => setIsMediaLoading(false)}
             />
           )}
-          {active && isPdf && (
+          {pdf?.status === 'ready' && (
             <iframe
-              key={active.url}
-              src={active.url}
+              key={pdf.url}
+              src={pdf.url}
               title={displayName}
               className="h-full w-full rounded border-0"
-              onLoad={() => setIsMediaLoading(false)}
             />
+          )}
+          {pdf?.status === 'error' && (
+            <p className="text-muted-foreground text-sm">{t('previewLoadFailed')}</p>
           )}
           {active && !isImage && !isPdf && (
             <p className="text-muted-foreground text-sm">{t('previewUnavailable')}</p>
@@ -249,35 +259,31 @@ export function MediaPreviewDialog({
               {labels.add}
             </Button>
           )}
-          {/* A single PDF renders in the browser's native viewer, which already has print + download
-              in its toolbar. A multi-page set has no such toolbar for the set as a whole. */}
-          {(!isPdf || isMultiPage) && (
-            <>
-              <Button variant="outline" onClick={handlePrint}>
-                <Printer />
-                {t('print')}
-              </Button>
-              {isMultiPage ? (
-                <Button variant="outline" onClick={handleDownloadAll}>
+          {/* Shown for a single PDF too: the native viewer's own download names the file after the
+              blob: URL it was handed, not after the faktura. */}
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer />
+            {t('print')}
+          </Button>
+          {isMultiPage ? (
+            <Button variant="outline" onClick={handleDownloadAll}>
+              <Download />
+              {t('downloadAll')}
+            </Button>
+          ) : (
+            active && (
+              <Button variant="outline" asChild>
+                <a
+                  href={active.url}
+                  download={active.filename ?? ''}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Download />
-                  {t('downloadAll')}
-                </Button>
-              ) : (
-                active && (
-                  <Button variant="outline" asChild>
-                    <a
-                      href={active.url}
-                      download={active.filename ?? ''}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Download />
-                      {t('download')}
-                    </a>
-                  </Button>
-                )
-              )}
-            </>
+                  {t('download')}
+                </a>
+              </Button>
+            )
           )}
         </DialogFooter>
       </DialogContent>
