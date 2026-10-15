@@ -43,18 +43,20 @@ export function AddLineToRozpiska({ line, entryId, onChange, onClose }: PropsT) 
   const catalogue = workCatalogue ?? []
   const [newItem, setNewItem] = useState<{ sectionId: number; description: string }>()
 
+  const rememberItem = (itemId: number) => {
+    if (line.kind !== 'extra') return
+    void settleAction(() => pointReportLineAction(investmentId, line.id, itemId)).then((result) => {
+      if (!result.success) toastMessage(result.error, 'error')
+    })
+  }
+
   const pointAt = (item: Pick<KosztorysItemT, 'id' | 'catalogueItemId'>) => {
     onChange(line.id, {
       catalogueId: item.catalogueItemId ?? undefined,
       matchedItemIds: [item.id],
       itemId: item.id,
     })
-    if (line.kind !== 'extra') return
-    void settleAction(() => pointReportLineAction(investmentId, line.id, item.id)).then(
-      (result) => {
-        if (!result.success) toastMessage(result.error, 'error')
-      },
-    )
+    rememberItem(item.id)
   }
 
   const swapInto = async (
@@ -64,6 +66,8 @@ export function AddLineToRozpiska({ line, entryId, onChange, onClose }: PropsT) 
   ) => {
     if (held.matchedItemIds.length > 0) {
       onChange(line.id, held)
+      // Two pozycje holding the praca leave the pick to the kierownik, so there is nothing to remember yet.
+      if (held.itemId !== undefined) rememberItem(held.itemId)
       return true
     }
     const result = await settleAction(() => insertCatalogueItemsAction(sectionId, [entry.id]))
