@@ -256,6 +256,10 @@ It is also the one worker editable after save; on PAYOUT / BONUS it is a settlem
 not cash movements). `settled` is a boolean on an otherwise normal material expense, so it
 keeps `source_register` required.
 
+A korekta with **no investment** is a company-level adjustment and carries no expense category;
+once linked to an investment it belongs to that investment's books and must name the category it
+corrects (`needsExpenseCategory`).
+
 `settled` is a **flag, not a dedicated type**: type is orthogonal to expense category, so a
 type approach would need one type _per category_ (`INTERNAL_BUILDING_MATERIAL`,
 `INTERNAL_FINISHING_MATERIAL`, …), multiplying every time a category is added — disqualifying.
