@@ -109,6 +109,10 @@ service, production — is returned as a blocker naming the missing isolation.
   pass for 20 min (2026-10-14). To check what a copy put on the clipboard, capture it on the way
   out instead: before the copy, wrap `navigator.clipboard.writeText` (and listen for the `copy`
   event's `clipboardData` for Ctrl/Cmd+C) and read the captured value.
+- **A hydration error seen in the MCP browser is not a finding yet.** Re-load the page in a clean
+  headless Chrome (`chromium.launch({ channel: 'chrome' })`, console errors captured) and file only
+  with the full React diff in hand. EX-1037 was filed without one and never reproduced in eight
+  clean variants — the MCP tab had been switching roles in place.
 - **Test layers:** unit / DOM specs under `src/__tests__/` (mirrored path), e2e under `e2e/` against
   5435 — AGENTS.md → Testing.
 
