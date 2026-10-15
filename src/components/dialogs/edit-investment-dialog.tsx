@@ -8,7 +8,18 @@ import { useReviewPromptStore } from '@/stores/review-prompt-store'
 import type { InvestmentRefT } from '@/types/reference-data'
 
 type EditInvestmentDialogPropsT = {
-  investment: InvestmentRefT
+  investment: Pick<
+    InvestmentRefT,
+    | 'id'
+    | 'name'
+    | 'address'
+    | 'phone'
+    | 'email'
+    | 'contactPerson'
+    | 'notes'
+    | 'reviewRequested'
+    | 'status'
+  >
   showLabel?: boolean
 }
 

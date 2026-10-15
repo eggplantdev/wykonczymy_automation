@@ -109,13 +109,10 @@ export function shapeInvestments(
       contactPerson: inv.contactPerson,
       reviewRequested: inv.reviewRequested,
       notes: inv.notes,
-      aiNotes: inv.aiNotes,
       hasSheet: inv.hasSheet,
       createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,
       aiProgress: inv.aiStage ?? 'none',
-      aiStage: inv.aiStage,
-      materialsNetRate: inv.materialsNetRate,
       settlementMode: inv.settlementMode,
       vatRate: inv.vatRate,
     }
