@@ -12,4 +12,6 @@ worktree: null
 ## Notes
 
 Ad-hoc slice worked directly on `staging`, with no plan: 7a294e73 (feat(trash)) + e8982a32 (fix(forms)).
-Decisions and the deferred-tests note live in `review-gate.md`. E2E backlog: EX-874.
+Tests deferred by the user — these paths have no regression test: the purge's `status <> 'active'`
+filter, the `guard-trashed-investment.ts` update guard, the share/kosztorys menus hidden on a
+trashed investment, and the early „aktywna” toast. E2E backlog: EX-874.

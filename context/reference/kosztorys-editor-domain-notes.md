@@ -526,6 +526,9 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   Tłumaczenie, które już było nieaktualne, zostaje nieaktualne.
 - **„Zapisz do katalogu" nad istniejącym wpisem**: dla każdego języka osobno wygrywa tłumaczenie
   pozycji, jeśli je ma; inaczej katalog zachowuje swoje.
+- **Oba języki to jedna mapa na wierszu — świadomie zaakceptowany wyścig.** Równoczesna edycja UA
+  i RU tej samej pozycji to „ostatni zapis wygrywa" dla całej mapy, a „Cofnij" skleja obie zmiany
+  w jeden krok.
 - **Prace spoza rozpiski wpisane po ukraińsku** — od EX-992 kierownik widzi je po polsku,
   z oryginałem obok (niżej).
 - **Uzupełnianie hurtem to skrypt do powtarzania, nie jednorazowa migracja**
@@ -2049,6 +2052,16 @@ przedmiarze 0 lub pustym jako „Dodana" — w bazie stoi wtedy NULL. Każdy prz
 SQL czy snapshot dla pętli wiedzy liczy statusy przez `effectiveReviewStatus`, inaczej policzy te
 pozycje jako niesprawdzone.
 
+**Ponowny import z arkusza zachowuje zapisany Status, a odświeża Przedmiar** — zapisane
+„Zaakceptowana" może więc dotyczyć przedmiaru, którego już nie ma. Otwarte pytanie do właściciela;
+do jego decyzji import zostaje, jak jest.
+
+**Praca dodana w „Przeglądzie AI" od razu znika** (właściciel, 2026-10-07: zostaje tak). „Nowa praca"
+i „Wstaw powyżej/poniżej" dają pracę z Przedmiarem 0 i pustym AI przedmiarem, a „bez przedmiaru i bez
+AI przedmiaru" włącza się z widokiem i ukrywa ją, zanim da się wpisać Przedmiar. Filtry, w
+przeciwieństwie do „Problemów", nie przytrzymują wiersza. Przed dodaniem pracy trzeba odznaczyć ten
+filtr.
+
 ## Komentarz AI: osobno od Komentarza (EX-1030, 2026-10-08)
 
 „Komentarz AI" (`ai_missing_data`, `ai_assumptions`) pisze tylko loader szkicu, nigdy do zwykłego
@@ -2062,7 +2075,9 @@ poprzedni Status, więc ta sama reguła odpaliłaby się drugi raz i ścigała z
 undo mogłoby zostawić flagę opuszczoną. Dlatego Status, flaga i Przedmiar to osobne zapisy w jednej
 paczce undo, jak Status + Przedmiar, a schemat patcha przyjmuje `aiRecheck` jako zwykły boolean.
 Wybór tego samego Statusu zdejmuje flagę tylko dlatego, że komórka sama dokłada ją do wiersza —
-bez tego `diffRow` nie widzi zmiany i nic się nie zapisuje. Przy okazji wyszły dwie dziury w
+bez tego `diffRow` nie widzi zmiany i nic się nie zapisuje. Delete i wklejenie pustego w komórce
+Statusu też zdejmują flagę razem z werdyktem — czy wyczyszczenie werdyktu powinno zdejmować „Do
+ponownego sprawdzenia", to otwarte pytanie do właściciela. Przy okazji wyszły dwie dziury w
 Komentarzu AI: szablon go przenosił na inne inwestycje, a ponowny import z arkusza go kasował
 (import to wipe-and-reinsert). Obie brały się stąd, że `aiMissingData` / `aiAssumptions` były w
 `KosztorysItemT` opcjonalne; teraz są wymagane, więc `tsc` wskazuje każdy builder, który o nich

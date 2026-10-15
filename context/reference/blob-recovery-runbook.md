@@ -71,11 +71,16 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
   uploaded — it moved 1767→1771 within minutes, confirming the store is live).
 - Files: faktura PDFs + `next/image` resized derivatives (`<base>-400x300.jpg`, thumbnails).
 - Access is **public** — bytes fetchable by URL with no token (Payload plugin default).
+- **Cached for a year.** `payload.config.ts` sets no `cacheControlMaxAge`, so the plugin's default of
+  365 days applies and media is served `public, max-age=31536000` — not `max-age=0`.
 
 ### `media` table (source of truth for the mapping)
 
 - **940 rows, 940 distinct `filename`, 0 duplicates, 0 null** → one blob file per media row.
   A transaction, however, maps to **1:N** media rows since EX-659 — one per invoice page.
+  The reverse never holds: a media row belongs to exactly one transfer, because deleting and reclaiming
+  work per row. So a worker's photo holding N paragony is uploaded N times, once per expense row;
+  sharing one media row would be a model change.
 - Link into it: **`transactions_rels (parent_id, path='invoice', media_id, order)`** — the join
   table Payload creates for a `hasMany` upload field. Both FKs are `ON DELETE cascade`, so deleting
   either side removes the link row rather than leaving a dangling one. (Note: DB table is
@@ -159,6 +164,9 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   investment. Why that one delete threw was never established: the preview DB was re-restored and
   the logs had expired before anyone looked. If it recurs, grep the Vercel runtime logs for that line
   the same day, before any preview restore. Production showed no gallery-shaped orphan.
+- **A blob with no row at all is a second, accepted leak.** A direct-to-Blob upload whose PUT lands
+  and whose `/api/media-register` then fails (`src/lib/media/client-upload.ts`) leaves bytes in the
+  store with no `media` row; `discardOrphanedUploads` works on media ids, so it cannot reach them.
 
 ### The Hobby plan cannot execute a restore (found the hard way, 2026-08-19)
 

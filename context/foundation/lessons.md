@@ -394,6 +394,9 @@
   (assert positively; "no bail logged" is weaker, an unrelated `_c` elsewhere can mask a new bail).
   Then, before fixing a bail, ask what the fix costs: a memoization win is worth nothing if the wiring
   that buys it introduces a per-keystroke re-render. Measure the actual complaint, not the metric.
+- **Update (2026-10-15)**: a fourth bail — a closure as a default parameter (`write = () => …` in the
+  params) makes the compiler skip the whole hook; it surfaced only as a now-unused `react-hooks/refs`
+  directive. Take the optional and fall back with `??` in the body (`patchStageField`).
 - **Applies to**: perf work, React Compiler, any "make this memoize" task
 
 ## This repo has no hook renderer — logic that must be tested has to live OUTSIDE the hook
@@ -1744,6 +1747,7 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 - **Rule**: (1) Dodając wartość do `InvestmentStatusT`, przejdź listę ręcznie — typecheck pokrywa mniej niż jedną trzecią. Zacznij od `investment-schema.ts`, `investment-form.tsx` i `STATUS_OPTIONS`, bo te trzy milczą, a łamią zapis albo czynią status nieosiągalnym. (2) **Jeśli nowy status ma cokolwiek blokować, napisz to jawnie w `investment-lock.ts` i dopisz wiersz do jego specu** — predykaty nad `string` nie przypomną. (3) `ALTER TYPE … ADD VALUE` i `ALTER TABLE … ADD COLUMN` mogą stać w **jednej** migracji tylko dopóki kolumna nie **używa** nowej wartości; `DEFAULT 'nowy-status'` w tej samej transakcji Postgres odrzuci. (4) Inwestycja o nowym statusie, jeśli niesie pozycje kosztorysu, **produkuje wiersz** w `kosztorys-client-totals` (żadne zapytanie w `lib/db` nie filtruje po statusie; `kosztorys-subcontractor-due` startuje od etapów, więc inwestycja bez etapów nie daje tam wiersza) i rusza globalny licznik `fingerprint.kosztorysItemCount` w golden-masterze — `pnpm test:golden:update` przy regeneracji.
 - **Update (`investment-wycena-status`, 2026-09-29)**: punkt (1) jest spłacony. Lista żyje w `src/lib/constants/investment-status.ts` jako ręcznie pisana krotka `as const`, a `z.enum`, opcje kolekcji, `<SelectItem>`, lista filtra i etykiety badge'a są z niej wyprowadzone. Nowy status to jedna pozycja w krotce plus wpis w każdej mapie `Record<InvestmentStatusT, …>`, które typecheck wymusza. Migracja enuma dalej jest ręczna i pilnuje jej spec `investments-status.db.test.ts`. Punkty (2)–(4) obowiązują bez zmian. **(5) Zapisana w localStorage mapa flag to trwały schemat.** `selectionFrom` czyta brak klucza jako „odznaczone”, a `toggleStatus` przepisuje całą mapę, więc nowy status bez reguły dla starych map zostałby na stałe ukryty u każdego, kto kiedyś ruszał filtr. Nowy klucz dziedziczy flagę statusu, z którego się wydzielił (`INHERITED_FLAG` w `use-status-filter.ts`). **(6) Wycena jest pierwszym etapem i domyślnym statusem nowej inwestycji** (owner, `defaultValue` kolekcji + `DEFAULT` kolumny z `20260929_4`). Nowa inwestycja nie jest więc „aktywna”: do przestawienia na Aktywną nie ma jej w pickerach wpłaty/wydatku ani w „N aktywnych”. Z tego samego powodu cofnięcie kodu nie jest bezdanowe — stary kod nie zna `quote`, więc przed rollbackiem `UPDATE investments SET status = 'planowana' WHERE status = 'quote'` i `down` z `20260929_4`.
 - **Update (EX-1066, 2026-10-15)**: punkt (6) to już gwarancja, nie domyślne ustawienie. Pickery inwestycji w formularzach przelewów (wpłata, wydatek, edycja) pokazują tylko Aktywne i Planowane (`OFFERED_FOR_BOOKING`) bez przełącznika „Wszystkie”, a wstępne wypełnienie z `/inwestycje/[id]` (`useInvestmentFromUrl`) powtarza ten sam zbiór. To osobny predykat statusu (`isOfferedForBooking`), a nie flaga `active` z referencji: poszerzenie flagi o Planowaną przeciekłoby do każdego innego pickera „aktywnych” i do licznika „N aktywnych”. Inwestycja, którą przelew już trzyma, zostaje na liście (`matchingOrSelected`, EX-643). Serwer dalej odmawia tylko Zakończonej, a `isBookableInvestment` zostaje „nie Zakończona”, bo czyta go tabela przelewów (edycja/anulowanie) — zawężenie go zablokowałoby po cichu przelewy na wycenach. Nowy status „Odrzucona” (`rejected`) nie ma wpisu w `INHERITED_FLAG`, więc jest domyślnie ukryty także w starych mapach filtra.
+- **Update (owner, 2026-10-15)**: payout bucketing puts only „Zakończona" under „zakończone"; a debt on an „Odrzucona" investment would count as active, but that is unreachable — an Odrzucona investment has no executed work, so no debt.
 - **Applies to**: /10x-plan, /10x-implement, code-review — każda zmiana unii statusu inwestycji oraz każdy predykat dostępu przyjmujący `string` zamiast unii
 
 ## Identyfikator, który zmienia znaczenie w czasie, wymusza strażnika w KAŻDYM czytelniku — więc zamiast strażników daj każdej rzeczy własny identyfikator
@@ -2695,3 +2699,10 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   When measuring cold loads, `unstable_cache` survives a restart in `.next/cache/fetch-cache`; clear it,
   or the "cold" run is warm.
 - **Applies to**: implement, impl-review — any read added to the app shell or a layout; any perf measurement
+
+## The session cookie is `Secure` under `NODE_ENV=production` — a LAN `pnpm start` never keeps a login
+
+- **Problem**: `pnpm start` opened over a LAN IP on plain http (a phone on the same Wi-Fi) drops the
+  `Secure` cookie, so the login never sticks. Separately, a `db:import` replaces `users_sessions`, so
+  every developer is logged out within the 1 h session-check backstop.
+- **Rule**: test a phone against `pnpm dev` or over https; after a `db:import`, expect to log in again.

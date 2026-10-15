@@ -43,6 +43,9 @@ Done 2026-10-15, ahead of the change:
   fully linked. The trashed „Kosztorys 2026” keeps its 6; it auto-purges around 2026-11-07.
 - „Aktualizuj pozycję w katalogu prac” hidden in a szablon (`use-kosztorys-editor.ts`). EX-1017
   scoped it to kosztorys; in a szablon it read the stale row copy and would push it over the katalog.
+  Only the UI hides it: `saveItemToCatalogueAction` still accepts a szablon pozycja (stale tab or a
+  direct call, management only). Owner, 2026-10-15: no server refusal now — it goes away with the
+  szablon's own tables.
 - Residual until this change lands: restoring a szablon version after one of its katalog entries was
   deleted still brings that praca back unlinked, with its old copy (`insert-kosztorys-tree.ts:74-77`).
   An FK on the new table removes it.
