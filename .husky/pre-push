@@ -3,7 +3,8 @@
 # the schema. Schema is now a separate, human-owned plane. On a push to main that
 # ADDS a migration under src/migrations/, stop and make the human acknowledge that
 # prod must be migrated by hand (`pnpm db:migrate:prod`, backup-first) — schema
-# BEFORE the code that needs it goes live. This block only asks; it runs no SQL.
+# BEFORE the code that needs it goes live, or AFTER for a migration marked
+# RUN-AFTER-DEPLOY. This block only asks; it runs no SQL.
 # Reads /dev/tty because git feeds the pushed-ref list to a pre-push hook on stdin.
 PROD_BRANCH=main
 push_to_prod= sha_from= sha_to=
@@ -19,13 +20,25 @@ if [ -n "$push_to_prod" ]; then
   fi
   # --diff-filter=A: only ADDED migrations are pending applies. A rename/edit or a
   # deletion (e.g. removing a smoke-test migration) is never something prod needs.
-  if git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep -q '\.ts$'; then
+  added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$')
+  if [ -n "$added" ]; then
+    # A migration that rewrites what the OLD code reads must run once the new deploy is live —
+    # migrating first serves the old code a shape it misreads. It says so with a RUN-AFTER-DEPLOY
+    # marker in its header. `payload migrate` applies every pending migration at once, so a push
+    # mixing both directions cannot be ordered and has to be split.
+    after_deploy=$(for f in $added; do git show "$sha_to:$f" | grep -q 'RUN-AFTER-DEPLOY' && echo "     $f"; done)
     if { : < /dev/tty; } 2>/dev/null; then
-      printf '\n⚠  Push to %s adds new src/migrations/.\n   Prod is NOT auto-migrated. Run `pnpm db:migrate:prod` yourself (backup-first)\n   BEFORE this deploy serves traffic, else the live app runs against an old schema.\n   Push the code now anyway? [y/N] ' "$PROD_BRANCH" > /dev/tty
+      if [ -n "$after_deploy" ]; then
+        printf '\n⚠  Push to %s adds migrations that must run AFTER this deploy is live:\n%s\n   Push now, then run `pnpm db:migrate:prod` (backup-first) once the deploy serves traffic.\n   If this push also adds a migration the new code needs FIRST, abort and split the release.\n   Push the code now? [y/N] ' "$PROD_BRANCH" "$after_deploy" > /dev/tty
+        abort_hint="split the release, then push"
+      else
+        printf '\n⚠  Push to %s adds new src/migrations/.\n   Prod is NOT auto-migrated. Run `pnpm db:migrate:prod` yourself (backup-first)\n   BEFORE this deploy serves traffic, else the live app runs against an old schema.\n   Push the code now anyway? [y/N] ' "$PROD_BRANCH" > /dev/tty
+        abort_hint="migrate prod first, then push"
+      fi
       read -r go < /dev/tty || go=n
       case "$go" in
         [Yy]*) echo "→ pushing code; remember to run pnpm db:migrate:prod" >&2 ;;
-        *)     echo "✗ aborted — migrate prod first, then push" >&2; exit 1 ;;
+        *)     echo "✗ aborted — $abort_hint" >&2; exit 1 ;;
       esac
     else
       echo "→ no terminal to confirm; pushing code only (migrate prod manually)" >&2
