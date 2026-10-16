@@ -137,7 +137,7 @@ th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal;
 th > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg);
             max-height: 22mm; text-align: left; }
 col.c-qty { width: 10mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
-col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; } col.c-note { width: 28mm; }
+col.c-value { width: 18mm; } col.c-stage-qty { width: 8mm; } col.c-note { width: 28mm; }
 .num, th.num { padding-left: 2px; padding-right: 2px; }
 .band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }
 tr.band-total td { font-size: 6pt; }

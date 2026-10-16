@@ -916,6 +916,20 @@ tylko komórka, a siatka ich nie widzi.
       „Opcje” → „Drukuj PDF”: każdy wiersz „Razem — <sekcja>” ma sumę także pod kwotą rabatu, a pod
       „Razem netto” stoi „W tym rabat” z sumą kolumny. Odznacz kolumnę → „W tym rabat” znika z PDF.
 
+## 2026-10-16 — worker-pdf-totals — sumy kolumn i łamanie stron w PDF pracownika
+
+- [ ] Kosztorys → „Pracownik” → „Drukuj kosztorys pracownika (PDF)” dla pracownika bez wpisów w
+      etapach: pod „Wartość netto aktualizacji przedmiaru” i „Pozostało netto” jest suma w każdym
+      „Razem — <sekcja>” oraz wiersz „Razem” z sumą całości na końcu tabeli.
+- [ ] Ten sam PDF dla pracownika z wpisami w etapach: sumy są też pod kolumnami netto etapów i
+      „Suma etapów … netto”; pod stawką i ilościami komórka sumy jest pusta.
+- [ ] PDF zapisany z Safari: ostatnia litera „zł” w skrajnej prawej kolumnie nie jest obcięta, a
+      kwota w wierszu „Razem” nie nachodzi na sąsiednią kolumnę.
+- [ ] PDF z Safari dla kosztorysu na 2+ strony: żaden wiersz nie jest rozcięty (opis na jednej
+      stronie, kwoty na drugiej) — wiersz, który się nie mieści, przechodzi w całości na następną.
+- [ ] Ten sam PDF z Chrome: wydruk poziomy, nagłówki kolumn powtarzają się na każdej stronie.
+- [ ] „Drukuj PDF” oferty dla inwestora i formularz pracownika do wypełnienia wyglądają jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
