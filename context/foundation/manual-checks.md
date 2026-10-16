@@ -801,13 +801,19 @@ tylko komórka, a siatka ich nie widzi.
 ## 2026-10-16 — umowa-dialog — „Umowa” generowana z widoku inwestycji
 
 - [ ] Inwestycja z „Dane do umowy” = Osoba prywatna i „taki sam” włączonym → „Umowa”: Zamawiający
-      to imię i nazwisko, Adres Zamawiającego = adres inwestycji, Miejscowość „Warszawie”, data =
+      to imię i nazwisko, adres w „Dane Zamawiającego” = adres inwestycji, Miejsce zawarcia „Warszawie”, data =
       dziś, Osoby odpowiedzialne „Bartosz Antonik, Yuri Abramenko”, Kwota netto = „Wartość netto
       przedmiar” ze stopki kosztorysu.
 - [ ] „Dane do umowy” = Firma → Zamawiający to firma + NIP + repr., pola PESEL nie ma.
-- [ ] „taki sam” wyłączony, adres do umowy wpisany → Adres Zamawiającego to ten adres, a Adres
+- [ ] „taki sam” wyłączony, adres do umowy wpisany → adres w „Dane Zamawiającego” to ten adres, a Adres
       inwestycji dalej adres inwestycji.
+- [ ] Oba adresy w oknie mają osobne pola Ulica i numer / Kod pocztowy / Miejscowość / Kraj; po
+      poprawce kodu w Adresie inwestycji i „Generuj” wydruk pokazuje adres w jednej linii, z nowym
+      kodem, w §1 ust. 2.
 - [ ] Inwestycja bez kosztorysu → Kwota pusta, okno działa normalnie.
+- [ ] „Generuj” w Chrome z „Marginesy: Brak”, a potem z „Domyślne” → w obu przypadkach strona 2 i
+      kolejne mają taki sam margines u góry i u dołu jak strona 1. To samo dla „Protokół odbioru” i
+      w Safari.
 - [ ] W oknie „Umowa” → „Edytuj dane inwestycji” → zmień imię klienta i zapisz → pola umowy
       wypełniają się nowymi danymi.
 - [ ] „Generuj” z pustym Numerem, PESEL-em i terminami → podgląd wydruku: kropkowane puste miejsca,
