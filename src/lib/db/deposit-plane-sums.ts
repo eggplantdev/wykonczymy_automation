@@ -6,24 +6,10 @@ import type { DbExecutorT } from './get-db'
 export type DepositPlaneSumsRowT = DepositPlaneSumsT & { investmentId: number }
 
 /**
- * The wpłaty of EVERY investment, bucketed by VAT plane — the listing's twin of the panel's
- * `bucketDepositsByPlane`, summed in SQL because the listing has no business shipping every wpłata
- * row to compute a handful of scalars. Untagged counts as netto, the same „brak wartości = netto" rule
- * (owner, 2026-07-23) the TS bucketing applies; `IS DISTINCT FROM` is what carries the null.
+ * Untagged counts as netto; `IS DISTINCT FROM` is what carries the null.
  *
- * Raw sums only: nothing is crossed here. A wpłata brutto carries its own netto (`net_amount`), and
- * `SUM` skipping a NULL is what makes a row without one worth 0 zł netto — the same answer the TS
- * bucketing gives. Folding the buckets into a pair stays in ONE place, `depositPairFromPlaneSums`.
- *
- * `INVESTOR_DEPOSIT` only, matching `getDepositTransactions` rather than the `income` financial
- * bucket: COMPANY_FUNDING is the company financing its own investment and must never pay down what
- * the client owes. That is a deliberate narrowing of the v1 bilans, whose `totalIncome` still counts
- * all three deposit types — v2 settles the client, v1 reads the cash ledger.
- *
- * The netto bucket is counted as well as summed: in tryb brutto those wpłaty pay nothing down, and
- * the listing has to say how many were dropped (EX-724) with no row in reach to count.
- *
- * An investment with no wpłaty is simply absent, which the caller reads as zero on both planes.
+ * COMPANY_FUNDING is the company financing its own investment and must never pay down what
+ * the client owes.
  */
 export async function selectDepositPlaneSums(db: DbExecutorT): Promise<DepositPlaneSumsRowT[]> {
   const res = await db.execute(sql`

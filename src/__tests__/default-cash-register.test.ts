@@ -5,8 +5,6 @@ import {
 } from '@/lib/utils/default-cash-register'
 import type { ReferenceDataT } from '@/types/reference-data'
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-
 const baseRefData: ReferenceDataT = {
   currentUserId: 10,
   currentUserRole: 'ADMIN',
@@ -24,8 +22,6 @@ const makeRefData = (overrides: Partial<ReferenceDataT>): ReferenceDataT => ({
   ...baseRefData,
   ...overrides,
 })
-
-// ── getUserDefaultCashRegisterId ─────────────────────────────────────────
 
 describe('getUserDefaultCashRegisterId', () => {
   it('returns defaultCashRegisterId when worker found', () => {
@@ -81,8 +77,6 @@ describe('getUserDefaultCashRegisterId', () => {
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
 })
-
-// ── getDefaultCashRegister ───────────────────────────────────────────────
 
 describe('getDefaultCashRegister', () => {
   it('returns default register ID as string when it exists', () => {

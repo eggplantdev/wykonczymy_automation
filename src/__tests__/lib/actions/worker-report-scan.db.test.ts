@@ -146,7 +146,6 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
       { kind: 'rozpiska', itemId: null, unit: '', isUncertain: false, scannedRef: '1-1' },
     ])
     expect(stored?.media.map((photo) => photo.id)).toEqual([first, second])
-    // The extra's translation rides after() like a link send.
     expect(scheduled).toHaveLength(1)
   })
 
@@ -181,15 +180,6 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
       extras: [],
     })
     expect(result).toMatchObject({ success: false, error: expect.stringMatching(/żadnej/) })
-  })
-
-  it('refuses a szablon', async () => {
-    await db.execute(sql`UPDATE investments SET status = 'szablon' WHERE id = ${investmentId}`)
-    try {
-      expect(await scan('template')).toMatchObject({ success: false })
-    } finally {
-      await db.execute(sql`UPDATE investments SET status = 'active' WHERE id = ${investmentId}`)
-    }
   })
 
   it('refuses an inactive worker, in the kierownik’s voice', async () => {

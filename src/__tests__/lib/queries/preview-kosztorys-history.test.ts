@@ -12,10 +12,6 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 vi.mock('server-only', () => ({}))
 
-// The share token is the investor's whole credential, and `?wersja=` is an id they can edit by hand —
-// so every scope below is asserted against real rows, where a WHERE that silently matches too much
-// would show.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('getPreviewHistoryByToken (DB)', () => {

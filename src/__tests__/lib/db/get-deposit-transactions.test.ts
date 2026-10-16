@@ -5,12 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { getDepositTransactionsForInvestment } from '@/lib/db/get-deposit-transactions'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// Regression guard for the Podsumowanie „Wpłaty"/„Do zapłaty" base (code-review WARNING, 2026-07-24):
-// the client wpłaty figure sums THIS query, which must stay INVESTOR_DEPOSIT-only. COMPANY_FUNDING
-// („zasilenie z konta firmowego") and OTHER_DEPOSIT are legacy deposit types that raise Bilans
-// inwestora but must never enter the client-facing wpłaty — a revert to the plane-blind `totalIncome`
-// would silently fold them back in. Insert rows directly to bypass the balance-recalc hooks.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('getDepositTransactionsForInvestment (DB)', () => {
@@ -41,9 +35,6 @@ describe.skipIf(!ENV_READY)('getDepositTransactionsForInvestment (DB)', () => {
 
     investmentId = await createTestInvestment(payload, 'get-deposit-transactions-test')
 
-    // Two active INVESTOR_DEPOSITs (one plane-marked, one legacy-null) — the only rows the client
-    // wpłaty base may include. Then the noise the query must reject: a cancelled INVESTOR_DEPOSIT,
-    // a COMPANY_FUNDING, and an OTHER_DEPOSIT.
     await insertDeposit({ type: 'INVESTOR_DEPOSIT', amount: 5000, vatPlane: 'GROSS' })
     await insertDeposit({ type: 'INVESTOR_DEPOSIT', amount: 3000 })
     await insertDeposit({ type: 'INVESTOR_DEPOSIT', amount: 999, cancelled: true })
@@ -61,14 +52,11 @@ describe.skipIf(!ENV_READY)('getDepositTransactionsForInvestment (DB)', () => {
   it('returns only non-cancelled INVESTOR_DEPOSIT rows — legacy planes never enter client wpłaty', async () => {
     const rows = await getDepositTransactionsForInvestment(payload, investmentId)
 
-    // The two active INVESTOR_DEPOSITs only — cancelled, COMPANY_FUNDING, OTHER_DEPOSIT all excluded.
     expect(rows).toHaveLength(2)
 
-    // The Σ the Podsumowanie „Wpłaty" figure sums: 5000 + 3000, NOT +7000 (company) or +1000 (other).
     const depositsNet = rows.reduce((sum, row) => sum + row.amount, 0)
     expect(depositsNet).toBe(8000)
 
-    // vat_plane survives per row (GROSS marked, legacy null) for the tryb-mieszany split.
     expect([...rows].map((row) => row.vatPlane).sort()).toEqual(['GROSS', null])
   })
 })

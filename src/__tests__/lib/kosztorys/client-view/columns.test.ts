@@ -2,9 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { CLIENT_VIEW_GROUPS, PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 
-// The groups ARE the allowlist, so the two can no longer disagree — what is left to guard is the
-// flattening: a key repeated across groups renders two ticks for one column and collapses into the
-// Set without a word, and a key with no label renders a row named after nothing.
 describe('the client-view column groups', () => {
   const grouped = CLIENT_VIEW_GROUPS.flatMap((group) => group.keys)
 

@@ -22,8 +22,6 @@ import { validateAction, protectedAction } from './run-action'
 
 const flagsSchema = z.array(z.enum(PERFORMED_INSPECTION_TYPES))
 
-// A trashed car still holds its plate, so the refusal has to say where to find it — otherwise the
-// owner is told the plate is taken by a car no listing shows.
 async function registrationClash(payload: Payload, plate: string, ownId?: number) {
   const { docs } = await payload.find({
     collection: 'vehicles',
@@ -87,9 +85,6 @@ export async function createInspectionAction(data: InspectionFormDataT) {
       const parsed = validateAction(inspectionSchema, data)
       if (!parsed.success) return parsed
 
-      // The notification-bookkeeping columns are deliberately left unset: a fresh event is the new
-      // current deadline for its (vehicle, type) pair, so it starts out un-notified on both legs and
-      // the superseded row stops being read at all.
       await payload.create({ collection: 'vehicle-inspections', data: parsed.data })
 
       return { success: true }
@@ -98,10 +93,6 @@ export async function createInspectionAction(data: InspectionFormDataT) {
   )
 }
 
-/**
- * Persist the „do wymiany" marks ticked on a vehicle. The events are read first because `nextFlags`
- * needs to know which marks the history has already answered — see its own note for why.
- */
 export async function setVehicleFlagsAction(vehicleId: number, types: PerformedInspectionTypeT[]) {
   return protectedAction(
     'setVehicleFlagsAction',

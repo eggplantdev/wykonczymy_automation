@@ -5,17 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
 
-// „Zapisz kolejność" — the multi-section write, driven against the REAL DB and
-// asserting the PERSISTED sequence (a success result can hide a failed write).
-//   RK1 — every section takes its new order in one call, each restarting at 0. The caller sends one
-//         flat id sequence for the whole sheet; splitting it per section and numbering 0…n-1 is the
-//         server's job, which is the invariant no client-side numbering could be trusted with.
-//   RK2 — ids from another investment are refused outright; nothing is written.
-//   RK3 — a duplicate id is refused (it would make the VALUES join ambiguous).
-//   RK4 — one stale id (a row deleted in another tab) refuses the ENTIRE bake: the client's rollback
-//         to the previous sequence assumes all-or-nothing.
-//
-// Same mock surface as the sibling action specs.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -29,7 +18,6 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 const { addItemAction, addSectionAction, removeItemAction, renumberKosztorysOrderAction } =
   await import('@/lib/actions/kosztorys')
 
-// Gated like the sibling specs: skips with no DB env, FAILS if env is set but the DB is unreachable.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'renumber-kosztorys-order-test-'
 
@@ -54,8 +42,6 @@ describe.skipIf(!ENV_READY)('renumberKosztorysOrderAction (DB)', () => {
     authState.userId = Number(firstUser.id)
   })
 
-  // A crashed run leaves its investments behind, and financial-golden-master-db.test.ts enumerates
-  // this same DB with `limit: 0` — a leaked fixture would show up there as unexplained drift.
   beforeAll(async () => {
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)
   })

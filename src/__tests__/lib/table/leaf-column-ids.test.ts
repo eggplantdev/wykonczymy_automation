@@ -22,9 +22,6 @@ describe('leafColumnIds', () => {
   })
 })
 
-// The regression this pair guards is the DataTable twin of the kosztorys grid's `assembleBaseRanks`
-// rule: the reorder dialog's base ranks come from the DECLARED list, so a second drop measures its
-// midpoint against the same scale the first one did.
 describe('base ranks under a stored rank', () => {
   it('does not move when a column has already been dragged', () => {
     const declared = leafColumnIds(COLUMNS)
@@ -43,7 +40,6 @@ describe('base ranks under a stored rank', () => {
     const ordered = orderColumnKeys(declared, first)
     expect(ordered).toEqual(['worker', 'id', 'date', 'amount'])
 
-    // „Kwota" dropped into slot 1 — between „Pracownik" and „ID".
     const second = { ...first, amount: rankForMove(ordered, 'amount', 1, first, base) }
     expect(orderColumnKeys(declared, second)).toEqual(['worker', 'amount', 'id', 'date'])
   })

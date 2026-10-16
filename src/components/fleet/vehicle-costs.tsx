@@ -14,7 +14,6 @@ import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
 
-// Both grids run the same tracks, so the totals and the itemisation line up column for column.
 const COLS = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`
 
 export function VehicleCosts({
@@ -22,7 +21,7 @@ export function VehicleCosts({
   fullHistoryByType,
 }: {
   historyByType: Record<InspectionTypeT, InspectionHistoryEntryT[]>
-  // Re-summarised rather than counted raw: the odometer readings this table leaves out must not make
+  // the odometer readings this table leaves out must not make
   // an empty window look like a window that hid something.
   fullHistoryByType: Record<InspectionTypeT, InspectionHistoryEntryT[]>
 }) {

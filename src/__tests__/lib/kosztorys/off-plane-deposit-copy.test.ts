@@ -2,9 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { offPlaneDepositSentence } from '@/lib/kosztorys/off-plane-deposit-copy'
 import { formatPLN } from '@/lib/utils/format-currency'
 
-// One sentence, two surfaces: the Podsumowanie banner and the investments listing's marker both
-// speak it, so the wording is the shared contract (EX-724). What it must never do is claim a kwota
-// was lost where it wasn't — a przelew on a bill settled netto still pays the debt down.
 describe('offPlaneDepositSentence', () => {
   it('in tryb brutto names the kwota that pays nothing down', () => {
     const sentence = offPlaneDepositSentence({ count: 2, amount: 4000 }, 'GROSS')

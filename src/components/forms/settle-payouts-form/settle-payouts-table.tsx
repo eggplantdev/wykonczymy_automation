@@ -28,17 +28,14 @@ type SettleTableContextT = {
   values: RowValueT[]
   onTick: (index: number, ticked: boolean) => void
   onAmount: (index: number, amount: string) => void
-  /** „Wyrównaj premią" on an unticked nadpłata row — books exactly the overpayment. Absent for a
-   * MANAGER, who may not grant a premia. */
   onBonus?: (index: number) => void
   isBooking: boolean
   labelHeader: string
   labelHref?: (row: SettleRowT) => string
 }
 
-// A context, not props on the columns: `flexRender` mounts a `cell` function as a component, so
-// columns rebuilt per keystroke would remount the input under the caret. The columns stay
-// module-level and the live values reach the cells here.
+// `flexRender` mounts a `cell` function as a component, so columns rebuilt per keystroke would
+// remount the input under the caret.
 const SettleTableContext = createContext<SettleTableContextT | undefined>(undefined)
 
 function useSettleTable() {
@@ -79,7 +76,6 @@ function LabelHeader() {
 function LabelCell({ row }: { row: SettleRowT }) {
   const { labelHref } = useSettleTable()
   return (
-    // A new tab, so the dialog and its typed amounts survive the look.
     <OptionalLink href={labelHref?.(row)} target="_blank" className="underline-offset-4">
       {row.label}
     </OptionalLink>
@@ -148,8 +144,6 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
   return <RemainderAmount value={roundToCents(row.remaining - amountOf(value))} />
 }
 
-// Zero reads as settled and below zero as overshot — the reverse of `SignedMoneyDisplay`, where
-// positive is the good side.
 function RemainderAmount({ value }: { value: number }) {
   return (
     <span
@@ -239,7 +233,6 @@ export function SettlePayoutsTable({
         className={className}
         data={rows}
         columns={COLUMNS}
-        // Shown only once a premia exists, so „Pozostało" still tallies across the visible columns.
         defaultColumnVisibility={{ [BONUS_COLUMN_ID]: rows.some((row) => row.bonus !== 0) }}
         getRowClassName={(row) => (isBlocked(row.state) ? 'opacity-60' : '')}
         footer={(visibleColumnIds) => (

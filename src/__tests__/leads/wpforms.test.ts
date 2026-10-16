@@ -3,9 +3,6 @@ import { wpformsToStoreLeadInput, type WpformsSubmissionT } from '@/lib/leads/wp
 
 const SUBMITTED_AT = '2026-07-09T09:16:32.000Z'
 
-// Mirrors the real "/kontakt" form (id 1686) shape — fields keyed by id, each
-// { name(=label), value, type } — with all PII fabricated. Only the email field
-// carries a semantic `type`; name/phone are plain text, identified by label.
 function submission(overrides: Partial<WpformsSubmissionT> = {}): WpformsSubmissionT {
   return {
     form_id: '1686',
@@ -37,11 +34,9 @@ describe('wpformsToStoreLeadInput', () => {
 
   it('keys rawData and formQuestions by label so the answers modal renders every field', () => {
     const input = wpformsToStoreLeadInput(submission(), SUBMITTED_AT)
-    // Every submitted field survives in rawData, keyed by its label.
     expect(input.rawData).toContainEqual({ name: 'Zakres prac', values: ['remont'] })
     expect(input.rawData).toContainEqual({ name: 'Metraż prac', values: ['30 - 60m²'] })
     expect(input.rawData).toHaveLength(6)
-    // formQuestions mirrors the keys and carries the WPForms type.
     expect(input.formQuestions).toContainEqual({
       key: 'Zakres prac',
       label: 'Zakres prac',
@@ -55,9 +50,7 @@ describe('wpformsToStoreLeadInput', () => {
     )
   })
 
-  // The collision guard: WPForms Lite installs without stored entries send 0. If
-  // 0 became externalId "0", every such lead would dedup into a single row. It
-  // must degrade to "no id" so each submission creates instead.
+  // WPForms Lite installs without stored entries send 0.
   it('treats entry_id 0 as no externalId (never collides on "0")', () => {
     expect(
       wpformsToStoreLeadInput(submission({ entry_id: 0 }), SUBMITTED_AT).externalId,

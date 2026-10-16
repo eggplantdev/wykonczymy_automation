@@ -5,7 +5,6 @@ import type { RoleT } from '@/lib/auth/roles'
 export type RemovalSubjectT = {
   role: RoleT
   isTrashed: boolean
-  /** Other accounts of the same role that can still log in — neither trashed nor deactivated. */
   otherLiveOfRole: number
 }
 

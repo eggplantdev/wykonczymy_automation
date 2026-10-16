@@ -67,14 +67,9 @@ describe('measureDiscrepancy', () => {
   })
 
   it('counts every crew’s etapy, not only the client-plane ones', () => {
-    // The sheet's pomiar covers the whole offered scope, so measuring it against one crew's share
-    // would report a rozjazd on work the other crew finished.
     expect(measureDiscrepancy(row({ sheetMeasuredQty: 55, [stageKey(2)]: 55 }), STAGES)).toBeNull()
   })
 
-  // A kwotowy rabat is deducted once from the whole row, not per unit, so pricing the difference as
-  // if it were a row of its own subtracts the entire rabat from a partial quantity — enough to turn
-  // a positive rozjazd into a negative number on a small difference.
   it('prices a difference on a row with a kwotowy rabat as the gap between two row values', () => {
     const kwotowy = { discountType: 'amount' as const, discountValue: 500 }
 

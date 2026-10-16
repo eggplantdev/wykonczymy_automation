@@ -27,10 +27,8 @@ export type SettlePayoutRowsT = {
 }
 
 /**
- * Read on open rather than shipped with the list page: every pair of every worker is far more than
- * one dialog needs, and a figure read when the page rendered may be minutes old by the time the owner
- * clicks. Uncached for the same reason the action is: the editor's autosaves expire the cached pairs
- * a beat late, and a reload after a stale refusal that re-read them would be refused again.
+ * Uncached: the editor's autosaves expire the cached pairs a beat late, and a reload after a stale
+ * refusal that re-read them would be refused again.
  */
 export async function fetchSettlePayoutRows(target: SettleTargetT): Promise<SettlePayoutRowsT> {
   const elapsed = perfStart()

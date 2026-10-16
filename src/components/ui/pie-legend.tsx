@@ -2,9 +2,6 @@ import { formatPercent } from '@/lib/kosztorys/format'
 
 export type PieSliceT = { id: string; name: string; value: number; fill: string }
 
-// Shared legend for the footer pies. `formatValue` renders each slice's figure (the caller owns
-// units/locale) and is optional — a pie whose slices are only comparable as shares leaves it out and
-// shows the percent alone.
 export function PieSliceLegend({
   slices,
   formatValue,
@@ -18,9 +15,6 @@ export function PieSliceLegend({
       {slices.map((slice) => (
         <li key={slice.id} className="flex items-center gap-2">
           <span className="size-3 shrink-0 rounded-xs" style={{ backgroundColor: slice.fill }} />
-          {/* The figures keep their width and the name gives up its tail: a sekcja is named in a full
-              sentence („Instalacja wodno-kanalizacyjna / C.O."), and on a phone the row is narrower
-              than that name plus its two numbers. The full name stays reachable as the tooltip. */}
           <span className="min-w-0 truncate" title={slice.name}>
             {slice.name}
           </span>

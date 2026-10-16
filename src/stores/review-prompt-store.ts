@@ -10,8 +10,7 @@ type ReviewPromptStoreT = {
 }
 
 // The prompt after „Zakończona" cannot live on the row that triggered it: the listing hides
-// completed investments by default, so the refresh unmounts that row. The target is held here and
-// rendered by `ReviewPromptHost`, which the shell mounts once.
+// completed investments by default, so the refresh unmounts that row.
 export const useReviewPromptStore = create<ReviewPromptStoreT>()((set) => ({
   target: undefined,
   openReviewPrompt: (target) => {

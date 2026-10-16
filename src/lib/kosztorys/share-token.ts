@@ -34,9 +34,8 @@ export async function findShare(payload: Payload, row: ShareRowT) {
 }
 
 /**
- * `rotate` overwrites a live token, which is what makes „wygeneruj nowy" an actual revocation of the
- * previous URL rather than a second live door. Without it a live token is handed back untouched, so
- * two overlapping „Udostępnij" clicks cannot kill the link the first one copied.
+ * `rotate` overwrites a live token. Without it a live token is handed back untouched, so two
+ * overlapping „Udostępnij" clicks cannot kill the link the first one copied.
  */
 export async function writeShareToken(
   payload: Payload,
@@ -53,8 +52,7 @@ export async function writeShareToken(
   try {
     await payload.create({ collection: row.collection, data: { ...row.owner, token } })
   } catch {
-    // find-then-create is not atomic and the owner is unique — two clicks at once race here. The
-    // loser re-reads: by then a link demonstrably exists, which is all the caller wanted.
+    // find-then-create is not atomic and the owner is unique — two clicks at once race here.
     const winner = await findShare(payload, row)
     return winner
       ? { success: true, data: winner.token }
@@ -63,7 +61,6 @@ export async function writeShareToken(
   return { success: true, data: token }
 }
 
-// No row, no public read — the token stops resolving on the next request.
 export async function deleteShare(payload: Payload, row: ShareRowT) {
   const share = await findShare(payload, row)
   if (share) await payload.delete({ collection: row.collection, id: share.id })

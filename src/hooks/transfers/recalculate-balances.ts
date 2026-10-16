@@ -4,17 +4,12 @@ import { CACHE_TAGS, entityTag, EXPIRE_NEXT, EXPIRE_NOW } from '@/lib/cache/tags
 import { perfStart } from '@/lib/perf'
 import { resolveId } from '@/lib/utils/resolve-id'
 
-/** Balances are computed on read via cached functions, so there is no write here. */
 export const recalcAfterChange: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
   context,
 }) => {
-  // `revalidateTag` needs a Next request context, so a non-request caller (seed script, DB spec)
-  // opts out with the same `skipRevalidation` flag `revalidate-collection` already honours.
   if (context?.skipRevalidation) return doc
-  // An action that must not re-render its route inside every booking asks for the deferred expiry
-  // (EX-850) — the same tags, so the list stays here instead of being copied into the action.
   const expiry = context?.deferRefresh ? EXPIRE_NEXT : EXPIRE_NOW
   const elapsed = perfStart()
   console.log(`[PERF] recalcAfterChange START id=${doc.id} type=${doc.type}`)
@@ -56,7 +51,6 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, contex
   if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), EXPIRE_NOW)
   if (investmentId) revalidateTag(entityTag('investment', investmentId), EXPIRE_NOW)
 
-  // Payload hooks run in Route Handler context — must use revalidateTag, not updateTag
   revalidateTag(CACHE_TAGS.transfers, EXPIRE_NOW)
 
   console.log(`[PERF] recalcAfterDelete TOTAL ${elapsed()}ms`)

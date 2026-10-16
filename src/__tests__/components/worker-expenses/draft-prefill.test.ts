@@ -40,7 +40,6 @@ const partsOf = (prefill: ReturnType<typeof buildDraftPrefill>) =>
 const BLANK = { description: '', amount: '', netAmount: '', invoiceNote: '', expenseCategory: '5' }
 
 describe('buildDraftPrefill', () => {
-  // Reads stored before EX-1048 („Jeden wydatek”) are one row over every photo.
   it('an old single-row read over every photo → one filled row carrying every page', () => {
     const aiRead: ExpenseDraftReadT = {
       rows: [
@@ -219,7 +218,6 @@ describe('buildDraftPrefill', () => {
     })
   })
 
-  // Reads stored before EX-1025 carry no identity fields.
   it('a stored read without the identity fields still prefills everything else', () => {
     const aiRead = expenseDraftReadSchema.parse({
       rows: [{ mediaIds: [1], description: 'Leroy 01.02.2026', amount: 12.5, invoiceNote: 'P/1' }],
@@ -241,7 +239,6 @@ describe('buildDraftPrefill', () => {
     })
   })
 
-  // The write guard keeps a foreign read out of the DB; this keeps one out of the form all the same.
   it('ignores a read row naming a photo the draft does not hold', () => {
     const aiRead: ExpenseDraftReadT = { rows: [{ mediaIds: [1, 9], description: 'Obcy' }] }
 

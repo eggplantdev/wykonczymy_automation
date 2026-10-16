@@ -16,7 +16,6 @@ type AllowedMimeT = (typeof ALLOWED_UPLOAD_MIMES)[number]
 export const isAllowedUploadMime = (type: string): type is AllowedMimeT =>
   (ALLOWED_UPLOAD_MIMES as readonly string[]).includes(type)
 
-/** Drop `; charset=…` and case, so a well-formed header is not refused for its spelling. */
 export const normalizeContentType = (contentType: string): string =>
   contentType.split(';')[0]?.trim().toLowerCase() ?? ''
 
@@ -37,10 +36,8 @@ const startsWith = (head: Uint8Array, signature: number[]) =>
   head.length >= signature.length && signature.every((byte, i) => head[i] === byte)
 
 /**
- * The stored type, decided from the file's first bytes rather than the browser's declared type,
- * because nothing downstream re-checks it. An allowlist: anything
- * not recognised (SVG, HTML, a renamed text file) is refused, because a public blob served with an
- * attacker-chosen type is how an upload becomes a script.
+ * anything not recognised (SVG, HTML, a renamed text file) is refused, because a public blob served
+ * with an attacker-chosen type is how an upload becomes a script.
  */
 export function sniffMime(head: Uint8Array): AllowedMimeT | null {
   if (startsWith(head, [0xff, 0xd8, 0xff])) return 'image/jpeg'

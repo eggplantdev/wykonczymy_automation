@@ -1,13 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Guards the runtime auto-fallback: the primary RECEIPT_MODEL is a cheaper on-trial tier, so a
-// wrong/unavailable id must degrade to the known-good FALLBACK_MODEL instead of failing the scan.
-
 const { generateObject } = vi.hoisted(() => ({ generateObject: vi.fn() }))
 
 vi.mock('ai', () => ({ generateObject }))
 
-// createOpenRouter returns a factory; tag each model call so the mock can tell primary from fallback.
 vi.mock('@openrouter/ai-sdk-provider', () => ({
   createOpenRouter: () => (model: string) => ({ __model: model }),
 }))
@@ -64,9 +60,8 @@ describe('extractReceipt runtime fallback', () => {
     expect(generateObject).toHaveBeenCalledTimes(2)
   })
 
-  // Regression guard: a hung vision request must abort (not hang forever), otherwise the batch
-  // fill's Promise.all wedges and isFilling never clears (spinner stuck). Both attempts hang
-  // until their own abortSignal fires; advancing past each timeout must reject.
+  // a hung vision request must abort, otherwise the batch
+  // fill's Promise.all wedges and isFilling never clears.
   it('aborts a hung request via the per-attempt timeout instead of hanging forever', async () => {
     vi.useFakeTimers()
     try {
@@ -97,8 +92,6 @@ describe('extractReceipt runtime fallback', () => {
     }
   })
 
-  // A multi-page invoice is more bytes to upload and more document to read, so the single-page
-  // budget would abort a long-but-healthy scan for the wrong reason.
   it('grows the timeout budget with each extra page', async () => {
     vi.useFakeTimers()
     try {

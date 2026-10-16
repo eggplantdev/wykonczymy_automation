@@ -77,12 +77,10 @@ function WorkerReportsBody({
   const [reports, setReports] = useState<WorkerReportSummaryT[] | undefined>()
   const [openReport, setOpenReport] = useState<WorkerReportT | undefined>()
   const [listVersion, setListVersion] = useState(0)
-  // Bumped by a save, so the review remounts on the saved report instead of keeping its drafts.
   const [reviewVersion, setReviewVersion] = useState(0)
   // Here rather than in the review, which a save remounts.
   const [isHidingVerified, setIsHidingVerified] = useState(false)
 
-  // Every list read also corrects the toolbar count — a decision here, or another window's.
   useEffect(() => {
     let active = true
     listInvestmentReports(investmentId)
@@ -126,7 +124,6 @@ function WorkerReportsBody({
       })
       .catch(() => {
         toastMessage(LOAD_FAILED, 'error', 4000)
-        // Back to the list: the review still shows the report as it was before the save.
         setOpenReport(undefined)
       })
   }

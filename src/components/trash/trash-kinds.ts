@@ -10,6 +10,7 @@ import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/wo
 import { deleteVehicleForeverAction, restoreVehicleAction } from '@/lib/actions/vehicle-trash'
 import { deleteEquipmentForeverAction, restoreEquipmentAction } from '@/lib/actions/equipment-trash'
 import { deleteLeadForeverAction, restoreLeadAction } from '@/lib/actions/lead-trash'
+import { deleteTemplateForeverAction, restoreTemplateAction } from '@/lib/actions/template-trash'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT, TrashRowT } from '@/types/trash'
@@ -33,16 +34,15 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     restored: 'Inwestycja przywrócona.',
     deleteForever: deleteInvestmentForeverAction,
     lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
-    // Read the way the /kosz row reads it: no auto-purge means „kosztorys w użyciu".
     note: (row) => (row.autoPurges ? undefined : KOSZTORYS_IN_USE_WARNING),
     nameLabel: 'Nazwa inwestycji',
     deleted: 'Inwestycja usunięta na zawsze.',
   },
   template: {
     sectionTitle: 'Szablony',
-    restore: restoreInvestmentAction,
+    restore: restoreTemplateAction,
     restored: 'Szablon przywrócony.',
-    deleteForever: deleteInvestmentForeverAction,
+    deleteForever: deleteTemplateForeverAction,
     lost: 'sekcje, pozycje i wersje szablonu',
     note: () => 'Kosztorysy założone z tego szablonu zostają bez zmian.',
     nameLabel: 'Nazwa szablonu',

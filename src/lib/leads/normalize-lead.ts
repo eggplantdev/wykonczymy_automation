@@ -9,8 +9,7 @@ export type NormalizedLeadT = {
 
 const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]+/
 
-// Key heuristics for the webhook path, where the per-lead payload carries no field
-// type (type lives on the form definition, not the lead). Meta's standard-field keys
+// Meta's standard-field keys
 // are localized/custom per form (`adres_e-mail`, `full name`), so we match on a
 // substring of the key rather than an exact set — generalises to the next form.
 const EMAIL_KEY_RE = /mail/i
@@ -19,18 +18,6 @@ const NAME_KEY_RE = /name|imi[eę]|nazwisko/i
 
 const firstValue = (field: LeadFieldT | undefined): string | undefined => field?.values?.[0]
 
-/**
- * Map raw Meta `field_data` → typed columns + the untouched raw array.
- *
- * Precedence, most→least reliable:
- *   1. Meta field **type** from the form `questions` (EMAIL / PHONE / FULL_NAME) —
- *      Meta-validated, used when a type-map is supplied.
- *   2. **Key heuristic** — the webhook has no type-map, so match on the field key
- *      (`/mail/`, `/phone/`, `/name|imię|nazwisko/`); email is value-checked so a
- *      stray `/mail/` key can't mislabel.
- *   3. **Email regex** over all values — last resort.
- * CUSTOM free-text fields never match, so they live only in `rawData`.
- */
 export function normalizeLead(
   fieldData: LeadFieldT[],
   questions?: readonly { key: string; type?: string }[],
@@ -41,7 +28,6 @@ export function normalizeLead(
   let name: string | undefined
   let phone: string | undefined
 
-  // 1. Type-map pass.
   for (const field of fieldData) {
     const value = firstValue(field)
     if (value === undefined) continue
@@ -58,7 +44,6 @@ export function normalizeLead(
     }
   }
 
-  // 2. Key-heuristic pass — fills only what the type-map didn't.
   for (const field of fieldData) {
     const value = firstValue(field)
     if (value === undefined) continue
@@ -68,7 +53,6 @@ export function normalizeLead(
     if (name === undefined && NAME_KEY_RE.test(key)) name = value
   }
 
-  // 3. Email regex over any value — last resort.
   if (email === undefined) {
     for (const field of fieldData) {
       const match = firstValue(field)?.match(EMAIL_RE)

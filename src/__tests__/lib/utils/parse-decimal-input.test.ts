@@ -21,7 +21,7 @@ describe('parseDecimalInput', () => {
   })
 
   // Number('Infinity')/Number('1e999') aren't NaN, so a bare Number.isNaN guard would commit them
-  // as a live value into every consuming action. Non-finite input is invalid, not a number.
+  // as a live value into every consuming action.
   it('odrzuca wartości ni-skończone', () => {
     expect(parseDecimalInput('Infinity')).toEqual({ kind: 'invalid' })
     expect(parseDecimalInput('-Infinity')).toEqual({ kind: 'invalid' })
@@ -29,8 +29,6 @@ describe('parseDecimalInput', () => {
   })
 })
 
-// A grid cell renders with `decimalText` and reads back with `parseCellDecimal` on the next
-// keystroke. Break the round trip and an untouched cell re-commits a different number than it showed.
 describe('parseCellDecimal(decimalText(x)) round trip', () => {
   it.each([0, 1, -3, 12.5, 0.01, 1234567.89, 1e21, -0.5])('survives %s', (value) => {
     expect(parseCellDecimal(decimalText(value))).toEqual({ kind: 'value', value })

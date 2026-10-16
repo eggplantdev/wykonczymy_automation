@@ -9,7 +9,6 @@ export const treeItems = (tree: Pick<KosztorysTreeT, 'sections'>): TreeItemT[] =
     section.items.map((item) => ({ item, sectionName: section.name })),
   )
 
-/** The j.m. a praca spoza rozpiski may carry: the canonical list plus every one this rozpiska uses. */
 export const reportUnits = (items: readonly TreeItemT[]): Set<string> =>
   new Set(
     unitOptions(
@@ -18,10 +17,6 @@ export const reportUnits = (items: readonly TreeItemT[]): Set<string> =>
     ),
   )
 
-/**
- * Opis, j.m. and sekcja are copied from the live pozycja, so what the kierownik reviews is what the
- * rozpiska said at report time — never text the client or the AI made up.
- */
 export const rozpiskaLine = (
   { item, sectionName }: TreeItemT,
   reportedQty: number,

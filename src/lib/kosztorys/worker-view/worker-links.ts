@@ -1,11 +1,6 @@
 // `normalize('NFD')` splits „ó" into „o" plus a combining mark, but „ł" has no decomposition.
 const UNDECOMPOSED: Record<string, string> = { ł: 'l', Ł: 'L' }
 
-/**
- * The owner wants to tell links apart by whom and which investment they are for. Decoration only:
- * the id or token beside it is what resolves, so a renamed worker's or investment's old link keeps
- * working.
- */
 export function nameSlug(name: string): string {
   return name
     .normalize('NFD')
@@ -29,7 +24,6 @@ export function workerIdFromSegment(segment: string): number | undefined {
 const REPORT_VIEW_PARAM = 'view'
 const SUMMARY_VIEW = 'summary'
 
-// Opens the report page on „Inwestycja”.
 export function summaryViewUrl(reportUrl: string): string {
   return `${reportUrl}?${REPORT_VIEW_PARAM}=${SUMMARY_VIEW}`
 }

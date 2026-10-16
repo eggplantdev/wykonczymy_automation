@@ -10,9 +10,6 @@ type InstallSignalsT = {
   waitedOut: boolean
 }
 
-// iOS never fires `beforeinstallprompt`, so it gets the guide rather than a wait; a prompt arriving
-// after the wait ran out still wins over the menu hint. A dismissed prompt cannot be shown again on
-// this page load, so after one the menu is the only path left.
 export const resolveInstallState = ({
   platform,
   installed,

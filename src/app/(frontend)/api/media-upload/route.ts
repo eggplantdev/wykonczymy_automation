@@ -20,10 +20,6 @@ import { MEDIA_KINDS } from '@/types/media'
 /**
  * An API route rather than a server action because Next runs one client's actions one at a time, and a multi-photo send
  * needs its uploads in parallel.
- *
- * The blob key is the row's `filename` with no prefix and no random suffix — the layout the Blob
- * plugin writes, which is what lets `/api/media/file/<filename>` serve it and the collection's
- * afterDelete remove it.
  */
 
 const kindSchema = z.enum(MEDIA_KINDS).optional()

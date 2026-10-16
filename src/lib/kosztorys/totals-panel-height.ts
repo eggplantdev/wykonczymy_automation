@@ -1,5 +1,3 @@
-// The panel's height is a fraction of the grid area, so one split reads the same on a laptop and on
-// a tall monitor.
 export const FULL_PANEL_FRACTION = 1
 // A drag released below this folds the panel instead of leaving a strip too thin to hold the view
 // toggle.
@@ -23,12 +21,10 @@ export function isStoredPanelFraction(value: number): boolean {
   return Number.isFinite(value) && value >= CLOSE_BELOW && value <= FULL_PANEL_FRACTION
 }
 
-// The grid's height beside the panel is the same figure, so the two meet with no gap or overlap.
 function panelTopPx(fraction: number, gridHeight: number): number {
   return gridHeight - Math.round(clampFraction(fraction) * gridHeight)
 }
 
-// `0` reads as folded: the panel parks below the grid area instead of keeping a zero-height strip.
 export function panelTop(fraction: number, gridHeight: number): number | '100%' {
   return fraction <= 0 ? '100%' : panelTopPx(fraction, gridHeight)
 }

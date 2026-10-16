@@ -24,12 +24,8 @@ type PropsT = {
   >[]
   sectionOptions: SelectOptionT[]
   initialSectionId: string
-  // A podpowiedź clicked in the table opens the window on that praca: ticked, and searched for, so it
-  // is on screen rather than somewhere down a virtualised cennik.
   initialSelectedId: number | undefined
   reported: { description: string; unit: string }
-  // Resolves once the praca is in the rozpiska; false keeps the window open on the error. `held` is
-  // the pozycja the sekcja already holds for it, if any — the one the note promised.
   onPick: (
     entry: WorkCatalogueItemT,
     sectionId: number,
@@ -39,8 +35,6 @@ type PropsT = {
   onClose: () => void
 }
 
-// Nothing is hidden: a praca already in that sekcja is the likeliest answer, and picking it adds to
-// that pozycja.
 export function CatalogueSwapDialog({
   catalogue,
   kosztorysItems,

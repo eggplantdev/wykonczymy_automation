@@ -2,14 +2,18 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import {
+  addTestTemplateSection,
+  createTestCatalogueEntry,
+  createTestTemplate,
+  deleteTestTemplate,
+} from '@/__tests__/helpers/template'
 
-// A szablon row has no content of its own (EX-1017), so deleting its katalog entry must take the
-// row with it — a trashed szablon included, or restoring it would bring back an empty praca. A
-// kosztorys row keeps its own copy and must survive.
+// A szablon praca is nothing but a katalog ref, so deleting the entry must take the praca with it —
+// a trashed szablon included, or restoring it would bring back a praca with no content. A kosztorys
+// row keeps its own copy and must survive.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -31,13 +35,7 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
   let liveTemplateId: number
   let trashedTemplateId: number
   let kosztorysId: number
-  const itemIds: Record<'live' | 'trashed' | 'kosztorys', number> = {
-    live: 0,
-    trashed: 0,
-    kosztorys: 0,
-  }
-  const suffix = `TEST-${Date.now()}`
-  const opis = `Malowanie ${suffix}`
+  const itemIds = { live: 0, trashed: 0, kosztorys: 0 }
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -47,48 +45,59 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
     const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
     authState.userId = Number(users.docs[0]?.id)
 
-    const entry = await payload.create({
-      collection: 'work-catalogue-items',
-      data: { description: opis, unit: 'm2', clientPrice: 30, matchKey: catalogueKey(opis, 'm2') },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    entryId = Number(entry.id)
+    entryId = await createTestCatalogueEntry(payload, 'Malowanie', { clientPrice: 30 })
+    liveTemplateId = await createTestTemplate(payload, 'catalogue-delete-live')
+    trashedTemplateId = await createTestTemplate(payload, 'catalogue-delete-trashed')
+    kosztorysId = await createTestInvestment(payload, `catalogue-delete-kosztorys ${entryId}`)
 
-    liveTemplateId = await createTestInvestment(payload, `szablon-${suffix}`, {
-      status: TEMPLATE_INVESTMENT_STATUS,
-    })
-    trashedTemplateId = await createTestInvestment(payload, `szablon-kosz-${suffix}`, {
-      status: TEMPLATE_INVESTMENT_STATUS,
-    })
-    kosztorysId = await createTestInvestment(payload, `kosztorys-${suffix}`)
-
-    const row = { description: opis, unit: 'm2', clientPrice: 30, catalogueItemId: entryId }
-    const tree = { sections: [{ name: 'Salon', items: [row] }] }
-    itemIds.live = (await createKosztorysTree(payload, liveTemplateId, tree)).itemIds[0] ?? 0
-    itemIds.trashed = (await createKosztorysTree(payload, trashedTemplateId, tree)).itemIds[0] ?? 0
-    itemIds.kosztorys = (await createKosztorysTree(payload, kosztorysId, tree)).itemIds[0] ?? 0
-    await db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${trashedTemplateId}`)
+    itemIds.live = (await addTestTemplateSection(payload, liveTemplateId, 'Salon', [entryId]))
+      .itemIds[0]
+    itemIds.trashed = (
+      await addTestTemplateSection(payload, trashedTemplateId, 'Salon', [entryId])
+    ).itemIds[0]
+    const row = { description: 'Malowanie', unit: 'm2', clientPrice: 30, catalogueItemId: entryId }
+    itemIds.kosztorys =
+      (await createKosztorysTree(payload, kosztorysId, { sections: [{ name: 'Salon', items: [row] }] }))
+        .itemIds[0] ?? 0
+    await db.execute(sql`
+      UPDATE templates
+      SET content_edited_at = now() - interval '2 days', updated_at = now() - interval '2 days'
+      WHERE id IN (${liveTemplateId}, ${trashedTemplateId})
+    `)
+    await db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${trashedTemplateId}`)
   })
 
   afterAll(async () => {
-    for (const id of [liveTemplateId, trashedTemplateId, kosztorysId]) {
-      if (id) await deleteTestInvestment(payload, id)
+    for (const id of [liveTemplateId, trashedTemplateId]) {
+      if (id) await deleteTestTemplate(payload, id)
     }
-    await db.execute(sql`DELETE FROM work_catalogue_items WHERE description LIKE ${`%${suffix}`}`)
+    if (kosztorysId) await deleteTestInvestment(payload, kosztorysId)
+    await db.execute(sql`DELETE FROM work_catalogue_items WHERE id = ${entryId}`)
   })
 
-  const itemExists = async (id: number) =>
-    (await db.execute(sql`SELECT 1 FROM kosztorys_items WHERE id = ${id}`)).rows.length > 0
+  const exists = async (table: 'template_items' | 'kosztorys_items', id: number) =>
+    (await db.execute(sql`SELECT 1 FROM ${sql.raw(table)} WHERE id = ${id}`)).rows.length > 0
 
-  it('removes the entry and its szablon rows, and leaves the kosztorys row', async () => {
+  const movedToday = async (id: number, column: 'content_edited_at' | 'updated_at') => {
+    const res = await db.execute(sql`
+      SELECT ${sql.raw(column)} > now() - interval '1 hour' AS fresh FROM templates WHERE id = ${id}
+    `)
+    return res.rows[0]?.fresh === true
+  }
+
+  it('removes the entry and its szablon prace, and leaves the kosztorys row', async () => {
     const result = await deleteCatalogueItemAction(entryId)
 
     expect(result.success).toBe(true)
     const entry = await db.execute(sql`SELECT 1 FROM work_catalogue_items WHERE id = ${entryId}`)
     expect(entry.rows).toHaveLength(0)
-    expect(await itemExists(itemIds.live)).toBe(false)
-    expect(await itemExists(itemIds.trashed)).toBe(false)
-    expect(await itemExists(itemIds.kosztorys)).toBe(true)
+    expect(await exists('template_items', itemIds.live)).toBe(false)
+    expect(await exists('template_items', itemIds.trashed)).toBe(false)
+    expect(await exists('kosztorys_items', itemIds.kosztorys)).toBe(true)
+    // The szablon's content changed, so the list's „ostatnia zmiana" moves with it.
+    expect(await movedToday(liveTemplateId, 'content_edited_at')).toBe(true)
+    expect(await movedToday(trashedTemplateId, 'content_edited_at')).toBe(true)
+    // An open editor of the szablon notices the vanished praca by its revision.
+    expect(await movedToday(liveTemplateId, 'updated_at')).toBe(true)
   })
 })

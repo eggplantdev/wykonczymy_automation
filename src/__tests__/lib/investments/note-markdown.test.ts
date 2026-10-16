@@ -46,7 +46,6 @@ describe('parseNoteMarkdown', () => {
     ])
   })
 
-  // A client mail pasted into the note can carry a stray `**`; it must survive as text.
   it('leaves an unmatched `**` as literal text', () => {
     expect(parseNoteMarkdown('cena **do ustalenia')).toEqual([
       { kind: 'paragraph', lines: [plain('cena **do ustalenia')] },

@@ -65,15 +65,11 @@ export function EditTransferForm({
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
   const { ask, dialogProps: missingInvoiceDialog } = useSubmitConfirm()
 
-  // Removal is immediate (its own action), unlike the rest of this form which applies on „Zapisz" —
-  // the file input below only ever ADDS pages, so there is no other way to drop one here.
   const { visibleInvoices, handleRemove, handleRemoveAll, removalConfirm } = useInvoiceRemoval(
     row.id,
     row.invoices,
   )
 
-  // A bare reset is right HERE and nowhere else: this form persists no draft, so its `defaultValues`
-  // really are the row — „wyczyść" means „back to what is saved", not „blank".
   function handleReset() {
     form.reset()
     resetFiles()
@@ -99,8 +95,7 @@ export function EditTransferForm({
       onSubmit: editTransferFormSchema(row),
     },
     onSubmit: async ({ value }) => {
-      // Enter bypasses the disabled submit button, so the guard has to exist here too — saving
-      // mid-ingest would persist the row without the pages still being converted.
+      // Enter bypasses the disabled submit button, so the guard has to exist here too.
       if (isIngesting) {
         toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
         return false
@@ -128,7 +123,6 @@ export function EditTransferForm({
       await submit(!!keepOpen, {
         action: () =>
           submitWithUploads(files, (pageIds) =>
-            // `undefined` means "no pages this save" to an update that only ever ADDS invoices.
             updateTransferAction(row.id, data, pageIds.length > 0 ? pageIds : undefined),
           ),
         successMessage: 'Transakcja zaktualizowana',
@@ -143,9 +137,6 @@ export function EditTransferForm({
 
   useCheckFormErrors(form)
 
-  // Gate the type field on the LIVE investment value, not row.investmentId — the
-  // investment is editable here, so adding one to a correction must reveal the
-  // type field without a reload (matches the create form's currentInvestment).
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const currentPaymentMethod = useStore(form.store, (s) => s.values.paymentMethod)
 
@@ -164,9 +155,6 @@ export function EditTransferForm({
           {isLaborCost(row.type) && <AmountField form={form} />}
 
           <DateField form={form} />
-
-          {/* Payment method is otherwise hidden — only CASH is currently used. The one exception is
-              the plane fill-in below. */}
 
           {showsInvestment(row.type) && (
             <EntityComboboxField
@@ -197,10 +185,7 @@ export function EditTransferForm({
             <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
           )}
 
-          {/* Retagging a wpłata that HAS a plane stays refused (owner, 2026-08-20) — that goes the
-              way that leaves a trail, anuluj i zaksięguj na nowo. Offered here only for a legacy row,
-              which rewrites nothing. Asked as the METHOD, because that is what the owner remembers;
-              „Nie określono" is the default so a save about something else cannot answer it. */}
+          {/* „Nie określono" is the default so a save about something else cannot answer it. */}
           {fillsPlane && (
             <>
               <PaymentMethodField

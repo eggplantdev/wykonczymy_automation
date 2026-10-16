@@ -8,7 +8,6 @@ export type GridTextSizeT = Extract<TableTextSizeT, '2xs' | 'xs' | 'sm'>
 
 export const GRID_TEXT_SIZES: readonly GridTextSizeT[] = ['2xs', 'xs', 'sm']
 
-// Global, like the crew axis: a reading preference belongs to the person, not to one kosztorys.
 const STORAGE_KEY = 'kosztorys-text-size'
 
 export function useGridTextSize(): [GridTextSizeT, (size: GridTextSizeT) => void] {

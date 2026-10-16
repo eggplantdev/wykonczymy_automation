@@ -3,10 +3,6 @@ import { carriesNetAmount } from '@/lib/constants/transfers'
 import { dayBound } from '@/lib/utils/date-range'
 import { normalizeNip } from '@/lib/utils/nip'
 
-/**
- * Returns an error message if the amount is invalid for the given type, or undefined if valid.
- * CORRECTION requires negative amounts (invoice corrections reduce costs).
- */
 export function getAmountError(amount: number, type: string): string | undefined {
   if (type === 'CORRECTION') {
     return amount >= 0 ? 'Korekta musi mieć ujemną kwotę' : undefined
@@ -14,13 +10,6 @@ export function getAmountError(amount: number, type: string): string | undefined
   return amount <= 0 ? 'Kwota musi być większa niż 0' : undefined
 }
 
-/**
- * The netto figure stored beside brutto, checked wherever a row carries one — a netto wydatek
- * (which BILLS at it) and a wpłata brutto (which records what its faktura named). Above brutto it
- * would bill or credit more than moved; missing it would bill 0 (the billed-total helper never
- * falls back to brutto) or send a wpłata through the legacy VAT bridge. One home for all three
- * planes: the client form schema, the server create schema, and the Payload hook.
- */
 export function getNetAmountError(
   netAmount: number | null | undefined,
   amount: number | null | undefined,
@@ -36,7 +25,6 @@ export function getNetAmountError(
   return undefined
 }
 
-/** Validates that a string amount is present and valid for the given type (Zod refinement). */
 // `path` names the field the message hangs under: a wpłata brutto validates the same `amount`, but
 // the netto input is not on screen, so an issue parked there would block the submit invisibly.
 export function refineAmount(
@@ -62,7 +50,6 @@ export function refineAmount(
   }
 }
 
-/** Validates that a string date is present. */
 export function refineDate(data: { date: string }, ctx: z.RefinementCtx) {
   if (!data.date) {
     ctx.addIssue({
@@ -73,22 +60,18 @@ export function refineDate(data: { date: string }, ctx: z.RefinementCtx) {
   }
 }
 
-/** A money input that may be left blank — the faktura often arrives after the row does. */
 export const optionalNonNegativeAmount = (message: string) =>
   z.string().refine((value) => value === '' || Number(value) >= 0, message)
 
 /**
- * The `YYYY-MM-DD` a day picker produces. The shape is checked rather than assumed because the
- * server action parses the same schema, and a value that isn't a day lands in Postgres as an
- * Invalid Date instead of being refused.
+ * The shape is checked because the server action parses the same schema, and a value that isn't a
+ * day lands in Postgres as an Invalid Date.
  */
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
-/** A day input that may be left blank. */
 export const optionalDay = () =>
   z.string().refine((value) => value === '' || DAY_PATTERN.test(value), 'Nieprawidłowa data')
 
-/** „NIP sprzedawcy" may be left blank — most paragony print none we can read. */
 function getSellerNipError(value: string | undefined): string | undefined {
   return value && normalizeNip(value) === undefined ? 'NIP musi mieć 10 cyfr' : undefined
 }
@@ -97,7 +80,6 @@ function getDocumentDateError(value: string | undefined): string | undefined {
   return value && dayBound(value) === undefined ? 'Nieprawidłowa data' : undefined
 }
 
-/** The optional document identity fields; `path` prefixes where the issues hang (a line item's index). */
 export function refineDocumentIdentity(
   item: { sellerNip?: string; documentDate?: string },
   ctx: z.RefinementCtx,
@@ -111,6 +93,5 @@ export function refineDocumentIdentity(
   }
 }
 
-/** A day input that is required, with its own „missing" message. */
 export const requiredDay = (message: string) =>
   z.string().min(1, message).regex(DAY_PATTERN, 'Nieprawidłowa data')

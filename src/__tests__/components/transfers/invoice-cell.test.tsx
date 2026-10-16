@@ -33,15 +33,12 @@ const PAGE_TWO: PreviewFileT = {
   mimeType: 'image/jpeg',
 }
 
-// The label sets moved out of the dialog into shared presets, so the invoice surface — which passes
-// none of them and rides on the defaults — is where a wrong default would surface as „plik" wording.
 describe('InvoiceCell', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     currentUser.role = 'OWNER'
   })
 
-  // Risk #22: the worker reads his own transfers' faktury, but the upload/removal actions refuse him.
   it('shows an EMPLOYEE the preview without any way to add or remove a faktura', async () => {
     const user = userEvent.setup()
     currentUser.role = 'EMPLOYEE'

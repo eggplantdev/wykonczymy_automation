@@ -9,7 +9,6 @@ import {
 import { noticeFailure } from '@/lib/i18n/notice-failure'
 import type { ActionResultT } from '@/types/action'
 
-// A merged-away zgłoszenie is gone, which to the dialog reads the same as decided elsewhere.
 export async function fetchExpenseDraftDecisions(
   draftId: number,
 ): Promise<ActionResultT<ExpenseDraftDecisionsT>> {

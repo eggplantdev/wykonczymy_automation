@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveItemRates, type RateTabT } from '@/lib/kosztorys/sheet-import/resolve-rates'
 
-// A tab's rows as `readRateRows` would produce them; `typed` marks a hand-entered cell (the sheet
-// renders it as a literal) against one derived by formula.
 const tab = (
   title: string,
   rows: ReadonlyArray<{
@@ -46,9 +44,6 @@ describe('resolveItemRates', () => {
   })
 
   it('sends a praca whose bez-narzędzi rate exceeds its z-narzędziami rate to the owner', () => {
-    // Białostocka r104 „gruntowanie": 3 zł with tools against 5,10 zł without. Cheaper WITH tools is
-    // arithmetically impossible, so that row was read wrong — and a read we cannot trust is not
-    // evidence that the OTHER tab is right either.
     const resolved = resolveItemRates(items('gruntowanie'), [
       tab('bez narzędzi', [{ description: 'gruntowanie', wTools: 3, ownTools: 5.1, typed: true }]),
       tab('z narzędziami', [{ description: 'gruntowanie', wTools: 5.1, ownTools: 3 }]),
@@ -71,9 +66,6 @@ describe('resolveItemRates', () => {
     })
   })
 
-  // The hand-typed cell used to win outright. On the owner's sheet it came in LOWER than the formula
-  // it beat, which is the opposite of what that rule assumed — and „ręcznie wpisana" is also what a
-  // misread row looks like. Every disagreement is now the owner's to settle (owner, 2026-08-19).
   it('does not let a hand-typed cell settle a disagreement', () => {
     const resolved = resolveItemRates(items('szpachlowanie'), [
       tab('bez narzędzi', [{ description: 'szpachlowanie', wTools: 26, ownTools: 20 }]),
@@ -91,8 +83,6 @@ describe('resolveItemRates', () => {
     expect(resolved[0].candidates).toHaveLength(2)
   })
 
-  // Picking the first tab here wrote a stawka nobody approved and left no trace of the other kwota in
-  // the kosztorys. The praca now enters blank and the owner arbitrates in the sheet.
   it('reports every kwota that was in play so the owner can arbitrate', () => {
     const resolved = resolveItemRates(items('akrylowanie'), [
       tab('bez narzędzi', [{ description: 'akrylowanie', wTools: 12, ownTools: 9, typed: true }]),
@@ -135,8 +125,6 @@ describe('resolveItemRates', () => {
     expect(resolved[0].candidates).toHaveLength(2)
   })
 
-  // The report groups conflicts by reason, so an impossible pair in the ONLY cennik that has the
-  // praca must still say which kind of conflict it is — there is no second tab to compare it against.
   it('marks a lone impossible pair as a misread rather than a disagreement', () => {
     const resolved = resolveItemRates(items('gruntowanie'), [
       tab('z narzędziami', [{ description: 'gruntowanie', wTools: 3, ownTools: 5.1 }]),

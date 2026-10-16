@@ -8,11 +8,8 @@ import type { ActionResultT } from '@/types/action'
 export type MediaRemovalLabelsT = {
   confirmOne: string
   confirmLast: string
-  /** Omitted alongside `removeAll` — a surface without the affordance never asks the question. */
   confirmAll?: string
-  /** Every removal reclaims the file from Blob, which has no undelete — say so under the question. */
   description: string
-  /** Omitted where the surface already shows the file vanishing and a toast would just be noise. */
   success?: string
   error: string
 }
@@ -20,7 +17,6 @@ export type MediaRemovalLabelsT = {
 type MediaRemovalArgsT<FileT extends { id?: number }> = {
   files: FileT[]
   removeOne: (fileId: number) => Promise<ActionResultT>
-  /** Omitted by a surface that has no remove-all affordance, such as promoting a zgłoszenie. */
   removeAll?: () => Promise<ActionResultT>
   labels: MediaRemovalLabelsT
 }
@@ -29,9 +25,6 @@ type MediaRemovalArgsT<FileT extends { id?: number }> = {
 type StagedRemovalT = { title: string; fileId?: number; closePreview: () => void }
 
 /**
- * The optimistic set is what makes this a hook rather than a helper: the server row doesn't refresh
- * until the surface revalidates, so removing one of three has to hide that one locally, per id.
- *
  * `isRemoving` exists because the confirm dialog closes on the click — it is gone while the action
  * is still in flight, so the surface, not the dialog, is what has to withhold a second removal and
  * the upload picker.
@@ -58,8 +51,6 @@ export function useMediaRemoval<FileT extends { id?: number }>({
     setRemovedIds(removedIdsRef.current)
   }
 
-  // Takes the id-bearing shape rather than `FileT`: the preview hands back the page it has on
-  // screen, typed as the dialog's own file type, and the id is all this needs.
   function handleRemove(file: { id?: number }, closePreview: () => void) {
     if (file.id === undefined) return
     setStaged({

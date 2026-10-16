@@ -11,8 +11,6 @@ const AI_PROGRESS_TONES: Record<AiProgressStepT, string> = {
   new_information: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
 }
 
-// The stage select's outlined twin of the badge tones — same hue per step, so the select on the investment
-// page and the listing's badge read as one figure. `none` keeps the plain outline.
 export const AI_PROGRESS_OUTLINE_TONES: Record<AiProgressStepT, string> = {
   none: '',
   ready_for_analysis: 'border-amber-400 text-amber-700 dark:border-amber-700 dark:text-amber-300',

@@ -10,8 +10,6 @@ import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
-// A szablon built from nothing rather than copied from a kosztorys. It opens straight away on success, because an empty szablon sitting on the list is worth nothing
-// until someone puts a sekcja in it.
 export function CreateEmptyPresetDialog() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')

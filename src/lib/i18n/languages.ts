@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-// The single list every language-aware piece reads: a new language is one entry here plus one
-// dictionary file, with no migration.
 export const LANGUAGES = ['pl', 'uk', 'ru'] as const
 export type LanguageT = (typeof LANGUAGES)[number]
 
@@ -18,7 +16,6 @@ export const LANGUAGE_LABELS: Record<LanguageT, string> = {
   ru: 'Русский',
 }
 
-// What a column label shows next to „Opis prac" — the country the crew knows, not the ISO code.
 export const LANGUAGE_SHORT: Record<LanguageT, string> = {
   pl: 'PL',
   uk: 'UA',

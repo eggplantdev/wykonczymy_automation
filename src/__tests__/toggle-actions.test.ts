@@ -2,17 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import type { Payload } from 'payload'
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-
 vi.mock('server-only', () => ({}))
 
-// Mock requireAuth — default to success, overridden per-test for failures
 const mockRequireAuth = vi.fn()
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
 }))
 
-// Mock payload
 const mockUpdate = vi.fn()
 const mockPayload = { update: mockUpdate } as unknown as Payload
 
@@ -26,18 +22,12 @@ vi.mock('payload', async (importOriginal) => {
 
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-// The session drop on deactivation is asserted against real rows in `toggle-active.db.test.ts`.
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
 vi.mock('@/lib/db/user-sessions', () => ({ deleteUserSessions: vi.fn() }))
 vi.mock('@/lib/db/push-subscriptions', () => ({ deletePushSubscriptions: vi.fn() }))
-// Who may deactivate whom is asserted against real rows in `toggle-active.db.test.ts`.
 vi.mock('@/lib/db/account-removal', () => ({ fetchRemovalSubject: vi.fn() }))
 
-// ── Import actions under test ────────────────────────────────────────────
-
 const { toggleUserActive, toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
-
-// ── Helpers ──────────────────────────────────────────────────────────────
 
 const mockUser = { id: 1, email: 'a@t.com', name: 'Admin', role: 'ADMIN' as const }
 
@@ -46,10 +36,6 @@ beforeEach(() => {
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
   revalidateCollections.mockReset()
 })
-
-// ═════════════════════════════════════════════════════════════════════════
-// toggleUserActive
-// ═════════════════════════════════════════════════════════════════════════
 
 describe('toggleUserActive', () => {
   it('active=true → updates user with active: true', async () => {
@@ -114,10 +100,6 @@ describe('toggleUserActive', () => {
     expect(revalidateCollections).not.toHaveBeenCalled()
   })
 })
-
-// ═════════════════════════════════════════════════════════════════════════
-// toggleCashRegisterActive
-// ═════════════════════════════════════════════════════════════════════════
 
 describe('toggleCashRegisterActive', () => {
   it('active=true → updates cash register with active: true', async () => {

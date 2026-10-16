@@ -21,7 +21,6 @@ import {
 } from '@/lib/kosztorys/worker-view/worker-links'
 import { settleAction } from '@/lib/utils/settle-action'
 
-// Carries an action's own error text past the promise chain, so the toast names what failed.
 class ShareLinkError extends Error {}
 
 export type WorkerShareTargetT = {
@@ -47,7 +46,6 @@ export type WorkerActionsT = {
   requestLinkHolders: () => void
 }
 
-// Fetched on the click, not by the dialogs, for the Radix reason `useInvestorActions` gives.
 export function useWorkerActions(): WorkerActionsT {
   const { investmentId, investmentName } = useKosztorysEditorContext()
   const [settings, setSettings] = useState<WorkerViewSettingsT | null>(null)

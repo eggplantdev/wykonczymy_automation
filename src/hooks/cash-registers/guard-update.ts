@@ -13,8 +13,6 @@ import { resolveId } from '@/lib/utils/resolve-id'
 /**
  * A trashed kasa is read-only apart from its restore, and a used kasa keeps its owner: its balance is
  * money the owner handled, so handing the kasa over would move that history onto someone else.
- * Nor can a kasa be handed to, or restored under, an owner in the kosz (EX-918).
- * Here rather than in the actions because `/admin` and REST update kasy too.
  */
 export const guardCashRegisterUpdate: CollectionBeforeChangeHook = async ({
   data,

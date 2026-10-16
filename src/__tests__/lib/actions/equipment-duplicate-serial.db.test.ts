@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { EquipmentFormDataT } from '@/components/forms/equipment-form/equipment-schema'
 
-// A trashed item keeps its serial, so a second item with that serial is refused — and the sentence
-// must send the owner to the Kosz, because no listing shows the item that holds it.
-
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {

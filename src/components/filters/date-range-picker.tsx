@@ -16,17 +16,10 @@ const MONTH_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const
 type DateRangePickerPropsT = {
   value: DateRangeT
   onChange: (next: DateRangeT) => void
-  /** Only a caller whose write costs a round trip has anything to report; local state never does. */
   isPending?: boolean
-  /** In a dialog the controls wrap mid-pair; this pins Rok/Miesiąc and Od/Do to a row each. */
   stacked?: boolean
 }
 
-/**
- * The window picker itself — controlled, and deliberately ignorant of where the window is kept.
- * `DateFilters` binds it to the URL for a listing somebody links to; a surface whose window is nobody
- * else's business binds it to local state. One picker, two bindings.
- */
 export function DateRangePicker({
   value,
   onChange,
@@ -36,8 +29,6 @@ export function DateRangePicker({
   const { t } = useTranslation('filters')
   const now = new Date()
 
-  // Rok/Miesiąc are a shortcut for writing `from`/`to`, not a third piece of state — they read back
-  // off `from`, so a window typed into Od/Do still shows the month it belongs to.
   const anchor = value.from ? new Date(value.from + 'T00:00:00') : null
   const pickerMonth = anchor ? String(anchor.getMonth() + 1) : ''
   const pickerYear = anchor ? String(anchor.getFullYear()) : ''

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 
-// EX-865. The grid sends ONE field per save, so every case here is a single-key patch — that is the
-// only shape the action ever receives, and the whole point is what the second column does in reply.
 describe('normalizeOverridePatch — najwyżej jedno źródło po każdym zapisie', () => {
   it('ustawienie mnożnika zeruje kwotę', () => {
     expect(normalizeOverridePatch({ wToolsOverrideCoeff: 0.8 })).toEqual({
@@ -18,8 +16,6 @@ describe('normalizeOverridePatch — najwyżej jedno źródło po każdym zapisi
     })
   })
 
-  // Droga powrotna do „auto" — i jedyna dziura, jaką dwie kolumny mają bez tej normalizacji:
-  // zgubiona połowa wystawiłaby z powrotem starą kwotę, czytaną jako zwykłe nadpisanie.
   it('wyczyszczenie mnożnika czyści OBIE kolumny', () => {
     expect(normalizeOverridePatch({ wToolsOverrideCoeff: null })).toEqual({
       wToolsOverrideCoeff: null,
@@ -34,8 +30,6 @@ describe('normalizeOverridePatch — najwyżej jedno źródło po każdym zapisi
     })
   })
 
-  // `0` to wybór źródła, nie jego brak — inaczej wpisanie zera wracałoby do „auto" i płaciło ekipie
-  // według współczynnika inwestycji.
   it('zero jest wartością, nie wyczyszczeniem — po obu stronach', () => {
     expect(normalizeOverridePatch({ wToolsOverrideCoeff: 0 })).toEqual({
       wToolsOverrideCoeff: 0,
@@ -59,16 +53,12 @@ describe('normalizeOverridePatch — najwyżej jedno źródło po każdym zapisi
     expect(normalizeOverridePatch(patch)).toEqual(patch)
   })
 
-  // Import i katalog wysyłają obie kolumny naraz. Rozwinięcie nie ma prawa nadpisać tego, co
-  // wołający już rozstrzygnął.
+  // Import i katalog wysyłają obie kolumny naraz.
   it('łatka niosąca obie kolumny pary zostaje taka, jaka przyszła', () => {
     const patch = { wToolsOverrideValue: null, wToolsOverrideCoeff: 0.8 }
     expect(normalizeOverridePatch(patch)).toEqual(patch)
   })
 
-  // Jedno słownictwo z czytającą stroną: `priceSourceOf` pyta `Number.isFinite`, więc wiersz z NaN
-  // czyta się jako „auto" — a „auto" to stan, w którym OBIE kolumny są puste. Przy `typeof ===
-  // 'number'` NaN zostawał w bazie jako wybrane źródło, którego czytelnik nie widział.
   it('NaN nie nazywa stawki, więc para ląduje w „auto"', () => {
     expect(normalizeOverridePatch({ wToolsOverrideCoeff: Number.NaN })).toEqual({
       wToolsOverrideCoeff: null,

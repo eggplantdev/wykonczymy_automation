@@ -17,9 +17,6 @@ type PropsT = {
   trigger?: ReactNode
 }
 
-// Register an existing Google Sheet as a kosztorys, no investment attached.
-// Trimmed clone of the "Powiąż istniejący arkusz" half of SheetSetupDialog —
-// no "create new" tab (that path needs an investment to name the file).
 export function AddSheetDialog({ trigger }: PropsT) {
   const [open, setOpen] = useState(false)
   const [link, setLink] = useState('')
@@ -30,7 +27,6 @@ export function AddSheetDialog({ trigger }: PropsT) {
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
     if (next) {
-      // Reset inputs on every open so a previously-added link never lingers.
       setLink('')
       setName('')
       if (!saEmail)

@@ -6,8 +6,6 @@ import type { UserRowT } from '@/types/table-rows'
 
 const SHOWN = ['shown', 'hidden'] as const
 
-/** The employee list's „Filtry" menu: which workers are listed, and which investments their
- *  „Pozostało do wypłaty" is summed over. */
 export function useUserListFilters() {
   const [activeWorkers, setActiveWorkers] = usePersistedFlag('users:active-workers', SHOWN, true)
   const [inactiveWorkers, setInactiveWorkers] = usePersistedFlag(

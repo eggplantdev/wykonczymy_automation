@@ -74,9 +74,6 @@ export const VehicleInspections: CollectionConfig = {
       label: { en: 'Odometer (km)', pl: 'Przebieg (km)' },
     },
     {
-      // Both belong to the event, not to the car: each polisa brings its own insurer and number, and
-      // only the history keeps that honest. Independently optional — the przyczepa's polisa has a
-      // number but no insurer recorded.
       name: 'insurer',
       type: 'text',
       label: { en: 'Insurer', pl: 'Ubezpieczyciel' },
@@ -94,9 +91,8 @@ export const VehicleInspections: CollectionConfig = {
       },
     },
     {
-      // Optional again (partly reversing EX-729): the imported sheet carries no prices at all, and a
-      // required field would have turned nine unknowns into nine „0 zł". The invariant EX-729 bought
-      // survives because unknown now renders „—" instead of collapsing into zero.
+      // the imported sheet carries no prices at all, and a required field would have turned nine
+      // unknowns into nine „0 zł".
       name: 'cost',
       type: 'number',
       min: 0,
@@ -114,7 +110,6 @@ export const VehicleInspections: CollectionConfig = {
       hasMany: true,
       label: { en: 'Attachments', pl: 'Załączniki' },
     },
-    // --- Reminder bookkeeping: written by the daily sweep, edited by nobody. ---
     // Two independent axes because the date leg and the kilometre leg can each fire for the same
     // oil-change row; sharing one column would let either silence the other.
     {

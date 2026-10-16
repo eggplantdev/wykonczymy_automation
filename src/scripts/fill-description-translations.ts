@@ -1,5 +1,5 @@
 // Re-runnable: fills the empty opis translations of the katalog and of the pozycje of open
-// investments (szablony included) from a hand-made table in `data/`.
+// investments from a hand-made table in `data/` — a szablon's prace are the katalog's own texts.
 //
 //   node --env-file=.env --import tsx src/scripts/fill-description-translations.ts export --lang uk \
 //     > /tmp/untranslated-uk.json
@@ -16,8 +16,7 @@
 // --apply fills 0. Without --apply nothing is written.
 //
 // Raw SQL skips the cache tags: after an --apply the katalog and the rozpiski keep serving the old
-// texts until their tags expire. Flush them with a katalog edit and a rozpiska edit of any cell but
-// a tłumaczenie — that one writes back the whole stale map the grid holds.
+// texts until their tags expire.
 import { readFileSync } from 'node:fs'
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'

@@ -19,7 +19,6 @@ export function NotePopover({ note }: NotePopoverPropsT) {
     <Popover>
       <PopoverTrigger
         aria-label={t('showNote')}
-        // Match InvoiceCell's ghost icon-button footprint so the adjacent Faktura/Notatka icons align.
         className={
           isLabelled
             ? buttonVariants({ variant: 'outline', size: 'xs' })

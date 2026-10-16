@@ -10,9 +10,6 @@ import {
   carriesPaymentMethod,
 } from '@/lib/constants/transfers'
 
-// Shared type-dependent refinement helpers, used by every transfer schema: server, client form,
-// and bulk expense.
-
 type TransferFieldsT = {
   type: string
   paymentMethod?: unknown

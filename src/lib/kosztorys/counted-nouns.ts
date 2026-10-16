@@ -1,11 +1,7 @@
 import { pluralize } from '@/lib/utils/polish-plural'
 
-// Shared so „5 prac" never becomes „5 pozycji" one screen over — the editor's reports are read one
-// after the other, and a changed word reads as a changed thing.
-
 export const itemNoun = (count: number) => pluralize(count, ['praca', 'prace', 'prac'])
 
-// Accusative — „Przyjmij 1 pracę".
 export const itemNounAccusative = (count: number) => pluralize(count, ['pracę', 'prace', 'prac'])
 
 export const sectionNoun = (count: number) => pluralize(count, ['sekcja', 'sekcje', 'sekcji'])
@@ -13,7 +9,6 @@ export const sectionNoun = (count: number) => pluralize(count, ['sekcja', 'sekcj
 export const itemHasPhrase = (count: number) =>
   pluralize(count, ['praca ma', 'prace mają', 'prac ma'])
 
-// Locative — „w 1 pracy", „w 2 pracach", „w 5 pracach". The nominative forms above read wrong after „w".
 export const itemNounLocative = (count: number) => pluralize(count, ['pracy', 'pracach', 'pracach'])
 
 export const columnNoun = (count: number) => pluralize(count, ['kolumny', 'kolumn', 'kolumn'])

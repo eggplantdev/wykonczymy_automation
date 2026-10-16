@@ -13,7 +13,7 @@ import {
 import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import {
   INVESTMENT_STATUS_LABELS,
-  PICKABLE_INVESTMENT_STATUSES,
+  INVESTMENT_STATUSES,
   type InvestmentStatusT,
 } from '@/lib/constants/investment-status'
 import { cn } from '@/lib/utils/cn'
@@ -26,7 +26,7 @@ type StatusFilterPropsT = {
 
 export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: StatusFilterPropsT) {
   // Same reading of „active" as every FilterMultiSelect trigger: narrowed, not merely touched.
-  const isFiltered = selectedStatuses.size !== PICKABLE_INVESTMENT_STATUSES.length
+  const isFiltered = selectedStatuses.size !== INVESTMENT_STATUSES.length
 
   return (
     <DropdownMenu>
@@ -43,7 +43,7 @@ export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: S
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuLabel>Widoczne statusy</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {PICKABLE_INVESTMENT_STATUSES.map((status) => (
+        {INVESTMENT_STATUSES.map((status) => (
           <DropdownMenuItem key={status} onSelect={keepMenuOpen(() => onToggle(status))}>
             <CheckIcon className={cn(!selectedStatuses.has(status) && 'opacity-0')} />
             {INVESTMENT_STATUS_LABELS[status].pl}

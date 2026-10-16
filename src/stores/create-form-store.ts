@@ -3,7 +3,6 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 export type FormStoreT<TValues> = {
   formData: TValues | null
-  /** One slot per form type, but „Dodaj pojazd" and „Edytuj pojazd 7" are two instances of it. */
   formId: string | null
   updateFormData: (formId: string, data: TValues) => void
   resetFormData: () => void

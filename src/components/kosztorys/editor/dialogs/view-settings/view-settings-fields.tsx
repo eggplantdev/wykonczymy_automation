@@ -13,15 +13,10 @@ type PropsT<T extends ViewSettingsValueT> = {
   labelFor: (key: string) => string | undefined
   value: T
   onChange: (value: T) => void
-  // Absent where the count has no single answer — the worker set spans every worker's etapy.
   emptyCount?: number
   disabled?: boolean
 }
 
-/**
- * A tick means „to widać"; the stored shape is the inverse (hidden keys), so a column added to the
- * ceiling later shows up on its own.
- */
 export function ViewSettingsFields<T extends ViewSettingsValueT>({
   groups,
   labelFor,
@@ -47,8 +42,6 @@ export function ViewSettingsFields<T extends ViewSettingsValueT>({
           {group.keys.map((key) => (
             <CheckboxRow
               key={key}
-              // Shown ticked and locked rather than left out: the owner reads the whole document
-              // here, and „Opis prac" is on it.
               checked={key === DOCUMENT_PINNED_COLUMN || !hidden.has(key)}
               disabled={disabled || key === DOCUMENT_PINNED_COLUMN}
               onCheckedChange={(visible) => toggleColumn(key, visible)}

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { useSnapshotList } from '@/components/kosztorys/editor/hooks/use-snapshot-list'
-import { restoreSnapshotAction, type SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
+import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { pluralize } from '@/lib/utils/polish-plural'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
@@ -21,9 +22,6 @@ type PropsT = {
   flushPendingSaves: () => Promise<void>
 }
 
-// History panel: named manual versions are the prominent targetable entries; auto snapshots are the
-// ambient timestamped history below them. Restore gates behind a ConfirmDialog — the pre-restore auto
-// snapshot the action takes makes a mis-restore itself recoverable.
 export function KosztorysVersionsDrawer({
   investmentId,
   investmentName,
@@ -32,6 +30,7 @@ export function KosztorysVersionsDrawer({
   onRestored,
   flushPendingSaves,
 }: PropsT) {
+  const { restoreSnapshot } = useEditorActions()
   const { snapshots, reset: resetSnapshots } = useSnapshotList(investmentId, open)
   const [restoringId, setRestoringId] = useState<number | null>(null)
   const [pendingRestore, setPendingRestore] = useState<SnapshotListItemT | null>(null)
@@ -46,18 +45,20 @@ export function KosztorysVersionsDrawer({
     setRestoringId(snapshot.id)
     const replaced = await settleTreeReplace(
       flushPendingSaves,
-      () => restoreSnapshotAction(snapshot.id, investmentId),
+      () => restoreSnapshot(snapshot.id, investmentId),
       'Przywracanie przerwane — odświeżam kosztorys',
       ({ data }) => {
-        // A warning, not a success, when assignments were dropped: the restore moved money the owner
-        // did not ask to move — należne recorded for a since-deleted person now sits in „Bez
-        // przypisanego pracownika". Their name can't be shown; the row they were on is gone from `users`.
+        // Their name can't be shown; the row they were on is gone from `users`.
         const dropped = data.droppedWorkerAssignments
-        if (dropped > 0) {
+        const skipped = data.skippedCatalogueItems ?? 0
+        if (skipped > 0) {
           toastMessage(
-            // The count is per etap, not per person — n etapy may have named one deleted worker or n
-            // of them — so the cause clause stays number-free rather than asserting a headcount it
-            // doesn't know.
+            `Przywrócono wersję bez ${skipped} ${pluralize(skipped, ['pracy', 'prac', 'prac'])} — usunięto je z katalogu.`,
+            'warning',
+            8000,
+          )
+        } else if (dropped > 0) {
+          toastMessage(
             `Przywrócono wersję. ${dropped} ${pluralize(dropped, ['etap', 'etapy', 'etapów'])} bez przypisania — nie odtworzono przypisań do usuniętych pracowników.`,
             'warning',
             8000,

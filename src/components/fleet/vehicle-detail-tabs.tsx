@@ -17,11 +17,6 @@ const OPTIONS: OptionT<VehicleViewT>[] = [
   { value: 'costs', label: 'Koszty' },
 ]
 
-// Local state, not the URL — for the window as much as for the view. Both are lenses on the same
-// history the page already loaded, and the page runs no per-vehicle query a window could narrow, so
-// putting it in the URL would re-render the route (and re-run its markSeen write) to buy a filter the
-// browser already holds the data for. Nobody links to a filtered card.
-//
 // The window is a lens on the past only: the deadline block above these tabs keeps reading the whole
 // history, or filtering to March would let the card claim a przegląd is never due.
 export function VehicleDetailTabs({

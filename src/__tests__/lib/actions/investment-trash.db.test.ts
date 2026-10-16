@@ -3,19 +3,15 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
-import { getPresetName } from '@/lib/db/presets'
 import { createTestInvestment, trashDaysAgo } from '@/__tests__/helpers/investment'
 import {
   ACTIVE_INVESTMENT_DELETE_MESSAGE,
   TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE,
 } from '@/lib/constants/trash'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
-// Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a
-// delete that leaves kosztorys rows behind, reads identically at the action's return value. The
-// session is mocked rather than `requireAuth`, so the role gate under test is the real one.
+// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
 vi.mock('server-only', () => ({}))
 
@@ -120,36 +116,6 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
     expect(await trashedAt(live)).toBeNull()
     expect(await trashedAt(trashed)).not.toBeNull()
-  })
-
-  it('lets a MANAGER trash and restore a szablon, expiring the szablon library', async () => {
-    const template = await createTestTemplate(payload, `${PREFIX} szablon`)
-    session.role = 'MANAGER'
-
-    expect((await actions.trashInvestmentAction(template)).success).toBe(true)
-    expect(await trashedAt(template)).not.toBeNull()
-    expect(revalidateCollections.mock.calls.flatMap(([tags]) => tags)).toContain('presets')
-
-    expect((await actions.restoreInvestmentAction(template)).success).toBe(true)
-    expect(await trashedAt(template)).toBeNull()
-  })
-
-  it('demands the name before deleting a szablon forever, even an empty one', async () => {
-    const template = await createTestTemplate(payload, `${PREFIX} szablon-forever`)
-    const name = (await getPresetName(db, template))!
-    await actions.trashInvestmentAction(template)
-
-    for (const typed of ['', 'zła nazwa']) {
-      expect(await actions.deleteInvestmentForeverAction(template, typed)).toEqual({
-        success: false,
-        error: 'Wpisana nazwa się nie zgadza.',
-      })
-    }
-    expect(await trashedAt(template)).not.toBeNull()
-
-    expect((await actions.deleteInvestmentForeverAction(template, name)).success).toBe(true)
-    const left = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${template}`)
-    expect(left.rows).toHaveLength(0)
   })
 
   it('refuses while a live transaction points at the investment, not a cancelled one', async () => {

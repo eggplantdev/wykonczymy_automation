@@ -11,10 +11,6 @@ import {
 } from '@/lib/kosztorys/client-view/settings'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// The resolution chain decides what a client is served, so it runs against the REAL DB: a `where`
-// clause that matched everything, or a global read that swallowed its own absence, would pass any
-// stub while serving one investment's settings to another.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const CODE_DEFAULTS = sanitizeClientViewSettings({})
@@ -46,8 +42,6 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
 
     investmentWithRow = await createTestInvestment(payload, 'EX-695 client view spec (row)')
     investmentWithoutRow = await createTestInvestment(payload, 'EX-695 client view spec (fallback)')
-    // The row is a fixture, not the first test's side effect — the specs below share one DB and
-    // must not depend on each other's order to find it.
     await payload.create({
       collection: 'kosztorys-client-view',
       data: { investment: investmentWithRow, ...ROW_SETTINGS },
@@ -57,14 +51,11 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   afterAll(async () => {
     if (investmentWithRow) await deleteTestInvestment(payload, investmentWithRow)
     if (investmentWithoutRow) await deleteTestInvestment(payload, investmentWithoutRow)
-    // The global is firm-wide state, not this spec's own row: left mutated, it would decide what a
-    // later spec's investment serves.
     await resetGlobal()
   })
 
-  // The save action calls this with no session on the payload client — its own gate already ran, and
-  // the collection's access control answers „no user, no row". A lookup that quietly evaluates that
-  // access instead of bypassing it fails the save with a generic „Nie możesz wykonać tej akcji".
+  // A lookup that quietly evaluates that access instead of bypassing it fails the save with a
+  // generic „Nie możesz wykonać tej akcji".
   it('finds the row without a session', async () => {
     const row = await findClientViewRow(payload, investmentWithRow)
     expect(row).not.toBeNull()
@@ -87,9 +78,6 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     expect(settings.hiddenColumns).toEqual(['remaining'])
   })
 
-  // A row wins as a whole. The migration leaves NULL on a row whose served variant was never
-  // chosen; reading that as „fall through to the global" would change what such a client sees the
-  // day the owner edits the firm-wide default.
   it('resolves a row with no hidden set to the code default, not to the global', async () => {
     await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
     await payload.update({
@@ -107,8 +95,6 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
   })
 
-  // The shape the save actions write (EX-1033): a jsonb object must come back out of the real row and
-  // the global as the same choices, or an owner's saved settings would read as „never chosen".
   it('reads back the stored column map from the row and from the global', async () => {
     await payload.update({
       collection: 'kosztorys-client-view',
@@ -124,8 +110,6 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
   })
 
-  // The reset target in the order dialog: the firm's order, even where the investment's own row wins
-  // — and a row that never stored an order serves the built-in one, not the firm's.
   it("hands back the firm's order beside an investment's own settings", async () => {
     await payload.update({
       collection: 'kosztorys-client-view',

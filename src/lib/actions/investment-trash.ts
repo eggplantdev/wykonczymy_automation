@@ -23,17 +23,12 @@ import type { ActionResultT } from '@/types/action'
 
 const MISSING_MESSAGE = 'Inwestycja nie istnieje.'
 
-// The caller expires the tags itself, through the wrapper — the hooks' own revalidation would
-// fire once per write and inside the transaction.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
 export async function trashInvestmentAction(investmentId: number): Promise<ActionResultT> {
   return protectedAction(
     'trashInvestmentAction',
     async ({ payload }) =>
-      // READ COMMITTED with no row lock, so a transfer committed between the count and the write
-      // still lands on a trashed investment. Accepted: the delete re-counts and refuses, and
-      // Przywróć gives the row back.
       withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
@@ -106,7 +101,6 @@ export async function deleteInvestmentForeverAction(
       })
       if (!investment) return { success: false, error: MISSING_MESSAGE }
       if (!investment.trashedAt) return { success: false, error: NOT_TRASHED_MESSAGE }
-      // Only one trashed before the rule can be here: an active investment no longer reaches the trash.
       if (isUndeletableStatus(investment.status)) {
         return { success: false, error: TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE }
       }

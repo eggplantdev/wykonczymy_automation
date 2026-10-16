@@ -14,11 +14,6 @@ import type { LanguageT } from '@/lib/i18n/languages'
 
 const COLS = `${SUMMARY_NAME_COL} auto ${SUMMARY_VALUE_COL}`
 
-/**
- * What one person (or one warehouse) is holding — the question that gets asked at a rozliczenie or
- * when somebody leaves. No actions on purpose: handing an item on happens on the item's own page, so
- * that one operation keeps one entry point and one validation path.
- */
 export function HeldEquipmentSection({
   equipment,
   linkable,

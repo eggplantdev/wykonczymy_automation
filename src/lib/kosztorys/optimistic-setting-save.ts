@@ -3,7 +3,6 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 /**
- * Shared persist-or-rollback tail for every optimistic „Opcje rozliczenia" write.
  * No `router.refresh()` on success — `updateTag` already re-renders and streams back the fresh
  * `tree`, so refreshing too would double-render per click (EX-597).
  */
@@ -19,10 +18,6 @@ export async function optimisticSettingSave(
   return false
 }
 
-/**
- * Undo half: persist via `apply`, push onto the undo stack only if the write landed. Separate from
- * `optimisticSettingSave` — the percent bulk-apply has no undo entry (owner: recovery is re-typing).
- */
 export async function reversibleSettingSave<T>(
   apply: (value: T) => Promise<boolean>,
   pushReversible: (label: string, apply: (state: T) => void, before: T, after: T) => void,

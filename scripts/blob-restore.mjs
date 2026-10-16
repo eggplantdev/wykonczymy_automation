@@ -1,28 +1,5 @@
-// FTP backup → Vercel Blob restore (EX-459 Phase 3 / §5 of the runbook).
-// Dependency-free for the same reason as blob-mirror.mjs: a recovery tool must not need
-// node_modules to be intact — it runs when something is already broken.
-//
-// Uploads every file of a local backup dir back into a Blob store, keyed by its RELATIVE PATH,
-// which IS the blob pathname AND `media.filename` in Postgres. So no DB rewrite is ever needed
-// (`media.url` is relative — runbook §2).
-//
 // addRandomSuffix is forced to "0": with a suffix the key becomes `filename-xxxx` and
-// `/api/media/file/<filename>` 404s. That is the one invariant that silently ruins a restore.
-//
-// SAFETY: put-only. Never deletes, never lists-then-prunes. Re-running overwrites with identical
-// bytes, so it is idempotent and safe on a partially-repaired store.
-//
-// Usage:
-//   BLOB_READ_WRITE_TOKEN=<target store token> node scripts/blob-restore.mjs \
-//     --dir ./blob-restore [--concurrency 8] [--dry-run] [--limit 5]
-//
-//   --dir <path>        local backup dir (mirror of the store's pathnames)
-//   --allow-prod        REQUIRED for any target that is not the preview store (see the guard below)
-//   --concurrency <n>   parallel uploads (default 8, positive integer)
-//   --skip-existing     list the target first and upload only what is missing (resume a run)
-//   --dry-run           enumerate + report, upload nothing (with --skip-existing it still lists
-//                       the target, so it is not an offline operation)
-//   --limit <n>         upload only the first n files (smoke test)
+// `/api/media/file/<filename>` 404s.
 
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join, relative, extname } from 'node:path'
@@ -38,16 +15,11 @@ const has = (name) => process.argv.includes(name)
 const token = process.env.BLOB_READ_WRITE_TOKEN
 if (!token) { console.error('BLOB_READ_WRITE_TOKEN missing (must be the TARGET store token)'); process.exit(1) }
 
-// A token names its store verbatim: `vercel_blob_rw_<STORE_ID>_…`. The app's env layer refuses the
-// production store outside production, but this script reads process.env directly and never imports
-// it — and on 2026-08-19 a stale token variable sent 7 put()s at production with nothing objecting.
-// So the one tool that writes asks out loud before it can touch the real invoices.
 // Kept in sync by hand with PROD_BLOB_STORE_ID in src/lib/env/schema.ts — rotate one, rotate both.
 const PROD_BLOB_STORE_ID = 'oJHLWhvHKJrsgWiN'
 const PREVIEW_BLOB_STORE_ID = 'rNjU0fDb7Sz8bHVA'
 // Allow-list, not deny-list, so the tool fails CLOSED: a rotated store, a second production store
-// or a token shape this regex doesn't recognise all land in the refusal branch. A deny-list would
-// read `undefined` off an unparseable token and wave it through to a bulk upload.
+// or a token shape this regex doesn't recognise all land in the refusal branch.
 const targetStore = /^vercel_blob_rw_([A-Za-z0-9]+)_/.exec(token)?.[1]
 if (targetStore !== PREVIEW_BLOB_STORE_ID && !has('--allow-prod')) {
   const named = targetStore ? `store ${targetStore}` : 'an unrecognised token shape'
@@ -77,7 +49,6 @@ const API = 'https://blob.vercel-storage.com'
 const API_VERSION = '7'
 const fmtMB = (bytes) => `${(bytes / 1024 / 1024).toFixed(2)} MB`
 
-// Payload stores what the browser sent; these cover everything the media collection holds today.
 const CONTENT_TYPES = {
   '.pdf': 'application/pdf', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
   '.webp': 'image/webp', '.gif': 'image/gif', '.heic': 'image/heic', '.avif': 'image/avif',
@@ -93,8 +64,6 @@ async function walk(root, sub = '') {
   return out
 }
 
-// The Blob API throws transient 5xx under sustained upload (13/2347 in the EX-459 drill).
-// A recovery run must not need a human to notice and re-run, so retry with backoff.
 const RETRIES = 4
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

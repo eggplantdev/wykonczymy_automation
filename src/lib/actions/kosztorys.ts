@@ -2,7 +2,6 @@
 
 import { after } from 'next/server'
 import { z } from 'zod'
-import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
@@ -12,32 +11,28 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
+import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
+import { addItemSchema, type AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import { applyLayout, lockAndCheckLayout } from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { addedItemResult, prepareNewItemRow } from '@/lib/kosztorys/new-item-row'
 import {
   kosztorysLayoutSchema,
   LAYOUT_STALE,
   type KosztorysLayoutT,
 } from '@/lib/kosztorys/reorder-layout'
-import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   applyCatalogueWrite,
-  catalogueRow,
   DUPLICATE_ERROR,
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import {
-  catalogueUpdateFor,
-  EMPTY_ITEM_TEXT_ERROR,
-  splitTemplatePatch,
-} from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
-import { workCatalogueItemSchema } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-import {
   insertDirectionSchema,
+  numberWithinSections,
   renumberDisplayOrder,
   renumberDisplayOrderSchema,
   resolveInsertSlot,
@@ -46,7 +41,6 @@ import {
 } from '@/lib/kosztorys/display-order'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
-import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
@@ -73,27 +67,11 @@ import {
 } from '@/lib/db/stage-split'
 import { selectOtherPlaneWorkerNames, trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { mixedPlaneWorkersMessage } from '@/lib/constants/worker-lock'
-import { findCatalogueItemByKey, findLinkedCatalogueItem } from '@/lib/db/work-catalogue'
-import { translateNewRow } from '@/lib/ai/translate-new-row'
-import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 
-// Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
 const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
-
-// --- Patch schemas (all fields optional — autosave sends one field at a time) ---
-// The item patch schema lives beside ItemPatchT in lib/kosztorys/item-patch-schema.ts.
-
-const sectionPatchSchema = z
-  .object({
-    name: z.string(),
-    displayOrder: z.coerce.number().int().min(0),
-    // null clears the pin (back to the pie's positional palette).
-    color: z.custom<SectionColorKeyT>(isSectionColorKey).nullable(),
-  })
-  .partial()
 
 // Floor only: above 0,65 the mnożnik warns but saves (owner, 2026-09-21); below 0 is a typo.
 const investmentCoeffsSchema = z
@@ -103,95 +81,42 @@ const investmentCoeffsSchema = z
   })
   .partial()
 
-// Per-investment VAT rate as a fraction (0.08 = 8%). Bounds rejected here regardless of UI guarding
-// — a bad rate feeds every brutto figure (net × (1 + vatRate)).
 const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
-// Derived from SETTLEMENT_MODES so a mode added to the picker can't be silently rejected here.
 const investmentSettlementModeSchema = z.object({
   settlementMode: z.enum(SETTLEMENT_MODES),
 })
 
-// Materiały billed netto instead of brutto, as a fraction; null clears the concession. Same fraction
-// bounds as the VAT rate and for the same reason — the rate feeds both marża and bilans.
 const investmentMaterialsNetRateSchema = z.object({
   materialsNetRate: z.coerce.number().min(0).max(1).nullable(),
 })
 
-// Per-investment global discount over the whole kosztorys. type null = none (clears the discount).
-// Amount-only: value is netto PLN; never negative. A percent rabat isn't stored here —
+// A percent rabat isn't stored here —
 // applyPercentDiscountToAllItemsAction stamps it into each per-item rabat instead.
 const investmentGlobalDiscountSchema = z.object({
   globalDiscountType: z.enum(['amount']).nullable(),
   globalDiscountValue: z.coerce.number().min(0),
 })
 
-export type SectionPatchT = z.infer<typeof sectionPatchSchema>
+export type { SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDiscountSchema>
 
-// The three per-cell autosaves below defer the refresh: the editor seeds `rows` once at mount and
-// recomputes the panel optimistically, so the re-render reseeds nothing it reads. The only cached
-// reader of these tags is the client share link (lib/queries/preview-kosztorys.ts), which
-// `revalidateTag` still expires. The discarded re-render cost 90-193ms per debounced save (EX-597).
 export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
   return investmentAction(
     'updateItemFieldAction',
     { kind: 'item', id: itemId },
-    async ({ payload, isTemplate }) => {
+    async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
       // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole
-      // here — one write, never two orderings (EX-865).
+      // here.
       const data = normalizeOverridePatch(parsed.data)
-      const templateResult = isTemplate
-        ? await updateLinkedTemplateRow(payload, itemId, data)
-        : null
-      if (templateResult) return templateResult
       await payload.update({ collection: 'kosztorys-items', id: itemId, data })
       return { success: true }
     },
     ['kosztorysItems', 'workCatalogue'],
     { deferRefresh: true },
-  )
-}
-
-// A linked szablon row shows its katalog entry, so its content is edited there (EX-1017) and every
-// szablon holding the praca sees the change. `null` = not a linked row, or no katalog field touched:
-// the patch takes the ordinary path.
-async function updateLinkedTemplateRow(
-  payload: Payload,
-  itemId: number,
-  patch: ItemPatchT,
-): Promise<ActionResultT | null> {
-  const { cataloguePatch, rowPatch } = splitTemplatePatch(patch)
-  if (Object.keys(cataloguePatch).length === 0) return null
-  return withPayloadTransaction(
-    payload,
-    async (req): Promise<ActionResultT | null> => {
-      const txDb = await getDb(payload, req)
-      const entry = await findLinkedCatalogueItem(txDb, itemId)
-      if (!entry) return null
-      const update = catalogueUpdateFor(entry, cataloguePatch)
-      if ('error' in update) return { success: false, error: update.error }
-      // Before the write: a returned refusal still commits the transaction.
-      const { matchKey } = update.data
-      if (matchKey && matchKey !== entry.matchKey) {
-        const holder = await findCatalogueItemByKey(txDb, matchKey)
-        if (holder && holder.id !== entry.id) return { success: false, error: DUPLICATE_ERROR }
-      }
-      await payload.update({
-        collection: 'work-catalogue-items',
-        id: entry.id,
-        data: update.data,
-        req,
-      })
-      if (Object.keys(rowPatch).length > 0) {
-        await payload.update({ collection: 'kosztorys-items', id: itemId, data: rowPatch, req })
-      }
-      return { success: true }
-    },
-    { skipRevalidation: true },
   )
 }
 
@@ -225,8 +150,6 @@ export async function updateInvestmentCoeffsAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // Coeffs re-derive item and section figures. 'investments' expires the cached readers of the
-    // mutated row (getInvestment, fetchReferenceData) without waiting on its afterChange hook.
     ['kosztorysItems', 'kosztorysSections', 'investments'],
   )
 }
@@ -241,8 +164,6 @@ export async function updateInvestmentVatAction(investmentId: number, vatRate: n
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // vatRate is denormalized onto items only (not sections, unlike coeffs). 'investments' expires
-    // the cached readers of the mutated row without waiting on its afterChange hook.
     ['kosztorysItems', 'investments'],
   )
 }
@@ -260,8 +181,6 @@ export async function updateInvestmentSettlementModeAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // Unlike vatRate, the mode isn't denormalized onto items — every reader projects it from the
-    // tree, so invalidating the investment row is enough.
     ['investments'],
   )
 }
@@ -279,8 +198,6 @@ export async function updateInvestmentMaterialsNetRateAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // Like the settlement mode, the rate isn't denormalized onto items — it only ever reaches the
-    // financial aggregates, which read the investment row.
     ['investments'],
   )
 }
@@ -298,14 +215,12 @@ export async function updateInvestmentGlobalDiscountAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // The active flag is denormalized onto items only (getKosztorysTree → globalDiscountActive),
-    // like vatRate. 'investments' expires the cached readers of the mutated row immediately.
     ['kosztorysItems', 'investments'],
   )
 }
 
 // One SQL statement because a kosztorys can hold 1000+ items and N Payload updates would be as many
-// round-trips. One-shot tool: the percent lands in per-item rabaty, nothing persists the percent.
+// round-trips.
 export async function applyPercentDiscountToAllItemsAction(
   investmentId: number,
   percent: number,
@@ -317,9 +232,6 @@ export async function applyPercentDiscountToAllItemsAction(
       const parsed = validateAction(applyPercentDiscountSchema, { percent })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
-      // The overwrite is irrecoverable by in-session undo (owner: recovery = re-typing), and it
-      // flattens whatever per-item rabaty were there — hand-tuned amounts included. Snapshot the exact
-      // current state first, every time, exactly like removeSectionAction's destructive-write guard.
       await captureAutoSnapshot(db, investmentId, user.id)
       await db.execute(sql`
         UPDATE kosztorys_items
@@ -332,16 +244,13 @@ export async function applyPercentDiscountToAllItemsAction(
   )
 }
 
-const TEMPLATE_TEXTS_IN_CATALOGUE = 'Opisy prac szablonu poprawia się w katalogu prac.'
-
 // „Popraw literówki". Bulk overwrite of hand-typed text, irrecoverable by in-session undo, so it
 // snapshots first like applyPercentDiscountToAllItemsAction.
 export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
     'cleanItemTextsAction',
     { investmentId },
-    async ({ payload, user, isTemplate }) => {
-      if (isTemplate) return { success: false, error: TEMPLATE_TEXTS_IN_CATALOGUE }
+    async ({ payload, user }) => {
       const db = await getDb(payload)
       const changed = cleanItemTexts(await getItemTexts(db, investmentId))
       if (changed.length === 0) return { success: true, data: 0 }
@@ -355,13 +264,8 @@ export async function cleanItemTextsAction(investmentId: number): Promise<Action
 
 const clearKosztorysSchema = z.object({ investmentId: z.number().int().positive() })
 
-// Reuses the import's wholesale replacement rather than its own DELETE: that path already owns the
-// investment lock and the forced labelled snapshot, which is the only thing making this undoable.
-//
-// `takeSettingsFromTree` is off, so restoreKosztorys writes back the investment's own VAT and
-// współczynniki. The global rabat is cleared instead — an amount left behind would price the next
-// import below its own total — and SnapshotPayloadT excludes it, so the dialog warns rather than
-// promise a clean round trip.
+// The global rabat is cleared — an amount left behind would price the next
+// import below its own total.
 export async function clearKosztorysAction(investmentId: number): Promise<ActionResultT> {
   return investmentAction(
     'clearKosztorysAction',
@@ -384,14 +288,6 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
   )
 }
 
-// Prepends a bare section at the TOP. The shift and the create share one transaction: a double-fired
-// add would otherwise land two sections on 0.
-//
-// One case the transaction cannot serialize: an investment with NO sections yet. `shiftDisplayOrderFrom`
-// takes its lock on the rows it is pushing down, and there are none — so two concurrent first-adds
-// both land on 0 and the tie falls to id. Left as is deliberately: the window is one empty kosztorys,
-// the result is an order, not a corruption, and „Przenumeruj" repairs it. Locking the investment row
-// to close it would put every section insert behind a lock the rest of the editor also wants.
 export async function addSectionAction(
   investmentId: number,
 ): Promise<ActionResultT<CreatedSectionT>> {
@@ -420,9 +316,6 @@ export async function removeSectionAction(sectionId: number) {
     { kind: 'section', id: sectionId },
     async ({ payload, user, investmentId }) => {
       const db = await getDb(payload)
-      // Deleting a populated section is allowed (EX-477) — the UI gates it behind a confirm. A
-      // section delete FK-cascades through its items into stage_progress, irrecoverable by in-session
-      // undo (S-07), so capture the exact current state as a snapshot first, every time.
       await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
@@ -436,9 +329,6 @@ const insertSectionSchema = z.object({
   dir: insertDirectionSchema,
 })
 
-// Section-level twin of addItemAction's next-to placement. The caller names an anchor and a direction, not a
-// display_order: resolving the slot inside the transaction is what makes it correct under a
-// concurrent insert, and it drops the investment id from the wire (it is the anchor's).
 export async function insertSectionAction(
   anchorSectionId: number,
   dir: InsertDirectionT,
@@ -476,45 +366,8 @@ export async function insertSectionAction(
   )
 }
 
-const newItemPlacementSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('end'), sectionId: z.number().int() }),
-  z.object({
-    kind: z.literal('next-to'),
-    anchorItemId: z.number().int(),
-    dir: insertDirectionSchema,
-  }),
-])
+export type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 
-const addItemSchema = z.object({
-  placement: newItemPlacementSchema,
-  // The katalog's own domain schema, not a copy: the dialog's praca and a katalog entry are the same
-  // fields, and `insertItems` bypasses Payload's field rules, so this is the only backstop against a
-  // negative cena or both columns of one płaszczyzna set.
-  data: workCatalogueItemSchema,
-  catalogue: z
-    .object({
-      mode: z.enum(['new', 'overwrite']),
-      keepCatalogueCategory: z.boolean(),
-      workNote: z.string().optional(),
-    })
-    .nullable(),
-  // „Tłumacz automatycznie przy pomocy AI" — off unless the dialog asks, so no other caller pays an AI wait.
-  translate: z.boolean().optional(),
-})
-
-export type AddItemInputT = z.infer<typeof addItemSchema>
-
-// A szablon row with no katalog entry would be the only praca in the szablon whose content lives
-// nowhere else (EX-1017).
-const TEMPLATE_ITEM_NEEDS_CATALOGUE = 'Praca w szablonie musi być w katalogu prac.'
-
-async function catalogueTranslationsFor(db: DbExecutorT, matchKey: string) {
-  const entry = await findCatalogueItemByKey(db, matchKey)
-  return new Map(entry ? [[matchKey, entry.descriptionTranslations]] : [])
-}
-
-// One slot per placement, both under the transaction: an append takes MAX+1, an insert-at locks the
-// anchor's position and moves the tail down by one.
 async function resolveNewItemSlot(
   db: DbExecutorT,
   placement: NewItemPlacementT,
@@ -530,14 +383,6 @@ async function resolveNewItemSlot(
   return { sectionId: slot.ownerId, displayOrder: slot.at }
 }
 
-/**
- * The katalog entry rides the praca's transaction, so a failed katalog write takes the praca down
- * with it rather than leaving half of what was asked for.
- *
- * `'workCatalogue'` is revalidated unconditionally: the collection's own hook is silenced by
- * `skipRevalidation`, and a static list cannot say „only when written" — one extra tag expiry on a
- * praca added without the katalog costs less than a branch.
- */
 export async function addItemAction(
   input: AddItemInputT,
 ): Promise<ActionResultT<{ item: KosztorysItemT }>> {
@@ -549,23 +394,14 @@ export async function addItemAction(
   return investmentAction(
     'addItemAction',
     target,
-    async ({ payload, investmentId, isTemplate }) => {
+    async ({ payload, investmentId }) => {
       const parsed = validateAction(addItemSchema, input)
       if (!parsed.success) return parsed
       const { placement, data, catalogue, translate } = parsed.data
-      if (isTemplate && !catalogue) return { success: false, error: TEMPLATE_ITEM_NEEDS_CATALOGUE }
 
-      const fields = catalogueRow(data)
-      if (!fields.description || !fields.unit) {
-        return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
-      }
-      const translated = translate
-        ? await translateNewRow(
-            { description: fields.description, unit: fields.unit, descriptionTranslations: {} },
-            await catalogueTranslationsFor(await getDb(payload), fields.matchKey),
-          )
-        : { translations: {}, failed: false }
-      const row = { ...fields, descriptionTranslations: translated.translations }
+      const prepared = await prepareNewItemRow(payload, data, translate)
+      if ('error' in prepared) return prepared
+      const { row, translationFailed } = prepared
 
       return withPayloadTransaction(
         payload,
@@ -589,23 +425,12 @@ export async function addItemAction(
           const slot = await resolveNewItemSlot(txDb, placement)
           if ('error' in slot) return { success: false, error: slot.error }
 
-          // The katalog is written first so the praca can name the entry it was saved to; both ride
-          // one transaction, so a failed insert still takes the katalog write down with it.
           const catalogueItemId = catalogueWrite
             ? await applyCatalogueWrite(payload, req, catalogueWrite)
             : null
           const item = itemFromFields(row, slot.sectionId, slot.displayOrder, catalogueItemId)
           const [id] = await insertItems(txDb, investmentId, [{ sectionId: slot.sectionId, item }])
-
-          const warnings = [
-            ...ceilingWarnings([item]),
-            ...(translated.failed ? [SAVED_UNTRANSLATED_WARNING] : []),
-          ]
-          return {
-            success: true,
-            data: { item: { ...item, id } },
-            ...(warnings.length > 0 && { warning: warnings.join(' ') }),
-          }
+          return addedItemResult(item, id, translationFailed)
         },
         { skipRevalidation: true },
       )
@@ -620,9 +445,6 @@ export async function removeItemAction(itemId: number) {
     { kind: 'item', id: itemId },
     async ({ payload, user, investmentId }) => {
       const db = await getDb(payload)
-      // Deleting a populated item is allowed (EX-477) — the UI gates it behind a confirm. A delete
-      // still drops the row's opis/przedmiar/cena/rabat (and cascades stage_progress), irrecoverable
-      // by in-session undo (S-07), so capture a snapshot first, every time.
       await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
@@ -633,10 +455,6 @@ export async function removeItemAction(itemId: number) {
 
 const ITEMS_NOT_IN_KOSZTORYS = 'Pozycje spoza tego kosztorysu.'
 
-// „Zapisz kolejność". One statement, so a half-applied renumber can't leave sections sharing
-// indices. The client sends ids in the order it wants them for the WHOLE sheet and the numbering is
-// derived here: display_order is only ever compared within a section, so the index restarts per
-// section and that rule lives on one side of the wire.
 export async function renumberKosztorysOrderAction(
   investmentId: number,
   orderedItemIds: number[],
@@ -651,15 +469,8 @@ export async function renumberKosztorysOrderAction(
         payload,
         async (req): Promise<ActionResultT> => {
           const txDb = await getDb(payload, req)
-          // Reads the guard's answer and takes the bake's lock in one statement, over the WHOLE
-          // sheet rather than the ids sent: a „Wstaw pozycję" into any section would otherwise take
-          // an index the bake hands to another row, and two rows sharing a display_order in one
-          // section has no unique constraint to catch it. Ascending id like every other acquisition
-          // in display-order.ts, so it cannot cycle against them (EX-632).
-          //
           // renumberDisplayOrder joins on id alone, so this read is also the only thing standing
-          // between a caller and another investment's rows. All-or-nothing: one stale id (a row
-          // deleted in another tab) refuses the entire bake, and the client's rollback depends on it.
+          // between a caller and another investment's rows.
           const res = await txDb.execute(sql`
             SELECT id, section_id FROM kosztorys_items
             WHERE investment_id = ${investmentId}
@@ -671,14 +482,11 @@ export async function renumberKosztorysOrderAction(
           if (parsed.data.some((id) => !sectionById.has(id))) {
             return { success: false, error: ITEMS_NOT_IN_KOSZTORYS }
           }
-          const nextIndex = new Map<number, number>()
-          const refs = parsed.data.map((id) => {
-            const sectionId = sectionById.get(id) as number
-            const index = nextIndex.get(sectionId) ?? 0
-            nextIndex.set(sectionId, index + 1)
-            return { id, displayOrder: index }
-          })
-          await renumberDisplayOrder(txDb, 'kosztorys-items', refs)
+          await renumberDisplayOrder(
+            txDb,
+            'kosztorys-items',
+            numberWithinSections(parsed.data, sectionById),
+          )
           return { success: true }
         },
         { skipRevalidation: true },
@@ -688,8 +496,6 @@ export async function renumberKosztorysOrderAction(
   )
 }
 
-// „Ustaw kolejność". Moves rows across sections as well as within them, which no ▲▼ or bake can, so
-// it snapshots first: a regrouped 400-row szablon is not something to rebuild by hand.
 export async function writeKosztorysLayoutAction(
   investmentId: number,
   layout: KosztorysLayoutT,
@@ -718,9 +524,6 @@ export async function writeKosztorysLayoutAction(
   )
 }
 
-// A new etap is created WITH its plane — the picker is forced at creation (the add menu offers
-// „z narzędziami" / „bez narzędzi", never a plane-less „Etap"), so no new stage is ever null.
-// Legacy stages keep their null and its unconfirmed warning until a human picks one.
 export async function addStageAction(
   investmentId: number,
   plane: ToolPlaneT,
@@ -781,7 +584,6 @@ export async function addStageAction(
   )
 }
 
-// stagePatchSchema is shaped to match StagePatchT (single source of the type in lib/kosztorys/types.ts).
 const stagePatchSchema = z
   .object({
     label: z.string().nullable(),
@@ -803,8 +605,6 @@ const stageSplitSchema = z
   })
   .nullable()
 
-// A plane patch only ever writes a concrete value — an explicit pick confirms the plane and clears
-// the unconfirmed (null) warning; there is no "un-confirm" path.
 export async function updateStageAction(
   stageId: number,
   patch: StagePatchT,
@@ -835,9 +635,6 @@ export async function updateStageAction(
 
 const STAGE_MISSING = 'Etap nie istnieje.'
 
-// The whole split in one call: mode and members are one concept, and two patches would have states
-// no single save produces (lessons.md). The cap is checked against the pool priced here, inside the
-// transaction, never against the figure the dialog last saw.
 export async function updateStageSplitAction(
   stageId: number,
   split: StageSplitT | null,
@@ -896,9 +693,6 @@ export async function removeStageAction(stageId: number): Promise<ActionResultT>
       const parsed = validateAction(stageIdSchema, { stageId })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
-      // Deleting a populated stage is allowed (EX-477) — the UI gates it behind a confirm. Dropping
-      // the stage cascades its stage_progress, irrecoverable by in-session undo (S-07), so capture a
-      // snapshot first, every time.
       await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }
@@ -906,8 +700,6 @@ export async function removeStageAction(stageId: number): Promise<ActionResultT>
     ['kosztorysStages', 'stageProgress'],
   )
 }
-
-// --- Stage progress (upsert by item + stage; sparse — a missing row means 0) ---
 
 const stageProgressSchema = z.object({
   itemId: z.number(),
@@ -936,8 +728,6 @@ export async function setStageProgressAction(
       return { success: true }
     },
     ['stageProgress'],
-    // Same deferral as the two field autosaves above — this is the etap quantity cell, the most
-    // frequent write in the editor.
     { deferRefresh: true },
   )
 }

@@ -135,8 +135,6 @@ export function countCatalogueConditions(
   )
 }
 
-// An engaged filter hides what it matches; an engaged problem keeps only what it matches. Ids that
-// name no condition fall through untouched — see `useEngagedIds`.
 export function applyCatalogueConditions(
   rows: readonly WorkCatalogueItemT[],
   conditions: readonly CatalogueConditionT[],

@@ -99,8 +99,6 @@ export async function listPayoutsToConfirm(
   }))
 }
 
-// What the app icon's badge shows: the wypłaty still waiting on his answer. A rejected one waits on
-// management, not on him.
 export async function countPendingPayouts(db: DbExecutorT, workerId: number): Promise<number> {
   const res = await db.execute(sql`
     SELECT count(*)::int AS total FROM transactions

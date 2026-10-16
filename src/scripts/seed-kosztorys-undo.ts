@@ -1,9 +1,5 @@
-// E2E fixture for EX-525 (cofnij/ponów w edytorze). Three investments, one per scenario — the undo
-// stack is per page load, the rows are not. One sekcja, three prace; every przedmiar is distinct so a
+// One sekcja, three prace; every przedmiar is distinct so a
 // reverted value can't be read off a neighbour.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-undo.ts
-// Emits: UNDO_SEED={"cell":<id>,"burst":<id>,"boundary":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 

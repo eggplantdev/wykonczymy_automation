@@ -3,11 +3,6 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 
-// „Kwiatowa" and „kwiatowa" are one place. Two rows for it split every „Gdzie jest" answer in half,
-// and the unique index cannot see the split because it compares raw strings — the guard is the
-// action's own case-insensitive read. Asserted on the TABLE: a failure result would still be a
-// failure if the row had landed anyway.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()

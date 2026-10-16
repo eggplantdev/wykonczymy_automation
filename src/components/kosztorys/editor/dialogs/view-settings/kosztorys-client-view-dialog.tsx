@@ -18,8 +18,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// Nothing is written until „Zapisz": closing the window leaves the client's link exactly as it was,
-// so the owner can look through the list without deciding anything.
 export function KosztorysClientViewDialog() {
   const { investmentId } = useKosztorysEditorContext()
   const {
@@ -41,8 +39,7 @@ export function KosztorysClientViewDialog() {
       const res = await settleAction(() => saveClientViewSettingsAction(investmentId, draft))
       if (!res.success) return toastMessage(res.error, 'error')
       // Published before the second write is attempted: that row IS saved, so leaving the parent on
-      // the old value after a failed defaults write would make the editor and the DB disagree. The
-      // stored copy read back, not the draft, for the same reason — the server stored that one.
+      // the old value after a failed defaults write would make the editor and the DB disagree.
       onSaved(sanitizeClientViewSettings(toStoredClientViewSettings(draft)))
       if (asDefaults) {
         const defaults = await settleAction(() => saveClientViewDefaultsAction(draft))
@@ -65,8 +62,6 @@ export function KosztorysClientViewDialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader
           title="Ustawienia podglądu inwestora"
-          // Scoped to the rozpiska on purpose: the setting reaches the grid's columns and pozycje,
-          // while the podsumowanie below it keeps its own client projection.
           description="Zaznacz, które kolumny i pozycje inwestor widzi w rozpisce. Ceny podwykonawców nie pojawiają się w niej nigdy."
         />
         <ClientViewSettingsForm

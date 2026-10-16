@@ -8,9 +8,6 @@ export function historyGridTree(version: PastVersionT): KosztorysTreeT {
   return { ...version.tree, stages: [...version.tree.stages, ...version.diff.addedStages] }
 }
 
-// The etapy that hold a pomiar TODAY on a row the past grid shows. The empty-column rule reads the
-// past rows, so without these a version from before any work would hide every Pomiar column — and
-// with it the change the investor opened the version to see.
 export function stageIdsFilledNow(diff: VersionDiffT): ReadonlySet<number> {
   const filled = new Set<number>()
   for (const { fields } of diff.changed.values()) {
@@ -21,7 +18,6 @@ export function stageIdsFilledNow(diff: VersionDiffT): ReadonlySet<number> {
   return filled
 }
 
-// Each column id IS the field it renders.
 const FIELD_COLUMN_IDS: ReadonlySet<string> = new Set<FieldChangeT['field']>([
   'plannedQty',
   'currentPlannedQty',

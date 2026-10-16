@@ -8,9 +8,7 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 
-/**
- * Append cennik pozycje to the END of one existing sekcja. THE CALLER OWNS THE TRANSACTION.
- */
+// THE CALLER OWNS THE TRANSACTION.
 export async function appendCatalogueItems(
   payload: Payload,
   req: PayloadRequest,

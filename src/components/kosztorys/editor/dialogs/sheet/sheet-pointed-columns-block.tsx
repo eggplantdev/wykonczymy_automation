@@ -4,11 +4,6 @@ import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet/s
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
 import type { UnresolvedColumnsT } from '@/lib/kosztorys/sheet-import/resolve-columns'
 
-/**
- * The pointings that made a CLEAN read clean. Beside a shortfall only, „Usuń wskazanie" would vanish
- * with the last missing column, leaving a saved pointing nothing can take back. Styled neutral: a
- * pointed column is not a defect.
- */
 export function SheetPointedColumnsBlock({
   investmentId,
   columns,

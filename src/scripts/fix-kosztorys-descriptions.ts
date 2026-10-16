@@ -1,5 +1,5 @@
 // Bulk run of the „Popraw literówki" cleanup (opis prac + j.m.) — the same rules the Opcje button
-// applies, but over many inwestycje at once — szablony included, since a szablon is an investment.
+// applies, but over many inwestycje at once. A szablon has no texts of its own: CATALOGUE=1 covers it.
 // Dry by default; pass APPLY=1 to write.
 //
 //   INV=90 node --env-file=.env --import tsx src/scripts/fix-kosztorys-descriptions.ts
@@ -10,7 +10,7 @@
 //   CATALOGUE  1 = clean „Katalog prac" too, and only it (skips inwestycje)
 //
 // Raw SQL expires no cache: after an APPLY the deployed app keeps serving the old texts until their
-// tags expire. One edit in the katalog, one szablon save and one kosztorys cell edit flush them.
+// tags expire. One edit in the katalog and one kosztorys cell edit flush them.
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
@@ -56,11 +56,9 @@ async function fixItems(db: DbExecutorT): Promise<void> {
 }
 
 /**
- * The same rules over the katalog prac. The key is recomputed alongside the texts because
- * `cleanDescription` also fixes punctuation ('ścian(pianka' → 'ścian (pianka') and `cleanUnit` fixes
- * transpositions (`klp` → `kpl`), and either moves the key:
- * left as it was it would point at a name that no longer exists, and the praca would stop matching
- * itself in „Porównaj z cennikiem".
+ * The key is recomputed alongside the texts because `cleanDescription` also fixes punctuation and
+ * `cleanUnit` fixes transpositions, and either moves the key: left as it was the praca would stop
+ * matching itself in „Porównaj z cennikiem".
  */
 async function fixCatalogue(db: DbExecutorT): Promise<void> {
   const items = await listCatalogueItems(db)
@@ -77,8 +75,7 @@ async function fixCatalogue(db: DbExecutorT): Promise<void> {
   )
 
   // The UNIQUE on `match_key` would reject the second UPDATE mid-loop, so collisions are caught
-  // before any write — two descriptions folding into one key are a duplicate, and which row survives
-  // is not ours to guess.
+  // before any write.
   const collisions = [...Map.groupBy(cleaned, (entry) => entry.matchKey).values()].filter(
     (bucket) => bucket.length > 1,
   )

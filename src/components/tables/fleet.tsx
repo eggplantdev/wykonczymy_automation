@@ -44,8 +44,6 @@ export function getFleetColumns() {
     col.accessor((row) => row.activeFlags.length, {
       id: 'flags',
       header: 'Do wymiany',
-      // An unflagged car renders nothing, not a dash: the column is an alarm surface, and a column
-      // of dashes is what makes an alarm easy to miss.
       cell: (info) => (
         <span className="flex flex-wrap gap-1">
           {info.row.original.activeFlags.map((type) => (
@@ -58,8 +56,6 @@ export function getFleetColumns() {
       id: COSTS_COLUMN_ID,
       header: 'Koszty',
       meta: { align: 'right' },
-      // Same treatment as an unrecorded deadline: a car whose przeglądy carry no price has no
-      // amount to rank, so it parks at the end instead of leading the cheapest-first sort.
       sortUndefined: 'last',
       cell: (info) => (
         <span className="tabular-nums">{formatPLNOrDash(info.row.original.totalCosts)}</span>
@@ -78,8 +74,6 @@ export function getFleetColumns() {
         {
           id: type,
           header: INSPECTION_TYPE_LABELS[type].pl,
-          // A car with nothing recorded has no distance to sort by; park those at the end rather than
-          // letting null read as "most urgent".
           sortUndefined: 'last',
           cell: (info) => (
             <div className="flex flex-col items-start gap-1">
@@ -87,7 +81,6 @@ export function getFleetColumns() {
                 deadline={info.row.original.deadlines[type]}
                 muted={info.row.original.status === 'RETIRED'}
               />
-              {/* The kilometre overrun belongs to the oil deadline, not to the car as a whole. */}
               {type === 'OIL_CHANGE' && (
                 <OilIntervalBadge kmSinceOilChange={info.row.original.kmSinceOilChange} />
               )}

@@ -121,23 +121,38 @@ export const itemsOf = async (investmentId: number) =>
     )
   ).docs
 
-// A seeded pozycja takes its katalog entry's opis and j.m., not the szablon row's own (EX-1017), and the
-// two drift apart when a praca is renamed in the katalog. Read a szablon through this, or a draft
-// copied from it misses the seeded row and the loader adds a near-duplicate beside it.
-export async function itemsOfTemplate(presetId: number) {
-  const items = await itemsOf(presetId)
-  const ids = [
-    ...new Set(items.flatMap((item) => (item.catalogueItemId ? [item.catalogueItemId] : []))),
-  ]
-  if (!ids.length) return items
-  const { docs } = await api<{ docs: { id: number; description: string; unit: string | null }[] }>(
-    `/work-catalogue-items?where[id][in]=${ids.join(',')}&depth=0&limit=0&pagination=false`,
+type TemplateItemDocT = {
+  id: number
+  displayOrder: number
+  section: { id: number; name: string; displayOrder: number }
+  catalogueItem: { id: number; description: string; unit: string | null; clientPrice: number | null }
+}
+
+// A szablon praca is only a katalog ref, so its opis, j.m. and cena are the katalog entry's — the
+// same values a kosztorys seeded from it starts with. The rest is a blank pozycja.
+export async function itemsOfTemplate(templateId: number): Promise<ItemT[]> {
+  const { docs } = await api<{ docs: TemplateItemDocT[] }>(
+    `/template-items?where[section.template][equals]=${templateId}&depth=1&limit=0&pagination=false`,
   )
-  const entries = new Map(docs.map((entry) => [entry.id, entry]))
-  return items.map((item) => {
-    const entry = item.catalogueItemId ? entries.get(item.catalogueItemId) : undefined
-    return entry ? { ...item, description: entry.description, unit: entry.unit } : item
-  })
+  return docs.map(({ id, displayOrder, section, catalogueItem }) => ({
+    id,
+    displayOrder,
+    description: catalogueItem.description,
+    unit: catalogueItem.unit,
+    plannedQty: 0,
+    clientPrice: catalogueItem.clientPrice ?? 0,
+    wToolsOverrideValue: null,
+    wToolsOverrideCoeff: null,
+    ownToolsOverrideValue: null,
+    ownToolsOverrideCoeff: null,
+    aiPlannedQty: null,
+    aiMissingData: null,
+    aiAssumptions: null,
+    reviewStatus: null,
+    changeReason: null,
+    catalogueItemId: catalogueItem.id,
+    section: { id: section.id, name: section.name, displayOrder: section.displayOrder },
+  }))
 }
 
 export function keyed(items: ItemT[]) {

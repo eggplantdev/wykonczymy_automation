@@ -2,8 +2,8 @@ import type { Where } from 'payload'
 import { excludingCancelled, makeDeleteBlocker } from '@/lib/db/delete-blocker'
 import { pendingDraftsHint, pendingDraftsProbe } from '@/lib/db/worker-expense-drafts'
 
-// For LABOR_COST / RABAT / LOSS an orphaned transaction is terminal: they carry no source register
-// either, so a row stripped of `investment_id` is reachable from no investment and no kasa at all.
+// For LABOR_COST / RABAT / LOSS an orphaned transaction is terminal: they carry no source register,
+// so a row stripped of `investment_id` is reachable from no investment and no kasa at all.
 export const investmentDeleteBlocker = makeDeleteBlocker({
   probes: [
     {

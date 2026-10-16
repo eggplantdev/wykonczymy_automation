@@ -12,7 +12,6 @@ vi.mock('@/lib/actions/investment-assets', () => ({
   removeAllInvestmentAssetsAction: (...args: unknown[]) => removeAllInvestmentAssetsAction(...args),
 }))
 
-// Stands in for the whole pick → ingest → Blob path so a test can hold an upload open.
 const isUploading = vi.fn(() => false)
 vi.mock('@/hooks/use-media-upload', () => ({
   useMediaUpload: () => ({ isUploading: isUploading(), uploadFiles: vi.fn() }),
@@ -54,8 +53,6 @@ describe('InvestmentAssetsControl', () => {
     isUploading.mockReturnValue(false)
   })
 
-  // The section used to disappear entirely without files, which hid the only in-page way to add one
-  // behind the „Edytuj inwestycję" dialog.
   it('offers the picker when the investment has no files, and no empty preview', async () => {
     const user = userEvent.setup()
     renderGallery([])
@@ -128,8 +125,7 @@ describe('InvestmentAssetsControl', () => {
   })
 
   // `setUploadField` is a read-modify-write, so a removal that started while an upload was still in
-  // flight writes back the pre-upload list — dropping the new file and leaking its media row. The
-  // two controls therefore gate each other, not just themselves.
+  // flight writes back the pre-upload list — dropping the new file and leaking its media row.
   it('offers no removal while an upload is in flight', async () => {
     const user = userEvent.setup()
     isUploading.mockReturnValue(true)
@@ -151,7 +147,6 @@ describe('InvestmentAssetsControl', () => {
 
     await user.click(within(dialog).getByRole('button', { name: 'Usuń' }))
     expect(screen.getByText('Usunąć plik?')).toBeInTheDocument()
-    // Blob has no undelete — the confirm has to say the file is gone for good.
     expect(screen.getByText(/bezpowrotnie/)).toBeInTheDocument()
   })
 })

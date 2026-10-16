@@ -29,7 +29,6 @@ const TREE = {
   materialsNetRate: 0.9,
 } as unknown as KosztorysTreeT
 
-// A pending write that the test decides when to land — the risk here is two of them overlapping.
 function deferred() {
   let settle!: (result: ActionResultT) => void
   const promise = new Promise<ActionResultT>((resolve) => (settle = resolve))
@@ -67,8 +66,6 @@ describe('useKosztorysSettings — two „Opcje rozliczenia" saves in flight at 
       result.current.handleMaterialsNetRateChange(0.8)
     })
 
-    // Two saves, two keys. One shared key is the bug: the first `finally` would delete the entry the
-    // second write is still holding, and the pill would vanish mid-save.
     await waitFor(() => expect(usePendingStore.getState().pending.size).toBe(2))
     expect(result.current.isSavingSettings).toBe(true)
 
@@ -143,7 +140,6 @@ describe('useKosztorysSettings — two „Opcje rozliczenia" saves in flight at 
 })
 
 describe('useKosztorysSettings — rabat kwotowy', () => {
-  // EX-933: cut to grosze, some brutto entries re-gross a grosz off what was typed.
   it('stores a kwota typed in brutto at six places, not grosze', async () => {
     vi.mocked(updateInvestmentGlobalDiscountAction).mockResolvedValue({
       success: true,
@@ -154,7 +150,10 @@ describe('useKosztorysSettings — rabat kwotowy', () => {
     } as KosztorysTreeT)
 
     await act(async () => {
-      result.current.handleGlobalDiscountChange({ type: 'amount', value: discountNetFromGross(5000, 0.08) })
+      result.current.handleGlobalDiscountChange({
+        type: 'amount',
+        value: discountNetFromGross(5000, 0.08),
+      })
     })
 
     expect(updateInvestmentGlobalDiscountAction).toHaveBeenCalledWith(1, {

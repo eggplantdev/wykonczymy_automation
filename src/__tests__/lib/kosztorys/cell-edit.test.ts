@@ -14,8 +14,6 @@ type QtyRowT = { id: number; plannedQty: number }
 const qty = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty', String)
 const row = (plannedQty: number): QtyRowT => ({ id: 1, plannedQty })
 
-// Stand-ins for the two guard severities, so both machine branches are tested without dragging the
-// subcontractor price guard's own rules into it.
 const capped: CellEditPolicyT<QtyRowT, number> = {
   ...qty,
   guard: (candidate) =>
@@ -34,8 +32,7 @@ describe('cellKeystroke', () => {
   })
 
   it('nie zapisuje nic po wyczyszczeniu pola', () => {
-    // Writing the cleared value here would flip the cell out of edit mode mid-typing: the input is
-    // swapped for read-only text, the caret dies and the old value reappears under the user's hands.
+    // Writing the cleared value here would flip the cell out of edit mode mid-typing
     expect(cellKeystroke('', row(7), qty)).toEqual({ kind: 'hold' })
   })
 
@@ -45,8 +42,6 @@ describe('cellKeystroke', () => {
   })
 
   it('kolejne klawisze ułamka dochodzą do pełnej liczby, nie do sklejonych cyfr', () => {
-    // The rabat cell stored „12,5" as 125: it committed 12 on the comma, re-rendered over the typed
-    // text, and the „5" landed on a „12" that had lost its separator.
     expect(cellKeystroke('12', row(0), qty)).toMatchObject({ kind: 'commit', row: row(12) })
     expect(cellKeystroke('12,', row(12), qty)).toMatchObject({ kind: 'commit', row: row(12) })
     expect(cellKeystroke('12,5', row(12), qty)).toMatchObject({ kind: 'commit', row: row(12.5) })
@@ -74,8 +69,6 @@ describe('cellSettle', () => {
   })
 
   it('odrzucony wpis cofa wiersz do stanu sprzed edycji', () => {
-    // The prefix trap: typing „1e" committed „1" first, so walking away used to leave a quantity of
-    // 1 standing in place of the 7 that was there.
     expect(cellSettle('1e', row(1), qty, 7)).toMatchObject({
       kind: 'rollback',
       reason: 'invalid',
@@ -116,9 +109,6 @@ describe('cellSettle', () => {
 
 describe('cellPaste', () => {
   it('wkleja to samo, co da się wpisać z klawiatury', () => {
-    // The gap this closes: the strip of the sheet's NBSP thousands separator lived only on the
-    // column's own paste hook, so „1 234,5" landed when pasted onto a selection and was refused as
-    // invalid when the same text was typed — or pasted into an already-open cell.
     const pasted = cellPaste('1\u00a0234,5', row(0), qty)
     expect(pasted).toEqual(row(1234.5))
     expect(cellKeystroke('1\u00a0234,5', row(0), qty)).toMatchObject({
@@ -173,13 +163,11 @@ describe('discountPolicy', () => {
   })
 
   it('wyczyszczone pole zdejmuje rabat razem z typem', () => {
-    // A value with no type is inert — it looks like a live rabat and contributes nothing.
     expect(
       cellSettle('', { discountType: 'percent', discountValue: 10 }, policy, noDiscount),
     ).toEqual({ kind: 'clear', row: noDiscount })
   })
 
-  // EX-736: 100% is work given away and passes; above it the row's net goes negative.
   it('odrzuca rabat procentowy powyżej 100%', () => {
     expect(cellKeystroke('101', noDiscount, policy)).toMatchObject({ kind: 'blocked' })
     expect(cellKeystroke('100', noDiscount, policy)).toMatchObject({

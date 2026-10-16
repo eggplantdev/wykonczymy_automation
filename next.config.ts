@@ -7,36 +7,20 @@ const nextConfig: NextConfig = {
   // LAN then gets a half-hydrated page and a bogus "Missing <html> and <body>" overlay.
   allowedDevOrigins: ['192.168.*.*'],
   // E2E builds into an isolated dir (NEXT_DIST_DIR=.next-e2e) so `pnpm build` for the
-  // Playwright webServer never fights the dev server's `.next` lock. Unset in normal runs.
+  // Playwright webServer never fights the dev server's `.next` lock.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // cacheComponents: true,
   experimental: {
     serverActions: {
       // Vercel hard-caps function/action request bodies at 4.5 MB (413 FUNCTION_PAYLOAD_TOO_LARGE,
-      // thrown by the platform before our code runs — uncatchable in-function). This must not exceed
-      // it: a higher value is a lie on prod and only "works" locally where there is no platform cap.
-      // It governs Server Actions only. File bytes have never travelled this way and since EX-829
-      // go from the browser straight to Blob, so raising this knob would not make an upload fit.
+      // thrown by the platform before our code runs — uncatchable in-function).
       bodySizeLimit: '4.5mb',
     },
   },
-  // Cache rendered pages in the client Router Cache for 5 min.
-  // Dynamic pages (searchParams/headers) skip this cache by default,
-  // causing a full server round-trip + loader on every navigation.
-  // Server Actions automatically clear the cache, so own mutations
-  // always show fresh data. Staleness only affects other users' changes.
-  // experimental: {
-  // staleTimes: {
-  // dynamic: 300,
-  // },
-  // },
   serverExternalPackages: ['payload', 'pino', 'pino-pretty', 'thread-stream'],
   images: {
-    // Next has no "default quality" knob — 75 is hardcoded. A single-entry allowlist is the only
-    // way to make one value global: any quality, the unspecified 75 included, is coerced to the
-    // nearest allowed entry, so with one entry every image is served at 90. Add a second value and
-    // that guarantee silently ends. 90 rather than 75 because both upload paths already compress at
-    // ingest — re-encoding lower here is a second lossy pass over lossy input.
+    // any quality, the unspecified 75 included, is coerced to the
+    // nearest allowed entry, so with one entry every image is served at 90.
     qualities: [90],
     remotePatterns: [
       {

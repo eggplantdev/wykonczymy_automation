@@ -1,9 +1,7 @@
 import { EnvBadgeShell } from '@/components/ui/env-badge-shell'
 import { serverEnv } from '@/lib/env/server'
 
-// VERCEL_ENV is 'production' | 'preview' | 'development' on Vercel; undefined locally,
-// where NODE_ENV ('development') is the right signal. NODE_ENV alone can't tell a
-// Preview deploy from prod (both are 'production'), so prefer VERCEL_ENV when present.
+// NODE_ENV alone can't tell a Preview deploy from prod (both are 'production'), so prefer VERCEL_ENV when present.
 const ENV = (serverEnv.VERCEL_ENV ?? process.env.NODE_ENV) as EnvT
 
 type EnvT = 'production' | 'preview' | 'development'
@@ -21,9 +19,6 @@ const ENV_LABELS: Record<EnvT, string> = {
   development: 'LOCAL',
 }
 
-// Which DB the app is actually wired to, from the live connection string — proves at a
-// glance that a preview isn't pointed at prod (and that the app never sees the test DB).
-// `dbname:port` locally; port-less Neon URLs fall back to `dbname@<host-first-label>`.
 // Password is never in the output — we read only pathname/host/port.
 function dbLabel(): string | undefined {
   try {
@@ -39,7 +34,6 @@ function dbLabel(): string | undefined {
 const DB = dbLabel()
 
 export function EnvBadge() {
-  // Never show in production — the badge exists only to flag non-prod environments.
   if (ENV === 'production') return null
 
   return (

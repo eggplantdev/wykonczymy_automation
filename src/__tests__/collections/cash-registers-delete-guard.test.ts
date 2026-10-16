@@ -5,8 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
 // Both register FKs are ON DELETE SET NULL, so the delete this guards never errors on its own — it
-// succeeds and the transaction stops naming the kasa it moved money out of. The assertions are on
-// persisted rows for that reason, not on what the delete returned.
+// succeeds and the transaction stops naming the kasa it moved money out of.
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -86,9 +85,6 @@ describe.skipIf(!ENV_READY)('cash-registers beforeDelete guard (DB)', () => {
     await db.execute(sql`DELETE FROM transactions WHERE id = ${transactionId}`)
   })
 
-  // The relaxation: a cancelled row moves no money (every sum in `lib/db` skips it) and survives the
-  // delete, so it stays readable on the dashboard's audit view — asserting only that the delete
-  // succeeded would pass just as well on a cascade that destroyed it.
   it('deletes a register whose only transactions are cancelled, orphaning them', async () => {
     const transactionId = await insertTransfer('register-guard cancelled employee expense', true)
 

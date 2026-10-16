@@ -12,14 +12,8 @@ import { round6 } from '@/lib/utils/round'
 import type { ResolvedLaborColumnsT } from './resolve-columns'
 import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
-// The marker the owner types into Przedmiar + Pomiar on a row that is not a praca. A section header
-// and a footer row are BOTH marked this way — the section name is the only thing separating them.
 export const NON_ITEM_MARKER = 'x'
 
-// The praca's own fields. All four subcontractor-stawka fields are missing on purpose: they come
-// from the „zakres pracy" tabs, so the parser has no honest value for them and refuses to invent
-// one — a placeholder `null` would read as „inherit the global coefficient", which is a cost the
-// sheet never has.
 export type ParsedItemT = Omit<
   KosztorysItemT,
   'wToolsOverrideValue' | 'ownToolsOverrideValue' | 'wToolsOverrideCoeff' | 'ownToolsOverrideCoeff'
@@ -30,11 +24,8 @@ export type ParsedLaborTabT = {
   items: ParsedItemT[]
   stages: KosztorysStageT[]
   progress: StageProgressT[]
-  // 0-based index of the first footer row, so `footer-totals` reads the summary block without
-  // re-deriving where the prace stop. -1 when the sheet has no footer.
+  // -1 when the sheet has no footer.
   footerStart: number
-  // Rows carrying a description above the first section header. They belong to no section, so they
-  // cannot be imported — the count exists so the preview says so instead of losing them in silence.
   skippedBeforeFirstSection: number
   // 1-based sheet row per parsed praca, kept beside the items rather than on them: the items are
   // spread straight into inserts, and a stray field would ride along into the database.
@@ -44,17 +35,11 @@ export type ParsedLaborTabT = {
 const text = (cell: unknown): string =>
   typeof cell === 'string' ? cell.trim() : cell == null ? '' : String(cell).trim()
 
-// Sheets returns the cell's own IEEE double and `planned_qty` is an unconstrained `numeric`, so
-// 161.39000000000001 both persists and renders — the editor's cell is an input, so `decimalText`
-// is `String(value)` by design.
 const number = (cell: unknown): number =>
   round6(typeof cell === 'number' ? cell : Number(cell) || 0)
 
-// Where the summary block begins, found by walking up from the bottom rather than down from the top.
 // Downwards, the footer is indistinguishable from a blank spacer row mid-sheet — both are marked and
-// unnamed — and stopping at the first one truncates the import at that spacer, silently. Upwards
-// there is no ambiguity: the footer is simply everything below the last praca, and a praca is an
-// unmarked row with a description that isn't one of the summary labels.
+// unnamed — and stopping at the first one truncates the import at that spacer, silently.
 function findFooterStart(grid: unknown[][], columns: ResolvedLaborColumnsT['columns']): number {
   for (let rowIndex = grid.length - 1; rowIndex >= HEADER_BLOCK_ROWS; rowIndex--) {
     const row = grid[rowIndex] ?? []
@@ -67,12 +52,9 @@ function findFooterStart(grid: unknown[][], columns: ResolvedLaborColumnsT['colu
   return -1
 }
 
-// „Pomiar z natury" means nothing only when the sheet computed it FROM the etapy: on the blank offer
-// sheet that column sums them in every row, so importing its value would store Σ etapów and later
-// compare it against Σ etapów — a reconciliation that can never fire. Any other formula is left
-// alone. The owner writes the pomiar as `=N{row}` — a copy of the Przedmiar — far more often than
-// by hand, and that number IS their claim about what was measured; refusing it made the rozjazd
-// structurally blind on most of the sheets we import. `number()` is deliberately not used: its
+// „Pomiar z natury" means nothing only when the sheet computed it FROM the etapy: importing its
+// value would store Σ etapów and later compare it against Σ etapów — a reconciliation that can never
+// fire. `number()` is deliberately not used: its
 // `|| 0` would turn an empty cell into a measurement of zero, flagging every row nobody has
 // measured yet.
 function readMeasuredQty(
@@ -90,17 +72,13 @@ function readMeasuredQty(
   return Number.isFinite(value) ? round6(value) : null
 }
 
-// Every etap column the owner has NOT renamed carries the sheet's own caption — „1 etap ilość", the
-// same words in all ten. Persisting that would name every etap after a header, so only a caption
-// that says something else counts as a name.
 const DEFAULT_STAGE_CAPTION = /^(\d+) etap( ilosc)?$/
 
 const isNamedStage = (caption: string): boolean =>
   caption !== '' && !DEFAULT_STAGE_CAPTION.test(fold(caption))
 
-// „4 etap ilość" → 4. The sheet's own number, not the column's position in the run: delete etap
-// column E and the run shrinks, so the fifth surviving column is the sheet's sixth etap. Falls back
-// to the position for a column the owner blanked — there is nothing else to call it.
+// delete etap
+// column E and the run shrinks, so the fifth surviving column is the sheet's sixth etap.
 const sheetStageNumber = (caption: string, column: number): number => {
   const match = DEFAULT_STAGE_CAPTION.exec(fold(caption))
   return match ? Number(match[1]) : column
@@ -109,8 +87,6 @@ const sheetStageNumber = (caption: string, column: number): number => {
 export function parseLaborTab(
   grid: unknown[][],
   resolved: ResolvedLaborColumnsT,
-  // Required rather than defaulted: a caller that forgets it would silently import no measurement
-  // at all, and the whole reconciliation would go quiet without a single failing test.
   formulas: unknown[][],
 ): ParsedLaborTabT {
   const { columns, stages: stageColumns } = resolved
@@ -140,9 +116,6 @@ export function parseLaborTab(
 
     if (fold(row[columns.plannedQty]) === NON_ITEM_MARKER) {
       const name = (columns.section === undefined ? '' : text(row[columns.section])) || description
-      // A marked row is a section header — unless it has no name at all (a spacer), or its name is
-      // one of the summary labels the owner sometimes types into the opis column mid-sheet. Either
-      // would otherwise become a section, and every praca below it would be filed under it.
       if (!name || isFooterLabel(fold(name))) continue
 
       let sectionId = sectionIdByName.get(name)
@@ -167,10 +140,9 @@ export function parseLaborTab(
     }
 
     const discountFraction = columns.discount === undefined ? 0 : number(row[columns.discount])
-    // The sheet stores rabat as a fraction (0,09); the app stores a percentage. A value of 1 or more
+    // A value of 1 or more
     // is a whole percent typed into the fraction column — 9 meaning 9%, not a 900% discount that
-    // would price the praca deeply negative. A missing rabat is „no discount", not 0%: the two
-    // render differently in the editor.
+    // would price the praca deeply negative.
     const discountPercent =
       discountFraction >= 1 ? round6(discountFraction) : round6(discountFraction * 100)
     const itemId = nextItemId++
@@ -206,15 +178,6 @@ export function parseLaborTab(
     }
   }
 
-  // An etap column enters only if it carries something: wykonanie, or a name the owner typed over
-  // it. The owner's sheets have ten columns and run three or four, and the empty ones arrive locked
-  // (no rozliczenie) to be deleted by hand — but a column renamed „2 etap BRYGADA JEDEN" with
-  // nothing booked yet is a planned etap, and dropping it is the same hand-work in reverse.
-  //
-  // Survivors are renumbered to a contiguous run — `ordinal` is unique per investment, so it is the
-  // etap's position, not its name — and the SHEET's number is preserved in the label instead, so
-  // etap „7" stays etap 7 on screen no matter how many columns were skipped before it. Worker stays
-  // empty; it exists only in the app.
   const captions = grid[HEADER_BLOCK_ROWS - 1] ?? []
   const caption = (column: number) => text(captions[stageColumns.firstColumn + column - 1])
   const usedColumns = new Set(progress.map((entry) => entry.stageId))

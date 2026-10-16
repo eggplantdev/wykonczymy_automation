@@ -151,6 +151,8 @@ import * as migration_20261014_5_drop_kosztorys_worker_shares from './20261014_5
 import * as migration_20261014_6_drop_worker_expense_drafts_transfer_id from './20261014_6_drop_worker_expense_drafts_transfer_id'
 import * as migration_20261015_0_document_settings_column_map from './20261015_0_document_settings_column_map'
 import * as migration_20261015_1_add_rejected_investment_status from './20261015_1_add_rejected_investment_status'
+import * as migration_20261015_2_add_template_tables from './20261015_2_add_template_tables'
+import * as migration_20261016_0_drop_szablon_investments from './20261016_0_drop_szablon_investments'
 
 export const migrations = [
   {
@@ -917,5 +919,15 @@ export const migrations = [
     up: migration_20261015_1_add_rejected_investment_status.up,
     down: migration_20261015_1_add_rejected_investment_status.down,
     name: '20261015_1_add_rejected_investment_status',
+  },
+  {
+    up: migration_20261015_2_add_template_tables.up,
+    down: migration_20261015_2_add_template_tables.down,
+    name: '20261015_2_add_template_tables',
+  },
+  {
+    up: migration_20261016_0_drop_szablon_investments.up,
+    down: migration_20261016_0_drop_szablon_investments.down,
+    name: '20261016_0_drop_szablon_investments',
   },
 ]

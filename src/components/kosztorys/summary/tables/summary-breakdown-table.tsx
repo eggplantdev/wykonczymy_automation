@@ -6,9 +6,6 @@ import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryMoneyHeaders } from '@/components/kosztorys/summary/grid/summary-money-headers'
 import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 
-// The sheet's Podsumowanie split: „Robocizna" pre-rabat, „Rabat" taking it down to the executed
-// value, „Materiały", then „Łącznie". Every row is a term of Łącznie, so the reader can add the
-// columns down.
 export function SummaryBreakdownTable({
   cols,
   moneyAxis,
@@ -23,21 +20,16 @@ export function SummaryBreakdownTable({
   moneyAxis: MoneyAxisT
   laborCostsPair: MoneyPairT
   laborCostsMismatch?: string
-  // Already negative, built by the caller (it owns the VAT rate). Undefined hides the row. Sits
-  // directly under Robocizna because that is the figure it reduces.
+  // Already negative, built by the caller (it owns the VAT rate).
   discount?: MoneyPairT
   discountMismatch?: string
-  // What the investor is billed for materiały, on both planes. 0 on both hides the row.
   materialsPair: MoneyPairT
-  // Robocizna po rabacie + materiały, on both axes.
   combined: MoneyPairT
 }) {
   return (
     <SummaryTable cols={cols}>
       <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
       <SummaryMoneyHeaders axis={moneyAxis} />
-      {/* Label stays bare „Robocizna" — it is the same pre-rabat figure the investment page's
-          „z kosztorysu" block calls Robocizna, and the Rabat row right below removes any doubt. */}
       <SummaryRow
         label="Robocizna"
         line={laborCostsPair}

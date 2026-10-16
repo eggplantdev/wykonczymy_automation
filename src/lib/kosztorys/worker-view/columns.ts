@@ -3,19 +3,11 @@ import { emptySettlementColumnIds, stagesWithEntries } from '@/lib/kosztorys/set
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
-// plane is decided per worker, at render (`workerVisibleColumns`). Stored settings hold this key, so
-// one firm-wide tick answers for both rozliczenia — and no stored value can ever name `price`, the
-// client's price.
+// Stored settings hold this key, so one firm-wide tick answers for both rozliczenia — and no stored
+// value can ever name `price`, the client's price.
 export const WORKER_RATE_KEY = 'rate'
 
-// The worker view's ceiling (design #13, EX-875), as ticks for the settings dialog. A separate list
-// from CLIENT_VIEW_GROUPS, not a subset of it, because the two surfaces disclose opposite prices: a
-// key missing here is a column no setting can put on a worker's screen. The client price, rabat,
-// brutto, the client-priced „Wartość przedmiaru" / „Pozostało" / „% wykonania" and „Komentarz" are
-// absent by construction — the first two alone would give the margin away. The Przedmiar ofertowy and
-// the percentage against it are quantities, so they disclose no price: whether the crew sees the offer
-// beside the Aktualizacja przedmiaru is the managers' call, unticked by default (2026-10-09).
+// A key missing here is a column no setting can put on a worker's screen.
 export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
   {
     label: 'Opis i ilości',
@@ -31,8 +23,6 @@ export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
   },
 ]
 
-// The worker's document — their link, the owner's Podgląd and their PDF — in reading order. Same reasons
-// and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
 export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
   'plannedQty',
@@ -48,8 +38,6 @@ export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'remainingForPlane',
 ]
 
-// Plane-agnostic names for the dialog: one tick answers for both rozliczenia, so it cannot quote the
-// grid's per-plane header.
 const WORKER_LABEL_OVERRIDES: Record<string, string> = {
   [WORKER_RATE_KEY]: 'Stawka j.m. netto',
   net: 'Wartość wykonana netto',
@@ -61,9 +49,6 @@ export function workerColumnLabel(key: string): string | undefined {
 
 const PLANNED_COLUMNS = ['currentPlannedQty', 'plannedNetForPlane'] as const
 
-// What the data takes off the worker's document — his link, the owner's Podgląd and his PDF read this
-// one answer, so the three cannot disagree. Full column ids, over the projection's rows and etapy,
-// which are already only his: another crew's entry does not reshape his page.
 export function workerDataHiddenColumns(
   rows: readonly KosztorysV2RowT[],
   stages: readonly KosztorysStageT[],

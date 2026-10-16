@@ -33,13 +33,11 @@ describe('the conditions, each on its boundary', () => {
   it('„bez wykonanej pracy" asks Σ etapów, across every crew', () => {
     expect(matches('no-measured-qty', row())).toBe(true)
     expect(matches('no-measured-qty', row({ [stageKey(1)]: 0, [stageKey(2)]: 0 }))).toBe(true)
-    // A subcontractor-plane etap is still executed work — the pomiar covers the whole scope.
     expect(matches('no-measured-qty', row({ [stageKey(2)]: 3 }))).toBe(false)
   })
 
   it('„bez ceny j.m. i bez wykonanej pracy" asks the client price, the only one typed by hand', () => {
     expect(matches('no-client-price', row({ clientPrice: 0 }))).toBe(true)
-    // A subcontractor override cannot stand in for a missing client price.
     expect(matches('no-client-price', row({ clientPrice: 0, wToolsOverrideValue: 80 }))).toBe(true)
     expect(matches('no-client-price', row({ clientPrice: 100 }))).toBe(false)
   })
@@ -48,13 +46,10 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('no-client-price-with-work', row({ clientPrice: 0, [stageKey(2)]: 3 }))).toBe(
       true,
     )
-    // Nothing executed — the offer is merely unfinished, which is the other half of the split.
     expect(matches('no-client-price-with-work', row({ clientPrice: 0 }))).toBe(false)
     expect(matches('no-client-price-with-work', row({ clientPrice: 100, [stageKey(2)]: 3 }))).toBe(
       false,
     )
-    // The przedmiar is irrelevant to both halves: an offered pozycja worked at no price is the same
-    // unbillable row as an unoffered one.
     expect(
       matches(
         'no-client-price-with-work',
@@ -63,8 +58,6 @@ describe('the conditions, each on its boundary', () => {
     ).toBe(true)
   })
 
-  // The whole point of splitting rather than adding a third overlapping entry: the two counts in
-  // „Problemy" must partition the priceless pozycje, so none is reported and chased twice.
   it('splits every priceless pozycja into exactly one of the two cena j.m. problems', () => {
     const priceless = [row({ clientPrice: 0 }), row({ clientPrice: 0, [stageKey(2)]: 3 })]
 
@@ -100,8 +93,6 @@ describe('the conditions, each on its boundary', () => {
     expect(countMatching([row({ id: 7 })], CATALOGUE_MISSING_CONDITION_ID, ctx)).toBe(0)
   })
 
-  // With no cennik (previews, fixtures) both entries stay silent — „no katalog" means no counter, not
-  // an empty cennik that would report every praca as outside the katalog.
   it('bez katalogu oba wpisy liczą zero, zamiast zgłaszać całą rozpiskę', () => {
     const rows = [row({ id: 1 }), row({ id: 2 })]
     expect(countMatching(rows, CATALOGUE_DIVERGENCE_CONDITION_ID, CTX)).toBe(0)
@@ -123,22 +114,15 @@ describe('the conditions, each on its boundary', () => {
     )
   })
 
-  // EX-707. „Rozjazd między arkuszem Google a apką" stays silent here on purpose — with no przedmiar its percentage
-  // cell is a „—", and a red dash names nothing. The problem is real, so it is named here instead.
   it('„z wykonaną pracą bez przedmiaru" needs work entered AND no offer', () => {
     expect(matches('work-without-planned-qty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(true)
-    // Nothing executed: an unpriced-but-empty pozycja is not work booked against no offer.
     expect(matches('work-without-planned-qty', row({ plannedQty: 0 }))).toBe(false)
-    // The offer exists — whether the etapy overshoot it is the rozliczenie's question, not this one's.
     expect(matches('work-without-planned-qty', row({ plannedQty: 1, [stageKey(2)]: 3 }))).toBe(
       false,
     )
     expect([...columnsRevealedBy(['work-without-planned-qty'])]).toEqual(['currentPlannedQty'])
   })
 
-  // EX-921: the quantity filters ask the Aktualizacja przedmiaru — a pozycja added after the offer
-  // (ofertowy 0, aktualizacja 3) is in scope, and one dropped from it (ofertowy 5, aktualizacja 0)
-  // is not. The AI filters stay on ofertowy.
   it('the przedmiar filters read the Aktualizacja przedmiaru, falling back to ofertowy', () => {
     const added = row({ plannedQty: 0, currentPlannedQty: 3 })
     const dropped = row({ plannedQty: 5, currentPlannedQty: 0 })
@@ -165,15 +149,10 @@ describe('the conditions, each on its boundary', () => {
 
   it('„bez przedmiaru i bez wykonanej pracy" needs BOTH axes empty', () => {
     expect(matches('client-empty', row({ plannedQty: 0 }))).toBe(true)
-    // Priced-but-unstarted: the przedmiar total still counts it, so it must stay.
     expect(matches('client-empty', row({ plannedQty: 5 }))).toBe(false)
-    // No przedmiar but etap work entered: the executed total still counts it.
     expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
   })
 
-  // The „Filtry" half of the same rule. Asserted separately from „client-empty" because the two are
-  // reached by different gestures and only a shared predicate keeps them the same question — the pair
-  // exists precisely so unticking „bez przedmiaru" alone cannot drop a pozycja carrying etap work.
   it('the „Filtry" pair reads both axes together, and its complement is its negation', () => {
     const cases = [
       row({ plannedQty: 0 }),
@@ -187,14 +166,10 @@ describe('the conditions, each on its boundary', () => {
     )
   })
 
-  // The ceiling left „Problemy" on 2026-09-22 (owner): a kwota the katalog ratifies is legitimate
-  // above 65%, so what stays here is the rung that is arithmetic nobody meant.
   it('„z ujemną stawką wykonawcy" reads the stawka as paid, per plane', () => {
     expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: -1 }))).toBe(true)
     expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 0 }))).toBe(false)
-    // „auto" reaches negative too, through a negative mnożnik — that row is just as unpayable.
     expect(matches('negative-rate-w-tools', row({ globalWToolsCoeff: -0.1 }))).toBe(true)
-    // A kwota above the ceiling is a reading gesture now, not a defect.
     expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 95 }))).toBe(false)
   })
 
@@ -210,21 +185,16 @@ describe('the conditions, each on its boundary', () => {
     // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.
     expect(matches('own-rate-over-ceiling-w-tools', overridden(65))).toBe(false)
     expect(matches('own-rate-over-ceiling-w-tools', overridden(65.01))).toBe(true)
-    // An overpay is the same overpay whether a kwota or a mnożnik produced the stawka — same row, same
-    // author, same liczba (EX-865).
     expect(matches('own-rate-over-ceiling-w-tools', row({ wToolsOverrideCoeff: 0.65 }))).toBe(false)
     expect(matches('own-rate-over-ceiling-w-tools', row({ wToolsOverrideCoeff: 0.7 }))).toBe(true)
     // The mnożnik inwestycji authors every „auto" figure and answers for it in its own red field —
     // one keystroke in the pasku must not sweep a whole rozpiska onto this axis.
     expect(matches('own-rate-over-ceiling-w-tools', row({ globalWToolsCoeff: 0.9 }))).toBe(false)
-    // An unpriced pozycja is „bez ceny j.m." — a different problem, and the ceiling collapses to zero.
     expect(
       matches('own-rate-over-ceiling-w-tools', row({ clientPrice: 0, wToolsOverrideValue: 50 })),
     ).toBe(false)
   })
 
-  // What an import writes onto a praca whose two cenniki disagreed: a deliberate 0 zł that looks
-  // exactly like a priced one in the grid, so without this it is findable only by scrolling.
   it('„bez ceny wykonawcy" finds a kwotę stałą explicitly set to zero, per plane', () => {
     const blank = row({
       wToolsOverrideValue: 0,
@@ -233,25 +203,17 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('no-w-tools-price', blank)).toBe(true)
     expect(matches('no-own-tools-price', blank)).toBe(true)
 
-    // An ujemna stawka is the row above, not this one — counted by both it would show up twice in
-    // the „Problemy" list and be chased twice in the grid.
     const negative = row({ wToolsOverrideValue: -1 })
     expect(matches('no-w-tools-price', negative)).toBe(false)
     expect(matches('negative-rate-w-tools', negative)).toBe(true)
 
-    // Inheriting the global multiplier is a stawka like any other — 100 × 0,65.
     expect(matches('no-w-tools-price', row())).toBe(false)
-    // And a mnożnik of zero stays the mnożnik's own sentence: routed through here it emptied the whole
-    // rozpiska into „Problemy" on one keystroke.
     expect(matches('no-w-tools-price', row({ globalWToolsCoeff: 0 }))).toBe(false)
-    // „bez ceny j.m." owns this row; here the crew price is zero only because the client's is.
     expect(matches('no-w-tools-price', row({ clientPrice: 0, wToolsOverrideValue: 0 }))).toBe(false)
   })
 
-  // The whole point of collapsing the override pair into one nullable number: `null` and `0` are two
-  // different answers, and every reader has to keep them apart. `null` = auto, the pozycja takes the
-  // investment's mnożnik. `0` = a stawka someone set to zero on purpose. A `coalesce`/`??` that folds
-  // one into the other reads as „darmowa robocizna" on every auto pozycja and this is the guard.
+  // A `coalesce`/`??` that folds one into the other reads as „darmowa robocizna" on every auto
+  // pozycja and this is the guard.
   it('holds auto and an explicit 0 zł apart on both planes', () => {
     const auto = row({ wToolsOverrideValue: null, ownToolsOverrideValue: null })
     expect(matches('no-w-tools-price', auto)).toBe(false)
@@ -262,16 +224,10 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('no-own-tools-price', freeOfCharge)).toBe(true)
   })
 
-  // A filter opts OUT of lifting by declaring `sectionLabel: null`, which is what „ze stawką … z
-  // formuły" and „bez komentarza" do: folding a whole section away by either would hide pricing, the
-  // mistake „Zwiń puste sekcje" made. That opt-out is also what `foldableSectionIds` reads to skip a
-  // full pass over the dataset per edit.
   it('lets a filter decline to lift to a section', () => {
     expect(ROW_CONDITIONS.some((c) => c.kind === 'filter' && c.sectionLabel === null)).toBe(true)
   })
 
-  // The picker grammar rests on this: untick one half and you are left with exactly the other half.
-  // A pair that overlapped (or left a gap) would make „pokaż tylko te z przedmiarem" quietly lie.
   it('pairs every filter with its exact complement', () => {
     const subjects = [
       row({ plannedQty: 0 }),
@@ -306,15 +262,11 @@ describe('the conditions, each on its boundary', () => {
   it('„z rabatem" asks the type, because a value under a null type buys nothing', () => {
     expect(matches('has-discount', row({ discountType: 'percent', discountValue: 10 }))).toBe(true)
     expect(matches('has-discount', row({ discountType: 'amount', discountValue: 250 }))).toBe(true)
-    // A type typed and then given no value takes nothing off the row.
     expect(matches('has-discount', row({ discountType: 'percent', discountValue: 0 }))).toBe(false)
-    // The mirror case: a value left behind after the type was cleared is inert (applyDiscount walks
-    // past it), so it is not a rabat either.
     expect(matches('has-discount', row({ discountType: null, discountValue: 10 }))).toBe(false)
   })
 
-  // Under a global rabat the per-item fields apply to nothing and their columns leave the grid, so the
-  // axis is gone — not inverted. BOTH halves must go quiet: if „bez rabatu" still matched everything,
+  // BOTH halves must go quiet: if „bez rabatu" still matched everything,
   // a filter persisted from before the switch would hide the entire kosztorys on the next load.
   it('kills the whole rabat axis under the global rabat, rather than flipping it', () => {
     const withDiscount = row({
@@ -336,13 +288,10 @@ describe('the conditions, each on its boundary', () => {
   it('judges each rate source on its own plane, never the other one', () => {
     const manualWithTools = row({ wToolsOverrideValue: 80 })
     expect(matches('manual-rate-w-tools', manualWithTools)).toBe(true)
-    // The same row is still on the formula for the plane it says nothing about.
     expect(matches('manual-rate-own-tools', manualWithTools)).toBe(false)
     expect(matches('formula-rate-own-tools', manualWithTools)).toBe(true)
   })
 
-  // Three entries replaced a pair, so disjointness is no longer one test's negation — and the
-  // closure claims in the other groups rest on it.
   it('przypisuje każdy wiersz dokładnie jednemu źródłu na płaszczyźnie', () => {
     const subjects = [
       row(),
@@ -368,13 +317,6 @@ describe('the conditions, each on its boundary', () => {
   })
 })
 
-// EX-708. Found in the owner's sheets: a pozycja whose cena zawiera materiał was left on the derived
-// coefficient, so the crew took 65% of the material too. The kosztorys cannot know which pozycje carry
-// material, so the detector fires on the combination it CAN see — the investment has material folded
-// into robocizna, the pozycja has executed work, and the stawka for the plane that work was done at is
-// a percentage of a client price that contains the material.
-// The three conditions split „ktoś wpisał kwotę" from „ktoś wpisał mnożnik" from „wyliczyło się" —
-// the three values `priceSourceOf` reads off the pair of nadpisań.
 describe('the rate-source trio', () => {
   it('reads a kwota stała as hand-typed', () => {
     const fixed = row({ wToolsOverrideValue: 42 })
@@ -406,7 +348,6 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     hasSettledMaterial: false,
     divergentPriceRowIds: new Set<number>(),
   }
-  // The derived stawka: no override at all, so it is globalWToolsCoeff × cena j.m.
   const executedWTools = row({ [stageKey(1)]: 4 })
 
   it('fires on a derived stawka once the investment has material in robocizna', () => {
@@ -417,13 +358,10 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     expect(matches('material-percent-rate-w-tools', executedWTools, noSettled)).toBe(false)
   })
 
-  // Nothing has been executed, so nothing is owed yet and there is no overpayment to catch. Without
-  // this the whole kosztorys would light up the moment one wydatek is marked „wliczony w robociznę".
   it('stays silent on a pozycja with przedmiar but no executed work', () => {
     expect(matches('material-percent-rate-w-tools', row({ plannedQty: 20 }), settled)).toBe(false)
   })
 
-  // The convention the owner confirmed: on such pozycje the stawka is typed as a fixed amount.
   it('accepts a stawka typed as a fixed amount', () => {
     const typed = row({ wToolsOverrideValue: 40 })
     expect(
@@ -435,8 +373,6 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     ).toBe(false)
   })
 
-  // The case that decides the whole design: one plane typed by hand, the other left on a multiplier.
-  // Which one is a fault depends on where the work was actually executed.
   it('judges the plane the work was executed at, not both', () => {
     const halfTyped = row({ wToolsOverrideValue: 40 })
 
@@ -449,9 +385,6 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     expect(matches('material-percent-rate-w-tools', doneOwnTools, settled)).toBe(false)
   })
 
-  // An etap with no rozliczenie is where most kosztorysy sit while the work is happening — the crew
-  // is decided at settlement, long after the stawka was set. Whichever it turns out to be gets a cut
-  // of the material, so the etap counts toward both planes rather than toward neither.
   it('judges work on an etap with no rozliczenie against both planes', () => {
     expect(matches('material-percent-rate-w-tools', row({ [stageKey(3)]: 9 }), settled)).toBe(true)
     expect(matches('material-percent-rate-own-tools', row({ [stageKey(3)]: 9 }), settled)).toBe(
@@ -480,7 +413,6 @@ describe('„z nieaktualnym tłumaczeniem" — per language', () => {
   const OPIS = 'Gruntowanie ścian'
   const current = { text: 'Ґрунтування стін', source: OPIS }
 
-  // Missing is not stale: a pozycja nobody translated into ru must not light up the ru diagnostic.
   it('fires once the opis moved on, only for the language that carries the translation', () => {
     const moved = row({
       description: `${OPIS} i sufitów`,

@@ -82,9 +82,7 @@ describe('Komentarz do pracy — what never reaches the grid', () => {
   })
 })
 
-// Regression: the grid wraps every column in `withSyntheticRows`, which spreads `columnData` into an
-// object. A bare Map came out of the spread with no `.get`, so turning „Przegląd AI" on crashed the
-// whole editor.
+// A bare Map came out of the spread with no `.get`, so turning „Przegląd AI" on crashed the whole editor.
 describe('workNoteColumn behind withSyntheticRows', () => {
   it('still finds the katalog entry, so its comment shows in the cell', () => {
     const column = withSyntheticRows(

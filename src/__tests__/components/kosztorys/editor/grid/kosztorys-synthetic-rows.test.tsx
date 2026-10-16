@@ -12,8 +12,6 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 const KITCHEN = 3
 const BATHROOM = 4
 
-// The money axis plus one prose column and one chrome column — enough for a figure to land in the
-// wrong one if the wrapper ever stopped keying on the column's own id.
 const COLUMN_IDS = ['description', 'unit', 'valueNet', 'plannedValueNet', 'discount', 'actions']
 
 const FIGURES = new Map([
@@ -37,15 +35,10 @@ function row(id: number, sectionId: number, sectionName: string) {
   return { id, sectionId, sectionName } as KosztorysV2RowT
 }
 
-// Stands in for the column's real cell, so a spec can tell "the wrapper delegated" from "the
-// wrapper painted a synthetic row".
 function BaseCell({ rowData }: { rowData: KosztorysV2RowT }) {
   return <span>pozycja {rowData.id}</span>
 }
 
-// dsg renders every column's cell against every row; this is that fan-out, minus the grid. Each cell
-// is tagged with its column id, which is the claim under test: a figure has to be readable from the
-// column it sits in, not from its position in the row.
 function renderRow(rowData: KosztorysV2RowT, columnIds: readonly string[] = COLUMN_IDS) {
   const context = {
     sectionHeader: {
@@ -88,7 +81,6 @@ describe('section footer — a figure belongs to its column', () => {
     expect(cellText('valueNet')).toBe(formatNet(1200))
     expect(cellText('plannedValueNet')).toBe(formatNet(1500))
     expect(cellText('discount')).toBe(formatNet(100))
-    // No entry, no number — a column whose axis is hidden must not leave an orphan figure behind.
     expect(cellText('unit')).toBe('')
     expect(cellText('actions')).toBe('')
   })
@@ -126,7 +118,6 @@ describe('„Razem" — the grand total under the same columns', () => {
     expect(cellText('discount')).toBe('')
   })
 
-  // A missing word beats a missing figure: the label column gives way when it carries a total.
   it('lets a total take the label column rather than dropping the figure', () => {
     renderRow(row(TOTALS_ROW_ID, 0, ''), ['valueNet', 'unit'])
 

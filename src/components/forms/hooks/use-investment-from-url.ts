@@ -9,9 +9,7 @@ import { isOfferedForBooking } from '@/lib/constants/investment-lock'
 const INVESTMENT_PATH = /^\/inwestycje\/(\d+)(\/|$)/
 
 /**
- * The investment id the current URL is scoped to, as the form's string value ('' when there is
- * none). Validated against `investments` because that list is role-filtered — an id the user can't
- * pick must not be seeded into the form. Seeding SKIPS the picker, so it has to repeat the picker's
+ * Seeding SKIPS the picker, so it has to repeat the picker's
  * status set: the picker keeps whatever the field already holds, so „Dodaj wydatek" from a Wycena's
  * page would otherwise book against an investment the picker never offers.
  */

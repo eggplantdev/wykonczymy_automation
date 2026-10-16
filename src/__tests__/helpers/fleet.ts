@@ -3,7 +3,6 @@ import type { InspectionTypeT } from '@/lib/fleet/inspection-types'
 
 let nextId = 1
 
-/** An inspection row with everything unset except what the spec is about. */
 export const event = (
   type: InspectionTypeT,
   performedAt: string,
@@ -21,7 +20,6 @@ export const event = (
   ...overrides,
 })
 
-/** A vehicle with a registration derived from its id, so assertions can name one without a fixture. */
 export const vehicle = (overrides: Partial<VehicleSummaryT> = {}): VehicleSummaryT => {
   const id = overrides.id ?? 1
 

@@ -8,7 +8,6 @@ vi.mock('@payloadcms/next/auth', () => ({
   logout: vi.fn(),
 }))
 
-// Avoid loading the real Payload config / env validation in unit tests.
 vi.mock('@payload-config', () => ({ default: {} }))
 
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
@@ -30,8 +29,7 @@ describe('loginAction', () => {
   })
 
   // Payload locks the account after maxLoginAttempts and throws LockedAuth — the same 401 as a
-  // wrong password. A locked user used to see the generic "wrong email/password" message with no
-  // hint that waiting fixes it. The action must map LockedAuth to a distinct lockout message.
+  // wrong password.
   it('maps a locked-account error to a distinct lockout message', async () => {
     const locked = new Error('This user is locked due to having too many failed login attempts.')
     locked.name = 'LockedAuth'

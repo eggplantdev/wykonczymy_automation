@@ -6,10 +6,7 @@ import { getPayoutTransactionsForInvestment } from '@/lib/db/get-payout-transact
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // The client DataTable re-sorts these rows lexically on the emitted `date` string, so that string MUST
-// be lexically == chronologically ordered or the „Wg daty" sort scrambles. The driver returns timestamptz
-// as a year-first string ("2026-07-18 09:00:00+00"), which satisfies this — the regression this guards is
-// a future remap to a non-sortable form (a dd.mm.yyyy reformat, or a JS-Date `.toString()` = "Thu Jul 16
-// …"). Insert rows directly to bypass the balance-recalc hooks; we assert the query's mapped output.
+// be lexically == chronologically ordered or the „Wg daty" sort scrambles.
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -48,8 +45,7 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
     otherInvestmentId = await createTestInvestment(payload, 'get-payout-transactions-other')
 
     for (const date of DATES) await insertTx({ date, investmentId })
-    // Each must be excluded by a different predicate in the WHERE; 999 marks them so a leak is
-    // visible in the amounts, not only in the row count.
+    // 999 marks them so a leak is visible in the amounts, not only in the row count.
     await insertTx({ date: DATES[0], investmentId, cancelled: true, amount: 999 })
     await insertTx({ date: DATES[0], investmentId, type: 'INVESTMENT_EXPENSE', amount: 999 })
     await insertTx({ date: DATES[0], investmentId: otherInvestmentId, amount: 999 })
@@ -66,8 +62,6 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
     }
   })
 
-  // This WHERE feeds BOTH the wypłaty list and, summed off the same rows, „Pozostało do wypłaty" —
-  // so a dropped predicate moves money on two surfaces at once, and nothing else asserts it.
   it('excludes cancelled rows, other types and other investments’ payouts', async () => {
     const rows = await getPayoutTransactionsForInvestment(payload, investmentId)
 
@@ -88,13 +82,10 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
     )
     expect(rows).toHaveLength(3)
 
-    // Year-first prefix ("2026-07-18…") — the property that makes a plain string lexical sort chronological.
     for (const row of rows) {
       expect(row.date).toMatch(/^\d{4}-\d{2}-\d{2}[ T]/)
     }
 
-    // The query returns date DESC; re-sorting the emitted strings lexically desc — exactly what the client
-    // DataTable does for „Wg daty" — must reproduce that chronological order, not scramble it.
     const lexicalDesc = [...rows].sort((first, second) => second.date.localeCompare(first.date))
     expect(lexicalDesc.map((row) => row.date)).toEqual(rows.map((row) => row.date))
     expect(rows.map((row) => row.date.slice(0, 10))).toEqual([

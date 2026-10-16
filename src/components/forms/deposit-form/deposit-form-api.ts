@@ -4,7 +4,7 @@ export type DepositFormValuesT = {
   description: string
   amount: string
   // The brutto kwota, typed only on a przelew — there `amount` is the faktura's netto beside it and
-  // this one is the money that actually moved. A gotówka leaves it empty; it has no brutto side.
+  // this one is the money that actually moved.
   amountGross: string
   date: string
   type: string

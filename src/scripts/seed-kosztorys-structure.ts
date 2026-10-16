@@ -1,10 +1,3 @@
-// E2E fixture for EX-472 (editor structure commands). Seven investments, one per test — each mutates
-// its rozpiska. Shapes are the minimum that keeps each command falsifiable (3 sekcje for moves,
-// per-section prace for targeting, non-empty presetAppend). No preset row: it is saved through the
-// dialog, since `serializeKosztorysAsPreset` is server-only.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-structure.ts
-// Emits: STRUCTURE_SEED={"items":<id>,"sections":<id>,"target":<id>,"presetA":<id>,"presetB":<id>,"presetAppend":<id>,"bare":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -52,7 +45,6 @@ async function seedInvestment(
     ...ctx,
   })
 
-  // displayOrder is global across the rozpiska, not per section — matches what move/insert rewrite.
   let itemOrder = 0
   for (const [sectionOrder, spec] of shape.entries()) {
     const section = await payload.create({

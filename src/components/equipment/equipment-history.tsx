@@ -42,8 +42,6 @@ const COLUMNS = [
     id: 'cost',
     header: 'Koszt',
     meta: { align: 'right' },
-    // A handover has no price at all, so it parks at the end rather than leading a costliest-first
-    // sort.
     sortUndefined: 'last',
     cell: (info) => <span className="tabular-nums">{formatPLNOrDash(info.row.original.cost)}</span>,
   }),
@@ -51,11 +49,6 @@ const COLUMNS = [
 
 const COST_COLUMN_ID = 'cost'
 
-/**
- * The log, newest first — the answer to „a kto to miał wcześniej". Read-only by design: an event is
- * a fact that happened, so a mistake is corrected by recording the correction, not by rewriting
- * history.
- */
 export function EquipmentHistory({ history }: { history: EquipmentEventRowT[] }) {
   if (history.length === 0) {
     return <Description>Brak wpisów — sprzęt nie był jeszcze nikomu przekazany.</Description>
@@ -67,8 +60,6 @@ export function EquipmentHistory({ history }: { history: EquipmentEventRowT[] })
       columns={COLUMNS}
       storageKey="equipment-history"
       initialSorting={[{ id: 'occurredAt', desc: true }]}
-      // What the tool has cost since it was bought — every serwis entry, summed where the reader is
-      // already looking at them instead of on a second screen.
       footer={(visibleColumnIds) => (
         <ColumnTotalRow
           visibleColumnIds={visibleColumnIds}

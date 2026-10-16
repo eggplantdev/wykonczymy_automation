@@ -15,14 +15,16 @@ export const useInstallPromptStore = create<InstallPromptStoreT>()((set, get) =>
   installed: false,
   // The event can prompt only once, so it is dropped whatever the answer.
   showInstallPrompt: () => {
-    void get().held?.prompt().catch(() => {})
+    void get()
+      .held?.prompt()
+      .catch(() => {})
     set({ held: undefined, promptUsed: true })
   },
 }))
 
 // Chrome fires `beforeinstallprompt` once per document load, often before the page that shows the
 // button has mounted — or on a different page altogether — so the event is held here, from module
-// load, rather than in the button.
+// load.
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault()

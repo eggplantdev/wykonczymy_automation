@@ -19,7 +19,6 @@ export function buildWorkerTransferWhere(urlFilters: Where, scope: Where): Where
   return andWith(urlFilters, scope)
 }
 
-/** The worker page's access boundary. */
 export function workerPageTransferWhere(
   searchParams: ResolvedSearchParamsT,
   viewerId: number,

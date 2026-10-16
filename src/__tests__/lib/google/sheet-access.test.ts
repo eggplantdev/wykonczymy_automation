@@ -36,9 +36,6 @@ describe('verifySheetAccess', () => {
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
   })
 
-  // Outside production the probe is skipped rather than failed. `null` means „the account has no
-  // access at all", and returning it for a missing credential would send the owner off to re-share a
-  // sheet that was never the problem — so linking keeps working locally, it just stops proving Editor.
   it('skips the probe without the Editor credential, and writes nothing at all', async () => {
     setGoogleCredentialEnv({ writer: false })
     const { verifySheetAccess } = await import('@/lib/google/sheet-access')

@@ -3,34 +3,39 @@
 import { sql } from '@payloadcms/db-postgres'
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
+import { templateAction } from '@/lib/actions/template-action'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
+import {
+  insertTemplateItems,
+  insertTemplateSection,
+  readTemplateLayout,
+} from '@/lib/db/template-structure'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
+import { existingCatalogueIds } from '@/lib/db/work-catalogue'
 import {
-  isTemplateInvestment,
-  markPresetEdited,
-  presetNameHolder,
-  type PresetNameHolderT,
-  renamePreset,
-  templateOwnersOfSections,
-} from '@/lib/db/presets'
-import {
-  appendPresetSections,
-  type AppendedSliceT,
-  type SectionSliceT,
-} from '@/lib/kosztorys/append-preset-sections'
+  getTemplateRecordName,
+  isLiveTemplate,
+  renameTemplate,
+  templateNameHolder,
+  type TemplateNameHolderT,
+} from '@/lib/db/templates'
+import { appendPresetSections, type AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import { keepCataloguedItems, skippedItemsWarning } from '@/lib/kosztorys/catalogued-preset-items'
-import { createTemplate } from '@/lib/kosztorys/create-template'
+import { createTemplate } from '@/lib/kosztorys/templates/create-template'
+import { nextDisplayOrder } from '@/lib/kosztorys/display-order'
+import { preOverwriteLabel, preReloadLabel } from '@/lib/kosztorys/preset-labels'
 import {
   reloadInvestmentFromPreset,
   type ReloadFromPresetResultT,
 } from '@/lib/kosztorys/reload-from-preset'
-import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
+import { replaceTemplateLayout } from '@/lib/kosztorys/templates/replace-template-layout'
+import { resolveSectionSlices } from '@/lib/kosztorys/templates/resolve-section-slices'
+import { toTemplateLayout } from '@/lib/kosztorys/templates/template-layout'
 import type { ActionResultT } from '@/types/action'
 
 const nameSchema = z.string().trim().min(1, 'Podaj nazwę szablonu')
@@ -40,14 +45,12 @@ const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
 const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
 const TEMPLATE_NOT_FOUND = 'Nie znaleziono szablonu'
 
-const nameHeldError = (holder: PresetNameHolderT) =>
+const nameHeldError = (holder: TemplateNameHolderT) =>
   ({
     success: false,
     error: holder === 'trashed' ? NAME_IN_TRASH_MESSAGE : NAME_TAKEN_MESSAGE,
   }) as const
 
-// The hooks' own revalidation would fire per write and inside the transaction; each action expires
-// what it changed itself.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
 export type SavePresetInputT =
@@ -59,22 +62,19 @@ const savePresetSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('overwrite'), targetId: idSchema }),
 ])
 
-const preOverwriteLabel = (sourceName: string) => `Przed nadpisaniem: ${sourceName}`
-
 async function cataloguedPresetTree(db: DbExecutorT, tree: SnapshotPayloadT) {
   const ids = tree.items.flatMap((item) =>
     item.catalogueItemId == null ? [] : [item.catalogueItemId],
   )
-  const live = await listCatalogueItemsByIds(db, [...new Set(ids)])
-  return keepCataloguedItems(tree, new Set(live.map((entry) => entry.id)))
+  return keepCataloguedItems(tree, await existingCatalogueIds(db, ids))
 }
 
 const savedPreset = (skipped: number): ActionResultT =>
   skipped > 0 ? { success: true, warning: skippedItemsWarning(skipped) } : { success: true }
 
-// „Zapisz jako szablon" — the source's rozpiska with job fields stripped. `new` founds a szablon;
-// `overwrite` replaces an existing one's tree, leaving a restore point on it, so the overwrite is
-// undoable from that szablon's „Wersje".
+// „Zapisz jako szablon" — the source's rozpiska reduced to sekcje and katalog refs. `new` founds a
+// szablon; `overwrite` replaces an existing one's layout, leaving a version on it, so the overwrite
+// is undoable from that szablon's „Wersje".
 //
 // Deliberately ungated by the source's lock: a szablon is not a change to the source, and a finished
 // kosztorys is a good source for one.
@@ -94,12 +94,13 @@ export async function savePresetAction(
         const created = await withPayloadTransaction(
           payload,
           async (req) => {
+            const db = await getDb(payload, req)
             const kept = await cataloguedPresetTree(
-              await getDb(payload, req),
+              db,
               await serializeKosztorysAsPreset(investmentId, req),
             )
             skipped = kept.skipped
-            return createTemplate(payload, req, { name: data.name, tree: kept.tree })
+            return createTemplate(db, { name: data.name, layout: toTemplateLayout(kept.tree) })
           },
           SKIP_HOOK_REVALIDATION,
         )
@@ -107,33 +108,35 @@ export async function savePresetAction(
         return savedPreset(skipped)
       }
 
-      if (data.targetId === investmentId) {
-        return { success: false, error: 'Szablonu nie nadpisuje się nim samym' }
-      }
-      const db = await getDb(payload)
-      if (!(await isTemplateInvestment(db, data.targetId))) {
+      if (!(await isLiveTemplate(await getDb(payload), data.targetId))) {
         return { success: false, error: TEMPLATE_NOT_FOUND }
       }
-      const sourceName = await db.execute(
-        sql`SELECT name FROM investments WHERE id = ${investmentId}`,
+      const skipped = await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const db = await getDb(payload, req)
+          const source = await db.execute(
+            sql`SELECT name FROM investments WHERE id = ${investmentId}`,
+          )
+          const kept = await cataloguedPresetTree(
+            db,
+            await serializeKosztorysAsPreset(investmentId, req),
+          )
+          await replaceTemplateLayout(db, data.targetId, {
+            label: preOverwriteLabel(String(source.rows[0]?.name ?? '')),
+            takenBy: user.id,
+            layout: toTemplateLayout(kept.tree),
+          })
+          return kept.skipped
+        },
+        SKIP_HOOK_REVALIDATION,
       )
-      const kept = await cataloguedPresetTree(db, await serializeKosztorysAsPreset(investmentId))
-      await replaceTreeWithSnapshot(payload, {
-        investmentId: data.targetId,
-        label: preOverwriteLabel(String(sourceName.rows[0]?.name ?? '')),
-        takenBy: user.id,
-        tree: kept.tree,
-        clearGlobalDiscount: true,
-      })
-      await markPresetEdited(db, data.targetId)
-      return savedPreset(kept.skipped)
+      return savedPreset(skipped)
     },
     ['presets'],
   )
 }
 
-// The only way a szablon is born without a source kosztorys: an empty tree the user then builds on
-// its own page.
 export async function createEmptyPresetAction(
   name: string,
 ): Promise<ActionResultT<{ id: number }>> {
@@ -147,7 +150,7 @@ export async function createEmptyPresetAction(
 
       const created = await withPayloadTransaction(
         payload,
-        (req) => createTemplate(payload, req, { name: parsed.data.name }),
+        async (req) => createTemplate(await getDb(payload, req), { name: parsed.data.name }),
         SKIP_HOOK_REVALIDATION,
       )
       if (typeof created === 'string') return nameHeldError(created)
@@ -157,13 +160,11 @@ export async function createEmptyPresetAction(
   )
 }
 
-// Removing a szablon is not owner-only: it goes through the trash (investment-trash.ts), open to
+// Removing a szablon is not owner-only: it goes through the trash (template-trash.ts), open to
 // MANAGEMENT_ROLES because it is reversible.
 const OWNER_ONLY_PRESET_MESSAGE =
   'Tylko właściciel lub administrator może zmieniać nazwy szablonów.'
 
-// The name IS the szablon's identity (unique, and the only thing the pickers show), so this is an
-// identity change, not cosmetics.
 export async function renamePresetAction(id: number, name: string): Promise<ActionResultT> {
   return ownerOnlyAction(
     'renamePresetAction',
@@ -174,11 +175,11 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
 
       const db = await getDb(payload)
       // Before the name lookup: a target that is gone would otherwise report whoever holds the name.
-      if (!(await isTemplateInvestment(db, parsed.data.id))) {
+      if (!(await isLiveTemplate(db, parsed.data.id))) {
         return { success: false, error: TEMPLATE_NOT_FOUND }
       }
-      if (await renamePreset(db, parsed.data.id, parsed.data.name)) return { success: true }
-      const holder = await presetNameHolder(db, parsed.data.name, parsed.data.id)
+      if (await renameTemplate(db, parsed.data.id, parsed.data.name)) return { success: true }
+      const holder = await templateNameHolder(db, parsed.data.name, parsed.data.id)
       if (holder) return nameHeldError(holder)
       return { success: false, error: TEMPLATE_NOT_FOUND }
     },
@@ -194,8 +195,8 @@ const appendSectionsSchema = z.object({
 })
 
 // Appends chosen szablon sections to a kosztorys. The client sends live section ids only; the server
-// resolves which szablon owns each and reads it through the preset serializer, so neither a forged
-// tree nor a section of an ordinary investment can reach the target. Runs in one transaction,
+// resolves which szablon owns each and reads it through the szablon serializer, so neither a forged
+// tree nor a section of another plane can reach the target. Runs in one transaction,
 // returning the created slice with new ids for optimistic patching.
 export async function appendPresetSectionsAction(
   investmentId: number,
@@ -208,22 +209,8 @@ export async function appendPresetSectionsAction(
       const parsed = validateAction(appendSectionsSchema, { investmentId, sectionIds })
       if (!parsed.success) return parsed
 
-      const owners = await templateOwnersOfSections(await getDb(payload), parsed.data.sectionIds)
-      // A szablon can contribute several sections, so each is serialized once; the loop keeps the
-      // client's order so appended sections land in the order they were picked.
-      const trees = new Map<number, SnapshotPayloadT>()
-      const slices: SectionSliceT[] = []
-      for (const sectionId of parsed.data.sectionIds) {
-        const templateId = owners.get(sectionId)
-        if (templateId == null) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-        if (!trees.has(templateId)) {
-          trees.set(templateId, await serializeKosztorysAsPreset(templateId))
-        }
-        const tree = trees.get(templateId)!
-        const section = tree.sections.find((s) => s.id === sectionId)
-        if (!section) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
-        slices.push({ section, items: tree.items.filter((it) => it.sectionId === sectionId) })
-      }
+      const slices = await resolveSectionSlices(await getDb(payload), parsed.data.sectionIds)
+      if (!slices) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
 
       const created = await withPayloadTransaction(
         payload,
@@ -263,5 +250,150 @@ export async function reloadFromPresetAction(
       return { success: true, data }
     },
     [...KOSZTORYS_TREE_TAGS],
+  )
+}
+
+// The same three entries on a szablon's own editor. A szablon id and a kosztorys id share one number
+// space, so these are separate actions bound to the template plane, never the kosztorys ones above
+// called with a szablon's id.
+
+// „Zapisz jako szablon" from a szablon: every praca is already a katalog ref, so nothing is skipped.
+export async function saveTemplateAsPresetAction(
+  templateId: number,
+  input: SavePresetInputT,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'saveTemplateAsPresetAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(savePresetSchema, input)
+      if (!parsed.success) return parsed
+      const data = parsed.data
+      if (data.mode === 'overwrite' && data.targetId === templateId) {
+        return { success: false, error: 'Szablonu nie nadpisuje się nim samym' }
+      }
+
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const db = await getDb(payload, req)
+          const sourceName = await getTemplateRecordName(db, templateId)
+          if (sourceName === undefined) return { success: false, error: TEMPLATE_NOT_FOUND }
+          const layout = await readTemplateLayout(db, templateId)
+
+          if (data.mode === 'new') {
+            const created = await createTemplate(db, { name: data.name, layout })
+            return typeof created === 'string' ? nameHeldError(created) : { success: true }
+          }
+          if (!(await isLiveTemplate(db, data.targetId))) {
+            return { success: false, error: TEMPLATE_NOT_FOUND }
+          }
+          await replaceTemplateLayout(db, data.targetId, {
+            label: preOverwriteLabel(sourceName),
+            takenBy: user.id,
+            layout,
+          })
+          return { success: true }
+        },
+        SKIP_HOOK_REVALIDATION,
+      )
+    },
+    ['presets'],
+  )
+}
+
+// „Wczytaj ponownie z szablonu" on a szablon: its layout becomes the source's, with a version of the
+// replaced one left in its „Wersje".
+export async function reloadTemplateFromPresetAction(
+  templateId: number,
+  presetId: number,
+): Promise<ActionResultT<ReloadFromPresetResultT>> {
+  return templateAction<ReloadFromPresetResultT>(
+    'reloadTemplateFromPresetAction',
+    { kind: 'template', id: templateId },
+    async ({ payload, user }) => {
+      const parsed = validateAction(reloadSchema, { investmentId: templateId, presetId })
+      if (!parsed.success) return parsed
+      // Reloading a szablon from itself would only leave a version behind.
+      if (presetId === templateId) return { success: false, error: TEMPLATE_NOT_FOUND }
+
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT<ReloadFromPresetResultT>> => {
+          const db = await getDb(payload, req)
+          const name = await getTemplateRecordName(db, presetId)
+          if (name === undefined) return { success: false, error: TEMPLATE_NOT_FOUND }
+          const layout = await readTemplateLayout(db, presetId)
+          await replaceTemplateLayout(db, templateId, {
+            label: preReloadLabel(name),
+            takenBy: user.id,
+            layout,
+          })
+          return {
+            success: true,
+            data: {
+              sections: layout.sections.length,
+              items: layout.sections.reduce((sum, s) => sum + s.catalogueItemIds.length, 0),
+            },
+          }
+        },
+        SKIP_HOOK_REVALIDATION,
+      )
+    },
+  )
+}
+
+// „Sekcja z szablonu" on a szablon: the picked sections' refs land after its last section. The slice
+// comes back in the editor's shape, its prace resolved from the katalog, for optimistic patching.
+export async function appendPresetSectionsToTemplateAction(
+  templateId: number,
+  sectionIds: number[],
+): Promise<ActionResultT<AppendedSliceT>> {
+  return templateAction(
+    'appendPresetSectionsToTemplateAction',
+    { kind: 'template', id: templateId },
+    async ({ payload }) => {
+      const parsed = validateAction(appendSectionsSchema, { investmentId: templateId, sectionIds })
+      if (!parsed.success) return parsed
+
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT<AppendedSliceT>> => {
+          const db = await getDb(payload, req)
+          const slices = await resolveSectionSlices(db, parsed.data.sectionIds)
+          if (!slices) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
+          let next = await nextDisplayOrder(db, 'template-sections', templateId)
+          const created: AppendedSliceT = []
+          for (const { section, items } of slices) {
+            const newSectionId = await insertTemplateSection(
+              db,
+              templateId,
+              section.name,
+              next,
+              section.color,
+            )
+            const newItemIds = await insertTemplateItems(
+              db,
+              newSectionId,
+              0,
+              items.map((item) => item.catalogueItemId as number),
+            )
+            created.push({
+              ...section,
+              id: newSectionId,
+              displayOrder: next,
+              items: items.map((item, i) => ({
+                ...item,
+                id: newItemIds[i],
+                sectionId: newSectionId,
+                displayOrder: i,
+              })),
+            })
+            next += 1
+          }
+          return { success: true, data: created }
+        },
+        SKIP_HOOK_REVALIDATION,
+      )
+    },
   )
 }

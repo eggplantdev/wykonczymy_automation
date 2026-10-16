@@ -208,7 +208,6 @@ action → DB → revalidation. Harness traps: `src/__tests__/AGENTS.md`.
 - **Breakpoints are overridden** in `src/styles/globals.css`: `sm`=768, `md`=1024, `lg`=1280. `sm:` is the
   single mobile→desktop break; both an upstream `sm:` and `md:` become `sm:` here (EX-624). Never add a
   640 breakpoint.
-- `src/app/(payload)/layout.tsx` must include `importMap`, `serverFunction` and `handleServerFunctions`.
 - A `console.error` that must become a Sentry capture gets a `// TODO(EX-958) SENTRY-REQUIRED:` marker.
 
 ## Environment Variables
@@ -243,8 +242,7 @@ Scripts live in `@package.json`. Non-obvious ones:
 ```bash
 pnpm build         # importmap + types + next build (NO migrate — see Migrations)
 pnpm exec vitest run src/__tests__/some-file.test.ts  # single file — pnpm 10 no longer forwards `--`
-pnpm generate:types  # regenerates src/payload-types.ts (gitignored — never `git add` it)
-docker compose up -d  # local Postgres on 5433
+pnpm generate:types  # regenerates src/payload-types.ts
 INV=6 node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts       # realistic kosztorys from the test sheet
 INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts  # synthetic ~1000-item perf dataset
 ```
@@ -266,8 +264,9 @@ suites at once on this laptop take ~5× as long and fail on the clock. A single
 - **The build does not migrate.** A human applies prod migrations with `pnpm db:migrate:prod` (dumps
   Neon first). Order follows the migration's direction: **additive** → migrate prod before pushing;
   **destructive** (`DROP COLUMN`) or a data rewrite the old code would misread → push first, migrate
-  once the new deploy is live. A data rewrite says so with a `RUN-AFTER-DEPLOY` header marker, which
-  the `.husky/pre-push` gate reads. Skill: `payload-prod-migrate`.
+  once the new deploy is live. A data rewrite says so with a `RUN-AFTER-DEPLOY` header marker; the
+  `.husky/pre-push` gate reads it and detects a `DROP` in `up()` on its own. Skill:
+  `payload-prod-migrate`.
 - This is a **deploy-time** gate, not a phase gate — writing the migration and the code that reads it is
   one local task; never mark a plan phase "blocked on prod" while nothing is being pushed.
 
@@ -279,11 +278,10 @@ blames `globals.css`. Repair: `pnpm install --force`, `rm -rf .next`, restart de
 
 ## Databases
 
-- **Local dev:** docker Postgres on 5433 (`DB_POSTGRES_URL`, db `wykonczymy-db`), restored from Neon
-  dumps — `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by pre-push) and `pnpm db:import`.
+- **Local dev:** docker Postgres on 5433 (`docker compose up -d`; `DB_POSTGRES_URL`, db
+  `wykonczymy-db`), restored from Neon dumps — `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by pre-push) and `pnpm db:import`.
   Confirm before wiping it: a restore loses anything entered locally since the last dump.
 - **E2E:** isolated `db-test` container on 5435 (`DB_POSTGRES_URL_TEST`, db `wykonczymy-test`). Reset with
   `pnpm db:import:test`; `pnpm test:e2e` starts the container but does not import. Seeds on top are per
   plane (`seed:materials-net:test` is required by the render-parity spec) — which counter needs which
   seed: `context/foundation/test-plan.md` §5.
-- **Legacy client sheet dumps** live outside git: `context/reference/legacy-sheet-dumps.md`.

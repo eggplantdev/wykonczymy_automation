@@ -5,8 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // The FK is ON DELETE SET NULL, so the failure mode this guards has no error to notice: without the
-// hook the delete SUCCEEDS and Postgres quietly orphans every referencing transaction. Only a DB test
-// can prove it — the assertion is that the investment row survives, which is state, not a return value.
+// hook the delete SUCCEEDS and Postgres quietly orphans every referencing transaction.
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -28,8 +27,6 @@ describe.skipIf(!ENV_READY)('investments beforeDelete guard (DB)', () => {
 
     investmentId = await createTestInvestment(payload, 'delete-guard-investment')
 
-    // Raw insert: bypasses the balance-recalc hooks, and LABOR_COST is the type with the most to lose
-    // — no source register, so once orphaned it is reachable from nowhere.
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, cancelled)
       VALUES ('delete-guard labor cost', 1000, now(),
@@ -62,8 +59,6 @@ describe.skipIf(!ENV_READY)('investments beforeDelete guard (DB)', () => {
   })
 })
 
-// The relaxation's whole point is that the orphan is harmless AND still visible, so asserting only
-// „the delete succeeded" would miss half of it — the transaction row must survive the cascade.
 describe.skipIf(!ENV_READY)('investments beforeDelete guard — cancelled rows (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

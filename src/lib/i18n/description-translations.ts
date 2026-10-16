@@ -5,8 +5,6 @@ import {
   type TranslationLanguageT,
 } from '@/lib/i18n/languages'
 
-// `source` is the Polish opis the translation was made from. It is what makes a translation
-// „out of date": the opis moved on and the translation did not.
 export type DescriptionTranslationT = { text: string; source: string }
 
 export type DescriptionTranslationsT = Partial<
@@ -20,8 +18,6 @@ export const descriptionTranslationsSchema = z.partialRecord(
   translationSchema,
 )
 
-// Reads whatever the DB or an old payload holds into the shape: unknown languages, malformed and
-// empty entries are dropped rather than trusted, so a stray key never reaches a column or a worker.
 export function toDescriptionTranslations(raw: unknown): DescriptionTranslationsT {
   if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return {}
   const out: DescriptionTranslationsT = {}
@@ -47,8 +43,6 @@ export const isTranslationStale = (
   return entry != null && entry.source !== (description ?? '')
 }
 
-// Missing or out of date — the two Problemy conditions, and what the AI fill fills. A hand-typed
-// translation that is current is never touched.
 export const needsTranslation = (
   translations: DescriptionTranslationsT | undefined,
   language: TranslationLanguageT,
@@ -58,7 +52,6 @@ export const needsTranslation = (
   (translationText(translations, language) === '' ||
     isTranslationStale(translations, language, description))
 
-// Pozycje, not pozycja × language pairs — what the „Uzupełnij tłumaczenia (AI)" counter promises.
 export const countNeedingTranslation = (
   rows: readonly {
     description?: string | null
@@ -71,7 +64,6 @@ export const countNeedingTranslation = (
     ),
   ).length
 
-// An empty text removes the language, so „bez tłumaczenia" and an emptied cell read the same.
 export function withTranslation(
   translations: DescriptionTranslationsT | undefined,
   language: TranslationLanguageT,
@@ -123,8 +115,6 @@ export function translationsFromTexts(
   return next
 }
 
-// Per language, the incoming translation wins when it has one — unless it was made from another opis
-// and the existing one matches `description`, the opis the merged map will sit under.
 export function mergeTranslations(
   existing: DescriptionTranslationsT | undefined,
   incoming: DescriptionTranslationsT | undefined,
@@ -141,8 +131,6 @@ export function mergeTranslations(
   return out
 }
 
-// A typo fix does not change meaning: a translation that was current against the old opis is
-// current against the corrected one. One that was already out of date stays out of date.
 export function restampTranslations(
   translations: DescriptionTranslationsT | undefined,
   oldDescription: string | null | undefined,

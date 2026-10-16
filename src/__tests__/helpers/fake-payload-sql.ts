@@ -11,7 +11,6 @@ export const fakePayload = {
   db: { drizzle: { execute: mockExecute }, sessions: {} },
 } as unknown as Payload
 
-/** The SQL of the most recent `db.execute` call, dug out of drizzle's `sql.raw()` object. */
 export function lastSql(): string {
   const calls = mockExecute.mock.calls
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

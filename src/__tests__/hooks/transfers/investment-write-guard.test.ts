@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 
-// „Inna wpłata" and „Zasilenie z konta firmowego" are company-level cash. Both bucket as
-// income, so an investment on either would raise that investment's bilans with money the
-// client never paid (EX-557). The forms hide the picker, but the admin panel, the REST/
-// GraphQL API and any script write straight through the hook — this pins the hook itself,
-// which is the last gate before the row lands.
-
 const base = { amount: 100, date: '2026-02-19', paymentMethod: 'CASH' }
 
 function hookArgs(
@@ -17,8 +11,6 @@ function hookArgs(
   return {
     data,
     operation,
-    // The completed-investment gate reads the status through the drizzle adapter — „aktywna" here,
-    // since the lock has its own spec (validate-lock.test.ts) and this one is about the clear rule.
     req: {
       user: null,
       payload: { db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } } },
@@ -56,8 +48,6 @@ describe('investment write guard — types that may never carry an investment', 
       ).toBeNull()
     })
 
-    // An update that carries no `type` of its own falls back to the stored one, so the
-    // clear must still fire rather than reading `''` and skipping.
     it(`${type} — an update with no type of its own still clears`, async () => {
       const { type: _stored, ...withoutType } = data
       expect(

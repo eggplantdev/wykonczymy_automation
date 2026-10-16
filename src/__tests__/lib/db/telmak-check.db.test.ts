@@ -3,9 +3,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { loadTelmakCheckRows } from '@/lib/db/telmak-check'
 
-// Rows go in by raw SQL — the transfer hooks (sheet sync, revalidation) have nothing to do with what
-// this statement reads.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()

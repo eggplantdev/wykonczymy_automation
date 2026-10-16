@@ -19,11 +19,8 @@ type PropsT = {
   investmentName: string
 }
 
-// One piece of state because only one can be open at a time.
 type DialogT = 'unlink' | 'delete' | undefined
 
-// Both server actions re-check permissions — the client gate on "delete" only hides a button the user
-// can't use anyway.
 export function LinkedSheetActions({ sheetId, investmentId, investmentName }: PropsT) {
   const [dialog, setDialog] = useState<DialogT>(undefined)
   const { role } = useCurrentUser()
@@ -56,8 +53,6 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
         </Link>
       </Button>
 
-      {/* The link above keeps its label — it goes somewhere. These two CHANGE something, so they
-          take the same icon shape the action column of every other table uses. */}
       <RowActionButton
         icon={Unlink}
         label="Odłącz od inwestycji"

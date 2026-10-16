@@ -35,11 +35,6 @@ function refusal(
   return `${label} musi zawierać te same liczby co nazwa sekcji${numbers}.`
 }
 
-/**
- * One entry of the shared list, written from a section's name — the key is derived here, so every
- * rozpiska with that name (whatever its number) reads what this save stores. The dialog always sends
- * every language, so the stored entry is replaced whole and an all-empty save removes it.
- */
 export async function saveSectionTranslationsAction(
   sectionName: string,
   typed: Record<TranslationLanguageT, string>,

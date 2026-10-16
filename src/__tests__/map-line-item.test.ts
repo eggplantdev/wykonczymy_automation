@@ -35,8 +35,6 @@ describe('mapLineItem', () => {
     expect(mapLineItem(item, 'CORRECTION', true).amount).toBe(-1000)
   })
 
-  // Nothing clears „Kategoria" on a type change — the same leak `expenseCategory` and `netAmount`
-  // are already guarded against.
   describe('category', () => {
     const categorised = { ...item, category: '3' }
 
@@ -55,7 +53,7 @@ describe('mapLineItem', () => {
     })
   })
 
-  // The netto figure rides only on the type that BILLS at it: on any other type a persisted
+  // on any other type a persisted
   // netAmount would sit unread until someone changed the type and silently started billing it.
   describe('netAmount', () => {
     const netItem = { ...item, amount: '1230', netAmount: '1000' }
@@ -82,7 +80,6 @@ describe('mapLineItem', () => {
       expect(mapLineItem(bought, 'OTHER').worker).toBe(5)
     })
 
-    // A row picked under „Inny wydatek” and then switched away must not book its worker.
     it.each(['INVESTMENT_EXPENSE', 'PAYOUT'] as const)('is dropped on %s', (type) => {
       expect(mapLineItem(bought, type).worker).toBeUndefined()
     })

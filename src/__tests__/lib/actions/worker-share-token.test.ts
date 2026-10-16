@@ -5,10 +5,6 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// A worker token is the only credential on an unauthenticated page that prints that worker's stawka,
-// so its lifecycle runs against the REAL DB and asserts PERSISTED rows — a returned token proves
-// nothing if the write didn't land, and a rotation that left the old row alive would keep a second
-// door open.
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -138,8 +134,6 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
     expect(await persistedTokens(readyWorkerId)).toHaveLength(1)
   })
 
-  // The link is listed on the worker's own page, so a block does not withhold it — `/z/` shows the
-  // notice and `tokenAction` refuses the send (token-action.test.ts).
   it.each([
     ['mix rozliczenia', () => mixedWorkerId],
     ['has no rozliczenie', () => unconfirmedWorkerId],

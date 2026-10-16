@@ -28,7 +28,6 @@ describe('assertRoundDraft', () => {
     expect(() => assertRoundDraft([row(text)], 2)).toThrow(/Łazienka \| x/)
   })
 
-  // The block and the flag would land beside the previous round's AI przedmiar.
   it.each([undefined, Number.NaN])('refuses a row whose qty is %j', (qty) => {
     const draft = [{ ...row('Runda 2 — a'), qty: qty as number }]
     expect(() => assertRoundDraft(draft, 2)).toThrow(/Łazienka \| x/)

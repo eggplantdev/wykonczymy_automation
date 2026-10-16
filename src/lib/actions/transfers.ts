@@ -149,7 +149,6 @@ export async function createBulkTransferAction(
       }
 
       if (needsSourceRegister(parsed.data.type)) {
-        // For deposits, sourceRegister is actually the target (the register receiving money)
         const validated = await validateSourceRegister(parsed.data.sourceRegister, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
@@ -162,8 +161,7 @@ export async function createBulkTransferAction(
       if (lockMessage) return { success: false, error: lockMessage }
 
       // skipSheetSync: the per-row afterChange hook must NOT sync each created
-      // row one-by-one — this action batches them all in a single sheet write below
-      // (review T4.2). The flag rides on req.context, which Payload passes to hooks.
+      // row one-by-one — this action batches them all in a single sheet write below.
       const createdIds = await withPayloadTransaction(
         payload,
         async (req) => {
@@ -210,7 +208,7 @@ export async function createBulkTransferAction(
           return ids
         },
         // From a zgłoszenie the hook's immediate expiry would re-render the dashboard inside every
-        // booking (EX-850).
+        // booking.
         { skipSheetSync: true, ...(opts && { deferRefresh: true }) },
       ).catch((error: unknown) => {
         if (error instanceof DraftAlreadyDecided) return error.refusal
@@ -220,9 +218,7 @@ export async function createBulkTransferAction(
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
       // Post-response sync after commit — never before, else a rolled-back row would
-      // leak into the sheet. One batched call for all created rows (read the sheet
-      // once, write once) instead of N serialized single-transfer syncs (review T4.2).
-      // `after()` keeps the function alive past the response on Vercel.
+      // leak into the sheet.
       after(() => syncBulkExpensesToSheet(createdIds))
       const { type, worker, lineItems } = parsed.data
       if (carriesPayoutStatus(type) && worker) {
@@ -288,7 +284,6 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       if ('error' in result) return { success: false, error: result.error }
       const { original } = result
 
-      // Mark original as cancelled (triggers recalcAfterChange hook)
       await payload.update({
         collection: 'transactions',
         id: transferId,
@@ -296,7 +291,6 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       })
       console.log(`[PERF]   update cancelled ${step()}ms`)
 
-      // Create CANCELLATION audit row
       await payload.create({
         collection: 'transactions',
         data: {
@@ -311,7 +305,7 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       console.log(`[PERF]   create CANCELLATION ${step()}ms`)
 
       // The kosztorys sheet row is removed by the collection afterChange hook, which
-      // fires on the `cancelled: true` update above (review T2.2) — no action-level
+      // fires on the `cancelled: true` update above — no action-level
       // sync here, or it would double the work.
 
       return { success: true }
@@ -340,22 +334,16 @@ export async function updateTransferAction(
       if ('error' in result) return { success: false, error: result.error }
       const { original } = result
 
-      // Only LABOR_COST transfers can have their amount edited
       const { amount, vatPlane, netAmount, worker, ...fields } = parsed.data
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
-      // Narrower than write-once (that is the hook's): whether the edit gets to state a plane at
-      // all, so a booked row's answer is dropped before the write rather than refused by it.
       const fillsPlane = vatPlane !== undefined && canFillVatPlane(original)
       if (fillsPlane) {
         // The hook runs this too — called early so a bad kwota is refused before the write.
         const netErr = getNetAmountError(netAmount, original.amount, original.type, vatPlane)
         if (netErr) return { success: false, error: netErr }
       }
-
-      // Moving a zaliczka to another investment orphans its etap tag; the collection's
-      // beforeValidate hook clears it, so every write path is covered, not just this action.
 
       await payload.update({
         collection: 'transactions',
@@ -389,11 +377,6 @@ export async function updateTransferAction(
       }
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
-      // Materiały sheet sync (including the move-to-another-investment case) runs from
-      // the collection afterChange hook, which compares previousDoc/doc from the DB —
-      // so it's correct even when the edit omits the investment field (review T2.2 +
-      // closes T2.3), and it covers admin-panel edits. No action-level sync here.
-
       return { success: true }
     },
     ['transfers'],
@@ -401,9 +384,9 @@ export async function updateTransferAction(
 }
 
 /**
- * Deliberately does NOT go through `fetchAndAuthorize` (owner, 2026-08-10): attaching and
+ * Deliberately does NOT go through `fetchAndAuthorize`: attaching and
  * detaching invoice pages is open to every management session regardless of who created the
- * transfer, exactly as it was before the pages became a list.
+ * transfer.
  */
 const invoiceOf = (transferId: number) =>
   ({ collection: 'transactions', field: 'invoice', id: transferId }) as const
@@ -430,7 +413,6 @@ export async function addTransferInvoicesAction(
   )
 }
 
-/** Removes one page, leaving the rest in order. */
 export async function removeTransferInvoiceAction(transferId: number, invoiceMediaId: number) {
   return protectedAction(
     'removeTransferInvoiceAction',
@@ -444,7 +426,6 @@ export async function removeTransferInvoiceAction(transferId: number, invoiceMed
   )
 }
 
-/** Removes every page — the whole invoice, not one of its photos. */
 export async function removeAllTransferInvoicesAction(transferId: number) {
   return protectedAction(
     'removeAllTransferInvoicesAction',

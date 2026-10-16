@@ -8,8 +8,6 @@ export function reportDraftKey(investmentId: number, workerId: number): string {
   return `worker-report-draft:${investmentId}:${workerId}`
 }
 
-// A draft from before the etap choice moved to the kierownik is keyed by etap, not one draft — it
-// is dropped rather than guessed into shape.
 function parseDraft(raw: string | null): ReportDraftT {
   if (!raw) return EMPTY_DRAFT
   const parsed: unknown = JSON.parse(raw)
@@ -18,11 +16,6 @@ function parseDraft(raw: string | null): ReportDraftT {
     : EMPTY_DRAFT
 }
 
-/**
- * A pozycja deleted — or a whole kosztorys cleared or restored — since he typed leaves draft lines
- * the send would refuse. They are dropped on load and counted, so he learns what went instead of
- * finding the numbers silently gone. A blank entry is no line, so it is dropped without counting.
- */
 export function pruneDraft(
   draft: ReportDraftT,
   liveItemIds: ReadonlySet<number>,
@@ -37,9 +30,6 @@ export function pruneDraft(
   return { draft: { ...draft, qtyByItem }, droppedCount }
 }
 
-// The szkic lives only in this browser: a worker who switches phone or clears its data starts over.
-// Nothing reaches the server until „Wyślij”.
-// No key: the szkic lives in memory only.
 export function useReportDraft(storageKey: string | undefined, liveItemIds: ReadonlySet<number>) {
   const [draft, setDraft] = useState<ReportDraftT>(EMPTY_DRAFT)
   const [isLoaded, setIsLoaded] = useState(false)

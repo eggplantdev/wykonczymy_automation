@@ -7,8 +7,7 @@ import type { SessionUserT } from '@/types/auth'
 
 /**
  * Redirecting is the whole contract — a page that lets a DAL guard's `throw` decide instead shows an
- * error screen to someone who is merely logged out. Pages that also need the investment loaded use
- * `requireInvestmentOr404`; this is for the ones that already hold it.
+ * error screen to someone who is merely logged out.
  */
 export async function requireManagementPage(): Promise<SessionUserT> {
   const session = await requireAuth(MANAGEMENT_ROLES)

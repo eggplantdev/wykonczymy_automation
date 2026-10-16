@@ -3,8 +3,6 @@ import {
   type UndoRedoApiT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 
-// A real stack behind the hook's API, without the React state `useUndoRedo` wraps it in — specs
-// read `stack.undoDepth` to see what the editor pushed or pruned.
 export function stackUndoRedo() {
   const stack = createUndoRedoStack()
   const api: UndoRedoApiT = {

@@ -3,7 +3,6 @@ import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import { classifyPair } from '@/lib/kosztorys/worker-payout-pairs'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 
-/** „Pozostało do wypłaty" of one pair as the settle dialog reads it, straight from the DB. */
 export async function pairRemaining(
   db: Awaited<ReturnType<typeof getDb>>,
   investmentId: number,

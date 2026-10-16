@@ -1,12 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-
 const managerCtx = { id: 1 } as const
 const employeeCtx = { id: 5 } as const
-
-// ── Role scoping ─────────────────────────────────────────────────────────
 
 describe('buildTransferFilters — role scoping', () => {
   it('onlyOwnTransfers adds createdBy filter', () => {
@@ -22,8 +18,6 @@ describe('buildTransferFilters — role scoping', () => {
     expect(where.createdBy).toEqual({ equals: 1 })
   })
 })
-
-// ── Search param filters ─────────────────────────────────────────────────
 
 describe('buildTransferFilters — search params', () => {
   it('type param adds type filter', () => {
@@ -167,15 +161,6 @@ describe('buildTransferFilters — search params', () => {
     expect(where.id).toEqual({ equals: -1 })
   })
 })
-
-// ── Amount search ────────────────────────────────────────────────────────
-// The `amount` column is `numeric` with max scale 2. Two search modes, switched
-// by the presence of a decimal separator (EX-408):
-//   • NO separator  → textual prefix on `amount::text` ("18" → 18, 189, 18000…).
-//   • separator      → numeric half-open range [v, v + 10⁻ᵈ) where d = fractional
-//     digits typed, so "18,00" pins to 18 (not 18949) and "18,1" spans 18.10–18.19.
-// The range compares by numeric VALUE, sidestepping the stored ::text form which
-// drops trailing zeros (a real 18.00 is stored "18").
 
 describe('buildTransferFilters — amount search: prefix mode (no separator)', () => {
   it('"18" → textual prefix matching everything that starts with 18', () => {

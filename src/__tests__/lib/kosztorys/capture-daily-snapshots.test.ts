@@ -10,7 +10,6 @@ import {
   trashDaysAgo,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { createTestTemplate } from '@/__tests__/helpers/template'
 
 vi.mock('server-only', () => ({}))
 
@@ -76,8 +75,6 @@ describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
 
     await setQty(12)
     expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('stored')
-    // A rerun of a day already captured stays a no-op even when the tree moved since — that edit
-    // belongs to the next day.
     await setQty(14)
     expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('unchanged')
     expect(await captureDailySnapshot(db, investmentId, DAY_3)).toBe('stored')
@@ -91,18 +88,16 @@ describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
     expect(rows[0].payload).toMatchObject({ globalDiscount: { type: 'amount', value: 250 } })
   })
 
-  it('offers only open, untrashed, non-szablon, non-rejected investments to the night run', async () => {
+  it('offers only open, untrashed, non-rejected investments to the night run', async () => {
     const active = await investment('daily-eligible-active')
     const planned = await investment('daily-eligible-planned', { status: 'planowana' })
     const completed = await investment('daily-eligible-completed', { status: 'completed' })
     const rejected = await investment('daily-eligible-rejected', { status: 'rejected' })
-    const template = await createTestTemplate(payload, 'daily-eligible-szablon')
-    created.push(template)
     const trashed = await investment('daily-eligible-trashed')
     await trashDaysAgo(db, trashed, 1)
 
     const eligible = await listDailyEligibleInvestmentIds(db)
     expect(eligible).toEqual(expect.arrayContaining([active, planned]))
-    for (const id of [completed, rejected, template, trashed]) expect(eligible).not.toContain(id)
+    for (const id of [completed, rejected, trashed]) expect(eligible).not.toContain(id)
   })
 })

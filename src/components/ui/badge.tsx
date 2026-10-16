@@ -1,11 +1,9 @@
 import type { RoleT } from '@/lib/auth/roles'
 import { cn } from '@/lib/utils/cn'
 
-/** Shared pill base for the app's status/role badges — colors layer on top. */
 export const BADGE_BASE =
   'inline-flex items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium '
 
-/** The tones the status pills share. */
 export const BADGE_TONE = {
   positive: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
   muted: 'bg-muted text-muted-foreground',

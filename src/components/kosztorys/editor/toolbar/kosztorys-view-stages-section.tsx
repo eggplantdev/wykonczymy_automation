@@ -49,8 +49,6 @@ export function KosztorysViewStagesSection({ stages }: { stages: KosztorysStageT
         {allVisible ? t('hideAll') : t('showAll')}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      {/* A zakończony etap stays listed under „Ukryj zakończone" — greyed, so the reader sees why it
-          is off the grid, and its tick still answers for when the filter goes off. */}
       {stages.map((stage) => (
         <DropdownMenuCheckboxRow
           key={stage.id}

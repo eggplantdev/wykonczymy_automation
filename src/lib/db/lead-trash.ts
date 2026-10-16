@@ -47,11 +47,6 @@ export async function selectPurgeableLeadIds(
   return rows.map((row) => Number(row.id))
 }
 
-/**
- * One statement for the whole selection rather than a Payload write per lead: the collection's only
- * hook is revalidation, which the action does once anyway. Already-trashed ids are skipped, so the
- * count is what actually moved.
- */
 export async function trashLeads(db: DbExecutorT, ids: readonly number[]): Promise<number> {
   const { rows } = await db.execute(sql`
     UPDATE leads SET trashed_at = now(), updated_at = now()

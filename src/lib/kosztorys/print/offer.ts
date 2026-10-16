@@ -10,26 +10,17 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 export type OfferPrintArgsT = {
   rows: KosztorysV2RowT[]
   stages: KosztorysStageT[]
-  // The investment's stored client-view settings — the same ones the podgląd and the shared link
-  // obey. The offer is that document on paper, so it asks them rather than deciding for itself.
   settings: ClientViewSettingsT
   investmentName: string
   logoUrl: string
-  // Resolved CSS colours keyed by the section's palette key — the popup is its own document with no
-  // stylesheet, so the `--color-section-*` vars have to arrive already computed. A Map, not a
-  // `Record`: `sectionColor` comes off a row, and `'__proto__'` on an object literal reaches
+  // A Map, not a `Record`: `sectionColor` comes off a row, and `'__proto__'` on an object literal reaches
   // `Object.prototype` instead of missing.
   fillByColorKey: ReadonlyMap<string, string>
-  // „Razem" under „Wartość netto przedmiar", straight from the editor. The print does not add up its
-  // own rows: the same figure summed twice is the one way paper and screen can disagree.
   totalNet: number
-  // The same figure per section, keyed by `sectionId`. A section with no entry gets no total row —
-  // an absent figure is honester than a printed `0 zł`.
   sectionNetById: ReadonlyMap<number, number>
 }
 
 // The default offer's six columns fit portrait with the opis still ~70mm; a seventh leaves it ~47mm.
-// Past that the owner has widened the document with etap columns and it turns landscape.
 const PORTRAIT_COLUMN_LIMIT = 7
 
 export function buildOfferPrintHtml({
@@ -42,7 +33,6 @@ export function buildOfferPrintHtml({
   totalNet,
   sectionNetById,
 }: OfferPrintArgsT): string {
-  // Before the portrait/landscape count, so an offer with no entries prints as narrow as it reads.
   const empty = investorEmptyColumnIds(rows, stages)
   const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
   const columns = offerPrintColumns(stages, settings.hiddenColumns, settings.columnRanks).filter(

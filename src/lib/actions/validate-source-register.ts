@@ -7,11 +7,6 @@ export type ValidateSourceRegisterResultT =
   | { success: true; register: CashRegisterRefT }
   | { success: false; error: string }
 
-/**
- * Checks that the register exists and returns it. Does NOT enforce ownership:
- * all management roles may transfer from any register (EMPLOYEE is blocked upstream
- * by requireAuth(MANAGEMENT_ROLES) in protectedAction).
- */
 export async function validateSourceRegister(
   cashRegisterId: number | undefined,
   payload: Payload,
@@ -41,5 +36,4 @@ export async function validateSourceRegister(
 }
 
 // No sufficient-funds guard by design: registers (auxiliary included) may go
-// negative — a deliberate client decision. Do not re-add a balance check here or
-// in the transfer actions; the balance preview in the form is advisory only.
+// negative — a deliberate client decision.

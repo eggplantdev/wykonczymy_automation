@@ -10,7 +10,6 @@ const restoreSnapshotAction = vi.hoisted(() => vi.fn())
 
 const SNAPSHOT: SnapshotListItemT = {
   id: 3,
-  investmentId: 7,
   kind: 'manual',
   label: 'Przed zmianą zakresu',
   takenAt: '2026-09-29T10:00:00.000Z',
@@ -20,6 +19,8 @@ const SNAPSHOT: SnapshotListItemT = {
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/actions/kosztorys-snapshots', () => ({
+  saveSnapshotAction: vi.fn(),
+  snapshotAction: vi.fn(),
   listSnapshotsAction: vi.fn(async () => ({ success: true, data: [SNAPSHOT] })),
   restoreSnapshotAction,
 }))

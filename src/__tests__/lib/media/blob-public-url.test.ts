@@ -16,7 +16,6 @@ describe('blobStoreIdOf', () => {
 })
 
 describe('blobPublicUrl', () => {
-  // Filenames predate sanitizeFileName; a raw space or `#` would build a URL to another object.
   it('encodes the filename into one path segment', () => {
     expect(blobPublicUrl('store1', 'faktura #3 ąę.jpg')).toBe(
       'https://store1.public.blob.vercel-storage.com/faktura%20%233%20%C4%85%C4%99.jpg',

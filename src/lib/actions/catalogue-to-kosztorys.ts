@@ -1,13 +1,12 @@
 'use server'
 
 import { after } from 'next/server'
-import type { Payload } from 'payload'
 import { z } from 'zod'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { listCatalogueItemsByIds, listCatalogueItemsByMatchKeys } from '@/lib/db/work-catalogue'
+import { listCatalogueItemsByMatchKeys } from '@/lib/db/work-catalogue'
 import {
   applyCatalogueValues,
   listItemsForCatalogueApply,
@@ -17,6 +16,11 @@ import {
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import {
+  createSectionWithCatalogueItemsSchema,
+  insertCatalogueItemsSchema,
+} from '@/lib/kosztorys/work-catalogue/insert-catalogue-items-schema'
+import { readCatalogueItems } from '@/lib/kosztorys/work-catalogue/read-catalogue-items'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
 import type {
@@ -24,41 +28,9 @@ import type {
   AppliedCatalogueValueT,
   NewSectionCatalogueSliceT,
   SeedConflictFieldT,
-  WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import type { ActionResultT } from '@/types/action'
 import { validateAction } from './run-action'
-
-const catalogueItemIdsSchema = z
-  .array(z.number().int().positive())
-  .min(1, 'Wybierz co najmniej jedną pracę')
-
-const insertCatalogueItemsSchema = z.object({
-  sectionId: z.number().int().positive(),
-  catalogueItemIds: catalogueItemIdsSchema,
-})
-
-const createSectionWithCatalogueItemsSchema = z.object({
-  investmentId: z.number().int().positive(),
-  sectionName: z.string().trim().min(1, 'Podaj nazwę sekcji'),
-  catalogueItemIds: catalogueItemIdsSchema,
-})
-
-// The client sends ONLY ids: every number that lands in the rozpiska is re-read from the cennik
-// server-side, so a tampered payload cannot price a praca.
-async function readCatalogueItems(
-  payload: Payload,
-  catalogueItemIds: number[],
-): Promise<WorkCatalogueItemT[] | { error: string }> {
-  const db = await getDb(payload)
-  // Before the existence check: `listCatalogueItemsByIds` returns one row per REQUESTED id, so
-  // `[5, 5, 5]` would pass the length test and append the same praca three times.
-  const ids = [...new Set(catalogueItemIds)]
-  const items = await listCatalogueItemsByIds(db, ids)
-  if (items.length !== ids.length)
-    return { error: 'Część wybranych prac nie istnieje już w katalogu.' }
-  return items
-}
 
 export async function insertCatalogueItemsAction(
   sectionId: number,
@@ -87,8 +59,6 @@ export async function insertCatalogueItemsAction(
   )
 }
 
-// The sekcja and the prace are written together, so „Anuluj" in the picker can never leave an orphan
-// sekcja behind.
 export async function createSectionWithCatalogueItemsAction(
   investmentId: number,
   sectionName: string,
@@ -99,7 +69,7 @@ export async function createSectionWithCatalogueItemsAction(
     { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(createSectionWithCatalogueItemsSchema, {
-        investmentId,
+        ownerId: investmentId,
         sectionName,
         catalogueItemIds,
       })
@@ -114,7 +84,7 @@ export async function createSectionWithCatalogueItemsAction(
           createSectionWithCatalogueItems(
             payload,
             req,
-            parsed.data.investmentId,
+            parsed.data.ownerId,
             parsed.data.sectionName,
             items,
           ),
@@ -145,10 +115,8 @@ const applyCatalogueSchema = z.object({
 const STALE_ITEM_ERROR = 'Część zaznaczonych pozycji już nie istnieje.'
 const STALE_CATALOGUE_ERROR = 'Część zaznaczonych prac nie jest już w katalogu.'
 
-// Taking a stawka means taking its ŹRÓDŁO, so BOTH kolumny of that płaszczyzna are written and one of
-// them lands as `null`. Writing only the column the katalog names would leave the pozycja's old
-// nadpisanie standing beside the new one, and the rozpiska reads such a pair as the OTHER źródło —
-// a mnożnik outranks a kwota, so „weź kwotę z katalogu" would have changed nothing on screen.
+// Writing only the column the katalog names would leave the pozycja's old
+// nadpisanie standing beside the new one, and the rozpiska reads such a pair as the OTHER źródło.
 const RATE_COLUMNS = [
   ['wToolsRate', { plane: 'w_tools', value: 'wToolsOverrideValue', coeff: 'wToolsOverrideCoeff' }],
   [
@@ -157,20 +125,10 @@ const RATE_COLUMNS = [
   ],
 ] as const
 
-const TEMPLATE_READS_CATALOGUE = 'Szablon pokazuje ceny prosto z katalogu prac.'
-
 /**
- * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every
- * liczba the owner ticked in „Porównaj z katalogiem prac".
- *
- * The wire carries ids and field names only. Every kwota that lands in the rozpiska is re-read from
- * the cennik here — same rule as `insertCatalogueItemsAction` — and the klucz is rebuilt from the
+ * the klucz is rebuilt from the
  * pozycja as it stands NOW rather than taken from the payload, so a window left open across a rename
  * ends in a Polish sentence instead of pricing a praca off the wrong wpis.
- *
- * Snapshots first: the write flattens hand-typed ceny and nadpisania across the whole rozpiska at
- * once and is irrecoverable by in-session undo — the same reason „Popraw literówki" and the rabat
- * procentowy snapshot.
  */
 export async function applyCatalogueToKosztorysAction(
   investmentId: number,
@@ -179,13 +137,11 @@ export async function applyCatalogueToKosztorysAction(
   return investmentAction(
     'applyCatalogueToKosztorysAction',
     { investmentId },
-    async ({ payload, user, isTemplate }) => {
-      // A szablon already reads the katalog's liczby (EX-1017) — there is nothing to take over.
-      if (isTemplate) return { success: false, error: TEMPLATE_READS_CATALOGUE }
+    async ({ payload, user }) => {
       const parsed = validateAction(applyCatalogueSchema, { investmentId, selections })
       if (!parsed.success) return parsed
 
-      // Folded per pozycja before anything reads the DB: a payload naming one praca twice would
+      // a payload naming one praca twice would
       // otherwise push the same id into a batch twice, and `UPDATE … FROM (VALUES …)` has no
       // opinion about which of the two duplicate rows wins.
       const wanted = new Map<number, Set<SeedConflictFieldT>>()
@@ -239,11 +195,9 @@ export async function applyCatalogueToKosztorysAction(
         applied.push(row)
       }
 
-      // One transaction, because the pair „kwota albo mnożnik" spans two of these batches (EX-865).
       // Five sequential UPDATE-y mean a connection dropped after the `*OverrideValue` batch and
       // before the `*OverrideCoeff` one leaves a pozycja carrying BOTH — and coeff outranks kwota, so
-      // the rozpiska quietly prices off the old mnożnik. The snapshot joins the same transaction: a
-      // rollback that left it standing would offer an undo to a state nothing changed from.
+      // the rozpiska quietly prices off the old mnożnik.
       await withPayloadTransaction(
         payload,
         async (req) => {

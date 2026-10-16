@@ -2,10 +2,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-kosztorys-view-state'
 
-// The stored plane outlives the screen that wrote it: it is keyed per investment and only `pickView`
-// ever writes it. So every surface that shows no plane switch has to pin its own, or a browser parked
-// on a crew plane stays there with no control to come back.
-
 const INVESTMENT_ID = 4242
 
 beforeEach(() => {
@@ -35,8 +31,6 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
     expect(result.current.view).toBe('client')
   })
 
-  // The problem overlay is the gesture that walks the reader to a fault, and a stawka problem only
-  // renders on its own plane — so it still rides above the pin.
   it('still lets an engaged problem take the workbench to the plane it judges', () => {
     const { result } = renderHook(() =>
       useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, isTemplate: true }),
@@ -47,8 +41,6 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
     expect(result.current.view).toBe('own_tools')
   })
 
-  // The other half of the disclosure lock: the public page ships the full tree, so a client who set
-  // the key by hand must still be shown client prices.
   it('pins the client preview even against a stored crew plane', () => {
     parkOn('w_tools')
 
@@ -59,8 +51,6 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
     expect(result.current.view).toBe('client')
   })
 
-  // A worker who once opened the investor's link on this browser, or the owner previewing both on
-  // one machine, must still land on the worker's stawka — never the client plane or the other crew's.
   it('pins the worker preview to his plane against a stored client or other-crew plane', () => {
     for (const stored of ['client', 'own_tools']) {
       parkOn(stored)

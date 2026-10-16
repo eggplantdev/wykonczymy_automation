@@ -40,7 +40,7 @@ describe('LongTextCell — the overlay and the grid underneath it', () => {
   })
 
   // Shift+Enter is the grid's own insert-row shortcut, so the overlay has to take the key AND stay
-  // open — a newline that also spawns a row is the worst of both.
+  // open.
   it('takes a newline on Shift+Enter without ending the edit', async () => {
     const { user, stopEditing, onCommit, textarea } = renderOverlay('Krótki opis')
 
@@ -60,8 +60,6 @@ describe('LongTextCell — the overlay and the grid underneath it', () => {
     expect(stopEditing).toHaveBeenCalledWith({ nextRow: false })
   })
 
-  // An Escape that changed nothing must cost no write: the commit path runs a save, a revalidation
-  // and an undo entry behind it.
   it('writes nothing when Escape leaves the value as it was', async () => {
     const { user, onCommit, stopEditing } = renderOverlay()
 
@@ -99,10 +97,8 @@ describe('LongTextCell — the overlay and the grid underneath it', () => {
   })
 })
 
-// The grid listens on `document` and resolves clicks to a cell by coordinates, so anything the
-// overlay doesn't swallow reaches the selection underneath — even a click over another row, which
-// would end the edit mid-word. jsdom can't tell `stopPropagation` apart from `stopImmediatePropagation`
-// here, so this only proves the grid never sees the event.
+// jsdom can't tell `stopPropagation` apart from `stopImmediatePropagation` here, so this only proves
+// the grid never sees the event.
 describe('LongTextCell — what never reaches the grid', () => {
   it('keeps a click on the overlay to itself', async () => {
     const { seen, stop } = withDocumentListener('mousedown')

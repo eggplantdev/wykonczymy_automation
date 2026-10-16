@@ -36,23 +36,17 @@ export const entityTag = (entity: EntityNameT, id: number | string) => `${entity
 
 /**
  * Every writer of one investment's row-keyed readers takes these opts — its gallery, and
- * `getInvestment` (the v1 kosztorys page, the investor preview). Only that investment reads them, so
- * the collection slug would expire 64 bystanders; the investments afterChange hook still bumps
- * `collection:investments` for the readers that do key on it. Shared because a writer that forgets
- * the tag is a permanently stale read, and there are several.
+ * `getInvestment`. Shared because a writer that forgets the tag is a permanently stale read, and
+ * there are several.
  */
 export const investmentEntityOpts = (investmentId: number) => ({
   entityTags: [entityTag('investment', investmentId)],
 })
 
-// Its own const rather than a `CACHE_TAGS` entry: that map is keyed by collection slug and
-// `revalidateCollections` iterates it, and this is a global — there is no collection to name.
 export const NOTIFICATION_RECIPIENTS_TAG = 'global:notification-recipients'
 
-// Every tag a whole-tree kosztorys replacement invalidates. Settings may be copied rather than
-// changed, but `restoreKosztorys` rewrites the investment row regardless, so `investments` goes with
-// the four tree tags. Shared so the three replacement paths — snapshot restore, sheet import, preset
-// reload — can never bump different lists.
+// Settings may be copied rather than changed, but `restoreKosztorys` rewrites the investment row
+// regardless, so `investments` goes with the four tree tags.
 export const KOSZTORYS_TREE_TAGS = [
   'kosztorysSections',
   'kosztorysItems',
@@ -61,14 +55,15 @@ export const KOSZTORYS_TREE_TAGS = [
   'investments',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
-// Moving an investment or a szablon in or out of the trash changes only which rows the investment
-// readers and the szablon library return — the leads list already keys on `investments` too. Both
-// kinds ride one set because the /kosz buttons serve both and the tags are fixed before the handler
-// learns which kind it holds.
+// Moving an investment in or out of the trash changes only which rows the investment readers return
+// — the leads list already keys on `investments` too.
 export const INVESTMENT_TRASH_TAGS = [
   'investments',
-  'presets',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// A szablon's trash, restore and delete all move only the szablon library and its pickers: the
+// cascade stays inside the template tables, and a kosztorys seeded from it keeps its own copy.
+export const TEMPLATE_TRASH_TAGS = ['presets'] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
 // A hard delete adds the rows the DB cascade removes or unlinks without firing a Payload hook — the
 // linked sheets, the kosztorys tree, cancelled transactions and equipment events — so nobody else
@@ -106,7 +101,6 @@ export const WORKER_DELETE_TAGS = [
   'equipmentEvents',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
-// Nothing outside the fleet names a vehicle, so its trash moves only the fleet readers.
 export const VEHICLE_TRASH_TAGS = [
   'vehicles',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
@@ -117,7 +111,6 @@ export const VEHICLE_DELETE_TAGS = [
   'vehicleInspections',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
-// Nothing outside the register names an item, so its trash moves only the equipment readers.
 export const EQUIPMENT_TRASH_TAGS = [
   'equipment',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
@@ -142,12 +135,6 @@ export const LEAD_TRASH_TAGS = ['leads'] as const satisfies readonly (keyof type
  * `unstable_cache` honours that: it serves the stale value and queues a background recompute. So
  * `'default'` degraded the invalidation to stale-while-revalidate — the read right after the write
  * saw pre-write rows, the one after that was fresh.
- *
- * On most of the hook sites that was invisible, because the Server Action that triggered the write
- * had already called `updateTag` on the same tags in the same request; the hook's call was
- * redundant. It bit where no action runs: a media upload that lands through a Route Handler has
- * the `media` afterChange hook as its only invalidation, so an uploaded faktura's first read-back
- * still rendered „Dodaj fakturę".
  *
  * `{ expire: 0 }` is the form that expires on the spot — the same stamp `updateTag` writes, minus
  * its Server-Action-only restriction. Verified against Next 16.1.7's bundled `FileSystemCache`;

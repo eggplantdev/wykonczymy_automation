@@ -4,7 +4,6 @@ import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { ToggleGroup as ToggleGroupPrimitive } from 'radix-ui'
 import { cn } from '@/lib/utils/cn'
 
-// `label` stays required as the accessible name even when `icon` replaces it visually.
 export type OptionT<T extends string> = { value: T; label: string; icon?: ReactNode }
 
 type SizeT = 'default' | 'lg'
@@ -14,8 +13,6 @@ type PropsT<T extends string> = {
   value: T
   onChange: (value: T) => void
   size?: SizeT
-  // Kept visible where a toggle applies only in some contexts (e.g. the summary view toggle on the
-  // subcontractor plane).
   disabled?: boolean
   isEqualWidth?: boolean
   'aria-label'?: string
@@ -44,8 +41,7 @@ export function ToggleGroup<T extends string>({
 }: PropsT<T>) {
   const rootRef = useRef<HTMLDivElement>(null)
   const indicatorRef = useRef<HTMLSpanElement>(null)
-  // Columns may be content-sized, so the indicator can't be derived from an index —
-  // measure the active item and position the pill by direct style writes (state would cascade renders).
+  // Columns may be content-sized, so the indicator can't be derived from an index.
   useLayoutEffect(() => {
     const active = rootRef.current?.querySelector<HTMLElement>('[data-state="on"]')
     const indicator = indicatorRef.current
@@ -55,9 +51,7 @@ export function ToggleGroup<T extends string>({
   }, [value, options])
 
   return (
-    // The scroll lives out here, on a box never wider than its parent, while the group stays
-    // content-sized — so only a group whose options outrun the screen gets a scrollbar. Stretching the
-    // group itself would make the two-option toggles a full-width bar.
+    // Stretching the group itself would make the two-option toggles a full-width bar.
     <div className={cn('max-w-full overflow-x-auto', className)}>
       <ToggleGroupPrimitive.Root
         ref={rootRef}
@@ -74,7 +68,6 @@ export function ToggleGroup<T extends string>({
           disabled && 'pointer-events-none opacity-50',
         )}
       >
-        {/* w-0 until the layout effect measures the active item — invisible pre-hydration. */}
         <span
           ref={indicatorRef}
           aria-hidden

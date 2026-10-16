@@ -26,8 +26,6 @@ type TransferTableServerPropsT = {
 
 export async function TransferTableServer({ config: pageConfig }: TransferTableServerPropsT) {
   const step = perfStart()
-  // Narrowed here, not on the page, so the sum tile, „Drukuj”, „Faktury” and the duplicate finder
-  // all read the same `where` as the list.
   const allDraftTransferIds = pageConfig.onlyWorkerDrafts
     ? await fetchAllDraftTransferIds()
     : undefined
@@ -62,21 +60,17 @@ export async function TransferTableServer({ config: pageConfig }: TransferTableS
   ])
   console.log(`[PERF] TransferTableServer findTransfersRaw + fetchReferenceData ${step()}ms`)
 
-  // Cancelled-transaction audit mode — pull originals referenced by each CANCELLATION row and splice them in directly above
   let pageDocs = rawTxResult.docs
   if (config.cancelledTransactionAudit) {
     const originalsById = await buildCancellationOriginalsMap(pageDocs)
     if (originalsById.size > 0) {
       pageDocs = pageDocs.flatMap((doc) => {
         const orig = originalsById.get(doc.cancelledTransaction as number)
-        // Stamp originalType so the cancellation row's Typ label matches the non-audit view.
         return orig ? [orig, { ...doc, originalType: orig.type }] : [doc]
       })
     }
     console.log(`[PERF] TransferTableServer audit-mode pair fetch ${step()}ms`)
   } else {
-    // Outside audit mode, a CANCELLATION row appears standalone (when showCancelled is on).
-    // Borrow the original's relational fields so its columns aren't all em-dashes.
     pageDocs = await enrichCancellationOriginals(pageDocs)
   }
 
@@ -90,13 +84,12 @@ export async function TransferTableServer({ config: pageConfig }: TransferTableS
   )
   console.log(`[PERF] TransferTableServer buildTransferRows ${step()}ms`)
 
-  // Server-derived sum overrides any caller-provided value. Single source of truth.
   const totalFilteredAmount = showTotalAmount
     ? typeDistribution.reduce((sum, t) => sum + t.total, 0)
     : undefined
 
   // buildTransferFilters only adds the `cancelled` exclusion when the list hides cancelled rows, so
-  // its absence is exactly the case where the tile is narrower than the rows below it (EX-574).
+  // its absence is exactly the case where the tile is narrower than the rows below it.
   const listsCancelled = !('cancelled' in config.query.where)
 
   return (
@@ -104,8 +97,6 @@ export async function TransferTableServer({ config: pageConfig }: TransferTableS
       data={rows}
       paginationMeta={rawTxResult.paginationMeta}
       config={{ ...config, totalFilteredAmount, listsCancelled }}
-      // Only the actions column reads it, and it is serialized whole into the page — on the
-      // worker's phone, where that column is hidden, it was most of the payload.
       referenceData={config.excludeColumns?.includes('actions') ? undefined : refData}
     />
   )

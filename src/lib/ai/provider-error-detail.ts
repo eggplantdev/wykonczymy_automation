@@ -1,7 +1,6 @@
 // TEMPORARY (TODO(EX-958)): with no Sentry yet, this flattens the provider's real failure reason
 // into the toast string so it survives protectedAction (which returns only `err.message`) and
-// reaches the client. Once Sentry is wired the raw fields (statusCode/responseBody/text) move into
-// the capture and the toast shrinks to a clean Polish message.
+// reaches the client.
 export function providerErrorDetail(error: unknown, fallback: string): string {
   const err = error as {
     message?: string

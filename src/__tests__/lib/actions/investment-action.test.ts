@@ -1,21 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
-// The wrapper is the kosztorys plane's only chokepoint (raw SQL bypasses hooks and `access`), so
-// three things are asserted: it refuses on a locked investment, it resolves a row id to its
-// investment before asking, and it forwards `revalidate`/`opts` untouched — `ownerOnlyAction`, the
-// shape this was copied from, drops both, and losing them here would silently kill cache
-// invalidation in ~28 actions.
 vi.mock('server-only', () => ({}))
 
 const lockState = vi.hoisted(() => ({
   lockMessage: undefined as string | undefined,
-  isTemplate: false,
-  rowOwner: undefined as
-    | { investmentId: number; lockMessage: string | undefined; isTemplate: boolean }
-    | undefined,
+  rowOwner: undefined as { investmentId: number; lockMessage: string | undefined } | undefined,
 }))
-const markPresetEdited = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({
@@ -31,13 +22,9 @@ vi.mock('payload', async (importOriginal) => ({
 }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute: vi.fn() })) }))
 vi.mock('@/lib/db/investment-gate', () => ({
-  investmentGateFor: vi.fn(async () => ({
-    lockMessage: lockState.lockMessage,
-    isTemplate: lockState.isTemplate,
-  })),
+  investmentGateFor: vi.fn(async () => ({ lockMessage: lockState.lockMessage })),
   investmentGateForRow: vi.fn(async () => lockState.rowOwner),
 }))
-vi.mock('@/lib/db/presets', () => ({ markPresetEdited }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
 const { INVESTMENT_LOCKED_MESSAGE, INVESTMENT_TRASHED_MESSAGE } =
@@ -47,10 +34,8 @@ const { investmentGateFor, investmentGateForRow } = await import('@/lib/db/inves
 describe('investmentAction', () => {
   beforeEach(() => {
     lockState.lockMessage = undefined
-    lockState.isTemplate = false
-    lockState.rowOwner = { investmentId: 5, lockMessage: undefined, isTemplate: false }
+    lockState.rowOwner = { investmentId: 5, lockMessage: undefined }
     revalidateCollections.mockClear()
-    markPresetEdited.mockClear()
     vi.mocked(investmentGateFor).mockClear()
     vi.mocked(investmentGateForRow).mockClear()
   })
@@ -87,11 +72,7 @@ describe('investmentAction', () => {
   })
 
   it('refuses a row whose investment is completed', async () => {
-    lockState.rowOwner = {
-      investmentId: 5,
-      lockMessage: INVESTMENT_LOCKED_MESSAGE,
-      isTemplate: false,
-    }
+    lockState.rowOwner = { investmentId: 5, lockMessage: INVESTMENT_LOCKED_MESSAGE }
     const handler = vi.fn(async () => ({ success: true as const }))
     const result = await investmentAction('t', { kind: 'item', id: 3 }, handler)
     expect(result).toEqual({ success: false, error: INVESTMENT_LOCKED_MESSAGE })
@@ -117,48 +98,6 @@ describe('investmentAction', () => {
       { deferRefresh: true },
     )
     expect(revalidateCollections).toHaveBeenCalledWith(['kosztorysItems'], { deferRefresh: true })
-  })
-
-  // The szablon list sorts by „ostatnio edytowany", so a write into a szablon owes it a fresh stamp —
-  // and an ordinary investment must not pay for that on every mutation in the app.
-  it('stamps the szablon as edited only when the target is a szablon', async () => {
-    await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
-    expect(markPresetEdited).not.toHaveBeenCalled()
-    expect(revalidateCollections).not.toHaveBeenCalled()
-
-    lockState.isTemplate = true
-    await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
-    expect(markPresetEdited).toHaveBeenCalledWith(expect.anything(), 5)
-    expect(revalidateCollections).toHaveBeenCalledWith(['presets'], undefined)
-  })
-
-  // A per-cell autosave into a szablon must stay deferred: an inline `updateTag` on `presets` would
-  // put back the render EX-597 took out of every edit.
-  it('carries deferRefresh onto the szablon library expiry', async () => {
-    lockState.isTemplate = true
-    await investmentAction(
-      't',
-      { investmentId: 5 },
-      async () => ({ success: true }),
-      ['kosztorysItems'],
-      { deferRefresh: true },
-    )
-    expect(revalidateCollections).toHaveBeenCalledWith(['presets'], { deferRefresh: true })
-  })
-
-  it('stamps the owning szablon of a row write', async () => {
-    lockState.rowOwner = { investmentId: 9, lockMessage: undefined, isTemplate: true }
-    await investmentAction('t', { kind: 'item', id: 3 }, async () => ({ success: true }))
-    expect(markPresetEdited).toHaveBeenCalledWith(expect.anything(), 9)
-  })
-
-  it('does not stamp a handler that failed', async () => {
-    lockState.isTemplate = true
-    await investmentAction('t', { investmentId: 5 }, async () => ({
-      success: false,
-      error: 'nie',
-    }))
-    expect(markPresetEdited).not.toHaveBeenCalled()
   })
 
   it('does not revalidate when the lock refuses', async () => {

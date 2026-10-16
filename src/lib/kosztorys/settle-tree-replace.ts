@@ -5,13 +5,9 @@ import { toastMessage } from '@/lib/utils/toast'
 type SucceededT<R> = Extract<R, { success: true }>
 
 /**
- * Settle a write that wipes and reinserts the whole tree, once the grid's pending cell saves have
- * landed: one still in its debounce would hit an id the replacement deleted, or miss the auto version
- * taken before it. `null` means refused and already toasted — the dialog stays open. Otherwise the
- * caller closes and reseeds, refetching when the request never
- * completed (it may still have committed, so the grid may be rendering rows that no longer exist) or
- * when the refusal is `NOT_FOUND`: the editor's copy is stale, and a retry would resend it. `stale`
- * says the rows, not the tree on screen, are behind — the tree prop may already hold the change.
+ * once the grid's pending cell saves have landed: one still in its debounce would hit an id the
+ * replacement deleted, or miss the auto version taken before it. `null` means refused and already
+ * toasted — the dialog stays open.
  */
 export async function settleTreeReplace<R extends { success: true } | FailureT>(
   flushPendingSaves: () => Promise<void>,

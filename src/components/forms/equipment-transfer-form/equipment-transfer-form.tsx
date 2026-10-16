@@ -77,8 +77,6 @@ export function EquipmentTransferForm({
           investments={investments}
         />
 
-        {/* A cost belongs to a repair; on a handover there is nothing to pay for, and the collection
-            hook nulls one that slips through anyway. */}
         {targetKind === 'service' && (
           <form.AppField name="cost">
             {(field) => <field.Input label="Koszt" type="number" showError />}

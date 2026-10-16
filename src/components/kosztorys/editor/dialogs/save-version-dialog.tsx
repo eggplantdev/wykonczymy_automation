@@ -3,24 +3,21 @@
 import { useState } from 'react'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
-import { saveSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// "Zapisz wersję" — a named manual restore point. The field is prefilled with the current timestamp
-// (editable) so a quick save-and-Enter still yields a sensible label, while typing a real name gives
-// the entry a findable title in the "Wersje" list above the ambient auto history.
 export function SaveVersionDialog() {
   const { investmentId } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().version
+  const { saveSnapshot } = useEditorActions()
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
 
   function handleOpenChange(next: boolean) {
     onOpenChange(next)
-    // Reseed the timestamp default on each open, not on close (avoids a flash of the old value).
     if (next) {
       setName(new Date().toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' }))
     }
@@ -32,7 +29,7 @@ export function SaveVersionDialog() {
   async function handleSave() {
     if (!canSave) return
     setSaving(true)
-    const res = await settleAction(() => saveSnapshotAction(investmentId, label))
+    const res = await settleAction(() => saveSnapshot(investmentId, label))
     setSaving(false)
     if (!res.success) {
       toastMessage(res.error, 'error', 4000)

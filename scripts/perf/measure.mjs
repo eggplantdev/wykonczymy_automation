@@ -1,7 +1,3 @@
-// Loads each page in a real browser and assigns every SQL statement to the load whose time window it
-// fell in. Run 1 is cold, the rest warm (median). Writes dumps/perf/results/<label>.json.
-//   node --env-file=.env scripts/perf/measure.mjs <label> [runs]
-// PERF_INVESTMENT / PERF_WORKER pick the detail pages (defaults are preview ids with real data).
 import fs from 'node:fs'
 import { chromium } from '@playwright/test'
 import { BASE, OUT_DIR, credentials, readSqlLines } from './lib.mjs'
@@ -21,12 +17,9 @@ const PAGES = {
     { name: `pracownik-${worker}`, path: `/pracownicy/${worker}` },
     { name: 'kasy', path: '/kasy' },
   ],
-  // The worker's own page, on a phone — the id is whichever account STAGING_QA_WORKER_EMAIL is.
   EMPLOYEE: [{ name: 'worker-own', path: (userId) => `/pracownicy/${userId}`, mobile: true }],
 }
 
-// Longest chain of queries where each starts after the previous ended = DB round trips on the
-// critical path, i.e. what latency multiplies.
 function waterfallDepth(queries) {
   const intervals = queries
     .map((q) => ({ start: q.start, end: q.start + q.ms }))

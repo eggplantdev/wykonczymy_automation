@@ -9,9 +9,6 @@ import {
 } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-// The purge is the one delete nobody confirms, so the assertion is on which kasy survive — a count
-// in the result would read the same over a purge that deleted the wrong one.
-
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -66,7 +63,6 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, pinned, PAST_RETENTION_DAYS, 'cash_registers')
-    // A kasa that went to the trash with its owner is the worker step's to purge, never this one's.
     const trashedOwnerId = Number(
       (
         await payload.create({

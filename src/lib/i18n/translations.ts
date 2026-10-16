@@ -30,8 +30,6 @@ export const interpolate = (text: string, params?: TranslationParamsT): string =
 const entryOf = (locale: LanguageT, namespace: NamespaceT, key: PropertyKey): unknown =>
   (DICTIONARIES[locale][namespace] as Record<PropertyKey, unknown>)[key]
 
-// A key arriving from the server (a `messageKey`) is only typed as a string, so a lookup can miss.
-// The key itself is a better fallback than a blank: it is visible, and it names what is missing.
 export function translate<NS extends NamespaceT>(
   locale: LanguageT,
   namespace: NS,
@@ -95,9 +93,7 @@ export function createTranslator<NS extends NamespaceT>(
   return translator
 }
 
-// The default every grid-copy builder falls back to: the manager surfaces never pass a translator.
 export const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
-// The server validates the account form with the same schema the worker's dialog builds in their language.
 export const POLISH_ACCOUNT = createTranslator(DEFAULT_LANGUAGE, 'account')
 export const POLISH_TRANSFERS = createTranslator(DEFAULT_LANGUAGE, 'transfers')
 export const POLISH_FILTERS = createTranslator(DEFAULT_LANGUAGE, 'filters')

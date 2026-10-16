@@ -18,10 +18,6 @@ type SettlePayoutsDialogPropsT = {
   onClose: () => void
 }
 
-/**
- * Controlled rather than `FormDialog`, whose trigger-per-instance model would mount one dialog per
- * table row.
- */
 export function SettlePayoutsDialog({ target, onClose }: SettlePayoutsDialogPropsT) {
   return (
     <Dialog open={target !== null} onOpenChange={(open) => !open && onClose()}>

@@ -3,12 +3,8 @@ import { unpinned } from '@/lib/kosztorys/columns/document-column-order'
 export type HiddenColumnMapT = Record<string, boolean>
 
 /**
- * Stored settings → the hidden keys. A document setting stores one choice per column it offered at
- * save time, and a column it does not mention reads as its CODE default — so a column added later
- * starts where the code declares it, with no migration, instead of showing because no stored list
- * names it (EX-1033). A legacy hidden array speaks only for the columns it was written against
+ * A legacy hidden array speaks only for the columns it was written against
  * (`legacyCeiling`), so a row `20261015_0` has not converted yet cannot show a later column either.
- * Anything that is neither shape reads as the code default.
  */
 export function resolveHiddenColumns(
   stored: unknown,

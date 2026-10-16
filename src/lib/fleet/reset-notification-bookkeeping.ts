@@ -9,21 +9,10 @@ type StoredFieldsT = {
   odometer?: number | null
 }
 
-/** A Payload `beforeChange` patch: only the fields the write actually names. */
 type PatchT = Partial<StoredFieldsT>
 
 /**
- * Which "already announced" stamps an edit invalidates.
- *
- * The stamps exist so one deadline earns one email, but they are keyed to the values that were
- * announced. Correct a przebieg typed as 101 000 instead of 130 000 and, without this, the row stays
- * marked announced for a distance nobody was ever told about — the mileage alarm never fires again
- * for the life of that oil change.
- *
- * `patch` is an UPDATE PATCH, not the next document: Payload hands a collection `beforeChange` the
- * raw incoming data, merged with the stored doc only later, in the field-level hooks. So an absent
- * key means untouched — a present `null` is the clear. Read it as a document instead and the
- * sweep's own three-field stamp write erases the stamp it is writing.
+ * `patch` is an UPDATE PATCH, not the next document: an absent key means untouched — a present `null` is the clear.
  */
 export const resetNotificationBookkeeping = (
   stored: StoredFieldsT,

@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { baseRanksFromKeys, orderColumnKeys, rankForMove } from '@/lib/table/column-order'
 
-// The adapter's contract over an id list, which is all it ever hands the algebra. The React seam is
-// three props wide; the risk is in the ordering.
 const COLUMNS = ['date', 'amount', 'type', 'description']
 const BASE = baseRanksFromKeys(COLUMNS)
 
-// The one drop the dialog commits: it writes a single rank, then the table re-derives its order.
 function drop(from: string, toIndex: number, ranks = {}) {
   return orderColumnKeys(COLUMNS, {
     ...ranks,
@@ -20,8 +17,6 @@ describe('column order for a DataTable', () => {
   })
 
   it('sorts a column with no rank at its declared index, not at the end', () => {
-    // 'description' is unranked; it must stay last because that is where the code puts it — the
-    // whole reason ranks are sparse instead of a persisted array.
     expect(orderColumnKeys(COLUMNS, { date: 1.5 })).toEqual([
       'amount',
       'date',

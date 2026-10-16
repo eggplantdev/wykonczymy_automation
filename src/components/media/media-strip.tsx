@@ -11,11 +11,6 @@ import { isImageMime } from '@/lib/media/mime'
 import { cn } from '@/lib/utils/cn'
 import type { MediaFileT, PreviewLabelsT } from '@/types/media'
 
-/**
- * Picking which files travel with whatever the surface is about to do, which is NOT deleting them.
- * Opt-in: a checked tile goes. The caller seeds the set, so „wszystko domyślnie" and „nic domyślnie"
- * are its decision, and the wording is its too — only it knows what the files are being picked for.
- */
 type MediaStripPickT = {
   selectedIds: Set<number>
   onToggle: (file: MediaFileT) => void
@@ -25,26 +20,15 @@ type MediaStripPickT = {
 type MediaStripPropsT = {
   files: MediaFileT[]
   labels: PreviewLabelsT
-  /**
-   * The caller's, because the same strip renders at ~70px inside a dialog and ~265px in the wide
-   * gallery — one hardcoded value over-fetches 3× in the first and upscales visibly in the second.
-   */
   sizes: string
-  /** Same reason as `sizes`, and the two have to be changed together or the fetch goes wrong. */
   gridClassName?: string
   pick?: MediaStripPickT
-  /**
-   * Destructive, and the caller owns the confirmation — the strip only asks for it. Typed on the id
-   * alone because the same handler is reached from a tile (a `MediaFileT`) and from inside the
-   * preview, which hands back the page it has on screen as its own narrower file type.
-   */
   onRemove?: (file: { id?: number }, closePreview: () => void) => void
 }
 
 const OVERLAY_BUTTON =
   'bg-background/85 text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-full border shadow-sm'
 
-/** Thumbnails that open the shared preview dialog, and — with `pick` — carry their own checkbox. */
 export function MediaStrip({
   files,
   labels: callerLabels,
@@ -65,15 +49,10 @@ export function MediaStrip({
 
           return (
             <li key={file.id} className="relative">
-              {/* With a checkbox on the tile the tile itself is the checkbox — hitting a 24px box on
-                  a phone is the failure mode. The preview then needs its own affordance, hence the
-                  explicit magnifier below; without `pick` the whole tile still opens it. */}
               <button
                 type="button"
                 onClick={() => (pick ? pick.onToggle(file) : setOpenIndex(index))}
                 aria-pressed={pick ? isPicked : undefined}
-                // The filename is the only thing telling two site photos apart, so it is the label
-                // rather than a generic „otwórz".
                 aria-label={file.filename ?? labels.fallbackTitle}
                 className={cn(
                   'border-input bg-muted/40 hover:border-primary/50 relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border',

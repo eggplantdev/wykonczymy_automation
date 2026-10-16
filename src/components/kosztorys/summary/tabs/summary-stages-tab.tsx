@@ -17,24 +17,15 @@ import { stagesWithEntries } from '@/lib/kosztorys/settlement-columns'
 
 type PropsT = {
   stages: KosztorysStageT[]
-  // Per-etap „suma transzy" netto at the active view (stage id → net). Σ equals executedNet.
   stageTotals: Map<number, number>
-  // R netto — suma prac wykonanych: the executed total at the active view (Σ of the etap totals).
   executedNet: number
-  // Client-priced, view-invariant per-section subtotals — the „Udział sekcji" pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
   vatRate: number
-  // The investor's document lists only etapy with entries, like its grid and its PDF.
   preview?: boolean
 }
 
-// Both money columns regardless of the settlement mode: the pair is always computed, and reading
-// robocizna means comparing what the subcontractor settles against what the client is invoiced.
 const STAGES_AXIS: MoneyAxisT = 'both'
 
-// Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" Razem readout (sheet
-// r396/r397), beside the „Udział sekcji" section-share pie. Vertical like the Podsumowanie block —
-// etaps are rows, Netto/Brutto are the shared money columns — so the whole panel reads on one rhythm.
 export function SummaryStagesTab({
   stages,
   stageTotals,
@@ -50,8 +41,6 @@ export function SummaryStagesTab({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* Above the table, like the rozliczenie selects on the other tabs — it reads the same figures
-          the table lists, so it belongs at the head of the block rather than as its footnote. */}
       <KosztorysProgressCounter doneNet={doneNet} plannedNet={currentPlannedNet} />
       <div className="flex flex-col items-start gap-8 lg:flex-row">
         <div>

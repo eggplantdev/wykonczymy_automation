@@ -5,10 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 
-// `InvoiceCell` attaches a faktura via `setTransferInvoices`, which never sends `cancelledTransaction`
-// — the field the CANCELLATION hook requires. It doesn't 400 because Payload merges the stored doc
-// into `data` before `beforeValidate` on a Local API update — invisible from the hook's signature.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -108,7 +104,6 @@ describe.skipIf(!ENV_READY)('faktura on a CANCELLATION row (DB)', () => {
     expect(await attachedMediaIds()).toEqual([])
   })
 
-  // Positive control: the reference is still required where it is genuinely absent — a CREATE.
   it('still refuses a CANCELLATION create with no reference', async () => {
     await expect(
       payload.create({

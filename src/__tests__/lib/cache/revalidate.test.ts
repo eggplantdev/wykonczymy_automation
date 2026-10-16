@@ -3,12 +3,6 @@ import { updateTag, revalidateTag } from '@/__tests__/stubs/next-cache'
 import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
-// `deferRefresh` exists to keep the render out of per-cell autosave responses (EX-597), NOT to skip
-// invalidation. The distinction is invisible on the editor itself — it holds `rows` in local state
-// either way — and only shows up on the OTHER routes that read these tags, chiefly the client share
-// link. So the invariant worth pinning is that both branches expire every tag they are given; a
-// "simplification" that turned the deferred branch into a no-op would leave shared kosztorys links
-// serving stale figures indefinitely, with nothing in the editor to reveal it.
 describe('revalidateCollections', () => {
   beforeEach(() => {
     updateTag.mockReset()
@@ -29,9 +23,7 @@ describe('revalidateCollections', () => {
     revalidateCollections(['investments', 'kosztorysItems'], { deferRefresh: true })
 
     // Literals, not the imported constants: asserting against the constant the impl passes is a
-    // tautology that survives any value, including the two that break this branch — `'default'`,
-    // which never hard-expires, and `{ expire: 0 }`, which re-renders the route EX-597 stopped
-    // re-rendering. Both invariants are pinned here or nowhere.
+    // tautology that survives any value.
     expect(revalidateTag.mock.calls).toEqual([
       [CACHE_TAGS['investments'], { expire: 1 }],
       [CACHE_TAGS['kosztorysItems'], { expire: 1 }],
@@ -53,10 +45,6 @@ describe('revalidateCollections', () => {
   })
 })
 
-// EX-849: the gallery entry is keyed on one row, and the collection slug was expiring all 65 of
-// them on writes that touched none. The invariant worth pinning is that the per-row path carries
-// the tag through VERBATIM — a helper that re-derived it from a slug map would silently reintroduce
-// the collection-wide blast radius.
 describe('revalidateEntities', () => {
   beforeEach(() => {
     updateTag.mockReset()

@@ -142,7 +142,6 @@ export function parseTelmak(lines: string[], fileName: string): TelmakDocT {
   )
     problems.push(`numer w nazwie pliku (${fromName}) ≠ numer w dokumencie (${number})`)
 
-  // Without a remark the next line is the signature block, not a remark.
   const remarkAt = lines.indexOf('Uwagi:')
   const remark = remarkAt === -1 ? null : (lines[remarkAt + 1] ?? null)
   return {

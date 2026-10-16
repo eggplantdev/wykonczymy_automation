@@ -24,7 +24,6 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 
 export type WorkerPrintColumnsArgsT = {
   plane: ToolPlaneT
-  // Only the worker's own etapy — the projection's `tree.stages`.
   stages: KosztorysStageT[]
   hiddenColumns: readonly string[]
   columnRanks: ColumnRanksT
@@ -33,10 +32,8 @@ export type WorkerPrintColumnsArgsT = {
 }
 
 /**
- * The worker's printed columns: `workerDocumentColumns`, the list their podgląd renders from, capped by
- * `workerVisibleColumns` — so the paper can neither carry a column the settings bar from the screen
- * nor print one in another place. Priced in grosze, unlike the offer: a stawka of 7,50 zł rounded to
- * „8 zł" is a different rate, not a tidier one.
+ * Priced in grosze, unlike the offer: a stawka of 7,50 zł rounded to „8 zł" is a different rate,
+ * not a tidier one.
  */
 export function workerPrintColumns({
   plane,

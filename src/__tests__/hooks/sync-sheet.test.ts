@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// after() fires the callback immediately and we capture its (async) promise so the
-// test can await the lazily-imported sync before asserting.
 const hoisted = vi.hoisted(() => ({ pending: [] as Promise<unknown>[] }))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -13,8 +11,6 @@ vi.mock('next/server', async (importOriginal) => {
   }
 })
 
-// The sync boundary is lazily imported inside after() — mock the module so the
-// dynamic import resolves to spies.
 const mockSyncSingle = vi.fn()
 const mockRemoveFromSheet = vi.fn()
 vi.mock('@/lib/actions/sheets-sync', () => ({
@@ -24,7 +20,6 @@ vi.mock('@/lib/actions/sheets-sync', () => ({
 
 const { syncSheetAfterChange, syncSheetAfterDelete } = await import('@/hooks/transfers/sync-sheet')
 
-// Await every after() callback the hook scheduled (each lazily imports the sync module).
 const flush = () => Promise.all(hoisted.pending)
 
 const change = async (args: object) => {

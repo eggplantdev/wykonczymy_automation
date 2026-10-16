@@ -36,8 +36,6 @@ export const WorkCatalogueItems: CollectionConfig = {
       defaultValue: {},
     },
     {
-      // House knowledge about this praca, kept beside its cennik row so every kosztorys and szablon
-      // using the praca reads the same text. Never reaches the client.
       name: 'workNote',
       type: 'textarea',
       label: { en: 'Work note', pl: 'Komentarz do pracy' },
@@ -75,9 +73,7 @@ export const WorkCatalogueItems: CollectionConfig = {
       label: { en: 'Rate without tools', pl: 'Stawka bez narzędzi (pracownik)' },
     },
     {
-      // The multiplier twin of the two rates above (EX-865): the katalog names a RATIO against the
-      // cena j.m. instead of a frozen złotówka, so the praca reprices itself in whichever rozpiska
-      // it lands in. At most one of a plane's pair is ever non-null.
+      // At most one of a plane's pair is ever non-null.
       name: 'wToolsRateCoeff',
       type: 'number',
       min: 0,
@@ -90,12 +86,10 @@ export const WorkCatalogueItems: CollectionConfig = {
       label: { en: 'Multiplier without tools', pl: 'Mnożnik bez narzędzi (pracownik)' },
     },
     {
-      // Derived from opis + j.m. by `catalogueKey`, never typed. Hidden because a hand-edited key
-      // would decouple the UNIQUE index from the identity it is supposed to enforce.
+      // Derived from opis + j.m. by `catalogueKey`, never typed.
       name: 'matchKey',
       type: 'text',
       required: true,
-      // Unique index lives in the migration too (20260901_0) — single-column, so the two agree.
       unique: true,
       admin: { hidden: true },
     },

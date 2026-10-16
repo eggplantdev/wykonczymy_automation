@@ -28,7 +28,6 @@ export const REPORT_SCOPE_REFUSAL_NOTICE_KEYS: Record<
   'stages-completed': 'stagesCompleted',
 }
 
-// The management twin of the worker's `stagesCompleted` notice — it names the worker, not „you".
 export const WORKER_STAGES_COMPLETED_MESSAGE =
   'Wszystkie etapy pracownika na tej inwestycji są zakończone — nie przyjmie już zgłoszeń prac.'
 

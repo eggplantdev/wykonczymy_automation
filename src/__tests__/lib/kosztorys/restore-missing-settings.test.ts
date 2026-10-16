@@ -6,14 +6,6 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// `settings` reached the payload later than the payload itself, so a snapshot captured before it has
-// no such key. The wipe runs BEFORE the settings write, so dereferencing the absent key would throw a
-// TypeError with the live tree already deleted — the transaction rolls back and that row becomes
-// permanently unrestorable. A year of retention is what makes such a row reachable at all.
-//
-// Two things are asserted, both on persisted state: the tree came back, and the investment's CURRENT
-// coefficients were left alone rather than zeroed — a payload that says nothing about the settings is
-// not a payload asking for them to be reset.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))

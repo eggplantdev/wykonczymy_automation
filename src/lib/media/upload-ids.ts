@@ -4,16 +4,13 @@ import { UploadRefusedError } from '@/lib/media/upload-refused'
 import { translate } from '@/lib/i18n/translations'
 import type { MediaKindT } from '@/types/media'
 
-// Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
-// attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
 const UPLOAD_CONCURRENCY = 4
 
 export const UPLOAD_FAILED = translate('pl', 'notices', 'uploadFailed')
 
 /**
- * Thrown when any page of a submit fails to upload. Carries the ids that DID land, because those
- * files are already in Blob with nothing referencing them — the caller has to hand them to the
- * orphan cleanup or they leak. Multi-page submits made this the common failure, not the rare one.
+ * Carries the ids that DID land, because those files are already in Blob with nothing referencing
+ * them — the caller has to hand them to the orphan cleanup or they leak.
  */
 export class MediaUploadError extends Error {
   constructor(
@@ -26,13 +23,9 @@ export class MediaUploadError extends Error {
 }
 
 /**
- * Positional mediaId lists for submit. Per row index: upload every attached file in order; a row
- * with no files gets an empty list. The concurrency cap bounds total files in flight rather than
- * rows — one row can carry a whole multi-page invoice on its own.
- *
- * A failure throws `MediaUploadError` carrying whatever already landed. Failures are caught per
- * page rather than propagated out of `mapWithConcurrency`, because that call rejects on the first
- * one while its other workers keep going — the ids they produce afterwards would be unrecoverable.
+ * Failures are caught per page rather than propagated out of `mapWithConcurrency`, because that call
+ * rejects on the first one while its other workers keep going — the ids they produce afterwards
+ * would be unrecoverable.
  */
 export async function resolveUploadIdRows(
   count: number,
@@ -45,13 +38,10 @@ export async function resolveUploadIdRows(
 
   let failure: UploadRefusedError | undefined
   const mediaIds = await mapWithConcurrency(pages, UPLOAD_CONCURRENCY, async ({ file }) => {
-    // Once one page is lost the submit is doomed, so don't spend the user's bandwidth (and Blob
-    // storage) uploading the rest of a 20-page batch just to delete it again.
     if (failure) return undefined
     try {
       return await uploadMediaBySize(file, kind)
     } catch (err) {
-      // A failed request or the Blob SDK speaks English; only a refusal is worded for the user.
       failure ??=
         err instanceof UploadRefusedError
           ? err

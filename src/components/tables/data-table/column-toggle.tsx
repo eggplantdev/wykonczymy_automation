@@ -33,8 +33,7 @@ export function ColumnToggle<TData>({
   setTextSize,
 }: ColumnTogglePropsT<TData>) {
   // getAllLeafColumns applies the table's columnOrder; getAllColumns would hand both surfaces the
-  // declaration order, so the dialog would open showing the state before the last drag. The base
-  // ranks are the other half of that pair and must come from the declared order — hence the prop.
+  // declaration order, so the dialog would open showing the state before the last drag.
   const { t } = useTranslation('filters')
   const columns = table.getAllLeafColumns().filter((col) => col.getCanHide())
   const items: ColumnToggleItemT[] = columns.map((col) => ({

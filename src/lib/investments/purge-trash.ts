@@ -20,6 +20,5 @@ export async function purgeTrash(payload: Payload, db: DbExecutorT) {
     entity: 'investment',
   })
 
-  // Past retention but with a used kosztorys — only the owner can delete those, by name.
   return { ...tally, skippedKosztorys }
 }

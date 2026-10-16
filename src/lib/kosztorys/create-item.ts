@@ -4,11 +4,8 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysSectionT } from '@/lib/kosztorys/types'
 
-// A freshly created row, identified by id and where it landed in its parent's ordering.
 export type NewRowT = { id: number; displayOrder: number }
 
-// The append path needs the owner AND the slot to append at, and they share one section lookup.
-//
 // Append slot = MAX(display_order)+1, not COUNT: removeItemAction leaves gaps, so counting would
 // collide with a surviving row after any middle delete.
 export async function sectionOwnerAndNextItemOrder(
@@ -31,8 +28,6 @@ export async function sectionOwnerAndNextItemOrder(
   return {
     investmentId: Number(row.investment),
     nextDisplayOrder: Number(row.next ?? 0),
-    // Carried along because the batch-append path has to hand the grid a whole section slice, and
-    // this lookup already has the row in hand.
     section: {
       id: sectionId,
       name: String(row.name),

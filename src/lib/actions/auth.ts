@@ -27,7 +27,6 @@ export async function loginAction(data: {
 
     return { success: true }
   } catch (error) {
-    // Payload locks the account after maxLoginAttempts (default 5, lockTime 10 min).
     return { success: false, error: loginRefusalMessage(error) ?? 'Nieprawidłowy email lub hasło' }
   }
 }

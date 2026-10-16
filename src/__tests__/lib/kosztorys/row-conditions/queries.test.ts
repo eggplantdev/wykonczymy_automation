@@ -36,8 +36,6 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
     expect(ids(applyRowConditions(rows, ['no-client-price'], CTX))).toEqual([1, 3])
   })
 
-  // The vanish-under-your-hands bug: the first digit of a cena makes „bez ceny j.m." false, and the
-  // row it was typed into left the grid mid-keystroke.
   it('keeps a latched row a diagnostic has stopped matching', () => {
     expect(ids(applyRowConditions(rows, ['no-client-price'], CTX, new Set([4])))).toEqual([1, 3, 4])
   })
@@ -50,8 +48,6 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
     expect(ids(applyRowConditions(rows, ['no-planned-qty', 'no-client-price'], CTX))).toEqual([3])
   })
 
-  // The bug this rule exists to prevent: under AND, „bez ceny j.m. (9)" + „z rozjazdem pomiaru (5)"
-  // asked for pozycje that are both at once — none — so the grid blanked while the badges promised 14.
   it('unions two diagnostics rather than intersecting them', () => {
     const divergedRows = [
       row({ id: 5, clientPrice: 100, sheetMeasuredQty: 95, [stageKey(1)]: 55 }),
@@ -74,7 +70,6 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
     expect(ids(applyRowConditions(clientRows, ['client-empty'], CTX))).toEqual([2, 3])
   })
 
-  // The owner cannot untick it for themselves, and a client never sees a menu at all.
   it('keeps the client condition out of the „Filtry" menu', () => {
     expect(engagedConditionsOfKind(new Set(['client-empty']), 'filter')).toEqual([])
     expect(engagedConditionsOfKind(new Set(['client-empty']), 'client').map((c) => c.id)).toEqual([
@@ -148,21 +143,15 @@ describe('sectionIdsWhereAllMatch — „wszystkie co do jednej", not „suma = 
   })
 })
 
-// Narrowing to „pozycje bez ceny j.m." while „Cena j.m." is unticked in the column picker shows the
-// right rows with the missing thing still missing — the whole point of the reveal.
 describe('columnsRevealedBy', () => {
   it('reveals nothing while nothing is engaged', () => {
     expect([...columnsRevealedBy([])]).toEqual([])
   })
 
-  // The price is the symptom; „Cena j.m." and „Źródło ceny wykonawcy" are the only way to change it,
-  // so revealing the symptom alone would show a number nobody can act on.
   it('brings the two cells that compute a stawka along with the stawka', () => {
     expect(columnsRevealedBy(['negative-rate-w-tools'])).toEqual(new Set(priceCells('w_tools')))
   })
 
-  // …and only that crew's: the other plane's stawka is not what the problem is about, even though its
-  // columns are now assembled in the same view.
   it('leaves the other plane alone', () => {
     const revealed = columnsRevealedBy(['negative-rate-w-tools'])
     expect(revealed.has(planePriceKey('price', 'own_tools'))).toBe(false)
@@ -173,9 +162,6 @@ describe('columnsRevealedBy', () => {
     expect(revealed).toEqual(new Set(priceCells('w_tools', 'own_tools')))
   })
 
-  // The subcontractor stawki derive from the client price, so a missing cena j.m. is a missing stawka
-  // too — on BOTH planes at once, which is why this one problem reveals everything the two guards
-  // above split between them.
   it('gives a missing cena j.m. every cell the fix could be typed into', () => {
     expect(columnsRevealedBy(['no-client-price'])).toEqual(
       new Set(priceCells('w_tools', 'own_tools')),
@@ -190,17 +176,12 @@ describe('columnsRevealedBy', () => {
     )
   })
 
-  // A problem that claims work was executed has to put that work on screen, or the claim cannot be
-  // checked against the pozycja it narrowed to.
   it('adds the pomiar to the price cells when the problem is about executed work', () => {
     expect(columnsRevealedBy(['no-client-price-with-work'])).toEqual(
       new Set([...priceCells('w_tools', 'own_tools'), 'stageQtySum']),
     )
   })
 
-  // Every „jaka jest ta stawka" filter narrows on a figure that starts hidden, so each one has to
-  // bring its own crew's stawka along — otherwise unticking one leaves the right pozycje on screen
-  // with the thing they were selected by invisible.
   it('brings its own crew’s stawka along when narrowing by the rate itself', () => {
     for (const id of [
       'manual-rate-w-tools',
@@ -222,16 +203,11 @@ describe('columnsRevealedBy', () => {
     }
   })
 
-  // Same rule as the rest of the registry: an id persisted under a condition since removed must be
-  // inert, never a reveal of something nobody asked for.
   it('ignores an unknown id and a condition that reveals nothing', () => {
     expect([...columnsRevealedBy(['nie-ma-takiego', 'no-planned-qty'])]).toEqual([])
   })
 })
 
-// The engaged set is what SURVIVES a reload, so the plane has to be readable from it. Remembered
-// separately it was lost on refresh, and the narrowing came back judged on a view the grid was no
-// longer showing.
 describe('engagedPlane', () => {
   it('reads the plane straight off whatever is engaged', () => {
     expect(engagedPlane(['negative-rate-own-tools'])).toBe('own_tools')
@@ -242,17 +218,14 @@ describe('engagedPlane', () => {
     expect(engagedPlane(['no-client-price', 'stage-no-plane'])).toBeUndefined()
   })
 
-  // A filter must never move the view: it is a picker row, not a gesture, and unticking the other half
-  // of its pair names the same plane and so could never undo the move. Filters DO carry a plane (the
-  // „Stawki wykonawców" axis reads it), which is why the premise is asserted rather than assumed —
-  // the one guard left is that `engagedPlane` asks diagnostics only.
+  // Filters DO carry a plane (the „Stawki wykonawców" axis reads it), which is why the premise
+  // is asserted rather than assumed
   it('ignores a filter’s plane, and answers for the problem beside it', () => {
     expect(ROW_CONDITIONS.filter((c) => c.kind === 'filter').some((c) => c.plane)).toBe(true)
     expect(engagedPlane(['manual-rate-w-tools'])).toBeUndefined()
     expect(engagedPlane(['manual-rate-w-tools', 'negative-rate-own-tools'])).toBe('own_tools')
   })
 
-  // A stale id from an older registry must not make the grid unreadable — it is skipped, not fatal.
   it('skips an id it does not recognise', () => {
     expect(engagedPlane(['nie-ma-takiego', 'negative-rate-w-tools'])).toBe('w_tools')
   })
@@ -270,16 +243,10 @@ describe('isFoldSuppressed', () => {
     expect(isFoldSuppressed('gładź', NOTHING)).toBe(true)
   })
 
-  // The rule the archived instalment recorded and only search actually kept: a hit inside a folded
-  // sekcja is a hit the user is told does not exist, and an unticked filter buries one exactly like a
-  // search does.
   it('stands them down under an engaged filter too', () => {
     expect(isFoldSuppressed('', new Set(['no-planned-qty']))).toBe(true)
   })
 
-  // The client's hider is engaged by the investment's stored share settings, not by a reading
-  // gesture — and it defaults on. Suppressing folds for it would mean no shared kosztorys could ever
-  // arrive folded, which is the whole point of the owner folding sekcje before sharing.
   it('leaves the folds standing under the client‘s own hider, which is a stored setting', () => {
     expect(isFoldSuppressed('', new Set(['client-empty']))).toBe(false)
   })
@@ -308,9 +275,6 @@ describe('editorConditionIds', () => {
   })
 })
 
-// The owner's „Ukryj pozycje bez przedmiaru i bez wykonanej pracy" reaching the client's document is
-// a two-step wiring — stored flag → engaged condition → rows removed — and only the storage half had
-// a guard. A hook refactor deleted the middle step once without a single test going red.
 describe('clientConditionIds', () => {
   it('engages the client condition only when the owner stored the decision', () => {
     expect([...clientConditionIds(true)]).toEqual(['client-empty'])
@@ -349,15 +313,12 @@ describe('offeredFilterConditions', () => {
     expect(offeredIds()).toContain('has-note')
   })
 
-  // A stawka filter is asked from whichever plane is on; the removed view gate is argued in full at
-  // `offeredFilterConditions`.
   it('offers both planes\u2019 stawka filters regardless of the view', () => {
     expect(offeredIds()).toEqual(
       expect.arrayContaining(['manual-rate-w-tools', 'manual-rate-own-tools']),
     )
   })
 
-  // Under a global rabat the per-item rabat applies to nothing and its columns leave the grid.
   it('withdraws the rabat pair once a global rabat is on', () => {
     expect(offeredIds([], true)).not.toContain('has-discount')
     expect(offeredIds([], true)).not.toContain('no-discount')

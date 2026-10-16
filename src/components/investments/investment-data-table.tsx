@@ -20,7 +20,7 @@ import {
   SettlePayoutsDialog,
   type SettleDialogTargetT,
 } from '@/components/dialogs/settle-payouts-dialog'
-import type { PresetMetaT } from '@/lib/db/presets'
+import type { TemplateMetaT } from '@/lib/db/templates'
 import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { isClosedStatus } from '@/lib/constants/investment-status'
 
@@ -36,7 +36,7 @@ const INITIAL_SORTING = [{ id: 'createdAt', desc: true }]
 
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
-  presets: PresetMetaT[]
+  presets: TemplateMetaT[]
 }
 
 export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT) {
@@ -85,8 +85,6 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         getRowHref={(row) => `/inwestycje/${row.id}`}
         getRowClassName={(row) => (isClosedStatus(row.status) ? 'opacity-50' : '')}
         toolbar={({ table, columnVisibility: cv, ...order }) => {
-          // Ticked unless the picker (or a previous untick) has switched one off — absent from the
-          // stored state means visible, which is what „domyślnie zaznaczony" has to mean here.
           const v2Shown = V2_COLUMN_IDS.every((id) => cv[id] !== false)
           return (
             <DataTableToolbar
@@ -106,8 +104,6 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
                     icon={Sparkles}
                     triggerClassName={GRID_FILTER_TRIGGER_CLASS}
                   />
-                  {/* Flipping it writes the same visibility state the picker does, so the two never
-                    disagree about what is on screen. */}
                   <ActiveFilterButton
                     isActive={v2Shown}
                     onChange={(next) =>

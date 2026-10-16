@@ -12,7 +12,6 @@ import { reportHref } from '@/lib/kosztorys/worker-report/report-param'
 import { readScanWorkers } from '@/lib/queries/worker-reports'
 import { toastMessage } from '@/lib/utils/toast'
 
-/** „Zgłoszenia prac" entry: the kierownik picks the worker and the investment, then lands in review. */
 export function ScanReportButton() {
   const router = useRouter()
   const [open, setOpen] = useState(false)

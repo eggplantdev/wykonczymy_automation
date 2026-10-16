@@ -7,8 +7,6 @@ import type { RoleT } from '@/lib/auth/roles'
 const NOW = new Date('2026-09-28T10:00:00.000Z')
 const EARLIER = '2026-01-15T08:00:00.000Z'
 
-// Through the collection's own beforeChange array, so a refused unlock aborts the save the way Payload
-// does — the stamp's cleared date never reaches the row.
 async function save(
   data: Record<string, unknown>,
   originalDoc: Record<string, unknown> | undefined,

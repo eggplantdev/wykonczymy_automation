@@ -7,11 +7,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { PieSliceLegend, type PieSliceT } from '@/components/ui/pie-legend'
 import { formatPercent } from '@/lib/kosztorys/format'
 
-// Shared skeleton for the footer pies: recharts donut + legend. `caption` is optional — the legend
-// names every slice and the surrounding tab supplies the context, so a pie only titles itself when it
-// carries an `action` the title has to explain. `formatValue` renders slice figures in the tooltip
-// and legend — the caller owns units/locale, so this stays domain-free. Omit it for a share-only pie:
-// both fall back to the percent.
 export function SlicePie({
   caption,
   action,
@@ -23,16 +18,9 @@ export function SlicePie({
   slices: PieSliceT[]
   formatValue?: (value: number) => string
 }) {
-  // recharts derives each wedge's angle from value / totalSum. A negative total (one slice far
-  // outweighing the rest, e.g. a mistyped section figure) makes that math degenerate and the pie
-  // renders nothing — indistinguishable from "no data" unless we call out the bad total explicitly.
-  // Zero is a legitimate default (no figures yet, or a balanced cancel-out) — only negative is a mistake.
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
   const isInvalidTotal = slices.length > 0 && total < 0
 
-  // A share-of-whole chart needs shares to compare: one filled slice is always 100% of itself, so it
-  // states what the table beside it already says and costs a screenful doing it. The bad-total alarm
-  // still gets through — that is a data fault worth reporting whatever the slice count.
   if (!isInvalidTotal && slices.filter((slice) => slice.value !== 0).length < 2) return null
 
   return (
@@ -53,8 +41,6 @@ export function SlicePie({
       ) : (
         <ChartContainer className="mx-auto h-40 w-40">
           <PieChart>
-            {/* Each summary tab mounts fresh on switch, so the default intro sweep would replay on every
-                tab change — off, since the pie is a static readout, not a transition. */}
             <Pie
               data={slices}
               dataKey="value"

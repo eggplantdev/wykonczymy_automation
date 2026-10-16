@@ -12,24 +12,12 @@ import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
   investmentId: number
-  // Fields with no column, offered a pick here. The two windows split required and optional across
-  // different blocks, so the caller says which ones this instance owns.
   missing: ColumnFieldT[]
-  // Fields whose column came from an earlier pick — the only ones that can be taken back.
   pointed: ColumnFieldT[]
   candidates: CandidateColumnT[]
   onSaved: () => void
 }
 
-/**
- * Pointing a field at a column of the owner's own sheet. Both windows use this: „Pobierz" and
- * „Porównaj" read the same stored pointing, so two copies would have drifted the moment either
- * one changed.
- *
- * Saves on the pick rather than behind a confirm button — the pointing is not part of the import, it
- * is a fact about the sheet that outlives the window. The parent re-reads afterwards, which is what
- * makes the pick visible; the control stays disabled until it does.
- */
 export function SheetColumnPicker({ investmentId, missing, pointed, candidates, onSaved }: PropsT) {
   const [pending, startTransition] = useTransition()
   const options = toColumnOptions(candidates)

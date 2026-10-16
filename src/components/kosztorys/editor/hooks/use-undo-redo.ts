@@ -2,18 +2,12 @@
 
 import { useState } from 'react'
 
-// One reversible editor action. `undo` applies the "before" state, `redo` re-applies the "after".
-// Both are captured at the seam that already computed both values (the grid diff / a panel handler),
-// so the command only *records* how to reverse an edit that has already persisted through the normal
-// autosave path — it does not itself perform the original write.
 export type UndoCommandT = {
   label: string
   undo: () => void | Promise<void>
   redo: () => void | Promise<void>
-  // Item ids this command reads/writes. A command whose touched rows are deleted must be pruned from
-  // the stack (EX-526 #2): replaying it would fire writes against a dead id (and `setStageProgressAction`
-  // is an absolute upsert that would recreate an orphan row). Omitted for structural commands (global
-  // coeff / VAT / discount) that aren't tied to a specific deletable item.
+  // replaying it would fire writes against a dead id (and `setStageProgressAction`
+  // is an absolute upsert that would recreate an orphan row).
   touchedIds?: number[]
 }
 
@@ -23,23 +17,14 @@ export type UndoRedoApiT = {
   redo: () => void
   canUndo: boolean
   canRedo: boolean
-  // Monotonic mutation counter — drives the toolbar disabled-states and the S-06 snapshot dirty-gate
-  // (a tick with an unchanged revision means nothing was edited/undone/redone since the last one).
   revision: number
   reset: () => void
-  // Drop every command (from both stacks) that touches any of these now-deleted ids (EX-526 #2).
   pruneByIds: (ids: number[]) => void
-  // Only while the top is still the command the caller pushed — see the stack core below.
   amendTop: (expected: UndoCommandT, replacement: UndoCommandT | null) => boolean
 }
 
-// Bound so a long session can't grow the stack without limit; the oldest entry is evicted first.
 export const MAX_DEPTH = 50
 
-// Pure, React-free stack core — the whole ordering contract (LIFO undo/redo, redo cleared on a fresh
-// push, depth-cap eviction, revision bump) lives here so it's unit-testable without a DOM. `undo()` /
-// `redo()` only move a command between stacks and hand it back; the caller executes it. Keeping this
-// out of the hook is what lets the tests exercise the logic directly.
 export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
   let undoStack: UndoCommandT[] = []
   let redoStack: UndoCommandT[] = []
@@ -49,7 +34,7 @@ export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
     push(command: UndoCommandT) {
       undoStack.push(command)
       if (undoStack.length > maxDepth) undoStack.shift()
-      redoStack = [] // a fresh edit invalidates any redo path
+      redoStack = []
       revision++
     },
     undo(): UndoCommandT | undefined {
@@ -71,9 +56,7 @@ export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
       redoStack = []
       revision++
     },
-    // Rewrite the top command in place, or drop it when `replacement` is null. Guarded on identity
-    // rather than on position: a caller that pushed a command and later finds it retracted (EX-737)
-    // may only amend a top it still owns, so anything pushed / undone / pruned since silently makes
+    // anything pushed / undone / pruned since silently makes
     // this a no-op instead of rewriting a command the caller never saw.
     amendTop(expected: UndoCommandT, replacement: UndoCommandT | null): boolean {
       if (undoStack[undoStack.length - 1] !== expected) return false
@@ -82,8 +65,7 @@ export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
       revision++
       return true
     },
-    // Prune commands referencing a deleted id from both stacks. A command with no `touchedIds`
-    // (structural) is never id-scoped, so it survives. Only bumps the revision if something was
+    // Only bumps the revision if something was
     // actually removed, so an unrelated delete doesn't churn the snapshot dirty-gate.
     pruneByIds(ids: number[]) {
       if (ids.length === 0) return
@@ -113,11 +95,7 @@ export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
   }
 }
 
-// In-session undo/redo. The stack core is held in useState's lazy initializer — created once, stable
-// identity across renders, and (unlike a ref) legal to read during render, so canUndo / canRedo /
-// revision come straight off it. Mutating it doesn't itself re-render, so a bump counter forces the
-// re-render that re-reads those getters. Instantiate ONCE per editor mount (in the shell) and pass to
-// the body as a prop — never a module singleton, or two editors would share one stack.
+// never a module singleton, or two editors would share one stack.
 export function useUndoRedo(): UndoRedoApiT {
   const [stack] = useState(createUndoRedoStack)
   const [, bump] = useState(0)
@@ -169,8 +147,6 @@ export function useUndoRedo(): UndoRedoApiT {
   }
 }
 
-// The read-only client body renders without the shell, so it gets no stack — nothing there is mutable.
-// It defaults its `undoRedo` prop to this inert API rather than special-casing every call.
 export const NOOP_UNDO_REDO: UndoRedoApiT = {
   push: () => {},
   undo: () => {},

@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { isNoResultsSentinel } from '@/lib/db/where-to-sql'
 
-// Risk #22: the scope is the worker page's whole access boundary — a URL filter may narrow it,
-// never replace it.
-
 const SCOPE = workerTransferScope(25, [37, 41])
 
 const whereFor = (searchParams: Record<string, string>) =>

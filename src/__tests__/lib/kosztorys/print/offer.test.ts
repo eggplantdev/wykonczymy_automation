@@ -23,12 +23,7 @@ import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 const VAT_RATE = 0.08
 
-// The oracle for every sum is the editor's own figure, never a hand-added column — that equality IS
-// the contract this module was rewritten for: the paper prints the application's number.
-//
-// `view` defaults to 'client' but is a PARAMETER, because production hands `columnTotalsForRows` the
-// editor's ACTIVE plane, which can be a subcontractor one. The offer is a client document either way,
-// and what makes that true is `column-totals.ts` pinning `plannedNet` to 'client' internally — an
+// `column-totals.ts` pinning `plannedNet` to 'client' internally — an
 // invariant declared in another module. Fixing the oracle at 'client' would let that pin be deleted
 // with this spec still green, so one case below drives it from a subcontractor plane.
 function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
@@ -43,8 +38,6 @@ function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
   }
 }
 
-// The offer as an owner who never opened the dialog gets it; `hiding` takes columns off that and
-// `showing` puts back one the default hides.
 const DEFAULT_SETTINGS = sanitizeClientViewSettings({})
 const hiding = (...keys: string[]) => ({
   settings: { ...DEFAULT_SETTINGS, hiddenColumns: [...DEFAULT_SETTINGS.hiddenColumns, ...keys] },
@@ -56,8 +49,7 @@ const showing = (...keys: string[]) => ({
   },
 })
 
-// „Pozostało" prints only once an etap has an entry. A case about the money column's neighbours gets
-// that entry with every settlement column hidden, so the table keeps the offer's narrow layout.
+// „Pozostało" prints only once an etap has an entry.
 const withEntry = (fields: Partial<KosztorysV2RowT>) =>
   row({ ...fields, [stageKey(CTX.stages[0]!.id)]: 1 })
 const SETTLEMENT_KEYS = [
@@ -206,8 +198,6 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 
     const out = html(rows, showingRemainingOnly())
 
-    // The label spans everything left of the money column and the cells to its right are empty, so the
-    // figure lands under its own heading however many columns the offer grows.
     expect(out).toContain(
       `Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}</td><td></td></tr>`,
     )
@@ -228,8 +218,6 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
   })
 })
 
-// The same rule the podgląd applies (`investorEmptyColumnIds`), so paper and screen agree column
-// for column.
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
   const [stage1, stage2] = CTX.stages
 
@@ -273,8 +261,6 @@ describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => 
   })
 })
 
-// EX-921: before the first entry the investor gets the pure offer — no Aktualizacja przedmiaru and no
-// „Pozostało", even ticked. After it the Aktualizacja joins, ticked by default; its value stays off.
 describe('buildOfferPrintHtml — oferta przed pierwszym wpisem', () => {
   const ticked = showing('remaining', 'currentPlannedNet')
 
@@ -346,9 +332,6 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
   })
 
   it('wiersz sumy sekcji mieści się w kolumnach, gdy „Wartość netto" jest pierwsza', () => {
-    // Everything left of „Wartość netto" hidden: two columns remain, and the „Razem" label still has to
-    // take one of them. The colspan floor and the filler count were derived from two different figures,
-    // so the row carried a third cell into a two-column table and the browser grew a phantom column.
     const rows = [
       withEntry({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
     ]
@@ -415,8 +398,6 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
 })
 
 describe('sufit ujawniania', () => {
-  // The one that fails when someone adds a column: the client's document may never outgrow the set
-  // the client-view dialog is built from.
   it('każda kolumna dokumentu inwestora mieści się w PREVIEW_VISIBLE_COLUMNS', () => {
     for (const key of CLIENT_DOCUMENT_COLUMNS) expect(PREVIEW_VISIBLE_COLUMNS.has(key)).toBe(true)
   })
@@ -441,8 +422,6 @@ describe('sufit ujawniania', () => {
   })
 })
 
-// The grid's own rule (`column-selection.ts`): while the global discount is on, the per-item rabat
-// fields are bypassed, so their columns would print a rabat beside a zero kwota rabatu.
 describe('rabat globalny', () => {
   const discountRow = (globalDiscountActive: boolean) =>
     row({ discountType: 'percent', discountValue: 10, globalDiscountActive })

@@ -42,8 +42,6 @@ const PRE_IMPORT_LABEL = 'Przed importem z arkusza Google'
 export type ImportPreviewT = {
   report: ImportReportT
   problems: string[]
-  // What the owner may point a field at. Filled on a refused read and on a resolved one alike: an
-  // optional column nobody recognised is the same pick, made with the import still available.
   columns: UnresolvedColumnsT
   failure: SheetFailureT | null
 }
@@ -54,14 +52,9 @@ export type RefreshMeasuredQtyResultT = {
   unmatched: number
 }
 
-// Both halves are null whenever `failure` is set or `problems` is non-empty: the comparison
-// describes a read that did not happen, and the refresh is deliberately skipped — writing a figure
-// off a sheet we could not read would be worse than leaving the stored one alone.
 export type SheetCompareResultT = {
   comparison: SheetComparisonT | null
   refresh: RefreshMeasuredQtyResultT | null
-  // An unreadable header travels as data here for the same reason a failed read does: this window is
-  // where the owner points at the column, and a red toast has nowhere to put the pick.
   problems: string[]
   columns: UnresolvedColumnsT
   failure: SheetFailureT | null
@@ -74,8 +67,6 @@ export type ApplyImportResultT = {
   droppedWorkerAssignments: number
 }
 
-// Reading the sheet and merging it with the current tree — the single derivation both actions run,
-// so the preview can never describe an import different from the one apply performs.
 async function derivePlan(
   investmentId: number,
   sheet: InvestmentSheetT,
@@ -99,9 +90,6 @@ const FAILURE_MESSAGES: Record<SheetFailureReasonT, string> = {
   unknown: 'Nie udało się odczytać arkusza Google. Spróbuj ponownie za chwilę.',
 }
 
-// Google's own errors are English, unactionable („The caller does not have permission") and would
-// land in a Polish toast — so the reason is translated here. Only a genuine outage is logged: a
-// sheet nobody shared is not a fault worth reporting, it is a thing the owner has to do.
 function toSheetFailure(error: unknown): SheetFailureT {
   const reason = classifySheetFailure(error)
   if (reason === 'unknown') {
@@ -111,7 +99,6 @@ function toSheetFailure(error: unknown): SheetFailureT {
   return { reason, serviceAccountEmail: reason === 'forbidden' ? serviceAccountEmail() : null }
 }
 
-// „Pobierz i zastąp" has nothing to render — it refuses the write and says why in one sentence.
 function sheetFailureMessage(error: unknown): string {
   return FAILURE_MESSAGES[toSheetFailure(error).reason]
 }
@@ -130,8 +117,6 @@ export async function previewKosztorysImport(
         candidates: plan.candidates,
         pointedFields: plan.pointedFields,
       }
-      // The tree stays on the server: the browser has no use for it, and shipping it would invite a
-      // round-trip that apply would have to distrust anyway.
       return plan.ok
         ? { success: true, data: { report: plan.report, problems: [], columns, failure: null } }
         : {
@@ -152,12 +137,8 @@ export async function previewKosztorysImport(
   })
 }
 
-// A sheet that never arrived says nothing about its columns — no field is missing and no column is a
-// candidate, because there was no header to read.
 const NO_COLUMNS: UnresolvedColumnsT = { missingFields: [], candidates: [], pointedFields: [] }
 
-// A failed resolution still renders a dialog, so the preview needs a report shape to render nothing
-// with — the problems list is what the owner reads and the confirm button is what it disables.
 function emptyReport(): ImportReportT {
   return {
     missingColumns: [],
@@ -171,19 +152,7 @@ function emptyReport(): ImportReportT {
 }
 
 /**
- * „Porównaj z arkuszem" — a live read that also refreshes the stored reference quantity, in one pass.
- *
- * The refresh is not a decision: the stored figure is a copy of the sheet's Pomiar, so once the sheet
- * has been read live, „keep the stale copy" is not an answer anybody would pick (owner, 2026-08-14).
- * Folding it in here also keeps it to ONE sheet read — two actions each calling `readImportGrids`
- * would have doubled the Google round-trip for a single open.
- *
- * Lives here rather than in `lib/queries` (where an on-demand client read normally belongs) because
- * it shares `getInvestmentSheetId`, `readImportGrids` and `sheetFailureMessage` with the import pair
- * above — splitting them would duplicate the failure-message translation and give the two
- * sheet-reading dialogs two different error shapes.
- *
- * Gated like an import, not like a read: that refresh is an `UPDATE kosztorys_items`, so on a
+ * that refresh is an `UPDATE kosztorys_items`, so on a
  * zakończona inwestycja this is a write wearing a comparison's name.
  */
 export async function compareWithSheet(
@@ -199,7 +168,7 @@ export async function compareWithSheet(
       let grids: Awaited<ReturnType<typeof readImportGrids>>
       // Outside the try on purpose: this one reads the database, and the catch below translates
       // every failure into „nie udało się odczytać arkusza Google", which would blame the wrong
-      // system and hand the owner retry advice that cannot help.
+      // system
       const treeBeforeWrite = await serializeKosztorys(investmentId)
       try {
         grids = await readImportGrids(getReadonlySheetsClient(), sheet.googleSheetId)
@@ -216,9 +185,6 @@ export async function compareWithSheet(
         }
       }
 
-      // Resolved here rather than left to the two builders below: an unreadable header has to reach
-      // the window as a pick, and the refresh must not run on it — writing a Pomiar off a header we
-      // could not read would be worse than leaving the stored figure alone.
       const resolved = resolveLaborColumns(grids.laborGrid, sheet.sheetColumnMapping)
       const columns = {
         missingFields: resolved.missingFields,
@@ -243,10 +209,6 @@ export async function compareWithSheet(
       const { rows, unmatched } = refreshed.refresh
       const written = await setSheetMeasuredQty(await getDb(payload), investmentId, rows)
 
-      // Re-read rather than reuse the pre-write tree, so the comparison describes the state the
-      // write left behind. It happens to be identical today — no figure reported here derives from
-      // the stored reference quantity — but that is an invariant of the current report, not of the
-      // action, and the day a figure starts reading it this would go quietly stale.
       const tree = written > 0 ? await serializeKosztorys(investmentId) : treeBeforeWrite
       const built = buildSheetComparison(
         grids,
@@ -280,10 +242,6 @@ export async function compareWithSheet(
 // cannot decide what gets written.
 export async function applyKosztorysImport(
   investmentId: number,
-  // A plane other than the two, or a workerId that is not a positive integer, is read as „nie
-  // ustawiaj" rather than refused: a client sending nonsense here asks for undecided etapy, which is
-  // what an import without a pick produces anyway. An id that is no live user is dropped by the tree
-  // insert.
   plane?: ToolPlaneT | null,
   workerId?: number | null,
 ): Promise<ActionResultT<ApplyImportResultT>> {
@@ -294,8 +252,6 @@ export async function applyKosztorysImport(
       const sheet = await getInvestmentSheet(payload, investmentId)
       if (!sheet) return { success: false, error: MISSING_SHEET }
 
-      // Outside the try: a database read failing here is not „nie udało się odczytać arkusza".
-      // The preview skips it because the katalog link and translations change nothing it reports.
       const catalogue = await listCatalogueIdentitiesByMatchKey(await getDb(payload))
       let plan: ImportPlanT
       try {

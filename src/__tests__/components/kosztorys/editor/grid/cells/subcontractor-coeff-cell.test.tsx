@@ -25,8 +25,6 @@ const ModeCell = MODE_COLUMN.component as React.ComponentType<Record<string, unk
 // Cena j.m. 100 at the investment's 0,65 — every figure below reads off that pair.
 const ROW = pricingRow()
 
-// The three cells share one row and store nothing of their own: the source is READ off the pair of
-// columns behind them, so a source switch is only observable as all three changing together.
 function CellTrio({ row: initial }: { row: Partial<ViewPricingT> }) {
   const [row, setRow] = useState<ViewPricingT>({ ...ROW, wToolsOverrideValue: null, ...initial })
   const props = {
@@ -64,8 +62,6 @@ function renderTrio(row: Partial<ViewPricingT> = {}) {
 }
 
 describe('„Mnożnik" — trzecie źródło stawki wykonawcy', () => {
-  // Właściciel, 2026-09-23: przy „auto" wiersz JEST liczony mnożnikiem, tylko nie swoim — pusta
-  // komórka czytała się jak „żadnego mnożnika tu nie ma".
   it('przy „auto" pokazuje mnożnik inwestycji, nieedytowalnie', () => {
     const { coeffInput, coeffText } = renderTrio()
 
@@ -73,9 +69,6 @@ describe('„Mnożnik" — trzecie źródło stawki wykonawcy', () => {
     expect(coeffText()).toBe('0,65')
   })
 
-  // Kreska, nie pustka: zamrożona kwota nie idzie za „Cena j.m.", więc krotność, w której akurat
-  // siedzi, obiecywałaby związek zrywany pierwszą zmianą ceny — a pusta komórka czyta się jak pole
-  // do wypełnienia.
   it('przy „kwocie stałej" pokazuje kreskę', () => {
     const { coeffInput, coeffText } = renderTrio({ wToolsOverrideValue: 50 })
 
@@ -88,14 +81,10 @@ describe('„Mnożnik" — trzecie źródło stawki wykonawcy', () => {
 
     expect(source()).toContain('własny mnożnik')
     expect(coeffInput()).toHaveValue('0,8')
-    // Jedna liczba, jeden autor: gdyby cena została edytowalna, wpis w niej zapisałby kwotę i po
-    // cichu przestawił źródło z powrotem.
     expect(priceInput()).toBeNull()
     expect(priceText()).toBe('80')
   })
 
-  // Właściciel, 2026-09-23: czerwień na obu komórkach. Na stagingu czerwieniała sama cena, bo mnożnik
-  // barwił się tylko przy odmowie zapisu, a przekroczenie sufitu zapis przepuszcza.
   it('mnożnik ponad sufitem czerwieni obie komórki', () => {
     const { coeffInput } = renderTrio({ wToolsOverrideCoeff: 0.9 })
 
@@ -145,7 +134,6 @@ describe('„Mnożnik" — trzecie źródło stawki wykonawcy', () => {
     await user.tab()
 
     expect(source()).toContain('auto')
-    // 65, nie 40: zostawiona kwota wystawiłaby z powrotem stawkę, którą właściciel właśnie skasował.
     expect(priceInput()).toHaveValue('65')
   })
 })

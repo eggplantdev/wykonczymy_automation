@@ -5,8 +5,7 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// Every widening of `foldDescription` re-keys the WHOLE katalog — two prace differing only by the
-// absorbed letters now key identically. `match_key` is UNIQUE, so the failure surfaces on the next
+// `match_key` is UNIQUE, so the failure surfaces on the next
 // write in production, not here — uniqueness is a property of the data, only real rows can answer it.
 describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
   let keyed: { key: string; matchKey: string; description: string }[]
@@ -21,7 +20,6 @@ describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
       description: item.description,
     }))
     // Without a floor an empty katalog would make both assertions below pass having proven nothing
-    // — the same trap `pnpm test:parity`'s dataset floor exists for.
     expect(keyed.length).toBeGreaterThan(500)
   })
 
@@ -36,7 +34,7 @@ describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
 
   // Uniqueness among freshly computed keys misses the sharper failure: the app matches a fresh key
   // against the STORED `match_key` (the picker), so an insert keyed differently from the column hits
-  // `ON CONFLICT DO NOTHING` and duplicates. A fold widening re-keys the computation, not the rows.
+  // `ON CONFLICT DO NOTHING` and duplicates.
   it('still agrees with the key stored on every row', () => {
     const stale = keyed
       .filter(({ key, matchKey }) => key !== matchKey)

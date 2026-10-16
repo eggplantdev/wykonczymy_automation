@@ -8,10 +8,8 @@ afterAll(() => {
   else process.env.TZ = ORIGINAL_TZ
 })
 
-// The reader's clock, not the reader's choice: Vercel runs UTC and the office runs Europe/Warsaw, so
-// a formatter that follows whoever is running it renders the same row two ways — the server writes
+// Vercel runs UTC and the office runs Europe/Warsaw, so the server writes
 // 22:30 into the HTML, the browser rehydrates it to 00:30 and React tears the tree down (#418).
-// „Czas dodania" is a Polish company's clock wherever it is read.
 function inTimeZone<T>(timeZone: string, render: () => T): T {
   process.env.TZ = timeZone
   return render()
@@ -34,8 +32,6 @@ describe('formatPLDateTime', () => {
 })
 
 describe('formatPLDate', () => {
-  // A date column arrives as a bare 'YYYY-MM-DD', which Date reads as UTC midnight — one step west
-  // of Greenwich and it renders as the day before.
   it('keeps a date-only value on its own day west of UTC', () => {
     expect(inTimeZone('America/New_York', () => formatPLDate('2026-03-01'))).toBe('01.03.2026')
   })

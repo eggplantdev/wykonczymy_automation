@@ -8,10 +8,8 @@ import { toWarsawDay } from '@/lib/utils/days'
 const TODAY = toWarsawDay('2026-08-26')
 
 /**
- * The digest decides per inspection row, the app per vehicle, and they used to decide on two
- * different rules: the mail honoured a typed „następna wymiana przy", the badge always counted the
- * flat interval. So one car came out overdue in the mail and clean in the table, or the reverse
- * (EX-745). One rule now — the interval — and every case here asks BOTH: a disagreement is the bug.
+ * The digest decides per inspection row, the app per vehicle, and every case here asks BOTH: a
+ * disagreement is the bug.
  */
 const verdicts = (oilChange: ReturnType<typeof event>, latestOdometer: number) => {
   const events = [oilChange, event('TECHNICAL', '2026-08-01', { odometer: latestOdometer })]
@@ -41,8 +39,6 @@ describe('the oil alarm — mail and app answer alike', () => {
     })
   })
 
-  // The whole point of the simplification (owner, 2026-08-26): nobody types a target any more, so
-  // there is nothing that could pull the two surfaces apart again.
   it('measures from the change itself, so a distant reading is what makes it due', () => {
     expect(verdicts(changedAt(200_000), 209_000)).toEqual({ mail: false, app: false })
     expect(verdicts(changedAt(200_000), 211_000)).toEqual({ mail: true, app: true })

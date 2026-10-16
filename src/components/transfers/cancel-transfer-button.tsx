@@ -49,8 +49,6 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
 
   return (
     <>
-      {/* Cancelling writes a CANCELLATION row and removes nothing, so a bin icon would promise a
-          delete this table cannot do. */}
       <RowActionButton
         icon={Ban}
         label="Anuluj transakcję"

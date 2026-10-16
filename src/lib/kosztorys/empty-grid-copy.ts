@@ -12,15 +12,13 @@ type ArgsT = {
   hiders: readonly RowConditionT[]
   /** Engaged conditions that KEEP only what they match — the toolbar's „Problemy" list. */
   diagnostics: readonly RowConditionT[]
-  // Only the document branches are translated: the filter branches are the owner's.
   dictionary?: TranslatorT<'grid'>
 }
 
 /**
  * Past this many engaged hiders the sentence stops answering the question it exists for: the full set
  * of sixteen bare noun phrases runs to several hundred characters and reads as contradictions („bez
- * przedmiaru i z przedmiarem"), because the halves are complementary pairs. „Odznacz wszystkie"
- * reaches that state in one gesture, so it is the common case, not the tail.
+ * przedmiaru i z przedmiarem"), because the halves are complementary pairs.
  */
 const MAX_NAMED_HIDERS = 3
 
@@ -33,13 +31,6 @@ function hidersDescription(hiders: readonly RowConditionT[]): string | undefined
   return labels ? `Filtr chowa pozycje ${labels}.` : undefined
 }
 
-/**
- * Title and description come from one branch so the two cannot drift apart. The filter branch NAMES
- * the engaged filters — „Wszystkie pozycje schowane" alone leaves the reader re-opening the menu to
- * find which tick swallowed 387 rows. The labels are bare noun phrases (`RowConditionT.label`), so
- * they read straight after „Filtr chowa pozycje ". Past `MAX_NAMED_HIDERS` the count replaces the
- * list — it still says where to go, which is all the naming ever bought.
- */
 export function emptyGridCopy({
   preview,
   hiders,
@@ -47,8 +38,6 @@ export function emptyGridCopy({
   dictionary = POLISH_GRID,
 }: ArgsT): EmptyGridCopyT {
   if (preview) {
-    // „Tylko zgłaszane przeze mnie” before he has typed anything — the document is not empty, his
-    // report is.
     if (hiders.some((condition) => condition.id === REPORT_UNREPORTED_CONDITION_ID)) {
       return {
         title: dictionary.t('emptyReportTitle'),
@@ -69,7 +58,5 @@ export function emptyGridCopy({
       description: 'Filtr zrobił swoje — nie ma już czego poprawiać.',
     }
   }
-  // Nothing engaged, nothing to name. `kosztorys-editor-body` never asks, but without this branch the
-  // overlay reads „Brak pozycji " with a trailing space and credits a filter that is off.
   return { title: dictionary.t('emptyDocumentTitle') }
 }

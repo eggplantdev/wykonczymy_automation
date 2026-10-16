@@ -29,7 +29,6 @@ export const Vehicles: CollectionConfig = {
       name: 'registration',
       type: 'text',
       required: true,
-      // Unique index lives in the migration too (20260818_1) — single-column, so the two agree.
       unique: true,
       label: { en: 'Registration', pl: 'Numer rejestracyjny' },
     },
@@ -56,8 +55,7 @@ export const Vehicles: CollectionConfig = {
       label: { en: 'VIN', pl: 'VIN' },
     },
     {
-      // Machine-shaped: a map of inspection type → the day it was marked „do wymiany", written by
-      // the vehicle page. Hidden because hand-editing raw JSON here would only corrupt it.
+      // a map of inspection type → the day it was marked „do wymiany"
       name: 'flags',
       type: 'json',
       admin: { hidden: true },
@@ -73,8 +71,7 @@ export const Vehicles: CollectionConfig = {
       label: { en: 'Note', pl: 'Uwagi' },
     },
     {
-      // An array of scheduled inspection types the car will never have — the przyczepa's przegląd is
-      // „bezterminowo". Hidden for the same reason as `flags`: raw JSON typed by hand only corrupts it.
+      // An array of scheduled inspection types the car will never have
       name: 'exemptions',
       type: 'json',
       admin: { hidden: true },

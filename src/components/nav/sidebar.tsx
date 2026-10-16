@@ -48,8 +48,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           onClick={() => setCollapsed(!collapsed)}
           aria-label={toggleLabel}
           aria-expanded={!collapsed}
-          // Sits astride the divider itself, so the handle reads as "this edge moves" rather than as
-          // one more item in the nav list. The hit area is wider than the visible pill.
           className="group absolute inset-y-0 -right-3 z-20 flex w-6 cursor-pointer items-center justify-center"
         >
           <EdgeHandlePill orientation="vertical">
@@ -70,7 +68,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           ))}
         </nav>
       </div>
-      {/* User info + actions */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {!collapsed && (
           <Link
@@ -109,8 +106,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   )
 }
 
-// Collapsed, the icon is the only thing left to identify a control, so it gets the label back on
-// hover; expanded, the label is already on screen and a tooltip would just repeat it.
 // The trigger is `asChild`: every child must spread its rest props onto its Button, or the handlers
 // and ref land nowhere and the tooltip never opens.
 function CollapsibleTooltip({

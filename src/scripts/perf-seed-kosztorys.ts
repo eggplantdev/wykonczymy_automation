@@ -1,16 +1,10 @@
-// One-off PERF: syntetyczny duży kosztorys (~1000 pozycji) do pomiaru wydajności edytora.
-// Local dev DB. Domyślnie inwestycja 7 (żeby nie ruszać realnego seedu inw. 6).
-// Czyści kosztorys docelowej inwestycji, tworzy SECTIONS×ITEMS_PER_SECTION pozycji,
-// STAGE_COUNT etapów i rzadki postęp.
-//
-//   INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { sectionColorForIndex } from '../lib/kosztorys/section-colors'
 
 const INVESTMENT_ID = Number(process.env.INV ?? 7)
 const SECTIONS = 10
-const ITEMS_PER_SECTION = 100 // 10 × 100 = 1000 pozycji
+const ITEMS_PER_SECTION = 100
 const STAGE_COUNT = 7
 const CHUNK = 40 // równoległe create() w paczkach, żeby nie zalać puli połączeń
 
@@ -34,9 +28,7 @@ async function run() {
   for (let ord = 1; ord <= STAGE_COUNT; ord++) {
     const s = await payload.create({
       collection: 'kosztorys-stages',
-      // Alternating planes rather than none: with every etap unsettled the whole kosztorys reads as
-      // „marża rzeczywista nieznana", and the parity guard would compare null with null on the only
-      // investment in the test DB that has a kosztorys at all (EX-649).
+      // with every etap unsettled the whole kosztorys reads as „marża rzeczywista nieznana"
       data: {
         splitMode: 'percent',
         investment: INVESTMENT_ID,
@@ -90,7 +82,6 @@ async function run() {
       itemCount += items.length
 
       // „Pomiar z natury" = Σ etapów, więc każda pozycja dostaje wpis w 1. etapie;
-      // co 3. pozycja ma dodatkowo 2. etap, żeby zachować mieszankę wielo-etapowych wierszy.
       const progress = items.flatMap((item, idx) => {
         const localIndex = c + idx
         const entries = [{ item: item.id, stage: stageIds[0], qtyDone: (localIndex % 13) + 1 }]

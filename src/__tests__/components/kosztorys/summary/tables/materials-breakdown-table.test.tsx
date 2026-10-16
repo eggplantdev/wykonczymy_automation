@@ -22,7 +22,6 @@ const ROWS: MaterialsBreakdownRowT[] = [
   },
 ]
 
-// The grid is flat: a row is its label cell followed by one cell per value column.
 function rowValues(label: string): string[] {
   const cells = Array.from(screen.getByText('Wydatki inwestycyjne').closest('.grid')!.children)
   const texts = cells.map((cell) => cell.textContent ?? '')
@@ -69,8 +68,6 @@ describe('MaterialsBreakdownTable — a „… netto" row is the invoice at any 
     ])
   })
 
-  // Owner Q1: with no stawka there is one „Kwota" column and it shows what the investor is billed,
-  // so Razem still equals „Materiały" in the podsumowanie.
   it('with no stawka: a single „Kwota" column, the netto row at its netto', () => {
     renderAt(null)
     expect(screen.getByText('Kwota')).toBeInTheDocument()

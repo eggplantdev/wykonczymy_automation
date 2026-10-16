@@ -10,7 +10,6 @@ type FormDialogPropsT = {
   description?: string
   showKeepOpen?: boolean
   className?: string
-  // Fires however the dialog closes — a dismiss or a successful submit.
   onClose?: () => void
   children: (onSubmitSuccess: () => void, keepOpen: boolean) => React.ReactNode
 }
@@ -51,10 +50,6 @@ export function FormDialog({
 
   return (
     <>
-      {/* `contents` so the trigger itself is the layout item, not this wrapper: in the toolbar's
-          mobile grid the span took the cell and left the button inside it shrink-to-fit, so every
-          dialog trigger was the one control not filling its column. The click still reaches here
-          by bubbling. */}
       <span className="contents" onClick={() => !isPending && openDialog(formId, showKeepOpen)}>
         {trigger}
       </span>

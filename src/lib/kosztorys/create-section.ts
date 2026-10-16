@@ -5,9 +5,6 @@ import type { NewRowT } from '@/lib/kosztorys/create-item'
 
 export type CreatedSectionT = { section: NewRowT }
 
-// No etap is seeded — a stage's plane is forced at creation (addStageAction) and a guess would read
-// as confirmed while nobody chose it, while an unconfirmed (null) one drops out of both
-// subcontractor views.
 export async function createSection(
   payload: Payload,
   {

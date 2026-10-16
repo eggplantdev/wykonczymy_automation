@@ -1,10 +1,5 @@
-// LOCAL one-off: send the branded customer auto-reply to a real inbox so you can
-// eyeball the template. Bypasses notify.ts (which imports server-only env.server and
-// can't load under a tsx CLI) — renders the same HTML and sends directly.
-//
-// RUN: node --env-file=.env --import tsx src/scripts/trigger-test-lead.ts
-//
-// SAFETY: sends one real email. Local DB not touched.
+// Bypasses notify.ts (which imports server-only env.server and
+// can't load under a tsx CLI)
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { renderBrandedEmail } from '@/lib/email/branded-template'

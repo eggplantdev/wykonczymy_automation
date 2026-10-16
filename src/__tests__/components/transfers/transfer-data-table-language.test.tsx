@@ -8,9 +8,6 @@ import { I18nContext } from '@/hooks/use-translation'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 
-// EX-996: a worker set to Українська reads his transfers table in it, while every other screen —
-// no provider — keeps the Polish it always had.
-
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/pracownicy/7',

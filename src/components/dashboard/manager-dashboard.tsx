@@ -34,7 +34,6 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
         }}
       />
 
-      {/* Recent transactions */}
       <TransfersSection
         id={SECTION_IDS.transactions}
         config={{
@@ -50,9 +49,6 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
           duplicateFinder: true,
           // TODO: Consider restricting manager's transaction table to only transactions
           // from/to registers they own (currently managers see all transactions).
-          // Intentionally inline — manager sees only visible registers and active investments.
-          // Entity pages use buildFilterConfig(refData) with full data since they're already scoped
-          // to one investment/user.
           filters: {
             ...filters,
             workers: toOptions(referenceDataBase.workers),

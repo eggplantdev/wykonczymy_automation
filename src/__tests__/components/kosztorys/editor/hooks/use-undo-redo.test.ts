@@ -4,7 +4,6 @@ import {
   type UndoCommandT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 
-// The stack core is React-free (see use-undo-redo.ts) so the ordering contract is tested directly.
 function cmd(label: string): UndoCommandT {
   return { label, undo: vi.fn(), redo: vi.fn() }
 }
@@ -23,7 +22,7 @@ describe('createUndoRedoStack', () => {
 
     expect(stack.undo()).toBe(b)
     expect(stack.undo()).toBe(a)
-    expect(stack.undo()).toBeUndefined() // empty → no-op
+    expect(stack.undo()).toBeUndefined()
     expect(stack.redo()).toBe(a)
     expect(stack.redo()).toBe(b)
     expect(stack.redo()).toBeUndefined()
@@ -66,7 +65,7 @@ describe('createUndoRedoStack', () => {
     expect(stack.undoDepth).toBe(2)
     expect(stack.undo()).toBe(c)
     expect(stack.undo()).toBe(b)
-    expect(stack.undo()).toBeUndefined() // 'a' was evicted, never reachable
+    expect(stack.undo()).toBeUndefined()
   })
 
   it('revision bumps on every mutation', () => {
@@ -82,7 +81,7 @@ describe('createUndoRedoStack', () => {
     stack.redo()
     expect(stack.revision).toBe(3)
 
-    stack.push(cmd('b')) // also clears redo — still one bump
+    stack.push(cmd('b'))
     expect(stack.revision).toBe(4)
 
     stack.reset()
@@ -116,12 +115,12 @@ describe('createUndoRedoStack', () => {
       const edit2 = scopedCmd('edit row 2', [2])
       stack.push(edit1)
       stack.push(edit2)
-      stack.undo() // edit2 → redo stack
+      stack.undo()
 
-      stack.pruneByIds([1]) // delete row 1
+      stack.pruneByIds([1])
 
-      expect(stack.undo()).toBeUndefined() // edit1 (touched 1) pruned from undo stack
-      expect(stack.redo()).toBe(edit2) // edit2 (touched 2) survives on redo stack
+      expect(stack.undo()).toBeUndefined()
+      expect(stack.redo()).toBe(edit2)
     })
 
     it('prunes a burst that touches a deleted id even if it also touched live rows', () => {
@@ -131,12 +130,12 @@ describe('createUndoRedoStack', () => {
 
       stack.pruneByIds([2])
 
-      expect(stack.undo()).toBeUndefined() // any dead id in the burst removes it
+      expect(stack.undo()).toBeUndefined()
     })
 
     it('keeps structural (no touchedIds) commands regardless of the delete', () => {
       const stack = createUndoRedoStack()
-      const vat = cmd('change VAT') // no touchedIds
+      const vat = cmd('change VAT')
       stack.push(vat)
 
       stack.pruneByIds([1, 2, 3])
@@ -149,7 +148,7 @@ describe('createUndoRedoStack', () => {
       stack.push(scopedCmd('edit row 5', [5]))
       const before = stack.revision
 
-      stack.pruneByIds([99]) // touches nothing on the stack
+      stack.pruneByIds([99])
       expect(stack.revision).toBe(before)
 
       stack.pruneByIds([5])
@@ -158,20 +157,15 @@ describe('createUndoRedoStack', () => {
   })
 
   it('a composite batch command is a single undo entry (coalescing)', () => {
-    // The editor pushes ONE command per onChange batch (paste over N cells → one entry). At the
-    // stack level that means a single push is undone by a single undo, whatever the command reverses.
     const stack = createUndoRedoStack()
     const paste = cmd('paste over 3 cells')
     stack.push(paste)
 
     expect(stack.undo()).toBe(paste)
-    expect(stack.canUndo).toBe(false) // one press reversed the whole batch
+    expect(stack.canUndo).toBe(false)
   })
 })
 
-// EX-737: a grid burst that takes back the one the command on top captured must not leave two steps
-// behind. The caller hands the command it pushed as `expected`, so the amend can only ever touch a
-// top it still recognises.
 describe('amendTop', () => {
   it('replaces the top command, so undo hands back the trimmed one', () => {
     const stack = createUndoRedoStack()

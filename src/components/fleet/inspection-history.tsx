@@ -16,20 +16,8 @@ import { formatKm, formatKmOrDash } from '@/lib/utils/format-distance'
 import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
 import type { VehicleDetailT } from '@/types/fleet'
 
-// Same CSS-grid table as the kosztorys summary blocks (SummaryTable + Label/Value cells), so the two
-// read as one app rather than two. Every section pins the same leading tracks, which keeps Data and
-// Następny termin aligned down the page even where the trailing columns differ.
-
 const EMPTY = '—'
 
-/**
- * The trailing columns are dropped for a section that has nothing to put in them: ubezpieczyciel
- * and nr polisy belong to OC, and most entries carry no attachment. An always-present column of
- * dashes costs width and says nothing.
- *
- * Driven by the entries rather than by the section's type so a polisa with no insurer recorded — the
- * przyczepa's — drops just that one column instead of both.
- */
 const columnsFor = (entries: InspectionHistoryEntryT[]) => ({
   insurer: entries.some((entry) => entry.insurer !== ''),
   policyNumber: entries.some((entry) => entry.policyNumber !== ''),
@@ -104,11 +92,6 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
   )
 }
 
-/**
- * Takes the unnarrowed history beside the shown one because the empty-state wording is per section:
- * a window may have emptied OC while the przegląd rejestracyjny below it is empty simply because the
- * car has never had one.
- */
 export function InspectionHistory({
   historyByType,
   fullHistoryByType,

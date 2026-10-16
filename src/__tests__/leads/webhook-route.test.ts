@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
-// Route-handler unit test. We drive POST directly with a stub request and mock the
-// network/DB/notify seams, keeping lead-schema + normalize-lead real. The contract
-// under test: which failures make Meta retry (non-200) vs ack (200).
 vi.mock('next/server', () => ({
   NextResponse: {
     json: (body: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, body }),
@@ -22,7 +19,6 @@ import { fetchLead } from '@/lib/leads/fetch-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
 
-// Fabricated, PII-free. Passes leadSchema; 'adres_e-mail' key → email via the heuristic.
 const validLead = {
   id: '1000000000000001',
   created_time: '2026-07-05T18:48:40+0000',
@@ -75,7 +71,6 @@ describe('POST /api/webhooks/facebook-leads — Meta retry contract', () => {
     expect(captureLead).not.toHaveBeenCalled()
   })
 
-  // The bug: a store-time throw was swallowed and 200'd → Meta never retries → lead lost.
   it('returns non-200 when a lead fails to store, so Meta retries', async () => {
     vi.mocked(captureLead).mockRejectedValueOnce(new Error('db connection dropped'))
     const res = await POST(makeRequest(bodyFor('1000000000000001')))
@@ -90,9 +85,7 @@ describe('POST /api/webhooks/facebook-leads — Meta retry contract', () => {
       entry: [{ changes: [{ value: { leadgen_id: 'a' } }, { value: { leadgen_id: 'b' } }] }],
     })
     const res = await POST(makeRequest(raw))
-    // Sibling 'b' was still processed despite 'a' throwing...
     expect(captureLead).toHaveBeenCalledTimes(2)
-    // ...but the batch signals failure so Meta redelivers (idempotent store skips 'b').
     expect(res.status).toBe(500)
   })
 })

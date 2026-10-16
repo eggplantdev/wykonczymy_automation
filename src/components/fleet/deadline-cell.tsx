@@ -8,16 +8,10 @@ import type { FleetDeadlineT } from '@/types/fleet'
 
 type DeadlineCellPropsT = {
   deadline: FleetDeadlineT
-  /** A retired car carries no urgency — its deadlines are history, not a to-do list. */
   muted?: boolean
 }
 
 /**
- * Four visually distinct states, not two: overdue/urgent, fine, **no data at all**, and „does not
- * apply". "Nothing recorded" must never look like "nothing due" — that is the blind spot the whole
- * reminder module exists to close — and an exempt type must not look like either, or the one car
- * that legitimately has no termin would sit in the listing as a permanent false alarm.
- *
  * Exempt wins over everything below it: an old event on a type the car has since been excused from
  * would otherwise resurrect a deadline the owner has already answered.
  */

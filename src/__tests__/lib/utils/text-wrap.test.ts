@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { countWrappedLines } from '@/lib/utils/text-wrap'
 
-// Every character is 10px wide, so a width of N pixels holds N/10 characters — line counts are
-// arithmetic rather than font-dependent, which is the point of injecting the measurer.
 const tenPxPerChar = (text: string) => text.length * 10
 
-// The tolerance the wrapper shaves off the column before comparing, mirrored here so the tests
-// state their widths the way a caller does — as the cell's real width.
+// The tolerance the wrapper shaves off the column before comparing, mirrored here
 const TOLERANCE = 1
 
 describe('countWrappedLines', () => {
@@ -15,7 +12,6 @@ describe('countWrappedLines', () => {
   })
 
   it('wraps whole words onto the next line', () => {
-    // 'aaa bbb ccc' is 110px; 70px holds 'aaa bbb' (70px) and pushes 'ccc' down.
     expect(countWrappedLines('aaa bbb ccc', 70 + TOLERANCE, tenPxPerChar)).toBe(2)
   })
 
@@ -27,7 +23,6 @@ describe('countWrappedLines', () => {
     // 'aaaaa' fills 50px: two full 20px lines plus a 10px tail. 'b' joins that tail only when the
     // separating space fits too — at 20px it does not ('a b' is 30px), so 'b' takes a fourth line.
     expect(countWrappedLines('aaaaa b', 20 + TOLERANCE, tenPxPerChar)).toBe(4)
-    // At 40px the word breaks as 'aaaa' + tail 'a', and 'a b' (30px) fits that tail.
     expect(countWrappedLines('aaaaa b', 40 + TOLERANCE, tenPxPerChar)).toBe(2)
   })
 
@@ -49,15 +44,13 @@ describe('countWrappedLines', () => {
   })
 
   it('rounds a text sitting exactly on the column edge to the taller row', () => {
-    // Exactly 100px of text in a 100px column: canvas and layout disagree here, so the wrapper
-    // must not claim it fits.
+    // canvas and layout disagree here, so the wrapper must not claim it fits.
     expect(countWrappedLines('aaaaaaaaaa', 100, tenPxPerChar)).toBe(2)
   })
 
   it('collapses runs of whitespace, which is why the cell is whitespace-pre-line', () => {
     // `pre-wrap` would PRESERVE the run and lay out ten characters where this counts seven, so a
-    // pasted double space would under-count the lines and the row would clip. The cell's own
-    // white-space rule is the other half of this assertion.
+    // pasted double space would under-count the lines and the row would clip.
     expect(countWrappedLines('aaa    bbb', 70 + TOLERANCE, tenPxPerChar)).toBe(1)
   })
 })

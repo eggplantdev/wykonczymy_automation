@@ -11,8 +11,6 @@ describe('latestByType', () => {
     for (const type of INSPECTION_TYPES) expect(latest[type]).toBeNull()
   })
 
-  // The whole derivation-only model rests on this: "current" means most recently performed, not the
-  // furthest-away due date. A backdated correction entered late must not become the current deadline.
   it('takes the newest event by performedAt even when an older one is due later', () => {
     const older = event('TECHNICAL', '2025-08-01', { nextDueAt: '2027-08-01' })
     const newer = event('TECHNICAL', '2026-08-01', { nextDueAt: '2026-09-01' })

@@ -34,7 +34,6 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// The server refuses the booking too (`createBulkTransferAction`); this is the menu not offering it.
 describe('Wydatek — „Premia" tylko dla ADMIN/OWNER', () => {
   it('kierownik nie dostaje premii, wypłatę tak', async () => {
     const options = await openTypeMenu('MANAGER')

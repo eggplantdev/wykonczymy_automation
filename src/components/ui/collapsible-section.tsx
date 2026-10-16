@@ -15,11 +15,7 @@ type CollapsibleSectionPropsT = {
   title: string
   id?: string
   defaultOpen?: boolean
-  // Opt in to remembering the choice across navigation and reloads; without it the section reopens
-  // at `defaultOpen` every mount.
   storageKey?: string
-  // 'sm' for a control block inside a denser surface (the summary panel's top bar), where a page-level
-  // heading would outshout the content it hides.
   size?: CollapsibleSectionSizeT
   withSeparator?: boolean
   hint?: React.ReactNode
@@ -34,12 +30,8 @@ const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string }> 
   sm: { title: 'text-sm font-medium', chevron: 'size-4' },
 }
 
-// Exported so a consumer can open a remembered section from outside through the same stored key.
 export const OPEN_STATES = ['open', 'closed'] as const
 
-// Both hooks always run — a conditional hook is illegal, and an unused usePersistedFlag on an empty
-// key only ever reads a key nobody writes. The stored snapshot falls back to `defaultOpen`, so server
-// and first client render agree and a remembered-closed section collapses just after hydration.
 function useSectionOpen(
   storageKey: string | undefined,
   defaultOpen: boolean,
@@ -66,8 +58,6 @@ export function CollapsibleSection({
 
   return (
     <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={cn(className)}>
-      {/* The hint shares the trigger's column so it wraps beside the action, never under it; below
-          `sm` the action drops to its own line, where a heading and a button can't share 390px. */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
         <div className="min-w-0 flex-1">
           <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">

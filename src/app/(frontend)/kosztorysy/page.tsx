@@ -17,13 +17,10 @@ export default async function SheetsListPage() {
 
   const [refData, sheets] = await Promise.all([fetchReferenceData(), fetchAllSheets()])
 
-  // Investments eligible for linking = those without a kosztorys. Reused both
-  // for the second table and as the picker options in the link dialog.
   const investmentsWithoutSheet = refData.investments
     .filter((i) => !i.hasSheet)
     .map((i) => ({ id: i.id, name: i.name }))
 
-  // Table 1: actual kosztorysy (real sheets), linked or not.
   const kosztorysRows: KosztorysRowT[] = sheets.map(
     (s): KosztorysRowT =>
       s.investment !== undefined
@@ -47,7 +44,6 @@ export default async function SheetsListPage() {
           },
   )
 
-  // Table 2: investments that have no kosztorys yet.
   const investmentRows: InvestmentWithoutSheetRowT[] = investmentsWithoutSheet.map((inv) => ({
     id: `inv-${inv.id}`,
     investmentId: inv.id,
@@ -60,8 +56,6 @@ export default async function SheetsListPage() {
         <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>
       </div>
 
-      {/* No heading of its own — the page title already names this table. The one below keeps its
-          own, because it is a second, differently-scoped list. */}
       <KosztorysDataTable data={kosztorysRows} availableInvestments={investmentsWithoutSheet} />
 
       <section className="space-y-2">

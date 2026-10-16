@@ -5,11 +5,6 @@ import {
   staleFieldsForType,
 } from '@/lib/transfers/clear-fields-for-type'
 
-// EX-709: the expense dialog opened from /inwestycje/105 defaults `investment` to 105, so the
-// type-change handler's form.resetField('investment') RESTORED that id instead of clearing it —
-// the field went hidden with 105 still in it and the row saved carrying an investment its type
-// never shows. The server-side counterpart (hooks/transfers/validate.ts) masks it on staging;
-// production runs a branch that predates the guard, which is how #4302 was booked.
 describe('investmentForType', () => {
   it('empties the investment for a type that never shows one', () => {
     expect(investmentForType('OTHER', '105', '105')).toBe('')
@@ -42,9 +37,6 @@ describe('sourceRegisterForType', () => {
     expect(sourceRegisterForType('INVESTMENT_EXPENSE', '5', '9')).toBe('5')
   })
 
-  // The blank a detour through a register-less type leaves behind is what makes this refill the
-  // point of the field: without it, pinning a default kasa stops holding the moment the type is
-  // touched twice.
   it("refills from the user's default once the field is empty again", () => {
     expect(sourceRegisterForType('INVESTMENT_EXPENSE', '', '9')).toBe('9')
   })
@@ -82,8 +74,6 @@ describe('staleFieldsForType', () => {
     expect(patch('INVESTMENT_EXPENSE_NET')).toHaveProperty('settled', false)
   })
 
-  // The one home for „blank what this type does not carry": a method picked on the netto wydatek
-  // must not ride along after a switch, or it reaches the row a type change made silent.
   it('keeps the metoda where the type carries it', () => {
     expect(patch('INVESTMENT_EXPENSE_NET')).not.toHaveProperty('paymentMethod')
     expect(patch('INVESTOR_DEPOSIT')).not.toHaveProperty('paymentMethod')
@@ -98,10 +88,6 @@ describe('staleFieldsForType', () => {
     expect(patch('BONUS')).toHaveProperty('sourceRegister', '')
   })
 
-  // Retention is the intended reading, not a side effect of the EX-709 fix (owner, 2026-08-24): the
-  // patch names only what the NEW type cannot carry, so a field both types carry keeps the pick and
-  // the user does not re-enter what he just chose. The old handler cleared all four unconditionally,
-  // which is the behaviour these two cases exist to keep from creeping back.
   it('keeps the kasa when both types carry one', () => {
     expect(patch('CORRECTION')).not.toHaveProperty('sourceRegister')
     expect(patch('INVESTMENT_EXPENSE')).not.toHaveProperty('sourceRegister')

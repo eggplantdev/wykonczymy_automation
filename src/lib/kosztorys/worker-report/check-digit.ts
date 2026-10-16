@@ -26,11 +26,9 @@ export const formatFormRef = (ref: number): string => `${ref}-${dammDigit(ref)}`
 
 const FORM_REF = /^(\d+)-(\d)$/
 
-/** The pozycja number a printed „35812-7" stands for — undefined when the check digit disagrees. */
 export function parseFormRef(text: string): number | undefined {
   const match = FORM_REF.exec(text.trim())
   if (!match) return undefined
-  // Damm over the number followed by its check digit is 0 exactly when the digit is right.
   if (dammInterim(match[1] + match[2]) !== 0) return undefined
   return Number(match[1])
 }

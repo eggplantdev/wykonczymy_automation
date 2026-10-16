@@ -19,8 +19,6 @@ describe('ratesVerdict', () => {
     expect(ratesVerdict('compare', [], [], 0)).toBe('Oba cenniki podały te same stawki.')
   })
 
-  // The whole point of the fix: a conflict means NO kwota entered, a stale stawka means one kwota that
-  // has merely moved. The weaker signal used to swallow the stronger one whole.
   it('leads with the conflict when a praca is both conflicted and stale', () => {
     const verdict = ratesVerdict('import', [decision('conflict')], [staleRate()], 1)
     expect(verdict).toContain('Bez stawki wykonawcy wejdzie')
@@ -33,13 +31,11 @@ describe('ratesVerdict', () => {
     expect(verdict).not.toContain('cenniki podają różne kwoty')
   })
 
-  // „Porównaj z arkuszem" writes nothing, so it must not promise a save it has no button for.
   it('drops the import tense in the comparison', () => {
     expect(ratesVerdict('compare', [decision('conflict')], [], 1)).not.toContain('wejdzie')
     expect(ratesVerdict('import', [decision('conflict')], [], 1)).toContain('wejdzie')
   })
 
-  // A praca listed in ONE cennik has nothing to disagree with, and the line covers those rows too.
   it('does not claim the cenniki disagreed about the resolved rows', () => {
     expect(ratesVerdict('import', [decision('single')], [], 0)).not.toContain('nie powiedziały')
   })

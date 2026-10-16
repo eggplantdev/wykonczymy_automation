@@ -9,15 +9,12 @@ export function catalogueCategoryOptions(items: readonly WorkCatalogueItemT[]) {
     .map((name) => ({ value: name, label: name || 'Bez kategorii' }))
 }
 
-// „Bez kategorii" is a filter answer, not something to type into a new praca — so the form's
-// autocomplete drops the empty option the filter keeps.
 export function catalogueCategorySuggestions(items: readonly WorkCatalogueItemT[]) {
   return catalogueCategoryOptions(items)
     .map((option) => option.value)
     .filter((value) => value !== '')
 }
 
-// Same reasoning as Kategoria: a praca without a j.m. needs an option, or picking any j.m. strands it.
 export function catalogueUnitOptions(items: readonly WorkCatalogueItemT[]) {
   return [...new Set(items.map((item) => item.unit))]
     .sort((a, b) => a.localeCompare(b, 'pl'))

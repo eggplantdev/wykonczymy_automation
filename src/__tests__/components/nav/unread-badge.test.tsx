@@ -59,7 +59,6 @@ describe('UnreadBadge', () => {
     expect(screen.getByText('4')).toBeInTheDocument()
   })
 
-  // Opening „Wypłaty" answers no rejection — only a cancellation or his own acceptance does.
   it('keeps the rejected-payouts count on its own page', async () => {
     renderBadge('rejectedPayouts', '/wyplaty', '/wyplaty')
 

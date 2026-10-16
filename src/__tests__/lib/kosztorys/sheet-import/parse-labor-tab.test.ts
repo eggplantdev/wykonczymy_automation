@@ -25,8 +25,6 @@ const GAPPED_STAGES: (string | number)[][] = [
   row({ C: 'malowanie ścian', F: 2, J: 3, N: 10, P: 'm2', Q: 50 }),
 ]
 
-// The owner deleted an etap column, so the captions no longer run 1..10 in step with the columns —
-// the run's third column is the sheet's etap 9. Position and sheet number part company only here.
 const RENUMBERED_CAPTIONS: (string | number)[][] = GAPPED_STAGES.map((gridRow, index) =>
   index === HEADER_CAPTION_ROW
     ? Object.assign([...gridRow], { [col('F')]: '9 etap ilosc' })
@@ -55,8 +53,6 @@ describe('parseLaborTab', () => {
   })
 
   it('stops at the footer instead of importing it as prace', () => {
-    // Footer rows carry the same „x" marker a section header does — only the missing name tells
-    // them apart. Reading them would add „wartość netto" as a section and its 143 089 zł as data.
     const { sections, items } = parse(BIALOSTOCKA_ROWS)
 
     expect(sections.map((section) => section.name)).not.toContain('wartość netto')
@@ -122,8 +118,6 @@ describe('parseLaborTab', () => {
   })
 
   it('imports only the etapy somebody typed into, renumbered to a contiguous run', () => {
-    // Ten etap columns, three of them used: the empty seven would arrive locked (no rozliczenie)
-    // and be deleted by hand every import.
     const { stages } = parse(BIALOSTOCKA_ROWS)
 
     expect(stages.map((stage) => stage.ordinal)).toEqual([1, 2, 3])
@@ -132,8 +126,6 @@ describe('parseLaborTab', () => {
   it('names the etapy after the sheet header, planes and workers stay empty', () => {
     const { stages } = parse(BIALOSTOCKA_ROWS)
 
-    // The sheet's own caption („1 etap ilość") is not a name — but its NUMBER is kept, so a skipped
-    // column never shifts what the surviving etapy are called.
     expect(stages.map((stage) => stage.label)).toEqual(['Etap 1', 'Etap 2', 'Etap 3'])
     expect(stages.every((stage) => !stage.plane && !stage.split)).toBe(true)
   })
@@ -160,8 +152,6 @@ describe('parseLaborTab', () => {
   })
 
   it('keeps a renamed etap column even with nothing booked against it', () => {
-    // „2 etap BRYGADA JEDEN" carries no wykonanie in the fixture — the owner naming it is the same
-    // claim that the etap exists.
     const { stages } = parse(PRZEDPOLE_ROWS)
 
     expect(stages.map((stage) => stage.label)).toEqual([
@@ -182,9 +172,6 @@ describe('parseLaborTab', () => {
   })
 
   it('keeps reading past a blank spacer row that looks exactly like the footer', () => {
-    // Regression: the parser used to stop at the FIRST marked-and-unnamed row, which a spacer row
-    // between two sections also is — so a sheet with one blank divider imported only the prace above
-    // it and reported the rest as „nie ma w arkuszu", i.e. silently truncated.
     const grid = [...BIALOSTOCKA_ROWS]
     const spacer = grid.at(-1)!.map(() => '')
     spacer[13] = 'x' // Przedmiar column, no name anywhere — the footer's own shape
@@ -195,9 +182,6 @@ describe('parseLaborTab', () => {
   })
 
   it('does not make a section out of a footer label typed into the opis column', () => {
-    // The owner sometimes puts „wartość netto" in the description column rather than beside it. It
-    // carries the same „x" marker a section header does, so it used to open a section and adopt
-    // every praca below it.
     const grid = [...BIALOSTOCKA_ROWS]
     const stray = grid.at(-1)!.map(() => '')
     stray[13] = 'x'
@@ -209,8 +193,6 @@ describe('parseLaborTab', () => {
   })
 
   it('reads a rabat typed as a whole percent as that percent, not as a 900% discount', () => {
-    // The column holds fractions (0,09), but the owner types „9" into it often enough that treating
-    // every value as a fraction priced those prace deeply negative.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     grid[4][17] = 9
 
@@ -234,8 +216,6 @@ describe('parseLaborTab', () => {
   })
 
   it('reads a „Pomiar z natury" computed from the etapy as no claim at all', () => {
-    // The blank offer sheet sums the etapy in every row of that column, so its value IS Σ etapów.
-    // Storing it would set up a comparison of Σ etapów against itself.
     const formulas = BIALOSTOCKA_ROWS.map((row) => {
       const blank = row.map(() => '')
       blank[POMIAR_COLUMN] = '=SUM(D3:M3)'
@@ -260,8 +240,6 @@ describe('parseLaborTab', () => {
   })
 
   it('keeps a „Pomiar z natury" the sheet computed some other way', () => {
-    // `=N5` mirrors the Przedmiar. Whatever produced the number, it is the owner's claim about what
-    // was measured — and against Σ etapów that is a real comparison, not a tautology.
     const formulas = BIALOSTOCKA_ROWS.map((row) => {
       const blank = row.map(() => '')
       blank[POMIAR_COLUMN] = '=N5'

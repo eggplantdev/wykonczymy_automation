@@ -43,8 +43,6 @@ const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysIte
   ...overrides,
 })
 
-// The app side of Białostocka: the same three prace under the same two sections, so a default
-// comparison matches everything and a test can break exactly one thing at a time.
 function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayloadT {
   return {
     schemaVersion: SNAPSHOT_SCHEMA_VERSION,
@@ -129,15 +127,11 @@ describe('buildSheetComparison', () => {
     // The offer: 1×1500−9% + 0×15 + 2×120 = 1605.
     expect(totals.plannedNetFromSheet).toBeCloseTo(1605, 6)
     expect(totals.plannedNetFromApp).toBeCloseTo(totals.plannedNetFromSheet, 6)
-    // The sheet's etapy carry work the app knows nothing about yet.
     expect(totals.executedNetFromSheet).toBeGreaterThan(0)
     expect(totals.executedNetFromApp).toBe(0)
   })
 
   it('still compares a sheet whose cennik cannot be read — the import refuses, this does not', () => {
-    // The sheet that most needs diagnosing is the one whose „zakres pracy" header is broken, so a
-    // refusal here would blank the diagnosis. Stawki then say nothing rather than reporting the
-    // 0 zł every praca would resolve to.
     const built = buildSheetComparison(
       source({ rateTabs: [] }),
       currentTree(),
@@ -195,8 +189,6 @@ describe('buildSheetComparison', () => {
   })
 
   it('stays quiet on a praca whose cenniki disagree — there is no sheet figure to differ from', () => {
-    // Both tabs hand-typed and neither one the answer: „w arkuszu jest X" is precisely what cannot be
-    // said here, so reporting a rozjazd would invent a side. It surfaces as a conflict instead.
     const rateTabs = [
       ratesTab('zakres pracy z narzędziami', [
         {
@@ -240,8 +232,6 @@ describe('buildSheetComparison', () => {
   })
 
   it('counts a reference quantity everywhere except where the Pomiar sums the etapy', () => {
-    // Row 5's Pomiar sums the etapy, so its value IS Σ etapów and „Rozjazd" has nothing to compare.
-    // Row 6's mirrors the Przedmiar — a claim the etapy can still contradict, so it counts.
     const formulas = BIALOSTOCKA_ROWS.map((_, index) =>
       index === 4 ? row({ O: '=SUM(D5:M5)' }) : index === 5 ? row({ O: '=N6' }) : [],
     )
@@ -264,9 +254,6 @@ describe('buildSheetComparison', () => {
     expect(compare(source({ laborTabGid: undefined })).sheetLink).toBeNull()
   })
 
-  // A global discount is a whole-kosztorys amount, so the editor prices rows gross and takes it once
-  // off the total, while this report has to price row against row. Both are right; only one of them
-  // is the number on screen behind the dialog, which is the whole point of the flag.
   describe('global discount', () => {
     // 1 × 1500 zł at a 9% rabat: this report says 1365 zł, the editor says 1500 − the global amount.
     const executed = () =>
@@ -283,8 +270,6 @@ describe('buildSheetComparison', () => {
     })
 
     it('stays quiet when the global amount happens to land on the same number', () => {
-      // 135 zł global against the 135 zł of per-item rabat it replaced — nothing has drifted yet, so
-      // there is nothing to warn about. This is the state right after switching the mode on.
       expect(
         compare(source(), executed(), { type: 'amount', value: 135 }).globalDiscountMismatch,
       ).toBe(false)

@@ -12,7 +12,6 @@ type EditTransferDialogPropsT = {
   row: TransferRowT
   referenceData: ReferenceDataBaseT
   canEdit: boolean
-  /** What the tooltip says when `canEdit` is false. Defaults to the ownership rule. */
   disabledReason?: string
 }
 

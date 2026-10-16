@@ -22,7 +22,6 @@ vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }
 vi.mock('@/lib/media/ingest-files', () => ({
   ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
 }))
-// The upload goes to Blob; what is asserted here is whether the save starts at all.
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploadRows: (
     _rowCount: number,

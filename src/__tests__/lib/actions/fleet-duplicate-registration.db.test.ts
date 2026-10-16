@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { VehicleFormDataT } from '@/components/forms/vehicle-form/vehicle-schema'
 
-// A trashed car keeps its plate, so a second car with that plate is refused — and the sentence must
-// send the owner to the Kosz, because no listing shows the car that holds it.
-
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockImplementation(async () => ({

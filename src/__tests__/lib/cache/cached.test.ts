@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const unstableCache = vi.hoisted(() => vi.fn(<FnT>(fn: FnT) => fn))
 vi.mock('next/cache', () => ({ unstable_cache: unstableCache }))
 
-// The one invariant EX-1063 exists for: no entry is reachable from a deployment that didn't write it.
 describe('cached', () => {
   afterEach(() => {
     vi.unstubAllEnvs()

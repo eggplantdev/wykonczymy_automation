@@ -14,6 +14,7 @@ import { fetchTrashedWorkers, type TrashedWorkerRowT } from '@/lib/db/worker-tra
 import { fetchTrashedVehicles, type TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
 import { fetchTrashedEquipment, type TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
 import { fetchTrashedLeads, type TrashedLeadRowT } from '@/lib/db/lead-trash'
+import { fetchTrashedTemplates, type TrashedTemplateRowT } from '@/lib/db/template-trash'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -24,6 +25,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 type TrashListsT = {
   investments: TrashedInvestmentRowT[]
+  templates: TrashedTemplateRowT[]
   cashRegisters: TrashedCashRegisterRowT[]
   workers: TrashedWorkerRowT[]
   vehicles: TrashedVehicleRowT[]
@@ -32,7 +34,7 @@ type TrashListsT = {
 }
 
 export function shapeTrashRows(
-  { investments, cashRegisters, workers, vehicles, equipment, leads }: TrashListsT,
+  { investments, templates, cashRegisters, workers, vehicles, equipment, leads }: TrashListsT,
   { viewerRole, now }: { viewerRole: RoleT; now: number },
 ): TrashRowT[] {
   const daysLeft = (trashedAt: Date) =>
@@ -41,7 +43,6 @@ export function shapeTrashRows(
       Math.ceil((trashedAt.getTime() + ENTITY_TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
     )
 
-  // The live default for a kind with no exception; investments and workers override their part.
   const base = (row: { id: number; trashedAt: Date }) => ({
     id: row.id,
     trashedAt: row.trashedAt,
@@ -54,11 +55,12 @@ export function shapeTrashRows(
   return [
     ...investments.map((row) => ({
       ...base(row),
-      kind: row.isTemplate ? ('template' as const) : ('investment' as const),
+      kind: 'investment' as const,
       name: row.name,
       autoPurges: !row.isKosztorysUsed && !row.isUndeletable,
       hasSheet: row.hasSheet,
     })),
+    ...templates.map((row) => ({ ...base(row), kind: 'template' as const, name: row.name })),
     ...cashRegisters
       .filter((row) => canViewRegister(viewerRole, row.type))
       .map((row) => ({ ...base(row), kind: 'cash-register' as const, name: row.name })),
@@ -103,8 +105,10 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
 
   const payload = await getPayload({ config })
   const db = await getDb(payload)
-  const [investments, cashRegisters, workers, vehicles, equipment, leads] = await Promise.all([
+  const [investments, templates, cashRegisters, workers, vehicles, equipment, leads] =
+    await Promise.all([
     fetchTrashedInvestments(db),
+    fetchTrashedTemplates(db),
     fetchTrashedCashRegisters(db),
     fetchTrashedWorkers(db),
     fetchTrashedVehicles(db),
@@ -113,7 +117,7 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
   ])
 
   return shapeTrashRows(
-    { investments, cashRegisters, workers, vehicles, equipment, leads },
+    { investments, templates, cashRegisters, workers, vehicles, equipment, leads },
     { viewerRole: session.user.role, now: Date.now() },
   )
 }

@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { locationKey, toEquipmentEventRow, toEquipmentRow, toLocation } from '@/lib/equipment/rows'
 
-// The mapper is where three mutually exclusive columns collapse into one answer to „gdzie jest",
-// and where an unknown price must stay unknown. Both are read on every row of the listing.
-
 const NO_TARGET = {
   holder_id: null,
   holder_name: null,
@@ -22,9 +19,9 @@ describe('toLocation', () => {
   })
 
   it('reads a warehouse off the warehouse columns', () => {
-    expect(
-      toLocation({ ...NO_TARGET, warehouse_id: 2, warehouse_name: 'Magazyn główny' }),
-    ).toEqual({ kind: 'warehouse', id: 2, name: 'Magazyn główny' })
+    expect(toLocation({ ...NO_TARGET, warehouse_id: 2, warehouse_name: 'Magazyn główny' })).toEqual(
+      { kind: 'warehouse', id: 2, name: 'Magazyn główny' },
+    )
   })
 
   it('reads a workshop off the free-text column', () => {
@@ -34,12 +31,10 @@ describe('toLocation', () => {
     })
   })
 
-  // An item entered into the register but never handed anywhere: no event, so no target columns.
   it('answers unknown when nothing has happened to the item yet', () => {
     expect(toLocation(NO_TARGET)).toEqual({ kind: 'unknown' })
   })
 
-  // „W serwisie u nikogo" is not a location, and a blank string is what a cleared text field leaves.
   it('treats a blank workshop as no target', () => {
     expect(toLocation({ ...NO_TARGET, service_provider: '   ' })).toEqual({ kind: 'unknown' })
   })
@@ -94,7 +89,6 @@ describe('toEquipmentRow', () => {
     })
   })
 
-  // „Nieznana cena" and „0 zł" are different facts and render differently.
   it('keeps an unknown purchase price null rather than zero', () => {
     const row = toEquipmentRow({ id: 1, name: 'Wiertarka', purchase_price: null, ...NO_TARGET })
 

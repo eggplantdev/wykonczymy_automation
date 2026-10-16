@@ -18,11 +18,6 @@ const MISSING_MESSAGE = 'Kasa nie istnieje.'
 // fire once per write and inside the transaction.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
-/**
- * The kasa, or `undefined` when this user may not see it. A MANAGER never sees a MAIN kasa (`/kasy`,
- * `/kasa/[id]`), so it answers as missing rather than as forbidden — the same page a MANAGER gets
- * from `/kasa/<id of MAIN>`.
- */
 async function findVisibleRegister(
   payload: Payload,
   user: SessionUserT,
@@ -46,9 +41,6 @@ export async function trashCashRegisterAction(registerId: number): Promise<Actio
   return protectedAction(
     'trashCashRegisterAction',
     async ({ payload, user }) =>
-      // READ COMMITTED with no row lock, so a transfer committed between the count and the write
-      // still lands on a trashed kasa. Accepted: the delete re-counts and refuses, and Przywróć
-      // gives the kasa back.
       withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {

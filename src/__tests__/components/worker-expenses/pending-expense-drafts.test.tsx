@@ -177,7 +177,6 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
 })
 
 describe('podpowiedzi duplikatów', () => {
-  // Połącz mints new rows, and with them new hint components — the dismissal lives above them.
   it('„OK, to nie duplikat” przeżywa połączenie paragonów', async () => {
     const user = userEvent.setup()
     vi.mocked(findExpenseDraftDuplicates).mockResolvedValueOnce({
@@ -257,8 +256,6 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
     window.history.replaceState(null, '', '/zgloszenia-wydatkow?zgloszenie=7&status=pending')
   })
 
-  // A navigation on arrival discarded the dialog's in-flight server actions, so the duplicate
-  // check never settled; the parameter now goes only when the dialog closes.
   it('otwiera dialog wskazanego zgłoszenia raz, a parametr zdejmuje dopiero przy zamknięciu', async () => {
     const user = userEvent.setup()
     const { rerender } = render(

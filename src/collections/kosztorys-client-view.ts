@@ -1,13 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 
-// What one investment's client sees. Its own table for the same reason `kosztorys-shares` is one:
-// `kosztoryses` is the v1 Google-Sheet link row (required `googleSheetId`), so a v2 kosztorys has no
-// row there at all, and a client-disclosure decision is not a property of the investment record.
-//
-// `hiddenColumns` stores one choice per column — `{ key: hidden }` — and `PREVIEW_VISIBLE_COLUMNS`
-// stays the ceiling. No default on `hiddenColumns` — absent means „never chosen" and resolves to the
-// whole code default (`sanitizeClientViewSettings`).
+// No default on `hiddenColumns` — absent means „never chosen" and resolves to the whole code default
+// (`sanitizeClientViewSettings`).
 export const KosztorysClientView: CollectionConfig = {
   slug: 'kosztorys-client-view',
   labels: {

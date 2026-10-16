@@ -6,22 +6,15 @@ import { useRowActionLabels } from './row-action-labels'
 
 export type RowActionButtonPropsT = Omit<ButtonPropsT, 'variant' | 'size' | 'children'> & {
   icon: LucideIcon
-  /** Accessible name and, unless `tooltip` overrides it, the tooltip — say what the action does on
-   * THIS row, e.g. „Edytuj inwestycję". */
   label: string
-  /** Overrides the tooltip only. For a disabled button, where the useful sentence is why. */
   tooltip?: string
-  /** Prints `text` beside the icon. For a page header, where there is room and no row to crowd. */
   showLabel?: boolean
-  /** What `showLabel` prints — the bare verb. `label` stays the accessible name, which says WHAT is
-   * being edited; a header sits under the thing's name already, so printing it again reads twice. */
   text?: string
   tone?: 'neutral' | 'destructive'
 }
 
-// One shape for every per-row action: icon+tooltip in a table row, label shown on a detail-page
-// header. Disabled buttons get a focusable wrapper, since `disabled:pointer-events-none` would
-// otherwise block Radix's tooltip trigger — hiding the one case where the tooltip matters most.
+// Disabled buttons get a focusable wrapper, since `disabled:pointer-events-none` would
+// otherwise block Radix's tooltip trigger.
 export function RowActionButton({
   icon: Icon,
   label,

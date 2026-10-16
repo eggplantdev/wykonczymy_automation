@@ -2,16 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 
 // The leads afterChange hook calls revalidateTag, which throws outside a Next request
-// context. Stub it — cache invalidation is not under test here.
+// context.
 
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 
-// The unit spec proves the guard's LOGIC against a hand-mocked PaginatedDocs. This spec
-// proves the load-bearing ASSUMPTION that logic rests on: that Payload's `find` really
-// sets hasNextPage=true when matches exceed `limit` (rather than, say, throwing or
-// silently unbounding). A hand mock can't validate that — only a real capped query can.
-// Gated on DB env exactly like the other .db specs: skips with no DB, fails if env is
-// set but the DB is unreachable. Runs via `pnpm test:integration` against 5435.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const runTag = `assert-complete-${Date.now()}`
@@ -44,7 +38,6 @@ describe.skipIf(!ENV_READY)('assertCompletePage against Payload find (DB)', () =
       })
       createdIds.push(lead.id)
     }
-    // 30s: first getPayload cold-inits Payload's schema (see the other .db specs).
   }, 30000)
 
   afterAll(async () => {
@@ -63,7 +56,6 @@ describe.skipIf(!ENV_READY)('assertCompletePage against Payload find (DB)', () =
 
   it('sets hasNextPage when matches exceed the limit, and the guard throws', async () => {
     const capped = await findTagged(ROWS - 1)
-    // The assumption itself: Payload flags the truncation rather than hiding it.
     expect(capped.hasNextPage).toBe(true)
     expect(() => assertCompletePage(capped, 'db test truncated')).toThrow(/truncated/)
   })

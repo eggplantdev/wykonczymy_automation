@@ -9,19 +9,13 @@ import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryMoneyHeaders } from '@/components/kosztorys/summary/grid/summary-money-headers'
 import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 
-// One step of the settlement. A step is normally single-plane — the plane is in the label, not in a
-// column — because a wpłata exists on the plane it was made on and nowhere else, so a second column
-// would have to invent a figure. `line` is a pair regardless, so the one row that genuinely spans
-// both planes („Do zapłaty") can share this table instead of needing a second component.
 export type SettlementRowT = {
   label: string
   line: MoneyPairT
-  // Formula/qualifier under the figure, for the steps a reader can't reconstruct from the row above.
   hint?: string
   discount?: boolean
   bold?: boolean
   danger?: boolean | { net: boolean; gross: boolean }
-  // Links the label to the investment's filtered wpłaty list — the deposit rows only.
   linkToDeposits?: boolean
 }
 
@@ -34,7 +28,6 @@ export function SummaryTotalsTable({
   preview,
 }: {
   cols: string
-  // Names the tor. Omitted where the settlement has only one, and a header would label nothing.
   caption?: string
   axis: MoneyAxisT
   rows: SettlementRowT[]
@@ -43,8 +36,6 @@ export function SummaryTotalsTable({
 }) {
   const { net, gross } = axisShows(axis)
   const bothPlanes = net && gross
-  // A two-column table always needs its Netto/Brutto headers, caption or not — two bare figures side
-  // by side name neither plane. A single-plane tor only heads itself when it has a tor name to print.
   return (
     <SummaryTable cols={cols} className="w-fit">
       {(bothPlanes || caption !== undefined) && (

@@ -3,28 +3,21 @@
 import type { PointerEvent, ReactNode } from 'react'
 import { useRef } from 'react'
 
-// Handle for dragging the right edge of a column header. datasheet-grid has no native resize.
 // We deliberately do NOT change the width live: during the drag we only show a vertical guide
-// (onGuide = the cursor's X coordinate) and commit the width on release (onCommit), so a drag
-// costs one re-layout instead of one per pointermove. The starting width is measured from the
-// header cell's DOM (closest('.dsg-cell-header')) — this also works for columns not yet pinned.
+// and commit the width on release, so a drag
+// costs one re-layout instead of one per pointermove.
 
-// Hard floor for a USER-dragged width — deliberately below every column's design `minWidth` so
-// shrinking isn't blocked at the design min (EX-424). Small but non-zero so a column can't become a
-// 0-width, unhittable sliver. The design `minWidth` still governs the grid's own flex layout for
-// columns the user hasn't pinned.
 const RESIZE_MIN_PX = 40
 
 type PropsT = {
   colId: string
   minWidth: number
-  onGuide: (x: number | null) => void // cursor X for the guide (null = end of drag)
-  onCommit: (id: string, width: number) => void // on release → persist + remount
+  onGuide: (x: number | null) => void
+  onCommit: (id: string, width: number) => void
   children: ReactNode
 }
 
 export function ResizableHeader({ colId, minWidth, onGuide, onCommit, children }: PropsT) {
-  // startX = cursor position at pointerdown; startW = measured cell width.
   const drag = useRef<{ x: number; w: number } | null>(null)
 
   function widthAt(target: HTMLElement): number {
@@ -56,9 +49,7 @@ export function ResizableHeader({ colId, minWidth, onGuide, onCommit, children }
   }
 
   // The browser can cancel the gesture (pointercancel) — then no pointerup ever arrives and the
-  // guide would hang at the last cursor X until the next drag. lostpointercapture is the backstop
-  // for capture lost without a cancel event; after a normal release onPointerUp has already
-  // cleared `drag`, so both are no-ops there. A cancelled drag commits nothing — the width stays.
+  // guide would hang at the last cursor X until the next drag.
   function abortDrag() {
     if (!drag.current) return
     drag.current = null

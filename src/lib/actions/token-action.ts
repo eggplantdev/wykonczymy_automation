@@ -23,10 +23,6 @@ export type TokenActionCtxT = {
 }
 
 /**
- * The public-surface twin of `protectedAction`: the token in the URL is the whole credential, so
- * everything the handler acts on — investment, worker, tree — comes from the token lookup, never from
- * the client. The lookup is uncached, so a revoke bites on the very next send.
- *
  * `itemIds` are the pozycje the client names; each must belong to the token's investment, or a
  * worker with a valid link could write into another investment's rozpiska.
  */

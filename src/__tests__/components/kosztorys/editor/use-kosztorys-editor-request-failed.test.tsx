@@ -9,6 +9,8 @@ import { removeItemAction } from '@/lib/actions/kosztorys'
 import { toastMessage } from '@/lib/utils/toast'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
+  clearKosztorysAction: vi.fn(),
+  writeKosztorysLayoutAction: vi.fn(),
   addItemAction: vi.fn(),
   addSectionAction: vi.fn(),
   insertItemAction: vi.fn(),

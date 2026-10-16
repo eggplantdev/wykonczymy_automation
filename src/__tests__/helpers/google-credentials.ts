@@ -1,8 +1,3 @@
-// The two Google service-account credentials the app distinguishes: a Viewer it reads with
-// everywhere, and an Editor that exists only in Vercel Production. Specs that exercise a write path
-// have to supply a fake Editor — which is NOT a way around the gate, because the gate is the Viewer
-// role on the real credential and no test can fake that away. Pinned centrally so the four specs
-// that need it can't drift into four slightly different fixtures.
 export const READER_CREDENTIAL = {
   client_email: 'kosztorys-sheets-reader@example.iam.gserviceaccount.com',
   private_key: '-----BEGIN PRIVATE KEY-----\nREADER\n-----END PRIVATE KEY-----\n',

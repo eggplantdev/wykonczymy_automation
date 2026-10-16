@@ -14,9 +14,6 @@ const build = (over: Partial<Parameters<typeof buildSettlementGroups>[0]> = {}) 
     ...over,
   })
 
-// One pool of wpłaty, one debt — so one table in EVERY tryb. The split into a „Rozliczenie netto" and
-// a „Rozliczenie fakturą" tor is what this replaced: two captions asking the reader which of two
-// numbers the client owes.
 describe('buildSettlementGroups', () => {
   it('is a single uncaptioned table, whatever the tryb', () => {
     for (const axis of ['net', 'gross', 'both'] as MoneyAxisT[]) {
@@ -35,8 +32,6 @@ describe('buildSettlementGroups', () => {
     expect(build()[0]?.rows.map((row) => row.label)).toEqual(['Wpłaty', 'Pozostało do zapłaty'])
   })
 
-  // A gotówka has no brutto kwota and a przelew carries both off its faktura, so each column
-  // deducts what its own wpłaty were worth — deriving one from the other is the −2399,20 bug.
   it('deducts each plane’s own kwota, negated', () => {
     const groups = build({ paid: { net: 250, gross: 300 } })
     expect(rowNamed(groups, 'Wpłaty')?.line).toEqual({ net: -250, gross: -300 })
@@ -50,16 +45,11 @@ describe('buildSettlementGroups', () => {
     expect(rowNamed(groups, 'Do zapłaty brutto')).toBeUndefined()
   })
 
-  // Materiały are a term of Łącznie in the Podsumowanie table above, not a settlement step —
-  // printing them here too would charge them twice on the way down to the debt.
   it('carries no materiały step', () => {
     expect(rowNamed(build(), 'Materiały')).toBeUndefined()
   })
 })
 
-// The two planes cross zero independently — a bill settled to the grosz on netto can still owe on
-// brutto — so the alarm resolves per CELL. Keyed off one axis, a real outstanding brutto debt would
-// render un-alarmed beside a slightly overpaid netto.
 describe('the „Pozostało do zapłaty" alarm', () => {
   it('tones each column from its own figure when the planes differ in sign', () => {
     const groups = build({ axis: 'both', amountDue: { net: -100, gross: 130 } })
@@ -72,9 +62,6 @@ describe('the „Pozostało do zapłaty" alarm', () => {
   })
 })
 
-// A deduction step like a wpłata, at face value on both planes — it never crossed a VAT bridge, and
-// unlike a rabat it is not a concession on the price. Only when there is one: a 0 zł step would tell
-// every investment about a cost nobody absorbed.
 describe('the strata step', () => {
   it('renders nothing when nothing was absorbed', () => {
     expect(rowNamed(build({ lossAmount: 0 }), 'Strata')).toBeUndefined()
@@ -93,8 +80,6 @@ describe('the strata step', () => {
   })
 })
 
-// „Nadpłata -24 407,39" read as a negative overpayment (owner, 2026-10-05): the row keeps the debt's
-// label and its minus, and a footnote says what the minus means.
 describe('a negative balance', () => {
   const footnote = '*Minusowa kwota oznacza nadpłatę'
 

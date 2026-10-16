@@ -3,7 +3,7 @@ import { receiptPdfPlugins, RECEIPT_PDF_ENGINE } from '@/lib/ai/receipt-pdf-plug
 
 describe('receiptPdfPlugins', () => {
   it('returns the native file-parser plugin for a PDF', () => {
-    // Pins the engine to `native` (the PDF-native model reads the file directly) — needed for our
+    // needed for our
     // no-text-layer Stimulsoft/Quartz PDFs the free `pdf-text` engine returns empty for, while
     // still avoiding the paid mistral-ocr ($2/1000 pages) the OpenRouter default would pick.
     expect(receiptPdfPlugins(['application/pdf'])).toEqual([

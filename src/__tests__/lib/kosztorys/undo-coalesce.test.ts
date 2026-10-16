@@ -8,9 +8,7 @@ import {
   type StageChangeT,
 } from '@/lib/kosztorys/undo-coalesce'
 
-// react-datasheet-grid text cells use continuousUpdates:true → one onChange per keystroke. These
-// reducers collapse the burst into a single undo entry (before = first seen, after = last), and
-// drop a burst whose net effect is zero (type-then-revert) so it never pollutes the undo stack.
+// react-datasheet-grid text cells use continuousUpdates:true → one onChange per keystroke.
 
 const field = (over: Partial<FieldChangeT>): FieldChangeT => ({
   id: 1,
@@ -95,8 +93,7 @@ describe('coalesceStageChanges', () => {
   })
 })
 
-// The toolbar buttons during the ≤700ms coalesce window, where the burst is buffered but not yet a
-// command (EX-526 #5): the keyboard shortcut already flushes-then-undoes, so the button must not sit
+// the keyboard shortcut already flushes-then-undoes, so the button must not sit
 // greyed out while Cmd+Z works.
 describe('undoAvailability', () => {
   it('reports a buffering burst as undoable even on an empty stack', () => {
@@ -113,11 +110,6 @@ describe('undoAvailability', () => {
   })
 })
 
-// EX-737: keystrokes commit as they go, so a value the policy refuses leaves the last accepted
-// PREFIX on the row and `cellSettle` rolls it back on the way out. Inside one 700ms window the two
-// halves coalesce to nothing on their own; once the window closes between them the prefix is already
-// a command, and the rollback would arrive as a second one — leaving Cmd+Z to hand back exactly the
-// number the user was told had been rejected.
 describe('foldRetractions', () => {
   it('cancels a pushed prefix against the rollback that took it back', () => {
     const previous = {

@@ -7,10 +7,6 @@ import {
 } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Its own row, separate from `investments`, so the owner can register a sheet BEFORE the investment
-// is confirmed and link the two later. `investment` is nullable and `ON DELETE SET NULL`, so the
-// sheet outlives the investment and goes unlinked again if it is deleted. The 1:1 cardinality is a
-// partial unique index on investment_id (20260528_move_sheet_id_to_kosztoryses).
 export const Sheets: CollectionConfig = {
   slug: 'kosztoryses',
   labels: {
@@ -29,8 +25,8 @@ export const Sheets: CollectionConfig = {
     afterDelete: [makeRevalidateAfterDelete('kosztoryses', 'investments')],
   },
   // `not_equals` is what keeps the unlinked sheets editable: on a LEFT-JOINed nullable relationship
-  // Payload emits `col IS NULL OR col <> …`, so a sheet naming no investment passes — which is
-  // exactly what „Nowy kosztorys" produces. `not_in` does NOT behave this way.
+  // Payload emits `col IS NULL OR col <> …`, so a sheet naming no investment passes. `not_in` does
+  // NOT behave this way.
   access: {
     read: isAdminOrOwnerOrManager,
     create: createUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment'),
@@ -64,8 +60,6 @@ export const Sheets: CollectionConfig = {
       type: 'relationship',
       relationTo: 'investments',
       hasMany: false,
-      // Nullable: unlinked kosztoryses are first-class (planning before commit). The partial unique
-      // index on investment_id WHERE NOT NULL enforces 1:1 when set.
       label: { en: 'Investment', pl: 'Inwestycja' },
     },
     {

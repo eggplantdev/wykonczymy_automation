@@ -22,8 +22,6 @@ type InvoiceDownloadDialogPropsT = {
   fetchRows: TransferRowsFetchT
 }
 
-// The rows that produce the count are the rows „Pobierz" packs — one fetch, so the number shown can
-// never disagree with the archive.
 export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT) {
   const { locale, t } = useTranslation('transfers')
   const searchParams = useSearchParams()

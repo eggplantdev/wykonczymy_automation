@@ -13,8 +13,6 @@ const source = (laborGrid: (string | number)[][]): ImportGridsT => ({
   rateTabs: [],
 })
 
-// „Pomiar z natury" is an OPTIONAL column: a client who titled it something else still has a
-// perfectly good sheet, and the resolver says so by returning ok with the field unresolved.
 function withoutPomiarHeader(): (string | number)[][] {
   const measured = col('O')
   return BIALOSTOCKA_ROWS.map((sheetRow) => {
@@ -49,8 +47,6 @@ const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysIte
   ...overrides,
 })
 
-// The same prace as Białostocka, each already carrying a stored Pomiar — so anything that clears
-// them shows up as rows, and nothing else can.
 function currentTree(): SnapshotPayloadT {
   return {
     schemaVersion: SNAPSHOT_SCHEMA_VERSION,
@@ -90,8 +86,6 @@ describe('buildMeasuredQtyRefresh', () => {
 
     expect(refresh.ok).toBe(true)
     if (!refresh.ok) return
-    // The sheet said nothing about the measurement — that is not the same as saying zero, and
-    // wiping every stored figure would destroy the reference „Rozjazd" is computed against.
     expect(refresh.refresh.rows).toEqual([])
   })
 

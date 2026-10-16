@@ -20,8 +20,6 @@ import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// Commands take the section id rather than closing over it, so one bundle rides every band row's
-// `columnData` instead of being rebuilt per section.
 export type SectionBandActionsT = {
   onInsert: (sectionId: number, where: 'above' | 'below') => void
   onSetColor: (sectionId: number, color: SectionColorKeyT | null) => void
@@ -29,8 +27,6 @@ export type SectionBandActionsT = {
   onAddItem: (sectionId: number) => void
 }
 
-// Under a section-scoped sort the bands stay on screen but insert refuses to run, so without
-// `sortActive` those commands would look live and do nothing.
 export function KosztorysSectionActionsMenu({
   row,
   sectionId,
@@ -40,8 +36,6 @@ export function KosztorysSectionActionsMenu({
   sortActive,
   actions,
 }: {
-  // The only entry acting on the ROW, not the sekcja. A band's label is one line, so fitting it
-  // always lands at resting height — here the command is the way back from a drag.
   row: KosztorysV2RowT
   sectionId: number
   name: string
@@ -59,8 +53,6 @@ export function KosztorysSectionActionsMenu({
       <DropdownMenu>
         <CellMenuTrigger title="Akcje sekcji" />
         <DropdownMenuContent align="start" className="min-w-44">
-          {/* Twin of the row menu's „Praca" header — this ⋯ and a praca's sit in the same „Akcje"
-              column, one row apart. */}
           <DropdownMenuLabel>Sekcja</DropdownMenuLabel>
           <DropdownMenuItem
             disabled={sortActive}
@@ -81,8 +73,6 @@ export function KosztorysSectionActionsMenu({
             value={color}
             onChange={(next) => actions.onSetColor(sectionId, next)}
           />
-          {/* Not gated by the sort, unlike the two above: the praca lands at the END of this
-              section, so array position — the reason those go dead — is irrelevant. */}
           <DropdownMenuItem onSelect={() => actions.onAddItem(sectionId)}>
             <Plus />
             Dodaj pracę

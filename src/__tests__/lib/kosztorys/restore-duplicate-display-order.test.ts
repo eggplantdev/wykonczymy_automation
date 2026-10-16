@@ -6,15 +6,6 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// `display_order` carries NO unique constraint (only `kosztorys_stages(investment_id, ordinal)` does),
-// and the repo treats a tie as tolerated, not corrupt — append-preset-sections.ts accepts the
-// MAX-select race that mints one, and the read path orders by `(display_order, id)` precisely so a tie
-// only makes relative order ambiguous. The dev DB holds one today.
-//
-// So a tie must NOT break restore: the bulk inserts join RETURNING on the natural key, and where that
-// key ties the join is impossible — it has to degrade, not throw. This spec pins the two things that
-// still have to hold when it degrades: every row comes back, and every child lands under the SAME
-// parent it had (misparenting is the silent corruption the key join exists to prevent).
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
@@ -35,7 +26,7 @@ describe.skipIf(!ENV_READY)('restore with tied display_order (DB)', () => {
     })
 
     // Every `displayOrder: 0` below is deliberate, overriding the builder's index default — the tie
-    // IS the fixture, and these are the two ties that occur in the wild.
+    // IS the fixture.
     const item = { displayOrder: 0, unit: 'm2', plannedQty: 1, clientPrice: 100 }
     await createKosztorysTree(payload, investmentId, {
       sections: [
@@ -61,7 +52,6 @@ describe.skipIf(!ENV_READY)('restore with tied display_order (DB)', () => {
   })
 
   it('restores a tied tree without throwing, every item under its own section', async () => {
-    // description → section name, the parenting the restore must preserve across reminted ids.
     const parentage = async () => {
       const tree = await serializeKosztorys(investmentId)
       const sectionName = new Map(tree.sections.map((section) => [section.id, section.name]))

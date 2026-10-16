@@ -19,7 +19,6 @@ const DecimalCell = COLUMN.component as React.ComponentType<Record<string, unkno
 
 const ENTRY_QTY = 8
 
-// Stands in for react-datasheet-grid, including dropping the cell the way virtualization does.
 function CellHost({ mounted = true }: { mounted?: boolean }) {
   const [row, setRow] = useState<QtyRowT>({ id: 1, plannedQty: ENTRY_QTY } as QtyRowT)
   return (
@@ -126,8 +125,6 @@ describe('DecimalCell — what a refused value leaves behind', () => {
   })
 })
 
-// EX-735: removing a focused element fires no blur, so the exit that never ran the rollback is the
-// one virtualization takes — the edited row scrolls out of the window and the input is unmounted.
 describe('DecimalCell — the row is scrolled out from under the caret', () => {
   it('settles the refused draft on unmount, once', async () => {
     const user = userEvent.setup()

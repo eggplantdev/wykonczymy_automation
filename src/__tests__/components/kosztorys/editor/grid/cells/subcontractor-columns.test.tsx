@@ -23,8 +23,6 @@ const ROW = pricingRow()
 
 const DERIVED_PRICE = '65'
 
-// The two cells share one row, which is the whole point: „Źródło" stores nothing of its own — it
-// reads the same field the price writes — so the pair is only ever observable together.
 function CellPair({ override }: { override?: number | null }) {
   const [row, setRow] = useState<ViewPricingT>({ ...ROW, wToolsOverrideValue: override ?? null })
   const props = {
@@ -50,9 +48,6 @@ function renderPair(override?: number | null) {
   }
 }
 
-// EX-766: `null` („ask the investment") and `0` („zero złotych") share one nullable field, with the
-// source label derived from it — a falsy check instead of `=== null` reads an explicit zero as
-// „auto", billing the crew at the mnożnik rate nobody chose.
 describe('„Źródło ceny wykonawcy" — derived from the price, so 0 zł is not „auto"', () => {
   it('reads „auto" and shows the rate the investment derives', () => {
     const { price, source } = renderPair()

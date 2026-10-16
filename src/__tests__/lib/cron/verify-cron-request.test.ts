@@ -3,8 +3,6 @@ import { NextRequest } from 'next/server'
 
 import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
 
-// The single home for the fail-closed rule both crons rely on. Their own specs
-// assert that they reject — this one owns *when* rejection happens.
 describe('isAuthorizedCronRequest', () => {
   const previous = process.env.CRON_SECRET
 
@@ -35,7 +33,6 @@ describe('isAuthorizedCronRequest', () => {
     expect(isAuthorizedCronRequest(request({ authorization: 'test-secret' }))).toBe(false)
   })
 
-  // Fail closed: an unset secret must never make every request look authorized.
   it('rejects everything when CRON_SECRET is unset', () => {
     delete process.env.CRON_SECRET
     expect(isAuthorizedCronRequest(request({ authorization: 'Bearer test-secret' }))).toBe(false)

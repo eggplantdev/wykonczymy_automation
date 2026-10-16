@@ -3,7 +3,7 @@ import { z } from 'zod'
 export type ScanUnitT = { value: string; label: string }
 
 /**
- * What the model may answer for one photo. An extra's j.m. is an enum of the kosztorys's units, so a
+ * An extra's j.m. is an enum of the kosztorys's units, so a
  * handwritten one that fits none comes back null instead of a unit the review would have to reject.
  */
 export const workerReportScanSchema = (units: readonly ScanUnitT[]) => {

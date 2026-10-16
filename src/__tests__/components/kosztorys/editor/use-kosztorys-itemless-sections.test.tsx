@@ -15,6 +15,9 @@ import {
 } from '@/lib/actions/kosztorys'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
+  addItemAction: vi.fn(),
+  clearKosztorysAction: vi.fn(),
+  writeKosztorysLayoutAction: vi.fn(),
   addSectionAction: vi.fn(),
   insertSectionAction: vi.fn(),
   removeItemAction: vi.fn(async () => ({ success: true })),
@@ -125,7 +128,6 @@ describe('sekcja bez pozycji w edytorze', () => {
     expect(result.current.rows.map((row) => row.id)).toEqual([1, 3])
   })
 
-  // What the „Nowa praca" dialog hands back once the server has saved the praca.
   const savedItem = (id: number, sectionId: number): KosztorysItemT => ({
     ...baseItem,
     id,
@@ -205,8 +207,6 @@ describe('sekcja bez pozycji w edytorze', () => {
     )
   })
 
-  // With no rows the section's own commands carry no item id, so only the header id can prune them;
-  // replaying one after the delete would write against a dead section.
   it('drops its rename from the undo stack when the section is removed', async () => {
     const { stack, api } = stackUndoRedo()
     const { result } = renderEditor(api)

@@ -11,13 +11,9 @@ const warehouseNameSchema = z
   .max(120, 'Nazwa magazynu jest za długa')
 
 /**
- * Create a warehouse from the equipment form, so „nie ma go na liście" doesn't send anyone to
- * /admin mid-entry.
- *
  * The name is matched case-insensitively against the whole dictionary before inserting, not left to
  * the unique index: the index would let „Kwiatowa" and „kwiatowa" both in, and two rows for one
- * place quietly halve every answer the „Gdzie jest" filter gives. There are a handful of them, so
- * reading them all is cheaper than being clever.
+ * place quietly halve every answer the „Gdzie jest" filter gives.
  */
 export async function createWarehouseAction(name: string) {
   return protectedAction<WarehouseOptionT>(

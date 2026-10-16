@@ -9,8 +9,6 @@ import { UNASSIGNED_WORKER_NAME } from '@/lib/kosztorys/payouts-by-worker'
 import { workerKey } from '@/lib/kosztorys/worker-key'
 import type { PayoutTransactionRowT, SubcontractorPayoutRowT } from '@/types/transfers'
 
-// One flat row per wypłata for the virtualized DataTable — worker name resolved up front so the
-// grid can sort on it without a per-cell lookup.
 type PayoutTableRowT = {
   workerId: number | null
   workerName: string
@@ -19,13 +17,9 @@ type PayoutTableRowT = {
   description: string | null
 }
 
-// Fixed height for the virtualizer's scroll container, kept short enough that the headline + totals
-// block above it stay visible inside the collapsible panel.
 const TABLE_HEIGHT = 400
 const ROW_HEIGHT = 36
 
-// Sized explicitly for the same reason as the wydatki list: a fixed-layout virtualized table falls
-// back to a uniform 150 per unsized column.
 const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
   {
     accessorKey: 'date',
@@ -56,9 +50,6 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
   },
 ]
 
-// The un-summed wypłaty list under „Podsumowanie podwykonawców". Every column sorts, so the table
-// only sets a date-desc opening order. Owner-only by construction (the subcontractor views are
-// unreachable in the client preview), so the per-row links are always live.
 export function SubcontractorPayoutsTable({
   investmentId,
   payouts,

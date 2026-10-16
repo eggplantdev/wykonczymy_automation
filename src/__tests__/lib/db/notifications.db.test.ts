@@ -5,8 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { countUnreadFleetDeadlines, countUnreadWarranties } from '@/lib/db/notifications'
 import { warsawToday } from '@/lib/utils/days'
 
-// The two badges are the readers a trashed row is most likely to slip past: they are raw SQL beside
-// the listings, not through them, so hiding a row from the page proves nothing about the nav dot.
 // Asserted as a difference against the shared test DB, whose dump carries badges of its own.
 
 vi.mock('server-only', () => ({}))

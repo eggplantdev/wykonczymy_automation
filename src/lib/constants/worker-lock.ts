@@ -18,7 +18,6 @@ export const mixedPlaneWorkersMessage = (names: readonly string[]): string =>
 
 export const MANAGER_SCOPE_MESSAGE = 'Kierownik może zmieniać tylko konta pracowników.'
 
-/** The roles an account must keep at least one live holder of — nobody else can administer them. */
 export const GUARDED_ROLES: readonly RoleT[] = ['OWNER', 'ADMIN']
 
 /**
@@ -29,10 +28,7 @@ export const DISABLED_ACCOUNT_ERROR = 'DisabledAccount'
 
 export const DISABLED_ACCOUNT_MESSAGE = pl.notices.accountDisabled
 
-/**
- * The refusal a failed `payload.login` owes the user when the password is not the reason. Payload
- * throws `LockedAuth` with the same 401 as a wrong password, so the name is the only discriminator.
- */
+// Payload throws `LockedAuth` with the same 401 as a wrong password, so the name is the only discriminator.
 export function loginRefusalKey(error: unknown): 'accountLocked' | 'accountDisabled' | undefined {
   if (!(error instanceof Error)) return undefined
   if (error.name === 'LockedAuth') return 'accountLocked'

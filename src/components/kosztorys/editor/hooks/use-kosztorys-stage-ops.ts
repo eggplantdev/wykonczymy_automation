@@ -28,12 +28,9 @@ type ArgsT = {
   ) => void
   dropWidth: (...keys: string[]) => void
   save: (key: string, run: () => Promise<ActionResultT>, onError?: () => void) => void
-  // Surfaces a refused action (and reseeds the grid when the refusal means the tree is stale).
   reportFailure: (error: string, code?: ActionErrorCodeT) => void
 }
 
-// Touches the rows only through `patchRows` and never the undo stack — a stage column is structure,
-// not a cell edit.
 export function useKosztorysStageOps({
   investmentId,
   initialStages,
@@ -42,17 +39,13 @@ export function useKosztorysStageOps({
   save,
   reportFailure,
 }: ArgsT) {
-  // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
   const [stages, setStages] = useState<KosztorysStageT[]>(initialStages)
-  // For the stage-rename handler's no-op guard (compares against the fresh label). Writing a ref
-  // during render is the deliberate "latest value" pattern; react-hooks/refs forbids it outright.
   const stagesRef = useRef(stages)
 
   // eslint-disable-next-line react-hooks/refs
   stagesRef.current = stages
 
-  // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
-  // coeffs), so the column renders 0s (not blanks) and the first progress entry diffs correctly.
+  // so the column renders 0s (not blanks) and the first progress entry diffs correctly.
   async function handleAddStage(plane: ToolPlaneT, split: StageSplitT | null) {
     const res = await settleAction(() => addStageAction(investmentId, plane, split))
     if (!res.success) return reportFailure(res.error, res.code)
@@ -60,7 +53,6 @@ export function useKosztorysStageOps({
     adoptStage({ id, ordinal, label: null, plane, split, completed: false })
   }
 
-  // An etap the server already created — an accepted report's „Nowy etap".
   function adoptStage(stage: KosztorysStageT) {
     setStages((s) => [...s, stage])
     patchRows(
@@ -69,12 +61,8 @@ export function useKosztorysStageOps({
     )
   }
 
-  // Shared by the header edits so they inherit the cell edits' revert-on-error discipline.
   // The revert restores the prior value only if nothing newer landed on the field meanwhile (it
   // still reads `value`) — which is what makes a slow rejected write safe to roll back.
-  //
-  // `saveKey` is passed rather than derived from `field`: it is the debounce identity, so renaming a
-  // field must not silently re-bucket in-flight saves.
   function patchStageField<K extends keyof KosztorysStageT>(
     stageId: number,
     field: K,
@@ -114,23 +102,18 @@ export function useKosztorysStageOps({
         },
       )
     },
-    // An empty label reverts to null (the header shows the "Etap N" placeholder). The no-op guard in
-    // patchStageField earns its keep here: the header's onBlur fires on every focus-out, and it has no
-    // diff of its own, unlike item cells via diffRow.
     rename(stageId, label) {
       const trimmed = label.trim()
       patchStageField(stageId, 'label', trimmed === '' ? null : trimmed, 'stage-label')
     },
-    // Fired from the header's onCheckedChange (an event handler, never inside a state updater). Picking
-    // any plane (even the default w_tools) writes it, which is what clears the unconfirmed warning.
+    // Picking any plane (even the default w_tools) writes it, which is what clears the unconfirmed
+    // warning.
     setPlane(stageId, plane) {
       patchStageField(stageId, 'plane', plane, 'stage-plane')
     },
     setCompleted(stageId, completed) {
       patchStageField(stageId, 'completed', completed, 'stage-completed')
     },
-    // The whole split in one write, never field by field (see updateStageSplitAction). `null` is „Bez
-    // przypisania". No undo push, matching plane.
     setSplit(stageId, split) {
       patchStageField(stageId, 'split', split, 'stage-split', () =>
         updateStageSplitAction(stageId, split),

@@ -15,8 +15,7 @@ export function ReportModeFooter({ mode, onModeChange }: PropsT) {
   const { t } = useTranslation('report')
 
   // Portaled: an ancestor in the grid's footer slot is a containing block for `fixed`, which would
-  // pin the bar to the bottom of the page instead of the screen. Mounted client-side only — the
-  // grid waits for the draft to load.
+  // pin the bar to the bottom of the page instead of the screen.
   return createPortal(
     <nav className="border-border bg-background fixed inset-x-0 bottom-0 z-40 flex justify-center border-t px-4 py-3">
       <ToggleGroup

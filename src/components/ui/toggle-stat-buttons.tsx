@@ -14,14 +14,12 @@ type StatEntryT = {
   value: string
   amount: number
   borderClassName: string
-  // Explanation shown via an (i) rendered beside the tile (can't nest inside — the tile is a button).
   tooltip?: string
 }
 
 type ToggleStatButtonsPropsT = {
   rows: StatEntryT[][]
   rowLabels?: string[]
-  // Per-row (i) explanation, parallel to rowLabels.
   rowTooltips?: (string | undefined)[]
   summaryLabel: string
   summaryTooltip?: string
@@ -29,8 +27,6 @@ type ToggleStatButtonsPropsT = {
   colorValues?: boolean
 }
 
-// Takes the structural minimum rather than StatEntryT — the sum reads no styling, so any
-// {label, amount} list can be summed by the same formula the tiles render.
 export function computeSummary(
   entries: readonly { label: string; amount: number }[],
   hidden: Set<string>,
@@ -78,11 +74,9 @@ export function ToggleStatButtons({
                 )}
               </Description>
             )}
-            {/* One column on a phone, unlike every other ControlGrid caller. A tile's content is a
-                label plus a money figure and `Button` is `whitespace-nowrap`, so its min-content
-                width is the whole string — in a half-width cell it cannot shrink and spills out of
-                the grid. Truncating instead would cut the figure, which is the one part worth
-                reading. */}
+            {/* A tile's content is a label plus a money figure and `Button` is `whitespace-nowrap`,
+                so its min-content width is the whole string — in a half-width cell it cannot shrink
+                and spills out of the grid. */}
             <ControlGrid className="mt-2 max-sm:grid-cols-1">
               {row.map((entry) => {
                 const isHidden = hidden.has(entry.label)

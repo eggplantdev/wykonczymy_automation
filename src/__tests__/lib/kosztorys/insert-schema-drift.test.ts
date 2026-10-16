@@ -9,16 +9,8 @@ import {
   STAGE_INSERT_COLUMNS,
 } from '@/lib/kosztorys/insert-kosztorys-tree'
 
-// Restore rebuilds the kosztorys tree with five hand-written INSERTs (insert-rows.ts, the two
-// inline ones in insert-kosztorys-tree.ts, and the etap members in db/stage-split.ts). Nothing otherwise connects those column lists to the
-// tables they write: add a column in a migration and restore keeps working, silently dropping the new
-// field on every snapshot it reinserts. There is no error to notice — the restored row just carries
-// the column's default.
-//
-// The lists asserted here are the ones the statements are BUILT from, imported, not retyped: a
-// hand-written mirror could be made green the lazy way (add the column here, forget the INSERT), and
-// that is the failure this guard would then miss. What it still cannot see is the VALUES tuple
-// drifting out of alignment with its column list — that one is on the roundtrip spec's coverage.
+// Nothing otherwise connects those column lists to the tables they write: add a column in a migration
+// and restore keeps working, silently dropping the new field on every snapshot it reinserts.
 const EXCLUDED = ['id', 'created_at', 'updated_at']
 
 const INSERT_COLUMNS: Record<string, readonly string[]> = {

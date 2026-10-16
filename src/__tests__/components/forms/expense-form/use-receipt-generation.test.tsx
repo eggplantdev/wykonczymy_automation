@@ -12,8 +12,7 @@ vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
-// Kept real by default and only forced to reject in the escape test — that is the whole shape of
-// the bug: `mapWithConcurrency` propagates, so anything torn down outside the `finally` is skipped.
+// `mapWithConcurrency` propagates, so anything torn down outside the `finally` is skipped.
 vi.mock('@/lib/utils/map-with-concurrency', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/utils/map-with-concurrency')>()
   return { mapWithConcurrency: vi.fn(actual.mapWithConcurrency) }
@@ -77,8 +76,6 @@ describe('useReceiptGeneration — the form is released whatever the scan does',
   })
 
   it('releases the form when the scan itself is aborted', async () => {
-    // Ships-broken path: the teardown sat after the await, so an escaping rejection left
-    // `isGenerating` stuck true — buttons disabled and the pending pill stuck until unmount.
     vi.mocked(mapWithConcurrency).mockRejectedValueOnce(new Error('chunk load failed'))
     const { result } = renderGeneration()
 

@@ -35,8 +35,7 @@ const PAYOUT_LINES = [
   },
 ] as const
 
-// Four figures, never netted: a nadpłata on one investment is not a discount on another. A withheld
-// pair has no figure at all, so it is only counted.
+// Four figures, never netted: a nadpłata on one investment is not a discount on another.
 function PayoutRemainingCell({
   view,
   onSettle,

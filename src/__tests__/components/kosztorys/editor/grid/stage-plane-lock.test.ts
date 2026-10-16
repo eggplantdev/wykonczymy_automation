@@ -5,10 +5,6 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// An etap with no rozliczenie has its quantity column locked — correct, but a `disabled` dsg cell
-// swallows keystrokes without saying why. What is pinned here is that the lock states its reason where
-// it is discovered (the cell), not only on the header badge nobody looks at after typing.
-
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Bez rozliczenia', plane: null }),
   makeStage({ id: 9, ordinal: 2, label: 'Rozliczony' }),
@@ -33,7 +29,6 @@ describe('an etap with no rozliczenie', () => {
       format: (value: number | null) => string
     }
     expect(format(compute(ROW))).toBe('12')
-    // Blank rather than „0" — an empty locked cell must not read as a measurement of nothing.
     expect(format(compute({ ...ROW, [stageKey(7)]: null } as KosztorysV2RowT))).toBe('')
   })
 

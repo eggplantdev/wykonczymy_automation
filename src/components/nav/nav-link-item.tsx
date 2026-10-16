@@ -14,7 +14,6 @@ type NavLinkItemPropsT = React.ComponentProps<typeof Button> & {
   onNavigate?: () => void
 }
 
-/** Shared by the sidebar and the mobile drawer, which must render it indistinguishably. */
 export function NavLinkItem({
   link,
   active,
@@ -30,11 +29,7 @@ export function NavLinkItem({
       align={collapsed ? 'center' : 'start'}
       className={cn(
         'relative',
-        // Safe to hang drawer sizing off `max-sm:` rather than a prop: the sidebar is `hidden
-        // sm:flex`, so below 768 only the mobile drawer renders this row.
         'max-sm:min-h-10 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
-        // The sidebar has a fixed width, so a long label wraps onto a second line instead of
-        // widening it.
         collapsed ? 'px-0' : 'h-auto min-h-8 py-1.5 whitespace-normal',
         // Not `bg-accent` — ghost's own hover paints that, so the active row would look like whatever
         // the cursor is over.
@@ -57,8 +52,6 @@ export function NavLinkItem({
   )
 }
 
-// Collapsed there is no label row for the count bubble to sit after, so it moves to the icon's
-// corner — overriding the `ml-auto` CountBadge uses to push itself right in the expanded row.
 function BadgeSlot({ collapsed, children }: { collapsed: boolean; children: React.ReactNode }) {
   if (!collapsed) return children
 

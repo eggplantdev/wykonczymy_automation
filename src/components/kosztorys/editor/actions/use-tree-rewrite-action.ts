@@ -7,10 +7,6 @@ import type { FailureT } from '@/types/action'
 
 export type TreeRewriteActionT = { pending: boolean; start: () => void }
 
-/**
- * A menu action that rewrites rows of the tree in place. `onDone` returns whether anything changed;
- * when it did, the grid reseeds off the revision token the writer bumped.
- */
 export function useTreeRewriteAction<DataT>(
   run: (investmentId: number) => Promise<{ success: true; data: DataT } | FailureT>,
   failedMessage: string,

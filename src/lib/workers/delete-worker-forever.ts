@@ -9,10 +9,8 @@ import { logError } from '@/lib/utils/log-error'
 export const WORKER_NOT_TRASHED_MESSAGE = 'Najpierw przenieś pracownika do kosza.'
 
 /**
- * His trashed kasy, then him, through `payload.delete` so each `beforeDelete` re-counts — the last
- * word on a worker or kasa that picked something up while in the trash. One transaction with no catch
- * inside: a refused kasa must take the ones before it back with it, and a statement after a failed
- * one in the same transaction only meets 25P02.
+ * One transaction with no catch inside: a refused kasa must take the ones before it back with it,
+ * and a statement after a failed one in the same transaction only meets 25P02.
  */
 export async function deleteTrashedWorker(
   payload: Payload,

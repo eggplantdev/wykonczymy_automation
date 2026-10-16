@@ -9,9 +9,6 @@ type PropsT = {
   size?: 'xs' | 'sm'
 }
 
-// The single kosztorys entry point, identical on the investments listing and the
-// individual investment view: a prominent "Otwórz" link when a sheet is linked,
-// or a quieter "Dodaj kosztorys" trigger (same setup dialog) when it isn't.
 export function SheetButton({ investmentId, hasSheet, size = 'xs' }: PropsT) {
   if (hasSheet) {
     return (

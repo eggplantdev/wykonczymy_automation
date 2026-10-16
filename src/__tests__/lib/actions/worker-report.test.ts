@@ -66,7 +66,6 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
       stages: [{ worker: workerId, plane: 'w_tools' }],
     }))
     token = `test-send-report-${process.pid}-${Date.now()}`
-    // The etap already minted his link; pin it to a token the spec can name.
     await payload.update({
       collection: 'worker-report-shares',
       where: { investment: { equals: investmentId }, worker: { equals: workerId } },
@@ -125,7 +124,6 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   })
 
   it('stores opis, j.m. and sekcja copied from the live pozycja, not from the client', async () => {
-    // A tampered client: extra fields claiming other text ride along and must be ignored.
     const tampered = {
       kind: 'rozpiska',
       itemId,
@@ -156,7 +154,6 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
         kind: 'extra',
         itemId: null,
         description: 'Wniesienie płyt',
-        // An extra's j.m. goes through cleanUnit, so it matches the list the kierownik picks from.
         unit: 'm²',
         sectionName: null,
         reportedQty: 3,

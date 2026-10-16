@@ -111,7 +111,6 @@ describe('receiptDecision', () => {
   })
 })
 
-// The „Przyjmij” dialog's row order beside the real parts-map updates it makes.
 type StateT = { receipts: Map<string, DraftReceiptT[]>; order: string[] }
 
 function merge({ receipts, order }: StateT, ids: string[], mergedId: string): StateT {

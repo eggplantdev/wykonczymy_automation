@@ -3,14 +3,7 @@ import {
   equipmentTransferFormSchema,
   equipmentTransferSchema,
 } from '@/components/forms/equipment-transfer-form/equipment-transfer-schema'
-import {
-  MULTIPLE_TARGETS_MESSAGE,
-  NO_TARGET_MESSAGE,
-} from '@/lib/equipment/target-invariant'
-
-// The collection hook is the row's guard, but the action's payload is parsed before it ever gets
-// there — so the same „exactly one target" has to hold at this door too, or a two-target payload
-// reaches Postgres and comes back as a bare 400.
+import { MULTIPLE_TARGETS_MESSAGE, NO_TARGET_MESSAGE } from '@/lib/equipment/target-invariant'
 
 const FORM_VALUES = {
   equipment: '7',
@@ -90,9 +83,9 @@ describe('equipmentTransferFormSchema — the controls', () => {
     })
     expect(result.success).toBe(false)
     // On the field, not on the form: the user has to see WHICH control is empty.
-    expect((result as { error: { issues: { path: PropertyKey[] }[] } }).error.issues[0]?.path).toEqual([
-      field,
-    ])
+    expect(
+      (result as { error: { issues: { path: PropertyKey[] }[] } }).error.issues[0]?.path,
+    ).toEqual([field])
   })
 
   it('rejects a negative cost', () => {

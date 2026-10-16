@@ -1,10 +1,6 @@
 /* global self, fetch, Response, URL */
-// Fetch: navigations only, network-first, no cache: Chrome's install path wants a fetch handler, and the
-// app must behave online exactly as it does without one. Non-navigation requests (Server Actions,
-// RSC fetches) are never answered here, so they keep failing into the app's own offline toast.
+// Chrome's install path wants a fetch handler.
 
-// The account language lives behind the server this page could not reach, so the phone's language
-// stands in for it.
 const OFFLINE_TEXT = {
   pl: ['Brak połączenia z internetem. Spróbuj ponownie, gdy będzie zasięg.', 'Odśwież'],
   uk: ["Немає з'єднання з інтернетом. Спробуйте ще раз, коли з'явиться зв'язок.", 'Оновити'],
@@ -29,7 +25,6 @@ const offlinePage = () => {
 
 self.addEventListener('install', () => self.skipWaiting())
 
-// Navigation preload starts the network request while the worker boots, instead of after.
 self.addEventListener('activate', (event) =>
   event.waitUntil(
     Promise.all([self.registration.navigationPreload?.enable(), self.clients.claim()]),

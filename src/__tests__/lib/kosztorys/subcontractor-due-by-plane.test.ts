@@ -8,9 +8,6 @@ import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT, KosztorysTreeT, StageSplitT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
-// Row 1 executes 2 (stage 100) + 3 (stage 101) of planned 5, client price 20.
-// Row 2 executes 4 (stage 100) of planned 4, client price 10, with a flat 'amount' rabat of 8.
-// Subcontractor prices are flat overrides: z narzędziami = 12, bez narzędzi = 10.
 const makePlaneTree = (
   stages: KosztorysStageT[],
   extra?: Partial<KosztorysTreeT>,
@@ -80,8 +77,6 @@ describe('subcontractorDueByPlane', () => {
     expect(due.hasUnconfirmedPlane).toBe(false)
   })
 
-  // Undecided is not a plane: charging it to a crew nobody picked would be a fabricated debt. The
-  // amount goes missing on purpose and the flag is the only thing that reports it.
   it('null plane belongs to neither crew and raises the unconfirmed flag', () => {
     const tree = makePlaneTree(allNull)
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
@@ -101,7 +96,6 @@ describe('subcontractorDueByPlane', () => {
   })
 
   it('is unchanged by per-item rabat (pre-rabat: rabat never reaches subcontractors)', () => {
-    // Item 2 carries a flat-8 rabat; the combined figure ignores it.
     const tree = makePlaneTree(mixed)
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect(due.combined).toBeCloseTo(102)
@@ -118,7 +112,6 @@ describe('subcontractorDueByPlane', () => {
   })
 
   it('respects per-row price overrides per plane', () => {
-    // Row 1 gets a flat override on the own_tools plane; the bez-narzędzi bucket must use it.
     const tree = makePlaneTree(mixed)
     tree.sections[0].items[0].ownToolsOverrideValue = 10
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
@@ -143,9 +136,6 @@ describe('subcontractorDueByPlane', () => {
   })
 })
 
-// EX-613: the same executed money, partitioned by who is to do it. The load-bearing property is the
-// partition — every złoty lands in exactly one bucket, and the unassigned residual is a bucket, not a
-// rounding difference sprinkled over the named workers.
 describe('subcontractorDueByPlane — byWorker', () => {
   const assigned = (stages: KosztorysStageT[], workerIds: (number | null)[]): KosztorysStageT[] =>
     stages.map((stage, index) => {
@@ -169,13 +159,10 @@ describe('subcontractorDueByPlane — byWorker', () => {
     const tree = makePlaneTree(assigned(mixed, [7, 7]))
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect(due.byWorker.get(7)).toBeCloseTo(102)
-    // The whole point of the map: this figure is not reachable from the plane split.
     expect(due.byWorker.get(7)).not.toBeCloseTo(due.wTools)
     expect(sumOf(due.byWorker)).toBeCloseTo(due.combined)
   })
 
-  // Same invariance the combined figure has — a worker's należne is what they executed, not what the
-  // client was charged, so neither discount mode may move it.
   it('a worker´s należne is unmoved by per-item rabat or a global discount', () => {
     const plain = makePlaneTree(assigned(mixed, [7, 8]))
     const discounted = makePlaneTree(assigned(mixed, [7, 8]), {
@@ -183,14 +170,11 @@ describe('subcontractorDueByPlane — byWorker', () => {
     })
     const a = subcontractorDueByPlane(treeToRows(plain), plain.stages)
     const b = subcontractorDueByPlane(treeToRows(discounted), discounted.stages)
-    // Row 2 carries the flat-8 per-item rabat and lands entirely in stage 100 → worker 7.
     expect(a.byWorker.get(7)).toBeCloseTo(72)
     expect(b.byWorker.get(7)).toBeCloseTo(a.byWorker.get(7)!)
     expect(b.byWorker.get(8)).toBeCloseTo(a.byWorker.get(8)!)
   })
 
-  // A plane-less etap is skipped before any value is computed, so its worker earns nothing from it —
-  // they are assigned but owed 0, which is what the panel's `no_executed_work` state exists to say.
   it('credits nobody for a plane-less etap, even when it is assigned', () => {
     const tree = makePlaneTree(
       assigned([makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2, plane: null })], [7, 8]),
@@ -201,7 +185,6 @@ describe('subcontractorDueByPlane — byWorker', () => {
   })
 })
 
-// EX-943: an etap's pool is split among its workers by the one arithmetic in `splitStagePool`.
 describe('subcontractorDueByPlane — shared etapy', () => {
   const withSplits = (splits: (StageSplitT | null)[]): KosztorysStageT[] =>
     mixed.map((stage, index) => ({ ...stage, split: splits[index] }))
@@ -298,9 +281,6 @@ describe('subcontractorDueByPlane — shared etapy', () => {
   })
 })
 
-// „Pomiar z natury" is the sheet's O = SUM(D:M) (EX-494), so scoping it to the view is what makes a
-// subcontractor view one crew's bill instead of the whole rozpiska repriced. These pin the two rules
-// the scoping establishes; everything above the quantity (wartość, podsumy, „Razem") follows for free.
 describe('pomiar liczony po planie etapu', () => {
   it('każdy widok podwykonawcy widzi tylko swoje etapy, klient widzi całe O', () => {
     const tree = makePlaneTree(mixed)
@@ -318,9 +298,6 @@ describe('pomiar liczony po planie etapu', () => {
     expect(rowTotalQtyDone(row1, tree.stages, 'client')).toBe(5)
   })
 
-  // The consistency test the owner reads off the screen: the two bills add up to the executed work,
-  // and each equals its own row in „Podsumowanie podwykonawców". Rabat is client-only in pricing, so
-  // there is no pre/post-rabat gap between the grid's „Razem netto" and the panel's figure.
   it('Razem(z) + Razem(bez) = wykonana praca, i każde zgadza się z panelem', () => {
     const tree = makePlaneTree(mixed)
     const rows = treeToRows(tree)
@@ -333,8 +310,6 @@ describe('pomiar liczony po planie etapu', () => {
     expect(razem('w_tools') + razem('own_tools')).toBeCloseTo(due.combined)
   })
 
-  // The accepted cost of rule 2: while any etap is unassigned the identity above breaks, and the flag
-  // is the only thing that says so. Pinned so nobody "fixes" the shortfall by defaulting a plane.
   it('nieprzypisany etap wypada z obu rachunków — suma jest krótsza, flaga podniesiona', () => {
     const tree = makePlaneTree([
       makeStage({ id: 100 }),
@@ -349,8 +324,6 @@ describe('pomiar liczony po planie etapu', () => {
     expect(due.hasUnconfirmedPlane).toBe(true)
   })
 
-  // The przedmiar has no plane, so the overshoot highlight must not blink on and off as the user
-  // switches views — it is hard-anchored to the client pomiar.
   it('przekroczenie przedmiaru jest niezależne od widoku', () => {
     const tree = makePlaneTree(mixed)
     const [row1] = treeToRows(tree) // przedmiar 5, Σ etapów 5 → brak przekroczenia
@@ -366,7 +339,6 @@ describe('pomiar liczony po planie etapu', () => {
     expect(hasStagesOverPlanned(overRow, over.stages)).toBe(true)
   })
 
-  // Measured against the Aktualizacja przedmiaru (EX-921): Σ etapów 5 against ofertowy 5.
   it('przekroczenie liczy się względem aktualizacji przedmiaru, nie ofertowego', () => {
     const withCurrent = (currentPlannedQty: number) => {
       const tree = makePlaneTree(mixed)

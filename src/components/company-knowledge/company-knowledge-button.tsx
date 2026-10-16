@@ -11,8 +11,7 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 
-// Placed twice — the top bar and the mobile menu — so it hides itself. `onOpen` lets the mobile menu
-// close first: its drawer stacks above every dialog.
+// `onOpen` lets the mobile menu close first: its drawer stacks above every dialog.
 export function CompanyKnowledgeButton({
   onOpen,
   className,

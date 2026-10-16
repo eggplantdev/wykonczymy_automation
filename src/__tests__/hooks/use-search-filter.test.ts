@@ -8,8 +8,6 @@ const haystacks = foldHaystacks(rows, (row) => row.name)
 
 const namesFor = (term: string) => filterBySearch(rows, haystacks, term).map((r) => r.name)
 
-// Six tables share this predicate; the fold is what lets a keyboard without Polish diacritics reach
-// their rows at all.
 describe('filterBySearch', () => {
   it('reaches a Polish label from an ASCII query', () => {
     expect(namesFor('lazienka')).toEqual(['Łazienka'])

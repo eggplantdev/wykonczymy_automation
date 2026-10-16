@@ -13,8 +13,6 @@ describe('useTotalsPanelOpen', () => {
     expect(renderHook(() => useTotalsPanelOpen(false)).result.current[0]).toBe(false)
   })
 
-  // An empty kosztorys shows its figures as zeros over the „Pobierz z arkusza Google…" screen, so the
-  // preference built up on a kosztorys with rows must not decide a fresh investment's first screen.
   it('leaves the empty kosztorys collapsed even with the row preference stored open', () => {
     localStorage.setItem(KEY, 'open')
 

@@ -44,8 +44,6 @@ describe('resolveInvoiceFiles', () => {
     expect(resolveInvoiceFiles([], mediaMap)).toEqual([])
   })
 
-  // A page whose media row is absent from the map, or carries no url, is unusable by every
-  // consumer (preview, ZIP) — dropping it keeps `invoices` a list of things that can be opened.
   it('drops pages with no resolvable url rather than emitting a hole', () => {
     const withNullUrl = new Map<number, MediaInfoT>([
       media(11),

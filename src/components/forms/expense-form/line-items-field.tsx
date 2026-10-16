@@ -42,8 +42,6 @@ import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
 
-// Structural on purpose — name only the members we call, since the full FieldApi generic is
-// unnameable and the real inferred field is assignable to this.
 type LineItemsArrayFieldT = {
   state: { value: BulkExpenseFormValuesT['lineItems'] }
   pushValue: (value: BulkExpenseFormValuesT['lineItems'][number]) => void
@@ -57,7 +55,6 @@ type RowSelectConfigT = {
   options: { id: number; name: string }[]
 }
 
-// Mirrors the receipt picker's accept="image/*,application/pdf" for dropped files, which carry no filter.
 // The raw browser type, not ALLOWED_UPLOAD_MIMES: this runs before ingest re-encodes e.g. a BMP to
 // PNG, so the upload allowlist would refuse files ingest can fix.
 const isReceiptFile = (file: File) =>
@@ -78,33 +75,26 @@ type LineItemsFieldPropsT = {
   transferType: string
   referenceData: ReferenceDataBaseT
   defaultExpenseCategory?: string
-  // Left out when the caller shows the sum itself.
   total?: number
   hasInvestment?: boolean
   onRemoveItem: (id: string, index: number, removeValue: (index: number) => void) => void
-  // Without it the last row's trash is disabled: an expense needs at least one row.
   onRemoveLastItem?: () => void
   onFileChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   onRemoveFile: (id: string, index: number) => void
-  // 'per-row' registers `files[i]` against row `ids[i]`, 'single-row' hangs all of them on `ids[0]`
-  // as one multi-page invoice. Async, and awaited before generation so the files map is populated.
   onRegisterFiles: (ids: string[], files: File[], mode?: 'per-row' | 'single-row') => Promise<void>
   getRowFiles: (id: string) => File[] | undefined
   onGenerate?: () => void
   onGenerateRow?: (id: string) => void
   isGenerating?: boolean
-  // Keyed on each row's stable id (EX-448), not its position.
   generatingIds?: Set<string>
   ingestingIds?: Set<string>
   failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
   receiptGrouping?: ReceiptGroupingT
   hiddenStatuses?: ReadonlySet<DecisionStatusT>
-  // Encloses the whole row, collapsed or not; `hint` lands under its title, above its fields.
   wrapRow?: (
     itemId: string,
     renderRow: (hint: React.ReactNode) => React.ReactNode,
-    // The number another row is titled with, so a hint can point at it.
     positionOf: (itemId: string) => number | undefined,
   ) => React.ReactNode
 }
@@ -207,7 +197,6 @@ export function LineItemsField({
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
   const secondRowSelects = getSecondRowSelects(transferType, referenceData)
-  // Fresh per call — each pushed row needs its own `id` (a shared object would collide ids).
   const newItem = () =>
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
   const isDecideMode = !!receiptGrouping?.onDecide
@@ -217,20 +206,11 @@ export function LineItemsField({
   const [dragOverMode, setDragOverMode] = useState<ScanModeT | null>(null)
   const [scanMode, setScanMode] = useState<ScanModeT>('one-per-photo')
 
-  // Rows are added FIRST so they persist even if extraction fails and can be filled in by hand.
-  // Ingest is async (HEIC-convert / compress / guard), so it is awaited before generation, which
-  // would otherwise read an empty files map.
-  //
-  // `mode` is the user's intent, taken from WHICH entry point they used: one expense per photo, or
-  // one expense whose pages are all the photos. Nothing about the files themselves tells them apart.
   async function scanReceipts(
     picked: File[],
     lineItemsField: LineItemsArrayFieldT,
     mode: ScanModeT,
   ) {
-    // Reuse the lone blank row so the first receipt lands on row 0 rather than after an empty one.
-    // The rows are minted up front because pushValue is async in the form's state, and their ids
-    // are what pairs each picked file to its row — `ids[i]` holds `picked[i]`.
     const rows = lineItemsField.state.value
     const reuseFirstRow = rows.length === 1 && isBlankRow(rows[0]) && !getRowFiles(rows[0].id)
     const rowCount = mode === 'one-invoice' ? 1 : picked.length
@@ -252,7 +232,6 @@ export function LineItemsField({
     return scanReceipts(picked, lineItemsField, mode)
   }
 
-  // A drop carries no `accept` filter, so filter here and bail on an empty result.
   function handleDropReceipts(
     e: React.DragEvent,
     lineItemsField: LineItemsArrayFieldT,
@@ -292,7 +271,6 @@ export function LineItemsField({
   return (
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: LineItemsArrayFieldT) => {
-        // Numbered before filtering, so a paragon keeps its number whatever is hidden around it.
         const numbered = orderedEntries(
           lineItemsField.state.value,
           receiptGrouping?.onDecide && receiptGrouping.readRowOf,
@@ -317,17 +295,10 @@ export function LineItemsField({
         const renderFields = (item: BulkLineItemT, index: number, hint: React.ReactNode) => (
           <div className="min-w-0 flex-1 space-y-2">
             {hint}
-            {/* Top-aligned, not bottom: every field here carries a label, so their inputs
-        line up on their own — and a validation error growing under one field can no
-        longer drag its neighbours (and the delete button) down a line. The label-less
-        slots below pay for it with an mt-6 that clears a label + its gap. */}
             <div className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
               <form.AppField name={`lineItems[${index}].amount`}>
                 {(field) => (
                   <field.Input
-                    // Named outright once a Netto column sits next to it — an unqualified
-                    // „Kwota" beside „Netto" reads as the amount that bills the client,
-                    // which is exactly backwards on this type.
                     label={showsNetAmount ? 'Brutto' : 'Kwota'}
                     placeholder="0.00 PLN"
                     type="number"
@@ -367,9 +338,6 @@ export function LineItemsField({
                   fieldClassName="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
                 />
               )}
-              {/* No icon: this row is already Kwota + Netto + Opis + kategoria + the delete
-          slot, and a `shrink-0` glyph would take its ~1rem straight off the flex-1
-          inputs. `tone="error"` alone carries the alarm here. */}
               {(failedIds?.has(item.id) || receiptGrouping?.incompleteIds.has(item.id)) && (
                 <Description
                   tone="error"
@@ -380,10 +348,6 @@ export function LineItemsField({
                   nie odczytano
                 </Description>
               )}
-              {/* Delete lives in row 1, its height matching the inputs; the row being read
-          shows the loader in its slot and queued rows keep it disabled — removing a
-          row mid-generation shifts the array under in-flight extraction tasks (captured
-          index), landing a result on the wrong row. */}
               {(generatingIds?.has(item.id) || ingestingIds?.has(item.id) || !isDecideMode) && (
                 <div className="mt-6 flex size-9 shrink-0 items-center justify-center">
                   {generatingIds?.has(item.id) || ingestingIds?.has(item.id) ? (
@@ -514,7 +478,6 @@ export function LineItemsField({
 
         return (
           <div className="space-y-4">
-            {/* While deciding, the selection's actions ride in the dialog's fixed footer. */}
             {receiptGrouping && !isDecideMode && receiptGrouping.selectableIds.size > 1 && (
               <ReceiptSelectionActions grouping={receiptGrouping} />
             )}
@@ -571,7 +534,6 @@ export function LineItemsField({
                 )
               })}
             </div>
-            {/* A zgłoszenie's rows are the worker's paragony; a row added here would be none of them. */}
             {!isDecideMode && (
               <>
                 <div className="flex flex-wrap items-center gap-2">
@@ -619,8 +581,6 @@ export function LineItemsField({
                       )}
                       <span className="text-neon-cyan font-semibold">Wygeneruj z paragonów</span>
                     </Button>
-                    {/* Photos already on a row — a worker's draft whose read failed or hasn't landed, or
-                an FV attached by hand — are what the scan button can't reach: it only takes new ones. */}
                     {lineItemsField.state.value.some(
                       (row) => getRowFiles(row.id) && isBlankRow(row),
                     ) && (

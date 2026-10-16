@@ -32,15 +32,13 @@ export const catalogueRow = (data: WorkCatalogueItemDataT): CatalogueSeedItemT =
   matchKey: catalogueKey(data.description, data.unit),
 })
 
-// The unique index would refuse a duplicate anyway, but a Polish sentence beats a driver error — and
-// this is the ordinary path: the katalog exists to be typed into twice.
 export const duplicateRefusal = (
   existing: WorkCatalogueItemT | null,
   mode: CatalogueWriteModeT,
 ): string | null => (mode === 'new' && existing ? DUPLICATE_ERROR : null)
 
-// Read-only on purpose, and separate from the write: a caller inside a transaction must be able to
-// refuse BEFORE its first write, because a returned failure still commits.
+// A caller inside a transaction must be able to refuse BEFORE its first write, because a returned
+// failure still commits.
 export async function resolveCatalogueWrite(
   db: DbExecutorT,
   matchKey: string,
@@ -51,15 +49,6 @@ export async function resolveCatalogueWrite(
   return refusal ? { error: refusal } : { existing }
 }
 
-// An overwrite updates the row holding the klucz in place — same id, same `created_at` — because the
-// katalog entry is the same praca, re-priced. Deleted between the lookup and the write, the overwrite
-// IS a create: refusing it would be pedantry about a race nobody caused.
-//
-// `keepCatalogueCategory` protects the cennik: the candidate's kategoria comes from one kosztorys'
-// sekcja, local context, while the katalog owns its own.
-//
-// A blank `workNote` leaves the entry's own alone: an overwrite re-prices the praca, it does not
-// erase what someone wrote about it. Clearing a comment is the edit form's job, not this writer's.
 export async function applyCatalogueWrite(
   payload: Payload,
   req: PayloadRequest | undefined,

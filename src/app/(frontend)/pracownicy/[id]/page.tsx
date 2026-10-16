@@ -41,7 +41,6 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
 
-// Hidden at one option: the few rows it would set apart don't earn a control.
 const offeredIfChoice = <T,>(options: T[]) => (options.length > 1 ? options : undefined)
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -59,7 +58,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const userId = Number(id)
   const isOwnPage = currentUser.id === userId
   const refDataPromise = fetchReferenceData()
-  // The scope alone, not the URL filters: picking one option must not shrink its own list.
+  // Picking one option must not shrink its own list.
   const facetsPromise = refDataPromise.then(({ cashRegisters }) =>
     fetchTransferFacets(
       workerTransferScope(
@@ -87,7 +86,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     fetchWorkerStageInvestments(userId),
     fetchWorkerExpenseDrafts(userId),
     fetchWorkerReportHistory(userId),
-    // Only his own: the answer is his to give, and management reads the status on /wyplaty.
     isOwnPage ? fetchPayoutsToConfirm(userId) : [],
   ])
 
@@ -101,7 +99,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
   const registerIds = registers.map((register) => register.id)
-  // The server refuses an inactive kasa, so offering one only leads to a refusal.
   const sendableRegisters = registers.filter(isActiveRef)
   // The link reports as the worker, whoever opens it — so only he is given it.
   const investmentLinks = stageInvestments.map(({ investmentId, name, token }) => ({
@@ -180,7 +177,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />
-      {/* Facets read the unfiltered scope, so a filter matching nothing keeps the section — and its filters — on screen. */}
       {facets.types.length > 0 && (
         <CollapsibleSection
           title={t('transfers')}
@@ -200,7 +196,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
                 investments: offeredIfChoice(toOptions(transferInvestments)),
                 transferTypes: offeredIfChoice(transferTypes),
                 otherCategories: toOptions(refData.otherCategories),
-                // Off for management as well — the owner wants this page simplified for every viewer.
                 showCancelledFilter: false,
                 showSearchFilters: false,
               },

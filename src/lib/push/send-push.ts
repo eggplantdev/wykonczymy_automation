@@ -22,20 +22,18 @@ export type PushMessageT = {
   badgeCount?: number
 }
 
-// The push service keeps an undelivered message this long for a phone that is off.
 const TTL_SECONDS = 24 * 60 * 60
 
 // A stalled push service must not hold the `after()` that sends.
 const SEND_TIMEOUT_MS = 10_000
 
-// Only these say the subscription itself is dead. A 401/403 means our key pair was refused —
+// A 401/403 means our key pair was refused —
 // deleting on it would wipe every device the moment a non-production pair ever sent.
 const GONE_STATUSES = new Set([404, 410])
 
 export const isPushConfigured = (): boolean =>
   VAPID_PUBLIC_KEY !== undefined && serverEnv.VAPID_PRIVATE_KEY !== undefined
 
-/** Never throws: it runs inside `after()`, where a rejection has nobody to answer to. */
 export async function sendPushToUser(
   db: DbExecutorT,
   userId: number,

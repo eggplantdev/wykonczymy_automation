@@ -35,7 +35,6 @@ export function WorkerPrintMenuItem({
   const { investmentId, investmentName } = useKosztorysEditorContext()
 
   function handlePrint() {
-    // Opened with the click, filled once the projection lands — see `openPrintWindow`.
     const target = openPrintWindow(investmentName)
     if (!target) {
       toastMessage('Przeglądarka zablokowała okno wydruku', 'error')
@@ -43,8 +42,6 @@ export function WorkerPrintMenuItem({
     }
     const fillByColorKey = resolveSectionFills()
 
-    // The menu disabled a blocked worker off the editor's etapy; the server answers again from its
-    // own read, and an etap changed in between is refused here with the same sentence.
     const refuse = (message: string) => {
       target.close()
       toastMessage(message, 'error')

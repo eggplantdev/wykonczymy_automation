@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 
-// server-only throws at import time outside Next.js — stub it out
 vi.mock('server-only', () => ({}))
 
 import { shapeCashRegisters } from '@/lib/queries/cash-registers'

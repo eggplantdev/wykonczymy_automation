@@ -16,7 +16,6 @@ type PropsT = {
   className?: string
 }
 
-// The gear mirrors the investor's „Opcje” (PreviewHeaderActions).
 export function ReportBar({ search, onSearch, options, className }: PropsT) {
   const { t } = useTranslation('report')
   return (

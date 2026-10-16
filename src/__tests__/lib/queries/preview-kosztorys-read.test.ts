@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// The preview route serves the same projection a share link does, minus the token — so its ONLY
-// gate is requireAuth. This spec asserts the gate holds by observable effect: on a rejected session
-// the read never reaches the DB at all, rather than reaching it and discarding the result.
 vi.mock('server-only', () => ({}))
 
 const authState = vi.hoisted(() => ({

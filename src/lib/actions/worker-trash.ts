@@ -21,7 +21,6 @@ const MISSING_MESSAGE = 'Pracownik nie istnieje.'
 // fire once per write and inside the transaction.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
-// Missing rather than forbidden, like a MAIN kasa for a MANAGER.
 async function findManageableWorker(
   payload: Payload,
   user: SessionUserT,

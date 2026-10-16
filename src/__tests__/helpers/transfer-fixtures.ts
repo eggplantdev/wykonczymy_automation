@@ -1,10 +1,5 @@
 import type { Payload } from 'payload'
 
-/**
- * `transactions.sourceRegister` needs a register and `cash_registers.owner_id` is NOT NULL, so both
- * owner and register get created together. The email uses the `@test.local` namespace
- * `purgeFixtureUsers` sweeps — unique, and restartable after a crashed run.
- */
 export async function createRegisterOwner(
   payload: Payload,
   options: { name: string; email: string; registerName: string },

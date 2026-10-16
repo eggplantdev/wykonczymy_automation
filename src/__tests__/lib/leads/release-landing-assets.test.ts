@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Hoisted: vi.mock's factory runs before module-level consts exist, and the spec mutates the env
-// between cases to cover the unconfigured branch.
 const { serverEnv } = vi.hoisted(() => ({
   serverEnv: { LANDING_WEBHOOK_SECRET: 'test-secret' } as {
     LANDING_WEBHOOK_SECRET: string
@@ -38,8 +36,6 @@ describe('the cleanup callback', () => {
     })
   })
 
-  // Asserted by verifying, not by recomputing the digest here, which would only restate the
-  // implementation.
   it('signs the exact bytes it sends, under the cleanup scope', async () => {
     await releaseLandingAssets('11111111-2222-3333-4444-555555555555')
     const { init, body } = lastCall()

@@ -8,10 +8,6 @@ type AuthResultT =
   | { success: true; user: SessionUserT }
   | { success: false; error: string; user?: undefined }
 
-/**
- * Checks authentication and verifies the user has one of the allowed roles.
- * Use in server actions as the first guard.
- */
 export async function requireAuth(allowedRoles: readonly RoleT[]): Promise<AuthResultT> {
   const user = await getCurrentUserJwt()
 

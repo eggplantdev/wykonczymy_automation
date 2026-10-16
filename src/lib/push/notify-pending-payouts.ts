@@ -9,10 +9,6 @@ import { logError } from '@/lib/utils/log-error'
 
 export type BookedPayoutT = { workerId: number; amount: number }
 
-/**
- * One push per worker however many wypłaty one booking gave him, so a „Rozlicz wypłaty" across five
- * investments buzzes his phone once. Call it after commit: the badge counts what is stored.
- */
 export async function notifyPendingPayouts(
   db: DbExecutorT,
   payouts: BookedPayoutT[],

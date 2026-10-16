@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { discountFromType, discountPolicy } from '@/lib/kosztorys/discount-edit'
 
-// Regression guard for the orphan bug: discountType and discountValue are independent fields, so
-// the grid could hold a value with no type — applyDiscount ignores it, and the row showed a rabat
-// of 10 next to a computed discount of 0.00. Both edit directions must keep the pair consistent —
-// the value direction is `discountPolicy` and lives in cell-edit.test.ts.
-
 const NO_DISCOUNT = { discountType: null, discountValue: 0 } as const
 
 describe('discountFromType', () => {
@@ -23,8 +18,7 @@ describe('discountFromType', () => {
     })
   })
 
-  // A rabat of 150 zł flipped to „%" is the one route to 150% with no keystroke passing the guard
-  // (EX-736). Refused rather than capped — capping would give the row away for free.
+  // Refused rather than capped — capping would give the row away for free.
   it('refuses the switch INTO percent when the carried value is above the ceiling', () => {
     const switched = discountFromType({ discountType: 'amount', discountValue: 150 }, 'percent')
     expect(switched.kind).toBe('blocked')
@@ -52,8 +46,7 @@ describe('discountFromType', () => {
   })
 })
 
-// „-50" is the opposite of a concession: it becomes a 50% markup on the client's offer. Ceiling is
-// percent-only, floor is on both planes.
+// „-50" is the opposite of a concession: it becomes a 50% markup on the client's offer.
 describe('discountPolicy guard — the floor', () => {
   const policy = discountPolicy<{
     discountType: 'percent' | 'amount' | null

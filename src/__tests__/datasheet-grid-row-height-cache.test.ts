@@ -4,8 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 /**
  * Reaches into patched third-party dist (`patches/react-datasheet-grid@4.11.6.patch`) — a lost patch
- * on reinstall brings the crash back silently. Loaded via `require`, not import, so
- * `vi.mock('react')` can't reach it; the hook's cache is a plain `useRef`, testable outside React.
+ * on reinstall brings the crash back silently.
  */
 function loadRowHeightsHook(): BuildCacheT {
   const slots = new Map<number, { current: unknown }>()
@@ -60,9 +59,6 @@ function rowHeightCache(): RowHeightCacheT {
   })
 }
 
-// The first section band IS row 0, so resizing it resets the height cache from index 0. The
-// virtualizer's `estimateSize` then measures a row before any render reseeds it, and unpatched dsg
-// reads `calculatedHeights[-1].top` there — undefined, crashing on the first drag (EX-776).
 describe('dsg row-height cache after a reset from index 0', () => {
   it('measures a row once the cache is empty', () => {
     const cache = rowHeightCache()
@@ -72,9 +68,6 @@ describe('dsg row-height cache after a reset from index 0', () => {
     expect(() => cache.getRowSize(10)).not.toThrow()
   })
 
-  // The grid's own box comes from `totalSize` during render, ahead of any `getRowSize` call. dsg
-  // walked the cache bounded by the cache it was filling rather than by the data, so it measured one
-  // row and the whole grid painted as a sliver until the resize detector crawled it back open.
   it('measures the whole grid, not just its first row', () => {
     const cache = rowHeightCache()
     const total = BAND_HEIGHT + 49 * ITEM_HEIGHT

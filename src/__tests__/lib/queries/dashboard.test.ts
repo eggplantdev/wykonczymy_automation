@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { SessionUserT } from '@/types/auth'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-
-// server-only throws at import time outside Next.js — stub it out
 vi.mock('server-only', () => ({}))
 
 const mockUser: SessionUserT = { id: 1, email: 'admin@test.com', name: 'Admin', role: 'ADMIN' }
@@ -120,8 +117,6 @@ const { fetchVisibleRegisters } = await import('@/lib/queries/cash-registers')
 beforeEach(() => {
   mockRequireAuth.mockResolvedValue({ success: true, user: mockUser })
 })
-
-// ── Tests ────────────────────────────────────────────────────────────────
 
 describe('fetchVisibleRegisters', () => {
   it('admin sees all registers', async () => {

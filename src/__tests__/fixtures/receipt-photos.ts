@@ -1,9 +1,5 @@
-// Real photos from production, read live by `pnpm test:receipts-ai`. The images stay out of git —
-// they carry a car plate and the company's NIP — so they live in `dumps/receipt-eval/`, copied
-// from the blob mirror (`dumps/blob-mirror`). `amounts` is every SUMA a person reads off the
-// photo, checked by eye; a slip whose total is covered is not one of them. `sellerNip` is the NIP
-// every slip on a one-seller photo carries — "" where none is printed (a parking ticket) — and is
-// left out where the photo mixes shops.
+// The images stay out of git — they carry a car plate and the company's NIP — so they live in
+// `dumps/receipt-eval/`, copied from the blob mirror (`dumps/blob-mirror`).
 export type ReceiptPhotoCaseT = {
   file: string
   amounts: number[]

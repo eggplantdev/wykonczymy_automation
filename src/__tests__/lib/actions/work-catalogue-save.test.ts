@@ -4,13 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
-// „Zapisz do katalogu…", against the REAL DB and asserting the PERSISTED cennik row. What the return
-// value cannot show: that a praca overriding nothing freezes the stawka its inwestycja's global
-// coefficients imply (not 0, not the coefficient itself), that `'new'` on a taken klucz writes no
-// second row, and that `'overwrite'` keeps the row's identity instead of deleting and recreating it.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -30,11 +23,9 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
   let sectionId: number
-  // A second sekcja under a DIFFERENT name, so an overwrite issued from it has a kategoria to
-  // impose.
   let otherSectionId: number
   // A sekcja whose name is nothing BUT an instance number, so `stripSectionOrdinal` leaves an empty
-  // kategoria — the case where „bez kategorii" has to survive an overwrite like any other value.
+  // kategoria
   let namelessSectionId: number
   let suffix = ''
   const createdSections: number[] = []
@@ -154,7 +145,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     // NULL, not 0: a 0 zł stawka is a decision the cennik would freeze, „auto" is the absence of one.
     expect(row.w_tools_rate).toBeNull()
     expect(row.own_tools_rate).toBeNull()
-    // Kategoria = the sekcja without its instance number.
     expect(row.category).toBe(`Łazienka ${suffix}`)
   })
 
@@ -214,7 +204,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(Number(after.w_tools_rate)).toBe(111)
   })
 
-  // Asserting the PERSISTED row is the point — the action returns success either way.
   it('„nadpisz" domyślnie zostawia kategorię z katalogu', async () => {
     const description = `Kategoria zostaje ${suffix}`
     const first = await createItem(description)
@@ -243,8 +232,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(rows[0].category).toBe(`Hydraulika ${suffix}`)
   })
 
-  // „Bez kategorii" is a value, not a gap: letting the sekcja win over an empty katalog kategoria is
-  // exactly the silent reclassification this argument exists to stop.
   it('„nadpisz" zostawia pustą kategorię z katalogu', async () => {
     const description = `Kategoria pusta zostaje ${suffix}`
     const first = await createItem(description, { section: namelessSectionId })
@@ -278,7 +265,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(await linkedEntryOf(itemId)).toBe(Number(row.id))
   })
 
-  // Renaming a pozycja in one kosztorys must not rename the praca every szablon shows.
   it('zmieniony opis to nowa praca: stara zostaje, pozycja przepina się na nową', async () => {
     const oldDescription = `Przed zmianą ${suffix}`
     const newDescription = `Po zmianie ${suffix}`
@@ -342,8 +328,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(result.success).toBe(false)
   })
 
-  // j.m. is half the klucz and the katalog row requires it, so without the guard this died on
-  // Payload's own validation and the owner read a framework sentence instead of what to do.
   it('odmawia zapisu pracy bez j.m., własnym zdaniem', async () => {
     const description = `Bez jednostki ${suffix}`
     const itemId = await createItem(description, { unit: '' })

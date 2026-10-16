@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { netSuggestion } from '@/lib/utils/net-suggestion'
 
-// A faktura whose materiały sit at the shop's stawka has no single rate that derives its netto, so
-// the owner overtypes the suggestion — and from then on the kwota is his. The two ways that
-// ownership used to be lost are cases 4 and 5: the decision was a mount-scoped boolean, so a
-// reopened draft arrived with a clean slate, while a reset that nobody typed tripped it for good.
 describe('netSuggestion', () => {
   const RATE = 0.23
 

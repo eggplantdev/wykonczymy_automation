@@ -1,6 +1,4 @@
 #!/bin/bash
-# Playwright MCP writes a relative filename into .playwright-mcp/, but an absolute one wherever it
-# points — agents passed the repo root and left 50 screenshots in the tree (2026-10-14).
 f=$(jq -r '.tool_input.filename // empty')
 case "$f" in
   ""|/tmp/*|/private/tmp/*|*/.playwright-mcp/*) exit 0 ;;

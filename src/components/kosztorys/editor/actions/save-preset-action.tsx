@@ -6,19 +6,19 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { getPresetOptions } from '@/lib/queries/preset-pickers'
 import { settleAction } from '@/lib/utils/settle-action'
-import type { PresetMetaT } from '@/lib/db/presets'
+import type { TemplateMetaT } from '@/lib/db/templates'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 export type SavePresetActionT = {
   open: boolean
   setOpen: (open: boolean) => void
-  existingPresets: PresetMetaT[]
+  existingPresets: TemplateMetaT[]
   requestOpen: () => void
 }
 
 export function useSavePresetAction(): SavePresetActionT {
   const [open, setOpen] = useState(false)
-  const [existingPresets, setExistingPresets] = useState<PresetMetaT[]>([])
+  const [existingPresets, setExistingPresets] = useState<TemplateMetaT[]>([])
 
   function requestOpen() {
     setOpen(true)

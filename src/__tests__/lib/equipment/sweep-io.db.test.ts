@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { loadWarrantyRows } from '@/lib/equipment/sweep-io'
 
-// The warranty digest reads equipment on its own, not through the listing — a trashed item must not
-// keep mailing the office about a warranty nobody can see.
-
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)

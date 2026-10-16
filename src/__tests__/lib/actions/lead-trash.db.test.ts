@@ -159,8 +159,6 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
     expect((await readLead(lead.id)).trashed_at).toBeNull()
   })
 
-  // The owner's condition for the whole feature: a lead promoted to an inwestycja shares its media
-  // rows with it, and erasing the lead must not take a single file from the inwestycja.
   it('erasing a promoted lead keeps every file the inwestycja holds and drops only its own', async () => {
     const shared = await insertMedia('shared')
     const leadOnly = await insertMedia('lead-only')

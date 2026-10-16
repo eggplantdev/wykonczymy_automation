@@ -1,5 +1,4 @@
-// No `server-only` here: the katalog seed script runs these helpers under tsx, where it throws
-// (same reason as kosztorys-descriptions.ts).
+// No `server-only` here: the katalog seed script runs these helpers under tsx, where it throws.
 import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import {
@@ -42,6 +41,18 @@ export function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItem
  * The cennik rows named by id, returned in the CALLER's order — the wstawianie writes them in the
  * order the user ticked them, and SQL has no opinion about that order.
  */
+// Which of these katalog ids still name an entry.
+export async function existingCatalogueIds(
+  db: DbExecutorT,
+  ids: readonly number[],
+): Promise<Set<number>> {
+  if (ids.length === 0) return new Set()
+  const res = await db.execute(
+    sql`SELECT id FROM work_catalogue_items WHERE id IN (${sqlList(ids)})`,
+  )
+  return new Set(res.rows.map((row) => Number(row.id)))
+}
+
 export async function listCatalogueItemsByIds(
   db: DbExecutorT,
   ids: readonly number[],
@@ -59,20 +70,22 @@ export async function listCatalogueItemsByIds(
   })
 }
 
-/** The live katalog entries a kosztorys's rows remember — what a szablon's prace read from. */
-export async function listCatalogueItemsLinkedFrom(
+export async function listCatalogueItemsInTemplate(
   db: DbExecutorT,
-  investmentId: number,
+  templateId: number,
 ): Promise<WorkCatalogueItemT[]> {
   const result = await db.execute(sql`
     SELECT ${CATALOGUE_COLUMNS}
     FROM work_catalogue_items
-    WHERE id IN (SELECT catalogue_item_id FROM kosztorys_items WHERE investment_id = ${investmentId})
+    WHERE id IN (
+      SELECT ti.catalogue_item_id FROM template_items ti
+      JOIN template_sections ts ON ts.id = ti.section_id
+      WHERE ts.template_id = ${templateId}
+    )
   `)
   return result.rows.map(toCatalogueItem)
 }
 
-/** The whole cennik, in the order the katalog screen reads it. */
 export async function listCatalogueItems(db: DbExecutorT): Promise<WorkCatalogueItemT[]> {
   const result = await db.execute(sql`
     SELECT ${CATALOGUE_COLUMNS}
@@ -82,10 +95,6 @@ export async function listCatalogueItems(db: DbExecutorT): Promise<WorkCatalogue
   return result.rows.map(toCatalogueItem)
 }
 
-/**
- * The cennik rows a known set of pozycje names, for an apply that probes a handful of keys — reading
- * the whole cennik to build a lookup transferred 561 rows to answer a few.
- */
 export async function listCatalogueItemsByMatchKeys(
   db: DbExecutorT,
   matchKeys: readonly string[],
@@ -99,10 +108,6 @@ export async function listCatalogueItemsByMatchKeys(
   return result.rows.map(toCatalogueItem)
 }
 
-/**
- * Every katalog entry's id and translations, keyed by match key. The sheet import needs it before it
- * has parsed a row, so it cannot ask for a known set of keys.
- */
 export async function listCatalogueIdentitiesByMatchKey(
   db: DbExecutorT,
 ): Promise<Map<string, CatalogueIdentityT>> {
@@ -120,11 +125,6 @@ export async function listCatalogueIdentitiesByMatchKey(
   )
 }
 
-/**
- * Every katalog translation, keyed by the katalog's own identity for a praca. The sheet import needs
- * it before it has parsed a row, so it cannot ask for a known set of keys; only translated rows
- * travel.
- */
 export async function listCatalogueTranslationsByMatchKey(
   db: DbExecutorT,
 ): Promise<Map<string, DescriptionTranslationsT>> {
@@ -141,19 +141,11 @@ export async function listCatalogueTranslationsByMatchKey(
   )
 }
 
-/** What the seed subtracts before proposing anything. */
 export async function listCatalogueMatchKeys(db: DbExecutorT): Promise<Set<string>> {
   const result = await db.execute(sql`SELECT match_key FROM work_catalogue_items`)
   return new Set(result.rows.map((row) => String(row.match_key)))
 }
 
-/**
- * One INSERT for the whole wsad, insert-only by construction: `ON CONFLICT DO NOTHING` on the
- * UNIQUE match_key is what makes a repeated run create zero rows without a prior SELECT deciding it
- * — and it is why this can never overwrite a cennik row somebody has since edited by hand.
- *
- * Returns how many rows were actually created (RETURNING skips the conflicting ones).
- */
 export async function insertCatalogueItems(
   db: DbExecutorT,
   rows: readonly CatalogueSeedItemT[],
@@ -179,12 +171,6 @@ export async function insertCatalogueItems(
   return result.rows.length
 }
 
-/**
- * Everything „Zapisz do katalogu…" needs about one praca, read by its id: BOTH nadpisania of each
- * płaszczyzna and the sekcja it sits in (the proposed kategoria). Not the inwestycja's global
- * współczynniki — a plane with no nadpisanie goes to the cennik as „auto" rather than freezing a rate
- * nobody offered.
- */
 export async function getCatalogueSourceItem(
   db: DbExecutorT,
   itemId: number,
@@ -214,7 +200,6 @@ export async function getCatalogueSourceItem(
   }
 }
 
-/** Its presence is what decides „nowa" vs „nadpisz". */
 export async function findCatalogueItemByKey(
   db: DbExecutorT,
   matchKey: string,
@@ -223,6 +208,19 @@ export async function findCatalogueItemByKey(
     SELECT ${CATALOGUE_COLUMNS}
     FROM work_catalogue_items
     WHERE match_key = ${matchKey}
+  `)
+  const row = result.rows[0]
+  return row ? toCatalogueItem(row) : undefined
+}
+
+export async function findTemplateItemCatalogueEntry(
+  db: DbExecutorT,
+  templateItemId: number,
+): Promise<WorkCatalogueItemT | undefined> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id = (SELECT catalogue_item_id FROM template_items WHERE id = ${templateItemId})
   `)
   const row = result.rows[0]
   return row ? toCatalogueItem(row) : undefined

@@ -5,13 +5,6 @@ import { makeResetBookkeeping } from '@/hooks/reset-bookkeeping'
 import { EQUIPMENT_STATUS_LABELS, EQUIPMENT_STATUSES } from '@/lib/equipment/equipment-status'
 import { resetWarrantyBookkeeping } from '@/lib/equipment/reset-warranty-bookkeeping'
 
-/**
- * One row per PHYSICAL ITEM. Deliberately no „quantity" field: the threshold between sprzęt and
- * materiał is enforced by the shape rather than by a rule nobody reads — drill bits and cutting
- * discs have no way in. Nor does the item say where it is; that is the newest event's answer
- * (`equipment-events`), because a field overwritten on every handover loses the trail that answers
- * „who had it when it disappeared".
- */
 export const Equipment: CollectionConfig = {
   slug: 'equipment',
   labels: {
@@ -25,7 +18,7 @@ export const Equipment: CollectionConfig = {
   },
   hooks: {
     // A unique index treats '' as a value, so two items saved from /admin with the serial left blank
-    // collide on `equipment_serial_number_idx`. The form sends null; only /admin sends ''.
+    // collide on `equipment_serial_number_idx`.
     beforeValidate: [
       ({ data }) => (data?.serialNumber === '' ? { ...data, serialNumber: null } : data),
     ],
@@ -41,17 +34,12 @@ export const Equipment: CollectionConfig = {
   },
   fields: [
     {
-      // Not unique: three „szlifierka"s are a normal inventory, and the serial number is what tells
-      // them apart. This is what you search and click on.
       name: 'name',
       type: 'text',
       required: true,
       label: { en: 'Name', pl: 'Nazwa' },
     },
     {
-      // Optional but unique when given: requiring it would block the register from ever being
-      // started, since nobody will copy a hundred nameplates up front. Unique index lives in the
-      // migration too — single-column, so the two agree.
       name: 'serialNumber',
       type: 'text',
       unique: true,
@@ -84,8 +72,6 @@ export const Equipment: CollectionConfig = {
       },
     },
     {
-      // Optional for the same reason as an inspection's cost: an unknown price must render „—",
-      // never „0 zł".
       name: 'purchasePrice',
       type: 'number',
       min: 0,
@@ -107,8 +93,6 @@ export const Equipment: CollectionConfig = {
         value,
       })),
     },
-    // --- Warranty reminder bookkeeping: written by the daily sweep, edited by nobody. ---
-    // One axis only, unlike the fleet's two: a warranty has a date and no odometer.
     {
       name: 'warrantyNotifiedBucket',
       type: 'number',

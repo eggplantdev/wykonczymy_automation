@@ -46,8 +46,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { DepositTransactionRowT } from '@/types/transfers'
 
-// The „Podsumowanie" inputs the editor context does not carry — threaded from the editor body as
-// one prop rather than added to KosztorysEditorProvider (EX-496).
 export type AcceptanceProtocolSourceT = {
   investment: InvestmentRefT
   materials: MaterialsT
@@ -67,7 +65,6 @@ export function AcceptanceProtocolDialog({ source }: { source: AcceptanceProtoco
           title="Protokół odbioru prac"
           description="Sprawdź dane i wygeneruj protokół do druku lub zapisu jako PDF. Puste pola zostają do wypełnienia długopisem."
         />
-        {/* Mounted only while open, so every open reseeds the form from the current investment. */}
         <AcceptanceProtocolBody source={source} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
@@ -121,7 +118,6 @@ function AcceptanceProtocolBody({
     }
   }
 
-  // Synchronous from the click to `window.open` — everything the paper needs is already in memory.
   function handleGenerate() {
     const values: AcceptanceProtocolFormT = form.state.values
     const target = openPrintWindow(`Protokół odbioru prac — ${values.clientName}`)

@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { groupByVehicle, loadFleetDataset } from '@/lib/fleet/dataset'
 
-// The one chokepoint for /flota, the car's own page and the reminder mail — a trashed car hidden
-// here is hidden from all three, and its inspections go with it because they are grouped under it.
-
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)

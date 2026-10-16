@@ -1155,7 +1155,8 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
   z usuniętym wpisem przywraca się bez 23503, usunięcie z katalogu nie pisze w zamknięte inwestycje.
   Odczyt: najpierw zapamiętany wpis, potem klucz opis + j.m. (`resolveCatalogueEntry`) — jedna reguła
   dla porównania, „już w kosztorysie", zamiany w zgłoszeniu, licznika użycia i „Komentarza do pracy".
-- **Szablon czyta katalog na żywo** (nakładka tylko na wiersze szablonu): opis, j.m., Cena j.m.,
+- **Szablon czyta katalog na żywo** — od EX-1075 z konstrukcji, nie z nakładki: praca szablonu to
+  tylko odwołanie do wpisu katalogu (patrz „Szablon ma własne tabele" niżej). Opis, j.m., Cena j.m.,
   stawki, tłumaczenia, komentarz do pracy. Edycja tych pól w szablonie zapisuje się w katalogu,
   a więc we wszystkich szablonach z tą pracą. Przemianowanie, które trafiłoby w cudzy klucz, jest
   odmawiane przed pierwszym zapisem. Kolumny „Komentarz" szablon nie ma.
@@ -1170,9 +1171,28 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
 - **Katalog ostrzega:** edycja i usunięcie wpisu wymieniają szablony, które go mają; usunięcie zabiera
   pracę także ze szablonów (również w koszu). Kosztorysy zachowują kopię.
 - Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
-- Istniejące pozycje dostały link jednorazowo, po opisie + j.m.
-  (`src/scripts/link-kosztorys-items-to-catalogue.ts`); wiersz szablonu tylko przy zgodności we
-  wszystkich polach katalogu.
+- Istniejące pozycje dostały link jednorazowo, po opisie + j.m. (skrypt jednorazowy, usunięty
+  w EX-1075 — żyje w historii git); wiersz szablonu tylko przy zgodności we wszystkich polach katalogu.
+
+### Szablon ma własne tabele (EX-1075, 2026-10-15)
+
+Szablon przestał być wierszem `investments` o statusie „szablon". Ma własne kolekcje: `templates` →
+`template-sections` → `template-items`, a praca szablonu to **tylko** odwołanie do katalogu + sekcja +
+kolejność. Nie ma w niej opisu, ceny, przedmiaru, etapów ani rabatu — schemat mówi to, co wcześniej
+pilnowała nakładka i strażniki statusu.
+
+- **Wersje** szablonu żyją w `template_snapshots` i trzymają same odwołania; przywrócenie pomija
+  pracę, której wpis usunięto z katalogu, i mówi ile.
+- **Kosz:** szablon to osobny rodzaj w `/kosz` (przywróć / „Usuń na zawsze" z wpisaną nazwą / czystka
+  po terminie); sekcje, prace i wersje odchodzą kaskadą. W koszu dalej trzyma swoją nazwę.
+- **Edytor ten sam, akcje inne.** Trasa `/szablony/[id]` wstrzykuje zestaw akcji szablonu — id szablonu
+  i id kosztorysu dzielą jedną przestrzeń liczb, więc żadna akcja kosztorysu nie przyjmuje id szablonu.
+  Z tego samego powodu klucze localStorage filtrów i widoku szablonu mają własny prefiks.
+- **„Zapisz jako szablon" / „Wczytaj szablon" / nowa inwestycja z szablonu** przechodzą przez
+  serializację szablonu do formatu snapshotu; kosztorys dostaje kopię z katalogu z wyzerowanym
+  przedmiarem.
+- Wiersze `investments` o statusie „szablon" z poprzedniego modelu zostały skopiowane migracją
+  addytywną; ich usunięcie to osobna, destrukcyjna migracja po wdrożeniu.
 
 ### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01) — ODWRÓCONE przez EX-1017
 
@@ -1620,7 +1640,7 @@ szukanie czy „Kategoria". Obok „Kategorii" stoi filtr „j.m.", a pusta j.m.
 **Kolumna „Kosztorysy" — co znaczy „używana".** Praca z katalogu jest używana w inwestycji, gdy któraś
 pozycja jej kosztorysu ma przedmiar > 0 albo postęp na którymkolwiek etapie. Dopasowanie idzie po
 kluczu opis + j.m., tak jak porównanie z katalogiem. Wyceny się liczą. Poza zakresem są inwestycje
-w koszu i o statusie „szablon". Liczba w kolumnie „Kosztorysy" to **liczba różnych inwestycji**, nie
+w koszu (szablony nie są inwestycjami, więc tu nie wchodzą). Liczba w kolumnie „Kosztorysy" to **liczba różnych inwestycji**, nie
 pozycji: praca powtórzona w pięciu łazienkach jednego mieszkania to dalej jeden kosztorys.
 
 - **Liczone przy każdym wejściu (od 2026-10-08), nie na kliknięcie.** Przycisk „Policz użycia"
@@ -1921,8 +1941,8 @@ warunku jest migracją cudzych danych bez migracji.** Gdyby para „powyżej suf
 `overpriced-*`, zapisany ptaszek „pokaż tylko zepsute" stałby się „ukryj zepsute" — dokładne
 odwrócenie. Nowy warunek dostaje **nowe id**, stare zostają porzucone.
 
-Ten sam klucz jest kluczowany po `investmentId`, a szablon jest własną inwestycją (EX-893), więc
-ptaszki każdego szablonu żyją osobno. Do 2026-09-29 wszystkie szablony dzieliły jeden warsztat
+Ten sam klucz jest kluczowany po `investmentId`; szablon ma własny prefiks (`szablon-filters:<id>`,
+EX-1075 — id szablonu i kosztorysu dzielą przestrzeń liczb), więc ptaszki każdego szablonu żyją osobno. Do 2026-09-29 wszystkie szablony dzieliły jeden warsztat
 i ptaszek z A był wciąż włączony po otwarciu B.
 
 **Bramka bywa ergonomią, nie niezmiennikiem — sprawdź, czy trwały stan już ją omija.** Bramka

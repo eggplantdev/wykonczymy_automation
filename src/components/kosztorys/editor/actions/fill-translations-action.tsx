@@ -8,15 +8,16 @@ import {
   useTreeRewriteAction,
   type TreeRewriteActionT,
 } from '@/components/kosztorys/editor/actions/use-tree-rewrite-action'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { countNeedingTranslation } from '@/lib/i18n/description-translations'
-import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 import { NOTICE_MS, translationFillNotice } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 
 export function useFillTranslationsAction(): TreeRewriteActionT {
+  const { fillTranslations } = useEditorActions()
   const { pending, start } = useTreeRewriteAction(
-    fillKosztorysTranslationsAction,
+    fillTranslations,
     'Nie udało się uzupełnić tłumaczeń',
     (data) => {
       const { message, kind } = translationFillNotice(data)
@@ -26,7 +27,6 @@ export function useFillTranslationsAction(): TreeRewriteActionT {
   )
 
   function startWithNotice() {
-    // The menu closes on select, so the wait — up to a minute on a long kosztorys — needs its own word.
     toastMessage('Tłumaczę opisy i nazwy sekcji…', 'info', NOTICE_MS)
     start()
   }

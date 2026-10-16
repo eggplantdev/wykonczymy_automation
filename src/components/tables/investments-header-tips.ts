@@ -1,13 +1,7 @@
-// Formula tips for the investments listing headers, mirroring the kosztorys grid's `HEADER_TIPS` —
-// same register: operators spelled out, one thought per line. Each money column says out loud which
-// terms it adds and where they come from, because the same noun („robocizna", „rabat") names a
-// different number on each plane and the listing shows both.
 const FROM_TRANSACTIONS = 'Robocizna i rabat z transferów (v1).'
 const FROM_KOSZTORYS =
   'Robocizna i rabat z kosztorysu (v2).\nBez kosztorysu — robocizna i rabat 0 zł.'
 
-// Wpłaty, materiały, wypłaty, strata i wydatki rozliczone są transakcyjne na OBU planach, więc
-// bilans i marża różnią się między v1 a v2 wyłącznie parą robocizna/rabat.
 const BALANCE =
   'Wpłaty minus materiały minus robocizna plus rabat plus obniżka materiałów plus strata.\nNa minusie = inwestor jest winien firmie.'
 

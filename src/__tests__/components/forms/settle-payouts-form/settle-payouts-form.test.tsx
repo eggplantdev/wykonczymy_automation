@@ -162,8 +162,6 @@ describe('SettlePayoutsForm', () => {
       bare(formatPLN(200)),
     )
 
-    // A nadpłata row already paid past its work: the whole new amount is ahead, the old nadpłata is
-    // not counted again.
     await user.click(tick('Brzozowa'))
     await user.type(amount('Brzozowa'), '150')
     expect(bare(rowOf('Brzozowa').getByText(/ponad wykonaną pracę/).textContent!)).toContain(
@@ -275,7 +273,6 @@ describe('SettlePayoutsForm', () => {
         expect(bonusButton(label)).not.toBeInTheDocument()
       }
 
-      // Ticked, the row is a zaliczka being typed — the premia would contradict it.
       await user.click(tick('Brzozowa'))
       expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
     })

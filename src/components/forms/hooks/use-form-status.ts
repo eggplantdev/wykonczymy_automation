@@ -13,7 +13,6 @@ export function useFormStatus(form: AnyFormApi): UseFormStatusResultT {
   const canSubmit = useStore(form.store, (s) => s.canSubmit)
   const submissionAttempts = useStore(form.store, (s) => s.submissionAttempts)
 
-  // Show invalid state only after user attempted to submit
   const isInvalid = submissionAttempts > 0 && !isValid
 
   return { isSubmitting, isInvalid, isValid, canSubmit }

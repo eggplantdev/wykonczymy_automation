@@ -69,10 +69,6 @@ beforeEach(() => {
   delete process.env.VERCEL_ENV
 })
 
-// What this pins is the shape of the gate, not a refusal message: writing needs a DIFFERENT
-// credential than reading, and where that credential is absent nothing reaches Google at all.
-// The real refusal lives in Google — the read account is a Viewer on these sheets — but a repo
-// test cannot observe that, so it observes the thing it can: no Editor credential, no request.
 describe('writes need the Editor credential', () => {
   it('applyTabRowsBatch throws and issues no API call when it is absent', async () => {
     const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
@@ -94,7 +90,6 @@ describe('writes need the Editor credential', () => {
     for (const mock of everyApiMock) expect(mock).not.toHaveBeenCalled()
   })
 
-  // What is missing is a credential, not a flag — so there is no env var to set that reopens this.
   it('stays shut when VERCEL_ENV claims production but no credential is present', async () => {
     process.env.VERCEL_ENV = 'production'
     const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
@@ -117,8 +112,7 @@ describe('writes need the Editor credential', () => {
     })
 
     // The batch reads the grid before it writes, and that read goes through the SAME client — so a
-    // sheet shared with only the Editor still syncs. Binding identity to scope rather than counting
-    // emails is what proves it: one Editor-scoped token, and no readonly token minted at all.
+    // sheet shared with only the Editor still syncs.
     const byScope = vi
       .mocked(google.auth.JWT)
       .mock.calls.map((call) => [call[0]?.scopes?.[0], call[0]?.email])
@@ -127,8 +121,6 @@ describe('writes need the Editor credential', () => {
     ])
   })
 
-  // Reading must survive: import, the sheet comparison and the inspector all run from a machine
-  // that has only the Viewer credential.
   it('leaves reading open with no Editor credential at all', async () => {
     const { readTabTransferIds, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
 

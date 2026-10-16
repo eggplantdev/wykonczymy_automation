@@ -26,8 +26,6 @@ function type(result: HookT, next: string) {
 const keyEvent = (blur: () => void = () => {}) =>
   ({ currentTarget: { blur } }) as React.KeyboardEvent<HTMLInputElement>
 
-// The unmount commit is a write on EVERY consumer, including the etap header the grid cell's own
-// suite never renders. Pinned at the seam so both callers are covered at once.
 describe('useInlineRename — wyjście przez unmount', () => {
   it('zapisuje to, co zostało wpisane, gdy input znika bez bluru', () => {
     const { result, unmount } = mount()
@@ -46,8 +44,6 @@ describe('useInlineRename — wyjście przez unmount', () => {
     expect(onCommit).not.toHaveBeenCalled()
   })
 
-  // Escape means „nie zapisuj", and it routes through blur — so the unmount that follows must not
-  // resurrect the draft the user just abandoned.
   it('nie wskrzesza szkicu porzuconego Escapem', () => {
     const { result, unmount } = mount()
 
@@ -60,7 +56,6 @@ describe('useInlineRename — wyjście przez unmount', () => {
     expect(onCommit).not.toHaveBeenCalled()
   })
 
-  // The two exits can land in the same commit; one write is the contract, not two.
   it('zapisuje raz, gdy blur i unmount trafiają w ten sam commit', () => {
     const { result, unmount } = mount()
 
@@ -72,8 +67,6 @@ describe('useInlineRename — wyjście przez unmount', () => {
   })
 })
 
-// `stopEditing` is dsg's handover. A caller that is not a grid cell — the section band, an etap
-// header — passes none, and the keyboard path must still work rather than throw on an absent callback.
 describe('useInlineRename — oddanie komórki siatce', () => {
   it('po Enterze oddaje siatce i schodzi wiersz niżej', () => {
     const stopEditing = vi.fn()

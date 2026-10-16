@@ -11,8 +11,8 @@ type CategorisedPricesT = CataloguePricesT & { category: string | null }
 
 export const NO_CATEGORY = 'bez kategorii'
 
-// `|| null`, not `??`: an empty kategoria and a missing one are the same thing to the owner, and
-// the Payload admin can leave `''` in the column where every in-app write folds it to NULL.
+// `|| null`, not `??`: the Payload admin can leave `''` in the column where every in-app write folds
+// it to NULL.
 export const categoriesDiffer = (existing: CategorisedPricesT, candidate: CategorisedPricesT) =>
   (existing.category || null) !== (candidate.category || null)
 

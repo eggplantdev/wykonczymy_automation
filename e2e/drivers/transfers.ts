@@ -8,15 +8,12 @@ export async function readRegisterBalance(page: Page): Promise<number> {
   return parsePln((await balanceText.textContent()) ?? '')
 }
 
-// Read the balance once it has settled. On a cold register load the value can change after the
-// first paint (SSR value → client revalidation), so a single readRegisterBalance captures a stale baseline
-// and a later "did it revert?" comparison fails against a number that was never really current.
+// On a cold register load the value can change after the first paint (SSR value → client
+// revalidation), so a single readRegisterBalance captures a stale baseline.
 export async function readRegisterBalanceStable(page: Page): Promise<number> {
   let previous = NaN
   for (let attempt = 0; attempt < 20; attempt++) {
     const current = await readRegisterBalance(page)
-    // NaN never equals itself, so an unparseable balance can never satisfy the settle
-    // check — guard it explicitly rather than looping 20× and returning NaN.
     if (!Number.isNaN(current) && current === previous) return current
     previous = current
     await page.waitForTimeout(150)
@@ -26,11 +23,8 @@ export async function readRegisterBalanceStable(page: Page): Promise<number> {
   )
 }
 
-// The transfers table hides its filter block behind a collapsed „Filtry" section (fef44b45), and the
-// „Suma wybranych transakcji" tile is rendered inside that block — so a closed section means the tile
-// is not in the DOM at all, not merely off-screen. The open/closed choice is persisted in
-// localStorage, so this is idempotent by necessity: the second call on a context that already opened
-// it must not toggle it shut.
+// The open/closed choice is persisted in localStorage, so this is idempotent by necessity: the second
+// call on a context that already opened it must not toggle it shut.
 export async function openTransferFilters(page: Page): Promise<void> {
   const trigger = page.getByRole('button', { name: 'Filtry', exact: true })
   await trigger.waitFor()

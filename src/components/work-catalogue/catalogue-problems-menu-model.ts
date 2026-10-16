@@ -7,8 +7,7 @@ type ArgsT = {
   counts: ReadonlyMap<string, number>
 }
 
-// Same rules as the editor's `problemsMenuModel`: ticked = engaged, and an empty list hides the
-// trigger — except the engaged problem, which stays at „(0)" so the narrowing it started can be undone.
+// The engaged problem stays at „(0)" so the narrowing it started can be undone.
 export function catalogueProblemsMenuModel({
   conditions,
   engagedIds,

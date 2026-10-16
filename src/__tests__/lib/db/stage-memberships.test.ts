@@ -34,7 +34,6 @@ describe.skipIf(!ENV_READY)('listWorkerStageInvestments (DB)', () => {
       sections: [{ name: 'Sekcja A', items: [{ description: 'Malowanie', plannedQty: 1 }] }],
       stages,
     })
-    // Raw SQL: the szablon status is guarded against any Payload write.
     await db.execute(sql`UPDATE investments SET status = ${status} WHERE id = ${id}`)
     return id
   }
@@ -73,7 +72,6 @@ describe.skipIf(!ENV_READY)('listWorkerStageInvestments (DB)', () => {
     await createSite('planowana', 'planowana')
     await createSite('quote', 'quote')
     await createSite('completed', 'completed')
-    await createSite('szablon', 'szablon')
     await trashDaysAgo(db, await createSite('trashed', 'active'), 1)
     await createSite('all-closed', 'active', [
       { worker: workerId, completed: true },

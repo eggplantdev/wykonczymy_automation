@@ -11,8 +11,7 @@ describe('parsePagination', () => {
     expect(parsePagination({ limit: '20' }, 50).limit).toBe(20)
   })
 
-  // Off-list values come back as the caller's default, not the global one — otherwise a hand-edited
-  // `?limit=999` would silently widen a list its page deliberately keeps short.
+  // otherwise a hand-edited `?limit=999` would silently widen a list its page deliberately keeps short.
   it.each(['999', '0', '-50', 'abc', ''])('refuses %p and keeps the caller default', (limit) => {
     expect(parsePagination({ limit }, 50).limit).toBe(50)
   })

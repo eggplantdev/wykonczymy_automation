@@ -6,19 +6,18 @@ import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SimpleSelect } from '@/components/ui/simple-select'
-import { savePresetAction } from '@/lib/actions/kosztorys-presets'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 const PRESET_KEEPS_STRUCTURE_ONLY =
   'Szablon zapamiętuje tylko sekcje i prace w tej kolejności. Ceny, mnożniki i tłumaczenia bierze z katalogu prac. Żeby zmienić cenę, użyj „Aktualizuj pozycję w katalogu prac” przy danej pracy.'
 
-// "Zapisz jako nowy szablon…" — save this rozpiska as a reusable, cross-investment template, itself
-// either a new named template or an overwrite of an existing one.
 export function SavePresetDialog() {
   const { investmentId, isTemplate } = useKosztorysEditorContext()
+  const { savePreset } = useEditorActions()
   const { open, setOpen: onOpenChange, existingPresets } = useKosztorysActions().savePreset
   const [name, setName] = useState('')
   const [mode, setMode] = useState<'new' | 'overwrite'>('new')
@@ -33,15 +32,18 @@ export function SavePresetDialog() {
     setOverwriteId('')
   }
 
-  // A szablon overwritten by itself would only lose its przedmiar — the action refuses it anyway.
-  const targets = existingPresets.filter((preset) => preset.id !== investmentId)
+  // A szablon overwritten by itself would change nothing — the action refuses it anyway. A kosztorys
+  // id is not a szablon id, so only the szablon's own editor has itself to leave out.
+  const targets = isTemplate
+    ? existingPresets.filter((preset) => preset.id !== investmentId)
+    : existingPresets
   const canSave = (mode === 'new' ? name.trim() : overwriteId).length > 0 && !saving
 
   async function handleSave() {
     if (!canSave) return
     setSaving(true)
     const res = await settleAction(() =>
-      savePresetAction(
+      savePreset(
         investmentId,
         mode === 'new' ? { mode, name: name.trim() } : { mode, targetId: Number(overwriteId) },
       ),
@@ -61,8 +63,6 @@ export function SavePresetDialog() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Zapisz jako nowy szablon…"
-      // A szablon has no „this investment" for a copy to be independent of, so its first sentence is
-      // rewritten, not word-swapped.
       description={`${
         !isTemplate
           ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji.'

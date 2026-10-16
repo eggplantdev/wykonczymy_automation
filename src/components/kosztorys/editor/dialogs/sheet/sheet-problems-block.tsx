@@ -9,14 +9,10 @@ type PropsT = {
   investmentId: number
   problems: string[]
   columns: UnresolvedColumnsT
-  // What the two windows do NOT do when they refuse — „nadpisane" for „Pobierz", „zmienione" for
-  // „Porównaj". The only thing that differs between them.
   consequence: string
   onMappingSaved: () => void
 }
 
-// A refused read, in both windows. Not every refusal is a column that went missing — a header row
-// nobody can find leaves nothing to point at — so the verdict promises a pick only when there is one.
 export function SheetProblemsBlock({
   investmentId,
   problems,

@@ -22,7 +22,6 @@ describe('InvestmentAssetsField', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Dodaj zdjęcia lub pliki' }))
 
-    // Titled for photos, not for a faktura — the dialog is shared, the wording is not.
     expect(within(screen.getByRole('dialog')).getByText('Dodaj zdjęcia lub pliki')).toBeVisible()
   })
 

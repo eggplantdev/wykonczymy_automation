@@ -6,7 +6,6 @@ import {
 } from '@/lib/kosztorys/row-ops'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// These movers read `id` and `sectionId` only — same fixture shape as section-row-ops.test.ts.
 function row(id: number, sectionId: number): KosztorysV2RowT {
   return { id, sectionId } as KosztorysV2RowT
 }
@@ -23,8 +22,6 @@ describe('applyInsertItem', () => {
   })
 
   it('lands at the array position of the anchor, not of its section', () => {
-    // „poniżej" the last row of section 1 puts the new row before section 2's block, so the two
-    // bands stay whole.
     expect(ids(applyInsertItem(rows, 3, row(9, 1), 'below'))).toEqual([1, 2, 3, 9, 4, 5])
   })
 
@@ -39,7 +36,6 @@ describe('applyKosztorysOrder', () => {
   })
 
   it('is indifferent to the sequence’s own grouping — only within-section rank matters', () => {
-    // Sections interleaved in the payload; each block still reads its own members in order.
     expect(ids(applyKosztorysOrder(rows, [5, 3, 4, 2, 1]))).toEqual([3, 2, 1, 5, 4])
   })
 
@@ -74,8 +70,6 @@ describe('catalogueSlicePlacement', () => {
   })
 
   it('reseeds when the server appended into a sekcja the grid does not list', () => {
-    // Created elsewhere since mount: folding would park the band past the last sekcja, and nothing
-    // on screen can anchor it.
     expect(catalogueSlicePlacement(sectionIds, 4, false)).toBe('reseed')
   })
 })

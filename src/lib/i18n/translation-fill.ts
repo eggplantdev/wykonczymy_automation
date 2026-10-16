@@ -22,7 +22,6 @@ export type TranslationFillT = {
 export type TranslationFillPlanT = {
   fills: TranslationFillT[]
   alreadyTranslated: number
-  // Distinct opisy still untranslated after the run — the next export's worklist.
   missing: string[]
 }
 
@@ -35,8 +34,6 @@ export type TranslationExportEntryT = {
 const isUntranslated = (row: TranslationFillRowT, language: TranslationLanguageT) =>
   translationText(row.descriptionTranslations, language).trim() === ''
 
-// Opisy are free text: a newline or a tab inside one would break a TSV line, so the file spells them
-// as `\n` / `\t` and a literal backslash as `\\`.
 const unescapeCell = (cell: string) =>
   cell.replace(/\\([nt\\])/gu, (_, code: string) =>
     code === 'n' ? '\n' : code === 't' ? '\t' : '\\',
@@ -45,8 +42,6 @@ const unescapeCell = (cell: string) =>
 export const escapeCell = (text: string) =>
   text.replace(/\\/gu, '\\\\').replace(/\n/gu, '\\n').replace(/\t/gu, '\\t')
 
-// `<opis po polsku>\t<tłumaczenie>` per line. A line without a translation is a worklist entry
-// nobody filled yet, not an error.
 export function parseTranslationFile(content: string): Map<string, string> {
   const out = new Map<string, string>()
   for (const line of content.split('\n')) {
@@ -77,8 +72,6 @@ export function exportUntranslated(
   )
 }
 
-// Fills only an empty translation — one somebody typed in the app is never overwritten — and stamps
-// `source` with the row's own opis, so the fill is current against exactly what the row says.
 export function planTranslationFill(
   rows: readonly TranslationFillRowT[],
   file: ReadonlyMap<string, string>,

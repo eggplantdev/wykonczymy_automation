@@ -85,7 +85,6 @@ describe.skipIf(!ENV_READY)('users default-kasa guard (DB)', () => {
     expect(await readDefault()).toBe(liveRegisterId)
   })
 
-  // The shape only a raw write can produce — the guard must not freeze the user's other fields over it.
   it('lets an edit through when the stored default is already trashed', async () => {
     await db.execute(
       sql`UPDATE users SET default_cash_register_id = ${trashedRegisterId} WHERE id = ${userId}`,

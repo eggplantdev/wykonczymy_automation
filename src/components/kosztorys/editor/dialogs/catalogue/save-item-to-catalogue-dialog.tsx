@@ -15,8 +15,6 @@ import {
 } from '@/lib/kosztorys/work-catalogue/catalogue-overwrite-text'
 import { PriceList } from './catalogue-overwrite-prices'
 
-// „Zapisz do katalogu…" from the row menu. Every figure comes from the server preview — the same
-// derivation the save itself runs — so what the dialog shows is what lands in the cennik.
 export function SaveItemToCatalogueDialog({
   itemId,
   open,
@@ -29,18 +27,12 @@ export function SaveItemToCatalogueDialog({
   const preview = useCatalogueSavePreview(itemId, open, onOpenChange)
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
-  // Deliberately never synced to the preview fetch: the katalog owns its klasyfikacja, so
-  // protecting it is the answer until the owner says otherwise.
   const [keepCategory, setKeepCategory] = useState(true)
 
-  // The server decides it — there is no mode to pick: the remembered praca, or the klucz's holder, can
-  // only be updated, and anything else can only be created. An update replaces the figures every
-  // szablon and future kosztorys reads, and the katalog keeps no history, so that branch asks first.
   const existing = preview?.existing ?? null
   const leaving = preview?.leaving ?? null
   const templateNames = preview?.templateNames ?? []
   const overwrites = existing != null
-  // Updating the praca this pozycja already IS, as opposed to landing on another one by its klucz.
   const updatesOwn = overwrites && leaving == null
   const title = updatesOwn
     ? 'Aktualizuj pozycję w katalogu prac'
@@ -93,8 +85,6 @@ export function SaveItemToCatalogueDialog({
             <p className="text-sm font-medium">{preview.candidate.description}</p>
             <p className="text-muted-foreground text-xs">
               {preview.candidate.unit || 'bez jednostki'}
-              {/* Only in the create case — on an overwrite the kategoria is a decision made by the
-                  „Po zapisie" row below, and repeating the sekcja's here would contradict it. */}
               {!existing && preview.candidate.category ? ` · ${preview.candidate.category}` : ''}
             </p>
           </div>

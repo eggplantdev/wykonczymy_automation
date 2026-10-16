@@ -8,9 +8,6 @@ import {
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { translateUnit } from '@/lib/kosztorys/worker-view/translate-unit'
 
-// A pozycja nobody translated yet stays Polish rather than blank. A stale translation still shows — it is the closest thing they can read, and the owner sees
-// it flagged in „Problemy". Ids are untouched, so the draft and the send key by the same rows.
-// Section names come from the shared list instead — a name is the same room in every rozpiska.
 export function translateTree(
   tree: KosztorysTreeT,
   locale: LanguageT,

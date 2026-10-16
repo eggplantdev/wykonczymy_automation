@@ -9,10 +9,6 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
-// A computed cell and its sort key must be one figure: EX-487 and EX-894 were each a sort ordering
-// rows by a number no cell showed. Iterates the columns the grid ACTUALLY assembles, so a computed
-// column added later is held to this the day it appears — no list here to forget to extend.
-//
 // Rows 1 and 3 order oppositely at the client price and at either stawka; row 1 carries a rabat and
 // splits its pomiar across both crews; row 2 has no przedmiar; row 3 is executed past its przedmiar.
 // Etap 300 has no rozliczenie, so the client view assembles its locked, computed qty column.
@@ -103,8 +99,7 @@ describe('every computed cell shows the value its column sorts by', () => {
     expect(ids).toContain(stageValueNetKey(view === 'own_tools' ? 200 : 100))
   })
 
-  // The worker's grid is read-only and has no sort; „Pozostało" and the offer percentage there read
-  // a quantity the sort is never handed, so they are left out — every other one is the owner's figure.
+  // „Pozostało" and the offer percentage there read a quantity the sort is never handed, so they are left out.
   it('worker surface', () => {
     const view = 'w_tools'
     const stages = tree.stages.filter((st) => st.plane === view)

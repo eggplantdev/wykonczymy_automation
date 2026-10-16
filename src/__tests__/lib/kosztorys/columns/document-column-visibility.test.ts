@@ -55,7 +55,6 @@ describe('resolveHiddenColumns', () => {
     ).toEqual(['price'])
   })
 
-  // A row `20261015_0` has not converted yet must not show a default-hidden column added since.
   it('reads a column the legacy array was not written against as its code default', () => {
     const legacyWithoutNote: ReadonlySet<string> = new Set(['description', 'price', 'net'])
 

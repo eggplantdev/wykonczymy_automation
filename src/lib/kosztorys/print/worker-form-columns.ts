@@ -11,7 +11,6 @@ import { escapeHtml } from '@/lib/utils/escape-html'
 export type WorkerFormColumnsArgsT = {
   locale: LanguageT
   plane: ToolPlaneT
-  // Only the worker's own etapy — the projection's `tree.stages`.
   stages: KosztorysStageT[]
   executedQtyByItem: Record<number, number>
 }
@@ -25,8 +24,6 @@ const figureColumn = (key: string, label: string, cell: PrintColumnT['cell']): P
   cell,
 })
 
-// The link's report form on paper, in its order: „Wykonano” from his etapy, „Postęp” from every
-// crew's, and the blank „Zgłaszam” between them where he writes.
 export function workerFormColumns({
   locale,
   plane,

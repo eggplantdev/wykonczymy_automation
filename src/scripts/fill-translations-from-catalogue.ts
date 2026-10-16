@@ -1,23 +1,5 @@
-// Re-runnable: fills the missing or stale opis translations of the pozycje of every investment not in
-// the kosz (szablony and zakończone included — Problemy flags a gap on a closed one too) from the
-// katalog prac — the same reuse „Uzupełnij tłumaczenia (AI)" makes before it asks the AI. With --ai
-// it also does what the buttons do, across every kosztorys at once: the katalog's own gaps first (so
-// the pozycje then reuse them), then one AI call per distinct opis still missing, then the section
-// names.
-//
 //   node --env-file=.env --conditions=react-server --import tsx \
 //     src/scripts/fill-translations-from-catalogue.ts [--ai] [--apply]
-//
-// Production, run after `pnpm db:dump`:
-//
-//   DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --conditions=react-server \
-//     --import tsx src/scripts/fill-translations-from-catalogue.ts --ai --apply
-//
-// A pozycja matches its katalog entry by opis + j.m. (`match_key`), and a language is reused only when
-// the katalog's translation was made from an opis that folds like the pozycja's. The stored `source` is
-// the pozycja's own opis. The write is compare-and-set: a pozycja whose opis changed since the read,
-// or whose language got a translation meanwhile, is left alone — a second --apply writes 0. Without
-// --apply the AI is not called and nothing is written.
 //
 // Raw SQL skips the cache tags: a rozpiska keeps serving the old texts until any cell edit but a
 // tłumaczenie flushes it, and the katalog until any katalog edit.

@@ -1,6 +1,3 @@
-// HTML + RSC bytes per page as OWNER, optionally counting a needle (a field name you suspect rides along).
-//   node --env-file=.env scripts/perf/size-pages.mjs [needle] [path ...]
-//   --save writes each RSC body to dumps/perf/<path>.rsc for rsc-rows.mjs
 import fs from 'node:fs'
 import { BASE, OUT_DIR, headersFor, kb, login } from './lib.mjs'
 

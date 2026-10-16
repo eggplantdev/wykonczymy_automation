@@ -31,7 +31,6 @@ function renderManagedForm(persistDraft: boolean) {
 
 beforeEach(() => vi.clearAllMocks())
 
-// EX-942: an edit form keeps no draft, so the open dialog is the only place the typed values live.
 describe('useManagedForm — a failed save on a form without a draft', () => {
   it('keeps the dialog open with the typed values', async () => {
     const { result, onSubmitSuccess } = renderManagedForm(false)

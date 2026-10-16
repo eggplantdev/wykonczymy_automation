@@ -27,8 +27,6 @@ export async function buildTransferRows(
 ): Promise<TransferRowT[]> {
   const mediaMap = skipMedia ? new Map() : await fetchMediaByIds(extractInvoiceIds(docs))
   const lookups = buildTransferLookups(refData, mediaMap)
-  // Query rows are loosely typed (Record<string, any>); the mapper declares the depth:0 shape it
-  // needs, so narrow at this boundary.
   return docs.map((doc) => mapTransferRow(doc as TransferDocT, lookups))
 }
 

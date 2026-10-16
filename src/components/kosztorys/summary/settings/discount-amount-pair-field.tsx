@@ -29,7 +29,6 @@ export function DiscountAmountPairField({ value, vatRate, disabled = false, onAp
   const storedNet = moneyText(value)
   const storedGross = moneyText(toGross(value, vatRate))
 
-  // The text typed on one axis; the other field is derived from it.
   const [draft, setDraft] = useState<{ axis: AxisT; raw: string } | null>(null)
 
   // Undo, a rolled-back save, a mode reseed or a new stawka VAT all move the stored pair without

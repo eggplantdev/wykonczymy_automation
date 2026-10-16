@@ -3,9 +3,8 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 
-// Asserted on the `media` row, not on the action's result: a `{ success: true }` sits on top of
-// whatever the write really did. The refusal leg mocks the SESSION rather than `requireAuth`, so
-// the role gate under test is the real one — a mocked guard would only assert the mock.
+// The refusal leg mocks the SESSION rather than `requireAuth`, so
+// the role gate under test is the real one.
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {

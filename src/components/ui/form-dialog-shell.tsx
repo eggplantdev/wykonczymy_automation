@@ -19,10 +19,6 @@ type PropsT = {
   contentClassName?: string
 }
 
-// Self-controlled (open/onOpenChange props, no optimistic store) shell for the standard kosztorys
-// form dialog: header + body + an Anuluj/confirm footer. Not a god shell — the body is a free slot
-// and edge-case dialogs (edge-to-edge cmdk, non-dismissible) stay on the raw primitives. Cancel and
-// every dismiss route through onOpenChange(false), so the caller's close/reset logic runs once.
 export function FormDialogShell({
   open,
   onOpenChange,

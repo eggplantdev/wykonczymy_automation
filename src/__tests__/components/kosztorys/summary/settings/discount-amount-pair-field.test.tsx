@@ -21,7 +21,6 @@ function renderField(value = 0, vatRate = 0.08) {
 beforeEach(() => vi.clearAllMocks())
 
 describe('Rabat kwotowy — pola netto i brutto', () => {
-  // EX-933: on a brutto deal the owner typed 5000 meaning 5000 zł off, and got 5400.
   it('5000 wpisane w brutto przy 8% pokazuje netto przed zapisem i zapisuje jego netto', async () => {
     const { user, net, gross, save } = renderField()
 

@@ -7,8 +7,6 @@ type ColumnTotalRowPropsT = {
   children: ReactNode
 }
 
-/** A footer row holding one column's total under that column, the label spanning everything to its
- *  left. Gone with the column itself. */
 export function ColumnTotalRow({
   visibleColumnIds,
   columnId,
@@ -20,8 +18,6 @@ export function ColumnTotalRow({
 
   return (
     <tr>
-      {/* Nothing to its left once every other column is toggled off — the number is what the row is
-          for, so it survives losing its label. */}
       {index > 0 && (
         <td className="font-bold" colSpan={index}>
           {label}

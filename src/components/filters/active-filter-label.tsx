@@ -3,8 +3,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 type ActiveFilterLabelPropsT = {
   activeOnly: boolean
   onToggle: (value: boolean) => void
-  // Polish agreement: the default is neuter/non-personal („aktywne inwestycje", „aktywne kasy"), so a
-  // list of people has to override it — „aktywni pracownicy".
   activeLabel?: string
   allLabel?: string
 }

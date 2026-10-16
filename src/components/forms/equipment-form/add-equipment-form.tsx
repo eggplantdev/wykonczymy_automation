@@ -32,7 +32,6 @@ type AddEquipmentFormPropsT = {
   investments: InvestmentRefT[]
 }
 
-/** The item and its first placement in one submit — see `addEquipmentSchema` for why they're one. */
 export function AddEquipmentForm({
   formId,
   defaultValues,

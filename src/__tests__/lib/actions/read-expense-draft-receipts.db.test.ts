@@ -111,8 +111,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  // A draft sent before EX-1048 still says „Jeden wydatek”; one total asked over many documents
-  // came back wrong, so it is read paragon by paragon like every other.
   it('reads a multi-photo „Jeden wydatek” photo by photo', async () => {
     const { draftId, mediaIds } = await createDraft('one-invoice', 2, 'one-invoice')
 
@@ -168,8 +166,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  // Every single-photo draft sent before 2026-10-12 says „Jeden wydatek”, and one photo can still
-  // hold several paragony side by side.
   it('reads a one-photo „Jeden wydatek” paragon by paragon', async () => {
     const { draftId, mediaIds } = await createDraft('one-photo-invoice', 1, 'one-invoice')
     extractReceipts.mockResolvedValue([
@@ -188,7 +184,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  // A draft sent under the old 20-photo cap can still be pending; per photo, no page cap applies.
   it('reads a „Jeden wydatek” over 8 photos photo by photo', async () => {
     const { draftId } = await createDraft('over-cap', 9, 'one-invoice')
 
@@ -213,7 +208,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  // A list loaded before the send-time read landed still offers the read.
   it('returns a stored read without asking the AI again', async () => {
     const { draftId } = await createDraft('already-read', 2, 'one-per-photo')
     const stored = await readExpenseDraftReceipts(db, draftId)
@@ -223,7 +217,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     expect(extractReceipts).not.toHaveBeenCalled()
   })
 
-  // A row per photo is what makes each one a paragon to decide, even when none reached the AI.
   it('stores the sentinel per photo when no photo reached the AI', async () => {
     const { draftId, mediaIds } = await createDraft('all-unfetched', 2, 'one-per-photo')
     fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))

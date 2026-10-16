@@ -12,9 +12,8 @@ function mergeReasons(...verdicts: (MatchReasonT[] | undefined)[]): MatchReasonT
 }
 
 /**
- * One transakcja and the paragony it was merged from are one purchase; so are a read row and the
- * transakcja booked from it. A transakcja with no recorded read rows was booked before they were
- * tracked, so it could be any paragon of its zgłoszenie.
+ * A transakcja with no recorded read rows was booked before they were tracked, so it could be any
+ * paragon of its zgłoszenie.
  */
 function areSiblings(a: DocumentT, b: DocumentT): boolean {
   if (a.source === 'transaction' && b.source === 'transaction') return a.id === b.id
@@ -35,10 +34,8 @@ const newestFirst = (a: DocumentT, b: DocumentT) =>
   timestamp(b) - timestamp(a) || a.key.localeCompare(b.key)
 
 /**
- * Every match needs equal cents or an equal number, so a probe is compared only with the documents
- * sharing one of its buckets — never all pairs. Each unordered pair comes back once, with at least
- * one probe in it. A probe is loaded again as a candidate when it matches itself, so documents are
- * deduplicated by key first.
+ * A probe is loaded again as a candidate when it matches itself, so documents are deduplicated by
+ * key first.
  */
 export function findDuplicatePairs<D extends DocumentT>(
   loaded: D[],
@@ -99,10 +96,6 @@ function toGroup<D extends DocumentT>(key: string, pairs: DuplicatePairT<D>[]): 
 const byNewestMember = <D extends DocumentT>(a: DuplicateGroupT<D>, b: DuplicateGroupT<D>) =>
   newestFirst(a.members[0], b.members[0]) || a.key.localeCompare(b.key)
 
-/**
- * Strong groups are the connected documents linked by a number or a paragon. Weak groups hold the
- * same-amount-only pairs, one group per amount — leaving out a pair a strong group already joins.
- */
 export function groupDuplicates<D extends DocumentT>(
   pairs: DuplicatePairT<D>[],
 ): DuplicateGroupsT<D> {

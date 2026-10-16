@@ -4,7 +4,6 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
-import { guardTemplateStatus } from '@/hooks/investments/guard-template-status'
 import { guardTrashedInvestment } from '@/hooks/investments/guard-trashed-investment'
 import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
@@ -43,7 +42,6 @@ export const Investments: CollectionConfig = {
     beforeChange: [
       guardTrashedInvestment,
       guardInvestmentStatusUnlock,
-      guardTemplateStatus,
       stampCompletedAt,
     ],
     beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
@@ -88,8 +86,6 @@ export const Investments: CollectionConfig = {
       type: 'textarea',
       label: { en: 'Notes', pl: 'Notatki' },
     },
-    // Only the AI kosztorys script writes it (REST update), and the app shows it read-only: a rerun
-    // overwrites the doubts without touching what people wrote in Notatki.
     {
       name: 'aiNotes',
       type: 'textarea',
@@ -101,8 +97,6 @@ export const Investments: CollectionConfig = {
       defaultValue: false,
       label: { en: 'Review requested', pl: 'Prośba o opinię wysłana' },
     },
-    // Photos and documents of the site itself — the same `media` rows a promoted lead arrived with,
-    // which is why promotion re-points them instead of re-uploading.
     {
       name: 'assets',
       type: 'upload',
@@ -124,9 +118,8 @@ export const Investments: CollectionConfig = {
       label: { en: 'AI stage', pl: 'Etap AI' },
       options: AI_STAGE_OPTIONS,
     },
-    // Defaults for the sheet, which a single pozycja may override. „Bez narzędzi" is not independent:
-    // the sheet derives it as „z narzędziami" less 15%, which is why DEFAULT_COEFFS owns both and the
-    // column default had to be corrected to match (20260825_0).
+    // „Bez narzędzi" is not independent: the sheet derives it as „z narzędziami" less 15%, which is
+    // why DEFAULT_COEFFS owns both.
     {
       name: 'wToolsCoeff',
       type: 'number',
@@ -145,8 +138,6 @@ export const Investments: CollectionConfig = {
         pl: 'Współczynnik podwykonawcy (bez narzędzi)',
       },
     },
-    // A fraction (0.08 = 8%). Kosztorys prices are netto; brutto is computed. Edited from the
-    // kosztorys editor (Sekcje panel).
     {
       name: 'vatRate',
       type: 'number',
@@ -163,17 +154,15 @@ export const Investments: CollectionConfig = {
       label: { en: 'Settlement mode', pl: 'Sposób rozliczenia' },
       options: SETTLEMENT_MODE_ADMIN_OPTIONS,
     },
-    // Materiały billed to the investor at netto instead of the brutto receipt, a fraction like
-    // `vatRate`. Neither `required` nor defaulted: null means "no concession" and must stay
-    // distinguishable from a 0% one, which is what leaves existing investments' figures untouched.
+    // Neither `required` nor defaulted: null means "no concession" and must stay distinguishable
+    // from a 0% one.
     {
       name: 'materialsNetRate',
       type: 'number',
       label: { en: 'Materials net rate (fraction)', pl: 'Stawka netto wydatków (ułamek)' },
     },
     // Amount-only ('amount' | null): overrides per-item discounts and is subtracted once from the
-    // executed total; null means the per-item discounts apply. A percent global rabat is not stored —
-    // it is stamped into each per-item rabat.
+    // executed total; null means the per-item discounts apply.
     {
       name: 'globalDiscountType',
       type: 'text',
@@ -186,8 +175,7 @@ export const Investments: CollectionConfig = {
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
     // Written only by the trash actions (overrideAccess) — closed to REST, which would skip their
-    // checks. Deliberately not `deletedAt`: that name is Payload's own `trash: true` column, which
-    // fails reads closed.
+    // checks.
     {
       name: 'trashedAt',
       type: 'date',

@@ -24,17 +24,15 @@ export type OdometerEntryT = {
   registration: string
   make: string
   model: string
-  /** Distance covered since the change — the only figure the alarm needs, and the one the app shows. */
   kmSinceChange: number
 }
 
 /**
- * What to write back once the mail is out. Split by leg: a row can earn the digest on mileage while
+ * Split by leg: a row can earn the digest on mileage while
  * its date leg stays quiet, and stamping both would silence a deadline nobody was told about.
  */
 export type StampT = {
   inspectionId: number
-  /** The bucket the date leg fired at, or `null` when only the kilometre leg did. */
   threshold: number | null
   odometer: boolean
 }
@@ -49,13 +47,6 @@ export type FleetDigestT = {
 export const isEmptyDigest = (digest: FleetDigestT): boolean =>
   digest.overdue.length === 0 && digest.within7.length === 0 && digest.odometer.length === 0
 
-/**
- * Today's digest, decided purely from the loaded histories — no clock, no DB, no send.
- *
- * Only the newest event per (vehicle, type) is ever judged: it is the one carrying the current
- * deadline, and an older row's stale bookkeeping must not resurrect a deadline that has already been
- * renewed. Retired vehicles never enter — their deadlines are history, not a to-do list.
- */
 export const buildFleetDigest = (
   histories: readonly VehicleHistoryT[],
   today: DayT,
@@ -74,8 +65,6 @@ export const buildFleetDigest = (
     const latestOdometer = latestOdometerReading(events)
 
     for (const type of SCHEDULED_INSPECTION_TYPES) {
-      // A type that does not apply is not urgent: without this the mail would report PO TERMINIE on
-      // the very row the listing renders as „bezterminowo".
       if (isExempt(vehicle.exemptions, type)) continue
 
       const row = latest[type]
@@ -100,8 +89,6 @@ export const buildFleetDigest = (
         else digest.within7.push(entry)
       }
 
-      // The leg only fires on a change that carries a reading, against a known latest one — so the
-      // subtraction below cannot be reached with either side missing.
       if (decision.odometer && row.odometer != null && latestOdometer != null) {
         digest.odometer.push({
           inspectionId: row.id,

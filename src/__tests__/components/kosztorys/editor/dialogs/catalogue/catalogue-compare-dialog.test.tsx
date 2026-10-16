@@ -92,8 +92,6 @@ describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
     expect(setOpen).toHaveBeenCalledWith(false)
   })
 
-  // The window owns the wiring — including that the candidates come from the window's own lazy
-  // scoring pass, not from the comparison it was handed. What a click DOES is the list's own spec.
   it('podaje przyjęcie kandydata do edytora wraz z jednostką', async () => {
     catalogueComparison = {
       ...COMPARISON,

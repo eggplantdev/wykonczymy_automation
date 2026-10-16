@@ -1,12 +1,10 @@
-// No `server-only` here (half of src/lib/db skips it too), for the same reason as
-// kosztorys-item-texts.ts: these helpers have to stay importable from a tsx script.
 import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
-// What the klucz is rebuilt from server-side. The wire carries ids and field names only, so the
-// (opis, j.m.) the katalog is matched on has to come from the row as it stands NOW — a dialog left
-// open across a rename must miss, not price the praca off its old name.
+// The wire carries ids and field names only, so the (opis, j.m.) the katalog is matched on has to
+// come from the row as it stands NOW — a dialog left open across a rename must miss, not price the
+// praca off its old name.
 export type CatalogueApplyTargetT = { id: number; description: string; unit: string }
 
 export type CatalogueApplyColumnT =
@@ -26,7 +24,6 @@ const COLUMN_NAME: Record<CatalogueApplyColumnT, string> = {
 
 export type CatalogueApplyValueT = { id: number; value: number | null }
 
-/** The pozycje named by id, narrowed to one inwestycja — the scope lives in the WHERE, not in trust. */
 export async function listItemsForCatalogueApply(
   db: DbExecutorT,
   investmentId: number,
@@ -47,17 +44,9 @@ export async function listItemsForCatalogueApply(
 }
 
 /**
- * One statement per column, whatever the size of the selection — the owner ticks „zaznacz wszystkie"
- * over a kosztorys that can run past a thousand pozycji.
- *
- * The VALUES tuples are cast explicitly: a stawka row may carry `NULL` (taking the katalog's „auto"
- * means DROPPING the nadpisanie, not writing a number), and a literal `NULL` has no type, so a batch
- * whose first row clears the figure would leave Postgres unable to infer the column and reject the
- * whole update — same trap as `setSheetMeasuredQty`.
- *
  * `investments.updated_at` is deliberately NOT bumped: it is the editor's remount latch, and the
  * caller patches its grid in place, so bumping it would throw away the sort and filters the owner
- * had set to find these rows in the first place.
+ * had set.
  */
 export async function applyCatalogueValues(
   db: DbExecutorT,

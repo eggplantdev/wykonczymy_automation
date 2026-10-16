@@ -10,13 +10,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { restHolderId } from '@/lib/kosztorys/stage-split'
 
-// A snapshot records `worker_id` per etap, so it outlives the person it names. `ON DELETE SET NULL`
-// on the column protects the LIVE row when that person is deleted — it says nothing about a restore
-// re-INSERTing the recorded id afterwards, which meets the FK head-on. Only the DB can show that, so
-// this spec is DB-backed: a mocked insert would happily accept the dangling id.
-//
-// A hard delete is the trigger; deactivation is not (the row survives, so the FK is satisfied).
-
 // serializeKosztorys reads through the editor's authed query path, which wants a request scope.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
@@ -76,8 +69,6 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
         // The second etap's assignee outlives the restore. Without it, an implementation that simply
         // blanket-nulled `worker_id` on every restore would pass — losing every assignment silently.
         { label: 'Etap 2', worker: keptWorkerId },
-        // Shared etap whose rest holder is the one deleted: the survivor must inherit the rest, not
-        // leave an etap nobody takes the remainder of.
         {
           label: 'Etap 3',
           plane: 'w_tools',
@@ -104,8 +95,8 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
       doomedWorkerId,
     )
 
-    // The hard delete an admin performs in the Payload panel. The owned cash register goes first —
-    // `cash_registers.owner_id` is NOT NULL, so Postgres refuses the user delete while it stands.
+    // The owned cash register goes first — `cash_registers.owner_id` is NOT NULL, so Postgres
+    // refuses the user delete while it stands.
     await db.execute(sql`DELETE FROM cash_registers WHERE owner_id = ${doomedWorkerId}`)
     await db.execute(sql`DELETE FROM users WHERE id = ${doomedWorkerId}`)
 
@@ -115,8 +106,6 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
       { skipRevalidation: true },
     )
 
-    // Assert the PERSISTED tree, not just the call's return: the reported count is what the toast
-    // shows, but only the rows say what actually landed.
     const after = await serializeKosztorys(investmentId)
     const splitOf = (ordinal: number) =>
       after.stages.find((stage) => stage.ordinal === ordinal)?.split
@@ -129,8 +118,6 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
   })
 })
 
-// A worker in the kosz still satisfies the FK, so nothing forces the restore to drop them — only the
-// rule that a trashed worker never lands on an etap does (EX-918).
 describe.skipIf(!ENV_READY)('restore with a since-trashed etap assignee (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

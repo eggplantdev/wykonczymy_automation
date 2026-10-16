@@ -9,7 +9,6 @@ const readClientViewSettings = vi.hoisted(() => vi.fn())
 const ensureShareLinkAction = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
-// `'use server'` modules — vitest's stub throws on call, so each is named explicitly.
 vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
 vi.mock('@/lib/actions/kosztorys-share', () => ({ ensureShareLinkAction }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({

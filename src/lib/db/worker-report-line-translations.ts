@@ -20,8 +20,7 @@ export async function listReportExtras(
   return res.rows.map((row) => ({ id: Number(row.id), description: text(row.description) }))
 }
 
-// A line a retry may touch: an extra of a report still pending, not accepted yet. The writer
-// re-checks it, because the AI wait sits between the read and the write.
+// The writer re-checks it, because the AI wait sits between the read and the write.
 const STILL_PENDING_EXTRA = sql`l.kind = 'extra' AND l.accepted_qty IS NULL
   AND EXISTS (SELECT 1 FROM worker_reports r WHERE r.id = l.report_id AND r.status = 'pending')`
 
@@ -42,8 +41,7 @@ export async function readPendingExtra(
 
 // A Polish reading never wipes a stored translation — the model misread the language, not the line.
 // `onlyUntranslated` is the after()-on-send write: it must never clobber a line a manager's retry
-// already translated while the first call was still running. Returns what the written lines now
-// hold; a line the re-check refused is missing.
+// already translated while the first call was still running.
 export async function setLineTranslations(
   db: DbExecutorT,
   rows: LineTranslationT[],

@@ -1,19 +1,17 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { readKosztorysRevision } from '@/lib/queries/kosztorys-revision'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 
 type ArgsT = {
   investmentId: number
-  // The revision the tree on screen was rendered from.
   revision: string
   enabled: boolean
   onChanged: () => void
 }
 
-// A plain cell edit never bumps the revision, so a mismatch on return to the tab is a structural write
-// or an accepted report from another window — the one moment the grid is known to be stale.
 export function useExternalChangeReload({ investmentId, revision, enabled, onChanged }: ArgsT) {
+  const { readRevision } = useEditorActions()
   const renderedRef = useRef(revision)
 
   renderedRef.current = revision
@@ -26,12 +24,11 @@ export function useExternalChangeReload({ investmentId, revision, enabled, onCha
   useEffect(() => {
     if (!enabled) return
     let isChecking = false
-    // focus and visibilitychange both fire on a tab switch; one probe answers both.
     const check = async () => {
       if (isChecking || document.visibilityState !== 'visible') return
       isChecking = true
       try {
-        const current = await readKosztorysRevision(investmentId)
+        const current = await readRevision(investmentId)
         if (current === undefined) return
         if (current !== renderedRef.current && current !== adoptedRef.current) {
           adoptedRef.current = current
@@ -49,7 +46,7 @@ export function useExternalChangeReload({ investmentId, revision, enabled, onCha
       window.removeEventListener('focus', check)
       document.removeEventListener('visibilitychange', check)
     }
-  }, [enabled, investmentId])
+  }, [enabled, investmentId, readRevision])
 
   return {
     adoptRevision: (next: string) => {

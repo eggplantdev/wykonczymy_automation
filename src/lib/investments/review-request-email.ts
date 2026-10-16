@@ -3,12 +3,10 @@ import { serverEnv } from '@/lib/env/server'
 import { renderBrandedEmail } from '@/lib/email/branded-template'
 import { BRAND_LOGO_URL } from '@/lib/email/brand-logo'
 
-// Google place „Wykończymy.com.pl" (Terespolska 2, Warszawa). Logged out, Google sends the client
-// through its login first — a review needs an account.
+// Google place „Wykończymy.com.pl" (Terespolska 2, Warszawa).
 const GOOGLE_REVIEW_URL =
   'https://search.google.com/local/writereview?placeid=ChIJdwKTEzbNHkcRZA6UBMGUMdc'
 
-/** Throws on failure. */
 export async function sendReviewRequestEmail(payload: Payload, to: string): Promise<void> {
   const html = renderBrandedEmail({
     logoUrl: BRAND_LOGO_URL,

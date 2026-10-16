@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { inverseGlobalCoeffPatch } from '@/lib/kosztorys/v2-rows'
 
-// The panel-edit undo command (handleGlobalCoeffChange) reverses a change by re-issuing the same
-// action with these before-patches. The contract it must satisfy: restore ONLY the keys the forward
-// edit touched, with the row's pre-change value.
-
 describe('inverseGlobalCoeffPatch', () => {
   const current = { globalWToolsCoeff: 1.5, globalOwnToolsCoeff: 1.2 }
 

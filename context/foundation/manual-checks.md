@@ -634,13 +634,39 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Kosztorys → „Importuj z arkusza” i „Ustaw kolejność” działają jak wcześniej (porządki bez
       zmiany zachowania): import podmienia pozycje, kolejność zapisuje się po odświeżeniu strony.
 
-## 2026-10-15 — szablon-own-structure — bez „Aktualizuj pozycję w katalogu prac” w szablonie
+## EX-1075 — szablon-own-structure — szablon jako odwołania do katalogu prac
 
 - [ ] Szablony → otwórz szablon → menu „…” przy dowolnej pracy: nie ma „Aktualizuj pozycję w katalogu
       prac” ani „Zapisz pozycję do katalogu prac”; „Wstaw powyżej/poniżej”, „Ustaw kolejność…” i „Usuń
       pozycję” są jak dotąd.
 - [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
       nadal jest i otwiera okno zapisu do katalogu.
+- [ ] Szablony → „Nowy szablon”, zmiana nazwy, otwarcie: działa; nazwa już zajęta (także przez szablon
+      w koszu) jest odrzucana.
+- [ ] Kosztorys z pracą spoza katalogu → „Zapisz jako szablon”: zapisany, ostrzeżenie wymienia pominiętą
+      pracę.
+- [ ] „Nadpisz” istniejący szablon: zastąpiony; w „Wersjach” tego szablonu jest „Przed nadpisaniem: …”.
+- [ ] Nowa inwestycja z szablonu (także z leada): kosztorys ma sekcje i prace szablonu, przedmiar 0.
+- [ ] Kosztorys → „Wczytaj szablon…” i „Sekcja z szablonu…”: właściwe sekcje i prace.
+- [ ] Katalog prac → usuń pracę, która stoi w szablonie: znika z szablonu; kolumna „Szablony” liczy
+      szablony poprawnie.
+- [ ] Szablon → „Zapisz wersję”, zmień coś, „Przywróć”: układ wraca, opisy w dzisiejszym brzmieniu
+      katalogu.
+- [ ] Usuń z katalogu pracę, przywróć wersję szablonu, która ją miała: przywrócona bez niej,
+      z ostrzeżeniem.
+- [ ] Szablony → „Do kosza”: znika z listy i ze wszystkich pickerów szablonu; w `/kosz` widać go jako
+      szablon. Przywrócenie: wraca z pracami i wersjami. „Usuń na zawsze” pyta o nazwę.
+- [ ] Lista inwestycji, filtr statusu, formularz inwestycji: brak opcji „Szablon”; reszta jak dotąd.
+- [ ] Raport pracownika i pickery wypłat: bez zmian dla prawdziwych inwestycji; szablony się w nich
+      nie pojawiają.
+- [ ] Ładowarka kosztorysu AI na szablonie (lokalnie): pozycje w brzmieniu katalogu, bez duplikatów.
+- [ ] Kosztorys i szablon → „Dodaj pracę” (z tłumaczeniem i bez): praca dodana; pusty opis lub
+      jednostka odrzucone; „Zapisz wersję” bez nazwy odrzucone; „Wersje” pokazują autora i datę;
+      „Sekcja z szablonu…” dokłada sekcje w kolejności wyboru (porządki po przeglądzie — bez zmian
+      w zachowaniu).
+- [ ] Po usunięciu starych szablonów z bazy (druga migracja): `/szablony` pokazuje te same szablony
+      z tymi samymi sekcjami, pracami i „Wersjami”; lista inwestycji i filtr statusu nie mają
+      szablonu; nowa inwestycja zapisuje się ze statusem „Wycena”.
 
 ## 2026-10-15 — expense-draft-duplicates-per-row — duplikaty przy własnym paragonie + paragon bez zdjęcia
 

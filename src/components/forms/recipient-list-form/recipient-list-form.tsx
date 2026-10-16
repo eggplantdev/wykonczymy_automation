@@ -14,8 +14,6 @@ import {
 } from './recipient-list-schema'
 import type { ActionResultT } from '@/types/action'
 
-// The array-field surface this form drives (`form.Field name="emails" mode="array"`). Structural
-// because TanStack's real FieldApi generic is unnameable; mirrors `line-items-field.tsx`.
 type EmailsArrayFieldT = {
   state: { value: RecipientListFormValuesT['emails'] }
   pushValue: (value: RecipientListFormValuesT['emails'][number]) => void
@@ -47,7 +45,7 @@ export function RecipientListForm({
     onSubmitSuccess,
     action,
     // An edit form over a live row: a restored draft would revert an address somebody else changed
-    // in the meantime. Also why three cards can share one store slot — nothing is kept in it.
+    // in the meantime.
     persistDraft: false,
     toData: (value) => value.emails.map((row) => row.email.trim()),
   })
@@ -60,9 +58,6 @@ export function RecipientListForm({
             <div className="space-y-3">
               {emailsField.state.value.map((row, index) => (
                 <div key={row.id} className="flex items-end gap-2">
-                  {/* type="email" fires native validation before Zod, so the app's own message
-                      rarely shows — accepted: the save is blocked either way, and `text` would lose
-                      the mobile e-mail keyboard and autofill. */}
                   <form.AppField name={`emails[${index}].email`}>
                     {(field) => (
                       <field.Input
@@ -76,8 +71,6 @@ export function RecipientListForm({
                   </form.AppField>
                   <RemoveButton
                     onClick={() => emailsField.removeValue(index)}
-                    // The last row is what „nie może być pusta" means at this end of the write —
-                    // the action refuses an empty list, so let nobody build one to submit.
                     disabled={emailsField.state.value.length === 1}
                     aria-label="Usuń odbiorcę"
                   />

@@ -2,13 +2,6 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import type { InspectionFormDataT } from '@/components/forms/inspection-form/inspection-schema'
 
-// „Koszt" may be unknown again — the sheet import carries no prices — but the invariant EX-729
-// bought survives: `0` still means „it cost nothing", and unknown is `null`, never `0`. Collapsing
-// the two is silent, so this drives the REAL DB and asserts the PERSISTED value rather than the
-// action's return: a `success: true` proves it returned, not what it wrote.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -96,8 +89,6 @@ describe.skipIf(!ENV_READY)('createInspectionAction — cost (DB)', () => {
     expect(await storedCount()).toBe(0)
   })
 
-  // Zero is a legitimate price — a warranty repair costs the company nothing — and must survive as
-  // itself, not be laundered into „unknown".
   it('persists a zero cost as zero', async () => {
     const result = await createInspectionAction(inspection({ cost: 0 }))
 

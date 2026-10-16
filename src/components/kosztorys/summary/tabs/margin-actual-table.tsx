@@ -19,8 +19,6 @@ const DESCRIPTION =
   'Robocizna minus rabat minus suma wykonanej pracy, minus ' +
   'materiał wliczony w robociznę, stratę i premie. Koszt podwykonawców liczony z kosztorysu, a nie z wypłat — ile zrobiono, nie ile do tej pory wypłacono.'
 
-// The crew block stands next to the margin, not in it: the margin costs the work the kosztorys
-// credits, wypłaty are cash timing. Without this the two numbers look like a contradiction.
 const PAYOUT_GAP_DESCRIPTION =
   'Poza marżą — ile ekipa dostała względem wykonanej pracy. Marża liczy wykonaną pracę, nie wypłaty.'
 
@@ -28,7 +26,6 @@ const WITHHELD_NOTE =
   'Etapy z wykonaną pracą, ale bez rozliczenia (z narzędziami / bez narzędzi), nie wchodzą do kosztu ekipy. Dopóki ich nie ustawisz, marża wyszłaby zawyżona o nieznaną kwotę.'
 
 type PropsT = {
-  /** Already rebased onto the reading the panel is on — see the tab's own note. */
   financials: InvestmentFinancialsT
   subcontractor: SubcontractorSettlementT
 }
@@ -52,8 +49,6 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
         {totalDiscount !== 0 && (
           <SummaryRow label="Rabat" line={faceValue(-totalDiscount)} axis="net" discount />
         )}
-        {/* Named from the shared labels rather than a fresh string, so this row and the
-            „Podwykonawcy" tab can never call one amount two things. */}
         <SummaryRow
           label={SUBCONTRACTOR_FIGURE_LABELS.due}
           line={faceValue(-subcontractor.due)}
@@ -75,7 +70,6 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
           <SummaryRow label="Premia" line={faceValue(-totalBonus)} axis="net" discount />
         )}
         {margin === null ? (
-          // No amount at all — a zero-cost crew is a false statement, not a missing one.
           <>
             <SummaryLabelCell weight="bold">Marża</SummaryLabelCell>
             <SummaryValueCell weight="bold" note={{ text: WITHHELD_NOTE, tone: 'error' }}>
@@ -86,7 +80,7 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
           <SummaryRow label="Marża" line={faceValue(margin)} axis="net" bold danger={margin < 0} />
         )}
       </SummaryTable>
-      {/* Withheld on the same condition as the margin above: with an etap holding executed work
+      {/* with an etap holding executed work
           and no rozliczenie, `due` is short by an unknown amount, and „Nadpłata" derived from it
           would name an overpayment that does not exist. */}
       {!subcontractor.hasUnconfirmedPlane &&

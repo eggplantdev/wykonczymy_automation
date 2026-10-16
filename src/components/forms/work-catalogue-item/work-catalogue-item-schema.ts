@@ -15,10 +15,7 @@ import {
 import { parseDecimalInput, toMoney } from '@/lib/utils/parse-decimal-input'
 
 // A blank „Cena j.m." must be refused HERE rather than by the domain schema below: `Number('')` is 0,
-// so it would otherwise save a 0 zł pozycja — and a 0 zł cena also silences the ceiling for that
-// row, since a share of nothing has no value to show. Validating the string means the owner gets
-// „jest wymagana" under the field he left empty, instead of the domain layer's „musi być liczbą"
-// (true of a NaN, nonsense about a blank) arriving as a toast after the write was already attempted.
+// so it would otherwise save a 0 zł pozycja.
 const moneyIssue = (label: string, value: string): string | null => {
   const parsed = parseDecimalInput(value)
   if (parsed.kind === 'empty') return `${label} jest wymagana`
@@ -27,9 +24,6 @@ const moneyIssue = (label: string, value: string): string | null => {
   return null
 }
 
-// A mnożnik has its own sentences: „stawka musi być liczbą" under a field asking for a krotność
-// reads as the wrong field entirely. Zero is allowed — a wpis that deliberately pays nothing on a
-// płaszczyźnie is a decision, the same one the rozpiska's cell accepts.
 const coeffIssue = (label: string, value: string): string | null => {
   const parsed = parseDecimalInput(value)
   if (parsed.kind === 'empty') return `Mnożnik (${label}) jest wymagany`
@@ -53,8 +47,6 @@ const RATE_PLANES = [
   },
 ] as const
 
-// Form-input layer: every field is a string, as the HTML controls produce them — except the źródło,
-// which is a choice rather than something typed.
 export const workCatalogueItemBaseSchema = z.object({
   description: z.string().min(1, 'Opis pracy jest wymagany'),
   category: z.string(),
@@ -69,10 +61,9 @@ export const workCatalogueItemBaseSchema = z.object({
   ownToolsSource: z.enum(PRICE_SOURCES),
   ownToolsRate: z.string(),
   ownToolsCoeff: z.string(),
-  // One text per language, blank = untranslated. The catch lets a draft persisted before the field
+  // The catch lets a draft persisted before the field
   // existed still submit, instead of failing on a field nobody can see.
   translations: z.record(z.enum(TRANSLATION_LANGUAGES), z.string()).catch(translationTexts({})),
-  // Same catch, same reason: a draft saved before the field existed.
   workNote: z.string().catch(''),
 })
 
@@ -86,9 +77,6 @@ export type RatePlaneValuesT = Pick<
   | 'ownToolsCoeff'
 >
 
-// The guard on a stawka is conditional on ITS OWN źródło, and a field-level refinement cannot see a
-// sibling field — so it lives on the object. „Auto" is a decision; a blank field under either of the
-// other two źródła is still „zapomniałem" and still says so, under the field that is actually empty.
 export function refineRatePlanes(value: RatePlaneValuesT, ctx: z.RefinementCtx) {
   for (const plane of RATE_PLANES) {
     const source = value[plane.source]
@@ -108,7 +96,6 @@ const text = (value: number | null): string => value?.toString() ?? ''
 
 export type PlaneT = 'wTools' | 'ownTools'
 
-// Only the picked źródło's field is read: whatever the unpicked one left behind is stale.
 const rateColumns = (plane: PlaneT, value: RatePlaneValuesT): CatalogueRateT => {
   const source = value[`${plane}Source`]
   return {
@@ -117,7 +104,6 @@ const rateColumns = (plane: PlaneT, value: RatePlaneValuesT): CatalogueRateT => 
   }
 }
 
-// „Co formularz pokazuje" → „co katalog trzyma"; `rateFormValues` is the way back.
 export const catalogueFigures = (value: RatePlaneValuesT & { clientPrice: string }) => {
   const wTools = rateColumns('wTools', value)
   const ownTools = rateColumns('ownTools', value)
@@ -130,10 +116,6 @@ export const catalogueFigures = (value: RatePlaneValuesT & { clientPrice: string
   }
 }
 
-/**
- * „Co katalog trzyma" → „co formularz pokazuje", in one place so the trzy dialogi opening this form
- * cannot each decode the pair of kolumn their own way.
- */
 export const rateFormValues = (item: CatalogueRateColumnsT) => ({
   wToolsSource: catalogueSourceOf({ rate: item.wToolsRate, coeff: item.wToolsRateCoeff }),
   wToolsRate: text(item.wToolsRate),
@@ -168,11 +150,6 @@ const coeff = (label: string) =>
     .number({ message: `Mnożnik (${label}) musi być liczbą` })
     .min(0, `Mnożnik (${label}) nie może być ujemny`)
 
-// Domain layer the action validates — the backstop for a payload that never passed through the form.
-// The źródło selectors are absent: they are a form affordance, and what the katalog stores is their
-// result — the pair of kolumn, at most one of them set. `matchKey` is absent on purpose too: it is
-// derived server-side from opis + j.m., and Zod strips unknown keys, so a client that sends one is
-// simply ignored.
 export const workCatalogueItemSchema = workCatalogueItemBaseSchema
   .omit({
     wToolsSource: true,
@@ -184,23 +161,16 @@ export const workCatalogueItemSchema = workCatalogueItemBaseSchema
   .extend({
     category: z.string().default(''),
     // Never the whole map: a dialog opened on a cached row would write its stale copy back over
-    // translations saved since. Only the texts the form changed travel, and the action applies them
-    // to the stored row — or, for a new entry, to the seed it was opened with (the praca's map).
+    // translations saved since.
     translationEdits: translationTextsSchema.optional(),
     translationSeed: descriptionTranslationsSchema.optional(),
-    // Optional: absent leaves the stored comment alone, which is what every caller that never
-    // rendered the field means.
     workNote: z.string().optional(),
     clientPrice: money('Cena j.m.'),
-    // A blank field is NOT „auto" — the form layer above still refuses it.
     wToolsRate: money(RATE_LABELS.w_tools).nullable(),
     wToolsRateCoeff: coeff(RATE_LABELS.w_tools).nullable(),
     ownToolsRate: money(RATE_LABELS.own_tools).nullable(),
     ownToolsRateCoeff: coeff(RATE_LABELS.own_tools).nullable(),
   })
-  // Both kolumny set is the state the rozpiska's own zapis refuses, for the same reason: the pair
-  // would name two źródła at once, and every reader resolves that by precedence rather than by
-  // asking. A payload that skipped the form is where it could still arrive.
   .superRefine((value, ctx) => {
     for (const plane of RATE_PLANES) {
       const coeffField = `${plane.rate}Coeff` as 'wToolsRateCoeff' | 'ownToolsRateCoeff'

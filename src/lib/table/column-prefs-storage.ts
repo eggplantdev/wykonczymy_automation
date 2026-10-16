@@ -2,12 +2,10 @@ import { type VisibilityState } from '@tanstack/react-table'
 import { dropNonFiniteRanks, type ColumnRanksT } from '@/lib/table/column-order'
 
 const VISIBILITY_PREFIX = 'table-columns:'
-// Its own prefix, so fixing an order can't clobber what is hidden and vice versa.
 const ORDER_PREFIX = 'table-column-order:'
 const TEXT_SIZE_PREFIX = 'table-text-size:'
 
-// The shape check is not paranoia about our own writes: localStorage is client-writable, and a
-// stored `null` parses fine, then reaches consumers that index it (`columnVisibility[id] !== false`)
+// A stored `null` parses fine, then reaches consumers that index it (`columnVisibility[id] !== false`)
 // and white-screens the table.
 export function readVisibility(key: string): VisibilityState {
   const parsed = readStored(VISIBILITY_PREFIX + key)
@@ -27,8 +25,6 @@ function readStored(key: string): unknown {
   }
 }
 
-// A column preference that fails to persist is not worth an error: localStorage throws outright in
-// private mode and at quota, and the table renders perfectly well off the defaults.
 function persist(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value))
@@ -51,7 +47,6 @@ export function writeOrder(key: string, ranks: ColumnRanksT) {
   persist(ORDER_PREFIX + key, ranks)
 }
 
-// Unvalidated: the caller knows which sizes exist and drops anything else.
 export function readTextSize(key: string): unknown {
   return readStored(TEXT_SIZE_PREFIX + key)
 }

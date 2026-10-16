@@ -9,14 +9,9 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// A snapshot kept for a year is only as good as the oldest payload the current code can reinsert.
 // The columns added since a payload was captured are simply absent from its JSON, and an absent key
 // binds nothing at all — the INSERT loses a placeholder and dies on a syntax error, as it dies on
-// 23502 where a NOT NULL column would have been handed an explicit NULL. Either way the whole restore
-// fails and the user is told „nic nie zostało zapisane". These cases fabricate that
-// payload (the real ones with the gap don't exist yet, which is the point of guarding it now) and
-// assert the PERSISTED rows, never the return value — a successful-looking result can sit on top of
-// a write that never happened.
+// 23502 where a NOT NULL column would have been handed an explicit NULL.
 describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -34,8 +29,6 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
     if (investmentId) await deleteTestInvestment(payload, investmentId)
   })
 
-  // The shape a payload written before these columns existed actually has: the keys are MISSING, not
-  // null. Still cast, because the loose Record args carry no `id`/`sectionId` for tsc to check.
   function payloadWithout(
     sections: Record<string, unknown>[],
     items: Record<string, unknown>[],
@@ -80,9 +73,8 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
   })
 
   it('gives a missing display_order a distinct, input-ordered value rather than a constant', async () => {
-    // display_order is the natural key remapNewIds joins RETURNING on. Defaulting it to a constant 0
-    // would tie the key batch-wide, silently drop the remap to positional, and restore the tree
-    // flattened onto one position — which is why this case exists separately from the one above.
+    // Defaulting it to a constant 0 would tie the key batch-wide, silently drop the remap to
+    // positional, and restore the tree flattened onto one position.
     const otherInvestmentId = await createTestInvestment(payload, 'insert-tree-order-test')
     try {
       await insertKosztorysTree(
@@ -124,9 +116,6 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
     }
   })
 
-  // A szablon or snapshot outlives katalog entries. Restoring one must not link a pozycja to an id
-  // that no longer exists — with no FK nothing else would stop it, and a later katalog entry can
-  // never reuse the id, so the link would simply point at nothing forever.
   it('keeps a live katalog id and drops a deleted one', async () => {
     const ctx = { overrideAccess: true, context: { skipRevalidation: true } }
     const createEntry = async (description: string) => {

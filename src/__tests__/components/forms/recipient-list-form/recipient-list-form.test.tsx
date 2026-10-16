@@ -6,9 +6,6 @@ import { RecipientListForm } from '@/components/forms/recipient-list-form/recipi
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
-// The rule is enforced twice: the action refuses an empty array (tested), the form refuses to
-// build one by disabling the last remove button. This covers that second half — nothing here for
-// an E2E spec to submit.
 function renderForm(emails: string[]) {
   const action = vi.fn(async (_emails: string[]) => ({ success: true as const }))
   render(

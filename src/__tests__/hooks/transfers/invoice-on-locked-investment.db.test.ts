@@ -7,12 +7,6 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
-// The hook-level spec (`validate-lock.test.ts`) feeds `validateTransfer` a hand-built `{ invoice: … }`
-// patch and sees the exception let it through. Production does not: `payload.update` hands the hook a
-// different `data`, so the one write EX-748 deliberately leaves open — attaching or detaching a scan
-// of the faktura — was refused on a zakończona inwestycja. Only a real update through Payload can see
-// that, which is why this spec exists next to the isolated one rather than in place of it.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -119,8 +113,6 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
     expect(await attachedMediaIds()).toEqual([mediaId])
   })
 
-  // The removal is the other half of the same exception, and it is the one a key-based test waves
-  // through by accident: an empty array patches nothing away from the stored row's other fields.
   it('detaches it again', async () => {
     await payload.update({
       collection: 'transactions',
@@ -132,7 +124,6 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
     expect(await attachedMediaIds()).toEqual([])
   })
 
-  // Positive control: the lock still bites everything that is not the faktura.
   it('still refuses a non-invoice update', async () => {
     await expect(
       payload.update({

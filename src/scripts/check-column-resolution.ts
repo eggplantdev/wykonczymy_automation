@@ -1,4 +1,3 @@
-// Ad-hoc: run the reader + column resolver against real sheets and print what they found.
 //   SHEETS="<id>,<id>" node --env-file=.env --import tsx src/scripts/check-column-resolution.ts
 import { google } from 'googleapis'
 import { readImportGrids } from '@/lib/kosztorys/sheet-import/read-sheet'

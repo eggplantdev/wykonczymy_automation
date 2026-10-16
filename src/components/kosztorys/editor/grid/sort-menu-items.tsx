@@ -13,17 +13,10 @@ import type { SortDirT, SortPickT, SortScopeT } from '@/lib/kosztorys/row-view'
 export type SortMenuPropsT = {
   active: SortPickT | null
   onSort: (pick: SortPickT | null) => void
-  // „Zapisz kolejność" — writes the sort showing right now into the stored order, so it survives
-  // clearing the sort.
   onPersistOrder?: () => void
 }
 
-// The sort block of a header menu, shared so a stage header and an ordinary column header answer the
-// same gestures with the same wording — the stage menu carries its own rename/plane/roster sections
-// around it, which is why this is a set of items rather than a whole menu.
 export function SortMenuItems({ active, onSort, onPersistOrder }: SortMenuPropsT) {
-  // Four commands rather than a direction pair plus a scope toggle: direction and scope are picked
-  // in one gesture, and no scope can be in force unnoticed.
   function item(dir: SortDirT, scope: SortScopeT, text: string) {
     const DirIcon = dir === 'asc' ? ArrowUp : ArrowDown
     const on = active?.dir === dir && active.scope === scope

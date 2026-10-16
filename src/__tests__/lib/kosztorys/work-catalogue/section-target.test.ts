@@ -5,7 +5,6 @@ import {
   sectionNameOptions,
 } from '@/lib/kosztorys/work-catalogue/section-target'
 
-// A sekcja bez pozycji is a target too, and pointing the picker at it must not mint a same-named twin.
 const section = (sectionId: number, sectionName: string): SectionMetaT => ({
   sectionId,
   sectionName,

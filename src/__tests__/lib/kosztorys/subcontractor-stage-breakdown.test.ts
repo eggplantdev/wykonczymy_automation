@@ -16,7 +16,6 @@ const WORKERS = [
   { workerId: null, name: 'Bez przypisanego pracownika' },
 ]
 
-// One pozycja at stawka 10 z narzędziami: etap 100 holds 4 (40 zł), 101 holds 2 (20 zł), 102 nothing.
 const stages: KosztorysStageT[] = [
   makeStage({
     id: 100,

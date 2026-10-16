@@ -2,10 +2,6 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// The share token is the only credential guarding an unauthenticated page, so its lifecycle runs
-// against the REAL DB and asserts PERSISTED state (does a row with this token exist?) — a returned
-// token proves nothing if the write didn't land, and a rotation that leaves the old row alive would
-// keep a second door open.
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 

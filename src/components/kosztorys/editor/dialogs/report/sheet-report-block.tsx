@@ -2,8 +2,6 @@ import { CircleCheck, TriangleAlert } from 'lucide-react'
 
 export type ReportStatusT = 'ok' | 'warn'
 
-// One labelled section of a sheet report. Shared by the import preview and the live comparison so
-// the two dialogs read as one report rather than two visual dialects of the same thing.
 export function SheetReportBlock({
   title,
   status,
@@ -11,8 +9,6 @@ export function SheetReportBlock({
   children,
 }: {
   title: string
-  // Omitted by the import preview, which describes a sheet nobody has judged yet. The comparison
-  // always sets it — a block with no verdict is a block the reader has to score themselves.
   status?: ReportStatusT
   verdict?: string
   children?: React.ReactNode

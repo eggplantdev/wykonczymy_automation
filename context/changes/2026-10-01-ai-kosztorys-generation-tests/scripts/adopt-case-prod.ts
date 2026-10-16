@@ -1,7 +1,7 @@
 // Step 1 of a case whose investment the owner already created on PRODUCTION, with the client's mail in
 // its notes and the files in „Pliki". The counterpart of `new-case-prod.ts`: it downloads the files
 // (outside the repo — they are a real client's documents) and scaffolds `cases/<CASE>/` the same way, so the rest of the method runs unchanged.
-//   TOKEN_FILE=… INVESTMENT=207 CASE=07-<slug> [FILES_DIR=…] [PRESET_ID=166] [DRY=1] \
+//   TOKEN_FILE=… INVESTMENT=207 CASE=07-<slug> [FILES_DIR=…] PRESET_ID=<szablon id> [DRY=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/adopt-case-prod.ts
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -11,7 +11,9 @@ import { api, BASE, forAiAnalysis, itemsOf, itemsOfTemplate, type AssetT } from 
 type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
 
 const INVESTMENT = Number(process.env.INVESTMENT)
-const PRESET_ID = Number(process.env.PRESET_ID ?? 166)
+// A szablon is a `templates` row: its id is not the id of the investment it was before EX-1075.
+const PRESET_ID = Number(process.env.PRESET_ID)
+if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
 const DRY = process.env.DRY === '1'
 const CASE = process.env.CASE ?? ''
 const CASE_DIR = path.join(import.meta.dirname, '../cases', CASE)

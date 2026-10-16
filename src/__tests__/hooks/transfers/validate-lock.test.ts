@@ -2,14 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
-// Every write that moves money passes this ONE hook — the panel, the REST API and every server action;
-// the worker's raw-SQL payout decision touches only the status columns — so unlike the kosztorys it
-// is the complete gate. The cases below are the four
-// shapes a write can take (create / edit / anulowanie / przenosiny, both directions) plus the single
-// deliberate hole: the scan of the faktura.
-//
-// The adapter double answers by investment id: LOCKED_ID is „zakończona", everything else is
-// „aktywna" — the hook's whole question is which of the touched investments carries which status.
 const LOCKED_ID = 99
 
 function hookArgs(
@@ -27,8 +19,6 @@ function hookArgs(
         db: {
           drizzle: {
             execute: async (query: { queryChunks?: unknown[] }) => {
-              // The id rides the statement as a bound parameter — a bare number among the SQL-text
-              // chunks — so the double reads it back rather than re-parsing SQL.
               const id = (query.queryChunks ?? []).find((chunk) => typeof chunk === 'number')
               return { rows: [{ status: id === LOCKED_ID ? 'completed' : 'active' }] }
             },
@@ -61,8 +51,6 @@ describe('validateTransfer — the completed-investment lock', () => {
     await expect(validateTransfer(hookArgs({ ...expense, investment: 7 }))).resolves.not.toThrow()
   })
 
-  // A PATCH of one field carries no relationship, so the gate has to read the investment off the
-  // stored row — the case a `data.investment` check would wave straight through.
   it('refuses a partial edit that names no investment', async () => {
     await expect(
       validateTransfer(
@@ -74,8 +62,6 @@ describe('validateTransfer — the completed-investment lock', () => {
     ).rejects.toThrow(INVESTMENT_LOCKED_MESSAGE)
   })
 
-  // Anulowanie is a write like any other, and it reaches the hook as `cancelled: true` — below the
-  // gate's position, so this is what proves the gate sits above BOTH early returns.
   it('refuses cancelling a transaction on a locked investment', async () => {
     await expect(
       validateTransfer(
@@ -122,11 +108,8 @@ describe('validateTransfer — the completed-investment lock', () => {
     ).rejects.toThrow(INVESTMENT_LOCKED_MESSAGE)
   })
 
-  // The one exception to the total lock: a faktura still has to be attachable to a settled
-  // investment's transaction, because the scan arrives after the money stopped moving.
   // Every case below sends the WHOLE stored row with the patch merged over it, because that is what
-  // Payload hands `beforeValidate` — a hand-built `{ invoice: … }` passes on any build, including the
-  // one that refused every faktura in production.
+  // Payload hands `beforeValidate` — a hand-built `{ invoice: … }` passes on any build.
   const locked = { ...expense, investment: LOCKED_ID, invoice: [3] }
 
   it('lets an invoice-only write through', async () => {
@@ -137,7 +120,6 @@ describe('validateTransfer — the completed-investment lock', () => {
     ).resolves.not.toThrow()
   })
 
-  // Keyed on the VALUES that differ from the stored row — clearing every page is still invoice-only.
   it('lets an invoice removal through', async () => {
     await expect(
       validateTransfer(
@@ -157,7 +139,6 @@ describe('validateTransfer — the completed-investment lock', () => {
     ).rejects.toThrow(INVESTMENT_LOCKED_MESSAGE)
   })
 
-  // A row with no investment at all (OTHER, przelew międzykasowy) never consults the lock.
   it('lets an investment-less transfer through', async () => {
     await expect(
       validateTransfer(

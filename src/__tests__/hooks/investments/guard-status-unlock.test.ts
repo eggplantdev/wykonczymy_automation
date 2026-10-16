@@ -5,9 +5,6 @@ import {
 } from '@/hooks/investments/guard-status-unlock'
 import type { RoleT } from '@/lib/auth/roles'
 
-// The exit from `completed` is the single door the whole lock hangs on, so the matrix is role ×
-// direction. Everything else about the investment record stays open on purpose — the goal is cutting
-// off cash movement, not freezing the kartoteka.
 function hookArgs(data: Record<string, unknown>, role: RoleT, previousStatus = 'completed') {
   return {
     data,
@@ -42,13 +39,10 @@ describe('guardInvestmentStatusUnlock', () => {
     )
   })
 
-  // Closing a settled job is a manager's work — only the way out is narrowed.
   it('lets a MANAGER close an active investment', () => {
     expect(() => call(hookArgs({ status: 'completed' }, 'MANAGER', 'active'))).not.toThrow()
   })
 
-  // The eight kartoteka fields stay editable by everyone: a patch that never names the status is not
-  // an unlock, whatever the investment's status is.
   it('lets a MANAGER edit the kartoteka of a completed investment', () => {
     expect(() =>
       call(hookArgs({ notes: 'nowa notatka', phone: '600100200' }, 'MANAGER')),

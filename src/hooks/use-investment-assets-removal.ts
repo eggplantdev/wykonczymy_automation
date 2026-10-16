@@ -14,7 +14,6 @@ const ASSET_REMOVAL_LABELS: MediaRemovalLabelsT = {
 
 // No `removeAll` until the file trash lands (EX-862, kosz-plikow Faza 1): one click wiping a whole
 // gallery out of Blob, which has no undelete, is too much while nothing can bring it back.
-// `removeAllInvestmentAssetsAction` stays so the affordance returns as one line.
 export function useInvestmentAssetsRemoval(investmentId: number, assets: MediaFileT[]) {
   return useMediaRemoval({
     files: assets,

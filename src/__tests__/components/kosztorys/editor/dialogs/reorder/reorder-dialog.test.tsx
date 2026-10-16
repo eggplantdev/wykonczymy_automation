@@ -14,7 +14,18 @@ const editor = vi.hoisted(() => ({
   onTreeReplaced: vi.fn(),
 }))
 
-vi.mock('@/lib/actions/kosztorys', () => ({ writeKosztorysLayoutAction: vi.fn() }))
+vi.mock('@/lib/actions/kosztorys', () => ({
+  addItemAction: vi.fn(),
+  addSectionAction: vi.fn(),
+  clearKosztorysAction: vi.fn(),
+  insertSectionAction: vi.fn(),
+  removeItemAction: vi.fn(),
+  removeSectionAction: vi.fn(),
+  renumberKosztorysOrderAction: vi.fn(),
+  updateItemFieldAction: vi.fn(),
+  updateSectionFieldAction: vi.fn(),
+  writeKosztorysLayoutAction: vi.fn(),
+}))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({

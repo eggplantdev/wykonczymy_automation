@@ -4,10 +4,6 @@ import { toActionFailure } from '@/lib/actions/action-failure'
 import { uk } from '@/lib/i18n/dictionaries/uk'
 import { failureMessage } from '@/lib/i18n/failure-message'
 
-// The regression this guards: a kosztorys autosave against a row that no longer exists (the tree was
-// replaced elsewhere — a sheet import or a version restore, both wipe-and-reinsert) surfaced as
-// Payload's bare „Nie znaleziono" toast, once per keystroke, with the grid still holding dead ids and
-// no way for the editor to tell that failure apart from a rejected value.
 describe('toActionFailure', () => {
   it('tags a Payload NotFound so the caller can reseed instead of reverting one field', () => {
     const failure = toActionFailure(new NotFound())
@@ -16,8 +12,7 @@ describe('toActionFailure', () => {
     expect(failure.error).not.toBe('Nie znaleziono')
   })
 
-  // A Drizzle-wrapped Postgres failure's message is the whole statement plus its bind params — once
-  // 60 KB of JSON in a toast after a user row was recreated under a new id (FK on `taken_by`).
+  // A Drizzle-wrapped Postgres failure's message is the whole statement plus its bind params.
   it('hides a failed query behind a generic message', () => {
     const driverError = Object.assign(
       new Error('insert or update violates foreign key constraint'),

@@ -10,7 +10,7 @@ import { AiTranslateCheckbox } from '@/components/forms/form-components/ai-trans
 import { useAiTranslate } from '@/components/forms/hooks/use-ai-translate'
 import { RateField } from '@/components/forms/work-catalogue-item/rate-fields'
 import { catalogueFigures } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-import type { AddItemInputT } from '@/lib/actions/kosztorys'
+import type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
@@ -30,8 +30,6 @@ const SOURCE_OPTION_LABELS: Record<PriceSourceT, string> = {
   auto: 'auto — ze współczynnika tej inwestycji',
 }
 
-// A pozycja has neither of its own — the kosztorys shows the katalog's — so without the katalog write
-// they would be typed for nothing.
 const CATALOGUE_ONLY_NOTE =
   'Zapisuje się w katalogu prac — zaznacz niżej „Dodaj pracę do katalogu prac”.'
 
@@ -50,15 +48,12 @@ export function NewItemForm({
   sectionName: string
   initialValues?: Partial<NewItemFormValuesT>
   workCatalogue: readonly WorkCatalogueItemT[]
-  // A szablon praca lives in the katalog (EX-1017), so there it is never „only here".
   isTemplate: boolean
   kosztorysUnits: readonly string[]
   keepOpen: boolean
   action: (payload: NewItemPayloadT) => Promise<ActionResultT>
   onSubmitSuccess: () => void
 }) {
-  // What the collision question decided, read by `toData` on the same submit. Set on every submit
-  // before it is read, so a previous praca's answer never leaks into the next one.
   const catalogueWrite = useRef<NewItemPayloadT['catalogue']>(null)
   const [translate, setTranslate] = useAiTranslate()
   const [collision, setCollision] = useState<{
@@ -76,7 +71,6 @@ export function NewItemForm({
     successMessage: 'Dodano pracę',
     onSubmitSuccess,
     action,
-    // The dialog has to see the created praca before it closes, to place it in the grid.
     persistDraft: false,
     beforeSubmit: async (value) => {
       catalogueWrite.current = null
@@ -106,8 +100,6 @@ export function NewItemForm({
       }
       return true
     },
-    // A greyed-out kategoria still sits in the values (lessons.md: a hidden field still ships), so
-    // the checkbox decides whether it travels.
     toData: (value) => ({
       data: {
         description: value.description,
@@ -115,7 +107,6 @@ export function NewItemForm({
         unit: value.unit,
         ...catalogueFigures(value),
       },
-      // Only a katalog write carries the comment — „Tylko do kosztorysu" leaves `current` null.
       catalogue: catalogueWrite.current && {
         ...catalogueWrite.current,
         workNote: value.workNote,

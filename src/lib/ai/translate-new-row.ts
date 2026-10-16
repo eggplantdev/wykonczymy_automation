@@ -8,8 +8,7 @@ import {
 import { logError } from '@/lib/utils/log-error'
 import { translateTexts } from './translate'
 
-// Katalog first, then one AI call for what is still missing. Never rejects: a failed batch comes back
-// as `failed` pairs, not as a throw.
+// Never rejects: a failed batch comes back as `failed` pairs, not as a throw.
 export async function translateRows(
   rows: readonly FillRowT[],
   catalogueByKey: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
@@ -20,9 +19,6 @@ export async function translateRows(
   return { writes: [...plan.fromCatalogue, ...writes], failed }
 }
 
-// Runs before the insert transaction opens. A failure leaves those languages empty rather than
-// failing the save — the row then shows up under Problemy like any other untranslated one. The catch
-// keeps that promise without leaning on `translateTexts` swallowing every failure itself.
 export async function translateNewRow(
   row: Omit<FillRowT, 'id'>,
   catalogueByKey?: ReadonlyMap<string, DescriptionTranslationsT>,

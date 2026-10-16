@@ -9,7 +9,6 @@ describe('landingSubmissionSchema', () => {
     expect(landingSubmissionSchema.safeParse(LANDING_SUBMISSION).success).toBe(true)
   })
 
-  // The envelope is the half of the contract the landing may NOT change unilaterally.
   it('rejects a submission without a uuid submissionId', () => {
     expect(
       landingSubmissionSchema.safeParse({ ...LANDING_SUBMISSION, submissionId: 'not-a-uuid' })
@@ -17,7 +16,6 @@ describe('landingSubmissionSchema', () => {
     ).toBe(false)
   })
 
-  // The other half is deliberately open: the landing adds a question without a deploy here.
   it('tolerates an unknown extra field', () => {
     const parsed = landingSubmissionSchema.safeParse({ ...LANDING_SUBMISSION, budget: '50 000 zł' })
     expect(parsed.success).toBe(true)
@@ -52,8 +50,6 @@ describe('landingToStoreLeadInput', () => {
     expect(input.area).toBe('30–60 m²')
   })
 
-  // Without this fallback the answers modal renders an empty „Treść formularza" for every landing
-  // lead, because the landing sends typed fields rather than Meta's rawData shape.
   it('synthesises rawData and labels from the typed answers when none were sent', () => {
     const input = landingToStoreLeadInput(LANDING_SUBMISSION)
 

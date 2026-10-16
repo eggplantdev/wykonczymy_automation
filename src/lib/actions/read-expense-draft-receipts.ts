@@ -39,9 +39,7 @@ async function readPhoto(
 }
 
 /**
- * Runs in `after()` and from the manager's „Zobacz": a failed read is only a missing prefill, so it
- * never throws. Returns the read the draft holds, which is an overlapping read's when that one
- * was stored first. `blobStoreId` lets a script read production's pages from a machine whose token
+ * `blobStoreId` lets a script read production's pages from a machine whose token
  * names the preview store.
  */
 export async function readExpenseDraftReceipts(
@@ -52,13 +50,12 @@ export async function readExpenseDraftReceipts(
   try {
     const draft = await loadExpenseDraftForRead(db, draftId)
     if (!draft || draft.pages.length === 0) return
-    // A sent draft's pages never change, so a stored read still answers them.
     if (draft.aiRead) return draft.aiRead
     const storeId = blobStoreId ?? blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)
     if (!storeId) throw new Error('BLOB_READ_WRITE_TOKEN names no Blob store')
 
     // Paragon by paragon whatever `scan_mode` says: one total asked over many documents came back
-    // wrong where a per-paragon read summed by the manager is exact (EX-1048).
+    // wrong.
     const rows = (
       await mapWithConcurrency(draft.pages, PAGE_READ_CONCURRENCY, async (page) => {
         try {
@@ -70,8 +67,6 @@ export async function readExpenseDraftReceipts(
       })
     ).flat()
 
-    // Saved even when no photo was read: a row per photo is what makes each one a paragon to
-    // decide, and „Odczytaj ponownie" on the row asks the model again.
     return await saveExpenseDraftRead(db, draftId, { rows })
   } catch (error) {
     logError('readExpenseDraftReceipts', error, { draftId })

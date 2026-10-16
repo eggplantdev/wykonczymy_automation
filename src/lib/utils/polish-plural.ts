@@ -7,8 +7,6 @@ function pluralForm(count: number): 0 | 1 | 2 {
   return 2
 }
 
-// „3 wpłat" / „5 sekcje" read as broken UI rather than as the message they carry, so every counted
-// Polish noun in the UI goes through here with its three forms.
 export function pluralize(count: number, forms: readonly [string, string, string]): string {
   return forms[pluralForm(count)]
 }

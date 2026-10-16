@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 
 /**
- * Writes filter state into the URL, so a filtered view is a link somebody can send.
- *
  * Every write resets `page` — page 7 of an unfiltered list is rarely page 7 of the filtered one, and
  * landing on an empty page reads as "the filter found nothing".
  */

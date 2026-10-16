@@ -9,13 +9,10 @@ import { openrouter, timeoutSignal, withModelFallback } from './openrouter-clien
 export const TRANSLATION_MODEL = 'google/gemini-3.1-flash-lite'
 export const TRANSLATION_TIMEOUT_MS = 30_000
 
-// Sized so a 1000-row kosztorys stays inside the 300 s function ceiling: distinct opisy only, ~25
-// calls at most, four in flight.
+// Sized so a 1000-row kosztorys stays inside the 300 s function ceiling.
 export const TRANSLATION_BATCH_SIZE = 40
 const TRANSLATION_CONCURRENCY = 4
 
-// What the prompt calls each language; `Record` makes a new TRANSLATION_LANGUAGES entry a type error
-// here until it is named.
 const LANGUAGE_NAMES: Record<TranslationLanguageT, string> = {
   uk: 'Ukrainian',
   ru: 'Russian',
@@ -46,7 +43,6 @@ const KEEP_VERBATIM =
 const asInput = (texts: readonly string[]) =>
   JSON.stringify(texts.map((text, id) => ({ id, text })))
 
-// `model` skips the primary → fallback chain.
 async function generate<SchemaT extends z.ZodType>(
   label: string,
   model: string | undefined,
@@ -65,8 +61,6 @@ async function generate<SchemaT extends z.ZodType>(
   return model ? call(model) : withModelFallback(`translate ${label}`, TRANSLATION_MODEL, call)
 }
 
-// A failed batch is logged and leaves its texts out of the result — callers read a missing text as
-// „not translated", which is the same answer a blank model reply gets.
 async function inBatches<T>(
   label: string,
   texts: readonly string[],
@@ -88,8 +82,7 @@ async function inBatches<T>(
 }
 
 /**
- * Polish opisy / section names → every translation language, keyed by the trimmed Polish text. A
- * text the model skipped, answered blank, or that a failed batch carried is simply absent.
+ * A text the model skipped, answered blank, or that a failed batch carried is simply absent.
  */
 export async function translateTexts(
   texts: readonly string[],
@@ -122,10 +115,6 @@ export async function translateTexts(
   })
 }
 
-/**
- * A worker's own words → Polish, with the language they were written in. `model` skips the
- * primary → fallback chain: a manager retrying asks the stronger model straight away.
- */
 export async function translateToPolish(
   texts: readonly string[],
   opts: { model?: string } = {},

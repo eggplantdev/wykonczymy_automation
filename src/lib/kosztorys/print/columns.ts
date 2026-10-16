@@ -7,9 +7,6 @@ import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 
-// One printed column, for any audience. A computed figure comes from the document's one
-// `computedColumnValues`, built for its plane (`offer-columns.ts` / `worker-columns.ts`), so paper and
-// grid cannot disagree on a number and no column can price at another plane than its neighbours.
 export type PrintColumnT = {
   key: string
   label: string

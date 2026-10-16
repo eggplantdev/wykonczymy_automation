@@ -13,22 +13,9 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
-import { withCatalogueFields, type ItemFieldsT } from '@/lib/kosztorys/item-from-fields'
 import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type { DbExecutorT } from './get-db'
 import { numOrNull, textOrNull } from './row-coerce'
-
-// Everything behind the editor tree in ONE round trip.
-//
-// The one round trip is NOT what makes this fast, and nothing new should be collapsed into a single
-// query on that reasoning — EX-597 measured the parallel-reads version it replaced and the round-trip
-// count was never the cost. Neon's latency is bimodal (~20–60 ms warm, ~160–200 ms cold), which is
-// what makes a small sample look structural. Record:
-// `context/archive/2026-07-27-decouple-panel-write-refresh/change.md` § Superseded beliefs.
-//
-// Each collection is aggregated server-side into a jsonb array, ordered inside the aggregate. Values
-// arrive already typed by JSON (numeric renders as a JSON number), but `num` stays on every figure
-// because a null column must read as 0, not NaN.
 
 const num = (v: unknown): number => Number(v ?? 0)
 
@@ -76,20 +63,8 @@ export async function selectKosztorysTreeData(
                  ki.w_tools_override_coeff, ki.own_tools_override_coeff,
                  ki.note, ki.ref, ki.catalogue_item_id, ki.ai_planned_qty, ki.ai_missing_data, ki.ai_assumptions,
                  ki.ai_new_information, ki.ai_recheck, ki.change_reason,
-                 ki.review_status,
-                 w.id AS catalogue_entry_id, w.description AS catalogue_description,
-                 w.description_translations AS catalogue_description_translations,
-                 w.unit AS catalogue_unit, w.client_price AS catalogue_client_price,
-                 w.w_tools_rate AS catalogue_w_tools_rate,
-                 w.w_tools_rate_coeff AS catalogue_w_tools_rate_coeff,
-                 w.own_tools_rate AS catalogue_own_tools_rate,
-                 w.own_tools_rate_coeff AS catalogue_own_tools_rate_coeff
+                 ki.review_status
           FROM kosztorys_items ki
-          JOIN investments host ON host.id = ki.investment_id
-          -- Only a szablon reads its prace from the katalog (EX-1017); a kosztorys keeps its own copy
-          -- even where it remembers the entry.
-          LEFT JOIN work_catalogue_items w
-            ON w.id = ki.catalogue_item_id AND host.status = 'szablon'
           WHERE ki.investment_id = ${investmentId}
         ) i
       ) AS items,
@@ -100,8 +75,6 @@ export async function selectKosztorysTreeData(
           FROM kosztorys_stages WHERE investment_id = ${investmentId}
         ) st
       ) AS stages,
-      -- Flat beside the etapy rather than nested in them, so each subselect stays one plain SELECT
-      -- the SQL-drift spec can read.
       (
         SELECT coalesce(json_agg(m ORDER BY m.stage_id, m.id), '[]'::json)
         FROM (
@@ -111,7 +84,6 @@ export async function selectKosztorysTreeData(
           WHERE ks.investment_id = ${investmentId}
         ) m
       ) AS stage_members,
-      -- stage_progress carries no investment column, so it reaches the investment through its item.
       (
         SELECT coalesce(json_agg(p ORDER BY p.item_id, p.stage_id), '[]'::json)
         FROM (
@@ -149,8 +121,7 @@ export async function selectKosztorysTreeData(
       materialsNetRate: numOrNull(row.materials_net_rate),
       globalDiscountType: textOrNull(row.global_discount_type),
       globalDiscountValue: num(row.global_discount_value),
-      // Payload handed callers an ISO string; the driver hands back a Date. The revision token is
-      // compared by value in the editor shell, so the format has to stay stable.
+      // The revision token is compared by value in the editor shell, so the format has to stay stable.
       updatedAt: new Date(row.updated_at as string).toISOString(),
     },
   }
@@ -160,29 +131,10 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   id: Number(row.id),
   name: String(row.name ?? ''),
   displayOrder: num(row.display_order),
-  // Validated on read, not trusted: a key retired from the palette reads as unpinned rather than
-  // painting with a CSS var that no longer exists.
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
-const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } =>
-  withCatalogueFields(mapOwnItem(row), mapCatalogueFields(row))
-
-const mapCatalogueFields = (row: RowT): ItemFieldsT | null =>
-  row.catalogue_entry_id == null
-    ? null
-    : {
-        description: String(row.catalogue_description),
-        descriptionTranslations: toDescriptionTranslations(row.catalogue_description_translations),
-        unit: String(row.catalogue_unit),
-        clientPrice: num(row.catalogue_client_price),
-        wToolsRate: numOrNull(row.catalogue_w_tools_rate),
-        wToolsRateCoeff: numOrNull(row.catalogue_w_tools_rate_coeff),
-        ownToolsRate: numOrNull(row.catalogue_own_tools_rate),
-        ownToolsRateCoeff: numOrNull(row.catalogue_own_tools_rate_coeff),
-      }
-
-const mapOwnItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
+const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   ref: Number(row.ref),
   sectionId: Number(row.section_id),
@@ -203,8 +155,8 @@ const mapOwnItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   // złotych instead of at the investment's współczynnik (EX-766).
   wToolsOverrideValue: numOrNull(row.w_tools_override_value),
   ownToolsOverrideValue: numOrNull(row.own_tools_override_value),
-  // Same reading of NULL one level over: absent means „no mnożnik here", while `0` is a mnożnik
-  // someone chose — a stawka of zero złotych (EX-865).
+  // Absent means „no mnożnik here", while `0` is a mnożnik someone chose — a stawka of zero złotych
+  // (EX-865).
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: textOrNull(row.note),
@@ -227,8 +179,6 @@ const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({
   completed: row.completed === true,
 })
 
-// Shared by every raw read of an etap's members, so the tree, the pairs path and the worker view
-// agree on what a stored split means.
 export function mapStageSplit(mode: unknown, members: RowT[]): StageSplitT | null {
   return normalizeStageSplit({
     mode: mode === 'amount' ? 'amount' : 'percent',

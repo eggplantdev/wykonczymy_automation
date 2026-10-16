@@ -19,10 +19,6 @@ export const createInternalTransferSchema = z
     }
   })
 
-/**
- * Client-side form validation schema.
- * Works with string values (HTML inputs) — the server schema handles type conversion.
- */
 export const internalTransferFormSchema = z
   .object({
     description: z.string(),

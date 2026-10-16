@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { addItemAction } from '@/lib/actions/kosztorys'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import type { KosztorysItemT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
@@ -22,8 +22,6 @@ function describeLanding({ placement, anchorDescription }: LandingT, sectionName
     : `Praca trafi ${side} pracę bez opisu.`
 }
 
-// With „Nie zamykaj po zapisaniu" the next praca lands under the one just saved, so a run of pracy
-// typed in a row keeps its order. An end-of-sekcja placement already does that by itself.
 const nextLanding = (landing: LandingT, saved: KosztorysItemT): LandingT =>
   landing.placement.kind === 'end'
     ? landing
@@ -32,7 +30,6 @@ const nextLanding = (landing: LandingT, saved: KosztorysItemT): LandingT =>
         anchorDescription: saved.description ?? '',
       }
 
-// Mounted only while a placement is chosen; the host owns that choice.
 export function NewItemDialog({
   placement,
   sectionName,
@@ -59,6 +56,7 @@ export function NewItemDialog({
   onStaleTree: () => void
   onClose: () => void
 }) {
+  const { addItem } = useEditorActions()
   const [landing, setLanding] = useState<LandingT>({ placement, anchorDescription })
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
   const openDialog = useOptimisticFormStore((s) => s.openDialog)
@@ -86,7 +84,7 @@ export function NewItemDialog({
             keepOpen={keepOpen}
             action={async (payload) => {
               const result = await settleAction(() =>
-                addItemAction({ ...payload, placement: landing.placement }),
+                addItem({ ...payload, placement: landing.placement }),
               )
               if (result.success) {
                 onPlaced(result.data.item, landing.placement)

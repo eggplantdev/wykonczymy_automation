@@ -5,14 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
 
-// A structure-create invariant of the kosztorys actions, driven against the REAL DB and asserting
-// PERSISTED display_order rows, not the action's return value: append (addItemAction) must pick a
-// slot that can't collide with a surviving row. removeItemAction leaves gaps, so a count-based
-// next-order collides after any middle delete (add 3 → delete middle → append reuses the count and
-// lands on a live row).
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -25,7 +17,6 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 const { addItemAction, removeItemAction } = await import('@/lib/actions/kosztorys')
 
-// Gated like the sibling specs: skips with no DB env, FAILS if env is set but the DB is unreachable.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
@@ -89,13 +80,11 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
   it('appending after a middle delete lands on a free slot, not a surviving row', async () => {
     const sectionId = await createSection()
 
-    // Add 3 blank items → display_order 0,1,2.
     await addItemAction(appendAt(sectionId))
     const middle = await addItemAction(appendAt(sectionId))
     await addItemAction(appendAt(sectionId))
     expect(middle.success).toBe(true)
 
-    // Delete the middle one (blank → passes the delete guard) → leaves {0,2}, a gap.
     const del = await removeItemAction(middle.success ? middle.data.item.id : 0)
     expect(del.success).toBe(true)
 
@@ -105,9 +94,7 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
 
     const orders = await sectionItemOrders(sectionId)
     expect(orders).toHaveLength(3)
-    // The regression: every surviving row has a distinct display_order.
     expect(new Set(orders).size).toBe(orders.length)
-    // And the new row appended past the tail (max+1), not into the gap.
     if (appended.success) expect(appended.data.item.displayOrder).toBe(Math.max(...orders))
   })
 })

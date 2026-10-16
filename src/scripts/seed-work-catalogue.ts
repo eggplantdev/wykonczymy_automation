@@ -1,10 +1,5 @@
-// E2E fixture for the katalog prac round trip (EX-756). Two investments, one per test. Two sekcje
-// with prace so a placement claim is falsifiable; one etap with a plane (plane-less locks its
-// column); j.m. on every praca, which the katalog requires. Every opis carries the run's timestamp —
+// Every opis carries the run's timestamp —
 // the katalog is global and never reset, so a stable opis would hit overwrite instead of create.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-work-catalogue.ts
-// Emits: CATALOGUE_SEED={"save":{...},"insert":{...}}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -18,7 +13,6 @@ const SECTION_BETA = 'Sekcja beta'
 
 type SeededInvestmentT = {
   id: number
-  // Saved to the katalog by each test; lives in „Sekcja alfa".
   item: string
   // The only praca of „Sekcja beta" — an inserted praca must land behind it.
   beta: string

@@ -9,15 +9,15 @@ const sumText = (texts: string[]) =>
     : ''
 
 /**
- * One row out of several: Kwota is the plain sum of what the rows show, a blank one counting 0 —
- * `isAmountIncomplete` tells the manager the sum is short. Netto sums only when every row has one;
- * a partial Netto sum would bill the investor less than he owes.
+ * Netto sums only when every row has one; a partial Netto sum would bill the investor less than he
+ * owes.
  */
 export function mergeLineItems(items: BulkLineItemT[]): {
   values: MergedValuesT
   isAmountIncomplete: boolean
 } {
-  const firstFilled = (field: keyof MergedValuesT) => items.find((item) => item[field])?.[field] ?? ''
+  const firstFilled = (field: keyof MergedValuesT) =>
+    items.find((item) => item[field])?.[field] ?? ''
   const numbers = new Set(items.map((item) => item.documentNumber).filter(Boolean))
 
   return {

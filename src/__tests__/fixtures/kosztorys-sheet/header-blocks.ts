@@ -1,14 +1,10 @@
-// Header blocks transcribed from two real sheets (2026-08-11), formulas checked alongside values.
-// Contact cells (address, phone, e-mail — rows 1–3 of columns B/C) are blanked: they carry client
-// PII and no parser reads them. Everything else is verbatim, trailing spaces included, because the
+// Everything else is verbatim, trailing spaces included, because the
 // trailing space in „Pomiar z natury " and the „ilosc"/„ilość" spelling drift are exactly what the
 // matchers have to survive.
 
 import { col, row } from './grid'
 
 const stageQty = (n: number) => `${n} etap ilość`
-
-// --- Białostocka: 10 etapy, Przedmiar at N, the wide layout AGENTS.md describes ---
 
 export const BIALOSTOCKA_LABOR_HEADER: (string | number)[][] = [
   row({
@@ -256,9 +252,6 @@ export const ALTOWA_LABOR_HEADER: (string | number)[][] = [
   }),
 ]
 
-// --- Żupnicza: „Wartość netto" split into two columns, one per Przedmiar/Pomiar — the template most
-// sheets since 2026-07 are built on ---
-
 export const ZUPNICZA_LABOR_HEADER: (string | number)[][] = [
   row({
     A: '2',
@@ -350,8 +343,8 @@ export const ZUPNICZA_LABOR_HEADER: (string | number)[][] = [
   }),
 ]
 
-// Żupnicza with T's header wiped, so „Wartość netto" has no name to match — the shape the column
-// pointing and the candidate list exist for. S stays: a named column no field claims.
+// Żupnicza with T's header wiped, so „Wartość netto" has no name to match. S stays: a named column
+// no field claims.
 export const UNNAMED_NET_VALUE_LABOR_HEADER = ZUPNICZA_LABOR_HEADER.map((cells) =>
   cells.map((cell, column) => (column === col('T') ? '' : cell)),
 )

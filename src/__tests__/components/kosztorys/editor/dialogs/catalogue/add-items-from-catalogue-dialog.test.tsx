@@ -139,8 +139,6 @@ describe('AddItemsFromCatalogueDialog — „Dodaj do:"', () => {
     await pickTheWork(user)
 
     await openSectionPicker(user)
-    // Case is the only difference, so to the owner this is the same sekcja — «Dodaj „łazienka”»
-    // must not appear at all.
     await user.type(screen.getByPlaceholderText('Wybierz lub wpisz sekcję…'), 'łazienka')
     expect(screen.queryByRole('button', { name: 'Dodaj „łazienka”' })).toBeNull()
 
@@ -161,7 +159,6 @@ describe('AddItemsFromCatalogueDialog — lista', () => {
     workNote: null,
   }))
 
-  // The cennik is ~560 prace, and drawing all of them is what froze the dialog on every keystroke.
   // The window's size rides on the stubbed `offsetHeight`, so the bound is loose, not exact.
   it('duży cennik rysuje okno wierszy, nie cały katalog', () => {
     renderDialog(LARGE_CATALOGUE)

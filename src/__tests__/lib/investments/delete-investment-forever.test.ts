@@ -6,8 +6,6 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
 describe('deleteTrashedInvestment', () => {
-  // A DB blip read as „not in the trash" drops out of every purge counter and tells the owner to
-  // trash an investment that is already there.
   it('reports a failed read as an error, not as not-trashed', async () => {
     const del = vi.fn()
     const payload = {

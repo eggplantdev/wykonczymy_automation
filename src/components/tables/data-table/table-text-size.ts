@@ -4,7 +4,6 @@ export type TableTextSizeT = (typeof TABLE_TEXT_SIZES)[number]
 
 type TextSizeClassesT = { body: string; header: string; headerDescription: string }
 
-// The header's description stays one step below the header, so a smaller table keeps its hierarchy.
 export const TABLE_TEXT_SIZE = {
   '2xs': { body: 'text-2xs', header: 'text-2xs', headerDescription: 'text-3xs' },
   xs: { body: 'text-xs', header: 'text-xs', headerDescription: 'text-2xs' },

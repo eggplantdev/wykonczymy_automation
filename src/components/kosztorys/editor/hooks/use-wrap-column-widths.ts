@@ -8,9 +8,6 @@ import type { GridTextSizeT } from '@/components/kosztorys/editor/hooks/use-grid
 // and the first glyph.
 const CELL_TEXT_CHROME_PX = 17
 
-// Read off the grid's hidden text probe rather than composed: its size follows the breakpoint, the
-// editor's text size and the app-wide „Rozmiar” switch, and a composed font would fit rows to text
-// that isn't there.
 const CELL_TEXT_SELECTOR = '.grid-cell-text'
 const CELL_FONT_WEIGHT = '400'
 
@@ -22,9 +19,6 @@ export type WrapWidthsT = {
 const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} 14px sans-serif` }
 
 /**
- * Rendered text width of each measured column, remeasured whenever the grid's box changes — a
- * window resize, the client dragging a column edge, or the webfont finally arriving.
- *
  * A column scrolled out of the horizontal window has no header cell in the DOM at all, so a width
  * once measured is KEPT rather than dropped: a missing measurement would otherwise read as "this
  * text needs one line" and flatten every row the moment someone scrolls sideways.
@@ -42,7 +36,6 @@ export function useWrapColumnWidths(
     const cellText = container.querySelector(CELL_TEXT_SELECTOR)
     const cellStyle = cellText ? window.getComputedStyle(cellText) : undefined
     setMeasured((prev) => {
-      // Nothing to read means no grid to fit either, so the last font stands.
       const font = cellStyle
         ? `${CELL_FONT_WEIGHT} ${cellStyle.fontSize} ${cellStyle.fontFamily}`
         : prev.font
@@ -65,19 +58,11 @@ export function useWrapColumnWidths(
     })
   }, [containerRef, columnIds])
 
-  // Deliberately NOT a ResizeObserver on the grid: useElementHeight documents that observing this
-  // container deadlocks against dsg's own resize detector. What moves a column edge is a window
-  // resize, a drag or a toggle (both rebuild `columnIds`) and the first layout — rAF because dsg
-  // sizes its columns from its own measurement a frame after mount. `fonts.ready` is the fourth:
-  // the family name is the same before and after the file loads, so the first measurement can
-  // silently be taken in the fallback's metrics and would never be revisited. A new `textSize` moves
-  // no edge but changes the font, which is the fifth.
+  // Deliberately NOT a ResizeObserver on the grid: observing this
+  // container deadlocks against dsg's own resize detector.
   useEffect(() => {
     const frame = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)
-    // A column scrolled into the horizontal window for the first time has had no header cell to
-    // measure, and scrolling rebuilds nothing — so the scroll itself is the cue. Coalesced to one
-    // measure per frame, since scroll fires per frame.
     const container = containerRef.current
     let pending = 0
     const schedule = () => {
@@ -96,7 +81,6 @@ export function useWrapColumnWidths(
       window.removeEventListener('resize', measure)
       container?.removeEventListener('scroll', schedule, true)
     }
-    // textSize is only the cue: the size itself is read off a cell, after the new one has rendered.
   }, [measure, containerRef, textSize])
 
   return measured

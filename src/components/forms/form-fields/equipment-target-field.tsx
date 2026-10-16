@@ -26,7 +26,6 @@ type EquipmentTargetFieldsPropsT = {
   workers: WorkerRefT[]
   warehouses: WarehouseOptionT[]
   investments: InvestmentRefT[]
-  /** False in „Dodaj sprzęt", which pairs the day with „Cena zakupu" above this block. */
   showOccurredAt?: boolean
 }
 
@@ -46,10 +45,6 @@ export function EquipmentOccurredAtField({
   )
 }
 
-/**
- * „Gdzie trafia" — one choice, then the one field that choice needs. Shared by „Przekaż" and by
- * „Dodaj sprzęt", whose first entry answers exactly the same question.
- */
 export function EquipmentTargetFields({
   form,
   workers,
@@ -90,9 +85,6 @@ export function EquipmentTargetFields({
       {targetKind === 'holder' && (
         <>
           <EntityComboboxField form={form} variant="holder" items={workers} />
-          {/* Only under a person: „na którą inwestycję to poszło" is a question about someone taking
-              a tool to a job. A magazyn is where things wait between jobs, and a serwis belongs to
-              the tool, not to any investment. */}
           <EntityComboboxField form={form} variant="investment" items={investments} />
         </>
       )}

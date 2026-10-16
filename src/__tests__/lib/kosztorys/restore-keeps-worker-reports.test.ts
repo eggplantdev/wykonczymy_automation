@@ -10,9 +10,6 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// A restore wipes the tree and reinserts it with fresh ids, and the report lines are the first
-// table outside the tree to name a pozycja. Nothing in restore knows about them: the FK's
-// ON DELETE SET NULL is the whole mechanism, so only the DB can show the report surviving.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))

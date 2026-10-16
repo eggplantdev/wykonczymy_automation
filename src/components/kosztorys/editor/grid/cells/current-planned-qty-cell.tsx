@@ -21,8 +21,6 @@ function CurrentPlannedQtyCell({
 }: CellProps<KosztorysV2RowT>) {
   const edit = useCellDraft(rowData, setRowData, policy, stopEditing)
   const text = decimalText(resolvedCurrentPlannedQty(rowData))
-  // The investor's and the worker's documents get the figure alone: „follows the offer" is the
-  // owner's bookkeeping.
   if (disabled) return <ReadOnlyCellText>{text}</ReadOnlyCellText>
   return (
     <EditableCellInput

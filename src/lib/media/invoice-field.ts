@@ -2,7 +2,6 @@ import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
 import type { MediaInfoT } from '@/lib/queries/media'
 import type { PreviewFileT } from '@/types/media'
 
-/** Resolves a doc's `invoice` field into its openable pages, in attachment order. */
 export function resolveInvoiceFiles(
   invoice: UploadFieldT,
   media: Map<number, MediaInfoT>,

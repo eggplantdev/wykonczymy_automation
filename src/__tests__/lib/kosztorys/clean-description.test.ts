@@ -3,8 +3,6 @@ import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
 
 describe('cleanDescription', () => {
-  // The reason the table was wired in at all: on szablon 4 the substring rules corrected 0 of the
-  // 30 reported names, because the defects are missing ogonki and KNR line breaks.
   it('raises the name the owner corrected in the katalog', () => {
     expect(cleanDescription('lutowanie tasm ledowych')).toBe('Lutowanie taśm LED')
     expect(cleanDescription('Lutowanie taśm ledowych')).toBe('Lutowanie taśm LED')
@@ -20,14 +18,11 @@ describe('cleanDescription', () => {
     )
   })
 
-  // The risk the table introduces: a whole-name hit swallowing what the old path handled.
   it('leaves a name the table does not know to the existing rules', () => {
     expect(cleanDescription('MALOWANIE ŚCIAN W KUCHNI')).toBe('Malowanie ścian w kuchni')
     expect(cleanDescription('Szpachlowanie po fisnish')).toBe('Szpachlowanie po finish')
   })
 
-  // The property belongs to every corrected name, and the one that broke it („c.w.u. Oraz z.w.u.")
-  // was not among the hand-picked four.
   it('leaves every corrected name in the table untouched on a second press', () => {
     const moved = [...CATALOGUE_NAME_FIXES.values()].filter(
       (name) => cleanDescription(name) !== name,
@@ -35,7 +30,6 @@ describe('cleanDescription', () => {
     expect(moved).toEqual([])
   })
 
-  // 13 prace across the prod dump read „wg. projektu"; a bulk run would have raised every one.
   it('does not start a sentence after „wg."', () => {
     expect(cleanDescription('Sufit podwieszany z LED wg. projektu')).toBe(
       'Sufit podwieszany z LED wg. projektu',

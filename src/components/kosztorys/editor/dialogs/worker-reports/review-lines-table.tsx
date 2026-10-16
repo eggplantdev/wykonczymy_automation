@@ -37,26 +37,15 @@ export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   sectionName: string
   sectionColor: SectionColorKeyT | null
   sectionOrder: number
-  // The pozycja's number from the printed form — the one link between a worker's own-language page
-  // and the Polish rozpiska.
   ref: number | undefined
-  // Figures of the pozycja the line adds to — its own, or the one it was re-pointed to.
   figures: ItemFiguresT | undefined
   itemDescription: string | undefined
-  // The opis as the worker reads it: the pozycja's translation into his language, or — for a praca
-  // spoza rozpiski — what he wrote before it was translated. Undefined when it is the Polish itself.
   workerDescription: string | undefined
   workerDescriptionLanguage: string | undefined
-  // Its own pozycja is gone from the rozpiska, so the kierownik points it at one by hand.
   isUnassigned: boolean
-  // Already in an etap: its pozycja is settled, its ilość stays editable and unticking takes it out.
   isAccepted: boolean
-  // The etap and the pozycja it went to both still exist, so an untick has a figure to take back.
   isFigureLive: boolean
-  // Scans: the same pozycja read twice — two photos of one page, most likely — so neither is ticked
-  // in bulk.
   isDuplicateItem: boolean
-  // Scans: a praca spoza rozpiski in a j.m. the kosztorys has not got.
   isUnitMissing: boolean
 }
 
@@ -88,7 +77,6 @@ function useReviewTable() {
   return context
 }
 
-// Bulk only accepts: a line is odrzucona one by one, and the bulk tick leaves those alone.
 function TickHeader() {
   const { rows, drafts, onChange } = useReviewTable()
   const bulkRows = rows.filter((row) => !row.isDuplicateItem && !drafts[row.id].isRejected)
@@ -120,7 +108,6 @@ function TickCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-// A second click sends the line back to waiting.
 function RejectCell({ row }: { row: ReviewRowT }) {
   const { drafts, onChange } = useReviewTable()
   const { isRejected } = drafts[row.id]
@@ -232,7 +219,6 @@ function StageHeader() {
   return useReviewTable().stageTitle
 }
 
-// A decision moves the etap and so the pomiar: the manager sees what is there and what it becomes.
 function GrowingQty({ before, added }: { before: number; added: number }) {
   if (added === 0) return formatQty(before)
   return (
@@ -281,8 +267,6 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-// „Cofnij podmianę” leaves the pozycja it went to in the rozpiska — empty, it shows on no page the
-// client sees.
 function SwapNote({ row }: { row: ReviewRowT }) {
   const { drafts, onUndoSwap } = useReviewTable()
   const source = drafts[row.id].catalogueId === undefined ? 'Zgłoszono' : 'Z katalogu · zgłoszono'
@@ -300,7 +284,6 @@ function SwapNote({ row }: { row: ReviewRowT }) {
   )
 }
 
-// A katalog praca the rozpiska already holds: the line adds to that pozycja.
 function MatchedDescription({ row }: { row: ReviewRowT }) {
   const { drafts, onChange, itemOptions, catalogueById } = useReviewTable()
   const draft = drafts[row.id]
@@ -373,9 +356,6 @@ function ManualDescriptionCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-// A praca spoza rozpiski is accepted only once it is in the rozpiska, so this is its one way in. A
-// podpowiedź opens the window on that praca, with the szukajka still there to look further — so the
-// plain button is only for a line with nothing to suggest.
 function CatalogueHintsCell({ row }: { row: ReviewRowT }) {
   const { onOpenCatalogue, hintsByLine } = useReviewTable()
   if (row.isAccepted) return null
@@ -430,7 +410,6 @@ const refColumn = col.accessor((row) => row.ref ?? 0, {
       <span className="whitespace-nowrap tabular-nums">{formatFormRef(row.original.ref)}</span>
     ),
 })
-// Sorted by the rozpiska's own section order, not alphabetically — that is the order both people know.
 const sectionColumn = col.accessor((row) => row.sectionOrder, {
   id: 'section',
   header: 'Sekcja',
@@ -463,7 +442,6 @@ const reportedColumn = col.accessor('reportedQty', {
     </span>
   ),
 })
-// „Spoza rozpiski” has one figure, so its header has the width to lie flat.
 const extraReportedColumn = {
   ...reportedColumn,
   meta: { align: 'center' },
@@ -533,8 +511,6 @@ const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   meta: { align: 'center', vertical: true },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
-// The worker's opis and its podpowiedź are read side by side, so they split the width evenly rather
-// than by whichever happens to be longer.
 const EXTRA_TEXT_WIDTH = 'min-w-80 w-1/3'
 const manualDescriptionColumn = col.accessor('description', {
   header: 'Opis prac',
@@ -576,8 +552,6 @@ const COLUMNS_BY_GROUP = {
   ],
 }
 
-// The group's title and hint share the column picker's row, so the picker takes no line of its own.
-// Collapsed keeps the heading row, so the column picker stays reachable with the table hidden.
 type PropsT = ReviewTablePropsT & {
   group: LineGroupT
   heading: ReactNode
@@ -606,7 +580,6 @@ export function ReviewLinesTable({
         storageKey={`worker-report-${group}`}
         defaultColumnVisibility={{ [OFFERED_PLANNED_ID]: false }}
         renderRows={isCollapsed ? () => null : undefined}
-        // Read across the row, figure against figure.
         className="[&_td+td]:border-border [&_th+th]:border-border [&_td+td]:border-l [&_th+th]:border-l"
         defaultTextSize="xs"
         toolbar={({ table, columnVisibility, ...order }) => (

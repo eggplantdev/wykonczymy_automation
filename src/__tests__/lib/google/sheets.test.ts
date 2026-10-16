@@ -30,8 +30,7 @@ vi.mock('googleapis', () => ({
   },
 }))
 
-// Header row the code locates fields in (note: "typ wydatku inwestycyjnego"
-// still matches the "typ" keyword; trailing space / casing are normalized away).
+// "typ wydatku inwestycyjnego" still matches the "typ" keyword
 const HEADER = ['id', 'data', 'typ wydatku inwestycyjnego', 'opis', 'kwota', 'kategoria', 'notatka']
 
 beforeEach(() => {
@@ -110,7 +109,6 @@ describe('applyTabRowsBatch', () => {
   })
 
   it('updates present, appends missing, and removes orphans bottom-up in one batch', async () => {
-    // header r1, 101 r2, 102 r3, 103 r4
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [103]] } })
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
@@ -133,8 +131,6 @@ describe('applyTabRowsBatch', () => {
 
     expect(res).toEqual({ added: 1, updated: 1, removed: 2 })
     expect(valuesAppendMock).not.toHaveBeenCalled()
-    // One batchUpdate carries both the update (102 at its row 3) and the append
-    // (200 at row 5 = after the last data row 4). 2 rows × 7 cells = 14 ranges.
     expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
     const cells = valuesBatchUpdateMock.mock.calls[0][0].requestBody.data
     expect(cells).toHaveLength(14)
@@ -144,7 +140,6 @@ describe('applyTabRowsBatch', () => {
     expect(cells.find((c: { values: number[][] }) => c.values[0][0] === 200).range).toBe(
       `${TAB}!A5`,
     )
-    // deletes run bottom-up: 103 (row 4 → startRowIndex 3) before 101 (row 2 → 1)
     const reqs = batchUpdateMock.mock.calls[0][0].requestBody.requests
     expect(
       reqs.map(
@@ -179,9 +174,7 @@ describe('applyTabRowsBatch', () => {
 
 describe('removeTabRow', () => {
   it('deletes only the data columns of the row, leaving the summary columns intact', async () => {
-    // id 102 sits on sheet row 3 (header row 1, 101 on row 2, 102 on row 3)
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
-    // tab gid lookup
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
         sheets: [
@@ -193,8 +186,7 @@ describe('removeTabRow', () => {
     await removeTabRow('s', EXPENSES_TAB_CONFIG, 102)
 
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
-    // deleteRange scoped to columns [0, 7) shifts rows below up while the summary
-    // block (column H = index 7 onward) is never in the deleted range — so the
+    // the summary block (column H = index 7 onward) is never in the deleted range — so the
     // =SUM/=SUMIF formulas on row 2 survive even when the deleted row is row 2.
     expect(batchUpdateMock.mock.calls[0][0].requestBody.requests).toEqual([
       {
@@ -221,10 +213,6 @@ describe('removeTabRow', () => {
   })
 
   it('no-ops (does not throw) when the tab itself is missing', async () => {
-    // A removal targets a tab that doesn't exist (e.g. the rozliczone tab on a sheet
-    // linked before that feature). Google reports a missing tab as an unparseable
-    // range; removeTabRow must treat "nothing to remove" as a no-op, not an error —
-    // the per-tab cleanup loop relies on it (no ensure/self-heal on the remove path).
     getMock.mockRejectedValueOnce(
       new Error("Unable to parse range: 'rozliczone R+M (tylko do odczytu)'!A:Z"),
     )
@@ -268,7 +256,6 @@ describe('buildTabSummary', () => {
       '=SUMIF(C:C; "Materiały budowlane"; E:E)',
       '=SUMIF(C:C; "Pozostałe koszty"; E:E)',
     ])
-    // No reference to label cells (I1/J1/…) and no C2:C — those were the drift source.
     expect(totals.join('')).not.toMatch(/[IJKL]\d/)
     expect(totals.join('')).not.toContain('C2:C')
   })
@@ -286,8 +273,6 @@ describe('buildTabSummary', () => {
       ['Materiały budowlane', 'Pozostałe koszty'],
       ';',
     )
-    // Only the grand-total label differs from the bill tab; the SUMIF math (same
-    // column shape) is identical.
     expect(labels).toEqual(['RAZEM rozliczone', 'Materiały budowlane', 'Pozostałe koszty'])
     expect(totals).toEqual([
       '=SUM(E:E)',
@@ -297,12 +282,8 @@ describe('buildTabSummary', () => {
   })
 })
 
-// Kosztorys sheets across many client spreadsheets reference the transfers-tab
-// SUMIF summary columns by FIXED position. Dropping or reordering any column —
-// data header OR summary key — shifts the survivors and silently breaks those
-// formulas, with no fix but going sheet-by-sheet by hand. This pins the whole
-// left-to-right layout so any such change fails loudly here first. See
-// context/foundation/lessons.md "frozen external contract".
+// Dropping or reordering any column — data header OR summary key — shifts the survivors and silently
+// breaks those formulas, with no fix but going sheet-by-sheet by hand.
 describe('transfers tab — frozen column layout (kosztorys formulas depend on positions)', () => {
   it('freezes the data header columns A–H', async () => {
     const { TRANSFERS_TAB_CONFIG } = await import('@/lib/google/sheets')
@@ -324,8 +305,6 @@ describe('transfers tab — frozen column layout (kosztorys formulas depend on p
     const { CORRECTION_MOVED_LABEL } = await import('@/lib/constants/transfers')
     const { labels } = buildTabSummary(TRANSFERS_TAB_CONFIG, transferSummaryKeys(), ';')
 
-    // Routing dropped CORRECTION, but the layout must NOT shrink — slot 5 is the
-    // moved-Korekta placeholder (totals 0), Strata stays slot 6.
     expect(labels).toEqual([
       'Wpłata od inwestora',
       'Koszty robocizny',
@@ -335,8 +314,6 @@ describe('transfers tab — frozen column layout (kosztorys formulas depend on p
       'Strata',
     ])
 
-    // Absolute column the formulas point at = header width (8, no RAZEM on this
-    // tab) + index. A removed/reordered column on EITHER side moves these.
     const columnOf = (label: string) =>
       String.fromCharCode(65 + TRANSFERS_TAB_CONFIG.header.length + labels.indexOf(label))
     expect(columnOf(CORRECTION_MOVED_LABEL)).toBe('M')
@@ -370,9 +347,6 @@ describe('ensureTab', () => {
   const TAB = 'wydatki inwestycyjne (tylko do odczytu)'
 
   it('leaves an existing tab completely untouched (never wipes manual data)', async () => {
-    // Tab already present on the linked sheet → the create-if-missing guard must
-    // short-circuit: no addSheet, and crucially no values.clear (which would
-    // destroy the owner's hand-entered rows).
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: { sheets: [{ properties: { sheetId: 42, title: TAB } }] },
     })
@@ -384,12 +358,9 @@ describe('ensureTab', () => {
   })
 
   it('builds the tab when it is missing', async () => {
-    // First get = the guard's tab lookup (no match); second get = setupMaterialyTab's
-    // metadata read. Both return no matching tab so setup runs the create path.
     spreadsheetsGetMock.mockResolvedValue({
       data: { sheets: [], properties: { locale: 'pl_PL' } },
     })
-    // setupMaterialyTab's first batchUpdate is the addSheet — it must surface a gid.
     batchUpdateMock.mockResolvedValueOnce({
       data: { replies: [{ addSheet: { properties: { sheetId: 7 } } }] },
     })

@@ -8,8 +8,6 @@ import { toastMessage } from '@/lib/utils/toast'
 vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
-// Ręcznie rozstrzygana odpowiedź — cały przedmiot tych testów siedzi w oknie MIĘDZY wysłaniem
-// zapytania a jego powrotem, więc musi dać się w nim zatrzymać.
 function deferred<T>() {
   let settle!: (value: T) => void
   let fail!: (reason: unknown) => void
@@ -24,9 +22,6 @@ const balance = (registerBalance: number) => ({ registerBalance })
 
 beforeEach(() => vi.clearAllMocks())
 
-// Kasę da się przestawić lub wyczyścić, zanim wróci saldo poprzedniej — spóźniona odpowiedź
-// wpisałaby saldo kasy, której już nie ma w formularzu, a użytkownik zapisałby przelew patrząc
-// na cudze pieniądze.
 describe('Saldo kasy — wyścig przestawień', () => {
   it('pokazuje saldo, gdy nic go nie wyprzedziło', async () => {
     vi.mocked(getRegisterBalance).mockResolvedValue(balance(1_200))
@@ -83,7 +78,6 @@ describe('Saldo kasy — wyścig przestawień', () => {
     expect(result.current.registerBalance).toBe(900)
   })
 
-  // Błąd wyprzedzonego zapytania zakrzyczałby saldo, które już poprawnie stoi na ekranie.
   it('milczy, gdy przewrócone zapytanie padnie', async () => {
     const late = deferred<{ registerBalance: number }>()
     vi.mocked(getRegisterBalance).mockReturnValue(late.promise)

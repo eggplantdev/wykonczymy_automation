@@ -1,12 +1,12 @@
 ---
 change_id: szablon-own-structure
 title: Szablon — własna struktura danych zamiast pozycji kosztorysu z martwą kopią
-status: preparing
+status: implemented
 created: 2026-10-15
 updated: 2026-10-15
 archived_at: null
-branch: null
-worktree: null
+branch: szablon-own-structure
+worktree: .claude/worktrees/szablon-own-structure
 ---
 
 ## Notes
@@ -51,3 +51,65 @@ Done 2026-10-15, ahead of the change:
   An FK on the new table removes it.
 
 Research: `research.md`.
+
+## Plan decisions (owner, 2026-10-15)
+
+1. **Editor writes through injected actions.** The szablon gets its own action set
+   (`lib/actions/template-*.ts`, own gate); the route hands the shared editor its action set (prop /
+   hook — never `KosztorysEditorProvider`, EX-496). Kosztorys actions stay untouched and carry no
+   „is this a szablon” branch. Rejected: branching inside each action (the exclusion compromise moved
+   into actions) and a separate szablon editor (two grids that drift).
+2. **„Wersje” in their own table, refs only.** `template_snapshots` (FK to the szablon, cascade); the
+   payload is sections (name, colour, order) + katalog ids in order — no opis / j.m. / cena / stawki.
+   A restore renders today's katalog wording (a version is „which prace, in what layout”, never „how
+   they read then”); a ref to a since-deleted katalog entry is skipped with a warning. List / restore
+   / GC are its own; GC copies the kosztorys bands. The 3 linked versions of „Kosztorys 2026 kolory”
+   are converted by the migration. Rejected: sharing `kosztorys_snapshots` with a `template_id`
+   column — it freezes the dead copy into JSON and branches every reader.
+3. **Payload collections**, like `kosztorys-items` / `kosztorys-sections`: `templates`,
+   `template-sections`, `template-items`. `template_snapshots` stays a raw table, like
+   `kosztorys_snapshots` (no collection there either). Generated types, and REST with access
+   control for the AI kosztorys scripts (one query: the szablon's prace with their katalog entry,
+   nothing else to read). Editor writes stay raw SQL in `lib/db`. The hand-written migration carries
+   the Payload checklist (`payload_locked_documents_rels` column per collection, lesson 1763).
+   Rejected: bare SQL tables — the scripts would need their own endpoint.
+4. **The trashed „Kosztorys 2026” is not migrated.** 310 prace, none linked, 6 versions — it dies with
+   the old szablon rows in the destructive migration. The new tables take linked prace only, with no
+   exception path from day one. Rejected: waiting for the ~2026-11-07 auto-purge (blocks the deploy
+   three weeks) and cataloguing its 310 prace (near-duplicates in the katalog).
+5. **Deploy: copy before, delete after** (the 20260929 pattern). Migration 1 (additive, before push)
+   creates the tables and copies „Kosztorys 2026 kolory” + its 3 versions — the copy is checked on
+   the DB before anything ships. Migration 2 (`RUN-AFTER-DEPLOY`) deletes the old szablon rows; then a
+   Vercel Data Cache purge. Accepted windows: a szablon edit made during the build is lost (nobody
+   edits a szablon for those minutes); between deploy and migration 2 the szablon shows on the
+   investment lists. The whole sequence is rehearsed on staging first. Rejected: empty tables first,
+   copy + delete after deploy (no lost edit, but „brak szablonów” for minutes and the copy unchecked
+   until after the fact).
+6. **The `szablon` status value is cut from the DB enum** in migration 2, once its rows are gone:
+   recreate `enum_investments_status` without it, re-point `investments.status` (drop + restore the
+   `'active'` default; `investments_szablon_name_idx` is dropped first), drop the old type. Every code
+   trace of szablon-as-investment goes with it (status, badge, form option, lock constant). Rejected:
+   leaving a dead value the DB still accepts.
+7. **Tests: rewrite what exists, add where the change can break.** `createTestTemplate` rewritten onto
+   the new tables (re-points most of the ~29 DB specs). New DB specs: each szablon action writes the
+   szablon tables and never the kosztorys ones; the gate refuses a trashed szablon; a restore skips a
+   praca deleted from the katalog; a name held by a trashed szablon is refused; trash + 30-day purge.
+   The migration is verified once on a local prod-dump copy (counts before/after, then nothing
+   szablon-shaped left in `investments`) — a plan step, not a committed spec. The 8 szablon E2E specs
+   are updated, run by the owner. Rejected: a new szablon-editor E2E (mostly covered by the 8) and
+   fixing only what breaks (nothing would guard the wrong-table risk of decision 1).
+8. **Out of scope: a kosztorys remembering its source szablon.** No „founded from szablon X” field;
+   seeding stays a one-time copy and the pickers keep listing every szablon. The change is a
+   structural move with no behaviour change.
+9. **Scripts that know szablon-as-investment.** Repointed: the AI kosztorys scripts
+   (`context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/`, REST onto the new
+   collections, replacing the `itemsOfTemplate` workaround) and the two E2E seeds as needed.
+   Simplified: `fill-translations-from-catalogue`, `fill-description-translations`,
+   `fix-kosztorys-descriptions` lose their „szablony included” branch — a szablon's text lives in the
+   katalog they already cover. Deleted (done, unrunnable after the change, kept in git history): the
+   EX-1017 one-offs `link-kosztorys-items-to-catalogue`, `sync-template-translations`.
+
+Derived, not asked: the szablon's tree reads `DEFAULT_COEFFS` / `DEFAULT_VAT` /
+`SETTLEMENT_MODE_DEFAULT` as constants. Verified on prod (read-only, 2026-10-15): both szablony carry
+exactly those defaults (0.65 / 0.5525 / 8% / NET), and the totals panel that edits them is hidden in a
+szablon — no capability is lost.

@@ -20,8 +20,6 @@ export const SECTION_IDS = {
   transactions: 'transakcje',
 } as const
 
-// One title per list page, read by its nav link, its heading and its `loading.tsx` — the loading
-// title is swapped for the heading when the page lands, so two spellings would visibly flicker.
 export const PAGE_TITLES = {
   transactions: 'Transakcje',
   registers: 'Kasy',
@@ -39,7 +37,6 @@ export const PAGE_TITLES = {
   trash: 'Kosz',
 } as const
 
-// „Kosz" sits with the bottom actions, under „Admin".
 export const TRASH_HREF = '/kosz'
 
 export type NavLinkT = {
@@ -49,7 +46,6 @@ export type NavLinkT = {
   unreadStream?: UnreadStreamT
 }
 
-// Management only — an EMPLOYEE's one page is his own `/pracownicy/[id]`, which `/` lands him on.
 export const NAV_LINKS: NavLinkT[] = [
   { href: '/', label: PAGE_TITLES.transactions, icon: ArrowLeftRight },
   { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },

@@ -8,7 +8,6 @@ import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// The worker set is firm-wide, so reviewing it here would suggest a per-link choice that does not exist. „Ustawienia widoku…" owns it.
 export function KosztorysWorkerShareDialog() {
   const { investmentId, investmentName } = useKosztorysEditorContext()
   const {

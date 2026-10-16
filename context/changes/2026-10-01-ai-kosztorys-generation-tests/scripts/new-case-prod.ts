@@ -2,7 +2,7 @@
 // kosztorys seeded from the szablon, and scaffolds `cases/<CASE>/` (the szablon's rozpiska + case.json)
 // for the agent to measure against. The client fields come from a JSON outside the repo (PII stays out
 // of git): { name, address, phone, email, contactPerson, notes }.
-//   TOKEN_FILE=… SOURCE_JSON=… FILES_DIR=… CASE=02-<slug> [PRESET_ID=165] [DRY=1] \
+//   TOKEN_FILE=… SOURCE_JSON=… FILES_DIR=… CASE=02-<slug> PRESET_ID=<szablon id> [DRY=1] \
 //     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/new-case-prod.ts
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
@@ -10,13 +10,15 @@ import {
   api,
   BASE,
   callAction,
-  itemsOf,
+  itemsOfTemplate,
   resolveActions,
   uploadMedia,
   type MediaKindT,
 } from './prod-client'
 
-const PRESET_ID = Number(process.env.PRESET_ID ?? 166)
+// A szablon is a `templates` row: its id is not the id of the investment it was before EX-1075.
+const PRESET_ID = Number(process.env.PRESET_ID)
+if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
 const DRY = process.env.DRY === '1'
 const SOURCE = JSON.parse(readFileSync(process.env.SOURCE_JSON ?? '', 'utf8'))
 const FILES_DIR = process.env.FILES_DIR ?? ''
@@ -62,10 +64,10 @@ async function run() {
   if (taken.totalDocs) throw new Error(`an investment named „${SOURCE.name}" already exists`)
   // REST still returns a trashed szablon's items, but the create's seed refuses it — and only warns.
   const preset = await api<{ trashedAt: string | null }>(
-    `/investments/${PRESET_ID}?depth=0&trash=true`,
+    `/templates/${PRESET_ID}?depth=0&trash=true`,
   )
   if (preset.trashedAt) throw new Error(`szablon #${PRESET_ID} is in the kosz`)
-  const template = await itemsOf(PRESET_ID)
+  const template = await itemsOfTemplate(PRESET_ID)
   if (!template.length) throw new Error(`szablon #${PRESET_ID} has no items`)
   await resolveActions('/inwestycje', ['createInvestmentAction'])
 

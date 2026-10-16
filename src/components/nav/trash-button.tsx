@@ -17,7 +17,6 @@ type TrashButtonPropsT = React.ComponentProps<typeof Button> & {
 export function TrashButton({ active, collapsed = false, ...props }: TrashButtonPropsT) {
   const user = useCurrentUser()
 
-  // `/kosz` redirects every other role back to „/".
   if (!isManagementRole(user.role)) return null
 
   return (

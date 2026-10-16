@@ -3,8 +3,6 @@ import { remapNewIds } from '@/lib/kosztorys/insert-rows'
 
 // The DB specs around restore can't fail on a reordered RETURNING, because Postgres doesn't reorder
 // one today — revert the key join to `res.rows.map(r => r.id)` and every one of them stays green.
-// That's the whole claim of this change, so it gets tested where it can actually be falsified: here,
-// with a hand-shuffled `returned` array.
 
 afterEach(() => {
   vi.restoreAllMocks()

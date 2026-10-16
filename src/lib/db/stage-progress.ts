@@ -5,13 +5,8 @@ import type { DbExecutorT } from './get-db'
 export type StageProgressCellT = { itemId: number; stageId: number; qtyDone: number }
 
 /**
- * ADDS to each cell, where `setStageProgressAction` overwrites it: an accepted report is work on top
- * of what the etap already holds. A negative figure takes a changed acceptance back out, floored at
- * zero — a cell lowered by hand below what was added cannot go negative — and a cell with no row is
- * already zero, so it returns nothing. One row per pozycja is the map's guarantee — an upsert that
- * touches a row twice is a Postgres error (21000). Rows whose etap or pozycja is not this
- * investment's are skipped by the join, not written; the caller compares the returned cells with what
- * it sent.
+ * Rows whose etap or pozycja is not this investment's are skipped by the join, not written; the
+ * caller compares the returned cells with what it sent.
  */
 export async function addStageProgress(
   db: DbExecutorT,

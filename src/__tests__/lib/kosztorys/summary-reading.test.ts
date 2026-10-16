@@ -7,8 +7,6 @@ import {
 import type { KosztorysClientTotalsT } from '@/lib/kosztorys/settlement-client-totals'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
-// Only the four fields the two readings touch matter here; the rest of the shape is cash-movement
-// data both readings pass through untouched.
 const financials = {
   totalLaborCosts: 100_000,
   totalDiscount: 8_000,
@@ -51,9 +49,6 @@ describe('summary reading projection', () => {
   })
 })
 
-// No kosztorys is an ANSWER, not a question to forward to the transfers. The two surfaces on this
-// reading — the Podsumowanie panel and the investments listing — must both report zero, however much
-// robocizna the investment still carries as legacy LABOR_COST rows. v1 is where those are read.
 describe('readingFromKosztorys without a kosztorys', () => {
   it('reads zero rather than the transactions plane', () => {
     expect(readingFromKosztorys(null)).toEqual({ laborCostsNet: 0, discountAmount: 0 })
@@ -70,8 +65,6 @@ describe('readingFromKosztorys without a kosztorys', () => {
   })
 })
 
-// The swap both the listing rows and v2's Marża tab apply before calling calculateBalance /
-// calculateMargin. Its whole job is to move exactly two figures and nothing else.
 describe('financialsOnReading', () => {
   it('restores the pre-rabat robocizna the formulas expect', () => {
     const swapped = financialsOnReading(financials, readingFromKosztorys(clientTotals))
@@ -81,8 +74,6 @@ describe('financialsOnReading', () => {
   })
 
   it('leaves every cash-movement figure alone', () => {
-    // The guard against a swap that quietly rebases materiały or wypłaty onto the kosztorys plane,
-    // which the kosztorys has no figure for at all.
     const swapped = financialsOnReading(financials, readingFromKosztorys(clientTotals))
     const { totalLaborCosts: _labor, totalDiscount: _discount, ...untouched } = swapped
     const {
@@ -95,7 +86,6 @@ describe('financialsOnReading', () => {
   })
 
   it('is a no-op on the transactions reading', () => {
-    // v1 must survive the seam byte-identical: 84 of 96 investments have no kosztorys.
     expect(financialsOnReading(financials, readingFromTransactions(financials))).toEqual(financials)
   })
 })

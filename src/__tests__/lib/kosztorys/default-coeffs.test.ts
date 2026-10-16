@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 
 // „Bez narzędzi" is not a second decision — the sheet writes it as `=R−R*0,15`, so it moves whenever
-// the w-tools rate does. It was carried into the database rounded to 0.55 and stayed there for over
-// a month, half a percent under on every pozycja without an override, because nothing tied the two
-// numbers together. This is that tie.
+// the w-tools rate does.
 describe('DEFAULT_COEFFS', () => {
   it('derives the own-tools rate from the w-tools rate, less 15%', () => {
     expect(DEFAULT_COEFFS.ownTools).toBe(DEFAULT_COEFFS.wTools * 0.85)

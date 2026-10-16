@@ -10,8 +10,6 @@ type ActiveFilterButtonPropsT = {
   isActive: boolean
   onChange: (value: boolean) => void
   activeLabel: string
-  /** Only where the two states name different SETS („Aktywne" / „Wszystkie"). Omit it where the
-   *  button names one action instead — the variant and the tick already say whether it is on. */
   allLabel?: string
 }
 

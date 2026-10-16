@@ -21,24 +21,14 @@ type PropsT = {
   investmentId: number
   investmentName: string
   materialsBreakdown: MaterialsBreakdownRowT[]
-  // Material the company bought and folded into robocizna, split per category. Owner-plane: it lowers
-  // marża and never touches the investor's bilans, hence its own table rather than extra rows above
-  // „Razem". Absent on a host that doesn't compute it (the editor).
   settledBreakdown?: MaterialsBreakdownRowT[]
   materialTransactions: MaterialTransactionRowT[]
-  // The netto rate already gated by the settlement mode (fraction). null = materiały settle brutto,
-  // and the split collapses to the single „Kwota" column.
   materialsNetRate: number | null
-  // Not displayed — it is the rate the inline control seeds when the owner switches to netto.
   vatRate: number
-  // Supplying the writer is what turns the inline control on — same gate as the popover's.
   onMaterialsNetRateChange?: (rate: number | null) => void
   isSavingSettings?: boolean
-  // Set by the panel when tryb brutto makes the choice inert — passed through to the inline control.
   pricingLockedReason?: string
   preview?: boolean
-  // Off on a host that already lists every materiały transaction next to the panel (the investment
-  // page's transfers table), where the in-panel list would only repeat it.
   showTransactions?: boolean
 }
 
@@ -57,18 +47,14 @@ export function SummaryExpensesTab({
   showTransactions = true,
 }: PropsT) {
   const pricingMode = pricingModeOf(materialsNetRate)
-  // Filtered here rather than only inside the list, so the section's own gate counts the same rows
-  // it will show — an investment whose only wydatki are settled must not open a „Lista wydatków"
-  // that a client then finds empty. The list re-filters regardless: it fails closed for its other
-  // hosts, not just for this one.
+  // an investment whose only wydatki are settled must not open a „Lista wydatków"
+  // that a client then finds empty.
   const listedTransactions = preview
     ? clientVisibleExpenseRows(materialTransactions)
     : materialTransactions
   // The investment page's panel never supplies `materialTransactions`, so a row-sourced gate would
   // blank the breakdown on a host whose figures are fully populated.
   const hasBilledMaterials = materialsBreakdown.length > 0
-  // Suppressed only by a block that actually renders below: „Lista wydatków" is itself gated on
-  // showTransactions, so counting its rows on a host that hides the list would leave the tab blank.
   const isEmpty =
     !hasBilledMaterials &&
     settledBreakdown.length === 0 &&
@@ -114,15 +100,10 @@ export function SummaryExpensesTab({
             byCategory={preview}
           />
         )}
-        {/* Never rows inside the wydatki table: this spend is the company's, so it must be
-            impossible to read as part of „Razem". Its own gate too — an investment can have
-            settled material and no investor wydatki at all. */}
         {settledBreakdown.length > 0 && (
           <MaterialsBreakdownTable
             rows={settledBreakdown}
             caption={SETTLED_TYPE.label}
-            // Settled material is never billed to the investor, so the netto reduction has
-            // nothing to reduce here — brutto-only split.
             netRate={null}
           />
         )}

@@ -583,3 +583,16 @@
   `lightningcss.darwin-arm64.node` exists), then `rm -rf .next` and restart dev (cache). A node
   one-liner can pass while the dev server still fails — verify against the running server.
 - Prod DB branch and restore-tested backups: `lesson-db-backup-resilience.md`.
+
+## An entity that is a list of references gets tables with no room for a copy
+
+- When a domain entity is „like X minus half of X's fields", don't store it as an X with a status:
+  every unused column invites a write, and every reader of X needs a status guard the compiler never
+  points to. Give it tables whose shape is the invariant (szablon = `templates` → `template_sections`
+  → `template_items`, each item a katalog ref + section + order) — a missing column needs no guard
+  and no spec. A shared editor doesn't need shared tables: inject the action set (`EditorActionsT`).
+- Two tables sharing one id number space: every id-keyed thing (localStorage, cache tags, actions)
+  gets a kind prefix or its own action — the number alone doesn't say what it points to.
+- Evidence: EX-893 put szablony in `investments` (status `szablon`); EX-1075 moved them out, guards
+  in the action gate, listings, counters and the golden master went with it. Moved with an additive
+  copy migration first and a `RUN-AFTER-DEPLOY` drop after the deploy.

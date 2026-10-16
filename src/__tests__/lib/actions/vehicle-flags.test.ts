@@ -5,11 +5,7 @@ import { warsawToday } from '@/lib/utils/days'
 
 // The re-tick trap: a mark already answered by an inspection still has its old day in the stored
 // map, so "keep whatever is stored" would write back a day the history covers and the tick would
-// silently do nothing. Driven against the REAL DB and asserted on the PERSISTED row — the action's
-// success flag cannot prove which date landed.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
+// silently do nothing.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

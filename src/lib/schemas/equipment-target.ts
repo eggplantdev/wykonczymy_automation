@@ -7,14 +7,6 @@ import {
   namedTargets,
 } from '@/lib/equipment/target-invariant'
 
-/**
- * The target trio, shared by both forms that write an event: „Przekaż" and the first entry „Dodaj
- * sprzęt" is required to carry. One shape, so the two can't drift into disagreeing about what a
- * destination is.
- *
- * `targetKind` exists only in the form layer — it is the radio the user actually answers, and the
- * three columns are derived from it. The row has no such column: the target IS the kind.
- */
 export const equipmentTargetFormShape = {
   occurredAt: requiredDay('Data przekazania jest wymagana'),
   targetKind: z.enum(EQUIPMENT_TARGET_KINDS),
@@ -31,7 +23,6 @@ const KIND_FIELD = {
 
 type TargetFormValuesT = { [K in keyof typeof equipmentTargetFormShape]: string }
 
-/** Form layer: the chosen kind must be answered, so the error lands ON the field the user sees. */
 export function refineTargetChoice(values: TargetFormValuesT, ctx: z.RefinementCtx) {
   const { field, message } = KIND_FIELD[values.targetKind as keyof typeof KIND_FIELD]
   if (values[field].trim() === '') {
@@ -39,7 +30,6 @@ export function refineTargetChoice(values: TargetFormValuesT, ctx: z.RefinementC
   }
 }
 
-/** Domain layer, as the row stores it — `null` for the two columns the choice did not fill. */
 export const equipmentTargetDataShape = {
   occurredAt: requiredDay('Data przekazania jest wymagana'),
   holder: z.number().nullable(),
@@ -63,7 +53,6 @@ export function refineExactlyOneTarget(values: TargetDataValuesT, ctx: z.Refinem
   if (targets.length > 1) ctx.addIssue({ code: 'custom', message: MULTIPLE_TARGETS_MESSAGE })
 }
 
-/** Form values → the three columns. Only the chosen kind survives; the other two are cleared. */
 export function toTargetData(values: TargetFormValuesT): TargetDataValuesT {
   return {
     holder: values.targetKind === 'holder' ? Number(values.holder) : null,

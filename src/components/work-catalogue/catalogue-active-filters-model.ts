@@ -26,8 +26,6 @@ const pickedLabels = ({ values, options }: ArgsT['categories']) =>
     )
     .join(', ')
 
-// The editor's `activeFiltersModel` for the catalogue: every source that narrows the table, so the
-// bar never reads „nothing filtered" while rows are missing.
 export function catalogueActiveFiltersModel({
   conditions,
   engagedIds,

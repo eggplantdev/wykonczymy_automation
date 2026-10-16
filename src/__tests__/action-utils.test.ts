@@ -3,8 +3,6 @@ import { z } from 'zod'
 import type { Payload } from 'payload'
 import type { SessionUserT } from '@/types/auth'
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-
 vi.mock('server-only', () => ({}))
 
 const mockDbExecute = vi.fn()
@@ -22,14 +20,12 @@ const adminUser: SessionUserT = { id: 1, email: 'a@t.com', name: 'Admin', role: 
 const managerUser: SessionUserT = { id: 2, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }
 const employeeUser: SessionUserT = { id: 3, email: 'e@t.com', name: 'Emp', role: 'EMPLOYEE' }
 
-// DB rows keyed by register ID — mirrors cash_registers table
 const dbRows: Record<number, Record<string, unknown>> = {
   1: { id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 2 },
   2: { id: 2, name: 'Virtual', type: 'VIRTUAL', active: true, owner_id: 1 },
   3: { id: 3, name: 'Aux', type: 'AUXILIARY', active: true, owner_id: 3 },
 }
 
-/** Configure mockDbExecute to return the row for a given register ID. */
 function mockRegisterLookup(registerId: number | undefined) {
   const row = registerId !== undefined ? dbRows[registerId] : undefined
   mockDbExecute.mockResolvedValue({ rows: row ? [row] : [] })
@@ -38,8 +34,6 @@ function mockRegisterLookup(registerId: number | undefined) {
 beforeEach(() => {
   mockDbExecute.mockReset()
 })
-
-// ── validateAction ───────────────────────────────────────────────────────
 
 describe('validateAction', () => {
   const schema = z.object({
@@ -67,8 +61,6 @@ describe('validateAction', () => {
   })
 })
 
-// ── validateSourceRegister ───────────────────────────────────────────────
-
 describe('validateSourceRegister', () => {
   it('returns error when register not found', async () => {
     mockRegisterLookup(999)
@@ -91,7 +83,6 @@ describe('validateSourceRegister', () => {
   })
 
   it('MANAGER can access any register', async () => {
-    // Register 3 has ownerId: 3, managerUser.id is 2
     mockRegisterLookup(3)
     const result = await validateSourceRegister(3, fakePayload)
     expect(result.success).toBe(true)

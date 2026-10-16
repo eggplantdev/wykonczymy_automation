@@ -1,7 +1,6 @@
 import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
 import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
 
-/** Owns the assets read so the client gallery takes data, not a promise, and the page can stream it. */
 export async function InvestmentAssetsSection({ investmentId }: { investmentId: number }) {
   const assets = await fetchInvestmentAssets(investmentId)
 

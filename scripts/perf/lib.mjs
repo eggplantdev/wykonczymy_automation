@@ -1,4 +1,3 @@
-// Shared plumbing for the perf kit — how to use it: context/reference/perf-measurement.md
 import fs from 'node:fs'
 
 export const BASE = process.env.PERF_BASE ?? 'http://localhost:3100'

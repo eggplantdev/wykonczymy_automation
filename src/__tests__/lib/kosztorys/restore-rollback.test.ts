@@ -6,17 +6,10 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// restore WIPES before it reinserts, so for the length of the call the investment's live kosztorys
-// does not exist. The only thing that makes that safe is the whole call running in one transaction —
-// and that rests on `getDb` finding the transaction-scoped Drizzle handle inside Payload internals
+// restore rests on `getDb` finding the transaction-scoped Drizzle handle inside Payload internals
 // (`adapter.sessions[txId].db`). When that shape changes on a Payload upgrade, getDb does not throw:
 // it SILENTLY falls back to the non-transactional handle, restore stops being atomic, and a throw
-// mid-reinsert leaves the tree half-wiped with nothing to say so. This spec is that tripwire.
-//
-// The throw is injected through the real code path, not a mock: a snapshot carrying two stages with
-// the same `ordinal` violates `kosztorys_stages_investment_ordinal_unique` at the stages INSERT —
-// i.e. after the wipe AND after sections + items have already been reinserted, which is exactly the
-// window where a lost transaction does maximum damage.
+// mid-reinsert leaves the tree half-wiped with nothing to say so.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
@@ -38,8 +31,6 @@ describe.skipIf(!ENV_READY)('restore rollback on error (DB)', () => {
       ownToolsCoeff: 0.5,
     })
 
-    // Two stages, because the poisoned snapshot below duplicates an ordinal across them — one stage
-    // could not collide with itself.
     await createKosztorysTree(payload, investmentId, {
       sections: [
         {

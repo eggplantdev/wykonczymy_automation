@@ -13,7 +13,6 @@ const TOTALS = ['stageQtySum', 'net', 'donePercent', 'plannedDonePercent', 'disc
 const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id)]
 
 describe('stagesWithEntries', () => {
-  // A saved 0 is what every etap cell holds before anyone types — it is not an entry.
   it('treats an etap holding only zeros as empty', () => {
     expect(stagesWithEntries([row(), row({ id: 2 })], CTX.stages)).toEqual([])
   })
@@ -35,7 +34,6 @@ describe('emptySettlementColumnIds', () => {
     expect([...empty].sort()).toEqual(stageColumns(2).sort())
   })
 
-  // The worker's half: his whole przedmiar is outstanding work before any entry.
   it('never hides „Pozostało"', () => {
     const empty = emptySettlementColumnIds([row()], CTX.stages)
     expect(empty.has('remaining')).toBe(false)
@@ -46,7 +44,6 @@ describe('emptySettlementColumnIds', () => {
   })
 })
 
-// EX-921: the investor's document is the pure offer until the first etap entry.
 describe('investorEmptyColumnIds', () => {
   const OFFER_PHASE = ['remaining', 'currentPlannedQty', 'currentPlannedNet']
 

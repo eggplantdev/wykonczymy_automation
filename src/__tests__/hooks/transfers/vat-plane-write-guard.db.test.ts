@@ -6,14 +6,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-// The persisted-row half of the plane rules the hook and the collection pin in isolation. Two
-// invariants, one spec because they are the same fact from both ends: the tag names the side of the
-// settlement a wpłata pays, so it belongs to a wpłata od inwestora alone and it is write-once —
-// a booked plane never moves, on ANY write path, while a legacy row that never had one can still be
-// filled in.
-// Asserting the ACTION's result would say nothing — a `success: true` sits happily on top of
-// a write Payload stripped, and on top of one it let through.
-
 vi.mock('server-only', () => ({}))
 // The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
 vi.mock('next/server', async (importOriginal) => {
@@ -111,7 +103,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
       type: 'COMPANY_FUNDING',
       vatPlane: 'GROSS',
     })
-    // A row as it was written before EX-536 existed: no plane, and therefore no netto either.
     persisted.legacy = await createRow({
       description: `${MARKER} legacy deposit`,
       type: 'INVESTOR_DEPOSIT',
@@ -173,8 +164,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
     expect(await persistedPlane(persisted.deposit!)).toBe('GROSS')
   })
 
-  // The netto twin of the re-tag guard: once a wpłata brutto names its netto, that figure is what
-  // the bilans has already billed, so an edit may not move it either.
   it('refuses to move the netto of a wpłata that already has one', async () => {
     await payload.update({
       collection: 'transactions',
@@ -188,9 +177,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
     expect(await persistedNetAmount(persisted.deposit!)).toBe(1000)
   })
 
-  // The path every server action writes on, and the reason write-once lives in the hook: a Local
-  // API write skips access control, so a fields-only guard would wave this one through. Loud here by
-  // design — silence would let a caller believe the re-tag landed.
   it('refuses a re-tag on the Local API path too, where field access never runs', async () => {
     await expect(
       payload.update({

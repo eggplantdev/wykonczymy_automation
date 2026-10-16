@@ -1,24 +1,3 @@
-// Vercel Blob → FTP mirror, incremental (EX-459 Phase 2). Runs daily in CI.
-// Dependency-free: Node built-ins + the Blob REST API only, so it runs even if node_modules
-// is broken (a backup/recovery tool must not depend on the thing that might be broken).
-//
-// Rung-3 "manifest-diff" strategy: the caller (workflow) pulls the latest manifest from FTP;
-// this script diffs it against a live `list()` IN MEMORY and downloads ONLY new blobs — ~3 FTP
-// round-trips regardless of store size, instead of one stat-per-file. MIRROR-ONLY: a blob that
-// vanished from Vercel is never removed from backup (that is the whole point — threat #1).
-//
-// SAFETY: strictly one-way, Vercel -> local disk (the workflow then pushes to FTP). The
-// BLOB_READ_WRITE_TOKEN reaches exactly ONE endpoint — the read-only `list` API. Downloads are
-// anonymous GETs of public blob URLs. This script never calls put/del/copy/empty on the store.
-//
-// Usage (the workflow wires these):
-//   BLOB_READ_WRITE_TOKEN=... SNAPSHOT_STAMP=$(date +%Y%m%d-%H%M%S) \
-//   node scripts/blob-mirror.mjs --prev-manifest prev.json --out ./blob-out [--min-blobs 1500]
-//
-//   --prev-manifest <path>  previous manifest pulled from FTP (absent/empty file => full seed)
-//   --out <dir>             output dir: <dir>/media/<pathname> + <dir>/manifest-<stamp>.json
-//   --min-blobs <n>         floor: fail if `list()` returns fewer (catches empty/wrong store)
-
 import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
@@ -40,12 +19,9 @@ const fmtMB = (bytes) => `${(bytes / 1024 / 1024).toFixed(2)} MB`
 
 // `list()` reports the LOGICAL pathname; when a blob was uploaded with addRandomSuffix the real
 // storage key — the one Payload stores in `media.filename` and asks for on read — lives in the
-// URL instead (`foo.heic` vs `foo-T9Y1iW9h….heic`). Backing files up under `pathname` therefore
-// saves the right bytes under a name nothing resolves: the EX-459 restore drill found 7 invoices
-// restored-but-404ing this way. Key everything off the URL segment.
+// URL instead (`foo.heic` vs `foo-T9Y1iW9h….heic`).
 const storageKey = (blob) => decodeURIComponent(new URL(blob.url).pathname.slice(1))
 
-// --- enumerate (read-only REST list) ---
 async function listAll() {
   const blobs = []
   let cursor
@@ -62,7 +38,6 @@ async function listAll() {
   return blobs
 }
 
-// --- load previous manifest (known pathnames) ---
 async function loadKnown(path) {
   if (!path) return new Set()
   try {
@@ -87,14 +62,10 @@ const known = await loadKnown(prevManifestPath)
 const fresh = current.filter((b) => !known.has(storageKey(b)))
 console.log(`\nVercel: ${current.length} blobs, ${fmtMB(totalBytes)} · known: ${known.size} · new: ${fresh.length}\n`)
 
-// --- download only the new blobs (anonymous GET) ---
 const mediaDir = join(outDir, 'media')
 await mkdir(mediaDir, { recursive: true })
 let done = 0
 const failures = []
-// The Blob API throws transient 5xx under sustained traffic, which would otherwise fail the whole
-// run and leave the delta unbacked until someone notices. A *persistent* 403 on every blob is a
-// different animal — the store is suspended over plan limits, and no amount of retrying helps.
 const RETRIES = 4
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 async function download(url) {
@@ -117,7 +88,6 @@ for (const b of fresh) {
   console.log(`  ${String(done).padStart(4)}/${fresh.length}  ${key}`)
 }
 
-// --- emit the new manifest = union of everything ever seen (mirror-only) ---
 // Merge, not replace: a blob deleted from Vercel stays in the manifest so it is never dropped.
 const byPath = new Map()
 if (prevManifestPath) {
@@ -133,7 +103,6 @@ await writeFile(
   JSON.stringify({ stamp, count: mergedBlobs.length, vercelCount: current.length, newThisRun: done, failures, blobs: mergedBlobs }, null, 2),
 )
 
-// --- completeness: every live blob must be represented in the manifest ---
 const covered = current.every((b) => byPath.has(storageKey(b)))
 console.log(`\nNew files downloaded: ${done}/${fresh.length} · manifest total: ${mergedBlobs.length}`)
 if (!covered) { console.error('FAIL completeness: a live blob is missing from the manifest'); process.exit(1) }

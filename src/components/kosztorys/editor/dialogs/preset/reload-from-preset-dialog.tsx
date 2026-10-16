@@ -5,7 +5,7 @@ import { Check } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
-import { reloadFromPresetAction } from '@/lib/actions/kosztorys-presets'
+import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { cn } from '@/lib/utils/cn'
@@ -22,9 +22,6 @@ const countItems = (group: PresetGroupT) =>
 const summary = (sections: number, items: number) =>
   `${sections} ${sectionNoun(sections)} · ${items} ${itemNoun(items)}`
 
-// The two screens' wording, side by side rather than as seven ternaries scattered down the JSX.
-// Inline, the szablon variant could only be checked against the kosztorys one by reading the file
-// twice; in a table each column reads top to bottom, which is how a half-updated pair shows up.
 const COPY = {
   kosztorys: {
     title: 'Wczytaj kosztorys z szablonu',
@@ -46,28 +43,27 @@ const COPY = {
   },
 } as const
 
-// The counterpart to „Dodaj sekcję z szablonu", which appends; this one replaces, so both counts are
-// stated before the confirm. The same replace on a kosztorys and on a szablon — only the wording
-// differs, because on a szablon it is that szablon's content being swapped.
 export function ReloadFromPresetDialog() {
   const { tree, investmentId, onTreeReplaced, isTemplate, flushPendingSaves } =
     useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().reloadPreset
+  const { reloadFromPreset } = useEditorActions()
   const { sections, resetSections } = usePresetSections(open)
   const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null)
   const [pending, startTransition] = useTransition()
   const copy = COPY[isTemplate ? 'szablon' : 'kosztorys']
 
   const groups = groupPresetSections(sections ?? [], new Set()).filter(
-    // A szablon reloaded from itself would only lose its przedmiar — the action refuses it anyway.
-    (group) => group.presetId !== investmentId,
+    // A szablon reloaded from itself would change nothing — the action refuses it anyway. A kosztorys
+    // id is not a szablon id, so only the szablon's own editor has itself to leave out.
+    (group) => !isTemplate || group.templateId !== investmentId,
   )
   const {
     filteredData: filteredGroups,
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(groups, getPresetName)
-  const selected = groups.find((group) => group.presetId === selectedPresetId)
+  const selected = groups.find((group) => group.templateId === selectedPresetId)
 
   function handleOpenChange(next: boolean) {
     if (!next) {
@@ -83,7 +79,7 @@ export function ReloadFromPresetDialog() {
     startTransition(async () => {
       const replaced = await settleTreeReplace(
         flushPendingSaves,
-        () => reloadFromPresetAction(investmentId, selected.presetId),
+        () => reloadFromPreset(investmentId, selected.templateId),
         'Wczytywanie przerwane — odświeżam kosztorys',
         ({ data }) => toastMessage(`Wczytano: ${summary(data.sections, data.items)}`, 'success'),
       )
@@ -118,12 +114,12 @@ export function ReloadFromPresetDialog() {
                 <p className="text-muted-foreground px-3 py-4 text-sm">Nie znaleziono szablonu.</p>
               ) : (
                 filteredGroups.map((group) => {
-                  const isSelected = group.presetId === selectedPresetId
+                  const isSelected = group.templateId === selectedPresetId
                   return (
                     <button
-                      key={group.presetId}
+                      key={group.templateId}
                       type="button"
-                      onClick={() => setSelectedPresetId(group.presetId)}
+                      onClick={() => setSelectedPresetId(group.templateId)}
                       aria-pressed={isSelected}
                       className={cn(
                         'hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
@@ -131,7 +127,7 @@ export function ReloadFromPresetDialog() {
                       )}
                     >
                       <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
-                      <span className="flex-1 truncate">{group.presetName}</span>
+                      <span className="flex-1 truncate">{group.templateName}</span>
                       <span className="text-muted-foreground text-xs">
                         {summary(group.metas.length, countItems(group))}
                       </span>

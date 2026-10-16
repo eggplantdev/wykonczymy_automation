@@ -21,7 +21,6 @@ type VariantConfigT = {
   noActiveItemsMessage: string
 }
 
-// „Pracownik" is picked under three field names (worker / holder / owner); the wording is one thing.
 const WORKER_COPY = {
   label: 'Pracownik',
   placeholder: 'Wybierz pracownika',
@@ -58,11 +57,8 @@ type EntityComboboxFieldPropsT<
   form: FormWithFieldT<(typeof VARIANT_CONFIG)[TVariant]['name']>
   variant: TVariant
   items: TItem[]
-  // Forwarded to the inner AppField; only onChange is used at call sites (reset a dependent field).
   listeners?: { onChange?: () => void }
-  /** Renders the field disabled, with this sentence as the hint under the label. */
   lockedReason?: string
-  /** Replaces the „Aktywne / Wszystkie” toggle with a filter the user cannot widen. */
   fixedFilter?: (item: TItem) => boolean
 }
 

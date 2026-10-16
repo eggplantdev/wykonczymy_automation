@@ -3,8 +3,6 @@ import { z } from 'zod'
 import isValidUrl from '@/lib/utils/is-valid-url'
 import { refineAmount, refineDate } from '@/lib/utils/validation'
 
-// ── isValidUrl ───────────────────────────────────────────────────────────
-
 describe('isValidUrl', () => {
   it('returns true for valid http URL', () => {
     expect(isValidUrl('http://example.com')).toBe(true)
@@ -30,19 +28,12 @@ describe('isValidUrl', () => {
     expect(isValidUrl('data:text/plain;base64,aGVsbG8=')).toBe(true)
   })
 
-  // Regression: production NEXT_PUBLIC_FRONTEND_URL was 'https:wykonczymy.vercel.app' —
-  // missing the // after the scheme. new URL() silently normalizes that for http(s), so the
-  // validator accepted it and the malformed value got baked into reset-password email hrefs,
-  // which Gmail resolved relative to google.com → 404. The gate must reject it.
   it('returns false for an http(s) URL missing the // authority separator', () => {
     expect(isValidUrl('https:wykonczymy.vercel.app')).toBe(false)
   })
 })
 
-// ── refineAmount ─────────────────────────────────────────────────────────
-
 describe('refineAmount', () => {
-  // Use a Zod schema to exercise the refinement
   const schema = z.object({ amount: z.string() }).superRefine((data, ctx) => {
     refineAmount(data, ctx)
   })
@@ -67,8 +58,6 @@ describe('refineAmount', () => {
     expect(schema.safeParse({ amount: '0.01' }).success).toBe(true)
   })
 })
-
-// ── refineDate ───────────────────────────────────────────────────────────
 
 describe('refineDate', () => {
   const schema = z.object({ date: z.string() }).superRefine((data, ctx) => {

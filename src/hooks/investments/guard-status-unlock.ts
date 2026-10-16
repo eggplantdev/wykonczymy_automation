@@ -6,13 +6,8 @@ export const INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE =
   'Zakończoną inwestycję może odblokować tylko właściciel lub administrator.'
 
 /**
- * The rule the whole lock rests on. Without it the lock is theatre: `updateInvestmentAction` runs
- * under MANAGEMENT_ROLES, so a MANAGER would flip a zakończona inwestycja back to „Aktywna", book
- * whatever they liked and flip it back. In the collection hook rather than the action because
- * `/admin` grants MANAGER `update` on investments — that would be the second way round.
- *
- * Only the EXIT is narrowed. Closing a settled job is a manager's work, so entering `completed`
- * stays open to every management role, and the eight kartoteka fields are untouched either way.
+ * Without it the lock is theatre: `updateInvestmentAction` runs under MANAGEMENT_ROLES, so a MANAGER
+ * would flip a zakończona inwestycja back to „Aktywna", book whatever they liked and flip it back.
  */
 export const guardInvestmentStatusUnlock: CollectionBeforeChangeHook = ({
   data,

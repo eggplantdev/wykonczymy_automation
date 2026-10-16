@@ -3,10 +3,6 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 
-// The toggle rows carry two shapes at once: a caller with a handful of rows passes them flat, and a
-// caller with a dozen files them under headings. The headings were added for the second; the first
-// must come out exactly as it did before, because it is what „Anulowane" on the transfers renders.
-
 const toggle = (id: string, label: string, groupLabel?: string) => ({
   id,
   label,
@@ -33,8 +29,6 @@ describe('FilterMultiSelect — wiersze przełączników', () => {
     expect(onlyRun).not.toHaveAccessibleName()
   })
 
-  // Split where the label CHANGES, not grouped by value: the caller owns the order, so a repeated
-  // heading means it interleaved two axes — showing that beats silently reuniting them.
   it('opens a new run wherever the heading changes', async () => {
     render(
       <FilterMultiSelect

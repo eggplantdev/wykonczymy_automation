@@ -20,9 +20,6 @@ export type TransferLookupsT = {
   media: Map<number, MediaInfoT>
 }
 
-/**
- * Builds lookup Maps from reference data + media map for use with mapTransferRow.
- */
 export function buildTransferLookups(
   refData: ReferenceDataBaseT,
   mediaMap: Map<number, MediaInfoT>,
@@ -41,9 +38,6 @@ export function buildTransferLookups(
   }
 }
 
-// A depth:0 transfer doc: relationship fields are IDs, not populated objects.
-// `originalType` is spliced in by TransferTableServer for CANCELLATION audit rows
-// and isn't part of the collection schema.
 type RelationIdT = number | null | undefined
 
 export type TransferDocT = {
@@ -76,7 +70,6 @@ export type TransferDocT = {
   payoutRejectionReason?: string | null
 }
 
-/** Maps a depth:0 transfer document to a flat TransferRowT, resolving IDs via lookup maps. */
 export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): TransferRowT {
   return {
     id: doc.id,
@@ -118,7 +111,6 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
   }
 }
 
-// `TransferRowT` spells "no relation" as null, `resolveId` as undefined.
 function toNullableId(field: unknown): number | null {
   return resolveId(field) ?? null
 }

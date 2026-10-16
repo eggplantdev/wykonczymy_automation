@@ -52,8 +52,6 @@ type PropsT = {
   error: string | null
   loaded: boolean
   onImported: OnTreeReplacedT
-  // Re-reads the sheet with the new pointing in place, so the window answers in place instead of
-  // asking the owner to close it and try again.
   onMappingSaved: () => void
 }
 
@@ -62,8 +60,6 @@ const MISSING_COLUMN_REASONS: Record<UnresolvedReasonT, string> = {
   ambiguous: 'pasuje do kilku kolumn — zmień nazwę tej drugiej',
 }
 
-// What the import would do, before it does it. The confirm re-derives everything server-side, so
-// nothing rendered here is trusted on the way back.
 export function SheetImportDialog({
   investmentId,
   workers,
@@ -170,7 +166,6 @@ export function SheetImportDialog({
   )
 }
 
-// A value rather than an empty string, because the select needs something to render as the pick.
 const NO_PLANE = 'none'
 type PlanePickT = ToolPlaneT | typeof NO_PLANE
 
@@ -182,7 +177,6 @@ const PLANE_OPTIONS = [
   })),
 ]
 
-// One pick for the whole kosztorys; the odd etap out gets changed in its own header afterwards.
 function StageDefaultsBlock({
   plane,
   onPlaneChange,
@@ -218,7 +212,6 @@ function StageDefaultsBlock({
         />
         <SearchSelect
           value={plane === NO_PLANE || workerId === null ? '' : String(workerId)}
-          // The picker hands back '' for a re-pick of the chosen row as well as for „Bez przypisania".
           onChange={(next) => onWorkerChange(next === '' ? null : Number(next))}
           items={workerItems}
           searchPlaceholder={STAGE_HEADER_COPY.searchPlaceholder}
@@ -231,7 +224,6 @@ function StageDefaultsBlock({
   )
 }
 
-// The warnings ride here rather than at the top: each one is a caveat about the count beside it.
 function ScopeBlock({ report }: { report: ImportReportT }) {
   const { counts, warnings, coeffs } = report
   const adopted = [
@@ -261,11 +253,6 @@ function ScopeBlock({ report }: { report: ImportReportT }) {
   )
 }
 
-/**
- * Only the columns we could NOT read: a required one is either resolved or the import is refused, so
- * the recognised ones say nothing. An absent optional column is data quietly missing from the
- * kosztorys, and this is the only place it is stated.
- */
 function ColumnsBlock({
   investmentId,
   missing,
@@ -320,8 +307,6 @@ function ColumnsBlock({
   )
 }
 
-// The last screen before the rozpiska is replaced, so it names the loss: keeping the unmatched prace
-// instead is what filled one kosztorys with 83 copies of itself.
 function DroppedBlock({ dropped }: { dropped: ImportReportT['dropped'] }) {
   const clean = dropped.length === 0
   const withProgress = dropped.filter((item) => item.hasProgress).length
@@ -357,11 +342,6 @@ function DroppedBlock({ dropped }: { dropped: ImportReportT['dropped'] }) {
   )
 }
 
-/**
- * Both rows are checked against our pricing of the SHEET's own prace — the stored kosztorys never
- * enters this table — so a difference is the sheet disagreeing with itself, either because we misread
- * a cena or because its own footer arithmetic is off. Live, it has always been the latter.
- */
 function TotalsBlock({
   totals,
   mismatched,
@@ -402,14 +382,6 @@ function TotalsBlock({
   )
 }
 
-/**
- * „wartość netto" first: it is the only one of the two that doubts the read itself, and a wrong cena
- * makes every other figure in the dialog wrong too. Neither message names the app as a side, because
- * both rows face our pricing of the sheet's own prace.
- *
- * A stale SUM in the owner's footer is common enough that blocking on it would make the button
- * useless exactly where it is needed, so neither line stops the import.
- */
 function totalsVerdict(mismatched: FooterComparisonT[]): string {
   if (mismatched.some((total) => total.key === 'plannedNet'))
     return 'Kwota wpisana na dole arkusza Google nie wychodzi z sumy jego własnych prac — sprawdź formuły sumujące na dole arkusza. Pobranie jest nadal możliwe.'

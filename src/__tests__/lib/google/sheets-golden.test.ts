@@ -1,14 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setGoogleCredentialEnv } from '@/__tests__/helpers/google-credentials'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GOLDEN CHARACTERIZATION TEST (regression lock, spec criterion 1).
-// Captures the exact Google Sheets API payloads the EXPENSES tab code emits.
-// The snapshot is the contract: the config-driven refactor may change function
-// signatures (this file's call sites), but the captured requests must stay
-// byte-identical. Do NOT update the snapshot to make a refactor pass — a diff
-// here means the expenses tab output changed, which the spec forbids.
-// ─────────────────────────────────────────────────────────────────────────────
+// Do NOT update the snapshot to make a refactor pass — a diff here means the expenses tab output changed
 
 const getMock = vi.fn()
 const valuesBatchUpdateMock = vi.fn()
@@ -37,7 +30,6 @@ vi.mock('googleapis', () => ({
   },
 }))
 
-// Every captured call in order: [apiMethod, requestArg]
 function captured() {
   const calls: Array<[string, unknown]> = []
   for (const [name, mock] of [

@@ -18,15 +18,6 @@ type ActiveFiltersBarPropsT<ChipT extends ActiveFiltersBarChipT> = {
   className?: string
 }
 
-/**
- * What is narrowing the list right now, on screen, each removable in one click.
- *
- * Absent when nothing is engaged, not rendered empty: a permanent strip is a line of chrome the eye
- * learns to skip, and its whole job is to be noticed the moment something is on.
- *
- * Wraps rather than scrolling sideways: a chip past the right edge is a filter the reader does not
- * know is on, which is the whole thing this bar exists to stop.
- */
 export function ActiveFiltersBar<ChipT extends ActiveFiltersBarChipT>({
   chips,
   onRemove,
@@ -46,8 +37,6 @@ export function ActiveFiltersBar<ChipT extends ActiveFiltersBarChipT>({
           onRemove={() => onRemove(chip)}
         />
       ))}
-      {/* Last, and only worth offering beside two or more chips — with one on screen it would be a
-          second button for what the X beside it already does. */}
       {chips.length > 1 && (
         <Button
           variant="ghost"

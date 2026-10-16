@@ -47,7 +47,6 @@ export function ExpenseDraftDuplicateHints({
       ? match.readRows.map(paragonOfReadRow).find((row) => row !== undefined)
       : undefined
 
-  // A decided paragon takes its hints with it.
   const ownParagons = paragons.filter((paragon) => {
     const row = paragonOfReadRow(paragon.readRow)
     return row?.itemId === itemId && row.status === 'pending'
@@ -61,14 +60,11 @@ export function ExpenseDraftDuplicateHints({
           paragonReadRow: paragon.readRow,
         }),
       )
-      // A refused twin is no longer a second booking of this paragon; an accepted one still is. A
-      // twin merged into this very row was declared the same expense by the merge.
       .filter((row) => {
         const twin = twinOf(row)
         return !dismissed.has(rowKey(row)) && twin?.status !== 'rejected' && twin?.itemId !== itemId
       })
     if (rows.length === 0) return []
-    // The row's own title names a lone paragon; a merged row needs each of its paragony named.
     const label =
       ownParagons.length > 1
         ? [paragon.description, paragon.amount !== null && formatPLNOrDash(paragon.amount)]
@@ -78,7 +74,6 @@ export function ExpenseDraftDuplicateHints({
     return [{ readRow: paragon.readRow, label, rows }]
   })
   const hasHints = groups.length > 0
-  // Only a confirmed match earns the alarm; „Ta sama kwota" alone stays as quiet as its row.
   const isAlarm = groups.some((group) => group.rows.some((row) => !isWeakMatch(row.reasons)))
 
   const columns = getExpenseDuplicateColumns<ExpenseDuplicateRowT>({

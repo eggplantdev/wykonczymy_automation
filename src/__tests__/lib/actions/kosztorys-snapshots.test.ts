@@ -4,11 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// saveSnapshotAction carries its required-label invariant in the action, so run the REAL action and
-// assert PERSISTED state — an empty label must reject with the exact toast and write no row.
-//
-// Same mock surface as the sibling stage spec: requireAuth needs a request/cookie we lack in node,
-// and cache revalidation touches next/cache outside a request context.
 // A real user id is set in beforeAll — the snapshot's `taken_by` FK-references users(id), so a
 // fabricated id would fail the manual-insert path.
 const authState = vi.hoisted(() => ({ userId: 0 }))
@@ -68,8 +63,6 @@ describe.skipIf(!ENV_READY)('saveSnapshotAction — required label (DB)', () => 
     expect(await namedCount()).toBe(0)
   })
 
-  // The investor's history lists „Zapisz jako…" versions and must not list the `manual` safety
-  // copies a restore or a szablon reload takes on its way.
   it('stores a named snapshot with the given label', async () => {
     const res = await saveSnapshotAction(investmentId, 'Wersja klienta')
 

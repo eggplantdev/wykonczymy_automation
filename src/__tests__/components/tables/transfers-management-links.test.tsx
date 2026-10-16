@@ -6,7 +6,6 @@ import { transferRow } from '@/__tests__/fixtures/transfer-row'
 import type { RoleT } from '@/lib/auth/roles'
 import type { TransferRowT } from '@/types/transfers'
 
-// `/inwestycje/[id]` and `/kasa/[id]` are management-only: a link there sends a worker into a 404.
 function renderCell(columnId: string, role: RoleT, value: string) {
   const column = getTransferColumns([], { currentUserRole: role }).find((c) => c.id === columnId)
   const cell = column?.cell

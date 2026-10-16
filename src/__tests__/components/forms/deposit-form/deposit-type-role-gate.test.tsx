@@ -34,8 +34,6 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// MANAGER can't book „Zasilenie z konta firmowego" (company money) — a deliberate client-side-only
-// gate (EX-557 decision 6), so the rendered option list is the only place to assert it.
 describe('Wpłata — „Zasilenie z konta firmowego" tylko dla ADMIN/OWNER', () => {
   it('kierownik dostaje dwa typy, bez zasilenia', async () => {
     await openTypeMenu('MANAGER')

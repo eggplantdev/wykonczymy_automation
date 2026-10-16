@@ -17,8 +17,7 @@ import { fakePayload, lastSql, resetFakePayload } from '@/__tests__/helpers/fake
 
 /**
  * Assert the EMITTED SQL, never the intermediate Where: a Where-shape assertion stays green
- * when the translator silently drops an operator (EX-574). Translation itself is covered per-operator
- * in `lib/db/where-to-sql.test.ts`; these cases pin the whole URL → SQL chain.
+ * when the translator silently drops an operator (EX-574).
  */
 
 beforeEach(resetFakePayload)
@@ -96,7 +95,6 @@ describe('transfer filters → stats SQL', () => {
   })
 })
 
-// Risk #22: the worker page's sum tile goes through the same chain, with the scope under `and`.
 describe('worker transfer scope → stats SQL', () => {
   async function workerSql(searchParams: Record<string, string>): Promise<string> {
     const where = buildWorkerTransferWhere(
@@ -134,10 +132,8 @@ describe('worker transfer scope → stats SQL', () => {
 })
 
 /**
- * These assert the Where, not emitted SQL — deliberately, and against the rule at the top of this
- * file. The audit list is the one path that does NOT go through where-to-sql: it is handed to
- * Payload, which resolves the dotted relationship path itself. The Where is therefore the whole
- * contract, and there is no SQL of ours to pin instead.
+ * The audit list is the one path that does NOT go through where-to-sql: it is handed to Payload,
+ * which resolves the dotted relationship path itself.
  */
 describe('audit mode → scope through the cancelled original', () => {
   const auditWhere = (extra: Where) =>
@@ -166,8 +162,6 @@ describe('audit mode → scope through the cancelled original', () => {
     })
   })
 
-  // The method stopped being copied onto the audit row when it became a two-type field, so the
-  // scope has to reach the original — otherwise „anulowania przelewem" answers „Brak danych".
   it('re-aims a metoda scope at the original', () => {
     expect(auditWhere({ paymentMethod: { in: ['TRANSFER'] } })).toMatchObject({
       'cancelledTransaction.paymentMethod': { in: ['TRANSFER'] },
@@ -182,8 +176,6 @@ describe('audit mode → scope through the cancelled original', () => {
     expect(where.createdBy).toEqual({ in: [3] })
   })
 
-  // The Typ filter used to be skipped outright in this mode, so „pokaż tylko anulowania wydatków"
-  // silently listed anulowania of everything — and „nic nie zaznaczone" listed everything too.
   it('re-aims a Typ scope at the transaction that was cancelled', () => {
     const where = buildTransferFilters(
       { cancelledTransactionAudit: '1', type: 'INVESTMENT_EXPENSE,PAYOUT' },
@@ -226,8 +218,6 @@ describe('audit mode → scope through the cancelled original', () => {
     expect(scopeAuditThroughOriginal(plain)).toEqual(plain)
   })
 
-  // Exported, so a composed Where can carry original-only fields under `and` — unrewritten, the list
-  // reads „Brak danych".
   it('recurses into `and` as well as `or`', () => {
     const where = scopeAuditThroughOriginal({
       and: [{ investment: { equals: 31 } }, { or: [{ worker: { equals: 25 } }] }],
@@ -239,8 +229,6 @@ describe('audit mode → scope through the cancelled original', () => {
     ])
   })
 
-  // Why the sum tile above the list keeps the un-rewritten where: where-to-sql knows columns of
-  // `transactions` and refuses anything else rather than silently dropping it (EX-574).
   it('produces a where the stats SQL translator refuses', () => {
     expect(() => buildSqlConditions(auditWhere({ investment: { equals: 31 } }))).toThrow(
       /unmapped field/,
@@ -248,8 +236,6 @@ describe('audit mode → scope through the cancelled original', () => {
   })
 })
 
-// „Wypłaty" is a type filter the URL cannot widen — and in „Tryb anulowań" it must still name the
-// wypłaty that were cancelled, not every CANCELLATION in the ledger.
 describe('buildPayoutFilters', () => {
   it('keeps the list on wypłaty whatever Typ the URL carries', () => {
     expect(buildPayoutFilters({ type: 'DEPOSIT' }, { id: 1 }).type).toEqual({ in: ['PAYOUT'] })
@@ -360,8 +346,6 @@ describe('narrowToTransferIds', () => {
     expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
   })
 
-  // Payload's drizzle parseParams keeps only the LAST of top-level `or` / `and`. Our translator ANDs
-  // both, so this is pinned on the Where.
   it('never leaves a top-level `or` beside the `and` it adds', () => {
     const where = narrowToTransferIds(
       buildTransferFilters({ sourceRegister: '50' }, { id: 0 }),

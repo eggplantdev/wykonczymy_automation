@@ -1,11 +1,8 @@
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-expense-form'
 
-// Only the setter is taken, not the whole form API — it keeps the write path a pure, directly
-// testable function instead of something reachable only through a rendered hook.
 type SetFieldValueT = BulkExpenseFormApiT['setFieldValue']
 
-// The stored read omits what it didn't read.
 type ReceiptValuesT = {
   description?: string
   amount?: number | null
@@ -28,14 +25,9 @@ export function receiptToLineItemValues(read: ReceiptValuesT) {
   }
 }
 
-// Category is left blank for the user to pick — the model's category inference wasn't reliable
-// enough (frequent mismatches).
-//
-// `netAmount` is written REGARDLESS of the transfer type, which is deliberate and looks like a
-// missing `billsNetAmount` gate if you read it quickly: the type is a form-level field the user
+// `netAmount` is written REGARDLESS of the transfer type: the type is a form-level field the user
 // often picks AFTER scanning, and a filled row is skipped by the bulk re-scan, so gating here would
-// leave a blank Netto column only a per-row re-read could fill. `mapLineItem` already drops the value at
-// submit on any type that doesn't bill netto.
+// leave a blank Netto column only a per-row re-read could fill.
 export function applyReceiptToRow(
   setFieldValue: SetFieldValueT,
   index: number,

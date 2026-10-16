@@ -19,13 +19,6 @@ type EquipmentFieldPropsT = {
   form: FormWithFieldT<EquipmentItemFieldNameT>
 }
 
-/**
- * What the item IS — shared by „Dodaj sprzęt" and „Edytuj sprzęt".
- *
- * Price, status and the note are separate exports rather than part of this block: „Dodaj sprzęt"
- * interleaves them with the handover fields (cena beside the day it was handed over, uwagi under
- * everything), which it cannot do while they are welded into one component.
- */
 export function EquipmentItemFields({ form }: EquipmentFieldPropsT) {
   return (
     <>
@@ -75,7 +68,6 @@ export function EquipmentPriceField({
   )
 }
 
-/** Hidden while adding: a brand-new item is „W użyciu" and nothing else. */
 export function EquipmentStatusField({ form }: EquipmentFieldPropsT) {
   return (
     <form.AppField name="status">

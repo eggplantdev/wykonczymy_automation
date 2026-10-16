@@ -2,8 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Company rules that belong to no single praca (EX-1032). Knowledge about one praca stays in the
-// katalog's „Komentarz do pracy”, so one rule never has two homes.
 export const CompanyKnowledge: CollectionConfig = {
   slug: 'company-knowledge',
   labels: {
