@@ -708,6 +708,20 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       pickery inwestycji w „Wpłata” / „Wydatek” / edycji przelewu dalej pokazują tylko Aktywne
       i Planowane.
 
+## 2026-10-16 — investment-billing-data — adres inwestycji rozbity na pola + „Dane do umowy / faktury”
+
+- [ ] „Nowa inwestycja” z samą nazwą (wszystkie nowe pola puste) → zapis przechodzi, strona inwestycji
+      nie pokazuje wierszy „Zamawiający” ani „Adres do umowy”.
+- [ ] Edycja inwestycji → wypełnij „Ulica i numer”, „Kod pocztowy”, „Miejscowość”, „Kraj” → „Adres” na
+      stronie inwestycji to jedna linia: „ulica, kod miejscowość, kraj”.
+- [ ] Edycja → „Typ klienta: Firma”, nazwa firmy, NIP, osoba reprezentująca, „taki sam jak adres
+      inwestycji” zaznaczone → „Zamawiający” pokazuje firmę z NIP i reprezentantem; brak „Adres do umowy”.
+- [ ] Przełącz na „Osoba prywatna”, odznacz „taki sam…”, wpisz adres → „Zamawiający” to imię i nazwisko,
+      „Adres do umowy” pokazuje wpisany adres; pola firmy nie wracają po ponownym otwarciu edycji.
+- [ ] Edycja z listy „Inwestycje” (ikona edycji w wierszu) → nowe pola są wypełnione jak na stronie
+      inwestycji, a zapis bez zmian ich nie czyści.
+- [ ] Protokół odbioru → „Zaktualizuj dane inwestycji” dalej zapisuje osobę kontaktową i adres.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
