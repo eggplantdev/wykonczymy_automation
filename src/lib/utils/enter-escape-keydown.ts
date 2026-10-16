@@ -16,6 +16,7 @@ export function enterEscapeKeyDown<ElementT extends HTMLElement>(handlers: {
     if (!handler) return
     event.preventDefault()
     event.stopPropagation()
+    event.nativeEvent.stopImmediatePropagation()
     handler(event)
   }
 }

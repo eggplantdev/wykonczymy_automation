@@ -776,6 +776,24 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Desktop → Transakcje: przełącznik, „Szukaj duplikatów” i „Kolumny” w jednym rzędzie po prawej,
       jak dotąd.
 
+## EX-1081 — enter-escape-keydown — Enter/Escape w polu komórki nie trafia już do siatki
+
+Edytor kosztorysu, desktop. Wygląd się nie zmienia; Enter/Escape w trakcie wpisywania obsługuje teraz
+tylko komórka, a siatka ich nie widzi.
+
+- [ ] Komórka liczbowa (Przedmiar, Cena j.m., rabat, kolumna etapu): wpisz wartość, **Enter** —
+      wartość się zapisuje, edycja się zamyka, zaznaczenie schodzi **dokładnie o jeden wiersz** niżej.
+- [ ] Ta sama komórka: wpisz inną wartość, **Escape** — wraca poprzednia wartość, zaznaczenie zostaje
+      na tej samej komórce, nic się nie zapisuje.
+- [ ] Nazwa sekcji: zmień ją i **Enter** — zapis i zejście o wiersz; zmień ponownie i **Escape** —
+      stara nazwa wraca, zaznaczenie zostaje w miejscu.
+- [ ] Widok podwykonawcy, komórki ceny i współczynnika: Enter i Escape jak w pierwszych dwóch boksach.
+- [ ] Nagłówek etapu: kliknij zwykłą komórkę, potem z menu etapu zmień nazwę i **Enter** — nazwa się
+      zapisuje, a zaznaczona komórka **nie** wchodzi w edycję. To samo z **Escape** — zmiana nazwy
+      anulowana, komórka dalej zaznaczona.
+- [ ] Komórka zaznaczona bez wpisywania: **Enter** otwiera edycję, **Escape** zdejmuje zaznaczenie.
+- [ ] W trakcie edycji Tab i strzałki góra/dół dalej przechodzą między komórkami.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

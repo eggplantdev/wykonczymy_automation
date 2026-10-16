@@ -368,7 +368,8 @@
 
 - A listener on `document` shares the node React hydrates on: only
   `nativeEvent.stopImmediatePropagation()` outruns it, and only because React registered first.
-  `enter-escape-keydown.ts` still uses bare `stopPropagation` (latent, harmless today — EX-1081).
+  react-datasheet-grid's own keydown listener sits on `document`, so a bare `stopPropagation` in a
+  cell input does not keep a key from the grid (EX-1081).
 - A removed focused element fires no blur: a blur-settled draft owes three exits — commit, cancel,
   unmount. Read current logic from a latest-ref; make teardown idempotent with a ref.
 - Global drag listeners use `{ capture: true }`; OS file drags fire no `dragend`; guard leave with
