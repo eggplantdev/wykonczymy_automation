@@ -9,7 +9,6 @@ import { noticeFailure, noticeKeyOf } from '@/lib/i18n/notice-failure'
 import { CANCEL_REASON_MAX_LENGTH, CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
 import type { ActionResultT } from '@/types/action'
 
-// The cancellation's bounds: management answers a rejection by cancelling, with a reason as long.
 const rejectPayoutSchema = z.object({
   reason: z
     .string()
@@ -21,8 +20,7 @@ const rejectPayoutSchema = z.object({
 type RejectPayoutInputT = z.infer<typeof rejectPayoutSchema>
 
 // Both decisions expire the whole `transfers` tag rather than an entity tag: a payout's status is
-// read by many transfer caches, and re-tagging each risks one left showing a stale status. At a few
-// decisions per worker a month, the recompute is the cheaper side.
+// read by many transfer caches, and re-tagging each risks one left showing a stale status.
 
 export async function acceptPayoutAction(transactionId: number): Promise<ActionResultT> {
   return sessionAction(

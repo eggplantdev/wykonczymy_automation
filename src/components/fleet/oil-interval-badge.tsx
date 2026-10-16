@@ -3,9 +3,6 @@ import { OIL_CHANGE_INTERVAL_KM, isOilChangeOverdue } from '@/lib/fleet/threshol
 import { formatKm } from '@/lib/utils/format-distance'
 
 /**
- * The oil is past its interval. Renders nothing otherwise, so it can sit inline anywhere a vehicle
- * appears — the alarm is the presence of the badge, not a state it has to spell out.
- *
  * It prints the distance since the change, the same figure the vehicle page shows, so the two
  * surfaces never state two different numbers for one oil change.
  */

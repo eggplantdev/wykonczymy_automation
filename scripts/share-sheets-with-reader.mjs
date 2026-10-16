@@ -1,20 +1,9 @@
-// Sharing a file requires Editor on it, so this runs as the WRITE account and needs
-// GOOGLE_SERVICE_ACCOUNT_WRITE_JSON exported in the shell — that credential lives only in Vercel
-// Production, so this is a from-production tool. Input is a TSV of `id<TAB>name` lines, exported
-// from psql (the repo has no `pg` dependency, hence a file rather than a query).
-//
-//   node scripts/share-sheets-with-reader.mjs sheets.tsv            # dry run, changes nothing
-//   node scripts/share-sheets-with-reader.mjs sheets.tsv --apply    # grants
-//
-// Idempotent: a sheet the reader already holds is skipped. Exits non-zero if any sheet failed, so a
-// partial run cannot read as success in a `&&` chain.
 import { google } from 'googleapis'
 import { readFileSync } from 'node:fs'
 
 const args = process.argv.slice(2)
 const APPLY = args.includes('--apply')
-// Flags must not be eaten by the positional slot — `--apply` alone would otherwise be opened as the
-// input file and the run would die on ENOENT before touching a single sheet.
+// `--apply` alone would otherwise be opened as the input file and the run would die on ENOENT.
 const inputFile = args.find((a) => !a.startsWith('--')) ?? 'sheets.tsv'
 
 const READER = 'kosztorys-sheets-reader@wykonczymy-kosztorys-bk.iam.gserviceaccount.com'
@@ -60,8 +49,7 @@ for (const [i, row] of rows.entries()) {
     })
     const existing = (data.permissions ?? []).find((p) => p.emailAddress === READER)
     if (existing) {
-      // A reader holding anything above `reader` is the failure this whole split exists to prevent:
-      // that sheet is writable from every laptop and preview deploy. Never report it as compliant.
+      // that sheet is writable from every laptop and preview deploy.
       if (existing.role !== 'reader') {
         overprivileged++
         console.log(`! ${label} — reader ma rolę „${existing.role}" — ODBIERZ, to otwiera zapis`)

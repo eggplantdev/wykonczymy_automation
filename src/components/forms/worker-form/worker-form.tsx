@@ -24,7 +24,6 @@ type WorkerFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
-  /** False on the edit dialogs — see `useManagedForm`. */
   persistDraft?: boolean
   cashRegisters: ReferenceItemT[]
 }

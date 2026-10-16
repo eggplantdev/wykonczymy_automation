@@ -72,7 +72,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
           <RequestReviewButton investment={investment} showLabel />
         )}
-        {/* Without a sheet this is the setup dialog — a write. */}
         {(!trashed || investment.hasSheet) && (
           <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} size="sm" />
         )}
@@ -82,14 +81,12 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       <InvestmentNotes investment={investment} readOnly={trashed} />
       <InvestmentAiNotes aiNotes={investment.aiNotes} />
 
-      {/* Its own boundary: the gallery's read is independent of everything above it, so it must not
-          hold back the page the way an awaited fetch here would. */}
       <Suspense fallback={null}>
         <InvestmentAssetsSection investmentId={investmentId} />
       </Suspense>
 
-      {/* Anchored here rather than inside either reading's block: the two readings render different
-          trees, so a toggle living inside them moves under the cursor on every switch. */}
+      {/* The two readings render different trees, so a toggle living inside them moves under the
+          cursor on every switch. */}
       <div className="w-fit">
         <StatsVersionToggle version={version} />
       </div>
@@ -104,8 +101,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           />
         </Suspense>
       ) : (
-        // Streamed off the critical path: the panel owns the kosztorys tree fetch, the page's
-        // long-pole query, so the rest of the page paints without waiting on it.
         <Suspense fallback={null}>
           <InvestmentSummaryPanel
             investmentId={investmentId}

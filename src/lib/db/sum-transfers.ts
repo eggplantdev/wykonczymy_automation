@@ -13,16 +13,8 @@ import { getDb } from '@/lib/db/get-db'
 import { DEPOSIT_TYPES, type TransferTypeT } from '@/lib/constants/transfers'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
-// Parameterized `(type, …)` IN-list derived from the single DEPOSIT_TYPES source, so the
-// deposit-vs-expense split isn't re-inlined as a literal in every balance query.
 const depositTypesInList = sql`(${sqlList(DEPOSIT_TYPES)})`
 
-/**
- * SUM balance for a cash register using SQL aggregation.
- * Deposit types add, expense types subtract.
- * REGISTER_TRANSFER: subtracts from source (source_register_id) via main query,
- * adds to target (target_register_id) via subquery.
- */
 export const sumRegisterBalance = async (
   payload: Payload,
   registerId: number,
@@ -54,10 +46,6 @@ export const sumRegisterBalance = async (
   return Number(result.rows[0].balance)
 }
 
-/**
- * SUM balances for ALL cash registers in one query (GROUP BY).
- * Returns a Map<registerId, balance>.
- */
 export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<number, number>> => {
   const elapsed = perfStart()
   const db = await getDb(payload)
@@ -101,19 +89,14 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
   return map
 }
 
-/**
- * SUM costs and income for ALL investments in one query (GROUP BY).
- * Returns a Map<investmentId, InvestmentFinancialsT>.
- */
 export const sumAllInvestmentFinancials = async (
   payload: Payload,
 ): Promise<Map<number, InvestmentFinancialsT>> => {
   const elapsed = perfStart()
   const db = await getDb(payload)
 
-  // One scan for both groupings: the per-type totals (GROUPING = 1, every category folded in, NULL
-  // included) and the per-category split beside them. The sums stay in Postgres numeric rather than
-  // being re-added in JS, which would drift by float error.
+  // The sums stay in Postgres numeric rather than being re-added in JS, which would drift by float
+  // error.
   const [sumsResult, investmentsResult] = await Promise.all([
     db.execute(sql`
       SELECT investment_id, expense_category_id,
@@ -166,9 +149,6 @@ export const sumAllInvestmentFinancials = async (
     }
   }
 
-  // One shared classifier for both paths: feed each investment's raw sums through
-  // deriveFinancials + deriveCategoryBreakdowns. The listing renders the aggregate, but
-  // computing settledCategoryCosts here keeps the two paths identical by construction.
   const map = new Map<number, InvestmentFinancialsT>()
   for (const [invId, rows] of rowsByInvestment) {
     const { categoryCosts, settledCategoryCosts, netCategoryCosts } = deriveCategoryBreakdowns(
@@ -197,10 +177,6 @@ function pushTo<T>(map: Map<number, T[]>, key: number, value: T) {
   else map.set(key, [value])
 }
 
-/**
- * SUM amounts grouped by (expense_category_id, type, settled) for a filtered set.
- * Raw sums only — no business rule in SQL. Feed to deriveCategoryBreakdowns().
- */
 export const sumCategoryByTypeSettled = async (
   payload: Payload,
   where: Where,

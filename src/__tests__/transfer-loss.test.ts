@@ -14,8 +14,6 @@ describe('LOSS transfer type', () => {
     expect(TRANSFER_TYPE_LABELS.LOSS).toBe('Strata')
   })
 
-  // Mandatory since EX-675: a strata now lowers the investor's bilans, so one booked without an
-  // investment would be a concession credited to nobody.
   it('requires the investment, like its two-sided twin RABAT', () => {
     expect(showsInvestment('LOSS')).toBe(true)
     expect(requiresInvestment('LOSS')).toBe(true)

@@ -12,8 +12,6 @@ import {
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
-// Materiały with nothing billed netto — the pre-netto-type world, so the existing expectations
-// keep reading as the brutto-only baseline they were written for.
 const justGross = (grossBase: number) => ({ grossBase, netBilled: 0 })
 
 describe('moneyPair / faceValue (VAT direction primitives)', () => {
@@ -30,15 +28,11 @@ describe('moneyPair / faceValue (VAT direction primitives)', () => {
   })
 
   it('moneyPair and billedMaterialsPair are inverse directions at the same rate', () => {
-    // 100 netto → 123 brutto → back to 100 netto.
     expect(billedMaterialsPair(moneyPair(100, 0.23).gross, 0.23).net).toBeCloseTo(100)
   })
 })
 
 describe('billedMaterialsPair (netto pricing switch)', () => {
-  // 123 brutto at a 23% rate is billed 100 netto — the price whose gross-up returns the receipt.
-  // `123 × (1 − 0,23) = 94,71` is a different, larger concession than the server computes, so this
-  // pins the division against a re-derivation of the old subtraction.
   it('a rate divides brutto down to the netto price, brutto native', () => {
     const p = billedMaterialsPair(123, 0.23)
     expect(p.net).toBeCloseTo(100)
@@ -53,8 +47,6 @@ describe('billedMaterialsPair (netto pricing switch)', () => {
   })
 })
 
-// The settlement steps carry one money column, so materiały must reduce to ONE figure: the plane the
-// investor is actually billed on.
 describe('billedMaterials', () => {
   it('a saved rate bills the netto price, not the receipt', () => {
     expect(billedMaterials({ grossBase: 123, netBilled: 0 }, 0.23)).toBeCloseTo(100)
@@ -95,12 +87,8 @@ describe('materiały netto pricing off (no saved rate)', () => {
   })
 })
 
-// „Łącznie" = prace on their two planes + materiały as ONE billed figure. Materiały enters both
-// axes at the same złoty because the panel prints it as a single merged cell — a total the reader
-// cannot re-add from the cell above it is the defect this pins.
 describe('combinedPair („Łącznie")', () => {
   it('prace gross, materiały enter both axes at the billed figure', () => {
-    // materiały 123 brutto → billed 100 netto at a 23% rate.
     const combined = combinedPair(1000, faceValue(billedMaterials(justGross(123), 0.23)), 0.23)
     expect(combined.net).toBeCloseTo(1100)
     // 1230 + 100 — the SAME 100 the netto axis added, not the raw 123 receipt.
@@ -117,9 +105,6 @@ describe('combinedPair („Łącznie")', () => {
   })
 })
 
-// `paid` arrives as a pair the wpłaty already carry — a gotówka's kwota netto, a przelew's two
-// kwoty off its faktura. Nothing here derives one plane from the other; that division is what the
-// three bugs below were made of.
 describe('computeAmountDue', () => {
   const NO_MATERIALS = { grossBase: 0, netBilled: 0 }
 
@@ -148,9 +133,6 @@ describe('computeAmountDue', () => {
     expect(r.gross).toBeCloseTo(0)
   })
 
-  // The owner's signed example (`change.md`): robocizna 88 500 netto, materiały 10 000 z paragonu
-  // przy 8%, wpłaty 40 000 gotówką + 10 000 przelewem. Computed here by hand, not by re-running the
-  // function's own arithmetic — the netto column is the one tryb mieszany renders.
   it('lands on the owner-signed 48 500,00 netto', () => {
     const VAT = 0.08
     const transferNet = 10_000 / (1 + VAT)
@@ -167,16 +149,12 @@ describe('computeAmountDue', () => {
     expect(r.gross).toBeCloseTo(94_839.26, 2)
   })
 
-  // REGRESSION (`change.md` bug 1): a wpłata brutto used to be subtracted at face value from the
-  // netto column, so 10 000 zł billed and settled by a 12 300 zł przelew read −2 399,20 owed.
   it('never lets a przelew overshoot the netto column', () => {
     const r = computeAmountDue(10_000, { net: 10_000, gross: 12_300 }, NO_MATERIALS, 0.23, null)
     expect(r.net).not.toBeCloseTo(-2300)
     expect(r.net).toBeCloseTo(0)
   })
 
-  // REGRESSION (`change.md` bug 2): „Pozostało brutto" was Łącznie brutto − wpłaty NETTO, which
-  // charged the VAT on the already-settled part — 3 200 zł on a 40 000 zł bill at 8%.
   it('charges no VAT on the part a przelew already settled', () => {
     const r = computeAmountDue(40_000, { net: 40_000, gross: 43_200 }, NO_MATERIALS, 0.08, null)
     expect(r.gross).not.toBeCloseTo(3200)
@@ -184,10 +162,6 @@ describe('computeAmountDue', () => {
   })
 })
 
-// A strata is a cost the company swallowed, so the client stops owing exactly the złoty entered —
-// the same złoty on both axes. That is what separates it from a rabat, which is a concession ON the
-// price and therefore grosses: 1000 zł of rabat wipes 1230 zł of brutto debt, 1000 zł of strata
-// wipes 1000 zł. Grossing it here would hand the client 230 zł nobody ever charged.
 describe('strata enters the settlement at face value', () => {
   it('computeAmountDue: one loss lowers netto and brutto by the SAME złoty', () => {
     const paid = { net: 300, gross: 300 }
@@ -205,16 +179,11 @@ describe('strata enters the settlement at face value', () => {
   })
 })
 
-// Rabat is an obniżka OF prace, so it grosses like prace. This guards the Podsumowanie brutto
-// waterfall: the display composes Łącznie − Rabat − Wpłaty and it MUST land on Do zapłaty on the
-// brutto axis too, not just netto — now with materiały entering as brutto (netto derived).
 describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () => {
   it('Łącznie − Rabat − Wpłaty === Do zapłaty on BOTH axes', () => {
     const laborCostsNet = 800 // do zapłaty, po rabacie
     const discountNet = 200
     const materialsGross = 123 // → 100 netto at 23%
-    // A przelew: 300 brutto whose faktura names 250 netto. The waterfall has to close on each
-    // axis against ITS kwota — a single figure subtracted from both is bug 1 and bug 2 at once.
     const paid = { net: 250, gross: 300 }
     const vat = 0.23
 
@@ -234,10 +203,6 @@ describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () 
   })
 })
 
-// GUARDS B1 / B5 — the netto expense type. The whole reason the two buckets are separate props is
-// that the global „wszystko netto" toggle may reach ONE of them. These pin the seam by differencing
-// against an identical composition with nothing billed netto, so they read the netto bucket's
-// contribution directly rather than a hand-computed total.
 describe('the netto-billed bucket is frozen against the materiały toggle', () => {
   const VAT = 0.23
   const REDUCTION = 0.08
@@ -260,9 +225,6 @@ describe('the netto-billed bucket is frozen against the materiały toggle', () =
     expect(withNet.net - base.net).toBeCloseTo(NET_BILLED)
   })
 
-  // „Pozostało do zapłaty" bills materiały once, so a netto expense moves BOTH axes by the same
-  // netAmount — the grossed-up twin belongs to the Wydatki breakdown, which reads the two planes
-  // separately, not to the settlement.
   it('a netto expense raises Pozostało do zapłaty by its netAmount on both axes', () => {
     const paid = { net: 300, gross: 300 }
     const base = computeAmountDue(1000, paid, justGross(GROSS_BASE), VAT, REDUCTION)
@@ -291,8 +253,6 @@ describe('the netto-billed bucket is frozen against the materiały toggle', () =
   })
 })
 
-// A section subtotal reduced to the two fields the totals formula reads, so the fixture states the
-// scenario instead of restating `sectionSubtotalsForView`'s whole output shape.
 const subtotal = (net: number, discount: number): SectionSubtotalT => ({
   sectionId: 1,
   sectionName: 'Sekcja',
@@ -308,8 +268,6 @@ const subtotal = (net: number, discount: number): SectionSubtotalT => ({
 
 describe('laborCostsNetPreDiscount — one „Robocizna", one number', () => {
   it('matches the suma prac the investment page reconciles against', () => {
-    // Inwestycja 31: 18 000 zł wykonane, rabat na cały kosztorys 100 000 zł. The panel used to show
-    // „Robocizna −82 000 zł" while „z kosztorysu" showed 18 000 zł — same label, two figures.
     const totals = clientTotalsFromSubtotals([subtotal(18_000, 0)], {
       type: 'amount',
       value: 100_000,
@@ -348,8 +306,6 @@ describe('laborCostsNetPreDiscount — one „Robocizna", one number', () => {
   })
 })
 
-// The reference defect, on the v2 settlement plane (investment 62): materiały the owner covered with
-// a strata of the same amount, no robocizna and no wpłaty — the client owes nothing on either axis.
 describe('investment 62 — an expense fully covered by a strata', () => {
   it('closes the settlement at zero on both planes', () => {
     const amountDue = computeAmountDue(

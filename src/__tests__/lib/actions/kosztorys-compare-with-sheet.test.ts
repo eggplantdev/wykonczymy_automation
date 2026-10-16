@@ -6,11 +6,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 
-// „Porównaj z arkuszem" writes one column on rows it did not create, so the only assertion worth
-// making is against the PERSISTED value — the action's own counters would report a write that never
-// landed.
-//
-// The sheet is mocked at the reader; resolve → parse → match below it is the real code.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 const sheetState = vi.hoisted(() => ({
   spreadsheetId: 'sheet-under-test' as string | undefined,
@@ -98,8 +93,6 @@ describe.skipIf(!ENV_READY)('compareWithSheet — persisted state (DB)', () => {
     )
   }
 
-  // One tree built by the import (so every praca matches the sheet by name) plus one praca the sheet
-  // has never heard of, in a section of its own.
   async function seedTree(): Promise<void> {
     sheetState.formulas = []
     await applyKosztorysImport(investmentId)

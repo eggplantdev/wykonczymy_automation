@@ -6,9 +6,7 @@ import {
 } from '@/lib/constants/investment-lock'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
-// `isBookableInvestment` takes a plain string, so no typecheck guards it against a new status —
-// this spec is the guard. „szablon" is bookable here ON PURPOSE (fetchReferenceData drops it before
-// any picker sees it); folding that logic in here once broke sheet-linking for zakończone inwestycje.
+// „szablon" is bookable here ON PURPOSE (fetchReferenceData drops it before any picker sees it).
 describe('investment status gates', () => {
   it.each([
     ['active', true, false],

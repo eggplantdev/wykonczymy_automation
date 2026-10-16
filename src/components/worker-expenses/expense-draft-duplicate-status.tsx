@@ -16,7 +16,6 @@ const STATUS_MESSAGES = {
   'no-read': 'Bez odczytu paragonów nie da się sprawdzić duplikatów.',
 } as const
 
-// The ready matches sit above their own rows; only a check that has not landed speaks here.
 export function ExpenseDraftDuplicateStatus({ state }: { state: DuplicateHintsStateT }) {
   if (state.status === 'ready') {
     return null

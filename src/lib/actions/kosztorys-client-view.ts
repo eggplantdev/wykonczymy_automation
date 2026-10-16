@@ -28,16 +28,12 @@ export async function saveClientViewSettingsAction(
       })
     } catch (error) {
       // find-then-create is not atomic and `investment` is unique — two saves at once race here.
-      // The loser re-reads and updates rather than surfacing a raw constraint error. Logged because
-      // a validation or FK failure lands here too and is indistinguishable from the race otherwise.
       // TODO(EX-958) SENTRY-REQUIRED:
       console.error('saveClientViewSettingsAction: create failed, retrying as update', error)
       const rowAfterRace = await findClientViewRow(payload, investmentId)
       if (!rowAfterRace) return { success: false, error: 'Nie udało się zapisać ustawień' }
       await payload.update({ collection: 'kosztorys-client-view', id: rowAfterRace.id, data })
     }
-    // No revalidation: the settings are read outside the preview's cached payload, so the next
-    // request already sees them.
     return { success: true }
   })
 }

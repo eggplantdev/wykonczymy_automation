@@ -1,8 +1,3 @@
-// One-off: seed rozpiski robocizny z testowego arkusza do inwestycji (local dev DB).
-// Czyta zakładkę kosztorys_robocizny (UNFORMATTED) i mapuje na schemat kosztorys_*.
-// Czyści wcześniejsze wiersze inwestycji przed seedem. Docelowa inwestycja: INV (domyślnie 6).
-//
-//   INV=6 node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts
 import { google } from 'googleapis'
 import { getPayload } from 'payload'
 import config from '../payload.config'
@@ -11,7 +6,6 @@ import { sectionColorForIndex } from '../lib/kosztorys/section-colors'
 const SHEET_ID = '1TWZuU7ZDElhUameN4ii2U5TztmQG387Gqcn9NgwwObE'
 const TAB = 'kosztorys_robocizny'
 const INVESTMENT_ID = Number(process.env.INV ?? 6)
-// Opcjonalna zmiana nazwy inwestycji (np. RENAME="test kosztorys Sienicka").
 const RENAME = process.env.RENAME
 const STAGE_COUNT = 6
 
@@ -61,7 +55,6 @@ async function run() {
     ...ctx,
   })
 
-  // 6 etapów (kolumny C–H).
   const stageIds: number[] = []
   for (let ord = 1; ord <= STAGE_COUNT; ord++) {
     const s = await payload.create({
@@ -83,7 +76,6 @@ async function run() {
     const a = row[0]
     const b = str(row[1])
 
-    // Wiersz-nagłówek sekcji: kolumna A to tekst (nie numer).
     if (typeof a === 'string' && a.trim() !== '') {
       const name = b || a.trim()
       const order = sectionOrder++
@@ -103,19 +95,16 @@ async function run() {
       continue
     }
 
-    // Pozycja: A numeryczne + niepusty opis. Puste wiersze pomijamy.
     if (typeof a === 'number' && b !== '') {
-      if (currentSectionId == null) continue // pozycja przed pierwszą sekcją — pomiń
-      // „Pomiar z natury" = Σ etapów, więc pomiar bierze się z etapów C–H, nie z kolumny J.
-      const stageQty = [row[2], row[3], row[4], row[5], row[6], row[7]].map(num) // C–H
-      const plannedQty = num(row[8]) // I
-      // J: the sheet's own „Pomiar z natury" — kept as the read-only reference figure the rozjazd
-      // list compares against Σ etapów. `str() === ''` rather than `num() || null`, so a genuine 0
+      if (currentSectionId == null) continue
+      const stageQty = [row[2], row[3], row[4], row[5], row[6], row[7]].map(num)
+      const plannedQty = num(row[8])
+      // `str() === ''` rather than `num() || null`, so a genuine 0
       // stays a claim instead of collapsing into „arkusz nic nie twierdzi".
       const sheetMeasuredQty = str(row[9]) === '' ? null : num(row[9])
-      const unit = str(row[10]) || null // K
-      const clientPrice = num(row[11]) // L
-      const discountFraction = num(row[12]) // M (ułamek, 0,05 = 5%)
+      const unit = str(row[10]) || null
+      const clientPrice = num(row[11])
+      const discountFraction = num(row[12])
 
       const item = await payload.create({
         collection: 'kosztorys-items',

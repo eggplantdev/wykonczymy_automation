@@ -1,13 +1,8 @@
 import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT, SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
 
-// One paragon of a zgłoszenie: its pages, and which row of the draft's AI read it was filled from.
-// The pages alone don't name it — one photo can hold several paragony.
 export type DraftReceiptT = Omit<SkippedReceiptT, 'duplicateOf'>
 
-// Positional to `lineItems`: the worker's pages each transakcja is booked from, and the paragony
-// behind it — several once the manager merged rows. A row the manager removed is skipped paragon by
-// paragon, not lost: each stays in the worker's history and comes back alone on „Przywróć".
 export function receiptDecision(
   receipts: Map<string, DraftReceiptT[]>,
   lineItems: { id: string }[],
@@ -60,13 +55,11 @@ export function bookedReceipt(parts: DraftReceiptT[]): { mediaIds: number[]; rea
   }
 }
 
-// A merged row sits where its earliest paragon did.
 export function readRowOf(parts: DraftReceiptT[]): number | undefined {
   const readRows = parts.flatMap((part) => part.readRow ?? [])
   return readRows.length > 0 ? Math.min(...readRows) : undefined
 }
 
-// A paragon's refusal names it by its read row, or by its photos when the read never covered it.
 // A refusal naming no photos names nothing: `every` over an empty list would match every paragon.
 export const isReceiptOf = (receipt: RejectedReceiptT, part: DraftReceiptT) =>
   receipt.readRow === null

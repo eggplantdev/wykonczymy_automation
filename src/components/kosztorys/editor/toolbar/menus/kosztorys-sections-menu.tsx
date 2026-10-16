@@ -9,7 +9,7 @@ import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 import { liftsToSections, offeredFilterConditions } from '@/lib/kosztorys/row-conditions/queries'
 
 // Reuses the transfers FilterMultiSelect, whose URL encoding is
-// [] = all / [FILTER_NONE] = none / [ids] = those — bridged here to collapsedSectionIds.
+// [] = all / [FILTER_NONE] = none / [ids] = those.
 export function KosztorysSectionsMenu() {
   const {
     subtotals,
@@ -43,9 +43,6 @@ export function KosztorysSectionsMenu() {
     )
   }
 
-  // The same offered set the „Filtry" menu lists, read straight from the registry rather than through
-  // that menu's hook: this one applies its own threshold („lifts at least one sekcja"), which is a
-  // different question from the pozycja counts the rows over there are filtered by.
   const sectionToggles = offeredFilterConditions({
     engagedIds: engagedConditionIds,
     perItemDiscountInert: isGlobalDiscountActive(globalDiscount),
@@ -57,8 +54,6 @@ export function KosztorysSectionsMenu() {
       condition,
       sectionIds: foldableSectionIds.get(condition.id) ?? new Set<number>(),
     }))
-    // An axis that lifts no sekcja is left out entirely. Its row could only ever select the empty
-    // set, so it was a live click that did nothing.
     .filter(({ sectionIds }) => sectionIds.size > 0)
     .map(({ condition, sectionIds }) => {
       const isActive = (current: string[]) =>

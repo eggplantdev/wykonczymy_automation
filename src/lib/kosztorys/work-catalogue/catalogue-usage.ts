@@ -14,7 +14,6 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 
-// The folded opis half of a klucz — the j.m. is always the segment after the last „|".
 const descriptionPart = (key: string) => key.slice(0, key.lastIndexOf('|'))
 
 type GroupT = { investments: Set<number>; spellings: Map<string, number> }
@@ -37,17 +36,12 @@ function mostFrequentSpelling(spellings: Map<string, number>): {
   return { description, unit }
 }
 
-/**
- * The remembered praca, else an exact klucz match — the count is a fact about the cennik, and a „może chodzi o…" guess
- * counted into it would make the figure depend on a similarity threshold. The unit is distinct
- * inwestycje: twenty pozycje of one praca in one łazienka are still one kosztorys using it.
- */
+// The remembered praca, else an exact klucz match — the count is a fact about the cennik, and a „może
+// chodzi o…" guess counted into it would make the figure depend on a similarity threshold.
 export function buildCatalogueUsage(
   used: readonly UsedKosztorysItemT[],
   catalogue: readonly WorkCatalogueItemT[],
 ): Omit<CatalogueUsageT, 'templateNamesById'> {
-  // A pozycja that remembers its praca counts under that praca's klucz, whatever its own opis now
-  // says — so a praca renamed in the katalog keeps its count instead of reappearing as uncatalogued.
   const index = indexCatalogue(catalogue)
   const groups = new Map<string, GroupT>()
   for (const item of used) {

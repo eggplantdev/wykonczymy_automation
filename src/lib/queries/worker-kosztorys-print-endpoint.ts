@@ -13,8 +13,7 @@ export type WorkerKosztorysPrintDataT = {
   sectionTranslations: SectionTranslationMapT
 }
 
-// The PDF prints the worker's projection, not the editor's rows: the editor holds every etap and the
-// client price, and the paper must be the link's twin. The session gate is inside the wrapped read.
+// The session gate is inside the wrapped read.
 export async function getWorkerKosztorysPrintData(
   investmentId: number,
   workerId: number,

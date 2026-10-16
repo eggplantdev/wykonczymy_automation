@@ -1,5 +1,3 @@
-// Breaks a saved RSC body into its rows: the largest ones, and the rows containing a needle.
-//   node scripts/perf/rsc-rows.mjs dumps/perf/_inwestycje.rsc [needle]
 import fs from 'node:fs'
 import { kb } from './lib.mjs'
 

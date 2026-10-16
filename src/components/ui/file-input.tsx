@@ -18,8 +18,7 @@ type FileInputPropsT = React.ComponentProps<'input'> & {
   label?: string
   placeholder?: string
   fieldClassName?: string
-  // For a file attached outside this uncontrolled input (batch-registered receipts). Only read at
-  // mount — remount via key to update it.
+  // Only read at mount — remount via key to update it.
   initialFileName?: string
 }
 
@@ -88,7 +87,6 @@ function FileInput({
     }
     setError(undefined)
 
-    // So form reads and ref.files see them.
     setFilesOnInput(dropped)
     setFileName(joinFileNames(dropped))
 

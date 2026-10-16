@@ -47,8 +47,7 @@ let draftSlot = 0
 
 function renderForm(formId?: string) {
   draftSlot += 1
-  // keepOpen, because that is the branch that awaits the action inline — the closing branch hands
-  // the write to the optimistic store, where the payload is no longer this form's business.
+  // keepOpen, because that is the branch that awaits the action inline.
   render(
     <InspectionForm
       formId={formId ?? `inspection-${draftSlot}`}
@@ -73,11 +72,10 @@ async function pickType(user: UserT, label: string): Promise<void> {
   await user.click(await screen.findByRole('option', { name: label }))
 }
 
-/** The trigger renders the date itself, so its text is the assertion surface. */
 const nextDue = () => screen.queryByLabelText('Następny termin')
 
-// Only a real calendar pick counts as the user claiming the field. The calendar opens on the month
-// of the date already in the field, so the day picked here has to live in that month.
+// The calendar opens on the month of the date already in the field, so the day picked here has to
+// live in that month.
 async function pickNextDue(user: UserT, isoDate: string): Promise<void> {
   await user.click(screen.getByLabelText('Następny termin'))
   const cell = document.querySelector<HTMLElement>(`[data-day="${isoDate}"]`)
@@ -91,8 +89,6 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// EX-716 — the rules that live only in `onTypeChange`, where no node spec can see them: the interval
-// suggestion, who owns the date once it is on screen, and the fields a hidden section leaves behind.
 describe('Przegląd — rodzaj przestawia resztę formularza', () => {
   it('podpowiada termin z interwału przy każdej zmianie rodzaju, nie tylko pierwszej', async () => {
     const user = renderForm()
@@ -105,7 +101,6 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
     await pickType(user, 'OC')
     expect(nextDue(), 'OC to 12 miesięcy').toHaveTextContent('10 mar 2027')
 
-    // „bez terminu" has to mean an empty field, not the previous type's date left standing.
     await pickType(user, 'Wymiana opon')
     expect(nextDue()).toHaveTextContent('Wybierz datę')
   })
@@ -116,7 +111,6 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
     await pickNextDue(user, '2027-03-20')
     await waitFor(() => expect(nextDue()).toHaveTextContent('20 mar 2027'))
 
-    // The date is printed on the document; the interval is only a guess about it.
     await pickType(user, 'Przegląd gwarancyjny')
     expect(nextDue(), 'ręcznie wybrany termin').toHaveTextContent('20 mar 2027')
   })
@@ -134,8 +128,6 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
       'koszt przy odczycie licznika',
     ).not.toBeInTheDocument()
 
-    // Hiding is not clearing: both fields have to come back empty, and the date has to be
-    // re-suggested even though the user had picked one before the odczyt.
     await pickType(user, 'Przegląd techniczny')
     expect(screen.getByLabelText(/Koszt/i)).toHaveValue('')
     expect(nextDue()).toHaveTextContent('10 mar 2027')
@@ -148,7 +140,6 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
     await user.type(screen.getByLabelText(/Ubezpieczyciel/i), 'PZU')
     await user.type(screen.getByLabelText(/Nr polisy/i), '354E000003305')
 
-    // A TECHNICAL row carrying a policy number is the whole reason this clearing exists.
     await pickType(user, 'Przegląd techniczny')
     await pickType(user, 'OC')
 
@@ -159,7 +150,7 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
 
 // The suggestion is gated on the form's own last suggestion, so anything writing „Następny termin"
 // from outside `prefillNextDue` desynchronises the gate — which then silently refuses every
-// suggestion from then on. Two routes write it from outside, and each one owned a bug.
+// suggestion from then on.
 describe('Przegląd — termin po ponownym otwarciu formularza', () => {
   it('podpowiada dalej po zapisie z otwartym dialogiem', async () => {
     const user = renderForm()
@@ -172,8 +163,6 @@ describe('Przegląd — termin po ponownym otwarciu formularza', () => {
     await user.click(screen.getByRole('button', { name: 'Zapisz' }))
     expect(action).toHaveBeenCalledTimes(1)
 
-    // `keepOpen` resets the form under a component that never unmounted: the field is back on the
-    // default date while the form still remembers suggesting nothing.
     await screen.findByText('10 mar 2027')
 
     await pickType(user, 'Przegląd gwarancyjny')
@@ -182,8 +171,6 @@ describe('Przegląd — termin po ponownym otwarciu formularza', () => {
 
   it('podpowiada dalej po przywróceniu szkicu', async () => {
     const formId = 'inspection-draft-restore'
-    // What the dialog looked like when it was closed without saving: rodzaj gwarancja, so the date
-    // on screen is the 24-month one, not the default the component is mounted with.
     useInspectionFormStore
       .getState()
       .updateFormData(formId, { ...DEFAULTS, type: 'WARRANTY', nextDueAt: '2028-03-10' })
@@ -191,8 +178,6 @@ describe('Przegląd — termin po ponownym otwarciu formularza', () => {
     const user = renderForm(formId)
     expect(nextDue()).toHaveTextContent('10 mar 2028')
 
-    // Correcting the rodzaj is the whole reason the dialog was reopened — the restored date belongs
-    // to the type being corrected away from, so it is the form's to overwrite.
     await pickType(user, 'Przegląd techniczny')
     expect(nextDue(), 'termin po korekcie rodzaju w przywróconym szkicu').toHaveTextContent(
       '10 mar 2027',
@@ -200,8 +185,6 @@ describe('Przegląd — termin po ponownym otwarciu formularza', () => {
   })
 })
 
-// A swapped instrument cluster makes a lower reading legitimate, so the form warns and lets it
-// through. Both halves are the contract: no warning hides a typo, a block bars the truthful reading.
 describe('Przegląd — niższy przebieg niż ostatni zapisany', () => {
   it('ostrzega o cofniętym liczniku, ale zapisuje', async () => {
     const user = renderForm()

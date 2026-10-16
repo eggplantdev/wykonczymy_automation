@@ -32,7 +32,6 @@ describe('foldFilter', () => {
 
   it('matches on a contiguous substring, not a subsequence', () => {
     expect(foldFilter('Wartość', 'rtos')).toBe(1)
-    // fuzzy subsequence (non-contiguous chars) must NOT match under the substring filter
     expect(foldFilter('Wartość', 'wrs')).toBe(0)
   })
 

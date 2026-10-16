@@ -3,11 +3,8 @@ import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 
-// Every column is measured by default — an allowlist is how „Komentarz do pracy" shipped without
-// ever growing a row. Excluded: a column whose copied value is a code rather than the label it
-// shows, which would size the row for a word nobody sees, and „j.m.", whose combobox never wraps, so
-// a taller row would show nothing more — nor does the worker's „Zgłaszam” input, which a phone
-// squeezes narrower than a long figure. A plane-qualified id is matched by its base.
+// Excluded: a column whose copied value is a code rather than the label it
+// shows, which would size the row for a word nobody sees.
 const UNMEASURED_COLUMN_IDS: ReadonlySet<string> = new Set([
   'reviewStatus',
   'discountType',
@@ -38,8 +35,7 @@ export function measuredColumns(columns: readonly CopyableColumnT[]): MeasuredCo
   )
 }
 
-// dsg hands the rendered width back to nobody, so this class is the only handle the measurement has
-// on a column's header box. A class rather than a position because the grid virtualizes columns
+// A class rather than a position because the grid virtualizes columns
 // HORIZONTALLY — the cells in the DOM are `[gutter, …the scrolled window]`.
 export function wrapColumnClass(id: string): string {
   return `kosztorys-wrap-${id}`

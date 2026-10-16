@@ -18,8 +18,6 @@ describe('splitExtension', () => {
     expect(splitExtension('')).toEqual({ base: '', ext: '' })
   })
 
-  // A leading dot is the whole name, not an extension — otherwise `.gitignore` would round-trip
-  // as an empty base plus `.gitignore`, and a page suffix would produce `-2.gitignore`.
   it('treats a leading dot as part of the name', () => {
     expect(splitExtension('.gitignore')).toEqual({ base: '.gitignore', ext: '' })
   })

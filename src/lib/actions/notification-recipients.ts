@@ -10,10 +10,9 @@ import type { ActionResultT } from '@/types/action'
 const FORBIDDEN = 'Tylko właściciel może zmieniać odbiorców powiadomień'
 
 /**
- * Rewrites ONE list. Read-modify-write, because `updateGlobal` writes the whole document: saving the
+ * Read-modify-write, because `updateGlobal` writes the whole document: saving the
  * fleet list with only its own field in `data` would leave the other two absent, which `required`
- * then rejects — so without the other two the owner's edit simply fails, naming a list they never
- * touched. (Drop `required` and the same shape empties them silently instead.)
+ * then rejects.
  */
 export async function saveRecipientListAction(
   list: RecipientListT,

@@ -16,10 +16,6 @@ async function uploadMediaToServer(file: File, kind?: MediaKindT): Promise<numbe
   return mediaIdFrom(response, FAST_ROUTE, file)
 }
 
-/**
- * The fast path for what fits under a function's body cap, the browser-to-Blob path for the rest.
- * Chosen by size, not type: a 100 KB PDF e-faktura belongs on the fast path as much as a photo.
- */
 export async function uploadMediaBySize(file: File, kind?: MediaKindT): Promise<number> {
   const problem = uploadFileProblem(file)
   if (problem) throw refused(problem)

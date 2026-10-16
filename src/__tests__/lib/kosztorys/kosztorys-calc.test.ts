@@ -16,8 +16,6 @@ import {
 } from '@/lib/kosztorys/calc'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 
-// Subcontractor prices as an 'amount' override (flat 12/10) — preserves the values from before
-// the migration to the coefficient model (the tests validate the amount path, not the derivation).
 const item: ViewPricingT = {
   id: 1,
   sectionId: 10,
@@ -45,10 +43,9 @@ const item: ViewPricingT = {
   globalOwnToolsCoeff: 0.55,
 }
 
-// Σ etapów, handed in by the settlement layer — here it happens to equal the fixture's 10.
 const TOTAL_QTY = 10
 
-// EX-865. „Auto" and the mnożnik are the same arithmetic over two different coefficients, so every
+// „Auto" and the mnożnik are the same arithmetic over two different coefficients, so every
 // case here has to separate them: the fixture's globals are 0,65 / 0,55 and no mnożnik below reuses
 // either number.
 describe('subcontractorPrice — trzy źródła stawki', () => {
@@ -77,8 +74,6 @@ describe('subcontractorPrice — trzy źródła stawki', () => {
     expect(subcontractorPrice(row, 'own_tools')).toBeCloseTo(11, 10) // wciąż „auto"
   })
 
-  // `0` to stawka ustawiona na zero, nie brak stawki — złożenie go z `null` przywróciłoby
-  // współczynnik inwestycji i zapłaciło ekipie za pracę, której nikt nie wycenił.
   it('mnożnik 0 to stawka zero złotych, nie „auto"', () => {
     expect(subcontractorPrice({ ...auto, wToolsOverrideCoeff: 0 }, 'w_tools')).toBe(0)
   })
@@ -88,7 +83,6 @@ describe('subcontractorPrice — trzy źródła stawki', () => {
     expect(subcontractorPrice(row, 'w_tools')).toBe(0)
   })
 
-  // Sufit odrzuca ją osobno (subcontractor-price-guard); arytmetyka ma ją policzyć, nie ukryć.
   it('ujemny mnożnik przechodzi wprost — to sygnał złych danych, nie miejsce na clamp', () => {
     expect(subcontractorPrice({ ...auto, wToolsOverrideCoeff: -0.5 }, 'w_tools')).toBeCloseTo(
       -10,
@@ -128,9 +122,6 @@ describe('priceSourceOf — jedno miejsce decydujące o pierwszeństwie', () => 
     expect(priceSourceOf(row, 'w_tools')).toBe('auto')
   })
 
-  // Bliźniak regresji z cennika (catalogue-rate.test.ts, 2026-09-23): brakująca kolumna albo NaN to
-  // najsłabsza możliwa informacja, a `!== null` przepuszczało ją jako najmocniejszą deklarację w
-  // łańcuchu. „Auto" jest jedyną odpowiedzią, która niczego nie twierdzi.
   it('brakująca kolumna i NaN spadają na „auto"', () => {
     const { wToolsOverrideCoeff: _coeff, wToolsOverrideValue: _value, ...missing } = auto
     expect(priceSourceOf(missing as typeof auto, 'w_tools')).toBe('auto')
@@ -151,12 +142,8 @@ describe('stageValueForView', () => {
     expect(stageValueForView(discounted, 3, TOTAL_QTY, 'client')).toBe(54) // 60 − 10%
   })
 
-  // Rabat kwotowy jest rabatem OD CAŁOŚCI wiersza (właściciel, 2026-07-15), więc etap niesie tylko
-  // swój udział w nim — inaczej cały rabat schodziłby raz na KAŻDY etap. Arkusz nie rozstrzyga:
-  // jego V = D*$Q-(D*$Q*$R) jest oparte o stawkę, czyli zna wyłącznie procent.
   describe('rabat kwotowy — rozkłada się proporcjonalnie do ilości etapu', () => {
     const discounted = { ...item, discountType: 'amount' as const, discountValue: 100 }
-    // suma etapów 10 × cena 20 = 200 brutto; rabat 100 zł ⇒ netto 100
 
     it('etap bez postępu ma wartość 0, nie ujemną', () => {
       expect(stageValueForView(discounted, 0, TOTAL_QTY, 'client')).toBe(0)
@@ -168,9 +155,6 @@ describe('stageValueForView', () => {
   })
 })
 
-// Rabat is a client concession, absorbed by the company margin and never passed to the subcontractor
-// (settlement-client-totals.ts sumSectionSubtotalsNet). So the two subcontractor views price GROSS of any rabat —
-// per-item percent OR amount — while the client view still subtracts it.
 describe('rabat dotyczy tylko widoku klienta — wykonawca liczy bez rabatu', () => {
   for (const discount of [
     { discountType: 'percent' as const, discountValue: 10 },
@@ -178,23 +162,18 @@ describe('rabat dotyczy tylko widoku klienta — wykonawca liczy bez rabatu', ()
   ]) {
     it(`widok wykonawcy ignoruje rabat ${discount.discountType}, klient go stosuje`, () => {
       const row = { ...item, ...discount }
-      // client: rabat applies (percent 10% → 180; amount 40 → 160). Both subcontractor views: gross.
       expect(netForQtyForView(row, TOTAL_QTY, 'client')).toBeLessThan(TOTAL_QTY * item.clientPrice)
       for (const view of ['w_tools', 'own_tools'] as const) {
         expect(netForQtyForView(row, TOTAL_QTY, view)).toBe(
           netForQtyForView({ ...item, discountType: null, discountValue: 0 }, TOTAL_QTY, view),
         )
-        // The discount actually taken is zero for the crew, at its single source.
         expect(rowDiscountForView(row, TOTAL_QTY, view)).toBe(0)
       }
-      // Client still records a positive discount.
       expect(rowDiscountForView(row, TOTAL_QTY, 'client')).toBeGreaterThan(0)
     })
   }
 })
 
-// The share's denominator is now the stage sum handed in from the settlement layer, not a field on
-// the row: pomiar IS Σ stages, so a stage can only ever be a share of that sum.
 describe('netForQtyForView / stageValueForView — share of the stage sum', () => {
   const totalQty = 8 // Σ etapów, deliberately ≠ plannedQty (10)
 
@@ -223,8 +202,6 @@ describe('netForQtyForView / stageValueForView — share of the stage sum', () =
 })
 
 describe('rowDoneFraction', () => {
-  // The denominator is the Przedmiar; the executed qty passed in is the numerator. They must differ,
-  // or the fraction would pass even if it divided by the wrong one.
   const planned20 = { ...item, plannedQty: 20 }
 
   it('ułamek liczy się z Przedmiaru, nie z sumy etapów', () => {
@@ -232,8 +209,6 @@ describe('rowDoneFraction', () => {
     expect(rowDoneFraction(item, 7)).toBe(0.7) // 7 / 10
   })
 
-  // The percent is a ratio of QUANTITIES, so neither the price view nor the rabat can move it —
-  // otherwise "75%" would mean a different thing in each view, and the grid shows one figure.
   it('cena i rabat nie ruszają procentu', () => {
     for (const discounted of [
       { ...item, clientPrice: 999 },
@@ -249,8 +224,7 @@ describe('rowDoneFraction', () => {
     expect(rowDoneFraction(noPlan, 3)).toBeNull()
   })
 
-  // Clearing the Przedmiar cell writes null, not 0 — the grid's float column is Column<number|null>,
-  // and client row state holds that null until a refresh normalizes it. A `=== 0` guard falls
+  // A `=== 0` guard falls
   // through and divides: 0/null → NaN → "NaN%", 3/null → Infinity → "∞%" in the always-visible cell.
   it('a cleared planned qty is a missing denominator too, not a divisor', () => {
     for (const empty of [null, undefined]) {
@@ -264,7 +238,6 @@ describe('rowDoneFraction', () => {
     expect(rowDoneFraction(item, 15)).toBe(1.5)
   })
 
-  // EX-921: progress divides by the Aktualizacja przedmiaru; a NULL one follows ofertowy.
   it('dzieli przez Aktualizację przedmiaru, gdy ją wpisano', () => {
     expect(rowDoneFraction({ ...item, currentPlannedQty: 15 }, 12)).toBeCloseTo(0.8, 10)
     expect(rowDoneFraction({ ...item, currentPlannedQty: null }, 12)).toBe(1.2)
@@ -303,8 +276,6 @@ describe('rowCurrentPlannedNetForView', () => {
 })
 
 describe('rowPlannedNetForView', () => {
-  // The fixture's plannedQty === the stage sum, which would pass even if the formula read the wrong
-  // one — every case here must drive them apart.
   const planned12 = { ...item, plannedQty: 12 }
 
   it('liczy z przedmiaru, nie z sumy etapów', () => {
@@ -317,9 +288,6 @@ describe('rowPlannedNetForView', () => {
     expect(rowPlannedNetForView(planned12, 'own_tools')).toBe(120) // 12 × 10
   })
 
-  // The owner's call (2026-07-16, EX-494 follow-up): the offer figure carries the rabat, matching the
-  // sheet's S = N×Q − N×Q×R. This is the single guardian of that decision — asserted outright, not
-  // derived from an invariant. Flagged a "small question mark" by the owner: a revert is one commit.
   it('rabat procentowy wchodzi w wartość przedmiaru', () => {
     const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
     expect(rowPlannedNetForView(discounted, 'client')).toBe(216) // 240 − 10%
@@ -331,9 +299,6 @@ describe('rowPlannedNetForView', () => {
   })
 })
 
-// The pre-rabat twin of the przedmiar value, the forecast margin's base (EX-649). The two figures
-// differ ONLY by the rabat, and only on the client view; every case below pins which of them the
-// caller reads.
 describe('rowPlannedNetPreDiscountForView', () => {
   const planned12 = { ...item, plannedQty: 12 }
 
@@ -357,8 +322,6 @@ describe('rowPlannedNetPreDiscountForView', () => {
     expect(rowPlannedNetForView(discounted, 'client')).toBe(210)
   })
 
-  // The rabat never reaches the subcontractor anyway, so on both planes the two figures must sit
-  // equal — otherwise the forecast would trim one side and not the other.
   it('na planach podwykonawcy rabat nie robi różnicy', () => {
     const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
     expect(rowPlannedNetPreDiscountForView(discounted, 'w_tools')).toBe(144)
@@ -376,10 +339,6 @@ describe('rowPlannedNetPreDiscountForView', () => {
   })
 })
 
-// A flat 'amount' rabat is a fixed subtraction, so at qty 0 applyDiscount(0) would return
-// −discountValue — a row priced at zero quantity reading negative. Zero quantity is worth zero; the
-// flat rabat has nothing to come off of. 'percent' (0 × (1−x) = 0) is already safe, but the guard
-// covers both, and it keeps rowPlannedNetForView (przedmiar 0) and rowValueForView (no stages) at 0.
 describe('netForQtyForView — zerowa ilość nie niesie wartości ani rabatu', () => {
   it('rabat kwotowy przy zerowej ilości → 0, nie ujemna', () => {
     const discounted = { ...item, discountType: 'amount' as const, discountValue: 500 }
@@ -392,14 +351,11 @@ describe('netForQtyForView — zerowa ilość nie niesie wartości ani rabatu', 
   })
 })
 
-// Brutto is the grid's read-only Brutto column + Suma brutto: gross = net × (1 + vatRate), on the
-// post-discount net (netForQtyForView already subtracts the discount). One rate per investment.
 const gross = (row: ViewPricingT, view: PriceViewT, vatRate: number) =>
   netForQtyForView(row, TOTAL_QTY, view) * (1 + vatRate)
 
 describe('brutto = netto × (1 + vatRate)', () => {
   it('plain row, 8%', () => {
-    // client net = 10 × 20 = 200 → brutto 216
     expect(gross(item, 'client', 0.08)).toBeCloseTo(216, 10)
   })
 
@@ -431,9 +387,6 @@ describe('brutto = netto × (1 + vatRate)', () => {
   })
 })
 
-// Global (whole-kosztorys) discount OVERRIDES per-item rabat: when it is active, every row prices
-// gross-of-its-own-rabat (the per-item discount stays in the DB but stops applying), and the global
-// discount is subtracted once at the total level — never distributed onto rows/stages.
 describe('rabat globalny — nadpisuje rabat per pozycja', () => {
   it('aktywny globalny rabat → wiersz liczy się bez własnego rabatu (przedmiar i wykonanie)', () => {
     for (const perItem of [
@@ -441,7 +394,6 @@ describe('rabat globalny — nadpisuje rabat per pozycja', () => {
       { discountType: 'amount' as const, discountValue: 50 },
     ]) {
       const row = { ...item, plannedQty: 12, ...perItem, globalDiscountActive: true }
-      // Gross of its own rabat: przedmiar 12 × 20 = 240, wykonanie Σetapów 10 × 20 = 200.
       expect(rowPlannedNetForView(row, 'client')).toBe(240)
       expect(netForQtyForView(row, TOTAL_QTY, 'client')).toBe(200)
       expect(stageValueForView(row, 5, TOTAL_QTY, 'client')).toBe(100) // 200 × 5/10, no rabat
@@ -454,8 +406,6 @@ describe('rabat globalny — nadpisuje rabat per pozycja', () => {
   })
 })
 
-// The discount amount off the executed total, and "do zapłaty" = total − amount. Single source both
-// total surfaces share (Sekcje Suma block + totals bar). Not clamped below zero.
 describe('globalDiscountAmount / do zapłaty', () => {
   it('kwota jest płaska', () => {
     expect(globalDiscountAmount(1000, { type: 'amount', value: 250 })).toBe(250)
@@ -489,25 +439,19 @@ describe('isGlobalDiscountActive', () => {
   })
 
   it('legacy procent / uszkodzony tryb → fail closed (nieaktywny)', () => {
-    // A persisted value that isn't 'amount' (a legacy 'percent' row, tolerant restore, or an
-    // out-of-band write) must NOT go active — otherwise per-item rabat is suppressed while
+    // A persisted value that isn't 'amount' must NOT go active — otherwise per-item rabat is suppressed while
     // globalDiscountAmount subtracts nothing.
     expect(isGlobalDiscountActive({ type: 'percent' as never, value: 100 })).toBe(false)
     expect(isGlobalDiscountActive({ type: 'bogus' as never, value: 100 })).toBe(false)
   })
 })
 
-// EX-605: picking „Kwotowy" used to persist NOTHING — the select read „Kwotowy" and its description
-// promised „zastępuje je", while every rabat per pozycja was still applied. The mode decides the
-// replacement (see isGlobalDiscountActive above), so entering it has to write.
 describe('globalDiscountForMode', () => {
   it('wejście w „Kwotowy" aktywuje rabat globalny, nie czeka na kwotę', () => {
     expect(globalDiscountForMode('amount', 340)).toEqual({ type: 'amount', value: 340 })
   })
 
   it('kwota startowa = suma rabatów per pozycja, więc przełączenie nie rusza żadnej liczby', () => {
-    // Rabat globalny zastępuje rabaty per pozycja, więc startując równy ich sumie zostawia
-    // „do rozliczenia" dokładnie tam, gdzie było przed przełączeniem.
     expect(globalDiscountForMode('amount', 0).value).toBe(0)
     expect(globalDiscountForMode('amount', 1234.56).value).toBe(1234.56)
   })

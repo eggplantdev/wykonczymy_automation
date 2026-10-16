@@ -36,7 +36,6 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
     invoices,
   )
 
-  // The worker sees his own transfers' faktury, but the upload and removal actions refuse him.
   if (!isManagementRole(role)) {
     return invoices.length > 0 ? (
       <MediaPreviewButton
@@ -61,7 +60,6 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
           files={visibleInvoices}
           variant={previewVariant}
           label={previewLabel}
-          // The preview would sit on top of the upload dialog, so it steps aside before it opens.
           onAdd={(closePreview) => {
             closePreview()
             setUploadOpen(true)

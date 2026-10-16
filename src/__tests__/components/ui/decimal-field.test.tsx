@@ -7,8 +7,7 @@ import { toastMessage } from '@/lib/utils/toast'
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
-// The own-tools client-share ceiling, and the reason this matters: four decimals is the DEFAULT here,
-// not an exotic entry.
+// four decimals is the DEFAULT here, not an exotic entry.
 const COEFF = 0.5525
 
 describe('DecimalField — refused entry', () => {

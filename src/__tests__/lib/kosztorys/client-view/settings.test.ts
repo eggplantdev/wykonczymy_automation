@@ -13,8 +13,6 @@ const visibleColumns = (settings: ClientViewSettingsT) => {
 }
 
 describe('sanitizeClientViewSettings', () => {
-  // The settlement columns are in the default because they hide themselves until there is an
-  // entry; „Pozostało" is not — it hides itself too, but stays an opt-in tick (owner, 2026-09-28).
   it('answers an empty source with the code default', () => {
     const settings = sanitizeClientViewSettings({})
 
@@ -34,7 +32,6 @@ describe('sanitizeClientViewSettings', () => {
       ].sort(),
     )
     expect(settings.hiddenColumns).toContain('remaining')
-    // EX-921: the Aktualizacja is ticked, its value an available tick left off.
     expect(settings.hiddenColumns).toContain('currentPlannedNet')
     // An AI draft writes its sources into the komentarz, so no kosztorys shows it unasked.
     expect(settings.hiddenColumns).toContain('note')
@@ -43,7 +40,7 @@ describe('sanitizeClientViewSettings', () => {
   })
 
   // The stored value is the HIDDEN set, so „no usable list" must never be read as „hide nothing" —
-  // that would serve the whole allowlist. NULL is what a row carries until someone saves a choice.
+  // that would serve the whole allowlist.
   it.each([
     ['no source at all', null],
     ['a row with no hidden set', { hideEmptyRows: true }],
@@ -76,9 +73,6 @@ describe('sanitizeClientViewSettings', () => {
     ).toEqual(['price'])
   })
 
-  // A crew's rate id resembles the client's `price` — it is that key plus a plane — and the stored
-  // set is the HIDDEN one, so a key that survived here would be read as „the owner chose to hide
-  // this", implying the allowlist could show it. The ceiling matches the full id, never the base.
   it('drops a subcontractor rate key hand-added to the stored settings', () => {
     const settings = sanitizeClientViewSettings({
       hiddenColumns: ['price', planePriceKey('price', 'w_tools'), 'priceCoeff__own_tools'],
@@ -109,8 +103,6 @@ describe('sanitizeClientViewSettings', () => {
 })
 
 describe('stored client view settings', () => {
-  // A row saved before Komentarz and the percentage against the offer were offered names neither:
-  // both must stay off the investor's document instead of showing because no stored choice hides them.
   it('reads a column the stored map does not mention as its code default', () => {
     const settings = sanitizeClientViewSettings({ hiddenColumns: { price: true, net: false } })
 

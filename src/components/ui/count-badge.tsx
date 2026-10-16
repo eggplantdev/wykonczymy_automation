@@ -2,10 +2,6 @@ type CountBadgePropsT = {
   count: number
 }
 
-/**
- * Presentational count bubble — a small circular pill showing a number, capped at
- * "99+". Renders nothing at 0. No feature logic: callers own what the number means.
- */
 export function CountBadge({ count }: CountBadgePropsT) {
   if (count === 0) return null
 

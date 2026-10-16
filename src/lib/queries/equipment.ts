@@ -20,13 +20,8 @@ export type EquipmentDatasetT = {
 }
 
 /**
- * Date-free on purpose: nothing in the dataset is classified against „today", so the entry survives
- * midnight. The warranty window is decided one layer up, from a date resolved per request — a date
+ * Date-free on purpose: a date
  * inside the payload would sit in a cache nobody invalidates for it.
- *
- * Warehouses ride along rather than getting their own cached read: they exist only as the second
- * half of the „gdzie jest" filter, and a separate entry would let the dropdown and the rows be
- * invalidated at different moments.
  */
 const getEquipmentDataset = cached(
   async (): Promise<EquipmentDatasetT> => {
@@ -63,13 +58,6 @@ export async function fetchEquipmentOverview(): Promise<EquipmentDatasetT> {
   return getEquipmentDataset()
 }
 
-/**
- * The item is read by id rather than looked up in the cached dataset: an item created from /admin,
- * or one whose revalidation has not propagated yet, would otherwise 404 on a row that exists. The
- * history read below already goes to the database, so the round trip was not being saved anyway.
- *
- * Both reads are uncached — this page is opened on demand, for one item.
- */
 export async function fetchEquipmentDetail(id: number): Promise<EquipmentDetailT | null> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error('Nie jesteś zalogowany')

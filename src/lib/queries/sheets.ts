@@ -5,8 +5,6 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 
-// Row shape served to the listing page. `investment` is undefined for an
-// unlinked kosztorys (registered before the project is committed).
 export type SheetRowT = {
   id: number
   name: string
@@ -18,8 +16,6 @@ export type SheetRowT = {
   updatedAt: string
 }
 
-// All kosztoryses + their linked investment (depth: 1). Sorted newest first
-// so freshly-added unlinked rows surface to the top.
 export const fetchAllSheets = cached(
   async (): Promise<SheetRowT[]> => {
     const elapsed = perfStart()

@@ -4,9 +4,6 @@ import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { settleWrite } from './support/wait'
 import { commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
 
-// EX-525 — unit-covered elsewhere (`use-undo-redo.test.ts`). Only a browser proves undo is a WRITE
-// (a reload tells a real revert from a local-only one), a keystroke run coalesces into one command
-// (`UNDO_COALESCE_MS`), and Cmd+Z belongs to the input while text-editing, our stack only after.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 type UndoSeedT = { cell: number; burst: number; boundary: number }
@@ -24,7 +21,6 @@ const SEEDED_QTY = { 'Praca pierwsza': '11', 'Praca druga': '22', 'Praca trzecia
 
 const qtyCell = (page: Page, row: string): Promise<Locator> => rowCell(page, row, QTY_COLUMN)
 
-// The cell renders an `EditableCellInput`, so the figure lives in `value`, never a text node.
 async function typeQty(page: Page, row: string, value: string): Promise<void> {
   const cell = await qtyCell(page, row)
   await settleWrite(page, () => commitCellValue(cell, value))
@@ -53,7 +49,7 @@ async function closeOptionsMenu(page: Page): Promise<void> {
 }
 
 // An undo is a write like any edit, so reloading before its reply would race the value it is about
-// to replace — hence `settleWrite` rather than waiting on the menu closing.
+// to replace.
 async function runStackCommand(page: Page, command: RegExp): Promise<void> {
   await openOptionsMenu(page)
   await settleWrite(page, async () => {
@@ -89,8 +85,7 @@ test('cofnięcie i ponowienie edycji komórki sięgają bazy, nie tylko ekranu',
   await runStackCommand(page, UNDO)
   await expectQty(page, 'Praca druga', SEEDED_QTY['Praca druga'])
 
-  // Reload proves the undo reached Postgres, and it also wipes the stack — hence redo below gets
-  // its own fresh edit.
+  // Reload wipes the stack — hence redo below gets its own fresh edit.
   await page.reload()
   await expectQty(page, 'Praca druga', SEEDED_QTY['Praca druga'])
 
@@ -119,16 +114,14 @@ test('seria znaków to jedno cofnięcie, a „Opcje" pokazują, jak głęboki je
   await settleWrite(page, async () => {
     await cell.click()
     // Enter opens edit mode without typing, avoiding the race where a first keystroke is lost to the
-    // grid before the input gets focus. Delay stays under UNDO_COALESCE_MS so all land in one buffer.
+    // grid before the input gets focus.
     await page.keyboard.press('Enter')
     await expect(cell.locator('input')).toBeFocused()
     await page.keyboard.press('ControlOrMeta+a')
     await page.keyboard.type('1234', { delay: 80 })
     await expect(cell.locator('input')).toHaveValue('1234')
-    // Locator-scoped, unlike the two presses above: `page.keyboard` delivers to whatever
-    // `document.activeElement` is at that instant, and the grid steals focus on its own schedule, so
-    // the commit was the press that went missing. The presses above WANT the page-level form — they
-    // run before the input exists, or drive the coalescing this spec measures.
+    // `page.keyboard` delivers to whatever `document.activeElement` is at that instant, and the grid
+    // steals focus on its own schedule.
     await cell.locator('input').press('Enter')
   })
   await expectQty(page, 'Praca pierwsza', '1234')
@@ -139,7 +132,6 @@ test('seria znaków to jedno cofnięcie, a „Opcje" pokazują, jak głęboki je
   await expectQty(page, 'Praca pierwsza', SEEDED_QTY['Praca pierwsza'])
   await expectStackState(page, false, true)
 
-  // Świeża edycja ucina gałąź „ponów" — inaczej ponowienie wkleiłoby wartość z porzuconej historii.
   await typeQty(page, 'Praca druga', '77')
   await expectStackState(page, true, false)
 })
@@ -150,8 +142,6 @@ test('Cmd+Z w trakcie edycji komórki należy do inputa, a po jej zakończeniu �
   await openEditor(page, seed.boundary)
   await typeQty(page, 'Praca pierwsza', '99')
 
-  // While text-editing, the shortcut undoes a character in the input, not an editor command — if it
-  // reached the stack, a mid-typing Cmd+Z would revert the unrelated earlier change.
   const other = await qtyCell(page, 'Praca trzecia')
   // Select the cell, then type: dsg only enters edit mode under a keypress, and its active-cell
   // frame intercepts a direct click on the input.

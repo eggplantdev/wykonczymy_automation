@@ -26,7 +26,6 @@ vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }
 vi.mock('@/lib/media/ingest-files', () => ({
   ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
 }))
-// The upload leg is not what these specs watch.
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploadRows: async (
     _count: number,
@@ -44,7 +43,6 @@ const page = (id: number): ExpenseDraftMediaT => ({
 const MEDIA = [page(101), page(102)]
 const FILES = MEDIA.map((m) => new File(['jpg'], m.filename, { type: m.mimeType }))
 
-// Two paragony on photo 101, a third on photo 102; the AI read no Kwota off the ticket.
 const AI_READ: ExpenseDraftReadT = {
   rows: [
     { mediaIds: [101], description: 'Parking', amount: 12.35, filename: 'parking' },
@@ -88,7 +86,6 @@ async function merge(user: ReturnType<typeof userEvent.setup>, rows: number[]) {
   await waitFor(() => expect(descriptions()).toHaveLength(4 - rows.length))
 }
 
-// Rows keep the order of the worker's photos, so a merged row sits at its earliest paragon.
 async function decide(
   user: ReturnType<typeof userEvent.setup>,
   decision: 'Przyjmij' | 'Odrzuć',

@@ -3,10 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { planGridChanges } from '@/lib/kosztorys/grid-change-plan'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// The editor's central decision: given the grid's new array and the snapshot of what it held before,
-// which writes fire and what the undo buffer records. Everything imperative (the saves, setRows, the
-// coalesce timer) stays in the hook.
-
 function row(over: Partial<KosztorysV2RowT> & { id: number }): KosztorysV2RowT {
   return {
     sectionId: 10,

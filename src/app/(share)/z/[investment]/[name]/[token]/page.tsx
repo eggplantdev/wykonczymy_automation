@@ -18,8 +18,6 @@ export async function generateMetadata({ params }: ParamsT): Promise<Metadata> {
   return { title: translate(page?.language ?? DEFAULT_LANGUAGE, 'report', 'pageTitle') }
 }
 
-// Like the investor's /k/<token>, a revoked and a never-issued token share one 404, and both name
-// segments are decoration: the token alone resolves.
 export default async function WorkerReportPage({ params }: ParamsT) {
   const { token } = await params
   const page = await readPage(token)

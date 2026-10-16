@@ -1,18 +1,11 @@
-// E2E fixture for filter-blindness of the v2 investment panel (EX-634). One investment, one
-// transaction per type, so `?type=<T>` narrows the table to a single row while panel figures stay
-// put. robocizna/rabat deliberately disagree with the kosztorys: a filter must not mute the warning.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-panel-filter-blind.ts
-// Emits: PANEL_SEED={"investment":<id>,"name":"…","laborCostsNet":500,…}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
 
-// Register 5 exists in the standard dump (e2e/helpers.ts); every register-bearing type books to it.
+// Register 5 exists in the standard dump.
 const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
 const QTY_DONE = 5
-// „Robocizna" as the kosztorys states it: clientPrice × Σ qtyDone, no rabat on the item.
 const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE
 // Deliberately ≠ LABOR_COSTS_NET, plus a rabat the kosztorys lacks — both trip the reconciliation.
 const LABOR_COST_BOOKED = LABOR_COSTS_NET - 50
@@ -42,10 +35,6 @@ async function seedTransaction(
       collection: 'transactions',
       disableTransaction: true,
       data: { ...txn, paymentMethod: 'TRANSFER', date: new Date().toISOString() },
-      // Kept as the belt to the credential gate's braces: every non-prod DB is a restored prod dump
-      // carrying live sheet ids, so the id this row would sync against is real. What stops the write
-      // is that `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON` exists only in Vercel Production — `skipSheetSync`
-      // means the sync is never attempted, not that it would otherwise succeed.
       ...ctx,
     })
   } catch (error) {
@@ -70,7 +59,6 @@ async function main() {
       `[panel-seed] no expense category „${DEFAULT_EXPENSE_CATEGORY_NAME}" in this DB — run pnpm db:import:test`,
     )
 
-  // Tryb NET: one money column, so the spec can compare whole rows as single values, not netto/brutto pairs.
   const investment = await payload.create({
     collection: 'investments',
     data: { name, status: 'active', vatRate: 0.23, settlementMode: 'NET' },

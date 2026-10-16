@@ -35,9 +35,6 @@ const TOKEN = /[\p{L}\p{N}]+(?:[.,]\d+)*/gu
 
 type ShapeT = { entry: WorkCatalogueItemT; numbers: string; words: string[] }
 
-// Numbers are kept apart and must match exactly: in this cennik a number is how a variant is written
-// („do 12 / 18 / 24 modułów", „5 / 7,5 cm", „Q3 / Q4"), which is why letter similarity was useless
-// here — it scores those pairs highest of all.
 function shapeOf(entry: WorkCatalogueItemT, units: ReadonlySet<string>): ShapeT {
   const numbers: string[] = []
   const words = new Set<string>()
@@ -56,9 +53,8 @@ const sharedPrefix = (left: string, right: string) => {
   return length
 }
 
-// The Polish ending is at most ~3 letters, so a word counts as the same once all but those agree —
-// „syfonu" / „syfonów", „kratki" / „kratek". Measured on the LONGER word: off the shorter one,
-// „podłogi" would pass as „podłączenia" on the four letters they share.
+// Measured on the LONGER word: off the shorter one, „podłogi" would pass as „podłączenia" on the
+// four letters they share.
 const sameWord = (left: string, right: string) => {
   if (left === right) return true
   const prefix = sharedPrefix(left, right)
@@ -79,15 +75,9 @@ function kindOf(left: ShapeT, right: ShapeT): NearDuplicateKindT | null {
 
 const KIND_ORDER: Record<NearDuplicateKindT, number> = { same: 0, oneWord: 1 }
 
-/**
- * Catalogue prace that are probably one praca written twice. Exact twins cannot exist — the cennik is
- * unique on folded opis + j.m. — so this catches what folding misses, whatever the j.m., kategoria or
- * cena. Only wpisy with a twin are keys.
- */
 export function findNearDuplicates(
   catalogue: readonly WorkCatalogueItemT[],
 ): ReadonlyMap<number, NearDuplicateT[]> {
-  // The cennik's own j.m. are what an opis spells „Skucie posadzki mb" with.
   const units = new Set(catalogue.map((entry) => foldUnit(entry.unit)).filter(Boolean))
 
   const byNumbers = new Map<string, ShapeT[]>()

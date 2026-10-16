@@ -13,25 +13,20 @@ const ENV_IGNORES = [
 ]
 
 const NO_RAW_ENV = {
-  // matches `process.env.X`, but allows `process.env.NODE_ENV`
   selector:
     "MemberExpression[object.object.name='process'][object.property.name='env']:not([property.name='NODE_ENV'])",
   message:
     'Read env through the validated env layer (env/index.ts / env/server.ts), never raw process.env.',
 }
 
-// The Data Cache outlives a deploy; `cached()` keys every entry on the deployment so new code never
-// reads a payload the previous build shaped (EX-1063). A direct `unstable_cache` reopens that hole.
 const NO_RAW_UNSTABLE_CACHE = {
   name: 'next/cache',
   importNames: ['unstable_cache'],
   message: 'Use cached() from @/lib/cache/cached — it keys the entry on the deployment.',
 }
 
-// A server action rejects client-side when its request never arrives (offline, a deploy invalidating
-// the action id) — `protectedAction` only catches handler throws. Matched by the `…Action` naming
-// convention, so a `'use server'` export named otherwise (`getPresetOptions`) slips through. Any call
-// under a `try` with a `catch` counts as handled, even one inside a nested callback.
+// Matched by the `…Action` naming convention, so a `'use server'` export named otherwise
+// (`getPresetOptions`) slips through.
 const ACTION_CALL = "[callee.name=/Action$/]:not([callee.name='settleAction'])"
 const IN_TRY = 'TryStatement[handler] > BlockStatement.block *'
 const THEN_WITHOUT_REJECTION =
@@ -78,10 +73,6 @@ export default ts.config(
     },
   },
   {
-    // Read env only through the validated layer (env/index.ts / env/server.ts) — never raw
-    // process.env. Allowlist the env layer itself, payload.config and CLI scripts (both run
-    // in the Payload CLI graph where `server-only` can't be imported), and tests (which seed
-    // process.env).
     files: ['src/**/*.{ts,tsx}'],
     ignores: ENV_IGNORES,
     rules: {
@@ -89,8 +80,7 @@ export default ts.config(
     },
   },
   {
-    // Client code only: `src/lib` actions call each other server-side, and the rest of `src/hooks` is
-    // Payload hooks. A second `no-restricted-syntax` replaces the env block's selectors for these
+    // A second `no-restricted-syntax` replaces the env block's selectors for these
     // files, so NO_RAW_ENV is repeated.
     files: [
       'src/components/**/*.{ts,tsx}',
@@ -110,9 +100,6 @@ export default ts.config(
     },
   },
   {
-    // Payload hooks run in a Route Handler context where `updateTag` throws. `lib/cache/revalidate.ts`
-    // calls `updateTag`, so a hook must never import it — use `revalidateTag(tag, 'default')` directly.
-    // A bad import here builds and deploys green, then throws only on a live transfer create/delete.
     files: ['src/hooks/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
@@ -123,7 +110,7 @@ export default ts.config(
             {
               name: '@/lib/cache/revalidate',
               message:
-                "Hooks run in Route Handler context — use revalidateTag(tag, 'default'), not updateTag/revalidateCollection from lib/cache/revalidate.",
+                "Hooks run in Route Handler context — use revalidateTag(tag, EXPIRE_NOW), not updateTag/revalidateCollection from lib/cache/revalidate.",
             },
           ],
         },
@@ -131,9 +118,6 @@ export default ts.config(
     },
   },
   {
-    // Type-aware pass, scoped to app source — the ONLY reliable way to catch `@deprecated`
-    // symbol usage repo-wide. tsc never emits deprecation diagnostics and the editor computes
-    // them only for open files, so this rule is the source of truth (runs in CI via `pnpm lint`).
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
@@ -143,30 +127,20 @@ export default ts.config(
     },
   },
   {
-    // Unlike the env rule this one does not exempt tests and scripts — the bilans/marza drift lived
-    // in those files too. Migrations are exempt: their identifiers mirror frozen DB enum values.
     files: ['src/**/*.{ts,tsx}', 'e2e/**/*.ts'],
     ignores: ['src/migrations/**'],
     plugins: { local: { rules: { 'no-domain-drift': noDomainDriftRule } } },
     rules: { 'local/no-domain-drift': 'error' },
   },
   {
-    // Root CommonJS configs (e.g. .dependency-cruiser.cjs) use module.exports; the flat config
-    // otherwise parses them as ESM and flags `module` as no-undef.
     files: ['**/*.cjs'],
     languageOptions: { sourceType: 'commonjs' },
   },
   {
-    // One-off plain-Node .mjs tools (not app code) — their process/console use trips no-undef and
-    // it's not worth a Node-globals config block. scripts/inspect-sheet.mjs = sheet-inspection POC;
-    // scripts/blob-snapshot.mjs = EX-459 blob backup/recovery tool;
-    // scripts/share-sheets-with-reader.mjs = bulk Viewer grant for the read-only service account;
-    // scripts/perf/ = page-cost measuring kit (context/reference/perf-measurement.md).
     ignores: [
       '.next/',
       '.next-e2e/',
       '.next-qa/',
-      // A local scratchpad. Already in .gitignore, which eslint does not read.
       'test.js',
       '.claude/',
       'scripts/inspect-sheet.mjs',
@@ -175,7 +149,6 @@ export default ts.config(
       'scripts/blob-restore.mjs',
       'scripts/share-sheets-with-reader.mjs',
       'scripts/perf/',
-      // Change-folder measurement tools (spikes), archived with their change.
       'context/**',
     ],
   },

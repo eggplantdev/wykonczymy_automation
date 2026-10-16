@@ -13,10 +13,6 @@ import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// The worker's document: a closed list at his plane. Asserted on rendered ids, like the investor's
-// preview, because the ids are what reaches his screen.
-
-// Already narrowed to his etapy, as the projection hands them over.
 const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', split: oneWorkerSplit(3) })]
 
 function workerOpts(
@@ -68,8 +64,6 @@ describe('worker columns', () => {
     }
   })
 
-  // Each is money that is not his: the client's price and przedmiar value, the other crew's stawka,
-  // the rabat (a client concession), brutto, and the client-anchored „Pozostało".
   it('never reaches the client money or the other crew', () => {
     const visible = workerIds()
     for (const id of [
@@ -96,7 +90,6 @@ describe('worker columns', () => {
     }
   })
 
-  // The hidden set only subtracts: naming a column outside the ceiling is inert, not a way in.
   it('cannot let a stored key add a column outside the list', () => {
     expect(workerIds({}, ['price', 'plannedNet', 'gross'])).toEqual(workerIds())
   })
@@ -149,7 +142,6 @@ describe('worker columns', () => {
   })
 })
 
-// The link and the owner's Podgląd subtract the rule the PDF prints by (`workerDataHiddenColumns`).
 describe('worker columns the data takes off', () => {
   const stages: KosztorysStageT[] = [
     ...STAGES,
@@ -194,8 +186,6 @@ describe('worker columns the data takes off', () => {
   })
 })
 
-// The list names `price__<plane>`, but `net` and the per-etap values compute at `view` — at 'client'
-// they would print the client's money under his stawka.
 describe('the pair: worker list + price plane', () => {
   it('throws unless view is the worker plane', () => {
     expect(() => buildV2Columns({ ...workerOpts('w_tools'), view: 'client' })).toThrow(

@@ -1,9 +1,7 @@
 import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 
-// A szablon's prace ARE katalog entries (EX-1017), so a praca typed by hand into a kosztorys has
-// nothing to point at and stays behind. Never written into the katalog on the way — that would pull
-// one client's prices into the cennik. Sekcje stay even when emptied: they are the skeleton.
+// Never written into the katalog on the way — that would pull one client's prices into the cennik.
 export function keepCataloguedItems(
   tree: SnapshotPayloadT,
   liveCatalogueIds: ReadonlySet<number>,

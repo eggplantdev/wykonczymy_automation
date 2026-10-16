@@ -15,10 +15,6 @@ import { createTestTemplate } from '@/__tests__/helpers/template'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so every assertion is on
-// PERSISTED state: a success result would hide a failed write, and „odwracalne" is real only if the
-// pre-reload snapshot actually restores.
-
 const authState = vi.hoisted(() => ({ userId: 0 }))
 
 vi.mock('server-only', () => ({}))
@@ -130,8 +126,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
       status: TEMPLATE_INVESTMENT_STATUS,
       ...TEMPLATE_SETTINGS,
     })
-    // The szablon's own przedmiar and rabat — typed into its editor like on any kosztorys — must not
-    // ride along into the investment it is loaded into.
     await createKosztorysTree(payload, presetId, {
       sections: [
         {
@@ -284,8 +278,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
 
     expect(result).toMatchObject({ success: true, data: { sections: 1, items: 1 } })
     expect(await sectionNames()).toEqual(['Z szablonu'])
-    // A szablon carries no etapy, so both go — this is the part that distinguishes a reload from the
-    // sheet import, which keeps prace the sheet doesn't know about.
     expect(await stageLabels()).toEqual([])
     expect(await progressQty()).toEqual([])
   })
@@ -305,8 +297,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(Number(res.rows[0].discount_value)).toBe(0)
   })
 
-  // The szablon is an investment with its own VAT and coefficients, but applying those would drag
-  // its pricing config onto another job — `restoreKosztorys` is handed the CURRENT settings instead.
   it('leaves the investment’s own VAT and coefficients alone rather than taking the szablon’s', async () => {
     await seedLiveTree()
 
@@ -344,14 +334,10 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     await restoreSnapshotAction(snapshotIds[0], investmentId)
 
     expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])
-    // Etapy and wykonano come back too — the snapshot is the undo for the whole tree, not just the
-    // prace, which is what makes the wipe safe to offer without an escalated warning.
     expect(await stageLabels()).toEqual(['Etap 1'])
     expect(await progressQty()).toEqual([4])
   })
 
-  // Only a szablon is a source: an ordinary investment's id would copy a client's rozpiska into
-  // someone else's, and the investment itself would only lose its przedmiar.
   it.each([
     ['does not exist', () => 2_000_000_000],
     ['is an ordinary investment', () => ordinaryId],
@@ -367,7 +353,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await allSnapshotIds()).toEqual(before)
   })
 
-  // Thrown away means gone from „Wczytaj szablon" — an open picker must not still load it.
   it('writes nothing when the source szablon is in the trash', async () => {
     const trashed = await createTestTemplate(payload, 'ex560-reload-fixture-trashed')
     try {
@@ -387,7 +372,7 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     }
   })
 
-  // The case above never enters the transaction. The snapshot is written on the transaction handle
+  // The snapshot is written on the transaction handle
   // BEFORE the wipe, so a throw during the insert must take it down rather than strand a restore
   // point for a state that was never replaced.
   it('rolls the pre-reload snapshot back when the insert itself throws', async () => {
@@ -404,8 +389,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   })
 })
 
-// A szablon is an investment with status `szablon`, so every lifecycle assertion reads the
-// investments row and its tree — never the action's result alone.
 describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -625,8 +608,6 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     expect(sameName.rows.map((row) => Number(row.id))).toEqual([trashed])
   })
 
-  // A stale /szablony tab renames a szablon another tab already trashed, into a name someone holds:
-  // the name clash is not why the rename failed, and saying so sends the owner to pick another name.
   it('renaming a szablon that is not live says it is gone, even into a held name', async () => {
     const heldName = uniqueName('lifecycle-held')
     const holder = await createTestInvestment(payload, heldName, {
@@ -735,7 +716,6 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     expect(await isListed(templateId)).toBe(true)
   })
 
-  // The cascade is the delete: a szablon's tree and its restore points have no owner once it goes.
   it('deleting a szablon forever takes its sections, items and restore points with it', async () => {
     const templateId = await createTestTemplate(payload, 'lifecycle-delete')
     created.push(templateId)

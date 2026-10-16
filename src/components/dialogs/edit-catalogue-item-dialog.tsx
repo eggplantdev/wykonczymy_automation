@@ -31,8 +31,6 @@ export function EditCatalogueItemDialog({
     >
       {(onSubmitSuccess, keepOpen) => (
         <>
-          {/* A szablon shows its prace straight from the katalog (EX-1017), so this save changes
-              them too — said before the save, not discovered after. */}
           {templateNames.length > 0 && (
             <p className="mb-4 text-sm text-amber-600">
               Ta praca jest w szablonach: {templateNames.join(', ')}. Zmiana trafi do każdego z

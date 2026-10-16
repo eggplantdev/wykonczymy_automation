@@ -1,17 +1,9 @@
-// Sends a worker's zgłoszenie wydatku again as a new pending one over the same photos, read paragon
-// by paragon, and leaves the original pending beside it for comparison — #13 summed 13 Leroy Merlin
-// paragony into one 1058.05 zł row. Reject one of the two by hand: accepting both books them twice.
+// Reject one of the two by hand: accepting both books them twice.
 //
 //   DRAFT=13 node --env-file=.env --conditions=react-server --import tsx src/scripts/rescan-expense-draft.ts
 //
-// Production, once migration 20261012_1 is applied there:
-//
-//   DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" DRAFT=13 node --env-file=.env --conditions=react-server \
-//     --import tsx src/scripts/rescan-expense-draft.ts
-//
 // The pages are always read from the production Blob store: the local DB is a prod dump, and the
-// preview store lacks every photo newer than its last restore. A second run refuses while a copy of
-// the same zgłoszenie is still pending.
+// preview store lacks every photo newer than its last restore.
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@/payload.config'

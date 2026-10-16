@@ -19,8 +19,7 @@ const stopEditing = vi.fn()
 type CellPropsT = Partial<Parameters<typeof SectionNameCell>[0]>
 
 // A neighbour to tab into: blur is the only commit path, so every test needs somewhere for the
-// caret to land. Built as a tree rather than inline per test, so a rerender cannot drift from the
-// render it is meant to be the next frame of.
+// caret to land.
 const tree = (props: CellPropsT = {}) => (
   <>
     <SectionNameCell rowData={ROW} onRename={onRename} {...props} />
@@ -59,8 +58,6 @@ describe('Sekcja — zmiana nazwy w komórce', () => {
   })
 })
 
-// Focus alone opens editing, so without the guard tabbing through the cell writes an unchanged name
-// — a revalidation and an undo-history entry for nothing.
 describe('Sekcja — wyjście, które niczego nie zmieniło', () => {
   it('nie zapisuje niczego, gdy ktoś tylko przeszedł przez komórkę', async () => {
     const { user } = renderCell()
@@ -99,8 +96,6 @@ describe('Sekcja — wyjście, które niczego nie zmieniło', () => {
 })
 
 describe('Sekcja — nazwa zmieniona spoza siatki', () => {
-  // Outside editing the cell shows the name off the row, not the last draft — otherwise a change
-  // made from the sekcja panel would hide behind abandoned text until a reload.
   it('pokazuje nazwę nadaną z panelu, nie porzucony szkic', async () => {
     const { user, rerender } = renderCell()
     const input = screen.getByRole('textbox')
@@ -122,8 +117,6 @@ describe('Sekcja — nazwa zmieniona spoza siatki', () => {
   })
 })
 
-// Delete on a selected Sekcja cell is a grid gesture, not an edit — one press would otherwise clear
-// the sekcja's name across all of its rows.
 describe('Sekcja — Delete na zaznaczonej komórce', () => {
   it('oddaje wiersz nietknięty', () => {
     const column = sectionNameColumn('Sekcja', onRename)
@@ -132,9 +125,6 @@ describe('Sekcja — Delete na zaznaczonej komórce', () => {
   })
 })
 
-// In the grid the cell is gated on dsg's editing flag, because an input renders one line whatever
-// the row's height — the name has to be TEXT at rest for „Dopasuj wysokość wierszy" to reach it.
-// The band passes no flag at all and keeps its permanently live input, covered by the suites above.
 describe('Sekcja — komórka siatki poza edycją', () => {
   const renderGridCell = (focus: boolean) => renderCell({ focus, stopEditing })
 
@@ -151,8 +141,6 @@ describe('Sekcja — komórka siatki poza edycją', () => {
     expect(screen.getByRole('textbox')).toHaveValue(ENTRY_NAME)
   })
 
-  // Clicking another cell is the path that ends an edit through React alone, so this is the one exit
-  // the cell — not the hook's own cleanup — has to survive.
   it('zapisuje nazwę, gdy siatka kończy edycję bez bluru', async () => {
     const { rerender, user } = renderGridCell(true)
 
@@ -164,9 +152,6 @@ describe('Sekcja — komórka siatki poza edycją', () => {
     expect(onRename).toHaveBeenCalledExactlyOnceWith(SECTION_ID, 'Pralnia')
   })
 
-  // `enterEscapeKeyDown` swallows both keys, and dsg listens on `document` — so nothing else can tell
-  // the grid the edit ended. Without the handover it keeps `editing` true over a blurred input, and
-  // the next character reaches neither of them.
   it('oddaje komórkę siatce po Enterze', async () => {
     const { user } = renderGridCell(true)
 

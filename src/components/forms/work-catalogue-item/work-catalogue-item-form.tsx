@@ -27,7 +27,6 @@ import type { ActionResultT } from '@/types/action'
 type WorkCatalogueItemFormPropsT = {
   formId: string
   defaultValues: WorkCatalogueItemFormValuesT
-  /** Categories already in the katalog, offered as quick-picks so they don't fork on a typo. */
   categorySuggestions: readonly string[]
   action: (data: WorkCatalogueItemDataT) => Promise<ActionResultT>
   successMessage: string
@@ -35,16 +34,11 @@ type WorkCatalogueItemFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
-  /** False on the edit dialog — see `useManagedForm`. */
   persistDraft?: boolean
-  /** The map the translation fields were filled from; a new entry has none. */
   translationBaseline?: DescriptionTranslationsT
-  /** Rendered under the Polish opis — the add dialog's AI checkbox, which the edit dialog has no use for. */
   children?: ReactNode
 }
 
-// The katalog names its own „auto" — a cennik wpis has no inwestycja yet, so the sentence has to say
-// whose współczynnik will price it. The other two are the shared names, unchanged.
 const SOURCE_OPTION_LABELS: Record<PriceSourceT, string> = {
   ...PRICE_SOURCE_LABELS,
   auto: 'auto — ze współczynnika inwestycji, do której praca trafi',

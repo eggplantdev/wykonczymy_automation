@@ -76,8 +76,6 @@ describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
 
     await setQty(12)
     expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('stored')
-    // A rerun of a day already captured stays a no-op even when the tree moved since — that edit
-    // belongs to the next day.
     await setQty(14)
     expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('unchanged')
     expect(await captureDailySnapshot(db, investmentId, DAY_3)).toBe('stored')

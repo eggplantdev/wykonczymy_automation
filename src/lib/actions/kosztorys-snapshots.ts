@@ -12,11 +12,7 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import type { ActionResultT } from '@/types/action'
 
-// --- Capture triggers ---
-
-// Periodic auto snapshot — the client's 10-min interval calls this fire-and-forget.
 export async function snapshotAction(investmentId: number): Promise<ActionResultT> {
-  // A locked kosztorys cannot change, so there is nothing left to version.
   return investmentAction('snapshotAction', { investmentId }, async ({ payload, user }) => {
     const db = await getDb(payload)
     await captureAutoSnapshot(db, investmentId, user.id)
@@ -26,7 +22,6 @@ export async function snapshotAction(investmentId: number): Promise<ActionResult
 
 const saveSnapshotSchema = z.object({ label: z.string().trim().min(1, 'Podaj nazwę wersji') })
 
-// Named manual snapshot („Zapisz jako…") — required label, exempt from the auto thinning bands.
 export async function saveSnapshotAction(
   investmentId: number,
   label: string,
@@ -48,25 +43,14 @@ export async function saveSnapshotAction(
       })
       return { success: true }
     },
-    // A named version is an entry in the investor's history list.
     ['kosztorysSnapshots'],
   )
 }
-
-// --- Restore + listing ---
 
 const restoreSchema = z.object({ snapshotId: z.number(), investmentId: z.number() })
 
 export type RestoreResultT = { droppedWorkerAssignments: number }
 
-// Restore a snapshot into the CURRENT investment: `investmentId` is the editor's open context and the
-// snapshot must belong to it — a snapshot from another investment is refused as "not found" (a bare
-// snapshotId with no such check would wipe-and-reinsert whatever investment the row happens to point
-// at, unbounded by what the user is looking at). Then, in ONE transaction, take a forced pre-restore
-// auto snapshot (so a mis-restore is itself recoverable) and wipe-and-reinsert the tree. On any throw
-// the transaction rolls back and the live tree is untouched. `skipRevalidation` suppresses the per-op
-// collection hooks (~1000 rows would otherwise fire revalidateTag each) — the action's revalidate list
-// bumps every tag once after commit.
 export async function restoreSnapshotAction(
   snapshotId: number,
   investmentId: number,
@@ -103,8 +87,6 @@ export async function restoreSnapshotAction(
 
 export type SnapshotListItemT = SnapshotMetaT & { takenByName: string | null }
 
-// Snapshot metadata for the "Wersje" drawer — newest first, WITHOUT the jsonb payload, with
-// taken_by resolved to a display name for attribution.
 export async function listSnapshotsAction(
   investmentId: number,
 ): Promise<ActionResultT<SnapshotListItemT[]>> {

@@ -101,7 +101,6 @@ describe('„Pracownicy etapu…"', () => {
   it('refuses „Zapisz" while the fixed amounts pass the pool', async () => {
     const user = renderDialog()
     await user.click(screen.getByRole('radio', { name: 'Kwotowo' }))
-    // The typed kwota IS the share, so there is no separate „Udział" to show next to it.
     expect(screen.queryByText('Udział')).toBeNull()
     await type(user, 0, '1200')
     expect(saveButton()).toBeDisabled()

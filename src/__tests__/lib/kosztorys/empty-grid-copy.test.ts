@@ -15,9 +15,6 @@ describe('emptyGridCopy', () => {
     expect(copy.description).toBe('Filtr chowa pozycje bez przedmiaru i z przedmiarem.')
   })
 
-  // „Odznacz wszystkie" engages sixteen hiders in one gesture, and naming them all builds a
-  // run-on of mutually exclusive pairs — the sentence stops being readable exactly in the state one
-  // click now produces.
   it('counts the filters instead of listing them once there are too many to read', () => {
     const copy = emptyGridCopy({
       preview: false,
@@ -29,15 +26,12 @@ describe('emptyGridCopy', () => {
     expect(copy.description).not.toContain('filtr 7')
   })
 
-  // The heading still has to stand alone — naming which filter did it is what drops out.
   it('still says something when a filter carries no label', () => {
     const copy = emptyGridCopy({ preview: false, hiders: [condition('x', '')], diagnostics: [] })
     expect(copy.title).toBe('Wszystkie pozycje schowane')
     expect(copy.description).toBeUndefined()
   })
 
-  // Unreachable through the editor's render gate, but the module no longer depends on that: the old
-  // fall-through titled the overlay „Brak pozycji " and blamed a filter nobody engaged.
   it('says something neutral when nothing is engaged at all', () => {
     const copy = emptyGridCopy({ preview: false, hiders: [], diagnostics: [] })
     expect(copy.title).toBe('Brak pozycji do pokazania')

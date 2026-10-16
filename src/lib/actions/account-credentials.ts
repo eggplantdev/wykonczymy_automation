@@ -12,10 +12,7 @@ import {
 import type { ActionResultT } from '@/types/action'
 
 /**
- * Checked through Payload's own login so a guessed password counts toward the account lockout. The
- * session row it leaves behind is never handed out and expires with the cookie lifetime. Anything
- * but a refusal is rethrown: a database blip reported as a wrong password would burn lockout
- * attempts on a correct one and never reach the log.
+ * Checked through Payload's own login so a guessed password counts toward the account lockout.
  */
 async function verifyCurrentPassword(
   payload: Payload,
@@ -35,11 +32,6 @@ async function verifyCurrentPassword(
   }
 }
 
-/**
- * The only path for a user to change their own credentials, for every role — so not a
- * `protectedAction` (management only). The account is the caller's, read off the session: there is
- * no id argument through which to reach anyone else's.
- */
 export async function changeOwnCredentialsAction(
   input: AccountCredentialsInputT,
 ): Promise<ActionResultT> {

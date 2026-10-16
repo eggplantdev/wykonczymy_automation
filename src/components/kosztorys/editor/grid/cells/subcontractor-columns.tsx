@@ -14,14 +14,8 @@ import { SubcontractorPriceCell } from '@/components/kosztorys/editor/grid/cells
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { ReactNode } from 'react'
 
-// Which cell of the pair AUTHORS the rate on this row. Both render read-only where the other one holds
-// the figure („Mnożnik" shows „—" at kwota stała, „Cena j.m." shows the derived stawka at własny
-// mnożnik) — but dsg doesn't know that: `isCellDisabled` reads ONLY `column.disabled`, so without this
-// a Delete over a selection wiped the kwota through the dashed cell.
-//
-// The predicate sits on `disabled`, not in `deleteValue`/`pasteValue`, because that one place closes
-// all three write paths (Delete, paste, entering edit) — and makes the same call the cell already
-// makes about its own render.
+// `isCellDisabled` reads ONLY `column.disabled`, so without this a Delete over a selection wiped the
+// kwota through the dashed cell.
 const authorsCoeff = (rowData: KosztorysV2RowT, view: ToolPlaneT) =>
   priceSourceOf(rowData, view) === 'coeff'
 
@@ -51,7 +45,6 @@ export function subcontractorModeColumn(
   return {
     id: planePriceKey('priceMode', view),
     title: titleNode,
-    // Fits the header label next to the sort icon — below this the title truncates.
     minWidth: 185,
     // The menu is a portal outside the grid, so a click on one of its items reads as a click away —
     // without this the grid would end the edit before the pick lands.

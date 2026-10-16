@@ -8,10 +8,6 @@ import { endOfPreviousWarsawDay } from '@/lib/utils/days'
 
 type DailyCaptureResultT = { stored: number; unchanged: number; failed: number }
 
-/**
- * One `daily` row per investment per Warsaw day, and only for a day whose end state differs from the
- * previous `daily` — an unchanged day leaves no row, which the history reader relies on.
- */
 export async function captureDailySnapshot(
   db: DbExecutorT,
   investmentId: number,
@@ -39,14 +35,11 @@ export async function captureDailySnapshot(
 }
 
 // Sequential, never Promise.all: 65 trees built in parallel would hold 65 connections of a pool that
-// serves live requests too. Each investment fails alone, so one broken tree costs one day of one
-// investment's history, not the night's run.
+// serves live requests too.
 export async function captureDailySnapshots(
   db: DbExecutorT,
   now: Date,
 ): Promise<DailyCaptureResultT> {
-  // The run always happens after Warsaw midnight (see the cron route), so the day it describes is the
-  // one that just ended, and its version is stamped at that day's last instant.
   const takenAt = endOfPreviousWarsawDay(now)
   const result: DailyCaptureResultT = { stored: 0, unchanged: 0, failed: 0 }
 

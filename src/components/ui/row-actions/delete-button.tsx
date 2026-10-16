@@ -8,8 +8,6 @@ export type DeleteButtonPropsT = Omit<RowActionButtonPropsT, 'icon' | 'tone' | '
   label?: string
 }
 
-// The confirm dialog carries the warning, so the button stays a quiet ghost until hovered rather than
-// shouting red from every row.
 export function DeleteButton({ label, text, ...props }: DeleteButtonPropsT) {
   const { t } = useTranslation('common')
   return (

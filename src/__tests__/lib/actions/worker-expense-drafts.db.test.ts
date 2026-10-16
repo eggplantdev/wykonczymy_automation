@@ -165,8 +165,6 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     expect(revalidateCollections).toHaveBeenCalledWith(['transfers'], { deferRefresh: true })
   })
 
-  // Two managers on one draft: the loser's expense must roll back with the refusal, or the
-  // receipt is booked twice.
   it('a second accept of the same draft is refused and books nothing', async () => {
     const draftId = await createDraft('twice')
     const description = `EX-971 twice ${draftId}`

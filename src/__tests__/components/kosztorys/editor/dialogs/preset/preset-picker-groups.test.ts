@@ -40,7 +40,7 @@ describe('groupPresetSections', () => {
   })
 
   // The precondition the picker's React keys rest on: `listPresetSections` returns one preset's
-  // metas consecutively. Fed interleaved, grouping splits them — two groups with one presetId.
+  // metas consecutively.
   it('splits a preset whose metas arrive non-consecutively', () => {
     const groups = groupPresetSections([meta(1, 10), meta(2, 20), meta(1, 11)], new Set())
 
@@ -65,9 +65,6 @@ describe('groupPresetSections', () => {
 })
 
 describe('isGroupFullySelected', () => {
-  // The picker derives this above its own loading/empty guard, so it runs on renders where there is
-  // no active group at all — while the szablon list is still fetching, and when the library is empty.
-  // Reading `.metas` there crashed the dialog on every open.
   it('is false when there is no active group', () => {
     expect(isGroupFullySelected(undefined)).toBe(false)
   })

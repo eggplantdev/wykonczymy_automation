@@ -7,7 +7,6 @@ import { getDb } from '@/lib/db/get-db'
 import { selectUserLanguage } from '@/lib/db/user-language'
 import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 
-/** The language the logged-in app speaks to this account; read by the shell on every full request. */
 export const fetchUserLanguage = cache(
   (userId: number): Promise<LanguageT> =>
     cached(

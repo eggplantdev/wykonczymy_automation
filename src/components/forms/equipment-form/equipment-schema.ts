@@ -8,7 +8,6 @@ import {
   refineTargetChoice,
 } from '@/lib/schemas/equipment-target'
 
-// Form-input layer: every field is a string, as the HTML controls produce them.
 const equipmentFormShape = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   serialNumber: z.string(),
@@ -25,11 +24,9 @@ export const equipmentFormSchema = equipmentFormShape
 
 export type EquipmentFormValuesT = z.infer<typeof equipmentFormShape>
 
-// Domain layer the action validates: derived from the form shape so the field list can't drift.
 const equipmentDataShape = {
-  // `null`, not `''`: the column carries a unique index, and Postgres treats two empty strings as a
-  // collision — so the second nameplate-less item would be refused. Two NULLs never collide.
-  // Trimmed because the clash check reads it trimmed.
+  // the column carries a unique index, and Postgres treats two empty strings as a
+  // collision — so the second nameplate-less item would be refused.
   serialNumber: z.string().trim().nullable(),
   purchaseDate: z.string().nullable(),
   warrantyUntil: z.string().nullable(),
@@ -45,14 +42,8 @@ export const equipmentSchema = equipmentFormShape.extend(equipmentDataShape)
 
 export type EquipmentFormDataT = z.infer<typeof equipmentSchema>
 
-/**
- * Adding an item and saying where it went are ONE form: an item with no event reads as „nie wiadomo
- * gdzie", which is the register's alarm state — a fresh purchase must never start there.
- */
 const addEquipmentFormShape = equipmentFormShape.extend({
   ...equipmentTargetFormShape,
-  // Optional, and it belongs to the first EVENT rather than to the item: „kupione na Kwiatową" is a
-  // fact about that delivery, not a permanent property of the drill.
   investment: z.string(),
 })
 
@@ -67,7 +58,6 @@ export const addEquipmentSchema = addEquipmentFormShape
 
 export type AddEquipmentDataT = z.infer<typeof addEquipmentSchema>
 
-/** Form values → the item's columns. Every emptied field lands as `null`, never as `''` or `0`. */
 export function toEquipmentData(values: EquipmentFormValuesT): EquipmentFormDataT {
   return {
     name: values.name.trim(),

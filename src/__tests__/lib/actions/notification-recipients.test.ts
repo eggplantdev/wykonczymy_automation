@@ -1,12 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 
-// Driven against the REAL DB and asserted on the PERSISTED global: the trap this guards is a write
-// that succeeds while emptying the lists nobody was editing, and a `success: true` cannot tell
-// you which lists survived.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 vi.mock('server-only', () => ({}))
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string }))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -91,8 +85,6 @@ describe.skipIf(!ENV_READY)('saveRecipientListAction (DB)', () => {
     expect((await readRecipientLists(payload)).newLead).toEqual(['dup@example.com'])
   })
 
-  // Who may rewrite these lists is the action's one security property, and `canEdit` on the card
-  // only hides the button — this is the half that actually holds.
   it('rejects a MANAGER without touching the row', async () => {
     await resetGlobal()
     authState.role = 'MANAGER'

@@ -15,17 +15,6 @@ import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
 import { protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
 
-/**
- * Register an existing Google Sheet as a sheet record WITHOUT linking it to an
- * investment. Lets the owner cost a project before the investment is committed
- * — the link step happens later via linkSheetToInvestmentAction (or the
- * per-investment "Powiąż istniejący arkusz" flow on the investment page).
- *
- * Flow: extract id → verify the SA can edit it → create the kosztoryses row →
- * stamp the materiały tab (banner + header + summary + protection). The setup
- * step is best-effort: if it fails, the sheet row still exists and the
- * setup can be retried from the per-investment page after linking.
- */
 export async function addUnlinkedSheetAction(input: string, name?: string) {
   return protectedAction<{ sheetId: number; name: string }>(
     'addUnlinkedSheetAction',
@@ -35,8 +24,6 @@ export async function addUnlinkedSheetAction(input: string, name?: string) {
         return { success: false, error: 'Nieprawidłowy link lub identyfikator arkusza Google.' }
       }
 
-      // Same loud-rejection as linkSheetAction: the unique constraint
-      // would also throw, but a Polish error is friendlier than a 500.
       const existing = await payload.find({
         collection: 'kosztoryses',
         where: { googleSheetId: { equals: googleSheetId } },
@@ -61,18 +48,12 @@ export async function addUnlinkedSheetAction(input: string, name?: string) {
         }
       }
 
-      // Default name to the sheet's title — the owner can rename it later from
-      // the admin panel (the listing page shows whichever is set).
       const created = await payload.create({
         collection: 'kosztoryses',
         data: { googleSheetId, name: name?.trim() || access.title || googleSheetId },
         overrideAccess: true,
       })
 
-      // Stamp the materiały tab so the sheet is ready to receive expenses the
-      // moment it's linked to an investment. Best-effort — log and continue on
-      // failure so the row is at least created. The owner can retry via the
-      // per-investment "reset" button after linking.
       try {
         await stampAllTabs(googleSheetId, payload, 'setup')
       } catch (err) {
@@ -85,19 +66,11 @@ export async function addUnlinkedSheetAction(input: string, name?: string) {
   )
 }
 
-/**
- * Attach a previously unlinked sheet record to an investment. After the FK is
- * set, the materiały tab gets populated from the investment's expenses (a
- * normal sync run, fire-and-forget so the action returns fast).
- */
 export async function linkSheetToInvestmentAction(sheetId: number, investmentId: number) {
   return investmentAction(
     'linkSheetToInvestmentAction',
     { investmentId },
     async ({ payload }) => {
-      // The three lookups are independent — fetch them in parallel. The partial
-      // unique index on investment_id WHERE NOT NULL would also catch a double-
-      // link at the DB layer; the loud check turns it into a Polish error first.
       const [sheet, investment, investmentHasSheet] = await Promise.all([
         payload.findByID({
           collection: 'kosztoryses',
@@ -136,8 +109,7 @@ export async function linkSheetToInvestmentAction(sheetId: number, investmentId:
         overrideAccess: true,
       })
 
-      // Populate the sheet from the investment's expenses now that the link is
-      // in place. Fire-and-forget: a slow Google round-trip mustn't keep the
+      // Fire-and-forget: a slow Google round-trip mustn't keep the
       // UI spinner up — and a sync failure shouldn't undo the link.
       void applyMaterialSync(investmentId).catch((err) => {
         logError(`[sheets] post-link sync for investment #${investmentId} failed:`, err)
@@ -168,10 +140,6 @@ async function lockedSheetError(
   return lockMessage ? { success: false, error: lockMessage } : undefined
 }
 
-/**
- * Detach a sheet record from its investment, leaving the sheet untouched. The
- * row stays as an "unlinked sheet" — re-linkable later from the listing.
- */
 export async function unlinkSheetFromInvestmentAction(sheetId: number) {
   return protectedAction(
     'unlinkSheetFromInvestmentAction',
@@ -192,15 +160,6 @@ export async function unlinkSheetFromInvestmentAction(sheetId: number) {
   )
 }
 
-/**
- * Point a field at a sheet column by hand, for a header our matchers cannot read (Żupnicza splits
- * „Wartość netto" into two columns). Saved the moment the owner picks, not as a side effect of the
- * import: „Porównaj z arkuszem" has to read the same pointing without anyone opening the import
- * window first.
- *
- * Merged into whatever is stored rather than replacing it, so pointing at a second field doesn't
- * quietly drop the first.
- */
 export async function saveSheetColumnMappingAction(
   investmentId: number,
   field: string,
@@ -261,11 +220,7 @@ export async function clearSheetColumnMappingAction(investmentId: number, field:
 }
 
 /**
- * Delete the sheet record only — the Google Sheet stays as-is (it lives on
- * the owner's Drive; we don't have permission and shouldn't presume).
- *
- * Tighter than the other actions: the collection's `delete` access is
- * `isAdminOrOwner`, so we re-check the role here. `protectedAction` only gates at
+ * `protectedAction` only gates at
  * MANAGEMENT_ROLES, which includes MANAGER; without this check, a manager
  * would bypass the collection's tighter intent via `overrideAccess: true`.
  */

@@ -69,7 +69,6 @@ describe('„Przywróć” na liście „Zgłoszenia wydatków”', () => {
     expect(restoreExpenseDraftAction).not.toHaveBeenCalled()
   })
 
-  // The restore would be refused, so the row offers nothing.
   it('a skipped paragon whose party is in the trash offers no „Przywróć”', () => {
     renderTable([draft(7, { skippedReceipt: { id: 41, isRestorable: false } })])
     expect(screen.queryByRole('button', { name: 'Przywróć' })).toBeNull()

@@ -52,7 +52,6 @@ export function useDraftReceipts({
   const [decisions, setDecisions] = useState(() =>
     source ? paragonDecisions(source.receipts, source) : new Map<string, ParagonDecisionT>(),
   )
-  // Grows only: a row id is never reused, so a merged-away or split row's id can't match again.
   const [incompleteIds, setIncompleteIds] = useState(() => new Set<string>())
 
   const rowIds = new Set(lineItems.map((item) => item.id))
@@ -66,7 +65,6 @@ export function useDraftReceipts({
     const merged = makeLineItem(values)
     const mergedAwayIds = selectedItems.map((item) => item.id)
     const parts = mergedAwayIds.flatMap((id) => receipts.get(id) ?? [])
-    // A merged-in row's own blank Kwota is already hidden inside its sum.
     const isIncomplete = isAmountIncomplete || mergedAwayIds.some((id) => incompleteIds.has(id))
 
     const at = lineItems.findIndex((item) => item.id === mergedAwayIds[0])
@@ -77,11 +75,9 @@ export function useDraftReceipts({
     ])
     setReceipts((prev) => mergeParts(prev, mergedAwayIds, merged.id))
     if (isIncomplete) setIncompleteIds((prev) => new Set(prev).add(merged.id))
-    // Kept selected, so the merged paragon is the one the footer's actions and sum now name.
     setSelected(new Set([merged.id]))
   }
 
-  // Rebuilt from the stored read, not from the merged row: what the manager typed into it is lost.
   function split(id: string) {
     const parts = receipts.get(id)
     const at = lineItems.findIndex((item) => item.id === id)
@@ -124,7 +120,6 @@ export function useDraftReceipts({
     setDecisions((prev) => new Map([...prev].filter(([key]) => key !== id)))
   }
 
-  // The server's outcomes replace every local decision: after a lost response nothing local is known.
   function resync(outcomes: ParagonOutcomesT) {
     const next = paragonDecisions(receipts, outcomes)
     setDecisions(next)

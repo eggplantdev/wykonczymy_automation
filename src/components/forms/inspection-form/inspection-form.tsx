@@ -61,8 +61,7 @@ export function InspectionForm({
 
   /**
    * Last date this form suggested for „Następny termin": a date the user chose must survive a later
-   * type change, and `isTouched` can't tell the two apart (TanStack touches every field on the first
-   * validation pass). Tracks every write — a restored draft and a `keepOpen` submit both reseed it.
+   * type change, and `isTouched` can't tell the two apart.
    */
   const suggestedNextDue = useRef<string | null>(null)
 
@@ -78,14 +77,11 @@ export function InspectionForm({
       resetFiles()
       suggestedNextDue.current = defaultValues.nextDueAt
     },
-    // A restored draft carries the date it was saved with, not what „data przeglądu = dziś"
-    // promises on reopen.
     mergeStored: (stored) => ({
       ...stored,
       ...(lockedVehicleId && { vehicle: String(lockedVehicleId) }),
       performedAt: stored.performedAt || defaultValues.performedAt,
     }),
-    // Upload first, then create — the row must never reference a media id that failed to land.
     action: async (data) => {
       // Backstop to the disabled submit button, which Enter bypasses: a file still ingesting is
       // not in `files` yet, so the przegląd would save without its załącznik.
@@ -112,13 +108,10 @@ export function InspectionForm({
   suggestedNextDue.current ??= form.getFieldValue('nextDueAt')
 
   const currentType = useStore(form.store, (state) => state.values.type)
-  /** „Odczyt licznika" records a number on a day — no deadline, no price, nothing else. */
   const isReading = currentType === 'ODOMETER'
   const currentVehicle = useStore(form.store, (state) => state.values.vehicle)
   const currentOdometer = useStore(form.store, (state) => state.values.odometer)
 
-  /** Last known reading, when the typed one is below it. A swapped cluster makes that legitimate,
-   * so it warns and never blocks. */
   const previousOdometer =
     vehicles.find((vehicle) => String(vehicle.id) === currentVehicle)?.latestOdometer ?? null
   const typedOdometer = optionalNumber(currentOdometer)
@@ -145,8 +138,6 @@ export function InspectionForm({
       form.setFieldValue('insurer', '')
       form.setFieldValue('policyNumber', '')
     }
-    // A reading has no price and no deadline; clearing releases the field so the next real type
-    // may suggest into it.
     if (type === 'ODOMETER') {
       suggestedNextDue.current = ''
       form.setFieldValue('nextDueAt', '')

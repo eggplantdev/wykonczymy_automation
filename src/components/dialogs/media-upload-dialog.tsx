@@ -13,18 +13,9 @@ type MediaUploadDialogPropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onFiles: (files: File[], asPlan: boolean) => void
-  /** Offers the „Do analizy AI" marker. Invoice surfaces omit it — a faktura is never analysed. */
   allowPlanMarker?: boolean
 }
 
-/**
- * The pick IS the confirmation — no „Zapisz" step. The dialog exists only to give the drop target
- * room the table cell cannot spare, so it closes the moment it has files and hands the upload back
- * to the cell, which owns the pending state.
- *
- * That is also why the marker is a checkbox ABOVE the picker rather than a question after it: there
- * is no moment after the pick at which to ask.
- */
 export function MediaUploadDialog({
   title,
   open,

@@ -5,16 +5,10 @@ import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
-// Kept out of useHiddenColumns' map on purpose (stage-keys.ts): that map is global, and etap ids are
-// not. Every write drops the ids of etapy that no longer exist, so a deleted etap's entry lasts only
-// until the next tick on that investment.
 const store = createJsonMapStore<number[]>('table-columns:kosztorys-stages')
-// „Ukryj zakończone" is a reading habit, not a choice about one kosztorys, so it is global — and it
-// never writes the ticks above, which is what lets switching it off restore exactly what was there.
 const HIDE_COMPLETED_KEY = 'table-columns:kosztorys-hide-completed-stages'
 const HIDE_COMPLETED_WORDS = ['hide', 'show'] as const
 
-// A corrupt entry (non-array) reads as "nothing hidden" rather than throwing in render.
 function hiddenIn(map: Record<string, number[]>, key: string): Set<number> {
   const stored = map[key]
   return new Set(Array.isArray(stored) ? stored : [])
@@ -24,7 +18,6 @@ export function useHiddenStages(
   investmentId: number,
   stages: KosztorysStageT[],
 ): {
-  // The etap's own tick only — what its row in the menu shows.
   isStageHidden: (stageId: number) => boolean
   // Off the grid for either reason: its tick, or „Ukryj zakończone" on a zakończony etap.
   isStageOff: (stageId: number) => boolean

@@ -6,10 +6,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
-// The unit spec sees only the `Where` the gate returns; whether it reaches the right rows is a
-// question about Postgres. `investment` is nullable, and a sheet naming none („Nowy kosztorys" makes
-// one) must stay editable — `not_equals` keeps it, `not_in` would not.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -27,15 +23,13 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
   let lockedInvestmentId: number
   let openInvestmentId: number
   // One locked investment owning NO sheet per inbound case: aiming at `lockedInvestmentId` would be
-  // refused by the 1:1 partial unique index before the gate is asked, and two cases sharing one target
-  // would leave the second leaning on the first one's refusal — green with the gate reverted.
+  // refused by the 1:1 partial unique index before the gate is asked
   const lockedEmpty: Record<'repoint' | 'link' | 'create', number> = {
     repoint: 0,
     link: 0,
     create: 0,
   }
   let openEmptyInvestmentId: number
-  // One sheet per case that CONSUMES its fixture, so no `it` here depends on another one's order.
   const sheets: Record<'locked' | 'open' | 'unlinked' | 'spare', number> = {
     locked: 0,
     open: 0,
@@ -71,8 +65,6 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    // A crashed run leaves fixtures in a database every other spec queries. Sheets and users are caught
-    // by their unique keys; the investments are not, so they have to be swept by name.
     await db.execute(sql`DELETE FROM kosztoryses WHERE google_sheet_id LIKE ${`${MARKER}-%`}`)
     await purgeFixtureUsers(db)
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${MARKER} %investment%`}`)
@@ -169,8 +161,6 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     expect(await nameOf(sheets.open)).toBe(`${MARKER} open renamed`)
   })
 
-  // An unlinked sheet has no status to compare against, and renaming or deleting one exists only in
-  // `/admin` — gate it and it is unrecoverable in-app.
   it('leaves a sheet that names no investment editable', async () => {
     await payload.update({
       collection: 'kosztoryses',
@@ -183,8 +173,6 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     expect(await nameOf(sheets.unlinked)).toBe(`${MARKER} unlinked renamed`)
   })
 
-  // The direction a stored-row `Where` cannot see. Land the row on a zakończona inwestycja and it is
-  // stuck there: the panel then reads it as locked and the action layer refuses too.
   it('refuses re-pointing an open sheet AT a zakończona inwestycja', async () => {
     await expect(
       payload.update({
@@ -226,7 +214,6 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     expect(await nameOf(sheets.locked)).toBe(`${MARKER} locked`)
   })
 
-  // The same trap `investment-lock.ts` names, seen through the wiring rather than the factory.
   it('still refuses a MANAGER delete on a sheet nothing locks', async () => {
     await expect(
       payload.delete({
@@ -242,8 +229,6 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     expect(await nameOf(sheets.spare)).toBe(`${MARKER} spare`)
   })
 
-  // The `create` arm reads the INCOMING investment, so only a real create through the collection
-  // proves the factory is wired to the right relationship name.
   it('refuses creating a sheet on a zakończona inwestycja', async () => {
     await expect(
       payload.create({

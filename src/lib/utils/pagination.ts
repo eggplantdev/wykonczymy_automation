@@ -15,11 +15,8 @@ export type PaginationParamsT = {
 export const DEFAULT_LIMIT = 100
 export const ALLOWED_LIMITS: number[] = [10, 20, 50, 100]
 
-/**
- * `defaultLimit` is what the list shows before anyone touches the „Pokaż" select, so it has to be one
- * of `ALLOWED_LIMITS` — the select renders those, and a default outside them would show a blank one
- * and be unreachable again once changed.
- */
+// `defaultLimit` has to be one of `ALLOWED_LIMITS` — the select renders those, and a default outside
+// them would show a blank one.
 export function parsePagination(
   searchParams: ResolvedSearchParamsT,
   defaultLimit: number = DEFAULT_LIMIT,

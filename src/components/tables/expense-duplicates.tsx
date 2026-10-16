@@ -14,16 +14,13 @@ import { formatPLDate } from '@/lib/utils/format-date'
 import { firstNoteLine } from '@/lib/utils/invoice-note'
 
 export type ExpenseDuplicateRowT = DuplicateMatchT & {
-  // The acceptance form's line item the paragon was prefilled into.
   paragonItemId: string
   paragonReadRow: number
 }
 
 type ColumnsOptionsT<R> = {
   actions?: (row: R) => ReactNode
-  // The finder links each document out; the acceptance dialog keeps its rows on one screen.
   linkMatch?: boolean
-  // Overrides „Zgłoszenie #id" — a match from the zgłoszenie being decided is one of its own rows.
   labelMatch?: (row: R) => string | undefined
 }
 
@@ -43,7 +40,6 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
 }: ColumnsOptionsT<R>) {
   const col = createColumnHelper<R>()
   return [
-    // First, so the decision is in view without scrolling a table wider than the dialog.
     ...(actions
       ? [
           col.display({
@@ -87,8 +83,7 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
         )
       },
     }),
-    // The day the match was judged on, so „Ta sama … data" never sits next to another date; the
-    // booking date only when nothing printed was read.
+    // The day the match was judged on, so „Ta sama … data" never sits next to another date.
     col.accessor((row) => dayOf(row) ?? row.date, {
       id: 'date',
       header: 'Data',

@@ -9,8 +9,6 @@ import { rowValueForView } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
-// Two rows across two etapy: row 1 executes 2+3 (of planned 5) at client price 20; row 2 executes
-// 4+0 at client price 10, with a flat 'amount' rabat of 8 on the whole row.
 const tree: KosztorysTreeT = makeTree({
   sections: [
     {
@@ -69,7 +67,7 @@ describe('stageAxisForView', () => {
     expect(totals.get(101)).toBeCloseTo(60)
   })
 
-  // The reconciliation invariant above, held per subcontractor view. It is the one that breaks when
+  // It is the one that breaks when
   // the per-stage split divides a view-scoped total across every stage: the out-of-view etap then
   // takes a share > 1 of the row and Σ overshoots „Razem" by a multiple.
   it.each(['w_tools', 'own_tools'] as const)(
@@ -97,19 +95,13 @@ describe('stageAxisForView', () => {
     expect(ownTools.get(101)).toBeCloseTo(30)
   })
 
-  // The qty axis rides along with the value because the value is derived from it (EX-612). Pinned
-  // separately from `net` because the two disagree on one row: a row with nothing executed is priced
-  // at 0 but still belongs on the qty axis, so folding qty into this walk must not inherit the
-  // value side's „skip an unexecuted row" shortcut.
   it('totals the executed quantity per etap alongside its value, under the same view scoping', () => {
     const rows = treeToRows(tree)
 
-    // Etap 100 holds row 1's 2 and row 2's 4; etap 101 holds row 1's 3.
     const { qty } = stageAxisForView(rows, tree.stages, 'client')
     expect(qty.get(100)).toBe(6)
     expect(qty.get(101)).toBe(3)
 
-    // Same rule as the value: an out-of-view etap reports 0 rather than going missing.
     const wTools = stageAxisForView(rows, tree.stages, 'w_tools').qty
     expect(wTools.get(100)).toBe(6)
     expect(wTools.get(101)).toBe(0)
@@ -120,8 +112,6 @@ describe('sectionSubtotalsForView › discount (per-item rabat aggregate)', () =
   it('sums the per-item rabat actually taken on the executed qty', () => {
     const rows = treeToRows(tree)
     const [section] = sectionSubtotalsForView(rows, tree.stages, 'client')
-    // Only item 2 carries a rabat (flat 8 on the whole row), and it executes 4 of its 4 planned qty,
-    // so the full 8 is taken; item 1 has none → section discount = 8.
     expect(section.discount).toBeCloseTo(8)
   })
 
@@ -132,8 +122,6 @@ describe('sectionSubtotalsForView › discount (per-item rabat aggregate)', () =
     expect(section.discount).toBeCloseTo(0)
   })
 
-  // Rabat is a client concession, never passed to the subcontractor — so the subcontractor subtotal
-  // carries no discount even though item 2 has a flat-8 per-item rabat on the client side.
   it('reads 0 in a subcontractor view (rabat is client-only)', () => {
     const rows = treeToRows(tree)
     for (const view of ['w_tools', 'own_tools'] as const) {
@@ -144,8 +132,6 @@ describe('sectionSubtotalsForView › discount (per-item rabat aggregate)', () =
 })
 
 describe('sectionSubtotalsForView › plannedNet (przedmiar) is client-only', () => {
-  // The przedmiar is typed once per row for the WHOLE offered scope and carries no rozliczenie, so
-  // beside a plane-filtered `net` it would put one crew's numerator over everyone's denominator.
   // Asserting `null`, not 0: 0 would be a claim that nothing was offered.
   it('is withheld in a subcontractor view', () => {
     const rows = treeToRows(tree)
@@ -164,8 +150,6 @@ describe('sectionSubtotalsForView › plannedNet (przedmiar) is client-only', ()
 })
 
 describe('sumSectionSubtotalsNet (subcontractor należne)', () => {
-  // Executed pre-rabat at client price: row 1 = 5 @ 20 = 100, row 2 = 4 @ 10 = 40 → 140, ignoring
-  // item 2's flat-8 rabat (that's a client concession the crew is still owed past).
   const PRE_DISCOUNT_CLIENT = 140
 
   it('adds the per-item rabat back — Σ(net + discount) is the pre-rabat executed value', () => {
@@ -189,10 +173,6 @@ describe('sumSectionSubtotalsNet (subcontractor należne)', () => {
   })
 })
 
-// Regression: „Rabat globalny → Kwotowy → 0 zł" left the settlement showing a rabat. The mode is
-// supposed to REPLACE per-item rabaty („zastępuje je"), but the active flag also demanded a non-zero
-// kwota — so 0 flipped the discount inactive and every per-item rabat came back to life. Typing the
-// one value that means „no rabat" produced the largest rabat the sheet could show.
 describe('kosztorysClientTotals — rabat globalny w trybie kwotowym', () => {
   const withDiscount = (globalDiscount: KosztorysTreeT['globalDiscount']) => {
     const next = { ...tree, globalDiscount }

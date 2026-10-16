@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 
-// ── Mock factory ────────────────────────────────────────────────────────
-
-/** Build a minimal Payload hook args object for validateTransfer. */
 function hookArgs(
   data: Record<string, unknown>,
   opts: {
@@ -16,8 +13,6 @@ function hookArgs(
   return {
     data,
     operation,
-    // The completed-investment gate reads the status through the drizzle adapter — „aktywna" here,
-    // since the lock has its own spec (validate-lock.test.ts) and this one is about the field rules.
     req: {
       user: userId ? { id: userId } : null,
       payload: { db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } } },
@@ -28,7 +23,6 @@ function hookArgs(
   } as unknown as Parameters<typeof validateTransfer>[0]
 }
 
-/** Base valid transfer data — override per type. */
 const base = {
   amount: 100,
   date: '2026-02-19',
@@ -61,10 +55,6 @@ const VALID_DATA: Record<string, Record<string, unknown>> = {
   OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// All types with valid data → passes
-// ═══════════════════════════════════════════════════════════════════════
-
 describe('validateTransfer — all types valid', () => {
   for (const [type, data] of Object.entries(VALID_DATA)) {
     it(`${type} — does not throw`, async () => {
@@ -72,10 +62,6 @@ describe('validateTransfer — all types valid', () => {
     })
   }
 })
-
-// ═══════════════════════════════════════════════════════════════════════
-// Missing required fields per type → throws
-// ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — missing required fields', () => {
   it('INVESTOR_DEPOSIT without sourceRegister → throws', async () => {
@@ -113,14 +99,12 @@ describe('validateTransfer — missing required fields', () => {
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  // EX-675: a strata now lowers the investor's bilans, so it has to say whose.
   it('LOSS without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.LOSS
     void investment
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  // A premia settles one investment × worker pair — without either it corrects nothing.
   it('BONUS without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.BONUS
     void investment
@@ -154,10 +138,6 @@ describe('validateTransfer — missing required fields', () => {
   })
 })
 
-// ═══════════════════════════════════════════════════════════════════════
-// Auto-clear behavior
-// ═══════════════════════════════════════════════════════════════════════
-
 describe('validateTransfer — auto-clear behavior', () => {
   it('LABOR_COST → sourceRegister set to null', async () => {
     const data = { ...VALID_DATA.LABOR_COST, sourceRegister: 5 }
@@ -165,8 +145,6 @@ describe('validateTransfer — auto-clear behavior', () => {
     expect(result.sourceRegister).toBeNull()
   })
 
-  // The kasa balance sums by `source_register_id`, so a nulled register is what keeps a premia
-  // from draining one — the cash itself left as the PAYOUT it covers.
   it('BONUS → sourceRegister set to null, worker kept', async () => {
     const data = { ...VALID_DATA.BONUS, sourceRegister: 5 }
     const result = await validateTransfer(hookArgs(data))
@@ -175,15 +153,14 @@ describe('validateTransfer — auto-clear behavior', () => {
   })
 
   // An investment-linked OTHER reaches no deriveFinancials bucket, yet still leaves the
-  // register — cash and margin silently diverge. The form never offers the field
-  // (showsInvestment), so only a script or the API can plant one.
+  // register — cash and margin silently diverge.
   it('OTHER → investment set to null', async () => {
     const data = { ...VALID_DATA.OTHER, investment: 31 }
     const result = await validateTransfer(hookArgs(data))
     expect(result.investment).toBeNull()
   })
 
-  // Who bought it — the per-worker tools figure reads this column, so the hook must not drop it.
+  // the per-worker tools figure reads this column, so the hook must not drop it.
   it('OTHER → worker kept', async () => {
     const result = await validateTransfer(hookArgs({ ...VALID_DATA.OTHER, worker: 7 }))
     expect(result.worker).toBe(7)
@@ -205,10 +182,6 @@ describe('validateTransfer — auto-clear behavior', () => {
     expect(result.investment).toBe(1)
   })
 })
-
-// ═══════════════════════════════════════════════════════════════════════
-// Expense category validation
-// ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — expenseCategory', () => {
   it('INVESTMENT_EXPENSE without expenseCategory → throws', async () => {
@@ -244,10 +217,6 @@ describe('validateTransfer — expenseCategory', () => {
   })
 })
 
-// ═══════════════════════════════════════════════════════════════════════
-// REGISTER_TRANSFER — same register check
-// ═══════════════════════════════════════════════════════════════════════
-
 describe('validateTransfer — REGISTER_TRANSFER', () => {
   it('targetRegister === sourceRegister → throws', async () => {
     const data = { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 1 }
@@ -261,10 +230,6 @@ describe('validateTransfer — REGISTER_TRANSFER', () => {
     await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 })
-
-// ═══════════════════════════════════════════════════════════════════════
-// createdBy auto-set
-// ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — createdBy auto-set', () => {
   it('operation=create with user → createdBy is set', async () => {
@@ -287,10 +252,7 @@ describe('validateTransfer — createdBy auto-set', () => {
 })
 
 describe('validateTransfer — a CANCELLATION never keeps a register', () => {
-  // EX-573 review gate. The spec table says a cancellation needs no register, but that
-  // answer only reached the admin panel's field condition: the blanket early return below
-  // skipped the auto-clear, so a REST/Local-API write could persist source_register_id on
-  // a cancellation. sumRegisterBalance has no CANCELLATION arm — the row falls into
+  // sumRegisterBalance has no CANCELLATION arm — the row falls into
   // `ELSE -amount` and drains that register permanently, with nothing surfacing the cause.
   it('strips a sourceRegister smuggled in past the early return', async () => {
     const data = {
@@ -312,7 +274,7 @@ describe('validateTransfer — a CANCELLATION never keeps a register', () => {
   })
 })
 
-// EX-675. A PATCH of one field carries no relational fields at all, so every "required" check
+// every "required" check
 // below must read through to the stored row or an invoice attachment would be rejected for a
 // missing investment the row has had all along.
 describe('validateTransfer — a partial update reads required fields from the stored row', () => {
@@ -330,18 +292,12 @@ describe('validateTransfer — a partial update reads required fields from the s
     await expect(validateTransfer(args)).resolves.not.toThrow()
   })
 
-  // The type that made the investment mandatory in the first place — attaching a faktura to an
-  // existing strata must not re-litigate a link the row already carries.
   it('accepts an invoice-only PATCH on a stored LOSS', async () => {
     const storedLoss = { type: 'LOSS', amount: 1000, date: '2026-02-19', investment: 62 }
     const args = hookArgs({ invoice: 5 }, { operation: 'update', originalDoc: storedLoss })
     await expect(validateTransfer(args)).resolves.not.toThrow()
   })
 
-  // The fallback may not read the stored row when the PATCH is an explicit CLEAR. Payload's admin
-  // panel saves the whole document, so a cleared relationship arrives as `null` — distinct from the
-  // key being absent, which is what a partial update looks like. Conflate the two and clearing the
-  // investment on a stored strata passes validation on the OLD link and then persists nothing.
   it('refuses a PATCH that explicitly nulls the investment on a stored LOSS', async () => {
     const storedLoss = { type: 'LOSS', amount: 1000, date: '2026-02-19', investment: 62 }
     const args = hookArgs({ investment: null }, { operation: 'update', originalDoc: storedLoss })
@@ -356,8 +312,6 @@ describe('validateTransfer — a partial update reads required fields from the s
   })
 })
 
-// GUARD B7 — the netto figure is what the investor is billed, and the hook is the single server-side
-// authority on it (the form schema is a convenience mirror the API can bypass entirely).
 describe('validateTransfer — netAmount (the netto expense type)', () => {
   const netExpense = VALID_DATA.INVESTMENT_EXPENSE_NET
 
@@ -390,8 +344,6 @@ describe('validateTransfer — netAmount (the netto expense type)', () => {
     expect((await validateTransfer(hookArgs(data))).netAmount).toBeNull()
   })
 
-  // A partial update sends only the changed field; the rule must still compare against the stored
-  // twin, or raising just `netAmount` past the stored brutto would sail through.
   it('compares a partial update against the stored amount', async () => {
     const args = hookArgs(
       { type: 'INVESTMENT_EXPENSE_NET', netAmount: 5000 },
@@ -403,13 +355,6 @@ describe('validateTransfer — netAmount (the netto expense type)', () => {
   })
 })
 
-// ═══════════════════════════════════════════════════════════════════════
-// vatPlane
-// ═══════════════════════════════════════════════════════════════════════
-
-// A stray plane on a wydatek is not merely noise: `carriesNetAmount` reads the pair (type, plane),
-// and both settlement predicates bucket rows by it. The hook is the server-side authority, so the
-// rule sits next to the netAmount one it feeds.
 describe('validateTransfer — vatPlane', () => {
   it('keeps the plane on a wpłata od inwestora', async () => {
     const data = { ...VALID_DATA.INVESTOR_DEPOSIT, vatPlane: 'GROSS', netAmount: 80 }
@@ -431,8 +376,6 @@ describe('validateTransfer — vatPlane', () => {
     },
   )
 
-  // Through `resolved`, like every other rule here: a PATCH that carries no type must still be
-  // judged against the stored one, or an edit of one field would leave a stale plane in place.
   it('strips a stored plane when a partial update names a non-deposit type', async () => {
     const args = hookArgs(
       { description: 'edited' },
@@ -462,8 +405,6 @@ describe('validateTransfer — paymentMethod', () => {
     },
   )
 
-  // The whole point of the nullable column: „Gotówka" must mean the owner answered gotówka, so a
-  // method smuggled onto a type nobody was asked about never reaches the filter.
   it.each(['INVESTMENT_EXPENSE', 'REGISTER_TRANSFER', 'OTHER_DEPOSIT', 'LABOR_COST', 'OTHER'])(
     'strips a method smuggled onto %s',
     async (type) => {
@@ -472,9 +413,7 @@ describe('validateTransfer — paymentMethod', () => {
     },
   )
 
-  // The stripping is scoped to writes that NAME a method. A legacy row booked with one keeps it
-  // through an edit about something else — the type is frozen after create, so there is no type
-  // change to tidy up after, and an unconditional null would rewrite history on every save.
+  // an unconditional null would rewrite history on every save.
   it('leaves a stored method alone when the update does not name one', async () => {
     const args = hookArgs(
       { description: 'edited' },

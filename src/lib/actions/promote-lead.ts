@@ -9,18 +9,6 @@ import { uploadFieldIds } from '@/lib/media/upload-field'
 import { validateAction, protectedAction } from './run-action'
 import type { ActionResultT } from '@/types/action'
 
-/**
- * Turn a zgłoszenie into an inwestycja, carrying its files across as a relation.
- *
- * **The bytes are not copied.** Both rows point at the same `media` ids — the whole reason media is
- * one shared collection — and the prevent-delete guard is what makes that safe: deleting the lead
- * afterwards no longer strips the investment's photos.
- *
- * Never automatic: the caller is a dialog the human edits and submits, so `data` is what they
- * approved, not what the visitor typed. `assetIds` is the same story for the files — the human
- * picks which ones travel, and the list is intersected with what the zgłoszenie actually holds so a
- * forged call cannot attach media belonging to someone else's lead.
- */
 export async function promoteLeadAction(
   leadId: number,
   data: InvestmentFormDataT,
@@ -38,8 +26,6 @@ export async function promoteLeadAction(
         depth: 0,
         overrideAccess: true,
       })
-      // A lead trashed from another tab meanwhile still promotes, files included: the input is the
-      // human's own form data and the result an ordinary investment, so nothing is lost.
       if (lead.investment) {
         return { success: false, error: 'To zgłoszenie ma już swoją inwestycję.' }
       }
@@ -49,8 +35,7 @@ export async function promoteLeadAction(
       const { id, warning } = await createInvestment(payload, { ...parsed.data, assets })
 
       // After the investment exists, so a failure here leaves a lead that can be promoted again
-      // rather than one pointing at nothing. `contactStatus` is untouched: it records whether a
-      // human reached out to this person, which promotion says nothing about.
+      // rather than one pointing at nothing.
       await payload.update({
         collection: 'leads',
         id: leadId,

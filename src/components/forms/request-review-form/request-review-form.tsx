@@ -30,7 +30,6 @@ export function RequestReviewForm({
     defaultValues: { email },
     successMessage: 'Wysłano prośbę o opinię',
     onSubmitSuccess,
-    // The address is saved to the investment on send — a draft would only shadow that.
     persistDraft: false,
     toData: (value) => value,
     action: (data) => requestReviewAction(investmentId, data.email),

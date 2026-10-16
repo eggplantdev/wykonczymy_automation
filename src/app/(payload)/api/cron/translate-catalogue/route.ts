@@ -9,7 +9,6 @@ import { getDb } from '@/lib/db/get-db'
 
 export const maxDuration = 300
 
-// Scheduled from vercel.json.
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

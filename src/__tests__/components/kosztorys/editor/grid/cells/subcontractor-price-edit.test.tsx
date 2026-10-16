@@ -18,8 +18,7 @@ const ROW = pricingRow()
 
 const OVER_CEILING = /przekracza 65%/
 
-// dsg recycles a cell onto whichever row scrolled into its slot without remounting it. `rowId` is
-// which row is under the caret now; both stay readable so a draft settling on the wrong one shows.
+// dsg recycles a cell onto whichever row scrolled into its slot without remounting it.
 function CellHost({
   rowId = 1,
   override = null,
@@ -114,8 +113,6 @@ describe('Cena wykonawcy — wartość ponad sufitem', () => {
 })
 
 describe('Cena wykonawcy — wyjścia z edycji', () => {
-  // Escape rolls the row back itself; the blur that follows must find nothing left to settle, or the
-  // same draft is rozliczony dwa razy — the second time against a row that already went back.
   it('porzuca edycję po Escape i nie rozlicza jej drugi raz przy blurze', async () => {
     const { user, input } = renderCell()
 
@@ -128,8 +125,6 @@ describe('Cena wykonawcy — wyjścia z edycji', () => {
   })
 
   // Rows are virtualized, so scrolling the edited row out unmounts the input and no blur ever fires.
-  // Since the ceiling stopped refusing, that cleanup settle can announce a COMMIT — a price that was
-  // written and would otherwise scroll away with nobody told it breached.
   it('ogłasza ostrzeżenie, gdy komórka znika bez blura', async () => {
     const { user, input, unmount } = renderCell()
 
@@ -164,8 +159,6 @@ describe('Cena wykonawcy — wyjścia z edycji', () => {
   })
 })
 
-// The draft lives at a grid POSITION, not on a row — and the row underneath it changes without the
-// cell ever losing focus. Row 1's snapshot landing on row 2 would re-price a crew nobody edited.
 describe('Cena wykonawcy — wiersz podmieniony pod kursorem', () => {
   it('nie rozlicza szkicu na wierszu, który wjechał w to miejsce', async () => {
     const user = userEvent.setup()
@@ -180,9 +173,6 @@ describe('Cena wykonawcy — wiersz podmieniony pod kursorem', () => {
   })
 })
 
-// EX-422: the tooltip's tree shape is fixed on purpose. Letting the verdict change the element type
-// at that position unmounts the subtree — i.e. the input being typed into — one keystroke after the
-// price crosses the ceiling.
 describe('Cena wykonawcy — werdykt w trakcie pisania', () => {
   it('nie przemontowuje inputa, gdy werdykt pojawia się pod palcami', async () => {
     const { user, input } = renderCell()
@@ -197,8 +187,6 @@ describe('Cena wykonawcy — werdykt w trakcie pisania', () => {
   })
 })
 
-// A breach can arrive from outside these columns (a lowered client price, a raised mnożnik), so the
-// cell carries the standing verdict too — the sentence, not just a red figure.
 describe('Cena wykonawcy — stojący werdykt', () => {
   it('odsłania zdanie, gdy siatka wchodzi w oflagowaną komórkę', () => {
     const { rerender } = render(<CellHost override={90} focus={false} />)

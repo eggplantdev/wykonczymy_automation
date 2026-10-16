@@ -9,8 +9,6 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 
-// Both callers derive this from a row rather than from the wire, so an item's investment and
-// section FKs can never disagree.
 export type CataloguePlacementT = {
   investmentId: number
   section: KosztorysSectionT
@@ -18,12 +16,9 @@ export type CataloguePlacementT = {
 }
 
 /**
- * Write cennik pozycje into a sekcja starting at `nextDisplayOrder`. THE CALLER OWNS THE TRANSACTION.
- *
- * Consecutive slots rather than an insert-at is what lets this write N rows at once:
- * `shiftDisplayOrderFrom` moves the tail by exactly +1, so an insert-at of N rows would silently
- * collide. Each row gets `next + i` — DISTINCT display_orders, because `insertItems` maps RETURNING
- * ids back by `(section_id, display_order)` and degrades to positional order on a tie.
+ * THE CALLER OWNS THE TRANSACTION. Each row gets `next + i` — DISTINCT display_orders, because
+ * `insertItems` maps RETURNING ids back by `(section_id, display_order)` and degrades to positional
+ * order on a tie.
  */
 export async function placeCatalogueItems(
   db: DbExecutorT,

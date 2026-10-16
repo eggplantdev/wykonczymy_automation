@@ -45,17 +45,12 @@ type PropsT = {
   sections?: ReactNode
   footer?: ReactNode
   hint?: ReactNode
-  // Overrides the derived count where „hidden" and „off screen" come apart — the kosztorys grid
-  // shows a column an engaged problem reveals whatever its tick says, and the badge has to answer
-  // „czego nie widzę", not „co odznaczyłem".
   hiddenCount?: number
   align?: 'start' | 'end'
   className?: string
   contentClassName?: string
 }
 
-// Below this the list fits on screen and a search box is just noise; above it (kosztorys stages push
-// the column count toward ~50) filtering earns its place.
 const COLUMN_SEARCH_THRESHOLD = 8
 
 export function ColumnToggleMenu({
@@ -103,9 +98,8 @@ export function ColumnToggleMenu({
                   {t('orderColumnsItem')}
                 </DropdownMenuItem>
               )}
-              {/* cmdk owns the search + arrow-nav for the column list; stop keydowns from reaching
-                  the Radix menu so its typeahead/focus-roving doesn't fight cmdk. Escape still
-                  passes so the menu stays Escape-closable. */}
+              {/* stop keydowns from reaching
+                  the Radix menu so its typeahead/focus-roving doesn't fight cmdk. */}
               <div
                 onKeyDown={(event) => {
                   if (event.key !== 'Escape') event.stopPropagation()
@@ -115,11 +109,8 @@ export function ColumnToggleMenu({
                   {items.length > COLUMN_SEARCH_THRESHOLD && (
                     <CommandInput placeholder={t('searchColumn')} className="h-8" />
                   )}
-                  {/* With a footer, one scroll for the whole menu — the dropdown already caps at the
-                      viewport, and a nested 300px pane buries whatever follows the list. Without one,
-                      the pane keeps the search box in view. */}
+                  {/* With a footer, one scroll for the whole menu — a nested 300px pane buries whatever follows the list. */}
                   <CommandList className={footer ? 'max-h-none overflow-visible' : undefined}>
-                    {/* forceMount keeps the show/hide-all action visible under any search. */}
                     <CommandItem forceMount onSelect={() => onToggleAll(!allVisible)}>
                       <CheckCheck />
                       {allVisible ? t('hideAll') : t('showAll')}

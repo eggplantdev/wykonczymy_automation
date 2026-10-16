@@ -3,10 +3,7 @@ import { deriveFinancials } from '@/lib/db/investment-financials'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 import { calculateBalance } from '@/lib/db/calculate-balance'
 
-// The materiały netto concession: billing the client the netto price instead of the brutto receipt.
-// 123 brutto at 23% is 100 netto, so the concession is 23 — NOT 123 × 0,23 = 28,29. Subtracting the
-// rate off brutto is the bug this suite exists to keep out; at real scale it was ~7 700 zł wrongly
-// taken off marża.
+// 123 brutto at 23% is 100 netto, so the concession is 23 — NOT 123 × 0,23 = 28,29.
 const RATE = 0.23
 
 const grossRow = (total: number) => ({ type: 'INVESTMENT_EXPENSE', settled: false, total })
@@ -41,8 +38,7 @@ describe('deriveFinancials — materialsNetDiscount', () => {
     expect(deriveFinancials([grossRow(123)], [], [], 0, 'NET').materialsNetDiscount).toBe(0)
   })
 
-  // The owner's own check: an expense entered netto (faktura bez VAT) must not have VAT taken off
-  // a second time. Basing the discount on totalMaterialCosts — the sum of both buckets — is the one
+  // Basing the discount on totalMaterialCosts — the sum of both buckets — is the one
   // edit that reintroduces the double cut, and it has to turn this red.
   it('never touches the already-netto bucket', () => {
     const financials = deriveFinancials([grossRow(123), netRow(123, 100)], [], [], RATE, 'NET')

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// The capture itself is covered against a real DB in lib/kosztorys/capture-daily-snapshots.test.ts.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
@@ -45,7 +44,6 @@ describe('cron daily-snapshots route', () => {
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.kosztorysSnapshots, { expire: 0 })
   })
 
-  // A quiet night must not evict every investor's cached history for nothing.
   it('leaves the cache alone when nothing was stored', async () => {
     vi.mocked(captureDailySnapshots).mockResolvedValue({ stored: 0, unchanged: 63, failed: 0 })
 

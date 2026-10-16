@@ -4,10 +4,8 @@ import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { isUndeletableStatus, UNDELETABLE_INVESTMENT_STATUS } from '@/lib/constants/trash'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
-// „Realnie użyty" (owner's ruling): someone typed a Przedmiar or measured work on a stage. Price,
-// rabat, versions and bare pozycje from a szablon do not count — a template seed alone is what an
-// untouched kosztorys looks like. One fragment on purpose: the /kosz label and the purge both read
-// it, and if they could disagree a row labelled „usunie się samo" might never be purged.
+// One fragment on purpose: the /kosz label and the purge both read it, and if they could disagree
+// a row labelled „usunie się samo" might never be purged.
 // Expects `investments` aliased as `i`.
 const KOSZTORYS_USED = sql`(
   EXISTS (

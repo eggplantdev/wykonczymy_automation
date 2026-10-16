@@ -9,7 +9,7 @@ import { appendAt } from '@/__tests__/helpers/new-item-input'
 
 // EX-949: the number printed on a fill-in form must survive every wipe-and-reinsert that is the SAME
 // work (restore) and must never be reused by one that is new work (szablon, a new praca) — a reused
-// number would resolve an old paper onto someone else's pozycja. Asserted on persisted rows.
+// number would resolve an old paper onto someone else's pozycja.
 vi.mock('server-only', () => ({}))
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({

@@ -17,8 +17,6 @@ describe('classifyDeadline', () => {
     expect(classifyDeadline(TODAY, TODAY)).toBe(1)
   })
 
-  // Each bucket is "this many days or fewer", so the boundary day belongs to the tighter bucket and
-  // the day after it to the looser one.
   it('buckets each boundary day and the day after it', () => {
     expect(classifyDeadline('2026-08-19', TODAY)).toBe(1)
     expect(classifyDeadline('2026-08-20', TODAY)).toBe(7)

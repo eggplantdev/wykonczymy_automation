@@ -7,8 +7,6 @@ import { ALLOWED_UPLOAD_MIMES } from '@/lib/media/sniff-mime'
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
 import { MEDIA_KINDS, type MediaKindT } from '@/types/media'
 
-// No default: rows predating the field are invoices by provenance, but stamping that guess on them
-// is worse than a blank a human can read as „nobody said".
 const KIND_LABELS: Record<MediaKindT, { en: string; pl: string }> = {
   faktura: { en: 'Invoice', pl: 'Faktura' },
   projekt: { en: 'Design', pl: 'Projekt' },
@@ -16,8 +14,6 @@ const KIND_LABELS: Record<MediaKindT, { en: string; pl: string }> = {
   inne: { en: 'Other', pl: 'Inne' },
 }
 
-// Mapped rather than restated, so a fifth kind fails to compile until it has a label instead of
-// silently missing from the admin select.
 const KIND_OPTIONS = MEDIA_KINDS.map((value) => ({ label: KIND_LABELS[value], value }))
 
 export const Media: CollectionConfig = {
@@ -38,10 +34,8 @@ export const Media: CollectionConfig = {
         return data
       },
     ],
-    // Hooks rather than the server action, against the usual preference: the admin panel writes
-    // media straight through Payload, and `setTransferInvoice` drops the replaced file
-    // fire-and-forget (unawaited), so an action-level invalidation would both miss the admin
-    // path and race the delete. The collection is the one seam every writer crosses.
+    // `setTransferInvoice` drops the replaced file fire-and-forget (unawaited), so an action-level
+    // invalidation would race the delete.
     afterChange: [makeRevalidateAfterChange('media')],
     // Bumps transfers too: the `transactions_rels` link is ON DELETE cascade, so deleting a media
     // row silently drops that page from every transfer pointing at it.

@@ -27,8 +27,7 @@ import {
 import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
 
 // Every surface carrying a preview trigger statically imports this dialog, so a bare import would
-// ship the ~160 KB zoom engine to users who never open a preview. It has no `exports` map and no
-// `sideEffects: false`, so nothing tree-shakes it. The dialog's own spinner covers the wait.
+// ship the ~160 KB zoom engine to users who never open a preview.
 const ZoomablePreviewImage = dynamic(
   () => import('./zoomable-preview-image').then((m) => m.ZoomablePreviewImage),
   { ssr: false },
@@ -45,11 +44,6 @@ export type MediaPreviewDialogPropsT = {
   onAdd?: () => void
   onRemove?: (file: PreviewFileT) => void
   onRemoveAll?: () => void
-  /**
-   * One prop rather than four, because the button needs every half to say anything true. The
-   * wording rides along for the same reason `labels` does — this dialog also shows transfer
-   * faktury, so a marker's name belongs to the surface that offers it.
-   */
   planMarker?: {
     isMarked: (file: PreviewFileT) => boolean
     onMark: (file: PreviewFileT) => void
@@ -72,7 +66,6 @@ export function MediaPreviewDialog({
   planMarker,
   unoptimized,
 }: MediaPreviewDialogPropsT) {
-  // Removing the last page must not leave the pager pointing past the end.
   const [pageIndex, setPageIndex] = useState(initialIndex)
   const [loadedImageUrl, setLoadedImageUrl] = useState<string>()
   const { downloadFiles } = useFileArchive()
@@ -163,8 +156,7 @@ export function MediaPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* A rzut or a plan is worth only the pixels it is given, so this window takes the screen.
-          Below `sm` the base DialogContent is already a full-bleed sheet — every override here has
+      {/* Below `sm` the base DialogContent is already a full-bleed sheet — every override here has
           to beat the `sm:` half of it (`top-1/2 h-fit max-h-[90vh] -translate-y-1/2 rounded-lg`),
           which is why `sm:max-w-none` alone would not be enough. */}
       <DialogContent
@@ -267,7 +259,7 @@ export function MediaPreviewDialog({
             </Button>
           )}
           {/* A single PDF renders in the browser's native viewer, which already has print in its
-              toolbar. A multi-page set has no such toolbar for the set as a whole. */}
+              toolbar. */}
           {(!isPdf || isMultiPage) && (
             <Button variant="outline" onClick={handlePrint}>
               <Printer />

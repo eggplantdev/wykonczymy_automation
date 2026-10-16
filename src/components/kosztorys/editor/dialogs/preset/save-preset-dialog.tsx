@@ -15,8 +15,6 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 const PRESET_KEEPS_STRUCTURE_ONLY =
   'Szablon zapamiętuje tylko sekcje i prace w tej kolejności. Ceny, mnożniki i tłumaczenia bierze z katalogu prac. Żeby zmienić cenę, użyj „Aktualizuj pozycję w katalogu prac” przy danej pracy.'
 
-// "Zapisz jako nowy szablon…" — save this rozpiska as a reusable, cross-investment template, itself
-// either a new named template or an overwrite of an existing one.
 export function SavePresetDialog() {
   const { investmentId, isTemplate } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange, existingPresets } = useKosztorysActions().savePreset
@@ -33,7 +31,6 @@ export function SavePresetDialog() {
     setOverwriteId('')
   }
 
-  // A szablon overwritten by itself would only lose its przedmiar — the action refuses it anyway.
   const targets = existingPresets.filter((preset) => preset.id !== investmentId)
   const canSave = (mode === 'new' ? name.trim() : overwriteId).length > 0 && !saving
 
@@ -61,8 +58,6 @@ export function SavePresetDialog() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Zapisz jako nowy szablon…"
-      // A szablon has no „this investment" for a copy to be independent of, so its first sentence is
-      // rewritten, not word-swapped.
       description={`${
         !isTemplate
           ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji.'

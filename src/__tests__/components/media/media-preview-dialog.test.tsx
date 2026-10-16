@@ -71,7 +71,6 @@ describe('MediaPreviewDialog — zoom', () => {
     await user.click(await screen.findByRole('button', { name: 'Przybliż' }))
     await user.click(screen.getByRole('button', { name: 'Następna strona' }))
 
-    // A fresh page means a fresh mount: back to the optimized rendition, i.e. scale 1.
     expect((await previewImage('rzut-pietro.jpg')).src).toContain('/_next/image')
   })
 
@@ -93,9 +92,7 @@ describe('MediaPreviewDialog — zoom', () => {
   })
 })
 
-// The browser's own PDF viewer may abandon the response and re-fetch it in byte ranges, and on that
-// path the iframe's `load` never fires (prod, 2026-10-15: a 30-file rzut set spun forever on first
-// open). jsdom never fires an iframe's `load` either, so a spinner gated on it hangs here the same way.
+// jsdom never fires an iframe's `load`, so a spinner gated on it hangs here.
 describe('MediaPreviewDialog — PDF', () => {
   beforeEach(() => {
     let created = 0

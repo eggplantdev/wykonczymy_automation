@@ -6,8 +6,6 @@ import { getDb } from '@/lib/db/get-db'
 import { listSectionTranslations } from '@/lib/db/section-translations'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 
-// The whole list in one argument-free entry: ~two dozen rows, and the report page's client-side
-// language switcher needs every language at once. Expired by `saveSectionTranslationsAction`.
 export const getSectionTranslations = cached(
   async (): Promise<SectionTranslationMapT> => {
     const payload = await getPayload({ config })

@@ -5,10 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// Every FK into `users` is ON DELETE SET NULL, so the failure this guards raises no error of its own:
-// without the hook the delete SUCCEEDS and the wypłata simply stops naming its recipient. The assertion
-// is therefore on the persisted rows — the user still there, the payout still pointing at them.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
@@ -52,8 +48,6 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
     })
     workerId = Number(worker.id)
 
-    // Raw insert bypasses the balance-recalc hooks; PAYOUT is the reference with the most to lose,
-    // since `worker_id` is what sumPayoutsByWorkerForInvestment groups on.
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, worker_id, cancelled)
       VALUES ('delete-guard payout', 500, now(),
@@ -82,9 +76,6 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
     expect(await payoutWorkerId()).toBe(workerId)
   })
 
-  // amount_edits is the reference a transactions-only guard misses: the collection is
-  // create/update/delete-false, so its rows are the immutable record of who changed a kwota. A user
-  // who never received a wypłata but edited amounts must still be undeletable.
   it('refuses to delete a worker whose only reference is an amount edit', async () => {
     await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
     await db.execute(sql`
@@ -217,8 +208,6 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard — cancelled rows (DB)', 
     await purgeFixtureUsers(db)
   })
 
-  // `createdBy` is the half the `worker` case doesn't reach: A books a transfer, B cancels it, and
-  // the CANCELLATION row names B — so A is left holding authorship of a cancelled row and nothing else.
   it('deletes a worker whose only reference is authorship of a cancelled row', async () => {
     const author = await payload.create({
       collection: 'users',
@@ -274,8 +263,7 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard — cancelled rows (DB)', 
 })
 
 // The last-OWNER / last-ADMIN refusal itself is pinned in `lib/workers/account-removal.test.ts`: the
-// test DB is a prod dump, so real owners always outnumber a fixture. What needs the DB is the hook
-// reading `req.user` and the SQL deciding who still counts.
+// test DB is a prod dump, so real owners always outnumber a fixture.
 describe.skipIf(!ENV_READY)('users beforeDelete guard — account removal (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

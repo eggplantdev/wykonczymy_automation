@@ -29,18 +29,14 @@ const lineItemClientSchema = z.object({
   description: z.string(),
   amount: z.string(),
   // `.catch` not `.optional()`: a recovery snapshot persisted before the netto type existed has no
-  // netAmount and must still parse, but the form's value type declares it required — an optional
-  // input type would no longer satisfy TanStack's validator slot. The per-row refine below is what
-  // makes it required on the type that bills at it.
+  // netAmount and must still parse.
   netAmount: z.string().catch(''),
   invoiceNote: z.string(),
-  // `.catch` for the same recovery-snapshot reason as `netAmount`.
   documentNumber: z.string().catch(''),
   sellerNip: z.string().catch(''),
   documentDate: z.string().catch(''),
   category: z.string(),
   expenseCategory: z.string(),
-  // `.catch` for the same reason as netAmount: older recovery snapshots carry no per-row worker.
   worker: z.string().catch(''),
 })
 
@@ -115,9 +111,6 @@ export const createBulkExpenseSchema = z
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     worker: z.number().optional(),
-    // Optional server-side so existing bulk-action callers needn't pass it; the
-    // expense form always supplies it (defaults false). Non-INVESTMENT_EXPENSE
-    // submissions are coerced to false in the action.
     settled: z.boolean().optional(),
     lineItems: z
       .array(

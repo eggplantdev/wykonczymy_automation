@@ -2,15 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 
-// storeLead's collection hook calls revalidateTag, which throws outside a Next request
-// context. Stub it — cache invalidation is not under test here.
-
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { STREAMS, countUnreadLeads, markSeen } from '@/lib/db/notifications'
 import { getDb } from '@/lib/db/get-db'
 
-// Integration tests against the Payload Local API + local Postgres. Skips cleanly with
-// no DB, FAILS if env is set but the DB is unreachable — same gate as store-lead.db.test.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const runTag = `test-notif-${Date.now()}`
@@ -58,17 +53,14 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markSeen (DB)', () => {
   })
 
   it('counts leads created after the cursor, and advancing the cursor clears them', async () => {
-    // Cursor first, then leads → the leads are unambiguously newer than seen_at.
     await markSeen(payload, userId, STREAMS.leads)
 
     const lead1 = await storeLead(payload, makeInput(`${runTag}-a`))
     const lead2 = await storeLead(payload, makeInput(`${runTag}-b`))
     createdLeadIds.push(lead1.lead.id, lead2.lead.id)
 
-    // Both leads landed after the cursor.
     expect(await countUnreadLeads(payload, userId)).toBe(2)
 
-    // Advancing the cursor past them drops the count to 0 — and re-running is idempotent.
     await markSeen(payload, userId, STREAMS.leads)
     await markSeen(payload, userId, STREAMS.leads)
     expect(await countUnreadLeads(payload, userId)).toBe(0)
@@ -81,7 +73,6 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markSeen (DB)', () => {
     const extra = await storeLead(payload, makeInput(`${runTag}-d`))
     createdLeadIds.push(extra.lead.id)
 
-    // The epoch (COALESCE fallback) is before "now", so a just-created lead increments.
     expect(await countUnreadLeads(payload, userId)).toBe(before + 1)
   })
 })

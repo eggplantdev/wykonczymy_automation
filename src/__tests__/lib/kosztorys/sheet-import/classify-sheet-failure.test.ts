@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { classifySheetFailure } from '@/lib/kosztorys/sheet-import/classify-sheet-failure'
 import { MissingLaborTabError } from '@/lib/kosztorys/sheet-import/read-sheet'
 
-// Each reason maps to a different thing the owner has to do, so a misclassification is not a cosmetic
-// wording miss — it is advice that can never work („spróbuj później" on a sheet nobody shared).
 describe('classifySheetFailure', () => {
   it('reads a refused sheet as a sharing problem', () => {
     expect(classifySheetFailure({ status: 403 })).toBe('forbidden')

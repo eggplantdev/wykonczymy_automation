@@ -8,7 +8,6 @@ const settleRowSchema = z.object({
   // a schema error that names no investment.
   workerId: z.number().int().positive().nullable(),
   amount: z.number().positive('Kwota musi być większa niż 0'),
-  /** The pair's „Pozostało" the dialog showed — the action refuses when it no longer holds. */
   expectedRemaining: z.number(),
 })
 

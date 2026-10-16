@@ -12,9 +12,8 @@ const positiveQty = (qty: number | null): number | undefined => {
 }
 
 /**
- * One printed form is one zgłoszenie, so every row becomes a line — a number read twice (the same
- * sheet photographed twice) stays two lines for the kierownik to spot, never a sum. A number that
- * does not resolve still becomes a line, unassigned, rather than refusing the whole paper.
+ * A number read twice (the same sheet photographed twice) stays two lines for the kierownik to spot,
+ * never a sum.
  */
 export function resolveScanLines(
   pages: readonly ScanPageT[],

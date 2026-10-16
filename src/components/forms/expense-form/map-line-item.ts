@@ -33,8 +33,6 @@ type PayloadLineItemT = {
   worker: number | undefined
 }
 
-/** expenseCategory ("typ wydatku inwestycyjnego") rides only for types that use it —
- *  for a CORRECTION, only once the transfer has an investment. */
 export function mapLineItem(
   item: FormLineItemT,
   type: TransferTypeT,
@@ -57,7 +55,6 @@ export function mapLineItem(
       needsExpenseCategory(type, hasInvestment) && item.expenseCategory
         ? Number(item.expenseCategory)
         : undefined,
-    // PAYOUT/BONUS name their worker once, at form level — never per row.
     worker: hasOptionalWorker(type) && item.worker ? Number(item.worker) : undefined,
   }
 }

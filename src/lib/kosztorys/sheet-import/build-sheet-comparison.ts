@@ -32,20 +32,14 @@ import {
 
 export type ComparedItemT = { section: string; description: string }
 
-// One praca whose executed work is worth a different amount on each side — the whole difference in
-// the money block, itemised, because a total nobody can trace back to a row is a total nobody acts on.
 export type ExecutedDiffT = ComparedItemT & {
   sheetNet: number
   appNet: number
   sheetQty: number
   appQty: number
-  // A1 reference of the praca's first etap cell, so the report links into the row that explains it.
   cell: string
 }
 
-// One praca whose subcontractor rate in the kosztorys is no longer what the sheet's cennik says.
-// Both planes ride along even when only one moved: „55,25 / 45,00" against „60,00 / 45,00" is read
-// as a pair, and the unchanged half is what makes the changed one legible.
 export type StaleRateT = ComparedItemT & {
   sheetWTools: number
   appWTools: number
@@ -62,32 +56,19 @@ export type SheetComparisonT = {
     executedNetFromSheet: number
     executedNetFromApp: number
   }
-  // The sheet's own summary rows against what its own prace add up to — internal consistency, the
-  // same check the import preview shows.
   footer: FooterComparisonT[]
   counts: { sheetItems: number; appItems: number; matched: number }
   onlyInSheet: ComparedItemT[]
   onlyInApp: ComparedItemT[]
-  // Matched pozycje whose executed value differs, largest gap first.
   executedDiffs: ExecutedDiffT[]
-  // The sheet's cenniki against the stawki the kosztorys holds. `decisions` is `null` when no cennik
-  // could be read — the state the import refuses outright and this report survives, because a sheet
-  // with a broken „zakres pracy" header is exactly the one somebody opens this dialog to diagnose.
   rates: {
     decisions: ReportedRateResolutionT[] | null
     stale: StaleRateT[]
     warnings: string[]
   }
-  // How many matched pozycje would carry a reference quantity after a refresh — the denominator
-  // behind „Rozjazd nic o nich nie powie".
   referenceQty: { matched: number; withValue: number }
-  // True when a live global discount makes our column here disagree with the number the editor shows
-  // for the same work — see `executedNetAsEditorShows`. The report does not change what it computes;
-  // it says out loud that these amounts are read row by row and the editor's are not.
   globalDiscountMismatch: boolean
   health: FormulaHealthT
-  // Everything a per-cell deep link needs, or null when the tab's gid didn't come back — the report
-  // then prints the cell as text instead of a link that would open the wrong tab.
   sheetLink: { spreadsheetId: string; gid: number } | null
 }
 
@@ -96,8 +77,7 @@ export type SheetComparisonResultT =
   | { ok: false; problems: string[] }
 
 // Neither plane's coefficient can reach a client-plane figure, and no snapshot carries a global
-// discount, so the client price is fully determined by the item itself. The parsed rows additionally
-// lack both stawka fields — see `ParsedItemT` — which the client view never reads.
+// discount, so the client price is fully determined by the item itself.
 const asClientPricing = (item: ParsedItemT | KosztorysItemT): ViewPricingT => ({
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
@@ -122,12 +102,6 @@ function sumQtyDone(progress: readonly StageProgressT[]): Map<number, number> {
   return byItem
 }
 
-/**
- * The same executed work as the editor prices it: under a live global discount every row goes gross
- * (its own rabat bypassed) and the discount comes off once at the total. This report cannot do that —
- * it compares row against row, and a whole-kosztorys amount does not distribute onto rows honestly —
- * so the two figures legitimately part ways. Computed here only to know WHETHER they do.
- */
 function executedNetAsEditorShows(
   items: readonly KosztorysItemT[],
   progress: readonly StageProgressT[],
@@ -158,20 +132,14 @@ function planeTotals(
 }
 
 /**
- * The both-sides reckoning behind „Porównaj z arkuszem": what each side says the work is worth,
- * which pozycje exist on one side only, and how much of the sheet the „Rozjazd" column is
- * structurally blind on.
- *
  * Resolves the cenniki too, but never refuses over them: an unreadable „zakres pracy" header is the
  * state the import rejects outright, and it is exactly the sheet somebody opens this dialog to
- * diagnose. Rates then come back as `null` — nothing to say — rather than as a wall of 0 zł.
+ * diagnose.
  */
 export function buildSheetComparison(
   grids: ImportGridsT,
   currentTree: SnapshotPayloadT,
   spreadsheetId: string,
-  // Not on the tree: `SnapshotSettingsT` leaves the global discount out on purpose, so a restore
-  // cannot reset the live amount. It arrives from the action, which knows the investment anyway.
   globalDiscount: GlobalDiscountT,
   mapping?: SheetColumnMappingT,
 ): SheetComparisonResultT {
@@ -184,8 +152,6 @@ export function buildSheetComparison(
   const appSectionName = new Map(currentTree.sections.map((section) => [section.id, section.name]))
 
   const sheetByKey = keyItems(
-    // `keyItems` wants full items; the parsed ones lack both stawka fields, which it never
-    // reads. Only the section, description and their order matter for keying.
     parsed.items as unknown as KosztorysItemT[],
     (item) => sheetSectionName.get(item.sectionId) ?? '',
   )
@@ -224,8 +190,6 @@ export function buildSheetComparison(
       continue
     }
     matched++
-    // The sheet's claim as the parser would import it — a formula or an empty cell is no claim, and
-    // those rows are precisely the ones „Rozjazd" cannot speak about.
     if (item.sheetMeasuredQty !== null) withValue++
 
     const sheetQty = sheetQtyDone.get(item.id) ?? 0
@@ -243,10 +207,6 @@ export function buildSheetComparison(
       })
     }
 
-    // A praca the cennik no longer lists is skipped rather than reported as „stawka 0 zł" — that is
-    // a fact about the cennik, and the import already refuses to guess on it. A praca whose cenniki
-    // disagree is skipped for the same reason: „the sheet says X" is exactly what is not true there,
-    // so every one of them would report a rozjazd against a figure the sheet never stated.
     const rate = rateByItemId.get(item.id)
     if (rate !== undefined && rate.kind !== 'missing' && rate.kind !== 'conflict') {
       const pricing = asPlanePricing(appItem, currentTree.settings)

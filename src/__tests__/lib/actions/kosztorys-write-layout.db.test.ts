@@ -7,8 +7,6 @@ import { LAYOUT_STALE } from '@/lib/kosztorys/reorder-layout'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The real action against the real DB: the permutation guard and "a version only for a write that
-// landed" are only true of persisted rows, and a success result would hide a failed UPDATE.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

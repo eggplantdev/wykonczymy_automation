@@ -264,7 +264,6 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     })
   })
 
-  // The landed read remounts the whole form, so anything left editable here would be lost.
   it('póki zgłoszenie się odczytuje, cały formularz i „Zapisz" są zablokowane', async () => {
     render(
       <ExpenseForm

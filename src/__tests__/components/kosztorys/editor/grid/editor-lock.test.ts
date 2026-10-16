@@ -4,19 +4,14 @@ import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kos
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// A zakończona inwestycja and a client's share link are both `readOnly`, and there the resemblance
-// ends: the client is served an ALLOWLIST, the owner keeps his whole document and merely stops
-// writing to it. `use-kosztorys-editor.ts` derives `readOnly = preview || locked` while leaving
-// `previewVisible: preview` alone, so what this spec pins is that the two flags never move together
-// — collapse them back into one and the owner loses two thirds of his columns the day he closes a
-// job.
+// what this spec pins is that the two flags never move together — collapse them back into one and
+// the owner loses two thirds of his columns the day he closes a job.
 
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1', plane: null }),
   makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
 ]
 
-// The owner's own editor: mutation callbacks present, so the actions column is built and cells live.
 const editorOpts: BuildV2ColumnsOptsT = {
   view: 'client',
   stages: STAGES,

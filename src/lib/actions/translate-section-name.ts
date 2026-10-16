@@ -9,11 +9,6 @@ import { sectionNameKey } from '@/lib/i18n/section-translations'
 import { logError } from '@/lib/utils/log-error'
 import { translateTexts } from '@/lib/ai/translate'
 
-/**
- * Fills the languages each name's template still lacks. One name per key: „Łazienka 1" and
- * „Łazienka 2" share a template, so translating both is waste. Never rejects on an AI failure — that
- * comes back in `failed`.
- */
 export async function fillSectionNameTranslations(
   db: DbExecutorT,
   names: readonly string[],
@@ -40,8 +35,7 @@ export async function fillSectionNameTranslations(
   return { written, failed }
 }
 
-// `revalidateTag`, not `updateTag`: it runs from `after()`, the response has gone, and the readers are
-// the worker pages and the PDF, never the editor that sent the rename.
+// `revalidateTag`, not `updateTag`: it runs from `after()`
 export async function translateSectionName(payload: Payload, name: string): Promise<void> {
   try {
     const { written } = await fillSectionNameTranslations(await getDb(payload), [name])

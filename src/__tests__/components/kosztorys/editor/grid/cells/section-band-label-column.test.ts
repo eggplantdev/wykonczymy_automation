@@ -4,10 +4,6 @@ import {
   sectionHeaderSlot,
 } from '@/components/kosztorys/editor/grid/cells/section-header-cell'
 
-// dsg has no colspan: one column paints the section band's whole label and the rest go blank. No
-// column holds a fixed slot (lib/table/column-order), so it is resolved off the visible order — a
-// hard-coded „Opis prac" paints the band off-screen once the owner drags it right.
-
 describe('sectionBandLabelColumnId', () => {
   it('takes the column that leads the grid', () => {
     expect(sectionBandLabelColumnId(['sectionName', 'description', 'plannedQty'])).toBe(
@@ -38,20 +34,15 @@ describe('sectionHeaderSlot', () => {
     expect(sectionHeaderSlot('description', 'sectionName')).toBe('blank')
   })
 
-  // Every column carries an id in the real grid; without this an id-less column would claim the band
-  // off a `undefined === undefined` match and paint it twice.
+  // without this an id-less column would claim the band off a `undefined === undefined` match and paint it twice.
   it('never lets an id-less column claim the band', () => {
     expect(sectionHeaderSlot(undefined, undefined)).toBe('blank')
   })
 
-  // „Akcje" is the section's own „…" — the one band cell that opens a menu instead of collapsing,
-  // which is what keeps a collapsed section's commands reachable.
   it('gives „Akcje" the menu slot rather than a blank', () => {
     expect(sectionHeaderSlot('actions', 'description')).toBe('actions')
   })
 
-  // The two can't collide today (sectionBandLabelColumnId treats „Akcje" as chrome), but the slot is
-  // resolved independently — so nail down which wins if that changes.
   it('keeps the menu slot even if „Akcje" were named the label column', () => {
     expect(sectionHeaderSlot('actions', 'actions')).toBe('actions')
   })

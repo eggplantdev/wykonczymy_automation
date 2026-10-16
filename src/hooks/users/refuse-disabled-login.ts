@@ -11,8 +11,7 @@ class DisabledAccountError extends APIError {
 
 /**
  * Runs after the password check, so a wrong password still gets the generic refusal and this
- * sentence reveals nothing to someone who doesn't hold the account. Payload revokes the session it
- * has just written when a `beforeLogin` hook throws.
+ * sentence reveals nothing to someone who doesn't hold the account.
  */
 export const refuseDisabledLogin: CollectionBeforeLoginHook = ({ user }) => {
   const account = user as User

@@ -71,7 +71,6 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
     )
   }
 
-  // A result belongs to the range it was asked for.
   function changeRange(next: DateRangeT) {
     request.disown()
     setRange(next)

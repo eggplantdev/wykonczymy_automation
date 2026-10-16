@@ -78,24 +78,20 @@ describe('diffRow', () => {
     expect(diffRow(prev, { ...prev })).toEqual({})
   })
 
-  // diffRow klasyfikuje KAŻDY klucz wiersza po prefiksie ilości, bez białej listy. Gdyby któryś
-  // namespace kwotowy zaczynał się od tamtego (albo odwrotnie), kolumna kwotowa trafiłaby tu jako
-  // postęp etapu i poszłaby do zapisu jako Number('ValueNet_7') → NaN na nieistniejący etap.
   it('nie bierze kolumn kwotowych za postęp etapu', () => {
     const [prev] = treeToRows(tree)
     const next = { ...prev, [stageValueNetKey(101)]: 999, [stageValueGrossKey(101)]: 999 }
     expect(diffRow(prev, next)).toEqual({})
   })
 
-  // Prefiks ilości niesie id etapu, więc klucz z nieliczbowym ogonem nie jest etapem. Bez tego
+  // Bez tego
   // Number('x') → NaN pojechałoby do zapisu jako id etapu.
   it('nie bierze klucza z prefiksem ilości, ale bez id etapu, za postęp', () => {
     const [prev] = treeToRows(tree)
     expect(diffRow(prev, { ...prev, stage_x: 5 } as typeof prev)).toEqual({})
   })
 
-  // Pomiar wczytany z arkusza jest liczbą odniesienia tylko do odczytu — czyści go osobna akcja,
-  // nigdy autozapis komórki. Gdyby przeciekł do `itemPatch`, arkuszowa wartość zapisywałaby się z
+  // Gdyby przeciekł do `itemPatch`, arkuszowa wartość zapisywałaby się z
   // powrotem przy każdej edycji wiersza i rozjazd nigdy by nie zniknął.
   it('nie zapisuje pomiaru z arkusza jako edycji pozycji', () => {
     const [prev] = treeToRows(tree)
@@ -172,9 +168,6 @@ describe('sortRows', () => {
     expect(sortRows(strRows, (r) => r.description ?? '', 'asc').map((r) => r.id)).toEqual([2, 1])
   })
 
-  // „Pozostało" bez Przedmiaru to null → w UI kreska. W gałęzi numerycznej null sortowałby się jak 0,
-  // czyli kreska udawałaby wiersz domknięty. Kreska nie ma miejsca w porządku, więc idzie na koniec —
-  // w OBU kierunkach, inaczej „desc" wypycha ją na samą górę.
   it('null zawsze na końcu, niezależnie od kierunku', () => {
     const withNulls: KosztorysV2RowT[] = [
       { id: 1, plannedQty: 3 } as KosztorysV2RowT,
@@ -201,12 +194,9 @@ describe('rowTotalQtyDone', () => {
   })
 })
 
-// EX-494. The pomiar IS the stage sum (the sheet's O = SUM(D:M)), so the row's value can only ever
-// be what the stages say. Everything below pins that rule at the layer that settles it.
 describe('wartość wiersza idzie za etapami', () => {
   // Both etapy sit on the same plane on purpose: these cases pin how the PRICE follows the view, so
-  // the plane filter must not also be moving quantities underneath them. Plane scoping has its own
-  // fixture in subcontractor-due-by-plane.test.ts.
+  // the plane filter must not also be moving quantities underneath them.
   const stages: KosztorysStageT[] = [makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2 })]
   const row = (over: Partial<KosztorysV2RowT>) =>
     ({
@@ -243,18 +233,12 @@ describe('wartość wiersza idzie za etapami', () => {
       expect(rowValueForView(blank, stages, 'client')).toBe(0)
     })
 
-    // A flat 'amount' rabat subtracts a fixed PLN sum; at zero executed quantity there is nothing
-    // for it to come off of, so the value is 0 — not −discountValue. Without the qty guard the row
-    // reads negative and stops matching Σ stageValueForView (each of which is already 0 here).
     it('brak etapów przy rabacie kwotowym → zero, nie wartość ujemna', () => {
       const blankDiscounted = row({ discountType: 'amount', discountValue: 500 })
       expect(rowValueForView(blankDiscounted, stages, 'client')).toBe(0)
     })
   })
 
-  // "Pozostało" anchors on the przedmiar — the offer — not on what was executed. Anchored on the
-  // latter it would read value − value ≡ 0 on every row: the sheet's dead AF column. This is the one
-  // place we knowingly break sheet parity, so the numbers below are the whole justification.
   describe('„Pozostało"', () => {
     const remaining = computedColumnValues({ stages, view: 'client' })('remaining')
     // Przedmiar 100, cena 50 → oferta 5000; etapy 95 → wykonane 4750.
@@ -269,19 +253,12 @@ describe('wartość wiersza idzie za etapami', () => {
       expect(remaining(offered({ [stageKey(100)]: 105 }))).toBe(-250)
     })
 
-    // Brak Przedmiaru to oferta zerowa, nie brak odpowiedzi: wykonane 95 × 50 nie ma pokrycia
-    // w ofercie, więc „Pozostało" schodzi pod zero. Wyłączenie takiego wiersza z sumy kazało
-    // kolumnie twierdzić, że praca jest wciąż do zrobienia. Wyczyszczona komórka zapisuje null.
     it('brak Przedmiaru → wartość ujemna, praca ponad ofertę', () => {
       expect(remaining(offered({ plannedQty: 0 }))).toBe(-4750)
       expect(remaining(offered({ plannedQty: null as unknown as number }))).toBe(-4750)
     })
   })
 
-  // Most między dwoma algorytmami jednej historii postępu: komórka wiersza to ułamek ILOŚCI,
-  // a licznik i sekcje to stosunek WARTOŚCI. Każdy był przypięty osobno, nic nie sprawdzało, że
-  // po zsumowaniu się zgadzają — i dokładnie w tej szczelinie siedział błąd 150%.
-  //
   // Fixture MUSI mieć Σ etapów ≠ Przedmiar w każdym wierszu: na kosztorysie domkniętym obie strony
   // czytają tę samą liczbę i test przechodzi, nawet gdy licznik dzieli przez samego siebie.
   describe('most: licznik „Wykonano" a wiersze siatki', () => {
@@ -314,8 +291,6 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  // Section subtotals sum row VALUES, which since EX-489 depend on the stages — so this lives here,
-  // not in the purely price-based calc.ts.
   describe('sectionSubtotalsForView', () => {
     // A computed stage key next to a string field widens the literal's index signature to
     // `string | number`, which no longer satisfies KosztorysV2RowT — spread it in separately.
@@ -340,7 +315,6 @@ describe('wartość wiersza idzie za etapami', () => {
       ])
     })
 
-    // Arkusz trzyma S456 i T456 równolegle — oferta i wykonanie to dwie figury, nie wybór.
     it('niesie ofertę sekcji obok wykonania', () => {
       const subtotals = sectionSubtotalsForView(subtotalRows, stages, 'client')
       // Przedmiar 5 z baseItem: 5 × 20 = 100; 5 × 10 = 50 − 20% = 40 (rabat w kwocie) → 140. Sekcja B: 5 × 100 = 500.
@@ -349,7 +323,6 @@ describe('wartość wiersza idzie za etapami', () => {
 
     it('view-awareness: w_tools daje inne netto', () => {
       const subtotals = sectionSubtotalsForView(subtotalRows, stages, 'w_tools')
-      // Rabat is client-only, never passed to the crew — w_tools prices gross of the 20% rabat.
       expect(subtotals[0].net).toBe(180) // 10×12=120; 5×12=60 (bez rabatu) → 180
       expect(subtotals[1].net).toBe(120)
     })
@@ -366,8 +339,6 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  // Czerwień = „zrobiono więcej, niż oferowano". Wcześniej porównywała etapy z pomiarem — po EX-494
-  // byłaby to liczba porównana sama ze sobą, czyli sygnał martwy PO CICHU.
   describe('hasStagesOverPlanned', () => {
     const offered = (over: Partial<KosztorysV2RowT> = {}) => row({ plannedQty: 10, ...over })
 
@@ -380,10 +351,6 @@ describe('wartość wiersza idzie za etapami', () => {
       expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 11 }), stages)).toBe(true)
     })
 
-    // With no Przedmiar there is nothing to divide by, so the „% wykonania" cell reads „—". Reddening
-    // a dash is an alarm with no legible cause, so work entered against no offer stays quiet here —
-    // that is a separate problem and belongs to the „Problemy" diagnostics. A cleared cell stores null,
-    // which the `> 0` branch has to catch the same way.
     it('robota bez Przedmiaru się nie świeci', () => {
       expect(hasStagesOverPlanned(offered({ plannedQty: 0, [stageKey(100)]: 5 }), stages)).toBe(
         false,
@@ -401,13 +368,7 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  // Regresja (widoki cen): „Wykonano %" to postęp robót, nie figura pieniężna — musi czytać tak samo
-  // w każdym widoku cen. Wcześniej sekcja i licznik dzieliły wartość netto AKTYWNEGO widoku, więc ten
-  // sam postęp pokazywał 108 / 266 / 43% zależnie od cennika. Fixture: jedna sekcja, dwa wiersze z
-  // per-item override'ami 'amount', tak dobranymi, że stosunek WARTOŚCI sekcji skacze po widoku
-  // (75% / 119,8% / 30,2%), a completionRatio ma zostać 75% wszędzie.
   describe('completionRatio jest przypięty do ceny klienta (niezależny od widoku)', () => {
-    // Computed stage key next to string fields widens the literal's index signature — spread it apart.
     const done = (qty: number) => ({ [stageKey(100)]: qty })
     const rows = [
       row({
@@ -444,10 +405,6 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  // „Udział" (ile sekcja stanowi wykonanych kosztów) to też figura strukturalna, nie pieniężna — nie
-  // może skakać po zmianie cennika. Dwie sekcje, każda jeden wiersz z per-item override'em 'amount'
-  // tak dobranym, że przy cenie wykonawcy jedna sekcja puchnie względem drugiej; udział ma zostać
-  // 50/50 (cena klienta) w każdym widoku.
   describe('share jest przypięty do ceny klienta (niezależny od widoku)', () => {
     const done = (qty: number) => ({ [stageKey(100)]: qty })
     const rows = [
@@ -536,9 +493,6 @@ describe('applyRestoreItem — reinsert a removed row after a failed delete', ()
   })
 })
 
-// EX-921: Przedmiar ofertowy 10, Aktualizacja przedmiaru 15, wykonane 12 at 100 zł. Every progress
-// figure reads the aktualizacja, the offer figure stays on ofertowy — and the two disagree here, so a
-// reader still on the wrong one fails.
 describe('Aktualizacja przedmiaru — postęp liczony od aktualizacji, oferta od ofertowego', () => {
   const STAGE = 200
   const splitTree = (currentPlannedQty: number | null) =>

@@ -22,9 +22,6 @@ const countItems = (group: PresetGroupT) =>
 const summary = (sections: number, items: number) =>
   `${sections} ${sectionNoun(sections)} · ${items} ${itemNoun(items)}`
 
-// The two screens' wording, side by side rather than as seven ternaries scattered down the JSX.
-// Inline, the szablon variant could only be checked against the kosztorys one by reading the file
-// twice; in a table each column reads top to bottom, which is how a half-updated pair shows up.
 const COPY = {
   kosztorys: {
     title: 'Wczytaj kosztorys z szablonu',
@@ -46,9 +43,6 @@ const COPY = {
   },
 } as const
 
-// The counterpart to „Dodaj sekcję z szablonu", which appends; this one replaces, so both counts are
-// stated before the confirm. The same replace on a kosztorys and on a szablon — only the wording
-// differs, because on a szablon it is that szablon's content being swapped.
 export function ReloadFromPresetDialog() {
   const { tree, investmentId, onTreeReplaced, isTemplate, flushPendingSaves } =
     useKosztorysEditorContext()
@@ -59,7 +53,6 @@ export function ReloadFromPresetDialog() {
   const copy = COPY[isTemplate ? 'szablon' : 'kosztorys']
 
   const groups = groupPresetSections(sections ?? [], new Set()).filter(
-    // A szablon reloaded from itself would only lose its przedmiar — the action refuses it anyway.
     (group) => group.presetId !== investmentId,
   )
   const {

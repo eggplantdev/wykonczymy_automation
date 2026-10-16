@@ -67,8 +67,6 @@ const LEAD: LeadRowT = {
 }
 
 describe('LeadAssetsDialog', () => {
-  // A zgłoszenie nobody promoted still has files worth filing somewhere — it just has no target
-  // picked yet, so the transfer waits on the select rather than being hidden.
   it('offers the transfer without a target, but refuses to send until one is picked', async () => {
     const user = userEvent.setup()
     render(
@@ -81,7 +79,6 @@ describe('LeadAssetsDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
     expect(await screen.findByRole('combobox')).toBeInTheDocument()
-    // Nic nie jest zaznaczone domyślnie, więc przycisk startuje pusty i wyłączony.
     expect(screen.getByRole('button', { name: 'Dodaj do inwestycji (0)' })).toBeDisabled()
     expect(screen.queryByText(/Już w inwestycji/)).not.toBeInTheDocument()
   })
@@ -96,14 +93,11 @@ describe('LeadAssetsDialog', () => {
     expect(screen.getByText('Już w inwestycji (1)')).toBeInTheDocument()
   })
 
-  // The zgłoszenie's own inwestycja is the target the select starts on, so the common case is one
-  // click — and the id travels with the batch rather than being re-derived server-side.
   it('sends only the files that were not held back, to the preselected inwestycja', async () => {
     const user = userEvent.setup()
     render(<LeadAssetsDialog lead={LEAD} investments={INVESTMENTS} />)
 
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
-    // Opt-in: bez zaznaczenia nic nie leci, więc test najpierw wybiera jeden plik.
     const picks = await screen.findAllByRole('checkbox', {
       name: /^Dodaj to zdjęcie do inwestycji:/,
     })
@@ -113,8 +107,6 @@ describe('LeadAssetsDialog', () => {
     expect(attachLeadAssetsAction).toHaveBeenCalledWith(7, 42, [13])
   })
 
-  // „Aktywne" is a filter the user can widen, not a hard exclusion — a zakończona inwestycja the
-  // zgłoszenie already points at has to survive it, or the target silently empties itself.
   it('hides inactive inwestycje behind the „Aktywne” filter, keeping the picked one', async () => {
     const user = userEvent.setup()
     render(
@@ -142,7 +134,6 @@ describe('LeadAssetsDialog', () => {
     expect(await screen.findByRole('option', { name: 'Zakończona Leśna 9' })).toBeInTheDocument()
   })
 
-  // Every file already across means nothing left to send — the submit would be a no-op button.
   it('drops the transfer section once nothing is left to send', async () => {
     const user = userEvent.setup()
     render(

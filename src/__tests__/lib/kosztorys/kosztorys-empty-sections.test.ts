@@ -34,8 +34,6 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
 
 const STAGES = [makeStage({ id: 100 })]
 
-// A: worked and priced. B: nothing executed. C: fully executed but never priced — its subtotal is
-// zero for a reason that is a defect, not a state, which is what the cases below separate.
 const tree: KosztorysTreeT = makeTree({
   sections: [
     { id: 10, name: 'Sekcja A', displayOrder: 0, color: null, items: [item(1, 10)] },
@@ -73,8 +71,6 @@ describe('a section fully executed but unpriced', () => {
     expect([...sectionIdsWhereAllMatch(rows, 'no-measured-qty', ctx)]).toEqual([20])
   })
 
-  // The executed half of the split: work recorded at no price is the unbillable case, and it must not
-  // land in „bez ceny j.m. i bez wykonanej pracy", which is the merely-unfinished offer.
   it('is counted by the „z wykonaną pracą bez ceny j.m." diagnostic instead of being hidden', () => {
     expect(countMatching(rows, 'no-client-price-with-work', ctx)).toBe(1)
     expect(countMatching(rows, 'no-client-price', ctx)).toBe(0)
@@ -82,8 +78,6 @@ describe('a section fully executed but unpriced', () => {
 })
 
 describe('„zwiń sekcje wg warunku" — the section list it unticks', () => {
-  // The fold is a one-shot deselect on FilterMultiSelect's string encoding, so the grid can only
-  // ever show what the checkmarks say.
   const deselect = (current: string[], conditionId: string) => {
     const folded = sectionIdsWhereAllMatch(rows, conditionId, ctx)
     return current.filter((value) => !folded.has(Number(value)))

@@ -44,7 +44,6 @@ describe('planCatalogueLinks', () => {
     expect(planCatalogueLinks([row()], [entry]).links).toEqual([{ itemId: 1, catalogueItemId: 7 }])
   })
 
-  // Same kwota today, different rodzaj: a mnożnik moves with the cena, a kwota does not.
   it('reports a szablon row whose stawka differs only in mode, and does not link it', () => {
     const plan = planCatalogueLinks(
       [row({ clientPrice: 40, wToolsOverrideValue: null, wToolsOverrideCoeff: 0.5 })],

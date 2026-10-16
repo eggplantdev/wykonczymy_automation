@@ -11,15 +11,11 @@ type PropsT = {
   confirmDisabled?: boolean
   cancelLabel?: string
   confirmVariant?: React.ComponentProps<typeof Button>['variant']
-  // Mirrors ConfirmDialog's pending contract (the AlertDialog-family equivalent).
   pending?: boolean
   pendingLabel?: string
-  // For edge-to-edge dialogs (DialogContent p-0) that must pad their own footer.
   className?: string
 }
 
-// The Anuluj + primary-action footer every kosztorys/form dialog hand-rolled identically. One place
-// so the button order, variants, and spacing stay consistent; the body above it stays per-dialog.
 export function DialogActions({
   confirmLabel,
   onConfirm,

@@ -5,16 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
 
-// The display_order mechanics sections and items now share (EX-578), driven against the REAL DB and
-// asserting PERSISTED order, not an action's return value — a success result can hide a failed write.
-// The pair diverged before precisely because each side had its own copy, so both scopes run the same
-// assertions here:
-//   DO1 — insert-at opens the slot: the tail shifts down one and the new row lands AT the index,
-//         leaving a gap-free, collision-free sequence.
-//   DO4 — a new section is created bare: no pozycja is seeded into it.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -34,7 +24,6 @@ const {
   renumberKosztorysOrderAction,
 } = await import('@/lib/actions/kosztorys')
 
-// Gated like the sibling specs: skips with no DB env, FAILS if env is set but the DB is unreachable.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'display-order-test-'
 
@@ -96,8 +85,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     return res.rows.map((r) => Number(r.display_order))
   }
 
-  // Ids ordered by display_order — the shape that distinguishes a correct shift from a tail that
-  // renumbered to the same [0,1,2,3] in the wrong ORDER.
   async function itemIdsInOrder(sectionId: number): Promise<number[]> {
     const res = await db.execute(
       sql`SELECT id FROM kosztorys_items WHERE section_id = ${sectionId} ORDER BY display_order`,
@@ -156,7 +143,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(inserted.success).toBe(true)
       if (!inserted.success) return
 
-      // The old 1,2 became 2,3 and the new row took 1 — no gap, no collision.
       expect(await itemOrders(sectionId)).toEqual([0, 1, 2, 3])
       expect(await itemOrderById(inserted.data.item.id)).toBe(1)
       // The tail keeps its RELATIVE order — a shift that renumbered 1,2 as 3,2 would still read
@@ -187,8 +173,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const before = await sectionIdsInOrder(investmentId)
       expect(await sectionOrders(investmentId)).toEqual([0, 1, 2])
 
-      // Anchor + direction, not an index: „poniżej" the first section IS slot 1, and the server is
-      // the only party that knows that.
       const inserted = await insertSectionAction(before[0], 'below')
       expect(inserted.success).toBe(true)
       if (!inserted.success) return
@@ -232,9 +216,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     })
   })
 
-  // „Zapisz kolejność" sends an id SEQUENCE for the whole sheet and the server derives the numbers.
-  // Both halves are asserted against the persisted rows: a success result would still be returned by
-  // a bake whose UPDATE matched nothing.
   describe('the bake numbers per section, all-or-nothing (DO5)', () => {
     it('restarts at 0 in each section, following the sequence sent', async () => {
       const investmentId = await freshInvestment()
@@ -275,8 +256,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       if (!doomed.success) return
       await removeItemAction(doomed.data.item.id)
 
-      // The reversal is valid on its own; the deleted third id is what must sink it. If the guard
-      // and the bake were two statements, the first two rows would already be renumbered here.
+      // If the guard and the bake were two statements, the first two rows would already be
+      // renumbered here.
       const baked = await renumberKosztorysOrderAction(investmentId, [i1, i0, doomed.data.item.id])
       expect(baked.success).toBe(false)
       expect(await itemIdsInOrder(sectionId)).toEqual([i0, i1])

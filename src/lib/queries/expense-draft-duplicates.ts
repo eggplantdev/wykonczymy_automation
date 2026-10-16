@@ -24,7 +24,6 @@ export async function findExpenseDraftDuplicates(
 ): Promise<ActionResultT<ParagonDuplicatesT[]>> {
   return protectedAction('findExpenseDraftDuplicates', async ({ payload }) => {
     const db = await getDb(payload)
-    // Only the undecided paragony: a decided one can't be booked again.
     const probes = await loadDraftCandidates(db, { draftId })
     if (probes.length === 0) return { success: true, data: [] }
 

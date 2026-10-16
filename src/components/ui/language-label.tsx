@@ -7,7 +7,6 @@ const STRIPES: Record<LanguageT, string[]> = {
   ru: ['bg-white', 'bg-blue-700', 'bg-red-600'],
 }
 
-// The flag is what tells „Українська" from „Русский" to a reader who doesn't read Cyrillic.
 export function LanguageLabel({ language }: { language: LanguageT }) {
   return (
     <span className="flex items-center gap-2">

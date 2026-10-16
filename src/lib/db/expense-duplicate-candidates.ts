@@ -15,13 +15,11 @@ const IS_RECEIPT = inList(sql`t.type`, RECEIPT_TYPES)
 
 type MatchFilterT = { amountsCents: number[]; documentNumbers: string[] }
 
-/** What could match the probes — each value bound once, however many probes share it. */
 export const matchFilterOf = (probes: ExpenseDocT[]): MatchFilterT => ({
   amountsCents: [...new Set(probes.flatMap((probe) => cents(probe.amount) ?? []))],
   documentNumbers: [...new Set(probes.flatMap((probe) => documentNumberOf(probe) ?? []))],
 })
 
-// The finder probes the transakcje its scope resolved to; everyone else loads by what could match.
 export type TransactionSelectorT = MatchFilterT | { transactionIds: number[] }
 
 const toReadRows = (value: unknown): number[] => (Array.isArray(value) ? value.map(Number) : [])
@@ -162,7 +160,6 @@ async function loadMergedParagony(
 
 type DraftReadSelectorT = { filter?: MatchFilterT; draftId?: number }
 
-/** The undecided read rows of pending zgłoszenia — every one, one zgłoszenie's, or those that could match. */
 export async function loadDraftCandidates(
   db: DbExecutorT,
   { filter, draftId }: DraftReadSelectorT = {},

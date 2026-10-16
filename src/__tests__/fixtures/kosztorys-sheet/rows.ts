@@ -1,12 +1,3 @@
-// Data rows transcribed from the same three sheets as `header-blocks.ts` (2026-08-11), values
-// checked against their formulas. Descriptions are the sheet's own; nothing here carries client PII
-// (the parser never reads row 1, where the name and address live) — `no-pii.test.ts` enforces that.
-//
-// The shapes worth keeping: a section header repeats its name across A/B/C and marks Przedmiar +
-// Pomiar with „x"; a footer row carries the SAME „x" marker with no name anywhere, its label two
-// columns left of „Wartość netto"; and a data row can have Przedmiar 0 while etapy carry quantity
-// (work executed beyond the offer).
-
 import {
   BIALOSTOCKA_RATES_HEADER,
   BIALOSTOCKA_LABOR_HEADER,
@@ -95,12 +86,8 @@ export const PRZEDPOLE_ROWS: (string | number)[][] = [
   row({ D: 'x', J: 'x', K: 'x', M: 'R netto - suma prac  wykonannych ', O: 56753.475 }),
 ]
 
-// A „zakres pracy" tab: the real header block plus rate rows. Description at B, z-narzędziami at R,
-// bez-narzędzi at T — the columns `resolveRates` finds on Białostocka. The formula render is built
-// alongside the values, since `typed` (hand-entered vs computed) is only visible there.
-// `ownToolsFormula` spells out the tab's OTHER real shape: bez-narzędzi computed off the
-// z-narzędziami cell („=R4-R4*0,15") rather than off Cena j.m., which on a hand-typed R makes it a
-// frozen amount too.
+// The formula render is built alongside the values, since `typed` (hand-entered vs computed) is
+// only visible there.
 export function ratesTab(
   title: string,
   rates: ReadonlyArray<{

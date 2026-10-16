@@ -11,10 +11,6 @@ import { pricingRow } from '@/__tests__/fixtures/subcontractor-pricing-row'
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
-// Red is the owner's alarm — a figure out of bounds, an etap nobody settles. The investor's and the
-// worker's documents are read by people who can act on none of it, and the ceiling's sentence names
-// the client price outright, so neither document may carry an alarm of any kind.
-
 const OVERRUN = 1
 const tree = makeTree({
   sections: [

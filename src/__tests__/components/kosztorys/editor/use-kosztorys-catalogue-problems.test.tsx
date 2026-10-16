@@ -11,8 +11,6 @@ import {
 } from '@/lib/kosztorys/row-conditions/registry'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-// The grid's writes are irrelevant here — the risk is the counter, which is recomputed off `rows`
-// before any of them lands. The stubbed 'use server' module throws on call, so they are replaced.
 vi.mock('@/lib/actions/kosztorys', () => ({
   addSectionAction: vi.fn(),
   insertSectionAction: vi.fn(),
@@ -30,9 +28,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   applyPercentDiscountToAllItemsAction: vi.fn(),
 }))
 
-// The rozjazd counter is the whole point of carrying the cennik into the browser: it has to be true
-// on page entry and shrink as the owner types, without a save and without a reload. A node spec can
-// assert the engine; only a rendered hook can assert that the counter is recomputed at all.
 const TREE = makeTree({
   sections: [
     {
@@ -107,12 +102,9 @@ describe('problemy katalogowe w edytorze', () => {
     })
 
     expect(countOf(result, CATALOGUE_DIVERGENCE_CONDITION_ID)).toBe(0)
-    // Untouched: „brak w katalogu" is a different question from whether the liczby agree.
     expect(countOf(result, CATALOGUE_MISSING_CONDITION_ID)).toBe(1)
   })
 
-  // A remount is how the editor absorbs a restored wersja (use-restore-remount): the `rows` seed is
-  // frozen at mount, so a fresh mount must count from the tree rather than inherit the previous one.
   it('po remoncie licznik liczy od nowa z drzewa, nie dziedziczy poprzedniego', () => {
     const first = renderEditor(CATALOGUE)
     act(() => {
@@ -127,8 +119,6 @@ describe('problemy katalogowe w edytorze', () => {
     expect(countOf(result, CATALOGUE_DIVERGENCE_CONDITION_ID)).toBe(1)
   })
 
-  // No cennik means no counter, not an empty cennik — the latter would report the whole rozpiska as
-  // spoza katalogu, which is a lie on a surface that carries no cennik at all.
   it('bez katalogu oba problemy milczą zamiast zgłaszać całą rozpiskę', () => {
     const { result } = renderEditor(undefined)
 

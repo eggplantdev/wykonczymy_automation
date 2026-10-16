@@ -1,13 +1,6 @@
 import { pluralize } from '@/lib/utils/polish-plural'
 import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 
-// The report's verdict sentences, apart from the markup that shows them — the wording is what the
-// owner acts on, and it says „różni się od katalogu", never „jest błędna": the rozpiska is allowed
-// to depart from the cennik, and a report that called that an error would be lying about which of
-// the two is the authority.
-
-// Why there is no report at all. Two reasons reach this line and they send the owner to two
-// different places, so „brak katalogu" over an empty rozpiska would be a false lead.
 export const emptyReportReason = (catalogueSize: number) =>
   catalogueSize === 0
     ? 'Brak katalogu prac do porównania.'

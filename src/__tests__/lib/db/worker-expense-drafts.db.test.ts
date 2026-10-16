@@ -126,8 +126,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     return draftId
   }
 
-  // The pages sit in a raw table the Payload-relation scan cannot see; without the extra probe a
-  // waiting receipt reads as an orphan and the reclaim deletes it before a manager ever opens it.
   it('the reclaim leaves a page a draft holds', async () => {
     const page = await insertMedia('held', workerId)
     expect(await draftOf([page])).not.toBeNull()
@@ -152,8 +150,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     expect(await mediaExists(page)).toBe(true)
   })
 
-  // A guessed media id must not pull someone else's invoice into the worker's draft — and the
-  // refusal must leave no half-written draft behind.
   it('refuses a draft carrying a page another user uploaded', async () => {
     const own = await insertMedia('own', workerId)
     const foreign = await insertMedia('foreign', otherWorkerId)
@@ -174,8 +170,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     return rows.map((row) => Number(row.id))
   }
 
-  // One zgłoszenie accepted as several transakcje: the badge marks every one of them, and only
-  // those — a rejected draft has none.
   it('marks every transaction an accepted draft was booked as', async () => {
     const accepted = await draftOf([await insertMedia('listed-accepted', workerId)])
     const rejected = await draftOf([await insertMedia('listed-rejected', workerId)])
@@ -197,7 +191,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     expect(all).not.toContain(unrelated)
   })
 
-  // A read row the draft's AI read lacks is dropped, as a page the draft lacks is.
   it('stores the read rows each transakcja was booked from', async () => {
     const draftId = await draftOf([await insertMedia('read-rows', workerId)])
     if (draftId === null) throw new Error('draft fixture refused')
@@ -223,8 +216,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     expect(rows.map((row) => (row.read_rows as number[]).map(Number))).toEqual([[0, 1], []])
   })
 
-  // A pending draft is a receipt the worker is owed money for; deleting its worker, investment or
-  // kasa would CASCADE it away before a manager decided it.
   it('a pending draft blocks the delete until a manager decides it', async () => {
     const pendingLabel = /zgłoszenia wydatków do rozpatrzenia/
     const draftId = await draftOf([await insertMedia('blocks', workerId)], otherInvestmentId)
@@ -246,8 +237,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     expect((await cashRegisterDeleteBlocker(payload, registerId)) ?? '').not.toMatch(pendingLabel)
   })
 
-  // A refusal does not hold back the trash of its parties, so it can outlive any of them there;
-  // re-opening it would hold back their purge and offer a kasa nobody can book into.
   it.each([
     ['pracownik', 'users', () => workerId],
     ['inwestycja', 'investments', () => investmentId],
@@ -614,8 +603,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         WHERE id = ${registerId}
       `)
 
-    // Booked from page 0; page 1 skipped alone; pages 3 and 2 skipped as one paragon. Only page 1
-    // and the pair have a read row — the pair's written in another order than the skip.
     beforeAll(async () => {
       restoreInvestmentId = await createTestInvestment(payload, 'worker-expense-drafts-db-restore')
       pages = []
@@ -718,8 +705,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       })
     })
 
-    // Unread but stored: a fresh read of the photo would return every paragon on it, the booked ones
-    // too. Deleting the restored zgłoszenie drops its links only; the parent still holds the photo.
     it('a paragon with no read row comes back with an empty read, and its pages outlive its delete', async () => {
       const unread = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[4])
       if (!unread) throw new Error('unread fixture missing')
@@ -755,7 +740,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     })
   })
 
-  // EX-1025: the mark is management's record of why; the worker still reads a plain refusal.
   describe('a duplicate mark', () => {
     let duplicateInvestmentId: number
 
@@ -863,7 +847,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     })
   })
 
-  // The zgłoszenie's status is derived from its paragony after every decision, under one lock.
   describe('deciding paragon by paragon', () => {
     async function readDraft(name: string, rowCount: number, onInvestment = investmentId) {
       const pages: number[] = []

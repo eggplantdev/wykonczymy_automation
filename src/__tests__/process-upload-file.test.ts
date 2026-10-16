@@ -2,13 +2,10 @@ import { describe, it, expect, vi } from 'vitest'
 
 import { processUploadFile, BlockedFileError } from '@/lib/utils/process-upload-file'
 
-// Real File so `.size` / `.name` / `.type` behave like production; the byte length IS the size.
 function makeFile(name: string, type: string, size = 1024): File {
   return new File([new Uint8Array(size)], name, { type })
 }
 
-// The browser decoders are injected so the pure orchestration (classify → route → rewrite →
-// error) is testable without CompressorJS/heic-to. Defaults to no-op fakes per test.
 function deps(overrides?: {
   compressImage?: (file: File) => Promise<File>
   convertHeicToJpeg?: (file: File) => Promise<File>
@@ -72,8 +69,6 @@ describe('processUploadFile', () => {
     expect(result).toBe(compressed)
   })
 
-  // Client uploads PUT the bytes straight to Blob, so the 4.5 MB request-body wall the old size
-  // guard stood in front of no longer exists. A big scan is now a slow upload, not a refusal.
   it('lets a compressed file well over the old 4 MB guard through', async () => {
     const input = makeFile('big.jpg', 'image/jpeg', 100)
     const oversized = makeFile('big.jpg', 'image/jpeg', 9_000_000)

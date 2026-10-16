@@ -47,8 +47,6 @@ function CommandList({ className, ...props }: React.ComponentProps<typeof Comman
   return (
     <CommandPrimitive.List
       data-slot="command-list"
-      // A content preference, not a viewport guard (that's the wrapping popover/dropdown-menu) —
-      // 300px stops a 500-option list filling a tall desktop screen.
       className={cn('max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto', className)}
       {...props}
     />
@@ -73,9 +71,6 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot="command-group"
       className={cn(
-        // The heading matches DropdownMenuLabel on purpose: cmdk menus and dropdown menus sit side by
-        // side in the same toolbars, and stock cmdk's smaller, greyer caption reads as a different kind
-        // of menu an inch away from a dropdown-built one.
         'text-foreground [&_[cmdk-group-heading]]:text-foreground overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-medium',
         className,
       )}

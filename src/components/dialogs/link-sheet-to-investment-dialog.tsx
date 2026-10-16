@@ -23,8 +23,6 @@ type PropsT = {
   trigger?: ReactNode
 }
 
-// Pick an investment with no kosztorys and link this unlinked row to it. The
-// caller decides which investments are eligible (typically hasSheet=false).
 export function LinkSheetToInvestmentDialog({
   sheetId,
   sheetName,

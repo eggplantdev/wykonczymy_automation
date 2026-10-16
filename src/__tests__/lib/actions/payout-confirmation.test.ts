@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 
-// The DB spec owns the WHERE; this one owns what wraps it — the reason gate runs before any write,
-// a zero-row decision reads as „already decided", and only a landed one expires the transfers.
 vi.mock('server-only', () => ({}))
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))

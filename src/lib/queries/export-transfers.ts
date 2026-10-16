@@ -6,7 +6,6 @@ import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 import type { RawTransferDocT } from '@/lib/queries/transfers'
 import { DEFAULT_TRANSFER_SORT } from '@/lib/transfers/sortable-columns'
 
-/** Fetches ALL matching transfers (capped, must be complete) for export. Not cached. */
 export async function findAllTransfersForExport(
   where: Where,
   sort: string = DEFAULT_TRANSFER_SORT,

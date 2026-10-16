@@ -26,9 +26,6 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   const search = typeof sp.search === 'string' ? sp.search : ''
   const noFiles = sp.noFiles === '1'
 
-  // Viewing the list clears this user's unread badge — advance their read cursor.
-  // Independent of the leads fetch, so overlap them rather than paying the write
-  // round-trip before the (cached) read.
   const payload = await getPayload({ config })
   const [, leads, recipients, refData] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.leads),
@@ -36,8 +33,6 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
     fetchRecipientLists(),
     fetchReferenceData(),
   ])
-  // Trimmed to what the picker renders — the reference row carries the investment's address, phone
-  // and notes, and none of that belongs in the client payload of a leads table.
   const investmentOptions = refData.investments.map(({ id, name, active }) => ({
     id,
     name,

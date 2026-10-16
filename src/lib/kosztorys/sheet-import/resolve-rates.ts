@@ -8,43 +8,27 @@ export type RateRowT = {
   description: string
   wToolsRate: number
   ownToolsRate: number
-  // Whether the cell was typed by hand rather than computed. It no longer settles anything — it is
-  // shown beside the kwota in the conflict table, so the owner arbitrating a disagreement can see
-  // which side somebody actually wrote down.
   wToolsTyped: boolean
   ownToolsTyped: boolean
-  // Whether the cell MOVES when Cena j.m. moves. Only a rate that does may be imported as a
-  // multiplier; everything else is a frozen amount. Not the negation of `*Typed`: bez-narzędzi is
-  // usually „=R−R*0,15", a formula that follows the z-narzędziami cell rather than the client price,
-  // so a hand-typed z-narzędziami freezes it too.
+  // Only a rate that does may be imported as a multiplier; everything else is a frozen amount.
   wToolsTracksPrice: boolean
   ownToolsTracksPrice: boolean
 }
 
 export type RateTabT = { title: string; rows: RateRowT[] }
 
-// Why a conflict is a conflict. The two read completely differently to the owner: „disagree" is a
-// question about the sheet's own answer („który cennik ma rację"), „incoherent" is a question about
-// OUR read of it („ten wiersz wzięliśmy nie stamtąd, co trzeba"). Grouped by this in the report, so
-// the reason is read once per group instead of once per praca.
 export type RateConflictReasonT = 'disagree' | 'incoherent'
 
-// Why a resolution came out the way it did — every value but `agree` is shown to the owner, because
-// each one means the two price lists did not simply say the same thing.
 export type RateDecisionKindT =
   | 'agree' // both tabs, same pair
   | 'single' // only one tab has this praca
   | 'conflict' // the cenniki don't agree, or a pair reads as misread: NOT resolved, imports blank
   | 'missing' // no tab has it: the praca imports at 0 zł
 
-// The kinds the preview lists one by one. `agree` says nothing, and `missing` is reported as a count
-// instead — on a sheet whose cenniki are unreadable EVERY praca is missing, and 400 identical lines
+// `missing` is reported as a count instead — on a sheet whose cenniki are unreadable EVERY praca is missing, and 400 identical lines
 // would bury the handful of real disagreements this list exists to surface.
 export type ReportedRateKindT = Exclude<RateDecisionKindT, 'agree' | 'missing'>
 
-// One tab's answer for a praca nobody could resolve — every figure that was in play, with the tab it
-// came from and whether it was typed or computed. The owner decides from this table; the import does
-// not decide for them.
 export type RateCandidateT = {
   tab: string
   wToolsRate: number
@@ -58,18 +42,13 @@ export type RateResolutionT = {
   wToolsRate: number
   ownToolsRate: number
   kind: RateDecisionKindT
-  // Carried from the row that won, because only that row's formulas say whether these two figures
-  // follow Cena j.m. — see `RateRowT`.
   wToolsTracksPrice: boolean
   ownToolsTracksPrice: boolean
   sourceTab: string | null
-  // Only set on `conflict`, where there is no winner — just the cenniki's answers, all of them, for
-  // the owner to arbitrate in the sheet.
   candidates?: RateCandidateT[]
   conflictReason?: RateConflictReasonT
 }
 
-// A resolution worth showing to the owner — the two silent kinds are already filtered out.
 export type ReportedRateResolutionT = RateResolutionT & { kind: ReportedRateKindT }
 
 export type RateItemT = { description: string }
@@ -80,10 +59,9 @@ export const isReported = (rate: RateResolutionT): rate is ReportedRateResolutio
 // Rates are money to six places at most; comparing raw floats would call 0.65×20 and 13 different.
 const same = (a: number, b: number): boolean => Math.abs(a - b) < 1e-6
 
-// The praca's identity inside one tab: description plus which repetition of it this is. Descriptions
-// repeat across sections („gładź" in two rooms at two prices), so neither the description alone nor
-// the row index is enough — the row index in particular breaks the moment the tabs stop being
-// row-for-row mirrors of each other, which nothing guarantees.
+// Descriptions repeat across sections („gładź" in two rooms at two prices), so neither the
+// description alone nor the row index is enough — the row index in particular breaks the moment the
+// tabs stop being row-for-row mirrors of each other, which nothing guarantees.
 const occurrenceKey = (description: string, occurrence: number): string =>
   `${fold(description)}#${occurrence}`
 
@@ -101,15 +79,12 @@ function indexByOccurrence(rows: readonly RateRowT[]): Map<string, RateRowT> {
 }
 
 // A pair where the subcontractor who brings their own tools costs MORE than one we equip is
-// arithmetically impossible — the tools are the difference. Such a pair means the two rate columns
-// were read from a row that doesn't belong to this praca.
+// arithmetically impossible — the tools are the difference.
 const isCoherent = (row: RateRowT): boolean => row.ownToolsRate <= row.wToolsRate
 
 /**
- * The cenniki did not say one thing, so the import stops choosing: the praca enters with
- * NO stawka (0 zł, an explicit amount — never „auto", which would invent money at the investment's
- * global multiplier) and the owner fills it in. Every figure that was in play rides along, so the
- * report can name all of them and where each came from.
+ * The cenniki did not say one thing: the praca enters with NO stawka (0 zł, an explicit amount —
+ * never „auto", which would invent money at the investment's global multiplier).
  */
 function unresolved(
   description: string,
@@ -151,9 +126,6 @@ function decide(
     }
   }
 
-  // An impossible pair is not a cennik that disagrees — it is a row we read wrong, and a read we
-  // cannot trust says nothing about the rows around it either. So it goes to the owner whether it
-  // stood alone or beside a tab that happened to agree with the rest.
   if (candidates.some(({ row }) => !isCoherent(row)))
     return unresolved(description, candidates, 'incoherent')
 
@@ -174,19 +146,10 @@ function decide(
       !same(row.wToolsRate, first.row.wToolsRate) ||
       !same(row.ownToolsRate, first.row.ownToolsRate),
   )
-  // Every disagreement goes to the owner, including the one a hand-typed cell used to settle (owner,
-  // 2026-08-19): the typed side came in LOWER than the formula it beat, which is the opposite of what
-  // the rule assumed, and a pair that far apart is as likely to be a misread row as a decision. The
-  // rule also cannot see WHICH plane was typed — it read „ta zakładka jest ręczna" off either cell.
   return disagrees ? unresolved(description, candidates, 'disagree') : { ...base, kind: 'agree' }
 }
 
-/**
- * Every readable „zakres pracy" tab, plus a note for each one that could not be read. Shared by the
- * import and by „Porównaj z arkuszem" so the two can never resolve a stawka differently — they part
- * ways only on what an empty result means: the import refuses (it would write 400 zeroes), the
- * comparison reports that it has nothing to say about stawki.
- */
+/** Shared by the import and by „Porównaj z arkuszem" so the two can never resolve a stawka differently. */
 export function readRateTabs(grids: readonly RateTabGridT[]): {
   tabs: RateTabT[]
   warnings: string[]
@@ -206,10 +169,6 @@ export function readRateTabs(grids: readonly RateTabGridT[]): {
   return { tabs, warnings }
 }
 
-// Resolve one rate pair per praca. `tabs` is in PRIORITY order — the first tab supplies the value
-// whenever the tabs say the same thing and one of them had to be named as the source. It does NOT
-// break a tie: cenniki that disagree resolve to no stawka at all. The caller orders them; see
-// `build-import-plan`.
 export function resolveItemRates(
   items: readonly RateItemT[],
   tabs: readonly RateTabT[],
@@ -231,9 +190,8 @@ export function resolveItemRates(
   })
 }
 
-// Turn one „zakres pracy" tab into rate rows. `formulas` is the same grid fetched with the formula
-// render, which is the only way to tell a hand-typed rate from a computed one — the value render
-// returns 13 either way.
+// `formulas` is the same grid fetched with the formula render, which is the only way to tell a
+// hand-typed rate from a computed one.
 export function readRateRows(
   grid: unknown[][],
   formulas: unknown[][],
@@ -257,7 +215,7 @@ export function readRateRows(
       typeof row[column] === 'number' ? row[column] : Number(row[column]) || 0
 
     // Bez-narzędzi is „=R−R*0,15" far more often than it is a markup on Cena j.m., so it is only as
-    // free as the cell it points at. Anything else computed is taken to follow the client price.
+    // free as the cell it points at.
     const wToolsTyped = isTyped(wToolsRate)
     const ownToolsTyped = isTyped(ownToolsRate)
     const wToolsTracksPrice = !wToolsTyped

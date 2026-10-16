@@ -1,18 +1,7 @@
-// One-off (EX-1017): carries a szablon's opis translations into the katalog prac before the szablon
-// starts reading them from there. The kierownik corrects translations in the szablon, so the
-// szablon's text wins — it fills an empty katalog translation AND overwrites a different one.
-//
-//   node --env-file=.env --import tsx src/scripts/sync-template-translations.ts [--apply]
-//   TEMPLATE='Kosztorys 2026 kolory' (default) picks the szablon.
-//
 // Production, run by a human after `pnpm db:dump`:
 //
 //   DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --import tsx \
 //     src/scripts/sync-template-translations.ts --apply
-//
-// A praca matches its katalog entry by opis + j.m. (`match_key`). Skipped: a szablon translation made
-// from another opis (a renamed praca — a decision, not a copy), and a praca standing in the szablon
-// twice with two different texts. Re-runnable: a second --apply writes 0.
 //
 // Raw SQL skips the cache tags: flush the katalog with any katalog edit after an --apply.
 import { sql } from '@payloadcms/db-postgres'

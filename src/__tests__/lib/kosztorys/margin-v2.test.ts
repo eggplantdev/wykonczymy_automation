@@ -30,7 +30,7 @@ describe('marginV2', () => {
     expect(marginV2(paidNothing, settled)).toBe(marginV2(financials, settled))
   })
 
-  // EX-979: `due` carries no premia, so without this term an overpaid crew would never reach v2.
+  // `due` carries no premia, so without this term an overpaid crew would never reach v2.
   it('odejmuje premię', () => {
     const withBonus = { ...financials, totalBonus: 205.01 }
     expect(marginV2(withBonus, settled)).toBe(14.99) // 220 − 205,01
@@ -52,8 +52,6 @@ describe('marginV2', () => {
     expect(marginV2(financials, settled)).not.toBe(calculateMargin(financials))
   })
 
-  // Owner's call (2026-08-18): an etap holding executed work with no settlement picked withholds
-  // the figure. Zero would claim the work cost nothing.
   it.each([600, 0])('etap bez sposobu rozliczenia wstrzymuje figurę (należne %s)', (due) => {
     expect(marginV2(financials, { due, hasUnconfirmedPlane: true })).toBeNull()
   })

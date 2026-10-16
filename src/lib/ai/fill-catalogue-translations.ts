@@ -3,7 +3,6 @@ import { fillDescriptionTranslations } from '@/lib/db/fill-description-translati
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { listCatalogueItems } from '@/lib/db/work-catalogue'
 
-// Szablony are covered too: their opisy live in the katalog entries (EX-1017).
 export async function fillCatalogueTranslations(
   db: DbExecutorT,
 ): Promise<{ items: number; failed: number }> {

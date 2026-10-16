@@ -8,7 +8,6 @@ export type PrintColumnT = {
   getValue: (row: TransferRowT) => string
 }
 
-// The print window is an about:blank document we hand a full HTML string, so the sheet ships inline.
 // `pre-line` mirrors the screen cell's `whitespace-pre-line`; without it a multi-line opis collapses.
 const PRINT_STYLES = `
 @page { margin: 10mm; }
@@ -19,7 +18,6 @@ td { padding: 3px 6px; border-bottom: 1px solid #e5e5e5; vertical-align: top; wh
 tr:last-child td { border-bottom: none; }
 `
 
-/** Every value passes through `escapeHtml` — the opis is free text typed by a user. */
 export function buildTransfersPrintHtml(
   rows: TransferRowT[],
   columns: PrintColumnT[],

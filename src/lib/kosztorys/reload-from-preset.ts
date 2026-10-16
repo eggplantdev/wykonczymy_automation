@@ -10,11 +10,7 @@ export type ReloadFromPresetResultT = { sections: number; items: number }
 // that say nothing about what they precede.
 const preReloadLabel = (presetName: string) => `Przed wczytaniem: ${presetName}`
 
-// The counterpart to `seedInvestmentFromPreset`, which refuses a non-empty target — this is the path
-// for swapping the szablon after the investment exists.
-//
-// `replaceTreeWithSnapshot` rather than `applyPreset`, which is insert-only and assumes an empty
-// target. `null` when the source is not a szablon, or is the target itself — reloading a szablon from
+// `null` when the source is not a szablon, or is the target itself — reloading a szablon from
 // itself would only wipe its przedmiar.
 export async function reloadInvestmentFromPreset(
   payload: Payload,

@@ -13,7 +13,6 @@ const editorContext = vi.hoisted(() => ({ value: {} as Record<string, unknown> }
 const actionsContext = vi.hoisted(() => ({ clientView: null as unknown }))
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
-// `'use server'` module — vitest's stub throws on call, so the read is named explicitly.
 vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => editorContext.value,

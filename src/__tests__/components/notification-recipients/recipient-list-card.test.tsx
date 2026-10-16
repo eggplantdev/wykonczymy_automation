@@ -3,9 +3,6 @@ import { describe, expect, it } from 'vitest'
 
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 
-// Reading the lists is `MANAGEMENT_ROLES` and writing them is owner/admin, so a MANAGER lands on a
-// card with `canEdit={false}`. The action refuses them anyway (unit-tested), so what is left is
-// whether the card offers a door that leads nowhere.
 const TITLE = 'Alerty techniczne'
 
 function renderCard(props: { canEdit: boolean; emails: string[] }) {
@@ -27,8 +24,6 @@ describe('RecipientListCard', () => {
   })
 
   it('says out loud that an empty stream will fail rather than rendering a blank list', () => {
-    // A stream with nobody in it makes its sender throw. An empty `<ul>` would read as „nothing to
-    // see here" — the one reading that is wrong.
     renderCard({ canEdit: true, emails: [] })
 
     expect(screen.getByText(/Nikt nie dostanie tych powiadomień/)).toBeInTheDocument()

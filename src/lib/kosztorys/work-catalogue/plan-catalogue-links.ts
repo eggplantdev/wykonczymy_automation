@@ -32,8 +32,6 @@ export type CatalogueLinkPlanT = {
 const translationTexts = (translations: DescriptionTranslationsT): string[] =>
   TRANSLATION_LANGUAGES.map((language) => translations[language]?.text.trim() ?? '')
 
-// The labels the owner reads in the report. Kategoria is not among them: the katalog owns its own,
-// and a szablon's sekcja names local context, never a property of the praca.
 function differingFields(candidate: CatalogueCandidateT, entry: WorkCatalogueItemT): string[] {
   const fields: string[] = []
   if (candidate.description !== entry.description) fields.push('opis')
@@ -57,13 +55,9 @@ function differingFields(candidate: CatalogueCandidateT, entry: WorkCatalogueIte
   return fields
 }
 
-/**
- * Which unlinked pozycje take which katalog entry. A kosztorys pozycja links on opis + j.m. alone: the
- * id names WHICH praca it is, and the kosztorys keeps its own price either way. A szablon row links
- * only when it equals the entry in every katalog field, because once linked the szablon shows the
- * katalog's values instead of its own — a difference linked silently would be a price change nobody
- * made. Such a row is reported for a human to settle first.
- */
+// A szablon row links only when it equals the entry in every katalog field, because once linked the
+// szablon shows the katalog's values instead of its own — a difference linked silently would be a
+// price change nobody made.
 export function planCatalogueLinks(
   rows: readonly LinkRowT[],
   catalogue: readonly WorkCatalogueItemT[],

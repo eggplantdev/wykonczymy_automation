@@ -9,12 +9,7 @@ import type { ImportGridsT } from './read-sheet'
 import { resolveLaborColumns } from './resolve-columns'
 
 export type MeasuredQtyRefreshT = {
-  // Only pozycje whose stored figure actually differs from the sheet's current claim. Emitting every
-  // matched pozycja would make the counts mean „ile zapisano" instead of „ile się zmieniło", and the
-  // report could never say that the stored figures were already current.
   rows: SheetMeasuredQtyRowT[]
-  // Pozycje the app holds that the sheet no longer names — left alone, since the sheet has said
-  // nothing about them rather than said zero.
   unmatched: number
 }
 
@@ -30,9 +25,6 @@ const sameQty = (stored: number | null, fromSheet: number | null): boolean =>
     : Math.abs(stored - fromSheet) < QTY_TOLERANCE
 
 /**
- * Pair the sheet's pozycje with the stored ones and hand back what „Zaciągnij pomiary z arkusza"
- * should write.
- *
  * A matched pozycja whose sheet Pomiar is a formula or an empty cell yields `null`, not a skip: the
  * sheet stopped claiming a hand-typed measurement, and a stale reference figure surviving that would
  * make „Rozjazd" answer with a number nobody stands behind any more.
@@ -45,11 +37,9 @@ export function buildMeasuredQtyRefresh(
   const resolved = resolveLaborColumns(grids.laborGrid, mapping)
   if (!resolved.ok) return { ok: false, problems: resolved.problems }
 
-  // „Pomiar z natury" is optional, so a sheet that titles it differently still resolves ok — with
-  // the column simply unset. The parser then reads `null` for every praca, which is „the sheet made
-  // no claim", not „the sheet claims zero". Without this guard those nulls flow into the diff below
-  // as a difference against every stored figure and the write clears the lot — silently, since the
-  // dialog reports the unresolved column but not the wipe.
+  // Without this guard those nulls flow into the diff below as a difference against every stored
+  // figure and the write clears the lot — silently, since the dialog reports the unresolved column
+  // but not the wipe.
   if (resolved.columns.measuredQty === undefined)
     return { ok: true, refresh: { rows: [], unmatched: 0 } }
 

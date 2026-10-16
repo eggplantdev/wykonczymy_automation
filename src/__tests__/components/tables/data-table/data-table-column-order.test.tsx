@@ -62,8 +62,6 @@ const click = (user: ReturnType<typeof userEvent.setup>, name: string) =>
 
 beforeEach(() => localStorage.clear())
 
-// Kolejność kolumn jest ustawieniem czytelnika, nie sesji — gdyby nie wracała po przeładowaniu,
-// każde wejście na listę zaczynałoby się od układania jej od nowa.
 describe('Kolejność kolumn — przeżywa przeładowanie', () => {
   it('startuje w kolejności zadeklarowanej, gdy nic nie zapisano', () => {
     renderTable()
@@ -99,8 +97,6 @@ describe('Kolejność kolumn — przeżywa przeładowanie', () => {
   })
 })
 
-// Kolejność i widoczność to dwa osobne klucze — „Przywróć domyślną kolejność" jest tylko o kolejności,
-// więc odkrycie schowanej kolumny byłoby cofnięciem decyzji, której nikt nie cofał.
 describe('Kolejność kolumn — przywrócenie domyślnej', () => {
   it('wraca do kolejności zadeklarowanej i czyści zapis', async () => {
     const { user } = renderTable()

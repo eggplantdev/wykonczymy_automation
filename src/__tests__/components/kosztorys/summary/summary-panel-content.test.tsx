@@ -120,7 +120,6 @@ describe('SummaryPanelContent — „Marża" and the block above it read one pla
     const margin = moneyIn(document.body)
     expect(margin).not.toContain('999 999')
     expect(margin).not.toContain('111 111')
-    // Both surfaces quote the rabat the host resolved — the pair is what EX-677 was about.
     expect(overview).toContain('5 000,00')
     expect(margin).toContain('5 000,00')
   })
@@ -143,7 +142,6 @@ describe('SummaryPanelContent — zakładka „Inwestycja"', () => {
     expect(screen.queryByRole('radio', { name: 'Inwestycja' })).not.toBeInTheDocument()
   })
 
-  // An internal note is not for the inwestor — same reason „Podwykonawcy" is withheld.
   it('nie istnieje w dokumencie klienta, nawet gdy rekord dotarł', () => {
     renderPanel({ investment: INVESTMENT, preview: true })
 

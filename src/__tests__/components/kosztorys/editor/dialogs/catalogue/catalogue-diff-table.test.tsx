@@ -8,10 +8,6 @@ import type {
   CataloguePriceDiffT,
 } from '@/lib/kosztorys/work-catalogue/types'
 
-// Selecting is the risky half and none of it is visible to a node spec: a praca box that has to say
-// „część", a selection that survives being sorted by maxDelta, and a licznik that must agree with
-// what the write will carry.
-
 const figure = (over: Partial<CatalogueFigureDiffT>): CatalogueFigureDiffT => ({
   label: 'Cena j.m.',
   field: 'clientPrice',
@@ -71,8 +67,6 @@ function renderTable(diffs: CataloguePriceDiffT[], onApply = vi.fn().mockResolve
 
 const applyButton = () => screen.getByRole('button', { name: /Aktualizuj kosztorys/ })
 
-// Both sides of a rozjazd are a sentence about the ŹRÓDŁO, not only about the kwota: where the
-// złotówki match, the źródło is the only thing that makes the difference visible.
 describe('CatalogueDiffTable — źródło stawki', () => {
   it('pokazuje mnożnik jako krotność z kwotą w nawiasie', () => {
     renderTable([
@@ -160,8 +154,6 @@ describe('CatalogueDiffTable — zaznaczanie', () => {
 })
 
 describe('CatalogueDiffTable — próg udziału w cenie', () => {
-  // The merged wiersz, not the stored one: the owner ticks in bulk and never opens a single praca,
-  // so the warning has to appear on the selection and disappear with it.
   const OVER: CataloguePriceDiffT = {
     itemId: 21,
     description: 'Wylewki',

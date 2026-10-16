@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 
-// Every link into the transfers list used to be its own template literal, and one of them drifted
-// from `buildTransferFilters`' contract — it filtered out the very row it pointed at (EX-581). These
-// pin the query shape the filter parses: `type` comma-separated and unescaped, `id`/`worker` plain.
 describe('investmentTransfersHref', () => {
   it('joins a multi-type filter with a literal comma', () => {
     expect(investmentTransfersHref(7, { types: DEPOSIT_TYPES })).toBe(

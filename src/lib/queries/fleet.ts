@@ -12,10 +12,6 @@ import { byInspectionType } from '@/lib/fleet/inspection-types'
 import { ALL_TIME } from '@/lib/utils/date-range'
 import type { FleetRowT, VehicleDetailT } from '@/types/fleet'
 
-/**
- * Deliberately raw: nothing here depends on today's date, so the entry survives midnight (see
- * `fetchFleetOverview`).
- */
 const getFleetDataset = cached(
   async (): Promise<FleetDatasetT> => {
     const elapsed = perfStart()
@@ -30,9 +26,7 @@ const getFleetDataset = cached(
 
 /**
  * Today is resolved ONCE here and threaded down, so every cell answers "how urgent" as of the same
- * instant and the cached dataset stays date-free. „Koszty" is all-time, the same figure the car's own
- * card shows — a `?from=&to=` window repriced this one column and read as a filter that filtered
- * nothing.
+ * instant and the cached dataset stays date-free.
  */
 export async function fetchFleetOverview(): Promise<FleetRowT[]> {
   const session = await requireAuth(MANAGEMENT_ROLES)
@@ -46,7 +40,6 @@ export async function fetchFleetOverview(): Promise<FleetRowT[]> {
   )
 }
 
-/** One vehicle with its full history, newest first, grouped by type. */
 export async function fetchVehicleDetail(id: number): Promise<VehicleDetailT | null> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error('Nie jesteś zalogowany')

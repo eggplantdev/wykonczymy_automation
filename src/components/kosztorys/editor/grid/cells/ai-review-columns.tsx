@@ -42,8 +42,6 @@ function statusOptions(row: KosztorysV2RowT) {
   return [{ value: '', label: unsetLabel(row) }, ...picked]
 }
 
-// Above the owner's Status, never in its place: the verdict they gave stays readable until they give
-// the next one.
 function RecheckFlag({ children }: { children: ReactNode }) {
   return (
     <div className="flex size-full flex-col">
@@ -145,9 +143,6 @@ export function aiNewInformationColumn(titleNode: ReactNode): Column<KosztorysV2
 // An object, never the bare Map: `withSyntheticRows` spreads `columnData`, and a spread Map has no `.get`.
 type WorkNoteDataT = { byRowId: ReadonlyMap<number, RowCatalogueEntryT> | undefined }
 
-// The comment is the katalog entry's, not the row's, so a click opens the dialog that saves it there.
-// A praca the katalog doesn't know has nowhere to keep one: the click says so and offers the same
-// „Zapisz do katalogu…" the row menu does, instead of a dead cell.
 function WorkNoteCell({
   rowData,
   columnData,
@@ -205,7 +200,6 @@ export function workNoteColumn(
   return {
     id: 'workNote',
     title: titleNode,
-    // A blank line has no praca to look up or save yet.
     disabled: editable ? ({ rowData }) => !rowData.description?.trim() : true,
     minWidth: 220,
     grow: 1,

@@ -12,7 +12,6 @@ import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 const INVOICE_NET = 4453.33
 const INVOICE_GROSS = 4809.6
 
-// The builder's order: brutto rows, Korekta, then the netto block.
 const ROWS: MaterialsBreakdownRowT[] = [
   { id: 2, label: 'Materiały wykończeniowe', net: 1230, origin: 'gross' },
   { id: 1, label: 'Materiały budowlane', net: 615, origin: 'gross' },
@@ -62,8 +61,6 @@ describe('breakdownRowPair (one „Wydatki inwestycyjne" row on both planes)', (
     expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), rate)).toEqual(INVOICE)
   })
 
-  // Owner Q1: with no rate the table has one „Kwota" column, and it shows what the investor is
-  // billed — the netto — so Razem still equals „Materiały" in the podsumowanie.
   it('no rate = one figure per row, the billed one', () => {
     expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), null)).toEqual(
       faceValue(INVOICE.net),
@@ -71,8 +68,6 @@ describe('breakdownRowPair (one „Wydatki inwestycyjne" row on both planes)', (
     expect(breakdownRowPair(grossRow(123), null)).toEqual({ net: 123, gross: 123 })
   })
 
-  // „Korekta (bez kategorii)" arrives negative. The bug this replaced flipped or flattened such a
-  // row, so pin both the sign and the ratio: a credit must cross the bridge exactly like a charge.
   it('a negative row keeps its sign — a brutto one its ratio, a netto one its invoice', () => {
     const gross = breakdownRowPair(grossRow(-123), 0.23)
     expect(gross.gross).toBe(-123)

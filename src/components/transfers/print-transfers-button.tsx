@@ -29,8 +29,6 @@ export function PrintTransfersButton({ fetchRows, table, title }: PrintTransfers
   const [isPending, startTransition] = useTransition()
 
   function handlePrint() {
-    // getVisibleLeafColumns already applies the table's columnOrder, so this is the reader's own
-    // column order — nothing separate has to read the stored ranks.
     const columns: PrintColumnT[] = table.getVisibleLeafColumns().flatMap((column) => {
       const printValue = column.columnDef.meta?.printValue
       return printValue ? [{ id: column.id, label: columnLabel(column), getValue: printValue }] : []
@@ -50,7 +48,6 @@ export function PrintTransfersButton({ fetchRows, table, title }: PrintTransfers
 
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the printout isn't.
-      // The screen's sort key travels along, so both sets order the same way.
       const result = await settleAction(() =>
         fetchRows({
           skipMedia: true,

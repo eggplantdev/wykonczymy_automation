@@ -1,7 +1,5 @@
 // Template — copy to src/instrumentation.ts in a measuring worktree, never commit it there: it patches
-// the pg client app-wide and reads raw process.env. Usage: context/reference/perf-measurement.md
-// With PERF_SQL_LOG=<file>, appends one JSON line per SQL statement: start, duration, in-flight count.
-// PERF_SQL_STACK=<sql fragment> also records the caller stack of statements containing it.
+// the pg client app-wide and reads raw process.env.
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
   const logFile = process.env.PERF_SQL_LOG

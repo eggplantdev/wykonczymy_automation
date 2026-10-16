@@ -100,7 +100,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
 
   async function open(draft: ExpenseDraftRowT) {
     setLoadingId(draft.id)
-    // Needs only the id, so it runs alongside the page download.
     const duplicatesRequest = draft.aiRead ? requestDuplicates(draft.id) : undefined
     let files: File[] = []
     let hasPages = true
@@ -128,7 +127,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       hasPages,
     })
     openDialog(formIdOf(draft.id), false)
-    // A reopen mid-read stays on „reading"; the read already in flight loads the duplicates.
     if (isReading && !readsInFlight.current.has(draft.id)) await readOnOpen(draft, files)
     else if (duplicatesRequest) await loadDuplicates(draft.id, duplicatesRequest)
   }
@@ -155,7 +153,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     void loadDuplicates(draftId)
   }
 
-  // Reading here keeps the spend on the click.
   async function readOnOpen(draft: ExpenseDraftRowT, files: File[]) {
     const pendingKey = `${DRAFT_READ_PENDING_KEY}-${draft.id}`
     readsInFlight.current.add(draft.id)
@@ -241,8 +238,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
               }
               aboveLineItems={
                 <>
-                  {/* Stays up, unlike a toast: it is why „Zapisz" is greyed out. A read zgłoszenie
-                  says it on each paragon instead, where a file added by hand lifts it. */}
                   {!accepting.hasPages && accepting.prefill.aiReadRows.length === 0 && (
                     <p className="text-destructive text-sm">
                       Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.

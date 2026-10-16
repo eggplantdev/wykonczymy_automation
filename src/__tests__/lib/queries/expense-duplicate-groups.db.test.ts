@@ -38,7 +38,6 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
 
   const ctx = { context: { skipRevalidation: true } }
 
-  // Raw INSERT: the transfer hooks (sheet sync, revalidation) have nothing to do with what is read here.
   async function insertTransaction(
     key: string,
     row: { amount: number; date: string; investment: number; number?: string; cancelled?: boolean },

@@ -10,11 +10,6 @@ export type LeadFormT = {
 // persist them, so one mutated array would poison every later empty result.
 const empty = (): LeadFormT => ({ questions: [] })
 
-/**
- * One call for both name and questions: normalizeLead needs Meta's field types, the answers modal
- * needs the label map. Best-effort — any failure returns empties instead of throwing, since lead
- * capture must never block on it.
- */
 export async function fetchForm(formId: string | undefined): Promise<LeadFormT> {
   if (!formId) return empty()
   try {

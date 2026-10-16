@@ -7,7 +7,6 @@ import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 
 // Every refusal is asserted on the rows, not the result: the pair is one transaction that commits a
 // returned refusal, so a refusal decided after the first write would still leave a kasa trashed.
-// The last-OWNER rule is covered in `account-removal.test.ts` — the restored dump always holds OWNERs.
 
 vi.mock('server-only', () => ({}))
 
@@ -124,7 +123,6 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
     )
     expect(Number(devices[0]?.n)).toBe(0)
 
-    // Listed as the worker, with his kasa named — never as a kasa of its own.
     const { fetchTrashedWorkers } = await import('@/lib/db/worker-trash')
     const { fetchTrashedCashRegisters } = await import('@/lib/db/cash-register-trash')
     expect(

@@ -1,11 +1,8 @@
 import { clsx, type ClassValue } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
 
-// tailwind-merge knows Tailwind's own scale, not ours. `max-w-dialog*` are project tokens from
-// `@theme`, so plain `twMerge` left them NEXT TO an override instead of dropping one — and the
-// loser was decided by stylesheet order, where `--container-dialog*` sits after the stock
-// `--container-*`. Net effect: `sm:max-w-5xl` on a DialogContent was silently a no-op, and three
-// consecutive attempts to widen a window changed nothing on screen.
+// `max-w-dialog*` are project tokens from `@theme`, so plain `twMerge` left them NEXT TO an override
+// instead of dropping one
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {
@@ -17,8 +14,6 @@ const twMerge = extendTailwindMerge({
         'max-w-dialog-2xl',
         'max-w-dialog-3xl',
       ],
-      // The grid utilities too: a shared control (Combobox) bakes in `text-sm`, which sits later in
-      // the stylesheet and would beat a `grid-cell-text` passed to it.
       'font-size': ['text-2xs', 'text-3xs', 'grid-cell-text', 'grid-band-text'],
     },
   },

@@ -9,7 +9,6 @@ import {
 } from '@/lib/kosztorys/stage-keys'
 
 const STORAGE_KEY = 'table-columns:kosztorys'
-// The picker answers per GROUP, never per stage id — one tick governs the axis across every etap.
 const NET = STAGE_VALUE_NET_COLUMN_GROUP
 const GROSS = STAGE_VALUE_GROSS_COLUMN_GROUP
 
@@ -31,8 +30,6 @@ describe('useHiddenColumns — a fresh profile', () => {
     expect(result.current.isHidden(NET)).toBe(false)
   })
 
-  // The sparse map is the whole design: nothing is written until someone picks, so a default can
-  // still be changed in code afterwards instead of being frozen into everyone's localStorage.
   it('writes nothing until a column is picked', () => {
     const { result } = remount()
     result.current.isHidden(GROSS)
@@ -47,8 +44,6 @@ describe('useHiddenColumns — the pick survives a reload', () => {
 
     act(() => result.current.toggleColumn(GROSS))
     expect(result.current.isHidden(GROSS)).toBe(false)
-    // An explicit false, not a deleted key: deleting would fall back to the default, i.e. undo the
-    // very tick that asked for the column.
     expect(stored()[GROSS]).toBe(false)
 
     expect(remount().result.current.isHidden(GROSS)).toBe(false)

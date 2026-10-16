@@ -83,7 +83,6 @@ describe('findDuplicatePairs — identity rules', () => {
       everyone,
     )
 
-    // The two transakcje still repeat each other.
     expect(pairKeys(pairs)).toEqual(['transaction-1 ~ transaction-2'])
   })
 

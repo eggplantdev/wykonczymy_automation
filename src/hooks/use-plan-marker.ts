@@ -20,9 +20,6 @@ export function usePlanMarker(files: MediaFileT[]) {
     (markedIds.includes(file.id) ||
       files.find((candidate) => candidate.id === file.id)?.kind === 'projekt')
 
-  // The try/catch is the point of the wrapper: the caller fires this from an onClick with nowhere
-  // to put a rejection, so a transport-level throw (expired cookie, deploy skew, offline) would
-  // otherwise be an unhandled rejection and the click would read as a no-op.
   async function mark(file: PreviewFileT) {
     const id = file.id
     if (id === undefined) return

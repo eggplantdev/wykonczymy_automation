@@ -30,14 +30,12 @@ import {
 import { baseRanksFromKeys, orderColumnKeys, type ColumnRanksT } from '@/lib/table/column-order'
 import { leafColumnIds } from '@/lib/table/leaf-column-ids'
 
-// One object, not a positional list: the toolbar needs the rank writers too, and widening a
-// positional list would re-touch all eight call sites.
 export type DataTableToolbarContextT<TData> = {
   table: Table<TData>
   columnVisibility: VisibilityState
   ranks: ColumnRanksT
   // Off the DECLARED list, not the ordered one, or a second drop's midpoint lands one slot off its
-  // already-moved neighbours. Same rule as the kosztorys grid's `assembleBaseRanks`.
+  // already-moved neighbours.
   baseRanks: ColumnRanksT
   setRank: (key: string, rank: number) => void
   resetOrder: () => void
@@ -52,32 +50,20 @@ type DataTablePropsT<TData> = {
   enableVirtualization?: boolean
   virtualRowHeight?: number
   virtualContainerHeight?: number
-  /** Sizes the virtualized scroll container by class; `virtualContainerHeight` is then ignored. */
   virtualContainerClassName?: string
-  /** localStorage key for persisting column visibility */
   storageKey?: string
-  /** Visibility before the viewer touches anything, e.g. `{ x: false }` for a column hidden by
-   * default. Only the viewer's deviations from it are stored. */
   defaultColumnVisibility?: VisibilityState
-  /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
   initialSorting?: SortingState
   /** Controlled sort — pass with `onSortingChange` and the caller is expected to fetch rows already
-   * ordered (`manualSorting`). Either prop alone leaves the table on its own local sort. */
+   * ordered (`manualSorting`). */
   sorting?: SortingState
   onSortingChange?: (next: SortingState) => void
-  /** Makes the row clickable — navigates to the returned URL */
   getRowHref?: (row: TData) => string | undefined
   getRowClassName?: (row: TData) => string
-  /** Summary `<tr>` pinned below the rows. Gets visible column ids in render order, so it can span
-   * them or place a total under its column even when others are hidden. */
   footer?: (visibleColumnIds: string[]) => React.ReactNode
   toolbar?: (ctx: DataTableToolbarContextT<TData>) => React.ReactNode
-  /** A row count, a hint about what the filters did — its own row so it reads as a statement about
-   * the list below rather than another toolbar item. */
   aboveToolbar?: React.ReactNode
   belowToolbar?: React.ReactNode
-  /** Renders the sorted rows in place of the <table> — a card layout keeps the toolbar, sort and
-   * column state the table already owns. */
   renderRows?: (rows: Row<TData>[], visibleColumnIds: string[]) => React.ReactNode
   defaultTextSize?: TableTextSizeT
   className?: string
@@ -154,7 +140,7 @@ export function DataTable<TData>({
       columnVisibility,
       // A new array every render, and that is load-bearing: TableHeader's sort arrow and
       // VirtualizedTableBody's virtual items are compiled children holding TanStack's mutable objects,
-      // re-read only because this renews `headerGroups` and every row's cells. Memoized, both freeze.
+      // re-read only because this renews `headerGroups` and every row's cells.
       columnOrder: [...pinnedColumnIds, ...orderColumnKeys(rankedColumnIds, ranks)],
     },
     onSortingChange: (updater) => {
@@ -167,7 +153,6 @@ export function DataTable<TData>({
     // second key would vanish on the next render.
     enableMultiSort: !isManualSorting,
     // Functional, so two toggles in one tick each build on the other instead of on the render's copy.
-    // The storage write inside is idempotent, so a doubled updater call writes the same value twice.
     onColumnVisibilityChange: (updater) =>
       setStoredVisibility((stored) => {
         const current = { ...defaultColumnVisibility, ...stored }
@@ -206,11 +191,7 @@ export function DataTable<TData>({
   const visibleColumnIdList = visibleLeafColumns.map((column) => column.id)
 
   return (
-    /* 24px below `sm` to match `PageWrapper`'s `gap-6` — the stock 8px left the table looking welded
-       to the toolbar's last wrapped row. */
     <div className={cn('space-y-2 max-sm:space-y-6', className)}>
-      {/* Pulled back against the stack's 24px so it reads as part of the page heading, not the
-          toolbar's first row. Can't live in `PageWrapper`'s <h1> — it counts client-side filters. */}
       {aboveToolbar && <div className="max-sm:-mt-4">{aboveToolbar}</div>}
       {toolbar?.({
         table,

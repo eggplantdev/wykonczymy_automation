@@ -23,10 +23,7 @@ type ReferencedByT = Partial<Record<CollectionSlug, number[]>>
 function fakePayload(referencedBy: ReferencedByT) {
   const deleted: number[] = []
   const payload = {
-    // The draft-page probe is raw SQL; no fixture here holds a page in a draft.
     db: { drizzle: { execute: async () => ({ rows: [] }) } },
-    // One doc per held id, shaped like the real read: the scan asks each relation once with `in`
-    // and reads the ids back off the matched docs' upload field.
     find: vi.fn(async ({ collection, where, pagination }) => {
       const field = Object.keys(where)[0]
       const asked: number[] = where[field].in
@@ -62,9 +59,6 @@ describe('deleteUnreferencedMedia', () => {
     expect(deleted).toEqual([])
   })
 
-  // The counter was a hand-maintained list of two collections and `equipment-events.attachments`
-  // was added to neither, so a handover's photos were deletable out from under it. Driving both
-  // readers off MEDIA_RELATIONS is what closes it — this asserts the relation the list forgot.
   it('spares an attachment still held by an equipment event', async () => {
     const { payload, deleted } = fakePayload({ 'equipment-events': [7] })
     await deleteUnreferencedMedia(payload, [7])
@@ -79,8 +73,6 @@ describe('deleteUnreferencedMedia', () => {
     )
   })
 
-  // The scan is what the `6N` round-trips paid for: one query per relation for the WHOLE batch, not
-  // one per id. Asserting the call count is the only way a mock can show the batching survived.
   it('asks each relation once for a whole batch', async () => {
     const { payload, deleted } = fakePayload({ transactions: [2] })
     await deleteUnreferencedMedia(payload, [1, 2, 3])
@@ -88,8 +80,6 @@ describe('deleteUnreferencedMedia', () => {
     expect(deleted).toEqual([1, 3])
   })
 
-  // Blob has no undelete, so an under-read of the reference scan is unrecoverable: a batch of more
-  // than one page of held ids must still come back whole.
   it('spares every attached file in a batch larger than one page', async () => {
     const attached = Array.from({ length: PAYLOAD_DEFAULT_PAGE + 2 }, (_unused, index) => index + 1)
     const { payload, deleted } = fakePayload({ transactions: attached })
@@ -103,8 +93,6 @@ describe('deleteUnreferencedMedia', () => {
     await expect(deleteUnreferencedMedia(payload, [7])).resolves.toBeUndefined()
   })
 
-  // A batched scan answers for every id at once, so a scan that throws leaves the whole batch
-  // unanswered — and an unanswered reference question must leak, never cascade a live row away.
   it('deletes nothing when the reference scan fails', async () => {
     const { payload, deleted } = fakePayload({})
     vi.mocked(payload.find).mockRejectedValueOnce(new Error('db down'))
@@ -112,10 +100,6 @@ describe('deleteUnreferencedMedia', () => {
     expect(deleted).toEqual([])
   })
 
-  // The deployed database loses all but one of a set of concurrent Payload writes, and reports
-  // success for every one of them — which left every page but one of a deleted multi-page invoice
-  // in storage with nothing pointing at it. Overlapping calls are the defect, so that is what this
-  // asserts; a mock cannot show the lost row itself.
   it('never has two deletes in flight at once', async () => {
     const { payload, deleted } = fakePayload({})
     let inFlight = 0
@@ -151,8 +135,6 @@ describe('reclaimUnreferencedMedia', () => {
     expect(deleted).toEqual([7])
   })
 
-  // A script and a node spec have no response to run after, so deferring there would drop the
-  // reclaim entirely.
   it('runs inline when there is no request scope to defer into', async () => {
     outsideRequestScope = true
     const { payload, deleted } = fakePayload({})

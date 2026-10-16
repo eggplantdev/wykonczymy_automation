@@ -10,8 +10,7 @@ import {
   workerVisibleColumns,
 } from '@/lib/kosztorys/worker-view/settings'
 
-// The main risk of the change: a worker's screen showing the client price — which gives the margin
-// away. Settings may only SUBTRACT from the worker ceiling; nothing typed into them may add to it.
+// The main risk: a worker's screen showing the client price — which gives the margin away.
 
 const CLIENT_PRICED = [
   'price',
@@ -44,8 +43,6 @@ describe('worker view settings', () => {
     })
   })
 
-  // A quantity and a percentage of quantities disclose no price, so the offer is the managers' call
-  // (2026-10-09).
   it('offers the Przedmiar ofertowy and the percentage against it, unticked by default', () => {
     const keys = WORKER_VIEW_GROUPS.flatMap((group) => group.keys)
 

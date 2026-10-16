@@ -29,10 +29,6 @@ describe('useEngagedConditions — setMany', () => {
     expect([...result.current.engagedIds]).toEqual(['no-note'])
   })
 
-  // „Odznacz wszystkie" pressed twice is the real gesture: the second press changes nothing, and the
-  // store writes localStorage on every new identity — so an unconditional copy would re-serialise the
-  // same map and re-render the whole grid for it. The kept Set identity is what the editor's memos
-  // read, so this is the observable half of that.
   it('keeps the same set when every id already stands where it is put', () => {
     const { result } = freshEditor()
 

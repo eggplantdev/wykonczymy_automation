@@ -100,8 +100,6 @@ function amountsAfter(scope: HTMLElement, label: string): string[] {
   return amounts
 }
 
-// Pomylona atrybucja mówi o cudzych pieniądzach, a ujemne „pozostało" znaczy coś odwrotnego niż
-// obiecuje nagłówek kolumny.
 describe('Podsumowanie pracowników — czyj to dług', () => {
   it('prowadzi z wiersza na wypłaty i premie tej jednej osoby', () => {
     renderBlock()
@@ -112,8 +110,6 @@ describe('Podsumowanie pracowników — czyj to dług', () => {
     )
   })
 
-  // Reszta nieprzypisana nie jest osobą, więc nie ma czego filtrować — i nie wolno jej opisać
-  // żadnym z trzech zdań o człowieku.
   it('zostawia resztę nieprzypisaną bez linku i bez wyjaśnienia', () => {
     renderBlock()
 
@@ -131,8 +127,6 @@ describe('Podsumowanie pracowników — czyj to dług', () => {
     expect(within(row).getByText('nadpłacone')).toBeInTheDocument()
   })
 
-  // Zaliczka na etap, którego jeszcze nie zaczęto, wygląda w kwocie identycznie jak nadpłata. Gdyby
-  // czytała się tak samo, blok krzyczałby przy każdej normalnej zaliczce.
   it('nie myli zaliczki na nierozpoczęty etap z nadpłatą', () => {
     renderBlock()
 
@@ -142,8 +136,6 @@ describe('Podsumowanie pracowników — czyj to dług', () => {
     expect(within(row).queryByText('Brak przypisanych etapów')).toBeNull()
   })
 
-  // „Razem" stoi pod wierszami, więc czyta się jako ich suma — rozjazd z nagłówkiem obok znaczy, że
-  // blok liczy dwiema regułami naraz.
   it('domyka wiersze tą samą trójką kwot, którą podaje nagłówek', () => {
     renderBlock()
 
@@ -157,8 +149,6 @@ describe('Podsumowanie pracowników — czyj to dług', () => {
   })
 })
 
-// Strona inwestycji ma listę transakcji obok panelu, więc rozbicie na płaszczyzny i tabela
-// pracowników byłyby tam powtórzeniem — zostają trzy kwoty rozliczenia.
 describe('Podsumowanie podwykonawców — host kompaktowy', () => {
   it('zostawia trzy kwoty, zdejmuje rozbicie i tabelę pracowników', () => {
     renderBlock(false)
@@ -179,8 +169,6 @@ describe('Podsumowanie podwykonawców — host kompaktowy', () => {
   })
 })
 
-// Etap bez potwierdzonego rozliczenia nie wchodzi do żadnej płaszczyzny, więc „Suma wykonanej pracy"
-// jest zaniżona — bez znaku obok kwoty nikt nie ma powodu szukać, czego w niej brakuje.
 describe('Podsumowanie podwykonawców — niepotwierdzone rozliczenie etapu', () => {
   it('znakuje sumę wykonanej pracy, gdy któryś etap nie ma rozliczenia', () => {
     renderBlock(true, { ...DUE, hasUnconfirmedPlane: true })
@@ -196,8 +184,6 @@ describe('Podsumowanie podwykonawców — niepotwierdzone rozliczenie etapu', ()
   })
 })
 
-// The same dialog as on the investments listing — the tab that flags „nadpłacone" leads to where it
-// can be evened out.
 describe('Podsumowanie pracowników — Rozlicz wypłaty', () => {
   const settleButton = () => screen.queryByRole('button', { name: 'Rozlicz wypłaty' })
 

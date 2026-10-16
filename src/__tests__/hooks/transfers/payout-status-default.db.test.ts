@@ -6,12 +6,7 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-// Risk #27, the booking half: a wypłata is born `pending` whichever path books it, and no edit — the
-// Local API one every action writes on included — can move the worker's answer. Asserted on the
-// STORED row: the hook's return value would say nothing about what Payload finally wrote.
-
 vi.mock('server-only', () => ({}))
-// The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -121,7 +116,6 @@ describe.skipIf(!ENV_READY)('a wypłata is born pending and only the worker move
     expect(await persisted(id)).toEqual({ status: 'pending', decidedAt: null, reason: null })
   })
 
-  // A premia is the nearest neighbour — same worker, same investment — and is never put to him.
   it('leaves every other type without a status', async () => {
     const id = await createRow({
       description: `${MARKER} bonus`,

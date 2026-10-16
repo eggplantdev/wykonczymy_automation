@@ -13,7 +13,6 @@ export async function selectStageWorkerIds(db: DbExecutorT, stageId: number): Pr
   return res.rows.map((row) => Number(row.worker_id))
 }
 
-/** One etap's executed-work value at its own plane — the pool its split divides. */
 export async function selectStagePool(db: DbExecutorT, stageId: number): Promise<number> {
   const res = await db.execute(sql`
     WITH ${subcontractorLinesCte}
@@ -24,7 +23,6 @@ export async function selectStagePool(db: DbExecutorT, stageId: number): Promise
   return Number(res.rows[0]?.due ?? 0)
 }
 
-/** Writes the mode and replaces the members together — one concept, never two patches. */
 export async function replaceStageSplit(
   db: DbExecutorT,
   stageId: number,
@@ -39,11 +37,6 @@ export async function replaceStageSplit(
 
 export const STAGE_MEMBER_INSERT_COLUMNS = ['stage_id', 'worker_id', 'value', 'takes_rest'] as const
 
-/**
- * Members of freshly inserted etapy; the caller owns `split_mode` on the etap row. Every path that
- * puts a worker on an etap lands here, so this is also where his report link is minted — in the
- * caller's transaction, and never over a link he already holds.
- */
 export async function insertStageMembers(
   db: DbExecutorT,
   stages: { stageId: number; split: StageSplitT }[],
@@ -62,7 +55,6 @@ export async function insertStageMembers(
   await insertMissingWorkerReportShares(db, members)
 }
 
-/** „Nowy etap" for an accepted report: the next number, the worker's plane, and him at 100%. */
 export async function insertWorkerStage(
   db: DbExecutorT,
   investmentId: number,

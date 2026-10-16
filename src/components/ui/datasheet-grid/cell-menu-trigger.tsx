@@ -4,9 +4,6 @@ import { MoreHorizontal } from 'lucide-react'
 
 import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
-// The body-cell twin of HeaderMenuTrigger: it fills its whole grid cell so the click target matches
-// what the user sees as "the Akcje cell", while the visible chrome sits on an inner span — which is
-// what keeps the hover/open highlight the size of a button rather than the size of the cell.
 export function CellMenuTrigger({ title }: { title: string }) {
   return (
     <DropdownMenuTrigger

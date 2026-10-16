@@ -4,8 +4,8 @@ import {
   toStoredClientViewSettings,
 } from '@/lib/kosztorys/client-view/settings'
 
-// A column added after the stored shape stopped being a hidden ARRAY. Today the ceiling equals the
-// frozen legacy set, so only a ceiling widened here reaches the branch a real new column will take.
+// Today the ceiling equals the frozen legacy set, so only a ceiling widened here reaches the branch a
+// real new column will take.
 vi.mock('@/lib/kosztorys/client-view/columns', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/kosztorys/client-view/columns')>()
   return {

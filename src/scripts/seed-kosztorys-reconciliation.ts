@@ -1,31 +1,15 @@
-// E2E fixture for the kosztorys ↔ transactions reconciliation scream (EX-535). Seeds two fresh
-// investments via the Payload Local API — one whose LABOR_COST/RABAT transactions DISAGREE with the
-// kosztorys client-view figures (both surfaces must scream) and one where they AGREE (both silent).
-//
-// Deterministic and self-contained: unlike seed-kosztorys.ts it reads no Google Sheet. Each item has
-// no discount, so „Suma prac wykonanych" (executed net, pre-rabat) = clientPrice × Σ qtyDone.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-kosztorys-reconciliation.ts
-//
-// Emits one machine-readable line the E2E spec parses:
-//   RECON_SEED={"mismatch":<id>,"match":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
-// A RABAT row needs a source register; register 5 exists in the standard dump (see e2e/helpers.ts).
 const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
 const QTY_DONE = 5
-const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE // 500 — the „Suma prac wykonanych" both surfaces expect
+const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE
 
 const ctx = { context: { skipRevalidation: true } }
 
 type SeededInvestment = { investmentId: number; name: string }
 
-// Create an investment carrying one section / one stage / one no-discount item with recorded
-// progress, so its executed „Suma prac wykonanych" is exactly LABOR_COSTS_NET.
 async function seedKosztorys(
   payload: Awaited<ReturnType<typeof getPayload>>,
   name: string,
@@ -87,8 +71,7 @@ type TxnSeed = {
 }
 
 // The transaction afterChange balance hook calls revalidateTag, which throws outside a Next request
-// context. disableTransaction lets the insert survive that throw; balances are read-computed, so the
-// lost revalidation is a no-op in a script.
+// context. disableTransaction lets the insert survive that throw.
 async function seedTransaction(
   payload: Awaited<ReturnType<typeof getPayload>>,
   txn: TxnSeed,
@@ -108,12 +91,10 @@ async function seedTransaction(
 async function main() {
   const payload = await getPayload({ config })
   // A per-run suffix keeps names unique — the test DB is not reset between runs, so a stable name
-  // would collide. Both the id and the name are printed: the listing exposes no per-row href, so a
-  // spec that has to find the row on /inwestycje can only do it by name.
+  // would collide.
   const stamp = Date.now()
 
   const mismatch = await seedKosztorys(payload, `E2E Recon mismatch ${stamp}`)
-  // LABOR_COST ≠ LABOR_COSTS_NET → robocizna screams; RABAT > 0 while kosztorys rabat is 0 → rabat screams.
   await seedTransaction(payload, {
     type: 'LABOR_COST',
     amount: LABOR_COSTS_NET - 50,
@@ -129,7 +110,6 @@ async function main() {
   })
 
   const match = await seedKosztorys(payload, `E2E Recon match ${stamp}`)
-  // LABOR_COST == LABOR_COSTS_NET, and no RABAT (kosztorys rabat also 0) → both figures silent.
   await seedTransaction(payload, {
     type: 'LABOR_COST',
     amount: LABOR_COSTS_NET,
@@ -142,7 +122,6 @@ async function main() {
       mismatch: mismatch.investmentId,
       match: match.investmentId,
       matchName: match.name,
-      // The „Suma prac wykonanych" both surfaces must display for either investment.
       laborCostsNetFromKosztorys: LABOR_COSTS_NET,
     })}`,
   )

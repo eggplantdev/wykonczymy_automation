@@ -25,7 +25,6 @@ export type ReportFormSectionT = {
   items: ReportFormItemT[]
 }
 
-// Everything the form may show, and nothing else: no rates, no other crew's etapy.
 export type WorkerReportFormDataT = {
   investmentId: number
   investmentName: string
@@ -45,34 +44,25 @@ export type ReportLineKindT = 'rozpiska' | 'extra'
 
 export type ReportSourceT = 'link' | 'scan'
 
-// Opis + j.m. are copied onto the line when it is sent, so a later rename or delete of the pozycja
-// does not rewrite what the worker reported.
 export type ReportLineT = {
   id: number
   kind: ReportLineKindT
-  // Gone once its pozycja was deleted (a restore, „Wyczyść kosztorys") — the line is then re-pointed
-  // by hand.
   itemId: number | undefined
   description: string
   unit: string
   sectionName: string | undefined
   reportedQty: number
-  // Undefined until the line is przyjęta — while it waits and once it is odrzucona.
   acceptedQty: number | undefined
   isRejected: boolean
   createdItemId: number | undefined
   catalogueItemId: number | undefined
-  // Extras only, filled after the send. Both undefined = not translated (yet); a `pl` language with
-  // no Polish = the worker wrote Polish.
+  // Both undefined = not translated (yet); a `pl` language with no Polish = the worker wrote Polish.
   polishDescription: string | undefined
   descriptionLanguage: string | undefined
-  // Scans only: the AI was unsure of the ilość, or the number on the paper matched no pozycja.
   isUncertain: boolean
   scannedRef: string | undefined
 }
 
-// Ordinal and label are copied, so a later rename or delete of the etap does not rewrite where the
-// kierownik put it. `stageId` is gone once the etap was deleted.
 export type ReportTargetT = {
   stageId: number | undefined
   ordinal: number
@@ -84,10 +74,8 @@ export type WorkerReportSummaryT = {
   investmentId: number
   workerId: number
   workerName: string
-  // His account language: the one his link opens in and his printed form is in.
   workerLanguage: LanguageT | undefined
   source: ReportSourceT
-  // The kierownik who filed a scan; undefined on a report the worker sent himself.
   createdByName: string | undefined
   sentAt: string
   status: ReportStatusT
@@ -106,11 +94,8 @@ export type AcceptReportInputT = z.input<typeof acceptSchema>
 export type AcceptTargetT = AcceptReportInputT['target']
 
 export type AcceptReportResultT = {
-  // Only when the report went to „Nowy etap".
   stage: KosztorysStageT | undefined
-  // Absolute figures after the addition — the client never re-adds.
   cells: StageProgressCellT[]
-  // Only when the save moved a figure in the rozpiska.
   revision: string | undefined
 }
 
@@ -119,7 +104,6 @@ export type ReportLineOutcomeT =
   | { kind: 'pending' }
   | { kind: 'rejected' }
 
-// One line as the Podgląd shows it to one viewer — texts already in the language they read.
 export type ReportPreviewLineT = {
   id: number
   kind: ReportLineKindT
@@ -128,7 +112,6 @@ export type ReportPreviewLineT = {
   sectionName: string
   sectionColor: SectionColorKeyT | null
   description: string
-  // Management only: what the worker read or wrote, beside the Polish.
   workerDescription: string | undefined
   workerDescriptionLanguage: string | undefined
   unit: string

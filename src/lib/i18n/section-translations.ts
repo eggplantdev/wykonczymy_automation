@@ -32,10 +32,7 @@ export function sectionNameKey(name: string): string {
   return toTemplate(tokens)
 }
 
-/**
- * The manager types real numbers; they must be the name's own, in its order, so filling `#`s back
- * positionally can never swap two rooms. Empty text means "remove this language".
- */
+// they must be the name's own, in its order, so filling `#`s back positionally can never swap two rooms.
 export function toSectionTemplate(name: string, typed: string): SectionTemplateResultT {
   const tokens = tokensOf(typed)
   if (tokens.length === 0) return { ok: true, template: '' }
@@ -49,7 +46,6 @@ export function toSectionTemplate(name: string, typed: string): SectionTemplateR
   return { ok: true, template: toTemplate(tokens) }
 }
 
-// `null` = nothing usable for this name: no translation, or its `#`s don't match the name's numbers.
 export function renderSectionName(
   name: string,
   translations: SectionTranslationsT | undefined,

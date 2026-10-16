@@ -46,9 +46,6 @@ import { NotificationRecipients } from '@/globals/notification-recipients'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-// Nothing in the Payload graph parses the env schema, so this file re-runs its Blob-token guard:
-// it is what hands the token to the plugin whose handleDelete calls del(), and without this
-// /admin/collections/media would delete real, tax-retained invoices from a dev session.
 const refusal = blobTokenRefusal(process.env.VERCEL_ENV, process.env.BLOB_READ_WRITE_TOKEN)
 if (refusal) throw new Error(`BLOB_READ_WRITE_TOKEN ${refusal}`)
 
@@ -68,11 +65,9 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DB_POSTGRES_URL,
     },
-    // Load-bearing, and not merely "we don't want dev push". `pushDevSchema` calls drizzle-kit's
-    // `pushSchema`, which INTROSPECTS the live database and drops everything absent from this
-    // config — and this database deliberately holds tables, unique indexes and NOT NULL columns
-    // this config has never heard of. Why, and how to re-measure the gap:
-    // context/foundation/lessons.md, "Part of this schema is invisible to Payload".
+    // `pushDevSchema` calls drizzle-kit's `pushSchema`, which INTROSPECTS the live database and
+    // drops everything absent from this config — and this database deliberately holds tables,
+    // unique indexes and NOT NULL columns this config has never heard of.
     push: false,
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
@@ -122,13 +117,10 @@ export default buildConfig({
       collections: { media: true },
       token: process.env.BLOB_READ_WRITE_TOKEN,
       // Do NOT set addRandomSuffix: true — the plugin rewrites Payload's `filename` field to the
-      // suffixed blob key, polluting the user-facing label with a ~30-char token (EX-457 follow-up).
-      // Cross-env key uniqueness is already handled by appendShortId at the upload boundary
-      // (uniqueFileName).
+      // suffixed blob key, polluting the user-facing label with a ~30-char token.
       //
       // Kept in step with `media.access.create`: a token looser than the row gate buys blob writes
-      // with no row to show for them. EMPLOYEE is in since his expense drafts carry receipt photos
-      // (EX-971).
+      // with no row to show for them.
       clientUploads: { access: isAuthenticatedBoolean },
     }),
   ],

@@ -7,9 +7,6 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-// The report is allowed to be wrong in only one direction: it may never invent a rozjazd. Everything
-// asserted here is about that — grosz noise is not a difference, a stawka is compared even when the
-// cena agrees, and a praca the cennik has never heard of is a hole, not a disagreement.
 const SETTINGS = { wToolsCoeff: 0.65, ownToolsCoeff: 0.5 }
 
 let nextId = 1
@@ -71,9 +68,6 @@ describe('buildCatalogueComparison', () => {
     expect(result.diffs).toHaveLength(0)
   })
 
-  // Ten wiersz trafił ownerowi na ekran jako „14,88 zł / 14,88 zł / różnica −0,01 zł": pół grosza to
-  // był dokładnie próg, więc o rozjeździe decydowała resztka bitowa. Sąsiad o grosz dalej pilnuje,
-  // żeby naprawa nie okazała się wyłączeniem porównania.
   it('nie robi rozjazdu z pół grosza — po zaokrągleniu obie kwoty to 14,88 zł', () => {
     const result = buildCatalogueComparison(
       [item({ clientPrice: 14.875 })],
@@ -158,8 +152,6 @@ describe('buildCatalogueComparison', () => {
     expect(wTools?.kosztorys).toBeCloseTo(130, 6)
   })
 
-  // Cztery kombinacje rodzajów to cała reguła: rozjazdem jest różnica kwoty ALBO różnica rodzaju,
-  // a milczy tylko auto przeciw auto — tam obie kwoty to ta sama cena razy ten sam współczynnik.
   it('zamrożona kwota przeciw katalogowemu „auto" to rozjazd nawet przy tej samej kwocie', () => {
     const result = buildCatalogueComparison(
       [item({ wToolsOverrideValue: 65 })],
@@ -175,8 +167,6 @@ describe('buildCatalogueComparison', () => {
     expect(wTools?.catalogueSource).toBe('auto')
   })
 
-  // Ta sama złotówka, dwie różne decyzje: 0,65 przy cenie 100 zł daje 65 zł dzisiaj i coś innego po
-  // każdej podwyżce ceny j.m. Milczenie tutaj byłoby zgubieniem jedynej różnicy, która zostanie.
   it('mnożnik przeciw równej mu kwocie to rozjazd, choć delta jest zerowa', () => {
     const result = buildCatalogueComparison(
       [item({ wToolsOverrideCoeff: 0.65 })],
@@ -311,8 +301,6 @@ describe('attachCatalogueHints', () => {
     expect(row.hints[0].description).toBe('Gładź gipsowa')
   })
 
-  // The praca and its candidate are routinely the SAME name in a different j.m., so the candidate has
-  // to arrive with the cennik row's own j.m. and cena — the opis alone cannot tell two of them apart.
   it('niesie j.m. i cenę kandydata, nie sam opis', () => {
     const [row] = attachCatalogueHints(
       [missingRow('Montaż syfonów')],
@@ -395,8 +383,6 @@ describe('buildCatalogueComparison — the katalog entry behind each pozycja', (
 })
 
 describe('buildCatalogueComparison — szablon', () => {
-  // The editor holds the katalog it was served at mount, while an edit to a linked szablon row is
-  // written INTO the katalog — so the row reads the new number and the held katalog the old one.
   it('never reports a linked szablon row against a katalog read before its edit', () => {
     const edited = item({ catalogueItemId: 1, clientPrice: 120 })
     const servedAtMount = [entry({ id: 1, clientPrice: 100 })]

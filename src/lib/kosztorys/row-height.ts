@@ -1,23 +1,15 @@
 import { isSectionHeaderRow } from '@/lib/kosztorys/synthetic-rows'
 
-// One line of `text-sm` (14px/20px) plus the breathing room that makes 32px the resting row —
-// so `heightForLines(1)` lands exactly on the height the grid has always used.
+// One line of `text-sm` (14px/20px)
 const ROW_LINE_HEIGHT = 20
 const ROW_VERTICAL_PADDING = 12
 
 export const ITEM_ROW_HEIGHT = ROW_LINE_HEIGHT + ROW_VERTICAL_PADDING
-// The band opening a section is chrome, not a row of figures — hence a fixed resting height that no
-// label length changes. A drag still moves it, like any other row.
 export const SECTION_BAND_ROW_HEIGHT = 52
-// The owner drags the header to whatever their column widths need (HEADER_HEIGHT_KEY in the row-heights map), and this is only the resting
-// height that drag starts from.
 export const HEADER_ROW_HEIGHT = 84
-// The header is one row, not one per id, so it rides in the same override map under a key no row id
-// can take — ids are numeric strings.
+// The header rides in the same override map under a key no row id can take — ids are numeric strings.
 export const HEADER_HEIGHT_KEY = 'header'
 
-// The floor a drag may not cross and the floor a fit starts from — one function so the band's
-// exception is stated once.
 export function restingRowHeight(rowId: number): number {
   return isSectionHeaderRow(rowId) ? SECTION_BAND_ROW_HEIGHT : ITEM_ROW_HEIGHT
 }
@@ -26,13 +18,10 @@ export function heightForLines(lines: number): number {
   return Math.max(ITEM_ROW_HEIGHT, Math.ceil(lines) * ROW_LINE_HEIGHT + ROW_VERTICAL_PADDING)
 }
 
-// A band's label is one line and its resting height is 52, so the floor inside heightForLines is the
-// wrong one for it.
 export function fitRowHeight(rowId: number, contentLines: number): number {
   return Math.max(restingRowHeight(rowId), heightForLines(contentLines))
 }
 
-// The header rides the same localStorage map as the rows, so it needs the same finite check —
 // a hand-edited or corrupted value would reach dsg's layout arithmetic as NaN and blank the grid.
 export function resolveHeaderRowHeight(override?: number): number {
   if (override !== undefined && Number.isFinite(override)) {
@@ -42,15 +31,9 @@ export function resolveHeaderRowHeight(override?: number): number {
 }
 
 type ResolveOptsT = {
-  // Only its RESTING height — a band the owner dragged obeys the drag like any other row.
   isSectionBand: boolean
-  // What the owner dragged this row to, if they ever did. Absent for every untouched row, which is
-  // why the map behind it stays small.
   override?: number
-  // What the content needs — the client's preview, where nobody can drag and everything must show.
   contentLines?: number
-  // A floor for a cell that stacks a line of its own — a later AI round's flag above the Status
-  // (EX-1057). Below a drag like the content: a flattened row stays flat.
   minLines?: number
 }
 
@@ -60,10 +43,6 @@ export function resolveRowHeight({
   contentLines,
   minLines,
 }: ResolveOptsT): number {
-  // A drag outranks everything, the band's fixed height included: a flat row means a flat row even
-  // where the description no longer fits — that is what the popover is for. Finite, not merely
-  // present: the map is parsed out of localStorage, and a corrupted value would reach dsg's layout
-  // arithmetic as NaN and blank the grid.
   if (override !== undefined && Number.isFinite(override)) {
     return Math.max(ITEM_ROW_HEIGHT, Math.round(override))
   }

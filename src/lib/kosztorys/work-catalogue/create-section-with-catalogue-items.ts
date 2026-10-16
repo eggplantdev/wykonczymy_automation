@@ -10,9 +10,8 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 
-// The name IS the sekcja's identity (owner's ruling 2026-09-22), and the picker's list is a snapshot
-// taken when the dialog opened — so the match is re-run here, where nothing can have moved since.
-// Case- and whitespace-insensitive, the same equality the combobox's „Dodaj „X"" row already assumes.
+// The picker's list is a snapshot taken when the dialog opened — so the match is re-run here, where
+// nothing can have moved since.
 async function sectionIdByName(
   db: DbExecutorT,
   investmentId: number,
@@ -37,21 +36,13 @@ async function appendIntoSectionNamed(
   const existingId = await sectionIdByName(db, investmentId, sectionName)
   if (existingId === undefined) return undefined
   const owner = await sectionOwnerAndNextItemOrder(db, existingId)
-  // Both reads run on the same transaction handle, so the row cannot have gone between them. Falling
-  // through to the create instead would mint a twin under a name that is already taken — the one
-  // outcome this whole path exists to prevent, and it would do it silently.
+  // Falling through to the create instead would mint a twin under a name that is already taken.
   if (!owner) throw new Error(`Sekcja ${existingId} zniknęła w trakcie zapisu.`)
   const slice = await placeCatalogueItems(db, owner, catalogueItems)
   return { ...slice, createdSection: false }
 }
 
-/**
- * Create a sekcja at the TOP of the rozpiska and write cennik pozycje into it, or — when a sekcja of
- * that name already exists — append into that one instead. THE CALLER OWNS THE TRANSACTION.
- *
- * Top placement mirrors `addSectionAction` — a sekcja appended to the end of a 1000-row kosztorys
- * has to be hunted for.
- */
+// THE CALLER OWNS THE TRANSACTION.
 export async function createSectionWithCatalogueItems(
   payload: Payload,
   req: PayloadRequest,
@@ -67,10 +58,7 @@ export async function createSectionWithCatalogueItems(
   await shiftDisplayOrderFrom(db, 'kosztorys-sections', investmentId, 0)
   // The lookup above is a bare SELECT and the transaction runs at READ COMMITTED, so two confirms of
   // one new nazwa both miss it and both create. The shift takes `FOR UPDATE` over the investment's
-  // sekcje, so the second caller blocks here and this re-read sees the first one's row. It costs a
-  // spent shift on that branch — every sekcja one higher, with nothing at 0 — which changes no order.
-  // An investment holding NO sekcje locks no rows and keeps the race; closing that needs the unique
-  // index the one duplicate pair in the dump still blocks.
+  // sekcje, so the second caller blocks here and this re-read sees the first one's row.
   const raced = await appendIntoSectionNamed(db, investmentId, sectionName, catalogueItems)
   if (raced) return raced
 

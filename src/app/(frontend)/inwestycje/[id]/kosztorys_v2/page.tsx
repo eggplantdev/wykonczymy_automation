@@ -28,8 +28,6 @@ import { REPORT_PARAM } from '@/lib/kosztorys/worker-report/report-param'
 import { parseIdParam } from '@/lib/utils/parse-id-param'
 import type { ResolvedSearchParamsT } from '@/types/page'
 
-// The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
-// the editor renders its own empty state. The legacy Google Sheet lives at /kosztorys.
 export default async function InvestmentKosztorysV2Page({
   params,
   searchParams,
@@ -41,34 +39,20 @@ export default async function InvestmentKosztorysV2Page({
   const { id } = await params
   const openReportId = parseIdParam((await searchParams)[REPORT_PARAM])
   const investmentId = parseInvestmentId(id)
-  // Both awaits sit before the fan-out for one reason: getKosztorysTree throws — for a failed
-  // session AND for a missing investment — so anything folded into the Promise.all beside it is
-  // racing that throw for the right to decide what the user sees. The guard would lose the login
-  // page to an error screen; the existence check would lose the 404 page outright, since the tree
-  // rejects before a check placed after the fan-out can run at all.
+  // getKosztorysTree throws — for a failed session AND for a missing investment — so anything
+  // folded into the Promise.all beside it is racing that throw for the right to decide what the user sees.
   const user = await requireManagementPage()
   const [refData, notesById] = await Promise.all([fetchReferenceData(), fetchInvestmentNotes()])
-  // Name, existence and the linked-sheet flag all ride along on reference data — a dedicated
-  // findByID bought none of the three. Its one cost: a tag marks this entry stale but still serves
-  // it once, so an investment created seconds ago 404s until the next request.
   const found = findInvestmentRef(refData, investmentId)
   if (!found) notFound()
   const { investment, trashed } = found
 
   const treePromise = getKosztorysTree(investmentId)
-  // Read-only bridge to the financial plane: the investment's live material spend (unsettled
-  // INVESTMENT_EXPENSE + CORRECTION) plus its per-expense-category split, summed via the same
-  // cached path the detail page uses.
   const financialsPromise = fetchWholeInvestmentFinancials(investmentId)
   const payoutTxPromise = fetchPayoutTransactionsForInvestment(investmentId)
   const depositTxPromise = fetchDepositTransactionsForInvestment(investmentId)
-  // The individual materiały rows for the Podsumowanie's wydatki list — same fetch the client share
-  // read uses, so both surfaces label and split the rows identically.
   const materialTxPromise = fetchMaterialTransactionsForInvestment(investmentId)
-  // The whole cennik, so the editor can classify every praca against it in the browser — the
-  // katalog problems' counter has to be true before anyone opens the comparison window.
   const workCataloguePromise = getWorkCatalogue()
-  // Cached on `investment:<id>`, so an upload from either surface invalidates it.
   const assetsPromise = fetchInvestmentAssets(investmentId)
   const pendingReportsPromise = countInvestmentPendingReports(investmentId)
   const [
@@ -109,8 +93,6 @@ export default async function InvestmentKosztorysV2Page({
       materialsBreakdown={materialsBreakdown}
       settledBreakdown={settledBreakdown}
       financials={isAdminOrOwnerRole(user.role) ? financials : undefined}
-      // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) for the in-editor reconciliation
-      // scream — compared against the kosztorys figures during the population/verification transition.
       laborCostsNetFromTransactions={financials.totalLaborCosts}
       discountNetFromTransactions={financials.totalDiscount}
       investmentLoss={financials.totalLoss}

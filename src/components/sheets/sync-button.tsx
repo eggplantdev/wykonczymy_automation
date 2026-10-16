@@ -28,7 +28,6 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         toastMessage(setup.error, 'error')
         return
       }
-      // Reset wipes the tab — immediately re-sync so the rows come back.
       const applied = await settleAction(() => applyMaterialSync(investmentId))
       setSetupOpen(false)
       if (!applied.success) {
@@ -39,8 +38,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         return
       }
       // Reset just wiped the tab, so every synced row is an append — `updated` and
-      // `removed` are always 0 here (unlike the standalone Synchronizuj path, which
-      // runs against a populated tab). Show only +added.
+      // `removed` are always 0 here.
       const { added, errors } = applied.data
       toastMessage(
         `Zakładka zresetowana i zsynchronizowana: +${added}${
@@ -83,10 +81,8 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   return (
     <>
-      {/* Both labels name „wydatki inwestycyjne", so two of them are wider than a phone. They give
-          up their tail rather than the row: `shrink` because the button base is `shrink-0`, and the
-          ellipsis needs a block child — `text-overflow` does nothing on the button's own flex box.
-          The full label stays reachable as the tooltip. */}
+      {/* `shrink` because the button base is `shrink-0`, and the ellipsis needs a block child —
+          `text-overflow` does nothing on the button's own flex box. */}
       <Button
         size="sm"
         variant="outline"
@@ -173,7 +169,6 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
   )
 }
 
-// One pending row as a display line for the preview's append sections.
 function appendItem(r: TabSyncPreviewT['toAppend'][number]) {
   return {
     key: r.transferId,
@@ -181,9 +176,6 @@ function appendItem(r: TabSyncPreviewT['toAppend'][number]) {
   }
 }
 
-// Total state-changing operations a confirm would perform — drives the "nothing
-// to do" message and whether the confirm button is enabled (review T3.1). The
-// confirm reconciles every tab, so each tab's changes count.
 function pendingChanges(p: MaterialSyncPreviewT): number {
   return p.tabs.reduce((sum, t) => sum + t.toAppend.length + t.toUpdateCount + t.toRemoveCount, 0)
 }
@@ -193,7 +185,6 @@ type SectionPropsT = {
   items: Array<{ key: number; text: string }>
 }
 
-// Only ever rendered with a non-empty list, so no empty-state branch.
 function Section({ title, items }: SectionPropsT) {
   return (
     <div>

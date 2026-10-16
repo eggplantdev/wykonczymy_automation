@@ -28,8 +28,7 @@ function storeFor(storageKey: string): JsonMapStoreT<boolean> {
 }
 
 // A flag per status, never a list of the picked ones: an empty list cannot tell „nikt jeszcze nie
-// wybierał" from „wybrano nic". An absent map falls back to the defaults, an explicit all-false is
-// honoured as the empty selection it is.
+// wybierał" from „wybrano nic".
 export function selectionFrom(persisted: Record<string, boolean>): Set<InvestmentStatusT> {
   const answered = PICKABLE_INVESTMENT_STATUSES.filter(
     (status) => typeof persisted[status] === 'boolean',
@@ -54,9 +53,6 @@ export function filterByStatuses<TItem>(
   return data.filter((item) => selectedStatuses.has(getStatus(item)))
 }
 
-// `storageKey` remembers the pick across visits. Through the same localStorage store as the kosztorys
-// column preferences, so the stored string IS the render input — no post-hydration effect writing
-// state, and the server's empty snapshot renders the defaults the client also starts from.
 export function useStatusFilter<TItem>(
   data: TItem[],
   getStatus: (item: TItem) => InvestmentStatusT,

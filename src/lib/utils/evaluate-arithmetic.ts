@@ -1,10 +1,5 @@
-// `+ − * /` and parentheses over decimal numbers — the arithmetic the owner types into a sheet cell
-// („3,5x2,8", „=12+4"), and nothing more: no cell references, no functions. Hand-written rather than
-// `eval`/`Function`, because the input is whatever lands in a grid cell, clipboard included.
-//
-// Expects whitespace already stripped. `x`/`×` multiply because that is how room dimensions are
-// written. EVERY comma is a decimal separator, unlike `parseDecimalInput`'s single replace, since an
-// expression holds several numbers. `null` for anything malformed or non-finite (division by zero).
+// Hand-written rather than `eval`/`Function`, because the input is whatever lands in a grid cell,
+// clipboard included.
 
 const MULTIPLY = new Set(['*', 'x', 'X', '×'])
 const NUMBER = /^(\d+([.,]\d*)?|[.,]\d+)/

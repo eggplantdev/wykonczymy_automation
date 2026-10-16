@@ -16,11 +16,7 @@ type PropsT = {
   value: string
   options: OptionT[]
   onChange: (value: string) => void
-  // Drop the chevron for very narrow columns (e.g. Rabat) where it crowds the value.
   hideChevron?: boolean
-  // Forces the menu open — how a caller hands the cell to the keyboard, since a dropdown that only
-  // a click can open is a cell no keyboard reaches. Left undefined the menu governs itself, exactly
-  // as before, so a caller that doesn't wire the grid's editing flag is unaffected.
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }

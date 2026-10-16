@@ -35,13 +35,10 @@ export function useKosztorysFilterMenu(): {
 
   return {
     toggles,
-    // Scoped to the rows the menu is actually showing, never to the whole registry: a zawężenie left
+    // Scoped to the rows the menu is actually showing: a zawężenie left
     // off the list has nothing to hide, so engaging it would remove no pozycja and only pull that
     // plane's price columns onto the screen (`revealsColumns`) — with no row in the menu to untick it
-    // from. „Zresetuj filtry" is the one control that claims the whole thing.
-    //
-    // Both halves invert, because a row is TICKED when its condition is NOT engaged: engaging a
-    // filter is what hides pozycje, so „wszystkie zaznaczone" means „nothing engaged".
+    // from.
     togglesBulk: {
       allActive: toggles.every((toggle) => toggle.active),
       onToggleAll: (next) =>

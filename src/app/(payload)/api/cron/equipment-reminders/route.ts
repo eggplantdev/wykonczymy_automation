@@ -9,8 +9,6 @@ import { buildEquipmentDigest, isEmptyDigest } from '@/lib/equipment/digest'
 import { notifyEquipmentDigest } from '@/lib/equipment/notify'
 import { loadWarrantyRows, stampNotified } from '@/lib/equipment/sweep-io'
 
-// Scheduled from vercel.json. Its own handler rather than a second stream inside the fleet's, so a
-// failure on one side cannot swallow the other side's mail.
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -27,7 +25,6 @@ export async function GET(request: NextRequest) {
     }
 
     await notifyEquipmentDigest(payload, digest)
-    // Only after the send: see stampNotified.
     const stampFailures = await stampNotified(payload, digest.stamps)
     // The stamps skip their own revalidation, so the register's cache is busted once for the run.
     revalidateTag(CACHE_TAGS.equipment, EXPIRE_NOW)
@@ -42,7 +39,6 @@ export async function GET(request: NextRequest) {
       { status: 200 },
     )
   } catch (err) {
-    // A module whose whole value is a mail that arrives must read as a failed run when it doesn't.
     // TODO(EX-958) SENTRY-REQUIRED: this is the only record that the reminders stopped.
     console.error('[cron/equipment-reminders] Sweep failed', err)
 

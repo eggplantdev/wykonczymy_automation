@@ -146,7 +146,6 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
       { kind: 'rozpiska', itemId: null, unit: '', isUncertain: false, scannedRef: '1-1' },
     ])
     expect(stored?.media.map((photo) => photo.id)).toEqual([first, second])
-    // The extra's translation rides after() like a link send.
     expect(scheduled).toHaveLength(1)
   })
 

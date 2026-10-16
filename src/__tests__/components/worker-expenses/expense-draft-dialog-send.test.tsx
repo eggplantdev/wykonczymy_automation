@@ -62,7 +62,6 @@ describe('ExpenseDraftDialog send', () => {
     )
   })
 
-  // Every zgłoszenie is read paragon by paragon; the manager merges pages of one faktura himself.
   it('asks nothing about how several photos are read', async () => {
     await openNewAndPick(3)
 

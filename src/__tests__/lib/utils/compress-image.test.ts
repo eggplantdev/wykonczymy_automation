@@ -9,9 +9,7 @@ type OptionsT = {
   error: (reason: Error) => void
 }
 
-// CompressorJS answers through callbacks, so the double decides what "the browser" produced.
-// Hoisted with the `vi.mock` factory, which is lifted above every `const` in this file. The
-// implementation must be a `function`: compress-image calls `new Compressor(…)`, and an arrow
+// The implementation must be a `function`: compress-image calls `new Compressor(…)`, and an arrow
 // throws "is not a constructor" — which compressImage swallows, turning every assertion green.
 const { Compressor, setResponse } = vi.hoisted(() => {
   let respond: (file: File, options: OptionsT) => void = () => {}
@@ -34,8 +32,7 @@ function makeFile(name: string, type: string, size = 1024): File {
   return new File([new Uint8Array(size)], name, { type })
 }
 
-// What CompressorJS actually hands `success`: `done()` builds a plain Blob and hangs the corrected
-// filename off it as an expando. Returning a File here made the production narrowing look alive.
+// Returning a File here made the production narrowing look alive.
 function compressorResult(name: string, type: string, size = 1024): Blob {
   return Object.assign(new Blob([new Uint8Array(size)], { type }), { name })
 }
@@ -56,8 +53,6 @@ describe('compressImage', () => {
   })
 
   it("takes CompressorJS's corrected extension when it re-encoded to another format", async () => {
-    // A PNG over CompressorJS's own 5 MB `convertSize` is re-encoded to JPEG. Forcing the old name
-    // back stored JPEG bytes at a `.png` path — reachable, because the size guard runs after this.
     setResponse((_file, options) => options.success(compressorResult('zrzut.jpg', 'image/jpeg')))
 
     const result = await compressImage(makeFile('zrzut.png', 'image/png'))
@@ -90,9 +85,6 @@ describe('compressToJpeg', () => {
 })
 
 describe('compression profiles', () => {
-  // A `1920×1080` rectangle sized a portrait page by its HEIGHT, so an A4 scan came out at ~93 DPI
-  // while a landscape photo of the same page kept 1920 — the orientation decided the resolution.
-  // One cap on both axes is what makes the two agree.
   it('caps both axes at the same edge, so orientation no longer decides the resolution', async () => {
     const seen: OptionsT[] = []
     setResponse((_file, options) => {
@@ -120,8 +112,6 @@ describe('compression profiles', () => {
     expect(plan!.quality).toBeGreaterThan(invoice!.quality)
   })
 
-  // Safari's HEIC route decodes AND resizes in this single pass, so a rysunek shot on an iPhone
-  // would otherwise be the one PLAN file silently capped at the faktura's edge.
   it('honours the profile on the HEIC one-pass route too', async () => {
     const seen: OptionsT[] = []
     setResponse((_file, options) => {

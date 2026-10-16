@@ -5,26 +5,15 @@ import { logError } from '@/lib/utils/log-error'
 const TIMEOUT_MS = 10_000
 
 /**
- * Tell the landing that a submission's files are safely ours, so it can drop its own copies.
- *
- * The bytes reach us by being uploaded to the LANDING's blob store first; that copy is a staging
- * area whose whole life is „until the other side has it". Called only once `payload.update` has
- * committed the attach — not merely once the download succeeded — because until the media rows are
+ * Called only once `payload.update` has
+ * committed the attach — because until the media rows are
  * referenced by the lead, our copy is itself reclaimable and the landing's would be the last one.
  *
  * Carries the `submissionId` and NOTHING else. A delete instruction that names its own targets is a
- * delete primitive for whoever can forge or replay it; one that names a submission can only ever
- * destroy files of a submission that was already delivered — the landing re-derives the list from
- * its own `leads/<submissionId>/` prefix. Signed with the same HMAC scheme as the inbound webhook
- * but under its OWN scope, so the landing can refuse a forgery — and so a signed submission, which
- * also names a `submissionId`, is not itself a delete instruction for that submission.
- *
- * The enquiry is already stored and its assets already attached, so a landing that is down must not
- * turn a delivered submission into a retried one. The cost of a missed callback is an orphaned
- * prefix, which the landing's own age sweep reclaims.
+ * delete primitive for whoever can forge or replay it.
  */
 export async function releaseLandingAssets(submissionId: string): Promise<void> {
-  // Unset means the landing silently never gets its cleanup (production until 2026-09-22). It must
+  // It must
   // name the landing's public alias — the project-scoped one answers 401 (Deployment Protection).
   const url = serverEnv.LANDING_CLEANUP_URL
   if (!url) return

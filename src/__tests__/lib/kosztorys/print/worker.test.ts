@@ -26,7 +26,7 @@ const PLANNED_NET_HEADER = 'Wartość netto aktualizacji przedmiaru — z narzę
 const STAGE_QTY_SUM_HEADER = 'Pomiar z natury (etapy razem) — z narzędziami (podwykonawca)'
 const NET_HEADER = 'Suma etapów z narzędziami (podwykonawca) netto'
 
-// The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
+// Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
 const stages: KosztorysStageT[] = [
   makeStage({ id: 100, label: 'Tynki', split: oneWorkerSplit(WORKER) }),
@@ -141,8 +141,6 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).toContain(sectionTotal(summary.plannedNet))
   })
 
-  // Sharing etap 100 (2 × 12,5 = 25 zł) 40/60 with worker 9: the rows stay the whole etap's, so the
-  // section and grand totals do too, and the footer's etap table carries his share beside the whole.
   it('totals a shared etap whole and prints his share beside it in the etap table', () => {
     const sharedStages: KosztorysStageT[] = [
       {
@@ -236,7 +234,6 @@ describe('buildWorkerPrintHtml', () => {
     expect(html(projection({}, []))).not.toContain('>Wypłaty<')
   })
 
-  // EX-979: the premia sits between the work and the wypłaty, the order the sum reads in.
   it('prints „Premia” between „Wykonane razem” and „Wypłacone”, only when there is one', () => {
     const data = projection({}, [50])
     const withBonus = {
@@ -261,7 +258,6 @@ describe('buildWorkerPrintHtml', () => {
   })
 
   it('reads „Pozostało” off every crew’s work, not only the worker’s', () => {
-    // Item 1: 5 planned, 5 done across the investment (2 by this worker) — nothing owed on it.
     const out = html(projection({ hiddenColumns: ['description', 'currentPlannedQty', 'unit'] }))
     const firstRow = out.slice(out.indexOf('<tr><td'), out.indexOf('</tr>', out.indexOf('<tr><td')))
 

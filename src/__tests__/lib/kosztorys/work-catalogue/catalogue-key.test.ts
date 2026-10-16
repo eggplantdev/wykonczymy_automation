@@ -14,8 +14,6 @@ describe('catalogueKey', () => {
     expect(key('Malowanie ścian', 'M2')).toBe(key('Malowanie ścian', ' m2 '))
   })
 
-  // Whatever „Popraw literówki" does to an opis, the katalog entry saved from it still matches.
-  // Table-driven over the whole rule set so a rule added later has to hold it too.
   it.each(TYPO_FIXES.map(([from]) => from))(
     'keys „%s" the same before and after the cleaner rewrites it',
     (typo) => {
@@ -25,8 +23,6 @@ describe('catalogueKey', () => {
     },
   )
 
-  // Same table, same fold — the katalog side has to converge with the sheet-import side, which is
-  // the whole reason both stand on `foldDescription`.
   it('keys a name the owner corrected in the katalog the same as its uncorrected twin', () => {
     expect(key('Lutowanie taśm ledowych', 'pkt')).toBe(key('Lutowanie taśm LED', 'pkt'))
   })
@@ -35,8 +31,6 @@ describe('catalogueKey', () => {
     expect(key('Malowanie ścian')).not.toBe(key('Malowanie sufitów'))
   })
 
-  // The owner abbreviates a j.m. differently across sheets and years, so the variants have to
-  // collapse — otherwise the same praca imported from two arkusze becomes two cennik entries.
   it.each([
     ['szt', 'szt.'],
     ['m2', 'm²'],
@@ -45,8 +39,6 @@ describe('catalogueKey', () => {
     expect(key('Malowanie ścian', plain)).toBe(key('Malowanie ścian', variant))
   })
 
-  // The line the folding deliberately does NOT cross: a transposed or mistyped unit stays its own
-  // unit. Guessing that `klp` meant `kpl` would hand the praca a price nobody compared.
   it.each([
     ['kpl', 'klp'],
     ['m2', 'n2'],
@@ -59,8 +51,6 @@ describe('catalogueKey', () => {
   })
 
   it('drops the section, unlike the sheet-import item key', () => {
-    // The katalog is global: „Skucie tynku" is one cennik entry no matter which sekcja it sits in,
-    // where the sheet-import key deliberately separates the two.
     expect(itemKey('Łazienka', 'Skucie tynku', 0)).not.toBe(itemKey('Kuchnia', 'Skucie tynku', 0))
     expect(catalogueKey('Skucie tynku', 'm2')).toBe(catalogueKey('Skucie tynku', 'm2'))
   })

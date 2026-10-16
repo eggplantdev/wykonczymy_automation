@@ -7,9 +7,6 @@ import { acceptPayoutAction, rejectPayoutAction } from '@/lib/actions/payout-con
 import { CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
 import type { PayoutToConfirmT } from '@/lib/db/payout-confirmation'
 
-// Risk #27, the worker's half: which answer each wypłata still takes, and that the action is reached
-// only through a dialog's confirm — never straight off the row's button.
-
 vi.mock('@/lib/actions/payout-confirmation', () => ({
   acceptPayoutAction: vi.fn(async () => ({ success: true })),
   rejectPayoutAction: vi.fn(async () => ({ success: true })),
@@ -78,8 +75,6 @@ describe('Wypłaty do potwierdzenia', () => {
     expect(acceptPayoutAction).toHaveBeenCalledWith(7)
   })
 
-  // The confirm closes the dialog before the action returns; a second tap would answer an
-  // already-decided wypłata and toast a false error.
   it('locks the row while its acceptance is in flight', async () => {
     let settle: (value: { success: true }) => void = () => {}
     vi.mocked(acceptPayoutAction).mockImplementationOnce(

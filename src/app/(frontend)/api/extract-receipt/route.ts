@@ -8,12 +8,8 @@ import { isAllowedUploadMime } from '@/lib/media/sniff-mime'
 import { logError } from '@/lib/utils/log-error'
 
 /**
- * Accepts FormData with N 'files' (the pages of ONE invoice, in order) and a JSON
- * 'otherCategoryNames' array.
- *
  * An API route, not a server action: a multi-page scan blows past the server-action body cap,
- * which surfaces as an uncatchable 413 rather than an error the form can report. The scan itself
- * still persists NOTHING — the files are uploaded once, at submit.
+ * which surfaces as an uncatchable 413 rather than an error the form can report.
  */
 
 // Must cover the worst-case scan budget in openrouter.ts (primary + fallback attempt), or the
@@ -38,14 +34,10 @@ export async function POST(request: Request) {
         { status: 400 },
       )
     }
-    // The declared type, unsniffed: unlike the upload routes nothing here is stored or served, so
-    // the model is the only reader of the bytes.
     if (files.some((file) => !isAllowedUploadMime(file.type))) {
       return NextResponse.json({ error: 'Nieobsługiwany typ pliku' }, { status: 400 })
     }
 
-    // A malformed list is a client bug, not a scan failure — 400 keeps it out of the 500 branch
-    // (and out of the Sentry capture that branch is owed).
     const raw = formData.get('otherCategoryNames')
     const parsed = categoryNamesSchema.safeParse(typeof raw === 'string' ? JSON.parse(raw) : [])
     if (!parsed.success) {

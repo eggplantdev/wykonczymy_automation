@@ -73,7 +73,6 @@ describe('ScanReportDialog', () => {
     expect(send()).toBeDisabled()
 
     await pickWorker()
-    // The worker's only investment is picked for him.
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: 'Inwestycja' })).toHaveTextContent('Mokotów'),
     )
@@ -112,7 +111,6 @@ describe('ScanReportDialog', () => {
     expect(mockUpload).not.toHaveBeenCalled()
     expect(mockCreate).not.toHaveBeenCalled()
 
-    // The retry reads the failed photo alone, then files the zgłoszenie.
     mockReadPage.mockResolvedValueOnce(PAGE)
     await userEvent.click(screen.getByRole('button', { name: 'Ponów' }))
     await waitFor(() => expect(mockCreate).toHaveBeenCalled())

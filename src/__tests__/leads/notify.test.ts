@@ -9,7 +9,6 @@ import {
 } from '@/lib/leads/notify'
 
 beforeAll(() => {
-  // LEADS_REPLY_FROM stays env-borne: it is a sender identity, not a recipient list.
   process.env.LEADS_REPLY_FROM = 'admin@wykonczymy.com.pl'
 })
 
@@ -124,8 +123,6 @@ describe('notifyNewLead', () => {
 })
 
 describe('sendAutoReply', () => {
-  // Assert the routing contract only — NOT the copy. Wording churns constantly;
-  // template mechanics (logo, escaping, line breaks) are covered in lib/email/branded-template.test.ts.
   it('sends TO the lead, FROM the authenticated reply address, with the logo embedded', async () => {
     const sendEmail = vi.fn().mockResolvedValue({})
     await sendAutoReply(fakePayload(sendEmail), lead)
@@ -169,9 +166,6 @@ describe('notifyReconcileRecovery', () => {
     },
   ]
 
-  // Since EX-660 each recovered lead reaches sales through the ordinary notifyNewLead,
-  // so this mail is an ops signal about the dead webhook — not a second copy of the
-  // lead. Sending it to the sales inbox would just duplicate what they already have.
   it('goes to ops alone and lists the recovered leads as an audit trail', async () => {
     const sendEmail = vi.fn().mockResolvedValue({})
     await notifyReconcileRecovery(fakePayload(sendEmail), { recovered, scanned: 30 })

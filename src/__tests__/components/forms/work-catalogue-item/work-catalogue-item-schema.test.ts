@@ -17,8 +17,6 @@ const values = (overrides: Partial<Record<string, unknown>> = {}) => ({
   ...overrides,
 })
 
-// The layer the „Nowa praca w katalogu" dialog validates against — it is what decides whether the
-// owner sees a sentence UNDER the field he left empty, or a toast after the write was attempted.
 describe('workCatalogueItemFormSchema', () => {
   const formValues = (overrides: Partial<Record<string, string | boolean>> = {}) => ({
     description: 'Malowanie ścian',
@@ -65,8 +63,6 @@ describe('workCatalogueItemFormSchema', () => {
     expect(issuesFor({ wToolsSource: 'auto', wToolsRate: '' })).toEqual([])
   })
 
-  // Pusty mnożnik to ta sama pomyłka co pusta kwota, ale pod innym polem — i zdanie o stawce pod
-  // polem pytającym o krotność czytałoby się jak błąd w zupełnie innym miejscu.
   it('mnożnik ma własny wymóg i własne pole', () => {
     const issues = issuesFor({ wToolsSource: 'coeff', wToolsRate: '', wToolsCoeff: '' })
     expect(issues.map((issue) => issue.path[0])).toEqual(['wToolsCoeff'])
@@ -126,8 +122,6 @@ describe('workCatalogueItemSchema', () => {
     ).toBe(true)
   })
 
-  // Obie kolumny naraz nazywałyby dwa źródła jednocześnie, a każdy czytelnik rozstrzyga to
-  // pierwszeństwem zamiast pytaniem — ten payload omija formularz, więc backstop musi go odrzucić.
   it('odrzuca kwotę i mnożnik naraz na jednym planie', () => {
     const result = workCatalogueItemSchema.safeParse(values({ wToolsRateCoeff: 0.65 }))
     expect(result.success).toBe(false)

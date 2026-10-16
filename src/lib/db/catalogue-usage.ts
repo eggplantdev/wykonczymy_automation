@@ -10,9 +10,7 @@ export type UsedKosztorysItemT = {
   catalogueItemId: number | null
 }
 
-// „Użyta" (owner, 2026-09-28): a Przedmiar or measured etap work above zero. `> 0`, not the `<> 0`
-// of `KOSZTORYS_USED` — a negative quantity is a correction, not a use of the praca. Szablony and
-// the kosz are out; wyceny count, because an offer is where a praca is used first.
+// `> 0`, not the `<> 0` of `KOSZTORYS_USED` — a negative quantity is a correction, not a use of the praca.
 export async function selectUsedKosztorysItems(db: DbExecutorT): Promise<UsedKosztorysItemT[]> {
   const { rows } = await db.execute(sql`
     SELECT ki.investment_id, ki.description, ki.unit, ki.catalogue_item_id

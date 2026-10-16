@@ -9,12 +9,6 @@ import {
 } from '@/lib/db/equipment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-// The one rule the whole module rests on: „gdzie jest" is the newest event by the DAY IT HAPPENED,
-// not by the row that was typed in last. Backdating is the normal case here — a handover gets
-// entered when someone gets round to it, often after a later one — so a `created_at` ordering would
-// be green on every tidy fixture and wrong on real data. Asserted against a real Postgres because
-// `DISTINCT ON` ordering is exactly what a JS-level fake cannot vouch for.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -118,8 +112,6 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     expect(held.map((row) => row.id)).toContain(equipmentId)
   })
 
-  // Positive control on the same parameterised query: the superseded warehouse must NOT still
-  // report the item as being on its shelf.
   it('does not list the item under the warehouse it has already left', async () => {
     const stored = await loadEquipmentAtLocation(payload, { kind: 'warehouse', id: warehouseId })
 
@@ -134,8 +126,6 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     expect(await loadEquipmentById(payload, -1)).toBeNull()
   })
 
-  // „Kto ma sprzęt" is a question about equipment somebody still has to hand back. A sold item stays
-  // in the register for its history, and the last person to hold it must not read as still holding it.
   it('leaves a retired item off the list of who is holding equipment', async () => {
     const sold = await payload.create({
       collection: 'equipment',
@@ -181,8 +171,6 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     expect(second.serialNumber ?? null).toBeNull()
   })
 
-  // A trashed item must read as gone everywhere but /kosz — including the worker card, where the
-  // last person to hold it would otherwise still be told to hand it back.
   it('hides a trashed item from the listing, its own page and the holder card', async () => {
     await db.execute(sql`UPDATE equipment SET trashed_at = now() WHERE id = ${equipmentId}`)
     try {

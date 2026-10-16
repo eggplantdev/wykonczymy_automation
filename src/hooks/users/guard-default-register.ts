@@ -5,9 +5,8 @@ import { trashedRegisterMessage } from '@/lib/db/cash-register-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
 
 /**
- * A default kasa preselects every new booking, so one pointing into the trash would book there until
- * the transfers gate refused it. Only a CHANGED default is checked: trashing a kasa clears it as a
- * default in the same transaction, so an unchanged one is never trashed.
+ * Only a CHANGED default is checked: trashing a kasa clears it as a default in the same transaction,
+ * so an unchanged one is never trashed.
  */
 export const guardDefaultRegister: CollectionBeforeChangeHook = async ({
   data,

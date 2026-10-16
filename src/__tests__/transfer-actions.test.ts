@@ -3,14 +3,9 @@ import type { Payload } from 'payload'
 import { warsawToday } from '@/lib/utils/days'
 import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-
 vi.mock('server-only', () => ({}))
 
-// The actions schedule post-response work via next/server's after() — the Google Sheets sync, and
-// the media reclaim. Outside a request scope (i.e. in these unit tests) the real after() throws.
-// Run the callback AND keep its promise: the sheet spies are called on the way in, but the reclaim
-// only finishes later, so a test asserting on it must be able to wait.
+// Outside a request scope (i.e. in these unit tests) the real after() throws.
 const { afterWork } = vi.hoisted(() => ({ afterWork: [] as Promise<unknown>[] }))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -22,10 +17,8 @@ vi.mock('next/server', async (importOriginal) => {
   }
 })
 
-/** Wait out the work an action deferred past its response. */
 const flushAfter = () => Promise.all(afterWork.splice(0)).then(() => undefined)
 
-// The sheet sync itself isn't under test here — spy on the boundary functions.
 const mockSyncSingle = vi.fn()
 const mockSyncBulk = vi.fn()
 const mockRemoveFromSheet = vi.fn()
@@ -83,7 +76,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const mockDbExecute = vi.fn()
-// The SQL text of every statement the action layer ran, for tests that care WHICH query fired.
 const queriedTables = (): string =>
   mockDbExecute.mock.calls
     .map(
@@ -114,8 +106,6 @@ const {
 } = await import('@/lib/actions/transfers')
 
 const { deleteOrphanedMediaAction } = await import('@/lib/actions/delete-orphaned-media')
-
-// ── Helpers ──────────────────────────────────────────────────────────────
 
 const TX_ID = 'test-tx-id'
 
@@ -186,7 +176,6 @@ beforeEach(() => {
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
   mockFindByID.mockReset()
   mockDelete.mockReset().mockResolvedValue(undefined)
-  // Default: nothing else points at the media, so the guarded delete goes through.
   afterWork.length = 0
   mockFindReferences.mockReset().mockResolvedValue({ docs: [] })
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
@@ -198,10 +187,6 @@ beforeEach(() => {
   mockSyncBulk.mockReset()
   mockRemoveFromSheet.mockReset()
 })
-
-// ═════════════════════════════════════════════════════════════════════════
-// createTransferAction
-// ═════════════════════════════════════════════════════════════════════════
 
 describe('createTransferAction', () => {
   it('valid INVESTMENT_EXPENSE transfer → success', async () => {
@@ -230,10 +215,8 @@ describe('createTransferAction', () => {
     expect(mockCreate).toHaveBeenCalledOnce()
   })
 
-  // Both company deposits are investment-free by rule (EX-557), so their fixtures must be too —
-  // and `success` alone cannot tell "the row landed as asked" from "the row landed wrong", since
+  // `success` alone cannot tell "the row landed as asked" from "the row landed wrong", since
   // payload.create is mocked and the hook that would clear a stray investment never runs here.
-  // The hook's own guard is src/__tests__/hooks/transfers/investment-write-guard.test.ts.
   it.each(['COMPANY_FUNDING', 'OTHER_DEPOSIT'])(
     'valid %s → success, and the created row carries no investment',
     async (type) => {
@@ -251,9 +234,6 @@ describe('createTransferAction', () => {
     },
   )
 
-  // The write takes `parsed.data`, so anything the schema does not name is gone before Payload sees
-  // it. Spreading the raw input instead handed a client every column on the row — `cancelled` among
-  // them, which is the audit trail.
   it('writes only what the schema named — a smuggled column never reaches payload.create', async () => {
     const result = await createTransferAction({
       ...makeSingleTransferData(),
@@ -420,10 +400,6 @@ describe('createTransferAction', () => {
   })
 })
 
-// ═════════════════════════════════════════════════════════════════════════
-// createBulkTransferAction
-// ═════════════════════════════════════════════════════════════════════════
-
 describe('createBulkTransferAction', () => {
   it('valid bulk with correct data per item → each create has correct item data', async () => {
     const data = makeBulkTransferData(3)
@@ -494,8 +470,6 @@ describe('createBulkTransferAction', () => {
     expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
     expect(mockRollbackTransaction).not.toHaveBeenCalled()
 
-    // All creates share the same transaction ID (+ skip the per-row sheet sync; the
-    // action batches it once after commit).
     for (const call of mockCreate.mock.calls) {
       expect(call[0]).toHaveProperty('req', {
         transactionID: TX_ID,
@@ -560,8 +534,6 @@ describe('createBulkTransferAction', () => {
   })
 })
 
-// Owner ruling (EX-979): the dialog hides „Premia" from a MANAGER, but the action is what the RPC
-// reaches, so the refusal has to live here.
 describe('BONUS — only ADMIN / OWNER grant a premia', () => {
   const bonus = { type: 'BONUS' as const, sourceRegister: undefined, worker: 1 }
 
@@ -587,10 +559,6 @@ describe('BONUS — only ADMIN / OWNER grant a premia', () => {
   })
 })
 
-// ═════════════════════════════════════════════════════════════════════════
-// cancelTransferAction
-// ═════════════════════════════════════════════════════════════════════════
-
 describe('cancelTransferAction', () => {
   it('success → marks original cancelled + creates CANCELLATION audit row', async () => {
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
@@ -599,7 +567,6 @@ describe('cancelTransferAction', () => {
 
     expect(result.success).toBe(true)
 
-    // Marks original as cancelled
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'transactions',
@@ -608,7 +575,6 @@ describe('cancelTransferAction', () => {
       }),
     )
 
-    // Creates CANCELLATION audit row
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'transactions',
@@ -760,10 +726,6 @@ describe('cancelTransferAction', () => {
   })
 })
 
-// ═════════════════════════════════════════════════════════════════════════
-// updateTransferAction
-// ═════════════════════════════════════════════════════════════════════════
-
 function makeUpdateData(overrides = {}) {
   return {
     description: 'Updated description',
@@ -797,9 +759,8 @@ describe('updateTransferAction', () => {
     )
   })
 
-  // Not even on the type that owns the plane. It decides which side of the settlement the wpłata
-  // pays, so an edit would rewrite a bilans the client has already seen — the correction is a
-  // cancellation plus a fresh booking, exactly as for `amount`.
+  // It decides which side of the settlement the wpłata
+  // pays, so an edit would rewrite a bilans the client has already seen
   it.each(['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE'])(
     '%s → a vatPlane submitted with an edit never reaches the write',
     async (type) => {
@@ -818,8 +779,6 @@ describe('updateTransferAction', () => {
     },
   )
 
-  // The other half of the same rule: a wpłata booked before the plane existed is missing the figure,
-  // not carrying a wrong one, so the fill-in is the only route there will ever be to supply it.
   it('a legacy wpłata with no plane takes the one the edit names', async () => {
     mockFindByID.mockResolvedValueOnce(
       makeOriginalTransfer({ type: 'INVESTOR_DEPOSIT', vatPlane: null, createdBy: adminUser.id }),
@@ -838,7 +797,6 @@ describe('updateTransferAction', () => {
     )
   })
 
-  // Gotówka IS the netto — no second kwota to type, and the hook nulls the column for that plane.
   it('a legacy wpłata filled in as gotówka takes the plane with no netto', async () => {
     mockFindByID.mockResolvedValueOnce(
       makeOriginalTransfer({ type: 'INVESTOR_DEPOSIT', vatPlane: null, createdBy: adminUser.id }),
@@ -1006,8 +964,6 @@ describe('updateTransferAction', () => {
     expect(mockUpdate.mock.calls[0][0].data).not.toHaveProperty('invoice')
   })
 
-  // The sync itself — edit, investment move, non-expense skip — is covered in
-  // hooks/sync-kosztorys-sheet.test.ts.
   it('does not sync the sheet directly from the action (hook owns it now)', async () => {
     mockFindByID.mockResolvedValueOnce(
       makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
@@ -1019,10 +975,6 @@ describe('updateTransferAction', () => {
     expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
 })
-
-// ═════════════════════════════════════════════════════════════════════════
-// Invoice page actions
-// ═════════════════════════════════════════════════════════════════════════
 
 describe('addTransferInvoicesAction', () => {
   it('appends the new page to the pages already attached', async () => {
@@ -1040,7 +992,7 @@ describe('addTransferInvoicesAction', () => {
     )
   })
 
-  // The whole reason the action takes a batch: setTransferInvoices is a read-modify-write, so a
+  // setTransferInvoices is a read-modify-write, so a
   // page-at-a-time caller would race and keep only the last one.
   it('a whole batch lands in pick order in ONE update', async () => {
     mockFindByID.mockResolvedValueOnce({ invoice: [55] })
@@ -1188,8 +1140,6 @@ describe('removeAllTransferInvoicesAction', () => {
 })
 
 describe('deleteOrphanedMediaAction', () => {
-  // The add form uploads every page before it creates the expense, so a failed create leaves files
-  // in Blob with nothing pointing at them — unreachable, but still billed for.
   it('deletes ids nothing references', async () => {
     const result = await deleteOrphanedMediaAction([101, 102, 103])
     await flushAfter()
@@ -1224,13 +1174,13 @@ describe('deleteOrphanedMediaAction', () => {
   })
 })
 
-// An OTHER names who bought it and may be corrected after save; a PAYOUT/BONUS worker is what the
-// booking pays, so the same key must never reach it.
 describe('updateTransferAction — worker', () => {
   const writtenData = () => mockUpdate.mock.calls[0][0].data
 
   it('OTHER: sets the worker', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }))
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }),
+    )
 
     await updateTransferAction(10, makeUpdateData({ worker: 3 }))
 
@@ -1238,7 +1188,9 @@ describe('updateTransferAction — worker', () => {
   })
 
   it('OTHER: null clears the worker', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }))
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }),
+    )
 
     await updateTransferAction(10, makeUpdateData({ worker: null }))
 
@@ -1246,7 +1198,9 @@ describe('updateTransferAction — worker', () => {
   })
 
   it('PAYOUT: the worker key is dropped', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type: 'PAYOUT', createdBy: adminUser.id }))
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ type: 'PAYOUT', createdBy: adminUser.id }),
+    )
 
     await updateTransferAction(10, makeUpdateData({ worker: 3 }))
 

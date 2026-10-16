@@ -33,8 +33,6 @@ async function openMenu() {
 describe('KosztorysAddMenu — „Etap"', () => {
   beforeEach(() => handleAddStage.mockClear())
 
-  // Etapy are opened one after another for the same crew on the same terms, so a new one copies
-  // the last one's rozliczenie and wykonawca instead of asking.
   it('adds an etap with the last etap’s rozliczenie and podział', async () => {
     const split: StageSplitT = {
       mode: 'amount',

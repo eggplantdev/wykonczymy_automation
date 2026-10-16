@@ -84,7 +84,6 @@ describe('buildMaterialsBreakdown', () => {
       buildMaterialsBreakdown(balanced, cats, NOTHING_BILLED_NET).some((r) => r.id === null),
     ).toBe(false)
 
-    // A negative correction can drive the remainder below zero — kept signed, not clamped.
     const overCategorised = {
       ...base,
       categoryCosts: [{ categoryId: 1, total: 500 }],
@@ -156,7 +155,6 @@ describe('buildMaterialsBreakdown', () => {
   })
 
   it('every category row carries a stable, distinct id even when names collide', () => {
-    // Two categories share a display name — the row id must stay unique so React keys never clash.
     const dupNames = [
       { id: 7, name: 'Inne' },
       { id: 9, name: 'Inne' },

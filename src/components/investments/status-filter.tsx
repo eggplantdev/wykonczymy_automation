@@ -25,7 +25,6 @@ type StatusFilterPropsT = {
 }
 
 export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: StatusFilterPropsT) {
-  // Same reading of „active" as every FilterMultiSelect trigger: narrowed, not merely touched.
   const isFiltered = selectedStatuses.size !== PICKABLE_INVESTMENT_STATUSES.length
 
   return (

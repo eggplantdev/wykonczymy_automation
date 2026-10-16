@@ -6,7 +6,6 @@ import { section } from '@/lib/email/digest-section'
 import { escapeHtml } from '@/lib/utils/escape-html'
 import type { EquipmentDigestT, WarrantyEntryT } from '@/lib/equipment/digest'
 
-/** Three „szlifierki" are a normal inventory, so a line that names only the model identifies nothing. */
 const itemLabel = (entry: WarrantyEntryT): string =>
   [entry.name, entry.make, entry.model, entry.serialNumber].filter(Boolean).join(' ')
 
@@ -23,11 +22,8 @@ const warrantySection = (title: string, entries: readonly WarrantyEntryT[]): str
   )
 
 /**
- * The daily digest, to the whole `equipmentDigest` list as ONE message with N addresses — not N
- * sends, so the bookkeeping stamp the caller writes afterwards still describes one delivery.
- *
  * Throws on send failure so the caller can skip stamping: a warranty marked "announced" by a mail
- * that never left goes quiet permanently. Throws for the same reason when the list is empty.
+ * that never left goes quiet permanently.
  */
 export async function notifyEquipmentDigest(
   payload: Payload,

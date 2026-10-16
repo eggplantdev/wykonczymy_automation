@@ -1,15 +1,5 @@
-// E2E fixture for the investor share route (`/k/<token>`) — EX-696, EX-721, EX-570, EX-681.
-// One fresh investment carrying everything the public page renders, including a deliberately EMPTY
-// item (what „Ukryj pozycje bez przedmiaru…" is about), an etap with no entries (what the investor's
-// document leaves off until one arrives) and an expense with a real invoice page.
-//
-// Fresh per run rather than a fixed id: the test DB is never reset, and the spec writes client-view
-// settings and share tokens onto whatever it is pointed at — on a shared investment that leaks into
-// the next spec. Every transaction uses `skipSheetSync`, so a fixture can never reach a live sheet.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-client-share.ts
+// the spec writes client-view settings and share tokens onto whatever it is pointed at — on a shared
+// investment that leaks into the next spec.
 //
 // Emits one machine-readable line the spec parses: CLIENT_SHARE_SEED={…}
 import path from 'node:path'
@@ -50,7 +40,6 @@ async function main() {
     data: { splitMode: 'percent', investment: investment.id, ordinal: 1, label: filledStage },
     ...ctx,
   })
-  // No stage-progress anywhere: the investor's document leaves it off until the spec types an entry.
   await payload.create({
     collection: 'kosztorys-stages',
     data: { splitMode: 'percent', investment: investment.id, ordinal: 2, label: emptyStage },
@@ -86,7 +75,6 @@ async function main() {
     data: { item: worked.id, stage: stage.id, qtyDone: QTY_DONE },
     ...ctx,
   })
-  // No przedmiar and no stage-progress at all — the one row the „ukryj puste pozycje" tick removes.
   await item(emptyRow, 0, 1)
 
   const invoicePage = await payload.create({
@@ -130,8 +118,6 @@ async function main() {
 
   const grossExpense = { description: `Wydatek brutto ${stamp}`, amount: 2_460 }
   const netExpense = { description: `Wydatek netto ${stamp}`, amount: 1_230, netAmount: 1_000 }
-  // The company's own spend: its dataset is dropped from the share entirely (the disclosure half of
-  // EX-570), so it must not reach the client's list.
   const settledExpense = { description: `Wydatek wliczony ${stamp}`, amount: 999 }
 
   await payload.create({

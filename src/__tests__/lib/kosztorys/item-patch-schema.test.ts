@@ -5,8 +5,7 @@ const parse = (patch: Record<string, unknown>) => itemPatchSchema.parse(patch)
 
 // Wyczyszczenie stawki i stawka zero złotych to dwa różne polecenia, a `z.coerce.number()` zamienia
 // null w 0 — więc gdyby `.nullable()` poszło ZA koercją, „wyczyść mnożnik" płaciłoby ekipie zero
-// zamiast wracać do współczynnika inwestycji. Nie da się tego przypiąć na akcji: plik `'use server'`
-// nie wyeksportuje schematu.
+// zamiast wracać do współczynnika inwestycji.
 describe('itemPatchSchema — null to nie zero', () => {
   it('przepuszcza null na obu kolumnach każdej płaszczyzny', () => {
     expect(
@@ -34,7 +33,6 @@ describe('itemPatchSchema — null to nie zero', () => {
   })
 })
 
-// Aktualizacja przedmiaru: null = „idzie za ofertowym", 0 = pozycja wypadła z zakresu (EX-921).
 describe('itemPatchSchema — Aktualizacja przedmiaru', () => {
   it('null zostaje nullem, zero zerem, a tekst z inputu liczbą', () => {
     expect(parse({ currentPlannedQty: null })).toEqual({ currentPlannedQty: null })

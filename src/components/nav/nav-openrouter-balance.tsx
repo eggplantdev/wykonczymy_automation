@@ -4,8 +4,6 @@ import { getOpenRouterBalance } from '@/lib/ai/openrouter-balance'
 
 const usd = (n: number) => `$${n.toFixed(2)}`
 
-// Renders nothing unless a balance resolves — a flaky or unreachable OpenRouter shows no chip,
-// never a broken/error state.
 export async function NavOpenRouterBalance({ className }: { className?: string }) {
   const balance = await getOpenRouterBalance()
 
@@ -13,7 +11,7 @@ export async function NavOpenRouterBalance({ className }: { className?: string }
 
   return (
     // `title` sits on the wrapper: `disabled` pulls `pointer-events-none` in, so a tooltip on the
-    // button itself never fires — and this is the only place the total budget is shown.
+    // button itself never fires.
     <span
       className="block"
       title={`Saldo OpenRouter: ${usd(balance.remaining)} z ${usd(balance.total)}`}

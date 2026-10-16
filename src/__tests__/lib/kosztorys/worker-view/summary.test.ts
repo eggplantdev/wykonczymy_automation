@@ -10,8 +10,7 @@ import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 const WORKER = 5
 const OTHER = 9
 
-// Worker 5 holds etapy 100 and 102 (z narzędziami, stawka 12); worker 9 holds etap 101 on the same
-// plane. Row 2 carries a client rabat, which must never reach the crew's figures.
+// Row 2 carries a client rabat, which must never reach the crew's figures.
 const stages: KosztorysStageT[] = [
   makeStage({ id: 100, label: 'Tynki', split: oneWorkerSplit(WORKER) }),
   makeStage({ id: 101, ordinal: 2, split: oneWorkerSplit(OTHER) }),
@@ -132,7 +131,6 @@ describe('computeWorkerSummary', () => {
   })
 })
 
-// Etap 101 (3 × 12 = 36 zł of work) shared: worker 5 on 25%, worker 9 on the rest.
 describe('computeWorkerSummary — a shared etap', () => {
   const shared: KosztorysStageT = {
     ...stages[1],

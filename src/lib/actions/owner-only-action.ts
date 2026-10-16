@@ -5,10 +5,6 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 
-/**
- * Narrow an action to owner/admin, above `MANAGEMENT_ROLES`. Wrapping `protectedAction` runs that
- * narrowing structurally, so a new action cannot forget a hand-copied `if`.
- */
 export function ownerOnlyAction<TData = undefined>(
   label: string,
   forbiddenMessage: string,

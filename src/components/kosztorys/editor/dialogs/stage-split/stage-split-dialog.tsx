@@ -61,8 +61,6 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
   const memberIds = new Set(draft.members.map((member) => member.workerId))
   const addable = workers.filter((worker) => isActiveRef(worker) && !memberIds.has(worker.id))
 
-  // One person is not a split: they take the whole pool, so the mode and the rest pick have nothing
-  // to decide.
   const splitting = draft.members.length > 1
   const byAmount = draft.mode === 'amount'
   // A percent split of 100 comes out as the percentages themselves.
@@ -137,8 +135,6 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
               )
               return (
                 <Fragment key={member.workerId}>
-                  {/* Clicking the holder again is a no-op: someone must take the rest, so the only
-                      way off it is picking somebody else. */}
                   <button
                     type="button"
                     role="checkbox"
@@ -168,9 +164,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                     <>
                       <span className="flex items-center gap-1">
                         {/* Uncontrolled so a half-typed „12," survives; keyed on the mode because a
-                            switch zeroes every value underneath it. Garbage goes in as NaN, which
-                            the split's own validation refuses, so „Zapisz" can't save a figure
-                            nobody sees. */}
+                            switch zeroes every value underneath it. */}
                         <Input
                           key={draft.mode}
                           aria-label={`${byAmount ? 'Kwota' : 'Udział'} — ${nameOf(member.workerId)}`}

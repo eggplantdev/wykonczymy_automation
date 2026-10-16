@@ -21,24 +21,11 @@ import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 
 type PropsT = {
-  // Which dialog is rendering this. The comparison writes nothing, so it must not speak about what
-  // „wejdzie" — the same sentence there promises a save the dialog has no button for.
   mode: RatesReportModeT
-  // Every resolution that was not a plain agreement between the two cenniki. `null` says no cennik
-  // could be read at all — a different statement from „the cenniki agreed", and the only honest one
-  // on a sheet whose „zakres pracy" header is broken.
   decisions: ReportedRateResolutionT[] | null
-  // „Porównaj z arkuszem" only: stawki the kosztorys holds that the cennik no longer says. The import
-  // preview has no counterpart — it is about to overwrite every stawka anyway.
   stale?: StaleRateT[]
 }
 
-/**
- * „Stawki podwykonawców" in both sheet dialogs. Shared rather than written twice because the two
- * dialogs answer the same question from opposite ends: the import asks which stawka it is about to
- * write, the comparison asks whether the one already written still matches the cennik. A second
- * implementation would have drifted on the wording of the very column that decides a crew's bill.
- */
 export function SheetRatesBlock({ mode, decisions, stale = [] }: PropsT) {
   const conflicts = decisions?.filter((rate) => rate.kind === 'conflict') ?? []
   const singles = decisions?.filter((rate) => rate.kind === 'single') ?? []
@@ -85,9 +72,6 @@ export function SheetRatesBlock({ mode, decisions, stale = [] }: PropsT) {
       {singles.length > 0 && (
         <ReportFold
           tone="text-muted-foreground"
-          // Nothing was decided here — these prace stand in one cennik only, so there was never a
-          // second kwota to weigh. Said plainly, because the fold used to promise „rozstrzygnięte
-          // automatycznie" and that is now something the import never does.
           summary={`Stawki z jednego cennika (${singles.length}) — druga zakładka nie ma tej pracy`}
         >
           <RatesByTabTable rows={singles.map(singleRow)} />
@@ -97,12 +81,6 @@ export function SheetRatesBlock({ mode, decisions, stale = [] }: PropsT) {
   )
 }
 
-/**
- * One reason a praca has no stawka, as its own fold. Two reasons, two folds rather than a column
- * saying which is which: „cenniki się nie zgadzają" is a question about the sheet, „para jest
- * niemożliwa" is a question about our read of it, and each needs a different paragraph under the
- * table. Per-row it would be the same sentence repeated down the list.
- */
 function ConflictFold({
   mode,
   reason,
@@ -124,9 +102,6 @@ function ConflictFold({
       <RatesByTabTable rows={rows.map(conflictRow)} />
       <p className="text-muted-foreground text-xs">
         {reason === 'disagree' ? (
-          // The one thing nobody guesses from the table: „zakres pracy z narzędziami" and „zakres
-          // pracy bez narzędzi" are two catalogues of the SAME prace, and each carries BOTH price
-          // columns. So the tab name in a row says which catalogue we read, never which column.
           <>
             Obie zakładki „zakres pracy" mają obie kolumny — i „z narzędziami", i „bez narzędzi" —
             więc każda z nich sama w sobie wystarczy. Gdy podają różne kwoty, nie wybieramy za
@@ -149,13 +124,6 @@ function ConflictFold({
   )
 }
 
-// One praca as the table renders it: what each zakładka said, keyed by the zakładka's own name. The
-// note under a kwota answers a different question per fold — „wpisana ręcznie / z formuły" where the
-// owner has to arbitrate, „jedyny cennik" where there was nothing to weigh.
-//
-// The tone is PER PLANE, because a conflict almost never covers both: the cenniki agree on
-// „z narzędziami" and part ways on „bez narzędzi", and colouring the whole pair red would hide which
-// of the two the owner actually has to settle.
 type RateToneT = 'taken' | 'match' | 'differs'
 
 type TabbedRateCellT = {
@@ -173,8 +141,6 @@ type TabbedRateRowT = {
 
 const conflictRow = (rate: ReportedRateResolutionT): TabbedRateRowT => {
   const candidates = rate.candidates ?? []
-  // With one cennik there is nothing to compare against, so neither plane gets a colour — the row is
-  // here because its own pair is impossible, not because two zakładki disagreed.
   const tone = (plane: 'wToolsRate' | 'ownToolsRate'): RateToneT | undefined => {
     if (candidates.length < 2) return undefined
     return candidates.every((candidate) => same(candidate[plane], candidates[0][plane]))
@@ -192,8 +158,6 @@ const conflictRow = (rate: ReportedRateResolutionT): TabbedRateRowT => {
         {
           wToolsRate: candidate.wToolsRate,
           ownToolsRate: candidate.ownToolsRate,
-          // Both planes of one zakładka are read from one row, and in practice a row is typed or
-          // computed as a whole — one note per pair rather than two identical ones per kwota.
           note: candidate.wToolsTyped || candidate.ownToolsTyped ? 'wpisana ręcznie' : 'z formuły',
           wToolsTone,
           ownToolsTone,
@@ -226,15 +190,6 @@ const singleRow = (rate: ReportedRateResolutionT): TabbedRateRowT => ({
   ),
 })
 
-/**
- * Every kwota that was in play, one praca per row and one column pair per zakładka — so the four
- * figures the owner compares sit next to each other instead of in a nested table or in a prose
- * sub-line („pominięto 1625,00 zł / 1381,25 zł z …"), which is what both folds used to do and what
- * made them read as two unrelated reports.
- *
- * Columns come from the rows themselves: a praca listed in only one cennik leaves the other pair
- * empty rather than pretending it said 0 zł.
- */
 function RatesByTabTable({ rows }: { rows: TabbedRateRowT[] }) {
   const tabs = [...new Set(rows.flatMap((row) => [...row.byTab.keys()]))]
 
@@ -273,16 +228,10 @@ function RatesByTabTable({ rows }: { rows: TabbedRateRowT[] }) {
   )
 }
 
-// The zakładka above the plane, both in the header: repeating „z zakładki …" on every row is what
-// pushed the kwoty apart in the first place.
-// „zakres pracy" opens every cennik tab, so in a header repeated four times it is pure width — what
-// tells the two apart is the tail. Kept as a fallback if a tab is ever named something else.
 const shortTab = (tab: string): string =>
   tab.trim().replace(/^zakres\s+pracy\s*/i, '') || tab.trim()
 
 function TabHeader({ tab, plane }: { tab: string; plane: string }) {
-  // The plane never wraps — broken over two lines it reads as two headings. The cennik name below it
-  // may wrap; it is the qualifier, not the column's identity.
   return (
     <>
       <span className="block whitespace-nowrap">{plane}</span>
@@ -291,9 +240,6 @@ function TabHeader({ tab, plane }: { tab: string; plane: string }) {
   )
 }
 
-// Colour answers the question the owner opens the fold with, at the level they have to act on:
-// green „ta kwota jest w kosztorysie / tu obie zakładki mówią to samo", red „te dwie kwoty się
-// rozjeżdżają — to tę parę rozstrzygasz".
 const TONE_CLASS: Record<RateToneT, string> = {
   taken: 'text-green-600',
   match: 'text-green-600',
@@ -313,8 +259,6 @@ function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: R
   )
 }
 
-// The cennik's figure over the kosztorys's, so a scan down the column reads as one pair per praca.
-// An unchanged plane still prints both — otherwise the eye cannot tell „the same" from „not read".
 function RatePair({ sheet, app }: { sheet: number; app: number }) {
   return (
     <>

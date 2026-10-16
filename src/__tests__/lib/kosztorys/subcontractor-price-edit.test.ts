@@ -8,8 +8,6 @@ import {
 } from '@/lib/kosztorys/subcontractor-price-edit'
 import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
-// The grid's own call shape: the cell hands `useCellDraft` a policy and the machine does the rest,
-// so the spec drives the same two functions rather than a wrapper only it would keep alive.
 const keystroke = (raw: string, rowData: ViewPricingT, view: ToolPlaneT) =>
   cellKeystroke(raw, rowData, subcontractorPolicy<ViewPricingT>(view))
 
@@ -83,8 +81,6 @@ describe('cellKeystroke pod polityką podwykonawcy', () => {
   })
 
   it('zapisuje cenę powyżej stawki z mnożnika inwestycji — pod sufitem to zwykła cena', () => {
-    // The default 0,65 mnożnik now sits ON the ceiling, so the band above it only exists on an
-    // investment priced below the cap.
     const lowerCoeff = { ...flat(50), globalWToolsCoeff: 0.5 }
     expect(keystroke('60', lowerCoeff, 'w_tools').kind).toBe('commit')
   })
@@ -146,9 +142,6 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 
   it('cofnięcie do stanu, w którym wiersz już jest, nic nie zapisuje — ale nadal jest odrzuceniem', () => {
-    // Typing „-50" never commits a prefix („-" is held), so the row never left the entry price and
-    // there is nothing to write back. The rollback still fires: it is what stops the refused draft
-    // from being mistaken for an accepted one.
     expect(settle('-50', flat(60), 'w_tools', entry)).toMatchObject({
       kind: 'rollback',
       reason: 'blocked',
@@ -158,8 +151,6 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 
   it('odrzucona cena nie zostawia wiersza na prefiksie „9"', () => {
-    // The prefix trap from the „auto" side: typing „9e" commits the leading „9" first, so walking
-    // away used to strand the row at 9 zł — a price nobody chose.
     const autoEntry = null
     expect(settle('9e', flat(9), 'w_tools', autoEntry)).toMatchObject({
       kind: 'rollback',
@@ -190,8 +181,6 @@ describe('sourceChange', () => {
     })
   })
 
-  // Sedno przełącznika: liczba na ekranie ma się nie ruszyć w chwili zmiany źródła — ani z „auto",
-  // gdzie zasiewem jest współczynnik inwestycji, ani z kwoty, gdzie jest jej krotność.
   it('„auto" → „własny mnożnik" zasiewa współczynnik inwestycji', () => {
     expect(sourceChange(row, 'coeff', 'w_tools')).toMatchObject({
       wToolsOverrideCoeff: 0.65,
@@ -214,8 +203,6 @@ describe('sourceChange', () => {
     })
   })
 
-  // Przy cenie 0 każda stawka jest zerowa, więc dzielenie nie niesie żadnej informacji — wtedy
-  // uczciwym zasiewem jest współczynnik inwestycji, a nie NaN.
   it('przy cenie j.m. 0 zasiewa współczynnik inwestycji zamiast dzielić przez zero', () => {
     expect(sourceChange({ ...row, clientPrice: 0 }, 'coeff', 'own_tools')).toMatchObject({
       ownToolsOverrideCoeff: 0.55,

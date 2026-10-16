@@ -8,9 +8,6 @@ export const NOT_TRASHED_MESSAGE = 'Najpierw przenieś inwestycję do kosza.'
 /**
  * Through `payload.delete`, never raw SQL: `beforeDelete` re-counts live transactions inside the
  * delete itself, which is the last word on a row that picked one up after it was trashed.
- *
- * The DB cascade takes the kosztorys, its versions, the share link and the gallery pins with it,
- * none of which fire a Payload hook — so cache expiry is each caller's job, not this function's.
  */
 export async function deleteTrashedInvestment(
   payload: Payload,

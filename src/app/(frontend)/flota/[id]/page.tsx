@@ -25,7 +25,6 @@ export default async function VehicleDetailPage({ params }: DynamicPagePropsT) {
   if (!session.success) redirect('/')
 
   const { id } = await params
-  // Arriving straight from the digest mail also counts as looking at the fleet.
   const payload = await getPayload({ config })
   const [, detail] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.fleet),

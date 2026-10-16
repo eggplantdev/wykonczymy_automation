@@ -7,9 +7,6 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// A szablon row has no content of its own (EX-1017), so deleting its katalog entry must take the
-// row with it — a trashed szablon included, or restoring it would bring back an empty praca. A
-// kosztorys row keeps its own copy and must survive.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

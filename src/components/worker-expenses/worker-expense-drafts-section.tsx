@@ -6,7 +6,6 @@ import type { LanguageT } from '@/lib/i18n/languages'
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
-  /** Only the worker himself sends; a manager on his page sees the list. */
   canSend: boolean
   canOpenTransfers: boolean
   locale: LanguageT

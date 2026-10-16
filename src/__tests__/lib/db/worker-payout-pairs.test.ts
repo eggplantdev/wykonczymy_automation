@@ -23,11 +23,8 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The pair fold is a third projection of the crew formula. Like `kosztorys-subcontractor-due.test.ts`
-// it is compared against the TS reference (`byWorker` / `unconfirmedWorkers`) and against the payout
-// derivation the Podwykonawcy panel reads, never against hand-computed numbers. On top of that it is
-// pinned to the investment listing: Σ pairs of `due − paid` must BE „Pozostało do wypłaty", or the
-// dialog's rows stop summing to the column it is opened from.
+// Σ pairs of `due − paid` must BE „Pozostało do wypłaty", or the dialog's rows stop summing to the
+// column it is opened from.
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -50,10 +47,6 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
   const marker = `worker-payout-pairs-${Date.now()}`
   const worker = { a: 0, b: 0, c: 0 }
 
-  // clean: two workers on settled etapy, an unassigned etap, a worker-less wypłata and a worker paid
-  // with no etap there. withheld: worker b also holds a plane-less etap with work on it.
-  // locked: a zakończona inwestycja. split: etapy shared by percent, by amount, and by an amount the
-  // pool no longer covers. splitWithheld: a plane-less shared etap. The last three must not appear.
   const created = {
     clean: 0,
     withheld: 0,
@@ -149,7 +142,6 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
     // Each excluded by its own predicate; 999 so a leak shows in the amounts.
     await payout(created.clean, worker.a, 999, true)
     await payout(null, worker.a, 999)
-    // EX-979: the cancelled one must not count either.
     await bonus(created.clean, worker.c, 75)
     await bonus(created.clean, worker.c, 999, true)
 

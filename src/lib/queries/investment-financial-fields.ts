@@ -24,15 +24,8 @@ function uncategorisedRemainder(financials: InvestmentFinancialsT): number {
   return roundToCents(financials.totalMaterialCosts - categorised)
 }
 
-/** One row per expense category plus the uncategorised remainder, so Σ rows === totalMaterialCosts
- *  and the podsumowanie reconciles with the investment page byte-for-byte.
- *
- *  A category billed partly at netto splits into a brutto remainder and a frozen netto row under the
- *  same id and bare category name — the „… netto" wording is `pricedBreakdownRows`' to add, since the
- *  investor's per-category merge must not have to strip it.
- *  `netCategoryCosts` is a subset of `financials.categoryCosts`, so subtracting it keeps the Σ
- *  invariant intact. The netto rows come as a block rather than interleaved per category: beside
- *  their brutto twin they read as a sub-row and invite summing the pair. */
+/** The netto rows come as a block rather than interleaved per category: beside their brutto twin
+ *  they read as a sub-row and invite summing the pair. */
 export function buildMaterialsBreakdown(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
@@ -86,8 +79,6 @@ function mapCategoryCostsToFields(
     .map(({ cat, total }) => ({ label: cat.name, value: formatPLN(total), amount: -total }))
 }
 
-/** Concessions the investor stops owing — positive amounts, unlike the cost tiles above. A zero one
- *  is dropped: „the company gave up 0 zł" says what no concession at all says. */
 function creditFields(credits: [label: string, amount: number][]): FinancialFieldT[] {
   return credits
     .filter(([, amount]) => amount !== 0)
@@ -100,12 +91,6 @@ type BuildOptionsT = {
   hideZeroCosts?: boolean
 }
 
-/** Category tiles stay on the RAW receipt plane while the listing prices the same labels at what the
- *  investor is billed, so one label carries two numbers across the two surfaces. Deliberate (EX-670,
- *  cancelled): no total drifts, because the whole concession sits in the `MATERIALS_DISCOUNT_LABEL`
- *  tile and the header's bilans is the Σ of these tiles. Moving the tiles onto the billed plane is
- *  only correct together with DROPPING that tile, which would cost the toggle that switches the
- *  concession off — and `FinancialStats` renders only under the legacy `version === 'v1'`. */
 export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
@@ -148,9 +133,6 @@ export function buildFinancialFields(
   ]
 }
 
-/** The same per-category split as `buildSettledFields`, as numeric rows for the summary table. Kept
- *  apart from `buildMaterialsBreakdown` because settled material is never billed to the investor: no
- *  netto bucket, no reduction, and its Σ must NOT join `totalMaterialCosts`. Zero rows dropped. */
 export function buildSettledBreakdown(
   settledCategoryCosts: CategoryCostT[],
   expenseCategories: { id: number; name: string }[],
@@ -166,8 +148,6 @@ export function buildSettledBreakdown(
     }))
 }
 
-/** Build labelled fields for settled internal material, split per expense category.
- *  Positive amounts (display only) — these live OUTSIDE the bilans toggle sum. */
 export function buildSettledFields(
   settledCategoryCosts: CategoryCostT[],
   expenseCategories: { id: number; name: string }[],

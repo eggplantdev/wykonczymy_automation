@@ -12,7 +12,6 @@ type ZoomablePreviewImagePropsT = {
   src: string
   alt: string
   sizes: string
-  /** A local `blob:` URL (a file not uploaded yet) can't go through the optimizer at any scale. */
   unoptimized?: boolean
   onLoad?: () => void
   onError?: () => void
@@ -20,11 +19,6 @@ type ZoomablePreviewImagePropsT = {
 
 const MAX_SCALE = 8
 
-/**
- * Knows nothing about which page is on screen — the dialog keeps `pageIndex` and remounts this
- * component per page, which is also how zoom resets: the next file has different dimensions, so a
- * carried-over scale would open it cropped at a random spot.
- */
 export function ZoomablePreviewImage({
   src,
   alt,
@@ -34,13 +28,12 @@ export function ZoomablePreviewImage({
   onError,
 }: ZoomablePreviewImagePropsT) {
   const { t } = useTranslation('media')
-  // At scale 1 the optimized rendition is the right trade; past it, magnifying a rendition only
-  // magnifies its artefacts, so the first zoom swaps in the full-size original. One-way for the
-  // lifetime of this page — flipping back on every return to 1× would re-download both layers.
+  // One-way for the lifetime of this page — flipping back on every return to 1× would re-download
+  // both layers.
   const [hasZoomed, setHasZoomed] = useState(false)
   // The swap points the same <img> at a different URL, so the browser drops the rendition it was
   // showing: without these two the window is blank for the whole download, and blank forever if it
-  // 404s. A failure falls back to the rendition, which is already in cache.
+  // 404s.
   const [isOriginalLoading, setIsOriginalLoading] = useState(false)
   const [hasOriginalFailed, setHasOriginalFailed] = useState(false)
 
@@ -58,7 +51,6 @@ export function ZoomablePreviewImage({
       maxScale={MAX_SCALE}
       doubleClick={{ mode: 'toggle' }}
       wheel={{ step: 0.2 }}
-      // Covers wheel, pinch and double-click.
       onTransform={(_ref, state) => {
         if (state.scale > 1) startZoom()
       }}
@@ -106,7 +98,6 @@ export function ZoomablePreviewImage({
             </p>
           )}
 
-          {/* Overlaid rather than placed by the pager, which only exists on a multi-page set. */}
           <div className="bg-background/85 absolute right-2 bottom-2 z-10 flex gap-1 rounded-md border p-1 shadow-sm">
             {[
               { icon: Minus, label: t('zoomOut'), onClick: () => zoomOut() },
@@ -122,7 +113,6 @@ export function ZoomablePreviewImage({
               },
               { icon: Scan, label: t('fitToWindow'), onClick: () => resetTransform() },
             ].map(({ icon, label, onClick }) => (
-              // Wider than a row action: this one is a touch target floating over an image.
               <RowActionButton
                 key={label}
                 icon={icon}

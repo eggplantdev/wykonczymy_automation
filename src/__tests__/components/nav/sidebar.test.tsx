@@ -16,7 +16,6 @@ vi.mock('@/hooks/use-nav-links', () => ({
 }))
 vi.mock('@/hooks/use-sidebar-collapsed', () => ({ useSidebarCollapsed: () => [true, vi.fn()] }))
 
-// Collapsed, the icon is all that is left of each control; the tooltip is its name.
 describe('Sidebar — collapsed', () => {
   it('names the collapse handle on hover', async () => {
     render(<Sidebar />)

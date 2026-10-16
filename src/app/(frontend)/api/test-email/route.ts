@@ -5,11 +5,6 @@ import nodemailer from 'nodemailer'
 import { NextResponse } from 'next/server'
 import { serverEnv } from '@/lib/env/server'
 
-/**
- * GET /api/test-email?to=you@example.com
- * Verifies SMTP connection, then sends a test email.
- * ADMIN only.
- */
 export async function GET(request: Request) {
   const user = await getCurrentUserJwt()
   if (!user || user.role !== 'ADMIN') {
@@ -23,7 +18,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Missing ?to= query param' }, { status: 400 })
   }
 
-  // Verify SMTP connection independently first
   const transport = nodemailer.createTransport({
     host: serverEnv.EMAIL_HOST,
     port: 465,
@@ -52,7 +46,6 @@ export async function GET(request: Request) {
     )
   }
 
-  // Connection verified — now send via Payload
   try {
     const payload = await getPayload({ config })
 

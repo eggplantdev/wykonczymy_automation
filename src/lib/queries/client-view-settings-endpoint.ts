@@ -8,10 +8,9 @@ import {
 } from '@/lib/queries/kosztorys-client-view'
 
 /**
- * The settings dialog's on-demand read, opened from the editor's „Opcje" menu. Named for what the
- * module IS — every export of a `'use server'` file is a public endpoint — because it wraps a
+ * it wraps a
  * resolver that runs `overrideAccess` for the token entrance: publishing that one directly would
- * hand anyone an unauthenticated read. Here the session is checked first.
+ * hand anyone an unauthenticated read.
  */
 export async function readClientViewSettings(
   investmentId: number,

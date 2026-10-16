@@ -1,21 +1,15 @@
-// No `server-only` here: kosztorys-item-texts.ts and work-catalogue.ts skip it for the tsx scripts,
-// and both import this.
+// No `server-only` here: for the tsx scripts.
 import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { mergeRowWrites, type RowWriteT } from '@/lib/i18n/ai-translation-fill'
 
-// A language lands only while the stored one is still missing, blank or made from another opis.
 const STILL_UNTRANSLATED = sql`(
   t.description_translations -> e.key IS NULL
   OR coalesce(trim(t.description_translations -> e.key ->> 'text'), '') = ''
   OR t.description_translations -> e.key ->> 'source' IS DISTINCT FROM t.description
 )`
 
-/**
- * Compare-and-set over an AI wait: a row is written only while it still carries the opis that was
- * translated, and per language only while that language still needs one. A grid edit or a
- * hand-typed translation made during the wait therefore wins. Returns how many rows were written.
- */
+/** A grid edit or a hand-typed translation made during the wait therefore wins. */
 export async function fillDescriptionTranslations(
   db: DbExecutorT,
   table: 'kosztorys_items' | 'work_catalogue_items',

@@ -1,9 +1,3 @@
-// E2E fixture for the confirm-gated, snapshot-backed deletes (EX-520). Three investments, one per
-// delete target (pozycja/sekcja/etap) — each test destroys its rozpiska. Two etapy and two sekcje so
-// a wrong delete is visible; targets carry stage progress, which is what makes a delete ask first.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-deletes.ts
-// Emits: DELETE_SEED={"item":<id>,"section":<id>,"stage":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 

@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { dropKeys } from '@/hooks/create-json-map-store'
 
-// Postgres reissues a deleted stage's id, so a leftover width entry would pin a brand-new stage to
-// the dead one's width. dropKeys returns the same reference on a no-op so the store can skip the
-// write; the multi-write-safety of the drop itself is covered in create-json-map-store.test.ts.
 describe('dropKeys', () => {
   const widths = { stage_7: 100, stageValueNet_7: 120, stageValueGross_7: 140, description: 300 }
 

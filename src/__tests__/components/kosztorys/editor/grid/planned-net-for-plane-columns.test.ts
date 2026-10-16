@@ -6,9 +6,6 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// „Wartość netto aktualizacji przedmiaru — <rozliczenie>" (owner, 2026-09-28; EX-921): the aktualizacja
-// at the crew's stawka, beside the client-priced figures, in both crew views and never in the client one.
-
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1' }),
   makeStage({ id: 8, ordinal: 2, label: 'Etap 2', plane: 'own_tools' }),
@@ -27,7 +24,6 @@ describe('plannedNetForPlane column', () => {
     const { ids, toggleIds } = grid(view)
     expect(ids).toContain('plannedNetForPlane')
     expect(toggleIds).toContain('plannedNetForPlane')
-    // The client-priced figure stays beside it — this column is an addition, not a replacement.
     expect(ids).toContain('plannedNet')
   })
 

@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 
-// A form left open from before the trash would still pay out to the worker; this hook refuses it —
-// without freezing the cancelled rows that are the only ones still naming a trashed worker.
 const TRASHED_ID = 66
 const LIVE_ID = 3
 

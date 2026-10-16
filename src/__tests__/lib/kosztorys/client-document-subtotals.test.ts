@@ -34,8 +34,6 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
 
 const STAGES = [makeStage({ id: 100 })]
 
-// Sekcja A: two priced pozycje plus one empty on both axes — no przedmiar, no etap. Sekcja B holds
-// nothing but such pozycje, so the client's document has no Sekcja B at all.
 const tree: KosztorysTreeT = makeTree({
   sections: [
     {

@@ -6,7 +6,6 @@ import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { guardCashRegisterUpdate } from '@/hooks/cash-registers/guard-update'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 
-/** Managers can only create AUXILIARY registers — force the type. */
 const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {
   if (isManager({ req })) return { ...data, type: 'AUXILIARY' }
   return data
@@ -31,7 +30,6 @@ export const CashRegisters: CollectionConfig = {
     afterDelete: [makeRevalidateAfterDelete('cashRegisters')],
   },
   access: {
-    // ADMIN/OWNER: full CRUD. MANAGER: create auxiliary only, read all.
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwnerOrManager,
     update: isAdminOrOwnerOrManager,

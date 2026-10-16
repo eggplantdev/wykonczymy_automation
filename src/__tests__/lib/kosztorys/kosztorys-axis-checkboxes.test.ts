@@ -10,7 +10,6 @@ import type { LayerT } from '@/lib/kosztorys/layer'
 const MONEY: PairAxisConfigT<MoneyAxisT> = { a: 'net', b: 'gross', both: 'both', none: 'none' }
 const LAYER: PairAxisConfigT<LayerT> = { a: 'work', b: 'progress', both: 'both', none: 'none' }
 
-// One suite per config: the mapper is generic, but both real call sites must round-trip.
 describe.each([
   { name: 'oś kwot (netto/brutto)', config: MONEY },
   { name: 'oś warstw (praca/postęp)', config: LAYER },

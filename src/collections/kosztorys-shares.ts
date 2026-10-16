@@ -1,15 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 
-// One live public link per investment's kosztorys. Its own table rather than a column on an
-// existing entity: revoke is a row delete, and sharing gets a lifecycle (expiry, multiple links)
-// without touching a core entity. `kosztoryses` could not hold it — that slug is the v1
-// Google-Sheet link row, whose `googleSheetId` is required, so a v2 kosztorys with no linked
-// sheet has no row there at all.
-//
 // The public read NEVER goes through this collection's access control — it resolves the token via
-// the token-scoped query in `lib/queries/preview-kosztorys.ts`. These rules govern the admin panel
-// and the share actions only. No row for an investment ⇒ no public access.
+// the token-scoped query in `lib/queries/preview-kosztorys.ts`.
 export const KosztorysShares: CollectionConfig = {
   slug: 'kosztorys-shares',
   labels: {

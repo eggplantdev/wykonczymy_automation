@@ -18,7 +18,6 @@ export type StoreLeadInputT = {
   submittedAt?: string
 }
 
-/** The already-stored sibling for this `(source, externalId)`, or undefined. */
 async function findStoredLead(
   payload: Payload,
   input: Pick<StoreLeadInputT, 'source' | 'externalId'>,
@@ -36,21 +35,6 @@ async function findStoredLead(
   return existing.docs[0]
 }
 
-/**
- * Persist a normalized lead exactly once per `(source, externalId)`.
- *
- * Meta redelivers the same `leadgen_id` on retry, so a naive create would
- * duplicate. We look up first and return the existing row untouched when found
- * (`created: false`) — the caller uses that flag to skip re-notifying. A missing
- * `externalId` can't be deduped, so it always creates (the compound unique index
- * tolerates NULLs).
- *
- * The find-then-create is not atomic: two concurrent redeliveries of the same
- * leadgen_id can both pass the lookup and race to create. The compound unique
- * index is the real guard — the loser's `create` throws. We catch that, re-read
- * the winner, and return it as `created: false` rather than surfacing a spurious
- * 500. Only rethrow if the row still isn't there (a genuine, non-race failure).
- */
 // `skipRevalidation` lets a non-request caller (backfill script) bypass the
 // collection's afterChange revalidateTag hook, which throws outside a Next request.
 export async function storeLead(
@@ -75,7 +59,6 @@ export async function storeLead(
     formId: input.formId,
     formName: input.formName,
     submittedAt: input.submittedAt,
-    // Required selects — captureLead flips notifyStatus after the send attempt.
     contactStatus: 'new' as const,
     notifyStatus: 'pending' as const,
     autoReplyStatus: 'pending' as const,
@@ -91,7 +74,7 @@ export async function storeLead(
     return { lead, created: true }
   } catch (err) {
     // Lost the unique-index race with a concurrent redelivery? The winner's row
-    // now exists — return it. Otherwise this is a real failure; let it propagate.
+    // now exists — return it.
     const winner = await findStoredLead(payload, input)
     if (winner) return { lead: winner, created: false }
     throw err

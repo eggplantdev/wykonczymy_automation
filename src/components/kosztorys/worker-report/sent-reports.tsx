@@ -4,7 +4,6 @@ import type { WorkerReportRowT } from '@/lib/db/worker-reports'
 import { useTranslation } from '@/hooks/use-translation'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 
-// Newest first comes from the read; this only renders it.
 export function SentReports({ reports }: { reports: WorkerReportRowT[] }) {
   const { locale, t, tp } = useTranslation('report')
   if (reports.length === 0) return null

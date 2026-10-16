@@ -24,8 +24,6 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// listPresetSections counts items per section in SQL (EX-622), so its tallies and ordering are only
-// real against Postgres — assert the returned metas, never the plan.
 describe.skipIf(!ENV_READY)('listPresetSections (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -145,8 +143,6 @@ describe.skipIf(!ENV_READY)('templateOwnersOfSections (DB)', () => {
   })
 })
 
-// Asserted on the persisted rows (via listPresets), never on a return value — a success result can
-// hide a failed write.
 describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -199,8 +195,6 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
     expect(await renamePreset(db, ordinary, `crud-fixture-hijacked ${ordinary}`)).toBe(false)
   })
 
-  // The collision guard lives in SQL and matches the unique index — case and edge spaces don't make
-  // a name new.
   it.each([
     ['same case', (name: string) => name],
     ['other case', (name: string) => name.toUpperCase()],
@@ -223,9 +217,7 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
     expect(await presetNameHolder(db, (await nameOf(id))!, id)).toBeUndefined()
   })
 
-  // The listing sorts by the last edit, because that is the figure that moves — a szablon is created
-  // once and worked on for weeks. The trap is a szablon migrated without a stamp: a plain DESC would
-  // drop it out of the view.
+  // The trap is a szablon migrated without a stamp: a plain DESC would drop it out of the view.
   it('sorts by the last edit and keeps an unstamped szablon in the list', async () => {
     const stale = await makeTemplate('crud-fixture-order-stale')
     const fresh = await makeTemplate('crud-fixture-order-fresh')
@@ -245,7 +237,6 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
     expect(ours.find((preset) => preset.id === legacy)?.updatedAt).toBeNull()
   })
 
-  // A renamed szablon is the one the owner just touched, so the rename moves it to the top.
   it('moves a renamed szablon to the top', async () => {
     const id = await makeTemplate('crud-fixture-stamp')
     await db.execute(
@@ -256,8 +247,6 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
     expect((await listPresets(db))[0]?.id).toBe(id)
   })
 
-  // Every write into a szablon stamps it (investmentAction); `updated_at` staying put is what keeps an
-  // open editor from remounting under the user's hands.
   it('stamps an edit without moving updated_at', async () => {
     const id = await makeTemplate('crud-fixture-edited')
     await db.execute(
@@ -280,9 +269,7 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
   })
 })
 
-// A trashed szablon is invisible to every reader until it is restored — a picker that still offered
-// it would seed a kosztorys from something the user threw away. The name checks are the exception:
-// the unique index still counts it.
+// The name checks are the exception: the unique index still counts it.
 describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -342,8 +329,6 @@ describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
   })
 })
 
-// „Szablony" on /katalog-prac is the length of this list, so a praca repeated in two sekcje of one
-// szablon names it once, and a trashed szablon or an ordinary kosztorys names nothing.
 describe.skipIf(!ENV_READY)('listTemplateNamesByCatalogueItem (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

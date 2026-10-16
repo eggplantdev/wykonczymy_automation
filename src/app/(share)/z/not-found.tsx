@@ -2,8 +2,6 @@ import { BrandLogo } from '@/components/ui/brand-logo'
 import { LANGUAGES } from '@/lib/i18n/languages'
 import { translate } from '@/lib/i18n/translations'
 
-// An unknown token names no worker, so there is no language to pick: every one of the crew's
-// languages, each in its own `lang`. Scoped to the report link — the investor's links stay Polish.
 export default function ReportNotFound() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col">

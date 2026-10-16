@@ -50,8 +50,7 @@ describe('notifyFleetDigest', () => {
   })
 
   // The kilometre leg is the one alarm with no date behind it, so nothing but this section's presence
-  // tells a reader the car is overdue. It renders off `digest.odometer` alone — the interval is a
-  // constant, with no per-vehicle target to consult (EX-745).
+  // tells a reader the car is overdue.
   it('renders the oil-interval section with the distance since the change', async () => {
     const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
 

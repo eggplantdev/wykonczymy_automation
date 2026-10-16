@@ -18,16 +18,6 @@ function changed(next: unknown, previous: unknown): boolean {
   return JSON.stringify(normalize(next)) !== JSON.stringify(normalize(previous))
 }
 
-/**
- * The one write EX-748 leaves open on a zakończona inwestycja: attaching or detaching a scan of the
- * faktura. It cannot be read off the KEYS of `data` — Payload hands `beforeValidate` the stored row
- * with the patch merged over it, so every field is always present and a key-based test would call
- * the whole document a patch of itself. What the caller actually sent shows only in the VALUES that
- * differ from the stored row.
- *
- * Fields whose value is unchanged count as untouched no matter who put them there, so a payload that
- * echoes the whole document back (the admin panel does exactly that) is still invoice-only.
- */
 export function isInvoiceOnlyPatch(
   next: TransferDataT,
   previous: TransferDataT | undefined,

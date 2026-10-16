@@ -2,8 +2,7 @@ import { groupBySection } from '@/lib/kosztorys/row-ops'
 import type { KosztorysTreeT, KosztorysV2RowT, SectionMetaT } from '@/lib/kosztorys/types'
 import { regroupByKeys } from '@/lib/utils/group-in-order'
 
-// The editor's section list — the one source of section order, name and colour. `rows` holds pozycje
-// only, so a section with none exists here and nowhere else.
+// `rows` holds pozycje only, so a section with none exists here and nowhere else.
 export function treeToSections(tree: Pick<KosztorysTreeT, 'sections'>): SectionMetaT[] {
   return tree.sections.map((section) => ({
     sectionId: section.id,
@@ -12,7 +11,6 @@ export function treeToSections(tree: Pick<KosztorysTreeT, 'sections'>): SectionM
   }))
 }
 
-// A null anchor prepends — where addSectionAction puts a new section. An unknown anchor appends.
 export function insertSection(
   sections: readonly SectionMetaT[],
   meta: SectionMetaT,
@@ -25,7 +23,6 @@ export function insertSection(
   return [...sections.slice(0, at), meta, ...sections.slice(at)]
 }
 
-// `index` is where the section stood, so a rejected delete can put it back exactly there.
 export function removeSection(
   sections: readonly SectionMetaT[],
   sectionId: number,
@@ -56,9 +53,6 @@ export function patchSection(
   )
 }
 
-// Rows re-laid as contiguous blocks in section-list order: numbering, subtotal order and the
-// „Zapisz kolejność" plan all read the order off `rows`. A row whose section the list doesn't name
-// keeps its relative order at the end rather than vanishing.
 export function orderRowsBySections(
   rows: KosztorysV2RowT[],
   sections: readonly SectionMetaT[],

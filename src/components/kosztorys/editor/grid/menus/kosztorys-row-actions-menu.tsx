@@ -18,12 +18,8 @@ import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 type PropsT = {
-  // „Dopasuj wysokość do treści" measures the row's text, unlike every other command here.
   row: KosztorysV2RowT
-  // Under any sort, array position no longer mirrors display_order, so insert goes dead.
   sortActive: boolean
-  // The POZYCJA's id, not a catalogue row's — an id, not a callback, because the dialog fetches by
-  // it. Absent in the read-only view → no „Zapisz do katalogu…".
   item: {
     onInsertAbove: () => void
     onInsertBelow: () => void
@@ -32,7 +28,6 @@ type PropsT = {
   }
 }
 
-// Pozycja commands only; sekcja commands hang off the band's own „…", reachable while collapsed.
 export function KosztorysRowActionsMenu({ row, sortActive, item }: PropsT) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [catalogueSaveOpen, setCatalogueSaveOpen] = useState(false)
@@ -42,8 +37,6 @@ export function KosztorysRowActionsMenu({ row, sortActive, item }: PropsT) {
       <DropdownMenu>
         <CellMenuTrigger title="Akcje wiersza" />
         <DropdownMenuContent align="start" className="min-w-44">
-          {/* The band's „…" sits in the same „Akcje" column one row up, so the header is what says
-              which of the two objects the menu you opened belongs to. */}
           <DropdownMenuLabel>Praca</DropdownMenuLabel>
           <DropdownMenuItem disabled={sortActive} onSelect={item.onInsertAbove}>
             <ArrowUpToLine />
@@ -53,7 +46,6 @@ export function KosztorysRowActionsMenu({ row, sortActive, item }: PropsT) {
             <ArrowDownToLine />
             Wstaw poniżej
           </DropdownMenuItem>
-          {/* Not gated by the sort: the dialog lays out the stored order, not the sorted view. */}
           <ReorderMenuItem compact />
           {item.savableItemId !== undefined && (
             <DropdownMenuItem onSelect={() => setCatalogueSaveOpen(true)}>

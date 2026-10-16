@@ -4,9 +4,8 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 
-// Promotion is the one place two collections point at the same media rows, and a „copy" would pass
-// every count assertion while quietly doubling the storage bill — so the ids themselves are what
-// this asserts, read back from investments_rels rather than from the action's result.
+// a „copy" would pass every count assertion while quietly doubling the storage bill — so the ids
+// themselves are what this asserts.
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
@@ -162,15 +161,12 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
     })
     const investmentId = Number(lead.investment)
 
-    // Both ids, including the one the investment already holds.
     const result = await attachLeadAssetsAction(leadId, investmentId, mediaIds)
 
     expect(result.success).toBe(true)
     expect(await investmentAssetIds(investmentId)).toEqual(mediaIds)
   })
 
-  // The target is the caller's pick, not the zgłoszenie's own inwestycja — an unpromoted zgłoszenie
-  // has files worth filing somewhere, and nothing here can un-attach a mis-click.
   it('attaches to an inwestycja the zgłoszenie was never promoted into', async () => {
     const otherId = await createOtherInvestment()
 
@@ -216,8 +212,6 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
       context: { skipRevalidation: true },
     })
 
-    // The point of sharing the rows instead of copying them: removing the zgłoszenie must not strip
-    // the inwestycja's zdjęcia.
     expect(await livingMediaIds()).toEqual([...mediaIds].sort((a, b) => a - b))
     expect(await investmentAssetIds(investmentId)).toEqual(mediaIds)
   })

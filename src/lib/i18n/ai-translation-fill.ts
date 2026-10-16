@@ -31,11 +31,6 @@ const stamp = (texts: TranslationTextsT, description: string): DescriptionTransl
     Object.entries(texts).map(([language, text]) => [language, { text, source: description }]),
   )
 
-/**
- * The katalog goes first: its translation is reused for a language when it was made from an opis
- * that folds like the row's. What is still missing is grouped by trimmed opis, so each distinct
- * text costs one AI item however many rows carry it.
- */
 export function planAiFill(
   rows: readonly FillRowT[],
   catalogueByKey: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
@@ -76,7 +71,6 @@ export function planAiFill(
   }
 }
 
-/** `failed` counts row × language pairs the AI left blank — what the toast reports. */
 export function aiFillWrites(
   toTranslate: AiFillPlanT['toTranslate'],
   aiByText: ReadonlyMap<string, TranslationTextsT>,
@@ -104,17 +98,13 @@ export function aiFillWrites(
   return { writes, failed }
 }
 
-// Section templates carry no `source`, so only a language with no template is filled.
 export const sectionLanguagesToFill = (
   translations: SectionTranslationsT | undefined,
 ): TranslationLanguageT[] =>
   TRANSLATION_LANGUAGES.filter((language) => !translations?.[language]?.trim())
 
-/**
- * What an AI answer adds to one section name's templates; `failed` counts the languages it could not.
- * An answer that renumbered the room („Łazienka 2" → „Ванна 1") would render the wrong section, so it
- * is dropped exactly as the manager's own typing would be refused.
- */
+// An answer that renumbered the room („Łazienka 2" → „Ванна 1") would render the wrong section, so it
+// is dropped.
 export function sectionTemplateFill(
   name: string,
   stored: SectionTranslationsT | undefined,

@@ -1,24 +1,19 @@
 import { baseRanksFromKeys, orderColumnKeys, type ColumnRanksT } from '@/lib/table/column-order'
 
-// Always first and never hidden on both documents: a row with no „Opis prac" names nothing, and the
-// PDF's section total writes its „Razem — <sekcja>" label into the cells left of the money column,
-// which is only guaranteed to exist while this column leads.
+// Always first and never hidden: the PDF's section total writes its „Razem — <sekcja>" label into
+// the cells left of the money column, which is only guaranteed to exist while this column leads.
 export const DOCUMENT_PINNED_COLUMN = 'description'
 
 export function unpinned(keys: readonly string[]): string[] {
   return keys.filter((key) => key !== DOCUMENT_PINNED_COLUMN)
 }
 
-// The pinned column is lifted out before sorting and put back in front, so no rank — stored by hand
-// or by a drag — can move it.
 export function orderDocumentKeys(keys: readonly string[], ranks: ColumnRanksT): string[] {
   const rest = orderColumnKeys(unpinned(keys), ranks)
   return keys.includes(DOCUMENT_PINNED_COLUMN) ? [DOCUMENT_PINNED_COLUMN, ...rest] : rest
 }
 
-// A stored order cannot disclose anything — the ceiling decides that — so a bad entry is simply
-// dropped: a key outside the audience's ceiling, a rank on the pinned column, or a rank that is not
-// a finite number (NaN in the comparator scrambles the order with no error).
+// NaN in the comparator scrambles the order with no error.
 export function sanitizeDocumentRanks(source: unknown, ceiling: ReadonlySet<string>): ColumnRanksT {
   if (typeof source !== 'object' || source === null) return {}
   return Object.fromEntries(

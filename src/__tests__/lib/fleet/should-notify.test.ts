@@ -35,7 +35,6 @@ describe('shouldNotify — date leg', () => {
     expect(shouldNotify({ row, today: TODAY, latestOdometer: null }).date).toBe(false)
   })
 
-  // The 30-day bucket colours the listing and feeds the „Flota" badge, but never mails.
   it('stays silent a month out, then fires when the deadline reaches a week', () => {
     const row = event('TECHNICAL', '2025-08-01', { nextDueAt: '2026-09-10' })
 
@@ -59,8 +58,6 @@ describe('shouldNotify — date leg', () => {
     expect(decision.date).toBe(true)
   })
 
-  // An overdue inspection that goes quiet after one mail is worse than no mail at all, so OVERDUE is
-  // the one bucket that re-nags — weekly, not daily.
   it('re-nags an overdue deadline after more than a week', () => {
     const stamped = (notifiedAt: string) =>
       event('TECHNICAL', '2025-08-01', {
@@ -85,8 +82,6 @@ describe('shouldNotify — date leg', () => {
 })
 
 describe('shouldNotify — kilometre leg', () => {
-  // Where the line falls is asserted in oil.test.ts, against the app's own verdict. Here: the leg's
-  // mechanics — what silences it, and that it never leans on the date leg.
   const oil = (overrides = {}) =>
     event('OIL_CHANGE', '2026-01-10', {
       nextDueAt: '2027-01-10',
@@ -120,8 +115,6 @@ describe('shouldNotify — kilometre leg', () => {
     expect(shouldNotify({ row, today: TODAY, latestOdometer: 141_000 }).odometer).toBe(false)
   })
 
-  // The two legs are independent on purpose: an oil change can be a year away by date and 200 km away
-  // by mileage, and sharing one bookkeeping column would let either silence the other.
   it('fires on mileage while the date leg is silent', () => {
     const decision = shouldNotify({ row: oil(), today: TODAY, latestOdometer: 141_000 })
 

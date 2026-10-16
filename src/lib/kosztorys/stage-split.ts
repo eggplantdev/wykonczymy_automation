@@ -2,28 +2,18 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { StageSplitT } from '@/lib/kosztorys/types'
 
-// EX-613's rule, kept: without a plane the etap has no price, so a share of it is a share of nothing.
 export const STAGE_SPLIT_NEEDS_PLANE =
   'Najpierw wybierz rozliczenie etapu — bez niego etap nie ma ceny, więc nikomu nic nie nalicza.'
 
 type StageSharesT = {
   shares: Map<number, number>
-  // What nobody on the etap takes: the whole pool of an etap without workers, and a negative pool
-  // (qty corrected below zero), which is shared as zeros. Credited to „Nieprzypisane" so Σ shares +
-  // this === pool. Never a float residue of a full split — that would be a phantom unassigned row.
   unattributed: number
-  // The pool fell below the fixed amounts after they were saved, so they were shrunk pro rata and
-  // the rest holder got 0 — the etap's „popraw podział" signal.
   scaledDown: boolean
 }
 
 /**
- * Divides an etap's executed-work value between its workers (EX-943). The one rule both money paths
- * run — the editor's `subcontractorDueByPlane` and the payouts fold over the SQL pools — so a screen
- * cannot credit a worker differently from „Rozlicz wypłaty".
- *
- * Σ shares === pool in floating point, and all shares but one are whole grosze. A pool of 0 or less
- * credits nobody („nie dzielimy pieniędzy, których nie ma").
+ * The one rule both money paths run — the editor's `subcontractorDueByPlane` and the payouts fold over
+ * the SQL pools — so a screen cannot credit a worker differently from „Rozlicz wypłaty".
  */
 export function splitStagePool(pool: number, split: StageSplitT | null): StageSharesT {
   const shares = new Map<number, number>()
@@ -40,15 +30,10 @@ export function splitStagePool(pool: number, split: StageSplitT | null): StageSh
     split.mode === 'percent' ? (pool * member.value) / 100 : member.value,
   )
   const wantedTotal = wanted.reduce((total, value) => total + value, 0)
-  // Only fixed amounts can outgrow the pool: the save refuses Σ% > 100, but a pool can drop after
-  // the save (pomiar corrected down, cheaper plane), and that edit is never refused. Compared at the
-  // grosz, as the save's cap is: 0.1 + 0.2 against 0.3 is a full split, not a shrink.
+  // Compared at the grosz, as the save's cap is: 0.1 + 0.2 against 0.3 is a full split, not a shrink.
   const scaledDown = split.mode === 'amount' && roundToCents(wantedTotal) > roundToCents(pool)
   const scale = scaledDown ? pool / wantedTotal : 1
 
-  // Entered shares are whole grosze and the rest holder takes `pool − paid`, so the shares as
-  // displayed add up to the etap as displayed (EX-956: three half-grosz roundings once showed
-  // 3437,41 against a 3437,40 „Razem").
   let paid = 0
   let largest: { workerId: number; share: number } | undefined
   entered.forEach((member, index) => {
@@ -67,15 +52,10 @@ export function splitStagePool(pool: number, split: StageSplitT | null): StageSh
   return { shares, unattributed: 0, scaledDown }
 }
 
-/** The whole etap to one person — what a single wykonawca, the import and a legacy snapshot mean. */
 export function oneWorkerSplit(workerId: number): StageSplitT {
   return { mode: 'percent', members: [{ workerId, value: 0, takesRest: true }] }
 }
 
-/**
- * The split a new etap inherits from the last one. Percentages carry over; fixed amounts are zeroed,
- * because a new etap has no executed work and the cap refuses any amount above it.
- */
 export function copyStageSplit(split: StageSplitT | null): StageSplitT | null {
   if (!split || split.mode === 'percent') return split
   return { mode: 'amount', members: split.members.map((member) => ({ ...member, value: 0 })) }
@@ -85,11 +65,6 @@ export function restHolderId(split: StageSplitT | null): number | null {
   return split?.members.find((member) => member.takesRest)?.workerId ?? null
 }
 
-/**
- * The stored split read into a shape `splitStagePool` can trust: no members is no split, and exactly
- * one member takes the rest — the first flagged one, else the first member. The DB enforces at most
- * one rest holder; this covers the member a user delete or a snapshot restore took away.
- */
 export function normalizeStageSplit(split: StageSplitT | null): StageSplitT | null {
   if (!split || split.members.length === 0) return null
   const restIndex = Math.max(
@@ -106,7 +81,6 @@ export function normalizeStageSplit(split: StageSplitT | null): StageSplitT | nu
   }
 }
 
-/** Why a split cannot be saved against the etap's current executed-work `pool`, or null. */
 export function validateStageSplit(split: StageSplitT, pool: number): string | null {
   const { members } = split
   if (members.length === 0) return 'Dodaj co najmniej jednego pracownika.'

@@ -73,9 +73,8 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
 
   const conditions = [...CATALOGUE_CONDITIONS, catalogueDuplicateCondition(nearDuplicates)]
 
-  // Every control ANDs, so the order only decides what gets recomputed: search runs first because it
-  // folds its haystacks once per input array, and a condition toggle would otherwise refold them all.
-  // The condition counts read `data`, never this chain, so no count moves when another control does.
+  // Search runs first because it folds its haystacks once per input array, and a condition toggle
+  // would otherwise refold them all.
   const {
     filteredData: searched,
     searchTerm,
@@ -102,7 +101,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   const problemToggles = catalogueProblemsMenuModel({ conditions, engagedIds, counts })
 
   // Redrawing ~950 unvirtualized rows blocks the click, so the filters stay urgent and the TABLE lags
-  // behind them. Deferred here rather than per filter because every control feeds this list.
+  // behind them.
   const deferredRows = useDeferredValue(filteredData)
   const busy = filteredData !== deferredRows
 
@@ -143,8 +142,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     }
   }
 
-  // Numbered off `data`, never off what is on screen, so filtering cannot renumber a praca. Sorted
-  // here because `listCatalogueItems` orders by kategoria first — an order the table never shows.
+  // Numbered off `data`, never off what is on screen, so filtering cannot renumber a praca.
   const ordinals = useMemo(
     () =>
       new Map(
@@ -230,8 +228,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
                   onSelect={(id) => toggleExclusive(id, CATALOGUE_PROBLEM_IDS)}
                 />
                 {/* Always mounted: toggling it would resize the flex row and nudge the buttons
-                  sideways on every keystroke. Gone below `sm` instead — there the toolbar is a grid,
-                  so an invisible spinner holds a whole cell and opens a phantom row. */}
+                  sideways on every keystroke. */}
                 <GradientSpinner className={cn('max-sm:hidden', !busy && 'invisible')} />
               </>
             }

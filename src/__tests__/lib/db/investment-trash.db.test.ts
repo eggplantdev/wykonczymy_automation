@@ -12,10 +12,6 @@ import {
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 
-// The /kosz label and the purge read one „realnie użyty" fragment; if it misjudged a template seed
-// as used, nothing would ever purge, and if it missed a Pomiar typed on an etap with Przedmiar 0,
-// the cron would delete measured work without the owner typing its name.
-
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)

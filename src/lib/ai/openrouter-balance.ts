@@ -2,21 +2,18 @@ import 'server-only'
 
 import { serverEnv } from '@/lib/env/server'
 
-// OpenRouter meters spend in USD credits, not tokens — `remaining` is the wallet balance to show.
 type OpenRouterBalanceT = {
   remaining: number
   total: number
   used: number
 }
 
-// Returns null on failure/timeout — callers render null as "nothing to show", so a slow/flaky
-// OpenRouter can never block or break render.
 export async function getOpenRouterBalance(): Promise<OpenRouterBalanceT | null> {
   try {
     const res = await fetch('https://openrouter.ai/api/v1/credits', {
       headers: { Authorization: `Bearer ${serverEnv.OPENROUTER_API_KEY}` },
       next: { revalidate: 60 },
-      signal: AbortSignal.timeout(4000), // OpenRouter hiccup ≠ hung request
+      signal: AbortSignal.timeout(4000),
     })
     if (!res.ok) return null
     const json = (await res.json()) as {

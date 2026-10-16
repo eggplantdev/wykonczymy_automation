@@ -14,8 +14,6 @@ import {
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { protectedAction, validateAction } from './run-action'
 
-// A trashed item still holds its serial, so the refusal has to say where to find it — otherwise the
-// owner is told the serial is taken by an item no listing shows.
 async function serialClash(payload: Payload, serial: string | null, ownId?: number) {
   if (!serial) return undefined
   const { docs } = await payload.find({
@@ -49,9 +47,8 @@ export async function createEquipmentAction(data: AddEquipmentDataT) {
       const clash = await serialClash(payload, item.serialNumber)
       if (clash) return { success: false, error: clash }
 
-      // One transaction, because half of this pair is worse than none of it: an item whose first
-      // event failed reads as „nie wiadomo gdzie" forever, and nothing on screen distinguishes that
-      // from a genuine gap in the data.
+      // an item whose first
+      // event failed reads as „nie wiadomo gdzie" forever
       await withPayloadTransaction(
         payload,
         async (req) => {
@@ -70,8 +67,6 @@ export async function createEquipmentAction(data: AddEquipmentDataT) {
             req,
           })
         },
-        // The action revalidates both tags itself once the transaction commits; the hooks would
-        // otherwise fire from inside it, on writes that may still roll back.
         { skipRevalidation: true },
       )
 

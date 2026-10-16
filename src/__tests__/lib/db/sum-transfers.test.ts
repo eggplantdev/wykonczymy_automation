@@ -16,8 +16,6 @@ import {
 
 beforeEach(resetFakePayload)
 
-// ── sumRegisterBalance ───────────────────────────────────────────────────
-
 describe('sumRegisterBalance', () => {
   it('returns the balance from rows', async () => {
     mockExecute.mockResolvedValue({ rows: [{ balance: '1500.00' }] })
@@ -37,8 +35,6 @@ describe('sumRegisterBalance', () => {
     expect(result).toBe(-300.5)
   })
 })
-
-// ── sumAllRegisterBalances ───────────────────────────────────────────────
 
 describe('sumAllRegisterBalances', () => {
   it('returns a Map of register balances', async () => {
@@ -70,8 +66,6 @@ describe('sumAllRegisterBalances', () => {
     expect(map.get(5)).toBe(800)
   })
 })
-
-// ── sumAllInvestmentFinancials ────────────────────────────────────────────
 
 describe('sumAllInvestmentFinancials', () => {
   it('returns a Map of investment financials via deriveFinancials', async () => {
@@ -217,8 +211,6 @@ describe('sumAllInvestmentFinancials', () => {
     expect(map.size).toBe(0)
   })
 
-  // The listing's Marża has to carry the same concession the detail page's does — the pricing
-  // lookup is the seam where it could silently go missing for one surface only.
   it('applies the per-investment materiały netto rate it looked up', async () => {
     mockExecute
       .mockResolvedValueOnce({
@@ -240,9 +232,6 @@ describe('sumAllInvestmentFinancials', () => {
   })
 })
 
-// ── sumFilteredByType — how it consumes the Where ────────────────────────
-// Per-operator translation lives in lib/db/where-to-sql.test.ts; these two pin the seam.
-
 describe('sumFilteredByType — Where handling', () => {
   it('returns empty array and skips SQL when NO_RESULTS sentinel present', async () => {
     const result = await sumFilteredByType(fakePayload, { id: { equals: -1 } })
@@ -259,15 +248,11 @@ describe('sumFilteredByType — Where handling', () => {
     await sumFilteredByType(fakePayload, {})
     const queryStr = lastSql()
     expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
-    // No filter clauses appended in the conditions slot (between WHERE and GROUP BY).
-    // The base SELECT now contains an unrelated `AND` inside the settled re-bucket CASE.
+    // The base SELECT contains an unrelated `AND` inside the settled re-bucket CASE.
     const conditionsSlot = queryStr.split('cancelled IS NOT TRUE')[1].split('GROUP BY')[0]
     expect(conditionsSlot.trim()).toBe('')
   })
 })
-
-// ── listTransferFacets — the worker page's filter options ───────────────
-// Risk #22: these options are read through the worker's scope, so the scope must reach the SQL.
 
 describe('listTransferFacets', () => {
   it('skips SQL and offers nothing on the NO_RESULTS sentinel', async () => {
@@ -297,8 +282,6 @@ describe('listTransferFacets', () => {
     expect(result).toEqual({ investmentIds: [3, 7], types: ['PAYOUT'] })
   })
 })
-
-// ── deriveFinancials / deriveCostBreakdown ────────────────────────
 
 describe('deriveFinancials', () => {
   it('derives totals from type+settled distribution', () => {
@@ -386,9 +369,7 @@ describe('deriveFinancials — settled material is symmetric for EXPENSE and COR
       { type: 'INVESTMENT_EXPENSE', settled: false, total: 1000 },
     ]
     const f = deriveFinancials(rows)
-    // unsettled correction stays in materials
     expect(f.totalMaterialCosts).toBe(1050)
-    // settled correction leaves materials, lands in totalSettled (negative ok)
     expect(f.totalSettled).toBe(-200)
   })
 
@@ -407,7 +388,6 @@ describe('deriveCategoryBreakdowns', () => {
     ]
     const { categoryCosts, settledCategoryCosts } = deriveCategoryBreakdowns(rows)
     expect(categoryCosts).toEqual([{ categoryId: 1, total: 3000 }])
-    // settled CORRECTION must appear in the settled breakdown — old code dropped it
     expect(settledCategoryCosts).toEqual([
       { categoryId: 1, total: -200 },
       { categoryId: 2, total: 500 },
@@ -441,8 +421,6 @@ describe('deriveCategoryBreakdowns', () => {
     })
   })
 })
-
-// ── sumFilteredByType ────────────────────────────────────────────
 
 describe('sumFilteredByType', () => {
   it('returns empty array on NO_RESULTS sentinel', async () => {

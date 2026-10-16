@@ -1,9 +1,7 @@
 import type { KeyboardEvent } from 'react'
 
-// Enter/Escape dispatch for an inline editor's input, shared by the grid cells (EditableCellInput)
-// and the section drawer so the two can't drift on which key does what. Both keys are swallowed:
 // inside the grid the keypress would otherwise also drive react-datasheet-grid's selection
-// underneath the cell, and matching that outside the grid keeps one behaviour to reason about.
+// underneath the cell
 export function enterEscapeKeyDown<ElementT extends HTMLElement>(handlers: {
   onEnter?: (event: KeyboardEvent<ElementT>) => void
   onEscape?: (event: KeyboardEvent<ElementT>) => void

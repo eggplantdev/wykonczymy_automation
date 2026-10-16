@@ -55,11 +55,6 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
   ).map((row) => ({ ...row, subcontractorsOwed: owedWorkers.get(row.id) }))
 }
 
-// Shared page guard: parse the route id, require a management session, and load the investment —
-// bouncing to notFound() on a bad/missing/trashed id and to the login page on a failed auth. Returns the
-// investment (non-null past this point) plus the numeric id the page needs. Pages that already hold
-// the investment from another fetch (e.g. the detail page's refData) don't use this — it would double
-// the load.
 export async function requireInvestmentOr404(id: string) {
   const investmentId = parseInvestmentId(id)
   await requireManagementPage()
@@ -70,11 +65,8 @@ export async function requireInvestmentOr404(id: string) {
   return { investmentId, investment }
 }
 
-// Name only, for the top-bar crumb. Reads it off the already-warm reference data instead of querying:
-// `fetchReferenceData` is request-deduped and every management session loads it in `Navigation`, so a
-// dedicated cached read only added a third round trip for the same row — and one that went cold on
-// every settings write. The role gate is load-bearing, not decorative: without it a non-management
-// session would pull the company-wide reference dataset just to render a crumb (EX-608).
+// The role gate is load-bearing: without it a non-management session would pull the company-wide
+// reference dataset just to render a crumb.
 export async function getInvestmentName(id: string): Promise<string | null> {
   const { success } = await requireAuth(MANAGEMENT_ROLES)
   if (!success) return null

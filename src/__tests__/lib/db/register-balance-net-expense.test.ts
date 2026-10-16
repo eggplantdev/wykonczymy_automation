@@ -6,13 +6,7 @@ import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// GUARD B2 — the kasa stays brutto. INVESTMENT_EXPENSE_NET is the one type whose billed
-// figure (`net_amount`) differs from the cash that left the register (`amount`), so the
-// question "which column does sumRegisterBalance subtract" stopped being rhetorical.
-//
-// This has to be a DB test, not a unit: the risk lives inside raw SQL. Asserting that the
-// type is absent from DEPOSIT_TYPES proves nothing about which column the CASE arm reads,
-// and only a query actually executed can prove it never switched to net_amount.
+// INVESTMENT_EXPENSE_NET is the one type whose billed figure (`net_amount`) differs from the cash that left the register (`amount`).
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -54,8 +48,6 @@ describe.skipIf(!ENV_READY)('sumRegisterBalance — INVESTMENT_EXPENSE_NET (DB)'
 
     investmentId = await createTestInvestment(payload, 'net-expense-investment')
 
-    // Raw insert to bypass the balance-recalc hooks — the aggregate under test is the
-    // query, not the cached `balance` column those hooks write.
     await db.execute(sql`
       INSERT INTO transactions
         (description, amount, net_amount, date, type, payment_method, source_register_id, investment_id, cancelled)

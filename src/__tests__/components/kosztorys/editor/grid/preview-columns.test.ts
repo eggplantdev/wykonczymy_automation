@@ -11,7 +11,6 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// The client-facing preview: which columns it renders, and what pins the price plane they compute at.
 // Asserted on rendered ids rather than on the constant, because the ids are the document a client
 // reads — a constant can be right while the selection still drops half of it.
 
@@ -30,10 +29,6 @@ function previewIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
 }
 
 describe('preview columns', () => {
-  // The core of EX-591: each of these is ONE person's reading preference — the owner's picker, his
-  // money axis, his layer — and none may shape a client's document. Each could individually take
-  // something away: 'progress' stripped the whole offer, the axis stripped the stage amounts, the
-  // picker hides stageValueGross by default. Here none of them changes anything.
   it('is not narrowed by any owner reading preference', () => {
     const baseline = previewIds()
     const narrowed: Partial<BuildV2ColumnsOptsT>[] = [
@@ -46,9 +41,6 @@ describe('preview columns', () => {
     for (const opts of narrowed) expect(previewIds(opts)).toEqual(baseline)
   })
 
-  // The one gate a preview still answers to, because it is not a preference: `globalDiscount` belongs
-  // to the investment, and while it is on the per-item rabat is bypassed, not cleared. Left in, the
-  // offer would print a „Rabat" that no figure on the page reflects.
   it('drops the per-item rabat columns while a global discount overrides them', () => {
     const visible = previewIds({ globalDiscountActive: true })
     for (const id of ['discountType', 'discountValue', 'discountAmount']) {
@@ -57,8 +49,6 @@ describe('preview columns', () => {
     }
   })
 
-  // Owner, 2026-09-28: the value of the offered scope reads beside the quantity it prices. Each
-  // Aktualizacja figure follows its ofertowy twin (EX-921).
   it('reads the przedmiar as ilość, j.m., cena, wartość', () => {
     const visible = previewIds()
     const at = visible.indexOf('plannedQty')
@@ -73,7 +63,6 @@ describe('preview columns', () => {
     ])
   })
 
-  // The offer is quoted netto (owner, 2026-09-28): no gross figure reaches the investor's document.
   it('carries no brutto column', () => {
     const grossIds = [
       'plannedGross',
@@ -89,8 +78,6 @@ describe('preview columns', () => {
     expect(visible.filter((id) => id.startsWith('stageValueGross'))).toEqual([])
   })
 
-  // The owner's stored order for this offer — distinct from the per-browser `columnRanks`, which the
-  // first spec above already proves inert.
   it('follows the stored document order', () => {
     const visible = previewIds({ previewColumnRanks: { net: -2, stageQtySum: -1 } })
 
@@ -128,11 +115,6 @@ describe('preview columns', () => {
     expect(previewIds({ documentHiddenColumns: new Set(['note']) })).not.toContain('note')
   })
 
-  // What the sheet measured against what the etapy carry is the company's own bookkeeping, and the
-  // payload DOES carry the reference figure (preview-kosztorys.ts ships the whole tree by decision),
-  // so the render is the gate. „Pomiar z natury (etapy razem)" is the one client-visible column derived from
-  // the same rows, and the client still needs that column itself — so the render gate is what keeps
-  // the sheet figure off it.
   it('never surfaces the sheet pomiar to the client', () => {
     const columnData = (opts: Partial<BuildV2ColumnsOptsT>) =>
       buildV2Columns({ view: 'client', stages: STAGES, ...opts }).find(
@@ -151,8 +133,6 @@ describe('preview columns', () => {
     expect(visible).toEqual(baseline.filter((id) => id !== 'unit'))
   })
 
-  // Keyed by toggleKey like every other gate, so one stored key takes the whole per-etap family —
-  // hiding „Wartość netto" for etap 1 only would print a grid whose columns disagree per etap.
   it('takes a per-etap family whole, from its group key', () => {
     const visible = previewIds({ documentHiddenColumns: new Set(['stageValueNet']) })
 
@@ -161,7 +141,6 @@ describe('preview columns', () => {
     expect(visible).toContain('stage_7')
   })
 
-  // The per-etap group key would take every etap with the empty one; an etap with no entries goes alone.
   it('drops an empty etap by its full ids and keeps the filled one', () => {
     const empty = emptySettlementColumnIds([stageRow({ [stageKey(7)]: 2 })], STAGES)
     const visible = previewIds({ documentHiddenColumns: empty })
@@ -174,7 +153,6 @@ describe('preview columns', () => {
   })
 
   it('cannot let a stored key add a column outside the allowlist', () => {
-    // `aiPlannedQty` is inert here rather than a way in — naming it is the point of the fixture.
     expect(previewIds({ documentHiddenColumns: new Set(['aiPlannedQty']) })).not.toContain(
       'aiPlannedQty',
     )
@@ -190,8 +168,6 @@ describe('preview columns', () => {
     expect(editorIds).toContain('unit')
   })
 
-  // The picker is the preference selectV2Columns just stopped honouring, so a preview must not carry
-  // one — an allowlist-filtered list would describe a grid whose columns no longer answer to it.
   it('offers no column picker', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
@@ -202,10 +178,6 @@ describe('preview columns', () => {
   })
 })
 
-// The allowlist alone is not a lock for the CLIENT-named columns: `price`/`net`/`gross` are on it and
-// would compute at a
-// subcontractor's cost basis, under client column names. No column looks foreign, so the leak does not
-// announce itself — which is why the pair is enforced by an exception rather than a comment.
 describe('the pair: allowlist + price plane', () => {
   const unpinned = (view: 'w_tools' | 'own_tools') => () =>
     buildV2Columns({ view, previewVisible: true, stages: STAGES })
@@ -219,11 +191,6 @@ describe('the pair: allowlist + price plane', () => {
     expect(() => previewIds()).not.toThrow()
   })
 
-  // For „Cena j.m." the allowlist is the ONLY half holding it back: a crew's stawka is assembled in
-  // every view since the owner asked to compare both planes from „Inwestor", so the client view
-  // reaches it too and only its absence from PREVIEW_VISIBLE_COLUMNS keeps it off a client's
-  // document. „Źródło" and „Mnożnik" have both halves again — neither is assembled at the client
-  // plane at all.
   it('cannot reach the subcontractor rate columns, in either plane', () => {
     const visible = previewIds()
     for (const plane of ['w_tools', 'own_tools'] as const) {
@@ -231,8 +198,6 @@ describe('the pair: allowlist + price plane', () => {
         expect(visible).not.toContain(planePriceKey(base, plane))
       }
     }
-    // The editor gets the rate in the client view too, which is exactly why the allowlist is
-    // load-bearing.
     const editorIds = buildV2Columns({ view: 'client', stages: STAGES, crewAxis: 'both' }).map(
       (c) => c.id,
     )
@@ -240,8 +205,6 @@ describe('the pair: allowlist + price plane', () => {
     expect(editorIds).toContain(planePriceKey('price', 'own_tools'))
   })
 
-  // The subcontractor plane without the allowlist is just the owner's own view — the pair binds one
-  // way only, otherwise the assertion would lock the editor out.
   it('does not throw on the subcontractor plane alone', () => {
     expect(() => buildV2Columns({ view: 'w_tools', stages: STAGES })).not.toThrow()
   })

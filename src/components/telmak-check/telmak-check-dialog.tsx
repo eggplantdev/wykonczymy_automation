@@ -48,8 +48,6 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
     [parsed],
   )
 
-  // The package lives only in this tab's memory: closing the dialog drops it, nothing is uploaded
-  // unless one file is explicitly attached to a transaction.
   function dropPackage() {
     request.disown()
     setParsed([])

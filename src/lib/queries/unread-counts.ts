@@ -19,11 +19,7 @@ const NONE: UnreadCountsT = {
 
 /**
  * Reads the session itself rather than taking a `userId`/`role` pair: a caller-supplied identity is one
- * `'use server'` away from letting the browser ask for anyone's counts. `getCurrentUserJwt` is
- * React-cached, so the shell's own call already paid for this one.
- *
- * React-cached because Next renders the root layout twice per request — once more as the root
- * not-found fallback it serializes eagerly — and both copies of the shell ask for the counts.
+ * `'use server'` away from letting the browser ask for anyone's counts.
  */
 export const fetchUnreadCounts = cache(async (): Promise<UnreadCountsT> => {
   const user = await getCurrentUserJwt()

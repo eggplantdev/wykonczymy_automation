@@ -14,20 +14,8 @@ export type MediaInfoT = {
 
 type MediaRowT = MediaInfoT & { id: number }
 
-// Cached whole rather than per-id, and that inversion is the point: the id-filtered read ran on
-// every render (a serial hop behind the transfers query, since it needs their invoice ids), while
-// this one runs only after a media write — and reads outnumber media writes by orders of magnitude.
-// The full sweep is also cheaper outright (0.26ms vs 1.6ms measured): 988 rows read sequentially
-// beats one index probe per id. Size headroom is ~10×, not the ~2× the raw table size suggests —
-// 808kB is the whole table; the four columns projected here measure 95kB across those 988 rows,
-// against the Data Cache's ~2MB per-entry ceiling. Revisit around ~10 000 rows, past which the entry
-// silently stops being cached and every render pays the sweep. Returns an array, not a Map — `unstable_cache`
-// serializes its result and a Map would not survive the round-trip.
-//
-// Raw SQL rather than `payload.find`: hydrating 949 docs through the ORM measured 375ms against
-// 0.26ms for the same select, and that cost is re-paid on the first render after every media write
-// — which the bulk expense form fires 10-20 of per submit. `url` is a stored column holding the
-// finished serving path (`/api/media/file/<filename>`), so the string is identical either way.
+// Returns an array, not a Map — `unstable_cache` serializes its result and a Map would not survive
+// the round-trip.
 const fetchAllMedia = cached(
   async (): Promise<MediaRowT[]> => {
     const elapsed = perfStart()

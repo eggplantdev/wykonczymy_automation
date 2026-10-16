@@ -2,16 +2,8 @@
 
 import { useCallback, useRef, useState, type RefObject } from 'react'
 
-// View-filling height: from the element's top edge to the bottom of the window (minus gap).
-// NOT from the element's own clientHeight —
-// the top position depends on the navbar/header ABOVE the grid, which the grid doesn't change, so
-// the value is stable. No ResizeObserver: measuring the grid container's clientHeight
-// fell into a loop with react-datasheet-grid's internal resize detector (constant "flickering",
-// thousands of Issues/s in DevTools). Measure only on mount and window resize; floor + gap so
-// the grid is slightly shorter than the available space → no ancestor scrollbar → no oscillation.
-// The node comes back alongside the height because the ref itself is a callback — a caller that
-// also needs to read the element (the grid measures its own column widths off the DOM) has no other
-// way in without attaching a second ref to the same node.
+// No ResizeObserver: measuring the grid container's clientHeight fell into a loop with
+// react-datasheet-grid's internal resize detector.
 export function useElementHeight(
   gap = 8,
   fallback = 600,
@@ -31,7 +23,6 @@ export function useElementHeight(
     (node: HTMLElement | null) => {
       nodeRef.current = node
       if (!node) return
-      // rAF: measure after the layout settles, not during commit.
       const frame = requestAnimationFrame(measure)
       window.addEventListener('resize', measure)
       // React 19 calls this cleanup INSTEAD of `ref(null)`, so clearing the node here is the only

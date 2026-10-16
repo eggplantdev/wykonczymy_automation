@@ -9,9 +9,7 @@ const isTemplate = (status: string | undefined) => status === TEMPLATE_INVESTMEN
 /**
  * A szablon's kosztorys is a template the pickers copy from, so an investment turned into one would
  * leak a client's rozpiska into every new offer — and a szablon turned into an investment would take
- * bookings against a template. Here rather than in the action because `/admin` can update status too.
- *
- * `create` passes: a szablon is born only through `createTemplate`.
+ * bookings against a template.
  */
 export const guardTemplateStatus: CollectionBeforeChangeHook = ({
   data,

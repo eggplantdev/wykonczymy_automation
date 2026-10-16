@@ -7,13 +7,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// Same discipline as serialize-apply-preset: exercise against the REAL DB and assert PERSISTED state
-// by re-reading. next/cache is stubbed so the action's revalidateCollections (updateTag) doesn't throw
-// outside a request context; require-auth is stubbed so the REAL action runs — its selection→payload
-// resolution and rollback-on-error are exactly what specs (d)/(e) turn on and can't be proven from the
-// bare helper (which never sees an unknown section id).
-// unstable_cache is a passthrough here: the action's graph pulls in getPresetSections, and an
-// uncached read is exactly what the test wants (it re-reads the DB directly for its assertions).
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
@@ -31,9 +24,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     return id
   }
 
-  // Add one section + one item (with job fields populated and a coefficient override) to
-  // `investmentId`; returns the created section id. Job fields are populated so the zeroing at
-  // serialize time is observable on the appended copy.
   async function addSection(
     investmentId: number,
     name: string,
@@ -64,8 +54,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     return sectionIds[0]
   }
 
-  // A szablon with one named section whose live tree carries przedmiar and rabat — the append must
-  // strip both. Returns the live section id the picker addresses it by.
   async function buildPreset(nameSuffix: string, sectionName: string, color: string | null = null) {
     const presetId = await createTestTemplate(payload, `${PRESET_PREFIX}${nameSuffix}`)
     investmentIds.push(presetId)
@@ -109,8 +97,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(item.unit).toBe('m2')
     expect(item.clientPrice).toBe(150)
     expect(item.wToolsOverrideValue).toBe(97.5)
-    // Job figures — the pozycja's komentarz among them — are zeroed at serialize time, and the
-    // append inserts the cleaned values verbatim.
     expect(item.plannedQty).toBe(0)
     expect(item.discountType).toBeNull()
     expect(item.discountValue).toBe(0)
@@ -155,7 +141,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(result.success).toBe(false)
 
     const after = await serializeKosztorys(targetId)
-    // The unknown section is rejected before any write — the pre-existing tree is untouched.
     expect(after.sections.map((s) => s.name)).toEqual(before.sections.map((s) => s.name))
     expect(after.items).toHaveLength(before.items.length)
   })
@@ -173,9 +158,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(after.sections.filter((s) => s.name === 'Łazienka')).toHaveLength(2)
   })
 
-  // Regression: insertSections built its INSERT column list by hand, so a column added to the
-  // section table (here `color`) silently never round-tripped — the preset kept the colour, the
-  // appended copy came back unpinned.
   it('(f) the section colour survives the preset round trip', async () => {
     const { sectionId } = await buildPreset('f', 'Sekcja F', 'teal-deep')
 
@@ -197,8 +179,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(after.sections.find((s) => s.name === 'Sekcja G')?.color).toBeNull()
   })
 
-  // A section id names its investment on its own, so an ordinary investment's section must not be
-  // copyable by guessing its id — only a szablon is a source.
   it('(h) refuses a section of an ordinary investment and persists nothing', async () => {
     const sourceId = await createInvestment(`${PRESET_PREFIX}not-a-template`)
     const sectionId = await addSection(sourceId, 'Klienta', 0)

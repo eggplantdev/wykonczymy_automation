@@ -4,9 +4,6 @@ import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// The cell's own lifecycle is covered elsewhere (`cell-edit.ts`, `decimal-cell.test.tsx`); this
-// covers only the column's data hooks — copy, paste, delete — which the grid calls without going
-// through the input.
 const column = decimalColumn(
   'plannedQty',
   null,

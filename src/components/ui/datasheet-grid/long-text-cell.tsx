@@ -16,10 +16,6 @@ type PropsT = {
   stopEditing: StopEditingT
 }
 
-// A grid cell for text too long for a 32px row: a truncated one-liner at rest, a textarea floating
-// over the cell (and over the rows beneath it) while editing — the Sheets behaviour. Where editing
-// is off the popover stands in for that overlay. Knows nothing about the domain: the caller supplies
-// the commit path.
 export function LongTextCell({ value, focus, disabled, onCommit, stopEditing }: PropsT) {
   // Disabled and merely-unfocused split here: an unfocused cell in an editable grid must keep its
   // click for starting the edit, so only the disabled one becomes a popover trigger.
@@ -47,8 +43,6 @@ function LongTextColumnCell({
   )
 }
 
-// Free-text column whose value doesn't fit a 32px row. Spreads textColumn so
-// copy/paste/delete/isCellEmpty are inherited unchanged; only the editor is swapped for the overlay.
 // `disableKeys` is what hands Enter and the arrow keys to the textarea — the grid claims them
 // otherwise.
 export const longTextColumn = {
@@ -57,26 +51,21 @@ export const longTextColumn = {
   disableKeys: true,
 }
 
-// The same normalization the stock textColumn applies through `parseUserInput` — spreading it does
-// NOT inherit that, since only the component it replaces ever called it. Without this an emptied
+// Without this an emptied
 // cell persists '' where the column's own `deleteValue` and `isCellEmpty` still speak in `null`.
 function normalize(raw: string): string | null {
   return raw.trim() || null
 }
 
-// Focus must happen synchronously in the keystroke that opened the cell (the grid doesn't prevent
-// its default), and the value must be selected so that key replaces it rather than inserting at the
-// caret. Module-level so the ref identity is stable: the cell re-renders per keystroke, and a fresh
+// Module-level so the ref identity is stable: the cell re-renders per keystroke, and a fresh
 // inline callback would be detached and re-attached — re-selecting the whole value every character.
 function focusAndSelect(node: HTMLTextAreaElement | null) {
   node?.focus()
   node?.select()
 }
 
-// Mounts exactly when editing starts and unmounts when it ends, which is what makes the pre-edit
-// value knowable (see the ref) and rules out committing on blur: the grid removes this node the
-// moment it drops focus, and a removed node fires no blur in Chrome — there is no end-of-edit
-// moment to write in. So it commits per keystroke, like the stock textColumn it replaces.
+// rules out committing on blur: the grid removes this node the
+// moment it drops focus, and a removed node fires no blur in Chrome.
 function LongTextOverlay({
   value,
   onCommit,
@@ -123,12 +112,10 @@ function LongTextOverlay({
       ref={focusAndSelect}
       // z-30 clears everything the grid paints over the rows — the active-cell frame and its drop
       // shadow (20), the selection markers (20), the expand-rows handle (25) — while staying under
-      // the header (40). Padding matches the resting text's px-2 so the value doesn't shift
-      // sideways when the overlay opens.
+      // the header (40).
       className="absolute top-0 left-0 z-30 max-h-64 min-h-28 w-104 min-w-full resize-none overflow-auto px-2 py-1 shadow-md"
       // The grid resolves a click to a cell from its coordinates, so a click landing on the part of
-      // the overlay that hangs over other rows would move the active cell and end the edit. It never
-      // needs to see a click on the editor: the caret and drag-select are the browser's own default.
+      // the overlay that hangs over other rows would move the active cell and end the edit.
       onMouseDown={swallowGridEvent}
       onChange={(event) => onCommit(normalize(event.target.value))}
       onKeyDown={onKeyDown}

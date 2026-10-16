@@ -4,10 +4,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-postgres'
 
-// applyPercentDiscountToAllItemsAction flattens EVERY item's per-item rabat to `percent X` in one
-// irreversible UPDATE. Like removeSectionAction, it must capture a pre-overwrite auto snapshot first
-// so the hand-tuned rabaty it overwrites stay recoverable. We run the REAL action against the REAL DB
-// and assert PERSISTED STATE — the snapshot rose AND the rows were overwritten — not the return value.
 vi.mock('server-only', () => ({}))
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -89,7 +85,7 @@ describe.skipIf(!ENV_READY)('bulk percent rabat — snapshot-before-overwrite (D
   }
 
   // Newest auto-snapshot id, or 0 — a capture is proven by this rising (the global retention sweep
-  // can move the total count under us), matching the delete-guard suite's convention.
+  // can move the total count under us).
   async function latestAutoSnapshotId(): Promise<number> {
     const res = await db.execute(sql`
       SELECT coalesce(max(id), 0)::int AS id FROM kosztorys_snapshots

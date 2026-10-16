@@ -7,8 +7,6 @@ import {
 } from '@/lib/kosztorys/section-colors'
 
 describe('SECTION_COLOR_SEQUENCE', () => {
-  // The auto-assignment order is a hand-written index permutation (HUE_SPREAD_ORDER), so a typo there
-  // silently drops one colour and paints another twice — invisible until two sections share a hue.
   it('is a permutation of the palette — every colour exactly once', () => {
     expect(SECTION_COLOR_SEQUENCE.length).toBe(SECTION_COLORS.length)
     expect(new Set(SECTION_COLOR_SEQUENCE).size).toBe(SECTION_COLORS.length)

@@ -7,8 +7,6 @@ import { VERSION_PARAM } from '@/lib/kosztorys/history/version-param'
 import type { HistoryEntryT } from '@/lib/kosztorys/history/types'
 import { formatPLDate } from '@/lib/utils/format-date'
 
-// The URL is the state: an entry is a link, so a version can be sent to someone and the back button
-// returns to the list's page.
 export function HistoryDialog({
   entries,
   open,

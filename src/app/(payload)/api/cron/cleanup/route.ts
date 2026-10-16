@@ -15,9 +15,7 @@ import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 
 export const maxDuration = 300
 
-// Daily cleanup cron, scheduled from vercel.json. Each step runs on its own, so a throw in one never
-// hides what the others did. Every result is forwarded verbatim because the function log is where a
-// retention change is read back.
+// Each step runs on its own, so a throw in one never hides what the others did.
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

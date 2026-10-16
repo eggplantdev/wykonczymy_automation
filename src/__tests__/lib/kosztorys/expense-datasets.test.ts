@@ -9,12 +9,6 @@ import {
 import type { MaterialTransactionRowT } from '@/types/transfers'
 import type { PreviewFileT } from '@/types/media'
 
-// The tab split in isolation. The one assertion that couples it to `deriveFinancials` — Σ over the
-// two expense tabs === totalMaterialCosts — stays in derive-financials-bucketing.test.ts, where the
-// bucketing matrix it reconciles against lives.
-
-// The invoice fields are null throughout: the tab split keys off `type` and `settled` only, so a
-// row's invoice is irrelevant here — it is pinned where the list renders it, not where it is sorted.
 const ROW_BASE = {
   date: '2026-07-26',
   label: 'Materiały',
@@ -60,8 +54,6 @@ describe('partitionExpenseRows', () => {
 })
 
 describe('availableExpenseDatasets', () => {
-  // The tab strip is built from this list, so an empty set must not reach it: the common investment
-  // has neither netto nor settled rows, and a tab that opens onto „brak danych" is a dead end.
   it('offers a tab only for a non-empty set, in reading order', () => {
     expect(availableExpenseDatasets(partitionExpenseRows(rows))).toEqual([
       'gross',
@@ -78,8 +70,6 @@ describe('availableExpenseDatasets', () => {
 })
 
 describe('expenseRowHref', () => {
-  // Regression: the href hardcoded `type=INVESTMENT_EXPENSE`, so clicking a netto row or a korekta
-  // landed on a list that filtered out the very row clicked (`buildTransferFilters` → where.type).
   it('links each row to a list filtered by its own type', () => {
     const href = (row: MaterialTransactionRowT) => expenseRowHref(42, row)
 

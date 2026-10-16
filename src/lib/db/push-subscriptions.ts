@@ -40,7 +40,6 @@ export async function deletePushSubscriptions(db: DbExecutorT, userId: number): 
   await db.execute(sql`DELETE FROM push_subscriptions WHERE user_id = ${userId}`)
 }
 
-/** Only for an endpoint the push service has declared gone (404/410) — see `sendPushToUser`. */
 export async function deletePushSubscriptionByEndpoint(
   db: DbExecutorT,
   endpoint: string,
@@ -50,7 +49,7 @@ export async function deletePushSubscriptionByEndpoint(
 
 /**
  * The account state is joined, not left to the rows: `updateWorkerAction` can deactivate an account
- * without touching its subscriptions — the same reason `isSessionAlive` joins it.
+ * without touching its subscriptions.
  */
 export async function selectLivePushSubscriptions(
   db: DbExecutorT,

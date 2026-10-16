@@ -10,11 +10,6 @@ import type { MeasureDiscrepancyT } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// „Rozjazd między arkuszem Google a apką" is the only column that rides a FILTER rather than the picker — it
-// exists exactly while the „z pomiarem do rozpisania na etapy" diagnostic is pressed. So what is
-// asserted here is the gate, not the arithmetic (measure-discrepancy.test.ts owns that): the button
-// alone decides, no stored tick can override it, and it is unreachable from a client's document.
-
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1', plane: null }),
   makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
@@ -44,8 +39,6 @@ describe('the „Rozjazd między arkuszem Google a apką" column', () => {
     expect(ids({ divergenceFilterEngaged: false })).not.toContain('divergence')
   })
 
-  // The button is the whole gate. A tick stored back when the column was pickable must not survive as
-  // a silent veto over the filter the owner just pressed.
   it('ignores a stored hide tick', () => {
     expect(ids({ divergenceFilterEngaged: true, isHidden: (id) => id === 'divergence' })).toContain(
       'divergence',
@@ -61,15 +54,12 @@ describe('the „Rozjazd między arkuszem Google a apką" column', () => {
     expect(columnToggleItems.map((item) => item.id)).not.toContain('divergence')
   })
 
-  // Right behind „Opis prac" — „ile jeszcze zostało" is not an answer you should have to scroll to,
-  // but it is not what identifies the row either.
   it('follows the identity block once the diagnostic is engaged', () => {
     expect(
       ids({ divergenceFilterEngaged: true }).slice(0, 3 + ALL_TRANSLATION_COLUMN_KEYS.length),
     ).toEqual(['sectionName', 'description', ...ALL_TRANSLATION_COLUMN_KEYS, 'divergence'])
   })
 
-  // The row-actions column is chrome, not a reading of the kosztorys, so it opens the grid by default.
   it('sits behind the row-actions column when editing is enabled', () => {
     expect(ids({ divergenceFilterEngaged: true, onRemoveItem: () => {} })).toEqual([
       'actions',
@@ -77,15 +67,10 @@ describe('the „Rozjazd między arkuszem Google a apką" column', () => {
     ])
   })
 
-  // The reference figure is the company's own bookkeeping doubt, so the client's document must not
-  // carry it — held by the assembly rather than by PREVIEW_VISIBLE_COLUMNS alone, which would also
-  // drop it but only after building a column the preview can never want.
   it('never reaches the client preview', () => {
     expect(ids({ divergenceFilterEngaged: true, previewVisible: true })).not.toContain('divergence')
   })
 
-  // `measureDiscrepancy` is hard-anchored to the whole offered scope, so on a crew's plane its „etapy"
-  // is a different number from the one in the stage columns beside it.
   it('is absent on a subcontractor plane', () => {
     expect(ids({ divergenceFilterEngaged: true, view: 'w_tools' })).not.toContain('divergence')
   })

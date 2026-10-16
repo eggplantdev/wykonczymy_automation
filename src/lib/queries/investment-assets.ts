@@ -7,10 +7,6 @@ import { getDb } from '@/lib/db/get-db'
 import { perfStart } from '@/lib/perf'
 import type { MediaFileT, MediaKindT } from '@/types/media'
 
-/**
- * One investment's `assets`, in attachment order. Not folded into `fetchReferenceData` on purpose:
- * that dataset is company-wide and every page pays for it, while this is one row's gallery.
- */
 export async function fetchInvestmentAssets(investmentId: number): Promise<MediaFileT[]> {
   return cached(
     async () => {
@@ -25,8 +21,6 @@ export async function fetchInvestmentAssets(investmentId: number): Promise<Media
       `)
       console.log(`[PERF] query.fetchInvestmentAssets(${investmentId}) ${elapsed()}ms`)
 
-      // A row without a `url` is not openable, so it is dropped rather than rendered as a hole —
-      // same rule `resolveInvoiceFiles` applies to invoice pages.
       return rows
         .filter((row) => Boolean(row.url))
         .map((row) => ({
@@ -40,10 +34,8 @@ export async function fetchInvestmentAssets(investmentId: number): Promise<Media
     },
     ['investment-assets', String(investmentId)],
     {
-      // Deliberately NOT `CACHE_TAGS.investments`: that tag is bumped by every investment write in
-      // the app — every kosztorys settings save included — so carrying it evicted all 65 galleries
-      // on a write that touched none of them (EX-849). `media` stays because the SELECT reads
-      // `m.kind`, which „Oznacz do analizy AI" changes without touching the investment row at all.
+      // `media` stays because the SELECT reads `m.kind`, which „Oznacz do analizy AI" changes
+      // without touching the investment row at all.
       tags: [entityTag('investment', investmentId), CACHE_TAGS.media],
     },
   )()

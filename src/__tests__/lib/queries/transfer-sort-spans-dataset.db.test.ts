@@ -2,8 +2,6 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { findTransfersRaw, type RawTransferDocT } from '@/lib/queries/transfers'
 
 // EX-777: sorting that only sees already-fetched rows makes „największe kwoty" mean „on this page".
-// Only a real query over a set LARGER than one page can catch that — a mocked find returns whatever
-// it's handed. Read-only on purpose, so it leaves nothing behind for the golden master.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const PAGE_LIMIT = 20
@@ -19,7 +17,7 @@ describe.skipIf(!ENV_READY)('transfer sort spans the whole filtered set (DB)', (
     everyDoc = all.docs
     const page = await findTransfersRaw({ page: 1, limit: PAGE_LIMIT, sort: '-amount' })
     firstPage = page.docs
-    // 30s: the first getPayload cold-inits Payload's schema (see the other .db specs).
+    // 30s: the first getPayload cold-inits Payload's schema.
   }, 30000)
 
   it('has more rows than one page, or the assertions below prove nothing', () => {

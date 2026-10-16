@@ -3,18 +3,12 @@ import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { getAmountError, getNetAmountError, refineDocumentIdentity } from '@/lib/utils/validation'
 import { validateTransferFields } from './transfer-validation'
 
-// ---------------------------------------------------------------------------
-// Server-side schema for single transfers
-// ---------------------------------------------------------------------------
-
 export const createTransferSchema = z
   .object({
     description: z.string().optional().default(''),
     amount: z.number(),
     date: z.string().min(1, 'Data jest wymagana'),
     type: z.enum(TRANSFER_TYPES),
-    // Null on every type that never asks — `carriesPaymentMethod` is what makes it required on the
-    // two that do, from `validateTransferFields` below.
     paymentMethod: z.enum(PAYMENT_METHODS).nullish(),
     sourceRegister: z.number().optional(),
     targetRegister: z.number().optional(),
@@ -25,9 +19,6 @@ export const createTransferSchema = z
     otherDescription: z.string().optional(),
     invoiceNote: z.string().optional(),
     vatPlane: z.enum(['NET', 'GROSS']).optional(),
-    // The netto off the faktura on a wpłata brutto. Optional here because most types carry no
-    // netto at all — which rows must have one is `carriesNetAmount`, enforced below and again in
-    // the Payload hook.
     netAmount: z.number().optional(),
   })
   .superRefine((data, ctx) => {
@@ -44,10 +35,6 @@ export const createTransferSchema = z
 
 export type CreateTransferFormT = z.infer<typeof createTransferSchema>
 
-// ---------------------------------------------------------------------------
-// Server-side schema for updating transfers (metadata fields only)
-// ---------------------------------------------------------------------------
-
 export const updateTransferSchema = z
   .object({
     description: z.string().optional().default(''),
@@ -58,24 +45,16 @@ export const updateTransferSchema = z
     expenseCategory: z.number().optional(),
     otherCategory: z.number().optional(),
     invoiceNote: z.string().optional(),
-    // `null` clears. `updateTransferAction` drops it on every type but OTHER.
     worker: z.number().positive().nullable().optional(),
     documentNumber: z.string().optional(),
     sellerNip: z.string().optional(),
     documentDate: z.string().optional(),
-    // Only ever a FILL-IN on a legacy wpłata that carries neither. Both rules that govern it need the
-    // stored row, which no schema has: `updateTransferAction` decides whether the answer is sent, and
-    // `hooks/transfers/validate.ts` refuses to move one already booked.
     vatPlane: z.enum(['NET', 'GROSS']).optional(),
     netAmount: z.number().optional(),
   })
   .superRefine((data, ctx) => refineDocumentIdentity(data, ctx))
 
 export type UpdateTransferFormT = z.infer<typeof updateTransferSchema>
-
-// ---------------------------------------------------------------------------
-// Server-side schema for cancelling a transfer — reason is required
-// ---------------------------------------------------------------------------
 
 export const CANCEL_REASON_MIN_LENGTH = 3
 export const CANCEL_REASON_MAX_LENGTH = 500

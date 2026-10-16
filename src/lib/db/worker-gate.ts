@@ -4,7 +4,6 @@ import { sqlList } from '@/lib/db/sql-list'
 import { WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 
-/** A missing id is not trashed. */
 export async function trashedWorkerMessage(
   db: DbExecutorT,
   ids: readonly number[],
@@ -16,8 +15,7 @@ export async function trashedWorkerMessage(
 
 /**
  * Etapy in both rozliczenia block a worker's report link (`resolveWorkerScope`), so the write that
- * would mix them is refused instead — an etap with nothing in it yet included. A plane-less legacy
- * etap mixes nothing: it blocks the link on its own, as unconfirmed.
+ * would mix them is refused instead — an etap with nothing in it yet included.
  */
 export async function selectOtherPlaneWorkerNames(
   db: DbExecutorT,

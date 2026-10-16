@@ -3,9 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { applyCatalogueWrite } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import type { CatalogueCandidateT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-// The Komentarz do pracy is the katalog's own: a candidate built from a kosztorys row has no comment,
-// so every write from the editor must leave the stored one alone unless a comment was typed.
-
 const CANDIDATE: CatalogueCandidateT = {
   description: 'Malowanie ścian',
   descriptionTranslations: {},

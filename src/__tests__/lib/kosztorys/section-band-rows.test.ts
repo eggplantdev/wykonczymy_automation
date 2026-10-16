@@ -24,7 +24,6 @@ function meta(sectionId: number): SectionMetaT {
   return { sectionId, sectionName: `Sekcja ${sectionId}`, sectionColor: null }
 }
 
-// Two sections, three items then two — the shape every case below narrows.
 const VIEW_ROWS = [row(1, 10), row(2, 10), row(3, 10), row(4, 20), row(5, 20)]
 const SECTIONS = [meta(10), meta(20)]
 
@@ -53,8 +52,6 @@ describe('section band row ids', () => {
     expect(isSyntheticRow(1)).toBe(false)
   })
 
-  // The predicate that decides which cell, row height and wash a band gets — an overlap would render
-  // a footer as a header.
   it('never classifies a band as both a header and a footer', () => {
     for (const sectionId of [0, 1, 42, 998_999]) {
       expect(isSectionFooterRow(sectionHeaderRowId(sectionId))).toBe(false)
@@ -95,8 +92,6 @@ describe('buildSectionBandRows', () => {
     ])
   })
 
-  // A header over a footer with nothing between says only „tu nic nie ma". Under a strict filter the
-  // grid would be mostly such frames, with the few hits lost among them.
   it('drops the band of a section whose rows were all filtered away', () => {
     const rows = buildSectionBandRows([row(4, 20), row(5, 20)], enabled())
 
@@ -107,8 +102,6 @@ describe('buildSectionBandRows', () => {
     expect(buildSectionBandRows([], enabled())).toEqual([])
   })
 
-  // Bands come from the section list, so rows arriving out of order are regrouped rather than
-  // emitting a second band pair (a duplicate key for dsg's virtualizer) or spilling outside a band.
   it('gathers a section arriving in two blocks under one band pair', () => {
     const rows = buildSectionBandRows([row(1, 10), row(4, 20), row(2, 10)], enabled())
 
@@ -204,7 +197,6 @@ describe('baseOrdinals — a pozycja keeps its number', () => {
   })
 
   it('leaves the numbers of the survivors alone when rows are filtered away', () => {
-    // Numbers skipping is what makes the filter visible; renumbering 1..N would hide it.
     const ordinals = baseOrdinals(VIEW_ROWS)
 
     expect([row(2, 10), row(5, 20)].map((r) => ordinals.get(r.id))).toEqual([2, 5])

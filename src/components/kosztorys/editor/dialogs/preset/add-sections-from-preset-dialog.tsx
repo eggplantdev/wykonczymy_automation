@@ -20,11 +20,9 @@ type PropsT = {
   investmentId: number
   open: boolean
   onOpenChange: (open: boolean) => void
-  // The editor patches the grid from this rather than refetching the tree.
   onAppended: (slice: AppendedSliceT) => void
 }
 
-// Selection is cumulative across szablony and confirms once.
 export function AddSectionsFromPresetDialog({
   investmentId,
   open,
@@ -34,8 +32,6 @@ export function AddSectionsFromPresetDialog({
   const { sections, resetSections } = usePresetSections(open)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [activePresetId, setActivePresetId] = useState<number | null>(null)
-  // Below `sm` (48rem — this repo overrides the scale) only one pane fits, so this drives which of
-  // the two is shown. Both stay mounted at every width — above `sm` the state is inert.
   const [pane, setPane] = useState<'presets' | 'sections'>('presets')
   const [pending, setPending] = useState(false)
 
@@ -45,14 +41,8 @@ export function AddSectionsFromPresetDialog({
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(groups, getPresetName)
-  // Falling back to the first szablon keeps the right pane filled from the moment the list lands,
-  // without an effect that writes state during render. `.at(0)` rather than `[0]`: it types as
-  // `| undefined`, so the empty-library case can't be read past without narrowing first.
   const activeGroup = groups.find((group) => group.presetId === activePresetId) ?? groups.at(0)
 
-  // Every close routes through here (cancel / esc / overlay / post-confirm), so resetting on close
-  // guarantees the next open re-fetches fresh instead of showing the previous list — without an
-  // in-effect setState.
   function handleOpenChange(next: boolean) {
     if (!next) {
       setSelected(new Set())
@@ -68,7 +58,6 @@ export function AddSectionsFromPresetDialog({
     setSelected((prev) => toggleInSet(prev, key))
   }
 
-  // Loading a whole szablon into an empty kosztorys is the common case, so it stays one click.
   function toggleGroup(keys: number[]) {
     setSelected((prev) => {
       const next = new Set(prev)
@@ -79,7 +68,6 @@ export function AddSectionsFromPresetDialog({
   }
 
   async function handleConfirm() {
-    // In the szablony's order, not the order they were ticked in.
     const sectionIds = (sections ?? [])
       .map((meta) => meta.sectionId)
       .filter((id) => selected.has(id))
@@ -137,7 +125,6 @@ export function AddSectionsFromPresetDialog({
                     <button
                       key={group.presetId}
                       type="button"
-                      // Ticking a whole szablon goes through „Zaznacz wszystkie", not this row.
                       onClick={() => {
                         setActivePresetId(group.presetId)
                         setPane('sections')
@@ -168,9 +155,6 @@ export function AddSectionsFromPresetDialog({
                 pane === 'sections' ? 'flex' : 'hidden',
               )}
             >
-              {/* The name shows at every width, not only as the drill-in's back label: with the left
-                pane filtered, the highlighted row can be off-screen, and „Zaznacz wszystkie" must
-                never be ambiguous about which szablon it fills. */}
               <button
                 type="button"
                 onClick={() => setPane('presets')}
@@ -183,8 +167,6 @@ export function AddSectionsFromPresetDialog({
                 {activeGroup.presetName}
               </p>
               <div className="min-h-0 flex-1 overflow-y-auto py-2">
-                {/* Lives in the unfiltered pane by construction: mass-select can never reach sekcje
-                  the user cannot see. */}
                 <button
                   type="button"
                   onClick={() => toggleGroup(activeGroup.metas.map((meta) => meta.sectionId))}

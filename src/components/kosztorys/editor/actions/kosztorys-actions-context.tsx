@@ -47,25 +47,17 @@ type KosztorysActionsT = {
   investor: InvestorActionsT
   worker: WorkerActionsT
   acceptanceProtocol: DialogToggleT
-  // Undefined where the investment has no reports to show (the szablon workbench).
   workerReports: WorkerReportsActionT | undefined
   scan: ScanReportActionT
   cleanItemTexts: TreeRewriteActionT
   fillTranslations: TreeRewriteActionT
-  // Either rewrite locks both: they write the same rows, and the second would queue behind the first,
-  // holding back the tree the first one returned until it finished too.
+  // Either rewrite locks both: they write the same rows.
   treeRewriting: boolean
 }
 
 const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
 
-// An „Opcje" action is triggered by a menu item and rendered by a dialog, and those can never share a
-// parent: DropdownMenuContent unmounts its children when the menu closes, and onSelect closes it. The
-// state therefore lives here instead of being threaded from the menu down to both sides. A dialog-less
-// run's `pending` lives here for the same reason: kept in its item, it reset on close and a reopened
-// menu offered a second run of the one still in flight.
-// Deliberately NOT part of KosztorysEditorProvider — only the menu and its dialogs consume this, so a
-// „Udostępnij" fetch landing cannot churn the grid (the EX-496 regression).
+// DropdownMenuContent unmounts its children when the menu closes, and onSelect closes it.
 export function KosztorysActionsProvider({
   children,
   workerReports: workerReportsSeed,
@@ -107,7 +99,6 @@ export function KosztorysActionsProvider({
   return (
     <KosztorysActionsContext value={value}>
       {children}
-      {/* One instance for the toolbar button, „Pracownicy" and the deep link. */}
       {workerReportsSeed && <WorkerReportsDialog action={workerReports} />}
       {workerReportsSeed && (
         <ScanReportDialog

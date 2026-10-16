@@ -11,8 +11,8 @@ import {
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 
-// The purge is the one delete nobody confirms, so the assertion is on which rows survive — a count
-// in the result would read the same over a purge that deleted the wrong investment.
+// the assertion is on which rows survive — a count in the result would read the same over a purge
+// that deleted the wrong investment.
 
 vi.mock('server-only', () => ({}))
 

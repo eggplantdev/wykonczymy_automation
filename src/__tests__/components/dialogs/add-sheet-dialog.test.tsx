@@ -22,7 +22,6 @@ describe('AddSheetDialog', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
-  // Staging, offline: the rejected request escaped the transition and the route error page took over.
   it('reports a request that never reached the server with an error toast', async () => {
     addUnlinkedSheetAction.mockRejectedValue(new TypeError('Failed to fetch'))
     const user = userEvent.setup()

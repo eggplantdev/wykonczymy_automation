@@ -6,8 +6,6 @@ import { CreateEmptyPresetDialog } from '@/components/presets/create-empty-prese
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 
-// The action module is `'use server'`, so the harness swaps it for a stub that throws on call —
-// mocked explicitly here, since the whole point is what the dialog does with each verdict.
 const push = vi.hoisted(() => vi.fn())
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push }),
@@ -27,8 +25,6 @@ describe('CreateEmptyPresetDialog', () => {
     expect(await screen.findByRole('button', { name: 'Załóż' })).toBeDisabled()
   })
 
-  // A taken name is the one failure the user can fix on the spot, so closing the dialog would throw
-  // away the name they just typed.
   it('keeps the dialog open and says why when the name is taken', async () => {
     vi.mocked(createEmptyPresetAction).mockResolvedValue({
       success: false,

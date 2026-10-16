@@ -8,16 +8,9 @@ export type PropsT = {
   loaderComponent?: ReactNode
   className?: string
   portal?: boolean
-  // spinnerVariant?: 'black' | 'white'
 }
 
-export const Loader = ({
-  loading,
-  loaderComponent,
-  className,
-  portal,
-  // spinnerVariant = 'black',
-}: PropsT) => {
+export const Loader = ({ loading, loaderComponent, className, portal }: PropsT) => {
   if (!loading) return null
 
   const spinner = loaderComponent ?? <ContentLoading />

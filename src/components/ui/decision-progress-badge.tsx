@@ -13,7 +13,6 @@ const PARTS = [
 ] as const satisfies readonly { key: DecisionStatusT; label: string; tone: string }[]
 
 type DecisionProgressBadgePropsT = Record<DecisionStatusT, number> & {
-  // Given only where the badge filters a list; elsewhere it is a plain readout.
   hidden?: ReadonlySet<DecisionStatusT>
   onToggle?: (status: DecisionStatusT) => void
 }

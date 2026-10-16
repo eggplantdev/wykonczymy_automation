@@ -9,11 +9,6 @@ import {
   useInvestmentAssetsUpload,
 } from '@/hooks/use-investment-assets-upload'
 
-/**
- * The investment row already exists here, so picking a file IS the save. „Anuluj" on the surrounding
- * form therefore does not take the file back; that is the accepted cost of not routing `assets`
- * through the update action, which strips the field so an empty list can never wipe the gallery.
- */
 export function InvestmentAssetsField({ investmentId }: { investmentId: number }) {
   const [uploadOpen, setUploadOpen] = useState(false)
   const { isUploading, uploadFiles } = useInvestmentAssetsUpload(investmentId)

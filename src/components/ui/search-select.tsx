@@ -33,11 +33,6 @@ type SearchSelectPropsT = {
   className?: string
 }
 
-/**
- * Searchable single-pick select. The search box is the whole point: a list of dozens (inwestycje,
- * pracownicy) is unusable as a plain `SimpleSelect`, so any surface picking from one reaches for
- * this — `FormCombobox` is the TanStack-field wrapper around it, not a second implementation.
- */
 export function SearchSelect({
   value,
   onChange,
@@ -55,11 +50,7 @@ export function SearchSelect({
   const selectedLabel = items.find((item) => item.value === value)?.label
 
   return (
-    // `modal`, always: the content portals to body, so inside a Dialog it is the dialog's sibling.
-    // `react-remove-scroll` lets only the top lock on its stack handle `wheel` and cancels what
-    // falls outside that lock's ref, so the dialog's lock kills scrolling over this list while
-    // cmdk's `scrollIntoView` keeps the arrows working. Modal pushes a lock scoped to this content.
-    // Opt-in on `Combobox` only because a datasheet cell must keep body scroll; nothing here does.
+    // `modal`, always: inside a Dialog the dialog's lock kills scrolling over this list.
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <button
@@ -80,8 +71,6 @@ export function SearchSelect({
           <Icon iconName="dropdownDown" size="sm" />
         </button>
       </PopoverTrigger>
-      {/* Above a dialog: the picker is opened from inside one often enough that the exception is
-          the rule here. */}
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />

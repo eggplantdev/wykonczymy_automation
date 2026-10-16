@@ -5,7 +5,6 @@ import FormBase from './form-base'
 import { FormControlPropsT } from '../types/form-types'
 import { useFieldContext } from '../hooks/form-hooks'
 
-// Styled like `Input`, so it reads as a field you can type into rather than as a caption.
 export function FormCreatableCombobox({
   options,
   disabled,

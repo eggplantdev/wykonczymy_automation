@@ -4,8 +4,6 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 export const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
 
-// What a linked szablon row reads from its katalog entry (EX-1017) — a write to any of these goes to
-// the entry, every other field stays on the row.
 const CATALOGUE_FIELDS = [
   'description',
   'descriptionTranslations',
@@ -47,14 +45,8 @@ type CatalogueUpdateT = Partial<
   >
 >
 
-/**
- * The katalog update a szablon cell edit stands for. Expects the patch already made whole by
- * `normalizeOverridePatch`, so a stawka arrives as its pair and lands as the katalog's pair — the
- * same source on both sides, no `impliedCatalogueRate` derivation needed.
- *
- * `matchKey` is returned whenever the opis or j.m. is touched, so the caller can check the key's
- * holder before writing.
- */
+// Expects the patch already made whole by `normalizeOverridePatch`, so a stawka arrives as its pair
+// and lands as the katalog's pair.
 export function catalogueUpdateFor(
   entry: WorkCatalogueItemT,
   patch: ItemPatchT,

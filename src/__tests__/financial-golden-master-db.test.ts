@@ -21,20 +21,8 @@ import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summa
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import { round2 } from '@/__tests__/helpers/money'
 
-// GOLDEN MASTER (EX-573 phase 0b) — every displayed figure, for every investment, frozen
-// against the real production dataset restored into the 5435 db-test container.
-//
-// This is NOT a prod-vs-local comparison. No test may open a connection to Neon
-// (see AGENTS.md); production figures enter this suite as DATA, via the
-// db:dump → db:import:test restore. And the risk being guarded is not "environments
-// disagree" — it is "the refactor moved a number", which before-vs-after on one real
-// dataset answers directly.
-//
 // It proves PRESERVATION, not correctness: a figure the app computes wrongly today is
-// frozen exactly as wrongly (EX-574 is such a case, deliberately out of scope here).
-//
-//   run:        pnpm test:parity
-//   regenerate: pnpm test:golden:update      (after a db:import:test refresh)
+// frozen exactly as wrongly.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const UPDATE = process.env.UPDATE_GOLDEN === '1'
 
@@ -42,8 +30,6 @@ const FIXTURE_PATH = join(process.cwd(), 'src/__tests__/fixtures/financial-golde
 
 type CategoryPairT = [categoryId: number, total: number]
 
-// `null` is a value the withheld margin carries on purpose, so it must survive the rounding that
-// every other figure goes through rather than collapsing to 0.
 const roundOrNull = (value: number | null) => (value === null ? null : round2(value))
 
 type InvestmentSnapshotT = {
@@ -57,24 +43,17 @@ type InvestmentSnapshotT = {
   totalSettled: number
   balance: number
   margin: number
-  /** The EX-649 reading, and the only field here that is NOT on the transactions plane: robocizna
-   *  and rabat come from the kosztorys and the crew from its etapy, which is what the listing shows.
-   *  `null` where an etap holds work with no rozliczenie. */
+  /** `null` where an etap holds work with no rozliczenie. */
   marginV2: number | null
-  /** The wpłaty bucketed by VAT plane, straight off the SQL fold the listing reads. Frozen as raw
-   *  sums rather than one total because that is where a bucketing regression shows: an untagged
-   *  wpłata sliding into the brutto bucket moves two of these and leaves their sum alone. */
+  /** an untagged wpłata sliding into the brutto bucket moves two of these and leaves their sum alone. */
   deposits: DepositPlaneSumsT
-  /** Σ wpłat netto — the buckets folded by `depositPairFromPlaneSums`, which is what the settlement
-   *  actually subtracts. Frozen beside the buckets so a regression in the fold shows even where the
-   *  buckets themselves are untouched. */
   depositsNet: number
   categoryCosts: CategoryPairT[]
   settledCategoryCosts: CategoryPairT[]
 }
 
-/** What gets written to disk. Investment NAMES are real client names — they stay out of
- *  the committed fixture and are re-read from the DB only to label a failure. */
+/** Investment NAMES are real client names — they stay out of the committed fixture and are
+ *  re-read from the DB only to label a failure. */
 type HashMapT = Record<string, string>
 
 type SnapshotT = {
@@ -83,7 +62,6 @@ type SnapshotT = {
     kosztorysItemCount: number
     grossDepositsWithNet: number
   }
-  /** Per-entity hash of the transaction rows that feed that entity's figures — see readInputHashes. */
   inputHashes: { investments: HashMapT; registers: HashMapT }
   investments: Record<string, InvestmentSnapshotT>
   registers: Record<string, number>
@@ -109,22 +87,7 @@ const ZERO_FINANCIALS: InvestmentFinancialsT = {
 const toPairs = (costs: { categoryId: number; total: number }[]): CategoryPairT[] =>
   costs.map((c): CategoryPairT => [c.categoryId, round2(c.total)]).sort((a, b) => a[0] - b[0])
 
-/**
- * A hash over every transaction column that feeds any figure below, taken PER ENTITY: one
- * per investment and per register.
- *
- * A whole-dataset checksum was the obvious shape and the wrong one. The pre-push hook
- * refreshes `dumps/dump-latest.sql` from prod on every push, so a single new transaction
- * anywhere invalidated the fixture for all 100 investments at once and the suite could
- * only say "regenerate" — a guard that fails on the ordinary path is a guard people learn
- * to regenerate past without reading the diff, which is exactly the moment a real drift
- * gets waved through.
- *
- * Scoped per entity, prod growth silences only the rows it actually touched: an investment
- * whose transactions are byte-identical still has to produce the same figures, and a
- * refactor that moves one is still caught on every untouched row. A register is hashed
- * over the transactions on EITHER side of it, since both move its balance.
- */
+/** A register is hashed over the transactions on EITHER side of it, since both move its balance. */
 async function readInputHashes(payload: Payload) {
   const db = await getDb(payload)
   const result = await db.execute(sql`
@@ -159,15 +122,7 @@ async function readInputHashes(payload: Payload) {
     hashes[String(row.scope) as keyof SnapshotT['inputHashes']][String(row.key)] = String(row.hash)
   }
 
-  // Since the read-switch (EX-555) an investment's robocizna and rabat can come from its kosztorys,
-  // so the kosztorys rows are an INPUT to the figures below and belong in the per-investment
-  // signature. Without them a kosztorys edit would read as code drift (the figure moved, the hash
-  // didn't) and — worse — a read that stopped seeing the kosztorys at all would read as nothing.
-  //
-  // The subcontractor axis (EX-649) is here for the same reason and was the blind spot the second
-  // margin exposed: an etap's rozliczenie and a row's stawka move `marginV2` while item count, qty
-  // and rabat all stand still, so without them a data edit arrives dressed as code drift. A row's
-  // cena and rabat are the same case on the client side (EX-784).
+  // Without them a kosztorys edit would read as code drift (the figure moved, the hash didn't).
   const kosztorys = await db.execute(sql`
     SELECT
       ki.investment_id AS key,
@@ -229,10 +184,7 @@ async function readInputHashes(payload: Payload) {
     hashes.investments[key] = `${hashes.investments[key] ?? ''}/${sig}`
   }
 
-  // The investment's own columns feed figures too — the materiały netto rate and the mode that
-  // gates it move `margin`, the coefficients move what the crew is owed, the global rabat moves the
-  // client totals. Hashed for every investment, kosztorys or not: the rate and mode apply without
-  // one. `vat_rate` is absent on purpose — no frozen figure reads it.
+  // `vat_rate` is absent on purpose — no frozen figure reads it.
   const settings = await db.execute(sql`
     SELECT
       id AS key,
@@ -247,8 +199,6 @@ async function readInputHashes(payload: Payload) {
     hashes.investments[key] = `${hashes.investments[key] ?? ''}/s:${row.sig}`
   }
 
-  // Ride along on the scan that was already counting rows. They are the dataset floor's second axis;
-  // what they guard is spelled out at DATASET_FLOOR.
   const counted = await db.execute(sql`
     SELECT
       count(*)::int AS row_count,
@@ -300,11 +250,7 @@ async function buildSnapshot(payload: Payload): Promise<{
   for (const doc of investmentsPage.docs) {
     const id = Number(doc.id)
     names.set(String(id), String(doc.name))
-    // Mirrors shapeInvestments(): an investment with no transactions renders as zeros
-    // rather than being absent, so the snapshot covers all of them.
     const financials = financialsMap.get(id) ?? ZERO_FINANCIALS
-    // Absent means no wpłaty at all, which `shapeInvestments` reads as zero on both planes — the
-    // same fallback here, so an investment nobody has paid is frozen rather than skipped.
     const deposits = depositPlaneSums.get(id) ?? NO_DEPOSIT_SUMS
     investments[String(id)] = {
       totalMaterialCosts: round2(financials.totalMaterialCosts),
@@ -327,8 +273,6 @@ async function buildSnapshot(payload: Payload): Promise<{
         paidNet: round2(deposits.paidNet),
         paidGrossNet: round2(deposits.paidGrossNet),
         paidGross: round2(deposits.paidGross),
-        // A count, not money — it is what the „osierocone wpłaty" marker on the listing renders, so
-        // it is an input like the sums and rounding it would be nonsense.
         paidNetCount: deposits.paidNetCount,
       },
       depositsNet: round2(depositPairFromPlaneSums(deposits).net),
@@ -357,14 +301,7 @@ async function buildSnapshot(payload: Payload): Promise<{
 
 /** The dataset floor, asserted in TWO places on purpose: as a test (a thin dataset makes
  *  every comparison trivially pass) and as a precondition on the REGENERATE path, which
- *  overwrites the only committed record of the pre-refactor figures. Regenerating against
- *  a half-restored container would destroy the net and report the reason afterwards. */
-/*  `kosztorysItems` carries the floor's whole point onto the new axis: with the kosztorys tables
- *  empty every investment falls back to the transactions plane, so the read-switch branch is never
- *  executed and the suite passes green having tested nothing about it. */
-/*  `grossDepositsWithNet` is the same argument on the wpłaty axis: an untagged wpłata counts as
- *  gotówka, so a fixture with no wpłata brutto leaves every bucket but `paidNet` at zero — the
- *  brutto plane is then frozen at nothing and a regression in it passes green. */
+ *  overwrites the only committed record of the pre-refactor figures. */
 const DATASET_FLOOR = {
   investments: 50,
   registers: 10,
@@ -442,9 +379,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
     const expected: SnapshotT = JSON.parse(readFileSync(FIXTURE_PATH, 'utf8'))
     const actual = snapshot
 
-    // Without this the missing key reads as "every hash is empty", every entity gets skipped,
-    // and the staleness floor below fires with a message blaming prod drift for what is
-    // really a fixture predating per-entity hashing. Name the real cause here instead.
     if (!expected.inputHashes) {
       throw new Error(
         `fixture at ${FIXTURE_PATH} predates per-entity input hashing — ` +
@@ -457,24 +391,11 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
     let investmentsSkipped = 0
     const label = (id: string) => `#${id} ${names.get(id) ?? '(unknown)'}`
 
-    /** An entity is comparable only while its transaction rows are byte-identical to the
-     *  fixture's. Once prod adds a row it is the DATA that moved, not the code — the only
-     *  honest thing the fixture can say about that entity is nothing. */
     const inputsUnchanged = (scope: keyof SnapshotT['inputHashes'], id: string) =>
       (expected.inputHashes[scope][id] ?? '') === (actual.inputHashes[scope][id] ?? '')
 
     // The `total / 2` floor below counts entities and is blind to WHICH ones, so it cannot see an
-    // axis going dark: only a handful of investments carry a wpłata brutto or a kosztorys at all,
-    // and if exactly those fall out of the compared set the count barely moves while the figures
-    // that are the whole reason this fixture exists are compared on nobody. That is not
-    // hypothetical: it is what a seed re-inserting its rows under fresh ids did (EX-725), and
-    // `assertNonTrivial` could not catch it because it counts rows in the DB, not comparable
-    // entities. So each axis is asserted where it is actually spent: in the compared set.
-    //
-    // A table rather than one hard-wired check, because the two axes are equally thin and equally
-    // seed-fed. Today the kosztorys axis rests on a single investment that happens to also carry
-    // brutto — so the brutto check covers it by coincidence, and the coincidence dies the moment a
-    // seed puts the two on different investments.
+    // axis going dark.
     const AXES = [
       {
         name: 'wpłata brutto',
@@ -486,8 +407,8 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
         name: 'kosztorys',
         guards: '`totalLaborCosts` and the v2 figures derived from it',
         reseed: 'pnpm seed:kosztorys:test',
-        // Not a szablon: its kosztorys is a template, not work anyone is billed for, and the DB
-        // integration specs create and edit szablony right before this leg runs on pre-push.
+        // Not a szablon: the DB integration specs create and edit szablony right before this leg
+        // runs on pre-push.
         carriedBy: (id: string) =>
           !templateIds.has(id) && (expected.inputHashes.investments[id] ?? '').includes('/k:'),
       },
@@ -502,9 +423,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
 
     for (const id of Object.keys(expected.investments)) {
       const now = actual.investments[id]
-      // A row the fixture knows and the DB no longer returns: prod deleted it. Same class as
-      // an edit — the fixture has nothing to say, and saying "disappeared" would fail a push
-      // over someone else's cleanup.
       if (!now) {
         dataMoved.push(`${label(id)} (gone)`)
         investmentsSkipped++
@@ -530,8 +448,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
     ] as const) {
       const singular = scope.slice(0, -1)
       for (const key of Object.keys(wasMap)) {
-        // Same two escapes as the investment loop above: deleted in prod, or its transactions
-        // edited. Either way the fixture has nothing honest left to say about this entity.
         if (!(key in nowMap)) {
           dataMoved.push(`${singular} #${key} (gone)`)
           continue
@@ -546,8 +462,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
       }
     }
 
-    // Never a failure — but silence about it would let the fixture rot to nothing while the
-    // suite stayed green. The count is the signal to regenerate at your leisure.
     if (dataMoved.length > 0) {
       console.warn(
         `[golden master] ${dataMoved.length} ${dataMoved.length === 1 ? 'entity' : 'entities'} skipped — their transactions changed in prod ` +
@@ -557,9 +471,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
       )
     }
 
-    // The skip rule above is what stops prod growth from failing a push, and it is also the
-    // way this guard could quietly become a no-op: let the fixture rot long enough and every
-    // entity is skipped, leaving a green test that compares nothing. So the net has a floor.
     const total = Object.keys(expected.investments).length
     const comparable = total - investmentsSkipped
     if (comparable < total / 2) {

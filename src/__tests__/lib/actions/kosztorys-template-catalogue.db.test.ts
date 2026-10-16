@@ -9,8 +9,6 @@ import { DUPLICATE_ERROR } from '@/lib/kosztorys/work-catalogue/write-catalogue-
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// A szablon's prace live in the katalog (EX-1017): the persisted katalog row, not the action's
-// result, is what proves the write went there — and that the row kept its own copy untouched.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

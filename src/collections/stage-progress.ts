@@ -3,8 +3,7 @@ import { isAdminOrOwnerOrManager } from '@/access'
 import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Quantity done of an item in a stage. Sparse — a missing row means 0. The upsert by
-// (item, stage) is done in setStageProgressAction via raw SQL ON CONFLICT.
+// Sparse — a missing row means 0.
 export const StageProgress: CollectionConfig = {
   slug: 'stage-progress',
   labels: {

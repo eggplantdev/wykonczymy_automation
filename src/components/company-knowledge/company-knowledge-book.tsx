@@ -67,7 +67,6 @@ export function CompanyKnowledgeBook({
       : sort === 'recent'
         ? filtered.toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))
         : filtered
-  // A dragged position only means something against the whole list in its own order.
   const canReorder = sort === 'manual' && !isSearching
   const ids = dragOrder ?? sorted.map((entry) => entry.id)
 
@@ -82,8 +81,6 @@ export function CompanyKnowledgeBook({
     const result = await settleAction(call)
     if (result.success) return result
     toastMessage(result.error, 'error', 4000)
-    // Refused because its entry is gone: the list on screen is stale — another manager deleted it —
-    // so the book is reloaded rather than put back with that entry still in it.
     const fresh =
       result.code === 'NOT_FOUND' ? await settleAction(() => fetchCompanyKnowledge()) : null
     setEntries(fresh?.success ? fresh.data : previous)
@@ -129,7 +126,6 @@ export function CompanyKnowledgeBook({
       entries.map((entry) => (entry.id === id ? { ...entry, ...data, updatedAt } : entry)),
       () => updateCompanyKnowledgeAction(id, data),
     )
-    // The typed text comes back with the error, unless the entry it edits no longer exists.
     if (!result.success && result.code !== 'NOT_FOUND') setDraft(draft)
   }
 

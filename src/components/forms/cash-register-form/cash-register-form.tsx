@@ -27,10 +27,8 @@ type CashRegisterFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
-  /** False on the edit dialogs — see `useManagedForm`. */
   persistDraft?: boolean
   workers: WorkerRefT[]
-  /** A kasa with live transactions keeps its owner — the server refuses the change too. */
   isOwnerLocked?: boolean
 }
 
@@ -49,7 +47,7 @@ export function CashRegisterForm({
 }: CashRegisterFormPropsT) {
   // Mirrors what the collection allows a MANAGER to write: the type is forced to AUXILIARY and
   // `active` is admin/owner-only at field level, so showing either would be a control whose value
-  // the server discards. The refusal itself lives server-side in `lib/actions/cash-registers.ts`.
+  // the server discards.
   const canSetTypeAndActive = isAdminOrOwnerRole(useCurrentUser().role)
 
   const { form, reset } = useManagedForm<CashRegisterFormValuesT, CashRegisterFormDataT>({

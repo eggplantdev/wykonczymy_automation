@@ -1,8 +1,7 @@
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
-// Its own module rather than a constant on `investment-action.ts`, which is `server-only`: the
-// transfers gate is a COLLECTION HOOK, so it is pulled into the Payload CLI graph, where
-// `server-only` throws under `payload generate:types`. Both planes refuse in the same sentence.
+// the transfers gate is a COLLECTION HOOK, so it is pulled into the Payload CLI graph, where
+// `server-only` throws under `payload generate:types`.
 export const INVESTMENT_LOCKED_MESSAGE =
   'Inwestycja jest zakończona i tylko do odczytu. Aby ją zmienić, ustaw jej status na „Aktywna".'
 
@@ -13,11 +12,6 @@ export const TEMPLATE_TRASHED_MESSAGE = 'Szablon jest w koszu — przywróć go,
 export const trashedMessageFor = (status: string | null | undefined): string =>
   status === TEMPLATE_INVESTMENT_STATUS ? TEMPLATE_TRASHED_MESSAGE : INVESTMENT_TRASHED_MESSAGE
 
-/**
- * „Zakończona" IS the status lock — the one comparison, spelled once; the trash is the gate's other,
- * non-status reason. Six layers ask it (the panel's access rules, both gates, the editor page, the
- * form's confirmation), so a second locking status would otherwise mean finding six literals.
- */
 export const LOCKED_INVESTMENT_STATUS = 'completed' satisfies InvestmentStatusT
 
 export const isLockedStatus = (status: string | null | undefined): boolean =>
@@ -34,27 +28,13 @@ export const investmentLockOf = (investment: {
   return undefined
 }
 
-/**
- * A szablon is an investment with this status, its kosztorys being the szablon's content. It is NOT
- * locked (its kosztorys is the whole point of it being editable); it simply is not a real
- * investment, so no money may be booked against it.
- */
 export const TEMPLATE_INVESTMENT_STATUS = 'szablon' satisfies InvestmentStatusT
 
-/**
- * What the server accepts a booking on (the real gate is the collection hook) — the transfers table
- * reads it for edit / cancel. Booking pickers offer a narrower set, `isOfferedForBooking`; widening
- * one into the other silently re-offers Wycena or locks its transfers. Deliberately asks ONE
- * question: szablony are excluded upstream by fetchReferenceData, not here, so folding "is a real
- * investment" into this check can't silently leak into a caller that only meant to ask "is bookable".
- */
 export const isBookableInvestment = (investment: { status: string }): boolean =>
   !isLockedStatus(investment.status)
 
-// Owner rulings: Planowana stays (money is booked on planned work, 2026-10-15); Wycena is out pending
-// the owner's decision (EX-1066). A status set, not the ref's `active` flag — widening that flag
-// would leak Planowana into every other „aktywne” picker and count. The server still refuses only
-// Zakończona; this only decides what a booking form offers.
+// A status set, not the ref's `active` flag — widening that flag
+// would leak Planowana into every other „aktywne” picker and count.
 const OFFERED_FOR_BOOKING: Record<InvestmentStatusT, boolean> = {
   quote: false,
   planowana: true,

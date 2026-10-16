@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { DISABLED_ACCOUNT_MESSAGE } from '@/lib/constants/worker-lock'
 
-// Account takeover via a held phone (EX-989): a credential change must cost the current password,
-// and must only ever reach the caller's own row.
-
 vi.mock('server-only', () => ({}))
 const session = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({

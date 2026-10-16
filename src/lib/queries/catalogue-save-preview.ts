@@ -5,8 +5,6 @@ import { catalogueSaveState } from '@/lib/queries/work-catalogue'
 import type { CatalogueSavePreviewT } from '@/lib/kosztorys/work-catalogue/types'
 import type { ActionResultT } from '@/types/action'
 
-// Fetch-on-open for the „Zapisz do katalogu…" dialogs: what would be written, and what is already
-// there under that klucz.
 export async function catalogueSavePreview(
   itemId: number,
 ): Promise<ActionResultT<CatalogueSavePreviewT>> {

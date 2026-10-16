@@ -8,16 +8,9 @@ import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { mapStageSplit } from './kosztorys-tree'
 import type { DbExecutorT } from './get-db'
 
-// The priced `lines` and the due/flag aggregate are the fragments `kosztorys-subcontractor-due.ts`
-// reads, grouped per etap. SQL stops at the etap's pool: dividing it between the etap's workers is
-// `splitStagePool`, applied in `foldWorkerPayoutPairs`, so the pairs and the reference fold in
-// `subcontractor-due.ts` run ONE split rule rather than a TS one and its SQL copy. The DB parity spec
-// (__tests__/lib/db/worker-payout-pairs.test.ts) pins the result to the reference — and Σ pairs to the
-// listing's per-investment „Pozostało do wypłaty", which is the invariant the dialog's rows rely on.
-//
-// Only investments the listing gives a figure to: at least one kosztorys pozycja, not a szablon, not
-// in the kosz. A PAYOUT with no investment is not on any pair — salary, loans and fuel never were
-// kosztorys work.
+// SQL stops at the etap's pool: dividing it between the etap's workers is `splitStagePool`, applied
+// in `foldWorkerPayoutPairs`, so the pairs and the reference fold in `subcontractor-due.ts` run ONE
+// split rule rather than a TS one and its SQL copy.
 
 export async function selectWorkerPayoutPairs(
   db: DbExecutorT,

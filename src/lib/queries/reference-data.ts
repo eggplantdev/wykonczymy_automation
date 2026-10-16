@@ -50,10 +50,7 @@ function splitTrashed<T>(rows: { isTrashed: boolean; ref: T }[]): [live: T[], tr
   return [live, trashed]
 }
 
-// Both caches, because they dedupe on different axes: `unstable_cache` spans requests but re-runs on
-// tag invalidation, while `cache()` collapses calls *within* one render — the page, the transfers
-// table and the nav each call this, so it ran 3× per render (EX-597). Safe only because nothing reads
-// reference data before a mutation in the same request.
+// Safe only because nothing reads reference data before a mutation in the same request.
 export const fetchReferenceData = cache(
   cached(
     async (): Promise<ReferenceDataBaseT> => {
@@ -68,13 +65,6 @@ export const fetchReferenceData = cache(
         FROM cash_registers
         ORDER BY name
       `),
-        // LEFT JOIN so investments without a kosztorys still appear, projecting a boolean rather than
-        // leaking the sheet id into the cache.
-        //
-        // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
-        // investment, and filtering it per-surface had already leaked into the transfers filter
-        // dropdowns and the investments listing. A trashed investment is split off below rather than
-        // dropped: /kosz still opens it read-only, while every listing and picker reads the live half.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
                i.address, i.phone, i.email, i.contact_person, i.review_requested,
@@ -120,8 +110,7 @@ export const fetchReferenceData = cache(
         } satisfies CashRegisterRefT,
       }))
       // Split, not filtered: the list doubles as the name map for transaction rows, and a cancelled
-      // row on a trashed kasa must keep saying which kasa it was. Every picker and listing reads the
-      // live half, so a new consumer cannot forget to hide the trash.
+      // row on a trashed kasa must keep saying which kasa it was.
       const [cashRegisters, trashedCashRegisters] = splitTrashed(cashRegisterRows)
 
       const investmentRows = invResult.rows.map((row) => ({
@@ -202,9 +191,6 @@ export const fetchReferenceData = cache(
 
 type InvestmentNotesMapT = Record<number, InvestmentNotesT>
 
-// Same tag as `fetchReferenceData`, so the two expire together — every notes writer goes through
-// Payload, whose afterChange hook bumps `collection:investments`. Server-only by design: see
-// `InvestmentWithNotesT`.
 export const fetchInvestmentNotes = cache(
   cached(
     async (): Promise<InvestmentNotesMapT> => {

@@ -1,19 +1,3 @@
-// One-off (EX-1017): links existing pozycje to their katalog prac entry
-// (`kosztorys_items.catalogue_item_id`). Every investment is covered — szablony and kosztorysy, live
-// and in the kosz.
-//
-//   node --env-file=.env --import tsx src/scripts/link-kosztorys-items-to-catalogue.ts [--apply]
-//
-// Production, run by a human after `pnpm db:dump` and after the migration adding the column:
-//
-//   DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --import tsx \
-//     src/scripts/link-kosztorys-items-to-catalogue.ts --apply
-//
-// A kosztorys pozycja links on opis + j.m. alone. A szablon row links only when it equals the entry
-// in every katalog field, since a linked szablon row shows the katalog's values — every difference is
-// listed and must be settled in the szablon or the katalog (the szablon wins, owner 2026-10-08)
-// before a re-run. Re-runnable: only rows with no link are read, so a second --apply writes 0.
-//
 // Raw SQL skips the cache tags: flush the szablony and kosztorysy with any edit after an --apply.
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'

@@ -3,9 +3,6 @@ import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
 /**
  * „Ubezpieczyciel · nr polisy" for the polisa currently in force — the first entry, since the history
  * arrives newest-first out of `historyOfType`.
- *
- * Either half may be missing and the label still says something: the przyczepa carries a policy
- * number with no insurer recorded, so joining unconditionally would print a leading separator.
  */
 export const currentPolicyLabel = (
   insuranceHistory: readonly InspectionHistoryEntryT[],

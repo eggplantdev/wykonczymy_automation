@@ -18,7 +18,6 @@ import type { LanguageT } from '@/lib/i18n/languages'
 
 const COLS = `${SUMMARY_NAME_COL} ${SUMMARY_VALUE_COL}`
 
-// An inactive kasa is still listed: it goes to the Kosz with its owner like any other.
 export function OwnedRegistersSection({
   registers,
   balances,

@@ -19,12 +19,6 @@ export type StageBreakdownT = {
   totals: { wholeNet: number; shares: number[] }
 }
 
-/**
- * „Podsumowanie pracowników" one level finer, read off `byStageWorker` — the map `byWorker` sums — so
- * a worker's column total is his „Suma wykonanej pracy" by construction, the unassigned remainder
- * in the `null` column. An etap with nothing executed, or with no rozliczenie, shows nothing to
- * divide and is left out; so is a worker who takes nothing from the etapy that remain.
- */
 export function subcontractorStageBreakdown(
   due: SubcontractorDueByPlaneT,
   stages: KosztorysStageT[],

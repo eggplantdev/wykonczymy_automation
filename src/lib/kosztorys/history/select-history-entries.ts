@@ -4,13 +4,9 @@ import { countChangeRows, differenceSummary } from './change-rows'
 import type { HistoryEntryT, HistoryMetaT, HistoryVersionT } from './types'
 
 /**
- * One version per Warsaw day plus every named one, oldest first. A day's version is its `daily` row;
- * before the investment's first `daily` there are none, and the newest `auto` of the day stands in.
- *
  * From the first `daily` on, `auto` rows are ignored: the night run skips an unchanged day, so a day
  * with no `daily` is a day that ended where the previous one did — and its newest `auto` may be a
- * state from mid-edit that never was the end of anything. Today's `auto` is skipped for the same
- * reason: the day has not ended.
+ * state from mid-edit that never was the end of anything.
  */
 export function selectHistoryCandidates(
   metas: readonly HistoryMetaT[],
@@ -43,12 +39,6 @@ export function selectHistoryCandidates(
   return [...byDay.values(), ...named].sort((a, b) => a.takenAt.getTime() - b.takenAt.getTime())
 }
 
-/**
- * The list the investor reads, newest first. Every entry counts its differences from `current` —
- * the same comparison the version view opens on, so the list never promises a change the view then
- * denies. A day identical to the entry listed before it is left out; a named version always stays,
- * because the owner named it.
- */
 export function buildHistoryEntries(
   candidates: readonly { meta: HistoryMetaT; version: HistoryVersionT }[],
   current: HistoryVersionT,

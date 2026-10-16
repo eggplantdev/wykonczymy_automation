@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Payload and the DB are mocked out: the reject path never reaches them, and the authorized path
-// only needs to prove what the route FORWARDS. The steps themselves are covered against a real DB in
-// their own specs.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
@@ -74,8 +71,6 @@ describe('cron cleanup route', () => {
     expect(getPayload).not.toHaveBeenCalled()
   })
 
-  // The per-band breakdown is the only reading that tells the owner whether a retention change is
-  // behaving on its first night, and it is worth nothing if the route flattens it on the way out.
   it('forwards the per-band retention breakdown on an authorized request', async () => {
     vi.mocked(gcSnapshots).mockResolvedValue({
       deleted: 7,
@@ -99,7 +94,6 @@ describe('cron cleanup route', () => {
       equipmentTrash: EQUIPMENT_TRASH,
       leadTrash: LEAD_TRASH,
     })
-    // The investor's history list is cached; a sweep that removed versions must evict it.
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.kosztorysSnapshots, { expire: 0 })
   })
 

@@ -14,9 +14,6 @@ export const CTX = {
   divergentPriceRowIds: new Set<number>(),
 }
 
-// The client's cena j.m. plus one crew's rate pair — what a price problem on that plane is repaired
-// in. Both planes' columns exist in every view now, so a reveal that named both would answer a
-// question about one crew with the other crew's numbers beside it.
 export const priceCells = (...planes: ('w_tools' | 'own_tools')[]) => [
   'price',
   ...planes.flatMap((plane) => planePriceKeysFor(plane)),

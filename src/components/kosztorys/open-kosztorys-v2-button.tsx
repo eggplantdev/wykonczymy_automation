@@ -8,8 +8,6 @@ type PropsT = {
   size?: 'xs' | 'sm'
 }
 
-// Kosztorys_v2 (the in-app editor) always exists for every investment, so this is a plain
-// "Otwórz" link — no create/empty distinction like the legacy sheet (SheetButton) carries.
 export function OpenKosztorysV2Button({
   investmentId,
   label = 'Otwórz kosztorys_v2',

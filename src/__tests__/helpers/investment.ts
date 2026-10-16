@@ -5,13 +5,9 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import type { Investment } from '@/payload-types'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 
-// Every DB spec needs an investment to hang its rows off, and none of them is asserting anything
-// about the investment itself, so only `name` is spelled out — everything else comes from the
-// collection's own `defaultValue`s and a spec can't pin a stale copy of one (EX-592).
 // `status` / `settlementMode` are the exception — they can't be omitted: Payload's generated create
 // type models neither `defaultValue` nor the draft/non-draft split, so dropping them makes the
-// literal unassignable. `settlementMode` comes from the constant the collection itself defaults to,
-// never a second literal 'NET'.
+// literal unassignable.
 type InvestmentOverridesT = Partial<Omit<Investment, 'id' | 'name' | 'createdAt' | 'updatedAt'>>
 
 // `skipRevalidation` matters: the specs run outside a request scope, where Payload's revalidation
@@ -30,8 +26,6 @@ export async function createTestInvestment(
   return Number(created.id)
 }
 
-// Paired with the create so a spec's teardown can't drift from it — the specs share one database,
-// so an investment left behind is visible to every other spec's queries.
 export async function deleteTestInvestment(payload: Payload, id: number): Promise<void> {
   await payload.delete({
     collection: 'investments',

@@ -23,16 +23,8 @@ export const ERASED_LEAD_FIELDS = {
 }
 
 /**
- * „Usuń na zawsze" for a lead empties the row instead of deleting it. The leads-reconcile cron
- * re-fetches Meta's recent leads and dedupes on (source, externalId); a deleted row would come back
- * the next night as a fresh lead and mail sales again. So the tombstone keeps those two columns and
- * the bookkeeping around them (form, dates, statuses, the inwestycja link) and loses everything that
- * identifies a person.
- *
- * The files go only where nothing else holds them: a lead promoted to an inwestycja shares its media
- * rows with it, and the reference scan is what keeps the inwestycja's gallery intact. Awaited, not
- * deferred — the purge cron calls this outside a request, and the caller's next read must already
- * see the reclaim.
+ * The leads-reconcile cron re-fetches Meta's recent leads and dedupes on (source, externalId); a
+ * deleted row would come back the next night as a fresh lead and mail sales again.
  */
 export async function eraseTrashedLead(
   payload: Payload,

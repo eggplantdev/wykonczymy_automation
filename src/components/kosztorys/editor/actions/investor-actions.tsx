@@ -17,7 +17,6 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
-// Carries an action's own error text past the promise chain, so the toast names what failed.
 class ShareLinkError extends Error {}
 
 export type InvestorActionsT = {
@@ -46,9 +45,8 @@ export function useInvestorActions(): InvestorActionsT {
   const settingsRequest = useLatestRequest()
   const shareRequest = useLatestRequest()
 
-  // Fetch on the click, not inside the dialog: Radix onOpenChange never fires for a programmatic
-  // `open`, so the dialog can't fetch itself. Re-read on every open, so the window never shows a set
-  // that another session has since changed.
+  // Radix onOpenChange never fires for a programmatic
+  // `open`, so the dialog can't fetch itself.
   // Latest-wins: a slow first read landing after a second one would put a stale set back into the
   // dialog — and the next „Zapisz" would write that stale set over what the owner had just saved.
   function readSettings() {
@@ -70,8 +68,6 @@ export function useInvestorActions(): InvestorActionsT {
     readSettings()
   }
 
-  // Same Radix reason as readSettings — and re-reading on each open avoids showing a link that may
-  // have been rotated or revoked elsewhere since last time as though it were still live.
   function requestShare() {
     const isCurrent = shareRequest.start()
     setShareOpen(true)

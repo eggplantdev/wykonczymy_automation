@@ -2,24 +2,6 @@ import { test, expect, type Locator, type Page } from '@playwright/test'
 import { pickComboOption } from './drivers/combo'
 import { waitForHydration } from './support/wait'
 
-// EX-771 — the equipment register's spine: an item is entered, it is handed on, and at every moment
-// the app must be able to answer „gdzie to jest". Three boundaries have to agree for that answer to
-// be right, and none of them is visible from a unit spec:
-//
-//   1. „Dodaj sprzęt" writes the ITEM and its FIRST EVENT in one submit. If the event were lost the
-//      item would be born in the register's alarm state („Nie wiadomo gdzie") — a fresh purchase
-//      whose magazyn was typed in the same dialog that swallowed it.
-//   2. „Przekaż" does not move a row: it appends an event, and the place is a `DISTINCT ON` over the
-//      history. The previous location must therefore go SILENT by itself — nothing deletes it — on
-//      the listing and on the worker's „Na stanie" card, which is the surface a rozliczenie reads.
-//   3. „Edytuj sprzęt" opens on values that made a round trip through a Postgres `Date`. A column
-//      read back as UTC midnight renders as the previous day in Warsaw, which is how an edit that
-//      touched only „Uwagi" used to move the warranty a day back.
-//
-// The „gdzie jest" rule itself (`src/__tests__/lib/db/equipment.db.test.ts`), the filter's
-// option/row grammar (`src/__tests__/components/equipment/where-filter-options.test.ts`) and the
-// warranty buckets (`warranty-digest.test.ts`) are already proven below the browser — this spec
-// asserts only what needs the three boundaries wired together.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 const stamp = Date.now()
@@ -27,8 +9,8 @@ const EQUIPMENT = `Szlifierka E2E ${stamp}`
 const SERIAL = `SN-${stamp}`
 const WAREHOUSE = `Magazyn E2E ${stamp}`
 
-// One row's cell, by the header the owner reads it under. The index comes off the rendered header
-// rather than being pinned: the listing's columns are a per-user visibility setting.
+// The index comes off the rendered header rather than being pinned: the listing's columns are a
+// per-user visibility setting.
 async function equipmentCell(page: Page, rowText: string, header: string): Promise<Locator> {
   const headers = page.locator('table thead th')
   await headers.first().waitFor()
@@ -50,11 +32,8 @@ const infoValue = (page: Page, label: string) =>
     .locator('dd')
 
 /**
- * Pick a day in the CURRENT month of a `FormDatePicker` and return what the trigger then prints.
- *
  * The returned string is the point: the spec never spells the expected date itself, it compares the
- * day the picker committed against the day the edit dialog reopens on. A UTC-midnight shift changes
- * one and not the other, which is exactly risk 3 — and nothing here has to know the pl format.
+ * day the picker committed against the day the edit dialog reopens on.
  */
 async function pickDayOfThisMonth(page: Page, label: string, day: number): Promise<string> {
   const trigger = page.getByLabel(label, { exact: true })
@@ -90,10 +69,8 @@ async function pickFirstWorker(page: Page): Promise<string> {
 test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi poprzednie miejsce', async ({
   page,
 }) => {
-  // Eleven route renders and three server actions — comfortably past the default budget.
   test.slow()
 
-  // --- Dodanie: item + pierwsze zdarzenie w jednym submicie (ryzyko 1) ---
   await page.goto('/sprzet')
   const addTrigger = page.getByRole('button', { name: 'Sprzęt', exact: true })
   await addTrigger.waitFor()
@@ -107,15 +84,13 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   const purchaseDay = await pickDayOfThisMonth(page, 'Data zakupu', 1)
   const warrantyDay = await pickDayOfThisMonth(page, 'Gwarancja do', 28)
 
-  // A magazyn created from inside the form, so the destination cannot be one the dump happens to
-  // carry — a brand-new magazyn holds exactly the item this test puts in it.
+  // A brand-new magazyn holds exactly the item this test puts in it.
   await addDialog.getByRole('button', { name: 'Nowy magazyn' }).click()
   await addDialog.getByPlaceholder('Nazwa magazynu').fill(WAREHOUSE)
   await addDialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(addDialog.getByLabel('Magazyn', { exact: true })).toContainText(WAREHOUSE)
 
   await addDialog.getByRole('button', { name: 'Dodaj', exact: true }).click()
-  // The dialog closes only on a successful action, so this is the submit's own verdict.
   await expect(page.getByRole('dialog')).toHaveCount(0)
 
   await page.getByPlaceholder('Szukaj sprzętu...').fill(EQUIPMENT)
@@ -126,12 +101,8 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   // The alarm state a swallowed first event would produce.
   await expect(listingRow).not.toContainText('Nie wiadomo gdzie')
 
-  // The filter's option and the row's own value are computed apart (`whereFilterOptions` from the
-  // whole dataset, `whereFilterValue` per row); picking the magazyn is what proves they agree.
   await page.getByRole('button', { name: /Gdzie jest/ }).click()
-  // The menu opens with every option ticked — an untouched filter hides nothing — so narrowing it to
-  // one magazyn is „Odznacz wszystkie" and then that option, not a single click. The selection is
-  // debounced and flushed when the panel closes, which is what Escape is for.
+  // The selection is debounced and flushed when the panel closes, which is what Escape is for.
   await page.getByRole('option', { name: 'Odznacz wszystkie', exact: true }).click()
   await page.getByRole('option', { name: WAREHOUSE, exact: true }).click()
   await page.keyboard.press('Escape')
@@ -143,7 +114,6 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   await page.waitForURL(/\/sprzet\/\d+$/)
   await expect(infoValue(page, 'Gdzie jest')).toContainText(WAREHOUSE)
 
-  // --- „Edytuj sprzęt" opens on the same days that were saved (risk 3) ---
   await page.getByRole('button', { name: 'Edytuj sprzęt' }).click()
   const editDialog = page.getByRole('dialog')
   await editDialog.waitFor()
@@ -152,7 +122,6 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 
-  // --- Handover: the new place speaks, the previous one goes silent (risk 2) ---
   await page.getByRole('button', { name: 'Przekaż sprzęt' }).click()
   const transferDialog = page.getByRole('dialog')
   await transferDialog.waitFor()
@@ -167,10 +136,8 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   await page.goto('/sprzet')
   await page.getByPlaceholder('Szukaj sprzętu...').fill(EQUIPMENT)
   await expect(await equipmentCell(page, EQUIPMENT, 'Kto ma')).toContainText(worker)
-  // Nothing deleted the magazyn event — the newer one simply wins the `DISTINCT ON`.
   await expect(await equipmentCell(page, EQUIPMENT, 'Miejsce')).toHaveText('—')
 
-  // The card a rozliczenie (or somebody leaving) is read off.
   await page.goto('/pracownicy')
   await page.locator('table tbody tr').filter({ hasText: worker }).first().click()
   await page.waitForURL(/\/pracownicy\/\d+/)

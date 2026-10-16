@@ -21,8 +21,6 @@ type PropsT = {
   onSelect: (id: string) => void
 }
 
-// The editor's „Problemy" without „Odśwież": nothing on this page holds a fixed praca in place, so
-// there is nothing to release.
 export function CatalogueProblemsMenu({ toggles, onSelect }: PropsT) {
   if (toggles.length === 0) return null
 

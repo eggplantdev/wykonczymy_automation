@@ -12,14 +12,6 @@ import { type SubcontractorCellDataT } from '@/components/kosztorys/editor/grid/
 import { moneyText } from '@/lib/utils/decimal-text'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// The "Cena" column in the subcontractor view. Editable in both modes — a hand-typed price IS „kwota
-// stała", so the keystroke carries the mode with it rather than making the user set „Źródło" first.
-// Clearing it reverts the row to „auto".
-//
-// This is also the one cell carrying the guard's STANDING verdict on a kwota stała: the rule is about
-// the price, and a breach caused from outside these columns — a lowered client price — has to surface
-// without anyone opening them. On „auto" it says nothing, because the author of that figure is the
-// investment's mnożnik, which is judged once in its own field instead of once per pozycja.
 export function SubcontractorPriceCell({
   rowData,
   setRowData,
@@ -36,15 +28,10 @@ export function SubcontractorPriceCell({
   )
 
   const source = priceSourceOf(rowData, view)
-  // A live rejection outranks the standing verdict: it describes the value on screen, which the row
-  // has not accepted.
   const message = isDocument
     ? null
     : (edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null)
 
-  // At „własny mnożnik" the stawka is an OUTPUT — the mnożnik cell authors it. Leaving this one
-  // editable would give one figure two authors, and a keystroke here writes a kwota, which silently
-  // switches the row's source back.
   const body =
     source === 'coeff' ? (
       <ReadOnlyCellText muted danger={message != null}>
@@ -59,10 +46,6 @@ export function SubcontractorPriceCell({
       />
     )
 
-  // Red figure plus the sentence on hover, and nothing else in the box: a glyph beside the number
-  // took width from the input and put the figure on a different height than its neighbours (owner,
-  // 2026-09-01). Only a REFUSAL forces the sentence open — a warning's value was written, so the red
-  // figure carries it until the settle toast names it.
   return (
     <CellTooltip message={message} forceOpen={edit.blockReason != null}>
       {body}

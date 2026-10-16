@@ -1,18 +1,10 @@
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
-// One figure's reconciliation verdict: the kosztorys client-view NET vs the transaction-sourced
-// figure, and whether they disagree. Shared contract — the editor Podsumowanie and the investment
-// page both render off this shape.
-//
-// Both sides are netto. VAT is a client-pricing concept (prace only); the transaction ledger carries
-// no VAT axis, so the check compares net-to-net — grossing the kosztorys side would false-fire by the
-// whole VAT amount (context/reference/kosztorys-editor-domain-notes.md, „VAT dotyczy wyłącznie prac").
+// Both sides are netto — grossing the kosztorys side would false-fire by the whole VAT amount.
 
 export type ReconT = {
-  // Kosztorys side: the client-view net („Suma prac wykonanych" / rabat).
   expected: number
-  // Transaction side: Σ LABOR_COST / Σ RABAT (raw amount — the schema is already netto, no VAT).
   actual: number
   mismatch: boolean
 }
@@ -23,13 +15,9 @@ export type KosztorysReconciliationT = {
 }
 
 type InputT = {
-  // „Suma prac wykonanych" at client prices, pre-rabat (net) — lines up with Σ LABOR_COST.
   laborCostsNetFromKosztorys: number
-  // The client-view rabat (net) — global discount when active, else Σ per-item rabat.
   discountNetFromKosztorys: number
-  // Transaction-sourced robocizna: Σ LABOR_COST on the investment (netto).
   laborCostsNetFromTransactions: number
-  // Transaction-sourced rabat: Σ RABAT on the investment (netto).
   discountNetFromTransactions: number
 }
 
@@ -40,12 +28,6 @@ function reconcile(expected: number, actual: number): ReconT {
   return { expected, actual, mismatch }
 }
 
-/**
- * The scream's tooltip copy, shared by both surfaces (the editor Podsumowanie and the investment page)
- * so the wording can't drift. Format-agnostic: the caller passes its own money formatter — the editor
- * shows kosztorys nets via `formatNet`, the investment page złoty via `formatPLN`. Both figures are
- * netto — the copy says so, so the two surfaces can't be read as comparing different money axes.
- */
 export function reconciliationTooltip(
   recon: ReconT,
   transactionSubject: string,
@@ -59,14 +41,6 @@ export function reconciliationTooltip(
   ].join('\n')
 }
 
-/**
- * Compare the kosztorys client-view figures against the investment's transaction sums, for both
- * robocizna and rabat — net to net. The verification instrument the owner reads before flipping an
- * investment to "populated"; read-only, no writes.
- *
- * A real lib function (not a colocated closure) so the parity test exercises the exact code the
- * surfaces render (`context/foundation/lessons.md`).
- */
 export function buildKosztorysReconciliation({
   laborCostsNetFromKosztorys,
   discountNetFromKosztorys,
@@ -76,15 +50,8 @@ export function buildKosztorysReconciliation({
   const laborCosts = reconcile(laborCostsNetFromKosztorys, laborCostsNetFromTransactions)
   const discount = reconcile(discountNetFromKosztorys, discountNetFromTransactions)
 
-  // Nothing on the transactions plane at all ⇒ nothing to reconcile against. Since EX-555 robocizna
-  // and rabat come from the kosztorys (LABOR_COST / RABAT are bookable again only until EX-712), so an
-  // investment settled through its kosztorys books neither and would otherwise scream forever — an
-  // alarm that fires on everything verifies nothing. The alert exists for the investments that do
-  // carry bookings.
-  //
   // Silenced per INVESTMENT, never per figure: a per-figure rule would mute „robocizna zaksięgowana,
   // rabat nie", which is precisely the gap `showDiscount` (settlement-summary.tsx) forces onto the screen.
-  // Both verdicts go quiet together or neither does.
   const nothingBooked = laborCostsNetFromTransactions === 0 && discountNetFromTransactions === 0
   if (nothingBooked) {
     return {

@@ -4,16 +4,8 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import { bumpInvestmentRevision } from '@/lib/db/investment-revision'
 import type { KosztorysLayoutT } from '@/lib/kosztorys/reorder-layout'
 
-// Refuses anything but a permutation of the sheet as it stands under the lock: a row added or
-// deleted in another tab would otherwise be silently dropped from, or smuggled into, the order.
-// Split from the write so the caller can take its auto snapshot in between — a refused layout must
-// leave no version.
-//
-// Lock order, against the writers it can meet: the investment first, in KEY SHARE, queues this
-// behind a tree replacement or a report acceptance (both take it FOR UPDATE before any row) and
-// still lets a cell save bump the revision. Rows in NO KEY UPDATE, ascending id like display-order.ts
-// (EX-632): FOR UPDATE would also block the KEY SHARE an „Dodaj pracę” insert takes on its section
-// while holding the items, and the two would deadlock.
+// Rows in NO KEY UPDATE: FOR UPDATE would also block the KEY SHARE an „Dodaj pracę” insert takes on
+// its section while holding the items, and the two would deadlock.
 export async function lockAndCheckLayout(
   db: DbExecutorT,
   investmentId: number,

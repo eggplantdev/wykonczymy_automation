@@ -9,7 +9,6 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 beforeEach(() => vi.clearAllMocks())
 
 describe('useFormSubmit — „Zostaw otwarte"', () => {
-  // Staging, offline: the browser's own „Failed to fetch" reached the toast verbatim.
   it('reports a failed request in Polish and keeps the form filled', async () => {
     const onReset = vi.fn()
     const { result } = renderHook(() => useFormSubmit('transfer'))
@@ -31,8 +30,6 @@ describe('useFormSubmit — „Zostaw otwarte"', () => {
   })
 })
 
-// EX-942: a form with no draft holds the only copy of what was typed, so closing before the result
-// lands threw that copy away on a failed save.
 describe('useFormSubmit — awaitBeforeClose', () => {
   it('leaves the dialog open and the form filled when the save fails', async () => {
     const onSubmitSuccess = vi.fn()

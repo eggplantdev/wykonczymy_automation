@@ -1,26 +1,9 @@
-// One-off (EX-394): replace every HEIC media row with a JPEG.
-//
-// HEIC→JPEG conversion (EX-457) is client-side only, so rows uploaded before it — plus the one that
-// came through the edit-transfer hole — still hold raw HEIC. `sharp` here cannot decode HEIC
-// (libvips 8.17.3, heif input is AVIF-only), which is why all of them carry NULL width/height and no
-// thumbnail. Converting outside Node and re-uploading through Payload regenerates all of it.
-//
-//   # staging (preview DB + preview blob store — .env's BLOB_READ_WRITE_TOKEN is already preview)
 //   source .env && DB_POSTGRES_URL="$DB_POSTGRES_URL_PREVIEW" \
 //     node --env-file=.env --import tsx src/scripts/backfill-heic-media.ts --dry-run
 //
-// Production is a different invocation and belongs to a human — see
-// `context/reference/blob-recovery-runbook.md` §5.
-//
-// Flags: --dry-run | --verify | --allow-prod | --force | --snapshot-dir <path> | --limit <n>
-//
-// ROLLBACK is the snapshot dir, and nothing else. Payload's cloud-storage afterChange deletes the
+// Payload's cloud-storage afterChange deletes the
 // PREVIOUS blob before uploading the replacement, so the moment a row is updated its original is
-// gone from the store. Every original is therefore downloaded BEFORE the first update, a failed or
-// short download aborts the whole run, and the manifest is rewritten after every row so an
-// interrupted run still leaves a map of what was already converted.
-//
-// Requires `heif-convert` (libheif) and `magick` (ImageMagick) on PATH: brew install libheif imagemagick
+// gone from the store.
 import { execFile } from 'node:child_process'
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -35,18 +18,12 @@ import { blobPublicUrl, blobStoreIdOf } from '@/lib/media/blob-public-url'
 
 const run = promisify(execFile)
 
-// Mirrors compress-image.ts, which is what the browser applies to every upload today. Do not
-// improvise these — a backfilled invoice should be indistinguishable from a freshly uploaded one.
 const MAX_WIDTH = 1920
 const MAX_HEIGHT = 1080
 const QUALITY = 60
 
-// A slow store must not hang Phase A indefinitely: the Ctrl-C that ends such a stall is exactly the
-// interrupt that would otherwise leave a half-written rollback map.
 const FETCH_TIMEOUT_MS = 60_000
 
-// A declaration, not a `const` arrow: only the former lets tsc treat a call as terminating, which is
-// what keeps every `if (!x) fail(...)` below a narrowing guard rather than a cast at the next use.
 function fail(message: string): never {
   console.error(`\n${message}\n`)
   process.exit(1)
@@ -56,7 +33,6 @@ const arg = (name: string, fallback: string) => {
   const index = process.argv.indexOf(name)
   if (index === -1) return fallback
   const value = process.argv[index + 1]
-  // A flag is never a value: `--limit --verify` must not swallow the next flag as the count.
   if (!value || value.startsWith('--')) fail(`${name} needs a value`)
   return value
 }
@@ -76,7 +52,6 @@ const VALUED_FLAGS = ['--limit', '--snapshot-dir']
 const passedArgs = process.argv.slice(2)
 for (const [index, token] of passedArgs.entries()) {
   if (!token.startsWith('-')) {
-    // A bare token is only ever the value of the flag before it.
     if (VALUED_FLAGS.includes(passedArgs[index - 1] ?? '')) continue
     fail(`unexpected argument: ${token}`)
   }
@@ -87,8 +62,6 @@ const SNAPSHOT_DIR = path.resolve(arg('--snapshot-dir', 'dumps/heic-backfill'))
 // These filenames predate `sanitizeFileName`, so one with a separator would escape the snapshot dir.
 const snapshotFile = (filename: string) => path.join(SNAPSHOT_DIR, path.basename(filename))
 const MANIFEST = path.join(SNAPSHOT_DIR, 'manifest.json')
-// `Number('abc')` is NaN and `NaN > 0` is false, so an unvalidated typo silently converts the whole
-// set instead of the canary. Zero is refused too: "all rows" is the flag's ABSENCE, not a value.
 const LIMIT = has('--limit') ? Number(arg('--limit', '0')) : 0
 if (has('--limit') && (!Number.isInteger(LIMIT) || LIMIT < 1))
   fail('--limit must be a positive integer')
@@ -108,9 +81,7 @@ type ManifestEntryT = {
 
 /**
  * HEIC is not always labelled `image/heic`: Chrome and Firefox often report an empty `File.type`, so
- * `process-upload-file.ts` treats `image/heif` and a bare `.heic`/`.heif` suffix as HEIC too. The
- * selector has to be that wide or the run silently skips rows — and `verify`'s "nothing left" check
- * reuses this very clause, so a narrow selector would report a clean sweep it never made.
+ * `process-upload-file.ts` treats `image/heif` and a bare `.heic`/`.heif` suffix as HEIC too.
  */
 const HEIC_WHERE: Where = {
   or: [
@@ -121,21 +92,11 @@ const HEIC_WHERE: Where = {
   ],
 }
 
-/**
- * `media.url` is relative (runbook §2), so the bytes have to be read from the store directly. A Blob
- * token names its store verbatim, and that store id IS the public host — which keeps this dependency
- * -free and, more usefully, makes it impossible to snapshot one store while updating another.
- */
 function resolveTarget() {
   const token = process.env.BLOB_READ_WRITE_TOKEN
   const store = token ? blobStoreIdOf(token) : undefined
   if (!store) fail('BLOB_READ_WRITE_TOKEN missing or unrecognised — cannot locate the store')
 
-  // The DB is an independent axis from the store, and both are hand-typed on the command line. One
-  // wrong `_PROD` rewrites production rows to filenames whose bytes went to preview: every
-  // backfilled invoice 404s, and the production original is deleted rather than replaced. Recovery
-  // is the snapshot dir only. So the pair is checked, not just the store — the same guard
-  // `scripts/blob-restore.mjs` carries, on the script that deletes as well as writes.
   const dbUrl = process.env.DB_POSTGRES_URL
   if (!dbUrl) fail('DB_POSTGRES_URL missing')
   const prodDbUrl = process.env.DB_POSTGRES_URL_PROD
@@ -162,8 +123,6 @@ function resolveTarget() {
         `Backfilling across that split deletes originals from one store while pointing rows at the other.`,
     )
   }
-  // Allow-list, not deny-list, so an unrecognised token shape lands here rather than being waved
-  // through as "not production".
   if (!isProdStore && store !== PREVIEW_BLOB_STORE_ID) {
     fail(`REFUSING: BLOB_READ_WRITE_TOKEN targets an unrecognised store (${store}).`)
   }
@@ -206,17 +165,15 @@ async function findHeicRows(payload: PayloadT) {
 }
 
 /**
- * The intermediate is PNG, not JPEG: `heif-convert` picks its encoder from the extension, so a `.jpg`
- * intermediate would encode at q100 and `magick` would then re-encode at q60 — two lossy passes where
- * the pipeline promises one.
+ * `heif-convert` picks its encoder from the extension, so a `.jpg`
+ * intermediate would encode at q100 and `magick` would then re-encode at q60
  */
 async function convert(source: string, target: string) {
   const intermediate = path.join(tmpdir(), `heic-backfill-${path.parse(target).name}.png`)
   try {
     await run('heif-convert', ['-q', '100', source, intermediate])
     // `-auto-orient` bakes the EXIF rotation into the pixels; without it a phone photo lands
-    // sideways, because nothing downstream re-reads the orientation tag. `>` resizes only when
-    // oversized.
+    // sideways, because nothing downstream re-reads the orientation tag.
     await run('magick', [
       intermediate,
       '-auto-orient',
@@ -227,7 +184,6 @@ async function convert(source: string, target: string) {
       target,
     ])
   } finally {
-    // A full-resolution q100 decode is 10-20 MB per phone photo; left behind, a run fills tmpdir.
     await rm(intermediate, { force: true })
   }
 }
@@ -257,8 +213,6 @@ async function main() {
     return
   }
 
-  // An existing manifest is a previous run's rollback map. Overwriting it with this run's shorter
-  // one destroys the only record of what that run already converted.
   if (await stat(MANIFEST).catch(() => null)) {
     if (!has('--force')) {
       fail(
@@ -266,7 +220,6 @@ async function main() {
           `Move it aside, point --snapshot-dir elsewhere, or pass --force to set it aside and continue.`,
       )
     }
-    // --force means „proceed", not „destroy the rollback map".
     const archived = MANIFEST.replace(
       /\.json$/,
       `-${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
@@ -295,11 +248,7 @@ async function main() {
       )
     }
     const bytes = Buffer.from(await response.arrayBuffer())
-    // A 200 proves a response arrived, not that it is the file. A truncated snapshot looks complete
-    // and logs a green tick while being worthless as the rollback for a tax-retained faktura.
     if (bytes.length === 0) fail(`ABORT: ${filename} (id=${row.id}) served 0 bytes`)
-    // Gated on a non-null `filesize` the check would vanish for exactly the legacy rows likeliest to
-    // lack one. A row that cannot be proven complete stops the run.
     if (!row.filesize)
       fail(`ABORT: ${filename} (id=${row.id}) has no recorded filesize to verify against`)
     if (bytes.length !== row.filesize) {
@@ -344,10 +293,7 @@ async function main() {
         data: {},
         file: { data: jpeg, mimetype: 'image/jpeg', name: newFilename, size: jpeg.length },
         // media's afterChange calls revalidateTag, which throws outside a request context
-        // ("static generation store missing") and takes the whole transaction down with it. Same
-        // opt-out the seed scripts use. But `lib/queries/media.ts` caches the whole media table under
-        // `['media-all']` with no TTL and cannot be invalidated from here, so every converted invoice
-        // 404s until a redeploy — see `blob-recovery-runbook.md` §5.
+        // ("static generation store missing") and takes the whole transaction down with it.
         context: { skipRevalidation: true },
       })
 
@@ -359,9 +305,9 @@ async function main() {
       entry.error = error instanceof Error ? error.message : String(error)
       // `fail` exits the process, so the `finally` below never runs on this path.
       await rm(target, { force: true })
-      // Stop rather than carry on. A row can fail with Payload having already deleted its original
+      // A row can fail with Payload having already deleted its original
       // (delete-then-upload), so every further row is another possible hole in the store while the
-      // cause is still unknown. The snapshot plus this manifest are what the operator repairs from.
+      // cause is still unknown.
       await writeFile(MANIFEST, JSON.stringify(manifest, null, 2))
       fail(
         `id=${row.id} ${oldFilename}: ${entry.error}\n` +
@@ -373,7 +319,7 @@ async function main() {
     } finally {
       await rm(target, { force: true })
       // Rewritten after every row: an interrupt at row 10 of 18 must still leave a map of the nine
-      // that were converted, or the rollback the header promises does not exist.
+      // that were converted.
       await writeFile(MANIFEST, JSON.stringify(manifest, null, 2))
     }
   }
@@ -407,9 +353,6 @@ async function verify(payload: PayloadT, store: string) {
       if (!doc.width || !doc.height) problems.push('width/height still NULL')
       if (!doc.sizes?.thumbnail?.filename) problems.push('no thumbnail')
 
-      // A green row with a 404 behind it is the failure mode this exists to catch: Payload's
-      // afterChange deletes first and uploads second, so a half-failed update leaves exactly that.
-      // Three bytes settle it, so ask for three.
       const response = await fetchBlob(blobPublicUrl(store, doc.filename as string), {
         headers: { Range: 'bytes=0-2' },
       })
@@ -445,7 +388,7 @@ async function verify(payload: PayloadT, store: string) {
   console.log(`\n${converted.length - failed}/${converted.length} OK`)
 
   // A --limit canary deliberately leaves the rest behind, so the sweep assertion would always fail
-  // it — and the operator needs that canary to come back green before running the whole set.
+  // it.
   let remainingProblem = false
   if (LIMIT === 0) {
     const remaining = await payload.count({ collection: 'media', where: HEIC_WHERE })
@@ -458,8 +401,6 @@ async function verify(payload: PayloadT, store: string) {
   if (failed > 0 || unconverted.length > 0 || remainingProblem) process.exitCode = 1
 }
 
-// Without the catch, a Phase A abort surfaces as an ERR_UNHANDLED_REJECTION stack instead of the
-// operator message the code went to the trouble of writing.
 main()
   .then(() => process.exit(process.exitCode ?? 0))
   .catch((error) => {

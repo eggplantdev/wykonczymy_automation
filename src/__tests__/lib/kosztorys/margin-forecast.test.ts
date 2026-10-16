@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { marginForecastByPlane } from '@/lib/kosztorys/margin-forecast'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 
-// Przedmiar 10 × 20 zl = 200 zl on the client side. The crew carries two hard-coded amounts — 12
-// with tools, 10 without — because the scenario is what has to tell them apart.
 const item: ViewPricingT = {
   id: 1,
   sectionId: 10,
@@ -57,10 +55,6 @@ describe('marginForecastByPlane', () => {
     expect(marginForecastByPlane([derived]).own_tools.subcontractorNet).toBe(110) // 10 × 20 × 0.55
   })
 
-  // Owner's call (2026-08-18): a rabat is not granted up front, so the forecast prices the
-  // przedmiar at the full rate. Routed through rowPlannedNetForView the rabat would trim the client
-  // side alone, and the forecast would grow by exactly the rabat. One case here as the integration
-  // smoke — all three rabat kinds are pinned at the source in `kosztorys-calc.test.ts`.
   it('rabat nie rusza prognozy', () => {
     const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
     expect(marginForecastByPlane([discounted]).w_tools).toEqual(
@@ -68,7 +62,6 @@ describe('marginForecastByPlane', () => {
     )
   })
 
-  // EX-921 ruling: the prognoza prices the offer, so an Aktualizacja przedmiaru never moves it.
   it('Aktualizacja przedmiaru nie rusza prognozy', () => {
     expect(marginForecastByPlane([{ ...item, currentPlannedQty: 15 }])).toEqual(
       marginForecastByPlane([item]),
@@ -91,7 +84,6 @@ describe('marginForecastByPlane', () => {
     })
   })
 
-  // Quantities are never negative — an item with no przedmiar cannot contribute a negative amount.
   it('pozycja bez przedmiaru nic nie wnosi', () => {
     const empty = { ...item, plannedQty: 0 }
     expect(marginForecastByPlane([empty]).w_tools).toEqual({
@@ -101,8 +93,6 @@ describe('marginForecastByPlane', () => {
     })
   })
 
-  // A steep rabat eats the margin at the full price — but that is the actual margin, not the
-  // forecast. This pins that the forecast can only go negative through the crew's rate itself.
   it('stawka podwykonawcy powyżej ceny inwestora daje ujemną prognozę', () => {
     const overpriced = { ...item, wToolsOverrideValue: 25 }
     expect(marginForecastByPlane([overpriced]).w_tools.margin).toBe(-50) // 200 − 250

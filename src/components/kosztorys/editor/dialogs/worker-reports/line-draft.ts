@@ -20,19 +20,15 @@ export type LineDraftT = {
   // Odrzucona — never ticked at the same time. Neither = the line still waits for a decision.
   isRejected: boolean
   qty: string
-  // The pozycja a line is re-pointed to once its own was deleted.
   itemId: number | undefined
   // A rozpiska line whose pozycja is gone, moved to „Spoza rozpiski” to be added to the rozpiska anew.
   isExtra: boolean
   catalogueId: number | undefined
-  // The pozycje the picked katalog praca already sits in. Any at all and the line adds to one of them
-  // instead of minting a second copy of the same praca.
   matchedItemIds: number[]
 }
 
 export type LineGroupT = 'rozpiska' | 'extra'
 
-// What the rozpiska holds for a reported pozycja right now; `undefined` once it was deleted.
 export type ItemFiguresT = {
   stageQty: number
   measuredQty: number
@@ -48,7 +44,6 @@ export function lineGroup(line: Pick<ReportLineT, 'kind'>, draft: LineDraftT): L
   return line.kind === 'extra' || draft.isExtra ? 'extra' : 'rozpiska'
 }
 
-// Resolved as „Ukryj już dodane" resolves it — the remembered entry first, then the klucz.
 export function catalogueSwap(
   entry: Pick<WorkCatalogueItemT, 'id' | 'matchKey'>,
   rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit' | 'catalogueItemId'>[],
@@ -64,7 +59,6 @@ export function catalogueSwap(
   }
 }
 
-// Back in „Spoza rozpiski”, which has no tick to take back.
 export const UNDO_CATALOGUE_SWAP: Partial<LineDraftT> = {
   isTicked: false,
   catalogueId: undefined,
@@ -78,7 +72,6 @@ export function acceptedQty(draft: LineDraftT): number {
   return parsed.kind === 'value' ? parsed.value : 0
 }
 
-// What saving does to the etap: an accepted line moves it only by the difference to what it went in at.
 export function qtyChange(line: Pick<ReportLineT, 'acceptedQty'>, draft: LineDraftT): number {
   return acceptedQty(draft) - (line.acceptedQty ?? 0)
 }
@@ -94,8 +87,6 @@ export function previewQtyChange(
   return qtyChange(line, draft)
 }
 
-// Under the ilość of an accepted line: what saving does to the figure already in the etap. A deleted
-// etap or pozycja took that figure with it, so an untick then clears only the record.
 export function acceptedQtyNote(
   line: Pick<ReportLineT, 'acceptedQty'>,
   draft: LineDraftT,
@@ -114,14 +105,10 @@ export function isLineReady(
 ): boolean {
   if (!draft.isTicked) return true
   if (parseReportQty(draft.qty).kind !== 'value') return false
-  // Its pozycja already exists; only the ilość is still the kierownik's to change.
   if (line.acceptedQty !== undefined) return true
-  // A praca spoza rozpiski is accepted only once it was added to the rozpiska.
   return lineGroup(line, draft) === 'rozpiska' && itemId !== undefined
 }
 
-// A praca spoza rozpiski, or a line the katalog pointed somewhere, takes its pozycja from the draft —
-// never from the report the review was opened on, which „Cofnij podmianę” has since taken it off.
 export function lineItemId(
   line: Pick<ReportLineT, 'kind' | 'itemId'>,
   draft: LineDraftT,
@@ -166,8 +153,6 @@ export function initialDrafts(
               : undefined,
         isExtra: line.kind === 'rozpiska' && line.createdItemId !== undefined,
         catalogueId: line.catalogueItemId,
-        // A praca spoza rozpiski accepted into a pozycja the rozpiska already held, or one its accept
-        // minted — either way it is a rozpiska pozycja now, and reviewed as one.
         matchedItemIds: isLive(line.createdItemId)
           ? [line.createdItemId]
           : line.kind === 'extra' && isLive(line.itemId)
@@ -182,13 +167,10 @@ export function initialDrafts(
 export function partitionLines(lines: ReportLineT[], drafts: Record<number, LineDraftT>) {
   const accepted = lines.filter((line) => line.acceptedQty !== undefined)
   return {
-    // An accepted one too — it is also undone, which takes its ilość back out.
     rejected: lines.filter((line) => !line.isRejected && drafts[line.id].isRejected),
-    // Back to waiting; one ticked instead is simply accepted, which clears its rejection.
     unrejected: lines.filter(
       (line) => line.isRejected && !drafts[line.id].isRejected && !drafts[line.id].isTicked,
     ),
-    // Not yet in an etap — odrzucona too, which can still be przyjęta.
     open: lines.filter((line) => line.acceptedQty === undefined),
     ticked: lines.filter((line) => line.acceptedQty === undefined && drafts[line.id].isTicked),
     accepted,
@@ -199,8 +181,6 @@ export function partitionLines(lines: ReportLineT[], drafts: Record<number, Line
   }
 }
 
-// Read off the drafts, not the saved report: the footer sits beside „Zapisz zmiany” and has to
-// say what that save produces. The report stays do sprawdzenia until every line is decided.
 export function decisionSummary(lines: ReportLineT[], drafts: Record<number, LineDraftT>) {
   const acceptedCount = lines.filter((line) => drafts[line.id].isTicked).length
   const decidedCount = lines.filter(
@@ -215,8 +195,6 @@ export function decisionSummary(lines: ReportLineT[], drafts: Record<number, Lin
 
 export type StageCellT = { itemId: number; stageId: number }
 
-// A first accept goes to the chosen etap; a change or an untick moves the etap the report already
-// went to. `cells` are the existing ones the save moves, for the editor to quiet first.
 export function buildAccept(
   report: Pick<WorkerReportT, 'id' | 'investmentId' | 'lines' | 'target'>,
   drafts: Record<number, LineDraftT>,

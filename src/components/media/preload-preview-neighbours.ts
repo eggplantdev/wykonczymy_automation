@@ -3,19 +3,12 @@ import { preload } from 'react-dom'
 import { isImageMime, isPdfMime } from '@/lib/media/mime'
 import type { PreviewFileT } from '@/types/media'
 
-// Forward first: paging on is the common direction, and preloads start in this order.
 const NEIGHBOUR_OFFSETS = [1, 2, 3, -1] as const
 
 type PreviewImageOptionsT = { sizes: string; unoptimized?: boolean }
 
 /**
- * Starts the downloads of the pages around the active one, so the next click paints from cache
- * instead of waiting out a cold round-trip through `/api/media/file` (0.5–0.7 s TTFB on prod,
- * 2026-10-15). One path for both kinds because a PDF has no `<Image>` to carry a `preload` prop.
  * Called during render — `preload` dedupes by URL, so a re-render costs nothing.
- *
- * A PDF neighbour is the whole file, on a phone too: the owner accepted that bandwidth for the
- * instant page turn.
  */
 export function preloadPreviewNeighbours(
   files: PreviewFileT[],

@@ -14,12 +14,8 @@ import { logError } from '@/lib/utils/log-error'
 import { perfStart } from '@/lib/perf'
 
 export type FetchFilteredTransfersOptsT = {
-  /** Skip resolving invoice media for callers that never render it. */
   skipMedia?: boolean
-  /** The printout passes the screen's own key here so the two cannot disagree. Re-validated against
-   * the same whitelist the pages use, because this is a client-callable channel. */
   sort?: string
-  /** Replaces the table's own Od/Do. Both bounds are re-validated: this is a client-callable channel. */
   range?: ClosedDateRangeT
 }
 

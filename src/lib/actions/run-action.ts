@@ -30,9 +30,6 @@ export function validateAction<TData>(
 type RevalidateT = (keyof typeof CACHE_TAGS)[]
 type RevalidateOptsT = { deferRefresh?: boolean; entityTags?: string[] }
 
-/**
- * Exported for `tokenAction`, whose caller is a token rather than a session; not an action wrapper on its own.
- */
 export async function runAuthorizedHandler<TData>(
   label: string,
   handler: (payload: Payload) => Promise<ActionResultT<TData>>,
@@ -65,13 +62,6 @@ export async function runAuthorizedHandler<TData>(
   }
 }
 
-/**
- * Auth + payload + try/catch + perf + revalidation wrapper for actions.
- *
- * `entityTags` is the per-row alternative to the collection list: an action that touches exactly one
- * row can expire that row's readers (`entityTag('investment', id)`) instead of every reader of the
- * collection. Both are applied when both are given.
- */
 export async function protectedAction<TData = undefined>(
   label: string,
   handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
@@ -81,10 +71,6 @@ export async function protectedAction<TData = undefined>(
   return authorizedAction(MANAGEMENT_ROLES, label, handler, revalidate, opts)
 }
 
-/**
- * `protectedAction` open to every role — so the handler must scope the work to `ctx.user` itself and
- * never take whose data it is as an argument.
- */
 export async function sessionAction<TData = undefined>(
   label: string,
   handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,

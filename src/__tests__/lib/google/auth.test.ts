@@ -10,9 +10,8 @@ beforeEach(() => {
   setGoogleCredentialEnv()
 })
 
-// The two addresses must never collapse into one. Every „udostępnij jako Edytujący" surface renders
-// what this returns, so handing back the Viewer address would have an owner grant Editor to the
-// credential every laptop and every preview deploy carries — reopening the gate one sheet at a time.
+// Every „udostępnij jako Edytujący" surface renders what this returns, so handing back the Viewer
+// address would have an owner grant Editor to the credential every laptop and every preview deploy carries.
 describe('writeServiceAccountEmail', () => {
   it('names the Editor account, not the Viewer one the app reads with', async () => {
     const { writeServiceAccountEmail } = await import('@/lib/google/auth')

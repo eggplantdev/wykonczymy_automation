@@ -55,8 +55,6 @@ describe('per-stage columns — one name, three headers', () => {
   })
 })
 
-// The columns are keyed by stage id, so a deletion must take exactly one etap's three columns and
-// leave every neighbour's name where it was.
 describe('per-stage columns — an etap is deleted', () => {
   it('takes all three of its columns and leaves the survivor’s names alone', () => {
     const stages = [stage(DEMOLITION, 1, 'Rozbiórki'), stage(PAINTING, 2, 'Malowanie')]

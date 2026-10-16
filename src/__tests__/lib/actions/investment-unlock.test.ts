@@ -6,11 +6,7 @@ import { createTestInvestment } from '@/__tests__/helpers/investment'
 import type { InvestmentFormDataT } from '@/components/forms/investment-form/investment-schema'
 
 // The unit spec on `guardInvestmentStatusUnlock` hands the hook a `req.user` and so can never see
-// whether the real route supplies one. It didn't: `updateInvestmentAction` called `payload.update`
-// with neither `user` nor `req`, Payload's `createLocalReq` set `req.user = null`, and the guard
-// refused the unlock for OWNER too — the lock was a one-way door with no key. So the assertion here
-// has to be the PERSISTED status after the action, driven through the action the form actually
-// calls, with the role coming from the session the way it does in production.
+// whether the real route supplies one.
 const authState = vi.hoisted(() => ({ userId: 0, role: 'OWNER' as string }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -109,7 +105,6 @@ describe.skipIf(!ENV_READY)('reopening a completed investment (DB)', () => {
     expect(await statusOf(id)).toBe('completed')
   })
 
-  // The kartoteka stays open to everyone — the lock is on money, not on the client's phone number.
   it('lets a MANAGER edit a completed investment as long as the status stays put', async () => {
     authState.role = 'MANAGER'
     const { id, name } = await completedFixture()

@@ -46,9 +46,7 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   const original = originalDoc as TransferData | undefined
 
   // Falls back to the stored row: a PATCH of one field carries no `type`, and an empty one would
-  // route a netto row down the else-branch and null its netAmount — likewise every relational field
-  // the required-checks read. Keyed on PRESENCE, not truthiness: an explicit `null` is a CLEAR (the
-  // admin panel saves the whole document) and must reach those checks as the empty value it is.
+  // route a netto row down the else-branch and null its netAmount.
   const resolved = <K extends keyof TransferData>(field: K) =>
     field in d ? d[field] : original?.[field]
 
@@ -62,9 +60,8 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   const vatPlane = resolved('vatPlane')
   const paymentMethod = resolved('paymentMethod')
 
-  // Only the worker's raw-SQL decision moves a status. A Local API update runs with overrideAccess and
+  // A Local API update runs with overrideAccess and
   // skips the fields' `access.update`, so an edit carrying the stored doc back must not reach them.
-  // Above every early return: a CANCELLATION is a create too.
   if (operation === 'create') {
     d.payoutStatus = carriesPayoutStatus(type) ? 'pending' : null
     d.payoutDecidedAt = null
@@ -75,38 +72,27 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     delete d.payoutRejectionReason
   }
 
-  // Above BOTH early returns, or anulowanie leaks through the second one. Every write that moves money
-  // passes this hook — the one raw-SQL writer is the worker's payout decision, which touches only the
-  // status columns — so unlike the kosztorys this IS the complete gate. Covers both sides of a move:
-  // booking ONTO a locked investment and lifting a row OFF one.
+  // Above BOTH early returns, or anulowanie leaks through the second one.
   const target = resolveId(resolved('investment'))
   const previous = resolveId(original?.investment)
-  // The one write that stays open on a locked investment. Keyed on the VALUES that differ from the
-  // stored row — an empty array is a legitimate removal of every page.
   const invoiceOnly = isInvoiceOnlyPatch(d, original)
   if (!invoiceOnly) {
     const db = await getDb(req.payload, req)
     for (const id of previous === target ? [target] : [target, previous]) {
-      // APIError, not Error: routeError rewrites the message of anything it can't prove public, so
-      // a bare throw reaches `/admin` and REST as „Something went wrong" with a 500.
       const lockMessage = id === undefined ? undefined : await investmentLockMessage(db, id)
       if (lockMessage) throw new APIError(lockMessage, 403)
     }
   }
 
-  // CANCELLATION rows skip all normal validation — relational fields are null
   if (type === 'CANCELLATION') {
-    // `resolved`, like every other field above: a REST PATCH on an EXISTING anulowanie carries only
+    // a REST PATCH on an EXISTING anulowanie carries only
     // the keys it changes, and reading this one off `d` would refuse the write for a field the row
-    // has carried since it was created. (A Local API update is unaffected — Payload merges the
-    // stored doc into `data` first, which is why `invoice-on-cancellation.db.test.ts` is green
-    // either way.)
+    // has carried since it was created.
     if (!resolved('cancelledTransaction')) {
       throw new APIError('Cancelled transaction reference is required.', 400)
     }
-    // The one field the early return may NOT wave through: sumRegisterBalance has no
-    // CANCELLATION arm, so a register smuggled in here (REST / Local API — the admin
-    // panel no longer offers the picker) lands in `ELSE -amount` and drains it forever.
+    // sumRegisterBalance has no
+    // CANCELLATION arm, so a register smuggled in here lands in `ELSE -amount` and drains it forever.
     d.sourceRegister = null
     return d
   }
@@ -115,10 +101,6 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     return d
   }
 
-  // Below both early returns, unlike the investment lock: a cancelled row is the only kind that can
-  // still name a trashed kasa, and it must stay cancellable and invoice-attachable. Only a kasa this
-  // write NEWLY names is checked, so an edit of an older row is not refused over its unchanged kasa.
-  // The worker follows the same rule.
   const newlyNamed = (next: unknown, stored: unknown): number[] => {
     const id = resolveId(next)
     return id !== undefined && (operation === 'create' || id !== resolveId(stored)) ? [id] : []
@@ -133,10 +115,6 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
 
   const errors: string[] = []
 
-  // Write-once: moving a booked plane or netto rewrites a bilans the client has already seen, and
-  // that correction is anuluj i zaksięguj na nowo. null → value stays open, since a legacy row
-  // rewrites nothing. Here rather than at the fields' `access.update`, which a Local API write
-  // skips. Read BEFORE the normalisation below, which nulls both fields after a type change.
   if (operation === 'update') {
     for (const field of ['vatPlane', 'netAmount'] as const) {
       const booked = original?.[field]
@@ -146,7 +124,6 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     }
   }
 
-  // CORRECTION must be negative (invoice credits); every other type must be positive.
   if (d.amount !== undefined && d.amount !== null) {
     const amountErr = getAmountError(d.amount, type)
     if (amountErr) errors.push(amountErr)
@@ -164,10 +141,6 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     errors.push('Investment is required for this transfer type.')
   }
 
-  // Two reasons, one rule. For OTHER / REGISTER_TRANSFER the investment is invisible: deriveFinancials
-  // buckets by type, so the row lands in no bucket. For the two company deposits it is worse — they DO
-  // bucket as income, so an investment would raise its bilans with company-level cash (EX-557). The
-  // forms hide the field, so only the API or a script can plant one.
   if (!showsInvestment(type)) {
     d.investment = null
   }
@@ -192,14 +165,11 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     d.worker = null
   }
 
-  // Cleared for every other type so the admin panel / API can't persist a stray flag the reporting
-  // layer would mis-bucket.
   if (!canBeSettled(type)) {
     d.settled = false
   }
 
-  // Load-bearing only on the type billed at netto and a wpłata brutto; every other row stores null.
-  // The rule itself lives once in getNetAmountError. The numerics stay on `??` rather than
+  // The numerics stay on `??` rather than
   // `resolved()`: a money field has no "cleared" state, so an explicit null is an absence the stored
   // row must fill, not an erasure to validate against.
   if (carriesNetAmount(type, vatPlane)) {
@@ -218,8 +188,7 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     d.vatPlane = null
   }
 
-  // Nulled here so the transfers filter can be trusted whatever wrote the row. Gated on presence,
-  // unlike every strip above, because legacy rows legitimately hold a value the rule now forbids (the
+  // Gated on presence because legacy rows legitimately hold a value the rule now forbids (the
   // migration did not backfill them) and an unconditional null would rewrite history.
   if (carriesPaymentMethod(type)) {
     if (!paymentMethod) errors.push('Payment method is required for this transfer type.')
@@ -233,7 +202,6 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
 
   if (errors.length > 0) {
     console.log('[validateTransfer] Validation failed:', errors)
-    // APIError for the reason spelled out at the lock above.
     throw new APIError(errors.join(' '), 400)
   }
 

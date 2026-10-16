@@ -7,8 +7,6 @@ import {
 import { priceSourceOf } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// Tylko para kolumn cenowych gra rolę w tym, która komórka może pisać — reszta wiersza jest wypełniona
-// do typu, nie do testu.
 const row = (overrides: Partial<KosztorysV2RowT>): KosztorysV2RowT =>
   ({
     id: 1,
@@ -24,14 +22,12 @@ const coeffCell = subcontractorCoeffColumn('w_tools', null)
 const priceCell = subcontractorPriceColumn('w_tools', null)
 
 // Reguła, którą react-datasheet-grid stosuje przed KAŻDYM zapisem — Delete (DataSheetGrid.js:377),
-// wklejaniem (:515) i wejściem w edycję (:1036). Odtworzona tu, bo to ona jest zachowaniem, a nie
-// `deleteValue` samo w sobie.
+// wklejaniem (:515) i wejściem w edycję (:1036).
 const writable = (column: Column<KosztorysV2RowT>, rowData: KosztorysV2RowT) =>
   !(typeof column.disabled === 'function'
     ? column.disabled({ rowData, rowIndex: 0 })
     : column.disabled)
 
-// Zapis tak, jak go widzi siatka: skasowanie zaznaczenia obejmującego tę komórkę.
 const del = (column: Column<KosztorysV2RowT>, rowData: KosztorysV2RowT) =>
   writable(column, rowData) ? (column.deleteValue?.({ rowData, rowIndex: 0 }) ?? rowData) : rowData
 

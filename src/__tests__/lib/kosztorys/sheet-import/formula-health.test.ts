@@ -30,8 +30,6 @@ describe('scanFormulaHealth', () => {
     expect(scan({}).totalRows).toBe(3)
   })
 
-  // Counted but never sampled (owner, 2026-08-14): on a blank offer sheet this is the normal state
-  // of every row, so a row list would send the owner hunting through prace that are not wrong.
   it('counts a Pomiar copied straight from Przedmiar without listing the rows', () => {
     const health = scan({ 4: { O: '=N5' } })
 
@@ -41,14 +39,10 @@ describe('scanFormulaHealth', () => {
   })
 
   it('leaves the sheet’s own Σ etapów alone', () => {
-    // `=SUM(D:M)` is the canonical shape of a blank offer sheet. Reporting it would flag every row
-    // of every sheet and teach the owner to ignore the whole block.
     expect(scan({ 4: { O: '=SUM(D5:M5)' } }).measuredCopiedFromPlanned).toBe(0)
   })
 
   it('lists a punctual row even when the collective class fills the sheet above it', () => {
-    // The bug this splits the buckets for: a shared cap filled in row order let 241 mass-class rows
-    // exhaust it before the 7 actionable ones were reached.
     const health = scan({ 4: { O: '=N5' }, 5: { O: '=N6' }, 7: { N: '=D8' } })
 
     expect(health.measuredCopiedFromPlanned).toBe(2)
@@ -69,8 +63,6 @@ describe('scanFormulaHealth', () => {
   })
 
   it('leaves hand-typed arithmetic alone in both columns', () => {
-    // Both taken from the anomaly scan of the owner's sheet: the owner adding up two measurements
-    // by hand is work, not a broken formula.
     expect(scan({ 4: { N: '=219,25+21,75' }, 5: { F: '=600-70-60' } })).toMatchObject({
       plannedReadFromStage: 0,
       measuredCopiedFromPlanned: 0,
@@ -78,7 +70,6 @@ describe('scanFormulaHealth', () => {
   })
 
   it('reports an error value the unformatted read hands over as a string', () => {
-    // `#REF!` arrives as a string and `Number('#REF!') || 0` silently prices the praca at zero.
     const broken = BIALOSTOCKA_ROWS.map((cells) => [...cells])
     broken[4][col('Q')] = '#REF!'
 

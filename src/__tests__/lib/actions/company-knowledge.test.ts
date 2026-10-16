@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Asserted on what reached Payload and the DB, not on the returned message: a refusal is only real
-// if nothing was written. The session is mocked rather than `requireAuth`, so the role gate under
+// The session is mocked rather than `requireAuth`, so the role gate under
 // test is the real one.
 vi.mock('server-only', () => ({}))
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))

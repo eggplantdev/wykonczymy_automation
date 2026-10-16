@@ -29,10 +29,8 @@ export type InvestmentRefT = ReferenceItemT & {
   hasSheet: boolean
   aiStage: InvestmentAiStageT | null
   createdAt: string
-  // The materiały concession is gated on the settlement mode, so a reader that has one without the
-  // other cannot compute it (null rate = no concession); VAT rides the prace alone and turns
-  // „Bilans netto" into „Bilans brutto". `vatRate` is non-null because the read applies DEFAULT_VAT —
-  // a null here would make the brutto column NaN.
+  // `vatRate` is non-null because the read applies DEFAULT_VAT — a null here would make the brutto
+  // column NaN.
   materialsNetRate: number | null
   settlementMode: SettlementModeT
   vatRate: number
@@ -43,9 +41,8 @@ export type InvestmentNotesT = {
   aiNotes: string
 }
 
-// Kept off `InvestmentRefT` because reference data crosses into the browser on every management
-// render (~111 KB of notes). The edit dialog takes this type, not the slim one: it sends every field
-// back, so a ref with blank notes would overwrite the real ones.
+// The edit dialog takes this type, not the slim one: it sends every field back, so a ref with blank
+// notes would overwrite the real ones.
 export type InvestmentWithNotesT = InvestmentRefT & InvestmentNotesT
 
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
@@ -67,13 +64,10 @@ export type ExpenseCategoryRefT = {
 
 export type ReferenceDataBaseT = {
   cashRegisters: CashRegisterRefT[]
-  /** For naming a trashed kasa on its old transaction rows only — never a picker or listing. */
   trashedCashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
-  /** Only for opening a trashed investment read-only from /kosz — never a picker or listing. */
   trashedInvestments: InvestmentRefT[]
   workers: WorkerRefT[]
-  /** For naming a trashed worker on old rows only — never a picker or listing. */
   trashedWorkers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
   expenseCategories: ExpenseCategoryRefT[]

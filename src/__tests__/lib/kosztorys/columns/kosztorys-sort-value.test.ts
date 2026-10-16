@@ -10,9 +10,6 @@ import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tre
 
 // Two rows whose COMPUTED figures order differently from their raw fields, so a test that passes
 // can only pass because the computed value was actually resolved — not because input order survived.
-//
-// Item 1 (id 1): big przedmiar, tiny stage sum, a 10% rabat → high plannedNet/remaining, low net.
-// Item 2 (id 2): tiny przedmiar, stage sum OVER przedmiar, no rabat → high net, negative remaining.
 const tree: KosztorysTreeT = makeTree({
   sections: [
     {
@@ -82,8 +79,6 @@ const idsSortedBy = (field: string) =>
   sortRows(rows, sortValueGetter(field, 'client', tree.stages), 'desc').map((r) => r.id)
 
 describe('sortValueGetter — computed money/percent columns actually sort (EX-487)', () => {
-  // Every one of these is a computed column, not a KosztorysV2RowT field: before the fix each
-  // resolved to '' for all rows and the sort was a silent no-op, leaving input order [1, 2].
   it.each([
     ['net', [2, 1]], // executed value: B 400 > A 90
     ['gross', [2, 1]], // net × VAT — same order as net
@@ -122,10 +117,6 @@ describe('reconcileSort — a sort whose column has left the grid is dropped (EX
   })
 })
 
-// A second fixture for the keys the EX-487 rows cannot reach: two PLANED etapy (the one above has
-// `plane: null`, which belongs to neither subcontractor view), both źródła on both planes,
-// a comment on some rows only, and a cleared „Przedmiar".
-//
 // The subcontractor rows are deliberately ordered OPPOSITELY across the two planes — reading the
 // wrong plane is the one mistake here that a same-order fixture would let pass.
 const planeTree: KosztorysTreeT = makeTree({
@@ -193,15 +184,11 @@ describe('sortValueGetter — the columns that used to opt out of sorting', () =
   })
 
   it('sorts by a stage value column at the client price', () => {
-    // Every etap counts in the client view, so the denominator is 5/6/4 — A's „amount" rabat is
-    // spread across its etapy, not charged to each.
     expect(sortValueGetter(stageValueNetKey(100), 'client', planeTree.stages)(planeRow(1))).toBe(80)
     expect(planeIdsSortedBy(stageValueNetKey(100), 'client')).toEqual([2, 1, 3]) // 300 > 80 > 20
   })
 
   it('prices a stage value column against the SUBCONTRACTOR plane, not the client one', () => {
-    // In `w_tools` only etap 100 is that crew's, so both the price and the denominator change —
-    // which flips the order the client view gives.
     expect(planeIdsSortedBy(stageValueNetKey(100), 'w_tools')).toEqual([3, 2, 1]) // 1000 > 900 > 65
   })
 
@@ -213,8 +200,6 @@ describe('sortValueGetter — the columns that used to opt out of sorting', () =
   })
 
   it('has no value for an etap the plane does not price', () => {
-    // Etap 200 is own_tools: in `w_tools` its column is not assembled at all, and its wartość is not
-    // this crew's to sort by — the same „—" answer as an etap that no longer exists.
     expect(
       sortValueGetter(stageValueNetKey(200), 'w_tools', planeTree.stages)(planeRow(1)),
     ).toBeNull()
@@ -235,9 +220,6 @@ describe('sortValueGetter — the columns that used to opt out of sorting', () =
     ])
   })
 
-  // The whole point of assembling both planes: the two crews' rates readable side by side in the
-  // widok Inwestora. The id decides which plane a rate column speaks for, not the active view, so
-  // each column sorts identically whichever view it is read from.
   it("sorts a crew's rate columns the same in every view, because the plane is in the id", () => {
     for (const plane of ['w_tools', 'own_tools'] as const) {
       for (const base of ['price', 'priceMode'] as const) {
@@ -304,9 +286,6 @@ describe('sortValueGetter — trzy źródła stawki wykonawcy', () => {
   })
 
   it('sortuje „Mnożnik" po liczbie, którą widać w komórce — także mnożnik inwestycji', () => {
-    // Malejąco, bo to kierunek, w którym „brak" musi wylądować na dole mimo braku liczby. Wiersz
-    // „auto" pokazuje mnożnik inwestycji (0,65) i sortuje się nad własnym 0,4 — sortowanie po
-    // samym własnym mnożniku wpychało go pod niego.
     expect(sourceIdsSortedBy(planePriceKey('priceCoeff', 'w_tools'), 'desc')).toEqual([1, 2, 3])
   })
 })
@@ -318,16 +297,12 @@ describe('sortValueGetter — an empty cell is an absence, not a key', () => {
   })
 
   it('keeps a numeric column numeric when one of its cells is cleared', () => {
-    // With `?? ''` the empty cell put a string next to numbers, dropping the WHOLE column into
-    // localeCompare — „9" then sorted above „10".
     expect(planeIdsSortedBy('plannedQty', 'client')).toEqual([1, 3, 2])
   })
 })
 
-// The owner's 2026-09-23 ruling shows the przedmiar figures in the crew views too, always read at the
-// client price over the whole offered scope — and their cells do. `planeTree` orders rows 1 and 3
-// oppositely at the client price and at a crew's stawka, and splits the pomiar across both crews'
-// etapy, so a sort still reading the active view cannot pass.
+// `planeTree` orders rows 1 and 3 oppositely at the client price and at a crew's stawka, and splits
+// the pomiar across both crews' etapy, so a sort still reading the active view cannot pass.
 describe('sortValueGetter — przedmiar figures sort by the client reading in every view (EX-894)', () => {
   const clientPinned = ['plannedNet', 'plannedGross', 'donePercent', 'remaining', 'remainingGross']
 

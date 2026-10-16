@@ -32,8 +32,6 @@ type FormValuesT = {
   rows: RowValueT[]
 }
 
-// A nadpłata row starts unticked and empty: paying more into a pair already paid past its work is a
-// deliberate zaliczka, never a default.
 function prefill(rows: SettleRowT[]): RowValueT[] {
   return rows.map((row) =>
     row.state === 'payable'
@@ -58,24 +56,16 @@ function carryOver(fresh: SettleRowT[], previous: SettleRowT[], values: RowValue
 
 type SettlePayoutsFormPropsT = {
   initialRows: SettleRowT[]
-  /** Re-reads the rows after the action refused a batch built on figures that have since moved. */
   reloadRows: () => Promise<SettleRowT[]>
   cashRegisters: CashRegisterRefT[]
   defaultCashRegisterId: number | undefined
   defaultRegisterBalance: number | undefined
-  /** Header of the label column — the other side of the pair from the dialog's target. */
   labelHeader: string
-  /** Where a row's label leads, when the other side of the pair has a page worth checking. */
   labelHref?: (row: SettleRowT) => string
-  /** Both names of a row's pair — one side is the dialog's target, the other the row's label. */
   pairNames: (row: SettleRowT) => { worker: string; investment: string }
   onSubmitSuccess: () => void
 }
 
-/**
- * Awaits the action: a refusal here is routine (the figures moved while the dialog was open) and has
- * to land in the open dialog with the fresh figures, not in a toast after it closed.
- */
 export function SettlePayoutsForm({
   initialRows,
   reloadRows,
@@ -140,7 +130,6 @@ export function SettlePayoutsForm({
       if ('stale' in result && result.stale) {
         toastMessage(result.error, 'warning', 5000)
         await reload(prefill)
-        // Other payouts moved the figures, so they likely moved the kasa too.
         fetchRegisterBalance(form.getFieldValue('sourceRegister'))
         return
       }
@@ -165,7 +154,6 @@ export function SettlePayoutsForm({
     form.setFieldValue('rows', valuesFor(fresh))
   }
 
-  // The dialog stays open: the premia settles one pair, and the rest are still to be paid.
   async function bookBonus(row: SettleRowT) {
     const { workerId } = row
     if (workerId === null) return

@@ -45,7 +45,6 @@ describe('sectionPieSlices', () => {
     }))
     const slices = sectionPieSlices(many, 'planned')
     expect(slices[0].fill).toBe(CHART_FILLS[0])
-    // Wraps around after the palette is exhausted.
     expect(slices[CHART_FILLS.length].fill).toBe(CHART_FILLS[0])
   })
 

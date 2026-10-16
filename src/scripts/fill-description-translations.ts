@@ -1,23 +1,5 @@
-// Re-runnable: fills the empty opis translations of the katalog and of the pozycje of open
-// investments (szablony included) from a hand-made table in `data/`.
-//
-//   node --env-file=.env --import tsx src/scripts/fill-description-translations.ts export --lang uk \
-//     > /tmp/untranslated-uk.json
-//   node --env-file=.env --import tsx src/scripts/fill-description-translations.ts \
-//     import src/scripts/data/description-translations-uk.tsv --lang uk [--apply]
-//
-// Production, run by a human after `pnpm db:dump`, naming the database at the call site:
-//
-//   DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --import tsx \
-//     src/scripts/fill-description-translations.ts import <file> --lang uk --apply
-//
-// The table is `<opis po polsku>\t<tłumaczenie>` per line, matched on the exact trimmed Polish text.
-// Only an EMPTY translation is filled — one typed in the app is never overwritten — so a second
-// --apply fills 0. Without --apply nothing is written.
-//
 // Raw SQL skips the cache tags: after an --apply the katalog and the rozpiski keep serving the old
-// texts until their tags expire. Flush them with a katalog edit and a rozpiska edit of any cell but
-// a tłumaczenie — that one writes back the whole stale map the grid holds.
+// texts until their tags expire.
 import { readFileSync } from 'node:fs'
 import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'

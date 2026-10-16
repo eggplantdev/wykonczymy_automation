@@ -14,7 +14,6 @@ import { fetchPayoutTransactionsForInvestment } from '@/lib/queries/investment-t
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import type { ReportShareT } from '@/lib/db/worker-report-share'
 
-// The cached half: everything but the settings, which are attached per request below.
 type WorkerKosztorysCoreT =
   | (Omit<Extract<WorkerKosztorysT, { kind: 'ready' }>, 'worker'> & {
       worker: Omit<WorkerAudienceT, 'settings'>
@@ -33,14 +32,7 @@ const WORKER_KOSZTORYS_TAGS = [
 ]
 
 /**
- * The one projection the link, the owner's Podgląd and the PDF all render, so the three cannot
- * drift. Unexported and authorization-free, like the investor's builder: the only ways in are the
- * guarded entrances below.
- *
- * Scoping happens here, on data: the tree leaves with the worker's etapy only, so the grid's sums,
- * the empty-rows rule and the summary are his by construction rather than by a render flag someone
- * can forget. A blocked scope leaves with its reason and no tree — a page that cannot price the
- * work must not be handed the prices.
+ * Unexported and authorization-free: the only ways in are the guarded entrances below.
  */
 async function buildWorkerKosztorysData(
   investmentId: number,
@@ -126,8 +118,7 @@ async function withWorkerSettings(
 }
 
 /**
- * The report link's projection, for a share the caller already read by its token. Not filtered by
- * trash — the report page explains a closed investment instead of 404ing.
+ * Not filtered by trash — the report page explains a closed investment instead of 404ing.
  */
 export async function getWorkerKosztorysByReportShare(
   share: ReportShareT,

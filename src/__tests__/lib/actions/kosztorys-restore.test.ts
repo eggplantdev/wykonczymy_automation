@@ -4,14 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// restoreSnapshotAction wraps the dangerous wipe-and-reinsert in a transaction and takes a forced
-// pre-restore auto snapshot, so we run the REAL action against the REAL DB and assert PERSISTED
-// state — a success result would hide a failed write, and the "recoverable mis-restore" guarantee
-// is only real if exactly one forced auto row lands.
-//
-// Same mock surface as the sibling snapshot/stage specs: requireAuth needs a request/cookie we lack
-// in node, and cache revalidation touches next/cache outside a request context. `authState` lets the
-// gate test flip requireAuth to a rejected role for one call.
 const authState = vi.hoisted(() => ({
   userId: 0,
   next: null as null | { success: false; error: string },
@@ -112,7 +104,6 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
     `)
     const snapshotId = Number(snapRow.rows[0].id)
 
-    // Mutate: rename the section and add a second one.
     await payload.update({
       collection: 'kosztorys-sections',
       id: section.id,
@@ -134,13 +125,11 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
     const res = await restoreSnapshotAction(snapshotId, investmentId)
     expect(res.success).toBe(true)
 
-    // Tree is back to the single saved section (new ids, same content/order).
     expect(await sectionNames()).toEqual(['Original'])
     const items = await db.execute(sql`
       SELECT COUNT(*) AS n FROM kosztorys_items WHERE investment_id = ${investmentId}
     `)
     expect(Number(items.rows[0].n)).toBe(1)
-    // Exactly one forced pre-restore auto snapshot landed.
     expect(await autoCount()).toBe(autoBefore + 1)
   })
 
@@ -152,17 +141,14 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
     `)
     const snapshotIdA = Number(snapRow.rows[0].id)
 
-    // A separate investment B — the editor's current context.
     const investmentIdB = await createTestInvestment(payload, 'restore-scope-other')
     try {
       const namesABefore = await sectionNames()
       const autoABefore = await autoCount()
 
-      // Loading A's snapshot into B's context must be refused — touching NEITHER investment.
       const res = await restoreSnapshotAction(snapshotIdA, investmentIdB)
       expect(res.success).toBe(false)
 
-      // Investment A is not wiped/reinserted and takes no forced pre-restore snapshot.
       expect(await sectionNames()).toEqual(namesABefore)
       expect(await autoCount()).toBe(autoABefore)
     } finally {

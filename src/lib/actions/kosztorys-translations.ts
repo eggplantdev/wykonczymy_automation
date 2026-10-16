@@ -22,9 +22,6 @@ export type TranslationFillResultT = { items: number; sections: number; failed: 
 
 // Nothing is held open across the AI wait — the writers compare-and-set instead, so whatever a
 // manager typed meanwhile wins.
-//
-// A szablon's linked prace show their katalog entry's opis (EX-1017), so that is what gets
-// translated; only its unlinked rows still carry text of their own.
 export async function fillKosztorysTranslationsAction(
   investmentId: number,
 ): Promise<ActionResultT<TranslationFillResultT>> {

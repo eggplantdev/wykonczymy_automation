@@ -6,8 +6,6 @@ import {
   writeVisibility,
 } from '@/lib/table/column-prefs-storage'
 
-// The node test env has no window; stand in an in-memory localStorage so the read/write path runs
-// for real and the assertions are on what was PERSISTED, not on a return value.
 function stubLocalStorage(initial: Record<string, string> = {}) {
   const backing = new Map(Object.entries(initial))
   const storage = {
@@ -57,8 +55,7 @@ describe('readOrder / writeOrder', () => {
     expect(readOrder('transfers')).toEqual({})
   })
 
-  // localStorage is client-writable and these ranks are arithmetic — a NaN in the comparator would
-  // scramble the order with no error.
+  // a NaN in the comparator would scramble the order with no error.
   it('drops non-finite ranks on read', () => {
     backing.set('table-column-order:transfers', '{"amount":2,"date":"x","type":null}')
     expect(readOrder('transfers')).toEqual({ amount: 2 })

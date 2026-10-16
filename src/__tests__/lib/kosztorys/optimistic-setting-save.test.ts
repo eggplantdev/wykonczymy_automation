@@ -38,9 +38,8 @@ describe('optimisticSettingSave', () => {
     expect(toastMock).toHaveBeenCalledWith('Inwestycja jest zamknięta', 'warning', 4000)
   })
 
-  // The regression this guards: a transport failure (5xx, dropped connection, mid-deploy) makes the
-  // server action THROW instead of returning `{success:false}`, escaping the rollback entirely and
-  // hitting the route's error boundary — replacing the editor while the optimistic patch was on screen.
+  // a transport failure (5xx, dropped connection, mid-deploy) makes the
+  // server action THROW instead of returning `{success:false}`
   it('rolls back and reports instead of propagating when the action throws', async () => {
     const revert = vi.fn()
 
@@ -73,9 +72,6 @@ describe('optimisticSettingSave', () => {
   })
 })
 
-// The undo half of the same defect: the rollback put the screen back, but the move still landed on
-// the undo stack — so Ctrl+Z spent a step doing nothing. `handleGlobalDiscountChange` already guards
-// the no-op case for exactly this reason; a write that never persisted is the same kind of ghost.
 describe('reversibleSettingSave', () => {
   it('records the move on the undo stack when the write lands', async () => {
     const push = vi.fn()

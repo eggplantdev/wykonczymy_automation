@@ -54,8 +54,6 @@ describe('getCurrentUserJwt', () => {
     expect((await getSession())?.issuedAt).toBe(ISSUED_AT)
   })
 
-  // Every write to `users` — the „Aktywny" box in „Edytuj pracownika" included — must reach the
-  // cached answer, or a deactivated worker stays in until the backstop.
   it('caches the check under the users collection tag', async () => {
     cookieJar.set('payload-token', await signToken(CLAIMS))
 
@@ -81,7 +79,10 @@ describe('getCurrentUserJwt', () => {
     cookieJar.set('payload-token', await signToken(CLAIMS))
 
     expect(await getCurrentUserJwt()).toBeUndefined()
-    expect(logError).toHaveBeenCalledWith('[getCurrentUserJwt] session check failed:', expect.any(Error))
+    expect(logError).toHaveBeenCalledWith(
+      '[getCurrentUserJwt] session check failed:',
+      expect.any(Error),
+    )
   })
 
   it('refuses a token without a sid, without asking the DB', async () => {

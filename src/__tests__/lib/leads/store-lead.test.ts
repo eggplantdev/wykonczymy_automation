@@ -3,8 +3,6 @@ import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 
-// Pure unit test of the idempotency + concurrent-race handling. payload.find /
-// payload.create are mocked; the DB-backed variant lives in store-lead.db.test.ts.
 const find = vi.fn()
 const create = vi.fn()
 const payload = { find, create } as unknown as Payload

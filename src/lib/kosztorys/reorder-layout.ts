@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-// An item's section is wherever it is listed, so a move across sections is the same write as one
-// within a section.
 export const kosztorysLayoutSchema = z
   .array(z.object({ sectionId: z.number().int(), itemIds: z.array(z.number().int()) }))
   .min(1)
@@ -22,9 +20,8 @@ export type ReorderDropT =
 // whole section block, so the line moves once per section rather than once per half-row.
 export type ReorderHoverT = { sectionId: number; itemId: number | undefined; upperHalf: boolean }
 
-// Moves the block, keeping its rows in their current top-to-bottom order whichever sections they
-// came from — the Excel „wytnij wiersze, wstaw wycięte" gesture. A target inside the block itself
-// resolves to the first unmoved row after it, so dropping a block onto itself is a no-op.
+// A target inside the block itself resolves to the first unmoved row after it, so dropping a block
+// onto itself is a no-op.
 export function moveItems(
   layout: KosztorysLayoutT,
   moved: ReadonlySet<number>,

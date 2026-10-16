@@ -12,23 +12,11 @@ import {
 import { receiptPdfPlugins } from './receipt-pdf-plugins'
 import { logError } from '@/lib/utils/log-error'
 
-// Server-only through `./openrouter-client`: never pull it into the Payload CLI graph.
-
-// Reads Polish receipts (images) AND PDFs natively — the latter matters because our real
-// invoices are Stimulsoft/Quartz PDFs with no text layer, which the free pdf-text parser
-// can't read; a PDF-native model handles them without the paid mistral-ocr engine. Isolated
-// to one constant so swapping cost/quality is a one-line change. On-trial cheaper tier.
 export const RECEIPT_MODEL = 'google/gemini-3.1-flash-lite'
 
-// Per-attempt ceiling on the vision call. Without it a hung upstream request never settles, so
-// the batch fill's Promise.all wedges and isFilling never clears (spinner stuck forever). On
-// timeout the attempt aborts and throws, so the row degrades into failedIndices like any other
-// failure.
+// Without it a hung upstream request never settles, so the batch fill's Promise.all wedges and isFilling never clears (spinner stuck forever).
 export const RECEIPT_TIMEOUT_MS = 30_000
 
-// Each extra page is more bytes to upload and more document for the model to read, so a longer
-// document needs a budget that grows with it — a fixed 30 s would fail a long invoice for the wrong
-// reason. A timeout still fails the whole row, which is correct: half a document yields a wrong total.
 export const RECEIPT_TIMEOUT_PER_PAGE_MS = 15_000
 
 export type ReceiptPageT = { bytes: Uint8Array; mediaType: string; filename: string }
@@ -71,7 +59,6 @@ const categoryRules = (otherCategoryNames: string[]) => [
 // Send the image BYTES, not a URL: media.url can be relative (local Payload route) or a
 // private/non-passthrough blob URL the provider can't fetch — the AI SDK then mis-encodes
 // the URL string as base64 and OpenAI rejects it (invalid_base64 / invalid_image_format).
-// Bytes work everywhere. Caller resolves + fetches the bytes (it has the request origin).
 async function readWithModel<SchemaT extends z.ZodType>(
   pages: ReceiptPageT[],
   schema: SchemaT,
@@ -81,9 +68,6 @@ async function readWithModel<SchemaT extends z.ZodType>(
 
   async function callModel(model: string) {
     const result = await generateObject({
-      // The file-parser plugin routes PDFs to the `native` engine (the model reads PDFs
-      // natively); images carry no plugin. Without an explicit engine OpenRouter would default
-      // PDFs to the paid mistral-ocr — see receipt-pdf-plugins.ts.
       model: openrouter(model, {
         plugins: receiptPdfPlugins(pages.map((page) => page.mediaType)),
       }),
@@ -123,9 +107,7 @@ async function readWithModel<SchemaT extends z.ZodType>(
 }
 
 // TODO(EX-958) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
-// succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be
-// captured as a Sentry error once Sentry is wired (mediaType included so PDF-specific
-// parse failures are separable from genuinely illegible images).
+// succeeded, so nothing throws.
 function logUnreadable(pages: ReceiptPageT[]) {
   const mediaTypes = pages.map((page) => page.mediaType).join(',')
   const bytes = pages.reduce((total, page) => total + page.bytes.byteLength, 0)
@@ -134,8 +116,6 @@ function logUnreadable(pages: ReceiptPageT[]) {
   )
 }
 
-// `pages` are the pages of ONE document, in reading order — one model call sees all of them, so a
-// total printed on the last page is found just as well as one on the first.
 export async function extractReceipt(
   pages: ReceiptPageT[],
   otherCategoryNames: string[],
@@ -157,10 +137,6 @@ export async function extractReceipt(
   return sanitizeReceiptExtraction(object)
 }
 
-/**
- * A worker photographs paragony laid side by side, so one photo can hold several documents, and
- * summing them would book one expense the shop never issued. An empty list means nothing legible.
- */
 export async function extractReceipts(
   pages: ReceiptPageT[],
   otherCategoryNames: string[],

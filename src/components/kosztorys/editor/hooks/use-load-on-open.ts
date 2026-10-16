@@ -7,10 +7,6 @@ import { toastMessage } from '@/lib/utils/toast'
 type LoadResultT<T> = { success: true; data: T } | { success: false; error?: string }
 
 /**
- * Fetch-on-open for a dialog opened from a grid menu — `open` is the only reliable seam (see
- * `use-list-on-open` for the same reasoning on a list). Unlike that hook, a failed load CLOSES the
- * dialog: what it shows or overwrites comes from this read, so there is no degraded shape to render.
- *
  * `load` must be stable (a server function, not an inline closure) — it is an effect dependency.
  */
 export function useLoadOnOpen<A, T>(

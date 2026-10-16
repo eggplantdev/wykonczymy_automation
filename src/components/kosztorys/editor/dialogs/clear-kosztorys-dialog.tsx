@@ -10,8 +10,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
-// The one action in „Opcje" that leaves nothing behind, so it states the counts it is about to
-// delete rather than asking „na pewno?" over an unnamed amount.
 export function ClearKosztorysDialog() {
   const { tree, investmentId, onTreeReplaced, isTemplate, noun, flushPendingSaves } =
     useKosztorysEditorContext()
@@ -40,8 +38,6 @@ export function ClearKosztorysDialog() {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader
           title={`Wyczyść ${noun.nominative}`}
-          // Etapy, wykonanie, VAT and the global rabat are matters of one job — a szablon carries
-          // none of them, so there the sentence about them is not shorter, it is false.
           description={
             !isTemplate
               ? 'Cała rozpiska zniknie — razem z etapami i wpisanym wykonaniem. Stawka VAT i współczynniki zostają, rabat globalny zostanie wyzerowany (przywrócenie stanu go nie cofa). Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'

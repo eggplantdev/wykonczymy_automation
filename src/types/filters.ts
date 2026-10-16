@@ -26,7 +26,6 @@ export type QueueFiltersT<StatusT extends string> = {
   sentRange: DateRangeT
 }
 
-/** One page of a queue plus the filter options its whole history offers. */
 export type QueuePageT<RowT> = {
   rows: RowT[]
   paginationMeta: PaginationMetaT

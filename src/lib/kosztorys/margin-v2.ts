@@ -3,31 +3,8 @@ import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due
 import { roundToCents } from '@/lib/utils/round-to-cents'
 
 /**
- * It stands BESIDE `calculateMargin`, which is untouched and still live on v1 — the investment card
- * and the listing column — the owner wants the two readings side by side (2026-08-18). Two
- * deliberate differences from it:
- * - `totalPayouts` is gone, replaced by `due`. Σ PAYOUT is cash and moves on its own rhythm, so a
- *   crew paid late reads as profit and a crew paid ahead reads as a loss the kosztorys never
- *   predicted. What is owed moves with the work.
- * - `materialsNetDiscount` is gone. Billing materiały netto rather than at the brutto receipt is a
- *   concession on a pass-through, not a cost of doing the work. **Its removal is not the booking of
- *   reclaimed VAT as profit** — that reading was rejected twice (2026-07-26) and stays rejected; the
- *   term simply does not belong in a figure about robocizna.
- *
- * `totalSettled` and `totalLoss` remain transaction-sourced: the kosztorys cannot know either.
- *
- * `totalBonus` is charged here and NOT in `calculateMargin`: a premia settles an overpayment, and on
- * v1 that money already left as the PAYOUT it covers. v2 reads `due` instead of wypłaty, so without
- * this term the overpayment would never reach it.
- *
- * **Returns `null`, not a number, when the crew side is incomplete.** An etap holding executed work
- * with no settlement plane contributes nothing to `due` while its robocizna still counts, so the
- * figure would read high by an unknown amount. Zero would assert the work was free and a default
- * plane would guess what the owner has to pick anyway — so there is no figure until the etapy are
- * set. `null` rather than a flag beside the amount, so no caller can render the number by accident.
- *
- * Rounded here, not by each caller: the listing's `due` is a Postgres SUM and the investment page's a
- * JS fold, so the unrounded figures differ by float residue and a half grosz could print two ways.
+ * An etap holding executed work with no settlement plane contributes nothing to `due` while its
+ * robocizna still counts, so the figure would read high by an unknown amount.
  */
 export function marginV2(
   financials: InvestmentFinancialsT,
@@ -44,12 +21,8 @@ export function marginV2(
   )
 }
 
-/**
- * „Pozostało do wypłaty" for the whole crew of one investment: owed for the work plus the premie,
- * minus the wypłaty. Rounded before any caller reads its sign: `due` is a sum through fractional
- * plane coefficients and `totalPayouts` a raw SUM, so paying out exactly the displayed amount leaves
- * ~1e-13 behind and would paint a settled crew red as „Nadpłata 0,00".
- */
+// Rounded before any caller reads its sign: paying out exactly the displayed amount leaves ~1e-13
+// behind and would paint a settled crew red as „Nadpłata 0,00".
 export function subcontractorRemaining(
   financials: InvestmentFinancialsT,
   subcontractor: SubcontractorSettlementT,

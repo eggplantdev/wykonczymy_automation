@@ -11,8 +11,6 @@ type RequestReviewButtonPropsT = {
 }
 
 export function RequestReviewButton({ investment, showLabel }: RequestReviewButtonPropsT) {
-  // One request per client: a resend would only nag. Unticking „Prośba o opinię wysłana" in the edit
-  // form is the deliberate way back.
   if (investment.reviewRequested) return null
 
   return (

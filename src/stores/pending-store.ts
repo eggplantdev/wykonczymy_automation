@@ -6,9 +6,6 @@ type PendingStoreT = {
   stop: (key: string) => void
 }
 
-// Keyed rather than a boolean: with one shared flag the first save to finish clears the pill while a
-// second is still running. The key holds the pill up until its own caller stops, and carries the
-// label that caller wants shown.
 export const usePendingStore = create<PendingStoreT>()((set) => ({
   pending: new Map(),
 
@@ -24,7 +21,6 @@ export const usePendingStore = create<PendingStoreT>()((set) => ({
     }),
 }))
 
-// Insertion order is the tie-break when two things are pending at once — no timestamps needed.
 export function firstPendingLabel(pending: ReadonlyMap<string, string>) {
   return pending.values().next().value
 }

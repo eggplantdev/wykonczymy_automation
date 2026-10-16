@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// The fill itself is covered by the action's spec; this asserts what the route adds — the auth gate
-// and that the katalog's cache expires exactly when a translation landed.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))

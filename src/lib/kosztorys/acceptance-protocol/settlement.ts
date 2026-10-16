@@ -59,8 +59,6 @@ export function protocolSettlement({
   }
 }
 
-// The „Podsumowanie" steps in its own order and signs: rabat, deposits and loss are deductions, so
-// they read negative on the way down to what is left. One list for the dialog and the paper.
 export function protocolSettlementLines(settlement: ProtocolSettlementT): SettlementLineT[] {
   const lines: SettlementLineT[] = [
     {

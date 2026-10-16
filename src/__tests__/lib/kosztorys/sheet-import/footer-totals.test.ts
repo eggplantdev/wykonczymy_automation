@@ -18,8 +18,6 @@ const byKey = (grid: (string | number)[][], key: string) =>
 
 describe('compareFooterTotals', () => {
   it('reads the sheet total from the row bearing the label, whatever row that is', () => {
-    // Position varies per sheet — Białostocka's summary block sits under 435 prace, another sheet's
-    // under 40. Only the label is stable.
     expect(byKey(BIALOSTOCKA_ROWS, 'plannedNet').sheetValue).toBe(143089.489)
     expect(byKey(BIALOSTOCKA_ROWS, 'executedNet').sheetValue).toBe(129036.359)
   })
@@ -30,15 +28,10 @@ describe('compareFooterTotals', () => {
   })
 
   it('prices „wartość netto" off the sheet\'s own Pomiar, not off Przedmiar', () => {
-    // The row it faces sums the sheet's Pomiar column, so the app side has to sum the same column:
-    // 1×1500 −9% = 1365, 50×15 −9% = 682,50, 2×120 = 240. Przedmiar would give 1605 — a figure the
-    // sheet never totals anywhere, and pairing them reported a difference on a perfect parse.
     expect(byKey(BIALOSTOCKA_ROWS, 'plannedNet').appValue).toBeCloseTo(2287.5, 6)
   })
 
   it('matches a „wartość netto" that only the Pomiar sum can explain', () => {
-    // Pomiar 3 against one etap of 1 — the state the two stored figures cannot reach: neither
-    // Przedmiar (1605) nor the etapy (2287,50) equals what the sheet totals here.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     grid.find((row) => row[2] === 'zakup, transport i wniesienie towaru budowlanego')![14] = 3
     grid.find((row) => String(row[16]).startsWith('wartość netto'))![18] = 5017.5
@@ -82,9 +75,6 @@ describe('compareFooterTotals', () => {
   })
 
   it('matches a footer row against the other figure when that is the one it agrees with', () => {
-    // The owner's labels do not reliably say which figure a row holds — „wartość netto" sits over the
-    // executed total on some sheets. Comparing each row only against its namesake reported a false
-    // mismatch on a sheet that was in fact parsed correctly.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     const planned = grid.find((row) => String(row[16]).startsWith('wartość netto'))!
     planned[18] = 2287.5 // the EXECUTED total for these three prace
@@ -96,10 +86,6 @@ describe('compareFooterTotals', () => {
   })
 
   it('refuses „R netto" a figure its label does not name', () => {
-    // That label names the executed work and nothing else. A footer summing the wrong columns lands
-    // on the OFFER total (1605 here, against 2287,50 executed); letting the row match there is how a
-    // sheet disagreeing with itself renders as a clean one — in the import preview with a green ✓,
-    // while the comparison window called the same sheet broken.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     grid.find((row) => String(row[16]).startsWith('R netto'))![18] = 1605
 
@@ -112,8 +98,6 @@ describe('compareFooterTotals', () => {
   })
 
   it('says nothing about „wartość netto" on a sheet with no Pomiar column', () => {
-    // Pomiar is optional in the header, and without it the app has no like-for-like sum for that
-    // row. Falling back to Przedmiar accused a perfectly parsed sheet of a five-figure error.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     for (const row of grid.slice(0, 3)) row[14] = ''
 
@@ -136,9 +120,6 @@ describe('compareFooterTotals', () => {
 
 describe('footerDisagreements', () => {
   it('surfaces a stated total that agrees with no figure we can compute', () => {
-    // Planetowa 44a: „wartość netto" totals a hand-written list of 13 section headers on a sheet
-    // that has 14, so it lands 2650 zł under every candidate. That row matches NOTHING — which is
-    // exactly the state the comparison dialog used to render as nothing at all.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     const planned = grid.find((row) => String(row[16]).startsWith('wartość netto'))!
     planned[18] = 2287.5 - 2650
@@ -158,7 +139,6 @@ describe('footerDisagreements', () => {
   })
 
   it('says nothing about a row it had no figure to check against', () => {
-    // Same silence from the other side: no Pomiar column, so „wartość netto" faces nothing.
     const grid = BIALOSTOCKA_ROWS.map((row) => [...row])
     for (const row of grid.slice(0, 3)) row[14] = ''
 

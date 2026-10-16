@@ -8,12 +8,6 @@ import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The settlement formula exists twice — in TS (subcontractor-due, the reference) and in SQL
-// (kosztorys-subcontractor-due, the copy the listing reads). This spec compares the two directly
-// rather than either against a hand-computed number: a hand-computed expectation would pin the SQL to
-// whatever the test author believed the formula was, and both planes would go green on the same
-// mistake.
-//
 // Coverage is by BRANCH of subcontractorPrice — a mnożnik, a flat amount and unset, on BOTH planes,
 // because the two planes read disjoint column pairs and a copy that swapped them would still agree on
 // any fixture where the panes happen to price alike.
@@ -31,8 +25,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
 
-  // mixed: both planes plus a plane-less etap that HOLDS work. clean: the same rows with every etap
-  // settled. idle: a plane-less etap with no work on it at all.
   const created = { mixed: 0, clean: 0, idle: 0 }
 
   const ITEMS = [
@@ -54,9 +46,8 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
       wToolsOverrideValue: 175,
       ownToolsOverrideValue: 150,
     },
-    // Mnożnik on both planes, different per plane for the same reason as the kwota rows above. The
-    // stawka is `client_price * coeff`, so a copy that forgot the multiplication — or applied the
-    // investment's coefficient on top of it — parts ways here and nowhere else.
+    // The stawka is `client_price * coeff`, so a copy that forgot the multiplication — or applied
+    // the investment's coefficient on top of it — parts ways here and nowhere else.
     {
       description: 'mnoznik',
       plannedQty: 10,
@@ -64,7 +55,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
       wToolsOverrideCoeff: 0.8,
       ownToolsOverrideCoeff: 0.4,
     },
-    // Nothing set: the price derives from the investment's own coefficients.
     { description: 'pochodna', plannedQty: 10, clientPrice: 80 },
     // A rabat on the client plane must not reach the crew — the SQL names no discount column, and
     // this row is what would catch it if it did.
@@ -77,7 +67,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
     },
   ]
 
-  // Every item worked on every etap, so each pricing branch is exercised on each plane.
   const progressAcross = (stageCount: number) =>
     ITEMS.flatMap((_, item) =>
       Array.from({ length: stageCount }, (_, stage) => ({ item, stage, qtyDone: 1 + stage })),
@@ -119,8 +108,7 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
         { label: 'Etap pusty', plane: null },
       ],
       // The second entry is the case the qty gate is actually for: a progress row that EXISTS on the
-      // plane-less etap and holds zero. A merely absent row is dropped by the join anyway, so it
-      // would let a copy that flagged every plane-less etap pass.
+      // plane-less etap and holds zero.
       progress: [
         { item: 0, stage: 0, qtyDone: 4 },
         { item: 1, stage: 1, qtyDone: 0 },
@@ -128,7 +116,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
     })
 
     // A non-default pair, so the derived-price branch cannot pass by coinciding with the fallback.
-    // The SAME pair on both, which is what lets the two investments' settled etapy be compared below.
     for (const id of [created.mixed, created.clean]) {
       await payload.update({
         collection: 'investments',
@@ -169,16 +156,13 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
   })
 
   it('leaves the plane-less etap out of the amount rather than pricing it', async () => {
-    // Guards against a copy that agrees on the flag while quietly charging the unsettled etap at some
-    // plane's rate. `mixed` and `clean` carry the same items, the same coefficients and the same two
-    // settled etapy; `mixed` merely has a third, unsettled one on top. The two amounts must be
-    // EQUAL — anything more means the unsettled etap was priced.
+    // `mixed` and `clean` carry the same items, the same coefficients and the same two
+    // settled etapy; `mixed` merely has a third, unsettled one on top.
     const [mixed, clean] = await Promise.all([sqlDueFor(created.mixed), tsDue(created.clean)])
     expect(mixed!.due).toBeCloseTo(clean.combined, CENT)
   })
 
   it('stays silent about a plane-less etap that holds no work', async () => {
-    // A freshly added empty etap must not claim money is missing that does not exist yet.
     const [sqlRow, ts] = await Promise.all([sqlDueFor(created.idle), tsDue(created.idle)])
 
     expect(sqlRow!.hasUnconfirmedPlane).toBe(false)

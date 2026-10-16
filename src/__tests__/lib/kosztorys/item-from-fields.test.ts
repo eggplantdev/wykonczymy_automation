@@ -57,7 +57,6 @@ describe('withCatalogueFields', () => {
     descriptionTranslations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian' } },
     unit: 'm2',
     clientPrice: 30,
-    // One plane auto, the other a mnożnik — each arrives in the entry's mode, not the row's.
     wToolsRate: null,
     wToolsRateCoeff: null,
     ownToolsRate: null,

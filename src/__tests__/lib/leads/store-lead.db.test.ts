@@ -2,16 +2,13 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 
 // The leads collection's afterChange hook calls revalidateTag, which throws outside a
-// Next request context. Stub it — cache invalidation is not under test here.
+// Next request context.
 
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 
-// Integration tests against the Payload Local API + local Postgres. Gated on DB env
-// exactly like the parity test: skips cleanly with no DB, FAILS if env is set but the
-// DB is unreachable. Run via `pnpm test` with DB_POSTGRES_URL + PAYLOAD_SECRET set.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 // Unique per run so re-runs never collide on the compound unique index.
@@ -46,7 +43,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     }
   })
 
-  // Risk 3 — Meta redelivers the same leadgen_id on retry; a second store must not duplicate.
   it('is idempotent on (source, externalId) — storing twice yields one row', async () => {
     const externalId = `${runTag}-idem`
     const input = makeInput(externalId)
@@ -69,8 +65,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     expect(rows.totalDocs).toBe(1)
   })
 
-  // EX-970 — „Usuń na zawsze" keeps the row as a tombstone precisely so the reconcile cron's next
-  // re-fetch of Meta's recent leads finds it: no second row, and no mail to sales about an empty lead.
   it('neither re-creates nor re-notifies an erased lead on redelivery', async () => {
     const externalId = `${runTag}-erased`
     const input = makeInput(externalId)
@@ -102,7 +96,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     expect(rows).toEqual([{ name: null, notify_status: 'pending' }])
   })
 
-  // Risk 5 — a mail failure must never lose the lead; it only flips notifyStatus to 'failed'.
   it('persists the lead with notifyStatus=failed when the email send throws', async () => {
     const externalId = `${runTag}-mailfail`
     const original = payload.sendEmail
@@ -119,7 +112,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
         id: lead.id,
         overrideAccess: true,
       })
-      // Assert the PERSISTED state, not the return value — a success result could hide a failed write.
       expect(persisted.notifyStatus).toBe('failed')
       expect(persisted.email).toBe('anna.nowak@example.com')
     } finally {
@@ -127,7 +119,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     }
   })
 
-  // Risk 5 (happy path) — a successful send flips notifyStatus to 'sent'.
   it('persists the lead with notifyStatus=sent when the email send succeeds', async () => {
     const externalId = `${runTag}-mailok`
     const original = payload.sendEmail
@@ -148,9 +139,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     }
   })
 
-  // The landing's own fields — a shape no Facebook lead has. `assets` is the one that cannot be
-  // read off the create's return value: it lands on `leads_rels`, a join table the migration had to
-  // create by hand, so this is the only check that the table matches what Payload writes into it.
   it('round-trips a landing lead with its typed answers and attached files', async () => {
     const db = await getDb(payload)
     const mediaIds: number[] = []
@@ -178,8 +166,6 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     })
     createdIds.push(lead.id)
 
-    // The second write the landing route makes once the files are in Blob — the lead is durable
-    // first, and `assets` is attached after.
     await payload.update({
       collection: 'leads',
       id: lead.id,

@@ -20,18 +20,11 @@ import {
   fetchWholeInvestmentFinancials,
 } from '@/lib/queries/whole-investment-financials'
 
-// The tree payload plus the one thing that is per-investment and uncached: what its client sees.
 export type PreviewKosztorysDataT = KosztorysEditorDataT & { clientView: ClientViewSettingsT }
 
-// No projection/stripping anywhere below: the owner accepted the leak, so the full payload ships —
-// tree AND figures — and the render side alone decides what a client sees. That is not laziness, it
-// is the anti-drift rule: the moment this path hands the panel a different set of inputs than the
-// editor page does, the same formula can print two different debts and only a test would notice.
-// The one thing left out is the subcontractor roster, and on cost alone — it feeds a block the
-// preview never renders, so fetching it here buys nothing.
-
-// Every read below is invalidated by the same collections the editor writes, so a client who
-// reloads the share link sees the owner's latest etap entries — the whole point of a live view.
+// No projection/stripping anywhere below: the moment this path hands the panel a different set of
+// inputs than the editor page does, the same formula can print two different debts and only a test
+// would notice.
 const PREVIEW_KOSZTORYS_TAGS = [
   CACHE_TAGS.kosztorysSections,
   CACHE_TAGS.kosztorysItems,
@@ -44,8 +37,8 @@ const PREVIEW_KOSZTORYS_TAGS = [
   CACHE_TAGS.expenseCategories,
 ]
 
-// Unexported: the only two ways in are the guarded entrances below. This one is deliberately
-// authorization-free, so exporting it would hand any caller an unauthenticated read of a kosztorys.
+// This one is deliberately authorization-free, so exporting it would hand any caller an
+// unauthenticated read of a kosztorys.
 async function buildPreviewKosztorysEditorData(
   investmentId: number,
 ): Promise<KosztorysEditorDataT> {
@@ -88,8 +81,6 @@ async function buildPreviewKosztorysEditorData(
   }
 }
 
-// One cache entry per investment, shared by both entrances — so the owner's preview and the
-// client's link are the same bytes, not two independently-cached derivations that could disagree.
 // The guard cannot live inside here: `requireAuth` reads cookies, and a dynamic API inside an
 // unstable_cache callback throws.
 const cachedPreviewKosztorysEditorData = cached(
@@ -98,7 +89,6 @@ const cachedPreviewKosztorysEditorData = cached(
   { tags: PREVIEW_KOSZTORYS_TAGS },
 )
 
-// Beside the cached payload, never inside it — see the resolver's own docblock for why.
 async function withClientView(investmentId: number): Promise<PreviewKosztorysDataT> {
   const [data, clientView] = await Promise.all([
     cachedPreviewKosztorysEditorData(investmentId),
@@ -108,20 +98,13 @@ async function withClientView(investmentId: number): Promise<PreviewKosztorysDat
 }
 
 /**
- * The token IS the credential, so an unknown one is indistinguishable from a revoked one — both are
- * null, leaking nothing about which investments exist. Reads only `kosztorys-shares`: a worker's
- * token opens a different document and must never resolve to this one.
- *
  * Uncached across requests (one indexed query) so revoking a link takes effect on the next request
- * rather than when a cache tag happens to be busted; deduped within one, where the page and its
- * history both resolve the same token.
+ * rather than when a cache tag happens to be busted.
  */
 export const resolveShareInvestmentId = cache(async (token: string): Promise<number | null> => {
   const payload = await getPayload({ config })
   const shares = await payload.find({
     collection: 'kosztorys-shares',
-    // A trashed investment's link resolves like an unknown one; the share row survives, so a restore
-    // brings the same link back.
     where: { token: { equals: token }, 'investment.trashedAt': { exists: false } },
     depth: 0,
     limit: 1,
@@ -134,7 +117,6 @@ export const resolveShareInvestmentId = cache(async (token: string): Promise<num
   return typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
 })
 
-// The public share read: token in, client payload out, no session anywhere. Null makes the route 404.
 export async function getPreviewKosztorysByToken(
   token: string,
 ): Promise<PreviewKosztorysDataT | null> {
@@ -142,11 +124,6 @@ export async function getPreviewKosztorysByToken(
   return investmentId === null ? null : withClientView(investmentId)
 }
 
-/**
- * The owner's preview of that same payload — so „Podgląd dla inwestora" shows exactly what a share link
- * would serve, without a link having to exist yet. The projection beneath is identical, which is what
- * makes the preview trustworthy as a check.
- */
 export async function getPreviewKosztorysById(
   investmentId: number,
 ): Promise<PreviewKosztorysDataT> {

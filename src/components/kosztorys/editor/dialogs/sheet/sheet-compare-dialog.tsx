@@ -32,20 +32,8 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-/**
- * „Porównaj z arkuszem" — a live read of the sheet against the stored kosztorys, which also pulls the
- * sheet's Pomiar onto the stored reference figure. Renders a record it does not compute: everything
- * here comes from the action, fetched by the parent on the click (a programmatically-opened Radix
- * dialog never fires `onOpenChange`, so it cannot fetch itself).
- *
- * Answers three questions in order — do the two sides agree on the money, do they hold the same
- * prace, and where did our reading of the sheet have to differ from what it shows. It closes on what
- * the refresh wrote: this window is the only thing that touches the stored Pomiar, so a read-shaped
- * dialog that writes in silence would leave the owner no way to tell it apart from one that doesn't.
- */
 export function SheetCompareDialog() {
   const { investmentId } = useKosztorysEditorContext()
-  // `read` re-runs the comparison with the new pointing in place — same window, no reopen.
   const {
     open,
     setOpen: onOpenChange,
@@ -109,28 +97,17 @@ export function SheetCompareDialog() {
   )
 }
 
-/**
- * Only the executed work is compared. The offered scope reads the same column on both sides, so it
- * can disagree only when a praca is missing altogether — which the „Prace" block already says,
- * and the sheet never totals that column anyway.
- */
 function MoneyBlock({ comparison }: { comparison: SheetComparisonT }) {
   const { totals, footer } = comparison
   const executed = totals.executedNetFromSheet - totals.executedNetFromApp
   const agree = Math.abs(executed) < MONEY_TOLERANCE
 
-  // The sheet sums its prace twice: once off Pomiar z natury („wartość netto") and once off the
-  // etapy („R netto"). The gap between the two is its own „pozostało do rozliczenia" — work measured
-  // but not yet assigned to an etap, a state this app cannot hold, which is why the same subtraction
-  // against our executed total is the honest counterpart rather than a second comparison.
-  // Only when the row turned out to hold the measured total. `matchedAgainst` exists because the
-  // same „wartość netto" row totals the OFFER on some clients' sheets — reading it as measured work
-  // there would print the whole unexecuted scope under a label calling it work already done.
+  // `matchedAgainst` exists because the same „wartość netto" row totals the OFFER on some clients'
+  // sheets — reading it as measured work there would print the whole unexecuted scope under a label
+  // calling it work already done.
   const netValueRow = footer.find((total) => total.key === 'plannedNet')
   const sheetMeasured =
     netValueRow?.matchedAgainst === 'measuredNet' ? netValueRow.sheetValue : null
-  // Same guard, same reason: a „R netto" that sums the wrong columns states a figure which is not
-  // the executed work, and subtracting it would print a „Rozjazd" nobody's sheet contains.
   const executedRow = footer.find((total) => total.key === 'executedNet')
   const sheetExecuted =
     executedRow?.matchedAgainst === 'executedNet' ? executedRow.sheetValue : null
@@ -181,8 +158,6 @@ function MoneyBlock({ comparison }: { comparison: SheetComparisonT }) {
   )
 }
 
-// The sign says which side is ahead, so it is named rather than left as a bare `< 0` in the middle
-// of a ternary — reading it backwards would tell the owner the wrong side is behind on its etapy.
 function executedVerdict(executed: number): string {
   if (Math.abs(executed) < MONEY_TOLERANCE)
     return 'Obie strony policzyły tyle samo prac wykonanych.'
@@ -191,19 +166,7 @@ function executedVerdict(executed: number): string {
   return `W arkuszu Google rozpisano na etapy o ${formatPLN(executed)} więcej pracy niż tutaj.`
 }
 
-/**
- * The sheet against itself: the figures typed into its summary rows against what its own prace add
- * up to. Deliberately its own block with its own column names — this is not the arkusz↔aplikacja
- * question the block above answers, and reusing those headers put one and the same figure under „Ta
- * aplikacja" here and „Arkusz Google" in the import preview.
- *
- * A disagreement points at one of two places and the dialog cannot tell them apart: the sheet's own
- * footer arithmetic (live, both cases have been that — a section left out of a hand-written SUM, and
- * a correction typed straight into a value column), or our reading of the cena/rabat columns, which
- * would make every figure in the block above wrong too. So it names both and blames neither.
- */
 function SheetFooterBlock({ footer }: { footer: readonly FooterComparisonT[] }) {
-  // A summary row the sheet does not carry is not a finding — see `footerDisagreements`.
   const stated = footer.filter(
     (total): total is FooterComparisonT & { sheetValue: number } => total.sheetValue !== null,
   )
@@ -270,9 +233,6 @@ function ItemsBlock({ comparison }: { comparison: SheetComparisonT }) {
               label="Ile prac w ogóle"
               sheet={`${counts.sheetItems}`}
               app={`${counts.appItems}`}
-              // Equal counts with different names is the ordinary case (one praca on each side), so
-              // „zgadza się" is true here — but only then. It was hardcoded, and the row read
-              // „402 / 403 / zgadza się".
               delta={
                 counts.sheetItems === counts.appItems
                   ? null
@@ -295,11 +255,6 @@ function ItemsBlock({ comparison }: { comparison: SheetComparisonT }) {
   )
 }
 
-/**
- * These sheets belong to the clients, have worked for years, and none of them are built the same
- * way — so this block judges our reading, never their sheet. It reports where the two models differ
- * and what that costs the comparison above; a line here is never a defect anyone is asked to fix.
- */
 function ReadingBlock({ comparison }: { comparison: SheetComparisonT }) {
   const { health, sheetLink } = comparison
   const clean =
@@ -331,9 +286,6 @@ function ReadingBlock({ comparison }: { comparison: SheetComparisonT }) {
             link={sheetLink}
           />
           {health.measuredCopiedFromPlanned > 0 && (
-            // A count, never a list (owner, 2026-08-14): on a blank offer sheet this is the normal
-            // state of every row, so a fold to open would send them hunting through hundreds of
-            // prace that are not wrong.
             <p className="text-xs text-amber-600">
               W {health.measuredCopiedFromPlanned} z {health.totalRows} prac Pomiar z natury
               wskazuje na Przedmiar. U nas pomiar to zawsze suma etapów.
@@ -345,8 +297,6 @@ function ReadingBlock({ comparison }: { comparison: SheetComparisonT }) {
   )
 }
 
-// The one line that says this window wrote something. „Już zgodne" is the answer that matters most:
-// it is what tells the owner a second look changed nothing, rather than leaving them to wonder.
 function RefreshLine({ refresh }: { refresh: NonNullable<SheetCompareResultT['refresh']> }) {
   const { updated, cleared, unmatched } = refresh
   const skipped =
@@ -385,8 +335,6 @@ function SampleList({
   )
 }
 
-// Where the money block's difference actually sits. Every praca that contributes is listed — the sum
-// of this list IS the number in the table, so a shortened list would be a lie about a total.
 function ExecutedDiffList({
   diffs,
   link,

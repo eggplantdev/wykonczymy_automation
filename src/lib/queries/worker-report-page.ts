@@ -17,7 +17,6 @@ import {
 } from '@/lib/queries/worker-kosztorys'
 import { getSectionTranslations } from '@/lib/queries/section-translations'
 
-// The page's opening language, before the worker's own switcher choice is read on the device.
 type ReportLocaleT = { language: LanguageT; workerId: number }
 
 export type WorkerReportPageT = ReportLocaleT &
@@ -33,7 +32,7 @@ export type WorkerReportPageT = ReportLocaleT &
 
 /**
  * The public report page's whole read, uncached: a revoke, a deactivation or a zakończenie must
- * bite on the next load. Null = unknown or revoked token, which the route 404s.
+ * bite on the next load.
  */
 export async function getWorkerReportPage(token: string): Promise<WorkerReportPageT | null> {
   const payload = await getPayload({ config })
@@ -69,11 +68,6 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
   return page
 }
 
-/**
- * The owner's „Podgląd pracownika": the worker's page by ids, behind the session. It reads no share,
- * so it previews a worker whose link was never generated, revoked or refused, exactly as he would
- * see it once the link works.
- */
 export async function getWorkerReportPreview(
   investmentId: number,
   workerId: number,

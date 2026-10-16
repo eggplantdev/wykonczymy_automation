@@ -48,7 +48,6 @@ export function PushToggle({ className }: PushTogglePropsT) {
       }
       try {
         const result = await subscribeThisDevice(publicKey)
-        // A dismissed prompt can be asked again; only a refusal sends the worker to the settings.
         if (result === 'denied') return setRefused(Notification.permission === 'denied')
         if (!result.success) return toastMessage(t('pushFailed'), 'error')
         usePushSubscriptionStore.setState({ subscribed: true })

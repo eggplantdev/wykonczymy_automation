@@ -42,9 +42,7 @@ describe('stampNotified', () => {
   })
 
   // The deployed database keeps one of a set of concurrent Payload writes, drops the rest and
-  // reports success for all of them — a parallel sweep would report every deadline stamped while
-  // only one of them was, and re-announce the others every day. Overlapping writes are the defect,
-  // so that is what this asserts; a mock cannot show the dropped row itself.
+  // reports success for all of them — a mock cannot show the dropped row itself.
   it('never has two stamps in flight at once', async () => {
     const { payload, updates } = fakePayload()
     let inFlight = 0

@@ -9,14 +9,10 @@ import {
 
 type PaymentMethodFieldPropsT = {
   readonly form: FormWithFieldT<'paymentMethod'>
-  // The wpłata form uses this to move the kwota onto the plane the method implies (gotówka → netto,
-  // przelew → brutto).
   readonly listeners?: { onChange?: (arg: { value: string }) => void }
   readonly fieldClassName?: string
   readonly labels?: Record<PaymentMethodT, string>
   readonly label?: string
-  // Above the methods — „Nie określono" is an unanswered question, not a method, so it cannot come
-  // from PAYMENT_METHODS.
   readonly leadingOption?: ReactNode
 }
 

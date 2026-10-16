@@ -7,7 +7,6 @@ import { notifyFleetDigest } from '@/lib/fleet/notify'
 import { buildFleetDigest, isEmptyDigest } from '@/lib/fleet/reminder-sweep'
 import { loadFleetHistories, stampNotified } from '@/lib/fleet/sweep-io'
 
-// Scheduled from vercel.json.
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -28,7 +27,6 @@ export async function GET(request: NextRequest) {
     }
 
     await notifyFleetDigest(payload, digest)
-    // Only after the send: see stampNotified.
     const stampFailures = await stampNotified(payload, digest.stamps)
 
     if (stampFailures.length > 0) {
@@ -41,8 +39,6 @@ export async function GET(request: NextRequest) {
       { status: 200 },
     )
   } catch (err) {
-    // A module whose whole value is a mail that arrives must read as a failed run when it doesn't —
-    // an `ok: true` no-op here would look identical to a quiet week.
     // TODO(EX-958) SENTRY-REQUIRED: this is the only record that the reminders stopped.
     console.error('[cron/fleet-reminders] Sweep failed', err)
 

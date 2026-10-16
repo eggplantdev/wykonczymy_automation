@@ -62,7 +62,6 @@ function oneParagon(matches: DuplicateMatchT[]): ParagonDuplicatesT[] {
   return [{ readRow: 0, description: 'Klej', amount: 89.9, matches }]
 }
 
-// The dialog holds the dismissals above the rows; this stands in for it.
 function Hints(
   props: Omit<
     React.ComponentProps<typeof ExpenseDraftDuplicateHints>,

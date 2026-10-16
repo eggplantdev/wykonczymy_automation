@@ -16,15 +16,10 @@ type MediaPreviewButtonPropsT = {
   files: PreviewFileT[]
   label?: string
   labels: PreviewLabelsT
-  // The open state lives here, so a caller that needs the preview gone (to make room for an upload
-  // modal) gets `closePreview` rather than having it forced — a caller may want it to stay open
-  // behind a `confirm()`, after a failed delete, or while the previewed file swaps in place.
   onAdd?: (closePreview: () => void) => void
   onRemove?: (file: PreviewFileT, closePreview: () => void) => void
   onRemoveAll?: (closePreview: () => void) => void
   planMarker?: MediaPreviewDialogPropsT['planMarker']
-  // Optional here, required on the trigger: the button can name the set from `labels`, a bare
-  // trigger cannot.
   ariaLabel?: string
 } & Pick<MediaPreviewTriggerPropsT, 'variant' | 'className'>
 

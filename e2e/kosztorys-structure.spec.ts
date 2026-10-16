@@ -9,24 +9,6 @@ import {
   rowCell,
 } from './drivers/kosztorys-grid'
 
-// EX-472 (with EX-505 and EX-752 folded in) — the editor's three structure menus: „Akcje wiersza" on
-// a praca, „Akcje sekcji" on a band, and „Dodaj" in the toolbar.
-//
-// The ORDER arithmetic under these commands is already settled below the browser:
-// `kosztorys-create-order.test.ts` proves an append lands at the tail without a display_order
-// collision, and `append-preset-sections.test.ts` covers the preset append. Repeating any of that here would only
-// prove it slower.
-//
-// What no layer below the browser reaches is that a MENU ENTRY is wired to the arithmetic at all —
-// and that is where these commands have actually failed. Three distinct wiring bugs live here:
-//   • an entry that renders live and silently does nothing (the reason `sortActive` gates exist);
-//   • an edge predicate fed the FILTERED rows instead of the whole rozpiska, which greys out a move
-//     the moment someone types in the search box;
-//   • a praca appended to the section the grid happens to be showing rather than the one picked in
-//     the submenu — invisible in the same session, because the grid patches its own `rows` state.
-//
-// The grid seeds `useState` at mount, so „the row is there now" and „the row is there after a
-// reload" are two different facts. Every test below asserts them in that order.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 type StructureSeedT = {
@@ -41,8 +23,6 @@ type StructureSeedT = {
 
 let seed: StructureSeedT
 
-// One investment per test — every test here rewrites display_order, so a shared rozpiska would make
-// each one depend on what the previous left behind. See seed-kosztorys-structure.ts.
 test.beforeAll(async ({ browser }) => {
   seed = runSeedScript<StructureSeedT>('seed:kosztorys-structure', 'STRUCTURE_SEED')
   await refreshReferenceData(browser)
@@ -50,8 +30,7 @@ test.beforeAll(async ({ browser }) => {
 
 // Rows are told apart by what they CARRY, not by index: a band holds its name in an input (the
 // inline rename), an item row is the only kind with an „Akcje wiersza" trigger, and the „Razem"
-// footers, the spacer and the grand total have neither. The opis column is located through the
-// header row inside the page, so this survives a column being added to its left.
+// footers, the spacer and the grand total have neither.
 async function rozpiska(page: Page): Promise<string[]> {
   await page.locator('.dsg-row.dsg-row-header').first().waitFor()
   return page.evaluate((opisLabel) => {
@@ -93,14 +72,9 @@ async function openSectionMenu(page: Page, name: string): Promise<void> {
 
 const menuItem = (page: Page, name: string | RegExp) => page.getByRole('menuitem', { name })
 
-// Every structure command is a server action, and the grid patches its own state the moment the
-// action resolves — so a reload is the only reader that separates „the grid moved the row" from „the
-// row moved in Postgres".
-// Fire a menu command and wait for its server action to come back. The write is safe either way — it
-// is the SCREEN that loses the race: the router applies each action's reply as a re-render, and a
-// command issued while the previous reply is still in flight is painted over by it, leaving a row
-// that Postgres has already dropped on screen with nothing left to click. Nothing in the DOM
-// announces that reply, so the wait is on the action's own response.
+// The write is safe either way — it is the SCREEN that loses the race: the router applies each
+// action's reply as a re-render, and a command issued while the previous reply is still in flight is
+// painted over by it.
 function serverAction(page: Page): Promise<unknown> {
   return page.waitForResponse(
     (response) =>
@@ -117,8 +91,6 @@ async function runCommand(page: Page, command: string | RegExp): Promise<void> {
 
 const newItemDialog = (page: Page) => page.getByRole('dialog').filter({ hasText: 'Nowa praca' })
 
-// Every „add a praca" entry opens the „Nowa praca" form; the praca exists only once it is saved, so
-// the wait is on the save's server action, not on the click that opened the form.
 async function fillNewItem(
   page: Page,
   description: string,
@@ -172,9 +144,6 @@ test('inserting and deleting prace through the row menu rewrites the order, and 
       'Praca beta jeden',
     ])
 
-  // „Wstaw powyżej" is the command that has to land at an INDEX rather than at the tail, which is
-  // where a display_order collision would show: the new praca and the one it displaced would both
-  // claim the same slot, and the reload below would then order them by id instead.
   await openRowMenu(page, 'Praca alfa dwa')
   await menuItem(page, 'Wstaw powyżej').click()
   await fillNewItem(page, 'Praca wstawiona')
@@ -190,15 +159,9 @@ test('inserting and deleting prace through the row menu rewrites the order, and 
   ]
   await expect.poll(() => rozpiska(page)).toEqual(afterInsert)
 
-  // Reloaded between the two commands, and not only to read the insert back: each command lands its
-  // own router transition, and a second command fired while the first one's payload is still in
-  // flight is re-rendered away by it. A reload is the one barrier nothing crosses — and it is what
-  // separates „the grid put the row there" from „the row is in Postgres at that slot".
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(afterInsert)
 
-  // Deleting the praca BELOW the insert is what proves the new display_order is a real sequence
-  // rather than two rows sharing a slot: the rows on both sides of the gap keep their order.
   await openRowMenu(page, 'Praca alfa trzy')
   await menuItem(page, 'Usuń pozycję').click()
   const deleted = serverAction(page)
@@ -233,16 +196,12 @@ test('the section band menu freezes its insert under a sort, and a global sort d
   await openEditor(page, seed.sections)
   await expect.poll(() => rozpiska(page)).toEqual(initial)
 
-  // Under a sort the array position stops mirroring display_order, so „Wstaw sekcję" freezes, and
-  // „Usuń sekcję" is deliberately NOT: the gate is about position, not about the sekcja.
   await sortBy(page, COLUMN_LABELS.description, 'Sortuj rosnąco zachowując sekcje')
   await openSectionMenu(page, 'Sekcja środkowa')
   await expect(menuItem(page, 'Wstaw sekcję powyżej')).toBeDisabled()
   await expect(menuItem(page, 'Usuń sekcję')).toBeEnabled()
   await page.keyboard.press('Escape')
 
-  // A GLOBAL sort drops the bands entirely, so the section menu goes with them — one flat list is
-  // the whole point of that scope, and a band left standing over rows from three sekcje would lie.
   await sortBy(page, COLUMN_LABELS.description, /^Sortuj rosnąco$/)
   await expect(page.locator('.dsg-row.kosztorys-section-header')).toHaveCount(0)
   await expect
@@ -277,13 +236,9 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   ]
   await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
 
-  // The grid patches its own rows from the action's answer, so the session that added the praca sees
-  // it under the right band whether or not the server agreed about which band that was.
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
 
-  // The katalog write rode the same transaction as the praca: the same opis + j.m. offered to the
-  // katalog again is now a collision, and „Wróć" leaves both the katalog and the rozpiska alone.
   await openSectionMenu(page, 'Sekcja docelowa')
   await page.getByRole('menuitem', { name: 'Dodaj pracę', exact: true }).click()
   await fillNewItem(page, description, { catalogue: true })
@@ -296,8 +251,6 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
 })
 
-// A sekcja is created bare, so the band is the only thing on screen until its first praca goes in
-// through the band itself — and the reload is what shows the server minted no pozycja of its own.
 test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, and its last delete leaves it bare', async ({
   page,
 }) => {
@@ -337,14 +290,13 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
   await expect.poll(() => rozpiska(page)).toEqual(bare)
 })
 
-// The entry carries its one-line explanation inside the item, so the accessible name does too — and
 // „Zapisz" alone matches several rows of the „Opcje" menu.
 const SAVE_PRESET_ITEM = /Zapisz jako wzór do użycia na innych inwestycjach/
 
 const presetDialog = (page: Page) =>
   page.getByRole('dialog').filter({ hasText: 'Dodaj sekcję z szablonu' })
 
-// Cut a szablon off a kosztorys through the real dialog. A preset payload is written by
+// A preset payload is written by
 // `serializeKosztorysAsPreset`, which is `server-only` and out of a seed script's reach, so the
 // library this test reads has to be one the app itself wrote.
 async function savePreset(page: Page, investmentId: number, name: string): Promise<void> {
@@ -356,8 +308,6 @@ async function savePreset(page: Page, investmentId: number, name: string): Promi
   await expect(dialog).toHaveCount(0, { timeout: 20_000 })
 }
 
-// Left pane: narrow to one szablon and open it. The rows carry their sekcja counts, so the name is a
-// substring of the accessible name rather than the whole of it.
 async function openPreset(page: Page, name: string): Promise<void> {
   await presetDialog(page).getByPlaceholder('Szukaj szablonu…').fill(name)
   await presetDialog(page).getByRole('button', { name }).click()
@@ -378,15 +328,10 @@ test('„Sekcja z szablonu…" zbiera zaznaczenia z dwóch szablonów i dokleja 
   await page.getByRole('button', { name: 'Dodaj' }).click()
   await menuItem(page, 'Sekcja z szablonu…').click()
 
-  // One sekcja out of szablon A's two: „Zaznacz wszystkie" is a different command, and a szablon
-  // taken whole could not show that the picked sekcja is the one that crossed.
   await openPreset(page, presetA)
   await presetDialog(page).getByRole('button', { name: 'Sekcja szablonu A' }).click()
   await expect(presetDialog(page).getByRole('button', { name: 'Dodaj (1)' })).toBeVisible()
 
-  // Switching szablon means FILTERING szablon A out of the left pane — the selection lives in a
-  // `Set` of section ids above both panes, and a regress that hangs it off the visible list
-  // drops the first pick silently. The counter is the only place on screen that says otherwise.
   await openPreset(page, presetB)
   await presetDialog(page).getByRole('button', { name: 'Sekcja szablonu B' }).click()
   const confirm = presetDialog(page).getByRole('button', { name: 'Dodaj (2)' })
@@ -397,8 +342,7 @@ test('„Sekcja z szablonu…" zbiera zaznaczenia z dwóch szablonów i dokleja 
   await appended
 
   // Both sekcje at the TAIL, behind the rozpiska that was already there — and in the order the
-  // picker lists szablony (newest first), which is what the append follows. „Sekcja pominięta A" is
-  // the control: it rode along in the same szablon and was never ticked.
+  // picker lists szablony (newest first), which is what the append follows.
   const afterAppend = [
     '# Sekcja zastana',
     'Praca zastana',
@@ -412,8 +356,7 @@ test('„Sekcja z szablonu…" zbiera zaznaczenia z dwóch szablonów i dokleja 
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(afterAppend)
 
-  // What a szablon carries and what it drops, on a praca that crossed: the cena comes along, the
-  // przedmiar is this job's own fact and arrives zeroed. Both cells are typed by hand, so the figure
+  // Both cells are typed by hand, so the figure
   // lives in the input's value and never in a text node.
   const przedmiar = await rowCell(page, 'Praca z szablonu A', COLUMN_LABELS.plannedQty)
   await expect(przedmiar.locator('input')).toHaveValue('0')

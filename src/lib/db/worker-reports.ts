@@ -32,9 +32,7 @@ export type WorkerReportLineInputT = {
   unit: string
   sectionName: string | null
   reportedQty: number
-  // Set only by a scan: the AI's best guess at a digit it could not read for sure.
   isUncertain?: boolean
-  // A scanned rozpiska line whose number resolved to no pozycja keeps what the paper said.
   scannedRef?: string
 }
 
@@ -255,7 +253,6 @@ export async function insertWorkerReport(db: DbExecutorT, report: ReportInsertT)
   return Number(res.rows[0]?.id)
 }
 
-/** `null` when a photo is not the kierownik's own upload — nothing is stored then. */
 export async function insertScannedReport(
   db: DbExecutorT,
   report: ReportInsertT & { createdById: number; mediaIds: number[] },
@@ -268,7 +265,6 @@ export async function listWorkerReports(
   db: DbExecutorT,
   investmentId: number,
   workerId?: number,
-  // The worker's history on his link lists only what he sent himself, not a kierownik's scan.
   { linkOnly = false, pendingOnly = false }: { linkOnly?: boolean; pendingOnly?: boolean } = {},
 ): Promise<WorkerReportRowT[]> {
   const res = await db.execute(sql`
@@ -333,7 +329,7 @@ export async function readWorkerReport(
 }
 
 /**
- * One report for its Podgląd, from any investment. The access check is part of the statement: the
+ * The access check is part of the statement: the
  * id comes from the client, so a foreign report and a missing one both come back `null`.
  */
 export async function readReportPreview(
@@ -381,7 +377,7 @@ export async function readReportPreview(
 }
 
 /**
- * His history on his worker page: link and scan alike, on every investment. No trash or
+ * No trash or
  * zakończona filter, by choice — a report stays his history after the investment closes.
  */
 export async function listReportsByWorker(
@@ -411,8 +407,6 @@ const SORT_EXPRESSIONS: Record<ServerSortableReportColumnT, SqlT> = {
   status: sql`array_position(ARRAY[${sqlList(REPORT_STATUSES)}]::text[], r.status)`,
 }
 
-// The column picks a SQL fragment rather than a bound value, so an unknown one falls back to the queue
-// here too. Ties stay newest first whichever way the column runs.
 function reportsOrderBy(sort: string | undefined): SqlT {
   if (!sort) return QUEUE_ORDER
   const column = sortParamColumnId(sort)
@@ -423,7 +417,7 @@ function reportsOrderBy(sort: string | undefined): SqlT {
 
 /**
  * Every report the kierownik can still act on — a decided one too, since its odrzucone lines stay
- * acceptable. Without a `sort`, the pending queue first, then the rest newest first.
+ * acceptable.
  */
 export async function listDecidableReports(
   db: DbExecutorT,
@@ -453,10 +447,6 @@ export async function listDecidableReports(
   }
 }
 
-/**
- * Only investments and workers that have a report on this list — an option outside it could only
- * ever filter down to nothing, which is the case for every zakończona inwestycja.
- */
 export async function listReportFilterOptions(
   db: DbExecutorT,
 ): Promise<{ investments: ReferenceItemT[]; workers: ReferenceItemT[] }> {
@@ -522,8 +512,7 @@ export async function clearLinesAcceptance(
 /**
  * A praca spoza rozpiski goes into the rozpiska the moment it is picked, long before „Zapisz zmiany”,
  * and the review's drafts live only in memory — so the pozycja it became is kept on the line right
- * away, or a reopened review offers it as spoza rozpiski again and a second add mints a twin. `null`
- * forgets it. Returns whether the line was still waiting to be written.
+ * away, or a reopened review offers it as spoza rozpiski again and a second add mints a twin.
  */
 export async function setPendingExtraItem(
   db: DbExecutorT,
@@ -559,8 +548,7 @@ export async function setLinesRejected(
 
 /**
  * Two decisions on one report are serialised by the investment row lock the caller holds
- * (`lockInvestmentGates`). The etap's ordinal and label are copied, so a later rename or delete of it
- * does not rewrite the record.
+ * (`lockInvestmentGates`).
  */
 export async function settleReport(
   db: DbExecutorT,
@@ -594,11 +582,9 @@ export async function settleReport(
 export type ReportLineDecisionT = {
   lineId: number
   acceptedQty: number
-  // Set only for a line re-pointed to a pozycja.
   itemId?: number
 }
 
-/** Lines left out of `decisions` stay as they are; an accepted one is no longer odrzucona. */
 export async function updateReportLines(
   db: DbExecutorT,
   reportId: number,
@@ -631,7 +617,7 @@ export async function countReportsByWorker(
 }
 
 /**
- * Which of `mediaIds` a report holds. Its photos live in a raw table, so the Payload-relation scan of
+ * Its photos live in a raw table, so the Payload-relation scan of
  * the media reclaim cannot see them and would take a scanned page for an orphan.
  */
 export async function findReportHeldMedia(db: DbExecutorT, mediaIds: number[]): Promise<number[]> {

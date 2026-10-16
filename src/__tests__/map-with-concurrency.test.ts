@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 
-// A deferred promise so a test can control exactly when each item resolves.
 function deferred<T>() {
   let resolve!: (value: T) => void
   let reject!: (reason: unknown) => void
@@ -57,7 +56,6 @@ describe('mapWithConcurrency', () => {
       return i
     })
 
-    // limit=1: only item 0 has started; item 1 waits for the slot.
     await Promise.resolve()
     expect(order).toEqual([0])
 

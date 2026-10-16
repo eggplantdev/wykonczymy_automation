@@ -1,5 +1,3 @@
-// One request, twice (cold, then warm), and the SQL each caused.
-//   node --env-file=.env scripts/perf/probe.mjs <path> [prefetch|rsc|html] [OWNER|MANAGER|EMPLOYEE]
 import { BASE, headersFor, kb, login, readSqlLines } from './lib.mjs'
 
 const [path = '/', mode = 'prefetch', role = 'OWNER'] = process.argv.slice(2)

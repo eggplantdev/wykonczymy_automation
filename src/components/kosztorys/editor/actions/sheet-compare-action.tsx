@@ -25,12 +25,9 @@ export function useSheetCompareAction(): SheetCompareActionT {
   const [error, setError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
-  // Fetch on the click, not inside the dialog: Radix onOpenChange never fires for a programmatic
-  // `open`, so the dialog can't fetch itself. The refresh rides along with the read, so a successful
-  // fetch MAY have written rows — only then does the grid need reseeding. Signalling on every open
+  // Signalling on every open
   // would arm a remount that has nothing to remount for, and it would fire on the next unrelated
   // edit instead, taking the owner's search and sort with it.
-  // Also the re-read after the owner points a column, which is why it does not touch `open`.
   function read() {
     setLoaded(false)
     setResult(null)

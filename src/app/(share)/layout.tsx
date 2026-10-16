@@ -4,9 +4,8 @@ import { ToastContainer } from 'react-toastify'
 import { cn } from '@/lib/utils/cn'
 import { spaceMono } from '@/fonts'
 
-// A route group with no auth check: the token in the URL is the whole credential, so this layout
-// deliberately does NOT read the session the way (frontend)/layout.tsx does. `noindex` keeps a
-// shared link out of search results — a client forwards it, a crawler must not follow it.
+// The token in the URL is the whole credential, so this layout
+// deliberately does NOT read the session the way (frontend)/layout.tsx does.
 export const metadata: Metadata = {
   title: 'Kosztorys',
   robots: { index: false, follow: false },

@@ -6,9 +6,7 @@ import {
 } from '@/access/investment-lock'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 
-// This gate is `/admin`'s only lock, since the action wrapper never sees panel writes. Both
-// factories fail OPEN when the target can't be named — deliberately where required-field
-// validation would catch it anyway, and by gap where a relationship arrives as a string id.
+// This gate is `/admin`'s only lock, since the action wrapper never sees panel writes.
 const LOCKED_ID = 99
 
 const req = (item?: { investment: unknown }) =>
@@ -82,8 +80,6 @@ describe('updateUnlessInvestmentLocked', () => {
     })
   })
 
-  // A patch that does not touch the relationship leaves the direction unasked — the stored-row
-  // `Where` is the whole gate then.
   it('falls back to the stored-row narrowing when the payload names no investment', async () => {
     expect(await gate(args({ name: 'renamed' }))).toEqual({
       'investment.status': { not_equals: 'completed' },
@@ -125,7 +121,6 @@ describe('createUnlessInvestmentLocked', () => {
     expect(await viaItem(args({ item: 3 }, { investment: 7 }))).toBe(true)
   })
 
-  // A parent the lookup cannot see is not this gate's error to raise — and it must not become a 500.
   it('waves through a pozycja that cannot be read instead of throwing', async () => {
     expect(await viaItem(args({ item: 3 }))).toBe(true)
   })

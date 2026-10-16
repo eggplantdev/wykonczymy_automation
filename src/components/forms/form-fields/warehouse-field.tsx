@@ -17,8 +17,6 @@ type WarehouseFieldPropsT = {
 }
 
 /**
- * „Magazyn", plus the button that creates one without leaving the form.
- *
  * The new warehouse is appended to LOCAL state as well as saved: the option list arrives as a prop
  * from the server page, which will not re-render while this dialog is open, so without the local
  * copy the magazyn you just created would be missing from the list you created it for.

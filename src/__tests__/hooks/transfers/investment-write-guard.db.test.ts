@@ -5,15 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-// The persisted-row half of `investment-write-guard.test.ts`, which pins the same EX-557 invariant on
-// the hook in isolation: COMPANY_FUNDING and OTHER_DEPOSIT are company-level cash and can never carry
-// an investment. The client wpłaty figure stands on it — it is what makes the deposit list and the
-// income aggregate agree for a single investment (EX-680).
-// Nobody asserted the row that actually lands, and a plain scan of existing rows would be vacuously
-// green: a prod dump contains no such row to begin with.
-
 vi.mock('server-only', () => ({}))
-// The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -43,7 +35,6 @@ describe.skipIf(!ENV_READY)('company deposits never persist an investment (DB)',
         type,
         paymentMethod: 'TRANSFER',
         sourceRegister: registerId,
-        // The whole point: every one of these asks for the investment. Only INVESTOR_DEPOSIT keeps it.
         investment: investmentId,
       },
       overrideAccess: true,
@@ -71,9 +62,8 @@ describe.skipIf(!ENV_READY)('company deposits never persist an investment (DB)',
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)
     await purgeFixtureUsers(db)
 
-    // Its own register rather than the lowest-id one from the prod restore: this spec CREDITS the
-    // register, and a leftover row on the main kasa silently changes what `pnpm test:parity`'s
-    // golden master guards.
+    // This spec CREDITS the register, and a leftover row on the main kasa silently changes what
+    // `pnpm test:parity`'s golden master guards.
     const owner = await payload.create({
       collection: 'users',
       data: {
@@ -125,8 +115,6 @@ describe.skipIf(!ENV_READY)('company deposits never persist an investment (DB)',
     expect(await persistedInvestmentId(persisted.otherDeposit!)).toBeNull()
   })
 
-  // Positive control: without it the two assertions above would also pass on a build that nulls
-  // investment_id for every deposit type.
   it('keeps the investment on an INVESTOR_DEPOSIT write', async () => {
     expect(await persistedInvestmentId(persisted.investorDeposit!)).toBe(investmentId)
   })

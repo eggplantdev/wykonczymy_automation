@@ -35,7 +35,6 @@ describe('investment lock', () => {
         ['completed', INVESTMENT_LOCKED_MESSAGE],
         ['active', undefined],
         ['planowana', undefined],
-        // A szablon is editable on purpose — it is unbookable, not locked.
         ['szablon', undefined],
       ] as const) {
         mockExecute.mockResolvedValueOnce({ rows: [{ status, trashed_at: null }] })
@@ -51,15 +50,12 @@ describe('investment lock', () => {
       }
     })
 
-    // An editor tab left open on a szablon trashed meanwhile must not tell the user about an investment.
     it('locks a trashed szablon with the szablon sentence', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ status: 'szablon', trashed_at: new Date() }] })
       expect(await investmentLockMessage(db, 1)).toBe(TEMPLATE_TRASHED_MESSAGE)
     })
 
-    // A nonexistent investment is the caller's problem to report — locked would answer „zakończona"
-    // for an id that never existed.
     it('treats a missing row as unlocked', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [] })
@@ -83,8 +79,6 @@ describe('investment lock', () => {
       expect(lastSqlChunks()).toContain(table)
     })
 
-    // Both facts in one round trip: the delete handlers take the owner id straight off this answer
-    // rather than asking the same row a second time.
     it('answers owner and lock together', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'completed' }] })
@@ -105,8 +99,6 @@ describe('investment lock', () => {
       )
     })
 
-    // The third fact the same row already carries: a write into a szablon moves its „ostatnio
-    // edytowany", and asking for the status separately would double the round trip.
     it('marks a szablon row as a template', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'szablon' }] })
@@ -117,7 +109,6 @@ describe('investment lock', () => {
       })
     })
 
-    // Distinguishable from „locked" on purpose — the caller reports this one as NOT_FOUND.
     it('returns undefined for a row that does not exist', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [] })
@@ -132,7 +123,6 @@ describe('investment lock', () => {
       expect(await relatedInvestmentLockMessage(db, relation)).toBe(INVESTMENT_LOCKED_MESSAGE)
     })
 
-    // A row naming no investment moves no investment's money — and it must not cost a query.
     it('answers „not locked" for an absent relationship without asking the DB', async () => {
       const db = await getDb(fakePayload)
       expect(await relatedInvestmentLockMessage(db, null)).toBeUndefined()

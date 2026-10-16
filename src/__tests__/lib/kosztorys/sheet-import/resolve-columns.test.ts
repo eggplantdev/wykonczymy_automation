@@ -62,22 +62,18 @@ describe('resolveLaborColumns', () => {
   })
 
   it('finds stages by the „wykonano" marker even when row 3 renames them to crews', () => {
-    // Row 3 reads „1 etap BRYGADA JEDEN" / „3 etap EKIPA DWA" — no „ilość" anywhere.
     const result = resolveLaborColumns(PRZEDPOLE_LABOR_HEADER)
     expectResolved(result)
     expect(result.stages.count).toBe(6)
   })
 
   it('does not mistake the wartość block for more etapy', () => {
-    // Row 1 labels the money block identically to the qty block (V1 is =D1). Only row 2 differs.
     const result = resolveLaborColumns(BIALOSTOCKA_LABOR_HEADER)
     expectResolved(result)
     expect(result.stages.count).toBe(10) // not 20
   })
 
   it('runs the etapy up to Przedmiar when the owner added columns without „wykonano"', () => {
-    // Siennicka (inv 48) / inv 14: markers on D–I only; the added etapy are captioned however the
-    // owner typed them, or not at all, and the sheet's pomiar still sums D:M.
     const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
     for (const column of [9, 10, 11, 12]) grid[1][column] = ''
     grid[0][10] = 'etap 8'
@@ -99,8 +95,6 @@ describe('resolveLaborColumns', () => {
   })
 
   it('reads a split „Wartość netto" off the Pomiar z natury column, not the Przedmiar one', () => {
-    // S prices Przedmiar (the offer), T prices Pomiar z natury — and T is what the sheet counts: the
-    // section total sums T and „pozostało do rozliczenia" is T minus the etapy.
     const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
     expectResolved(result)
 
@@ -156,7 +150,6 @@ describe('resolveLaborColumns', () => {
     const result = resolveLaborColumns(grid)
     expectResolved(result)
     expect(result.columns.measuredQty).toBeUndefined()
-    // The report has to tell the two apart: „dopisz kolumnę" vs „zmień nazwę tej drugiej".
     expect(result.missingFields).toContainEqual({
       field: 'measuredQty',
       required: false,
@@ -194,8 +187,6 @@ describe('resolveLaborColumns', () => {
     expect(result.problems.join(' ')).toContain('Przedmiar')
   })
 
-  // Both sides of a failed match, because the owner repairs it by pairing them: the field that has no
-  // column, and the columns that have no field.
   describe('the two sides of a failed match', () => {
     function expectRefused(
       result: ResolvedLaborColumnsT | LaborColumnsFailureT,
@@ -229,7 +220,7 @@ describe('resolveLaborColumns', () => {
       const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
 
-      // N/Q are Przedmiar and Cena j.m.; U is komentarz. Offering a resolved column would invite the
+      // Offering a resolved column would invite the
       // owner to point two fields at one column.
       const columns = result.candidates.map((candidate) => candidate.column)
       expect(columns).not.toContain(13) // N
@@ -289,7 +280,6 @@ describe('resolveLaborColumns', () => {
 
 describe('resolveRates', () => {
   it('separates the two rate columns from the client price they share a label with', () => {
-    // „cena j.m." appears at P (client price), R (z narzędziami) and T (bez narzędzi).
     const result = resolveRates(BIALOSTOCKA_RATES_HEADER)
     expectRatesResolved(result)
 
@@ -301,8 +291,6 @@ describe('resolveRates', () => {
   })
 
   it('matches a banner typed without Polish diacritics', () => {
-    // Białostocka's „z narzędziami" tab spells its own banner „cennik z narzedziami" — the same
-    // sheet, one tab over, spells it with the ę.
     const grid = BIALOSTOCKA_RATES_HEADER.map((row) => [...row])
     for (const rowIndex of [0, 1]) {
       grid[rowIndex] = grid[rowIndex].map((cell) =>
@@ -316,7 +304,6 @@ describe('resolveRates', () => {
   })
 
   it('matches banners named by who does the work rather than by tooling', () => {
-    // Altowa splits the price lists as „podwykonawca" / „pracownik" — same two lists, other axis.
     const grid = BIALOSTOCKA_RATES_HEADER.map((row) => [...row])
     for (const rowIndex of [0, 1]) {
       grid[rowIndex] = grid[rowIndex].map((cell) =>

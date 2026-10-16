@@ -46,8 +46,6 @@ const nameHeldError = (holder: PresetNameHolderT) =>
     error: holder === 'trashed' ? NAME_IN_TRASH_MESSAGE : NAME_TAKEN_MESSAGE,
   }) as const
 
-// The hooks' own revalidation would fire per write and inside the transaction; each action expires
-// what it changed itself.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
 export type SavePresetInputT =
@@ -72,12 +70,6 @@ async function cataloguedPresetTree(db: DbExecutorT, tree: SnapshotPayloadT) {
 const savedPreset = (skipped: number): ActionResultT =>
   skipped > 0 ? { success: true, warning: skippedItemsWarning(skipped) } : { success: true }
 
-// „Zapisz jako szablon" — the source's rozpiska with job fields stripped. `new` founds a szablon;
-// `overwrite` replaces an existing one's tree, leaving a restore point on it, so the overwrite is
-// undoable from that szablon's „Wersje".
-//
-// Deliberately ungated by the source's lock: a szablon is not a change to the source, and a finished
-// kosztorys is a good source for one.
 export async function savePresetAction(
   investmentId: number,
   input: SavePresetInputT,
@@ -132,8 +124,6 @@ export async function savePresetAction(
   )
 }
 
-// The only way a szablon is born without a source kosztorys: an empty tree the user then builds on
-// its own page.
 export async function createEmptyPresetAction(
   name: string,
 ): Promise<ActionResultT<{ id: number }>> {
@@ -157,13 +147,9 @@ export async function createEmptyPresetAction(
   )
 }
 
-// Removing a szablon is not owner-only: it goes through the trash (investment-trash.ts), open to
-// MANAGEMENT_ROLES because it is reversible.
 const OWNER_ONLY_PRESET_MESSAGE =
   'Tylko właściciel lub administrator może zmieniać nazwy szablonów.'
 
-// The name IS the szablon's identity (unique, and the only thing the pickers show), so this is an
-// identity change, not cosmetics.
 export async function renamePresetAction(id: number, name: string): Promise<ActionResultT> {
   return ownerOnlyAction(
     'renamePresetAction',
@@ -193,10 +179,9 @@ const appendSectionsSchema = z.object({
   sectionIds: z.array(z.number().int().positive()).min(1, 'Wybierz co najmniej jedną sekcję'),
 })
 
-// Appends chosen szablon sections to a kosztorys. The client sends live section ids only; the server
+// the server
 // resolves which szablon owns each and reads it through the preset serializer, so neither a forged
-// tree nor a section of an ordinary investment can reach the target. Runs in one transaction,
-// returning the created slice with new ids for optimistic patching.
+// tree nor a section of an ordinary investment can reach the target.
 export async function appendPresetSectionsAction(
   investmentId: number,
   sectionIds: number[],
@@ -209,8 +194,6 @@ export async function appendPresetSectionsAction(
       if (!parsed.success) return parsed
 
       const owners = await templateOwnersOfSections(await getDb(payload), parsed.data.sectionIds)
-      // A szablon can contribute several sections, so each is serialized once; the loop keeps the
-      // client's order so appended sections land in the order they were picked.
       const trees = new Map<number, SnapshotPayloadT>()
       const slices: SectionSliceT[] = []
       for (const sectionId of parsed.data.sectionIds) {

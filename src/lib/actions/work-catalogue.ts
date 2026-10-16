@@ -72,20 +72,17 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
 
       const row = catalogueRow(parsed.data)
 
-      // Editing the opis or j.m. re-derives the key, so an edit can collide exactly like a create.
       // The row being edited is excluded — otherwise saving it unchanged would collide with itself.
       const db = await getDb(payload)
       const holder = await findCatalogueItemByKey(db, row.matchKey)
       if (holder && holder.id !== id) return { success: false, error: DUPLICATE_ERROR }
 
-      // An edit that keeps the opis and j.m. finds its own row as the holder — the common price-only save.
       const stored = holder ?? (await listCatalogueItemsByIds(db, [id]))[0]
       await payload.update({
         collection: 'work-catalogue-items',
         id,
         data: {
           ...row,
-          // The edit form is seeded with the stored comment, so a blank here is a deliberate clear.
           // Absent means a caller that never showed the field — leave the stored one alone.
           ...(parsed.data.workNote !== undefined && {
             workNote: parsed.data.workNote.trim() || null,
@@ -135,7 +132,7 @@ export async function deleteCatalogueItemAction(id: number) {
     'deleteCatalogueItemAction',
     async ({ payload }) => {
       // A kosztorys keeps its own copy (and the now dead id); a szablon's prace ARE their katalog
-      // entries (EX-1017), so the praca leaves every szablon with it.
+      // entries, so the praca leaves every szablon with it.
       await withPayloadTransaction(
         payload,
         async (req) => {
@@ -154,14 +151,10 @@ export async function deleteCatalogueItemAction(id: number) {
 }
 
 const EMPTY_DESCRIPTION_ERROR = 'Praca bez opisu nie trafi do katalogu — najpierw ją nazwij.'
-// The j.m. is half the klucz, so without this the save died on Payload's own validation and the
-// owner got a framework sentence instead of the fix.
 const EMPTY_UNIT_ERROR = 'Praca bez jednostki miary nie trafi do katalogu — najpierw uzupełnij j.m.'
 
 // Only the BLIND save refuses an incomplete praca — it writes the candidate verbatim, so a missing
-// j.m. would die on Payload's own validation and hand the owner a framework sentence. The preview
-// deliberately does not: the form it fills is the place where the missing j.m. gets typed in, and
-// refusing there would be an error message with nowhere to go and fix it.
+// j.m. would die on Payload's own validation and hand the owner a framework sentence.
 function incompleteCandidateError(candidate: CatalogueSeedItemT): string | null {
   if (!candidate.description) return EMPTY_DESCRIPTION_ERROR
   if (!candidate.unit) return EMPTY_UNIT_ERROR
@@ -200,7 +193,7 @@ export async function saveItemToCatalogueAction(
       if (refusal) return { success: false, error: refusal }
 
       // The pozycja remembers what it was saved as, so the next „Aktualizuj" finds this entry even
-      // after a rename in the katalog — and a changed opis moves it to the new praca it now is.
+      // after a rename in the katalog.
       await withPayloadTransaction(
         payload,
         async (req) => {

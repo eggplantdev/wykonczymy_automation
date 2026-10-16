@@ -27,7 +27,6 @@ describe('ingestPickedFiles', () => {
     expect(blocked).toEqual([])
   })
 
-  // An undefined left in that list would be uploaded as a page.
   it('compacts the survivors, dropping the blocked file rather than leaving a hole', async () => {
     mockProcess.mockImplementation(async (input: File) => {
       if (input.name === 'b.jpg') throw new BlockedFileError('b.jpg')

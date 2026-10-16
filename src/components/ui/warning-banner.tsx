@@ -2,8 +2,6 @@ import { TriangleAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 
-// The panel's scream affordance: a bordered destructive one-liner the owner can't scroll past.
-// Shared so a second warning can't drift from the first in colour, icon, or weight.
 export function WarningBanner({
   children,
   className,

@@ -26,9 +26,8 @@ const refusalMessage = (refusal: ReportRefusalKeyT): string =>
   refusal === 'inactiveWorker' ? INACTIVE_WORKER : REPORT_REFUSALS[refusal]
 
 /**
- * The kierownik files a zgłoszenie from the worker's paper. It passes the same gates as the worker's
- * own send — closed investment, szablon, inactive worker, blocked or zakończone etapy —
- * because it lands in the same review and the same etap quantities.
+ * It passes the same gates as the worker's
+ * own send because it lands in the same review and the same etap quantities.
  */
 export async function createScannedReportAction(
   input: CreateScannedReportInputT,

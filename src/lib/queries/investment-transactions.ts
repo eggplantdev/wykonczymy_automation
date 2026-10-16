@@ -15,7 +15,6 @@ import type {
   MaterialTransactionRowT,
 } from '@/types/transfers'
 
-// Tagged on CACHE_TAGS.transfers alone: the rows carry no worker name — that is resolved downstream off reference data — so a rename must not bust this.
 export async function fetchPayoutTransactionsForInvestment(
   investmentId: number,
 ): Promise<PayoutTransactionRowT[]> {
@@ -29,8 +28,6 @@ export async function fetchPayoutTransactionsForInvestment(
   )()
 }
 
-// Same cache contract as the payout-transactions fetch — transfers tag, no PII to join.
-//
 // Deliberately kept as an investment-only entry point: the unauthenticated share read reaches this
 // fetcher, so it must expose no filter parameter a caller could widen.
 export async function fetchDepositTransactionsForInvestment(
@@ -47,15 +44,8 @@ export async function fetchDepositTransactionsForInvestment(
 }
 
 /**
- * The individual materiały rows for the Podsumowanie's wydatki list — this investment's
- * INVESTMENT_EXPENSE + INVESTMENT_EXPENSE_NET + CORRECTION, both settled states, so the list can
- * split them into its three tabs (`partitionExpenseRows` owns the rule and the labels).
- *
- * Shared by the owner's editor page and the unauthenticated client share read, which is why the
- * category-name and invoice joins live here rather than at either page: the two surfaces must label a
- * row — and agree on which rows have a downloadable invoice — identically. Only names are joined;
- * `fetchReferenceData` would drag along company-wide PII that has no business on the share path.
- * `limit: 0` = all rows.
+ * Only names are joined; `fetchReferenceData` would drag along company-wide PII that has no business
+ * on the share path.
  */
 export async function fetchMaterialTransactionsForInvestment(
   investmentId: number,
@@ -76,8 +66,6 @@ export async function fetchMaterialTransactionsForInvestment(
   const nameById = new Map(expenseCategories.map((category) => [category.id, category.name]))
   const mediaById = await fetchMediaByIds(extractInvoiceIds(docs))
 
-  // depth: 0 → `expenseCategory` and `invoice` are raw ids (`expenseCategory` null for a legacy
-  // uncategorised row / a CORRECTION).
   return docs.map((doc) => {
     return {
       id: Number(doc.id),

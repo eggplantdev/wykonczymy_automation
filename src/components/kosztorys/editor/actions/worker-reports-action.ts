@@ -38,10 +38,9 @@ export function useWorkerReportsAction(seed: WorkerReportsSeedT | undefined): Wo
   }
 }
 
-// So a reload after closing does not reopen the report. Not on mount: Next answers a replaceState
+// Not on mount: Next answers a replaceState
 // with a router restore, and a restore discards every server action still in flight — the dialog's
-// list read among them, which then never settles. The History API rather than `router.replace`,
-// which would re-render the page's server tree.
+// list read among them, which then never settles.
 function stripDeepLink() {
   if (new URLSearchParams(window.location.search).has(REPORT_PARAM)) {
     window.history.replaceState(null, '', window.location.pathname)

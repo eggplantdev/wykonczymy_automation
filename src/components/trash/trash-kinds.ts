@@ -33,7 +33,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     restored: 'Inwestycja przywrócona.',
     deleteForever: deleteInvestmentForeverAction,
     lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
-    // Read the way the /kosz row reads it: no auto-purge means „kosztorys w użyciu".
     note: (row) => (row.autoPurges ? undefined : KOSZTORYS_IN_USE_WARNING),
     nameLabel: 'Nazwa inwestycji',
     deleted: 'Inwestycja usunięta na zawsze.',

@@ -32,7 +32,6 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 const ITEMS = [{ description: 'pozycja', plannedQty: 10, clientPrice: 100 }]
 const OVERPAID_BY = 150
 
-// Asserts the PERSISTED rows: a refusal that still wrote the premia reads the same from the outside.
 describe.skipIf(!ENV_READY)('bookOverpaymentBonusAction (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

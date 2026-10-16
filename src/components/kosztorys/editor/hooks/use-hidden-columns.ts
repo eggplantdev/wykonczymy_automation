@@ -3,28 +3,14 @@
 import { createJsonMapStore, useJsonMap } from '@/hooks/create-json-map-store'
 import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 
-// Which grid columns the user hid, persisted in localStorage. Sparse: an absent key means "whatever
-// DEFAULT_HIDDEN_COLUMNS says", so a new column ships at its declared default without a migration
-// and the default stays changeable in code afterwards. Seeding defaults into the map instead would
-// freeze them into every user's localStorage and make a seeded default indistinguishable from a
-// deliberate choice.
-//
-// The `table-columns:` prefix is shared with the TanStack tables (transfers, investments…) so every
-// "which columns do I want" preference clears as one family. Global, not per-investment — a preferred
-// column set is a property of the person reading, not of the kosztorys being read. Store mechanics
-// live in createJsonMapStore, shared with useColumnWidths.
 const kosztorysStore = createJsonMapStore<boolean>('table-columns:kosztorys')
-// The szablon workbench keeps its own map: its column list is a different document, so a tick on a
-// kosztorys must neither hide nor reveal a column there. No defaults — WORKSHOP_VISIBLE_COLUMNS is
-// already the curated set, and „Sekcja" hidden by default would be missing from it on a first visit.
+// No defaults — WORKSHOP_VISIBLE_COLUMNS is already the curated set, and „Sekcja" hidden by default
+// would be missing from it on a first visit.
 const workshopStore = createJsonMapStore<boolean>('table-columns:kosztorys-szablon')
 const NO_DEFAULT_HIDDEN: ReadonlySet<string> = new Set()
 
 export type ColumnPrefsScopeT = 'kosztorys' | 'workshop'
 
-// The raw map is deliberately NOT returned: an absent key means "ask DEFAULT_HIDDEN_COLUMNS", so a
-// caller reading hidden[id] would silently get the pre-default answer. isHidden is the only honest
-// reader of it.
 export function useHiddenColumns(scope: ColumnPrefsScopeT = 'kosztorys'): {
   isHidden: (id: string) => boolean
   toggleColumn: (id: string) => void
@@ -39,16 +25,11 @@ export function useHiddenColumns(scope: ColumnPrefsScopeT = 'kosztorys'): {
   }
 
   // Writes an explicit boolean either way: deleting the key means "revert to default", not "show" —
-  // which for a default-hidden column would undo the very toggle that asked to show it. Toggles
-  // against the freshly-read map (via update), not the render's, so two toggles in one tick don't
-  // revert each other.
+  // which for a default-hidden column would undo the very toggle that asked to show it.
   function toggleColumn(id: string) {
     store.update((prev) => ({ ...prev, [id]: !(prev[id] ?? defaults.has(id)) }))
   }
 
-  // Writes an explicit boolean per id — never deletes, since an absent key falls back to the column's
-  // default (not "hidden"), the same sparse-map honesty as toggleColumn. The caller supplies the id
-  // set (from the picker) because the map is sparse — the hook alone can't enumerate every column.
   function setAllColumns(ids: string[], hidden: boolean) {
     store.update((prev) => ({ ...prev, ...Object.fromEntries(ids.map((id) => [id, hidden])) }))
   }

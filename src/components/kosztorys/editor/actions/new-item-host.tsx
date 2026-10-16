@@ -6,10 +6,6 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { NewItemPlacementT } from '@/lib/kosztorys/types'
 
-// „Nowa praca" opens from the katalog window, the sekcja band and menu, and a row's „…", so like
-// CataloguePickerHost it wraps the whole body. `children` is a prop for the same reason: opening
-// the dialog re-renders only this host, never the grid (EX-496). The editor hook reaches it through
-// a ref it owns, which this host fills.
 export function NewItemHost({ children }: { children: ReactNode }) {
   const {
     rows,

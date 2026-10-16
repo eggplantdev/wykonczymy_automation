@@ -9,9 +9,6 @@ import {
 import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
 import type { TransferRowT } from '@/types/transfers'
 
-// Screen and paper must name a transfer identically, so the column's `cell` and its `meta.printValue`
-// both read these rather than each rendering their own text.
-
 type TransfersTranslatorT = TranslatorT<'transfers'>
 
 const typeLabel = (type: string, { t }: TransfersTranslatorT): string => {
@@ -55,7 +52,6 @@ export function transferPaymentMethodText(
   return paymentMethod ? t(`payment_${paymentMethod}` satisfies MessageKeyT<'transfers'>) : '—'
 }
 
-// Empty off a wypłata: the column exists on every row, the question only on this one.
 export function transferPayoutStatusText(
   { type, payoutStatus, cancelled }: TransferRowT,
   translator: TransfersTranslatorT = POLISH_TRANSFERS,
@@ -64,7 +60,6 @@ export function transferPayoutStatusText(
   return payoutStatus ? payoutStatusLabel(payoutStatus, cancelled, translator) : '—'
 }
 
-// A cancellation leaves the worker's answer stored as it stood; „Anulowana" overrides it on screen.
 export function payoutStatusLabel(
   status: PayoutStatusT,
   cancelled: boolean,

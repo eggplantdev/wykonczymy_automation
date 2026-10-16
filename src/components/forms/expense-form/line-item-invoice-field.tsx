@@ -52,7 +52,6 @@ export function LineItemInvoiceField({
       <MediaPreviewButton
         labels={INVOICE_PREVIEW_LABELS}
         files={pages}
-        // No `closePreview` — the picked pages land in place, so the preview keeps showing them.
         onAdd={() => addInputRef.current?.click()}
         onRemove={(invoice) =>
           onRemoveFile(
@@ -62,7 +61,6 @@ export function LineItemInvoiceField({
         }
       />
 
-      {/* Add further pages from inside the preview modal („Dodaj stronę"). */}
       <input
         ref={addInputRef}
         type="file"

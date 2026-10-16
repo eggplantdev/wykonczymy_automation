@@ -1,8 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 
-// jsdom has no layout engine, so these three report 0 / never fire, and a component that measures
-// itself renders as sizeless. Radix and cmdk gate on them — without the stubs a popover mounts and
-// instantly hides, reading as „option not found" rather than an environment gap.
+// Radix and cmdk gate on them — without the stubs a popover mounts and
+// instantly hides
 if (!window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({

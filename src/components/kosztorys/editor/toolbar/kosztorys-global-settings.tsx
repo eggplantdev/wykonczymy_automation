@@ -15,9 +15,6 @@ import {
 import { NOTICE_MS } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 
-// Sourced from the constant rather than typed as „0,65": a hardcoded ceiling here would drift from
-// the rule the cells enforce, and the field would promise a limit it no longer has. Both progi are
-// named, because they differ per plane and the tooltip sits above both fields at once.
 const COEFF_DESCRIPTION = [
   'Cena wykonawcy = cena dla inwestora × mnożnik.',
   '0,65 = wykonawca dostaje 65% ceny dla inwestora.',
@@ -47,8 +44,6 @@ function CoeffField({
         </span>
       }
       value={value}
-      // A hard refusal, unlike the ceiling above it: a negative mnożnik prices work at less than
-      // nothing and is a typo, not a deal (owner, 2026-09-21).
       min={0}
       valueClassName={isCoeffFlagged(value, plane) ? FLAGGED_TONE : undefined}
       onCommit={(n) => {

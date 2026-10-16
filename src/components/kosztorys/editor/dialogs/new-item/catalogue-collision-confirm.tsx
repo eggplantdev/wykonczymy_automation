@@ -22,10 +22,6 @@ export type CollisionChoiceT =
   | { kind: 'kosztorys-only' }
   | { kind: 'back' }
 
-// Three outcomes, not ConfirmDialog's two: the owner ruled (2026-09-30) that a praca whose opis + j.m.
-// already sits in the katalog must still be addable to the kosztorys without touching the cennik —
-// „nie" to the overwrite is not „nie" to the praca. Mounted per question, so the kategoria toggle
-// starts on every time.
 export function CatalogueCollisionConfirm({
   existing,
   candidate,
@@ -37,7 +33,6 @@ export function CatalogueCollisionConfirm({
   allowKosztorysOnly: boolean
   onChoose: (choice: CollisionChoiceT) => void
 }) {
-  // The katalog owns its klasyfikacja, so protecting it is the default.
   const [keepCategory, setKeepCategory] = useState(true)
   const categoryDiffers = categoriesDiffer(existing, candidate)
   const back = () => onChoose({ kind: 'back' })

@@ -14,41 +14,27 @@ import { formatNet } from '@/lib/kosztorys/format'
 import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// `net` is the section's executed value after rabat, in the active price view — the same figure its
-// footer's „Razem netto" shows, so a collapsed section still states what it is worth.
+// `net` is the section's executed value after rabat, in the active price view
 export type SectionHeaderFigureT = { itemCount: number; net: number }
 
-// Carried on the wrapped column's `columnData`, never a closure — see kosztorys-synthetic-rows.tsx.
-// `onRename` and `actions` are absent in the read-only client view.
 export type SectionHeaderContextT = {
-  // Per section id — the band row carries the section's identity, not its figures.
   figures: Map<number, SectionHeaderFigureT>
   collapsedSectionIds: ReadonlySet<number>
   onToggleCollapsed: (sectionId: number) => void
   onRename?: (sectionId: number, name: string) => void
-  // One bundle: every command comes from the same `editorOnly()` gate, so it is all-present or absent.
   actions?: SectionBandActionsT
-  // A section-scoped sort keeps bands on screen but freezes section order — see the menu.
   sortActive: boolean
-  // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
-  // The worker's compact report: the name alone. It still runs over the blank cells; the compact
-  // grid's `overflow-x: clip` is what keeps a long one from widening the page.
   isBare?: boolean
 }
 
-// dsg has no colspan, so the band is painted per column: one column carries the whole label, one
-// carries the section's „…", the rest paint blank.
 export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
 
 const ACTIONS_COLUMN_ID = 'actions'
 
-// Chrome, not a reading: „Akcje" is 64px of trigger and the trailing gap is empty, so neither can
-// host a legible label. Literals, not an import — the column assembly imports this file.
+// Literals, not an import — the column assembly imports this file.
 const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
 
-// Follows the visible order, not a named column: any column can be dragged or hidden
-// (lib/table/column-order), which would paint the band off-screen.
 export function sectionBandLabelColumnId(
   columnIds: readonly (string | undefined)[],
 ): string | undefined {
@@ -59,12 +45,10 @@ export function sectionHeaderSlot(
   columnId: string | undefined,
   labelColumnId: string | undefined,
 ): SectionHeaderSlotT {
-  // Can't collide: „Akcje" is chrome, so `sectionBandLabelColumnId` never names it.
   if (columnId === ACTIONS_COLUMN_ID) return 'actions'
   return columnId != null && columnId === labelColumnId ? 'label' : 'blank'
 }
 
-// The dot reads `--section-rail` off the row, so band colour and gutter rail can't disagree.
 function SectionDot() {
   return (
     <span className="size-2.5 shrink-0 rounded-full bg-(--section-rail,var(--color-muted-foreground))" />
@@ -82,7 +66,6 @@ export function SectionHeaderCell({
 }) {
   const { itemCount, net } = context.figures.get(rowData.sectionId) ?? { itemCount: 0, net: 0 }
   const { onRename } = context
-  // A sekcja bez pozycji has nothing to fold, so its band is inert apart from the name and the add.
   const foldable = itemCount > 0
   const collapsed = foldable && context.collapsedSectionIds.has(rowData.sectionId)
   const toggle = () => context.onToggleCollapsed(rowData.sectionId)
@@ -91,7 +74,6 @@ export function SectionHeaderCell({
   const { actions } = context
 
   if (slot === 'actions') {
-    // Never gets a toggle handler, so a collapsed section's commands stay reachable.
     if (!actions) return <div className="size-full" />
     return (
       <KosztorysSectionActionsMenu
@@ -125,7 +107,6 @@ export function SectionHeaderCell({
         }
       : {}
     return (
-      // A foldable band toggles as a whole; rename stops its own click from bubbling here.
       <div
         {...toggleProps}
         // `w-max` + the `overflow: visible` rule in globals.css let the band out of the cell, so a
@@ -140,10 +121,8 @@ export function SectionHeaderCell({
           <SectionNameCell
             rowData={rowData}
             onRename={onRename}
-            // `field-sizing-content`, not w-fit: an input's fit-content is its ~20-char default
-            // width. w-auto beats the base cell's w-full. `shrink-0` because a field-sizing input
-            // contributes no max-content width, so the band's `w-max` under-measures. The band size
-            // only from `sm:` up: on a phone `typing-surface`'s 16px floor must win, or iOS zooms in.
+            // The band size only from `sm:` up: on a phone `typing-surface`'s 16px floor must win,
+            // or iOS zooms in.
             className="sm:grid-band-text field-sizing-content w-auto shrink-0 px-0 font-semibold"
             onClick={(event) => event.stopPropagation()}
           />
@@ -155,8 +134,6 @@ export function SectionHeaderCell({
             {t('sectionItems', { count: itemCount })}
           </span>
         )}
-        {/* „netto" spelled out: the grid carries a netto and a brutto reading of every money column,
-            so a bare amount on the band leaves the reader guessing which one this is. */}
         {!context.isBare && net !== 0 && (
           <span className="grid-cell-text shrink-0 whitespace-nowrap">
             <span className="font-medium tabular-nums">{formatNet(net)} zł</span>
@@ -179,7 +156,6 @@ export function SectionHeaderCell({
     )
   }
 
-  // Blank cells toggle too; keyboard/aria stay on the label cell, the one control.
   return (
     <div
       aria-hidden

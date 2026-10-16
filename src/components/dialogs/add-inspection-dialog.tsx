@@ -13,7 +13,6 @@ import type { FleetRowT } from '@/types/fleet'
 
 type AddInspectionDialogPropsT = {
   vehicles: Pick<FleetRowT, 'id' | 'registration' | 'make' | 'model' | 'latestOdometer'>[]
-  /** Preselected vehicle — the vehicle page knows which car the user is looking at. */
   vehicleId?: number
 }
 

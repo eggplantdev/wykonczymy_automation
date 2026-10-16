@@ -45,7 +45,6 @@ const fleetRow = (id: number, registration: string, totalCosts: number | null): 
 const FLEET = [
   fleetRow(1, 'WX 1000A', 1200),
   fleetRow(2, 'WX 2000B', 800),
-  // „Nobody typed a price" — it must not be read as 0 zł, and it must not sink the whole sum.
   fleetRow(3, 'KR 3000C', null),
 ]
 
@@ -60,9 +59,6 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-// EX-716 — „Razem" is computed in the browser from the rows left on screen. `sumKnown` is unit-covered;
-// what no layer below the browser sees is that the footer follows the search box (a total nobody can
-// add up from the visible rows is worse than none) and steps aside when its column is gone.
 describe('Flota — stopka „Razem" mówi o tym, co widać', () => {
   it('sumuje tylko pojazdy, które zostały po wyszukaniu', async () => {
     render(<FleetDataTable data={FLEET} />)

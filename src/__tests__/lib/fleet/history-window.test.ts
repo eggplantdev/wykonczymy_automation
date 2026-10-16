@@ -79,8 +79,6 @@ describe('narrowHistory', () => {
 })
 
 describe('emptyHistoryLabel', () => {
-  // The regression: a window being SET is not what makes a section empty. Blame it only when the
-  // section has something outside the window to hide.
   it('blames the window only when it is what hid the entries', () => {
     expect(emptyHistoryLabel('wpisów', true)).toBe('Brak wpisów w wybranym okresie')
   })

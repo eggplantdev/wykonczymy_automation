@@ -16,7 +16,7 @@ import { isAllTime, isClosedRange, type DateRangeT } from '@/lib/utils/date-rang
 import type { ActionResultT } from '@/types/action'
 
 /**
- * The table's scope picks which transakcje are checked; each is compared with the whole company,
+ * each is compared with the whole company,
  * because a receipt booked twice usually lands in another month or another investment.
  */
 export async function findExpenseDuplicateGroups(
@@ -44,8 +44,6 @@ export async function findExpenseDuplicateGroups(
         // Only the ids are read, and `id` comes back with any select.
         select: { type: true },
       }),
-      // Every undecided paragon in the queue is a probe whatever the table shows: each can still be
-      // booked, and the queue is short.
       loadDraftCandidates(db),
     ])
     const probes = [

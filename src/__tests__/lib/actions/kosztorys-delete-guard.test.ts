@@ -4,16 +4,8 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-postgres'
 
-// The guards live in the server action, so we run the REAL action against the REAL DB and
-// assert PERSISTED STATE (does the row survive?), not the action's return value — a success
-// result could hide a failed write, and a block is only real if the row is still there.
-//
-// requireAuth needs a request/cookie we don't have in node, so it's mocked to pass; the
-// cache revalidation is mocked because it calls next/cache outside a request context.
 vi.mock('server-only', () => ({}))
-// The action's own payload.delete fires the collection's afterDelete revalidate hook, which
-// calls next/cache's revalidateTag — that throws outside a request/static-generation store.
-// A real user id (looked up in beforeAll), not a hardcoded 1: removeSectionAction now takes a
+// A real user id (looked up in beforeAll), not a hardcoded 1: removeSectionAction takes a
 // pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -26,16 +18,12 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 const { removeItemAction, removeSectionAction } = await import('@/lib/actions/kosztorys')
 
-// Gated like test:parity: skips with no DB env (portable), FAILS if env is set but the DB is
-// unreachable. Run against the local DB with `--env-file=.env`.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
-  // Every section/stage created by a test, cleaned up after it (section cascades items +
-  // stage_progress; stage cascades its own progress rows).
   const createdSections: number[] = []
   const createdStages: number[] = []
   // Spread (not inlined) so payload's create overload doesn't mis-resolve to the draft branch.
@@ -144,7 +132,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     return Number(res.rows[0].id)
   }
 
-  // Recorded stage progress is the only thing "populated" means — a row without it always deletes.
   it('(a) deletes an item with no stage progress', async () => {
     const sectionId = await createSection()
     const itemId = await createItem(sectionId, { plannedQty: 5 })
@@ -155,8 +142,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(await itemExists(itemId)).toBe(false)
   })
 
-  // EX-477: a populated row is no longer blocked — the client gates it behind a confirm dialog, the
-  // action just deletes and captures a pre-delete auto snapshot so the recorded work is recoverable.
   it('(b) deletes an item with recorded stage progress (qty_done <> 0) and snapshots first', async () => {
     const sectionId = await createSection()
     const itemId = await createItem(sectionId) // pomiar 0
@@ -184,8 +169,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(await itemExists(itemId)).toBe(false)
   })
 
-  // A plan-only item's opis/przedmiar/cena/rabat is irrecoverable by in-session undo once deleted,
-  // so removeItemAction must capture a pre-delete auto snapshot first — mirroring removeSectionAction.
   it('(c2) captures a pre-delete auto snapshot when deleting a plan-only item', async () => {
     const sectionId = await createSection()
     const itemId = await createItem(sectionId, { plannedQty: 10, clientPrice: 99 })
@@ -198,8 +181,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(await latestAutoSnapshotId()).toBeGreaterThan(before)
   })
 
-  // EX-477: a populated section cascade-deletes (items + stage_progress) behind the client's confirm;
-  // the action snapshots first, then deletes.
   it('(d) deletes a section holding an item with stage progress and snapshots first', async () => {
     const sectionId = await createSection()
     const itemId = await createItem(sectionId)

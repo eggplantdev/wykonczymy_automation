@@ -28,8 +28,7 @@ afterEach(() => {
 
 describe('fetchLead', () => {
   // Graph returns only what the query asks for, and its default omits `form_id` (verified against
-  // the live API 2026-09-15). Without it every lead persisted formless, silencing `fetchFormQuestions`
-  // (early-returns on a missing id) — answers rendered as raw keys, losing Meta's typed fields.
+  // the live API 2026-09-15).
   it('asks Graph for form_id explicitly', async () => {
     const fetchMock = mockFetch(LEAD)
 
@@ -47,7 +46,6 @@ describe('fetchLead', () => {
     await expect(fetchLead(LEAD.id)).resolves.toEqual(LEAD)
   })
 
-  // Load-bearing: a thrown error lands in the route's catch → non-200 → Meta redelivers.
   it('throws on an error body so Meta redelivers', async () => {
     mockFetch({ error: { message: 'rate limited', code: 613 } })
     await expect(fetchLead(LEAD.id)).rejects.toThrow(/876704198733519/)

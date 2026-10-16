@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Payload } from 'payload'
 import { LANDING_FIXTURE_HOST } from '@/__tests__/fixtures/landing-submission'
 
-// This handler fetches a URL a stranger put in a JSON body. Everything below is about what it
-// refuses to fetch, and about not trusting the server on the other end either.
 process.env.LANDING_BLOB_HOST = LANDING_FIXTURE_HOST
 
 import { fetchLandingAsset, MAX_ASSET_BYTES } from '@/lib/leads/fetch-landing-asset'
@@ -20,7 +18,6 @@ const asset = (overrides: Partial<Parameters<typeof fetchLandingAsset>[1]> = {})
   ...overrides,
 })
 
-/** A Response whose body streams `chunks` — the only way to exercise the byte counter. */
 const streamed = (chunks: Uint8Array[], headers: Record<string, string>): Response =>
   ({
     ok: true,
@@ -50,7 +47,6 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
     ['a different host', 'https://evil.example.com/photo.jpg'],
     ['plain http', `http://${LANDING_FIXTURE_HOST}/photo.jpg`],
     ['a link-local address', 'http://169.254.169.254/latest/meta-data/'],
-    // The two shapes a substring check lets through — the reason the guard compares hostnames.
     [
       'a host merely containing the allowlisted one',
       `https://${LANDING_FIXTURE_HOST}.evil.com/x.jpg`,
@@ -65,8 +61,6 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
     expect(create).not.toHaveBeenCalled()
   })
 
-  // Not "does fetch follow redirects" — that a redirect is refused is the point: following one off
-  // the allowlisted host is exactly the bypass the allowlist exists to stop.
   it('refuses to follow a redirect', async () => {
     await fetchLandingAsset(payload, asset()).catch(() => {})
     expect(fetchSpy.mock.calls[0][1]).toMatchObject({ redirect: 'error' })
@@ -79,8 +73,6 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  // `image/svg+xml` is the dangerous one: an active, scriptable document on the only path where an
-  // anonymous stranger writes into `media`.
   it.each([['application/zip'], ['application/pdfx'], ['image/svg+xml'], ['image/bmp']])(
     'rejects %s without fetching',
     async (contentType) => {
@@ -89,7 +81,6 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
     },
   )
 
-  // A well-formed header is not refused for its spelling — the normalizer drops parameters and case.
   it('accepts a content type carrying a charset parameter', async () => {
     await fetchLandingAsset(payload, asset({ contentType: 'IMAGE/JPEG; charset=binary' })).catch(
       () => {},
@@ -115,7 +106,6 @@ describe('fetchLandingAsset — what it refuses to store', () => {
     expect(getReader).not.toHaveBeenCalled()
   })
 
-  // The header is the sender's claim, not a fact — a hostile server understates it and streams on.
   it('catches a lying content-length mid-read', async () => {
     const chunk = new Uint8Array(1024 * 1024)
     vi.stubGlobal('fetch', async () =>
@@ -156,7 +146,6 @@ describe('fetchLandingAsset — what it refuses to store', () => {
     const file = create.mock.calls[0][0].file!
     expect(file.mimetype).toBe('image/jpeg')
     expect(file.size).toBe(4)
-    // The stored name carries a collision id, so two visitors' „IMG_1234.jpg" cannot overwrite.
     expect(file.name).not.toBe('lazienka.jpg')
     expect(file.name).toMatch(/^lazienka-.+\.jpg$/)
   })

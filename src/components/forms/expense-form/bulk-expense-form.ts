@@ -16,10 +16,8 @@ export type BulkExpenseFormValuesT = {
     id: string
     description: string
     amount: string
-    // Netto billed to the investor — only the netto expense type reads it; blank everywhere else.
     netAmount: string
     invoiceNote: string
-    // Document identity for the duplicate check (EX-1025). `documentDate` is ISO `YYYY-MM-DD`.
     documentNumber: string
     sellerNip: string
     documentDate: string
@@ -35,27 +33,19 @@ export type ReceiptGroupingT = {
   selectableIds: Set<string>
   selectedIds: Set<string>
   mergedIds: Set<string>
-  // Merged rows whose sum is short a Kwota.
   incompleteIds: Set<string>
   disabled: boolean
   onToggle: (id: string) => void
   onMerge: () => void
   onSplit: (id: string) => void
-  // Set when each paragon is booked or refused on its own.
   onDecide?: (ids: string[], decision: 'accept' | 'reject') => void
-  // A booking files the pages as its invoices; a refusal names them by id and needs none.
   isAcceptBlocked?: (id: string) => boolean
-  // Merge and split rebuild a row's files from the downloaded pages; with none, they would drop the
-  // file added by hand that lifts `isAcceptBlocked`.
   isRegroupBlocked?: boolean
-  // The paragon's place in the worker's photos, so the rows keep the worker's order.
   readRowOf: (id: string) => number | undefined
   statusOf: (id: string) => DecisionStatusT
   undoFor?: (id: string) => (() => void) | undefined
 }
 
-// A fresh row with a stable client-side `id` that keys its out-of-form state (invoice file,
-// generation markers). Call it per push — reusing one object would collide ids across rows.
 export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT {
   return {
     id: randomId(),

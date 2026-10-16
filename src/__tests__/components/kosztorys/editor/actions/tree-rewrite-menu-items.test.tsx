@@ -12,9 +12,6 @@ import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/cl
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 
-// Prod 2026-10-06, szablon 166: the translation fill ran 17 s, the closed menu dropped its pending
-// flag, and a second click queued a second run behind the first.
-
 const toastMessage = vi.hoisted(() => vi.fn())
 const fillKosztorysTranslationsAction = vi.hoisted(() => vi.fn())
 const cleanItemTextsAction = vi.hoisted(() => vi.fn())
@@ -106,7 +103,6 @@ describe.each([
     expect(action).toHaveBeenCalledTimes(1)
   })
 
-  // Both rewrite the same rows, and the second one queues behind the first exactly like a double click.
   it('locks the other tree rewrite while it runs', async () => {
     let finish: (value: unknown) => void = () => {}
     action.mockReturnValue(new Promise((resolve) => (finish = resolve)))

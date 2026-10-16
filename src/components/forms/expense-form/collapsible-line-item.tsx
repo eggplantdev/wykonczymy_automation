@@ -17,7 +17,6 @@ type CollapsibleLineItemPropsT = {
   title: string
   status: DecisionStatusT
   defaultOpen: boolean
-  // Beside the trigger, not in it: a checkbox or button nested in the trigger button is invalid markup.
   leading?: React.ReactNode
   action?: React.ReactNode
   children: React.ReactNode

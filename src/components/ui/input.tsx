@@ -2,8 +2,7 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils/cn'
 
-// Value is 16px below `sm`, 14px above: iOS Safari zooms in on focus below 16px and never zooms back
-// out. Placeholder stays 14px — same pair as `textarea.tsx` and `CommandInput`.
+// Value is 16px below `sm`, 14px above: iOS Safari zooms in on focus below 16px and never zooms back out.
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <input

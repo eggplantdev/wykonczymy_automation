@@ -7,10 +7,6 @@ import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menu
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 
-// The szablon workbench renders THE SAME editor as an investment, so every label under „Opcje"
-// talks about a „kosztorys" until someone asks it which screen it is on. The assertions read what
-// is visible once the menu opens — the noun table can be right while the component never reads it.
-
 const editorState = vi.hoisted(() => ({ isTemplate: false }))
 
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
@@ -37,8 +33,6 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     handleAcceptCatalogueName: vi.fn(),
     engagedConditionIds: new Set<string>(),
     toggleConditionExclusive: vi.fn(),
-    // Derived exactly as KosztorysEditorBody derives it, so the spec still drives the whole menu
-    // off the one input the screen has.
     isTemplate: editorState.isTemplate,
     noun: editorNoun(editorState.isTemplate),
   }),
@@ -74,8 +68,6 @@ describe('KosztorysActionsMenu', () => {
     expect(screen.getByRole('menuitem', { name: /Wczytaj szablon…/ })).toBeInTheDocument()
   })
 
-  // A szablon has no investor and no crew on its etapy, so the previews through their eyes and the
-  // share links have nobody to address.
   it('na szablonie nie oferuje inwestora ani pracowników', () => {
     renderToolbar(true)
 
