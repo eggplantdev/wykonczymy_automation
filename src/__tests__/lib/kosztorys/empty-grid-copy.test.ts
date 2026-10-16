@@ -4,7 +4,7 @@ import { REPORT_UNREPORTED_CONDITION_ID } from '@/lib/kosztorys/row-conditions/r
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 
 const condition = (id: string, label: string, filterGroup = 'planned') =>
-  ({ id, label, filterGroup }) as RowConditionT
+  ({ id, label, filterGroup, kind: 'filter' }) as RowConditionT
 
 describe('emptyGridCopy', () => {
   it('names the filters that emptied the grid', () => {

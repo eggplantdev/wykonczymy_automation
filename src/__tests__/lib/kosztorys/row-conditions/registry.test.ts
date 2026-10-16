@@ -334,7 +334,7 @@ describe('every „Filtry" group is a partition', () => {
     row({ id: 3, plannedQty: 0, currentPlannedQty: 12, [stageKey(1)]: 4 }),
     row({ id: 4, plannedQty: 30, currentPlannedQty: 0 }),
     row({ id: 5, plannedQty: 0, aiPlannedQty: 7 }),
-    row({ id: 6, [stageKey(1)]: 40, note: 'sprawdzić' }),
+    { ...row({ id: 6, [stageKey(1)]: 40 }), note: 'sprawdzić' },
     row({ id: 7, note: '   ', discountType: 'percent', discountValue: 10 }),
     row({ id: 8, wToolsOverrideValue: 99, ownToolsOverrideValue: 10 }),
     row({ id: 9, wToolsOverrideValue: 10, ownToolsOverrideValue: 99 }),

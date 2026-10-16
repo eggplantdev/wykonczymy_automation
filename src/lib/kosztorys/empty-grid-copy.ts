@@ -24,10 +24,10 @@ function filtersDescription(filters: readonly RowConditionT[]): string | undefin
   if (named.length > MAX_NAMED_FILTERS) {
     return `${named.length} ${activeFilterNarrowsPhrase(named.length)} pozycje — zmień je w menu „Filtry".`
   }
-  const byGroup = new Map<string, RowConditionT[]>()
-  for (const condition of named) {
-    byGroup.set(condition.filterGroup, [...(byGroup.get(condition.filterGroup) ?? []), condition])
-  }
+  const byGroup = Map.groupBy(
+    named.filter((condition) => condition.kind === 'filter'),
+    (condition) => condition.filterGroup,
+  )
   const labels = joinPhrases([...byGroup.values()].map((group) => listLabels(group, 'lub')))
   return labels ? `Filtry pokazują tylko pozycje ${labels}.` : undefined
 }

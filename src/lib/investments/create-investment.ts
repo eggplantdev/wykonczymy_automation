@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { InvestmentFormDataT } from '@/components/forms/investment-form/investment-schema'
+import type { InvestmentCreateDataT } from '@/components/forms/investment-form/investment-schema'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { logError } from '@/lib/utils/log-error'
@@ -9,7 +9,7 @@ const SEED_PRESET_WARNING =
 
 export async function createInvestment(
   payload: Payload,
-  data: InvestmentFormDataT,
+  data: InvestmentCreateDataT,
 ): Promise<{ id: number; warning?: string }> {
   const { presetId, ...investmentData } = data
   const created = await payload.create({

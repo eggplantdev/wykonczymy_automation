@@ -61,3 +61,8 @@ export const investmentSchema = investmentFormSchema.extend({
 // `z.input`, not `z.infer`: `assets` is supplied by the submit wrapper rather than by the form, so
 // a caller must be allowed to omit it.
 export type InvestmentFormDataT = z.input<typeof investmentSchema>
+// What reaches Payload: the schema's own defaults may still be missing, but `billing` is parsed
+// (`clientType` '' became null, which Payload's select requires).
+export type InvestmentCreateDataT = Omit<InvestmentFormDataT, 'billing'> & {
+  billing?: z.output<typeof investmentSchema>['billing']
+}
