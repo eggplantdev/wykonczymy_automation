@@ -9,16 +9,8 @@ export type SummaryRowOptsT = {
   emphasize?: boolean
   bold?: boolean
   discount?: boolean
-  // A row spanning both columns can be owed on one plane and overpaid on the other — the axes cross
-  // zero independently — so the alarm resolves per cell. A bare boolean tones the whole row.
   danger?: boolean | { net: boolean; gross: boolean }
-  // A formula/explanation rendered as an always-visible caption under the figure. Used by the
-  // materiały rows to state that VAT is subtracted (netto derived from brutto) and by the settlement
-  // steps to name what each row was computed from.
   hint?: string
-  // When set, the figure screams via a red `!` icon (not a red value) whose tooltip is this string. Owner-only
-  // — the EX-535 reconciliation check against the transaction ledger. The client footer never passes
-  // it, which is what lets both surfaces share this row instead of keeping two copies.
   mismatch?: string
 }
 
@@ -28,14 +20,7 @@ type SummaryRowPropsT = SummaryRowOptsT & {
   axis: MoneyAxisT
 }
 
-/**
- * One row of a summary grid — emitted as a bare Fragment of cells, because every cell is a direct
- * child of ONE grid container (that is what makes `gap-px` paint the shared separators). Wrapping
- * the row in an element of its own would break the gridlines, so this cannot be a normal box.
- *
- * `emphasize` keeps the summary rows bold now that the shared gridlines already draw every row
- * separator.
- */
+/** Wrapping the row in an element of its own would break the gridlines. */
 export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
   const { net: showNet, gross: showGross } = axisShows(axis)
   const weight = opts.bold ? 'bold' : opts.emphasize ? 'medium' : 'default'
@@ -44,12 +29,7 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
     const danger = typeof opts.danger === 'object' ? opts.danger[axis] : opts.danger
     return danger ? ('error' as const) : ('default' as const)
   }
-  // A hint rides the net cell (or gross, on a netto-less row) as an always-visible caption rather
-  // than a hover-only tooltip: it explains how the figure beside it was reached, which is exactly
-  // what a reader has to hover to discover they needed. Same primitive as the negative-remaining and
-  // worker-qualifier notes.
   const note = opts.hint ? { text: opts.hint, tone: 'muted' as const } : undefined
-  // The row states WHICH hints it wants; the cell owns how every one of them renders.
   const hints: LabelHintT[] = opts.mismatch
     ? [{ variant: 'mismatch' as const, content: opts.mismatch }]
     : []
@@ -64,7 +44,6 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
           {formatNet(line.net)}
         </SummaryValueCell>
       )}
-      {/* The note rides the net cell only — repeated on brutto it would read as two captions. */}
       {showGross && (
         <SummaryValueCell weight={weight} tone={toneFor('gross')} note={showNet ? undefined : note}>
           {formatNet(line.gross)}

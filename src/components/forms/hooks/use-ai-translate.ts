@@ -2,7 +2,6 @@
 
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
-// One key for both create dialogs: whoever turns it off for „Nowa praca" means it for the katalog too.
 const STORAGE_KEY = 'forms:ai-translate'
 const STATES = ['on', 'off'] as const
 

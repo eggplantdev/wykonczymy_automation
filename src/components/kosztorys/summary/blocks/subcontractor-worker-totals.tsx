@@ -22,10 +22,7 @@ import type {
   WorkerSettlementStateT,
 } from '@/lib/kosztorys/subcontractor-summary'
 
-// Why this person's „Pozostało" is negative. Spelled out rather than left to the reader, because the
-// three cases call for three different responses — and only two of them are anybody's mistake:
-// `no_stages` and `overpaid` are wrong and read as alarms, while `no_executed_work` is an ordinary
-// prepayment and must stay quiet or it cries wolf on every advance. `settled` has nothing to explain.
+// `no_executed_work` is an ordinary prepayment and must stay quiet or it cries wolf on every advance.
 const STATE_QUALIFIER: Record<
   WorkerSettlementStateT,
   { text: string; tone: 'muted' | 'error' } | null
@@ -34,15 +31,9 @@ const STATE_QUALIFIER: Record<
   overpaid: { text: 'Wypłacono więcej niż wykonano', tone: 'error' },
   no_stages: { text: 'Brak przypisanych etapów', tone: 'error' },
   no_executed_work: { text: 'Przypisane etapy bez wykonanych prac', tone: 'muted' },
-  // The residual is not a person, so every qualifier above would be a false sentence about it; its
-  // own „Bez przypisanego pracownika" label already says what it is.
   unattributed: null,
 }
 
-// A negative „Pozostało do wypłaty" means the opposite of what the column header promises — nothing is
-// left to pay out, the person has already been paid too much. Said in the cell rather than left to the
-// minus sign, in the same second-row shape the name column uses. The note under the NAME says why this
-// happened; this one says what the figure now is.
 function RemainingCell({ amount, weight }: { amount: number; weight?: 'medium' | 'bold' }) {
   const isNegative = amount < 0
   return (
@@ -56,7 +47,6 @@ function RemainingCell({ amount, weight }: { amount: number; weight?: 'medium' |
   )
 }
 
-// The unassigned bucket is a residual with nothing to filter on, so it renders as plain text.
 export function SubcontractorWorkerTotals({
   investmentId,
   investmentName,
@@ -68,7 +58,6 @@ export function SubcontractorWorkerTotals({
 }) {
   const [isSettleOpen, setIsSettleOpen] = useState(false)
   const totals = subcontractorRowTotals(rows)
-  // Something to pay out or a nadpłata to even out with a premia — the dialog has a row to act on.
   const hasOpenPair = rows.some((row) => row.workerId !== null && row.remaining !== 0)
   const showBonus = rows.some((row) => row.bonus !== 0)
   const valueCols = Array.from({ length: showBonus ? 4 : 3 }, () => SUMMARY_VALUE_COL).join(' ')
@@ -116,8 +105,6 @@ export function SubcontractorWorkerTotals({
         )
       })}
 
-      {/* Closes the table on the same three axes as the rows, so a residual bucket that holds work
-          nobody is assigned to reads as part of one balance rather than a fourth unrelated row. */}
       <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
       <SummaryValueCell weight="bold">{formatNet(totals.due)}</SummaryValueCell>
       {showBonus && <SummaryValueCell weight="bold">{formatNet(totals.bonus)}</SummaryValueCell>}

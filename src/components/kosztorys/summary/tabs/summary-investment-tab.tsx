@@ -11,8 +11,6 @@ import type { MediaFileT } from '@/types/media'
 
 type PropsT = {
   investment: InvestmentWithNotesT
-  // The gate stands here, not in the control: the control is shared with the investment card, where
-  // `assets` is required. `undefined` = a surface with no gallery at all.
   assets?: MediaFileT[]
 }
 

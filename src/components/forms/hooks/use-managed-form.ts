@@ -20,50 +20,21 @@ type UseManagedFormArgsT<TValues, TData> = {
   keepOpen?: boolean
   successMessage: string
   onSubmitSuccess: () => void
-  /** Map the string-typed form values to the action's domain payload. */
   toData: (values: TValues) => TData
   action: (data: TData) => Promise<ActionResultT>
   onSaved?: (data: TData) => void
-  /** Extra cleanup run alongside clearing the persisted form data (e.g. reset registerBalance). */
   onReset?: () => void
-  /** Fields a „Nie zamykaj" save carries into the next entry instead of clearing them. */
   keepAfterSave?: (keyof TValues & string)[]
-  /**
-   * Last say over the restored draft — lets a form fill a field the draft left empty from context
-   * the draft can't know (e.g. the investment the URL is scoped to). Not applied to `defaultValues`,
-   * which the caller seeds directly.
-   */
   mergeStored?: (stored: TValues) => TValues
-  /**
-   * Raised between a valid form and the write: return the copy to ask with, or null to go straight
-   * through. For the case where the values are legal but their CONSEQUENCE is not obvious on the
-   * form — the owner is told what the write will cost him and gets to say yes anyway. It never
-   * refuses: a wpłata that physically happened has to be recordable, or people start mistyping the
-   * method to get past the door.
-   */
   confirmBeforeSubmit?: (values: TValues) => SubmitConfirmCopyT | null
-  /**
-   * A gate whose question the caller renders with its own UI: resolving `false` returns to the form
-   * with nothing sent. Runs after `confirmBeforeSubmit`.
-   */
   beforeSubmit?: (values: TValues) => Promise<boolean>
   /**
-   * Whether typed values outlive the dialog. Only sound on a CREATE form, where the draft is the
-   * only copy of what was typed and the record it describes does not exist yet.
-   *
-   * An EDIT form must pass `false`: there `defaultValues` is a snapshot of a live row, the draft is
-   * a divergence from it, and the submit writes back EVERY field. So a restored draft silently
-   * reverts whatever changed in the meantime — another editor's fix, or a status changed elsewhere
-   * on the page — in fields the user never touched. Fresh server data has to win.
+   * An EDIT form must pass `false`: a restored draft silently
+   * reverts whatever changed in the meantime in fields the user never touched.
    */
   persistDraft?: boolean
 }
 
-/**
- * Encapsulates the wiring every transfer form repeats: the session-store selector
- * triplet, the useAppForm config (persisted onChange + onSubmit → mapped submit),
- * and the error-focus hook. Callers keep only their fields + data mapping.
- */
 export function useManagedForm<TValues, TData>({
   formId,
   useFormStore,
@@ -100,14 +71,13 @@ export function useManagedForm<TValues, TData>({
     onReset?.()
   }
 
-  // A draft belongs to the instance that wrote it. „Dodaj pojazd" and „Edytuj pojazd 7" share one
+  // „Dodaj pojazd" and „Edytuj pojazd 7" share one
   // store slot, so without this an abandoned add-draft would win over the record being edited.
   const draft = persistDraft && storedFormId === formId ? storedValues : null
 
   // Spread over `defaultValues` rather than replacing them: a draft written before this release knows
   // nothing of a field the release added, and TanStack Form takes its field set from the initial
-  // values — so a restored draft would hand `undefined` to that field's input and crash it (the
-  // sheet-parity slice did exactly this to „Nie dotyczy", whose `.includes` ran on nothing).
+  // values — so a restored draft would hand `undefined` to that field's input and crash it.
   const initialValues =
     draft === null ? defaultValues : { ...defaultValues, ...(mergeStored?.(draft) ?? draft) }
 
@@ -146,7 +116,6 @@ export function useManagedForm<TValues, TData>({
 
   // Set after the reset, never folded into it: reset adopts its values as the new defaults, and the
   // next render's `defaultValues` would differ and be swapped back in over the untouched form.
-  // Meta- and listener-free, so the carried value neither counts as an edit nor re-persists a draft.
   function carryOver(saved: TValues) {
     keepAfterSave?.forEach((field) =>
       form.setFieldValue(field, saved[field] as never, {

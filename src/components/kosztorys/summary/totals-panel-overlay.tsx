@@ -14,13 +14,10 @@ import {
 } from '@/lib/kosztorys/totals-panel-height'
 import { cn } from '@/lib/utils/cn'
 
-// Pointer travel under this is a click, not a drag — a click drifts a pixel or two.
 const CLICK_SLOP_PX = 3
 
 // `hasRows` is required on purpose: it picks which localStorage key this panel and its toggle bind
 // to, so a call site that forgot it would silently drive a different key than the button next to it.
-// `availableHeight` is the grid's own measured height — the same figure the grid subtracts this
-// panel from, so the two always add up to the area they share.
 export function TotalsPanelOverlay({
   hasRows,
   availableHeight,
@@ -86,8 +83,6 @@ export function TotalsPanelOverlay({
       open={open}
       onOpenChange={setOpen}
       onTransitionEnd={onTransitionEnd}
-      // Anchored by its top edge at the grid's bottom: the measured grid height stops a gap short of
-      // the window, and the panel fills that gap down to `bottom-0`.
       style={{ top: panelTop(shownFraction, availableHeight) }}
       className={cn(
         'border-border bg-background text-foreground shadow-panel absolute inset-x-0 bottom-0 z-20 flex flex-col border-t data-[state=closed]:border-transparent data-[state=closed]:shadow-none',
@@ -96,8 +91,7 @@ export function TotalsPanelOverlay({
     >
       {open && (
         // Only the pill's own width overhangs the grid — a full-width strip would steal clicks from
-        // its last row and its horizontal scrollbar. At full height there is no grid to overhang,
-        // and the container's `overflow-hidden` would clip the pill, so it drops inside the panel.
+        // its last row and its horizontal scrollbar.
         <span
           role="separator"
           aria-orientation="horizontal"

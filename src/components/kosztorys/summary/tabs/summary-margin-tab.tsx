@@ -17,20 +17,12 @@ import type { ToolPlaneT } from '@/lib/kosztorys/types'
 type PropsT = {
   financials: InvestmentFinancialsT
   subcontractor: SubcontractorSettlementT
-  // Both scenarios priced up front, because the plane toggle below is local UI state: handing the
-  // panel one forecast would make the toggle need the whole row set to price the other half. A host
-  // with no rows (the investment page) omits this entirely and renders the actual margin alone.
   forecastByPlane?: Record<ToolPlaneT, MarginForecastT>
 } & SummaryReadingT
 
-// Company-plane figures. Visibility is enforced upstream by the host omitting `financials` for anyone
-// but ADMIN/OWNER, which keeps the numbers out of the RSC payload rather than merely off the screen —
+// Visibility is enforced upstream by the host omitting `financials` for anyone
+// but ADMIN/OWNER —
 // so this component carries no role check of its own.
-//
-// Robocizna and rabat arrive as the reading the host resolved, not off `financials`: the block above
-// this tab is already on that plane, and a tab reading the transactions figures made the same panel
-// report two different robocizny. Materiały wliczone w robociznę and strata stay `financials`-sourced
-// — the kosztorys knows about neither.
 export function SummaryMarginTab({
   financials,
   laborCostsNet,
@@ -45,8 +37,6 @@ export function SummaryMarginTab({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* Only offered where both figures exist — a one-option toggle would suggest a second reading
-          this host does not have. */}
       {forecastByPlane && (
         <div className="w-fit">
           <ToggleGroup

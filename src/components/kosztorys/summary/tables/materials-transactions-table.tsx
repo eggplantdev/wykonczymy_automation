@@ -27,12 +27,8 @@ import type { MaterialTransactionRowT } from '@/types/transfers'
 
 type PropsT = {
   investmentId: number
-  // Names the downloaded archive, so two investments pulled the same day don't collide in Downloads.
   investmentName: string
-  // Every expense type and both settled states — the tabs split them.
   rows: MaterialTransactionRowT[]
-  // Read-only public/preview render: no row links (they point into the app, which a client can't
-  // reach), and the settled set is dropped rather than merely unlinked.
   preview?: boolean
 }
 
@@ -42,16 +38,14 @@ const DATASET_LABELS: Record<ExpenseDatasetT, string> = {
   settled: 'Materiały wliczone w robociznę',
 }
 
-// The investor's list is one set, so its archive carries no brutto / netto wording either.
 const CLIENT_LIST_LABEL = 'Materiały'
 
 const TABLE_HEIGHT = 400
-// 8px taller than the wypłaty list: a text-only row is 36 (20px line box + py-2), leaving no budget
-// for the „Faktura" control's 28px box. Rendered rows are measured, but the container's collapsed
+// Rendered rows are measured, but the container's collapsed
 // height below is computed from this number — keep it in step with whatever the tallest cell renders.
 const ROW_HEIGHT = 44
-// The scroll container wraps thead + tbody + tfoot together, so a height computed from body rows
-// alone clips the header and the „Razem" footer — budget their rendered height too.
+// a height computed from body rows alone clips the header and the „Razem" footer — budget their
+// rendered height too.
 const HEADER_HEIGHT = 41
 const FOOTER_HEIGHT = 41
 
@@ -72,8 +66,6 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     header: 'Opis',
     size: 260,
     enableSorting: false,
-    // DataTable does no column sizing, so an auto-width <td> lets a long opis run through its
-    // neighbour; full text on hover.
     cell: ({ getValue }) => {
       const description = getValue<string | null>()
       if (!description) return <span className="text-muted-foreground">—</span>
@@ -95,10 +87,8 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
       const note = getValue<string | null>()
       const firstLine = firstNoteLine(note)
       if (!firstLine || !note) return <span className="text-muted-foreground">—</span>
-      // A <button>, not plain text: it gives the tooltip a tab stop (the rest of the note exists
-      // nowhere else on the page), and DataTable's row-link handler skips clicks landing on a button,
-      // so reading the note doesn't navigate away. The width cap has to live here too — DataTable has
-      // no column sizing, so an auto-width <td> ignores `truncate`.
+      // DataTable's row-link handler skips clicks landing on a button,
+      // so reading the note doesn't navigate away.
       return (
         <SimpleTooltip content={note}>
           <button
@@ -117,8 +107,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     size: 88,
     enableSorting: false,
     meta: { align: 'center' },
-    // Sits before the money columns, not last, so the „Razem" footer's total stays under the column
-    // it actually sums. The empty branch still reserves the control's box: the container's height is
+    // The empty branch still reserves the control's box: the container's height is
     // derived from the ROW_HEIGHT estimate while the rows inside it are measured, so an invoice-less
     // row collapsing to the text line height makes the two disagree and adds an inner scrollbar.
     cell: ({ row }) =>
@@ -146,23 +135,17 @@ const moneyColumn = (
   cell: ({ getValue }) => <span className="tabular-nums">{formatNet(getValue<number>())}</span>,
 })
 
-// Netto first: it is the figure this dataset actually bills, so it reads before the brutto it was
-// crossed from. „Razem" sums `billed`, so the footer has to skip a column to land under it.
 const NET_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   ...SHARED_COLUMNS,
   moneyColumn('billed', 'Netto'),
   moneyColumn('amount', 'Brutto'),
 ]
 
-// The brutto sets bill at `amount`, so one column says everything.
 const GROSS_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   ...SHARED_COLUMNS,
   moneyColumn('amount', 'Kwota'),
 ]
 
-// The wydatki list — one row per materiały transaction, the un-summed twin of the „Wydatki
-// inwestycyjne" breakdown above it. The investor gets one brutto list: how an invoice is billed is
-// the manager's concern, so no tab switch and no Netto column.
 export function MaterialsTransactionsTable({
   investmentId,
   investmentName,
@@ -173,8 +156,6 @@ export function MaterialsTransactionsTable({
   const available = availableExpenseDatasets(partition)
   const [dataset, setDataset] = useState<ExpenseDatasetT>('gross')
   const { download, isPending } = useFileArchive()
-  // A prop change can empty the picked set (an expense re-categorised away); fall back rather than
-  // render a tab with nothing in it.
   const activeDataset = available.includes(dataset) ? dataset : (available[0] ?? 'gross')
   const listing = preview
     ? {
@@ -191,12 +172,8 @@ export function MaterialsTransactionsTable({
       }
   const visibleRows = listing.rows
   const isNetDataset = !preview && activeDataset === 'net'
-  // Rows are already here, so an empty active dataset is knowable up front — no point offering a
-  // button that could only ever answer „brak faktur". (The transfers variant can't know until it fetches.)
   const hasInvoices = visibleRows.some((row) => row.invoices.length > 0)
 
-  // The count rides in the label because a tab is otherwise silent about its size — „Pobierz faktury"
-  // packs the whole active set, so how many rows that is has to be visible before the click.
   const options: OptionT<ExpenseDatasetT>[] = available.map((set) => ({
     value: set,
     label: `${DATASET_LABELS[set]} (${partition[set].length})`,
@@ -246,9 +223,6 @@ export function MaterialsTransactionsTable({
         getRowHref={preview ? undefined : (row) => expenseRowHref(investmentId, row)}
         footer={(visibleColumnIds) => (
           <tr>
-            {/* The manager's total is of `billed`, which the netto set renders second-to-last — so the
-                label spans one column less there, and the trailing Brutto column gets an empty cell.
-                The investor's is of `amount`: what left the kasa. */}
             <td className="font-bold" colSpan={visibleColumnIds.length - (isNetDataset ? 2 : 1)}>
               Razem
             </td>

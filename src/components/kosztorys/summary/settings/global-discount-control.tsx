@@ -18,8 +18,6 @@ const DISCOUNT_MODE_OPTIONS: SelectOptionT[] = [
   { value: 'percent', label: '%', icon: Percent },
 ]
 
-// Rabat is a client concession only (calc.ts netForQtyForView) — it never reaches the subcontractor
-// views, so their prices stay whatever the plane sets.
 const DISCOUNT_MODE_DESCRIPTIONS: Record<DiscountModeT, string> = {
   off: 'Rabaty dodane do poszczególnych pozycji nadal wpływają na kwotę rozliczenia.',
   amount:
@@ -28,13 +26,10 @@ const DISCOUNT_MODE_DESCRIPTIONS: Record<DiscountModeT, string> = {
     'Jednorazowo wpisuje ten sam % w rabat każdej pozycji, nadpisując istniejące. Rabat nie wpływa na ceny podwykonawców.',
 }
 
-// Locative of „pozycja" — „w 1 pozycji" vs „w 3 pozycjach".
 function pozycji(count: number): string {
   return count === 1 ? 'pozycji' : 'pozycjach'
 }
 
-// Reads the setters straight from the editor context (the panel renders inside the provider), so no
-// props thread through KosztorysTotalsPanel.
 export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean }) {
   const {
     tree,
@@ -45,16 +40,12 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
     handleApplyPercentDiscount,
   } = useKosztorysEditorContext()
 
-  // „%" and „Wyłączony" both store nothing, so that one bit is the only local state here. Everything
-  // else is derived, so a rolled-back save (or Ctrl+Z replaying an earlier rabat) moves the select
-  // with the figures instead of leaving it describing a deal the data no longer applies.
+  // Everything else is derived, so a rolled-back save (or Ctrl+Z replaying an earlier rabat) moves
+  // the select with the figures instead of leaving it describing a deal the data no longer applies.
   const [percentPicked, setPercentPicked] = useState(false)
   const mode: DiscountModeT =
     globalDiscount.type != null ? 'amount' : percentPicked ? 'percent' : 'off'
 
-  // The mode itself is the decision — „Kwotowy" suppresses per-item rabat at any kwota — so entering
-  // it writes straight away rather than waiting for a kwota that may never be typed. Leaving it clears
-  // the stored discount so the two never coexist, which keeps the percent one-shot always effective.
   function changeMode(next: string) {
     const nextMode = next as DiscountModeT
     setPercentPicked(nextMode === 'percent')
@@ -89,8 +80,6 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
           disabled={disabled}
           isValid={(percent) => applyPercentDiscountSchema.safeParse({ percent }).success}
           onApply={handleApplyPercentDiscount}
-          // With no rabat anywhere the write is not destructive, and a dialog would be a warning about
-          // nothing — warnings that fire on nothing stop being read.
           confirm={
             itemsWithDiscountCount === 0
               ? undefined

@@ -11,21 +11,13 @@ import { DecimalField } from '@/components/ui/decimal-field'
 import { ratePercent } from '@/lib/kosztorys/format'
 
 type PropsT = {
-  // Opening value when the owner switches the concession on: billing materiały netto at the VAT rate
-  // is the case this feature was built for, so it is one click rather than a number to look up.
   vatRate: number
-  // The investment's saved netto rate (fraction) and its writer — persisted, not browser-local.
   materialsNetRate: number | null
   onMaterialsNetRateChange: (rate: number | null) => void
   disabled?: boolean
-  // Why this choice cannot be made right now. Present = the control greys out and prints this instead
-  // of the rate field. Shown rather than hidden: a control that vanishes reads as a bug, and the owner
-  // then hunts for a setting that was never lost.
   lockedReason?: string
 }
 
-// Sits with the settlement mode rather than in the wydatki view: which plane the investment settles on
-// and whether its wydatki are billed netto are one decision about the deal.
 export function MaterialsNetPricingControl({
   vatRate,
   materialsNetRate,

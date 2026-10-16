@@ -16,12 +16,8 @@ type PropsT = {
   disabled?: boolean
 }
 
-// The stored settlement mode as a block of the Opcje rozliczenia popover — the Podsumowanie tab offers
-// the same choice inline (InlineModeSelect), both writing the one figure the investment owns.
-//
 // Never disabled at VAT 0% (EX-590): the mode is not inert there — Mieszane still splits the panel and
-// doubles the grid's money columns, and the materiały netto rate is VAT-independent. The warning below
-// explains the one thing VAT 0% *does* flatten.
+// doubles the grid's money columns, and the materiały netto rate is VAT-independent.
 export function SettlementModeSelect({ value, onChange, vatRate, disabled = false }: PropsT) {
   return (
     <SettingsSection
