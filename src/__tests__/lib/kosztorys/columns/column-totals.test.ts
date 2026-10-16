@@ -185,6 +185,13 @@ describe('columnTotalsForRows', () => {
     expect(totals().get('discountAmountGross')).toBeCloseTo(8 * 1.08, 10)
   })
 
+  it('totals the rabat on przedmiar, netto and brutto, in every view', () => {
+    // Row 2's rabat of 8 on its przedmiar 4 × 10; row 3's zero przedmiar carries none.
+    expect(totals().get('plannedDiscountAmount')).toBe(8)
+    expect(totals().get('plannedDiscountAmountGross')).toBeCloseTo(8 * 1.08, 10)
+    expect(totals(rows, 'w_tools').get('plannedDiscountAmount')).toBe(8)
+  })
+
   it('returns a zeroed set for an empty row set, so a section with no items totals nothing', () => {
     const empty = totals([])
 

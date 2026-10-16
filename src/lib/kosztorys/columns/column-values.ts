@@ -5,6 +5,7 @@ import {
   rowCurrentPlannedNetForView,
   rowDoneFraction,
   rowOfferDoneFraction,
+  rowPlannedDiscountForView,
   rowPlannedNetForView,
   stageValueForView,
   toGross,
@@ -52,6 +53,7 @@ export function columnValueResolver({
     }
 
   const plannedNet = (row: KosztorysV2RowT) => rowPlannedNetForView(row, 'client')
+  const plannedDiscount = (row: KosztorysV2RowT) => rowPlannedDiscountForView(row, 'client')
   const currentPlannedNet = (row: KosztorysV2RowT) => rowCurrentPlannedNetForView(row, 'client')
   // The worker surface's `stages` are only his, so Σ over them would be his share of the pozycja,
   // not the figure the editor shows for it — that surface hands the all-etapy quantity in instead.
@@ -74,6 +76,8 @@ export function columnValueResolver({
     ['priceGross', grossOf((row) => viewPrice(row, view))],
     ['discountAmount', discount],
     ['discountAmountGross', grossOf(discount)],
+    ['plannedDiscountAmount', plannedDiscount],
+    ['plannedDiscountAmountGross', grossOf(plannedDiscount)],
     ['plannedNet', plannedNet],
     ['plannedGross', grossOf(plannedNet)],
     ['currentPlannedNet', currentPlannedNet],

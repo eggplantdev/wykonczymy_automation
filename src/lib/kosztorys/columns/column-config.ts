@@ -31,6 +31,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountValue: 'Rabat wart.',
   discountAmount: 'Rabat kwota netto',
   discountAmountGross: 'Rabat kwota brutto',
+  plannedDiscountAmount: 'Rabat kwota netto (przedmiar)',
+  plannedDiscountAmountGross: 'Rabat kwota brutto (przedmiar)',
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
   currentPlannedNet: 'Wartość netto aktualizacji przedmiaru',
@@ -69,14 +71,22 @@ const TRANSLATED_LABEL_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   plannedDonePercent: 'plannedDonePercent',
 }
 
+const DISCOUNTED_PLANNED_VALUE_COLUMNS: ReadonlySet<string> = new Set([
+  'plannedNet',
+  'plannedGross',
+  'currentPlannedNet',
+  'currentPlannedGross',
+])
+
 /**
- * The client label carries no „po rabacie": it is
- * printed on the investor's document, where it read as a granted rabat on offers that had none.
+ * „— po rabacie" only with `hasDiscount`: the label is printed on the investor's document, where an
+ * unconditional suffix read as a granted rabat on offers that had none.
  */
 export function columnLabelForView(
   id: string,
   view: PriceViewT,
   dictionary: TranslatorT<'grid'> = POLISH_GRID,
+  { hasDiscount = false }: { hasDiscount?: boolean } = {},
 ): string {
   const labelOf = (key: string) => {
     const translated = TRANSLATED_LABEL_KEYS[key]
@@ -103,6 +113,8 @@ export function columnLabelForView(
   if (id === 'stageQtySum' && view !== 'client')
     return dictionary.t('stageQtySumForPlane', { plane: planeOf(view) })
   if (id === 'plannedNetForPlane' && view !== 'client') return `${label} — ${planeOf(view)}`
+  if (view === 'client' && hasDiscount && DISCOUNTED_PLANNED_VALUE_COLUMNS.has(id))
+    return `${label} — po rabacie`
   return label
 }
 
@@ -121,6 +133,8 @@ export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
   priceGross: 'gross',
   discountAmount: 'net',
   discountAmountGross: 'gross',
+  plannedDiscountAmount: 'net',
+  plannedDiscountAmountGross: 'gross',
   plannedNet: 'net',
   plannedGross: 'gross',
   currentPlannedNet: 'net',
@@ -167,6 +181,8 @@ const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
   'discountType',
   'discountAmount',
   'discountAmountGross',
+  'plannedDiscountAmount',
+  'plannedDiscountAmountGross',
 ])
 
 // One rule for the grid, its picker and the printed offer — a copy that drifts prints a per-item

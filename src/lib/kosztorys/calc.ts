@@ -172,6 +172,10 @@ export function rowDiscountForView(row: ViewPricingT, qty: number, view: PriceVi
   return qty * viewPrice(row, view) - netForQtyForView(row, qty, view)
 }
 
+export function rowPlannedDiscountForView(row: ViewPricingT, view: PriceViewT): number {
+  return rowPlannedNetPreDiscountForView(row, view) - rowPlannedNetForView(row, view)
+}
+
 /**
  * The share is what makes an 'amount' rabat behave — it discounts the whole row, so charging the full
  * amount against every stage would subtract it once per stage.
