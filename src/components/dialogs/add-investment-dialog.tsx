@@ -30,6 +30,7 @@ export function AddInvestmentDialog({ presets }: { presets: TemplateMetaT[] }) {
   return (
     <FormDialog
       formId="add-investment"
+      className="sm:max-w-dialog-md"
       trigger={
         <Button variant="outline" size="sm">
           <Plus />

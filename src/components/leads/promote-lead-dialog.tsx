@@ -85,6 +85,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   return (
     <FormDialog
       formId={formId}
+      className="sm:max-w-dialog-md"
       trigger={
         <Button variant="outline" size="xs">
           Dodaj

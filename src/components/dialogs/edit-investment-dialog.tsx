@@ -36,6 +36,7 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
     <FormDialog
       formId={formId}
       showKeepOpen={false}
+      className="sm:max-w-dialog-md"
       trigger={<EditButton label="Edytuj inwestycję" showLabel={showLabel} />}
       title="Edytuj inwestycję"
       description={investment.name}

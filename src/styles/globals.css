@@ -63,11 +63,12 @@
 
   /* Dialog widths, from `sm:` up — below that a dialog is a full-bleed sheet and takes none of
      these. The `min(90vw, …)` is the shared half: the cap is what the content wants, 90vw is what
-     stops it touching the edges on a narrow laptop. Six sizes, not an open scale.
+     stops it touching the edges on a narrow laptop. Seven sizes, not an open scale.
      They only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
      tailwind-merge leaves an override beside the base class and stylesheet order eats it. */
   --container-dialog-sm: min(90vw, 26.25rem);
   --container-dialog: min(90vw, 37.5rem);
+  --container-dialog-md: min(90vw, 46.875rem);
   --container-dialog-lg: min(90vw, 56.25rem);
   /* For a window whose content is a TABLE — the report dialogs and the katalog picker. Anything
      narrower wraps a long opis over three lines and pulls the figures off the row they describe.
