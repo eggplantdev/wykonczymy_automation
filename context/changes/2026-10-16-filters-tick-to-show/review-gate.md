@@ -96,4 +96,7 @@ Ran /simplify — 15 applied, 2 held for the user, 17 dismissed/dropped/skipped;
 
 ## Tests & suite
 
-Not run yet — waits for „odpal testy” (touched specs + typecheck; gates the `listCatalogueMatchKeys` deletion).
+- typecheck — green after three fixes the sweep owed: `empty-grid-copy.ts` (group by `filterGroup` over a readonly list), `registry.test.ts` fixture typing, `InvestmentCreateDataT` for `createInvestment` (parsed `billing`, defaults optional).
+- touched unit specs (33 files) — green except 4 foreign failures in another session's in-flight work: `client-view/settings.test.ts` (3) and `print/worker.test.ts` (1). `empty-grid-copy.test.ts` fixture now carries `kind: 'filter'`.
+- DB specs @ 5435 (`template-trash`, `work-catalogue-delete-templates`, `catalogue-usage`) — 13/13 green.
+- full suite — not run (ask first).
