@@ -1,13 +1,10 @@
 'use client'
 
 import { createJsonMapStore, dropKeys, useJsonMap } from '@/hooks/create-json-map-store'
-import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
 const store = createJsonMapStore<number[]>('table-columns:kosztorys-stages')
-const HIDE_COMPLETED_KEY = 'table-columns:kosztorys-hide-completed-stages'
-const HIDE_COMPLETED_WORDS = ['hide', 'show'] as const
 
 function hiddenIn(map: Record<string, number[]>, key: string): Set<number> {
   const stored = map[key]
@@ -18,23 +15,13 @@ export function useHiddenStages(
   investmentId: number,
   stages: KosztorysStageT[],
 ): {
-  isStageHidden: (stageId: number) => boolean
-  // Off the grid for either reason: its tick, or „Ukryj zakończone" on a zakończony etap.
   isStageOff: (stageId: number) => boolean
-  hideCompleted: boolean
-  setHideCompleted: (hide: boolean) => void
   toggleStage: (stageId: number) => void
   setStagesHidden: (ids: number[], hidden: boolean) => void
 } {
   const key = String(investmentId)
   const hidden = hiddenIn(useJsonMap(store), key)
-  const [hideCompleted, setHideCompleted] = usePersistedFlag(
-    HIDE_COMPLETED_KEY,
-    HIDE_COMPLETED_WORDS,
-    false,
-  )
   const stageIds = stages.map((stage) => stage.id)
-  const completedIds = new Set(stages.filter((stage) => stage.completed).map((stage) => stage.id))
 
   // Against the freshly-read map, so two toggles in one tick don't revert each other.
   function write(next: (prev: Set<number>) => Set<number>) {
@@ -50,7 +37,7 @@ export function useHiddenStages(
   }
 
   // Over the ids the caller lists, not every etap: a subcontractor view lists only its crew's etapy,
-  // and „Pokaż wszystkie" there must not reach the other crew's.
+  // and „Zakończone" there must not reach the other crew's.
   function setStagesHidden(ids: number[], hide: boolean) {
     write((prev) => {
       for (const id of ids) {
@@ -62,10 +49,7 @@ export function useHiddenStages(
   }
 
   return {
-    isStageHidden: (stageId) => hidden.has(stageId),
-    isStageOff: (stageId) => hidden.has(stageId) || (hideCompleted && completedIds.has(stageId)),
-    hideCompleted,
-    setHideCompleted,
+    isStageOff: (stageId) => hidden.has(stageId),
     toggleStage,
     setStagesHidden,
   }

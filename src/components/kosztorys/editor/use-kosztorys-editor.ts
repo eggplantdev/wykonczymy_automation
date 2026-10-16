@@ -267,14 +267,7 @@ export function useKosztorysEditor({
     save,
     reportFailure,
   })
-  const {
-    isStageHidden,
-    isStageOff,
-    hideCompleted: hideCompletedStages,
-    setHideCompleted: setHideCompletedStages,
-    toggleStage,
-    setStagesHidden,
-  } = useHiddenStages(investmentId, stages)
+  const { isStageOff, toggleStage, setStagesHidden } = useHiddenStages(investmentId, stages)
 
   const pendingFields = useRef<FieldChangeT[]>([])
   const pendingStages = useRef<StageChangeT[]>([])
@@ -1088,10 +1081,7 @@ export function useKosztorysEditor({
     revealedColumnIds,
     toggleColumn,
     setAllColumns,
-    isStageHidden,
     isStageOff,
-    hideCompletedStages,
-    setHideCompletedStages,
     toggleStage,
     setStagesHidden,
     columnRanks,
