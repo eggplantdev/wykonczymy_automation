@@ -78,10 +78,18 @@ const DISCOUNTED_PLANNED_VALUE_COLUMNS: ReadonlySet<string> = new Set([
   'currentPlannedGross',
 ])
 
-/**
- * „— po rabacie" only with `hasDiscount`: the label is printed on the investor's document, where an
- * unconditional suffix read as a granted rabat on offers that had none.
- */
+// Printed on the investor's document, where an unconditional suffix read as a granted rabat on offers that had none.
+export function withAfterDiscountSuffix(
+  id: string,
+  label: string,
+  view: PriceViewT,
+  hasDiscount: boolean,
+): string {
+  return view === 'client' && hasDiscount && DISCOUNTED_PLANNED_VALUE_COLUMNS.has(id)
+    ? `${label} — po rabacie`
+    : label
+}
+
 export function columnLabelForView(
   id: string,
   view: PriceViewT,
@@ -113,9 +121,7 @@ export function columnLabelForView(
   if (id === 'stageQtySum' && view !== 'client')
     return dictionary.t('stageQtySumForPlane', { plane: planeOf(view) })
   if (id === 'plannedNetForPlane' && view !== 'client') return `${label} — ${planeOf(view)}`
-  if (view === 'client' && hasDiscount && DISCOUNTED_PLANNED_VALUE_COLUMNS.has(id))
-    return `${label} — po rabacie`
-  return label
+  return withAfterDiscountSuffix(id, label, view, hasDiscount)
 }
 
 export const PRZEDMIAR_ANCHORED_COLUMNS: ReadonlySet<string> = new Set([

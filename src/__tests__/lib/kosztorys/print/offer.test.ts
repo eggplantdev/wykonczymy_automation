@@ -418,7 +418,7 @@ describe('sufit ujawniania', () => {
   // from the PDF.
   it.each(printableKeys(CLIENT_DOCUMENT_COLUMNS, []))('„%s" ma kolumnę na wydruku', (key) => {
     const others = CLIENT_DOCUMENT_COLUMNS.filter((other) => other !== key)
-    expect(offerPrintColumns(CTX.stages, others, {}).length).toBeGreaterThan(0)
+    expect(offerPrintColumns(CTX.stages, others, {}, false).length).toBeGreaterThan(0)
   })
 })
 

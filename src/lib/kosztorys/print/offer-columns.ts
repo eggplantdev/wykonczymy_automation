@@ -2,7 +2,7 @@ import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import { DISCOUNT_TYPE_LABELS } from '@/lib/kosztorys/labels'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
-import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
+import { columnLabelForView, withAfterDiscountSuffix } from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import {
   CURRENT_PLANNED_QTY_COLUMN,
@@ -54,7 +54,12 @@ function offerColumnsByKey(
         cell: (row) => zloty(viewPrice(row, OFFER_PRICE_VIEW)),
       },
     ],
-    plannedNet: [money('plannedNet', hasDiscount ? 'Wartość netto — po rabacie' : 'Wartość netto')],
+    plannedNet: [
+      money(
+        'plannedNet',
+        withAfterDiscountSuffix('plannedNet', 'Wartość netto', OFFER_PRICE_VIEW, hasDiscount),
+      ),
+    ],
     currentPlannedNet: [money('currentPlannedNet', clientLabel('currentPlannedNet'))],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [computedQtyColumn(valueOf)('stageQtySum', clientLabel('stageQtySum'))],
@@ -82,7 +87,7 @@ export function offerPrintColumns(
   stages: KosztorysStageT[],
   hiddenColumns: readonly string[],
   columnRanks: ColumnRanksT,
-  hasDiscount = false,
+  hasDiscount: boolean,
 ): PrintColumnT[] {
   const byKey = offerColumnsByKey(stages, hasDiscount)
   const visibleKeys = printableKeys(clientDocumentColumns(columnRanks), hiddenColumns)

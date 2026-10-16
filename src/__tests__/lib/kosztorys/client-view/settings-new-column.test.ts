@@ -4,8 +4,7 @@ import {
   toStoredClientViewSettings,
 } from '@/lib/kosztorys/client-view/settings'
 
-// „Rabat kwota netto (przedmiar)" is the first column outside the frozen legacy set: an owner may
-// have hidden every rabat column on purpose, so it must reach no existing document unasked.
+// An owner may have hidden every rabat column on purpose, so it must reach no existing document unasked.
 const NEW_COLUMN = 'plannedDiscountAmount'
 
 describe('a column outside the legacy set', () => {

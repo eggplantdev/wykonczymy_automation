@@ -2,21 +2,22 @@ import { describe, expect, it } from 'vitest'
 import { bypassedByGlobalDiscount, columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import { POLISH_GRID } from '@/lib/i18n/translations'
 
-const DISCOUNTED_VALUES = ['plannedNet', 'plannedGross', 'currentPlannedNet', 'currentPlannedGross']
+const DISCOUNTED_LABELS = {
+  plannedNet: 'Wartość przedmiaru netto — po rabacie',
+  plannedGross: 'Wartość przedmiaru brutto — po rabacie',
+  currentPlannedNet: 'Wartość netto aktualizacji przedmiaru — po rabacie',
+  currentPlannedGross: 'Wartość brutto aktualizacji przedmiaru — po rabacie',
+}
 
 describe('columnLabelForView — „— po rabacie"', () => {
   it('suffixes the four przedmiar values when the kosztorys has a rabat', () => {
-    for (const id of DISCOUNTED_VALUES) {
-      const label = columnLabelForView(id, 'client', POLISH_GRID, { hasDiscount: true })
-      expect(label, id).toBe(`${columnLabelForView(id, 'client')} — po rabacie`)
+    for (const [id, label] of Object.entries(DISCOUNTED_LABELS)) {
+      expect(columnLabelForView(id, 'client', POLISH_GRID, { hasDiscount: true }), id).toBe(label)
     }
-    expect(columnLabelForView('plannedNet', 'client', POLISH_GRID, { hasDiscount: true })).toBe(
-      'Wartość przedmiaru netto — po rabacie',
-    )
   })
 
   it('leaves them unsuffixed on an offer without a rabat', () => {
-    for (const id of DISCOUNTED_VALUES) {
+    for (const id of Object.keys(DISCOUNTED_LABELS)) {
       expect(columnLabelForView(id, 'client'), id).not.toContain('po rabacie')
     }
   })

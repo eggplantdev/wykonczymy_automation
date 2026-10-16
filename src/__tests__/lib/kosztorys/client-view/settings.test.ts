@@ -52,7 +52,6 @@ describe('sanitizeClientViewSettings', () => {
     )
   })
 
-  // A column added after the hidden ARRAY stopped being stored still reads its own default.
   it('keeps an explicitly empty hidden set — that is a real choice, not a malformed one', () => {
     expect(
       sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: true }).hiddenColumns,
