@@ -829,6 +829,20 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Pracownicy → kolumna „Imię i nazwisko” jest szersza; typowe imię z nazwiskiem mieści się w jednej
       linii.
 
+## 2026-10-16 — catalogue-filters-and-stage-latch — katalog prac, filtry trzymają edytowaną pozycję, etap zakończony
+
+- [ ] Katalog prac → „Kolumny” jest tak szerokie jak „Kolumny” w edytorze kosztorysu; długie nazwy
+      („Źródło z narzędziami (podwykonawca)”) mieszczą się w jednej linii.
+- [ ] Katalog prac → „Kategoria”: lista jest szersza, a przy każdej kategorii stoi liczba prac, np.
+      „Łazienka (40)”; liczby nie zmieniają się przy wyszukiwaniu ani innych filtrach.
+- [ ] Katalog prac → włącz filtr z „Filtry”: pasek z aktywnymi filtrami stoi pod filtrami, nad
+      „Nowa praca” / „Kolumny”. Inne tabele (Kasa, Pracownicy) wyglądają jak wcześniej.
+- [ ] Kosztorys → „Filtry” → „Tylko: pozycje bez przedmiaru” → wpisz cyfrę w „Aktualizacja przedmiaru”:
+      pozycja zostaje w tabeli, zaznaczenie zostaje na niej, kolejne cyfry trafiają do tej samej pozycji.
+- [ ] Ten sam kosztorys → otwórz menu „Filtry”: poprawiona pozycja znika z tabeli.
+- [ ] Kosztorys → etap oznaczony jako zakończony: kolumny etapu są w kolorze morskim, ✓ stoi w drugiej
+      linii nagłówka przed imieniem pracownika (bez pracownika — sam ✓), pierwsza linia się nie rozjeżdża.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
