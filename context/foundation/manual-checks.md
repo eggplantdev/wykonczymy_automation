@@ -746,14 +746,30 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 ## 2026-10-16 — filters-tick-to-show — „Filtry” zaznaczasz to, co chcesz widzieć
 
-- [ ] Kosztorys → „Filtry”: na górze „Pokaż tylko”; nic nie zaznaczone, przycisk bez licznika — widać
-      wszystkie pozycje.
-- [ ] Kosztorys → „Filtry” → zaznacz „Z przedmiarem”: zostają tylko pozycje z przedmiarem; chip nad
-      siatką „Tylko: pozycje z przedmiarem”, jego „×” zdejmuje filtr.
-- [ ] Kosztorys → zaznacz dwie opcje z tej samej grupy (np. w „Przedmiar”: „Bez przedmiaru” i „Z przedmiarem”): widać
-      pozycje jednej LUB drugiej, czyli wszystkie.
-- [ ] Kosztorys → zaznacz opcje z dwóch różnych grup (np. „Z przedmiarem” i „Z wykonaną pracą”): widać
-      tylko pozycje spełniające obie naraz.
+- [ ] Kosztorys → „Filtry”: bez nagłówka „Pokaż tylko”; nic nie zaznaczone, przycisk bez licznika —
+      widać wszystkie pozycje.
+- [ ] Kosztorys → „Filtry” → „Przedmiar” → zaznacz „Z przedmiarem”: zostają pozycje, które mają liczbę
+      w kolumnie „Aktualizacja przedmiaru” — także te, gdzie to tylko szary przedmiar ofertowy; chip nad
+      siatką „Tylko: …”, jego „×” zdejmuje filtr. „Bez przedmiaru” + „Z przedmiarem” = wszystkie pozycje.
+- [ ] Kosztorys z pozycją dodaną po ofercie (ofertowy 0, aktualizacja > 0) i drugą z aktualizacją do 0 →
+      „Filtry” → „Aktualizacja przedmiaru” → „Inna niż w ofercie”: widać obie; pozycje z szarą
+      aktualizacją (przejętą z oferty) są tylko w „Jak w ofercie”. Liczby obu opcji sumują się do
+      wszystkich pozycji.
+- [ ] Kosztorys → zaznacz dwie opcje z tej samej grupy (np. w „Przedmiar”: „Bez przedmiaru” i
+      „Z przedmiarem”): widać pozycje jednej LUB drugiej.
+- [ ] Kosztorys → zaznacz opcje z dwóch różnych grup (np. „Z przedmiarem” i „Z wykonaną
+      pracą”): widać tylko pozycje spełniające obie naraz.
+- [ ] Kosztorys, Katalog prac, Pracownicy → „Filtry”: między grupami opcji jest linia oddzielająca, jak
+      między sekcjami w „Kolumny”.
+- [ ] Kosztorys → „Kolumny”: sekcja „Etapy” stoi pod „Warstwy”, nad listą kolumn. Etapy działają jak
+      kolumny — domyślnie wszystkie zaznaczone i
+      widoczne; odznacz „Etap 2” → jego kolumny znikają, „Kolumny (n)” rośnie; zaznacz → wracają.
+- [ ] Kosztorys → „Kolumny” → „Etapy” → odznacz „Zakończone”: znikają wszystkie zakończone etapy, ich
+      wiersze się odznaczają; zaznacz → wracają. Odznaczenie jednego zakończonego etapu odznacza też
+      „Zakończone”. „Aktywne” tak samo dla niezakończonych. Bez zakończonych etapów nie ma wiersza
+      „Zakończone”. Przy obu wierszach liczba etapów w nawiasie, np. „Aktywne (4)”.
+- [ ] Kosztorys w widoku podwykonawcy → odznacz „Zakończone”: chowają się tylko etapy tej ekipy; w drugim
+      widoku etapy drugiej ekipy zostają.
 - [ ] Kosztorys → zaznacz opcję, której nie spełnia żadna pozycja: pusty stan „Brak pozycji spełniających
       filtry” z opisem „Filtry pokazują tylko pozycje …”.
 - [ ] Kosztorys przy włączonym rabacie globalnym → „Filtry” nie pokazują opcji rabatu pozycji, siatka nie
@@ -761,15 +777,54 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Szablon → „Filtry” działają tak samo jak w kosztorysie (nic zaznaczone = wszystko).
 - [ ] Kosztorys → „Sekcje”: zaznaczona sekcja = rozwinięta; odznacz jedną → zwija się tylko ona;
       „Zwiń wszystkie sekcje” / „Rozwiń wszystkie sekcje” działają; „Resetuj” rozwija wszystko.
-- [ ] Katalog prac → „Filtry”: nic zaznaczone = wszystkie prace; „Udział w cenie” ma trzy opcje
-      („Ponad …”, „W granicy …”, „Nie dotyczy (auto lub bez ceny j.m.)”), każda praca wpada w dokładnie
-      jedną; chip „Tylko: prace …”.
+- [ ] Katalog prac → „Filtry”: nic zaznaczone = wszystkie prace; „Udział wykonawcy w cenie” ma trzy
+      opcje („Ponad 65% ceny”, „W granicy 65% ceny”, „Nie dotyczy (auto lub bez ceny j.m.)”), każda
+      praca wpada w dokładnie jedną; chip „Tylko: prace …”.
+- [ ] Kosztorys i Katalog prac → „Filtry”: grupy nazywają się tak samo („Źródło stawki wykonawcy”,
+      „Udział wykonawcy w cenie”, z dopiskiem płaszczyzny). W kosztorysie „Udział wykonawcy w cenie” ma
+      „Ponad 65% ceny”, „W granicy 65% ceny” i „Nie dotyczy (auto)”: pozycja ze stawką „auto” jest
+      tylko w „Nie dotyczy”, nawet przy mnożniku inwestycji ponad 65%; pozycja z własną stawką — w
+      „Ponad” albo „W granicy”.
+- [ ] Katalog prac → „Filtry”: bez „Pokaż tylko” i bez „Wyczyść filtry”. Przy czymkolwiek zaznaczonym
+      na górze jest „Wyczyść” — odhacza tylko opcje tego menu („Kategoria”, „j.m.”, „Problemy” i
+      „Szukaj…” zostają), po czym znika. „Wyczyść filtry” dla całej strony zostaje w pasku nad tabelą.
+- [ ] Katalog prac → nad paskiem „Widoczne prace X / Y” (bez ikony ⓘ): X = wiersze po filtrach i
+      wyszukiwaniu, Y = wszystkie prace; bez filtrów X = Y.
 - [ ] Transakcje → dowolny filtr z listą (typ, kasa, inwestycja…): nic zaznaczone = wszystkie wiersze,
       zaznacz jeden → tylko on; pojawia się „Wyczyść”, które zdejmuje zaznaczenie. Brak „Zaznacz
       wszystkie”.
 - [ ] Inwestycje → filtr statusu: odznacz wszystkie statusy → widać wszystkie inwestycje (nie pusta
       lista), przycisk bez licznika.
 - [ ] Użytkownicy → odznacz zarówno „Aktywni”, jak i „Nieaktywni” → widać wszystkich (nie pusta lista).
+- [ ] Pracownicy → jeden przycisk „Filtry” z grupami „Pracownicy” i „Pozostało do wypłaty”; bez „Pokaż
+      tylko”, „Zresetuj filtry” i „Zaznacz wszystkie”. Przy czymkolwiek zaznaczonym na górze jest
+      „Wyczyść” — odhacza obie grupy naraz (widać wszystkich pracowników i obie kwoty), po czym znika.
+      Licznik na przycisku liczy zaznaczone opcje.
+- [ ] Pracownicy → pod tytułem „Widoczni pracownicy X / Y” (bez ikony ⓘ): X = wiersze widoczne w
+      tabeli, Y = wszyscy; zmienia się od razu przy „Filtry” i wpisywaniu w „Szukaj…”.
+- [ ] Pracownicy → „Filtry” → odznacz oba „Pozostało do wypłaty” → kwoty z aktywnych i zakończonych
+      inwestycji naraz (nie 0 zł); samo „Zakończone inwestycje” → tylko zakończone.
+- [ ] Inwestycje → „Status”: przy zaznaczonym statusie jest „Wyczyść” (brak „Zaznacz wszystkie”);
+      kliknięcie zdejmuje wszystkie zaznaczenia — widać wszystkie inwestycje, a „Wyczyść” znika.
+- [ ] Inwestycje → pod tytułem „Widoczne inwestycje X / Y” (bez ikony ⓘ): X = wiersze widoczne w
+      tabeli, Y = wszystkie inwestycje; zmienia się od razu przy „Status”, „Analiza AI” i wpisywaniu w „Szukaj…” (bez
+      filtrów X = Y). Nie ma już „N aktywnych”.
+- [ ] Inwestycje → obok filtrów nie ma już przycisku „Kolumny v2”; w menu „Kolumny” na górze jest
+      sekcja „Warstwy” z „v1” i „v2”, oddzielona kreską od „Widoczne kolumny” (jak w kosztorysie).
+      „v1” chowa/pokazuje „Bilans netto v1”, „Marża v1”, „Robocizna v1”; „v2” — „Bilans netto v2”,
+      „Bilans brutto v2”, „Marża v2”, „Robocizna v2” i kolumnę pozostałej kwoty podwykonawców. Każda
+      kombinacja działa, także obie odznaczone; menu zostaje otwarte, licznik na „Kolumny” się zgadza.
+- [ ] Kosztorys, szablon → „Filtry”: bez „Wyczyść filtry”. Przy czymkolwiek zaznaczonym na górze jest
+      „Wyczyść” — odhacza tylko opcje tego menu („Problemy”, zwinięte sekcje i „Szukaj…” zostają), po
+      czym znika. Przewinięte w dół — „Wyczyść” odjeżdża razem z listą.
+- [ ] Kosztorys → „Sekcje”, pusty stan siatki i pasek nad siatką (Katalog prac — sam pasek): przycisk
+      czyszczący wszystko nazywa się wszędzie „Wyczyść filtry” (nie „Zresetuj filtry” / „Wyczyść
+      wszystko”) i zdejmuje filtry, zwinięte sekcje i wyszukiwanie.
+- [ ] Kosztorys, Katalog prac → „Problemy” z wybranym problemem: brak „Zresetuj filtry”; ponowne
+      kliknięcie wybranego problemu zdejmuje zawężenie.
+- [ ] Kosztorys → „Problemy” → wybierz problem, popraw jedną pozycję: zostaje w siatce do czasu, aż
+      znów otworzysz „Problemy” — wtedy znika. W menu nie ma już „Zawężenie” ani „Odśwież — ukryj
+      poprawione”.
 - [ ] Kasy, Sprzęt, „Dodaj z katalogu” w kosztorysie → filtry z listą: nic zaznaczone = wszystko,
       zaznaczone = tylko one.
 
