@@ -720,7 +720,11 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       „Adres do umowy” pokazuje wpisany adres; pola firmy nie wracają po ponownym otwarciu edycji.
 - [ ] Edycja z listy „Inwestycje” (ikona edycji w wierszu) → nowe pola są wypełnione jak na stronie
       inwestycji, a zapis bez zmian ich nie czyści.
-- [ ] Protokół odbioru → „Zaktualizuj dane inwestycji” dalej zapisuje osobę kontaktową i adres.
+- [ ] Inwestycja z „Dane do umowy” i pełnym adresem → kosztorys → Protokół odbioru: „Zamawiający” to
+      osoba/firma z danych do umowy, adres to „ulica, kod miejscowość, kraj”, „Miejscowość” z adresu.
+      Bez danych do umowy „Zamawiający” to osoba kontaktowa, a bez niej nazwa inwestycji.
+- [ ] Protokół odbioru → „Edytuj dane inwestycji” otwiera formularz inwestycji; po zapisie protokół
+      pokazuje nowego Zamawiającego i adres bez zamykania okna.
 
 ## 2026-10-16 — investment-form-layout-status-select — nowy układ formularza inwestycji + status z listy
 
