@@ -667,6 +667,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Po usunięciu starych szablonów z bazy (druga migracja): `/szablony` pokazuje te same szablony
       z tymi samymi sekcjami, pracami i „Wersjami”; lista inwestycji i filtr statusu nie mają
       szablonu; nowa inwestycja zapisuje się ze statusem „Wycena”.
+- [ ] Szablon → otwórz: brak bursztynowego ostrzeżenia. Zmień opis lub cenę pracy: pod paskiem
+      narzędzi pojawia się „Pozycje szablonu to wpisy z katalogu prac…”. Zmiana nazwy sekcji lub
+      kolejności sama go nie pokazuje. Kosztorys inwestycji po edycji pracy: ostrzeżenia nie ma.
 
 ## 2026-10-15 — expense-draft-duplicates-per-row — duplikaty przy własnym paragonie + paragon bez zdjęcia
 

@@ -87,6 +87,7 @@ import {
   type UndoRedoApiT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import { KosztorysLockedBanner } from '@/components/kosztorys/editor/kosztorys-locked-banner'
+import { TemplateCatalogueBanner } from '@/components/kosztorys/editor/template-catalogue-banner'
 import { HistoryBanner } from '@/components/kosztorys/editor/history/history-banner'
 import { withHistoryChanges } from '@/components/kosztorys/editor/history/history-change-cell'
 import { PreviewHeaderActions } from '@/components/kosztorys/editor/preview-header-actions'
@@ -102,6 +103,7 @@ type PropsT = KosztorysEditorDataT & {
   worker?: WorkerAudienceT
   history?: InvestorHistoryT
   undoRedo?: UndoRedoApiT
+  hasCatalogueEdits?: boolean
   // Hands over the flush because the versions drawer lives outside this body, where a restore must
   // wait for the cell saves still pending in it.
   onOpenVersions?: (flushPendingSaves: () => Promise<void>) => void
@@ -139,6 +141,7 @@ export function KosztorysEditorBody({
   hasSheet = false,
   isTemplate = false,
   undoRedo = NOOP_UNDO_REDO,
+  hasCatalogueEdits = false,
   onOpenVersions,
   onTreeReplaced,
   onStaleTree,
@@ -543,6 +546,7 @@ export function KosztorysEditorBody({
                       }
                     />
                     {lock && <KosztorysLockedBanner lock={lock} />}
+                    {hasCatalogueEdits && <TemplateCatalogueBanner />}
                   </>
                 )}
                 {preview && <HistoryBanner version={pastVersion} />}

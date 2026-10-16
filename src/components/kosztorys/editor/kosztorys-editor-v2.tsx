@@ -40,6 +40,18 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef, actions.autoSnapshot)
 
+  const [hasCatalogueEdits, setHasCatalogueEdits] = useState(false)
+  const editorActions: EditorActionsT = actions.isTemplate
+    ? {
+        ...actions,
+        updateItemField: async (itemId, patch) => {
+          const result = await actions.updateItemField(itemId, patch)
+          if (result.success) setHasCatalogueEdits(true)
+          return result
+        },
+      }
+    : actions
+
   function reseed(since?: string, ownsRefresh = false) {
     triggerRestore(since, ownsRefresh)
     // Reseeding the whole grid via a body remount — drop the stack whose commands close over
@@ -65,11 +77,12 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   }
 
   return (
-    <EditorActionsContext value={actions}>
+    <EditorActionsContext value={editorActions}>
       <KosztorysEditorBody
         key={remountKey}
         {...props}
         isTemplate={actions.isTemplate}
+        hasCatalogueEdits={hasCatalogueEdits}
         undoRedo={undoRedo}
         onOpenVersions={(flushPendingSaves) => {
           flushBodySavesRef.current = flushPendingSaves
