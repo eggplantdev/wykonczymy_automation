@@ -561,6 +561,18 @@ and status flags keep their keys; their semantics only widen in the empty case.
 - Facets: `src/lib/kosztorys/row-conditions/queries.ts:23`,
   `src/lib/kosztorys/work-catalogue/catalogue-conditions.ts:138`
 
+## Deviations From the Plan
+
+Landed after the four phases, on owner feedback (a432e5a70, 909fb0879, caef2d3f7, fcb9d00fc):
+
+- „Przedmiar i wykonana praca" is two facet groups, not one — the Przedmiar group and the executed-work
+  group combine with AND like any other pair of groups.
+- „Komentarz" and „Puste" are gone from „Filtry"; nothing reached them that another filter doesn't.
+- „Etapy" reads ticked = visible, with „Zakończone" / „Aktywne" bulk rows above the stage columns.
+- Option lists offer „Wyczyść" instead of „Zaznacz wszystkie", since nothing ticked already shows all.
+- A link saved before this change can still carry the old `__none__` marker for „nothing selected";
+  `FilterMultiSelect` drops it on read (`LEGACY_NONE`), so such a link opens unfiltered.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -569,23 +581,23 @@ and status flags keep their keys; their semantics only widen in the empty case.
 
 #### Automated
 
-- [ ] 1.1 Facet, partition and equivalence specs pass
-- [ ] 1.2 Existing consumers of the engine still pass
+- [x] 1.1 Facet, partition and equivalence specs pass — d43cf87a1
+- [x] 1.2 Existing consumers of the engine still pass — d43cf87a1
 
 ### Phase 2: Kosztorys and szablon „Filtry" UI
 
 #### Automated
 
-- [ ] 2.1 Toolbar, empty-grid and AI-review specs pass
+- [x] 2.1 Toolbar, empty-grid and AI-review specs pass — 5ee08f0ec
 
 ### Phase 3: Work catalogue „Filtry"
 
 #### Automated
 
-- [ ] 3.1 Catalogue conditions and menu specs pass
+- [x] 3.1 Catalogue conditions and menu specs pass — 30fbf5466
 
 ### Phase 4: Option lists, „Sekcje", users and investment statuses
 
 #### Automated
 
-- [ ] 4.1 Primitive, consumer, users, status and sections specs pass
+- [x] 4.1 Primitive, consumer, users, status and sections specs pass — b4102b27a

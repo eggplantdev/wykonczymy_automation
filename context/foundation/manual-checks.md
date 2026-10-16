@@ -880,7 +880,8 @@ tylko komórka, a siatka ich nie widzi.
 
 - [ ] Kasa (lub pulpit kierownika) → „Typ”: na liście jest „Zgłoszone wydatki”, osobnego przycisku obok
       filtrów już nie ma. Zaznacz → zostają tylko zgłoszone wydatki, „Typ (1)”; „Wyczyść” w liście zdejmuje.
-- [ ] „Typ” → „Zgłoszone wydatki” + „Wydatek inwestycyjny”: widać tylko zgłoszone wydatki inwestycyjne.
+- [ ] „Typ” → „Zgłoszone wydatki” + „Wpłata od inwestora”: widać oba rodzaje wierszy — wpłaty i zgłoszone
+      wydatki (opcje w „Typ” sumują się, nie zawężają).
 - [ ] Pracownicy → kolumna „Imię i nazwisko” jest szersza; typowe imię z nazwiskiem mieści się w jednej
       linii.
 

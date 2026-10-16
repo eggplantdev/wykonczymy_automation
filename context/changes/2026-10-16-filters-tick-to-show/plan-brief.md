@@ -33,7 +33,7 @@ The „Problemy" menus already work as show-only.
 | Decision | Choice | Why |
 | --- | --- | --- |
 | Scope | Every filter menu: kosztorys, szablon, catalogue, option lists, users, investment statuses | Owner: „change it everywhere" |
-| „Przedmiar i wykonana praca" | Split into Przedmiar / Wykonana praca / Puste pozycje | Owner said yes. Needed for AND („z przedmiarem, bez wykonanej pracy") |
+| „Przedmiar i wykonana praca" | Split into two facet groups, Przedmiar and Wykonana praca; „Puste pozycje" and „Komentarz" dropped (owner feedback, 909fb0879) | Owner said yes. Needed for AND („z przedmiarem, bez wykonanej pracy") |
 | Rate-source and rate-ceiling groups | Split per crew plane | OR inside one group would widen today's AND across planes |
 | Catalogue „Udział w cenie" | Add „nie dotyczy (auto lub bez ceny j.m.)" per plane | Without it, „untick ponad 65%" (which keeps auto and unpriced) is lost |
 | Saved picks | Dropped through a localStorage key rename | Old ids mean the opposite. One reset beats a silent inversion |
