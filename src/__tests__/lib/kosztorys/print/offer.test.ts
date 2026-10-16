@@ -102,7 +102,7 @@ describe('buildOfferPrintHtml — dokument', () => {
     const out = html([])
 
     expect(out).toContain('<th><span>Opis prac</span></th>')
-    expect(out).toContain('<tbody></tbody>')
+    expect(out).toContain('<td class="sheet-cell"></td>')
   })
 
   it('escapuje wolny tekst i nazwę inwestycji, więc żaden nie otwiera znacznika', () => {
