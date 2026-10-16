@@ -89,7 +89,7 @@ describe('catalogue condition predicates', () => {
   })
 })
 
-describe('per-plane partition', () => {
+describe('every „Filtry" group is a partition', () => {
   const rows = [
     entry({ wToolsRate: 50, ownToolsRate: 80 }),
     entry({ wToolsRateCoeff: 0.9, ownToolsRateCoeff: 0.3 }),
@@ -97,22 +97,70 @@ describe('per-plane partition', () => {
     entry({ clientPrice: 0, wToolsRate: 10, ownToolsRateCoeff: 0.2 }),
     entry({ wToolsRate: 0, ownToolsRate: 55.25 }),
   ]
-
-  it.each(['w_tools', 'own_tools'] as const)(
-    '%s: ponad + w granicy + auto + non-auto bez ceny = every praca, exactly once',
-    (plane) => {
-      const buckets = [
-        condition(`catalogue-over-ceiling-${plane}`).matches,
-        condition(`catalogue-within-ceiling-${plane}`).matches,
-        condition(`catalogue-source-auto-${plane}`).matches,
-        (row: WorkCatalogueItemT) =>
-          !condition(`catalogue-source-auto-${plane}`).matches(row) && !(row.clientPrice > 0),
-      ]
-      for (const row of rows) {
-        expect(buckets.filter((bucket) => bucket(row))).toHaveLength(1)
-      }
-    },
+  const groups = Map.groupBy(
+    CATALOGUE_CONDITIONS.filter((candidate) => candidate.kind === 'filter'),
+    (candidate) => candidate.group,
   )
+
+  it('splits by plane: each group heading names its plane', () => {
+    expect([...groups.keys()]).toEqual([
+      'Źródło stawki — z narzędziami (podwykonawca)',
+      'Źródło stawki — bez narzędzi (pracownik)',
+      'Udział w cenie — z narzędziami (podwykonawca)',
+      'Udział w cenie — bez narzędzi (pracownik)',
+    ])
+  })
+
+  it.each([...groups.entries()])('%s: every praca matches exactly one option', (_group, options) => {
+    for (const row of rows) {
+      expect(options.filter((option) => option.matches(row))).toHaveLength(1)
+    }
+  })
+})
+
+describe('applyCatalogueConditions', () => {
+  const amount = entry({ wToolsRate: 50 })
+  const coeff = entry({ wToolsRateCoeff: 0.5 })
+  const auto = entry({})
+  const unpriced = entry({ clientPrice: 0 })
+  const over = entry({ wToolsRate: 90 })
+  const rows = [amount, coeff, auto, unpriced, over]
+  const apply = (engaged: string[]) =>
+    applyCatalogueConditions(rows, CATALOGUE_CONDITIONS, new Set(engaged))
+
+  it('narrows to what one engaged filter matches', () => {
+    expect(apply(['catalogue-source-auto-w_tools'])).toEqual([auto, unpriced])
+  })
+
+  it('widens with each filter ticked in the same group', () => {
+    expect(apply(['catalogue-source-amount-w_tools', 'catalogue-source-coeff-w_tools'])).toEqual([
+      amount,
+      coeff,
+      over,
+    ])
+  })
+
+  it('narrows across groups', () => {
+    expect(
+      apply(['catalogue-source-amount-w_tools', 'catalogue-within-ceiling-w_tools']),
+    ).toEqual([amount])
+  })
+
+  it('reaches what unticking „ponad" used to: w granicy + nie dotyczy', () => {
+    expect(apply(['catalogue-within-ceiling-w_tools', 'catalogue-ceiling-na-w_tools'])).toEqual(
+      rows.filter((row) => !condition('catalogue-over-ceiling-w_tools').matches(row)),
+    )
+  })
+
+  it('an engaged problem keeps only its matches, alongside a filter', () => {
+    expect(apply(['catalogue-no-price'])).toEqual([unpriced])
+    expect(apply(['catalogue-no-price', 'catalogue-source-amount-w_tools'])).toEqual([])
+    expect(apply(['catalogue-no-price', 'catalogue-source-auto-w_tools'])).toEqual([unpriced])
+  })
+
+  it('ignores an id that names no condition', () => {
+    expect(apply(['catalogue-gone'])).toEqual(rows)
+  })
 })
 
 describe('countCatalogueConditions', () => {
@@ -123,29 +171,6 @@ describe('countCatalogueConditions', () => {
     expect(counts.get('catalogue-zero-rate-w_tools')).toBe(1)
     expect(counts.get('catalogue-source-auto-own_tools')).toBe(3)
     expect(counts.size).toBe(CATALOGUE_CONDITIONS.length)
-  })
-})
-
-describe('applyCatalogueConditions', () => {
-  const amount = entry({ wToolsRate: 50 })
-  const coeff = entry({ wToolsRateCoeff: 0.5 })
-  const auto = entry({})
-  const unpriced = entry({ clientPrice: 0 })
-  const rows = [amount, coeff, auto, unpriced]
-
-  it('engaged filters hide their matches and combine with AND', () => {
-    const engaged = new Set(['catalogue-source-amount-w_tools', 'catalogue-source-coeff-w_tools'])
-    expect(applyCatalogueConditions(rows, CATALOGUE_CONDITIONS, engaged)).toEqual([auto, unpriced])
-  })
-
-  it('an engaged problem keeps only its matches', () => {
-    const engaged = new Set(['catalogue-no-price'])
-    expect(applyCatalogueConditions(rows, CATALOGUE_CONDITIONS, engaged)).toEqual([unpriced])
-  })
-
-  it('ignores an id that names no condition', () => {
-    const engaged = new Set(['catalogue-gone'])
-    expect(applyCatalogueConditions(rows, CATALOGUE_CONDITIONS, engaged)).toEqual(rows)
   })
 })
 
@@ -163,7 +188,7 @@ describe('registry', () => {
     ])
   })
 
-  it('never repeats a label, which cmdk keys its rows by', () => {
+  it('never repeats a label, which the „Tylko:" chips read alone', () => {
     const labels = CATALOGUE_CONDITIONS.map((candidate) => candidate.label)
     expect(new Set(labels).size).toBe(labels.length)
   })

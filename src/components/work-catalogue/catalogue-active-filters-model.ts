@@ -1,5 +1,4 @@
 import type { ActiveFiltersBarChipT } from '@/components/filters/active-filters-bar'
-import { FILTER_NONE } from '@/components/filters/filter-multi-select'
 import type { CatalogueConditionT } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 
 export type CatalogueChipRemovalT = 'condition' | 'problem' | 'search' | 'category' | 'unit'
@@ -18,13 +17,7 @@ type ArgsT = {
 }
 
 const pickedLabels = ({ values, options }: ArgsT['categories']) =>
-  values
-    .map((value) =>
-      value === FILTER_NONE
-        ? 'żadna'
-        : (options.find((option) => option.value === value)?.label ?? value),
-    )
-    .join(', ')
+  values.map((value) => options.find((option) => option.value === value)?.label ?? value).join(', ')
 
 export function catalogueActiveFiltersModel({
   conditions,
@@ -38,15 +31,12 @@ export function catalogueActiveFiltersModel({
 
   for (const condition of conditions) {
     if (!engagedIds.has(condition.id)) continue
-    const isProblem = condition.kind === 'problem'
     chips.push({
       id: condition.id,
-      label: `${isProblem ? 'Tylko' : 'Ukryto'}: prace ${condition.label}`,
-      removeLabel: isProblem
-        ? `Przestań pokazywać tylko prace ${condition.label}`
-        : `Pokaż z powrotem prace ${condition.label}`,
+      label: `Tylko: prace ${condition.label}`,
+      removeLabel: `Przestań pokazywać tylko prace ${condition.label}`,
       count: counts.get(condition.id) ?? 0,
-      removal: isProblem ? 'problem' : 'condition',
+      removal: condition.kind === 'problem' ? 'problem' : 'condition',
     })
   }
 

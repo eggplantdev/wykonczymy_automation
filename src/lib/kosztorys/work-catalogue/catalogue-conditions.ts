@@ -12,13 +12,17 @@ import {
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { capitalize } from '@/lib/utils/capitalize'
 
 export type CatalogueConditionT = {
   // Persisted in localStorage — renaming one silently drops the filter a reader left engaged.
   id: string
   kind: 'filter' | 'problem'
+  // Filters in one group widen each other; filters in different groups narrow each other.
   group: string
   label: string
+  // The „Filtry" row, where the group heading already names the plane. Omitted = the menu capitalises `label`.
+  menuLabel?: string
   matches: (entry: WorkCatalogueItemT) => boolean
 }
 
@@ -72,16 +76,17 @@ const PROBLEMS: CatalogueConditionT[] = [
   ]),
 ]
 
-// The plane rides in every label, not only in the heading: cmdk keys its rows by label, and „auto"
-// exists once per plane.
+// Each group splits the prace into options that never overlap and leave none out: then ticking the
+// rest of a group reaches whatever unticking one option used to.
 const FILTERS: CatalogueConditionT[] = [
   ...TOOL_PLANES.flatMap((plane) =>
     SOURCE_ORDER.map(
       (source): CatalogueConditionT => ({
         id: `catalogue-source-${source}-${plane}`,
         kind: 'filter',
-        group: 'Źródło stawki',
+        group: `Źródło stawki${planeDashSuffix(plane)}`,
         label: `${PRICE_SOURCE_LABELS[source]}${planeDashSuffix(plane)}`,
+        menuLabel: capitalize(PRICE_SOURCE_LABELS[source]),
         matches: (entry) => sourceOn(entry, plane) === source,
       }),
     ),
@@ -90,17 +95,27 @@ const FILTERS: CatalogueConditionT[] = [
     {
       id: `catalogue-over-ceiling-${plane}`,
       kind: 'filter',
-      group: 'Udział w cenie',
+      group: `Udział w cenie${planeDashSuffix(plane)}`,
       label: `ponad ${clientShareCeilingLabel(plane)}${planeDashSuffix(plane)}`,
+      menuLabel: `Ponad ${clientShareCeilingLabel(plane)}`,
       matches: (entry) => isCatalogueOverCeiling(entry, plane),
     },
     {
       id: `catalogue-within-ceiling-${plane}`,
       kind: 'filter',
-      group: 'Udział w cenie',
+      group: `Udział w cenie${planeDashSuffix(plane)}`,
       label: `w granicy ${clientShareCeilingLabel(plane)}${planeDashSuffix(plane)}`,
+      menuLabel: `W granicy ${clientShareCeilingLabel(plane)}`,
       matches: (entry) =>
         namesRate(entry, plane) && hasPrice(entry) && !isCatalogueOverCeiling(entry, plane),
+    },
+    {
+      id: `catalogue-ceiling-na-${plane}`,
+      kind: 'filter',
+      group: `Udział w cenie${planeDashSuffix(plane)}`,
+      label: `nie dotyczy (auto lub bez ceny j.m.)${planeDashSuffix(plane)}`,
+      menuLabel: 'Nie dotyczy (auto lub bez ceny j.m.)',
+      matches: (entry) => !namesRate(entry, plane) || !hasPrice(entry),
     },
   ]),
 ]
@@ -142,9 +157,16 @@ export function applyCatalogueConditions(
 ): WorkCatalogueItemT[] {
   const engaged = conditions.filter((condition) => engagedIds.has(condition.id))
   if (engaged.length === 0) return [...rows]
-  return rows.filter((entry) =>
-    engaged.every((condition) =>
-      condition.kind === 'problem' ? condition.matches(entry) : !condition.matches(entry),
-    ),
+  const facets = [
+    ...Map.groupBy(
+      engaged.filter((condition) => condition.kind === 'filter'),
+      (condition) => condition.group,
+    ).values(),
+  ]
+  const problems = engaged.filter((condition) => condition.kind === 'problem')
+  return rows.filter(
+    (entry) =>
+      facets.every((facet) => facet.some((condition) => condition.matches(entry))) &&
+      problems.every((condition) => condition.matches(entry)),
   )
 }

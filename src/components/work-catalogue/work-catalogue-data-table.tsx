@@ -64,9 +64,8 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     engagedIds,
     toggle: toggleCondition,
     toggleExclusive,
-    setMany,
     clear: clearConditions,
-  } = useEngagedIds('work-catalogue-filters')
+  } = useEngagedIds('work-catalogue-show')
 
   // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
   const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
@@ -97,6 +96,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     conditions,
     engagedIds,
     counts,
+    rowCount: data.length,
   })
   const problemToggles = catalogueProblemsMenuModel({ conditions, engagedIds, counts })
 
@@ -215,8 +215,6 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
                 <CatalogueFiltersMenu
                   toggles={filterToggles}
                   onToggle={toggleCondition}
-                  // Ticked = visible, so „all ticked" means none engaged.
-                  onToggleAll={(ids, visible) => setMany(ids, !visible)}
                   resetAction={{
                     label: 'Zresetuj filtry',
                     onReset: resetFilters,
