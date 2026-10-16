@@ -44,7 +44,7 @@ export function ActiveFiltersBar<ChipT extends ActiveFiltersBarChipT>({
           onClick={onClearAll}
           className="text-muted-foreground h-6 shrink-0 px-2 text-xs"
         >
-          Wyczyść wszystko
+          Wyczyść filtry
         </Button>
       )}
     </div>

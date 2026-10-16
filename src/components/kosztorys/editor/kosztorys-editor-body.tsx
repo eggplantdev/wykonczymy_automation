@@ -668,7 +668,7 @@ export function KosztorysEditorBody({
                               className="pointer-events-auto"
                               onClick={resetFilters}
                             >
-                              Zresetuj filtry
+                              Wyczyść filtry
                             </Button>
                           )}
                         </EmptyState>

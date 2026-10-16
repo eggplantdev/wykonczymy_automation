@@ -1,6 +1,6 @@
 'use client'
 
-import { RefreshCw, RotateCcw, TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from 'lucide-react'
 import {
   FilterTriggerButton,
   TOOLBAR_FILTER_TRIGGER_CLASS,
@@ -8,11 +8,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  keepMenuOpen,
 } from '@/components/ui/dropdown-menu'
 import { DropdownCheckGroups } from '@/components/ui/dropdown-check-groups'
 import { CatalogueCompareMenuItem } from '@/components/kosztorys/editor/actions/catalogue-compare-action'
@@ -39,7 +36,7 @@ export function KosztorysProblemsMenu() {
   const engaged = problemToggles.find((toggle) => toggle.active)
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && refreshProblemRows()}>
       <DropdownMenuTrigger asChild>
         <FilterTriggerButton
           active={Boolean(engaged)}
@@ -51,26 +48,6 @@ export function KosztorysProblemsMenu() {
         </FilterTriggerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-112">
-        {engaged && (
-          <>
-            <DropdownMenuLabel>Zawężenie</DropdownMenuLabel>
-            {/* Scoped to the problems — the sekcje folds and the
-                „Filtry" toggles are that menu's to undo, and a reset here that reached them would
-                undo things this menu never did. */}
-            <DropdownMenuItem
-              onSelect={keepMenuOpen(() => toggleConditionExclusive(engaged.id, PROBLEM_IDS))}
-              className="text-muted-foreground"
-            >
-              <RotateCcw />
-              Zresetuj filtry
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={keepMenuOpen(refreshProblemRows)}>
-              <RefreshCw />
-              Odśwież — ukryj poprawione
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
         <DropdownCheckGroups
           items={problemToggles}
           onSelect={(id) => toggleConditionExclusive(id, PROBLEM_IDS)}

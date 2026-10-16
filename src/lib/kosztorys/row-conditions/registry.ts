@@ -28,6 +28,9 @@ const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
 const hasPlannedOrAiQty = (row: KosztorysV2RowT) =>
   resolvedCurrentPlannedQty(row) > 0 || aiOffered(row)
 
+const isPlannedQtyChanged = (row: KosztorysV2RowT) =>
+  row.currentPlannedQty != null && row.currentPlannedQty !== (row.plannedQty || 0)
+
 const hasItemDiscount = (row: KosztorysV2RowT) => row.discountType !== null && row.discountValue > 0
 
 const priceColumnsFor = (plane: ToolPlaneT): readonly string[] => [
@@ -87,6 +90,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'ai-review',
     matches: (row, ctx) => (ctx.aiColumnsShown ?? false) && hasPlannedOrAiQty(row),
   },
+  // „Przedmiar" reads the Aktualizacja przedmiaru the client's document shows; whether it moved off
+  // the offer is the next group's question.
   {
     id: 'no-planned-qty',
     label: 'bez przedmiaru',
@@ -104,6 +109,25 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     matches: (row) => resolvedCurrentPlannedQty(row) > 0,
   },
   {
+    id: 'planned-qty-as-offered',
+    label: 'z przedmiarem jak w ofercie',
+    menuLabel: 'Jak w ofercie',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'planned-update',
+    matches: (row) => !isPlannedQtyChanged(row),
+  },
+  {
+    id: 'planned-qty-changed',
+    label: 'z przedmiarem innym niż w ofercie',
+    menuLabel: 'Inna niż w ofercie',
+    sectionLabel: 'Sekcje z przedmiarem innym niż w ofercie',
+    kind: 'filter',
+    filterGroup: 'planned-update',
+    revealsColumns: ['currentPlannedQty'],
+    matches: isPlannedQtyChanged,
+  },
+  {
     id: 'no-measured-qty',
     label: 'bez wykonanej pracy',
     sectionLabel: 'Sekcje bez wykonanej pracy',
@@ -118,22 +142,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     kind: 'filter',
     filterGroup: 'measured',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
-  },
-  {
-    id: 'empty-both-axes',
-    label: 'bez przedmiaru i bez wykonanej pracy',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'filled',
-    matches: isEmptyOnBothAxes,
-  },
-  {
-    id: 'non-empty-both-axes',
-    label: 'z przedmiarem lub wykonaną pracą',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'filled',
-    matches: (row, ctx) => !isEmptyOnBothAxes(row, ctx),
   },
   {
     id: 'manual-rate-w-tools',
@@ -217,15 +225,27 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'own-rate-within-ceiling-w-tools',
     label:
-      `bez własnej stawki ponad ${clientShareCeilingLabel('w_tools')} ceny` +
+      `z własną stawką w granicy ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
-    menuLabel: `Poniżej ${clientShareCeilingLabel('w_tools')} ceny`,
+    menuLabel: `W granicy ${clientShareCeilingLabel('w_tools')} ceny`,
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => !isOwnRateOverCeiling(row, 'w_tools'),
+    matches: (row) =>
+      priceSourceOf(row, 'w_tools') !== 'auto' && !isOwnRateOverCeiling(row, 'w_tools'),
+  },
+  {
+    id: 'rate-ceiling-na-w-tools',
+    label: 'ze stawką wykonawcy „auto" — udział nie dotyczy' + planeViewSuffix('w_tools'),
+    menuLabel: 'Nie dotyczy (auto)',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling-w-tools',
+    plane: 'w_tools',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
   },
   {
     id: 'own-rate-over-ceiling-own-tools',
@@ -243,31 +263,27 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'own-rate-within-ceiling-own-tools',
     label:
-      `bez własnej stawki ponad ${clientShareCeilingLabel('own_tools')} ceny` +
+      `z własną stawką w granicy ${clientShareCeilingLabel('own_tools')} ceny` +
       planeViewSuffix('own_tools'),
-    menuLabel: `Poniżej ${clientShareCeilingLabel('own_tools')} ceny`,
+    menuLabel: `W granicy ${clientShareCeilingLabel('own_tools')} ceny`,
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => !isOwnRateOverCeiling(row, 'own_tools'),
+    matches: (row) =>
+      priceSourceOf(row, 'own_tools') !== 'auto' && !isOwnRateOverCeiling(row, 'own_tools'),
   },
   {
-    id: 'has-note',
-    label: 'z komentarzem',
+    id: 'rate-ceiling-na-own-tools',
+    label: 'ze stawką wykonawcy „auto" — udział nie dotyczy' + planeViewSuffix('own_tools'),
+    menuLabel: 'Nie dotyczy (auto)',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'note',
-    matches: (row) => (row.note?.trim() ?? '') !== '',
-  },
-  {
-    id: 'no-note',
-    label: 'bez komentarza',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'note',
-    matches: (row) => (row.note?.trim() ?? '') === '',
+    filterGroup: 'rate-ceiling-own-tools',
+    plane: 'own_tools',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
   },
   {
     id: 'has-discount',

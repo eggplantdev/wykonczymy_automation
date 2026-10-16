@@ -124,19 +124,24 @@ describe('the conditions, each on its boundary', () => {
     expect([...columnsRevealedBy(['work-without-planned-qty'])]).toEqual(['currentPlannedQty'])
   })
 
-  it('the przedmiar filters read the Aktualizacja przedmiaru, falling back to ofertowy', () => {
+  it('„Przedmiar" reads the Aktualizacja przedmiaru; „Aktualizacja przedmiaru" asks if it left the offer', () => {
     const added = row({ plannedQty: 0, currentPlannedQty: 3 })
     const dropped = row({ plannedQty: 5, currentPlannedQty: 0 })
     const following = row({ plannedQty: 5, currentPlannedQty: null })
-    expect([added, dropped, following].map((r) => matches('no-planned-qty', r))).toEqual([
-      false,
-      true,
-      false,
-    ])
-    expect([added, dropped, following].map((r) => matches('has-planned-qty', r))).toEqual([
-      true,
-      false,
-      true,
+    const retyped = row({ plannedQty: 5, currentPlannedQty: 5 })
+    const zeroOnZero = row({ plannedQty: 0, currentPlannedQty: 0 })
+    const none = row({ plannedQty: 0, currentPlannedQty: null })
+    const hits = (subject: ReturnType<typeof row>) =>
+      ['no-planned-qty', 'has-planned-qty', 'planned-qty-as-offered', 'planned-qty-changed'].filter(
+        (id) => matches(id, subject),
+      )
+    expect([added, dropped, following, retyped, zeroOnZero, none].map(hits)).toEqual([
+      ['has-planned-qty', 'planned-qty-changed'],
+      ['no-planned-qty', 'planned-qty-changed'],
+      ['has-planned-qty', 'planned-qty-as-offered'],
+      ['has-planned-qty', 'planned-qty-as-offered'],
+      ['no-planned-qty', 'planned-qty-as-offered'],
+      ['no-planned-qty', 'planned-qty-as-offered'],
     ])
     expect(matches('work-without-planned-qty', row({ ...dropped, [stageKey(2)]: 3 }))).toBe(true)
     expect(matches('work-without-planned-qty', row({ ...added, [stageKey(2)]: 3 }))).toBe(false)
@@ -152,19 +157,6 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('client-empty', row({ plannedQty: 0 }))).toBe(true)
     expect(matches('client-empty', row({ plannedQty: 5 }))).toBe(false)
     expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
-  })
-
-  it('the „Filtry" pair reads both axes together, and its complement is its negation', () => {
-    const cases = [
-      row({ plannedQty: 0 }),
-      row({ plannedQty: 5 }),
-      row({ plannedQty: 0, [stageKey(2)]: 3 }),
-    ]
-    expect(cases.map((r) => matches('empty-both-axes', r))).toEqual([true, false, false])
-    expect(cases.map((r) => matches('non-empty-both-axes', r))).toEqual([false, true, true])
-    expect(cases.map((r) => matches('empty-both-axes', r))).toEqual(
-      cases.map((r) => matches('client-empty', r)),
-    )
   })
 
   it('„z ujemną stawką wykonawcy" reads the stawka as paid, per plane', () => {
@@ -229,7 +221,7 @@ describe('the conditions, each on its boundary', () => {
     expect(ROW_CONDITIONS.some((c) => c.kind === 'filter' && c.sectionLabel === null)).toBe(true)
   })
 
-  it('pairs every filter with its exact complement', () => {
+  it('splits every filter group into options that never overlap and leave none out', () => {
     const subjects = [
       row({ plannedQty: 0 }),
       row({ plannedQty: 5 }),
@@ -240,24 +232,32 @@ describe('the conditions, each on its boundary', () => {
       row({ wToolsOverrideValue: 80 }),
       row({ ownToolsOverrideValue: 40 }),
       row({ ownToolsOverrideValue: 95 }),
-      // „auto" above the ceiling: the over-half must not claim it, so the within-half has to.
+      // „auto" above the ceiling: neither ponad nor w granicy may claim it — only nie dotyczy.
       row({ globalWToolsCoeff: 0.9, globalOwnToolsCoeff: 0.9 }),
-      row({ note: 'do potwierdzenia z klientem' }),
-      row({ note: '   ' }),
     ]
 
     for (const [negative, positive] of [
-      ['no-planned-qty', 'has-planned-qty'],
       ['no-measured-qty', 'has-measured-qty'],
       ['no-discount', 'has-discount'],
-      ['own-rate-within-ceiling-w-tools', 'own-rate-over-ceiling-w-tools'],
-      ['own-rate-within-ceiling-own-tools', 'own-rate-over-ceiling-own-tools'],
-      ['no-note', 'has-note'],
     ]) {
       for (const subject of subjects) {
         expect(matches(positive, subject)).toBe(!matches(negative, subject))
       }
     }
+
+    for (const plane of ['w-tools', 'own-tools']) {
+      const options = [
+        `own-rate-over-ceiling-${plane}`,
+        `own-rate-within-ceiling-${plane}`,
+        `rate-ceiling-na-${plane}`,
+      ]
+      for (const subject of subjects) {
+        expect(options.filter((id) => matches(id, subject))).toHaveLength(1)
+      }
+    }
+    const autoOverCeiling = row({ globalWToolsCoeff: 0.9 })
+    expect(matches('rate-ceiling-na-w-tools', autoOverCeiling)).toBe(true)
+    expect(matches('own-rate-within-ceiling-w-tools', autoOverCeiling)).toBe(false)
   })
 
   it('„z rabatem" asks the type, because a value under a null type buys nothing', () => {
@@ -308,13 +308,6 @@ describe('the conditions, each on its boundary', () => {
       )
       expect(hit).toHaveLength(1)
     }
-  })
-
-  it('„bez komentarza" reads a blank as no comment, and null and empty alike', () => {
-    expect(matches('no-note', row({ note: null }))).toBe(true)
-    expect(matches('no-note', row({ note: '' }))).toBe(true)
-    expect(matches('no-note', row({ note: '  \n ' }))).toBe(true)
-    expect(matches('no-note', row({ note: 'zmiana zakresu' }))).toBe(false)
   })
 })
 

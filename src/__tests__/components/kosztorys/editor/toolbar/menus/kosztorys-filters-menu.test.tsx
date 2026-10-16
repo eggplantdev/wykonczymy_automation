@@ -7,6 +7,7 @@ const editorState = vi.hoisted(() => ({
   engagedConditionIds: new Set<string>(),
   conditionCounts: new Map<string, number>(),
   toggleCondition: vi.fn(),
+  setConditions: vi.fn(),
 }))
 
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
@@ -14,6 +15,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     engagedConditionIds: editorState.engagedConditionIds,
     conditionCounts: editorState.conditionCounts,
     toggleCondition: editorState.toggleCondition,
+    setConditions: editorState.setConditions,
     rows: Array.from({ length: 10 }),
     resetFilters: vi.fn(),
     collapsedSectionIds: new Set<number>(),
@@ -27,46 +29,57 @@ function renderMenu(counts: Record<string, number>, engaged: string[] = []) {
   editorState.conditionCounts = new Map(Object.entries(counts))
   editorState.engagedConditionIds = new Set(engaged)
   editorState.toggleCondition.mockClear()
+  editorState.setConditions.mockClear()
   render(<KosztorysFiltersMenu />)
 }
 
 const openMenu = () => userEvent.click(screen.getByRole('button', { name: /^Filtry/ }))
 
 describe('KosztorysFiltersMenu — tick what you want to see', () => {
-  it('opens with nothing ticked and says a tick narrows', async () => {
-    renderMenu({ 'has-note': 4, 'no-note': 6 })
+  it('opens with nothing ticked', async () => {
+    renderMenu({ 'has-discount': 4, 'no-discount': 6 })
     expect(screen.getByRole('button', { name: 'Filtry' })).toBeInTheDocument()
     await openMenu()
 
-    expect(screen.getByText('Pokaż tylko')).toBeInTheDocument()
+    expect(screen.queryByText('Pokaż tylko')).not.toBeInTheDocument()
     expect(screen.queryByRole('option', { name: /wszystkie/ })).not.toBeInTheDocument()
   })
 
   it('engages the filter a tick names', async () => {
-    renderMenu({ 'has-note': 4, 'no-note': 6 })
+    renderMenu({ 'has-discount': 4, 'no-discount': 6 })
     await openMenu()
 
-    await userEvent.click(screen.getByRole('option', { name: 'Z komentarzem (4)' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Z rabatem (4)' }))
 
-    expect(editorState.toggleCondition).toHaveBeenCalledWith('has-note')
+    expect(editorState.toggleCondition).toHaveBeenCalledWith('has-discount')
   })
 
-  it('counts the ticks on the trigger and leaves the reset reachable', async () => {
-    const engaged = ['has-planned-qty', 'has-note']
-    renderMenu({ 'no-planned-qty': 3, 'has-planned-qty': 4, 'has-note': 1 }, engaged)
+  it('counts the ticks on the trigger; „Wyczyść" unticks only this menu’s options', async () => {
+    const engaged = ['has-planned-qty', 'has-discount']
+    renderMenu({ 'no-planned-qty': 3, 'has-planned-qty': 4, 'has-discount': 1 }, engaged)
 
     expect(screen.getByRole('button', { name: `Filtry (${engaged.length})` })).toBeInTheDocument()
 
     await openMenu()
 
-    expect(screen.getByRole('button', { name: 'Zresetuj filtry' })).not.toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Wyczyść filtry' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('option', { name: 'Wyczyść' }))
+    const [ids, engage] = editorState.setConditions.mock.calls[0]
+    expect(engage).toBe(false)
+    expect(ids).toEqual(expect.arrayContaining(engaged))
+  })
+
+  it('offers „Wyczyść" only once something is ticked', async () => {
+    renderMenu({ 'has-discount': 4, 'no-discount': 6 })
+    await openMenu()
+    expect(screen.queryByRole('option', { name: 'Wyczyść' })).not.toBeInTheDocument()
   })
 
   it('leaves a filter with no matches off the list', async () => {
-    renderMenu({ 'has-note': 4, 'no-note': 0 })
+    renderMenu({ 'has-discount': 4, 'no-discount': 0 })
     await openMenu()
 
-    expect(screen.queryByRole('option', { name: /bez komentarza/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /bez rabatu/i })).not.toBeInTheDocument()
   })
 
   it('keeps an engaged filter its last match has left, so it can be unticked', async () => {
@@ -85,7 +98,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
       'has-planned-qty': 4,
       'manual-rate-w-tools': 2,
       'manual-rate-own-tools': 3,
-      'has-note': 1,
+      'has-discount': 1,
     })
     await openMenu()
 
@@ -96,7 +109,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
       screen.getByRole('group', { name: 'Źródło stawki wykonawcy — bez narzędzi (pracownik)' }),
     ).toHaveTextContent('Kwota stała (3)')
     expect(screen.getByRole('group', { name: 'Przedmiar' })).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'Komentarz' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Rabat' })).toBeInTheDocument()
   })
 })
 

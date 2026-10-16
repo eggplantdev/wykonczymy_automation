@@ -32,15 +32,17 @@ describe('the „Filtry" list', () => {
   })
 
   it('drops a zero-count row while its complement shows', () => {
-    expect(model({ 'has-note': 4, 'no-note': 0 }).map((toggle) => toggle.id)).toEqual(['has-note'])
+    expect(model({ 'has-discount': 4, 'no-discount': 0 }).map((toggle) => toggle.id)).toEqual([
+      'has-discount',
+    ])
   })
 
   it('drops a row matching every pozycja — ticking it would narrow nothing', () => {
-    expect(model({ 'has-note': ROW_COUNT, 'no-note': 0 })).toEqual([])
+    expect(model({ 'has-discount': ROW_COUNT, 'no-discount': 0 })).toEqual([])
   })
 
   it('names the pozycje each row shows, count included', () => {
-    expect(model({ 'has-note': 4 })[0].label).toBe('Z komentarzem (4)')
+    expect(model({ 'has-discount': 4 })[0].label).toBe('Z rabatem (4)')
   })
 
   it('offers both planes at once, each under its own heading', () => {
@@ -56,15 +58,15 @@ describe('the „Filtry" list', () => {
   })
 
   it('drops the rabat pair under a global rabat', () => {
-    const ids = model({ 'has-discount': 5, 'no-discount': 3, 'has-note': 1 }, [], true).map(
+    const ids = model({ 'has-discount': 5, 'no-discount': 3, 'has-measured-qty': 1 }, [], true).map(
       (toggle) => toggle.id,
     )
-    expect(ids).toEqual(['has-note'])
+    expect(ids).toEqual(['has-measured-qty'])
   })
 
   it('keeps an engaged filter listed at „(0)", ticked', () => {
-    const [toggle] = model({ 'has-note': 0 }, ['has-note'])
-    expect(toggle.label).toBe('Z komentarzem (0)')
+    const [toggle] = model({ 'has-discount': 0 }, ['has-discount'])
+    expect(toggle.label).toBe('Z rabatem (0)')
     expect(toggle.active).toBe(true)
   })
 
@@ -75,18 +77,18 @@ describe('the „Filtry" list', () => {
   })
 
   it('ticks a row only while its condition is engaged', () => {
-    expect(model({ 'has-note': 4 })[0].active).toBe(false)
-    expect(model({ 'has-note': 4 }, ['has-note'])[0].active).toBe(true)
+    expect(model({ 'has-discount': 4 })[0].active).toBe(false)
+    expect(model({ 'has-discount': 4 }, ['has-discount'])[0].active).toBe(true)
   })
 })
 
 describe('the headings', () => {
   it('files every offered row under its registry category', () => {
     expect(
-      model({ 'has-note': 1, 'has-planned-qty': 2, 'manual-rate-w-tools': 3 }).map(
+      model({ 'has-discount': 1, 'has-planned-qty': 2, 'manual-rate-w-tools': 3 }).map(
         (toggle) => toggle.groupLabel,
       ),
-    ).toEqual(['Przedmiar', 'Źródło stawki wykonawcy — z narzędziami (podwykonawca)', 'Komentarz'])
+    ).toEqual(['Przedmiar', 'Źródło stawki wykonawcy — z narzędziami (podwykonawca)', 'Rabat'])
   })
 
   it('emits each category once, in FILTER_GROUPS order', () => {

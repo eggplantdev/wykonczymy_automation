@@ -133,17 +133,17 @@ describe('useKosztorysViewState — „Przegląd AI" filters on the next visit',
       JSON.stringify({
         'no-planned-or-ai-qty': true,
         'has-planned-or-ai-qty': true,
-        'has-note': true,
+        'has-measured-qty': true,
       }),
     )
     const { result } = renderHook(() =>
       useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, aiDraft: true }),
     )
-    expect([...result.current.engagedConditionIds]).toEqual(['has-note'])
+    expect([...result.current.engagedConditionIds]).toEqual(['has-measured-qty'])
 
     act(() => result.current.setAiReview(true))
     expect([...result.current.engagedConditionIds].sort()).toEqual([
-      'has-note',
+      'has-measured-qty',
       'has-planned-or-ai-qty',
     ])
   })
@@ -153,16 +153,23 @@ describe('useKosztorysViewState — rabat ticks under a global rabat', () => {
   it('drops a remembered rabat tick while a global rabat is on, keeps it otherwise', () => {
     localStorage.setItem(
       `kosztorys-show:${INVESTMENT_ID}`,
-      JSON.stringify({ 'has-discount': true, 'has-note': true }),
+      JSON.stringify({ 'has-discount': true, 'has-measured-qty': true }),
     )
     const { result, rerender } = renderHook(
       ({ globalDiscountActive }) =>
-        useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, globalDiscountActive }),
+        useKosztorysViewState({
+          investmentId: INVESTMENT_ID,
+          preview: false,
+          globalDiscountActive,
+        }),
       { initialProps: { globalDiscountActive: true } },
     )
-    expect([...result.current.engagedConditionIds]).toEqual(['has-note'])
+    expect([...result.current.engagedConditionIds]).toEqual(['has-measured-qty'])
 
     rerender({ globalDiscountActive: false })
-    expect([...result.current.engagedConditionIds].sort()).toEqual(['has-discount', 'has-note'])
+    expect([...result.current.engagedConditionIds].sort()).toEqual([
+      'has-discount',
+      'has-measured-qty',
+    ])
   })
 })

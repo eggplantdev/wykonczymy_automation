@@ -66,13 +66,13 @@ describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
-  it('nie stawia „Wyczyść wszystko" obok jednego chipa', () => {
+  it('nie stawia „Wyczyść filtry" obok jednego chipa', () => {
     renderBar({ search: 'kafle' })
 
     // The chip first: „no clear-all button" is equally true of a bar that rendered nothing at all,
     // and that is the failure this test would otherwise report as a pass.
     expect(screen.getByText('Szukaj: „kafle"')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Wyczyść wszystko' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Wyczyść filtry' })).toBeNull()
   })
 })
 
@@ -118,7 +118,7 @@ describe('Pasek aktywnych filtrów — X zdejmuje swoje źródło', () => {
   it('zdejmuje wszystko naraz, łącznie z frazą', async () => {
     const user = renderBar({ engagedIds: [FILTER_ID], search: 'kafle' })
 
-    await user.click(screen.getByRole('button', { name: 'Wyczyść wszystko' }))
+    await user.click(screen.getByRole('button', { name: 'Wyczyść filtry' }))
 
     expect(handlers.resetFilters).toHaveBeenCalledOnce()
   })

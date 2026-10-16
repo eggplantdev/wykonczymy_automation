@@ -92,9 +92,9 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
 
 describe('applyRowConditions — ticks in one group widen, ticks in different groups narrow', () => {
   const rows = [
-    row({ id: 1, plannedQty: 0, note: 'x' }),
+    row({ id: 1, plannedQty: 0, discountType: 'percent', discountValue: 10 }),
     row({ id: 2, plannedQty: 0 }),
-    row({ id: 3, plannedQty: 10, note: 'x' }),
+    row({ id: 3, plannedQty: 10, discountType: 'percent', discountValue: 10 }),
     row({ id: 4, plannedQty: 10, wToolsOverrideValue: 20 }),
   ]
   const ids = (engaged: string[]) => applyRowConditions(rows, engaged, CTX).map((r) => r.id)
@@ -104,7 +104,7 @@ describe('applyRowConditions — ticks in one group widen, ticks in different gr
   })
 
   it('shows only what matches a tick in every group', () => {
-    expect(ids(['has-planned-qty', 'has-note'])).toEqual([3])
+    expect(ids(['has-planned-qty', 'has-discount'])).toEqual([3])
   })
 
   it('widens within a plane’s „Źródło stawki" and narrows against the other plane', () => {
@@ -144,10 +144,6 @@ describe('applyRowConditions — every result of the untick-to-hide menu is stil
         'coeff-rate-own-tools',
       ]),
     ).toEqual(oldHide(rows, ['formula-rate-w-tools', 'formula-rate-own-tools']))
-  })
-
-  it('„bez przedmiaru i bez wykonanej pracy" hidden == its other half ticked', () => {
-    expect(ticked(['non-empty-both-axes'])).toEqual(oldHide(rows, ['empty-both-axes']))
   })
 })
 
@@ -250,6 +246,7 @@ describe('columnsRevealedBy', () => {
       'formula-rate-w-tools',
       'own-rate-over-ceiling-w-tools',
       'own-rate-within-ceiling-w-tools',
+      'rate-ceiling-na-w-tools',
     ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('w_tools')))
     }
@@ -259,6 +256,7 @@ describe('columnsRevealedBy', () => {
       'formula-rate-own-tools',
       'own-rate-over-ceiling-own-tools',
       'own-rate-within-ceiling-own-tools',
+      'rate-ceiling-na-own-tools',
     ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('own_tools')))
     }
@@ -323,26 +321,26 @@ describe('isFoldSuppressed', () => {
 })
 
 describe('editorConditionIds', () => {
-  const stored = new Set(['has-planned-or-ai-qty', 'has-note'])
+  const stored = new Set(['has-planned-or-ai-qty', 'no-measured-qty'])
 
   it('counts the „Przegląd AI" filters only while the view is on', () => {
     expect(editorConditionIds(stored, true, false)).toBe(stored)
-    expect([...editorConditionIds(stored, false, false)]).toEqual(['has-note'])
+    expect([...editorConditionIds(stored, false, false)]).toEqual(['no-measured-qty'])
   })
 
   it('hands the same set back when nothing is dropped', () => {
-    const plain = new Set(['has-note', 'has-discount'])
+    const plain = new Set(['no-measured-qty', 'has-discount'])
     expect(editorConditionIds(plain, false, false)).toBe(plain)
   })
 
   // Under a global rabat the pair matches nothing, so a kept tick would empty the grid.
   it('drops a rabat tick while a global rabat is on', () => {
-    const withRabat = new Set(['has-discount', 'has-note'])
-    expect([...editorConditionIds(withRabat, false, true)]).toEqual(['has-note'])
-    const commented = [row({ id: 1, globalDiscountActive: true, note: 'x' })]
-    expect(applyRowConditions(commented, withRabat, CTX)).toHaveLength(0)
+    const withDiscount = new Set(['has-discount', 'no-measured-qty'])
+    expect([...editorConditionIds(withDiscount, false, true)]).toEqual(['no-measured-qty'])
+    const unmeasured = [row({ id: 1, globalDiscountActive: true })]
+    expect(applyRowConditions(unmeasured, withDiscount, CTX)).toHaveLength(0)
     expect(
-      applyRowConditions(commented, editorConditionIds(withRabat, false, true), CTX),
+      applyRowConditions(unmeasured, editorConditionIds(withDiscount, false, true), CTX),
     ).toHaveLength(1)
   })
 })
@@ -382,7 +380,7 @@ describe('offeredFilterConditions', () => {
   it('offers only the filters — problems and the client rule have their own homes', () => {
     expect(offeredIds()).not.toContain('no-client-price')
     expect(offeredIds()).not.toContain('client-empty')
-    expect(offeredIds()).toContain('has-note')
+    expect(offeredIds()).toContain('has-measured-qty')
   })
 
   it('offers both planes\u2019 stawka filters regardless of the view', () => {
@@ -401,14 +399,14 @@ describe('offeredFilterConditions', () => {
     expect(offeredIds(['has-discount'], true)).not.toContain('no-discount')
   })
 
-  // A szablon holds no przedmiar, wykonana praca, rabat or komentarz, so every pozycja matches the
+  // A szablon holds no przedmiar, wykonana praca or rabat, so every pozycja matches the
   // „bez …" half of those axes — only the stawka axes ask it anything.
   it('offers the szablon workbench its stawka axes only', () => {
     const offered = offeredIds([], false, 'both', true)
     expect(offered).toEqual(
       expect.arrayContaining(['manual-rate-w-tools', 'own-rate-over-ceiling-own-tools']),
     )
-    for (const id of ['no-planned-qty', 'no-measured-qty', 'no-discount', 'no-note']) {
+    for (const id of ['no-planned-qty', 'no-measured-qty', 'no-discount']) {
       expect(offered).not.toContain(id)
     }
   })

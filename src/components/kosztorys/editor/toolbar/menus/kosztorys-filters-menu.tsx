@@ -7,7 +7,7 @@ import { useKosztorysFilterMenu } from '@/components/kosztorys/editor/toolbar/me
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 export function KosztorysFiltersMenu() {
-  const { toggles, resetAction } = useKosztorysFilterMenu()
+  const { toggles, clear } = useKosztorysFilterMenu()
   const { refreshProblemRows } = useKosztorysEditorContext()
 
   if (toggles.length === 0) return null
@@ -20,16 +20,12 @@ export function KosztorysFiltersMenu() {
       triggerCount={triggerCount}
       icon={ListFilter}
       title="Co widać: pozycje"
-      intro={{
-        heading: 'Pokaż tylko',
-        hint: 'Zaznacz, co chcesz widzieć. Nic nie zaznaczone — widać wszystko.',
-      }}
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
       // a plane heading carries the crew's name, so at 20rem it wrapped onto two lines and the list
       // stopped reading as a list.
       contentClassName="w-112"
-      resetAction={resetAction}
       toggles={toggles}
+      onClearToggles={clear}
       onOpen={refreshProblemRows}
     />
   )
