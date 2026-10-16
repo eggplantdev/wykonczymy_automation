@@ -664,6 +664,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       jednostka odrzucone; „Zapisz wersję” bez nazwy odrzucone; „Wersje” pokazują autora i datę;
       „Sekcja z szablonu…” dokłada sekcje w kolejności wyboru (porządki po przeglądzie — bez zmian
       w zachowaniu).
+- [ ] Po usunięciu starych szablonów z bazy (druga migracja): `/szablony` pokazuje te same szablony
+      z tymi samymi sekcjami, pracami i „Wersjami”; lista inwestycji i filtr statusu nie mają
+      szablonu; nowa inwestycja zapisuje się ze statusem „Wycena”.
 
 ## 2026-10-15 — expense-draft-duplicates-per-row — duplikaty przy własnym paragonie + paragon bez zdjęcia
 

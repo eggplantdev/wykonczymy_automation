@@ -643,4 +643,4 @@ Run once, after Phase 8:
 
 #### Automated
 
-- [ ] 9.1 M2 applies on a local prod-dump copy after M1; no szablon rows or orphans remain
+- [x] 9.1 M2 applies on a local prod-dump copy after M1; no szablon rows or orphans remain — 1cc729403
