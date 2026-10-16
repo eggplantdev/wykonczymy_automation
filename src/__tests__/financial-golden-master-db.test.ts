@@ -333,7 +333,6 @@ function assertNonTrivial(snapshot: SnapshotT) {
 describe.skipIf(!ENV_READY)('financial golden master — every figure, every investment (DB)', () => {
   let snapshot: SnapshotT | null = null
   let names = new Map<string, string>()
-  let templateIds = new Set<string>()
   let setupError: unknown = null
 
   beforeAll(async () => {
@@ -344,12 +343,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
       const built = await buildSnapshot(payload)
       snapshot = built.snapshot
       names = built.names
-      const templates = await (
-        await getDb(payload)
-      ).execute(sql`
-        SELECT id FROM investments WHERE status = 'szablon';
-      `)
-      templateIds = new Set(templates.rows.map((r) => String(r.id)))
       if (UPDATE) {
         assertNonTrivial(snapshot)
         writeFileSync(FIXTURE_PATH, `${JSON.stringify(snapshot, null, 2)}\n`)
@@ -407,10 +400,7 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
         name: 'kosztorys',
         guards: '`totalLaborCosts` and the v2 figures derived from it',
         reseed: 'pnpm seed:kosztorys:test',
-        // Not a szablon: the DB integration specs create and edit szablony right before this leg
-        // runs on pre-push.
-        carriedBy: (id: string) =>
-          !templateIds.has(id) && (expected.inputHashes.investments[id] ?? '').includes('/k:'),
+        carriedBy: (id: string) => (expected.inputHashes.investments[id] ?? '').includes('/k:'),
       },
     ] as const
 
