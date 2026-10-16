@@ -1,7 +1,7 @@
 ---
 change_id: filters-tick-to-show
 title: Filters tick what you want to see — faceted „Filtry" across the app
-status: implementing
+status: implemented
 created: 2026-10-16
 updated: 2026-10-16
 archived_at: null
