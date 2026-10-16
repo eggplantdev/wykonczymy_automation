@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { CheckCheck, CheckIcon, RotateCcw, type LucideIcon } from 'lucide-react'
+import { CheckCheck, CheckIcon, RotateCcw, X, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -26,7 +26,7 @@ type FilterMultiSelectPropsT = {
   onValuesChange?: (values: string[]) => void
   options?: OptionT[]
   /** Ticked, unclickable, and outside the selection entirely — never written to the param, counted, or
-   * touched by „Zaznacz wszystkie". */
+   * touched by the bulk row. */
   lockedValues?: string[]
   label: string
   icon?: LucideIcon
@@ -34,6 +34,8 @@ type FilterMultiSelectPropsT = {
   triggerClassName?: string
   iconOnly?: boolean
   title?: string
+  // Swaps the „Wyczyść" row for a select-all / deselect-all pair, for a caller whose ticks are not a
+  // filter („Sekcje": ticked = expanded).
   bulkLabels?: { select: string; deselect: string }
   optionToggles?: ReadonlyArray<{
     label: string
@@ -58,8 +60,9 @@ type FilterMultiSelectPropsT = {
   intro?: { heading: string; hint?: string }
 }
 
-// URL param encoding: [] = all selected (no filter), ['__none__'] = nothing selected
-export const FILTER_NONE = '__none__'
+// The param carries exactly the ticked values; [] = nothing ticked = no filter. A link saved under
+// the old encoding still carries this marker for „nothing selected".
+const LEGACY_NONE = '__none__'
 const DEBOUNCE_MS = 600
 
 /**
@@ -120,26 +123,18 @@ export function FilterMultiSelect({
   const selectableOptions = options.filter((o) => !isLocked(o.value))
   const allValues = selectableOptions.map((o) => o.value)
 
-  function deriveSelected(vals: string[]) {
-    const hasNone = vals.length === 1 && vals[0] === FILTER_NONE
-    const hasNoFilter = vals.length === 0
-    return hasNone ? [] : hasNoFilter ? allValues : vals
-  }
+  const deriveSelected = (vals: string[]) => vals.filter((value) => value !== LEGACY_NONE)
 
-  const selected = localSelected ?? deriveSelected(values)
+  const committed = deriveSelected(values)
+  const selected = localSelected ?? committed
   const allSelected = selected.length === selectableOptions.length
-
-  function flush(next: string[]) {
-    const allAreSelected = next.length === selectableOptions.length
-    if (allAreSelected) onValuesChange([])
-    else if (next.length === 0) onValuesChange([FILTER_NONE])
-    else onValuesChange(next)
-  }
+  const hasPendingTicks =
+    selected.length !== committed.length || selected.some((value) => !committed.includes(value))
 
   function scheduleFlush(next: string[]) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      flush(next)
+      onValuesChange(next)
       debounceRef.current = null
     }, DEBOUNCE_MS)
   }
@@ -154,7 +149,7 @@ export function FilterMultiSelect({
     if (debounceRef.current && localSelected) {
       clearTimeout(debounceRef.current)
       debounceRef.current = null
-      flush(localSelected)
+      onValuesChange(localSelected)
     }
     setLocalSelected(null)
     setOpen(false)
@@ -163,41 +158,32 @@ export function FilterMultiSelect({
   function toggleValue(value: string) {
     const isSelected = selected.includes(value)
     const next = isSelected ? selected.filter((v) => v !== value) : [...selected, value]
-    const result = next.length === 0 ? [] : next
-    setLocalSelected(result)
-    scheduleFlush(result)
+    setLocalSelected(next)
+    scheduleFlush(next)
   }
 
   const activeToggleCount =
     toggles?.filter((toggle) => !toggle.disabled && toggle.active).length ?? 0
 
-  // „nic nie zaznaczone" is a filter that counts zero and still has to light up.
-  const isFiltered = triggerCount == null ? !allSelected || activeToggleCount > 0 : triggerCount > 0
-  const triggerBadgeCount = triggerCount ?? (allSelected ? 0 : selected.length) + activeToggleCount
+  const triggerBadgeCount = triggerCount ?? selected.length + activeToggleCount
+  const isFiltered = triggerBadgeCount > 0
 
-  function toggleAll() {
-    const next = !allSelected ? [...allValues] : []
+  function selectValues(next: string[]) {
     setLocalSelected(next)
     scheduleFlush(next)
   }
 
-  // Flushes straight through: a pending debounce from the clicks being undone would land after the
-  // reset and put them back.
+  // Drops a pending debounce, which would otherwise land after the reset and put the clicks back. The
+  // values themselves are the caller's to reset: to „Sekcje" an empty list folds every sekcja.
   function handleReset() {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
       debounceRef.current = null
     }
-    setLocalSelected([...allValues])
-    onValuesChange([])
+    setLocalSelected(null)
     resetAction?.onReset()
   }
 
-  function runOptionToggle(select: (current: string[]) => string[]) {
-    const next = select(selected)
-    setLocalSelected(next)
-    scheduleFlush(next)
-  }
 
   useEffect(() => {
     return () => {
@@ -223,19 +209,30 @@ export function FilterMultiSelect({
     />
   )
 
+  const showsClearRow = !bulkLabels && selected.length > 0
+  const hasActionRows = bulkLabels != null || showsClearRow || (optionToggles?.length ?? 0) > 0
+
   const actionRows = (
     <>
-      <BulkSelectRow
-        id="bulk-options"
-        allSelected={allSelected}
-        labels={bulkLabels}
-        onSelect={toggleAll}
-      />
+      {bulkLabels && (
+        <BulkSelectRow
+          id="bulk-options"
+          allSelected={allSelected}
+          labels={bulkLabels}
+          onSelect={() => selectValues(allSelected ? [] : [...allValues])}
+        />
+      )}
+      {showsClearRow && (
+        <CommandItem value="clear-options" keywords={[t('clear')]} onSelect={() => selectValues([])}>
+          <X />
+          {t('clear')}
+        </CommandItem>
+      )}
       {optionToggles?.map((group) => (
         <CommandItem
           key={group.label}
           value={group.label}
-          onSelect={() => runOptionToggle(group.select)}
+          onSelect={() => selectValues(group.select(selected))}
         >
           <CheckIcon className={cn(!group.isActive(selected) && 'opacity-0')} />
           {group.label}
@@ -280,7 +277,7 @@ export function FilterMultiSelect({
               className="w-full justify-start font-normal"
               // `resetAction.disabled` speaks for what the caller owns outside this list; the local
               // half is judged here, or the button stays dead for the whole debounce after a click.
-              disabled={(resetAction.disabled ?? false) && allSelected}
+              disabled={(resetAction.disabled ?? false) && !hasPendingTicks}
               onClick={handleReset}
             >
               <RotateCcw />
@@ -299,9 +296,12 @@ export function FilterMultiSelect({
                 {toggleRuns.map((run) => (
                   <CommandGroup key={run.items[0].id} heading={run.heading}>
                     {run.items.map((toggle) => (
+                      // Keyed by id: two plane headings can each hold a „Kwota stała (2)", and cmdk
+                      // treats rows sharing a value as one.
                       <CommandItem
                         key={toggle.id}
-                        value={toggle.label}
+                        value={toggle.id}
+                        keywords={[toggle.label]}
                         disabled={toggle.disabled}
                         onSelect={toggle.onToggle}
                       >
@@ -323,7 +323,7 @@ export function FilterMultiSelect({
                 {options.length > 0 && <CommandSeparator />}
               </>
             )}
-            {actionsHeading && options.length > 0 && (
+            {actionsHeading && options.length > 0 && hasActionRows && (
               <>
                 <CommandGroup heading={actionsHeading}>{actionRows}</CommandGroup>
                 <CommandSeparator />
@@ -331,7 +331,7 @@ export function FilterMultiSelect({
             )}
             {options.length > 0 && (
               <CommandGroup heading={optionsHeading}>
-                {!actionsHeading && (
+                {!actionsHeading && hasActionRows && (
                   <>
                     {actionRows}
                     <CommandSeparator className="my-1" />

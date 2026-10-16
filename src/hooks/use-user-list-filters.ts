@@ -66,7 +66,8 @@ export function useUserListFilters() {
   return {
     toggles,
     togglesBulk,
-    isListed: (row: UserRowT) => (row.active ? activeWorkers : inactiveWorkers),
+    isListed: (row: UserRowT) =>
+      (!activeWorkers && !inactiveWorkers) || (row.active ? activeWorkers : inactiveWorkers),
     payoutBuckets: { active: activePayouts, completed: completedPayouts },
   }
 }

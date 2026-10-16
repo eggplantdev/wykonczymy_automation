@@ -69,3 +69,77 @@ describe('FilterMultiSelect — wiersze przełączników', () => {
     expect(onToggleAll).toHaveBeenCalledWith(false)
   })
 })
+
+describe('FilterMultiSelect — lista opcji: zaznacz, co chcesz widzieć', () => {
+  const OPTIONS = [
+    { value: 'a', label: 'Alfa' },
+    { value: 'b', label: 'Beta' },
+  ]
+
+  const renderOptions = (values: string[] = [], props = {}) => {
+    const onValuesChange = vi.fn()
+    render(
+      <FilterMultiSelect
+        label="Typ"
+        options={OPTIONS}
+        values={values}
+        onValuesChange={onValuesChange}
+        {...props}
+      />,
+    )
+    return onValuesChange
+  }
+
+  // The selection is debounced and flushed when the panel closes.
+  const pick = async (...labels: string[]) => {
+    await openMenu(/^Typ/)
+    for (const label of labels) await userEvent.click(screen.getByRole('option', { name: label }))
+    await userEvent.keyboard('{Escape}')
+  }
+
+  it('opens unfiltered with nothing ticked and no badge', async () => {
+    renderOptions()
+    expect(screen.getByRole('button', { name: 'Typ' })).toBeInTheDocument()
+    await openMenu(/^Typ/)
+    expect(screen.queryByRole('option', { name: 'Wyczyść' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /wszystkie/ })).not.toBeInTheDocument()
+  })
+
+  it('emits exactly the ticked value', async () => {
+    const onValuesChange = renderOptions()
+    await pick('Alfa')
+    expect(onValuesChange).toHaveBeenLastCalledWith(['a'])
+  })
+
+  it('emits every value when every option is ticked, not the unfiltered []', async () => {
+    const onValuesChange = renderOptions()
+    await pick('Alfa', 'Beta')
+    expect(onValuesChange).toHaveBeenLastCalledWith(['a', 'b'])
+  })
+
+  it('emits [] once the last tick comes off', async () => {
+    const onValuesChange = renderOptions(['a'])
+    await pick('Alfa')
+    expect(onValuesChange).toHaveBeenLastCalledWith([])
+  })
+
+  it('counts the ticks on the trigger and clears them with „Wyczyść"', async () => {
+    const onValuesChange = renderOptions(['a', 'b'])
+    expect(screen.getByRole('button', { name: 'Typ (2)' })).toBeInTheDocument()
+    await pick('Wyczyść')
+    expect(onValuesChange).toHaveBeenLastCalledWith([])
+  })
+
+  it('reads a link saved under the old „nothing selected" marker as unfiltered', () => {
+    renderOptions(['__none__'])
+    expect(screen.getByRole('button', { name: 'Typ' })).toBeInTheDocument()
+  })
+
+  it('keeps the select-all pair for a caller that asks for it', async () => {
+    const onValuesChange = renderOptions([], {
+      bulkLabels: { select: 'Rozwiń wszystkie', deselect: 'Zwiń wszystkie' },
+    })
+    await pick('Rozwiń wszystkie')
+    expect(onValuesChange).toHaveBeenLastCalledWith(['a', 'b'])
+  })
+})

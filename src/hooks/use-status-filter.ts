@@ -50,6 +50,7 @@ export function filterByStatuses<TItem>(
   selectedStatuses: Set<InvestmentStatusT>,
   getStatus: (item: TItem) => InvestmentStatusT,
 ): TItem[] {
+  if (selectedStatuses.size === 0) return data
   return data.filter((item) => selectedStatuses.has(getStatus(item)))
 }
 

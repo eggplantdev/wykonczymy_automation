@@ -48,9 +48,8 @@ const shownIds = () =>
 
 async function tickStatuses(user: ReturnType<typeof userEvent.setup>, labels: string[]) {
   await user.click(screen.getByRole('button', { name: /^Status/ }))
-  const toggleAll = () => screen.getByRole('option', { name: /^(Zaznacz|Odznacz) wszystkie$/ })
-  if (toggleAll().textContent?.includes('Zaznacz')) await user.click(toggleAll())
-  await user.click(toggleAll())
+  const clear = screen.queryByRole('option', { name: 'Wyczyść' })
+  if (clear) await user.click(clear)
   for (const label of labels) await user.click(screen.getByRole('option', { name: label }))
   await user.keyboard('{Escape}')
 }
@@ -124,7 +123,6 @@ describe('WorkerExpenseDraftsTable', () => {
     expect(shownIds()).toEqual([26, 27])
 
     await user.click(screen.getByRole('button', { name: /^Inwestycja/ }))
-    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
     await user.click(screen.getByRole('option', { name: 'Inwestycja 27' }))
     await user.keyboard('{Escape}')
     expect(shownIds()).toEqual([27])
@@ -188,7 +186,6 @@ describe('WorkerExpenseDraftsTable', () => {
     expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /^Inwestycja/ }))
-    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
     await user.click(screen.getByRole('option', { name: 'Bez inwestycji' }))
     await user.keyboard('{Escape}')
 

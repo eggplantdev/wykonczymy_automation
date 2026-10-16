@@ -442,6 +442,7 @@ export const uk: TranslationsT = {
     noResults: 'Нічого не знайдено',
     selectAll: 'Вибрати всі',
     deselectAll: 'Зняти всі',
+    clear: 'Очистити',
     year: 'Рік',
     month: 'Місяць',
     from: 'Від',

@@ -442,6 +442,7 @@ export const ru: TranslationsT = {
     noResults: 'Ничего не найдено',
     selectAll: 'Выбрать все',
     deselectAll: 'Снять все',
+    clear: 'Очистить',
     year: 'Год',
     month: 'Месяц',
     from: 'С',

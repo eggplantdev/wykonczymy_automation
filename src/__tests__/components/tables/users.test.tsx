@@ -155,6 +155,21 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     expect(screen.getByText('Piotr')).toBeInTheDocument()
   })
 
+  it('lists every worker once both „Pracownicy" ticks are off — nothing ticked narrows nothing', async () => {
+    const user = userEvent.setup()
+    render(
+      <UserDataTable
+        data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), active: false }]}
+        cashRegisters={[]}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: /Filtry/ }))
+    await user.click(screen.getByRole('option', { name: 'Aktywni' }))
+
+    expect(screen.getByText('Jan')).toBeInTheDocument()
+    expect(screen.getByText('Piotr')).toBeInTheDocument()
+  })
+
   it('prints a green 0 when nothing is left to show', () => {
     render(
       <UserDataTable

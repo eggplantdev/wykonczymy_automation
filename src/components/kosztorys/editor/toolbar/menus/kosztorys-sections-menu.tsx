@@ -2,14 +2,13 @@
 
 import { Rows3 } from 'lucide-react'
 import { TOOLBAR_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
-import { FilterMultiSelect, FILTER_NONE } from '@/components/filters/filter-multi-select'
+import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { useFilterResetAction } from '@/components/kosztorys/editor/toolbar/menus/use-filter-reset-action'
 import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 import { liftsToSections, offeredFilterConditions } from '@/lib/kosztorys/row-conditions/queries'
 
-// Reuses the transfers FilterMultiSelect, whose URL encoding is
-// [] = all / [FILTER_NONE] = none / [ids] = those.
+// Ticked = expanded, so the values are always the full list of open sekcje — [] folds them all.
 export function KosztorysSectionsMenu() {
   const {
     subtotals,
@@ -30,14 +29,9 @@ export function KosztorysSectionsMenu() {
     .filter((s) => !storedCollapsedSectionIds.has(s.sectionId))
     .map((s) => String(s.sectionId))
 
-  const values = expanded.length === 0 ? [FILTER_NONE] : expanded
-
   function onValuesChange(next: string[]) {
-    // Collapse is stored positively, so the complement of the ticked set is what gets folded — a
-    // section the menu never listed (added while it was open) is therefore left expanded.
-    if (next.length === 0) return setCollapsedSectionIds(new Set())
-    const keptOpen =
-      next.length === 1 && next[0] === FILTER_NONE ? new Set<string>() : new Set(next)
+    // Collapse is stored positively, so the complement of the ticked set is what gets folded.
+    const keptOpen = new Set(next)
     setCollapsedSectionIds(
       new Set(subtotals.filter((s) => !keptOpen.has(String(s.sectionId))).map((s) => s.sectionId)),
     )
@@ -71,7 +65,7 @@ export function KosztorysSectionsMenu() {
 
   return (
     <FilterMultiSelect
-      values={values}
+      values={expanded}
       onValuesChange={onValuesChange}
       options={options}
       label="Sekcje"

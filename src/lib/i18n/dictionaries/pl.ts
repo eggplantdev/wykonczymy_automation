@@ -450,6 +450,7 @@ export const pl = {
     noResults: 'Brak wyników',
     selectAll: 'Zaznacz wszystkie',
     deselectAll: 'Odznacz wszystkie',
+    clear: 'Wyczyść',
     year: 'Rok',
     month: 'Miesiąc',
     from: 'Od',
