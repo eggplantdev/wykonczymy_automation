@@ -118,3 +118,6 @@ context/**/cases/*/inputs/manual-i-komentarze-do-prac.md
 
 # Review-gate scratch ledgers
 .review-gate/
+
+# Client contract template — carries the company bank account; repo is public.
+context/reference/umowa/
