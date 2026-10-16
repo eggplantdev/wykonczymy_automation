@@ -6,7 +6,7 @@ import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 // Two sections so the Σ-of-footers claim is non-trivial, one row with NO przedmiar (id 3) so
 // „Pozostało" has something to skip, and a row-level rabat so the discount columns are non-zero.
@@ -42,10 +42,7 @@ const tree: KosztorysTreeT = makeTree({
       ],
     },
   ],
-  stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
-  ],
+  stages: [makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2, plane: 'own_tools' })],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 2 },
     { itemId: 1, stageId: 101, qtyDone: 3 },
@@ -128,9 +125,7 @@ describe('columnTotalsForRows', () => {
           ],
         },
       ],
-      stages: [
-        { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-      ],
+      stages: [makeStage({ id: 100 })],
       progress: [{ itemId: 60, stageId: 100, qtyDone: 1 }],
       vatRate: 0.08,
     })
@@ -251,7 +246,7 @@ describe('Aktualizacja przedmiaru w sumach', () => {
         ],
       },
     ],
-    stages: [{ id: 300, ordinal: 1, label: null, plane: null, split: null, completed: false }],
+    stages: [makeStage({ id: 300, plane: null })],
     progress: [{ itemId: 9, stageId: 300, qtyDone: 12 }],
     vatRate: 0.08,
   })

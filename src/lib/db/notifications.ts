@@ -1,6 +1,7 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { Payload } from 'payload'
 import { getDb } from './get-db'
+import type { SqlT } from './sql-list'
 
 export const STREAMS = {
   leads: 'leads',
@@ -24,10 +25,7 @@ const EPOCHS: Record<StreamT, string> = {
  * Unread new-lead count for one user: leads created after their read cursor
  * (or after the leads epoch if they've never visited). Powers the nav badge.
  */
-export const countUnreadLeads = async (payload: Payload, userId: number): Promise<number> => {
-  const db = await getDb(payload)
-
-  const result = await db.execute(sql`
+export const unreadLeadsSql = (userId: number): SqlT => sql`
     SELECT COUNT(*) AS count
     FROM leads
     WHERE trashed_at IS NULL
@@ -36,8 +34,11 @@ export const countUnreadLeads = async (payload: Payload, userId: number): Promis
          WHERE user_id = ${userId} AND stream = ${STREAMS.leads}),
         ${EPOCHS.leads}::timestamptz
       )
-  `)
+  `
 
+export const countUnreadLeads = async (payload: Payload, userId: number): Promise<number> => {
+  const db = await getDb(payload)
+  const result = await db.execute(unreadLeadsSql(userId))
   return Number(result.rows[0].count)
 }
 
@@ -57,14 +58,7 @@ export const countUnreadLeads = async (payload: Payload, userId: number): Promis
  * `today` is the Warsaw day, passed in rather than read as Postgres `now()` (UTC) — otherwise the
  * badge and the listing disagree about the window for the last two hours of every day.
  */
-export const countUnreadFleetDeadlines = async (
-  payload: Payload,
-  userId: number,
-  today: string,
-): Promise<number> => {
-  const db = await getDb(payload)
-
-  const result = await db.execute(sql`
+export const unreadFleetDeadlinesSql = (userId: number, today: string): SqlT => sql`
     WITH read_cursor AS (
       SELECT COALESCE(
         (SELECT seen_at FROM notification_reads
@@ -86,8 +80,15 @@ export const countUnreadFleetDeadlines = async (
             current_deadlines.next_due_at - interval '30 days',
             current_deadlines.created_at
           ) > read_cursor.seen_at
-  `)
+  `
 
+export const countUnreadFleetDeadlines = async (
+  payload: Payload,
+  userId: number,
+  today: string,
+): Promise<number> => {
+  const db = await getDb(payload)
+  const result = await db.execute(unreadFleetDeadlinesSql(userId, today))
   return Number(result.rows[0].count)
 }
 
@@ -105,14 +106,7 @@ export const countUnreadFleetDeadlines = async (
  * `today` is the Warsaw day, passed in rather than read as Postgres `now()` (UTC), otherwise the
  * badge and the listing disagree about the window for the last two hours of every day.
  */
-export const countUnreadWarranties = async (
-  payload: Payload,
-  userId: number,
-  today: string,
-): Promise<number> => {
-  const db = await getDb(payload)
-
-  const result = await db.execute(sql`
+export const unreadWarrantiesSql = (userId: number, today: string): SqlT => sql`
     WITH read_cursor AS (
       SELECT COALESCE(
         (SELECT seen_at FROM notification_reads
@@ -128,8 +122,15 @@ export const countUnreadWarranties = async (
       AND e.warranty_until >= ${today}::date
       AND e.warranty_until <= ${today}::date + interval '30 days'
       AND GREATEST(e.warranty_until - interval '30 days', e.created_at) > read_cursor.seen_at
-  `)
+  `
 
+export const countUnreadWarranties = async (
+  payload: Payload,
+  userId: number,
+  today: string,
+): Promise<number> => {
+  const db = await getDb(payload)
+  const result = await db.execute(unreadWarrantiesSql(userId, today))
   return Number(result.rows[0].count)
 }
 

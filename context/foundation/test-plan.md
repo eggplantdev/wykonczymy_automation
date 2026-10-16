@@ -166,8 +166,27 @@ The dataset floor lives in `financial-golden-master-db.test.ts` — asserted as 
 precondition on the `UPDATE_GOLDEN` regenerate path, so a thinned fixture cannot be rebaselined
 into looking healthy. `deposit-plane-sums.test.ts` guards the same coverage from the other side: it
 compares the SQL fold against the TS fold on every investment and fails if the dataset holds no
-wpłata brutto at all. Refill with the three-step `db-test` reset in `AGENTS.md`, never by lowering
-the floor.
+wpłata brutto at all. Refill by resetting `db-test` (`pnpm db:import:test`) plus the per-plane seeds
+below, never by lowering the floor.
+
+**Which row shape each `DATASET_FLOOR` counter needs, and what fills it** (measured 2026-09-17
+against `dumps/dump-latest.sql` of 15.09 — the dump carries 65 kosztorysów / 195 sekcji / 4130
+pozycji and 4240 transakcji). One dump number never answers two counters; count the exact shape a
+counter names before claiming the dump covers it — „wpłaty bez `net_amount`" and „`GROSS` bez
+`net_amount`" differ by 222 rows.
+
+- `investments > 50`, `registers > 10`, `transactions > 1000` — the dump.
+- `kosztorysItems > 20` — the dump, 4130-fold. `seed:kosztorys:test` is the ~1000-row PERF fixture;
+  it only thickens a plane the dump already fills.
+- `grossDepositsWithNet > 2` — the dump: 27 wpłaty `vat_plane='GROSS'` **z** `net_amount` across 22
+  investments. `seed:deposits:test` only pins two of them to fixed ids and kwoty, so the brutto axis
+  is exercised at a known figure.
+- A `GROSS` wpłata **bez** `net_amount` is 0 rows in the dump and in prod — `getNetAmountError` has
+  refused one since 2026-07-26; the code that derived its netto at VAT was deleted 2026-09-17, so
+  today it is worth 0 zł netto and only raw SQL can create one. The 222 untagged and 6 `NET` wpłaty
+  are a different shape and never count here.
+- `INVESTMENT_EXPENSE_NET` — **0 rows** in the dump, the one plane it lacks outright.
+  `pnpm seed:materials-net:test` is therefore required by `investment-render-parity-db.test.ts`.
 
 ## 6. Cookbook Patterns
 

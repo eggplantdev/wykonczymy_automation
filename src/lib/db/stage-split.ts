@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
 import { EmptyFieldMessage } from './empty-field-message'
 import { useFieldValue } from '@/components/forms/hooks/use-field-value'
-import { activeOrSelected } from '@/lib/utils/is-active-ref'
+import { activeOrSelected, matchingOrSelected } from '@/lib/utils/is-active-ref'
 
 type EntityItemT = {
   id: number
@@ -51,35 +51,46 @@ const VARIANT_CONFIG = {
   },
 } as const satisfies Record<string, VariantConfigT>
 
-type EntityComboboxFieldPropsT<TVariant extends keyof typeof VARIANT_CONFIG> = {
+type EntityComboboxFieldPropsT<
+  TVariant extends keyof typeof VARIANT_CONFIG,
+  TItem extends EntityItemT,
+> = {
   form: FormWithFieldT<(typeof VARIANT_CONFIG)[TVariant]['name']>
   variant: TVariant
-  items: EntityItemT[]
+  items: TItem[]
   // Forwarded to the inner AppField; only onChange is used at call sites (reset a dependent field).
   listeners?: { onChange?: () => void }
   /** Renders the field disabled, with this sentence as the hint under the label. */
   lockedReason?: string
+  /** Replaces the „Aktywne / Wszystkie” toggle with a filter the user cannot widen. */
+  fixedFilter?: (item: TItem) => boolean
 }
 
-export function EntityComboboxField<TVariant extends keyof typeof VARIANT_CONFIG>({
+export function EntityComboboxField<
+  TVariant extends keyof typeof VARIANT_CONFIG,
+  TItem extends EntityItemT,
+>({
   form,
   variant,
   items,
   listeners,
   lockedReason,
-}: EntityComboboxFieldPropsT<TVariant>) {
+  fixedFilter,
+}: EntityComboboxFieldPropsT<TVariant, TItem>) {
   const [activeOnly, setActiveOnly] = useState(true)
   const config = VARIANT_CONFIG[variant]
 
   const selectedId = useFieldValue(form, config.name)
 
-  const filtered = activeOrSelected(items, activeOnly, selectedId).map((item) => ({
-    value: String(item.id),
-    label: item.name,
-  }))
+  const visible = fixedFilter
+    ? matchingOrSelected(items, fixedFilter, selectedId)
+    : activeOrSelected(items, activeOnly, selectedId)
+  const filtered = visible.map((item) => ({ value: String(item.id), label: item.name }))
 
   const emptyMessage = items.length === 0 ? config.noItemsMessage : config.noActiveItemsMessage
-  const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
+  const labelExtra = fixedFilter ? undefined : (
+    <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
+  )
 
   return (
     <form.AppField name={config.name} listeners={listeners}>

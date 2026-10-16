@@ -109,11 +109,16 @@ type PropsT = KosztorysEditorDataT & {
   history?: InvestorHistoryT
   // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
-  onOpenVersions?: () => void
+  // Hands over the flush because the versions drawer lives outside this body, where a restore must
+  // wait for the cell saves still pending in it.
+  onOpenVersions?: (flushPendingSaves: () => Promise<void>) => void
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<unknown>
-  // Only ever with `worker`.
+  // Only ever with `worker`. The report's layout branches stay in this shared body rather than in
+  // `ReportGrid` because report work lands in its own files, so a split wouldn't pay. Split the grid
+  // out once report layout changes start landing here, where they silently move the editor and the
+  // investor link too.
   report?: ReportModeT & {
     header: (controls: ReportGridControlsT) => ReactNode
     // Rendered inside dsg's container, right after the last row.
@@ -519,7 +524,10 @@ export function KosztorysEditorBody({
         investmentId,
         investmentName,
         tree: gridTree,
-        onOpenVersions: editor.readOnly ? undefined : onOpenVersions,
+        onOpenVersions:
+          editor.readOnly || !onOpenVersions
+            ? undefined
+            : () => onOpenVersions(editor.flushPendingSaves),
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,

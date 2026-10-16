@@ -7,19 +7,12 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import { getTranslations } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
 const stages: KosztorysStageT[] = [
-  {
-    id: 100,
-    ordinal: 1,
-    label: 'Tynki',
-    plane: 'w_tools',
-    split: oneWorkerSplit(WORKER),
-    completed: false,
-  },
+  makeStage({ id: 100, label: 'Tynki', split: oneWorkerSplit(WORKER) }),
 ]
 const rates = { wToolsOverrideValue: 12.5, ownToolsOverrideValue: 9.75 }
 const tree = makeTree({

@@ -3,10 +3,14 @@ import {
   PREVIEW_VISIBLE_COLUMNS,
 } from '@/lib/kosztorys/client-view/columns'
 import {
-  DOCUMENT_PINNED_COLUMN,
   orderDocumentKeys,
   sanitizeDocumentRanks,
 } from '@/lib/kosztorys/columns/document-column-order'
+import {
+  resolveHiddenColumns,
+  toHiddenColumnMap,
+  type HiddenColumnMapT,
+} from '@/lib/kosztorys/columns/document-column-visibility'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
@@ -18,7 +22,7 @@ export type ClientViewSettingsT = {
   columnRanks: ColumnRanksT
 }
 
-// Expressed as what the client SEES, because that is what an owner reads off the dialog; the stored
+// Expressed as what the client SEES, because that is what an owner reads off the dialog; the default
 // hidden set is its complement against the ceiling and is computed below, never written by hand.
 // The settlement columns are in it from day one: they stay off the investor's screen until there is
 // an entry to show (`settlement-columns.ts`), so an offer and a settlement need no separate sets.
@@ -37,19 +41,45 @@ const DEFAULT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'donePercent',
 ])
 
+const CLIENT_DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set(
+  [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !DEFAULT_VISIBLE_COLUMNS.has(key)),
+)
+
+// The ceiling as it stood while the hidden ARRAY was the stored shape — frozen, never extended.
+const LEGACY_CLIENT_COLUMNS: ReadonlySet<string> = new Set([
+  'note',
+  'plannedQty',
+  'currentPlannedQty',
+  'stageQtySum',
+  'unit',
+  'price',
+  'discountType',
+  'discountValue',
+  'discountAmount',
+  'plannedNet',
+  'currentPlannedNet',
+  'net',
+  'remaining',
+  'stages',
+  'stageValueNet',
+  'donePercent',
+  'plannedDonePercent',
+])
+
 const DEFAULT_SETTINGS: ClientViewSettingsT = {
-  hiddenColumns: [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !DEFAULT_VISIBLE_COLUMNS.has(key)),
+  hiddenColumns: [...CLIENT_DEFAULT_HIDDEN_COLUMNS],
   hideEmptyRows: true,
   columnRanks: {},
 }
 
 // A key outside the ceiling is dropped, on write and on read alike: `PREVIEW_VISIBLE_COLUMNS` is the
-// only thing deciding what MAY be shown, and a hidden-key list must not become a second, drifting
+// only thing deciding what MAY be shown, and stored choices must not become a second, drifting
 // answer to that question when the allowlist later changes.
 //
-// Fails CLOSED, because the stored value is the HIDDEN set: a missing row, and a `hiddenColumns`
-// that is NULL or not an array, both fall back to the default hidden set. Reading them as „hide
-// nothing" — which an empty array means — would serve the whole allowlist, discount figures
+// Fails CLOSED on both axes. A column the stored choices do not mention reads as its code default,
+// so a column added later starts unticked if the code says so (`resolveHiddenColumns`). And a missing
+// row, or a `hiddenColumns` that is neither choices nor the legacy list, falls back to the default
+// hidden set — reading it as „hide nothing" would serve the whole allowlist, discount figures
 // included, off a column any owner can hand-edit in /admin.
 //
 // Called on `{}` this also IS the code default, so an unsaved investment and an unsaved firm-wide
@@ -61,20 +91,30 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
     hideEmptyRows?: unknown
     columnRanks?: unknown
   }
-  const hideEmpty = hideEmptyRows !== false
-  const ranks = sanitizeDocumentRanks(columnRanks, PREVIEW_VISIBLE_COLUMNS)
-  if (!Array.isArray(hiddenColumns)) {
-    return { ...DEFAULT_SETTINGS, hideEmptyRows: hideEmpty, columnRanks: ranks }
-  }
   return {
-    hiddenColumns: hiddenColumns.filter(
-      (key): key is string =>
-        typeof key === 'string' &&
-        PREVIEW_VISIBLE_COLUMNS.has(key) &&
-        key !== DOCUMENT_PINNED_COLUMN,
+    hiddenColumns: resolveHiddenColumns(
+      hiddenColumns,
+      PREVIEW_VISIBLE_COLUMNS,
+      CLIENT_DEFAULT_HIDDEN_COLUMNS,
+      LEGACY_CLIENT_COLUMNS,
     ),
-    hideEmptyRows: hideEmpty,
-    columnRanks: ranks,
+    hideEmptyRows: hideEmptyRows !== false,
+    columnRanks: sanitizeDocumentRanks(columnRanks, PREVIEW_VISIBLE_COLUMNS),
+  }
+}
+
+export function toStoredClientViewSettings(
+  settings: ClientViewSettingsT,
+): Omit<ClientViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
+  const sanitized = sanitizeClientViewSettings(settings)
+  // The in-memory list is the owner's answer for every column; `sanitized` would read it as the
+  // legacy stored array and put a column added since back on its code default.
+  const hidden = Array.isArray(settings.hiddenColumns)
+    ? settings.hiddenColumns
+    : sanitized.hiddenColumns
+  return {
+    ...sanitized,
+    hiddenColumns: toHiddenColumnMap(hidden, PREVIEW_VISIBLE_COLUMNS),
   }
 }
 

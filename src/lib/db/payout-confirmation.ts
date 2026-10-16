@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import {
   CANCELLED_PAYOUT_VISIBLE_DAYS,
   type PayoutStatusT,
@@ -112,10 +112,12 @@ export async function countPendingPayouts(db: DbExecutorT, workerId: number): Pr
 
 const AWAITING_MANAGEMENT = sql`t.payout_status = 'rejected' AND t.cancelled IS NOT TRUE`
 
+export const REJECTED_PAYOUTS_COUNT = sql`
+  SELECT count(*)::int AS total FROM transactions t WHERE ${AWAITING_MANAGEMENT}
+`
+
 export async function countRejectedPayouts(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(sql`
-    SELECT count(*)::int AS total FROM transactions t WHERE ${AWAITING_MANAGEMENT}
-  `)
+  const res = await db.execute(REJECTED_PAYOUTS_COUNT)
   return Number(res.rows[0]?.total ?? 0)
 }
 

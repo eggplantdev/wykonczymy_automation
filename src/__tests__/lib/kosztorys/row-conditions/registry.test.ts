@@ -13,6 +13,7 @@ import {
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // Throws on an id nobody knows, unlike `countMatching`, which answers 0 — every `toBe(false)` below
 // would pass vacuously the day a condition is renamed.
@@ -391,9 +392,9 @@ describe('the rate-source trio', () => {
 
 describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew guard', () => {
   const STAGES_BOTH_PLANES: KosztorysStageT[] = [
-    { id: 1, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 2, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
-    { id: 3, ordinal: 3, label: null, plane: null, split: null, completed: false },
+    makeStage({ id: 1 }),
+    makeStage({ id: 2, ordinal: 2, plane: 'own_tools' }),
+    makeStage({ id: 3, ordinal: 3, plane: null }),
   ]
   const settled = {
     stages: STAGES_BOTH_PLANES,

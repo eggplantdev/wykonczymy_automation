@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const stampFailures = await stampNotified(payload, digest.stamps)
 
     if (stampFailures.length > 0) {
-      // TODO(EX-449) SENTRY-REQUIRED: these rows will re-announce tomorrow.
+      // TODO(EX-958) SENTRY-REQUIRED: these rows will re-announce tomorrow.
       console.error('[cron/fleet-reminders] Stamp failed for inspections', stampFailures)
     }
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     // A module whose whole value is a mail that arrives must read as a failed run when it doesn't —
     // an `ok: true` no-op here would look identical to a quiet week.
-    // TODO(EX-449) SENTRY-REQUIRED: this is the only record that the reminders stopped.
+    // TODO(EX-958) SENTRY-REQUIRED: this is the only record that the reminders stopped.
     console.error('[cron/fleet-reminders] Sweep failed', err)
 
     return NextResponse.json({ error: 'Fleet reminder sweep failed' }, { status: 500 })

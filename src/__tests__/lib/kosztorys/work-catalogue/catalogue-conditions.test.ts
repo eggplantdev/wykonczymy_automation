@@ -4,7 +4,6 @@ import {
   CATALOGUE_PROBLEM_IDS,
   applyCatalogueConditions,
   catalogueDuplicateCondition,
-  catalogueUsageConditions,
   countCatalogueConditions,
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { isCatalogueOverCeiling } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
@@ -179,28 +178,5 @@ describe('catalogueDuplicateCondition', () => {
     expect(condition.kind).toBe('problem')
     expect(CATALOGUE_PROBLEM_IDS).toContain(condition.id)
     expect([twin, single].filter(condition.matches)).toEqual([twin])
-  })
-})
-
-describe('catalogueUsageConditions', () => {
-  it('each count splits the catalogue in two, a missing id counting as unused', () => {
-    const used = entry()
-    const zero = entry()
-    const absent = entry()
-    const rows = [used, zero, absent]
-    const conditions = catalogueUsageConditions({
-      byId: { [used.id]: 2, [zero.id]: 0 },
-      templateNamesById: { [absent.id]: ['Łazienka'] },
-      otherUnitIds: [],
-      uncatalogued: [],
-    })
-    const counts = countCatalogueConditions(rows, conditions)
-    expect(counts.get('catalogue-usage-used')).toBe(1)
-    expect(counts.get('catalogue-usage-unused')).toBe(2)
-    expect(counts.get('catalogue-template-used')).toBe(1)
-    expect(counts.get('catalogue-template-unused')).toBe(2)
-    expect(applyCatalogueConditions(rows, conditions, new Set(['catalogue-usage-unused']))).toEqual(
-      [used],
-    )
   })
 })

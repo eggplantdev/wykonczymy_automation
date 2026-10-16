@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
@@ -25,12 +25,16 @@ export function KosztorysEditorV2(props: PropsT) {
   // close over the unmounted body's setRows/refs.
   const undoRedo = useUndoRedo()
   const [versionsOpen, setVersionsOpen] = useState(false)
+  const flushBodySavesRef = useRef(async () => {})
   // The latch's freshness token. `revision` (investment.updatedAt) alone answers a restore and an
   // import — both bump it — but not a row deleted in ANOTHER tab, which changes nothing on the
   // investment and is one of the ways a write comes back NOT_FOUND. The item and section counts close
-  // that half — a sekcja bez pozycji moves only the second.
+  // that half — a sekcja bez pozycji moves only the second. Blind spot, accepted: another tab deleting
+  // one row and adding one leaves both counts, and so the token, unchanged.
   const treeToken = `${tree.revision}:${tree.sections.length}:${tree.sections.reduce((n, section) => n + section.items.length, 0)}`
-  const { remountKey, triggerRestore } = useRestoreRemount(treeToken)
+  // Owns the refetch after an interrupted replace, so the latch learns when that refresh has landed.
+  const [isRefreshing, startRefresh] = useTransition()
+  const { remountKey, triggerRestore } = useRestoreRemount(treeToken, isRefreshing)
 
   // Live stack revision for the interval closure (which captures values at setup time, so it can't
   // read the render-fresh `undoRedo.revision`). The eslint rule is too strict for this "latest value"
@@ -40,8 +44,8 @@ export function KosztorysEditorV2(props: PropsT) {
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
 
-  function reseed(since?: string) {
-    triggerRestore(since)
+  function reseed(since?: string, ownsRefresh = false) {
+    triggerRestore(since, ownsRefresh)
     // Reseeding the whole grid via a body remount — drop the stack whose commands close over
     // the outgoing body's state.
     undoRedo.reset()
@@ -51,10 +55,11 @@ export function KosztorysEditorV2(props: PropsT) {
 
   // Runs in the action's continuation, by which point the action's own render may already have
   // committed — so the latch is armed from `treeToken` as this closure saw it, the tree from before
-  // the action.
-  const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
-    reseed(treeToken)
-    if (refetch) whenOnline(() => router.refresh())
+  // the action. A stale refusal arms from the seed instead, like `handleStaleTree`: the tree on screen
+  // may already hold the other session's change, and waiting for it to move again would never end.
+  const handleTreeReplaced: OnTreeReplacedT = ({ refetch = false, stale = false } = {}) => {
+    reseed(stale ? undefined : treeToken, refetch)
+    if (refetch) whenOnline(() => startRefresh(() => router.refresh()))
   }
 
   // Recovery from the other direction: the tree was replaced somewhere ELSE (another tab, another
@@ -75,7 +80,10 @@ export function KosztorysEditorV2(props: PropsT) {
         key={remountKey}
         {...props}
         undoRedo={undoRedo}
-        onOpenVersions={() => setVersionsOpen(true)}
+        onOpenVersions={(flushPendingSaves) => {
+          flushBodySavesRef.current = flushPendingSaves
+          setVersionsOpen(true)
+        }}
         onTreeReplaced={handleTreeReplaced}
         onStaleTree={handleStaleTree}
       />
@@ -85,6 +93,7 @@ export function KosztorysEditorV2(props: PropsT) {
         open={versionsOpen}
         onOpenChange={setVersionsOpen}
         onRestored={handleTreeReplaced}
+        flushPendingSaves={() => flushBodySavesRef.current()}
       />
     </>
   )

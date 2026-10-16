@@ -71,7 +71,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
   if (!session) redirect('/zaloguj')
   const { user, issuedAt } = session
 
-  // Started here but deliberately not awaited: three DB counts in the shell would block first paint
+  // Started here but deliberately not awaited: the badge counts in the shell would block first paint
   // of every page, and nothing below could stream. Each bubble unwraps it under its own Suspense
   // boundary. Re-counted only when this layout actually re-runs — a client navigation that stays
   // inside the same segment serves it from the router cache, so a bubble holds its number until a

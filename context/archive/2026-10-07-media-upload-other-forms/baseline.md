@@ -327,4 +327,6 @@ id 2349, `fixture-7-fdda4a927ec9.jpg`, created 14:54:04 (CEST) during the unthro
 (checked against all eight tables with a `media_id` foreign key, read-only). None appeared in the
 LTE block or in scenarios 1 and 3. Together with the baseline's 2148, 2208 and 2218 that is four such
 rows, so the cause of the occasional unreferenced row is still open and was not investigated here
-(the gallery runs attached 10 files and returned 10 × `200` every time).
+(the gallery runs attached 10 files and returned 10 × `200` every time). Follow-up analysis
+(2026-10-15) and what it established: `context/reference/blob-recovery-runbook.md` §2, „Known
+pre-existing gaps".

@@ -58,7 +58,7 @@ async function runStep<T>(label: string, step: () => Promise<T>): Promise<T | nu
   try {
     return await step()
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a step that throws every night is otherwise invisible.
+    // TODO(EX-958) SENTRY-REQUIRED: a step that throws every night is otherwise invisible.
     console.error(`[cron/cleanup] ${label} failed`, err)
     return null
   }

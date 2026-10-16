@@ -1,5 +1,5 @@
 import 'server-only'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysSectionT } from '@/lib/kosztorys/types'

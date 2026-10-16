@@ -57,7 +57,9 @@ describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
 
     expect(res.success).toBe(true)
     const stored = await readGlobal()
-    expect(stored.hiddenColumns).toEqual(SETTINGS.hiddenColumns)
+    // `note` is hidden by default and shown here: stored as `false`, or it would read back hidden.
+    expect(stored.hiddenColumns).toMatchObject({ discountValue: true, note: false })
+    expect(stored.hiddenColumns).not.toHaveProperty('aiPlannedQty')
     expect(stored.hideEmptyRows).toBe(false)
   })
 })
@@ -89,7 +91,7 @@ describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
 
     expect(res.success).toBe(true)
     const row = await findClientViewRow(payload, investmentId)
-    expect(row?.hiddenColumns).toEqual(SETTINGS.hiddenColumns)
+    expect(row?.hiddenColumns).toMatchObject({ discountValue: true, net: false })
     expect(row?.hideEmptyRows).toBe(false)
   })
 
@@ -98,7 +100,7 @@ describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
 
     expect(res.success).toBe(true)
     const stored = await payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
-    expect(stored.hiddenColumns).toEqual(SETTINGS.hiddenColumns)
+    expect(stored.hiddenColumns).toMatchObject({ discountValue: true, net: false })
     expect(stored.hideEmptyRows).toBe(false)
   })
 })

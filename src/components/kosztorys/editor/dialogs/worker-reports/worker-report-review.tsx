@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
@@ -19,7 +19,9 @@ import {
   initialDrafts,
   isLineReady,
   lineGroup,
+  lineItemId,
   partitionLines,
+  UNDO_CATALOGUE_SWAP,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
@@ -30,6 +32,7 @@ import {
   type ReviewRowT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/review-lines-table'
 import { retranslateReportLineAction } from '@/lib/actions/worker-report-translation'
+import { pointReportLineAction } from '@/lib/actions/accept-worker-report'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
@@ -130,8 +133,8 @@ export function WorkerReportReview({
   const targetStage = ownStages.find((stage) => stage.id === targetStageId)
   const stageTitle = targetStage ? stageLabel(targetStage) : 'Nowy etap'
 
-  const itemIdOf = (line: ReportLineT): number | undefined =>
-    line.itemId !== undefined && rowById.has(line.itemId) ? line.itemId : drafts[line.id].itemId
+  const itemIdOf = (line: ReportLineT) =>
+    lineItemId(line, drafts[line.id], (itemId) => rowById.has(itemId))
   const figuresOf = (row: KosztorysV2RowT | undefined): ItemFiguresT | undefined => {
     if (!row) return undefined
     return {
@@ -239,6 +242,19 @@ export function WorkerReportReview({
   const updateDraft = (lineId: number, patch: Partial<LineDraftT>) => {
     setDrafts((current) => ({ ...current, [lineId]: { ...current[lineId], ...patch } }))
     onEdit()
+  }
+
+  const undoSwap = async (line: Pick<ReportLineT, 'id' | 'kind'>) => {
+    if (line.kind === 'extra') {
+      const result = await settleAction(() =>
+        pointReportLineAction(report.investmentId, line.id, undefined),
+      )
+      if (!result.success) {
+        toastMessage(result.error, 'error')
+        return
+      }
+    }
+    updateDraft(line.id, UNDO_CATALOGUE_SWAP)
   }
 
   const retranslate = async (lineId: number) => {
@@ -415,6 +431,7 @@ export function WorkerReportReview({
                 itemOptions={itemOptions}
                 catalogue={catalogue}
                 onOpenCatalogue={(lineId, entryId) => setSwapRequest({ lineId, entryId })}
+                onUndoSwap={undoSwap}
                 hintsByLine={hintsByLine}
                 stageTitle={stageTitle}
                 onRetranslate={isPending ? retranslate : undefined}

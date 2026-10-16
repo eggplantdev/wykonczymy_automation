@@ -29,3 +29,13 @@ of `src/lib/constants/investment-lock.ts`.
 3. **A kasa cannot be handed over to another owner.** A worker whose kasa is used stays; `active` is
    how they leave.
 4. MANAGER has full parity (umbrella decision, 2026-09-29).
+
+### Plan decisions
+
+- **Write gate in the transfers `validate` hook**, after the cancellation early returns — the only
+  complete gate; a stale form or a default kasa would otherwise book into the trash.
+- **Ref data split into live + trashed**, only the name map reads both — the kasa list doubles as
+  the name map on transaction rows, and a new picker can't forget the filter.
+- **Default kasa cleared on trash, not restored** — one write instead of four reader filters.
+- **Owner locked once the kasa has live transactions** (hook + disabled field) — decision 3 was not
+  true in the code before.

@@ -1,4 +1,4 @@
-=== Wycena AI (test, 2026-10-09) — mieszkanie 61 m², Ursynów, stan deweloperski ===
+=== Wycena AI (2026-10-09) — mieszkanie 61 m², Ursynów, stan deweloperski ===
 Źródła:
 - brief klienta (PDF, 12 stron);
 - rzut dewelopera z metrażami pomieszczeń, z zaznaczonymi ścianami do wyburzenia i nowymi ścianami;

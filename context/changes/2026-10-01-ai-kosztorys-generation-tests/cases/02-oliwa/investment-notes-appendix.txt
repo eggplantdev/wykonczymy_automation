@@ -1,4 +1,4 @@
-KOSZTORYS AI (test, 2026-10-09) — Oliwa, mieszkanie ok. 41 m² (36,6 m² bez łazienki + łazienka 4,4 m²)
+KOSZTORYS AI (2026-10-09) — Oliwa, mieszkanie ok. 41 m² (36,6 m² bez łazienki + łazienka 4,4 m²)
 Źródła: rzut aranżacyjny (zrzut ekranu, skala sprawdzona na 7 wymiarach, zgodność ±0,7%), opis klienta, instrukcja właściciela.
 Kolumna „AI przedmiar” stoi obok Przedmiaru właściciela: 51 pozycji, razem 39 375,48 zł netto + 1 pozycja bez ceny (maskownica GK, dopisana na końcu sekcji z Przedmiarem 0).
 Przy każdej pozycji „Komentarz AI” mówi, co agent założył i czego nie było wiadomo. Pozycja z ilością odczytaną z rzutu lub z opisu klienta nie ma tam nic.

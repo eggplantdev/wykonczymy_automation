@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { REPORT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
@@ -99,7 +99,9 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
       sql`UPDATE users SET active = true, trashed_at = NULL WHERE id = ${readyWorkerId}`,
     )
     await db.execute(sql`DELETE FROM worker_report_shares WHERE investment_id = ${investmentId}`)
-    await db.execute(sql`UPDATE kosztorys_stages SET completed = false WHERE investment_id = ${investmentId}`)
+    await db.execute(
+      sql`UPDATE kosztorys_stages SET completed = false WHERE investment_id = ${investmentId}`,
+    )
   })
 
   it('reaches the handler with the token’s investment and worker when every gate passes', async () => {

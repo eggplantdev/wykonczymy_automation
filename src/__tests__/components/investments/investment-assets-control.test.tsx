@@ -96,8 +96,18 @@ describe('InvestmentAssetsControl', () => {
     await user.click(previewButton()!)
     const dialog = screen.getByRole('dialog')
 
-    expect(within(dialog).getByRole('button', { name: 'Usuń wszystkie' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Usuń ten plik' })).toBeInTheDocument()
     expect(within(dialog).queryByRole('button', { name: /fakturę/ })).not.toBeInTheDocument()
+  })
+
+  // Blob has no undelete, so wiping the whole gallery in one click waits for the file trash (EX-862).
+  it('offers no bulk removal, even with several files', async () => {
+    const user = userEvent.setup()
+    renderGallery([PHOTO, SECOND_PHOTO])
+
+    await user.click(previewButton()!)
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).queryByRole('button', { name: 'Usuń wszystkie' })).not.toBeInTheDocument()
   })
 
   it('asks before removing a file and calls the action once confirmed', async () => {
@@ -132,13 +142,12 @@ describe('InvestmentAssetsControl', () => {
     expect(within(dialog).queryByRole('button', { name: 'Dodaj kolejne' })).not.toBeInTheDocument()
   })
 
-  it('offers no bulk removal for a single file and says it is the last one', async () => {
+  it('asks before removing the last file and says it is gone for good', async () => {
     const user = userEvent.setup()
     renderGallery([PHOTO])
 
     await user.click(previewButton()!)
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).queryByRole('button', { name: 'Usuń wszystkie' })).not.toBeInTheDocument()
 
     await user.click(within(dialog).getByRole('button', { name: 'Usuń' }))
     expect(screen.getByText('Usunąć plik?')).toBeInTheDocument()

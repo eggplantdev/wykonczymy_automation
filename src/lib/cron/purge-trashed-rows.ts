@@ -37,11 +37,11 @@ export async function purgeTrashedRows({
       purgedIds.push(id)
     } else if (outcome.reason === 'blocked') {
       blocked++
-      // TODO(EX-449) SENTRY-REQUIRED: a trashed row took a transaction past the write gate.
+      // TODO(EX-958) SENTRY-REQUIRED: a trashed row took a transaction past the write gate.
       console.error(`[${logPrefix}] ${id} blocked: ${outcome.message}`)
     } else if (outcome.reason === 'error') {
       failed++
-      // TODO(EX-449) SENTRY-REQUIRED: the row stays in the trash and is retried tomorrow.
+      // TODO(EX-958) SENTRY-REQUIRED: the row stays in the trash and is retried tomorrow.
       console.error(`[${logPrefix}] ${id} failed: ${outcome.message}`)
     }
   }

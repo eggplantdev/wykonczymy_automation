@@ -8,6 +8,7 @@ import {
   initialDrafts,
   isLineReady,
   lineGroup,
+  lineItemId,
   previewQtyChange,
   qtyChange,
   UNDO_CATALOGUE_SWAP,
@@ -243,5 +244,26 @@ describe('praca spoza rozpiski', () => {
     expect(lineGroup(extra, undone)).toBe('extra')
     expect(undone.isTicked).toBe(false)
     expect(isLineReady(extra, undone, undefined)).toBe(true)
+  })
+
+  const isLive = (itemId: number) => liveRows.some((row) => row.id === itemId)
+
+  it('dodana do rozpiski i porzucona otwiera się ponownie na swojej pozycji, gotowa do przyjęcia', () => {
+    const pointed = line({ kind: 'extra', itemId: 11 })
+    const reopened = { ...initialDrafts(report([pointed]), liveRows)[1], isTicked: true }
+    const itemId = lineItemId(pointed, reopened, isLive)
+
+    expect(lineGroup(pointed, reopened)).toBe('rozpiska')
+    expect(itemId).toBe(11)
+    expect(isLineReady(pointed, reopened, itemId)).toBe(true)
+  })
+
+  it('po „Cofnij podmianę” praca z kilku pozycji czeka na wybór, nie wraca na pozycję sprzed cofnięcia', () => {
+    const pointed = line({ kind: 'extra', itemId: 11 })
+    const undone = { ...initialDrafts(report([pointed]), liveRows)[1], ...UNDO_CATALOGUE_SWAP }
+    const repicked = { ...undone, isTicked: true, ...swap(entry('Malowanie ścian', 'm2')) }
+
+    expect(lineItemId(pointed, undone, isLive)).toBeUndefined()
+    expect(lineItemId(pointed, repicked, isLive)).toBeUndefined()
   })
 })

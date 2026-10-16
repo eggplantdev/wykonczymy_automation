@@ -1,6 +1,6 @@
 'use server'
 
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   sanitizeClientViewSettings,
+  toStoredClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view/settings'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
@@ -104,5 +105,30 @@ describe('sanitizeClientViewSettings', () => {
 
   it.each([undefined, null, 'x', 42])('reads a non-object order (%s) as never ordered', (raw) => {
     expect(sanitizeClientViewSettings({ columnRanks: raw }).columnRanks).toEqual({})
+  })
+})
+
+describe('stored client view settings', () => {
+  // A row saved before Komentarz and the percentage against the offer were offered names neither:
+  // both must stay off the investor's document instead of showing because no stored choice hides them.
+  it('reads a column the stored map does not mention as its code default', () => {
+    const settings = sanitizeClientViewSettings({ hiddenColumns: { price: true, net: false } })
+
+    expect(settings.hiddenColumns).toEqual(
+      expect.arrayContaining(['price', 'note', 'plannedDonePercent']),
+    )
+    expect(settings.hiddenColumns).not.toContain('net')
+  })
+
+  it('stores one choice per offered column and reads back to the same settings', () => {
+    const settings = sanitizeClientViewSettings({
+      hiddenColumns: ['price', 'note'],
+      columnRanks: { net: 1 },
+    })
+    const stored = toStoredClientViewSettings(settings)
+
+    expect(stored.hiddenColumns).toMatchObject({ price: true, note: true, net: false })
+    expect(Object.keys(stored.hiddenColumns)).not.toContain('description')
+    expect(sanitizeClientViewSettings(stored)).toEqual(settings)
   })
 })

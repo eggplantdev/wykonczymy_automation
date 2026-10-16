@@ -38,7 +38,10 @@ import type { WorkerRefT } from '@/types/reference-data'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
-import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import {
+  useKosztorysEditorContext,
+  type OnTreeReplacedT,
+} from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type PropsT = {
   investmentId: number
@@ -72,6 +75,7 @@ export function SheetImportDialog({
   onImported,
   onMappingSaved,
 }: PropsT) {
+  const { flushPendingSaves } = useKosztorysEditorContext()
   const [pending, startTransition] = useTransition()
   const [plane, setPlane] = useState<PlanePickT>(NO_PLANE)
   const [workerId, setWorkerId] = useState<number | null>(null)
@@ -92,6 +96,7 @@ export function SheetImportDialog({
   function handleConfirm() {
     startTransition(async () => {
       const replaced = await settleTreeReplace(
+        flushPendingSaves,
         () => applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane, workerId),
         'Pobieranie przerwane — odświeżam kosztorys',
         ({ data: { sections, items, stages } }) =>

@@ -34,8 +34,11 @@ describe('workerPageTransferWhere — URL filters only narrow', () => {
   it('keeps the scope when ?sourceRegister= names a foreign kasa', () => {
     const where = whereFor({ sourceRegister: '99' })
 
-    expect(where.and).toEqual([SCOPE])
-    expect(where.or).toEqual([{ sourceRegister: { in: [99] } }, { targetRegister: { in: [99] } }])
+    expect(where.and).toEqual([
+      { or: [{ sourceRegister: { in: [99] } }, { targetRegister: { in: [99] } }] },
+      SCOPE,
+    ])
+    expect(where.or).toBeUndefined()
   })
 
   it('keeps the scope when ?worker= names another worker', () => {

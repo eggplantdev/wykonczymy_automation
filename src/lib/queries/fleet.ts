@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -16,7 +16,7 @@ import type { FleetRowT, VehicleDetailT } from '@/types/fleet'
  * Deliberately raw: nothing here depends on today's date, so the entry survives midnight (see
  * `fetchFleetOverview`).
  */
-const getFleetDataset = unstable_cache(
+const getFleetDataset = cached(
   async (): Promise<FleetDatasetT> => {
     const elapsed = perfStart()
     const dataset = await loadFleetDataset(await getPayload({ config }))
@@ -24,11 +24,7 @@ const getFleetDataset = unstable_cache(
 
     return dataset
   },
-  // Versioned because the payload's SHAPE has changed. An entry written under an older shape is still
-  // valid JSON, so tags alone keep serving it — a tag marks an entry stale but the same request is
-  // still answered from it once (lessons.md). A v3 entry has no `exemptions`, and `isExempt` would
-  // read `.some` off `undefined` and 500 the page.
-  ['fleet-dataset-v4'],
+  ['fleet-dataset'],
   { tags: [CACHE_TAGS.vehicles, CACHE_TAGS.vehicleInspections] },
 )
 

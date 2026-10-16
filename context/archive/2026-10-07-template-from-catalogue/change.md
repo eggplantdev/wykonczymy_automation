@@ -127,21 +127,13 @@ zmiany muszą trafić do katalogu. Drugi szablon („Kosztorys 2026") jest nieu�
 (owner 2026-10-08).
 
 Porównanie trójstronne — szablon sprzed poprawek kierownika, szablon teraz, katalog teraz — odróżnia
-jego zmiany od starego rozjazdu. Skrypty w `sync/`:
+jego zmiany od starego rozjazdu. Kopia bazowa `dump-2026-10-07_07-19.sql`: ostatnia zmiana
+w szablonie 2026-10-06, czyli przed pierwszym autozapisem z poprawek kierownika (#680, 2026-10-07
+05:56 UTC).
 
-```bash
-bash context/changes/2026-10-07-template-from-catalogue/sync/export.sh \
-  dumps/dump-2026-10-07_07-19.sql dumps/<najnowsza kopia>.sql <katalog roboczy>
-node --import tsx context/changes/2026-10-07-template-from-catalogue/sync/diff.ts \
-  <katalog roboczy> context/changes/2026-10-07-template-from-catalogue/template-vs-catalogue.html
-```
-
-Kopia bazowa `dump-2026-10-07_07-19.sql`: ostatnia zmiana w szablonie 2026-10-06, czyli przed
-pierwszym autozapisem z poprawek kierownika (#680, 2026-10-07 05:56 UTC). `export.sh` wczytuje oba
-dumpy do roboczych baz `tpl_base` / `tpl_now` na kontenerze `wykonczymy`; `wykonczymy-db` i Neon nie
-są dotykane. `diff.ts` zapisuje też `plan.json` — wartości do wpisania w katalog, wejście dla kroku
-synchronizacji. Puszczać od nowa na każdej świeżej kopii; ostatnie uruchomienie tuż przed przejściem
-na nowy model jest tym, które się liczy.
+Skrypty porównania i porządków (`sync/`) oraz raport `template-vs-catalogue.html` skasowane
+2026-10-15 (przejście na model zrobione, szablon nie może już rozjechać się z katalogiem) — w historii
+gita: `git ls-tree -r --name-only c958796f6 -- context/archive/2026-10-07-template-from-catalogue`.
 
 Wynik na kopii z 2026-10-08 07:33 UTC (`dump-2026-10-08_09-33.sql`; szablon 310 → 305 prac,
 ostatnia zmiana 06:46 UTC):

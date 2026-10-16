@@ -4,7 +4,7 @@ import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
 import type { KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { PayoutTransactionRowT } from '@/types/transfers'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
@@ -13,30 +13,9 @@ const OTHER = 9
 // Worker 5 holds etapy 100 and 102 (z narzędziami, stawka 12); worker 9 holds etap 101 on the same
 // plane. Row 2 carries a client rabat, which must never reach the crew's figures.
 const stages: KosztorysStageT[] = [
-  {
-    id: 100,
-    ordinal: 1,
-    label: 'Tynki',
-    plane: 'w_tools',
-    split: oneWorkerSplit(WORKER),
-    completed: false,
-  },
-  {
-    id: 101,
-    ordinal: 2,
-    label: null,
-    plane: 'w_tools',
-    split: oneWorkerSplit(OTHER),
-    completed: false,
-  },
-  {
-    id: 102,
-    ordinal: 3,
-    label: null,
-    plane: 'w_tools',
-    split: oneWorkerSplit(WORKER),
-    completed: false,
-  },
+  makeStage({ id: 100, label: 'Tynki', split: oneWorkerSplit(WORKER) }),
+  makeStage({ id: 101, ordinal: 2, split: oneWorkerSplit(OTHER) }),
+  makeStage({ id: 102, ordinal: 3, split: oneWorkerSplit(WORKER) }),
 ]
 const tree: KosztorysTreeT = makeTree({
   sections: [

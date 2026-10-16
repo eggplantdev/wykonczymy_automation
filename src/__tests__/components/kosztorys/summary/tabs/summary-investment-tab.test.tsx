@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summary-investment-tab'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 
 // The gallery's actions are `'use server'`, and the harness swaps those for stubs that THROW when
@@ -22,7 +22,7 @@ const PHOTO: MediaFileT = {
   kind: null,
 }
 
-const INVESTMENT: InvestmentRefT = {
+const INVESTMENT: InvestmentWithNotesT = {
   id: 7,
   name: 'Dom pod lasem',
   status: 'active',

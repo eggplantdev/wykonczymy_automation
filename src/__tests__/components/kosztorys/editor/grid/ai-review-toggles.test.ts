@@ -4,10 +4,9 @@ import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kos
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
-]
+const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
 
 function ids(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
   return buildV2Columns({

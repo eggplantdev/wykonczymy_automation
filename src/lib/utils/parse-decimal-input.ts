@@ -26,7 +26,9 @@ export function parseDecimalInput(raw: string): DecimalInputParseT {
 //
 // A cell also takes the arithmetic the owner types into the sheet („3,5x2,8"). Only text the plain
 // parse refuses reaches the evaluator, so a typed number keeps its exact `decimalText` round trip;
-// an expression's result is rounded, or 10/3 would leave a float tail in the cell.
+// an expression's result is rounded, or 10/3 would leave a float tail in the cell. Two places in
+// every cell, the subcontractor coefficient (stored at six) included, is the owner's choice: `=1/3`
+// gives 0,33 there, while a typed plain coefficient keeps full precision.
 export function parseCellDecimal(raw: string): DecimalInputParseT {
   const compact = raw.replace(/\s/g, '')
   const plain = parseDecimalInput(compact)

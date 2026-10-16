@@ -19,6 +19,7 @@ const toastMessage = vi.hoisted(() => vi.fn())
 const fillKosztorysTranslationsAction = vi.hoisted(() => vi.fn())
 const cleanItemTextsAction = vi.hoisted(() => vi.fn())
 const onTreeReplaced = vi.hoisted(() => vi.fn())
+const flushPendingSaves = vi.hoisted(() => vi.fn(async () => {}))
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/actions/kosztorys-translations', () => ({ fillKosztorysTranslationsAction }))
@@ -27,6 +28,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: 7,
     onTreeReplaced,
+    flushPendingSaves,
     rows: [{ description: 'Montaż klimatyzacji', descriptionTranslations: {} }],
     stages: [],
     workers: [],
@@ -68,6 +70,22 @@ describe.each([
   },
 ])('$label', ({ label, other, action, data }) => {
   beforeEach(() => vi.clearAllMocks())
+
+  it('runs only after the pending cell saves have settled (EX-1002)', async () => {
+    const flush = Promise.withResolvers<void>()
+    flushPendingSaves.mockReturnValueOnce(flush.promise)
+    action.mockResolvedValue({ success: true, data })
+    renderMenu()
+
+    await openMenu()
+    await userEvent.click(screen.getByRole('menuitem', { name: label }))
+
+    expect(flushPendingSaves).toHaveBeenCalledTimes(1)
+    expect(action).not.toHaveBeenCalled()
+
+    flush.resolve()
+    await vi.waitFor(() => expect(action).toHaveBeenCalledTimes(1))
+  })
 
   it('stays disabled across a menu close and reopen while the run is in flight', async () => {
     let finish: (value: unknown) => void = () => {}
@@ -117,7 +135,11 @@ describe.each([
     await vi.waitFor(() =>
       expect(screen.getByRole('menuitem', { name: label })).not.toHaveAttribute('data-disabled'),
     )
-    expect(toastMessage).toHaveBeenCalledWith(expect.stringContaining('Nie udało się'), 'error')
+    expect(toastMessage).toHaveBeenCalledWith(
+      expect.stringContaining('Nie udało się'),
+      'error',
+      6000,
+    )
     expect(onTreeReplaced).toHaveBeenCalledWith({ refetch: true })
   })
 })

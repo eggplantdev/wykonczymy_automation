@@ -49,7 +49,7 @@ describe('stampCompletedAt', () => {
     expect(result.completedAt).toBe(NOW.toISOString())
   })
 
-  it.each(['active', 'planowana', 'quote'])(
+  it.each(['active', 'planowana', 'quote', 'rejected'])(
     'clears the date when reopened to %s',
     async (status) => {
       const result = await save({ status }, { status: 'completed', completedAt: EARLIER })

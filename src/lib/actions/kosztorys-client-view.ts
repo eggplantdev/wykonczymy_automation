@@ -2,7 +2,7 @@
 
 import { protectedAction } from '@/lib/actions/run-action'
 import {
-  sanitizeClientViewSettings,
+  toStoredClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view/settings'
 import { findClientViewRow } from '@/lib/queries/kosztorys-client-view'
@@ -13,7 +13,7 @@ export async function saveClientViewSettingsAction(
   settings: ClientViewSettingsT,
 ): Promise<ActionResultT> {
   return protectedAction('saveClientViewSettingsAction', async ({ payload }) => {
-    const data = sanitizeClientViewSettings(settings)
+    const data = toStoredClientViewSettings(settings)
     const row = await findClientViewRow(payload, investmentId)
 
     if (row) {
@@ -30,7 +30,7 @@ export async function saveClientViewSettingsAction(
       // find-then-create is not atomic and `investment` is unique — two saves at once race here.
       // The loser re-reads and updates rather than surfacing a raw constraint error. Logged because
       // a validation or FK failure lands here too and is indistinguishable from the race otherwise.
-      // TODO(EX-449) SENTRY-REQUIRED:
+      // TODO(EX-958) SENTRY-REQUIRED:
       console.error('saveClientViewSettingsAction: create failed, retrying as update', error)
       const rowAfterRace = await findClientViewRow(payload, investmentId)
       if (!rowAfterRace) return { success: false, error: 'Nie udało się zapisać ustawień' }
@@ -48,7 +48,7 @@ export async function saveClientViewDefaultsAction(
   return protectedAction('saveClientViewDefaultsAction', async ({ payload }) => {
     await payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
-      data: sanitizeClientViewSettings(settings),
+      data: toStoredClientViewSettings(settings),
     })
     return { success: true }
   })

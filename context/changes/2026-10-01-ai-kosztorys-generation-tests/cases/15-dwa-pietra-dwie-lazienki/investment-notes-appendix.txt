@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-12)
+## Wycena AI (2026-10-12)
 **AI przedmiar: 85 789,86 zł netto** — 59 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 2 pozycje z ilością 0 (sztukateria — montaż i malowanie), bo nic nie mówi, ile jej ma być. 1 praca spoza szablonu, z katalogu: „Montaż paneli ściennych, lamele, dekory itp” (ścianka RTV).
 Źródło: jedyny plik to zdjęcie rzutu sprzedażowego dewelopera (dwa poziomy, bez wymiarów i bez wysokości) plus zakres w Notatkach. Metraże z rzutu: dół salon z aneksem 25,5 + sypialnia 7,5, góra sypialnie 15,2 i 13,8 + łazienka 4,2. Hol na dole (5,1 m²), hol na górze (5,1 m²) i WC (2,0 m²) nie mają podpisu — zmierzone w skali wziętej z podpisanych pokoi. Razem podłogi 78,4 m², z tego winyl 72,2 m². Wysokość 2,68 m (rzut jej nie podaje, Manual dla stanu deweloperskiego).
 Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.

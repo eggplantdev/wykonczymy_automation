@@ -123,7 +123,7 @@ const tabsForType = (type: unknown): TabSyncSpecT[] =>
 // Every row the tab should hold: each NON-CANCELLED transaction of the tab's
 // types, one row keyed by its own id. The sheet mirrors active transfers —
 // cancelled ones are excluded here (and their rows removed by the reconciler /
-// on cancel). An investment-less transfer (LOSS allows that) never matches the
+// on cancel). An investment-less transfer (a company-level korekta) never matches the
 // investment filter, so it appears on no sheet.
 async function loadAppRows(
   payload: PayloadT,

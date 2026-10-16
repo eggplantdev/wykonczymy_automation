@@ -9,7 +9,7 @@
 // `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`, which lives only in Vercel Production, so the sync throws
 // long before Google is reached.
 import { getPayload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import config from '../payload.config'
 import { getDb } from '@/lib/db/get-db'
 import { getNetAmountError } from '@/lib/utils/validation'

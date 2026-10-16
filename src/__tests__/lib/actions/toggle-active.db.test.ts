@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'

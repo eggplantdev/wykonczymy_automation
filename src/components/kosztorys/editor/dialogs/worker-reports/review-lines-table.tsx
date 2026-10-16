@@ -18,7 +18,6 @@ import { WorkerDescription } from '@/components/worker-reports/worker-descriptio
 import {
   acceptedQtyNote,
   previewQtyChange,
-  UNDO_CATALOGUE_SWAP,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
@@ -68,6 +67,7 @@ type ReviewTablePropsT = {
   itemOptions: SearchSelectItemT[]
   catalogue: WorkCatalogueItemT[]
   onOpenCatalogue: (lineId: number, entryId?: number) => void
+  onUndoSwap: (row: ReviewRowT) => void
   hintsByLine: Record<number, CatalogueHintT[]>
   stageTitle: string
   // Undefined once the report is decided: only a pending report's extras can be retranslated.
@@ -284,7 +284,7 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
 // „Cofnij podmianę” leaves the pozycja it went to in the rozpiska — empty, it shows on no page the
 // client sees.
 function SwapNote({ row }: { row: ReviewRowT }) {
-  const { drafts, onChange } = useReviewTable()
+  const { drafts, onUndoSwap } = useReviewTable()
   const source = drafts[row.id].catalogueId === undefined ? 'Zgłoszono' : 'Z katalogu · zgłoszono'
   return (
     <>
@@ -292,12 +292,7 @@ function SwapNote({ row }: { row: ReviewRowT }) {
         {source} „{reviewedDescription(row)}”
       </span>
       {!row.isAccepted && (
-        <Button
-          variant="link"
-          size="xs"
-          className="h-auto p-0"
-          onClick={() => onChange(row.id, UNDO_CATALOGUE_SWAP)}
-        >
+        <Button variant="link" size="xs" className="h-auto p-0" onClick={() => onUndoSwap(row)}>
           Cofnij podmianę
         </Button>
       )}

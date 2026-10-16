@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
 import { insertWorkerReport, readWorkerReport } from '@/lib/db/worker-reports'
@@ -33,7 +33,8 @@ vi.mock('@/lib/db/worker-reports', async (importOriginal) => {
   }
 })
 
-const { acceptWorkerReportAction } = await import('@/lib/actions/accept-worker-report')
+const { acceptWorkerReportAction, pointReportLineAction } =
+  await import('@/lib/actions/accept-worker-report')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -749,6 +750,75 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
       expect(res.success).toBe(false)
       expect(await qtyDone(itemIds[0], ownStageId)).toBe(5)
       expect((await readWorkerReport(db, investmentId, reportId))?.report.status).toBe('pending')
+    })
+  })
+
+  describe('a praca spoza rozpiski added to the rozpiska before the save (EX-1055)', () => {
+    const sendExtra = () => sendReport([{ itemId: null, qty: 3, opis: 'Montaż domofonu' }])
+    const lineOf = async (reportId: number) =>
+      (await readWorkerReport(db, investmentId, reportId))?.lines[0]
+
+    it('remembers its pozycja, so a review reopened later accepts into it — no twin', async () => {
+      const { reportId, lineIds } = await sendExtra()
+
+      expect((await pointReportLineAction(investmentId, lineIds[0], itemIds[1])).success).toBe(true)
+      expect(await lineOf(reportId)).toMatchObject({ kind: 'extra', itemId: itemIds[1] })
+
+      const res = await accept({
+        reportId,
+        target: ownTarget(),
+        lines: [{ lineId: lineIds[0], acceptedQty: 3 }],
+      })
+      expect(res.success).toBe(true)
+      expect(await qtyDone(itemIds[1], ownStageId)).toBe(3)
+      expect((await selectKosztorysTreeData(db, investmentId))?.items).toHaveLength(itemIds.length)
+    })
+
+    it('forgets it on „Cofnij podmianę”', async () => {
+      const { reportId, lineIds } = await sendExtra()
+      await pointReportLineAction(investmentId, lineIds[0], itemIds[1])
+
+      expect((await pointReportLineAction(investmentId, lineIds[0], undefined)).success).toBe(true)
+      expect((await lineOf(reportId))?.itemId).toBeNull()
+    })
+
+    it('leaves a line from the rozpiska and an accepted line alone', async () => {
+      const rozpiska = await sendReport([{ itemId: itemIds[0], qty: 2 }])
+      const accepted = await sendExtra()
+      await pointReportLineAction(investmentId, accepted.lineIds[0], itemIds[1])
+      await accept({
+        reportId: accepted.reportId,
+        target: ownTarget(),
+        lines: [{ lineId: accepted.lineIds[0], acceptedQty: 3 }],
+      })
+
+      expect(
+        (await pointReportLineAction(investmentId, rozpiska.lineIds[0], itemIds[1])).success,
+      ).toBe(false)
+      expect(
+        (await pointReportLineAction(investmentId, accepted.lineIds[0], undefined)).success,
+      ).toBe(false)
+      expect((await lineOf(rozpiska.reportId))?.itemId).toBe(itemIds[0])
+      expect((await lineOf(accepted.reportId))?.itemId).toBe(itemIds[1])
+    })
+
+    it('refuses a pozycja of another investment', async () => {
+      const otherInvestmentId = await createTestInvestment(payload, 'EX-1055 other investment')
+      try {
+        const other = await createKosztorysTree(payload, otherInvestmentId, {
+          sections: [
+            { name: 'Kuchnia', items: [{ description: 'Płytki', unit: 'm²', plannedQty: 9 }] },
+          ],
+        })
+        const { reportId, lineIds } = await sendExtra()
+
+        expect(
+          (await pointReportLineAction(investmentId, lineIds[0], other.itemIds[0])).success,
+        ).toBe(false)
+        expect((await lineOf(reportId))?.itemId).toBeNull()
+      } finally {
+        await deleteTestInvestment(payload, otherInvestmentId)
+      }
     })
   })
 })

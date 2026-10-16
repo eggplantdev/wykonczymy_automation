@@ -6,7 +6,7 @@ import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { pricingRow } from '@/__tests__/fixtures/subcontractor-pricing-row'
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
@@ -26,10 +26,7 @@ const tree = makeTree({
       items: [{ ...baseItem, id: OVERRUN, description: 'extra', plannedQty: 0, clientPrice: 800 }],
     },
   ],
-  stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
-  ],
+  stages: [makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2, plane: null })],
   progress: [
     { itemId: OVERRUN, stageId: 100, qtyDone: 1 },
     { itemId: OVERRUN, stageId: 101, qtyDone: 1 },

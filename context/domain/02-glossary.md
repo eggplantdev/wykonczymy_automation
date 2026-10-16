@@ -61,8 +61,8 @@ keeps it cleared.
 | loss                   | Strata                | —           | `loss` (`LOSS`)                  | B   | — (resolved EX-548)          | `calculate-margin.ts:5`                                  |
 | bonus                  | Premia                | —           | `bonus` (`BONUS`)                | B   | — (new, EX-979)              | `transfer-rules.ts` (`financialBucket: 'bonus'`)         |
 | correction             | Korekta               | —           | `correction` (`CORRECTION`)      | B   | —                            | `validation.ts:7`                                        |
-| materials              | Materiały             | „materiały" | `materials`                      | B   | (`materiały` in labels only) | `investment-financials.ts:41`                            |
-| settled flag           | Wliczone w robociznę  | —           | `settled`                        | B   | —                            | `transfers.ts:228`                                       |
+| materials              | Materiały             | „materiały" | `materials`                      | B   | (`materiały` in labels only) | `investment-financials.ts:89`                            |
+| settled flag           | Wliczone w robociznę  | —           | `settled`                        | B   | —                            | `transfers.ts:296`                                       |
 | transfer / transaction | Transakcja            | —           | `transfer` (slug `transactions`) | B   | —                            | `transfers.ts:52`                                        |
 | cash register          | Kasa                  | —           | `cashRegister`                   | B   | —                            | `cash-registers.ts:34`                                   |
 | investment             | Inwestycja            | —           | `investment`                     | B   | —                            | `investments.ts:11`                                      |

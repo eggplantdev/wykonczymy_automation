@@ -5,7 +5,10 @@ import {
   getClientViewSettings,
   getClientViewSettingsRead,
 } from '@/lib/queries/kosztorys-client-view'
-import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
+import {
+  sanitizeClientViewSettings,
+  toStoredClientViewSettings,
+} from '@/lib/kosztorys/client-view/settings'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // The resolution chain decides what a client is served, so it runs against the REAL DB: a `where`
@@ -101,6 +104,23 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   it('falls back to the firm-wide default for an investment with no row', async () => {
     await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
 
+    expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
+  })
+
+  // The shape the save actions write (EX-1033): a jsonb object must come back out of the real row and
+  // the global as the same choices, or an owner's saved settings would read as „never chosen".
+  it('reads back the stored column map from the row and from the global', async () => {
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: toStoredClientViewSettings(ROW_SETTINGS),
+    })
+    await payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: toStoredClientViewSettings(GLOBAL_SETTINGS),
+    })
+
+    expect(await getClientViewSettings(investmentWithRow)).toEqual(ROW_SETTINGS)
     expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
   })
 

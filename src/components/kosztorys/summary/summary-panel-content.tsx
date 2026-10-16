@@ -28,7 +28,7 @@ import { type KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 import type {
   PayoutTransactionRowT,
@@ -149,7 +149,7 @@ type PropsT = {
   // Both carry the contract `KosztorysEditorDataT` spells out: `undefined` means this surface has no
   // investment / no gallery at all, which is what drops the „Inwestycja" tab and the „Dokumentacja"
   // button out of it.
-  investment?: InvestmentRefT
+  investment?: InvestmentWithNotesT
   assets?: MediaFileT[]
 }
 

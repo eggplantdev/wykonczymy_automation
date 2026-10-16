@@ -120,6 +120,17 @@ export function isLineReady(
   return lineGroup(line, draft) === 'rozpiska' && itemId !== undefined
 }
 
+// A praca spoza rozpiski, or a line the katalog pointed somewhere, takes its pozycja from the draft —
+// never from the report the review was opened on, which „Cofnij podmianę” has since taken it off.
+export function lineItemId(
+  line: Pick<ReportLineT, 'kind' | 'itemId'>,
+  draft: LineDraftT,
+  isLive: (itemId: number) => boolean,
+): number | undefined {
+  if (line.kind === 'extra' || draft.matchedItemIds.length > 0) return draft.itemId
+  return line.itemId !== undefined && isLive(line.itemId) ? line.itemId : draft.itemId
+}
+
 // A pozycja deleted and re-added by hand (or by a restore) comes back under a new id; the same opis
 // and j.m. is the one match safe enough to preselect.
 export function exactItemMatch(
@@ -148,9 +159,11 @@ export function initialDrafts(
         qty: qtyInputText(line.acceptedQty ?? line.reportedQty),
         itemId: isLive(line.createdItemId)
           ? line.createdItemId
-          : isGone && line.acceptedQty === undefined
-            ? exactItemMatch(line, rows)
-            : undefined,
+          : line.kind === 'extra' && isLive(line.itemId)
+            ? line.itemId
+            : isGone && line.acceptedQty === undefined
+              ? exactItemMatch(line, rows)
+              : undefined,
         isExtra: line.kind === 'rozpiska' && line.createdItemId !== undefined,
         catalogueId: line.catalogueItemId,
         // A praca spoza rozpiski accepted into a pozycja the rozpiska already held, or one its accept

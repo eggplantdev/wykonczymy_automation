@@ -223,7 +223,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Frontend:** present — Next.js App Router, Tailwind v4, Shadcn UI, React Compiler (`src/app/(frontend)`, `src/components/ui`).
 - **Backend / API:** present — Payload CMS collections + server actions via `protectedAction()` (`src/collections`, `src/lib/actions`).
-- **Data:** present — Postgres (Neon prod / docker local on 5433), Payload migrations, raw SQL via `@vercel/postgres` (`src/lib/db`, `src/migrations`).
+- **Data:** present — Postgres (Neon prod / docker local on 5433), Payload migrations, raw SQL via `@payloadcms/db-postgres`'s Drizzle (`src/lib/db`, `src/migrations`).
 - **Auth:** present — JWT `payload-token` cookie, four roles (ADMIN/OWNER/MANAGER/EMPLOYEE) (`src/lib/auth`, `src/access`).
 - **Deploy / infra:** present — Vercel (build runs `generate:types` + `next build`; migrations applied deliberately, not by build).
 - **Observability:** partial — `perfStart()` perf logging only; no error tracking (`global-error.tsx` has no reporter). Sentry is a later feature, not a roadmap slice — see [Parked](#parked).
@@ -752,7 +752,7 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 - **Multi-currency** — Why parked: PLN only, confirmed non-goal.
 - **Multi-tenant catalogues** — Why parked: single shared catalogue; PRD non-goal.
 - **Schema-level customization** (per-investment custom columns / arbitrary-field sidecars) — Why parked: a free-text note field covers ad-hoc needs; PRD non-goal.
-- **Observability / error tracking (Sentry)** — Why parked: the app has run in production without it for months, so it gates no milestone. Un-parked into slice O-01 on 2026-07-11, re-parked 2026-09-29 as a later feature; O-01's number is retired, not reused. Scope and risks live in Linear EX-433.
+- **Observability / error tracking (Sentry)** — Why parked: the app has run in production without it for months, so it gates no milestone. Un-parked into slice O-01 on 2026-07-11, re-parked 2026-09-29 as a later feature; O-01's number is retired, not reused. Scope and risks live in Linear EX-958.
 
 ## Done
 

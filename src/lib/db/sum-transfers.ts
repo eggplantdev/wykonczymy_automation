@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
@@ -111,20 +111,13 @@ export const sumAllInvestmentFinancials = async (
   const elapsed = perfStart()
   const db = await getDb(payload)
 
-  const [totalsResult, categoryResult, investmentsResult] = await Promise.all([
-    db.execute(sql`
-      SELECT investment_id,
-        type::text AS type,
-        (settled IS TRUE) AS settled,
-        COALESCE(SUM(amount), 0) AS total,
-        COALESCE(SUM(net_amount), 0) AS net_total
-      FROM transactions
-      WHERE investment_id IS NOT NULL
-        AND cancelled IS NOT TRUE
-      GROUP BY investment_id, type, (settled IS TRUE)
-    `),
+  // One scan for both groupings: the per-type totals (GROUPING = 1, every category folded in, NULL
+  // included) and the per-category split beside them. The sums stay in Postgres numeric rather than
+  // being re-added in JS, which would drift by float error.
+  const [sumsResult, investmentsResult] = await Promise.all([
     db.execute(sql`
       SELECT investment_id, expense_category_id,
+        GROUPING(expense_category_id) AS is_total,
         type::text AS type,
         (settled IS TRUE) AS settled,
         COALESCE(SUM(amount), 0) AS total,
@@ -132,8 +125,10 @@ export const sumAllInvestmentFinancials = async (
       FROM transactions
       WHERE investment_id IS NOT NULL
         AND cancelled IS NOT TRUE
-        AND expense_category_id IS NOT NULL
-      GROUP BY investment_id, expense_category_id, type, (settled IS TRUE)
+      GROUP BY GROUPING SETS (
+        (investment_id, type, (settled IS TRUE)),
+        (investment_id, expense_category_id, type, (settled IS TRUE))
+      )
     `),
     // The materiały netto concession is per investment, so the listing's Marża can only be as
     // correct as the detail page's if the rate and its settlement-mode gate travel with the sums.
@@ -151,39 +146,24 @@ export const sumAllInvestmentFinancials = async (
     })
   }
 
-  // Group the raw (type, settled) sums per investment.
   const rowsByInvestment = new Map<number, TypeSettledTotalT[]>()
-  for (const row of totalsResult.rows) {
-    const invId = Number(row.investment_id)
-    let list = rowsByInvestment.get(invId)
-    if (!list) {
-      list = []
-      rowsByInvestment.set(invId, list)
-    }
-    list.push({
-      type: row.type as string,
-      settled: row.settled === true,
-      total: Number(row.total),
-      netTotal: Number(row.net_total ?? 0),
-    })
-  }
-
-  // Group the raw (category, type, settled) sums per investment.
   const categoryRowsByInvestment = new Map<number, CategoryTypeSettledRowT[]>()
-  for (const row of categoryResult.rows) {
+  for (const row of sumsResult.rows) {
     const invId = Number(row.investment_id)
-    let list = categoryRowsByInvestment.get(invId)
-    if (!list) {
-      list = []
-      categoryRowsByInvestment.set(invId, list)
-    }
-    list.push({
-      categoryId: Number(row.expense_category_id),
+    const sums = {
       type: row.type as string,
       settled: row.settled === true,
       total: Number(row.total),
       netTotal: Number(row.net_total ?? 0),
-    })
+    }
+    if (Number(row.is_total) === 1) {
+      pushTo(rowsByInvestment, invId, sums)
+    } else if (row.expense_category_id != null) {
+      pushTo(categoryRowsByInvestment, invId, {
+        categoryId: Number(row.expense_category_id),
+        ...sums,
+      })
+    }
   }
 
   // One shared classifier for both paths: feed each investment's raw sums through
@@ -209,6 +189,12 @@ export const sumAllInvestmentFinancials = async (
   }
   console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
   return map
+}
+
+function pushTo<T>(map: Map<number, T[]>, key: number, value: T) {
+  const list = map.get(key)
+  if (list) list.push(value)
+  else map.set(key, [value])
 }
 
 /**

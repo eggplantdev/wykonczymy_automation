@@ -66,7 +66,7 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
     try {
       return await ingestAndAttach(picked, asPlan)
     } catch {
-      // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest/upload failure — capture once Sentry is
+      // TODO(EX-958) SENTRY-REQUIRED: unexpected ingest/upload failure — capture once Sentry is
       // wired; for now the user gets a generic retry toast.
       toastMessage(translator.t('uploadFailedRetry'), 'error', 6000)
       return false

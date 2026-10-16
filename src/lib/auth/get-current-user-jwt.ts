@@ -2,7 +2,7 @@ import 'server-only'
 
 import { cache } from 'react'
 import { cookies } from 'next/headers'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { jwtVerify } from 'jose'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -30,7 +30,7 @@ async function getSecretKey(): Promise<Uint8Array> {
 const SESSION_ALIVE_REVALIDATE_SECONDS = 3600
 
 const isSessionAliveCached = (userId: number, sid: string, role: RoleT): Promise<boolean> =>
-  unstable_cache(
+  cached(
     async () => isSessionAlive(await getDb(await getPayload({ config })), userId, sid, role),
     ['session-alive', String(userId), sid, role],
     { tags: [CACHE_TAGS.users], revalidate: SESSION_ALIVE_REVALIDATE_SECONDS },

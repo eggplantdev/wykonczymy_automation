@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
 import type { KosztorysStageT, StageSplitT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const handleAddStage = vi.hoisted(() => vi.fn())
 const editor = vi.hoisted(() => ({ stages: [] as KosztorysStageT[] }))
@@ -43,15 +44,8 @@ describe('KosztorysAddMenu — „Etap"', () => {
       ],
     }
     editor.stages = [
-      {
-        id: 11,
-        ordinal: 1,
-        label: null,
-        plane: 'w_tools',
-        split: oneWorkerSplit(6),
-        completed: false,
-      },
-      { id: 12, ordinal: 2, label: null, plane: 'own_tools', split, completed: false },
+      makeStage({ id: 11, split: oneWorkerSplit(6) }),
+      makeStage({ id: 12, ordinal: 2, plane: 'own_tools', split }),
     ]
     await openMenu()
 

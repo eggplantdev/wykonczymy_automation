@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { fillSectionTranslations, listSectionTranslations } from '@/lib/db/section-translations'
 import { sectionNameKey } from '@/lib/i18n/section-translations'

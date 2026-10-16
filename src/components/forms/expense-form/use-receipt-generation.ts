@@ -104,7 +104,7 @@ export function useReceiptGeneration({
           // reactive file store re-renders the FV label to match.
           if (data.filename) renameFile(id, data.filename)
         } catch (error) {
-          // TODO(EX-449) SENTRY-REQUIRED: per-receipt AI extraction failures must be captured once
+          // TODO(EX-958) SENTRY-REQUIRED: per-receipt AI extraction failures must be captured once
           // Sentry is wired — a failed row otherwise dies in a generic toast.
           logError(`[receipt-generation] row ${id} failed`, error)
           // The file stays attached: the scan is an auxiliary read, not a validity gate. Most
@@ -126,7 +126,7 @@ export function useReceiptGeneration({
       // The caller's prop is `() => void` (line-items-field's onGenerate), so it is invoked
       // fire-and-forget and has nowhere to put a rejection. Reporting it here is what keeps an
       // escaped error a visible failure rather than an unhandled rejection in the console.
-      // TODO(EX-449) SENTRY-REQUIRED.
+      // TODO(EX-958) SENTRY-REQUIRED.
       logError('[receipt-generation] scan aborted', error)
       toastMessage('Skanowanie paragonów zostało przerwane', 'error')
       return
@@ -142,7 +142,7 @@ export function useReceiptGeneration({
       toastMessage(`Odczytano ${ok} z ${eligible.length} paragonów`, 'success')
     } else {
       toastMessage(`Nie odczytano ${failed.size} z ${eligible.length} paragonów`, 'warning')
-      // TODO(EX-449) SENTRY-REQUIRED: dev/test only — surface the actual provider/upload error text
+      // TODO(EX-958) SENTRY-REQUIRED: dev/test only — surface the actual provider/upload error text
       // so failures are diagnosable without devtools. Kept until Sentry carries this in prod;
       // NODE_ENV-gated so it never leaks to users. Longer autoClose since these are long.
       if (process.env.NODE_ENV !== 'production') {

@@ -15,6 +15,7 @@ import { sheetCoeffs, type SheetCoeffsT } from './sheet-coeffs'
 import { compareFooterTotals, type FooterComparisonT } from './footer-totals'
 import { keyItems } from './item-key'
 import { groupInOrder } from '@/lib/utils/group-in-order'
+import { aiDraftOf } from '@/lib/kosztorys/ai-draft'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { parseLaborTab } from './parse-labor-tab'
 import { type ImportGridsT } from './read-sheet'
@@ -237,11 +238,7 @@ export function buildImportPlan(
         // Aktualizacja, so a hand-edited scope survives a re-import (EX-921).
         currentPlannedQty: current?.currentPlannedQty ?? null,
         // The sheet knows nothing of the agent's draft or its review, so a matched praca keeps them.
-        aiPlannedQty: current?.aiPlannedQty ?? null,
-        aiMissingData: current?.aiMissingData ?? null,
-        aiAssumptions: current?.aiAssumptions ?? null,
-        aiNewInformation: current?.aiNewInformation ?? null,
-        aiRecheck: current?.aiRecheck ?? false,
+        ...aiDraftOf(current),
         changeReason: current?.changeReason ?? null,
         reviewStatus: current?.reviewStatus ?? null,
         // Carried on the same key as the note, so a form printed before the import still resolves

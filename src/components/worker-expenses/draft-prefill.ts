@@ -41,8 +41,8 @@ export function lineItemForPart(
  * One row per paragon the AI read, then a blank row for each photo no read row names — so a read
  * that failed or hasn't landed yet still opens a row per photo for „Odczytaj dodane zdjęcia" to
  * fill. A read from before EX-1048 may be one row over every photo; it opens as that one row.
- * `files` are the downloaded pages in `draft.media` order — empty when the download failed and the
- * dialog opens only to reject.
+ * `files` are the downloaded pages in `draft.media` order — empty when the download failed: a read
+ * paragon is then accepted once a photo is added to it by hand, an unread zgłoszenie only rejected.
  */
 export function buildDraftPrefill(
   draft: Pick<ExpenseDraftRowT, 'media' | 'aiRead'>,

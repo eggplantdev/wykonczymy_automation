@@ -16,9 +16,9 @@ importers:
       '@openrouter/ai-sdk-provider':
         specifier: ^3.0.0
         version: 3.0.0(ai@7.0.22(zod@4.3.6))(zod@4.3.6)
-      '@payloadcms/db-vercel-postgres':
+      '@payloadcms/db-postgres':
         specifier: 3.73.0
-        version: 3.73.0(@types/pg@8.11.6)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))
+        version: 3.73.0(@vercel/postgres@0.9.0)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))
       '@payloadcms/email-nodemailer':
         specifier: ^3.73.0
         version: 3.73.0(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))
@@ -492,11 +492,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -1454,8 +1454,8 @@ packages:
       ai: ^7.0.0
       zod: ^3.25.76 || ^4.1.8
 
-  '@payloadcms/db-vercel-postgres@3.73.0':
-    resolution: {integrity: sha512-nxsfx88CEFenwV5yHyRZVCy2FRklpb5kpimSC4KFHkxxMYtWQavlLF6WAIUgODBTAEfOYMBLI+7yqfuwogxWRg==}
+  '@payloadcms/db-postgres@3.73.0':
+    resolution: {integrity: sha512-XWCLR3kGWfWB5fLwSafS9oRemV5CAUhPp3rBqQhB+1pW3xbBO5BW00YmPkEb5voQ2G34iDMLZKi/O27jxe0Zbg==}
     peerDependencies:
       payload: 3.73.0
 
@@ -2654,6 +2654,9 @@ packages:
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
+
+  '@types/pg@8.10.2':
+    resolution: {integrity: sha512-MKFs9P6nJ+LAeHLU3V0cODEOgyThJ3OAnmOlsZsxux6sfQs3HRXR5bBn7xG5DjckEFhTAxsXi7k7cd0pCMxpJw==}
 
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
@@ -5322,10 +5325,12 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   vfile-message@4.0.3:
@@ -6507,6 +6512,7 @@ snapshots:
   '@neondatabase/serverless@0.9.5':
     dependencies:
       '@types/pg': 8.11.6
+    optional: true
 
   '@next/env@15.5.12': {}
 
@@ -6560,13 +6566,13 @@ snapshots:
       ai: 7.0.22(zod@4.3.6)
       zod: 4.3.6
 
-  '@payloadcms/db-vercel-postgres@3.73.0(@types/pg@8.11.6)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))':
+  '@payloadcms/db-postgres@3.73.0(@vercel/postgres@0.9.0)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))':
     dependencies:
-      '@payloadcms/drizzle': 3.73.0(@types/pg@8.11.6)(@vercel/postgres@0.9.0)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(pg@8.16.3)
-      '@vercel/postgres': 0.9.0
+      '@payloadcms/drizzle': 3.73.0(@types/pg@8.10.2)(@vercel/postgres@0.9.0)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(pg@8.16.3)
+      '@types/pg': 8.10.2
       console-table-printer: 2.12.1
       drizzle-kit: 0.31.7
-      drizzle-orm: 0.44.7(@types/pg@8.11.6)(@vercel/postgres@0.9.0)(pg@8.16.3)
+      drizzle-orm: 0.44.7(@types/pg@8.10.2)(@vercel/postgres@0.9.0)(pg@8.16.3)
       payload: 3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
       pg: 8.16.3
       prompts: 2.4.2
@@ -6585,9 +6591,9 @@ snapshots:
       - '@prisma/client'
       - '@tidbcloud/serverless'
       - '@types/better-sqlite3'
-      - '@types/pg'
       - '@types/sql.js'
       - '@upstash/redis'
+      - '@vercel/postgres'
       - '@xata.io/client'
       - better-sqlite3
       - bun-types
@@ -6603,11 +6609,11 @@ snapshots:
       - sqlite3
       - supports-color
 
-  '@payloadcms/drizzle@3.73.0(@types/pg@8.11.6)(@vercel/postgres@0.9.0)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(pg@8.16.3)':
+  '@payloadcms/drizzle@3.73.0(@types/pg@8.10.2)(@vercel/postgres@0.9.0)(payload@3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6))(pg@8.16.3)':
     dependencies:
       console-table-printer: 2.12.1
       dequal: 2.0.3
-      drizzle-orm: 0.44.7(@types/pg@8.11.6)(@vercel/postgres@0.9.0)(pg@8.16.3)
+      drizzle-orm: 0.44.7(@types/pg@8.10.2)(@vercel/postgres@0.9.0)(pg@8.16.3)
       payload: 3.73.0(bufferutil@4.1.0)(graphql@16.12.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
       prompts: 2.4.2
       to-snake-case: 1.0.0
@@ -7898,11 +7904,18 @@ snapshots:
 
   '@types/parse-json@4.0.2': {}
 
+  '@types/pg@8.10.2':
+    dependencies:
+      '@types/node': 25.2.3
+      pg-protocol: 1.11.0
+      pg-types: 4.1.0
+
   '@types/pg@8.11.6':
     dependencies:
       '@types/node': 25.2.3
       pg-protocol: 1.11.0
       pg-types: 4.1.0
+    optional: true
 
   '@types/react-dom@19.2.3(@types/react@19.2.14)':
     dependencies:
@@ -8035,6 +8048,7 @@ snapshots:
       bufferutil: 4.1.0
       utf-8-validate: 6.0.6
       ws: 8.19.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+    optional: true
 
   '@vitest/expect@4.0.18':
     dependencies:
@@ -8234,6 +8248,7 @@ snapshots:
   bufferutil@4.1.0:
     dependencies:
       node-gyp-build: 4.8.4
+    optional: true
 
   busboy@1.6.0:
     dependencies:
@@ -8509,9 +8524,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.44.7(@types/pg@8.11.6)(@vercel/postgres@0.9.0)(pg@8.16.3):
+  drizzle-orm@0.44.7(@types/pg@8.10.2)(@vercel/postgres@0.9.0)(pg@8.16.3):
     optionalDependencies:
-      '@types/pg': 8.11.6
+      '@types/pg': 8.10.2
       '@vercel/postgres': 0.9.0
       pg: 8.16.3
 
@@ -9664,7 +9679,8 @@ snapshots:
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
 
-  node-gyp-build@4.8.4: {}
+  node-gyp-build@4.8.4:
+    optional: true
 
   node-releases@2.0.27: {}
 
@@ -10705,6 +10721,7 @@ snapshots:
   utf-8-validate@6.0.6:
     dependencies:
       node-gyp-build: 4.8.4
+    optional: true
 
   utf8-byte-length@1.0.5: {}
 

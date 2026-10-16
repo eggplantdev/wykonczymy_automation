@@ -1,8 +1,8 @@
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { RoleT } from '@/lib/auth/roles'
@@ -18,7 +18,9 @@ import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import type {
   CashRegisterRefT,
   CashRegisterTypeT,
+  InvestmentNotesT,
   InvestmentRefT,
+  InvestmentWithNotesT,
   WorkerRefT,
   OtherCategoryRefT,
   ExpenseCategoryRefT,
@@ -27,7 +29,7 @@ import type {
 
 // `fetchReferenceData` also returns every user and every investment with their contact details —
 // company-wide PII that must not be one identifier away on the unauthenticated share path.
-export const fetchExpenseCategories = unstable_cache(
+export const fetchExpenseCategories = cached(
   async (): Promise<ExpenseCategoryRefT[]> => {
     const payload = await getPayload({ config })
     const db = await getDb(payload)
@@ -53,7 +55,7 @@ function splitTrashed<T>(rows: { isTrashed: boolean; ref: T }[]): [live: T[], tr
 // table and the nav each call this, so it ran 3× per render (EX-597). Safe only because nothing reads
 // reference data before a mutation in the same request.
 export const fetchReferenceData = cache(
-  unstable_cache(
+  cached(
     async (): Promise<ReferenceDataBaseT> => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })
@@ -75,7 +77,7 @@ export const fetchReferenceData = cache(
         // dropped: /kosz still opens it read-only, while every listing and picker reads the live half.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
-               i.address, i.phone, i.email, i.contact_person, i.notes, i.ai_notes, i.review_requested,
+               i.address, i.phone, i.email, i.contact_person, i.review_requested,
                i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8, i.ai_stage::text,
                i.created_at, (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
@@ -133,8 +135,6 @@ export const fetchReferenceData = cache(
           phone: (row.phone as string) ?? '',
           email: (row.email as string) ?? '',
           contactPerson: (row.contact_person as string) ?? '',
-          notes: (row.notes as string) ?? '',
-          aiNotes: (row.ai_notes as string) ?? '',
           reviewRequested: row.review_requested === true,
           materialsNetRate: row.materials_net_rate == null ? null : Number(row.materials_net_rate),
           settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
@@ -184,10 +184,7 @@ export const fetchReferenceData = cache(
         expenseCategories,
       }
     },
-    // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
-    // the old payload once, and one missing a field the reader now dereferences crashes the page or
-    // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v10'],
+    ['reference-data'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,
@@ -202,6 +199,41 @@ export const fetchReferenceData = cache(
     },
   ),
 )
+
+type InvestmentNotesMapT = Record<number, InvestmentNotesT>
+
+// Same tag as `fetchReferenceData`, so the two expire together — every notes writer goes through
+// Payload, whose afterChange hook bumps `collection:investments`. Server-only by design: see
+// `InvestmentWithNotesT`.
+export const fetchInvestmentNotes = cache(
+  cached(
+    async (): Promise<InvestmentNotesMapT> => {
+      const payload = await getPayload({ config })
+      const db = await getDb(payload)
+      const result = await db.execute(sql`
+        SELECT id, notes, ai_notes FROM investments
+        WHERE notes IS NOT NULL OR ai_notes IS NOT NULL
+      `)
+      return Object.fromEntries(
+        result.rows.map((row) => [
+          Number(row.id),
+          { notes: (row.notes as string) ?? '', aiNotes: (row.ai_notes as string) ?? '' },
+        ]),
+      )
+    },
+    ['investment-notes'],
+    { tags: [CACHE_TAGS.investments] },
+  ),
+)
+
+const NO_NOTES: InvestmentNotesT = { notes: '', aiNotes: '' }
+
+export function withNotes(
+  investment: InvestmentRefT,
+  notesById: InvestmentNotesMapT,
+): InvestmentWithNotesT {
+  return { ...investment, ...(notesById[investment.id] ?? NO_NOTES) }
+}
 
 export function findInvestmentRef(
   refData: Pick<ReferenceDataBaseT, 'investments' | 'trashedInvestments'>,

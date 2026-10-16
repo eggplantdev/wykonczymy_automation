@@ -113,10 +113,7 @@ export type MaterialTransactionRowT = {
   label: string
   description: string | null
   settled: boolean
-  // Optional because the client share read is `unstable_cache`d: a warm entry written before this
-  // field existed serves rows without it until KOSZTORYS_TAGS invalidates. Every consumer has to
-  // handle that, and `undefined` here is what stops a cleanup pass deleting the guards as dead.
-  type: TransferTypeT | undefined
+  type: TransferTypeT
   invoices: PreviewFileT[]
   invoiceNote: string | null
 }

@@ -1,0 +1,38 @@
+## Wycena AI (2026-10-15)
+**AI przedmiar: 69 100,39 zł netto** — 105 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 3 pozycje z ilością 0: prace świadomie poza wyceną, z wyjaśnieniem w komentarzu. 3 prace spoza szablonu z ceną z katalogu: panel ścienny przy ścianie TV (150 zł/m²), podświetlana podkonstrukcja GK na ramy w sypialni (250 zł/m²) i wymurowanie półścianki w prysznicu (1200 zł). 6 pozycji z innych sekcji wstawionych do łazienki: szlifowanie mleczka, farba podkładowa, gzyms sufitowy, malowanie gzymsu, cokół z płytek i naprawy po bruzdach.
+Źródło: rysunki techniczne architekta (7 arkuszy, inwentaryzacja i projekt, skala 1:48) i 15 wizualizacji. Mieszkanie ok. 37 m²: salon z aneksem i holem (otwarte L, 21,8 m²), sypialnia 11,0 m², łazienka 4,5 m². Wysokość 2,65 m z rozwinięć łazienki (93 + 172 cm).
+Mail: mieszkanie odebrane od dewelopera, są media — rynek pierwotny. Gładź i 2 × malowanie na ścianach i sufitach.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Elektryka**: ile punktów dewelopera da się wykorzystać — rzut elektryki nie odróżnia nowych od istniejących. Przyjęte 16 nowych punktów oświetleniowych i 20 elektrycznych (ok. 5 + 12 punktów dewelopera zostaje). Czy rozdzielnia dewelopera ma miejsce na nowe obwody (liczona przebudowa przy indukcji, 1500 zł). Czy gniazdo 400 V dewelopera jest w miejscu płyty indukcyjnej — inaczej doprowadzenie przewodu 3-fazowego z gniazdem +500 zł. Dokładne długości taśm LED.
+- **Podłoga**: rzut mówi „panel laminowany / winylowy”. Wyceniony winyl klejony z wylewką samopoziomującą; laminat pływający (ta sama stawka) nie wymaga wylewki ani gruntowania podłóg, dochodzi listwa łączeniowa w drzwiach łazienki: ≈ −2,1 tys. zł. Czy cokół przychodzi lakierowany fabrycznie — inaczej malowanie listew 25 zł/mb.
+- **Wod-kan w łazience**: liczone jak deweloperka (4 pkt) — czy podejścia dewelopera pasują do projektu; każdy dodatkowy punkt 250 zł (pełne liczenie ok. 10 pkt). Liczone obniżenie kanalizacji pod odpływ prysznica — jeśli odpływ dewelopera pasuje, −800 zł.
+- **Otwory drzwiowe**: pod ościeżnice ukryte liczone zmniejszenie otworów; jeśli trzeba poszerzyć, 350 zł/szt (+300 zł).
+- **Sufity**: gładź w Q3; gzymsy z LED dają światło boczne — Q4 to +21 zł/m² (≈ +0,7 tys. zł). Ściany w Q4: +18 zł/m².
+- **Kolory ścian**: liczone malowanie w kolorze; jeśli wszystko biało, −0,2 tys. zł.
+- **Płytki 5 × 30 na ścianie prysznica**: liczone jako mały format (380 zł/m²); jako standard ≈ −0,9 tys. zł. Duży format 60 × 120 liczony jako standard, bez dopłaty.
+- **Kto montuje**: tapetę na ścianie TV, panel ścienny przy ścianie TV, karnisze w gzymsach, okap (czy jest w zabudowie).
+- **Kuchnia**: czy zlew zostaje przy podejściu dewelopera (przeniesienie 250 zł/pkt); między szafkami płyta kamienna lub spiek — jeśli płytki, 220 zł/m².
+- **Podkonstrukcja GK na ramy w sypialni**: rysunek podaje tylko ramy (4 × 40 × 60), przyjęte ok. 2 m².
+- **Ściana TV**: z czego jest — kanał TV liczony w ścianie miękkiej.
+- **Łazienka**: czy jest wentylator (rysunek go nie pokazuje); lista akcesoriów; blat i szafka podumywalkowa po stronie stolarza.
+- **Grzejniki**: liczba grzejników dewelopera; model nowego grzejnika dekoracyjnego w salonie.
+- **Dostęp**: piętro i winda (transport 1500 zł).
+
+## Najważniejsze założenia
+- **Rynek pierwotny**: szlifowanie mleczka na wszystkich tynkach (poza GK), demontaż grzejników na czas prac, bez skuwania, 2 big bagi.
+- **Gładź bez ścian za zabudowami**: za szafkami kuchni (15,2 m²) oraz za zabudową przy łóżku i szafą w sypialni (14,5 m²) — z nimi ≈ +3,4 tys. zł (gładź, mleczko, grunt, farba podkładowa, malowanie). Gładź także pod tapetą.
+- **2 × malowanie** z maila — stawki malowania obejmują 2 warstwy; sufity biało, ściany w kolorze.
+- **Łazienka** (4,52 m²): półścianka z wnęką i szybą stałą, odpływ punktowo-liniowy jako koperta, WC podwieszane z obudową na całą szerokość, GK pod profile LED, płytki 60 × 120 i 5 × 30, ciemny sufit malowany z gzymsem i LED, bez sufitu podwieszanego.
+- **Drzwi ukryte 2 szt.** (łazienka, sypialnia) — zwykłe drzwi z ościeżnicą regulowaną to 380 zł/szt (−1,2 tys. zł).
+- **Grzejnik w salonie przenoszony** na ścianę prostopadłą, nowy dekoracyjny: przebudowa 2 pkt c.o. i rozkucie podejść.
+- **Listwy przypodłogowe**: 20 mb — obwód bez łazienki minus zabudowy i drzwi, zaokrąglone w dół.
+
+## Przedmiar 0 świadomie
+- Płytki między szafkami w kuchni — płyta kamienna lub spiek, kamieniarz.
+- Narożniki aluminiowe z siatką — dotyczą tynkowania, na rynku pierwotnym bez nich; krawędzie podkonstrukcji GK w sypialni w cenie zabudowy GK.
+- Zabudowy stolarskie (kuchnia, szafa, zabudowa przy łóżku, szafka podumywalkowa, montaż AGD w zabudowie) — stolarz; bez pozycji.
+- Szafka nad WC — wysoka szafka w zabudowie, stolarz; jeśli składamy ją my, 250 zł.
+- Klimatyzacja — nie ma jej w projekcie; bez pozycji.
+- Zabudowa pionów — piony są już obudowane przez dewelopera; bez pozycji.

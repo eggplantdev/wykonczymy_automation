@@ -3,7 +3,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { Loader2, Paperclip } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { formatPLDate } from '@/lib/utils/format-date'

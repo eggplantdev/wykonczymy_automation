@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { listDailyEligibleInvestmentIds } from '@/lib/db/snapshots'
 import { captureDailySnapshot } from '@/lib/kosztorys/capture-daily-snapshots'
@@ -91,10 +91,11 @@ describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
     expect(rows[0].payload).toMatchObject({ globalDiscount: { type: 'amount', value: 250 } })
   })
 
-  it('offers only open, untrashed, non-szablon investments to the night run', async () => {
+  it('offers only open, untrashed, non-szablon, non-rejected investments to the night run', async () => {
     const active = await investment('daily-eligible-active')
     const planned = await investment('daily-eligible-planned', { status: 'planowana' })
     const completed = await investment('daily-eligible-completed', { status: 'completed' })
+    const rejected = await investment('daily-eligible-rejected', { status: 'rejected' })
     const template = await createTestTemplate(payload, 'daily-eligible-szablon')
     created.push(template)
     const trashed = await investment('daily-eligible-trashed')
@@ -102,6 +103,6 @@ describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
 
     const eligible = await listDailyEligibleInvestmentIds(db)
     expect(eligible).toEqual(expect.arrayContaining([active, planned]))
-    for (const id of [completed, template, trashed]) expect(eligible).not.toContain(id)
+    for (const id of [completed, rejected, template, trashed]) expect(eligible).not.toContain(id)
   })
 })

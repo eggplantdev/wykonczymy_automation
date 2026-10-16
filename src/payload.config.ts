@@ -1,4 +1,4 @@
-import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url'
 
 import { blobTokenRefusal } from '@/lib/env/schema'
 import { isAuthenticatedBoolean } from '@/access'
+import { logIdlePoolErrors } from '@/lib/db/log-pool-errors'
 
 import { AmountEdits } from '@/collections/amount-edits'
 import { CashRegisters } from '@/collections/cash-registers'
@@ -63,7 +64,7 @@ export default buildConfig({
     fallbackLanguage: 'pl',
   },
   editor: lexicalEditor(),
-  db: vercelPostgresAdapter({
+  db: postgresAdapter({
     pool: {
       connectionString: process.env.DB_POSTGRES_URL,
     },
@@ -75,6 +76,7 @@ export default buildConfig({
     push: false,
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
+  onInit: logIdlePoolErrors,
   email: nodemailerAdapter({
     defaultFromAddress: process.env.EMAIL_USER ?? '',
     defaultFromName: 'Wykonczymy',

@@ -1,0 +1,36 @@
+## Wycena AI (2026-10-15)
+**AI przedmiar: 93 194,94 zł netto** — 107 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 2 pozycje z ilością 0: prace świadomie poza wyceną, każda z wyjaśnieniem w komentarzu. 2 prace spoza szablonu z ceną z katalogu: lamele w pokoju 3 (150 zł/m²) i „Szlifowanie mleczka z tynków deweloperskich” w łazience (pozycja z sekcji ścian, wstawiona do łazienki); trzecia, przedścianka GK w łazience, na 0.
+Źródło: jeden rzut (układ funkcjonalny, stan docelowy, wymiary w cm) i 29 wizualizacji. Mieszkanie ok. 61 m²: salon z aneksem, hol, sypialnia, pokój 3, nowa pralnia i łazienka z dawnej toalety. Wysokość 2,68 m przyjęta z Manuala — rzut jej nie podaje.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Rynek pierwotny czy wtórny**: wycena zakłada stan deweloperski (na rzucie „grzejnik deweloperski lub nowy”). Przy rynku wtórnym dochodzą skuwanie, demontaże i droższa gładź.
+- **Wyburzana ściana salon / pokój 3**: rzut pokazuje już stan po wyburzeniu. Przyjęte ok. 4,20 mb ściany z miękkiego materiału do 12 cm. Grubość, materiał i czy jest nośna — przy żelbecie 300–450 zł/m² zamiast 110.
+- **Toaleta zmienia rozmiar**: rzut pokazuje tylko stan docelowy. Jeśli trzeba wyburzyć lub przestawić ściankę, każdy m² wyburzenia +110 zł. Wod-kan liczone jak deweloperka (4 pkt); przy pełnym liczeniu ok. 8 pkt (+1000 zł).
+- **Pralnia**: klient prosi tylko o płytki na podłogę i oświetlenie. Pralka i suszarka stoją w pralni — czy podłączenie i podejścia wod-kan są po naszej stronie (2 × 100 + 2 × 250 zł) i czy malujemy ściany pralni od środka.
+- **Przenoszony grzejnik**: nowe miejsce nieznane (rzut pokazuje stan docelowy); liczona przebudowa 2 pkt c.o. i rozkucie podejść.
+- **Podłoga**: jodełka wyceniona jako parkiet (110 zł/m²). Panele winylowe klejone to 95 zł/m² plus wylewka samopoziomująca 55 zł/m² (≈ +2,1 tys. zł). Parkiet niewykończony fabrycznie — dochodzi cyklinowanie 150 zł/m².
+- **Drzwi ukryte**: 4 szt. po 1000 zł (łazienka, pralnia, pokój 3, sypialnia). Zwykłe drzwi to 380 zł/szt (−2,5 tys. zł).
+- **Płytki w łazience**: wąskie płytki ścienne liczone jako mały format (380 zł/m²; standard ≈ −1,5 tys. zł); ośmiokąty na podłodze jako mozaika (400 zł/m²; jako 20 × 20 ≈ −0,9 tys. zł). Fuga cementowa czy epoksydowa.
+- **Kamień**: przestrzeń między szafkami w kuchni i blat z marmurem w łazience — kamieniarz; kto robi i montuje blat.
+- **Wnęka w prysznicu**: liczona z 3 półkami (1800 zł); 1 półka 1200, 2 półki 1500 zł.
+- **Przedścianka 10 cm w łazience** „do potwierdzenia po inwentaryzacji” — nie liczona, ≈ +1,6 tys. zł.
+- **Odpływ prysznica**: liczona zmiana kanalizacji 800 zł — jeśli pion pozwala na odpływ liniowy bez przebudowy, −800 zł.
+- **Klimatyzacja**: jednostka ma w szablonie cenę 0 zł — do wpisania po wyborze modelu (Manual: 2200 zł, gdy model nieznany); miejsce agregatu, czy ściana zewnętrzna jest z żelbetu (przebicie 600 zł) i czy skropliny mogą iść bez syfonu.
+- **Tapety, sztukateria, lamele**: ilości szacowane z wizualizacji. Kto kładzie tapety; czy lamele w pokoju 3 montuje stolarz; czy gzymsy z LED są też w sypialni; czy karnisze są ukryte w gzymsie.
+- **Elektryka**: ile punktów dewelopera zostaje na miejscu (przyjęte 10 nowych elektrycznych i 8 oświetleniowych), liczba gniazdek i włączników, czy rozdzielnia dewelopera wystarczy przy indukcji.
+- **Gładź**: ściany w Q3, sufity salonu i sypialni w Q4 (LED w gzymsach). Ściany w Q4 to +18 zł/m².
+- **Transport i piętro**: transport z szablonu 1500 zł, a Manual dla dużego mieszkania deweloperskiego z wieloma zmianami mówi ok. 2000 zł (+500 zł); wyższe piętro bez windy ok. 2500 zł. Kontener 1800 zł.
+- **Wymiary holu**: rzut podaje tylko szerokość, przyjęte ok. 7 m².
+
+## Najważniejsze założenia
+- **Stan deweloperski**: szlifowanie mleczka na wszystkich tynkach, wkucie rur wod-kan w ścianę, demontaż grzejników na czas prac, bez skuwania.
+- **Nowe ściany pralni**: GK z wełną ok. 5,56 mb, drzwi w ścianie GK z profilami UA; pralnia 4,35 m².
+- **Łazienka z dawnej toalety** (4,72 m², w kształcie L): płytki tylko w prysznicu walk-in (7,45 m²), reszta ścian malowana, ciemny sufit z LED jako 1 kpl, ściana WC w drewnie po stronie stolarza.
+- **Gładź**: bez ścian za szafkami kuchennymi i szafami; także pod tapetami.
+- **Gruz**: kontener 1800 zł (Manual: przy wyburzeniach).
+- **Listwy przypodłogowe**: obwód pokoi i holu minus 25%.
+
+## Przedmiar 0 świadomie
+- Płytki między szafkami w kuchni — kamień, kamieniarz.
+- Przedścianka GK w łazience — do potwierdzenia po inwentaryzacji.

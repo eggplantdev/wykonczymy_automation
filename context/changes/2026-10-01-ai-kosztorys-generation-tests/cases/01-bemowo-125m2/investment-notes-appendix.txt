@@ -1,4 +1,4 @@
-=== Wycena AI (test, 2026-10-09) — AI przedmiar z pomiaru rysunków ===
+=== Wycena AI (2026-10-09) — AI przedmiar z pomiaru rysunków ===
 Kosztorys wypełnił agent: 127 pozycji, AI przedmiar razem 205 053,65 zł netto, bez rabatu. Ceny j.m. są z tej wyceny — agent liczył na szablonie „Kosztorys 2026”, który w 3 pozycjach ma inną cenę (transport, big bag, malowanie w łazience; razem −1 290 zł).
 Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”). Pozycja z ilością odczytaną z rysunku nie ma tam nic.
 
@@ -21,4 +21,3 @@ Najważniejsze założenia (ruszają wieloma pozycjami naraz):
 
 Poza pozycjami: szyby prysznicowej i parawanu nawannowego nie ma na liście zakupowej — do ustalenia.
 
-Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/01-bemowo-125m2

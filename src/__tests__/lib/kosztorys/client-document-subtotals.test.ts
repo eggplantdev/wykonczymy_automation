@@ -3,7 +3,7 @@ import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-cond
 import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
-import { makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> = {}) {
   return {
@@ -32,9 +32,7 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
   } satisfies KosztorysItemT
 }
 
-const STAGES = [
-  { id: 100, ordinal: 1, label: null, plane: 'w_tools' as const, split: null, completed: false },
-]
+const STAGES = [makeStage({ id: 100 })]
 
 // Sekcja A: two priced pozycje plus one empty on both axes — no przedmiar, no etap. Sekcja B holds
 // nothing but such pozycje, so the client's document has no Sekcja B at all.

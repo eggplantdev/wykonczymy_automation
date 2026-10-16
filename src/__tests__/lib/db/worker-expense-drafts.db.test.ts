@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
 import {
@@ -14,6 +14,7 @@ import {
   rejectPendingParagons,
   reopenSkippedReceipt,
   insertWorkerExpenseDraft,
+  listAllDraftTransferIds,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
@@ -191,6 +192,9 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
     expect(await listDraftTransferIds(db, [first, second, unrelated])).toEqual([first, second])
     expect(await listDraftTransferIds(db, [])).toEqual([])
+    const all = await listAllDraftTransferIds(db)
+    expect(all).toEqual(expect.arrayContaining([first, second]))
+    expect(all).not.toContain(unrelated)
   })
 
   // A read row the draft's AI read lacks is dropped, as a page the draft lacks is.

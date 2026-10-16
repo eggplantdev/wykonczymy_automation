@@ -70,7 +70,7 @@ export async function syncPushSubscription(publicKey: string): Promise<boolean> 
     }
     return (await subscribePushAction(toSubscriptionInput(subscription))).success
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a failed re-registration silently stops this device's pushes.
+    // TODO(EX-958) SENTRY-REQUIRED: a failed re-registration silently stops this device's pushes.
     logError('[PUSH] subscription sync failed', err)
     return false
   }
@@ -92,7 +92,7 @@ export async function unsubscribeThisDevice(): Promise<void> {
       .catch((err: unknown) => logError('[PUSH] browser unsubscribe failed', err))
     await unsubscribePushAction(endpoint)
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a device left subscribed keeps getting the logged-out account's pushes.
+    // TODO(EX-958) SENTRY-REQUIRED: a device left subscribed keeps getting the logged-out account's pushes.
     logError('[PUSH] unsubscribe failed', err)
   }
 }

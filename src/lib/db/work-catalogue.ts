@@ -1,6 +1,6 @@
 // No `server-only` here: the katalog seed script runs these helpers under tsx, where it throws
 // (same reason as kosztorys-descriptions.ts).
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import {
   toDescriptionTranslations,

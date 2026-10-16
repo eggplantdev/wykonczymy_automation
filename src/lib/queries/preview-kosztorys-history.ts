@@ -1,5 +1,5 @@
 import 'server-only'
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -47,7 +47,7 @@ async function buildHistoryList(investmentId: number, today: DayT): Promise<Hist
 // yesterday's `auto` rows stop being „today's". The live tree is both the baseline and what fills a
 // stored row's gaps (settlement mode, older settings keys), hence the tree's tags beside the
 // snapshot one — not the preview's, whose wpłaty and categories this list never reads.
-const cachedHistoryList = unstable_cache(buildHistoryList, ['preview-kosztorys-history-v2'], {
+const cachedHistoryList = cached(buildHistoryList, ['preview-kosztorys-history'], {
   tags: [...KOSZTORYS_TREE_TAGS.map((tag) => CACHE_TAGS[tag]), CACHE_TAGS.kosztorysSnapshots],
 })
 
@@ -87,7 +87,7 @@ async function readInvestorHistory(
     ])
     return { entries, version }
   } catch (error) {
-    // TODO(EX-449) SENTRY-REQUIRED: the investor silently loses the history until someone looks.
+    // TODO(EX-958) SENTRY-REQUIRED: the investor silently loses the history until someone looks.
     console.error(`[investor-history] investment ${investmentId}:`, error)
     return null
   }

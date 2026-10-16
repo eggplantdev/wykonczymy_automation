@@ -116,13 +116,13 @@ async function readWithModel<SchemaT extends z.ZodType>(
   try {
     return await withModelFallback('receipt', RECEIPT_MODEL, callModel)
   } catch (error) {
-    // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
+    // TODO(EX-958) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.
     throw new Error(providerErrorDetail(error, 'Błąd odczytu paragonu'))
   }
 }
 
-// TODO(EX-449) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
+// TODO(EX-958) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
 // succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be
 // captured as a Sentry error once Sentry is wired (mediaType included so PDF-specific
 // parse failures are separable from genuinely illegible images).

@@ -52,11 +52,9 @@ export function sumAmount(rows: MaterialTransactionRowT[]): number {
   return rows.reduce((acc, row) => acc + row.amount, 0)
 }
 
-// A row served from a stale cache has no type yet; link to the unfiltered list rather than to a
-// filter that would exclude the row it points at.
 export function expenseRowHref(investmentId: number, row: MaterialTransactionRowT): string {
   return investmentTransfersHref(investmentId, {
-    types: row.type ? [row.type] : undefined,
+    types: [row.type],
     id: row.id,
   })
 }

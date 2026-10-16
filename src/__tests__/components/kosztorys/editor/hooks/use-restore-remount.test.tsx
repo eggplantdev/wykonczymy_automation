@@ -56,6 +56,51 @@ describe('useRestoreRemount', () => {
     expect(result.current.remountKey).toBe(1)
   })
 
+  it('disarms when the refresh settles with the same tree — a later write does not remount', () => {
+    const { result, rerender } = renderHook(
+      ({ token, isRefreshing }) => useRestoreRemount(token, isRefreshing),
+      { initialProps: { token: 'rev-1', isRefreshing: false } },
+    )
+
+    act(() => result.current.triggerRestore(undefined, true))
+    rerender({ token: 'rev-1', isRefreshing: true })
+    // The interrupted write never committed: the refresh brings back the tree it started from.
+    rerender({ token: 'rev-1', isRefreshing: false })
+    rerender({ token: 'rev-2', isRefreshing: false })
+
+    expect(result.current.remountKey).toBe(0)
+  })
+
+  it('remounts when the replaced tree lands as the refresh settles', () => {
+    const { result, rerender } = renderHook(
+      ({ token, isRefreshing }) => useRestoreRemount(token, isRefreshing),
+      { initialProps: { token: 'rev-1', isRefreshing: false } },
+    )
+
+    act(() => result.current.triggerRestore(undefined, true))
+    rerender({ token: 'rev-1', isRefreshing: true })
+    rerender({ token: 'rev-2', isRefreshing: false })
+
+    expect(result.current.remountKey).toBe(1)
+  })
+
+  // A restore that succeeds while an interrupted replace's refresh is still in flight re-arms; that
+  // refresh settling on the old tree must not cancel the restore's own landing.
+  it('keeps a later arm the settling refresh does not own', () => {
+    const { result, rerender } = renderHook(
+      ({ token, isRefreshing }) => useRestoreRemount(token, isRefreshing),
+      { initialProps: { token: 'rev-1', isRefreshing: false } },
+    )
+
+    act(() => result.current.triggerRestore(undefined, true))
+    rerender({ token: 'rev-1', isRefreshing: true })
+    act(() => result.current.triggerRestore('rev-1'))
+    rerender({ token: 'rev-1', isRefreshing: false })
+    rerender({ token: 'rev-2', isRefreshing: false })
+
+    expect(result.current.remountKey).toBe(1)
+  })
+
   it('arms again for a second restore', () => {
     const { result, rerender } = renderHook(({ token }) => useRestoreRemount(token), {
       initialProps: { token: 'rev-1' },

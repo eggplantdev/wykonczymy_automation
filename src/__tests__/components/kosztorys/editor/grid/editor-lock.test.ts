@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // A zakończona inwestycja and a client's share link are both `readOnly`, and there the resemblance
 // ends: the client is served an ALLOWLIST, the owner keeps his whole document and merely stops
@@ -11,8 +12,8 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 // job.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null, completed: false },
+  makeStage({ id: 7, label: 'Etap 1', plane: null }),
+  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
 ]
 
 // The owner's own editor: mutation callbacks present, so the actions column is built and cells live.

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 
 // Stage actions carry their invariants in the server action, so we run the REAL action against
 // the REAL DB and assert PERSISTED STATE — the delete guard is only real if the row survives, and

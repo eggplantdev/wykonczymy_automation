@@ -1,6 +1,10 @@
 import type { Payload } from 'payload'
 import { serverEnv } from '@/lib/env/server'
-import { isAllowedUploadMime } from '@/lib/media/sniff-mime'
+import {
+  isAllowedContentType,
+  isAllowedUploadMime,
+  normalizeContentType,
+} from '@/lib/media/sniff-mime'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 import type { LandingAssetT } from './landing'
 
@@ -10,15 +14,6 @@ import type { LandingAssetT } from './landing'
  */
 export const FETCH_TIMEOUT_MS = 15_000
 export const MAX_ASSET_BYTES = 8 * 1024 * 1024
-
-/** Drop `; charset=…` and case, so a well-formed header is not refused for its spelling. */
-const normalizeType = (contentType: string): string =>
-  contentType.split(';')[0]?.trim().toLowerCase() ?? ''
-
-// Checked before the fetch as well as by Payload's create: a type the collection refuses would
-// otherwise cost 8 MB of transfer and an alert naming the wrong cause.
-const isAcceptedType = (contentType: string): boolean =>
-  isAllowedUploadMime(normalizeType(contentType))
 
 /**
  * Reject anything but an `https:` URL whose **parsed hostname equals** the landing's blob host.
@@ -76,7 +71,9 @@ export async function fetchLandingAsset(payload: Payload, asset: LandingAssetT):
   const url = assertAllowedUrl(asset.url)
 
   if (asset.size > MAX_ASSET_BYTES) throw new Error(`Plik przekracza ${MAX_ASSET_BYTES} B`)
-  if (!isAcceptedType(asset.contentType)) {
+  // Checked before the fetch as well as by Payload's create: a type the collection refuses would
+  // otherwise cost 8 MB of transfer and an alert naming the wrong cause.
+  if (!isAllowedContentType(asset.contentType)) {
     throw new Error(`Niedozwolony typ pliku: ${asset.contentType}`)
   }
 
@@ -89,8 +86,8 @@ export async function fetchLandingAsset(payload: Payload, asset: LandingAssetT):
   const declaredLength = Number(response.headers.get('content-length'))
   if (declaredLength > MAX_ASSET_BYTES) throw new Error(`Plik przekracza ${MAX_ASSET_BYTES} B`)
 
-  const contentType = normalizeType(response.headers.get('content-type') ?? '')
-  if (!isAcceptedType(contentType)) throw new Error(`Niedozwolony typ pliku: ${contentType}`)
+  const contentType = normalizeContentType(response.headers.get('content-type') ?? '')
+  if (!isAllowedUploadMime(contentType)) throw new Error(`Niedozwolony typ pliku: ${contentType}`)
 
   const buffer = await readCapped(response)
 

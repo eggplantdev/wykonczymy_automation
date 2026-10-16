@@ -14,7 +14,7 @@ import { billedMaterials, computeAmountDue } from '@/lib/kosztorys/summary-econo
 import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/types/table-rows'
 
 /** The listing row assembly, kept apart from the fetches in `queries/investments.ts` so the parity
@@ -22,7 +22,7 @@ import type { InvestmentRowT } from '@/types/table-rows'
  *  module drags in `server-only` and the audit falls back to re-deriving the formula, which is how
  *  the plane defect stayed invisible in the first place. */
 export function shapeInvestments(
-  investments: InvestmentRefT[],
+  investments: InvestmentWithNotesT[],
   financialsRecord: InvestmentFinancialsMapT,
   kosztorysTotalsRecord: KosztorysClientTotalsMapT,
   subcontractorDueRecord: KosztorysSubcontractorDueMapT,
@@ -109,13 +109,10 @@ export function shapeInvestments(
       contactPerson: inv.contactPerson,
       reviewRequested: inv.reviewRequested,
       notes: inv.notes,
-      aiNotes: inv.aiNotes,
       hasSheet: inv.hasSheet,
       createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,
       aiProgress: inv.aiStage ?? 'none',
-      aiStage: inv.aiStage,
-      materialsNetRate: inv.materialsNetRate,
       settlementMode: inv.settlementMode,
       vatRate: inv.vatRate,
     }

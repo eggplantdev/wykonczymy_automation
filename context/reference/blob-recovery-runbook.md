@@ -71,11 +71,16 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
   uploaded — it moved 1767→1771 within minutes, confirming the store is live).
 - Files: faktura PDFs + `next/image` resized derivatives (`<base>-400x300.jpg`, thumbnails).
 - Access is **public** — bytes fetchable by URL with no token (Payload plugin default).
+- **Cached for a year.** `payload.config.ts` sets no `cacheControlMaxAge`, so the plugin's default of
+  365 days applies and media is served `public, max-age=31536000` — not `max-age=0`.
 
 ### `media` table (source of truth for the mapping)
 
 - **940 rows, 940 distinct `filename`, 0 duplicates, 0 null** → one blob file per media row.
   A transaction, however, maps to **1:N** media rows since EX-659 — one per invoice page.
+  The reverse never holds: a media row belongs to exactly one transfer, because deleting and reclaiming
+  work per row. So a worker's photo holding N paragony is uploaded N times, once per expense row;
+  sharing one media row would be a model change.
 - Link into it: **`transactions_rels (parent_id, path='invoice', media_id, order)`** — the join
   table Payload creates for a `hasMany` upload field. Both FKs are `ON DELETE cascade`, so deleting
   either side removes the link row rather than leaving a dangling one. (Note: DB table is
@@ -145,6 +150,23 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   a reference count of 0 means "safe to ignore", a count of 1 means "an invoice is missing".
   **The bytes survive in the preview store**, which is a point-in-time copy of production, so the
   recovery path is a targeted pull from preview rather than an FTP restore.
+- **The reverse case — a row with a live blob that nothing references — is a known, unswept leak.**
+  On 2026-10-15 production held **104** such `media` rows of 2445 (no row in any of the seven
+  `media_id` FK tables except `payload_locked_documents_rels`), almost all created 2026-04…08, all with
+  no `kind`; only 2 in the preceding 30 days, both invoices. Nothing sweeps them, because
+  `deleteUnreferencedMedia` runs only on a write that drops a reference. A sweep cron would delete
+  those 104 old invoices from a store with no undelete, so it waits on an owner decision.
+  One known source is the reclaim itself: it is best-effort per id, so one `payload.delete` that throws
+  is logged as `[media] delete unreferenced media failed` and its row and blob stay. The EX-1014
+  harness hit this 4 times in ~16 runs of „add 10 photos → Usuń wszystkie" back to back. Ids from
+  consecutive runs were exactly 10 apart, so no extra row was created: one attached photo survived
+  its reclaim. The reclaim ran in `after()` while the next run was already uploading to the same
+  investment. Why that one delete threw was never established: the preview DB was re-restored and
+  the logs had expired before anyone looked. If it recurs, grep the Vercel runtime logs for that line
+  the same day, before any preview restore. Production showed no gallery-shaped orphan.
+- **A blob with no row at all is a second, accepted leak.** A direct-to-Blob upload whose PUT lands
+  and whose `/api/media-register` then fails (`src/lib/media/client-upload.ts`) leaves bytes in the
+  store with no `media` row; `discardOrphanedUploads` works on media ids, so it cannot reach them.
 
 ### The Hobby plan cannot execute a restore (found the hard way, 2026-08-19)
 

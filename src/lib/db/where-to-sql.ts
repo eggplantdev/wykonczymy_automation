@@ -20,6 +20,7 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   payoutStatus: 'payout_status',
   date: 'date',
   cancelled: 'cancelled',
+  cancelledTransaction: 'cancelled_transaction_id',
   amount: 'amount',
 }
 

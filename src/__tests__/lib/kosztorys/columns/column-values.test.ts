@@ -3,7 +3,7 @@ import { columnValueResolver } from '@/lib/kosztorys/columns/column-values'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 // One row, work split across both crews' etapy: przedmiar 10 at 100 zł, stawki 65 (auto) and 200.
 const tree: KosztorysTreeT = makeTree({
@@ -26,10 +26,7 @@ const tree: KosztorysTreeT = makeTree({
       ],
     },
   ],
-  stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 200, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
-  ],
+  stages: [makeStage({ id: 100 }), makeStage({ id: 200, ordinal: 2, plane: 'own_tools' })],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 1 },
     { itemId: 1, stageId: 200, qtyDone: 4 },

@@ -1,8 +1,9 @@
-// Re-runnable: fills the missing or stale opis translations of the pozycje of open investments
-// (szablony included) from the katalog prac — the same reuse „Uzupełnij tłumaczenia (AI)" makes
-// before it asks the AI. With --ai it also does what the buttons do, across every open kosztorys at
-// once: the katalog's own gaps first (so the pozycje then reuse them), then one AI call per distinct
-// opis still missing, then the section names.
+// Re-runnable: fills the missing or stale opis translations of the pozycje of every investment not in
+// the kosz (szablony and zakończone included — Problemy flags a gap on a closed one too) from the
+// katalog prac — the same reuse „Uzupełnij tłumaczenia (AI)" makes before it asks the AI. With --ai
+// it also does what the buttons do, across every kosztorys at once: the katalog's own gaps first (so
+// the pozycje then reuse them), then one AI call per distinct opis still missing, then the section
+// names.
 //
 //   node --env-file=.env --conditions=react-server --import tsx \
 //     src/scripts/fill-translations-from-catalogue.ts [--ai] [--apply]
@@ -20,10 +21,11 @@
 //
 // Raw SQL skips the cache tags: a rozpiska keeps serving the old texts until any cell edit but a
 // tłumaczenie flushes it, and the katalog until any katalog edit.
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { fillSectionNameTranslations } from '../lib/actions/translate-section-name'
+import { fillCatalogueTranslations } from '../lib/ai/fill-catalogue-translations'
 import { translateRows } from '../lib/ai/translate-new-row'
 import { fillDescriptionTranslations } from '../lib/db/fill-description-translations'
 import { getDb, type DbExecutorT } from '../lib/db/get-db'
@@ -35,14 +37,14 @@ import {
 } from '../lib/i18n/description-translations'
 import { TRANSLATION_LANGUAGES } from '../lib/i18n/languages'
 
-type OpenItemT = FillRowT & { investment: string }
+type LiveItemT = FillRowT & { investment: string }
 
-async function readOpenItems(db: DbExecutorT): Promise<OpenItemT[]> {
+async function readLiveItems(db: DbExecutorT): Promise<LiveItemT[]> {
   const res = await db.execute(sql`
     SELECT ki.id, ki.description, ki.unit, ki.description_translations, i.name AS investment
     FROM kosztorys_items ki
     JOIN investments i ON i.id = ki.investment_id
-    WHERE i.status <> 'completed' AND i.trashed_at IS NULL
+    WHERE i.trashed_at IS NULL
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),
@@ -53,18 +55,18 @@ async function readOpenItems(db: DbExecutorT): Promise<OpenItemT[]> {
   }))
 }
 
-async function readOpenSectionNames(db: DbExecutorT): Promise<string[]> {
+async function readLiveSectionNames(db: DbExecutorT): Promise<string[]> {
   const res = await db.execute(sql`
     SELECT DISTINCT s.name
     FROM kosztorys_sections s
     JOIN investments i ON i.id = s.investment_id
-    WHERE i.status <> 'completed' AND i.trashed_at IS NULL AND trim(coalesce(s.name, '')) <> ''
+    WHERE i.trashed_at IS NULL AND trim(coalesce(s.name, '')) <> ''
   `)
   return res.rows.map((row) => String(row.name))
 }
 
 async function fillFromCatalogueOnly(db: DbExecutorT, apply: boolean) {
-  const items = await readOpenItems(db)
+  const items = await readLiveItems(db)
   const plan = planAiFill(items, await listCatalogueTranslationsByMatchKey(db))
   const writes = plan.fromCatalogue
 
@@ -72,7 +74,7 @@ async function fillFromCatalogueOnly(db: DbExecutorT, apply: boolean) {
   const perInvestment = Map.groupBy(writes, (write) => investmentById.get(write.id) ?? '?')
   const stillMissing = plan.toTranslate.flatMap(({ rows }) => rows)
 
-  console.log(`pozycje otwartych inwestycji: ${items.length}`)
+  console.log(`pozycje inwestycji: ${items.length}`)
   console.log(`do uzupełnienia z katalogu: ${writes.length} pozycji`)
   for (const language of TRANSLATION_LANGUAGES) {
     const count = writes.filter((write) => write.translations[language]).length
@@ -98,7 +100,7 @@ async function fillFromCatalogueOnly(db: DbExecutorT, apply: boolean) {
 
 async function fillWithAi(db: DbExecutorT, apply: boolean) {
   const catalogue = await listCatalogueItems(db)
-  const items = await readOpenItems(db)
+  const items = await readLiveItems(db)
   const itemsPlan = planAiFill(items, await listCatalogueTranslationsByMatchKey(db))
 
   console.log(`katalog — wpisów bez tłumaczenia: ${countNeedingTranslation(catalogue)}`)
@@ -114,24 +116,19 @@ async function fillWithAi(db: DbExecutorT, apply: boolean) {
     return
   }
 
-  const catalogueFill = await translateRows(catalogue)
-  const catalogueWritten = await fillDescriptionTranslations(
-    db,
-    'work_catalogue_items',
-    catalogueFill.writes,
-  )
+  const catalogueFill = await fillCatalogueTranslations(db)
   console.log(
-    `\n1. katalog: zapisano ${catalogueWritten}, AI nie przetłumaczyło ${catalogueFill.failed}`,
+    `\n1. katalog: zapisano ${catalogueFill.items}, AI nie przetłumaczyło ${catalogueFill.failed}`,
   )
 
   const itemsFill = await translateRows(
-    await readOpenItems(db),
+    await readLiveItems(db),
     await listCatalogueTranslationsByMatchKey(db),
   )
   const itemsWritten = await fillDescriptionTranslations(db, 'kosztorys_items', itemsFill.writes)
   console.log(`2. pozycje: zapisano ${itemsWritten}, AI nie przetłumaczyło ${itemsFill.failed}`)
 
-  const sections = await fillSectionNameTranslations(db, await readOpenSectionNames(db))
+  const sections = await fillSectionNameTranslations(db, await readLiveSectionNames(db))
   console.log(`3. sekcje: zapisano ${sections.written}, AI nie przetłumaczyło ${sections.failed}`)
 }
 

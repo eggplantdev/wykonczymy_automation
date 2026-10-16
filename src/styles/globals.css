@@ -276,8 +276,6 @@
   }
 }
 
-/* The section band's title, one step above the rows at every size so it still reads as a heading
-   without towering over them. */
 @utility grid-band-text {
   font-size: var(--grid-band-text-phone, var(--text-sm));
 
@@ -452,6 +450,10 @@
   height: auto !important;
   overflow: visible;
   padding-bottom: 0;
+  /* dsg's `will-change: transform` is for its own scroller. Here it only promotes the container to a
+     layer iOS moves on the compositor while the sticky header inside is placed on the main thread,
+     so the header wobbles against the page on a touch scroll. */
+  will-change: auto;
 }
 
 /* The compact report fits the screen, so anything past its edge is cut rather than scrolled to.

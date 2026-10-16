@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { Payload, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'

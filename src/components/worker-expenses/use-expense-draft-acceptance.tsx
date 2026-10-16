@@ -7,10 +7,11 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
 import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
+import { ExpenseDraftDuplicateHints } from '@/components/worker-expenses/expense-draft-duplicate-hints'
 import {
-  ExpenseDraftDuplicateHints,
+  ExpenseDraftDuplicateStatus,
   type DuplicateHintsStateT,
-} from '@/components/worker-expenses/expense-draft-duplicate-hints'
+} from '@/components/worker-expenses/expense-draft-duplicate-status'
 import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import {
@@ -35,6 +36,8 @@ type AcceptingT = {
   draft: ExpenseDraftRowT
   prefill: ExpenseFormPrefillT
   duplicates: DuplicateHintsStateT
+  // Held above the rows: a merge or split remounts them under new item ids.
+  dismissedDuplicates: ReadonlySet<string>
   hasPages: boolean
 }
 
@@ -106,7 +109,6 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     } catch {
       // Still opened: the dialog is the only place a zgłoszenie is rejected.
       hasPages = false
-      toastMessage('Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić', 'warning')
     } finally {
       setLoadingId(undefined)
     }
@@ -118,7 +120,13 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       : draft.aiRead
         ? { status: 'checking' }
         : { status: 'no-read' }
-    setAccepting({ draft, prefill: prefillFor(draft, files), duplicates, hasPages })
+    setAccepting({
+      draft,
+      prefill: prefillFor(draft, files),
+      duplicates,
+      dismissedDuplicates: new Set(),
+      hasPages,
+    })
     openDialog(formIdOf(draft.id), false)
     // A reopen mid-read stays on „reading"; the read already in flight loads the duplicates.
     if (isReading && !readsInFlight.current.has(draft.id)) await readOnOpen(draft, files)
@@ -177,6 +185,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     }
   }
 
+  // A reject is one decision with one `duplicate_of`, so „Duplikat" marks already set on other
+  // paragony are dropped — accepted: the „Duplikaty" filter still finds the zgłoszenie.
   async function handleReject(draftId: number, duplicateOf?: DuplicateOfT) {
     const result = await settleAction(() => rejectExpenseDraftAction(draftId, duplicateOf))
     if (!result.success) {
@@ -229,12 +239,40 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
                   ? handleReject(accepting.draft.id, duplicateOf)
                   : setRejecting(accepting.draft)
               }
-              renderAboveLineItems={({ lineItemIds, markDuplicate, itemIdOfReadRow }) => (
+              aboveLineItems={
+                <>
+                  {/* Stays up, unlike a toast: it is why „Zapisz" is greyed out. A read zgłoszenie
+                  says it on each paragon instead, where a file added by hand lifts it. */}
+                  {!accepting.hasPages && accepting.prefill.aiReadRows.length === 0 && (
+                    <p className="text-destructive text-sm">
+                      Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.
+                    </p>
+                  )}
+                  <ExpenseDraftDuplicateStatus state={accepting.duplicates} />
+                </>
+              }
+              wrapLineItem={({ itemId, markDuplicate, paragonOfReadRow, disabled, renderRow }) => (
+                // Mounted before the check lands too, so its landing does not remount every row.
                 <ExpenseDraftDuplicateHints
-                  state={accepting.duplicates}
-                  lineItemIds={lineItemIds}
-                  itemIdOfReadRow={itemIdOfReadRow}
+                  paragons={
+                    accepting.duplicates.status === 'ready' ? accepting.duplicates.paragons : []
+                  }
+                  draftId={accepting.draft.id}
+                  itemId={itemId}
+                  paragonOfReadRow={paragonOfReadRow}
                   onMarkDuplicate={markDuplicate}
+                  dismissed={accepting.dismissedDuplicates}
+                  onDismiss={(key) =>
+                    setAccepting(
+                      (prev) =>
+                        prev && {
+                          ...prev,
+                          dismissedDuplicates: new Set(prev.dismissedDuplicates).add(key),
+                        },
+                    )
+                  }
+                  disabled={disabled}
+                  renderRow={renderRow}
                 />
               )}
               secondaryAction={

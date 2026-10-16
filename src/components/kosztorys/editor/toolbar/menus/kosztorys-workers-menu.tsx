@@ -51,15 +51,9 @@ export function KosztorysWorkersMenu() {
       <DropdownMenuContent align="end" className="w-80">
         {workerReports && (
           <>
-            <ScanReportMenuItem workers={scannable} />
             <DropdownMenuItem onSelect={() => workerReports.openReport()}>
               <FileUser />
               Zgłoszenia prac
-              {workerReports.pendingCount > 0 && (
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {workerReports.pendingCount} do sprawdzenia
-                </span>
-              )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -108,6 +102,12 @@ export function KosztorysWorkersMenu() {
           )
         })}
         <WorkerViewSettingsMenuItem />
+        {workerReports && (
+          <>
+            <DropdownMenuSeparator />
+            <ScanReportMenuItem workers={scannable} />
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

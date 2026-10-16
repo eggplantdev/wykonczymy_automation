@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     blob = await head(url, { token })
   } catch (err) {
     if (err instanceof BlobNotFoundError) return failure('Nie znaleziono przesłanego pliku', 400)
-    // TODO(EX-449) SENTRY-REQUIRED: a failed head loses a big upload until the user retries.
+    // TODO(EX-958) SENTRY-REQUIRED: a failed head loses a big upload until the user retries.
     logError('[media-register] Blob head failed:', err, filename)
     return failure('Nie udało się zapisać pliku', 500)
   }
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     if (!range.ok) throw new Error(`Blob ${range.status}`)
     mimeType = sniffMime(await readHead(range))
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a failed range read loses a big upload until the user retries.
+    // TODO(EX-958) SENTRY-REQUIRED: a failed range read loses a big upload until the user retries.
     logError('[media-register] Blob range read failed:', err, filename)
     return failure('Nie udało się zapisać pliku', 500)
   }
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
   } catch (err) {
     // A taken filename means the blob already belongs to a row — answered, never deleted.
     if (hasPgCode(err, [UNIQUE_VIOLATION])) return failure('Plik jest już zapisany', 409)
-    // TODO(EX-449) SENTRY-REQUIRED: a failed media insert loses the upload until the user retries.
+    // TODO(EX-958) SENTRY-REQUIRED: a failed media insert loses the upload until the user retries.
     logError('[media-register] Media insert failed:', err)
     await deleteIfUnreferenced(db, url, filename, token)
     return failure('Nie udało się zapisać pliku', 500)

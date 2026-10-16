@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -19,12 +19,12 @@ import type {
 export async function fetchPayoutTransactionsForInvestment(
   investmentId: number,
 ): Promise<PayoutTransactionRowT[]> {
-  return unstable_cache(
+  return cached(
     async () => {
       const payload = await getPayload({ config })
       return getPayoutTransactionsForInvestment(payload, investmentId)
     },
-    ['payout-transactions-v2', String(investmentId)],
+    ['payout-transactions', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }
@@ -36,15 +36,12 @@ export async function fetchPayoutTransactionsForInvestment(
 export async function fetchDepositTransactionsForInvestment(
   investmentId: number,
 ): Promise<DepositTransactionRowT[]> {
-  return unstable_cache(
+  return cached(
     async () => {
       const payload = await getPayload({ config })
       return getDepositTransactionsForInvestment(payload, investmentId)
     },
-    // -v2: the row gained `netAmount`, and an entry written by the previous build deserializes
-    // without it — `depositRowPair` would then read the przelew's netto off the stawka instead of
-    // off the faktura, disagreeing with a listing already keyed `deposit-plane-sums-v2`.
-    ['deposit-transactions-v2', String(investmentId)],
+    ['deposit-transactions', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

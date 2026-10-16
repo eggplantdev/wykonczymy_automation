@@ -39,7 +39,7 @@ export async function requestReviewAction(investmentId: number, email: string) {
       try {
         await sendReviewRequestEmail(payload, parsed.data.email)
       } catch (error) {
-        // TODO(EX-449) SENTRY-REQUIRED: a client-facing mail that never left.
+        // TODO(EX-958) SENTRY-REQUIRED: a client-facing mail that never left.
         logError('[requestReviewAction] send failed', error)
         return { success: false, error: 'Nie udało się wysłać wiadomości. Spróbuj ponownie.' }
       }
@@ -54,7 +54,7 @@ export async function requestReviewAction(investmentId: number, email: string) {
           user,
         })
       } catch (error) {
-        // TODO(EX-449) SENTRY-REQUIRED: a sent review request the flag doesn't record.
+        // TODO(EX-958) SENTRY-REQUIRED: a sent review request the flag doesn't record.
         logError('[requestReviewAction] flag write failed', error)
         return {
           success: true,

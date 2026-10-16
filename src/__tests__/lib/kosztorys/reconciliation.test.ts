@@ -4,7 +4,7 @@ import { kosztorysClientTotals } from '@/lib/kosztorys/settlement-client-totals'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import { deriveFinancials } from '@/lib/db/investment-financials'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
-import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import type { TypeSettledTotalT } from '@/types/investment-financials'
 
 // Why this test exists (context/foundation/lessons.md): kosztorys v1 and the app once disagreed on a
@@ -39,10 +39,7 @@ function makeReconTree(overrides: Partial<KosztorysTreeT> = {}): KosztorysTreeT 
         ],
       },
     ],
-    stages: [
-      { id: 100, ordinal: 1, label: null, plane: null, split: null, completed: false },
-      { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
-    ],
+    stages: [makeStage({ id: 100, plane: null }), makeStage({ id: 101, ordinal: 2, plane: null })],
     progress: [
       { itemId: 1, stageId: 100, qtyDone: 2 },
       { itemId: 1, stageId: 101, qtyDone: 3 },

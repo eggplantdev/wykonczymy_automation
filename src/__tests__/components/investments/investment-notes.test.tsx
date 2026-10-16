@@ -5,12 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
 import { updateInvestmentAction } from '@/lib/actions/investments'
 import { toastMessage } from '@/lib/utils/toast'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/investments', () => ({ updateInvestmentAction: vi.fn() }))
 
-const INVESTMENT: InvestmentRefT = {
+const INVESTMENT: InvestmentWithNotesT = {
   id: 7,
   name: 'Dom pod lasem',
   status: 'active',

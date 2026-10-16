@@ -10,5 +10,6 @@ import { vi } from 'vitest'
 export const revalidateTag = vi.fn()
 export const updateTag = vi.fn()
 export const revalidatePath = vi.fn()
+export const refresh = vi.fn()
 
 export const unstable_cache = <FnT>(fn: FnT): FnT => fn

@@ -9,7 +9,7 @@
 //
 // Run: pnpm seed:worker-payouts (test DB, 5435)
 import { getPayload, type Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import config from '@payload-config'
 import { getDb } from '@/lib/db/get-db'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'

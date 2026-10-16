@@ -5,7 +5,7 @@ import { baseRanksFromKeys, orderColumnKeys, type ColumnRanksT } from '@/lib/tab
 // which is only guaranteed to exist while this column leads.
 export const DOCUMENT_PINNED_COLUMN = 'description'
 
-function unpinned(keys: readonly string[]): string[] {
+export function unpinned(keys: readonly string[]): string[] {
   return keys.filter((key) => key !== DOCUMENT_PINNED_COLUMN)
 }
 

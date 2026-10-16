@@ -54,7 +54,7 @@ export function PushToggle({ className }: PushTogglePropsT) {
         usePushSubscriptionStore.setState({ subscribed: true })
         toastMessage(t('pushEnabled'))
       } catch (err) {
-        // TODO(EX-449) SENTRY-REQUIRED: push subscribe failed in the browser
+        // TODO(EX-958) SENTRY-REQUIRED: push subscribe failed in the browser
         logError('[PUSH] subscribe failed', err)
         toastMessage(t('pushFailed'), 'error')
       }

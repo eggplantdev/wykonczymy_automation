@@ -1,8 +1,12 @@
 import {
-  DOCUMENT_PINNED_COLUMN,
   orderDocumentKeys,
   sanitizeDocumentRanks,
 } from '@/lib/kosztorys/columns/document-column-order'
+import {
+  resolveHiddenColumns,
+  toHiddenColumnMap,
+  type HiddenColumnMapT,
+} from '@/lib/kosztorys/columns/document-column-visibility'
 import {
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,
@@ -25,8 +29,28 @@ const WORKER_VIEW_KEYS: ReadonlySet<string> = new Set(
   WORKER_VIEW_GROUPS.flatMap((group) => group.keys),
 )
 
+const WORKER_DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
+  'plannedQty',
+  'plannedDonePercent',
+])
+
+// The ceiling as it stood while the hidden ARRAY was the stored shape — frozen, never extended.
+const LEGACY_WORKER_COLUMNS: ReadonlySet<string> = new Set([
+  'plannedQty',
+  'currentPlannedQty',
+  'stageQtySum',
+  'unit',
+  'rate',
+  'plannedNetForPlane',
+  'net',
+  'remainingForPlane',
+  'stages',
+  'stageValueNet',
+  'plannedDonePercent',
+])
+
 export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
-  hiddenColumns: ['plannedQty', 'plannedDonePercent'],
+  hiddenColumns: [...WORKER_DEFAULT_HIDDEN_COLUMNS],
   hideEmptyRows: true,
   hidePlannedOnceExecuted: true,
   columnRanks: {},
@@ -45,15 +69,30 @@ export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT
     columnRanks?: unknown
   }
   return {
-    hiddenColumns: Array.isArray(hiddenColumns)
-      ? [...new Set(hiddenColumns)].filter(
-          (key): key is string =>
-            typeof key === 'string' && WORKER_VIEW_KEYS.has(key) && key !== DOCUMENT_PINNED_COLUMN,
-        )
-      : WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
+    hiddenColumns: resolveHiddenColumns(
+      hiddenColumns,
+      WORKER_VIEW_KEYS,
+      WORKER_DEFAULT_HIDDEN_COLUMNS,
+      LEGACY_WORKER_COLUMNS,
+    ),
     hideEmptyRows: hideEmptyRows !== false,
     hidePlannedOnceExecuted: hidePlannedOnceExecuted !== false,
     columnRanks: sanitizeDocumentRanks(columnRanks, WORKER_VIEW_KEYS),
+  }
+}
+
+export function toStoredWorkerViewSettings(
+  settings: WorkerViewSettingsT,
+): Omit<WorkerViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
+  const sanitized = sanitizeWorkerViewSettings(settings)
+  // The in-memory list is the owner's answer for every column; `sanitized` would read it as the
+  // legacy stored array and put a column added since back on its code default.
+  const hidden = Array.isArray(settings.hiddenColumns)
+    ? settings.hiddenColumns
+    : sanitized.hiddenColumns
+  return {
+    ...sanitized,
+    hiddenColumns: toHiddenColumnMap(hidden, WORKER_VIEW_KEYS),
   }
 }
 

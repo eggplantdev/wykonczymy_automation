@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -19,7 +19,7 @@ import { perfStart } from '@/lib/perf'
 
 export type RegisterBalanceMapT = Record<string, number>
 
-export const fetchRegisterBalances = unstable_cache(
+export const fetchRegisterBalances = cached(
   async (): Promise<RegisterBalanceMapT> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
@@ -34,7 +34,7 @@ export const fetchRegisterBalances = unstable_cache(
 
 export type InvestmentFinancialsMapT = Record<string, InvestmentFinancialsT>
 
-export const fetchInvestmentFinancials = unstable_cache(
+export const fetchInvestmentFinancials = cached(
   async (): Promise<InvestmentFinancialsMapT> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
@@ -46,11 +46,7 @@ export const fetchInvestmentFinancials = unstable_cache(
     console.log(`[PERF] query.fetchInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
     return record
   },
-  // Versioned key — see the note on `reference-data-v2`. Bumped when `InvestmentFinancialsT` gained
-  // `netCategoryCosts`: an entry written before that lacks the array, and a reader dereferencing it
-  // throws rather than merely showing an old number. v3: `totalBonus`, which marża v2 subtracts —
-  // read as `undefined` it turns the figure into NaN.
-  ['investment-financials-v3'],
+  ['investment-financials'],
   // Two tags, not one: the figures are summed from transfers, but the materiały concession and the
   // settlement mode that gates it are columns on `investments`. Tagged on transfers alone, saving a
   // rate left the listing serving the pre-change marża until an unrelated transfer happened to
@@ -88,7 +84,7 @@ function cachedInvestmentMap<RowT extends { investmentId: number }>(
   select: (db: DbExecutorT) => Promise<RowT[]>,
   tags: string[],
 ) {
-  return unstable_cache(
+  return cached(
     async (): Promise<Record<string, Omit<RowT, 'investmentId'>>> => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })
@@ -107,7 +103,7 @@ function cachedInvestmentMap<RowT extends { investmentId: number }>(
 }
 
 export const fetchKosztorysClientTotals = cachedInvestmentMap(
-  'kosztorys-client-totals-v2',
+  'kosztorys-client-totals',
   'fetchKosztorysClientTotals',
   selectKosztorysClientTotals,
   KOSZTORYS_CLIENT_TOTALS_TAGS,
@@ -119,7 +115,7 @@ export type KosztorysSubcontractorDueMapT = Record<string, SubcontractorSettleme
 // reads (items, stages, progress, and the investment's coefficients) is already in it, and a second
 // list would be a second thing to keep in step.
 export const fetchKosztorysSubcontractorDue = cachedInvestmentMap(
-  'kosztorys-subcontractor-due-v1',
+  'kosztorys-subcontractor-due',
   'fetchKosztorysSubcontractorDue',
   selectKosztorysSubcontractorDue,
   KOSZTORYS_CLIENT_TOTALS_TAGS,
@@ -130,7 +126,7 @@ export type DepositPlaneSumsMapT = Record<string, DepositPlaneSumsT>
 // Transfers only: this fold reads no investment column at all — the VAT rate the legacy bridge needs
 // for pre-spike rows arrives later, in `shapeInvestments`.
 export const fetchDepositPlaneSums = cachedInvestmentMap(
-  'deposit-plane-sums-v3',
+  'deposit-plane-sums',
   'fetchDepositPlaneSums',
   selectDepositPlaneSums,
   [CACHE_TAGS.transfers],
@@ -138,7 +134,7 @@ export const fetchDepositPlaneSums = cachedInvestmentMap(
 
 // Both planes move a pair: executed work on the kosztorys side, wypłaty on the transfers side. A flat
 // row array rather than `cachedInvestmentMap` — an investment carries one row per worker.
-export const fetchWorkerPayoutPairs = unstable_cache(
+export const fetchWorkerPayoutPairs = cached(
   async (): Promise<WorkerPayoutPairRowT[]> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
@@ -146,6 +142,6 @@ export const fetchWorkerPayoutPairs = unstable_cache(
     console.log(`[PERF] query.fetchWorkerPayoutPairs ${elapsed()}ms (${rows.length} pairs)`)
     return rows
   },
-  ['worker-payout-pairs-v3'],
+  ['worker-payout-pairs'],
   { tags: [...KOSZTORYS_CLIENT_TOTALS_TAGS, CACHE_TAGS.transfers] },
 )

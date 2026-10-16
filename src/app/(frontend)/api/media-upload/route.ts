@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       createdById: auth.user.id,
     })
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a failed media insert loses the worker's photo until they retry.
+    // TODO(EX-958) SENTRY-REQUIRED: a failed media insert loses the worker's photo until they retry.
     logError('[media-upload] Media insert failed:', err)
     return NextResponse.json({ error: 'Nie udało się zapisać pliku' }, { status: 500 })
   }
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     await deleteMediaRow(db, id).catch((delErr) =>
       logError('[media-upload] Byteless media row delete failed:', delErr, id),
     )
-    // TODO(EX-449) SENTRY-REQUIRED: a failed Blob PUT loses the worker's photo until they retry.
+    // TODO(EX-958) SENTRY-REQUIRED: a failed Blob PUT loses the worker's photo until they retry.
     logError('[media-upload] Blob put failed:', err)
     return NextResponse.json({ error: 'Nie udało się zapisać pliku' }, { status: 500 })
   }

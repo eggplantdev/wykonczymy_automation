@@ -6,6 +6,8 @@ import { GUARDED_ROLES, SELF_REMOVAL_MESSAGE, lastRoleMessage } from '@/lib/cons
  * Nobody removes their own account, and the last account able to administer the firm stays. Counted
  * per role among accounts that can still log in, because a trashed or deactivated OWNER is refused at
  * login. An account already in the trash takes nobody out of that count, so its delete is not refused.
+ * The count is read without a lock: two concurrent removals of the last two OWNERs can both pass it.
+ * Accepted — it takes two managers removing the firm's owners in the same instant.
  */
 export function removalRefusal(
   subject: RemovalSubjectT,

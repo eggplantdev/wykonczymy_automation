@@ -3,7 +3,12 @@ import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
-import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
+import {
+  fetchInvestmentNotes,
+  fetchReferenceData,
+  findInvestmentRef,
+  withNotes,
+} from '@/lib/queries/reference-data'
 import {
   fetchPayoutTransactionsForInvestment,
   fetchDepositTransactionsForInvestment,
@@ -42,7 +47,7 @@ export default async function InvestmentKosztorysV2Page({
   // page to an error screen; the existence check would lose the 404 page outright, since the tree
   // rejects before a check placed after the fan-out can run at all.
   const user = await requireManagementPage()
-  const refData = await fetchReferenceData()
+  const [refData, notesById] = await Promise.all([fetchReferenceData(), fetchInvestmentNotes()])
   // Name, existence and the linked-sheet flag all ride along on reference data — a dedicated
   // findByID bought none of the three. Its one cost: a tag marks this entry stale but still serves
   // it once, so an investment created seconds ago 404s until the next request.
@@ -115,7 +120,7 @@ export default async function InvestmentKosztorysV2Page({
       workers={refData.workers}
       workCatalogue={workCatalogue}
       assets={assets}
-      investment={investment}
+      investment={withNotes(investment, notesById)}
       hasSheet={investment.hasSheet}
       lock={investmentLockOf({ status: investment.status, trashed })}
       workerReports={{

@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-12)
+## Wycena AI (2026-10-12)
 **AI przedmiar: 86 643,41 zł netto** — 46 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”, poza sufitem podwieszanym (300 zł/m² z Notatek). Dodane 2 pozycje spoza szablonu: sufit podwieszany z wełną i folią (300 zł/m²) oraz glify z GK na oknach dachowych (70 zł/mb, z katalogu prac).
 Źródło: rzut poddasza i zdjęcie. Rzut nie podaje wymiarów, tylko powierzchnie: skala wzięta z pom. 29 (66,20 m²) i pom. 30 (5,78 m²), z niej poddasze 8,08 × 9,48 m w świetle ścian. Ze zdjęcia: ścianka kolankowa ok. 1,10 m, dach ok. 45°, stara wełna między krokwiami, 2 okna dachowe. Sufit płaski przyjęty na 2,60 m (Manual: rynek wtórny) → sufit z GK razem ze skosami 90,83 m².
 Nie ma rzutu z podziałem na pokoje, więc ścianki GK (20 mb) są rozrysowane przez agenta: korytarz wzdłuż kalenicy, 3 pokoje, łazienka ok. 2,0 × 2,0 m; mała garderoba = istniejące pom. 30.

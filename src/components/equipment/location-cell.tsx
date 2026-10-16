@@ -46,7 +46,7 @@ export function LocationCell({ location, locatedAt, live, axis }: LocationCellPr
 
   return (
     <div className="flex flex-col leading-tight">
-      <span className="text-sm">{targetLabel(location)}</span>
+      <span>{targetLabel(location)}</span>
       {locatedAt && (
         <span className="text-muted-foreground text-xs">od {formatPLDate(locatedAt)}</span>
       )}

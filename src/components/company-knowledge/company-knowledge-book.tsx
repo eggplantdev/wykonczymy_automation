@@ -75,6 +75,8 @@ export function CompanyKnowledgeBook({
     next: CompanyKnowledgeEntryT[],
     call: () => Promise<{ success: true } | FailureT>,
   ) {
+    // Accepted race: with two writes in flight, a failure rolls back to a snapshot that may predate
+    // the other write.
     const previous = entries
     setEntries(next)
     const result = await settleAction(call)

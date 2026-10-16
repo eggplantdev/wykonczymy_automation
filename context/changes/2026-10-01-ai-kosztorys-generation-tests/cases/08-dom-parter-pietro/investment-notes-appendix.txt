@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-12)
+## Wycena AI (2026-10-12)
 **AI przedmiar: 166 628,82 zł netto** — 86 pozycji, ceny j.m. z szablonu. Dom dwupoziomowy: parter + piętro.
 Źródło: rysunki projektanta wnętrz (parter 28.05.2025, piętro 17.06.2025) z wpisanymi wymiarami i powierzchniami płytek, sufitów i podłóg — nic nie było skalowane. Wysokości z przekrojów: parter 2,80 m, piętro 2,75 m. Punkty elektryczne i oprawy z legend (po jednej na piętro). Ściany malowane i długości listew to szacunek z obrysu — rysunki ich nie podają.
 Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.

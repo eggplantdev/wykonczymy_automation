@@ -1,5 +1,5 @@
 import type { Where } from 'payload'
-import { buildTransferFilters } from '@/lib/queries/transfer-filters'
+import { andWith, buildTransferFilters } from '@/lib/queries/transfer-filters'
 import type { ResolvedSearchParamsT } from '@/types/page'
 
 export function workerTransferScope(workerId: number, registerIds: number[]): Where {
@@ -13,12 +13,10 @@ export function workerTransferScope(workerId: number, registerIds: number[]): Wh
 
 /**
  * The scope goes under `and`, never spread: the kasa filter writes `where.or` too, so a spread
- * would let `?sourceRegister=<foreign kasa>` replace the scope. The URL filters stay top-level
- * because the readers of a transfer Where (cancelled strip, `listsCancelled`, the no-results
- * sentinel) look only there.
+ * would let `?sourceRegister=<foreign kasa>` replace the scope.
  */
 export function buildWorkerTransferWhere(urlFilters: Where, scope: Where): Where {
-  return { ...urlFilters, and: [scope] }
+  return andWith(urlFilters, scope)
 }
 
 /** The worker page's access boundary. */

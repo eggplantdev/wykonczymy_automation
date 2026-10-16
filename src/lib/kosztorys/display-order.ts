@@ -1,6 +1,6 @@
 import 'server-only'
 import { z } from 'zod'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
 

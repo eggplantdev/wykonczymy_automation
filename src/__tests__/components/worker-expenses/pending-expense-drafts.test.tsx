@@ -1,10 +1,11 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expense-drafts'
 import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicates'
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
@@ -27,6 +28,9 @@ vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
   findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+vi.mock('@/lib/media/ingest-files', () => ({
+  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
+}))
 
 const draft: ExpenseDraftRowT = {
   id: 7,
@@ -109,7 +113,9 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
 
     expect(await screen.findByRole('button', { name: 'Zapisz' })).toBeDisabled()
-    expect(toastMessage).toHaveBeenCalledWith(expect.stringContaining('zdjęć'), 'warning')
+    expect(
+      screen.getByText('Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.'),
+    ).toBeInTheDocument()
     expect(readExpenseDraftAction).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Odrzuć' }))
@@ -118,6 +124,117 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
     )
 
     expect(rejectExpenseDraftAction).toHaveBeenCalledWith(draft.id, undefined)
+  })
+
+  it('w odczytanym zgłoszeniu blokuje przyjęcie paragonu bez zdjęcia, a zdjęcie dodane ręcznie je zdejmuje', async () => {
+    const user = userEvent.setup()
+    render(
+      <PendingExpenseDrafts drafts={[{ ...draft, aiRead: read }]} referenceData={referenceData} />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
+
+    expect(
+      await screen.findByText(
+        'Nie udało się pobrać zdjęcia paragonu — dodaj je w polu „FV”, żeby go przyjąć.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Przyjmij' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Odrzuć' })).toBeEnabled()
+
+    const fvInput = document.querySelector<HTMLInputElement>('input[type="file"]')!
+    await user.upload(fvInput, new File(['jpg'], 'paragon.jpg', { type: 'image/jpeg' }))
+
+    expect(await screen.findByRole('button', { name: 'Przyjmij' })).toBeEnabled()
+    expect(screen.queryByText(/Nie udało się pobrać zdjęcia paragonu/)).toBeNull()
+  })
+
+  // Połącz rebuilds the merged row's files from the downloaded pages — none here — so it would drop
+  // the photo added by hand and lock „Przyjmij" again without a word.
+  it('nie pozwala łączyć paragonów, gdy zdjęć nie da się pobrać', async () => {
+    const user = userEvent.setup()
+    const twoParagons: ExpenseDraftRowT = {
+      ...draft,
+      media: [
+        ...draft.media,
+        { id: 12, url: '/m/12.jpg', filename: 'castorama.jpg', mimeType: 'image/jpeg' },
+      ],
+      aiRead: {
+        rows: [
+          { mediaIds: [11], description: 'Klej do płytek' },
+          { mediaIds: [12], description: 'Fuga' },
+        ],
+      },
+    }
+    render(<PendingExpenseDrafts drafts={[twoParagons]} referenceData={referenceData} />)
+
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
+    await user.click(await screen.findByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 2' }))
+
+    expect(screen.getByRole('button', { name: 'Połącz zaznaczone w 1 transakcję' })).toBeDisabled()
+  })
+})
+
+describe('podpowiedzi duplikatów', () => {
+  // Połącz mints new rows, and with them new hint components — the dismissal lives above them.
+  it('„OK, to nie duplikat” przeżywa połączenie paragonów', async () => {
+    const user = userEvent.setup()
+    vi.mocked(findExpenseDraftDuplicates).mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          readRow: 0,
+          description: 'Klej do płytek',
+          amount: 89.9,
+          matches: [
+            {
+              reasons: ['same-number'],
+              key: 'transaction-501',
+              source: 'transaction',
+              id: 501,
+              draftId: null,
+              readRows: [],
+              date: '2026-10-01',
+              investmentId: 3,
+              submitterName: 'Jan',
+              registerName: 'Kasa główna',
+              investmentName: 'Mieszkanie Mokotów',
+              pages: [],
+              amount: 89.9,
+              documentNumber: 'PAR/2026/0001',
+              sellerNip: null,
+              documentDate: '2026-10-01',
+              invoiceNote: null,
+              description: 'Klej do płytek',
+            },
+          ],
+        },
+      ],
+    })
+    const twoParagons: ExpenseDraftRowT = {
+      ...draft,
+      media: [
+        ...draft.media,
+        { id: 12, url: '/m/12.jpg', filename: 'castorama.jpg', mimeType: 'image/jpeg' },
+      ],
+      aiRead: {
+        rows: [
+          { mediaIds: [11], description: 'Klej do płytek' },
+          { mediaIds: [12], description: 'Fuga' },
+        ],
+      },
+    }
+    render(<PendingExpenseDrafts drafts={[twoParagons]} referenceData={referenceData} />)
+
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
+    await user.click(await screen.findByRole('button', { name: 'OK, to nie duplikat' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz pozycję 2' }))
+    await user.click(screen.getByRole('button', { name: 'Połącz zaznaczone w 1 transakcję' }))
+
+    await waitFor(() => expect(screen.getAllByRole('textbox', { name: 'Opis' })).toHaveLength(1))
+    expect(screen.queryByText('Transakcja #501')).toBeNull()
   })
 })
 

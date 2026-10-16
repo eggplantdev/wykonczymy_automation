@@ -19,7 +19,7 @@ import {
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { baseItem as sharedBaseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem as sharedBaseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 const baseItem = {
   ...sharedBaseItem,
@@ -39,10 +39,7 @@ const tree: KosztorysTreeT = makeTree({
       items: [baseItem],
     },
   ],
-  stages: [
-    { id: 100, ordinal: 1, label: null, plane: null, split: null, completed: false },
-    { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
-  ],
+  stages: [makeStage({ id: 100, plane: null }), makeStage({ id: 101, ordinal: 2, plane: null })],
   progress: [{ itemId: 1, stageId: 100, qtyDone: 2 }],
   vatRate: 0.08,
 })
@@ -199,10 +196,7 @@ describe('rowTotalQtyDone', () => {
   // A stage added after the row was built carries no key on it — without ?? 0 the sum would be NaN.
   it('counts a stage missing its key on the row as zero', () => {
     const [row] = treeToRows(tree)
-    const withGhost = [
-      ...tree.stages,
-      { id: 999, ordinal: 3, label: null, plane: null, split: null, completed: false },
-    ]
+    const withGhost = [...tree.stages, makeStage({ id: 999, ordinal: 3, plane: null })]
     expect(rowTotalQtyDone(row, withGhost, 'client')).toBe(2)
   })
 })
@@ -213,10 +207,7 @@ describe('wartość wiersza idzie za etapami', () => {
   // Both etapy sit on the same plane on purpose: these cases pin how the PRICE follows the view, so
   // the plane filter must not also be moving quantities underneath them. Plane scoping has its own
   // fixture in subcontractor-due-by-plane.test.ts.
-  const stages: KosztorysStageT[] = [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
-    { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null, completed: false },
-  ]
+  const stages: KosztorysStageT[] = [makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2 })]
   const row = (over: Partial<KosztorysV2RowT>) =>
     ({
       ...baseItem,
@@ -570,7 +561,7 @@ describe('Aktualizacja przedmiaru — postęp liczony od aktualizacji, oferta od
           ],
         },
       ],
-      stages: [{ id: STAGE, ordinal: 1, label: null, plane: null, split: null, completed: false }],
+      stages: [makeStage({ id: STAGE, plane: null })],
       progress: [{ itemId: 7, stageId: STAGE, qtyDone: 12 }],
       vatRate: 0,
     })

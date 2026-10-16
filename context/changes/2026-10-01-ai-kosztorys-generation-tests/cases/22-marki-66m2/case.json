@@ -1,0 +1,16 @@
+{
+  "investmentId": 219,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "zakres-prac.xlsx-Arkusz2-2-b7f1e957ca95.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "rzut-mieszkania-671ee0c09678.pdf",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

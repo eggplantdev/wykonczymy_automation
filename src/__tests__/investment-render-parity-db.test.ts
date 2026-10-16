@@ -38,7 +38,7 @@ import type {
 } from '@/lib/queries/balances'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithNotesT } from '@/types/reference-data'
 
 // REAL-PATH parity: assemble each figure the way each PAGE assembles it, over the real DB, for every
 // investment — the listing through `shapeInvestments` itself, the detail through
@@ -46,7 +46,7 @@ import type { InvestmentRefT } from '@/types/reference-data'
 //
 // Both sides read robocizna and rabat from the KOSZTORYS, because that is the plane the listing is
 // on; the v1 cards render the transactions plane by design. What this guards is `shapeInvestments`
-// drifting from the detail formulas (lessons.md:19).
+// drifting from the detail formulas (lessons.md, „A parity test runs the real per-surface code").
 //
 // Skips with no DB env, FAILS if env is set but the DB is unreachable. Run via `pnpm test:parity`.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -55,7 +55,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
   let payload: Payload | null = null
   // Rate and mode ride along because the LISTING side gets them, and without them the detail side is
   // a different formula the moment any investment has a rate saved.
-  let investments: InvestmentRefT[] = []
+  let investments: InvestmentWithNotesT[] = []
   let expenseCategories: { id: number; name: string }[] = []
   let setupError: unknown = null
 
@@ -165,8 +165,9 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       if (transactionFin.materialsNetDiscount !== 0) covered.concession++
 
       // The REAL row builder, not a re-derivation of its formulas — a figure wrong ONLY inside
-      // `shapeInvestments` is what slipped past this spec before (lessons.md:19). Through it even
-      // with no transfers: the listing renders such an investment too.
+      // `shapeInvestments` is what slipped past this spec before (lessons.md, „A parity test runs
+      // the real per-surface code"). Through it even with no transfers: the listing renders such
+      // an investment too.
       const listingFin = listingMap.get(inv.id)
       const [listingRow] = shapeInvestments(
         [inv],

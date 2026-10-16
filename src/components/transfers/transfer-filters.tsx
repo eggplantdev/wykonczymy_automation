@@ -19,6 +19,7 @@ import {
   SEARCH_FILTER_TOOLBAR_WIDTH,
 } from '@/components/filters/search-filter-input'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
+import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
@@ -51,6 +52,7 @@ const ENTITY_FILTER_KEYS = [
   'cancelledTransactionAudit',
   // Revealing anulowane IS a departure from the default view, so it counts and clears as a filter.
   'showCancelled',
+  'workerDrafts',
 ] as const
 
 type TransferFiltersPropsT = FilterConfigT & {
@@ -73,6 +75,7 @@ export function TransferFilters({
   showPayoutStatusFilter = false,
   showCancelledFilter = true,
   showSearchFilters = true,
+  showWorkerDraftsFilter = false,
   baseUrl,
   className,
   totalFilteredAmount,
@@ -94,6 +97,10 @@ export function TransferFilters({
   const { isActive: showCancelled, setActive: setShowCancelled } = useToggleSearchParam(
     baseUrl,
     'showCancelled',
+  )
+  const { isActive: onlyWorkerDrafts, setActive: setOnlyWorkerDrafts } = useToggleSearchParam(
+    baseUrl,
+    'workerDrafts',
   )
   // Named as what the user turns ON, not the default they start in — hiding anulowane is the resting
   // state, so „Ukryj anulowane" would read ticked before any filter was set. Always on in audit mode.
@@ -146,7 +153,8 @@ export function TransferFilters({
         showPaymentMethodFilter ||
         showPayoutStatusFilter ||
         (otherCategories && otherCategories.length > 0) ||
-        (expenseCategories && expenseCategories.length > 0)) && (
+        (expenseCategories && expenseCategories.length > 0) ||
+        showWorkerDraftsFilter) && (
         <ControlGrid>
           {transferTypes && transferTypes.length > 0 && (
             <FilterMultiSelect
@@ -254,6 +262,14 @@ export function TransferFilters({
               label={t('filterExpenseCategory')}
               icon={Receipt}
               searchable
+            />
+          )}
+
+          {showWorkerDraftsFilter && (
+            <ActiveFilterButton
+              isActive={onlyWorkerDrafts}
+              onChange={setOnlyWorkerDrafts}
+              activeLabel={t('filterWorkerDrafts')}
             />
           )}
         </ControlGrid>

@@ -19,14 +19,6 @@ import { logError } from '@/lib/utils/log-error'
  * guard probes, because this used to be a hand-maintained copy and lost `equipment-events` to the
  * drift — plus the raw table of worker expense-draft pages, which no Payload collection covers.
  *
- * **One id at a time, never `Promise.all`.** On the deployed database (Neon through
- * `@payloadcms/db-vercel-postgres`) concurrent Payload writes share a session: every `delete`
- * resolves as if it succeeded, and only one of them is actually committed. Deleting the pages of a
- * multi-page invoice in parallel therefore left every page but one in storage with nothing pointing
- * at it — silently, because none of the calls reported an error. Reproduced against that database;
- * a local single-connection Postgres never showed it. The scan is serialized for the same reason: a
- * reference read that comes back wrong is a page leaked, not a page deleted twice.
- *
  * Best-effort per id: this always runs after the write it cleans up for, so a failed delete must
  * leak a file rather than fail the mutation the user actually asked for.
  */

@@ -1,0 +1,16 @@
+{
+  "investmentId": 218,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "rysunki-techniczne-2cbdb7287cad.pdf",
+      "kind": "projekt"
+    },
+    {
+      "name": "wizualizacje-d608f613f589.pdf",
+      "kind": "projekt"
+    }
+  ],
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

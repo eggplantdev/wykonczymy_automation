@@ -1,4 +1,4 @@
-## Wycena AI (test, 2026-10-14)
+## Wycena AI (2026-10-14)
 **AI przedmiar: 39 687,49 zł netto — tylko za pozycje z ilością** — 86 pozycji, z tego 78 z ilością i 8 wybranych przy ilości 0 (ilość nieznana albo wariant B), bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. Dodana 1 pozycja spoza szablonu łazienki: gładź rynek wtórny 85 zł/m² (z katalogu) w sekcji „Łazienka duża”.
 Łazienka i nowa łazienka to dwie osobne sekcje: „Łazienka duża” (obecna łazienka nr 5) i „Łazienka mała” (dawny schowek / W.C nr 6).
 Źródło: mail klienta, rzut bazowy mieszkania J (Pu 61,52 m², łaz. 5,83 m², W.C 1,53 m²), dwa zrzuty z programu klienta z wymiarami (łazienka 1: 315 cm, 5,84 m²; mała łazienka: 90 × 169,5 cm, „?,33 m²”) i dwa zdjęcia starej łazienki. Wysokości nie ma nigdzie — przyjęta 2,60 m (Manual: rynek wtórny).

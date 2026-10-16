@@ -3,14 +3,15 @@ import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-
 import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 // An etap with no rozliczenie has its quantity column locked — correct, but a `disabled` dsg cell
 // swallows keystrokes without saying why. What is pinned here is that the lock states its reason where
 // it is discovered (the cell), not only on the header badge nobody looks at after typing.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Bez rozliczenia', plane: null, split: null, completed: false },
-  { id: 9, ordinal: 2, label: 'Rozliczony', plane: 'w_tools', split: null, completed: false },
+  makeStage({ id: 7, label: 'Bez rozliczenia', plane: null }),
+  makeStage({ id: 9, ordinal: 2, label: 'Rozliczony' }),
 ]
 
 const ROW = { id: 1, sectionId: 10, [stageKey(7)]: 12 } as unknown as KosztorysV2RowT

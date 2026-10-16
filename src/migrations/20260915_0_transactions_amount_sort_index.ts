@@ -1,4 +1,4 @@
-import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
+import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // EX-777 moved sort to the server, hitting `ORDER BY` directly. `amount` had no btree (only the GIN
 // trigram index for `LIKE`, unusable here), so "largest first" cost a full Seq Scan + heapsort; this

@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ data: await readWorkerReportPage(page, { units }) })
   } catch (err) {
-    // TODO(EX-449) SENTRY-REQUIRED: a failed paper read is a silent provider error the kierownik
+    // TODO(EX-958) SENTRY-REQUIRED: a failed paper read is a silent provider error the kierownik
     // can't self-report.
     logError('[read-worker-report] Read failed:', err)
     const message = err instanceof Error ? err.message : 'Błąd odczytu kartki'

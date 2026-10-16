@@ -1,125 +1,132 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import {
   getExpenseDuplicateColumns,
   type ExpenseDuplicateRowT,
 } from '@/components/tables/expense-duplicates'
+import type { ParagonRowT } from '@/components/forms/expense-form/expense-form'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { isWeakMatch } from '@/lib/expense-duplicates/match'
+import type { DuplicateMatchT } from '@/lib/expense-duplicates/types'
 import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
 import { cn } from '@/lib/utils/cn'
-
-export type DuplicateHintsStateT =
-  | { status: 'reading' }
-  | { status: 'checking' }
-  | { status: 'no-read' }
-  | { status: 'error'; retry: () => void }
-  | { status: 'ready'; paragons: ParagonDuplicatesT[] }
+import { formatPLNOrDash } from '@/lib/utils/format-currency'
 
 type PropsT = {
-  state: DuplicateHintsStateT
-  // Numbers each hint by its row's position in the form.
-  lineItemIds: string[]
+  paragons: ParagonDuplicatesT[]
+  draftId: number
+  itemId: string
   // Resolved at render: a merge or split moves a paragon to another row.
-  itemIdOfReadRow: (readRow: number) => string | undefined
+  paragonOfReadRow: (readRow: number) => ParagonRowT | undefined
   onMarkDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
+  // „OK" only hides the match for this dialog; nothing is stored.
+  dismissed: ReadonlySet<string>
+  onDismiss: (key: string) => void
+  disabled: boolean
+  renderRow: (hint: React.ReactNode) => React.ReactNode
 }
 
 // By read row, not by item: a merge or split mints new item ids under the same paragon.
 const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonReadRow}-${row.key}`
 
-const STATUS_MESSAGES = {
-  reading: 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.',
-  checking: 'Sprawdzanie duplikatów…',
-  'no-read': 'Bez odczytu paragonów nie da się sprawdzić duplikatów.',
-} as const
-
 export function ExpenseDraftDuplicateHints({
-  state,
-  lineItemIds,
-  itemIdOfReadRow,
+  paragons,
+  draftId,
+  itemId,
+  paragonOfReadRow,
   onMarkDuplicate,
+  dismissed,
+  onDismiss,
+  disabled,
+  renderRow,
 }: PropsT) {
-  // „OK" only hides the row for this dialog; nothing is stored.
-  const [dismissed, setDismissed] = useState(() => new Set<string>())
+  const twinOf = (match: DuplicateMatchT) =>
+    match.source === 'draft' && match.id === draftId
+      ? match.readRows.map(paragonOfReadRow).find((row) => row !== undefined)
+      : undefined
 
-  if (state.status === 'error') {
-    return (
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-destructive text-sm">Nie udało się sprawdzić duplikatów.</p>
-        <Button type="button" variant="outline" size="sm" onClick={state.retry}>
-          Sprawdź ponownie
-        </Button>
-      </div>
-    )
-  }
-  if (state.status !== 'ready') {
-    return <p className="text-muted-foreground text-sm">{STATUS_MESSAGES[state.status]}</p>
-  }
-  // A paragon removed or marked a duplicate resolves to no row and takes its hints with it.
-  const rows = state.paragons
-    .flatMap((paragon) => {
-      const itemId = itemIdOfReadRow(paragon.readRow)
-      if (!itemId) return []
-      const label = [lineItemIds.indexOf(itemId) + 1, paragon.description]
-        .filter(Boolean)
-        .join(' · ')
-      return paragon.matches.map(
+  // A decided paragon takes its hints with it.
+  const ownParagons = paragons.filter((paragon) => {
+    const row = paragonOfReadRow(paragon.readRow)
+    return row?.itemId === itemId && row.status === 'pending'
+  })
+  const groups = ownParagons.flatMap((paragon) => {
+    const rows = paragon.matches
+      .map(
         (match): ExpenseDuplicateRowT => ({
           ...match,
-          paragon: label,
           paragonItemId: itemId,
           paragonReadRow: paragon.readRow,
         }),
       )
-    })
-    .filter((row) => !dismissed.has(rowKey(row)))
-  if (rows.length === 0) {
-    return null
-  }
-
+      // A refused twin is no longer a second booking of this paragon; an accepted one still is. A
+      // twin merged into this very row was declared the same expense by the merge.
+      .filter((row) => {
+        const twin = twinOf(row)
+        return !dismissed.has(rowKey(row)) && twin?.status !== 'rejected' && twin?.itemId !== itemId
+      })
+    if (rows.length === 0) return []
+    // The row's own title names a lone paragon; a merged row needs each of its paragony named.
+    const label =
+      ownParagons.length > 1
+        ? [paragon.description, paragon.amount !== null && formatPLNOrDash(paragon.amount)]
+            .filter(Boolean)
+            .join(' · ')
+        : null
+    return [{ readRow: paragon.readRow, label, rows }]
+  })
+  const hasHints = groups.length > 0
   // Only a confirmed match earns the alarm; „Ta sama kwota" alone stays as quiet as its row.
-  const isAlarm = rows.some((row) => !isWeakMatch(row.reasons))
+  const isAlarm = groups.some((group) => group.rows.some((row) => !isWeakMatch(row.reasons)))
 
+  const columns = getExpenseDuplicateColumns<ExpenseDuplicateRowT>({
+    labelMatch: (row) => {
+      const twin = twinOf(row)
+      return twin && `Pozycja ${twin.position + 1} tego zgłoszenia`
+    },
+    actions: (row) => (
+      <div className="flex gap-2">
+        <Button type="button" size="xs" variant="outline" onClick={() => onDismiss(rowKey(row))}>
+          OK, to nie duplikat
+        </Button>
+        <Button
+          type="button"
+          size="xs"
+          variant="destructive"
+          disabled={disabled}
+          onClick={() => onMarkDuplicate(row.paragonItemId, { source: row.source, id: row.id })}
+        >
+          Duplikat
+        </Button>
+      </div>
+    ),
+  })
+
+  // The frame stays mounted when the last match goes, or the row inside it would remount.
   return (
-    <section
+    <div
       className={cn(
-        'my-4 flex flex-col gap-3 rounded-lg border-2 p-4',
-        isAlarm ? 'border-destructive' : 'border-border',
+        hasHints && 'rounded-lg border-2 p-3',
+        hasHints && (isAlarm ? 'border-destructive' : 'border-border'),
       )}
     >
-      <h3 className={cn('font-medium', isAlarm && 'text-destructive')}>Możliwe duplikaty</h3>
-      <DataTable
-        data={rows}
-        columns={getExpenseDuplicateColumns<ExpenseDuplicateRowT>({
-          showParagon: lineItemIds.length > 1,
-          actions: (row) => (
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                size="xs"
-                variant="outline"
-                onClick={() => setDismissed((prev) => new Set(prev).add(rowKey(row)))}
-              >
-                OK, to nie duplikat
-              </Button>
-              <Button
-                type="button"
-                size="xs"
-                variant="destructive"
-                onClick={() =>
-                  onMarkDuplicate(row.paragonItemId, { source: row.source, id: row.id })
-                }
-              >
-                Duplikat
-              </Button>
-            </div>
-          ),
-        })}
-      />
-    </section>
+      {renderRow(
+        hasHints && (
+          <section className="flex flex-col gap-1.5 pb-3">
+            <h3 className={cn('text-sm font-medium', isAlarm && 'text-destructive')}>
+              Możliwe duplikaty
+            </h3>
+            {groups.map((group) => (
+              <div key={group.readRow} className="flex flex-col gap-1">
+                {group.label && <h4 className="text-xs font-medium">Paragon: {group.label}</h4>}
+                <DataTable data={group.rows} columns={columns} defaultTextSize="xs" />
+              </div>
+            ))}
+          </section>
+        ),
+      )}
+    </div>
   )
 }

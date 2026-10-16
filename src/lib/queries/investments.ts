@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { cached } from '@/lib/cache/cached'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -13,7 +13,12 @@ import {
 import { owedWorkersByInvestment } from '@/lib/kosztorys/worker-payout-pairs'
 import { shapeInvestments } from '@/lib/queries/shape-investments'
 import { perfStart } from '@/lib/perf'
-import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
+import {
+  fetchInvestmentNotes,
+  fetchReferenceData,
+  findInvestmentRef,
+  withNotes,
+} from '@/lib/queries/reference-data'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
@@ -23,18 +28,26 @@ import type { InvestmentRowT } from '@/types/table-rows'
 export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
   const { user } = await requireAuth(MANAGEMENT_ROLES)
   if (!user) throw new Error('Nie jesteś zalogowany')
-  const [refData, financials, kosztorysTotals, subcontractorDue, depositPlaneSums, pairs] =
-    await Promise.all([
-      fetchReferenceData(),
-      fetchInvestmentFinancials(),
-      fetchKosztorysClientTotals(),
-      fetchKosztorysSubcontractorDue(),
-      fetchDepositPlaneSums(),
-      fetchWorkerPayoutPairs(),
-    ])
+  const [
+    refData,
+    notesById,
+    financials,
+    kosztorysTotals,
+    subcontractorDue,
+    depositPlaneSums,
+    pairs,
+  ] = await Promise.all([
+    fetchReferenceData(),
+    fetchInvestmentNotes(),
+    fetchInvestmentFinancials(),
+    fetchKosztorysClientTotals(),
+    fetchKosztorysSubcontractorDue(),
+    fetchDepositPlaneSums(),
+    fetchWorkerPayoutPairs(),
+  ])
   const owedWorkers = owedWorkersByInvestment(pairs)
   return shapeInvestments(
-    refData.investments,
+    refData.investments.map((investment) => withNotes(investment, notesById)),
     financials,
     kosztorysTotals,
     subcontractorDue,
@@ -70,7 +83,7 @@ export async function getInvestmentName(id: string): Promise<string | null> {
 }
 
 export async function getInvestment(id: string) {
-  return unstable_cache(
+  return cached(
     async () => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })

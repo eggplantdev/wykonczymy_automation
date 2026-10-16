@@ -51,7 +51,7 @@ export function useFilePickIngest() {
       if (ingested.length === 0) setInputKey((key) => key + 1)
     } catch {
       if (!isCurrent()) return
-      // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
+      // TODO(EX-958) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
       // once Sentry is wired; for now the user gets a generic retry toast.
       toastMessage(translator.t('ingestFailed'), 'error', 6000)
       setFiles([])

@@ -7,11 +7,15 @@ import {
   scopeNarrowsByOriginalOnlyField,
   scopeAuditThroughOriginal,
   stripCancelledFilters,
+  narrowToTransferIds,
 } from '@/lib/queries/transfer-filters'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
 import { buildTransferRows } from '@/lib/queries/fetch-transfer-rows'
-import { fetchDraftTransferIds } from '@/lib/queries/worker-expense-drafts'
+import {
+  fetchAllDraftTransferIds,
+  fetchDraftTransferIds,
+} from '@/lib/queries/worker-expense-drafts'
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
 import { perfStart } from '@/lib/perf'
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
@@ -20,8 +24,24 @@ type TransferTableServerPropsT = {
   config: TransferTableConfigT
 }
 
-export async function TransferTableServer({ config }: TransferTableServerPropsT) {
+export async function TransferTableServer({ config: pageConfig }: TransferTableServerPropsT) {
   const step = perfStart()
+  // Narrowed here, not on the page, so the sum tile, „Drukuj”, „Faktury” and the duplicate finder
+  // all read the same `where` as the list.
+  const allDraftTransferIds = pageConfig.onlyWorkerDrafts
+    ? await fetchAllDraftTransferIds()
+    : undefined
+  const config = allDraftTransferIds
+    ? {
+        ...pageConfig,
+        query: {
+          ...pageConfig.query,
+          where: narrowToTransferIds(pageConfig.query.where, allDraftTransferIds, {
+            throughOriginal: pageConfig.cancelledTransactionAudit,
+          }),
+        },
+      }
+    : pageConfig
   const skipMedia = config.excludeColumns?.includes('invoice') ?? false
   // The audit list narrows through the original, the sum tile cannot — so where the raw where
   // narrows by an original-only field the tile would sum nothing, and is dropped instead.
@@ -62,7 +82,7 @@ export async function TransferTableServer({ config }: TransferTableServerPropsT)
 
   const [builtRows, draftTransferIds] = await Promise.all([
     buildTransferRows(pageDocs, refData, { skipMedia }),
-    fetchDraftTransferIds(pageDocs.map((doc) => Number(doc.id))),
+    allDraftTransferIds ?? fetchDraftTransferIds(pageDocs.map((doc) => Number(doc.id))),
   ])
   const fromDrafts = new Set(draftTransferIds)
   const rows = builtRows.map((row) =>
@@ -84,7 +104,9 @@ export async function TransferTableServer({ config }: TransferTableServerPropsT)
       data={rows}
       paginationMeta={rawTxResult.paginationMeta}
       config={{ ...config, totalFilteredAmount, listsCancelled }}
-      referenceData={refData}
+      // Only the actions column reads it, and it is serialized whole into the page — on the
+      // worker's phone, where that column is hidden, it was most of the payload.
+      referenceData={config.excludeColumns?.includes('actions') ? undefined : refData}
     />
   )
 }

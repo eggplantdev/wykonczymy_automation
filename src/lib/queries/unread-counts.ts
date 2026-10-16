@@ -1,14 +1,8 @@
+import { cache } from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import {
-  countUnreadFleetDeadlines,
-  countUnreadLeads,
-  countUnreadWarranties,
-} from '@/lib/db/notifications'
 import { getDb } from '@/lib/db/get-db'
-import { countPendingExpenseDrafts } from '@/lib/db/worker-expense-drafts'
-import { countPendingReports } from '@/lib/db/worker-reports'
-import { countRejectedPayouts } from '@/lib/db/payout-confirmation'
+import { countShellBadges } from '@/lib/db/shell-badge-counts'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { isManagementRole } from '@/lib/auth/roles'
 import { warsawToday } from '@/lib/utils/days'
@@ -27,24 +21,14 @@ const NONE: UnreadCountsT = {
  * Reads the session itself rather than taking a `userId`/`role` pair: a caller-supplied identity is one
  * `'use server'` away from letting the browser ask for anyone's counts. `getCurrentUserJwt` is
  * React-cached, so the shell's own call already paid for this one.
+ *
+ * React-cached because Next renders the root layout twice per request — once more as the root
+ * not-found fallback it serializes eagerly — and both copies of the shell ask for the counts.
  */
-export async function fetchUnreadCounts(): Promise<UnreadCountsT> {
+export const fetchUnreadCounts = cache(async (): Promise<UnreadCountsT> => {
   const user = await getCurrentUserJwt()
   if (!user || !isManagementRole(user.role)) return NONE
 
-  const payload = await getPayload({ config })
-  const today = warsawToday()
-
-  const db = getDb(payload)
-  const [leads, fleet, equipment, workerReports, expenseDrafts, rejectedPayouts] =
-    await Promise.all([
-      countUnreadLeads(payload, user.id),
-      countUnreadFleetDeadlines(payload, user.id, today),
-      countUnreadWarranties(payload, user.id, today),
-      db.then(countPendingReports),
-      db.then(countPendingExpenseDrafts),
-      db.then(countRejectedPayouts),
-    ])
-
-  return { leads, fleet, equipment, workerReports, expenseDrafts, rejectedPayouts }
-}
+  const db = await getDb(await getPayload({ config }))
+  return countShellBadges(db, user.id, warsawToday())
+})

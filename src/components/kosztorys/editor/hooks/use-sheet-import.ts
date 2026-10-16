@@ -4,7 +4,10 @@ import { useCallback, useState } from 'react'
 import { previewKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-type OptionsT = { investmentId: number; onTreeReplaced?: OnTreeReplacedT }
+type OptionsT = {
+  investmentId: number
+  onTreeReplaced?: OnTreeReplacedT
+}
 
 /**
  * „Pobierz z arkusza Google" as a single piece of state, because it has two triggers — the

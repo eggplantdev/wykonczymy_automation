@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { DateRangeT } from '@/lib/utils/date-range'
 import type { SqlT } from './sql-list'
 

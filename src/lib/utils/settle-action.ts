@@ -19,7 +19,7 @@ export async function settleAction<R extends { success: boolean }>(
   } catch (err) {
     // A redirecting action rejects client-side by design — that rejection IS the navigation.
     unstable_rethrow(err)
-    // TODO(EX-449) SENTRY-REQUIRED: transport failure on a server action
+    // TODO(EX-958) SENTRY-REQUIRED: transport failure on a server action
     logError('[SERVER_ACTION]', err)
     return { success: false, error: REQUEST_FAILED, code: 'REQUEST_FAILED' }
   }

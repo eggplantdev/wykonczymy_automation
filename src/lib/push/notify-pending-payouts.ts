@@ -36,7 +36,7 @@ export async function notifyPendingPayouts(
           badgeCount,
         }))
       } catch (err) {
-        // TODO(EX-449) SENTRY-REQUIRED: a refused push is invisible to the user who missed it.
+        // TODO(EX-958) SENTRY-REQUIRED: a refused push is invisible to the user who missed it.
         logError('[PUSH] payout notification aborted', err, { workerId })
       }
     }),

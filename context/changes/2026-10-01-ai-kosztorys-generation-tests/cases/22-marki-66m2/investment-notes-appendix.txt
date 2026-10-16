@@ -1,0 +1,37 @@
+## Wycena AI (2026-10-15)
+**AI przedmiar: 54 363,06 zł netto** — 66 pozycji, bez rabatu, ceny j.m. z szablonu „Kosztorys 2026”. 6 pozycji z ilością 0: prace świadomie poza wyceną, każda z wyjaśnieniem w komentarzu. 3 pozycje z innych sekcji szablonu wstawione do łazienki (Manual): „Szlifowanie mleczka z tynków deweloperskich”, „Naprawy ścian i sufitów po kuciu, bruzdowaniu…” i „Montaż wentylatora łazienkowego”, po cenie z szablonu.
+Źródło: rzut parteru lokalu 1 w zabudowie szeregowej dwulokalowej (1:100, pow. użytkowa 66,56 m², powierzchnie pomieszczeń podane na rzucie) i zakres prac klienta. Wiatrołap, komunikacja, pokój z aneksem, dwa pokoje, łazienka. Wysokość 2,68 m przyjęta z Manuala — rzut jej nie podaje.
+Ilości z zakresu klienta to jego szacunki. Liczby sztuk (drzwi, lampy, armatura, wanna, WC) przyjęte z zakresu. Ściany przeliczone z rzutu, bo klient liczył je przelicznikiem podłoga × 2,5. Płytki, hydroizolacja, szlif 45°, wiercenie, akrylowanie, naprawy po bruzdach i listwy policzone wg Manuala.
+Przy każdej pozycji „Komentarz AI”: „Co / ile założono” i „Czego nie było wiadomo”.
+
+## Do ustalenia z klientem
+- **Ściany**: przeliczone z rzutu wychodzą 123,02 m² gładzi, klient podał 144,9 m² (≈ −2,4 tys. zł na gładzi, gruntowaniu i malowaniu). Ściany za szafkami kuchennymi bez gładzi (Manual); jeśli je robimy, +11,26 m². Komunikacja szacunkowo 14 m², bo zostały w niej same krótkie odcinki ścian.
+- **Sufity**: klient prosi o uwzględnienie ich osobno, ale ich nie rozpisał. Policzone w gładzi Q3, 57,94 m² w pokojach i komunikacji.
+- **Wiatrołap**: zgodnie z zakresem bez gładzi, tylko gruntowanie z poprawkami, farba podkładowa i malowanie. W gładzi ≈ +0,5 tys. zł.
+- **Kolor ścian**: policzone na biało. W kolorze ≈ +0,5 tys. zł.
+- **Kuchnia**: zakres klienta jej nie obejmuje. Zlew, bateria, syfon, płyta i okap są na 0. Jeśli podłączenia są po naszej stronie, ok. 1,1 tys. zł.
+- **Podłoga w aneksie**: rzut opisuje pokój z aneksem „parkiet/gres”, a klient chce panele w całym pokoju. Gres w aneksie to ≈ +0,7 tys. zł. Panele pływające czy klejone.
+- **Cokoły**: listwy MDF wg Manuala 48,73 mb (obwód minus 25%); klient podał 57 mb w tych pomieszczeniach. Wiatrołap: cokół z płytek 3 mb czy listwa MDF (klient: 6 mb).
+- **Grzejniki**: rzut ich nie pokazuje. Przyjęte 4 do demontażu i ponownego montażu. Przy ogrzewaniu podłogowym −1,4 tys. zł (demontaż i montaż). Czy w łazience jest grzejnik lub drabinka (+470 zł).
+- **Osprzęt**: zakładam gniazdka i włączniki dewelopera, liczony tylko na przesunięty punkt. Jeśli ich nie ma, ok. 30 szt. ≈ +1,2 tys. zł.
+- **Stelaż WC**: liczony nowy stelaż z zabudową. Jeśli deweloper go zamontował, −900 zł.
+- **Szlif 45°**: wg Manuala 5,5 mb (zabudowa stelaża, narożnik zabudowy wanny); klient wpisał ok. 15 mb (+760 zł).
+- **Hydroizolacja**: Manual każe dać folię na wszystkich ścianach i podłodze, czyli 31,17 m²; klient wpisał 10 m². Bez ściany z kotłem −162 zł.
+- **Pralka**: na rzucie przy ścianie z kotłem. Czy jej podłączenie jest po naszej stronie (100 zł + zawór 60 zł).
+- **Armatura**: zestaw prysznicowy liczony natynkowo. Podtynkowo 900 zł + biały montaż 200 zł zamiast 250 zł.
+- **Ościeżnice**: regulowane. Stałe +280 zł za 4 szt. (3 w stolarce + drzwi łazienki).
+- **Farba podkładowa w łazience**: na świeżą gładź sufitu i ścianę z kotłem 11,31 m² (≈ +136 zł) — czy dopisać, czy wystarczy dwukrotne gruntowanie łazienki.
+- **Szafka pod umywalką**: klient prosi o montaż. Czy nie robi tego stolarz.
+- **Transport**: 1500 zł z szablonu. Manual: poza Warszawą wyższe ceny.
+
+## Najważniejsze założenia
+- **Stan deweloperski**: szlifowanie mleczka na wszystkich tynkach, wkucie rur wod-kan w ścianę (4 pkt), demontaż grzejników na czas prac, 2 big bagi, bez wyburzeń.
+- **Wysokość 2,68 m** (Manual, rzut jej nie podaje): z niej wszystkie powierzchnie ścian, także w łazience.
+- **Ściany z rzutu**: obwód × 2,68 m minus okna, drzwi i ciąg kuchenny; bez nisz szaf w komunikacji i wiatrołapie.
+- **Łazienka**: płytki do sufitu na wszystkich ścianach poza ścianą z kotłem (19,85 m² ścian + 4,62 m² podłogi, klient: 23 m²). Ściana z kotłem i sufit przygotowane i malowane (11,31 m²). Wanna z zabudową i rewizją, parawan, WC podwieszane, umywalka na szafce, wentylator, lustro z LED.
+- **Drzwi**: 4 szt. — 3 w sekcji stolarki (wiatrołap, pokój I, pokój II), drzwi łazienki w sekcji Łazienka.
+- **Podłogi**: panele laminowane 57,94 m², gres w wiatrołapie 2,72 m² z listwą łączeniową w drzwiach.
+
+## Przedmiar 0 świadomie
+- Kuchnia: zlew, bateria, syfon, płyta indukcyjna, okap — poza zakresem klienta.
+- Grzejnik w łazience — nie ma go na rzucie ani w zakresie.

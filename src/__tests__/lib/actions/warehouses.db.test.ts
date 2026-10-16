@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 
 // „Kwiatowa" and „kwiatowa" are one place. Two rows for it split every „Gdzie jest" answer in half,
@@ -14,12 +14,10 @@ vi.mock('next/server', async (importOriginal) => {
   return { ...actual, after: () => {} }
 })
 vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi
-    .fn()
-    .mockResolvedValue({
-      success: true,
-      user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-    }),
+  requireAuth: vi.fn().mockResolvedValue({
+    success: true,
+    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
+  }),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 

@@ -38,8 +38,7 @@ describe('AI_REVIEW_COLUMN_IDS — Nowe informacje', () => {
   })
 })
 
-// EX-1057, #190 round 2: the cell printed the stored text raw, while Komentarz AI beside it reads as
-// label + bold answer — the two columns have to look the same.
+// EX-1057: Komentarz AI beside it reads as label + bold answer — the two columns have to look the same.
 describe('aiNewInformationLines — Nowe informacje', () => {
   const round = (n: number, line: string) =>
     `Runda ${n} — AI przedmiar: 0 → 6,89 m²\nPowód: projekt wykonawczy\n${line}`

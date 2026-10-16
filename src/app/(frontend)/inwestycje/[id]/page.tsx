@@ -6,22 +6,23 @@ import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
-import { fetchFilteredByType, fetchCategoryBreakdowns } from '@/lib/queries/transfer-totals'
-import { deriveFinancials } from '@/lib/db/investment-financials'
-import { calculateMargin } from '@/lib/db/calculate-margin'
+import {
+  fetchInvestmentNotes,
+  fetchReferenceData,
+  findInvestmentRef,
+  withNotes,
+} from '@/lib/queries/reference-data'
 import { InvestmentSummaryPanel } from '@/components/investments/investment-summary-panel'
 import { InvestmentAssetsSection } from '@/components/investments/investment-assets-section'
 import { StatsVersionToggle } from '@/components/investments/stats-version-toggle'
 import { parseStatsVersion, STATS_VERSION_PARAM } from '@/lib/constants/stats-version'
 import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
-import { buildFinancialFields, buildSettledFields } from '@/lib/queries/investment-financial-fields'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { FinancialStats } from '@/components/investments/financial-stats'
+import { InvestmentV1Stats } from '@/components/investments/investment-v1-stats'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
@@ -50,31 +51,13 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
-  const [refData, typeDistribution, breakdowns] = await Promise.all([
-    fetchReferenceData(),
-    fetchFilteredByType(statsWhere),
-    fetchCategoryBreakdowns(statsWhere),
-  ])
+  const [refData, notesById] = await Promise.all([fetchReferenceData(), fetchInvestmentNotes()])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const found = findInvestmentRef(refData, investmentId)
   if (!found) notFound()
-  const { investment, trashed } = found
-
-  const financials = deriveFinancials(
-    typeDistribution,
-    breakdowns.categoryCosts,
-    breakdowns.settledCategoryCosts,
-    investment.materialsNetRate,
-    investment.settlementMode,
-    breakdowns.netCategoryCosts,
-  )
-
-  const financialFields = buildFinancialFields(financials, refData.expenseCategories)
-  const settledFields = buildSettledFields(
-    financials.settledCategoryCosts,
-    refData.expenseCategories,
-  )
+  const { trashed } = found
+  const investment = withNotes(found.investment, notesById)
 
   return (
     <PageWrapper title={investment.name}>
@@ -112,12 +95,14 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       </div>
 
       {version === 'v1' ? (
-        <FinancialStats
-          fields={financialFields}
-          margin={calculateMargin(financials)}
-          totalPayouts={financials.totalPayouts}
-          settledFields={settledFields}
-        />
+        <Suspense fallback={null}>
+          <InvestmentV1Stats
+            statsWhere={statsWhere}
+            materialsNetRate={investment.materialsNetRate}
+            settlementMode={investment.settlementMode}
+            expenseCategories={refData.expenseCategories}
+          />
+        </Suspense>
       ) : (
         // Streamed off the critical path: the panel owns the kosztorys tree fetch, the page's
         // long-pole query, so the rest of the page paints without waiting on it.

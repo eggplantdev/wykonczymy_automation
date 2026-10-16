@@ -42,7 +42,7 @@ import FormFooter from '../form-components/form-footer'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { useDepositFormStore } from '@/stores/form-stores'
 import type { DepositFormValuesT } from './deposit-form-api'
-import { isBookableInvestment } from '@/lib/constants/investment-lock'
+import { isBookableInvestment, isOfferedForBooking } from '@/lib/constants/investment-lock'
 
 type DepositFormPropsT = {
   referenceData: ReferenceDataT
@@ -209,6 +209,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
               form={form}
               variant="investment"
               items={referenceData.investments.filter(isBookableInvestment)}
+              fixedFilter={isOfferedForBooking}
             />
           )}
 

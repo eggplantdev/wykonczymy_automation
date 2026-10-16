@@ -1,5 +1,5 @@
-import { unstable_cache } from 'next/cache'
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { cached } from '@/lib/cache/cached'
+import { sql } from '@payloadcms/db-postgres'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
@@ -28,7 +28,7 @@ type MediaRowT = MediaInfoT & { id: number }
 // 0.26ms for the same select, and that cost is re-paid on the first render after every media write
 // — which the bulk expense form fires 10-20 of per submit. `url` is a stored column holding the
 // finished serving path (`/api/media/file/<filename>`), so the string is identical either way.
-const fetchAllMedia = unstable_cache(
+const fetchAllMedia = cached(
   async (): Promise<MediaRowT[]> => {
     const elapsed = perfStart()
     const db = await getDb(await getPayload({ config }))

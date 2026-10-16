@@ -15,9 +15,8 @@
 > **Danger, and the reason this doc is operational.** Every non-production database is a restored
 > prod dump, so localhost, Preview and the E2E DB all carry **live sheet ids** — that is how eight
 > sheets took 36 foreign rows in 2026-08. Writes are gated by the _credential_, not a flag: only
-> Vercel Production holds `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`. Read `AGENTS.md` („Google Sheets: two
-> service accounts") and `context/reference/outgoing-effects-isolation.md` before touching any write
-> path here.
+> Vercel Production holds `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`. Read „Service accounts and sharing"
+> below and `context/reference/outgoing-effects-isolation.md` before touching any write path here.
 >
 > **Operational pointer, not a design of record.** The current frozen-column contract lives in
 > `context/foundation/lessons.md` — trust it, not this file. The go-forward in-app editor is tracked
@@ -67,6 +66,39 @@ Per-tab behaviour that still holds:
   `req.context.skipSheetSync` and batch once per investment.
 - A manual **Synchronizuj** button reconciles drift (append missing + heal present + scoped
   orphan-removal — only removes ids resolving to _this_ investment's own expenses).
+
+## Service accounts and sharing
+
+Reads everywhere, writes only from production. The sheet id comes from the DB, and every
+non-production DB is a restored prod dump, so the gate is the **credential**, not a flag — a flag is
+only as strong as the machine it runs on, and this machine holds production's secrets.
+
+- `GOOGLE_SERVICE_ACCOUNT_JSON` (`kosztorys-sheets-reader@…`) — **Viewer** on all sheets; what
+  `.env`, Preview and Development carry. A write from a dev machine is refused by Google (`403`), and
+  no env var, `VERCEL_ENV` or code edit can undo that.
+- `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON` (`kosztorys-sheets@…`) — **Editor**, only in Vercel Production.
+  Optional in the env schema everywhere else; on production its absence fails the boot
+  (`env/schema.ts` `superRefine`), because deleting it would break no request and silently stop every
+  transfer from reaching the owner's sheet.
+- `getWritableSheetsClient` (`src/lib/google/writable-sheets-client.ts`) is the only place in the app
+  that mints a write-scoped Sheets token; it throws a readable sentence when the credential is absent.
+  `getReadonlySheetsClient()` is readonly by **scope** and, on production, mints from the Editor
+  credential — so production needs only the Editor share.
+- The only other holder of the Editor credential is `scripts/share-sheets-with-reader.mjs`, which mints
+  a **Drive** token (strictly broader: it can change who may edit a sheet).
+
+A new sheet needs these shares:
+
+```
+kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com          → Edytujący   (production)
+kosztorys-sheets-reader@wykonczymy-kosztorys-bk.iam.gserviceaccount.com   → Przeglądający (dev/preview/E2E)
+```
+
+Never give the reader Editor — that hands write rights back to every laptop for that sheet. The
+reader half in bulk, run from production over an `id<TAB>name` TSV exported from psql:
+`node scripts/share-sheets-with-reader.mjs sheets.tsv` dry-runs, `--apply` grants. It skips a sheet
+the reader already holds, shouts if the reader holds anything above Viewer, and exits non-zero on any
+failure. Repairing a sheet happens from production; there is no other route.
 
 ## Provisioning
 

@@ -6,6 +6,7 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/
 import type { GlobalDiscountT, KosztorysItemT } from '@/lib/kosztorys/types'
 import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const SPREADSHEET_ID = 'sheet-abc'
 const NO_GLOBAL_DISCOUNT: GlobalDiscountT = { type: null, value: 0 }
@@ -79,14 +80,9 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         clientPrice: 120,
       }),
     ],
-    stages: Array.from({ length: 10 }, (_, index) => ({
-      id: index + 1,
-      ordinal: index + 1,
-      label: null,
-      plane: null,
-      split: null,
-      completed: false,
-    })),
+    stages: Array.from({ length: 10 }, (_, index) =>
+      makeStage({ id: index + 1, ordinal: index + 1, plane: null }),
+    ),
     progress: [],
     settings: { wToolsCoeff: 0.71, ownToolsCoeff: 0.42, vatRate: 8 },
     ...overrides,

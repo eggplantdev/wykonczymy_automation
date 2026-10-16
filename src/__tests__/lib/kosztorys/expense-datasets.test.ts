@@ -43,25 +43,6 @@ describe('partitionExpenseRows', () => {
     expect([...gross, ...net, ...settled].map((row) => row.id).sort()).toEqual([1, 2, 3, 4])
   })
 
-  // The client share read is `unstable_cache`d, so a warm entry written before `type` existed
-  // serves rows without it until KOSZTORYS_TAGS invalidates. Such a row belongs with the brutto
-  // expenses — the set that reconciles at `amount` — not silently dropped from every tab.
-  it('files a row with no type under the brutto expenses', () => {
-    const stale: MaterialTransactionRowT = {
-      ...ROW_BASE,
-      id: 6,
-      type: undefined,
-      amount: 100,
-      billed: 100,
-      settled: false,
-    }
-    const { gross, net, settled } = partitionExpenseRows([stale])
-
-    expect(gross).toHaveLength(1)
-    expect(net).toHaveLength(0)
-    expect(settled).toHaveLength(0)
-  })
-
   it('keeps a forged settled netto row in the netto tab, where the model still bills it', () => {
     const forged: MaterialTransactionRowT = {
       ...ROW_BASE,
@@ -105,18 +86,6 @@ describe('expenseRowHref', () => {
     expect(href(rows[0]!)).toBe('/inwestycje/42?type=INVESTMENT_EXPENSE&id=1')
     expect(href(rows[1]!)).toBe('/inwestycje/42?type=CORRECTION&id=2')
     expect(href(rows[2]!)).toBe('/inwestycje/42?type=INVESTMENT_EXPENSE_NET&id=3')
-  })
-
-  it('omits the type filter for a stale-cache row rather than guessing one', () => {
-    const stale: MaterialTransactionRowT = {
-      ...ROW_BASE,
-      id: 9,
-      type: undefined,
-      amount: 100,
-      billed: 100,
-      settled: false,
-    }
-    expect(expenseRowHref(42, stale)).toBe('/inwestycje/42?id=9')
   })
 })
 

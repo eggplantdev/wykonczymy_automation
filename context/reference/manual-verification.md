@@ -64,7 +64,11 @@ service, production — is returned as a blocker naming the missing isolation.
   `.env`, re-creating them after a restore wiped them, and refuses any DB but the preview one. A Nodemailer
   `getaddrinfo disabled.invalid` on the way out is the mail gate, not a failure. Then from the page:
   `fetch('/api/users/login', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})})`
-  and assert `user.role` (`'OWNER'` / `'MANAGER'` / `'EMPLOYEE'`). Never write a throwaway reset
+  and assert `user.role` (`'OWNER'` / `'MANAGER'` / `'EMPLOYEE'`). **Switch roles only through the
+  app:** `fetch('/api/users/logout', {method: 'POST'})`, then the login above. Never touch browser
+  cookies — no `clearCookies()`, no `addCookies()`, no read-clear-re-add helper: the vercel.com SSO
+  session lives in the same jar, and wiping it locks the pass out until a human logs in again (lost
+  twice, 2026-10-13 and 2026-10-14). Never write a throwaway reset
   script, never mint another account, never flip a role by SQL — a two-role check logs in as the
   MANAGER above, a worker-side check (own `/pracownicy/[id]`, „Nowy wydatek" from a kasa) as the
   EMPLOYEE. The script creates no kasa: an EMPLOYEE check that needs one gets it from the OWNER
@@ -100,6 +104,15 @@ service, production — is returned as a blocker naming the missing isolation.
   the other, and the next upload fails as a bare 500 from `/api/vercel-blob-client-upload-route` —
   the plugin wraps the `Forbidden` into it. Switch roles sequentially with a fresh page-`fetch` login,
   and read a 500 there in `vercel logs` before calling it a Blob outage.
+- **Never call `navigator.clipboard.readText()`.** Chrome answers it with a native permission
+  prompt the automated browser cannot dismiss, and the browser call never returns — it wedged a
+  pass for 20 min (2026-10-14). To check what a copy put on the clipboard, capture it on the way
+  out instead: before the copy, wrap `navigator.clipboard.writeText` (and listen for the `copy`
+  event's `clipboardData` for Ctrl/Cmd+C) and read the captured value.
+- **A hydration error seen in the MCP browser is not a finding yet.** Re-load the page in a clean
+  headless Chrome (`chromium.launch({ channel: 'chrome' })`, console errors captured) and file only
+  with the full React diff in hand. EX-1037 was filed without one and never reproduced in eight
+  clean variants — the MCP tab had been switching roles in place.
 - **Test layers:** unit / DOM specs under `src/__tests__/` (mirrored path), e2e under `e2e/` against
   5435 — AGENTS.md → Testing.
 

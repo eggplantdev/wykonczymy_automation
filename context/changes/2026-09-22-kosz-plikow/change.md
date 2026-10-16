@@ -27,6 +27,11 @@ a plik wgrany i skasowany tego samego dnia ginie naprawdę.
   `kosztorys-editor-assets` — razem z zarzutem o drugie drzwi z edytora (ta sama kontrolka, to samo
   potwierdzenie, te same role; „Usuń wszystkie" zatwierdzone przez właściciela 2026-09-21
   w `investment-assets-dialog`).
+- **„Usuń wszystkie" w galerii inwestycji schowane do czasu kosza (EX-862, 2026-10-15).**
+  Rozstrzygnięcie właściciela: dopóki usunięcie jest bezpowrotne, jedno kliknięcie nie może wyczyścić
+  całej galerii — zostaje usuwanie po jednym pliku. Wraca w fazie 1, razem z tym, że odpięcie
+  przestaje kasować. Akcja `removeAllInvestmentAssetsAction` została w kodzie; schowany jest tylko
+  przycisk. Faktury na transakcjach zachowują swoje „Usuń wszystkie" bez zmian.
 - **Kształt: kosz „2a" — odpięcie zostaje prawdziwe, dochodzi zapis prowenancji.** Wiersz w
   `*_rels` znika tak jak dziś; osobny zapis trzyma „media N zeszło z `<kolekcja>/<id>/<pole>` o T".
   Przywracanie czyta ten zapis i przypina z powrotem przez `setUploadField`.

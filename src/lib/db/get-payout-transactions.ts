@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { Payload } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { getDb } from '@/lib/db/get-db'

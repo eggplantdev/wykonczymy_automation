@@ -45,7 +45,7 @@ export async function tokenAction<TData = undefined>(
       const share = await readReportShare(db, token)
       if (!share) return refuse('unknownToken')
 
-      const refusal = await reportShareRefusal(db, share)
+      const refusal = reportShareRefusal(share)
       if (refusal) return refuse(refusal)
 
       const tree = await buildKosztorysTree(share.investmentId)

@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import {
+  listAllDraftTransferIds,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
@@ -33,6 +34,15 @@ export async function fetchDraftTransferIds(transferIds: number[]): Promise<numb
   if (!session.success) throw new Error('Brak uprawnień')
 
   return listDraftTransferIds(await getDb(await getPayload({ config })), transferIds)
+}
+
+/**
+ * Every transfer a draft was booked as — unscoped, so management only. The whole list (~3k a year,
+ * unbounded) reaches the client because a Payload `where` cannot express EXISTS over the raw join
+ * table; past ~10k ids, resolve it in the query layer as an `IN (SELECT …)` leaf instead.
+ */
+export async function fetchAllDraftTransferIds(): Promise<number[]> {
+  return listAllDraftTransferIds(await managementDb())
 }
 
 export async function fetchExpenseDraftsPage(

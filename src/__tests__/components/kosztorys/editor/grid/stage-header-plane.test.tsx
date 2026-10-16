@@ -5,9 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY as COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
-import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { WorkerRefT } from '@/types/reference-data'
+import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const STAGE_ID = 7
 const ANNA = 1
@@ -23,29 +24,18 @@ const WORKERS: WorkerRefT[] = [
   },
 ]
 
-const stage = (plane: ToolPlaneT | null): KosztorysStageT => ({
-  id: STAGE_ID,
-  ordinal: 1,
-  label: 'Łazienka',
-  plane,
-  split: null,
-  completed: false,
-})
+const stage = (plane: ToolPlaneT | null) => makeStage({ id: STAGE_ID, label: 'Łazienka', plane })
 
-const onSetPlane = vi.fn()
-const onSetSplit = vi.fn()
+const OPS = {
+  rename: vi.fn(),
+  remove: vi.fn(),
+  setPlane: vi.fn(),
+  setCompleted: vi.fn(),
+  setSplit: vi.fn(),
+}
 
 function renderHeader(plane: ToolPlaneT | null) {
-  render(
-    <StageHeader
-      stage={stage(plane)}
-      onRename={vi.fn()}
-      onRemove={vi.fn()}
-      onSetPlane={onSetPlane}
-      workers={WORKERS}
-      onSetSplit={onSetSplit}
-    />,
-  )
+  render(<StageHeader stage={stage(plane)} ops={OPS} workers={WORKERS} />)
   return userEvent.setup()
 }
 
@@ -77,7 +67,7 @@ describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
 
     await user.click(screen.getByRole('menuitemcheckbox', { name: PLANE_LABELS.own_tools }))
 
-    expect(onSetPlane).toHaveBeenCalledWith(STAGE_ID, 'own_tools')
+    expect(OPS.setPlane).toHaveBeenCalledWith(STAGE_ID, 'own_tools')
   })
 })
 
@@ -136,7 +126,7 @@ describe('Nagłówek etapu — kto pracuje', () => {
           },
         }}
         workers={TWO}
-        onSetSplit={onSetSplit}
+        ops={OPS}
       />,
     )
     expect(screen.getByText('Anna +1')).toBeInTheDocument()
@@ -147,7 +137,7 @@ describe('Nagłówek etapu — kto pracuje', () => {
       <StageHeader
         stage={{ ...stage('w_tools'), split: oneWorkerSplit(ANNA) }}
         workers={WORKERS}
-        onSetSplit={onSetSplit}
+        ops={OPS}
         scaledDown
       />,
     )

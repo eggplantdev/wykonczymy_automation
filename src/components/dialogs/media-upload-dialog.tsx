@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import { CheckboxRow } from '@/components/ui/checkbox-row'
+import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
 import { useTranslation } from '@/hooks/use-translation'
@@ -58,7 +59,9 @@ export function MediaUploadDialog({
             <CheckboxRow checked={asPlan} onCheckedChange={setAsPlan}>
               {t('isPlan')}
             </CheckboxRow>
-            <p className="text-muted-foreground px-2 text-xs">{t('planHint')}</p>
+            <Description size="xs" withIcon={false} className="px-2">
+              {t('planHint')}
+            </Description>
           </div>
         )}
         <FileInput multiple onChange={handlePicked} className="h-28 flex-col" />

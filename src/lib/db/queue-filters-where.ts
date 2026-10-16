@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import type { QueueFiltersT } from '@/types/filters'
 import { inList, type SqlT } from './sql-list'
 import { warsawDayWithin } from './sql-warsaw-day'

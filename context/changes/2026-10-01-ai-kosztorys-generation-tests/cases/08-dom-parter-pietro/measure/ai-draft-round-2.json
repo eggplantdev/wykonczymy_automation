@@ -1,0 +1,462 @@
+[
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "qty": 6,
+    "newInformation": "Runda 2 — AI przedmiar: 11 → 6 pkt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu: umywalka 1, WC 1, bidet 1, prysznic 2 (mieszacz + deszczownica), pralka 1 (G 05)\nNie wiadomo: Twoje 4 pkt (świadomie zaniżone) było na cały dom — rozdziel je między 3 łazienki"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż geberitu",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 2 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu jeden stelaż WC; drugi w „WC parter” (G 05, P 05)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 2 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; zabudowa stelaża w płytkach, 150 mm; parterowa w „WC parter”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Sufit podwieszany z LED wg. projektu",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 0 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; sufit podwieszany z LED po obwodzie jest w WC na parterze (P) — przeniesiony do „WC parter”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 31.73,
+    "newInformation": "Runda 2 — AI przedmiar: 56 → 31,73 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu ściany do sufitu 25,38 + podłoga 6,35 m²; łazienka z wanną 24,27 m² w swojej sekcji"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "qty": 28,
+    "newInformation": "Runda 2 — AI przedmiar: 40 → 28 mb\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu ok. 26 z 40 mb z rundy 1 (narożniki dzielone wg powierzchni płytek na ścianach) + 2 mb krawędzi nad stelażem WC w płytkach — nowa reguła Manuala\nZałożono: podział 40 mb z rundy 1 proporcjonalnie do płytek ściennych; krawędź nad stelażem ok. 0,9 m × 2"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Układanie glazury na podłodze duży format 120x120",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 2,11 → 0 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; płytka 1198 × 1198 na podłodze jest w WC na parterze (P) — przeniesiona do „WC parter”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "qty": 6.35,
+    "newInformation": "Runda 2 — AI przedmiar: 15,49 → 6,35 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu podłoga 6,35 m² (G 06); łazienka z wanną 9,14 m² w swojej sekcji"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Układanie glazury na ścianie format duży 120x120",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 16,03 → 0 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; ściany 1198 × 1198 do sufitu są w WC na parterze (P) — przeniesione do „WC parter”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "qty": 25.38,
+    "newInformation": "Runda 2 — AI przedmiar: 39,38 → 25,38 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu ściany do sufitu 25,38 m² (G 20); łazienka z wanną 14 m² w swojej sekcji"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Układanie glazury na ścianie wielki format 120x270",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 8,75 → 0 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; spiek 8,75 m² jest w niszy kuchennej (P) — przeniesiony do „Kuchnia”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Fugowanie fugą epoksydową format płytek standard",
+    "qty": 31.73,
+    "newInformation": "Runda 2 — AI przedmiar: 54,87 → 31,73 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu ściany 25,38 + podłoga 6,35 m²"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 26,89 → 0 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; fuga cementowa dotyczy WC na parterze i spieku — przeniesiona do „WC parter” i „Kuchnia”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Silikonowanie",
+    "qty": 25,
+    "newInformation": "Runda 2 — AI przedmiar: 75 → 25 mb\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; 25 mb na łazienkę (Manual), jak w rundzie 1 — 3 × 25 mb rozdzielone na sekcje"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 6.61,
+    "newInformation": "Runda 2 — AI przedmiar: 8,72 → 6,61 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu sufit podwieszany GK 6,61 m² (G 04); WC na parterze w swojej sekcji"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż akcesoriów łazienkowych",
+    "qty": 4,
+    "newInformation": "Runda 2 — AI przedmiar: 8 → 4 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu: uchwyt papieru, szczotka WC, haczyk, wieszak\nZałożono: podział 8 szt. z rundy 1: tu 4, łazienka z wanną 2, WC parter 2"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż baterii do umywalki",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 3 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu jedna umywalka nablatowa (G 05); dwie w łazience z wanną"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 0 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; umywalka wisząca z baterią podtynkową jest w WC na parterze (P 05)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż baterii wannowej wolnostojącej",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 0 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; wanna jest w łazience z wanną (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż kratki wentylacyjnej",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 3 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; jedna kratka na pomieszczenie"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż lustra",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 7 → 0 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; lustro klejone 1,27 m² jest w łazience z wanną; pozostałe 6 modułów jest poza łazienkami — „Ściany i sufity bez łazienek”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 3 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu jedna umywalka nablatowa (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż umywalki wiszącej",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 0 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; umywalka wisząca jest w WC na parterze (P 05)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż wanny wolnostojącej z syfonem",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 1 → 0 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; wanna jest w łazience z wanną (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż syfonów",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 4 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu syfon jednej umywalki"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż WC podwieszanego",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 2 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu jedna miska WC; druga w „WC parter”"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Podłączenie pralki",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: przeliczenie łazienek (Notatki); rysunek G 05: „wyprowadzenie wod-kan pralki we wnęce od boku geberitu”; runda 1 liczyła punkt wod-kan, ale pominęła podłączenie"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Biały montaż baterii podtynkowej bidetka",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: przeliczenie łazienek (Notatki); bidet podtynkowy ma też biały montaż (Manual: każda bateria podtynkowa ma montaż w ścianie i biały montaż)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "qty": 3,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 3 szt\nPowód: przeliczenie łazienek (Notatki); zawory pod umywalką z baterią stojącą 2 + pralka 1 (Manual)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Wiercenie otworów w płytkach",
+    "qty": 19,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 19 szt\nPowód: przeliczenie łazienek (Notatki); WC 5, bateria prysznicowa 3, bidet 2, umywalka 3, pralka 3, puszki przy lustrze 2, kratka 1 (Manual: przykładowe ilości; płytki na wszystkich ścianach — min. 15)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 31.73,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 31,73 m²\nPowód: przeliczenie łazienek (Notatki); pod płytki: ściany 25,38 + podłoga 6,35 m² (Manual: gruntowanie podłóg łazienek liczymy w łazience)"
+  },
+  {
+    "section": "Łazienka piętro z prysznicem",
+    "description": "Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac",
+    "qty": 6.61,
+    "newInformation": "Runda 2 — nowa pozycja: 0 → 6,61 m²\nPowód: Manual — „Jeżeli praca dotyczy pracy w łazience to dodajemy do sekcji łazienka”; sufit podwieszany GK (−100 mm) 6,61 m², 4 oprawy (G 04) — przeniesiony z „Ściany i sufity bez łazienek”",
+    "unit": "m²",
+    "clientPrice": 160.0
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "qty": 3,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 3 pkt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; tu: wanna 1, umywalki 2 (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 24.27,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 24,27 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; podłoga 9,14 m² + ściany do 1,2 m — reszta z 56 m² zaakceptowanych na obie łazienki piętra"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Szlifowanie krawędzi płytek na 45 stopni",
+    "qty": 14,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 14 mb\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; ok. 14 z 40 mb narożników ze szlifem 45° (G 06)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "qty": 9.14,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 9,14 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; podłoga Zimba Black 9,14 m² (G 06)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "qty": 14.0,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 14 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; ściana umywalek i część wnęki wanny\nZałożono: ściany: rysunki nie podają powierzchni płytki — 14 m² jak w rundzie 1; każdy m² = 180 zł"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Fugowanie fugą epoksydową format płytek standard",
+    "qty": 23.14,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 23,14 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; fuga epoksydowa: ściany 14 + podłoga 9,14 m²"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Silikonowanie",
+    "qty": 25,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 25 mb\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; 25 mb na łazienkę (Manual)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż akcesoriów łazienkowych",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; wieszaki, haczyki"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż baterii do umywalki",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; baterie stojące na blacie przy 2 umywalkach (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż baterii wannowej wolnostojącej",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; bateria wolnostojąca podłogowa przy wannie (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż kratki wentylacyjnej",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; jedna kratka na pomieszczenie"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż lustra",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; lustro grafitowe klejone 1,27 m²"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; dwie umywalki nablatowe (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż wanny wolnostojącej z syfonem",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; wanna wolnostojąca z syfonem (G 05)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż syfonów",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; syfony dwóch umywalek (wanna ma syfon w swojej pozycji)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Montaż zaworów czerpalnych do umywalek i zlewów",
+    "qty": 4,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 4 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; zawory pod 2 umywalkami z bateriami stojącymi (Manual)"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Wiercenie otworów w płytkach",
+    "qty": 12,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 12 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; bateria wannowa w posadzce 2 + odpływ 1, 2 umywalki × 3, puszki przy lustrze 2, kratka 1 (Manual: przykładowe ilości)\nZałożono: płytki nie na wszystkich ścianach, więc minimum 15 otworów nie obowiązuje"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 23.14,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 23,14 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; pod płytki: ściany 14 + podłoga 9,14 m²"
+  },
+  {
+    "section": "Łazienka piętro z wanną",
+    "description": "Tapetowanie",
+    "qty": 7.46,
+    "newInformation": "Runda 2 — nowa pozycja: 0 → 7,46 m²\nPowód: Manual — „Jeżeli praca dotyczy pracy w łazience to dodajemy do sekcji łazienka”; tapeta „Enchanted River” 7,46 m² na ścianie okiennej tej łazienki (G 13) — przeniesiona z „Ściany i sufity bez łazienek”",
+    "unit": "m²",
+    "clientPrice": 100.0
+  },
+  {
+    "section": "WC parter",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2 pkt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; WC + umywalka (P 05)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż geberitu",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; stelaż podtynkowy (P 05)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; zabudowa stelaża płytą meblową, 180 mm (P)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Sufit podwieszany z LED wg. projektu",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; sufit podwieszany GK, −100 mm, szczelina LED po obwodzie, RAL 9005 (P)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Układanie glazury na podłodze duży format 120x120",
+    "qty": 2.11,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2,11 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; podłoga w płytce 1198 × 1198, 2,11 m² (P)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Układanie glazury na ścianie format duży 120x120",
+    "qty": 16.03,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 16,03 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; Tubądzin Lounge Stone Brown 1198 × 1198 do sufitu, ściany 16,03 m² (P)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "qty": 18.14,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 18,14 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; fuga cementowa: ściany 16,03 + podłoga 2,11 m²"
+  },
+  {
+    "section": "WC parter",
+    "description": "Silikonowanie",
+    "qty": 20,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 20 mb\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; dolna granica 20–30 mb na łazienkę (Manual) — WC bez prysznica i wanny"
+  },
+  {
+    "section": "WC parter",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 2.11,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2,11 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; sufit z gładzią i malowaniem 2,11 m²"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż akcesoriów łazienkowych",
+    "qty": 2,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 2 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; uchwyt papieru, szczotka WC"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; umywalka wisząca z baterią podtynkową (P 05)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż kratki wentylacyjnej",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; jedna kratka na pomieszczenie"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż umywalki wiszącej",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; umywalka wisząca (P 05)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż syfonów",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; syfon umywalki"
+  },
+  {
+    "section": "WC parter",
+    "description": "Montaż WC podwieszanego",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; miska WC podwieszana (P 05)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Biały montaż baterii podtynkowej do umywalki",
+    "qty": 1,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 1 kpl\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; biały montaż baterii umywalkowej podtynkowej (Manual: każda bateria podtynkowa ma montaż w ścianie i biały montaż)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Wiercenie otworów w płytkach",
+    "qty": 15,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 15 szt\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; WC 5, umywalka z baterią podtynkową 3, kratka 1 = 9 — płytki na wszystkich ścianach, więc minimum 15 (Manual)"
+  },
+  {
+    "section": "WC parter",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 18.14,
+    "newInformation": "Runda 2 — AI przedmiar: 0 → 18,14 m²\nPowód: łazienki rozdzielone na 3 sekcje (Notatki: „na parterze wc oraz na górze dwie łazienki”); runda 1 liczyła je razem w „Łazienka”; pod płytki: ściany 16,03 + podłoga 2,11 m²"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 6,61 → 0 m²\nPowód: Manual — „Jeżeli praca dotyczy pracy w łazience to dodajemy do sekcji łazienka”; sufit GK 6,61 m² jest w łazience piętra z prysznicem — przeniesiony do „Łazienka piętro z prysznicem”"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Tapetowanie",
+    "qty": 0,
+    "newInformation": "Runda 2 — AI przedmiar: 7,46 → 0 m²\nPowód: Manual — „Jeżeli praca dotyczy pracy w łazience to dodajemy do sekcji łazienka”; tapeta 7,46 m² jest w łazience z wanną — przeniesiona do „Łazienka piętro z wanną”"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "qty": 85.31,
+    "newInformation": "Runda 2 — AI przedmiar: 102,91 → 85,31 m²\nPowód: Manual (nowa reguła); bez podłóg łazienek 17,6 m² — Manual: „Nie liczymy w tym gruntowanie podłóg w łazienkach. łazienki robimy osobno”; łazienki mają „Dwukrotne gruntowanie” w swoich sekcjach"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Układanie glazury na ścianie wielki format 120x270",
+    "qty": 8.75,
+    "newInformation": "Runda 2 — nowa pozycja: 0 → 8,75 m²\nPowód: łazienki rozdzielone na 3 sekcje — ta pozycja nie należy do żadnej łazienki, więc wychodzi z „Łazienka”; spiek Laminam Travertino Beige 8,75 m² klejony w niszy kuchennej (P) — cena j.m. z pozycji łazienkowej\nNie wiadomo: format płyt i stawka — spiek wielkoformatowy może wyjść powyżej 550 zł/m²",
+    "unit": "m²",
+    "clientPrice": 550.0
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "qty": 8.75,
+    "newInformation": "Runda 2 — nowa pozycja: 0 → 8,75 m²\nPowód: łazienki rozdzielone na 3 sekcje — ta pozycja nie należy do żadnej łazienki, więc wychodzi z „Łazienka”; fugowanie spieku 8,75 m² — cena j.m. z pozycji łazienkowej",
+    "unit": "m²",
+    "clientPrice": 30.0
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "description": "Montaż lustra",
+    "qty": 6,
+    "newInformation": "Runda 2 — nowa pozycja: 0 → 6 szt\nPowód: łazienki rozdzielone na 3 sekcje — ta pozycja nie należy do żadnej łazienki, więc wychodzi z „Łazienka”; lustra grafitowe klejone poza łazienkami: parter 3 moduły (P), piętro: sypialnia i ściana przy schodach — cena j.m. z pozycji łazienkowej\nNie wiadomo: podział tafli do ustalenia ze szklarzem",
+    "unit": "szt",
+    "clientPrice": 120.0
+  }
+]

@@ -79,7 +79,7 @@ async function inBatches<T>(
   }
   const results = await mapWithConcurrency(batches, TRANSLATION_CONCURRENCY, (batch) =>
     translateBatch(batch).catch((error: unknown) => {
-      // TODO(EX-449) SENTRY-REQUIRED: a failed translation batch is invisible to the user beyond a count.
+      // TODO(EX-958) SENTRY-REQUIRED: a failed translation batch is invisible to the user beyond a count.
       logError(`[translate] ${label}: batch of ${batch.length} failed`, error)
       return new Map<string, T>()
     }),

@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-vercel-postgres'
+import { sql } from '@payloadcms/db-postgres'
 import {
   EXPENSE_DRAFT_STATUSES,
   type ExpenseDraftStatusT,
@@ -325,12 +325,14 @@ export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<Expense
   return res.rows.map(toDraftRow)
 }
 
+export const PENDING_EXPENSE_DRAFTS_COUNT = sql`
+  SELECT count(*)::int AS total
+  FROM worker_expense_drafts d LEFT JOIN investments i ON i.id = d.investment_id
+  WHERE ${PENDING_DRAFT}
+`
+
 export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(sql`
-    SELECT count(*)::int AS total
-    FROM worker_expense_drafts d LEFT JOIN investments i ON i.id = d.investment_id
-    WHERE ${PENDING_DRAFT}
-  `)
+  const res = await db.execute(PENDING_EXPENSE_DRAFTS_COUNT)
   return Number(res.rows[0]?.total ?? 0)
 }
 
@@ -838,6 +840,11 @@ export async function listDraftTransferIds(
     SELECT transfer_id FROM worker_expense_draft_transfers
     WHERE transfer_id IN (${sqlList(transferIds)})
   `)
+  return res.rows.map((row) => Number(row.transfer_id))
+}
+
+export async function listAllDraftTransferIds(db: DbExecutorT): Promise<number[]> {
+  const res = await db.execute(sql`SELECT transfer_id FROM worker_expense_draft_transfers`)
   return res.rows.map((row) => Number(row.transfer_id))
 }
 

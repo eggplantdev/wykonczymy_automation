@@ -5,9 +5,9 @@ import type { useKosztorysEditor } from '@/components/kosztorys/editor/use-koszt
 import type { EditorNounT } from '@/lib/kosztorys/editor-noun'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
-// `refetch` only when the replacing action threw: its render never arrived, so the fresh tree must be
-// asked for.
-export type OnTreeReplacedT = (opts?: { refetch?: boolean }) => void
+// `refetch` when the replacing action's render never arrived — it threw, or was refused as stale — so
+// the fresh tree must be asked for. `stale`: the refusal said the grid's rows are behind.
+export type OnTreeReplacedT = (opts?: { refetch?: boolean; stale?: boolean }) => void
 
 // Everything the editor hook owns plus the four values its caller supplies. The toolbar and its
 // controls read straight from here, so KosztorysEditorBody relays none of it.

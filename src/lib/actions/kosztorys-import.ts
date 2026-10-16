@@ -105,7 +105,7 @@ const FAILURE_MESSAGES: Record<SheetFailureReasonT, string> = {
 function toSheetFailure(error: unknown): SheetFailureT {
   const reason = classifySheetFailure(error)
   if (reason === 'unknown') {
-    // TODO(EX-449) SENTRY-REQUIRED: capture the underlying Google error, not just the console line.
+    // TODO(EX-958) SENTRY-REQUIRED: capture the underlying Google error, not just the console line.
     console.error('[kosztorys-import] sheet read failed', error)
   }
   return { reason, serviceAccountEmail: reason === 'forbidden' ? serviceAccountEmail() : null }

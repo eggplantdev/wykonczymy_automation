@@ -104,8 +104,7 @@ export async function POST(request: NextRequest) {
   const alreadyHeld = uploadFieldIds(lead.assets).length
   const assets = alreadyHeld ? [] : (submission.assets ?? [])
 
-  // Serial, not Promise.all: concurrent Payload writes share a Neon session and silently commit
-  // one. Serial also keeps peak memory at one file rather than the whole set.
+  // Serial, not Promise.all: keeps peak memory at one file rather than the whole set.
   const mediaIds: number[] = []
   const failed: { url: string; reason: string }[] = []
   for (const asset of assets.slice(0, MAX_LANDING_ASSETS)) {
