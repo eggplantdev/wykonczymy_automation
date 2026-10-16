@@ -740,6 +740,35 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       a lista wraca do „Zakończona”; jako właściciel — przechodzi.
 - [ ] Inwestycja w koszu → brak listy statusu, wiersz „Status” w liście danych jest jak dotąd.
 
+## 2026-10-16 — filters-tick-to-show — „Filtry” zaznaczasz to, co chcesz widzieć
+
+- [ ] Kosztorys → „Filtry”: na górze „Pokaż tylko”; nic nie zaznaczone, przycisk bez licznika — widać
+      wszystkie pozycje.
+- [ ] Kosztorys → „Filtry” → zaznacz „Z przedmiarem”: zostają tylko pozycje z przedmiarem; chip nad
+      siatką „Tylko: pozycje z przedmiarem”, jego „×” zdejmuje filtr.
+- [ ] Kosztorys → zaznacz dwie opcje z tej samej grupy (np. w „Przedmiar”: „Bez przedmiaru” i „Z przedmiarem”): widać
+      pozycje jednej LUB drugiej, czyli wszystkie.
+- [ ] Kosztorys → zaznacz opcje z dwóch różnych grup (np. „Z przedmiarem” i „Z wykonaną pracą”): widać
+      tylko pozycje spełniające obie naraz.
+- [ ] Kosztorys → zaznacz opcję, której nie spełnia żadna pozycja: pusty stan „Brak pozycji spełniających
+      filtry” z opisem „Filtry pokazują tylko pozycje …”.
+- [ ] Kosztorys przy włączonym rabacie globalnym → „Filtry” nie pokazują opcji rabatu pozycji, siatka nie
+      jest pusta.
+- [ ] Szablon → „Filtry” działają tak samo jak w kosztorysie (nic zaznaczone = wszystko).
+- [ ] Kosztorys → „Sekcje”: zaznaczona sekcja = rozwinięta; odznacz jedną → zwija się tylko ona;
+      „Zwiń wszystkie sekcje” / „Rozwiń wszystkie sekcje” działają; „Resetuj” rozwija wszystko.
+- [ ] Katalog prac → „Filtry”: nic zaznaczone = wszystkie prace; „Udział w cenie” ma trzy opcje
+      („Ponad …”, „W granicy …”, „Nie dotyczy (auto lub bez ceny j.m.)”), każda praca wpada w dokładnie
+      jedną; chip „Tylko: prace …”.
+- [ ] Transakcje → dowolny filtr z listą (typ, kasa, inwestycja…): nic zaznaczone = wszystkie wiersze,
+      zaznacz jeden → tylko on; pojawia się „Wyczyść”, które zdejmuje zaznaczenie. Brak „Zaznacz
+      wszystkie”.
+- [ ] Inwestycje → filtr statusu: odznacz wszystkie statusy → widać wszystkie inwestycje (nie pusta
+      lista), przycisk bez licznika.
+- [ ] Użytkownicy → odznacz zarówno „Aktywni”, jak i „Nieaktywni” → widać wszystkich (nie pusta lista).
+- [ ] Kasy, Sprzęt, „Dodaj z katalogu” w kosztorysie → filtry z listą: nic zaznaczone = wszystko,
+      zaznaczone = tylko one.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
