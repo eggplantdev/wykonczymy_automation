@@ -2,10 +2,7 @@
 
 import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
-import {
-  INVESTMENT_STATUSES,
-  type InvestmentStatusT,
-} from '@/lib/constants/investment-status'
+import { INVESTMENT_STATUSES, type InvestmentStatusT } from '@/lib/constants/investment-status'
 
 const DEFAULT_STATUSES: InvestmentStatusT[] = ['quote', 'planowana', 'active']
 
@@ -30,13 +27,9 @@ function storeFor(storageKey: string): JsonMapStoreT<boolean> {
 // A flag per status, never a list of the picked ones: an empty list cannot tell „nikt jeszcze nie
 // wybierał" from „wybrano nic".
 export function selectionFrom(persisted: Record<string, boolean>): Set<InvestmentStatusT> {
-  const answered = INVESTMENT_STATUSES.filter(
-    (status) => typeof persisted[status] === 'boolean',
-  )
+  const answered = INVESTMENT_STATUSES.filter((status) => typeof persisted[status] === 'boolean')
   if (answered.length === 0) return new Set(DEFAULT_STATUSES)
-  return new Set(
-    INVESTMENT_STATUSES.filter((status) => flagOf(persisted, status) === true),
-  )
+  return new Set(INVESTMENT_STATUSES.filter((status) => flagOf(persisted, status) === true))
 }
 
 function flagOf(persisted: Record<string, boolean>, status: InvestmentStatusT): unknown {
@@ -75,10 +68,14 @@ export function useStatusFilter<TItem>(
     })
   }
 
+  const clearStatuses = () => {
+    store.update(() => Object.fromEntries(INVESTMENT_STATUSES.map((status) => [status, false])))
+  }
+
   const filteredData = useMemo(
     () => filterByStatuses(data, selectedStatuses, getStatus),
     [data, selectedStatuses, getStatus],
   )
 
-  return { filteredData, selectedStatuses, toggleStatus } as const
+  return { filteredData, selectedStatuses, toggleStatus, clearStatuses } as const
 }
