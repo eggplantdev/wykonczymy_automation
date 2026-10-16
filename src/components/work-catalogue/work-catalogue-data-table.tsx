@@ -105,7 +105,13 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   const deferredRows = useDeferredValue(filteredData)
   const busy = filteredData !== deferredRows
 
-  const categoryOptions = useMemo(() => catalogueCategoryOptions(data), [data])
+  const categoryOptions = useMemo(() => {
+    const byCategory = Map.groupBy(data, (item) => item.category ?? '')
+    return catalogueCategoryOptions(data).map((option) => ({
+      ...option,
+      count: byCategory.get(option.value)?.length ?? 0,
+    }))
+  }, [data])
 
   const categorySuggestions = useMemo(() => catalogueCategorySuggestions(data), [data])
 
@@ -181,12 +187,19 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
             {filteredData.length !== data.length && ` z ${data.length}`}
           </span>
         }
-        belowToolbar={
-          <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
-        }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            columns={
+              <ColumnToggle
+                table={table}
+                columnVisibility={cv}
+                contentClassName="w-112"
+                {...order}
+              />
+            }
+            filterChips={
+              <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
+            }
             search={{
               value: searchTerm,
               onChange: setSearchTerm,
@@ -202,6 +215,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
                   icon={Tags}
                   searchable
                   triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                  contentClassName="w-112"
                 />
                 <FilterMultiSelect
                   label="j.m."

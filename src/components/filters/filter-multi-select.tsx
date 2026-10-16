@@ -17,7 +17,7 @@ import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 
-type OptionT = { value: string; label: string }
+type OptionT = { value: string; label: string; count?: number }
 
 export type FilterTogglesBulkT = { allActive: boolean; onToggleAll: (next: boolean) => void }
 
@@ -350,6 +350,7 @@ export function FilterMultiSelect({
                       )}
                     />
                     {opt.label}
+                    {opt.count !== undefined && ` (${opt.count})`}
                   </CommandItem>
                 ))}
               </CommandGroup>

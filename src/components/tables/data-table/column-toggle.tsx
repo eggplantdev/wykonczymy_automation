@@ -20,6 +20,7 @@ type ColumnTogglePropsT<TData> = {
   resetOrder: () => void
   textSize: TableTextSizeT
   setTextSize: (size: TableTextSizeT) => void
+  contentClassName?: string
 }
 
 export function ColumnToggle<TData>({
@@ -31,6 +32,7 @@ export function ColumnToggle<TData>({
   resetOrder,
   textSize,
   setTextSize,
+  contentClassName,
 }: ColumnTogglePropsT<TData>) {
   // getAllLeafColumns applies the table's columnOrder; getAllColumns would hand both surfaces the
   // declaration order, so the dialog would open showing the state before the last drag.
@@ -45,6 +47,7 @@ export function ColumnToggle<TData>({
   return (
     <ColumnToggleMenu
       items={items}
+      contentClassName={contentClassName}
       onToggle={(id) => table.getColumn(id)?.toggleVisibility()}
       // Merged into current state, not TanStack's toggleAllColumnsVisible — that rebuilds the map
       // from {} and drops unknown ids, wiping a sibling page's preference (shared storageKey, different excludeColumns).
