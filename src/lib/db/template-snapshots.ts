@@ -8,9 +8,8 @@ import {
 } from '@/lib/kosztorys/templates/snapshot-payload'
 import type { DbExecutorT } from './get-db'
 
-// The raw `template_snapshots` table — a szablon's „Wersje", refs only. Retention follows the
-// kosztorys bands (`gcRetentionBands`), minus the investor clause: a szablon has no investor and is never
-// completed, so a `named` version lives as long as the szablon does.
+// A szablon has no investor and is never completed, so a `named` version lives as long as the
+// szablon does.
 
 export type TemplateSnapshotMetaT = {
   id: number

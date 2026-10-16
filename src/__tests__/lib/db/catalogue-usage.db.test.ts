@@ -18,9 +18,7 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 
-// „Kosztorysy" counts a praca as used only where real work was offered or measured; an
-// inwestycja in the kosz counted in would inflate every figure with pozycje nobody sold. The
-// kosz exclusion can only be proved here — the local dump has no trashed inwestycje.
+// The kosz exclusion can only be proved here — the local dump has no trashed inwestycje.
 
 vi.mock('server-only', () => ({}))
 

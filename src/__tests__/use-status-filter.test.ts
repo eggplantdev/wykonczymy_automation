@@ -48,8 +48,8 @@ describe('filterByStatuses', () => {
     ])
   })
 
-  it('none selected → no rows', () => {
-    expect(idsFor([])).toEqual([])
+  it('none selected → every row, nothing narrows', () => {
+    expect(idsFor([])).toEqual([1, 2, 3, 4, 5])
   })
 })
 

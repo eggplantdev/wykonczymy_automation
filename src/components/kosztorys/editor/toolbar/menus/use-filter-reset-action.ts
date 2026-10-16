@@ -11,7 +11,7 @@ export function useFilterResetAction(): {
     useKosztorysEditorContext()
 
   return {
-    label: 'Zresetuj filtry',
+    label: 'Wyczyść filtry',
     onReset: resetFilters,
     disabled:
       engagedConditionIds.size === 0 && collapsedSectionIds.size === 0 && search.trim() === '',

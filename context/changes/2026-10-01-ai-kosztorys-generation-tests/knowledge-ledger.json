@@ -70,5 +70,61 @@
     "decision": "lifted",
     "note": "katalog 966 Komentarz „Jeśli mieszkanie jest w stanie deweloperskim, a ścianka jest na projekcie — liczymy zawsze, deweloper jej nie stawia.”",
     "date": "2026-10-15"
+  },
+  {
+    "investment": 212,
+    "item": 63775,
+    "reason": "zabrakło demontazy a to remont wtórny, były zdjecia łązienek ze starą glazurą do usuniecia. wiem, że klient wyburza sam, ale chciał też przykładowy kosztorys wyburzania, wiec dorzucam.",
+    "decision": "lifted",
+    "note": "Manual „Rynek wtórny — demontaże i skucia zawsze w wycenie”",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63776,
+    "reason": "zabrakło demontazy osćeiznic,  a to remont wtórny,  wiem, że klient wyburza sam, ale chciał też przykładowy kosztorys wyburzania, wiec dorzucam.",
+    "decision": "lifted",
+    "note": "Manual „Rynek wtórny — demontaże i skucia zawsze w wycenie”",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63792,
+    "reason": "zabrakło skucia płytek, a to remont wtórny, były zdjecia łązienek ze starą glazurą do usuniecia. wiem, że klient wyburza sam, ale chciał też przykładowy kosztorys wyburzania, wiec dorzucam.",
+    "decision": "lifted",
+    "note": "Manual „Rynek wtórny — demontaże i skucia zawsze w wycenie”",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63802,
+    "reason": "będzie więcej do zdarcia na sufitach w łazienkach plus nad glazurą, bo na stary tynk nie można kleić płytek.",
+    "decision": "lifted",
+    "note": "katalog 936 append: łazienka — sufit i ściany nad glazurą",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63843,
+    "reason": "mało + zakręt i otwór na drzwi wiec wysoki stopień skomplikowania prac.",
+    "decision": "lifted",
+    "note": "katalog 762 append: pointer to the wysoki stopień praca",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63907,
+    "reason": "raczej trzeba będzie wszystko wyrównać. ewentualnie po wyburzeniach może to zostać zamienione na klejenie płyt gk żeby było szybciej.",
+    "decision": "lifted",
+    "note": "katalog 263 append: m² = glazura ścienna, GK alternative as a question",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 206,
+    "item": 62614,
+    "reason": "wrzucimy w elektrykę tym razem, ale nie był to błąd.",
+    "decision": "skipped",
+    "note": "owner: not an AI error, moved to elektryka this time",
+    "date": "2026-10-16"
   }
 ]

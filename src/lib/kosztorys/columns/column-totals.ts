@@ -37,6 +37,7 @@ export function columnTotalsForRows(
   const plannedNet = sumOf('plannedNet')
   const currentPlannedNet = sumOf('currentPlannedNet')
   const discount = sumOf('discountAmount')
+  const plannedDiscount = sumOf('plannedDiscountAmount')
   const remaining = sumOf('remaining', notOverrun)
 
   totals.set('net', net)
@@ -52,6 +53,8 @@ export function columnTotalsForRows(
   if (executedQtyByItem) totals.set('remainingForPlane', sumOf('remainingForPlane', notOverrun))
   totals.set('discountAmount', discount)
   totals.set('discountAmountGross', toGross(discount, vatRate))
+  totals.set('plannedDiscountAmount', plannedDiscount)
+  totals.set('plannedDiscountAmountGross', toGross(plannedDiscount, vatRate))
   const stageAxis = stageAxisForView(rows, stages, view)
   for (const stage of viewStages) {
     const stageValueNet = stageAxis.net.get(stage.id) ?? 0

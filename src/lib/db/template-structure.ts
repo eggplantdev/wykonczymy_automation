@@ -9,8 +9,7 @@ import type { SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 import type { KosztorysSectionT } from '@/lib/kosztorys/types'
 import type { TemplateSnapshotPayloadT } from '@/lib/kosztorys/templates/snapshot-payload'
 
-// The szablon plane's statements. Its tables are read-only to Payload, so every write is raw SQL;
-// display order goes through the shared `display-order.ts` scopes, so the lock order (ascending id)
+// Display order goes through the shared `display-order.ts` scopes, so the lock order (ascending id)
 // is the same one the kosztorys plane uses.
 
 export async function insertTemplateSection(
@@ -62,7 +61,9 @@ export async function deleteTemplateSections(db: DbExecutorT, templateId: number
 export async function templateSectionAndNextItemOrder(
   db: DbExecutorT,
   sectionId: number,
-): Promise<{ templateId: number; nextDisplayOrder: number; section: KosztorysSectionT } | undefined> {
+): Promise<
+  { templateId: number; nextDisplayOrder: number; section: KosztorysSectionT } | undefined
+> {
   const res = await db.execute(sql`
     SELECT
       s.template_id, s.name, s.display_order, s.color,
@@ -155,8 +156,6 @@ export async function getTemplateSectionNames(
   return res.rows.map((row) => String(row.name))
 }
 
-// The kosztorys plane's `lockAndCheckLayout`, on the szablon's tables: the szablon row in KEY SHARE,
-// then its rows in NO KEY UPDATE by ascending id, and only a permutation of what stands is accepted.
 export async function lockAndCheckTemplateLayout(
   db: DbExecutorT,
   templateId: number,
@@ -217,8 +216,6 @@ export async function applyTemplateLayout(
   await bumpTemplateRevision(db, templateId)
 }
 
-// A szablon as refs: its sections in order, each with its katalog ids in order. What a version
-// stores and what an overwrite or a restore writes back.
 export async function readTemplateLayout(
   db: DbExecutorT,
   templateId: number,
@@ -252,7 +249,13 @@ export async function insertTemplateLayout(
   layout: TemplateSnapshotPayloadT,
 ): Promise<void> {
   for (const [index, section] of layout.sections.entries()) {
-    const sectionId = await insertTemplateSection(db, templateId, section.name, index, section.color)
+    const sectionId = await insertTemplateSection(
+      db,
+      templateId,
+      section.name,
+      index,
+      section.color,
+    )
     await insertTemplateItems(db, sectionId, 0, section.catalogueItemIds)
   }
 }

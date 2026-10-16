@@ -1,7 +1,6 @@
 import 'server-only'
 import type { Payload } from 'payload'
 
-// „Wersje" attributes each row to a person; `taken_by` is a bare user id on both snapshot planes.
 export async function withTakenByNames<RowT extends { takenBy: number | null }>(
   payload: Payload,
   rows: RowT[],

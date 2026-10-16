@@ -1,35 +1,38 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   sanitizeClientViewSettings,
   toStoredClientViewSettings,
 } from '@/lib/kosztorys/client-view/settings'
 
-// Today the ceiling equals the frozen legacy set, so only a ceiling widened here reaches the branch a
-// real new column will take.
-vi.mock('@/lib/kosztorys/client-view/columns', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/kosztorys/client-view/columns')>()
-  return {
-    ...actual,
-    PREVIEW_VISIBLE_COLUMNS: new Set([...actual.PREVIEW_VISIBLE_COLUMNS, 'futureColumn']),
-  }
-})
+// An owner may have hidden every rabat column on purpose, so it must reach no existing document unasked.
+const NEW_COLUMN = 'plannedDiscountAmount'
 
-describe('toStoredClientViewSettings — a column outside the legacy set', () => {
-  it('stores the owner showing a column the code hides by default', () => {
+describe('a column outside the legacy set', () => {
+  it('is hidden by default', () => {
+    expect(sanitizeClientViewSettings({}).hiddenColumns).toContain(NEW_COLUMN)
+  })
+
+  it('stays hidden on a stored map that does not mention it', () => {
+    const stored = { hiddenColumns: { price: false, discountAmount: false } }
+    expect(sanitizeClientViewSettings(stored).hiddenColumns).toContain(NEW_COLUMN)
+  })
+
+  it('stays hidden on a legacy array, even one hiding nothing', () => {
+    expect(sanitizeClientViewSettings({ hiddenColumns: [] }).hiddenColumns).toContain(NEW_COLUMN)
+  })
+
+  it('stores the owner showing it', () => {
     const defaults = sanitizeClientViewSettings({})
-    expect(defaults.hiddenColumns).toContain('futureColumn')
-
-    const shown = defaults.hiddenColumns.filter((key) => key !== 'futureColumn')
+    const shown = defaults.hiddenColumns.filter((key) => key !== NEW_COLUMN)
     const stored = toStoredClientViewSettings({ ...defaults, hiddenColumns: shown })
 
-    expect(stored.hiddenColumns.futureColumn).toBe(false)
-    expect(sanitizeClientViewSettings(stored).hiddenColumns).not.toContain('futureColumn')
+    expect(stored.hiddenColumns[NEW_COLUMN]).toBe(false)
+    expect(sanitizeClientViewSettings(stored).hiddenColumns).not.toContain(NEW_COLUMN)
   })
 
   it('stores the owner hiding it again', () => {
-    const defaults = sanitizeClientViewSettings({})
-    const stored = toStoredClientViewSettings(defaults)
+    const stored = toStoredClientViewSettings(sanitizeClientViewSettings({}))
 
-    expect(stored.hiddenColumns.futureColumn).toBe(true)
+    expect(stored.hiddenColumns[NEW_COLUMN]).toBe(true)
   })
 })

@@ -319,6 +319,8 @@ export const pl = {
     stageQtySumForPlane: 'Pomiar z natury (etapy razem) — {{plane}}',
     stageFallback: 'Etap {{ordinal}}',
     stageCompleted: 'Etap zakończony',
+    stagesCompletedGroup: 'Zakończone ({{count}})',
+    stagesActiveGroup: 'Aktywne ({{count}})',
     stageValueNetHeader: '{{stage}} netto',
     netSuffix: 'netto',
     total: 'Razem',
@@ -448,8 +450,7 @@ export const pl = {
   filters: {
     search: 'Szukaj...',
     noResults: 'Brak wyników',
-    selectAll: 'Zaznacz wszystkie',
-    deselectAll: 'Odznacz wszystkie',
+    clear: 'Wyczyść',
     year: 'Rok',
     month: 'Miesiąc',
     from: 'Od',

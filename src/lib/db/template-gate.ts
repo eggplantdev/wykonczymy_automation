@@ -5,8 +5,7 @@ export type TemplateGateKindT = 'template' | 'section' | 'item'
 
 export type TemplateGateT = { templateId: number; isTrashed: boolean }
 
-// One round trip from whichever id the action holds to the szablon it writes: the editor fans a
-// write out per changed cell. `undefined` when the row is gone, which callers report as NOT_FOUND.
+// `undefined` when the row is gone, which callers report as NOT_FOUND.
 export async function templateGateFor(
   db: DbExecutorT,
   kind: TemplateGateKindT,

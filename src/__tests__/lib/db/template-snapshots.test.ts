@@ -13,8 +13,6 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 
-// A szablon version holds katalog refs only, so the risks are on the way back: a restore must
-// rebuild the layout, leave its own restore point, and survive a ref whose katalog entry is gone.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

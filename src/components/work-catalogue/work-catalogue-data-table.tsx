@@ -43,7 +43,7 @@ import {
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { findNearDuplicates } from '@/lib/kosztorys/work-catalogue/catalogue-near-duplicates'
-import { itemNoun } from '@/lib/kosztorys/counted-nouns'
+import { Description } from '@/components/ui/description'
 import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const INITIAL_SORTING = [{ id: 'description', desc: false }]
@@ -64,9 +64,9 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     engagedIds,
     toggle: toggleCondition,
     toggleExclusive,
-    setMany,
+    setMany: setConditions,
     clear: clearConditions,
-  } = useEngagedIds('work-catalogue-filters')
+  } = useEngagedIds('work-catalogue-show')
 
   // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
   const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
@@ -97,6 +97,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     conditions,
     engagedIds,
     counts,
+    rowCount: data.length,
   })
   const problemToggles = catalogueProblemsMenuModel({ conditions, engagedIds, counts })
 
@@ -105,7 +106,13 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   const deferredRows = useDeferredValue(filteredData)
   const busy = filteredData !== deferredRows
 
-  const categoryOptions = useMemo(() => catalogueCategoryOptions(data), [data])
+  const categoryOptions = useMemo(() => {
+    const byCategory = Map.groupBy(data, (item) => item.category ?? '')
+    return catalogueCategoryOptions(data).map((option) => ({
+      ...option,
+      count: byCategory.get(option.value)?.length ?? 0,
+    }))
+  }, [data])
 
   const categorySuggestions = useMemo(() => catalogueCategorySuggestions(data), [data])
 
@@ -176,17 +183,23 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
           /* Counted off `filteredData`, not off the deferred list the table renders: behind the
            spinner the count would still be naming the previous search for as long as ~950 rows
            take to redraw. */
-          <span className="text-muted-foreground block text-sm">
-            {filteredData.length} {itemNoun(filteredData.length)}
-            {filteredData.length !== data.length && ` z ${data.length}`}
-          </span>
-        }
-        belowToolbar={
-          <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
+          <Description withIcon={false}>
+            Widoczne prace {filteredData.length} / {data.length}
+          </Description>
         }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            columns={
+              <ColumnToggle
+                table={table}
+                columnVisibility={cv}
+                contentClassName="w-112"
+                {...order}
+              />
+            }
+            filterChips={
+              <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
+            }
             search={{
               value: searchTerm,
               onChange: setSearchTerm,
@@ -202,6 +215,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
                   icon={Tags}
                   searchable
                   triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                  contentClassName="w-112"
                 />
                 <FilterMultiSelect
                   label="j.m."
@@ -215,13 +229,12 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
                 <CatalogueFiltersMenu
                   toggles={filterToggles}
                   onToggle={toggleCondition}
-                  // Ticked = visible, so „all ticked" means none engaged.
-                  onToggleAll={(ids, visible) => setMany(ids, !visible)}
-                  resetAction={{
-                    label: 'Zresetuj filtry',
-                    onReset: resetFilters,
-                    disabled: chips.length === 0,
-                  }}
+                  onClear={() =>
+                    setConditions(
+                      filterToggles.map((toggle) => toggle.id),
+                      false,
+                    )
+                  }
                 />
                 <CatalogueProblemsMenu
                   toggles={problemToggles}

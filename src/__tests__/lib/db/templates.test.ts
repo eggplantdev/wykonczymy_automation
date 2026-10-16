@@ -31,8 +31,7 @@ async function bootPayload() {
 const trash = (db: Awaited<ReturnType<typeof getDb>>, id: number) =>
   db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${id}`)
 
-// listTemplateSections counts prace per section in SQL (EX-622), so its tallies and ordering are
-// only real against Postgres — assert the returned metas, never the plan.
+// listTemplateSections: its tallies and ordering are only real against Postgres.
 describe.skipIf(!ENV_READY)('listTemplateSections (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -106,8 +105,6 @@ describe.skipIf(!ENV_READY)('listTemplateSections (DB)', () => {
   })
 })
 
-// Asserted on the persisted rows (via listTemplates), never on a return value — a success result can
-// hide a failed write.
 describe.skipIf(!ENV_READY)('renameTemplate / listTemplates (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -160,8 +157,6 @@ describe.skipIf(!ENV_READY)('renameTemplate / listTemplates (DB)', () => {
     expect(await revisionOf(id)).toEqual(before)
   })
 
-  // The collision guard lives in SQL and matches the unique index — case and edge spaces don't make
-  // a name new.
   it.each([
     ['same case', (name: string) => name],
     ['other case', (name: string) => name.toUpperCase()],
@@ -184,8 +179,7 @@ describe.skipIf(!ENV_READY)('renameTemplate / listTemplates (DB)', () => {
     expect(await templateNameHolder(db, (await nameOf(id))!, id)).toBeUndefined()
   })
 
-  // The listing sorts by the last edit, because that is the figure that moves. The trap is a szablon
-  // migrated without a stamp: a plain DESC would drop it out of the view.
+  // The trap is a szablon migrated without a stamp: a plain DESC would drop it out of the view.
   it('sorts by the last edit and keeps an unstamped szablon in the list', async () => {
     const stale = await makeTemplate('crud-fixture-order-stale')
     const fresh = await makeTemplate('crud-fixture-order-fresh')
@@ -210,8 +204,6 @@ describe.skipIf(!ENV_READY)('renameTemplate / listTemplates (DB)', () => {
     expect((await listTemplates(db))[0]?.id).toBe(id)
   })
 
-  // Every write into a szablon stamps it (templateAction); `updated_at` staying put is what keeps an
-  // open editor from remounting under the user's hands.
   it('stamps an edit without moving updated_at', async () => {
     const id = await makeTemplate('crud-fixture-edited')
     await stampDaysAgo(id, 2)
@@ -224,9 +216,6 @@ describe.skipIf(!ENV_READY)('renameTemplate / listTemplates (DB)', () => {
   })
 })
 
-// A trashed szablon is invisible to every reader until it is restored — a picker that still offered
-// it would seed a kosztorys from something the user threw away. The name checks are the exception:
-// the unique index still counts it.
 describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

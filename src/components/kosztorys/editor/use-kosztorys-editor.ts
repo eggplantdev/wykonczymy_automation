@@ -75,7 +75,7 @@ import {
 } from '@/lib/kosztorys/row-conditions/registry'
 import { STAGE_CONDITIONS, countMatchingStages } from '@/lib/kosztorys/stage-conditions'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
-import { investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { hasPlannedDiscount, investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { baseOrdinals } from '@/lib/kosztorys/section-band-rows'
 import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
@@ -223,6 +223,7 @@ export function useKosztorysEditor({
     workerPlane: worker?.plane,
     isTemplate,
     aiDraft,
+    globalDiscountActive: rows.some((row) => row.globalDiscountActive),
   })
 
   const { widths, setWidth, dropWidth } = useColumnWidths()
@@ -266,14 +267,7 @@ export function useKosztorysEditor({
     save,
     reportFailure,
   })
-  const {
-    isStageHidden,
-    isStageOff,
-    hideCompleted: hideCompletedStages,
-    setHideCompleted: setHideCompletedStages,
-    toggleStage,
-    setStagesHidden,
-  } = useHiddenStages(investmentId, stages)
+  const { isStageOff, toggleStage, setStagesHidden } = useHiddenStages(investmentId, stages)
 
   const pendingFields = useRef<FieldChangeT[]>([])
   const pendingStages = useRef<StageChangeT[]>([])
@@ -531,6 +525,7 @@ export function useKosztorysEditor({
     // copy, so pushing them would revert the cennik.
     canSaveItemToCatalogue: editorOnly(!isTemplate),
     globalDiscountActive,
+    hasDiscount: hasPlannedDiscount(rows),
     divergenceFilterEngaged,
     engagedStageConditionIds,
     revealedColumnIds,
@@ -1087,10 +1082,7 @@ export function useKosztorysEditor({
     revealedColumnIds,
     toggleColumn,
     setAllColumns,
-    isStageHidden,
     isStageOff,
-    hideCompletedStages,
-    setHideCompletedStages,
     toggleStage,
     setStagesHidden,
     columnRanks,

@@ -1,6 +1,6 @@
 import { forwardRef, useLayoutEffect, useRef, type ComponentProps, type KeyboardEvent } from 'react'
 import { cn } from '@/lib/utils/cn'
-import { enterEscapeKeyDown } from '@/lib/utils/enter-escape-keydown'
+import { enterEscapeKeyDown } from '@/components/ui/datasheet-grid/enter-escape-keydown'
 
 // onKeyDown is omitted rather than forwarded: Enter/Escape MUST be swallowed here so the keypress
 // can't also drive react-datasheet-grid's selection underneath the cell, and a raw handler would let

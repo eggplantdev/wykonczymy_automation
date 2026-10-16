@@ -3,12 +3,12 @@ import type { Where } from 'payload'
 import {
   buildPayoutFilters,
   buildTransferFilters,
-  narrowToTransferIds,
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
   stripCancelledFilters,
   stripOriginalScopedFilters,
   withDateRange,
+  withWorkerDrafts,
 } from '@/lib/queries/transfer-filters'
 import { sumFilteredByType } from '@/lib/db/sum-transfers'
 import { buildSqlConditions } from '@/lib/db/where-to-sql'
@@ -333,9 +333,9 @@ describe('withDateRange → stats SQL', () => {
   })
 })
 
-describe('narrowToTransferIds', () => {
+describe('withWorkerDrafts', () => {
   it('keeps the URL filters and adds the id list', () => {
-    const where = narrowToTransferIds(buildTransferFilters({ investment: '31' }, { id: 0 }), [4, 9])
+    const where = withWorkerDrafts(buildTransferFilters({ investment: '31' }, { id: 0 }), [4, 9])
     const sql = buildSqlConditions(where)
 
     expect(sql).toContain('investment_id IN (31)')
@@ -343,14 +343,11 @@ describe('narrowToTransferIds', () => {
   })
 
   it('an empty list matches nothing', () => {
-    expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
+    expect(buildSqlConditions(withWorkerDrafts({}, []))).toContain('(id = -1)')
   })
 
   it('never leaves a top-level `or` beside the `and` it adds', () => {
-    const where = narrowToTransferIds(
-      buildTransferFilters({ sourceRegister: '50' }, { id: 0 }),
-      [4],
-    )
+    const where = withWorkerDrafts(buildTransferFilters({ sourceRegister: '50' }, { id: 0 }), [4])
 
     expect(where.or).toBeUndefined()
     const sql = buildSqlConditions(where)
@@ -358,9 +355,18 @@ describe('narrowToTransferIds', () => {
     expect(sql).toContain('id IN (4)')
   })
 
+  // „Zgłoszone wydatki” is one more option in the Typ list, and options of one list OR.
+  it('ticked types widen with the drafts instead of narrowing them', () => {
+    const where = buildTransferFilters({ type: 'INVESTOR_DEPOSIT' }, { id: 0 })
+    const sql = buildSqlConditions(withWorkerDrafts(where, [4, 9]))
+
+    expect(sql).toContain("(type IN ('INVESTOR_DEPOSIT') OR id IN (4, 9))")
+    expect(sql).toContain('cancelled')
+  })
+
   it('in audit mode narrows the CANCELLATION rows by the original they cancel', () => {
     const audit = buildTransferFilters({ cancelledTransactionAudit: '1' }, { id: 0 })
-    const sql = buildSqlConditions(narrowToTransferIds(audit, [4], { throughOriginal: true }))
+    const sql = buildSqlConditions(withWorkerDrafts(audit, [4], { throughOriginal: true }))
 
     expect(sql).toContain("type IN ('CANCELLATION')")
     expect(sql).toContain('(cancelled_transaction_id IN (4))')

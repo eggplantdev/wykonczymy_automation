@@ -54,8 +54,8 @@ describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
       search: 'kafle',
     })
 
-    expect(screen.getByText(/Ukryto: pozycje z rabatem/)).toBeInTheDocument()
-    expect(screen.getByText(/^Tylko:/)).toBeInTheDocument()
+    expect(screen.getByText(/Tylko: pozycje z rabatem/)).toBeInTheDocument()
+    expect(screen.getAllByText(/^Tylko:/)).toHaveLength(2)
     expect(screen.getByText('Zwinięte sekcje')).toBeInTheDocument()
     expect(screen.getByText('Szukaj: „kafle"')).toBeInTheDocument()
   })
@@ -66,13 +66,13 @@ describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 
-  it('nie stawia „Wyczyść wszystko" obok jednego chipa', () => {
+  it('nie stawia „Wyczyść filtry" obok jednego chipa', () => {
     renderBar({ search: 'kafle' })
 
     // The chip first: „no clear-all button" is equally true of a bar that rendered nothing at all,
     // and that is the failure this test would otherwise report as a pass.
     expect(screen.getByText('Szukaj: „kafle"')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Wyczyść wszystko' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Wyczyść filtry' })).toBeNull()
   })
 })
 
@@ -80,7 +80,7 @@ describe('Pasek aktywnych filtrów — X zdejmuje swoje źródło', () => {
   it('oddaje filtrowi jego własne przełączenie', async () => {
     const user = renderBar({ engagedIds: [FILTER_ID] })
 
-    await removeChip(user, /Pokaż z powrotem pozycje z rabatem/)
+    await removeChip(user, /Przestań pokazywać tylko pozycje z rabatem/)
 
     expect(handlers.toggleCondition).toHaveBeenCalledExactlyOnceWith(FILTER_ID)
   })
@@ -118,7 +118,7 @@ describe('Pasek aktywnych filtrów — X zdejmuje swoje źródło', () => {
   it('zdejmuje wszystko naraz, łącznie z frazą', async () => {
     const user = renderBar({ engagedIds: [FILTER_ID], search: 'kafle' })
 
-    await user.click(screen.getByRole('button', { name: 'Wyczyść wszystko' }))
+    await user.click(screen.getByRole('button', { name: 'Wyczyść filtry' }))
 
     expect(handlers.resetFilters).toHaveBeenCalledOnce()
   })

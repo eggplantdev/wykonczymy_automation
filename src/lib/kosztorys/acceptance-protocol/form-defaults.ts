@@ -1,26 +1,33 @@
 import { CONTRACTOR_NAME } from '@/lib/kosztorys/acceptance-protocol/constants'
-import type { InvestmentRefT } from '@/types/reference-data'
+import { clientNameOf, siteAddressOf } from '@/lib/investments/prefill'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { AcceptanceProtocolFormT } from '@/lib/kosztorys/acceptance-protocol/types'
 
 type ArgsT = {
-  investment: InvestmentRefT
+  investment: InvestmentWithDetailsT
   today: string
+}
+
+function investmentPrefill(investment: InvestmentWithDetailsT) {
+  return {
+    place: investment.city.trim() || 'Warszawa',
+    clientName: clientNameOf(investment),
+    siteAddress: siteAddressOf(investment),
+  }
 }
 
 export function protocolFormDefaults({ investment, today }: ArgsT): AcceptanceProtocolFormT {
   return {
     kind: 'final',
-    place: 'Warszawa',
     issueDate: today,
     acceptanceDate: today,
     readinessDate: '',
-    clientName: prefilledClientName(investment),
     contractorName: CONTRACTOR_NAME,
-    siteAddress: investment.address,
     paymentDueDate: '',
+    ...investmentPrefill(investment),
   }
 }
 
-export function prefilledClientName(investment: InvestmentRefT): string {
-  return investment.contactPerson.trim() || investment.name
+export function protocolPrefillKey(investment: InvestmentWithDetailsT): string {
+  return JSON.stringify(investmentPrefill(investment))
 }

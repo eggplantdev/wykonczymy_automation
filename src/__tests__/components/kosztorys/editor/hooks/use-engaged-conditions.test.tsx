@@ -15,28 +15,28 @@ describe('useEngagedConditions — setMany', () => {
   it('engages a whole list in one pass', () => {
     const { result } = freshEditor()
 
-    act(() => result.current.setMany(['has-note', 'no-note'], true))
+    act(() => result.current.setMany(['has-measured-qty', 'no-measured-qty'], true))
 
-    expect([...result.current.engagedIds]).toEqual(['has-note', 'no-note'])
+    expect([...result.current.engagedIds]).toEqual(['has-measured-qty', 'no-measured-qty'])
   })
 
   it('drops the ids it is given and leaves the rest engaged', () => {
     const { result } = freshEditor()
 
-    act(() => result.current.setMany(['has-note', 'no-note'], true))
-    act(() => result.current.setMany(['has-note'], false))
+    act(() => result.current.setMany(['has-measured-qty', 'no-measured-qty'], true))
+    act(() => result.current.setMany(['has-measured-qty'], false))
 
-    expect([...result.current.engagedIds]).toEqual(['no-note'])
+    expect([...result.current.engagedIds]).toEqual(['no-measured-qty'])
   })
 
   it('keeps the same set when every id already stands where it is put', () => {
     const { result } = freshEditor()
 
-    act(() => result.current.setMany(['has-note'], true))
+    act(() => result.current.setMany(['has-measured-qty'], true))
     const before = result.current.engagedIds
     const writes = vi.spyOn(Storage.prototype, 'setItem')
 
-    act(() => result.current.setMany(['has-note'], true))
+    act(() => result.current.setMany(['has-measured-qty'], true))
 
     expect(result.current.engagedIds).toBe(before)
     expect(writes).not.toHaveBeenCalled()
@@ -48,7 +48,7 @@ describe('useEngagedConditions — setMany', () => {
     const before = result.current.engagedIds
     const writes = vi.spyOn(Storage.prototype, 'setItem')
 
-    act(() => result.current.setMany(['has-note', 'no-note'], false))
+    act(() => result.current.setMany(['has-measured-qty', 'no-measured-qty'], false))
 
     expect(result.current.engagedIds).toBe(before)
     expect(writes).not.toHaveBeenCalled()

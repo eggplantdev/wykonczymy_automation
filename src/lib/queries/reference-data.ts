@@ -6,7 +6,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import type { RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
-import { isoOrNull } from '@/lib/db/row-coerce'
+import { isoOrNull, text } from '@/lib/db/row-coerce'
 import { toLanguage } from '@/lib/i18n/languages'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
@@ -14,12 +14,14 @@ import { perfStart } from '@/lib/perf'
 
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
+import type { InvestmentClientTypeT } from '@/lib/constants/investment-client-type'
+import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 import type {
   CashRegisterRefT,
   CashRegisterTypeT,
-  InvestmentNotesT,
+  InvestmentDetailsT,
   InvestmentRefT,
-  InvestmentWithNotesT,
+  InvestmentWithDetailsT,
   WorkerRefT,
   OtherCategoryRefT,
   ExpenseCategoryRefT,
@@ -187,36 +189,56 @@ export const fetchReferenceData = cache(
   ),
 )
 
-type InvestmentNotesMapT = Record<number, InvestmentNotesT>
+type InvestmentDetailsMapT = Record<number, InvestmentDetailsT>
 
-export const fetchInvestmentNotes = cache(
+export const fetchInvestmentDetails = cache(
   cached(
-    async (): Promise<InvestmentNotesMapT> => {
+    async (): Promise<InvestmentDetailsMapT> => {
       const payload = await getPayload({ config })
       const db = await getDb(payload)
       const result = await db.execute(sql`
-        SELECT id, notes, ai_notes FROM investments
-        WHERE notes IS NOT NULL OR ai_notes IS NOT NULL
+        SELECT id, notes, ai_notes, postal_code, city, country,
+               billing_client_type::text, billing_first_name, billing_last_name,
+               billing_company_name, billing_nip, billing_representative, billing_same_as_site,
+               billing_street, billing_postal_code, billing_city, billing_country
+        FROM investments
       `)
       return Object.fromEntries(
         result.rows.map((row) => [
           Number(row.id),
-          { notes: (row.notes as string) ?? '', aiNotes: (row.ai_notes as string) ?? '' },
+          {
+            notes: text(row.notes),
+            aiNotes: text(row.ai_notes),
+            postalCode: text(row.postal_code),
+            city: text(row.city),
+            country: text(row.country),
+            billing: {
+              clientType: (row.billing_client_type as InvestmentClientTypeT | null) ?? null,
+              firstName: text(row.billing_first_name),
+              lastName: text(row.billing_last_name),
+              companyName: text(row.billing_company_name),
+              nip: text(row.billing_nip),
+              representative: text(row.billing_representative),
+              sameAsSite: row.billing_same_as_site !== false,
+              street: text(row.billing_street),
+              postalCode: text(row.billing_postal_code),
+              city: text(row.billing_city),
+              country: text(row.billing_country),
+            },
+          } satisfies InvestmentDetailsT,
         ]),
       )
     },
-    ['investment-notes'],
+    ['investment-details'],
     { tags: [CACHE_TAGS.investments] },
   ),
 )
 
-const NO_NOTES: InvestmentNotesT = { notes: '', aiNotes: '' }
-
-export function withNotes(
+export function withDetails(
   investment: InvestmentRefT,
-  notesById: InvestmentNotesMapT,
-): InvestmentWithNotesT {
-  return { ...investment, ...(notesById[investment.id] ?? NO_NOTES) }
+  detailsById: InvestmentDetailsMapT,
+): InvestmentWithDetailsT {
+  return { ...investment, ...(detailsById[investment.id] ?? NO_INVESTMENT_DETAILS) }
 }
 
 export function findInvestmentRef(

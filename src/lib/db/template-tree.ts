@@ -1,19 +1,15 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
-import { isSectionColorKey } from '@/lib/kosztorys/section-colors'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
 import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
-import type { KosztorysTreeDataT } from './kosztorys-tree'
+import { mapSection, type KosztorysTreeDataT } from './kosztorys-tree'
 import type { DbExecutorT } from './get-db'
 import { numOrNull } from './row-coerce'
 
 type RowT = Record<string, unknown>
 
-// A szablon in the shape the editor already reads. A szablon praca is a katalog entry at a place in
-// a section, so every field the grid shows comes from `work_catalogue_items` and the per-job ones
-// (przedmiar, rabat, komentarz, etapy) are empty. Coefficients, VAT and settlement are left unset so
-// the tree builder fills the defaults — a szablon carries no pricing config of its own.
+// Coefficients, VAT and settlement are left unset so the tree builder fills the defaults.
 export async function selectTemplateTreeData(
   db: DbExecutorT,
   templateId: number,
@@ -49,12 +45,7 @@ export async function selectTemplateTreeData(
   if (!row) return null
 
   return {
-    sections: (row.sections as RowT[]).map((section) => ({
-      id: Number(section.id),
-      name: String(section.name ?? ''),
-      displayOrder: Number(section.display_order ?? 0),
-      color: isSectionColorKey(section.color) ? section.color : null,
-    })),
+    sections: (row.sections as RowT[]).map(mapSection),
     items: (row.items as RowT[]).map(mapTemplateItem),
     stages: [],
     progress: [],

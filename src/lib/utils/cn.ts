@@ -9,6 +9,7 @@ const twMerge = extendTailwindMerge({
       'max-w': [
         'max-w-dialog',
         'max-w-dialog-sm',
+        'max-w-dialog-md',
         'max-w-dialog-lg',
         'max-w-dialog-xl',
         'max-w-dialog-2xl',

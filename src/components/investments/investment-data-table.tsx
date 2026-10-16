@@ -6,8 +6,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { StatusFilter } from '@/components/investments/status-filter'
-import { getInvestmentColumns, V2_COLUMN_IDS } from '@/components/tables/investments'
-import { ActiveFilterButton } from '@/components/filters/active-filter-button'
+import { getInvestmentColumns, V1_COLUMN_IDS, V2_COLUMN_IDS } from '@/components/tables/investments'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import type { InvestmentRowT } from '@/types/table-rows'
@@ -16,6 +15,8 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AddInvestmentDialog } from '@/components/dialogs/add-investment-dialog'
+import { Description } from '@/components/ui/description'
+import { DropdownMenuCheckboxRow, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
 import {
   SettlePayoutsDialog,
   type SettleDialogTargetT,
@@ -34,6 +35,11 @@ const AI_PROGRESS_OPTIONS = AI_PROGRESS_STEPS.map((step) => ({
 
 const INITIAL_SORTING = [{ id: 'createdAt', desc: true }]
 
+const LAYERS = [
+  { label: 'v1', columnIds: V1_COLUMN_IDS },
+  { label: 'v2', columnIds: V2_COLUMN_IDS },
+]
+
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
   presets: TemplateMetaT[]
@@ -46,6 +52,7 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
     filteredData: statusFiltered,
     selectedStatuses,
     toggleStatus,
+    clearStatuses,
   } = useStatusFilter(data, getStatus, 'investments')
 
   const getSearchableText = useCallback(
@@ -77,6 +84,9 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
 
   return (
     <>
+      <Description withIcon={false}>
+        Widoczne inwestycje {filteredData.length} / {data.length}
+      </Description>
       <DataTable
         data={filteredData}
         columns={columns}
@@ -85,7 +95,6 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         getRowHref={(row) => `/inwestycje/${row.id}`}
         getRowClassName={(row) => (isClosedStatus(row.status) ? 'opacity-50' : '')}
         toolbar={({ table, columnVisibility: cv, ...order }) => {
-          const v2Shown = V2_COLUMN_IDS.every((id) => cv[id] !== false)
           return (
             <DataTableToolbar
               search={{ value: searchTerm, onChange: setSearchTerm }}
@@ -94,6 +103,7 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
                   <StatusFilter
                     selectedStatuses={selectedStatuses}
                     onToggle={toggleStatus}
+                    onClear={clearStatuses}
                     triggerClassName={GRID_FILTER_TRIGGER_CLASS}
                   />
                   <FilterMultiSelect
@@ -104,19 +114,33 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
                     icon={Sparkles}
                     triggerClassName={GRID_FILTER_TRIGGER_CLASS}
                   />
-                  <ActiveFilterButton
-                    isActive={v2Shown}
-                    onChange={(next) =>
-                      table.setColumnVisibility((prev) => ({
-                        ...prev,
-                        ...Object.fromEntries(V2_COLUMN_IDS.map((id) => [id, next])),
-                      }))
-                    }
-                    activeLabel="Kolumny v2"
-                  />
                 </>
               }
-              columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+              columns={
+                <ColumnToggle
+                  table={table}
+                  columnVisibility={cv}
+                  {...order}
+                  sections={
+                    <>
+                      <DropdownMenuLabel>Warstwy</DropdownMenuLabel>
+                      {LAYERS.map(({ label, columnIds }) => (
+                        <DropdownMenuCheckboxRow
+                          key={label}
+                          checked={columnIds.every((id) => cv[id] !== false)}
+                          onCheckedChange={(next) =>
+                            table.setColumnVisibility((prev) => ({
+                              ...prev,
+                              ...Object.fromEntries(columnIds.map((id) => [id, next === true])),
+                            }))
+                          }
+                          label={label}
+                        />
+                      ))}
+                    </>
+                  }
+                />
+              }
               actions={<AddInvestmentDialog presets={presets} />}
             />
           )

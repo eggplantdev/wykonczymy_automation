@@ -18,5 +18,10 @@ export function useConditionRowLatch(
   }))
   const current = latch.key === key ? latch : { key, ids: new Set<number>() }
   if (current !== latch) setLatch(current)
-  return { latch: enabled ? current : null, refresh: () => setRefreshCount((count) => count + 1) }
+  return {
+    latch: enabled ? current : null,
+    refresh: () => {
+      if (enabled) setRefreshCount((count) => count + 1)
+    },
+  }
 }

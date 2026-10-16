@@ -12,7 +12,7 @@ export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
   },
   {
     label: 'Ceny i rabat',
-    keys: ['price', 'discountType', 'discountValue', 'discountAmount'],
+    keys: ['price', 'discountType', 'discountValue', 'plannedDiscountAmount', 'discountAmount'],
   },
   {
     label: 'Wartości',
@@ -40,6 +40,7 @@ export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   'stageQtySum',
   'discountValue',
   'discountType',
+  'plannedDiscountAmount',
   'discountAmount',
   STAGE_VALUE_NET_COLUMN_GROUP,
   'net',

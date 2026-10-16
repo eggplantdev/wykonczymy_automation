@@ -2,7 +2,7 @@ import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import { DISCOUNT_TYPE_LABELS } from '@/lib/kosztorys/labels'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
-import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
+import { columnLabelForView, withAfterDiscountSuffix } from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import {
   CURRENT_PLANNED_QTY_COLUMN,
@@ -28,9 +28,13 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 export const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
 const OFFER_PRICE_VIEW: PriceViewT = 'client'
-const clientLabel = (key: string) => columnLabelForView(key, OFFER_PRICE_VIEW)
 
-function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColumnT[]> {
+function offerColumnsByKey(
+  stages: KosztorysStageT[],
+  hasDiscount: boolean,
+): Record<string, PrintColumnT[]> {
+  const clientLabel = (key: string) =>
+    columnLabelForView(key, OFFER_PRICE_VIEW, undefined, { hasDiscount })
   const valueOf = computedColumnValues({ stages, view: OFFER_PRICE_VIEW })
   const money = computedMoneyColumn(valueOf, zloty)
   const percent = computedPercentColumn(valueOf)
@@ -50,7 +54,12 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
         cell: (row) => zloty(viewPrice(row, OFFER_PRICE_VIEW)),
       },
     ],
-    plannedNet: [money('plannedNet', 'Wartość netto')],
+    plannedNet: [
+      money(
+        'plannedNet',
+        withAfterDiscountSuffix('plannedNet', 'Wartość netto', OFFER_PRICE_VIEW, hasDiscount),
+      ),
+    ],
     currentPlannedNet: [money('currentPlannedNet', clientLabel('currentPlannedNet'))],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [computedQtyColumn(valueOf)('stageQtySum', clientLabel('stageQtySum'))],
@@ -64,6 +73,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
         row.discountType ? DISCOUNT_TYPE_LABELS[row.discountType] : '',
       ),
     ],
+    plannedDiscountAmount: [money('plannedDiscountAmount', clientLabel('plannedDiscountAmount'))],
     discountAmount: [money('discountAmount', clientLabel('discountAmount'))],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, zloty),
     net: [money('net', clientLabel('net'))],
@@ -77,8 +87,9 @@ export function offerPrintColumns(
   stages: KosztorysStageT[],
   hiddenColumns: readonly string[],
   columnRanks: ColumnRanksT,
+  hasDiscount: boolean,
 ): PrintColumnT[] {
-  const byKey = offerColumnsByKey(stages)
+  const byKey = offerColumnsByKey(stages, hasDiscount)
   const visibleKeys = printableKeys(clientDocumentColumns(columnRanks), hiddenColumns)
   return visibleKeys.flatMap((key) => byKey[key] ?? [])
 }

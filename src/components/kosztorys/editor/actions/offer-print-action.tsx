@@ -32,15 +32,6 @@ export function GenerateOfferMenuItem() {
       return
     }
     const fillByColorKey = resolveSectionFills()
-    // Safe despite the print's own row filter: the only condition it applies
-    // is `client-empty`, a pozycja empty on both axes, which contributes zero to either sum.
-    const totalNet = columnTotals.get('plannedNet') ?? 0
-    const sectionNetById = new Map(
-      [...sectionColumnTotals].flatMap(([sectionId, totals]) => {
-        const net = totals.get('plannedNet')
-        return net === undefined ? [] : [[sectionId, net] as const]
-      }),
-    )
 
     const fill = (settings: ClientViewSettingsT) => {
       if (documentRows(rows, stages, settings.hideEmptyRows).length === 0) {
@@ -57,8 +48,10 @@ export function GenerateOfferMenuItem() {
           investmentName,
           logoUrl: `${window.location.origin}/logo-wykonczymy.png`,
           fillByColorKey,
-          totalNet,
-          sectionNetById,
+          // Safe despite the print's own row filter: the only condition it applies
+          // is `client-empty`, a pozycja empty on both axes, which contributes zero to either sum.
+          columnTotals,
+          sectionColumnTotals,
         }),
       )
     }

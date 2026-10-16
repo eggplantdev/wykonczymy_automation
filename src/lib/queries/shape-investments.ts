@@ -14,13 +14,13 @@ import { billedMaterials, computeAmountDue } from '@/lib/kosztorys/summary-econo
 import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
-import type { InvestmentWithNotesT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/types/table-rows'
 
 /** kept apart from the fetches in `queries/investments.ts` so the parity audit can run the REAL row
  *  builder from a plain node script — importing it through the query module drags in `server-only` */
 export function shapeInvestments(
-  investments: InvestmentWithNotesT[],
+  investments: InvestmentWithDetailsT[],
   financialsRecord: InvestmentFinancialsMapT,
   kosztorysTotalsRecord: KosztorysClientTotalsMapT,
   subcontractorDueRecord: KosztorysSubcontractorDueMapT,
@@ -72,9 +72,13 @@ export function shapeInvestments(
           ? undefined
           : subcontractorRemaining(financials, settlement),
       address: inv.address,
+      postalCode: inv.postalCode,
+      city: inv.city,
+      country: inv.country,
       phone: inv.phone,
       email: inv.email,
       contactPerson: inv.contactPerson,
+      billing: inv.billing,
       reviewRequested: inv.reviewRequested,
       notes: inv.notes,
       hasSheet: inv.hasSheet,

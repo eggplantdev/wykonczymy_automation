@@ -3,6 +3,8 @@ import { filtersMenuModel } from '@/components/kosztorys/editor/toolbar/menus/fi
 import { FILTER_GROUPS } from '@/lib/kosztorys/filter-groups'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
+const ROW_COUNT = 10
+
 const model = (
   counts: Record<string, number>,
   engaged: string[] = [],
@@ -11,6 +13,7 @@ const model = (
   filtersMenuModel({
     engagedIds: new Set(engaged),
     counts: new Map(Object.entries(counts)),
+    rowCount: ROW_COUNT,
     perItemDiscountInert,
     crewAxis: 'both',
     isTemplate: false,
@@ -24,38 +27,47 @@ const everyFilterCounted = Object.fromEntries(
 )
 
 describe('the „Filtry" list', () => {
-  it('offers nothing when no zawężenie would remove a pozycja', () => {
+  it('offers nothing when no tick would narrow the pozycje', () => {
     expect(model({})).toEqual([])
   })
 
   it('drops a zero-count row while its complement shows', () => {
-    expect(model({ 'has-note': 4, 'no-note': 0 }).map((toggle) => toggle.id)).toEqual(['has-note'])
+    expect(model({ 'has-discount': 4, 'no-discount': 0 }).map((toggle) => toggle.id)).toEqual([
+      'has-discount',
+    ])
   })
 
-  it('names the pozycje each row hides, count included', () => {
-    expect(model({ 'has-note': 4 })[0].label).toBe('Z komentarzem (4)')
+  it('drops a row matching every pozycja — ticking it would narrow nothing', () => {
+    expect(model({ 'has-discount': ROW_COUNT, 'no-discount': 0 })).toEqual([])
   })
 
-  it('offers both planes at once, each naming its own', () => {
+  it('names the pozycje each row shows, count included', () => {
+    expect(model({ 'has-discount': 4 })[0].label).toBe('Z rabatem (4)')
+  })
+
+  it('offers both planes at once, each under its own heading', () => {
     expect(
-      model({ 'manual-rate-w-tools': 2, 'manual-rate-own-tools': 3 }).map((toggle) => toggle.label),
+      model({ 'manual-rate-w-tools': 2, 'manual-rate-own-tools': 3 }).map((toggle) => [
+        toggle.groupLabel,
+        toggle.label,
+      ]),
     ).toEqual([
-      'Kwota stała — z narzędziami (podwykonawca) (2)',
-      'Kwota stała — bez narzędzi (pracownik) (3)',
+      ['Źródło stawki wykonawcy — z narzędziami (podwykonawca)', 'Kwota stała (2)'],
+      ['Źródło stawki wykonawcy — bez narzędzi (pracownik)', 'Kwota stała (3)'],
     ])
   })
 
   it('drops the rabat pair under a global rabat', () => {
-    const ids = model({ 'has-discount': 5, 'no-discount': 7, 'has-note': 1 }, [], true).map(
+    const ids = model({ 'has-discount': 5, 'no-discount': 3, 'has-measured-qty': 1 }, [], true).map(
       (toggle) => toggle.id,
     )
-    expect(ids).toEqual(['has-note'])
+    expect(ids).toEqual(['has-measured-qty'])
   })
 
-  it('keeps an engaged zawężenie at „(0)"', () => {
-    const [toggle] = model({ 'has-note': 0 }, ['has-note'])
-    expect(toggle.label).toBe('Z komentarzem (0)')
-    expect(toggle.active).toBe(false)
+  it('keeps an engaged filter listed at „(0)", ticked', () => {
+    const [toggle] = model({ 'has-discount': 0 }, ['has-discount'])
+    expect(toggle.label).toBe('Z rabatem (0)')
+    expect(toggle.active).toBe(true)
   })
 
   it('keeps an engaged rabat filter listed even under a global rabat', () => {
@@ -64,19 +76,19 @@ describe('the „Filtry" list', () => {
     )
   })
 
-  it('ticks a row until its condition is engaged', () => {
-    expect(model({ 'has-note': 4 })[0].active).toBe(true)
-    expect(model({ 'has-note': 4 }, ['has-note'])[0].active).toBe(false)
+  it('ticks a row only while its condition is engaged', () => {
+    expect(model({ 'has-discount': 4 })[0].active).toBe(false)
+    expect(model({ 'has-discount': 4 }, ['has-discount'])[0].active).toBe(true)
   })
 })
 
 describe('the headings', () => {
   it('files every offered row under its registry category', () => {
     expect(
-      model({ 'has-note': 1, 'has-planned-qty': 2, 'manual-rate-w-tools': 3 }).map(
+      model({ 'has-discount': 1, 'has-planned-qty': 2, 'manual-rate-w-tools': 3 }).map(
         (toggle) => toggle.groupLabel,
       ),
-    ).toEqual(['Przedmiar i wykonana praca', 'Źródło stawki wykonawcy', 'Komentarz'])
+    ).toEqual(['Przedmiar', 'Źródło stawki wykonawcy — z narzędziami (podwykonawca)', 'Rabat'])
   })
 
   it('emits each category once, in FILTER_GROUPS order', () => {
@@ -86,7 +98,7 @@ describe('the headings', () => {
     expect(runStarts).toEqual(FILTER_GROUPS.map((group) => group.label))
   })
 
-  it('comes out in registry order too, so the „Ukryto:" bar cannot disagree', () => {
+  it('comes out in registry order too, so the „Tylko:" bar cannot disagree', () => {
     expect(model(everyFilterCounted).map((toggle) => toggle.id)).toEqual(
       ROW_CONDITIONS.filter((condition) => condition.kind === 'filter').map(
         (condition) => condition.id,

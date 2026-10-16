@@ -19,7 +19,6 @@ import {
   SEARCH_FILTER_TOOLBAR_WIDTH,
 } from '@/components/filters/search-filter-input'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
-import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
@@ -34,6 +33,8 @@ import { Loader } from '@/components/ui/loader/loader'
 import type { FilterConfigT } from '@/types/filters'
 
 const DEBOUNCE_MS = 600
+// Rides in the Typ list but writes the `workerDrafts` param — no transfer type carries this value.
+const WORKER_DRAFTS_OPTION = 'workerDrafts'
 
 const ENTITY_FILTER_KEYS = [
   'type',
@@ -93,10 +94,7 @@ export function TransferFilters({
     baseUrl,
     'showCancelled',
   )
-  const { isActive: onlyWorkerDrafts, setActive: setOnlyWorkerDrafts } = useToggleSearchParam(
-    baseUrl,
-    'workerDrafts',
-  )
+  const onlyWorkerDrafts = searchParams.get('workerDrafts') === '1'
   const revealingCancelled = showCancelled || auditMode
 
   const cancelledToggles = [
@@ -114,6 +112,20 @@ export function TransferFilters({
       onToggle: () => setShowCancelled(!showCancelled),
     },
   ]
+  const typeOptions = [
+    ...(transferTypes ?? []).map((type) => ({ value: type, label: t(`type_${type}`) })),
+    ...(showWorkerDraftsFilter
+      ? [{ value: WORKER_DRAFTS_OPTION, label: t('filterWorkerDrafts') }]
+      : []),
+  ]
+
+  function updateTypeFilter(values: string[]) {
+    updateMultipleParams({
+      type: values.filter((value) => value !== WORKER_DRAFTS_OPTION).join(','),
+      workerDrafts: values.includes(WORKER_DRAFTS_OPTION) ? '1' : '',
+    })
+  }
+
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
   const currentCreatedBys = getMultiParam('createdBy')
@@ -134,7 +146,7 @@ export function TransferFilters({
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <Loader loading={isPending} portal />
-      {((transferTypes && transferTypes.length > 0) ||
+      {(typeOptions.length > 0 ||
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
         (users && users.length > 0) ||
@@ -142,17 +154,13 @@ export function TransferFilters({
         showPaymentMethodFilter ||
         showPayoutStatusFilter ||
         (otherCategories && otherCategories.length > 0) ||
-        (expenseCategories && expenseCategories.length > 0) ||
-        showWorkerDraftsFilter) && (
+        (expenseCategories && expenseCategories.length > 0)) && (
         <ControlGrid>
-          {transferTypes && transferTypes.length > 0 && (
+          {typeOptions.length > 0 && (
             <FilterMultiSelect
-              values={currentTypes}
-              onValuesChange={(types) => updateParam('type', types.join(','))}
-              options={transferTypes.map((type) => ({
-                value: type,
-                label: t(`type_${type}`),
-              }))}
+              values={onlyWorkerDrafts ? [...currentTypes, WORKER_DRAFTS_OPTION] : currentTypes}
+              onValuesChange={updateTypeFilter}
+              options={typeOptions}
               lockedValues={auditMode ? ['CANCELLATION'] : undefined}
               label={t('filterType')}
               icon={Tags}
@@ -249,14 +257,6 @@ export function TransferFilters({
               label={t('filterExpenseCategory')}
               icon={Receipt}
               searchable
-            />
-          )}
-
-          {showWorkerDraftsFilter && (
-            <ActiveFilterButton
-              isActive={onlyWorkerDrafts}
-              onChange={setOnlyWorkerDrafts}
-              activeLabel={t('filterWorkerDrafts')}
             />
           )}
         </ControlGrid>

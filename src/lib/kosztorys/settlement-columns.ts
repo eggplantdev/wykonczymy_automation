@@ -1,3 +1,4 @@
+import { rowPlannedDiscountForView } from '@/lib/kosztorys/calc'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -45,6 +46,12 @@ export function emptySettlementColumnIds(
   return empty
 }
 
+// One predicate for the „— po rabacie" header suffix and the empty rabat-on-przedmiar column, so a
+// suffixed header never sits beside a dropped column or the reverse.
+export function hasPlannedDiscount(rows: readonly KosztorysV2RowT[]): boolean {
+  return rows.some((row) => rowPlannedDiscountForView(row, 'client') !== 0)
+}
+
 export function investorEmptyColumnIds(
   rows: readonly KosztorysV2RowT[],
   stages: readonly KosztorysStageT[],
@@ -52,5 +59,6 @@ export function investorEmptyColumnIds(
 ): ReadonlySet<string> {
   const empty = new Set(emptySettlementColumnIds(rows, stages, alsoFilled))
   if (empty.has('stageQtySum')) for (const id of INVESTOR_OFFER_PHASE_COLUMNS) empty.add(id)
+  if (!hasPlannedDiscount(rows)) empty.add('plannedDiscountAmount')
   return empty
 }

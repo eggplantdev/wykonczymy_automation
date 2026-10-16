@@ -21,7 +21,7 @@ export const rateNounDiffers = (count: number) =>
 export const itemVanishesPhrase = (count: number) =>
   pluralize(count, ['praca zniknie', 'prace znikną', 'prac zniknie'])
 
-export const activeFilterHidesPhrase = (count: number) =>
-  pluralize(count, ['włączony filtr chowa', 'włączone filtry chowają', 'włączonych filtrów chowa'])
+export const activeFilterNarrowsPhrase = (count: number) =>
+  pluralize(count, ['filtr zawęża', 'filtry zawężają', 'filtrów zawęża'])
 
 export const differenceNoun = (count: number) => pluralize(count, ['różnica', 'różnice', 'różnic'])

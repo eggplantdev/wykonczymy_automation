@@ -67,11 +67,12 @@ export function columnTitle(
     | 'dictionary'
     | 'columnColors'
     | 'onSetColumnColor'
+    | 'hasDiscount'
   >,
 ): ReactNode {
   const dictionary = surfaceDictionary(opts)
   return sortableHeader(
-    columnLabelForView(field, opts.view, dictionary),
+    columnLabelForView(field, opts.view, dictionary, { hasDiscount: opts.hasDiscount }),
     field,
     headerTipFor(field, { workerSurface: !!opts.workerSurface, dictionary }),
     opts,

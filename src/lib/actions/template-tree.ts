@@ -29,8 +29,6 @@ import type { ActionResultT } from '@/types/action'
 
 const ITEMS_NOT_IN_TEMPLATE = 'Pozycje spoza tego szablonu.'
 
-// „Zapisz kolejność" on the szablon plane — same whole-tree lock and per-section numbering as
-// `renumberKosztorysOrderAction`.
 export async function renumberTemplateOrderAction(
   templateId: number,
   orderedItemIds: number[],

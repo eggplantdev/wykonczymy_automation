@@ -165,14 +165,19 @@ export function buildPayoutFilters(
   return buildTransferFilters({ ...searchParams, type: 'PAYOUT' }, userContext)
 }
 
-export function narrowToTransferIds(
+// „Zgłoszone wydatki” rides in the Typ list, so beside ticked types it widens the scope (OR) like any
+// other option there; alone it narrows to the drafts. The audit list keeps narrowing: its Typ scope
+// is a dotted path, which the sum tile's where-to-sql cannot take inside an `or`.
+export function withWorkerDrafts(
   where: Where,
   transferIds: number[],
   { throughOriginal = false }: { throughOriginal?: boolean } = {},
 ): Where {
   const ids = transferIds.length > 0 ? { in: transferIds } : NO_RESULTS
-  const field = throughOriginal ? 'cancelledTransaction' : 'id'
-  return andWith(where, { [field]: ids })
+  if (throughOriginal) return andWith(where, { cancelledTransaction: ids })
+  const { type: tickedTypes, ...rest } = where
+  if (!tickedTypes || !('in' in tickedTypes)) return andWith(where, { id: ids })
+  return andWith(rest, { or: [{ type: tickedTypes }, { id: ids }] })
 }
 
 /**

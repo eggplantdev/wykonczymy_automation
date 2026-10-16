@@ -10,7 +10,7 @@ test.use({ storageState: 'e2e/.auth/user.json' })
 const STATUS_COLUMN = 'Status'
 
 // Earlier specs seed investments straight into Postgres, which no cache tag hears about, so the
-// „N aktywnych" counter can still be quoting a number from before them.
+// listing's counter can still be quoting a number from before them.
 test.beforeAll(async ({ browser }) => {
   await refreshReferenceData(browser)
 })
@@ -19,11 +19,19 @@ test.beforeAll(async ({ browser }) => {
 // against the investment the first one already promoted.
 const PROSPECT = `Prospekt E2E ${Date.now()}`
 
+const STATUS_FILTER_KEY = 'table-status-filter:investments'
+
+// The „X / Y" counter counts the rows on show, so X is the active count only with „Status" narrowed to
+// Aktywna — dropped again after the read, or the prospekt row would stay filtered out of the listing.
 async function readActiveCount(page: Page): Promise<number> {
   await page.goto('/inwestycje')
-  const description = page.getByText(/\d+ aktywnych/)
-  await description.waitFor()
-  return Number(/(\d+) aktywnych/.exec((await description.textContent()) ?? '')?.[1])
+  await page.evaluate((key) => localStorage.setItem(key, '{"active":true}'), STATUS_FILTER_KEY)
+  await page.reload()
+  const counter = page.getByText(/^Widoczne inwestycje \d+ \/ \d+$/)
+  await counter.waitFor()
+  const shown = Number(/(\d+) \//.exec((await counter.textContent()) ?? '')?.[1])
+  await page.evaluate((key) => localStorage.removeItem(key), STATUS_FILTER_KEY)
+  return shown
 }
 
 // Every call also checks a known-bookable investment is in the same open list: without that,

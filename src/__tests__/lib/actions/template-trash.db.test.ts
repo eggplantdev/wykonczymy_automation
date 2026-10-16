@@ -13,8 +13,6 @@ import {
 } from '@/__tests__/helpers/template'
 import { trashDaysAgo } from '@/__tests__/helpers/investment'
 
-// A szablon in /kosz must vanish from every reader, come back intact, and leave nothing behind when
-// deleted forever — its sections, prace and versions hang off it by cascade only.
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({

@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
+import { ITEM_NOT_FOUND, SECTION_NOT_FOUND, TEMPLATE_NOT_FOUND } from '@/lib/constants/not-found'
 import { TEMPLATE_TRASHED_MESSAGE } from '@/lib/constants/template-lock'
 import { getDb } from '@/lib/db/get-db'
 import { templateGateFor, type TemplateGateKindT } from '@/lib/db/template-gate'
@@ -11,17 +12,13 @@ import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 
 const TARGET_MISSING: Record<TemplateGateKindT, string> = {
-  template: 'Nie znaleziono szablonu',
-  item: 'Pozycja nie istnieje.',
-  section: 'Sekcja nie istnieje.',
+  template: TEMPLATE_NOT_FOUND,
+  item: ITEM_NOT_FOUND,
+  section: SECTION_NOT_FOUND,
 }
 
-/**
- * The template plane's twin of `investmentAction`: every write to a szablon's tree names its row,
- * and this resolves the szablon behind it, refuses a trashed one, and on success moves the
- * szablon's „ostatnio edytowany" and expires the library. The revision token (`updated_at`) is NOT
- * moved here — it remounts the editor, so only a write that replaces the whole tree bumps it.
- */
+// The revision token (`updated_at`) is NOT moved here — it remounts the editor, so only a write that
+// replaces the whole tree bumps it.
 export function templateAction<TData = undefined>(
   label: string,
   target: { kind: TemplateGateKindT; id: number },

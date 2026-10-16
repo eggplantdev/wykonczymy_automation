@@ -7,25 +7,28 @@ export type FilterToggleT = {
   id: string
   label: string
   groupLabel: string
-  // Ticked = visible, so a row is active while its filter is NOT engaged.
+  // Ticked = the grid narrows to it.
   active: boolean
 }
 
 type ArgsT = {
   engagedIds: ReadonlySet<string>
   counts: ReadonlyMap<string, number>
+  rowCount: number
   perItemDiscountInert: boolean
   crewAxis: CrewAxisT
   isTemplate: boolean
 }
 
 /**
- * The ENGAGED one is the exception and stays at „(0)": it is hiding pozycje right now and its tick is
- * the only way back: dropping the row would leave the grid short with no control to restore it.
+ * An option matching every pozycja, or none, would change nothing if ticked, so it is left off. The
+ * ENGAGED one is the exception: it is narrowing the grid right now, and its row is the only way to
+ * untick it.
  */
 export function filtersMenuModel({
   engagedIds,
   counts,
+  rowCount,
   perItemDiscountInert,
   crewAxis,
   isTemplate,
@@ -43,12 +46,14 @@ export function filtersMenuModel({
       // How many pozycje are in that state, not how many the row is currently showing — a count of
       // the survivors would be a count of itself and would jump on every click.
       .map((condition) => ({ condition, count: counts.get(condition.id) ?? 0 }))
-      .filter(({ condition, count }) => count > 0 || engagedIds.has(condition.id))
+      .filter(
+        ({ condition, count }) => (count > 0 && count < rowCount) || engagedIds.has(condition.id),
+      )
       .map(({ condition, count }) => ({
         id: condition.id,
         groupLabel: group.label,
         label: `${condition.menuLabel ?? capitalize(condition.label)} (${count})`,
-        active: !engagedIds.has(condition.id),
+        active: engagedIds.has(condition.id),
       })),
   )
 }

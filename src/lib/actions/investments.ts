@@ -8,13 +8,12 @@ import { extractSheetId, verifySheetAccess } from '@/lib/google/sheet-access'
 import { writeServiceAccountEmail } from '@/lib/google/auth'
 import { stampAllTabs } from '@/lib/google/app-managed-tabs'
 import {
-  investmentClientFieldsSchema,
   investmentSchema,
-  type InvestmentClientFieldsT,
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
 import { createInvestment } from '@/lib/investments/create-investment'
 import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
+import { INVESTMENT_STATUSES, type InvestmentStatusT } from '@/lib/constants/investment-status'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
@@ -156,19 +155,17 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
   )
 }
 
-// sending the whole record from the
-// editor's page-load copy would revert an edit made elsewhere since — a status change included.
-export async function updateInvestmentClientFieldsAction(
-  id: number,
-  data: InvestmentClientFieldsT,
-) {
+const statusSchema = z.enum(INVESTMENT_STATUSES)
+
+// `user` lets `guardInvestmentStatusUnlock` admit the właściciel; without it every role is refused.
+export async function setInvestmentStatusAction(id: number, status: InvestmentStatusT) {
   return protectedAction(
-    'updateInvestmentClientFieldsAction',
+    'setInvestmentStatusAction',
     async ({ payload, user }) => {
-      const parsed = validateAction(investmentClientFieldsSchema, data)
+      const parsed = validateAction(statusSchema, status)
       if (!parsed.success) return parsed
 
-      await payload.update({ collection: 'investments', id, data: parsed.data, user })
+      await payload.update({ collection: 'investments', id, data: { status: parsed.data }, user })
 
       return { success: true }
     },

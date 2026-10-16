@@ -73,6 +73,11 @@ export const insertDirectionSchema = z.enum(['above', 'below'])
 
 export type InsertDirectionT = z.infer<typeof insertDirectionSchema>
 
+export const insertSectionSchema = z.object({
+  anchorSectionId: z.number(),
+  dir: insertDirectionSchema,
+})
+
 // Where a row sits, read UNDER the lock on its whole owner block: `shiftDisplayOrderFrom` and
 // `renumberDisplayOrder` acquire in ascending id order too, so no pair of them can form a cycle (EX-632).
 async function lockedPositionOf(

@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summary-investment-tab'
-import type { InvestmentWithNotesT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
+import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 import type { MediaFileT } from '@/types/media'
 
 vi.mock('@/lib/actions/investment-assets', () => ({
@@ -20,7 +21,8 @@ const PHOTO: MediaFileT = {
   kind: null,
 }
 
-const INVESTMENT: InvestmentWithNotesT = {
+const INVESTMENT: InvestmentWithDetailsT = {
+  ...NO_INVESTMENT_DETAILS,
   id: 7,
   name: 'Dom pod lasem',
   status: 'active',

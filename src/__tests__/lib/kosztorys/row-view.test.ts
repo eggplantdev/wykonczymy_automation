@@ -50,16 +50,16 @@ describe('buildViewRows', () => {
     const view = buildViewRows({
       ...base,
       search: 'malowanie',
-      engagedConditionIds: new Set(['no-planned-qty']),
+      engagedConditionIds: new Set(['has-planned-qty']),
     })
 
     expect(view.map((r) => r.id)).toEqual([1, 4])
   })
 
-  it('holds a latched row against the condition that would hide it', () => {
+  it('holds a latched row against the condition that would leave it out', () => {
     const view = buildViewRows({
       ...base,
-      engagedConditionIds: new Set(['no-planned-qty']),
+      engagedConditionIds: new Set(['has-planned-qty']),
       latchedRowIds: new Set([2]),
     })
 

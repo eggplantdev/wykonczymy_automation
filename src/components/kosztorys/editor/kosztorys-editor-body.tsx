@@ -50,7 +50,7 @@ import {
 } from '@/components/kosztorys/editor/grid/ordinal-gutter-column'
 import { buildSectionBandRows } from '@/lib/kosztorys/section-band-rows'
 import { gridMinWidth } from '@/lib/kosztorys/grid-min-width'
-import { engagedConditionsOfKind, engagedHiders } from '@/lib/kosztorys/row-conditions/queries'
+import { engagedConditionsOfKind } from '@/lib/kosztorys/row-conditions/queries'
 import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
 import { useTranslation } from '@/hooks/use-translation'
@@ -87,6 +87,7 @@ import {
   type UndoRedoApiT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import { KosztorysLockedBanner } from '@/components/kosztorys/editor/kosztorys-locked-banner'
+import { TemplateCatalogueBanner } from '@/components/kosztorys/editor/template-catalogue-banner'
 import { HistoryBanner } from '@/components/kosztorys/editor/history/history-banner'
 import { withHistoryChanges } from '@/components/kosztorys/editor/history/history-change-cell'
 import { PreviewHeaderActions } from '@/components/kosztorys/editor/preview-header-actions'
@@ -102,6 +103,7 @@ type PropsT = KosztorysEditorDataT & {
   worker?: WorkerAudienceT
   history?: InvestorHistoryT
   undoRedo?: UndoRedoApiT
+  hasCatalogueEdits?: boolean
   // Hands over the flush because the versions drawer lives outside this body, where a restore must
   // wait for the cell saves still pending in it.
   onOpenVersions?: (flushPendingSaves: () => Promise<void>) => void
@@ -139,6 +141,7 @@ export function KosztorysEditorBody({
   hasSheet = false,
   isTemplate = false,
   undoRedo = NOOP_UNDO_REDO,
+  hasCatalogueEdits = false,
   onOpenVersions,
   onTreeReplaced,
   onStaleTree,
@@ -325,9 +328,10 @@ export function KosztorysEditorBody({
         ),
     [columns, pastVersion, preview, columnTotals, totalLabel, sectionHeader, sectionFooter],
   )
-  const engagedHiderList = engagedHiders(engagedConditionIds)
+  const engagedFilters = engagedConditionsOfKind(engagedConditionIds, 'filter')
+  const engagedClientHiders = engagedConditionsOfKind(engagedConditionIds, 'client')
   const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
-  const emptyByFilter = engagedHiderList.length > 0
+  const emptyByFilter = engagedFilters.length > 0 || engagedClientHiders.length > 0
   // a no-hit search empties `viewRows` over a kosztorys that is not in fact empty.
   const isEmpty = preview ? subtotals.length === 0 && !reportedOnly : sections.length === 0
   const bodyRows = useMemo(() => {
@@ -392,7 +396,8 @@ export function KosztorysEditorBody({
   useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, rowHeightContent)
   const emptyCopy = emptyGridCopy({
     preview,
-    hiders: engagedHiderList,
+    filters: engagedFilters,
+    clientHiders: engagedClientHiders,
     diagnostics: engagedDiagnostics,
     dictionary: gridCopy,
   })
@@ -543,6 +548,7 @@ export function KosztorysEditorBody({
                       }
                     />
                     {lock && <KosztorysLockedBanner lock={lock} />}
+                    {hasCatalogueEdits && <TemplateCatalogueBanner />}
                   </>
                 )}
                 {preview && <HistoryBanner version={pastVersion} />}
@@ -662,7 +668,7 @@ export function KosztorysEditorBody({
                               className="pointer-events-auto"
                               onClick={resetFilters}
                             >
-                              Zresetuj filtry
+                              Wyczyść filtry
                             </Button>
                           )}
                         </EmptyState>

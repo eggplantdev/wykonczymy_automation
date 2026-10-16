@@ -3,7 +3,8 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import { shapeInvestments } from '@/lib/queries/shape-investments'
-import type { InvestmentWithNotesT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
+import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 import type {
   DepositPlaneSumsMapT,
   InvestmentFinancialsMapT,
@@ -28,7 +29,8 @@ const kosztorysTotals: KosztorysClientTotalsMapT = {
   },
 }
 
-const baseInv: InvestmentWithNotesT = {
+const baseInv: InvestmentWithDetailsT = {
+  ...NO_INVESTMENT_DETAILS,
   id: 5,
   name: 'Grojecka',
   status: 'active',
@@ -459,7 +461,7 @@ describe('shapeInvestments robocizna source', () => {
   })
 
   it('shows the stored stage, whatever the kosztorys carries', () => {
-    const step = (inv: InvestmentWithNotesT) =>
+    const step = (inv: InvestmentWithDetailsT) =>
       shapeInvestments([inv], transactionFinancials, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
         .aiProgress
 
@@ -652,7 +654,7 @@ describe('shapeInvestments wpłaty', () => {
   })
 
   it('carries the tryb the listing gates its two bilans columns on', () => {
-    const carried = (mode: InvestmentWithNotesT['settlementMode']) =>
+    const carried = (mode: InvestmentWithDetailsT['settlementMode']) =>
       shapeInvestments(
         [{ ...baseInv, settlementMode: mode }],
         { '5': ZERO_FINANCIALS },
@@ -677,7 +679,7 @@ describe('shapeInvestments wpłaty osierocone przez tryb brutto', () => {
     },
   }
 
-  const shape = (settlementMode: InvestmentWithNotesT['settlementMode']) =>
+  const shape = (settlementMode: InvestmentWithDetailsT['settlementMode']) =>
     shapeInvestments(
       [{ ...baseInv, settlementMode, vatRate: 0.23 }],
       { '5': ZERO_FINANCIALS },

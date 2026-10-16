@@ -8,9 +8,7 @@ import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-edito
 import { templateEditorActions } from '@/components/kosztorys/editor/actions/template-editor-actions'
 import type { DynamicPagePropsT } from '@/types/page'
 
-// A szablon has its own tables, read into the kosztorys tree shape — but none of the investment
-// editor's financial fetches: a szablon has no transactions, no przedmiar and no figures to
-// reconcile. Read-only, so a hover prefetch of a row href is safe.
+// Read-only, so a hover prefetch of a row href is safe.
 export default async function TemplatePage({ params }: DynamicPagePropsT) {
   const { id } = await params
   const templateId = parseInvestmentId(id)
@@ -22,10 +20,7 @@ export default async function TemplatePage({ params }: DynamicPagePropsT) {
   const name = await getTemplateName(templateId)
   if (name === undefined) notFound()
 
-  const [tree, workCatalogue] = await Promise.all([
-    getTemplateTree(templateId),
-    getWorkCatalogue(),
-  ])
+  const [tree, workCatalogue] = await Promise.all([getTemplateTree(templateId), getWorkCatalogue()])
 
   return (
     <KosztorysEditorV2

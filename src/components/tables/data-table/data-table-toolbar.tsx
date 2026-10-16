@@ -19,6 +19,7 @@ type DataTableToolbarPropsT = {
   title?: React.ReactNode
   search?: ToolbarSearchT
   filters?: React.ReactNode
+  filterChips?: React.ReactNode
   columns?: React.ReactNode
   actions?: React.ReactNode
   className?: string
@@ -28,6 +29,7 @@ export function DataTableToolbar({
   title,
   search,
   filters,
+  filterChips,
   columns,
   actions,
   className,
@@ -35,20 +37,27 @@ export function DataTableToolbar({
   const hasLeft = Boolean(search || filters)
   const hasRight = Boolean(columns || actions)
 
+  const leftControls = (
+    <ControlGrid className="sm:w-auto sm:flex-initial sm:items-center">
+      {search && (
+        <SearchFilterInput {...search} className={cn('col-span-2', SEARCH_FILTER_TOOLBAR_WIDTH)} />
+      )}
+      {filters}
+    </ControlGrid>
+  )
+
   return (
     <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {title && <h2 className={cn('text-foreground w-full', SECTION_TITLE_CLASS)}>{title}</h2>}
-      {hasLeft && (
-        <ControlGrid className="sm:w-auto sm:flex-initial sm:items-center">
-          {search && (
-            <SearchFilterInput
-              {...search}
-              className={cn('col-span-2', SEARCH_FILTER_TOOLBAR_WIDTH)}
-            />
-          )}
-          {filters}
-        </ControlGrid>
-      )}
+      {hasLeft &&
+        (filterChips ? (
+          <div className="flex w-full flex-col gap-2 sm:w-auto">
+            {leftControls}
+            {filterChips}
+          </div>
+        ) : (
+          leftControls
+        ))}
       {/* Not below `sm`, where the row wraps and spreading would strand it alone on its line. */}
       {hasRight && (
         <ControlGrid className="sm:ml-auto sm:w-auto sm:flex-initial sm:items-center">

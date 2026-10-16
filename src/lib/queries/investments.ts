@@ -14,10 +14,10 @@ import { owedWorkersByInvestment } from '@/lib/kosztorys/worker-payout-pairs'
 import { shapeInvestments } from '@/lib/queries/shape-investments'
 import { perfStart } from '@/lib/perf'
 import {
-  fetchInvestmentNotes,
+  fetchInvestmentDetails,
   fetchReferenceData,
   findInvestmentRef,
-  withNotes,
+  withDetails,
 } from '@/lib/queries/reference-data'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
@@ -30,7 +30,7 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
   if (!user) throw new Error('Nie jesteś zalogowany')
   const [
     refData,
-    notesById,
+    detailsById,
     financials,
     kosztorysTotals,
     subcontractorDue,
@@ -38,7 +38,7 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
     pairs,
   ] = await Promise.all([
     fetchReferenceData(),
-    fetchInvestmentNotes(),
+    fetchInvestmentDetails(),
     fetchInvestmentFinancials(),
     fetchKosztorysClientTotals(),
     fetchKosztorysSubcontractorDue(),
@@ -47,7 +47,7 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
   ])
   const owedWorkers = owedWorkersByInvestment(pairs)
   return shapeInvestments(
-    refData.investments.map((investment) => withNotes(investment, notesById)),
+    refData.investments.map((investment) => withDetails(investment, detailsById)),
     financials,
     kosztorysTotals,
     subcontractorDue,

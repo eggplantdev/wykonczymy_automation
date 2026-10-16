@@ -109,7 +109,10 @@ export async function listSnapshots(
     WHERE investment_id = ${investmentId}
     ORDER BY taken_at DESC, id DESC
   `)
-  return res.rows.map((row) => ({ ...snapshotMetaOf(row), investmentId: Number(row.investment_id) }))
+  return res.rows.map((row) => ({
+    ...snapshotMetaOf(row),
+    investmentId: Number(row.investment_id),
+  }))
 }
 
 export const snapshotMetaOf = (row: Record<string, unknown>) => ({
@@ -177,7 +180,6 @@ export async function getHistorySnapshots(
   )
 }
 
-// A szablon's „Wersje" follow the same bands; only the table and the column a bucket groups by differ.
 const RETENTION_SCOPES = {
   kosztorys: { table: sql.raw('kosztorys_snapshots'), owner: sql.raw('investment_id') },
   template: { table: sql.raw('template_snapshots'), owner: sql.raw('template_id') },

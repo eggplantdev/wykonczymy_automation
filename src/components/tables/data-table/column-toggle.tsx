@@ -1,6 +1,7 @@
 'use client'
 
 import { type Table, type VisibilityState } from '@tanstack/react-table'
+import { type ReactNode } from 'react'
 import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   TABLE_TEXT_SIZES,
@@ -20,6 +21,8 @@ type ColumnTogglePropsT<TData> = {
   resetOrder: () => void
   textSize: TableTextSizeT
   setTextSize: (size: TableTextSizeT) => void
+  sections?: ReactNode
+  contentClassName?: string
 }
 
 export function ColumnToggle<TData>({
@@ -31,6 +34,8 @@ export function ColumnToggle<TData>({
   resetOrder,
   textSize,
   setTextSize,
+  sections,
+  contentClassName,
 }: ColumnTogglePropsT<TData>) {
   // getAllLeafColumns applies the table's columnOrder; getAllColumns would hand both surfaces the
   // declaration order, so the dialog would open showing the state before the last drag.
@@ -45,6 +50,8 @@ export function ColumnToggle<TData>({
   return (
     <ColumnToggleMenu
       items={items}
+      sections={sections}
+      contentClassName={contentClassName}
       onToggle={(id) => table.getColumn(id)?.toggleVisibility()}
       // Merged into current state, not TanStack's toggleAllColumnsVisible — that rebuilds the map
       // from {} and drops unknown ids, wiping a sibling page's preference (shared storageKey, different excludeColumns).

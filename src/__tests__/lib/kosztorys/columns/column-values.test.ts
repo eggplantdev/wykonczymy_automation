@@ -109,6 +109,14 @@ describe('columnValueResolver', () => {
     expect(value('aiPlannedNet')?.({ ...row, aiPlannedQty: null })).toBeNull()
   })
 
+  it('reads the rabat on przedmiar at the client price, in a crew view too', () => {
+    const value = columnValueResolver({ stages, view: 'w_tools' })
+    const discounted = { ...row, discountType: 'percent' as const, discountValue: 5 }
+    expect(value('plannedDiscountAmount')?.(discounted)).toBe(50) // 10 × 100 − 950
+    expect(value('plannedDiscountAmountGross')?.(discounted)).toBeCloseTo(61.5)
+    expect(value('plannedDiscountAmount')?.(row)).toBe(0)
+  })
+
   it('leaves editable columns and row fields to the caller', () => {
     const value = columnValueResolver({ stages, view: 'client' })
     for (const field of [

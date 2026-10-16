@@ -11,6 +11,10 @@ import {
   INVESTMENT_AI_STAGES,
   INVESTMENT_AI_STAGE_LABELS,
 } from '@/lib/constants/investment-ai-stage'
+import {
+  INVESTMENT_CLIENT_TYPES,
+  INVESTMENT_CLIENT_TYPE_LABELS,
+} from '@/lib/constants/investment-client-type'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
@@ -27,6 +31,11 @@ const AI_STAGE_OPTIONS = INVESTMENT_AI_STAGES.map((value) => ({
   value,
 }))
 
+const CLIENT_TYPE_OPTIONS = INVESTMENT_CLIENT_TYPES.map((value) => ({
+  label: INVESTMENT_CLIENT_TYPE_LABELS[value],
+  value,
+}))
+
 export const Investments: CollectionConfig = {
   slug: 'investments',
   labels: {
@@ -39,11 +48,7 @@ export const Investments: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    beforeChange: [
-      guardTrashedInvestment,
-      guardInvestmentStatusUnlock,
-      stampCompletedAt,
-    ],
+    beforeChange: [guardTrashedInvestment, guardInvestmentStatusUnlock, stampCompletedAt],
     beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],
@@ -64,7 +69,22 @@ export const Investments: CollectionConfig = {
     {
       name: 'address',
       type: 'text',
-      label: { en: 'Address', pl: 'Adres' },
+      label: { en: 'Street and number', pl: 'Ulica i numer' },
+    },
+    {
+      name: 'postalCode',
+      type: 'text',
+      label: { en: 'Postal code', pl: 'Kod pocztowy' },
+    },
+    {
+      name: 'city',
+      type: 'text',
+      label: { en: 'City', pl: 'Miejscowość' },
+    },
+    {
+      name: 'country',
+      type: 'text',
+      label: { en: 'Country', pl: 'Kraj' },
     },
     {
       name: 'phone',
@@ -80,6 +100,38 @@ export const Investments: CollectionConfig = {
       name: 'contactPerson',
       type: 'text',
       label: { en: 'Contact Person', pl: 'Osoba kontaktowa' },
+    },
+    {
+      name: 'billing',
+      type: 'group',
+      label: { en: 'Contract / invoice details', pl: 'Dane do umowy / faktury' },
+      fields: [
+        {
+          name: 'clientType',
+          type: 'select',
+          label: { en: 'Client type', pl: 'Typ klienta' },
+          options: CLIENT_TYPE_OPTIONS,
+        },
+        { name: 'firstName', type: 'text', label: { en: 'First name', pl: 'Imię' } },
+        { name: 'lastName', type: 'text', label: { en: 'Last name', pl: 'Nazwisko' } },
+        { name: 'companyName', type: 'text', label: { en: 'Company name', pl: 'Nazwa firmy' } },
+        { name: 'nip', type: 'text', label: { en: 'Tax ID (NIP)', pl: 'NIP' } },
+        {
+          name: 'representative',
+          type: 'text',
+          label: { en: 'Representative', pl: 'Osoba reprezentująca' },
+        },
+        {
+          name: 'sameAsSite',
+          type: 'checkbox',
+          defaultValue: true,
+          label: { en: 'Same as investment address', pl: 'Adres taki sam jak adres inwestycji' },
+        },
+        { name: 'street', type: 'text', label: { en: 'Street and number', pl: 'Ulica i numer' } },
+        { name: 'postalCode', type: 'text', label: { en: 'Postal code', pl: 'Kod pocztowy' } },
+        { name: 'city', type: 'text', label: { en: 'City', pl: 'Miejscowość' } },
+        { name: 'country', type: 'text', label: { en: 'Country', pl: 'Kraj' } },
+      ],
     },
     {
       name: 'notes',

@@ -27,6 +27,7 @@ type ArgsT = {
   workerPlane?: ToolPlaneT
   isTemplate?: boolean
   aiDraft?: boolean
+  globalDiscountActive?: boolean
 }
 
 const EMPTY_COLLAPSED: ReadonlySet<number> = new Set()
@@ -38,6 +39,7 @@ export function useKosztorysViewState({
   workerPlane,
   isTemplate = false,
   aiDraft = false,
+  globalDiscountActive = false,
 }: ArgsT) {
   const [persistedView, setView] = usePriceView(investmentId, isTemplate)
   const [search, setSearch] = useState('')
@@ -59,7 +61,7 @@ export function useKosztorysViewState({
   const aiReview = aiReviewPicked && aiReviewAvailable
   const engagedConditionIds = preview
     ? clientConditionIds(clientView?.hideEmptyRows && !showAllRows, reportedOnly)
-    : editorConditionIds(persistedConditionIds, aiReview)
+    : editorConditionIds(persistedConditionIds, aiReview, globalDiscountActive)
   const [viewPickedManually, setViewPickedManually] = useState(false)
   const problemPlane = viewPickedManually ? undefined : engagedPlane(engagedConditionIds)
   // The public page ships the full tree, so an unpinned plane would render a subcontractor view to any
@@ -84,12 +86,12 @@ export function useKosztorysViewState({
   const [guideY, setGuideY] = useState<number | null>(null)
 
   // On every switch-on, not just the first: the view always opens on what someone priced, whatever
-  // was re-ticked during the last pass — the other half included, or the pair would hide every row.
+  // was ticked during the last pass — the other half included, or the pair would narrow nothing.
   function pickAiReview(next: boolean) {
     setAiReview(next)
     if (!next) return
-    setConditions([NO_PLANNED_OR_AI_QTY_CONDITION_ID], true)
-    setConditions([HAS_PLANNED_OR_AI_QTY_CONDITION_ID], false)
+    setConditions([HAS_PLANNED_OR_AI_QTY_CONDITION_ID], true)
+    setConditions([NO_PLANNED_OR_AI_QTY_CONDITION_ID], false)
   }
 
   function pickView(next: PriceViewT) {

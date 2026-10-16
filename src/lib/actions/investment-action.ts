@@ -3,20 +3,20 @@ import type { Payload } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import {
-  investmentGateFor,
   investmentGateForRow,
+  investmentLockMessage,
   type GateTargetKindT,
-  type InvestmentGateT,
 } from '@/lib/db/investment-gate'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
+import { ITEM_NOT_FOUND, SECTION_NOT_FOUND } from '@/lib/constants/not-found'
 
 export type GateTargetT = { investmentId: number } | { kind: GateTargetKindT; id: number }
 
 const TARGET_MISSING: Record<GateTargetKindT, string> = {
-  item: 'Pozycja nie istnieje.',
-  section: 'Sekcja nie istnieje.',
+  item: ITEM_NOT_FOUND,
+  section: SECTION_NOT_FOUND,
   stage: 'Etap nie istnieje.',
 }
 
@@ -41,15 +41,12 @@ export function investmentAction<TData = undefined>(
     async (ctx) => {
       const db = await getDb(ctx.payload)
 
-      // The two targets differ only in how the investment is NAMED — given outright, or reached
-      // through the row's parent. Resolving both into one gate keeps the lock check and the handler
-      // on a single tail.
-      let gate: { investmentId: number } & InvestmentGateT
+      let gate: { investmentId: number; lockMessage: string | undefined }
 
       if ('investmentId' in target) {
         gate = {
           investmentId: target.investmentId,
-          ...(await investmentGateFor(db, target.investmentId)),
+          lockMessage: await investmentLockMessage(db, target.investmentId),
         }
       } else {
         // the editor fans a write out per changed cell, so a paste across

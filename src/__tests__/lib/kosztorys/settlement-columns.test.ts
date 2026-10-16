@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   emptySettlementColumnIds,
+  hasPlannedDiscount,
   investorEmptyColumnIds,
   stagesWithEntries,
 } from '@/lib/kosztorys/settlement-columns'
@@ -65,5 +66,43 @@ describe('investorEmptyColumnIds', () => {
   it('leaves the worker set unchanged before an entry', () => {
     const worker = emptySettlementColumnIds([row()], CTX.stages)
     for (const id of OFFER_PHASE) expect(worker.has(id)).toBe(false)
+  })
+
+  it('drops the rabat on przedmiar when no pozycja has one', () => {
+    const empty = investorEmptyColumnIds([row({ [stageKey(1)]: 4 })], CTX.stages)
+    expect(empty.has('plannedDiscountAmount')).toBe(true)
+  })
+
+  it('shows the rabat on przedmiar before any etap entry — it is an offer figure', () => {
+    const discounted = row({ discountType: 'percent', discountValue: 5 })
+    const empty = investorEmptyColumnIds([discounted, row({ id: 2 })], CTX.stages)
+    expect(empty.has('plannedDiscountAmount')).toBe(false)
+    expect(empty.has('discountAmount')).toBe(true)
+  })
+
+  it('leaves the worker set without the rabat on przedmiar', () => {
+    expect(emptySettlementColumnIds([row()], CTX.stages).has('plannedDiscountAmount')).toBe(false)
+  })
+})
+
+describe('hasPlannedDiscount', () => {
+  it('is false with no rabat anywhere', () => {
+    expect(hasPlannedDiscount([row(), row({ id: 2 })])).toBe(false)
+  })
+
+  it('is true when one pozycja carries a rabat on its przedmiar', () => {
+    expect(
+      hasPlannedDiscount([row(), row({ id: 2, discountType: 'amount', discountValue: 30 })]),
+    ).toBe(true)
+  })
+
+  it('ignores a rabat on a pozycja with no przedmiar', () => {
+    const outsideOffer = row({ plannedQty: 0, discountType: 'amount', discountValue: 30 })
+    expect(hasPlannedDiscount([outsideOffer])).toBe(false)
+  })
+
+  it('is false under a rabat globalny', () => {
+    const global = row({ discountType: 'percent', discountValue: 5, globalDiscountActive: true })
+    expect(hasPlannedDiscount([global])).toBe(false)
   })
 })

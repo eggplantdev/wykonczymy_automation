@@ -111,37 +111,65 @@ describe('useKosztorysViewState — „Przegląd AI"', () => {
 
   it('opens on the work someone priced, again on every switch-on', () => {
     const { result } = render()
-    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(false)
+    expect(result.current.engagedConditionIds.has('has-planned-or-ai-qty')).toBe(false)
 
     act(() => result.current.setAiReview(true))
-    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(true)
+    expect(result.current.engagedConditionIds.has('has-planned-or-ai-qty')).toBe(true)
+    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(false)
 
+    act(() => result.current.toggleCondition('has-planned-or-ai-qty'))
     act(() => result.current.toggleCondition('no-planned-or-ai-qty'))
     act(() => result.current.setAiReview(false))
     act(() => result.current.setAiReview(true))
-    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(true)
+    expect(result.current.engagedConditionIds.has('has-planned-or-ai-qty')).toBe(true)
+    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(false)
   })
 })
 
 describe('useKosztorysViewState — „Przegląd AI" filters on the next visit', () => {
   it('engages none of them until the view is switched on again', () => {
     localStorage.setItem(
-      `kosztorys-filters:${INVESTMENT_ID}`,
+      `kosztorys-show:${INVESTMENT_ID}`,
       JSON.stringify({
         'no-planned-or-ai-qty': true,
         'has-planned-or-ai-qty': true,
-        'has-note': true,
+        'has-measured-qty': true,
       }),
     )
     const { result } = renderHook(() =>
       useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, aiDraft: true }),
     )
-    expect([...result.current.engagedConditionIds]).toEqual(['has-note'])
+    expect([...result.current.engagedConditionIds]).toEqual(['has-measured-qty'])
 
     act(() => result.current.setAiReview(true))
     expect([...result.current.engagedConditionIds].sort()).toEqual([
-      'has-note',
-      'no-planned-or-ai-qty',
+      'has-measured-qty',
+      'has-planned-or-ai-qty',
+    ])
+  })
+})
+
+describe('useKosztorysViewState — rabat ticks under a global rabat', () => {
+  it('drops a remembered rabat tick while a global rabat is on, keeps it otherwise', () => {
+    localStorage.setItem(
+      `kosztorys-show:${INVESTMENT_ID}`,
+      JSON.stringify({ 'has-discount': true, 'has-measured-qty': true }),
+    )
+    const { result, rerender } = renderHook(
+      ({ globalDiscountActive }) =>
+        useKosztorysViewState({
+          investmentId: INVESTMENT_ID,
+          preview: false,
+          globalDiscountActive,
+        }),
+      { initialProps: { globalDiscountActive: true } },
+    )
+    expect([...result.current.engagedConditionIds]).toEqual(['has-measured-qty'])
+
+    rerender({ globalDiscountActive: false })
+    expect([...result.current.engagedConditionIds].sort()).toEqual([
+      'has-discount',
+      'has-measured-qty',
     ])
   })
 })

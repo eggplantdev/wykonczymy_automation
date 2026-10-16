@@ -43,7 +43,7 @@ describe('preview columns', () => {
 
   it('drops the per-item rabat columns while a global discount overrides them', () => {
     const visible = previewIds({ globalDiscountActive: true })
-    for (const id of ['discountType', 'discountValue', 'discountAmount']) {
+    for (const id of ['discountType', 'discountValue', 'plannedDiscountAmount', 'discountAmount']) {
       expect(previewIds()).toContain(id)
       expect(visible).not.toContain(id)
     }
@@ -69,6 +69,7 @@ describe('preview columns', () => {
       'currentPlannedGross',
       'priceGross',
       'discountAmountGross',
+      'plannedDiscountAmountGross',
       'gross',
       'remainingGross',
     ]

@@ -3,23 +3,55 @@
 import { SelectItem } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FieldGroup } from '@/components/ui/field'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { FileInput } from '@/components/ui/file-input'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import { InvestmentAssetsField } from './investment-assets-field'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import { useStore } from '@/components/forms/hooks/form-hooks'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
-import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
+import {
+  investmentFormSchema,
+  type InvestmentBillingFormValuesT,
+  type InvestmentFormValuesT,
+} from './investment-schema'
 import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from './investment-schema'
 import type { TemplateMetaT } from '@/lib/db/templates'
 import type { ActionResultT } from '@/types/action'
-import { isLockedStatus } from '@/lib/constants/investment-lock'
+import { COMPLETE_INVESTMENT_CONFIRM, entersLockedStatus } from '@/lib/constants/investment-lock'
+import { InvestmentStatusSelect } from '@/components/investments/investment-status-select'
 import {
-  INVESTMENT_STATUS_LABELS,
-  INVESTMENT_STATUSES,
-} from '@/lib/constants/investment-status'
+  INVESTMENT_CLIENT_TYPE_LABELS,
+  INVESTMENT_CLIENT_TYPES,
+} from '@/lib/constants/investment-client-type'
+
+// Hidden fields still hold whatever was typed before a switch — drop them so the record keeps only
+// what the form shows.
+function visibleBilling(billing: InvestmentBillingFormValuesT): InvestmentBillingFormValuesT {
+  const isPerson = billing.clientType === 'person'
+  const isCompany = billing.clientType === 'company'
+  return {
+    clientType: billing.clientType,
+    firstName: isPerson ? billing.firstName : '',
+    lastName: isPerson ? billing.lastName : '',
+    companyName: isCompany ? billing.companyName : '',
+    nip: isCompany ? billing.nip : '',
+    representative: isCompany ? billing.representative : '',
+    sameAsSite: billing.sameAsSite,
+    street: billing.sameAsSite ? '' : billing.street,
+    postalCode: billing.sameAsSite ? '' : billing.postalCode,
+    city: billing.sameAsSite ? '' : billing.city,
+    country: billing.sameAsSite ? '' : billing.country,
+  }
+}
+
+function splitFullName(fullName: string) {
+  const [firstName = '', ...rest] = fullName.trim().split(/\s+/)
+  return { firstName, lastName: rest.join(' ') }
+}
 
 type InvestmentFormPropsT = {
   formId: string
@@ -57,8 +89,7 @@ export function InvestmentForm({
 }: InvestmentFormPropsT) {
   // Set by the action, consumed after `onSubmitSuccess`: the prompt opens through the shared dialog
   // store, so opening it before this dialog's own close would be undone by that close.
-  const entersCompleted = (status: string) =>
-    isLockedStatus(status) && !isLockedStatus(defaultValues.status)
+  const entersCompleted = (status: string) => entersLockedStatus(defaultValues.status, status)
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
   const { form, reset, submitConfirm } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>(
@@ -87,54 +118,28 @@ export function InvestmentForm({
         return submitWithUploads(files, (assets) => action({ ...data, assets }))
       },
       confirmBeforeSubmit: (value) =>
-        entersCompleted(value.status)
-          ? {
-              title: 'Zakończyć inwestycję?',
-              description:
-                'Zakończona inwestycja jest tylko do odczytu — nikt nie dopisze transakcji ani nie zmieni kosztorysu. Odblokować może ją wyłącznie właściciel lub administrator, ustawiając status z powrotem na „Aktywna".',
-              confirmLabel: 'Zakończ',
-            }
-          : null,
-      toData: (value) => ({
-        name: value.name,
-        address: value.address,
-        phone: value.phone,
-        email: value.email,
-        contactPerson: value.contactPerson,
-        notes: value.notes,
-        reviewRequested: value.reviewRequested,
-        status: value.status,
-        presetId: value.presetId,
-      }),
+        entersCompleted(value.status) ? COMPLETE_INVESTMENT_CONFIRM : null,
+      toData: (value) => ({ ...value, billing: visibleBilling(value.billing) }),
     },
   )
+  const clientType = useStore(form.store, (s) => s.values.billing.clientType)
+  const isBillingSameAsSite = useStore(form.store, (s) => s.values.billing.sameAsSite)
 
   return (
     <>
       <FormShell form={form} onReset={reset}>
         <FieldGroup>
+          <form.AppField name="status">
+            {(field) => (
+              <InvestmentStatusSelect
+                value={field.state.value}
+                onValueChange={field.handleChange}
+              />
+            )}
+          </form.AppField>
+
           <form.AppField name="name">
             {(field) => <field.Input label="Nazwa" placeholder="Nazwa inwestycji" showError />}
-          </form.AppField>
-
-          <form.AppField name="address">
-            {(field) => <field.Input label="Adres" placeholder="Adres inwestycji" showError />}
-          </form.AppField>
-
-          <form.AppField name="phone">
-            {(field) => <field.Input label="Telefon" placeholder="Numer telefonu" showError />}
-          </form.AppField>
-
-          <form.AppField name="email">
-            {(field) => (
-              <field.Input label="Email" type="email" placeholder="Adres email" showError />
-            )}
-          </form.AppField>
-
-          <form.AppField name="contactPerson">
-            {(field) => (
-              <field.Input label="Osoba kontaktowa" placeholder="Imię i nazwisko" showError />
-            )}
           </form.AppField>
 
           <form.AppField name="notes">
@@ -142,6 +147,13 @@ export function InvestmentForm({
               <field.Textarea label="Notatki" placeholder="Notatki..." rows={3} showError />
             )}
           </form.AppField>
+
+          {collectAssets && (
+            <FileInput key={inputKey} fieldClassName="w-fit" multiple {...fileInputProps} />
+          )}
+          {assetsInvestmentId !== undefined && (
+            <InvestmentAssetsField investmentId={assetsInvestmentId} />
+          )}
 
           <form.AppField name="reviewRequested">
             {(field) => (
@@ -152,28 +164,153 @@ export function InvestmentForm({
             )}
           </form.AppField>
 
-          {/* The two columns follow the dialog's width, and the dialog is narrower than the viewport
-              at which `sm:` would already have fired. */}
-          <div className="grid gap-4 @md/field-group:grid-cols-2">
-            <form.AppField name="status">
-              {(field) => (
-                <field.Select label="Status" showError>
-                  {INVESTMENT_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {INVESTMENT_STATUS_LABELS[status].pl}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
+          <CollapsibleSection title="Kontakt" size="sm" withSeparator={false}>
+            <div className="flex flex-col gap-4">
+              <form.AppField name="contactPerson">
+                {(field) => (
+                  <field.Input label="Osoba kontaktowa" placeholder="Imię i nazwisko" showError />
+                )}
+              </form.AppField>
 
-            {collectAssets && (
-              <FileInput key={inputKey} label="Zdjęcia i pliki" multiple {...fileInputProps} />
-            )}
-            {assetsInvestmentId !== undefined && (
-              <InvestmentAssetsField investmentId={assetsInvestmentId} />
-            )}
-          </div>
+              <div className="grid gap-4 @md/field-group:grid-cols-2">
+                <form.AppField name="phone">
+                  {(field) => (
+                    <field.Input label="Telefon" placeholder="Numer telefonu" showError />
+                  )}
+                </form.AppField>
+                <form.AppField name="email">
+                  {(field) => (
+                    <field.Input label="Email" type="email" placeholder="Adres email" showError />
+                  )}
+                </form.AppField>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Adres inwestycji"
+            size="sm"
+            withSeparator={false}
+            defaultOpen={false}
+          >
+            <div className="flex flex-col gap-4">
+              <form.AppField name="address">
+                {(field) => (
+                  <field.Input label="Ulica i numer" placeholder="ul. Lipowa 3/5" showError />
+                )}
+              </form.AppField>
+
+              <div className="grid gap-4 @md/field-group:grid-cols-5">
+                <form.AppField name="postalCode">
+                  {(field) => <field.Input label="Kod pocztowy" placeholder="00-000" showError />}
+                </form.AppField>
+                <div className="@md/field-group:col-span-2">
+                  <form.AppField name="city">
+                    {(field) => <field.Input label="Miejscowość" showError />}
+                  </form.AppField>
+                </div>
+                <div className="@md/field-group:col-span-2">
+                  <form.AppField name="country">
+                    {(field) => <field.Input label="Kraj" showError />}
+                  </form.AppField>
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Dane do umowy / faktury"
+            size="sm"
+            withSeparator={false}
+            defaultOpen={false}
+          >
+            <div className="flex flex-col gap-4">
+              <form.AppField
+                name="billing.clientType"
+                listeners={{
+                  onChange: ({ value }) => {
+                    const { contactPerson, billing } = form.state.values
+                    if (value !== 'person' || billing.firstName || billing.lastName) return
+                    const { firstName, lastName } = splitFullName(contactPerson)
+                    form.setFieldValue('billing.firstName', firstName)
+                    form.setFieldValue('billing.lastName', lastName)
+                  },
+                }}
+              >
+                {(field) => (
+                  <field.Select label="Typ klienta" placeholder="— nie wybrano —" showError>
+                    {INVESTMENT_CLIENT_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {INVESTMENT_CLIENT_TYPE_LABELS[type].pl}
+                      </SelectItem>
+                    ))}
+                  </field.Select>
+                )}
+              </form.AppField>
+
+              {clientType === 'person' && (
+                <div className="grid gap-4 @md/field-group:grid-cols-2">
+                  <form.AppField name="billing.firstName">
+                    {(field) => <field.Input label="Imię" showError />}
+                  </form.AppField>
+                  <form.AppField name="billing.lastName">
+                    {(field) => <field.Input label="Nazwisko" showError />}
+                  </form.AppField>
+                </div>
+              )}
+
+              {clientType === 'company' && (
+                <>
+                  <form.AppField name="billing.companyName">
+                    {(field) => <field.Input label="Nazwa firmy" showError />}
+                  </form.AppField>
+                  <div className="grid gap-4 @md/field-group:grid-cols-2">
+                    <form.AppField name="billing.nip">
+                      {(field) => <field.Input label="NIP" showError />}
+                    </form.AppField>
+                    <form.AppField name="billing.representative">
+                      {(field) => (
+                        <field.Input
+                          label="Osoba reprezentująca"
+                          placeholder="Imię i nazwisko"
+                          showError
+                        />
+                      )}
+                    </form.AppField>
+                  </div>
+                </>
+              )}
+
+              <form.AppField name="billing.sameAsSite">
+                {(field) => <field.Checkbox label="Adres taki sam jak adres inwestycji" />}
+              </form.AppField>
+
+              {!isBillingSameAsSite && (
+                <>
+                  <form.AppField name="billing.street">
+                    {(field) => <field.Input label="Ulica i numer" showError />}
+                  </form.AppField>
+                  <div className="grid gap-4 @md/field-group:grid-cols-5">
+                    <form.AppField name="billing.postalCode">
+                      {(field) => (
+                        <field.Input label="Kod pocztowy" placeholder="00-000" showError />
+                      )}
+                    </form.AppField>
+                    <div className="@md/field-group:col-span-2">
+                      <form.AppField name="billing.city">
+                        {(field) => <field.Input label="Miejscowość" showError />}
+                      </form.AppField>
+                    </div>
+                    <div className="@md/field-group:col-span-2">
+                      <form.AppField name="billing.country">
+                        {(field) => <field.Input label="Kraj" showError />}
+                      </form.AppField>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </CollapsibleSection>
 
           {presetOptions && presetOptions.length > 0 && (
             <form.AppField name="presetId">

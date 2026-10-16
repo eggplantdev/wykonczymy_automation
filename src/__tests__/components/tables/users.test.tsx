@@ -112,7 +112,7 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     expect(row().getByText(/nadpłata aktywne \(1\)/)).toBeInTheDocument()
     expect(row().queryByText(/zakończone/)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /Filtry/ }))
+    await user.click(screen.getByRole('button', { name: /^Filtry/ }))
     await user.click(screen.getByRole('option', { name: /^Zakończone inwestycje/ }))
     expect(bare(row().getByText(/do zapłaty zakończone \(1\)/).textContent ?? '')).toContain(
       bare(formatPLN(2000)),
@@ -126,7 +126,7 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     expect(row().getByText(/do zapłaty zakończone \(1\)/)).toBeInTheDocument()
   })
 
-  it('empties the aktywne lines when their investments are unticked', async () => {
+  it('empties the aktywne lines once only „Zakończone inwestycje" is ticked', async () => {
     const user = userEvent.setup()
     render(
       <UserDataTable
@@ -136,9 +136,25 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
         cashRegisters={[]}
       />,
     )
-    await user.click(screen.getByRole('button', { name: /Filtry/ }))
+    await user.click(screen.getByRole('button', { name: /^Filtry/ }))
+    await user.click(screen.getByRole('option', { name: /^Zakończone inwestycje/ }))
     await user.click(screen.getByRole('option', { name: /^Aktywne inwestycje/ }))
     expect(cellText('Jan')).toBe(bare(formatPLN(0)))
+  })
+
+  it('shows both kwoty once both „Pozostało do wypłaty" ticks are off — nothing ticked narrows nothing', async () => {
+    const user = userEvent.setup()
+    const jan = worker(1, 'Jan', {
+      active: bucket({ owed: 5000, owedCount: 1 }),
+      completed: bucket({ owed: 2000, owedCount: 1 }),
+    })
+    render(<UserDataTable data={[jan]} cashRegisters={[]} />)
+    await user.click(screen.getByRole('button', { name: /^Filtry/ }))
+    await user.click(screen.getByRole('option', { name: /^Aktywne inwestycje/ }))
+
+    const row = within(rowOf('Jan'))
+    expect(row.getByText(/do zapłaty aktywne \(1\)/)).toBeInTheDocument()
+    expect(row.getByText(/do zapłaty zakończone \(1\)/)).toBeInTheDocument()
   })
 
   it('lists inactive workers only once „Nieaktywni" is ticked', async () => {
@@ -150,9 +166,43 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
       />,
     )
     expect(screen.queryByText('Piotr')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /Filtry/ }))
+    expect(screen.getByText('Widoczni pracownicy 1 / 2')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^Filtry/ }))
     await user.click(screen.getByRole('option', { name: 'Nieaktywni' }))
     expect(screen.getByText('Piotr')).toBeInTheDocument()
+    expect(screen.getByText('Widoczni pracownicy 2 / 2')).toBeInTheDocument()
+  })
+
+  it('lists every worker once both „Pracownicy" ticks are off — nothing ticked narrows nothing', async () => {
+    const user = userEvent.setup()
+    render(
+      <UserDataTable
+        data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), active: false }]}
+        cashRegisters={[]}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: /^Filtry/ }))
+    await user.click(screen.getByRole('option', { name: 'Aktywni' }))
+
+    expect(screen.getByText('Jan')).toBeInTheDocument()
+    expect(screen.getByText('Piotr')).toBeInTheDocument()
+  })
+
+  it('„Wyczyść" unticks both groups — every worker and both kwoty show', async () => {
+    const user = userEvent.setup()
+    const jan = worker(1, 'Jan', {
+      active: bucket({ owed: 5000, owedCount: 1 }),
+      completed: bucket({ owed: 2000, owedCount: 1 }),
+    })
+    render(
+      <UserDataTable data={[jan, { ...worker(2, 'Piotr'), active: false }]} cashRegisters={[]} />,
+    )
+    await user.click(screen.getByRole('button', { name: /^Filtry/ }))
+    await user.click(screen.getByRole('option', { name: 'Wyczyść' }))
+
+    expect(screen.getByText('Piotr')).toBeInTheDocument()
+    expect(within(rowOf('Jan')).getByText(/do zapłaty zakończone \(1\)/)).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Wyczyść' })).not.toBeInTheDocument()
   })
 
   it('prints a green 0 when nothing is left to show', () => {

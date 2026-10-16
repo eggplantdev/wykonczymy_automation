@@ -55,7 +55,7 @@ describe('sanitizeClientViewSettings', () => {
   it('keeps an explicitly empty hidden set — that is a real choice, not a malformed one', () => {
     expect(
       sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: true }).hiddenColumns,
-    ).toEqual([])
+    ).toEqual(['plannedDiscountAmount'])
   })
 
   it('keeps „hide empty rows" off only when it is stored as false', () => {

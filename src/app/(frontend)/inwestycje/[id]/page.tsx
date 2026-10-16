@@ -7,10 +7,10 @@ import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import {
-  fetchInvestmentNotes,
+  fetchInvestmentDetails,
   fetchReferenceData,
   findInvestmentRef,
-  withNotes,
+  withDetails,
 } from '@/lib/queries/reference-data'
 import { InvestmentSummaryPanel } from '@/components/investments/investment-summary-panel'
 import { InvestmentAssetsSection } from '@/components/investments/investment-assets-section'
@@ -26,7 +26,9 @@ import { InvestmentV1Stats } from '@/components/investments/investment-v1-stats'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
+import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { ContractDialog } from '@/components/investments/contract-dialog'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
 import { SheetButton } from '@/components/dialogs/sheet-button'
@@ -51,13 +53,13 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
-  const [refData, notesById] = await Promise.all([fetchReferenceData(), fetchInvestmentNotes()])
+  const [refData, detailsById] = await Promise.all([fetchReferenceData(), fetchInvestmentDetails()])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const found = findInvestmentRef(refData, investmentId)
   if (!found) notFound()
   const { trashed } = found
-  const investment = withNotes(found.investment, notesById)
+  const investment = withDetails(found.investment, detailsById)
 
   return (
     <PageWrapper title={investment.name}>
@@ -69,6 +71,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
       <div className="flex flex-wrap items-center gap-2">
         {!trashed && <EditInvestmentDialog investment={investment} showLabel />}
+        {!trashed && <ContractDialog investment={investment} />}
         {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
           <RequestReviewButton investment={investment} showLabel />
         )}
@@ -77,7 +80,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         )}
         <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
       </div>
-      <InfoList items={buildInvestmentInfoFields(investment, { isReadOnly: trashed })} />
+      {!trashed && <InvestmentStatusInlineSelect investment={investment} />}
+      <InfoList
+        items={buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed })}
+      />
       <InvestmentNotes investment={investment} readOnly={trashed} />
       <InvestmentAiNotes aiNotes={investment.aiNotes} />
 

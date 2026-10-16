@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db/get-db'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 // The suffix keeps `templates_name_idx` from colliding with a szablon from the dump or a parallel
-// spec. Teardown is `deleteTestTemplate` — the cascade takes the tree and its versions.
+// spec.
 export async function createTestTemplate(payload: Payload, name = 'Test szablon'): Promise<number> {
   const db = await getDb(payload)
   const res = await db.execute(sql`
@@ -20,8 +20,7 @@ export async function deleteTestTemplate(payload: Payload, id: number): Promise<
   await db.execute(sql`DELETE FROM templates WHERE id = ${id}`)
 }
 
-// A szablon praca is a katalog entry, so a spec's prace start life in the katalog. The suffix keeps
-// the entry's match key unique against the dump; teardown is `deleteTestCatalogueEntries`.
+// The suffix keeps the entry's match key unique against the dump.
 export async function createTestCatalogueEntry(
   payload: Payload,
   description: string,

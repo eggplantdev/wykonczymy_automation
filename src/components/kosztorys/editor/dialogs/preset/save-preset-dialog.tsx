@@ -11,6 +11,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { isEditedTemplate } from '@/components/kosztorys/editor/dialogs/preset/preset-picker-groups'
 
 const PRESET_KEEPS_STRUCTURE_ONLY =
   'Szablon zapamiętuje tylko sekcje i prace w tej kolejności. Ceny, mnożniki i tłumaczenia bierze z katalogu prac. Żeby zmienić cenę, użyj „Aktualizuj pozycję w katalogu prac” przy danej pracy.'
@@ -32,11 +33,9 @@ export function SavePresetDialog() {
     setOverwriteId('')
   }
 
-  // A szablon overwritten by itself would change nothing — the action refuses it anyway. A kosztorys
-  // id is not a szablon id, so only the szablon's own editor has itself to leave out.
-  const targets = isTemplate
-    ? existingPresets.filter((preset) => preset.id !== investmentId)
-    : existingPresets
+  const targets = existingPresets.filter(
+    (preset) => !isEditedTemplate(preset.id, { isTemplate, investmentId }),
+  )
   const canSave = (mode === 'new' ? name.trim() : overwriteId).length > 0 && !saving
 
   async function handleSave() {

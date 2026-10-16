@@ -1,4 +1,5 @@
 import type { KeyboardEvent } from 'react'
+import { swallowGridEvent } from '@/components/ui/datasheet-grid/swallow-grid-event'
 
 // inside the grid the keypress would otherwise also drive react-datasheet-grid's selection
 // underneath the cell
@@ -15,7 +16,7 @@ export function enterEscapeKeyDown<ElementT extends HTMLElement>(handlers: {
           : undefined
     if (!handler) return
     event.preventDefault()
-    event.stopPropagation()
+    swallowGridEvent(event)
     handler(event)
   }
 }

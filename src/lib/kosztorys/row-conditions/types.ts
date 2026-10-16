@@ -17,7 +17,7 @@ export type RowConditionCtxT = {
 
 type RowConditionBaseT = {
   id: string
-  // A bare noun phrase describing the row, so it reads after „Ukryto: pozycje " (the active-filters
+  // A bare noun phrase describing the row, so it reads after „Tylko: pozycje " (the active-filters
   // bar) and „Brak pozycji " (the empty state).
   label: string
   plane?: ToolPlaneT
@@ -26,8 +26,8 @@ type RowConditionBaseT = {
   matches: (row: KosztorysV2RowT, ctx: RowConditionCtxT) => boolean
 }
 
-// A visibility toggle in the „Filtry" menu, ticked by default: the tick means „widoczne", and
-// UNticking it hides what it matches.
+// An option in the „Filtry" menu, unticked by default: a tick narrows the grid to what it matches.
+// Ticks in one `filterGroup` widen each other; ticks in different groups narrow each other.
 export type FilterConditionT = RowConditionBaseT & {
   kind: 'filter'
   filterGroup: FilterGroupIdT
@@ -35,8 +35,8 @@ export type FilterConditionT = RowConditionBaseT & {
   menuLabel?: string
   // How it reads when it lifts to whole sekcje in the „Filtry" menu; null = it does not lift.
   sectionLabel: string | null
-  // Its `matches` must return false under a global rabat: a filter persisted in localStorage from
-  // before the global rabat was switched on goes around the menu and must not blank the kosztorys.
+  // Its `matches` returns false under a global rabat, so `editorConditionIds` drops a tick persisted
+  // from before the global rabat was switched on — kept, it would blank the kosztorys.
   inertUnderGlobalDiscount?: true
 }
 

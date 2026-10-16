@@ -16,8 +16,6 @@ const { selectTemplateTreeData } = await import('@/lib/db/template-tree')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// A szablon praca has no copy of its own: what the editor shows IS the katalog entry, so a katalog
-// edit must reach the next read without anything being re-synced.
 describe.skipIf(!ENV_READY)('selectTemplateTreeData (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

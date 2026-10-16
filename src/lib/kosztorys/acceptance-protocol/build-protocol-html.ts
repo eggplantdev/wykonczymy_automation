@@ -9,6 +9,7 @@ import type {
   ProtocolSettlementT,
 } from '@/lib/kosztorys/acceptance-protocol/types'
 import { escapeHtml } from '@/lib/utils/escape-html'
+import { fill, line } from '@/lib/utils/print-document-fields'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 
@@ -113,14 +114,6 @@ function pageTitle(form: AcceptanceProtocolFormT): string {
 
 function printDate(value: string): string {
   return value ? formatPLDate(value) : ''
-}
-
-function fill(value: string): string {
-  return `<span class="fill">${escapeHtml(value)}</span>`
-}
-
-function line(label: string, value: string): string {
-  return `<div class="line"><span>${escapeHtml(label)}</span>${fill(value)}</div>`
 }
 
 function boxLine(html: string, isChecked: boolean): string {

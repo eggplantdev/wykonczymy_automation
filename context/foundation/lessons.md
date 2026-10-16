@@ -248,7 +248,7 @@
   in the browser.
 - A custom font-size `@utility` must be registered in `cn.ts`'s `extendTailwindMerge`, or `cn()`
   drops it against `text-*` colours.
-- Print: vertical margin on `@page`, horizontal on body padding (`print/styles.ts`); check in Safari.
+- Print: vertical margin on `@page`, horizontal on body padding (`print/styles.ts`); where `@supports (box-decoration-break: clone)` (Chrome, Firefox) zero `@page` and clone the body padding, or „Marginesy: Brak” drops the vertical margin (`print-document-styles.ts`). Check in Safari and Chrome.
 - Flush on `visibilitychange`, not `sendBeacon` (server actions can't receive a beacon).
 - PWA: exempt the manifest/icons/SW in the proxy matcher; iOS standalone has a separate cookie jar;
   icons need the maskable safe zone. Web Push: delete a subscription only on 404/410, always send a
@@ -368,7 +368,8 @@
 
 - A listener on `document` shares the node React hydrates on: only
   `nativeEvent.stopImmediatePropagation()` outruns it, and only because React registered first.
-  `enter-escape-keydown.ts` still uses bare `stopPropagation` (latent, harmless today — EX-1081).
+  react-datasheet-grid's own keydown listener sits on `document`, so a bare `stopPropagation` in a
+  cell input does not keep a key from the grid (EX-1081).
 - A removed focused element fires no blur: a blur-settled draft owes three exits — commit, cancel,
   unmount. Read current logic from a latest-ref; make teardown idempotent with a ref.
 - Global drag listeners use `{ capture: true }`; OS file drags fire no `dragend`; guard leave with

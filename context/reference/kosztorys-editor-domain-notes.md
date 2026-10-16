@@ -432,9 +432,9 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   czytelne. Szkic FV już wysłany na taką inwestycję da się dalej edytować bez zmiany inwestycji —
   ale tylko z tego powodu: inwestycja w koszu, nieaktywna albo bez jego etapu odmawia jak przy nowym
   szkicu. „Podgląd pracownika" nie odmawia — pokazuje menedżerowi to, co widziałby pracownik.
-  Kolumny zakończonego etapu (ilość, wartość netto, brutto) są zielone, a w nagłówku stoi ✓ —
-  w edytorze, u inwestora i u pracownika. Zieleń wygrywa z kolorem kolumny wybranym przez
-  właściciela; ten kolor nie ginie, wraca po ponownym otwarciu etapu. Dotyczy to tylko ekranu: PDF
+  Kolumny zakończonego etapu (ilość, wartość netto, brutto) są w kolorze morskim, a w nagłówku stoi ✓ —
+  w edytorze, u inwestora i u pracownika. Ten kolor wygrywa z kolorem kolumny wybranym przez
+  właściciela; kolor właściciela nie ginie, wraca po ponownym otwarciu etapu. Dotyczy to tylko ekranu: PDF
   się nie zmienia. Import „Zastąp" wstawia etapy od nowa, więc wszystkie wracają jako otwarte —
   jak rozliczenie i podział.
 - **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
@@ -638,14 +638,15 @@ protokół jest dokumentem na papier, nie bytem w bazie.
   `computeAmountDue`): Robocizna **przed rabatem**, Rabat, Materiały, Suma, Wpłaty, Strata,
   Pozostało do zapłaty / Nadpłata. Protokół rozjeżdżający się z podsumowaniem o grosz to ten, który
   klient podpisuje — dlatego nie liczy po swojemu.
-- **Generowanie nigdy nie edytuje inwestycji.** Poprawki w formularzu żyją w formularzu; osobny
-  przycisk „Zaktualizuj dane inwestycji" zapisuje **wyłącznie** osobę kontaktową i adres, nigdy
-  całego rekordu. Niezmieniona podpowiedź Zamawiającego (nazwa inwestycji) nie trafia do osoby
-  kontaktowej.
+- **Generowanie nigdy nie edytuje inwestycji.** Poprawki w formularzu protokołu żyją w formularzu.
+  Dane inwestycji zmienia „Edytuj dane inwestycji" — ten sam formularz co na stronie inwestycji, bez
+  drugiej kopii pól w protokole; po zapisie protokół wypełnia się od nowa z zapisanych danych.
 - **Podpowiedzi zamiast pustych pól**, bo dane bywają puste: adres ma 35/138 inwestycji, osoba
-  kontaktowa 9/138. Zamawiający = osoba kontaktowa, a gdy jej nie ma — nazwa inwestycji (zwykle
-  niesie klienta). Wykonawca to stała w kodzie (`CONTRACTOR_NAME`), nie pole w bazie. Rodzaj odbioru
-  domyślnie „końcowy", miejscowość „Warszawa", rękojmia od = data odbioru.
+  kontaktowa 9/138. Zamawiający = „Dane do umowy / faktury" (osoba albo firma z NIP), potem osoba
+  kontaktowa, a gdy i jej nie ma — nazwa inwestycji (zwykle niesie klienta). Adres to złożone pola
+  adresu inwestycji (ulica, kod miejscowość, kraj). Wykonawca to stała w kodzie (`CONTRACTOR_NAME`),
+  nie pole w bazie. Rodzaj odbioru domyślnie „końcowy", miejscowość z adresu inwestycji, a bez niej
+  „Warszawa", rękojmia od = data odbioru.
 - **Ze wzoru wypadły** stopka denwi.pl, „Reprezentowany przez" (obie strony), „Inne osoby obecne",
   pkt 7, „Kwota zatrzymana" i linia umowy — firma nie podpisuje numerowanych umów. pkt 2 to pusta
   numerowana tabela na 5 wierszy, pkt 4 (usterki) na 10: pola do wypełnienia długopisem na miejscu.

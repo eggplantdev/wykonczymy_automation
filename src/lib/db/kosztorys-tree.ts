@@ -127,7 +127,7 @@ export async function selectKosztorysTreeData(
   }
 }
 
-const mapSection = (row: RowT): KosztorysSectionT => ({
+export const mapSection = (row: RowT): KosztorysSectionT => ({
   id: Number(row.id),
   name: String(row.name ?? ''),
   displayOrder: num(row.display_order),

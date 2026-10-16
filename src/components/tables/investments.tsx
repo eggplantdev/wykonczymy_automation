@@ -29,8 +29,12 @@ import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
 
 const col = createColumnHelper<InvestmentRowT>()
 
-// Named here, beside the columns themselves, so the toolbar's „Pokaż kolumny v2" switch and the
-// columns cannot drift apart.
+export const V1_COLUMN_IDS = [
+  'balanceFromTransactions',
+  'margin',
+  'laborCostsFromTransactions',
+] as const
+
 export const V2_COLUMN_IDS = [
   'balance',
   'balanceGross',

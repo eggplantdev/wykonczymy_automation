@@ -62,9 +62,8 @@ describe('WorkerReportHistoryTable', () => {
     await user.click(screen.getByRole('button', { name: /3$/ }))
 
     await user.click(screen.getByRole('button', { name: /^Status/ }))
-    const toggleAll = () => screen.getByRole('option', { name: /^(Zaznacz|Odznacz) wszystkie$/ })
-    if (toggleAll().textContent?.includes('Zaznacz')) await user.click(toggleAll())
-    await user.click(toggleAll())
+    const clear = screen.queryByRole('option', { name: 'Wyczyść' })
+    if (clear) await user.click(clear)
     await user.click(screen.getByRole('option', { name: 'Odrzucone' }))
     await user.keyboard('{Escape}')
 

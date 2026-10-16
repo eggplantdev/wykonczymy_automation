@@ -103,7 +103,6 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
 
   await page.getByRole('button', { name: /Gdzie jest/ }).click()
   // The selection is debounced and flushed when the panel closes, which is what Escape is for.
-  await page.getByRole('option', { name: 'Odznacz wszystkie', exact: true }).click()
   await page.getByRole('option', { name: WAREHOUSE, exact: true }).click()
   await page.keyboard.press('Escape')
   await expect(listingRow).toBeVisible()

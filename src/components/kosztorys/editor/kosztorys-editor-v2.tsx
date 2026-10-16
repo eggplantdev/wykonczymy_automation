@@ -15,8 +15,6 @@ import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { whenOnline } from '@/lib/utils/when-online'
 
 type PropsT = Omit<KosztorysEditorDataT, 'isTemplate'> & {
-  // Required: a szablon id and a kosztorys id share one number space, so the route must say which
-  // plane its writes land on.
   actions: EditorActionsT
 }
 
@@ -39,6 +37,18 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   // eslint-disable-next-line react-hooks/refs
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef, actions.autoSnapshot)
+
+  const [hasCatalogueEdits, setHasCatalogueEdits] = useState(false)
+  const editorActions: EditorActionsT = actions.isTemplate
+    ? {
+        ...actions,
+        updateItemField: async (itemId, patch) => {
+          const result = await actions.updateItemField(itemId, patch)
+          if (result.success) setHasCatalogueEdits(true)
+          return result
+        },
+      }
+    : actions
 
   function reseed(since?: string, ownsRefresh = false) {
     triggerRestore(since, ownsRefresh)
@@ -65,11 +75,12 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   }
 
   return (
-    <EditorActionsContext value={actions}>
+    <EditorActionsContext value={editorActions}>
       <KosztorysEditorBody
         key={remountKey}
         {...props}
         isTemplate={actions.isTemplate}
+        hasCatalogueEdits={hasCatalogueEdits}
         undoRedo={undoRedo}
         onOpenVersions={(flushPendingSaves) => {
           flushBodySavesRef.current = flushPendingSaves

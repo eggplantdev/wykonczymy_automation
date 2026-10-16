@@ -121,15 +121,7 @@ export function KosztorysViewMenu() {
       }
       hint={isTemplate ? undefined : <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
       footer={
-        <>
-          {pickableStages.length > 0 && (
-            <>
-              <KosztorysViewStagesSection stages={pickableStages} />
-              <DropdownMenuSeparator />
-            </>
-          )}
-          <TextSizeMenuSection sizes={GRID_TEXT_SIZES} value={textSize} onChange={setTextSize} />
-        </>
+        <TextSizeMenuSection sizes={GRID_TEXT_SIZES} value={textSize} onChange={setTextSize} />
       }
       order={
         offer
@@ -185,6 +177,12 @@ export function KosztorysViewMenu() {
                   config={LAYER_PAIR_CONFIG}
                   onChange={setLayer}
                 />
+                {pickableStages.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <KosztorysViewStagesSection stages={pickableStages} />
+                  </>
+                )}
               </>
             )}
           </>

@@ -16,6 +16,8 @@ const PLANNED = `Przedmiar ofertowy razy cena minus rabat — wartość oferty.\
 
 const CURRENT_PLANNED = `Aktualizacja przedmiaru razy cena minus rabat.\n\n${CLIENT_BASE}`
 
+const PLANNED_DISCOUNT = `Przedmiar ofertowy razy cena minus wartość przedmiaru — rabat w złotych na ofercie.\n\n${CLIENT_BASE}`
+
 const HEADER_TIPS: Record<string, string> = {
   plannedQty: 'Przedmiar ofertowy — ilość z oferty.\nNa nim stoi wartość oferty i prognoza marży.',
   currentPlannedQty: pl.grid.tipCurrentPlannedQty,
@@ -30,6 +32,8 @@ const HEADER_TIPS: Record<string, string> = {
   plannedGross: PLANNED,
   currentPlannedNet: CURRENT_PLANNED,
   currentPlannedGross: CURRENT_PLANNED,
+  plannedDiscountAmount: PLANNED_DISCOUNT,
+  plannedDiscountAmountGross: PLANNED_DISCOUNT,
   plannedNetForPlane: `Aktualizacja przedmiaru razy stawka tego rozliczenia.\nIle ekipa zarobi, jeśli wykona cały uzgodniony zakres.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   net: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,

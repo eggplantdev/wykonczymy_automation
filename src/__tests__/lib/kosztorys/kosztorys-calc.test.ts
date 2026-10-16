@@ -9,6 +9,7 @@ import {
   rowCurrentPlannedNetForView,
   rowDiscountForView,
   rowDoneFraction,
+  rowPlannedDiscountForView,
   rowPlannedNetForView,
   rowPlannedNetPreDiscountForView,
   stageValueForView,
@@ -336,6 +337,45 @@ describe('rowPlannedNetPreDiscountForView', () => {
   it('przedmiar 0 to 0, nie ujemna kwota rabatu', () => {
     const empty = { ...item, plannedQty: 0, discountType: 'amount' as const, discountValue: 30 }
     expect(rowPlannedNetPreDiscountForView(empty, 'client')).toBe(0)
+  })
+})
+
+describe('rowPlannedDiscountForView — rabat w złotych na przedmiarze', () => {
+  const planned12 = { ...item, plannedQty: 12 }
+
+  it('rabat procentowy = przedmiar × cena − wartość przedmiaru', () => {
+    const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
+    expect(rowPlannedDiscountForView(discounted, 'client')).toBe(24) // 240 − 216
+  })
+
+  it('rabat kwotowy', () => {
+    const discounted = { ...planned12, discountType: 'amount' as const, discountValue: 30 }
+    expect(rowPlannedDiscountForView(discounted, 'client')).toBe(30)
+  })
+
+  it('bez rabatu → 0', () => {
+    expect(rowPlannedDiscountForView(planned12, 'client')).toBe(0)
+  })
+
+  it('przedmiar 0 → 0, nawet przy rabacie kwotowym', () => {
+    const empty = { ...item, plannedQty: 0, discountType: 'amount' as const, discountValue: 30 }
+    expect(rowPlannedDiscountForView(empty, 'client')).toBe(0)
+  })
+
+  it('rabat globalny → 0', () => {
+    const global = {
+      ...planned12,
+      discountType: 'percent' as const,
+      discountValue: 10,
+      globalDiscountActive: true,
+    }
+    expect(rowPlannedDiscountForView(global, 'client')).toBe(0)
+  })
+
+  it('plany podwykonawcy → 0', () => {
+    const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
+    expect(rowPlannedDiscountForView(discounted, 'w_tools')).toBe(0)
+    expect(rowPlannedDiscountForView(discounted, 'own_tools')).toBe(0)
   })
 })
 

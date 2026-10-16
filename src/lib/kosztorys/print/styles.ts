@@ -40,6 +40,11 @@ col.c-price { width: 19mm; } col.c-value { width: 23mm; } col.c-stage-qty { widt
 col.c-note { width: 40mm; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
+/* The outer table only carries the column heads Chrome repeats on every page; the rows are tables of
+   their own inside its one cell (see build-html). */
+table.sheet > * > tr > td.sheet-cell { padding: 0; border: none; }
+tr.sheet-body { break-inside: auto; }
+table.row { break-inside: avoid; }
 
 /* --- brand band: page one only ------------------------------------------- */
 /* Deliberately OUTSIDE the table. display:table-header-group repeats the whole thead on every
@@ -61,8 +66,9 @@ th { font-size: 6.5pt; font-weight: 600; letter-spacing: .04em; text-transform: 
 td { padding: 5px 8px; vertical-align: middle; border-bottom: 1px solid var(--print-rule);
      border-right: 1px solid var(--print-rule); }
 td:first-child { padding-left: 0; }
-/* No rule on the outer edges: a line at the sheet margin reads as a frame, not as a column. */
-td:last-child, th:last-child { padding-right: 0; border-right: none; }
+/* No rule on the outer edges: a line at the sheet margin reads as a frame, not as a column. The
+   inset stays: Safari clips ink at the body's content edge and cut the „ł" off a flush „zł". */
+tr > td:last-child, tr > th:last-child { padding-right: 4px; border-right: none; }
 th:first-child { padding-left: 0; }
 .num { text-align: right; white-space: nowrap; padding-left: 5px; padding-right: 5px; }
 th.num { padding-left: 4px; padding-right: 4px; white-space: normal; }
@@ -90,9 +96,9 @@ th.stripe, td.stripe { background-color: #e9e9ec; }
 /* The rule stays on a div rather than on the td: a cell's border is drawn in the table's box model
    and the rail below it is not, so the two never line up. The cell keeps only the gap above the
    section, which has to fall outside the coloured rule. */
-tr.band td { border: none; padding: 18px 0 0; break-after: avoid; }
-thead + tbody > tr.band:first-child td { padding-top: 8px; }
-tr.band + tr td { break-before: avoid; }
+tr.band td { border: none; padding: 18px 0 0; }
+.sheet-cell > table.band-row:first-child tr.band td { padding-top: 8px; }
+table.band-row + table.row, table.grand-row { break-before: avoid; }
 .band-inner { display: flex; align-items: center; gap: 9px;
               border-bottom: 2px solid; padding: 6px 0; }
 .band-chip { width: 9px; height: 9px; border-radius: 2px; flex: none; }
@@ -105,6 +111,8 @@ tr.band-total td.num { color: #18181b; }
 /* The same painted hairline as every other rail cell, moved to the top edge — as a border it would
    mitre with the rail and cut a grey wedge out of the colour. */
 tr.band-total td.rail { border-top: none; background-position: 0 0; }
+tr.grand-total td { border: none; border-top: 1px solid #18181b; padding-top: 9px; font-weight: 700;
+                    color: #18181b; }
 
 /* Kept together per table, not as one block: a footer of stacked tables with a payouts list of any
    length would jump to the next page whole and leave a gap behind it. */
@@ -129,10 +137,11 @@ th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal;
 th > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg);
             max-height: 22mm; text-align: left; }
 col.c-qty { width: 10mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
-col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; } col.c-note { width: 28mm; }
+col.c-value { width: 18mm; } col.c-stage-qty { width: 8mm; } col.c-note { width: 28mm; }
 .num, th.num { padding-left: 2px; padding-right: 2px; }
 .band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }
 tr.band-total td { font-size: 6pt; }
+tr.grand-total td { font-size: 6pt; }
 .totals td { font-size: 7pt; }
 .totals tr.grand td { font-size: 9pt; }
 `

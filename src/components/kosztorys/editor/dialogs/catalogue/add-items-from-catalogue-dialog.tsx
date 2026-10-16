@@ -57,10 +57,10 @@ export function AddItemsFromCatalogueDialog({
   onInserted,
   onNewItem,
 }: PropsT) {
+  const { insertCatalogueItems, createSectionWithCatalogueItems } = useEditorActions()
   // Ordered in state, because the prace land in the rozpiska in the order they were ticked; a Set
   // beside it for membership, which is asked once per visible row and once per already-added row —
   // `includes` over the whole cennik made that quadratic on a „zaznacz widoczne".
-  const { insertCatalogueItems, createSectionWithCatalogueItems } = useEditorActions()
   const [selected, setSelected] = useState<number[]>([])
   const selectedIds = new Set(selected)
   const [sectionName, setSectionName] = useState(

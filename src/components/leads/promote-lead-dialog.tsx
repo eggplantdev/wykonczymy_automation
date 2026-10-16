@@ -18,6 +18,7 @@ import {
 import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
 import type { LeadRowT } from '@/types/leads'
+import { EMPTY_INVESTMENT_FORM_VALUES } from '@/components/forms/investment-form/empty-form-values'
 
 function buildNotes(lead: LeadRowT): string {
   return [
@@ -62,16 +63,13 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   }
 
   const defaults: InvestmentFormValuesT = {
+    ...EMPTY_INVESTMENT_FORM_VALUES,
     name: [lead.name, lead.address].filter(Boolean).join(' '),
     address: lead.address,
     phone: lead.phone,
     email: lead.email,
     contactPerson: lead.name,
     notes: buildNotes(lead),
-    reviewRequested: false,
-    // Nobody has agreed to do this work yet — „aktywna" would put it among the jobs actually running.
-    status: 'quote',
-    presetId: '',
   }
 
   const formId = `promote-lead-${lead.id}`
@@ -79,6 +77,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   return (
     <FormDialog
       formId={formId}
+      className="sm:max-w-dialog-md"
       trigger={
         <Button variant="outline" size="xs">
           Dodaj

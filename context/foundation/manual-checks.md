@@ -667,6 +667,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Po usunięciu starych szablonów z bazy (druga migracja): `/szablony` pokazuje te same szablony
       z tymi samymi sekcjami, pracami i „Wersjami”; lista inwestycji i filtr statusu nie mają
       szablonu; nowa inwestycja zapisuje się ze statusem „Wycena”.
+- [ ] Szablon → otwórz: brak bursztynowego ostrzeżenia. Zmień opis lub cenę pracy: pod paskiem
+      narzędzi pojawia się „Pozycje szablonu to wpisy z katalogu prac…”. Zmiana nazwy sekcji lub
+      kolejności sama go nie pokazuje. Kosztorys inwestycji po edycji pracy: ostrzeżenia nie ma.
 
 ## 2026-10-15 — expense-draft-duplicates-per-row — duplikaty przy własnym paragonie + paragon bez zdjęcia
 
@@ -704,6 +707,228 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       inwestycji otwiera się i przewija jak dotąd; „Nowy wydatek” z kilkoma pozycjami działa jak dotąd;
       pickery inwestycji w „Wpłata” / „Wydatek” / edycji przelewu dalej pokazują tylko Aktywne
       i Planowane.
+
+## 2026-10-16 — investment-billing-data — adres inwestycji rozbity na pola + „Dane do umowy / faktury”
+
+- [ ] „Nowa inwestycja” z samą nazwą (wszystkie nowe pola puste) → zapis przechodzi, strona inwestycji
+      nie pokazuje wierszy „Zamawiający” ani „Adres do umowy”.
+- [ ] Edycja inwestycji → wypełnij „Ulica i numer”, „Kod pocztowy”, „Miejscowość”, „Kraj” → „Adres” na
+      stronie inwestycji to jedna linia: „ulica, kod miejscowość, kraj”.
+- [ ] Edycja → „Typ klienta: Firma”, nazwa firmy, NIP, osoba reprezentująca, „taki sam jak adres
+      inwestycji” zaznaczone → „Zamawiający” pokazuje firmę z NIP i reprezentantem; brak „Adres do umowy”.
+- [ ] Przełącz na „Osoba prywatna”, odznacz „taki sam…”, wpisz adres → „Zamawiający” to imię i nazwisko,
+      „Adres do umowy” pokazuje wpisany adres; pola firmy nie wracają po ponownym otwarciu edycji.
+- [ ] Edycja z listy „Inwestycje” (ikona edycji w wierszu) → nowe pola są wypełnione jak na stronie
+      inwestycji, a zapis bez zmian ich nie czyści.
+- [ ] Inwestycja z „Dane do umowy” i pełnym adresem → kosztorys → Protokół odbioru: „Zamawiający” to
+      osoba/firma z danych do umowy, adres to „ulica, kod miejscowość, kraj”, „Miejscowość” z adresu.
+      Bez danych do umowy „Zamawiający” to osoba kontaktowa, a bez niej nazwa inwestycji.
+- [ ] Protokół odbioru → „Edytuj dane inwestycji” otwiera formularz inwestycji; po zapisie protokół
+      pokazuje nowego Zamawiającego i adres bez zamykania okna.
+
+## 2026-10-16 — investment-form-layout-status-select — nowy układ formularza inwestycji + status z listy
+
+- [ ] „Nowa inwestycja” / „Edytuj inwestycję” / „Dodaj” przy leadzie na desktopie: okno jest szersze niż
+      dotąd; poniżej 768px nadal zajmuje cały ekran.
+- [ ] Formularz inwestycji: kolejność to status (sam badge z listą, bez etykiety), „Nazwa”, „Notatki”,
+      zdjęcia (przycisk na szerokość treści, bez nagłówka), „Prośba o opinię wysłana”, sekcja „Kontakt”,
+      „Adres inwestycji”, „Dane do umowy / faktury”.
+- [ ] Formularz → wpisz „Osoba kontaktowa” „Jan Kowalski”, „Typ klienta: Osoba prywatna” przy pustych
+      „Imię”/„Nazwisko” → wypełniają się „Jan” / „Kowalski”; gdy były już wpisane, zostają bez zmian.
+- [ ] Edycja → zmień status na „Zakończona” i zapisz → pyta „Zakończyć inwestycję?” jak dotąd.
+- [ ] Strona aktywnej inwestycji → status nad listą danych to lista z badge'em; wiersza „Status”
+      w liście nie ma. Zmiana na inny status zapisuje się od razu i zostaje po odświeżeniu.
+- [ ] Strona inwestycji → wybierz „Zakończona” → okno „Zakończyć inwestycję?”; „Anuluj” zostawia stary
+      status, „Zakończ” zapisuje i (gdy prośba o opinię nie była wysłana) proponuje jej wysłanie.
+- [ ] Zakończona inwestycja jako kierownik → zmiana statusu na „Aktywna” kończy się komunikatem błędu,
+      a lista wraca do „Zakończona”; jako właściciel — przechodzi.
+- [ ] Inwestycja w koszu → brak listy statusu, wiersz „Status” w liście danych jest jak dotąd.
+
+## 2026-10-16 — filters-tick-to-show — „Filtry” zaznaczasz to, co chcesz widzieć
+
+- [ ] Kosztorys → „Filtry”: bez nagłówka „Pokaż tylko”; nic nie zaznaczone, przycisk bez licznika —
+      widać wszystkie pozycje.
+- [ ] Kosztorys → „Filtry” → „Przedmiar” → zaznacz „Z przedmiarem”: zostają pozycje, które mają liczbę
+      w kolumnie „Aktualizacja przedmiaru” — także te, gdzie to tylko szary przedmiar ofertowy; chip nad
+      siatką „Tylko: …”, jego „×” zdejmuje filtr. „Bez przedmiaru” + „Z przedmiarem” = wszystkie pozycje.
+- [ ] Kosztorys z pozycją dodaną po ofercie (ofertowy 0, aktualizacja > 0) i drugą z aktualizacją do 0 →
+      „Filtry” → „Aktualizacja przedmiaru” → „Inna niż w ofercie”: widać obie; pozycje z szarą
+      aktualizacją (przejętą z oferty) są tylko w „Jak w ofercie”. Liczby obu opcji sumują się do
+      wszystkich pozycji.
+- [ ] Kosztorys → zaznacz dwie opcje z tej samej grupy (np. w „Przedmiar”: „Bez przedmiaru” i
+      „Z przedmiarem”): widać pozycje jednej LUB drugiej.
+- [ ] Kosztorys → zaznacz opcje z dwóch różnych grup (np. „Z przedmiarem” i „Z wykonaną
+      pracą”): widać tylko pozycje spełniające obie naraz.
+- [ ] Kosztorys, Katalog prac, Pracownicy → „Filtry”: między grupami opcji jest linia oddzielająca, jak
+      między sekcjami w „Kolumny”.
+- [ ] Kosztorys → „Kolumny”: sekcja „Etapy” stoi pod „Warstwy”, nad listą kolumn. Etapy działają jak
+      kolumny — domyślnie wszystkie zaznaczone i
+      widoczne; odznacz „Etap 2” → jego kolumny znikają, „Kolumny (n)” rośnie; zaznacz → wracają.
+- [ ] Kosztorys → „Kolumny” → „Etapy” → odznacz „Zakończone”: znikają wszystkie zakończone etapy, ich
+      wiersze się odznaczają; zaznacz → wracają. Odznaczenie jednego zakończonego etapu odznacza też
+      „Zakończone”. „Aktywne” tak samo dla niezakończonych. Bez zakończonych etapów nie ma wiersza
+      „Zakończone”. Przy obu wierszach liczba etapów w nawiasie, np. „Aktywne (4)”.
+- [ ] Kosztorys w widoku podwykonawcy → odznacz „Zakończone”: chowają się tylko etapy tej ekipy; w drugim
+      widoku etapy drugiej ekipy zostają.
+- [ ] Kosztorys → zaznacz opcję, której nie spełnia żadna pozycja: pusty stan „Brak pozycji spełniających
+      filtry” z opisem „Filtry pokazują tylko pozycje …”.
+- [ ] Kosztorys przy włączonym rabacie globalnym → „Filtry” nie pokazują opcji rabatu pozycji, siatka nie
+      jest pusta.
+- [ ] Szablon → „Filtry” działają tak samo jak w kosztorysie (nic zaznaczone = wszystko).
+- [ ] Kosztorys → „Sekcje”: zaznaczona sekcja = rozwinięta; odznacz jedną → zwija się tylko ona;
+      „Zwiń wszystkie sekcje” / „Rozwiń wszystkie sekcje” działają; „Resetuj” rozwija wszystko.
+- [ ] Katalog prac → „Filtry”: nic zaznaczone = wszystkie prace; „Udział wykonawcy w cenie” ma trzy
+      opcje („Ponad 65% ceny”, „W granicy 65% ceny”, „Nie dotyczy (auto lub bez ceny j.m.)”), każda
+      praca wpada w dokładnie jedną; chip „Tylko: prace …”.
+- [ ] Kosztorys i Katalog prac → „Filtry”: grupy nazywają się tak samo („Źródło stawki wykonawcy”,
+      „Udział wykonawcy w cenie”, z dopiskiem płaszczyzny). W kosztorysie „Udział wykonawcy w cenie” ma
+      „Ponad 65% ceny”, „W granicy 65% ceny” i „Nie dotyczy (auto)”: pozycja ze stawką „auto” jest
+      tylko w „Nie dotyczy”, nawet przy mnożniku inwestycji ponad 65%; pozycja z własną stawką — w
+      „Ponad” albo „W granicy”.
+- [ ] Katalog prac → „Filtry”: bez „Pokaż tylko” i bez „Wyczyść filtry”. Przy czymkolwiek zaznaczonym
+      na górze jest „Wyczyść” — odhacza tylko opcje tego menu („Kategoria”, „j.m.”, „Problemy” i
+      „Szukaj…” zostają), po czym znika. „Wyczyść filtry” dla całej strony zostaje w pasku nad tabelą.
+- [ ] Katalog prac → nad paskiem „Widoczne prace X / Y” (bez ikony ⓘ): X = wiersze po filtrach i
+      wyszukiwaniu, Y = wszystkie prace; bez filtrów X = Y.
+- [ ] Transakcje → dowolny filtr z listą (typ, kasa, inwestycja…): nic zaznaczone = wszystkie wiersze,
+      zaznacz jeden → tylko on; pojawia się „Wyczyść”, które zdejmuje zaznaczenie. Brak „Zaznacz
+      wszystkie”.
+- [ ] Inwestycje → filtr statusu: odznacz wszystkie statusy → widać wszystkie inwestycje (nie pusta
+      lista), przycisk bez licznika.
+- [ ] Użytkownicy → odznacz zarówno „Aktywni”, jak i „Nieaktywni” → widać wszystkich (nie pusta lista).
+- [ ] Pracownicy → jeden przycisk „Filtry” z grupami „Pracownicy” i „Pozostało do wypłaty”; bez „Pokaż
+      tylko”, „Zresetuj filtry” i „Zaznacz wszystkie”. Przy czymkolwiek zaznaczonym na górze jest
+      „Wyczyść” — odhacza obie grupy naraz (widać wszystkich pracowników i obie kwoty), po czym znika.
+      Licznik na przycisku liczy zaznaczone opcje.
+- [ ] Pracownicy → pod tytułem „Widoczni pracownicy X / Y” (bez ikony ⓘ): X = wiersze widoczne w
+      tabeli, Y = wszyscy; zmienia się od razu przy „Filtry” i wpisywaniu w „Szukaj…”.
+- [ ] Pracownicy → „Filtry” → odznacz oba „Pozostało do wypłaty” → kwoty z aktywnych i zakończonych
+      inwestycji naraz (nie 0 zł); samo „Zakończone inwestycje” → tylko zakończone.
+- [ ] Inwestycje → „Status”: przy zaznaczonym statusie jest „Wyczyść” (brak „Zaznacz wszystkie”);
+      kliknięcie zdejmuje wszystkie zaznaczenia — widać wszystkie inwestycje, a „Wyczyść” znika.
+- [ ] Inwestycje → pod tytułem „Widoczne inwestycje X / Y” (bez ikony ⓘ): X = wiersze widoczne w
+      tabeli, Y = wszystkie inwestycje; zmienia się od razu przy „Status”, „Analiza AI” i wpisywaniu w „Szukaj…” (bez
+      filtrów X = Y). Nie ma już „N aktywnych”.
+- [ ] Inwestycje → obok filtrów nie ma już przycisku „Kolumny v2”; w menu „Kolumny” na górze jest
+      sekcja „Warstwy” z „v1” i „v2”, oddzielona kreską od „Widoczne kolumny” (jak w kosztorysie).
+      „v1” chowa/pokazuje „Bilans netto v1”, „Marża v1”, „Robocizna v1”; „v2” — „Bilans netto v2”,
+      „Bilans brutto v2”, „Marża v2”, „Robocizna v2” i kolumnę pozostałej kwoty podwykonawców. Każda
+      kombinacja działa, także obie odznaczone; menu zostaje otwarte, licznik na „Kolumny” się zgadza.
+- [ ] Kosztorys, szablon → „Filtry”: bez „Wyczyść filtry”. Przy czymkolwiek zaznaczonym na górze jest
+      „Wyczyść” — odhacza tylko opcje tego menu („Problemy”, zwinięte sekcje i „Szukaj…” zostają), po
+      czym znika. Przewinięte w dół — „Wyczyść” odjeżdża razem z listą.
+- [ ] Kosztorys → „Sekcje”, pusty stan siatki i pasek nad siatką (Katalog prac — sam pasek): przycisk
+      czyszczący wszystko nazywa się wszędzie „Wyczyść filtry” (nie „Zresetuj filtry” / „Wyczyść
+      wszystko”) i zdejmuje filtry, zwinięte sekcje i wyszukiwanie.
+- [ ] Kosztorys, Katalog prac → „Problemy” z wybranym problemem: brak „Zresetuj filtry”; ponowne
+      kliknięcie wybranego problemu zdejmuje zawężenie.
+- [ ] Kosztorys → „Problemy” → wybierz problem, popraw jedną pozycję: zostaje w siatce do czasu, aż
+      znów otworzysz „Problemy” — wtedy znika. W menu nie ma już „Zawężenie” ani „Odśwież — ukryj
+      poprawione”.
+- [ ] Kasy, Sprzęt, „Dodaj z katalogu” w kosztorysie → filtry z listą: nic zaznaczone = wszystko,
+      zaznaczone = tylko one.
+
+## 2026-10-16 — transfer-view-switch-mobile — przełącznik tabela/karty na telefonie
+
+- [ ] Telefon (390px) → Transakcje: przełącznik tabela/karty stoi sam w pierwszym rzędzie, pod nim
+      „Szukaj duplikatów” i „Kolumny” obok siebie; nic nie wystaje poza ekran.
+- [ ] Desktop → Transakcje: przełącznik, „Szukaj duplikatów” i „Kolumny” w jednym rzędzie po prawej,
+      jak dotąd.
+
+## EX-1081 — enter-escape-keydown — Enter/Escape w polu komórki nie trafia już do siatki
+
+Edytor kosztorysu, desktop. Wygląd się nie zmienia; Enter/Escape w trakcie wpisywania obsługuje teraz
+tylko komórka, a siatka ich nie widzi.
+
+- [ ] Komórka liczbowa (Przedmiar, Cena j.m., rabat, kolumna etapu): wpisz wartość, **Enter** —
+      wartość się zapisuje, edycja się zamyka, zaznaczenie schodzi **dokładnie o jeden wiersz** niżej.
+- [ ] Ta sama komórka: wpisz inną wartość, **Escape** — wraca poprzednia wartość, zaznaczenie zostaje
+      na tej samej komórce, nic się nie zapisuje.
+- [ ] Nazwa sekcji: zmień ją i **Enter** — zapis i zejście o wiersz; zmień ponownie i **Escape** —
+      stara nazwa wraca, zaznaczenie zostaje w miejscu.
+- [ ] Widok podwykonawcy, komórki ceny i współczynnika: Enter i Escape jak w pierwszych dwóch boksach.
+- [ ] Nagłówek etapu: kliknij zwykłą komórkę, potem z menu etapu zmień nazwę i **Enter** — nazwa się
+      zapisuje, a zaznaczona komórka **nie** wchodzi w edycję. To samo z **Escape** — zmiana nazwy
+      anulowana, komórka dalej zaznaczona.
+- [ ] Komórka zaznaczona bez wpisywania: **Enter** otwiera edycję, **Escape** zdejmuje zaznaczenie.
+- [ ] W trakcie edycji Tab i strzałki góra/dół dalej przechodzą między komórkami.
+
+## 2026-10-16 — umowa-dialog — „Umowa” generowana z widoku inwestycji
+
+- [ ] Inwestycja z „Dane do umowy” = Osoba prywatna i „taki sam” włączonym → „Umowa”: Zamawiający
+      to imię i nazwisko, adres w „Dane Zamawiającego” = adres inwestycji, Miejsce zawarcia „Warszawie”, data =
+      dziś, Osoby odpowiedzialne „Bartosz Antonik, Yuri Abramenko”, Kwota netto = „Wartość netto
+      przedmiar” ze stopki kosztorysu.
+- [ ] „Dane do umowy” = Firma → Zamawiający to firma + NIP + repr., pola PESEL nie ma.
+- [ ] „taki sam” wyłączony, adres do umowy wpisany → adres w „Dane Zamawiającego” to ten adres, a Adres
+      inwestycji dalej adres inwestycji.
+- [ ] Oba adresy w oknie mają osobne pola Ulica i numer / Kod pocztowy / Miejscowość / Kraj; po
+      poprawce kodu w Adresie inwestycji i „Generuj” wydruk pokazuje adres w jednej linii, z nowym
+      kodem, w §1 ust. 2.
+- [ ] Inwestycja bez kosztorysu → Kwota pusta, okno działa normalnie.
+- [ ] „Generuj” w Chrome z „Marginesy: Brak”, a potem z „Domyślne” → w obu przypadkach strona 2 i
+      kolejne mają taki sam margines u góry i u dołu jak strona 1. To samo dla „Protokół odbioru” i
+      w Safari.
+- [ ] W oknie „Umowa” → „Edytuj dane inwestycji” → zmień imię klienta i zapisz → pola umowy
+      wypełniają się nowymi danymi.
+- [ ] „Generuj” z pustym Numerem, PESEL-em i terminami → podgląd wydruku: kropkowane puste miejsca,
+      „zwanym dalej (Zamawiającym)”, „Wykończymy sp. z o.o.”, linia „8% VAT”, podpisy na końcu;
+      „Zapisz jako PDF” proponuje nazwę „Umowa nr … — …”. Sprawdź w Chrome i Safari.
+- [ ] Inwestycja w koszu → brak przycisku „Umowa”.
+
+## 2026-10-16 — worker-drafts-in-type-filter — „Zgłoszone wydatki” w „Typ” + szersza kolumna pracowników
+
+- [ ] Kasa (lub pulpit kierownika) → „Typ”: na liście jest „Zgłoszone wydatki”, osobnego przycisku obok
+      filtrów już nie ma. Zaznacz → zostają tylko zgłoszone wydatki, „Typ (1)”; „Wyczyść” w liście zdejmuje.
+- [ ] „Typ” → „Zgłoszone wydatki” + „Wpłata od inwestora”: widać oba rodzaje wierszy — wpłaty i zgłoszone
+      wydatki (opcje w „Typ” sumują się, nie zawężają).
+- [ ] Pracownicy → kolumna „Imię i nazwisko” jest szersza; typowe imię z nazwiskiem mieści się w jednej
+      linii.
+
+## 2026-10-16 — catalogue-filters-and-stage-latch — katalog prac, filtry trzymają edytowaną pozycję, etap zakończony
+
+- [ ] Katalog prac → „Kolumny” jest tak szerokie jak „Kolumny” w edytorze kosztorysu; długie nazwy
+      („Źródło z narzędziami (podwykonawca)”) mieszczą się w jednej linii.
+- [ ] Katalog prac → „Kategoria”: lista jest szersza, a przy każdej kategorii stoi liczba prac, np.
+      „Łazienka (40)”; liczby nie zmieniają się przy wyszukiwaniu ani innych filtrach.
+- [ ] Katalog prac → włącz filtr z „Filtry”: pasek z aktywnymi filtrami stoi pod filtrami, nad
+      „Nowa praca” / „Kolumny”. Inne tabele (Kasa, Pracownicy) wyglądają jak wcześniej.
+- [ ] Kosztorys → „Filtry” → „Tylko: pozycje bez przedmiaru” → wpisz cyfrę w „Aktualizacja przedmiaru”:
+      pozycja zostaje w tabeli, zaznaczenie zostaje na niej, kolejne cyfry trafiają do tej samej pozycji.
+- [ ] Ten sam kosztorys → otwórz menu „Filtry”: poprawiona pozycja znika z tabeli.
+- [ ] Kosztorys → etap oznaczony jako zakończony: kolumny etapu są w kolorze morskim, ✓ stoi w drugiej
+      linii nagłówka przed imieniem pracownika (bez pracownika — sam ✓), pierwsza linia się nie rozjeżdża.
+
+## 2026-10-16 — offer-planned-discount-amount — „Rabat kwota netto (przedmiar)” + „— po rabacie” w ofercie
+
+- [ ] Kosztorys z rabatem 5 % na części pozycji → „Kolumny”: zaznacz „Rabat kwota netto (przedmiar)”.
+      Przy pozycji z rabatem stoi przedmiar × cena − „Wartość przedmiaru netto” (np. 30 × 45 zł → 67,50),
+      suma w stopce się zgadza; nagłówek „Wartość przedmiaru netto — po rabacie”.
+- [ ] Ten sam kosztorys, tryb brutto: zamiast netto stoi „Rabat kwota brutto (przedmiar)”.
+- [ ] Ta sama inwestycja → „Opcje” → „Ceny i rabat”: „Rabat kwota netto (przedmiar)” jest odznaczona.
+      Zaznacz → podgląd i link dla inwestora pokazują ją obok „Rabat”; „Drukuj PDF” drukuje ją, a nad
+      wartością stoi „Wartość netto — po rabacie”.
+- [ ] Inwestycja bez żadnego rabatu: nagłówki bez „— po rabacie”; zaznaczona w „Opcje” kolumna nie
+      pojawia się ani na podglądzie, ani w PDF.
+- [ ] Inwestycja z rabatem globalnym: nowych kolumn nie ma ani w „Kolumny” edytora, ani na dokumencie
+      dla inwestora.
+- [ ] Kosztorys z rabatem na pozycjach w dwóch sekcjach, „Rabat kwota netto (przedmiar)” zaznaczona w
+      „Opcje” → „Drukuj PDF”: każdy wiersz „Razem — <sekcja>” ma sumę także pod kwotą rabatu, a pod
+      „Razem netto” stoi „W tym rabat” z sumą kolumny. Odznacz kolumnę → „W tym rabat” znika z PDF.
+
+## 2026-10-16 — worker-pdf-totals — sumy kolumn i łamanie stron w PDF pracownika
+
+- [ ] Kosztorys → „Pracownik” → „Drukuj kosztorys pracownika (PDF)” dla pracownika bez wpisów w
+      etapach: pod „Wartość netto aktualizacji przedmiaru” i „Pozostało netto” jest suma w każdym
+      „Razem — <sekcja>” oraz wiersz „Razem” z sumą całości na końcu tabeli.
+- [ ] Ten sam PDF dla pracownika z wpisami w etapach: sumy są też pod kolumnami netto etapów i
+      „Suma etapów … netto”; pod stawką i ilościami komórka sumy jest pusta.
+- [ ] PDF zapisany z Safari: ostatnia litera „zł” w skrajnej prawej kolumnie nie jest obcięta, a
+      kwota w wierszu „Razem” nie nachodzi na sąsiednią kolumnę.
+- [ ] PDF z Safari dla kosztorysu na 2+ strony: żaden wiersz nie jest rozcięty (opis na jednej
+      stronie, kwoty na drugiej) — wiersz, który się nie mieści, przechodzi w całości na następną.
+- [ ] Ten sam PDF z Chrome: wydruk poziomy, nagłówki kolumn powtarzają się na każdej stronie.
+- [ ] „Drukuj PDF” oferty dla inwestora i formularz pracownika do wypełnienia wyglądają jak dotąd.
 
 # Zamknięte — indeks
 

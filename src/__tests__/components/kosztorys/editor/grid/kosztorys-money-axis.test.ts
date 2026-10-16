@@ -21,8 +21,15 @@ function ids(axis: MoneyAxisT, isHidden?: (id: string) => boolean): string[] {
     .filter((id): id is string => id != null)
 }
 
-const GROSS_IDS = ['priceGross', 'discountAmountGross', 'plannedGross', 'gross', 'remainingGross']
-const NET_IDS = ['discountAmount', 'plannedNet', 'net', 'remaining']
+const GROSS_IDS = [
+  'priceGross',
+  'discountAmountGross',
+  'plannedDiscountAmountGross',
+  'plannedGross',
+  'gross',
+  'remainingGross',
+]
+const NET_IDS = ['discountAmount', 'plannedDiscountAmount', 'plannedNet', 'net', 'remaining']
 // Both percentages among them: a percentage is the same number on either side of the pair, so tagging
 // it would drop the column from a mode it has no business being filtered by.
 const NEUTRAL_IDS = [

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { CheckCheck, CheckIcon, RotateCcw, type LucideIcon } from 'lucide-react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { CheckCheck, CheckIcon, RotateCcw, X, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -17,16 +17,14 @@ import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 
-type OptionT = { value: string; label: string }
-
-export type FilterTogglesBulkT = { allActive: boolean; onToggleAll: (next: boolean) => void }
+type OptionT = { value: string; label: string; count?: number }
 
 type FilterMultiSelectPropsT = {
   values?: string[]
   onValuesChange?: (values: string[]) => void
   options?: OptionT[]
   /** Ticked, unclickable, and outside the selection entirely — never written to the param, counted, or
-   * touched by „Zaznacz wszystkie". */
+   * touched by the bulk row. */
   lockedValues?: string[]
   label: string
   icon?: LucideIcon
@@ -34,6 +32,8 @@ type FilterMultiSelectPropsT = {
   triggerClassName?: string
   iconOnly?: boolean
   title?: string
+  // Swaps the „Wyczyść" row for a select-all / deselect-all pair, for a caller whose ticks are not a
+  // filter („Sekcje": ticked = expanded).
   bulkLabels?: { select: string; deselect: string }
   optionToggles?: ReadonlyArray<{
     label: string
@@ -49,17 +49,18 @@ type FilterMultiSelectPropsT = {
     onToggle: () => void
     disabled?: boolean
   }>
-  togglesBulk?: FilterTogglesBulkT
+  onClearToggles?: () => void
   actionsHeading?: string
   optionsHeading?: string
   resetAction?: { label: string; onReset: () => void; disabled?: boolean }
   triggerCount?: number
   contentClassName?: string
-  intro?: { heading: string; hint?: string }
+  onOpen?: () => void
 }
 
-// URL param encoding: [] = all selected (no filter), ['__none__'] = nothing selected
-export const FILTER_NONE = '__none__'
+// The param carries exactly the ticked values; [] = nothing ticked = no filter. A link saved under
+// the old encoding still carries this marker for „nothing selected".
+const LEGACY_NONE = '__none__'
 const DEBOUNCE_MS = 600
 
 /**
@@ -74,17 +75,24 @@ function BulkSelectRow({
 }: {
   id: string
   allSelected: boolean
-  labels?: { select: string; deselect: string }
+  labels: { select: string; deselect: string }
   onSelect: () => void
 }) {
-  const { t } = useTranslation('filters')
-  const text = allSelected
-    ? (labels?.deselect ?? t('deselectAll'))
-    : (labels?.select ?? t('selectAll'))
+  const text = allSelected ? labels.deselect : labels.select
   return (
     <CommandItem value={id} keywords={[text]} onSelect={onSelect}>
       <CheckCheck />
       {text}
+    </CommandItem>
+  )
+}
+
+function ClearRow({ id, onSelect }: { id: string; onSelect: () => void }) {
+  const { t } = useTranslation('filters')
+  return (
+    <CommandItem value={id} keywords={[t('clear')]} onSelect={onSelect}>
+      <X />
+      {t('clear')}
     </CommandItem>
   )
 }
@@ -103,13 +111,13 @@ export function FilterMultiSelect({
   bulkLabels,
   optionToggles,
   toggles,
-  togglesBulk,
+  onClearToggles,
   resetAction,
-  intro,
   actionsHeading,
   optionsHeading,
   triggerCount,
   contentClassName,
+  onOpen,
 }: FilterMultiSelectPropsT) {
   const { t } = useTranslation('filters')
   const [open, setOpen] = useState(false)
@@ -120,33 +128,24 @@ export function FilterMultiSelect({
   const selectableOptions = options.filter((o) => !isLocked(o.value))
   const allValues = selectableOptions.map((o) => o.value)
 
-  function deriveSelected(vals: string[]) {
-    const hasNone = vals.length === 1 && vals[0] === FILTER_NONE
-    const hasNoFilter = vals.length === 0
-    return hasNone ? [] : hasNoFilter ? allValues : vals
-  }
-
-  const selected = localSelected ?? deriveSelected(values)
+  const committed = values.filter((value) => value !== LEGACY_NONE)
+  const selected = localSelected ?? committed
   const allSelected = selected.length === selectableOptions.length
-
-  function flush(next: string[]) {
-    const allAreSelected = next.length === selectableOptions.length
-    if (allAreSelected) onValuesChange([])
-    else if (next.length === 0) onValuesChange([FILTER_NONE])
-    else onValuesChange(next)
-  }
+  const hasPendingTicks =
+    selected.length !== committed.length || selected.some((value) => !committed.includes(value))
 
   function scheduleFlush(next: string[]) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      flush(next)
+      onValuesChange(next)
       debounceRef.current = null
     }, DEBOUNCE_MS)
   }
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
-      setLocalSelected(deriveSelected(values))
+      onOpen?.()
+      setLocalSelected(committed)
       setOpen(true)
       return
     }
@@ -154,7 +153,7 @@ export function FilterMultiSelect({
     if (debounceRef.current && localSelected) {
       clearTimeout(debounceRef.current)
       debounceRef.current = null
-      flush(localSelected)
+      onValuesChange(localSelected)
     }
     setLocalSelected(null)
     setOpen(false)
@@ -163,40 +162,29 @@ export function FilterMultiSelect({
   function toggleValue(value: string) {
     const isSelected = selected.includes(value)
     const next = isSelected ? selected.filter((v) => v !== value) : [...selected, value]
-    const result = next.length === 0 ? [] : next
-    setLocalSelected(result)
-    scheduleFlush(result)
+    setLocalSelected(next)
+    scheduleFlush(next)
   }
 
   const activeToggleCount =
     toggles?.filter((toggle) => !toggle.disabled && toggle.active).length ?? 0
 
-  // „nic nie zaznaczone" is a filter that counts zero and still has to light up.
-  const isFiltered = triggerCount == null ? !allSelected || activeToggleCount > 0 : triggerCount > 0
-  const triggerBadgeCount = triggerCount ?? (allSelected ? 0 : selected.length) + activeToggleCount
+  const triggerBadgeCount = triggerCount ?? selected.length + activeToggleCount
+  const isFiltered = triggerBadgeCount > 0
 
-  function toggleAll() {
-    const next = !allSelected ? [...allValues] : []
+  function selectValues(next: string[]) {
     setLocalSelected(next)
     scheduleFlush(next)
   }
 
-  // Flushes straight through: a pending debounce from the clicks being undone would land after the
-  // reset and put them back.
+  // Drops a pending debounce, which would otherwise land after the reset and put the clicks back.
   function handleReset() {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
       debounceRef.current = null
     }
-    setLocalSelected([...allValues])
-    onValuesChange([])
+    setLocalSelected(null)
     resetAction?.onReset()
-  }
-
-  function runOptionToggle(select: (current: string[]) => string[]) {
-    const next = select(selected)
-    setLocalSelected(next)
-    scheduleFlush(next)
   }
 
   useEffect(() => {
@@ -214,28 +202,25 @@ export function FilterMultiSelect({
     return runs
   }, [])
 
-  const bulkToggleRow = togglesBulk && (
-    <BulkSelectRow
-      id="bulk-toggles"
-      allSelected={togglesBulk.allActive}
-      labels={bulkLabels}
-      onSelect={() => togglesBulk.onToggleAll(!togglesBulk.allActive)}
-    />
-  )
+  const showsClearRow = !bulkLabels && selected.length > 0
+  const hasActionRows = bulkLabels != null || showsClearRow || (optionToggles?.length ?? 0) > 0
 
   const actionRows = (
     <>
-      <BulkSelectRow
-        id="bulk-options"
-        allSelected={allSelected}
-        labels={bulkLabels}
-        onSelect={toggleAll}
-      />
+      {bulkLabels && (
+        <BulkSelectRow
+          id="bulk-options"
+          allSelected={allSelected}
+          labels={bulkLabels}
+          onSelect={() => selectValues(allSelected ? [] : [...allValues])}
+        />
+      )}
+      {showsClearRow && <ClearRow id="clear-options" onSelect={() => selectValues([])} />}
       {optionToggles?.map((group) => (
         <CommandItem
           key={group.label}
           value={group.label}
-          onSelect={() => runOptionToggle(group.select)}
+          onSelect={() => selectValues(group.select(selected))}
         >
           <CheckIcon className={cn(!group.isActive(selected) && 'opacity-0')} />
           {group.label}
@@ -266,64 +251,71 @@ export function FilterMultiSelect({
         className={cn('flex flex-col overflow-hidden p-0', contentClassName)}
         align="start"
       >
-        {intro && (
-          <div className="border-border border-b px-3 py-2">
-            <p className="text-sm font-semibold">{intro.heading}</p>
-            {intro.hint && <p className="text-muted-foreground text-xs">{intro.hint}</p>}
-          </div>
-        )}
-        {resetAction && (
-          <div className="border-border border-b p-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start font-normal"
-              // `resetAction.disabled` speaks for what the caller owns outside this list; the local
-              // half is judged here, or the button stays dead for the whole debounce after a click.
-              disabled={(resetAction.disabled ?? false) && allSelected}
-              onClick={handleReset}
-            >
-              <RotateCcw />
-              {resetAction.label}
-            </Button>
-          </div>
-        )}
         <Command className="min-h-0 flex-1">
           {searchable && <CommandInput placeholder={t('search')} />}
           <CommandList className="max-h-none">
+            {resetAction && (
+              <div className="border-border border-b p-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start font-normal"
+                  // `resetAction.disabled` speaks for what the caller owns outside this list; the local
+                  // half is judged here, or the button stays dead for the whole debounce after a click.
+                  disabled={(resetAction.disabled ?? false) && !hasPendingTicks}
+                  onClick={handleReset}
+                >
+                  <RotateCcw />
+                  {resetAction.label}
+                </Button>
+              </div>
+            )}
             {toggles && toggles.length > 0 && (
               <>
-                {bulkToggleRow && <CommandGroup>{bulkToggleRow}</CommandGroup>}
+                {onClearToggles && activeToggleCount > 0 && (
+                  <>
+                    <CommandGroup>
+                      <ClearRow id="clear-toggles" onSelect={onClearToggles} />
+                    </CommandGroup>
+                    <CommandSeparator />
+                  </>
+                )}
                 {/* Keyed by each run's first row, not by its heading: an interleaved caller opens
                     two runs under one heading, and a heading key would collide. */}
-                {toggleRuns.map((run) => (
-                  <CommandGroup key={run.items[0].id} heading={run.heading}>
-                    {run.items.map((toggle) => (
-                      <CommandItem
-                        key={toggle.id}
-                        value={toggle.label}
-                        disabled={toggle.disabled}
-                        onSelect={toggle.onToggle}
-                      >
-                        <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
-                        {toggle.description ? (
-                          <span className="flex flex-col">
-                            {toggle.label}
-                            <span className="text-muted-foreground text-xs">
-                              {toggle.description}
+                {toggleRuns.map((run, index) => (
+                  <Fragment key={run.items[0].id}>
+                    {index > 0 && <CommandSeparator />}
+                    <CommandGroup heading={run.heading}>
+                      {run.items.map((toggle) => (
+                        // Keyed by id: two plane headings can each hold a „Kwota stała (2)", and cmdk
+                        // treats rows sharing a value as one.
+                        <CommandItem
+                          key={toggle.id}
+                          value={toggle.id}
+                          keywords={[toggle.label]}
+                          disabled={toggle.disabled}
+                          onSelect={toggle.onToggle}
+                        >
+                          <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
+                          {toggle.description ? (
+                            <span className="flex flex-col">
+                              {toggle.label}
+                              <span className="text-muted-foreground text-xs">
+                                {toggle.description}
+                              </span>
                             </span>
-                          </span>
-                        ) : (
-                          toggle.label
-                        )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                          ) : (
+                            toggle.label
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Fragment>
                 ))}
                 {options.length > 0 && <CommandSeparator />}
               </>
             )}
-            {actionsHeading && options.length > 0 && (
+            {actionsHeading && options.length > 0 && hasActionRows && (
               <>
                 <CommandGroup heading={actionsHeading}>{actionRows}</CommandGroup>
                 <CommandSeparator />
@@ -331,7 +323,7 @@ export function FilterMultiSelect({
             )}
             {options.length > 0 && (
               <CommandGroup heading={optionsHeading}>
-                {!actionsHeading && (
+                {!actionsHeading && hasActionRows && (
                   <>
                     {actionRows}
                     <CommandSeparator className="my-1" />
@@ -350,6 +342,7 @@ export function FilterMultiSelect({
                       )}
                     />
                     {opt.label}
+                    {opt.count !== undefined && ` (${opt.count})`}
                   </CommandItem>
                 ))}
               </CommandGroup>

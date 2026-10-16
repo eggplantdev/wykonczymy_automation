@@ -120,7 +120,7 @@ export function TransferDataTable({
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
               <>
-                <TransferViewSwitch view={view} onChange={setView} />
+                <TransferViewSwitch view={view} onChange={setView} className="max-sm:col-span-2" />
                 {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
                 {duplicateFinder && (
                   <DuplicateFinderDialog

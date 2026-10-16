@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { catalogueActiveFiltersModel } from '@/components/work-catalogue/catalogue-active-filters-model'
-import { FILTER_NONE } from '@/components/filters/filter-multi-select'
 import { CATALOGUE_CONDITIONS } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 
 const empty = { values: [], options: [] }
@@ -19,21 +18,21 @@ describe('catalogueActiveFiltersModel', () => {
     ).toEqual([])
   })
 
-  it('names every source, with the direction each one pulls', () => {
+  it('names every source, filters and problems alike as „Tylko:"', () => {
     const chips = catalogueActiveFiltersModel({
       conditions: CATALOGUE_CONDITIONS,
       engagedIds: new Set(['catalogue-source-auto-w_tools', 'catalogue-no-price', 'unknown']),
       counts: new Map([['catalogue-no-price', 20]]),
       search: 'tynk',
       categories: { values: ['', 'Malarskie'], options: [{ value: '', label: 'Bez kategorii' }] },
-      units: { values: [FILTER_NONE], options: [] },
+      units: { values: ['m2'], options: [{ value: 'm2', label: 'm²' }] },
     })
     expect(chips.map((chip) => [chip.removal, chip.label])).toEqual([
       ['problem', 'Tylko: prace bez ceny j.m.'],
-      ['condition', 'Ukryto: prace auto — z narzędziami (podwykonawca)'],
+      ['condition', 'Tylko: prace auto — z narzędziami (podwykonawca)'],
       ['search', 'Szukaj: „tynk"'],
       ['category', 'Kategoria: Bez kategorii, Malarskie'],
-      ['unit', 'j.m.: żadna'],
+      ['unit', 'j.m.: m²'],
     ])
     expect(chips[0]?.count).toBe(20)
   })
