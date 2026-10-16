@@ -92,6 +92,7 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
     col.accessor('name', {
       id: 'name',
       header: 'Imię i nazwisko',
+      meta: { minWidth: 'min-w-56' },
     }),
     col.accessor('role', {
       id: 'role',
