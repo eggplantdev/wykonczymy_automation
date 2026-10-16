@@ -111,7 +111,6 @@ export function StageHeader({
               )}
             >
               {stage.plane != null && planeIcon(stage.plane)}
-              {completedMark}
               <HeaderLabel
                 className={cn(
                   stage.plane != null && !stage.label && 'text-muted-foreground',
@@ -130,8 +129,11 @@ export function StageHeader({
               {scaledDown && <LabelHintIcon variant="splitScaled" size="lg" />}
               {sort ? <SortIcon active={sort} /> : <ChevronDown className="opacity-50" />}
             </span>
-            {workerLine && (
-              <span className="text-muted-foreground text-2xs truncate">{workerLine}</span>
+            {(workerLine || completedMark) && (
+              <span className="text-muted-foreground text-2xs inline-flex min-w-0 items-center gap-1">
+                {completedMark}
+                {workerLine && <span className="truncate">{workerLine}</span>}
+              </span>
             )}
           </span>
         }

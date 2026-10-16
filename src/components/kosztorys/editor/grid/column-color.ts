@@ -8,7 +8,7 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 const COLUMN_TINT_CLASS = 'kosztorys-column-tint'
 
-const COMPLETED_STAGE_COLOR: SectionColorKeyT = 'green'
+const COMPLETED_STAGE_COLOR: SectionColorKeyT = 'teal'
 
 type ColumnColorOptsT = Pick<BuildV2ColumnsOptsT, 'columnColors' | 'stages'>
 

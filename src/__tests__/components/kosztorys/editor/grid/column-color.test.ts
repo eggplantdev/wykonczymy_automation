@@ -10,7 +10,7 @@ const DONE = 7
 const OPEN = 9
 const STAGES = [makeStage({ id: DONE, completed: true }), makeStage({ id: OPEN })]
 
-const GREEN = sectionColorColumnTint('green')
+const TEAL = sectionColorColumnTint('teal')
 const BLUE = sectionColorColumnTint('blue')
 
 const columnsOf = (stageId: number) => [
@@ -25,12 +25,12 @@ const classesOf = (id: string, columnColors?: Record<string, 'blue'>) => {
 }
 
 describe('withColumnColor — etap zakończony (EX-1034)', () => {
-  it.each(columnsOf(DONE))('tints %s of a zakończony etap green, cell and header', (id) => {
+  it.each(columnsOf(DONE))('tints %s of a zakończony etap teal, cell and header', (id) => {
     const { cell, header } = classesOf(id)
 
     for (const classes of [cell, header]) {
       expect(classes).toContain('kosztorys-column-tint')
-      expect(classes).toContain(GREEN)
+      expect(classes).toContain(TEAL)
     }
   })
 
@@ -40,7 +40,7 @@ describe('withColumnColor — etap zakończony (EX-1034)', () => {
 
   it('outranks the owner’s own colour on a zakończony etap, and only there', () => {
     const done = classesOf(stageKey(DONE), { [stageKey(DONE)]: 'blue' })
-    expect(done.cell).toContain(GREEN)
+    expect(done.cell).toContain(TEAL)
     expect(done.cell).not.toContain(BLUE)
 
     expect(classesOf(stageKey(OPEN), { [stageKey(OPEN)]: 'blue' }).cell).toContain(BLUE)

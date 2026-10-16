@@ -432,9 +432,9 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   czytelne. Szkic FV już wysłany na taką inwestycję da się dalej edytować bez zmiany inwestycji —
   ale tylko z tego powodu: inwestycja w koszu, nieaktywna albo bez jego etapu odmawia jak przy nowym
   szkicu. „Podgląd pracownika" nie odmawia — pokazuje menedżerowi to, co widziałby pracownik.
-  Kolumny zakończonego etapu (ilość, wartość netto, brutto) są zielone, a w nagłówku stoi ✓ —
-  w edytorze, u inwestora i u pracownika. Zieleń wygrywa z kolorem kolumny wybranym przez
-  właściciela; ten kolor nie ginie, wraca po ponownym otwarciu etapu. Dotyczy to tylko ekranu: PDF
+  Kolumny zakończonego etapu (ilość, wartość netto, brutto) są w kolorze morskim, a w nagłówku stoi ✓ —
+  w edytorze, u inwestora i u pracownika. Ten kolor wygrywa z kolorem kolumny wybranym przez
+  właściciela; kolor właściciela nie ginie, wraca po ponownym otwarciu etapu. Dotyczy to tylko ekranu: PDF
   się nie zmienia. Import „Zastąp" wstawia etapy od nowa, więc wszystkie wracają jako otwarte —
   jak rozliczenie i podział.
 - **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
