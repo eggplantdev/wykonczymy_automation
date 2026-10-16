@@ -16,9 +16,11 @@ export type OfferPrintArgsT = {
   // A Map, not a `Record`: `sectionColor` comes off a row, and `'__proto__'` on an object literal reaches
   // `Object.prototype` instead of missing.
   fillByColorKey: ReadonlyMap<string, string>
-  totalNet: number
-  sectionNetById: ReadonlyMap<number, number>
+  columnTotals: ReadonlyMap<string, number>
+  sectionColumnTotals: ReadonlyMap<number, ReadonlyMap<string, number>>
 }
+
+const OFFER_TOTAL_KEYS = ['plannedNet', 'plannedDiscountAmount']
 
 // The default offer's six columns fit portrait with the opis still ~70mm; a seventh leaves it ~47mm.
 const PORTRAIT_COLUMN_LIMIT = 7
@@ -30,8 +32,8 @@ export function buildOfferPrintHtml({
   investmentName,
   logoUrl,
   fillByColorKey,
-  totalNet,
-  sectionNetById,
+  columnTotals,
+  sectionColumnTotals,
 }: OfferPrintArgsT): string {
   const empty = investorEmptyColumnIds(rows, stages)
   const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
@@ -52,12 +54,15 @@ export function buildOfferPrintHtml({
     pageTitle: investmentName,
     logoUrl,
     fillByColorKey,
-    totalKeys: ['plannedNet'],
+    // A rabat sum alone would take the „Razem" label column and the netto box with it.
+    totalKeys: columns.some((column) => column.key === 'plannedNet') ? OFFER_TOTAL_KEYS : [],
     money: zloty,
-    totalNet,
-    sectionTotalsById: new Map(
-      [...sectionNetById].map(([sectionId, net]) => [sectionId, new Map([['plannedNet', net]])]),
-    ),
+    totalNet: columnTotals.get('plannedNet') ?? 0,
+    // Only beside a printed rabat column: the owner hid it on purpose otherwise.
+    totalDiscount: columns.some((column) => column.key === 'plannedDiscountAmount')
+      ? (columnTotals.get('plannedDiscountAmount') ?? 0)
+      : undefined,
+    sectionTotalsById: sectionColumnTotals,
     extraStyles: columns.length > PORTRAIT_COLUMN_LIMIT ? WIDE_PRINT_STYLES : '',
   })
 }

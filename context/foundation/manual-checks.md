@@ -912,6 +912,9 @@ tylko komórka, a siatka ich nie widzi.
       pojawia się ani na podglądzie, ani w PDF.
 - [ ] Inwestycja z rabatem globalnym: nowych kolumn nie ma ani w „Kolumny” edytora, ani na dokumencie
       dla inwestora.
+- [ ] Kosztorys z rabatem na pozycjach w dwóch sekcjach, „Rabat kwota netto (przedmiar)” zaznaczona w
+      „Opcje” → „Drukuj PDF”: każdy wiersz „Razem — <sekcja>” ma sumę także pod kwotą rabatu, a pod
+      „Razem netto” stoi „W tym rabat” z sumą kolumny. Odznacz kolumnę → „W tym rabat” znika z PDF.
 
 # Zamknięte — indeks
 

@@ -28,15 +28,16 @@ const VAT_RATE = 0.08
 // with this spec still green, so one case below drives it from a subcontractor plane.
 function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
   return {
-    totalNet: columnTotalsForRows(rows, CTX.stages, view, VAT_RATE).get('plannedNet') ?? 0,
-    sectionNetById: new Map(
+    columnTotals: columnTotalsForRows(rows, CTX.stages, view, VAT_RATE),
+    sectionColumnTotals: new Map(
       [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
         sectionId,
-        columnTotalsForRows(rowsOfSection, CTX.stages, view, VAT_RATE).get('plannedNet') ?? 0,
+        columnTotalsForRows(rowsOfSection, CTX.stages, view, VAT_RATE),
       ]),
     ),
   }
 }
+const netOf = (totals: ReadonlyMap<string, number> | undefined) => totals?.get('plannedNet') ?? 0
 
 const DEFAULT_SETTINGS = sanitizeClientViewSettings({})
 const hiding = (...keys: string[]) => ({
@@ -136,7 +137,7 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
   ]
 
   it('„Razem netto" to figura edytora, nie suma zaokrąglonych wierszy', () => {
-    const { totalNet } = editorTotals(rows)
+    const totalNet = netOf(editorTotals(rows).columnTotals)
 
     const out = html(rows)
 
@@ -144,16 +145,22 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
   })
 
   it('suma sekcji to wpis tej sekcji w mapie', () => {
-    const { sectionNetById } = editorTotals(rows)
+    const { sectionColumnTotals } = editorTotals(rows)
 
     const out = html(rows)
 
-    expect(out).toContain(`Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}`)
-    expect(out).toContain(`Razem — Ściany</td><td class="num">${zloty(sectionNetById.get(20)!)}`)
+    expect(out).toContain(
+      `Razem — Podłogi</td><td class="num">${zloty(netOf(sectionColumnTotals.get(10)))}`,
+    )
+    expect(out).toContain(
+      `Razem — Ściany</td><td class="num">${zloty(netOf(sectionColumnTotals.get(20)))}`,
+    )
   })
 
   it('sekcja bez wpisu w mapie nie dostaje wiersza sumy — zamiast zmyślonego 0 zł', () => {
-    const out = html(rows, { sectionNetById: new Map([[10, 1000]]) })
+    const out = html(rows, {
+      sectionColumnTotals: new Map([[10, new Map([['plannedNet', 1000]])]]),
+    })
 
     expect(out).toContain('Razem — Podłogi')
     expect(out).not.toContain('Razem — Ściany')
@@ -164,7 +171,7 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
       ...rows,
       row({ id: 4, sectionId: 20, plannedQty: undefined, clientPrice: 0 }),
     ]
-    const { totalNet } = editorTotals(withEmpty)
+    const totalNet = netOf(editorTotals(withEmpty).columnTotals)
 
     const out = html(withEmpty)
 
@@ -194,12 +201,12 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
     const rows = [
       withEntry({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
     ]
-    const { sectionNetById } = editorTotals(rows)
+    const { sectionColumnTotals } = editorTotals(rows)
 
     const out = html(rows, showingRemainingOnly())
 
     expect(out).toContain(
-      `Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}</td><td></td></tr>`,
+      `Razem — Podłogi</td><td class="num">${zloty(netOf(sectionColumnTotals.get(10)))}</td><td></td></tr>`,
     )
   })
 
@@ -207,13 +214,13 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
     const rows = [
       row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
     ]
-    const { sectionNetById } = editorTotals(rows)
+    const { sectionColumnTotals } = editorTotals(rows)
 
     const out = html(rows, hiding('remaining'))
 
     expect(out).not.toContain('Pozostało')
     expect(out).toContain(
-      `Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}</td></tr>`,
+      `Razem — Podłogi</td><td class="num">${zloty(netOf(sectionColumnTotals.get(10)))}</td></tr>`,
     )
   })
 })
@@ -318,8 +325,10 @@ describe('buildOfferPrintHtml — oferta jest dokumentem klienta', () => {
     const client = editorTotals(rows)
     const fromSubcontractorPlane = editorTotals(rows, 'w_tools')
 
-    expect(fromSubcontractorPlane.totalNet).toBe(client.totalNet)
-    expect(html(rows, fromSubcontractorPlane)).toContain(zloty(client.totalNet))
+    const clientNet = netOf(client.columnTotals)
+
+    expect(netOf(fromSubcontractorPlane.columnTotals)).toBe(clientNet)
+    expect(html(rows, fromSubcontractorPlane)).toContain(zloty(clientNet))
   })
 })
 
@@ -473,5 +482,31 @@ describe('rabat kwota na przedmiarze', () => {
 
     expect(out).not.toMatch(amountHeader)
     expect(out).not.toContain('po rabacie')
+  })
+
+  it('suma sekcji stoi też pod kwotą rabatu, a stopka dopisuje „W tym rabat"', () => {
+    const out = html([discounted], showing('plannedDiscountAmount'))
+
+    expect(out).toContain(
+      `<td class="num">${zloty(1282.5)}</td><td class="num">${zloty(67.5)}</td>`,
+    )
+    expect(out).toContain(`<td class="label">W tym rabat</td><td class="value">${zloty(67.5)}</td>`)
+  })
+
+  it('ukryta kolumna rabatu nie zostawia „W tym rabat" w stopce', () => {
+    expect(html([discounted])).not.toContain('W tym rabat')
+  })
+
+  it('ukryta „Wartość netto" zabiera też sumy rabatu', () => {
+    const out = html([discounted], {
+      settings: {
+        ...showing('plannedDiscountAmount').settings,
+        hiddenColumns: [...showing('plannedDiscountAmount').settings.hiddenColumns, 'plannedNet'],
+      },
+    })
+
+    expect(out).toMatch(amountHeader)
+    expect(out).not.toContain('<tr class="band-total">')
+    expect(out).not.toContain('W tym rabat')
   })
 })

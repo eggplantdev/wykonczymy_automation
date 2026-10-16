@@ -19,6 +19,7 @@ type KosztorysPrintArgsT = {
   // In-table, under each total column; without it the document closes on the „Razem netto" box.
   grandTotals?: ReadonlyMap<string, number>
   totalNet?: number
+  totalDiscount?: number
   extraStyles?: string
   footerHtml?: string
   lang?: LanguageT
@@ -39,6 +40,7 @@ export function buildKosztorysPrintHtml({
   sectionTotalsById,
   grandTotals,
   totalNet,
+  totalDiscount,
   extraStyles = '',
   footerHtml,
   stripeParity = 1,
@@ -128,7 +130,7 @@ export function buildKosztorysPrintHtml({
       ? `
 <div class="totals"><table><tbody>
 <tr class="grand"><td class="label">Razem netto</td><td class="value">${money(totalNet)}</td></tr>
-</tbody></table></div>`
+${totalDiscount === undefined ? '' : `<tr><td class="label">W tym rabat</td><td class="value">${money(totalDiscount)}</td></tr>\n`}</tbody></table></div>`
       : '')
 
   const brand =
