@@ -1,5 +1,5 @@
 import { CONTRACTOR_NAME } from '@/lib/kosztorys/acceptance-protocol/constants'
-import { formatAddress, formatBillingParty } from '@/lib/investments/format-address'
+import { clientNameOf, siteAddressOf } from '@/lib/investments/prefill'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { AcceptanceProtocolFormT } from '@/lib/kosztorys/acceptance-protocol/types'
 
@@ -15,21 +15,11 @@ export function protocolFormDefaults({ investment, today }: ArgsT): AcceptancePr
     issueDate: today,
     acceptanceDate: today,
     readinessDate: '',
-    clientName: prefilledClientName(investment),
+    clientName: clientNameOf(investment),
     contractorName: CONTRACTOR_NAME,
-    siteAddress: prefilledSiteAddress(investment),
+    siteAddress: siteAddressOf(investment),
     paymentDueDate: '',
   }
-}
-
-function prefilledClientName(investment: InvestmentWithDetailsT): string {
-  return (
-    formatBillingParty(investment.billing) || investment.contactPerson.trim() || investment.name
-  )
-}
-
-function prefilledSiteAddress(investment: InvestmentWithDetailsT): string {
-  return formatAddress({ ...investment, street: investment.address })
 }
 
 function prefilledPlace(investment: InvestmentWithDetailsT): string {
@@ -37,9 +27,5 @@ function prefilledPlace(investment: InvestmentWithDetailsT): string {
 }
 
 export function protocolPrefillKey(investment: InvestmentWithDetailsT): string {
-  return [
-    prefilledClientName(investment),
-    prefilledSiteAddress(investment),
-    prefilledPlace(investment),
-  ].join('|')
+  return [clientNameOf(investment), siteAddressOf(investment), prefilledPlace(investment)].join('|')
 }
