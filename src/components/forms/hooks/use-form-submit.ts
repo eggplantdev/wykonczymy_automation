@@ -10,16 +10,11 @@ type SubmitOptionsT = {
   successMessage: string
   files?: Map<number, File[]>
   onSubmitSuccess: () => void
-  /** Clearing in full, the form reset included — this hook never touches the form. */
   onReset?: () => void
   /** After a confirmed write — unlike `onSubmitSuccess`, which the optimistic path fires first. */
   onSaved?: () => void
   /** After the failure toast, on the awaited path only — the optimistic one owns its own recovery. */
   onFailed?: (failure: FailureT) => void | Promise<void>
-  /**
-   * Wait for the result before closing, for a form with no draft: the open dialog is the only copy
-   * of what was typed, so an optimistic close loses it on a failed save.
-   */
   awaitBeforeClose?: boolean
 }
 
@@ -32,7 +27,6 @@ export function useFormSubmit(formId: string) {
   const isRecovering = submission?.formId === formId && submission.status === 'failed'
   const recoveredFiles = isRecovering ? submission.invoiceFiles : undefined
 
-  // Settled here rather than in the store, so a lost request is worded in the reader's language too.
   const settleInLocale = (action: () => Promise<ActionResultT>) => async () => {
     const result = await settleAction(action)
     return result.success ? result : { ...result, error: failureMessage(locale, result) }

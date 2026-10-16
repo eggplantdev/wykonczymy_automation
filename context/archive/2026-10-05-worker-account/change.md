@@ -61,6 +61,8 @@ jego kasy, transfery, sprzęt i lista kosztorysów z linkami do zgłaszania prac
 2. Sekcja sprzętu zostaje u pracownika, bez linków.
 3. Linki do inwestycji zostają — klik odbija się od `requireManagementPage` (`/zaloguj` → `/` → jego
    strona). Filtr inwestycji niezawężony: obca inwestycja = 0 wyników.
+4. Nagłówki „Moje kasy” / „Moje inwestycje” zostają także wtedy, gdy kierownik ogląda stronę innego
+   pracownika (`92df7e08`); pusty stan jest neutralny („Brak aktywnych inwestycji.”).
 
 **Warunek bezpieczeństwa:** zakres łączyć z filtrami z URL przez `and: [zakres, urlFilters]`, nigdy
 spreadem — filtr kasy też buduje `where.or` (`transfer-filters.ts`), a spread nadpisałby zakres

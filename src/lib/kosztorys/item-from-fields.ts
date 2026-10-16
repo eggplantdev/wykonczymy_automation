@@ -2,7 +2,6 @@ import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { NO_AI_DRAFT } from '@/lib/kosztorys/constants'
 
-// A katalog entry and a praca typed into „Nowa praca" are both spelled in the katalog's columns.
 export type ItemFieldsT = Pick<
   WorkCatalogueItemT,
   | 'description'
@@ -15,11 +14,6 @@ export type ItemFieldsT = Pick<
   | 'ownToolsRateCoeff'
 >
 
-// Both sides model the stawka the same way — the same pair of kolumny, the same trzy źródła — so a
-// katalog „auto" stays „auto" and derives from THIS investment's global współczynnik, a kwota stała
-// arrives verbatim, and a mnożnik arrives as a mnożnik and re-prices itself off the cena j.m. it
-// lands on. Copying at most one column per płaszczyzna is what keeps the pair legal: two set columns
-// is the state `normalizeOverridePatch` exists to prevent.
 const itemColumnsFromFields = (fields: ItemFieldsT) => ({
   description: fields.description,
   descriptionTranslations: fields.descriptionTranslations,

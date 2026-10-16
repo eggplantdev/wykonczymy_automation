@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createJsonMapStore, parseJsonMap } from '@/hooks/create-json-map-store'
 
-// The node test env has no window; stand in an in-memory localStorage so the store's read/write path
-// runs for real and we can assert the PERSISTED value (per the ticket's test disposition).
 function stubLocalStorage(initial: Record<string, string> = {}) {
   const backing = new Map(Object.entries(initial))
   vi.stubGlobal('window', {
@@ -17,7 +15,7 @@ function stubLocalStorage(initial: Record<string, string> = {}) {
 
 afterEach(() => vi.unstubAllGlobals())
 
-// EX-481 finding 3: an unguarded JSON.parse white-screens the grid on a corrupt value — or on the
+// an unguarded JSON.parse white-screens the grid on a corrupt value — or on the
 // literal "null", which parses fine and then makes map[id] throw.
 describe('parseJsonMap', () => {
   it('parses a plain object map', () => {
@@ -37,7 +35,6 @@ describe('parseJsonMap', () => {
   })
 })
 
-// EX-481 finding 2: writes must re-read at write time, not rebuild from a stale render closure.
 describe('createJsonMapStore.update', () => {
   it('re-reads before each write, so two writes in one tick both persist', () => {
     const backing = stubLocalStorage()
@@ -48,8 +45,6 @@ describe('createJsonMapStore.update', () => {
   })
 
   it('builds the write on the persisted value, not a snapshot captured earlier', () => {
-    // Mirrors handleRemoveStage: something persists a change (a resize → x:99) during an await, then
-    // a drop runs. Re-reading means the drop preserves x instead of clobbering it.
     const backing = stubLocalStorage({ k: '{"w":10}' })
     const store = createJsonMapStore<number>('k')
     backing.set('k', '{"w":10,"x":99}')

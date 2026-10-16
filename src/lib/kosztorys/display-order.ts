@@ -4,12 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
 
-// Sections and items each had their own copy of the insert-shift, and the copies drifted on
-// transaction policy alone (EX-578) — one scope-parameterised home is what stops that.
-
-// A row's owner column is fixed by its table (a section is ordered within its investment, an item
-// within its section), so the two travel together keyed by the Payload collection slug — a caller
-// can't pair the wrong column with a table.
 const ORDER_SCOPES = {
   'kosztorys-sections': { table: sql.raw('kosztorys_sections'), owner: sql.raw('investment_id') },
   'kosztorys-items': { table: sql.raw('kosztorys_items'), owner: sql.raw('section_id') },
@@ -19,14 +13,7 @@ const ORDER_SCOPES = {
 
 export type OrderScopeT = keyof typeof ORDER_SCOPES
 
-// A row and the display_order it should take. No schema: every ref is derived server-side inside a
-// transaction (the bake's own per-section numbering), so nothing here ever crosses the wire to be
-// validated.
 export type DisplayOrderRefT = { id: number; displayOrder: number }
-// The bake's payload: the ids in the order the sheet should store them. The numbers themselves are
-// the server's business — it groups the ids by their own section and assigns 0…n-1 within each, so
-// no caller can invent an index that collides inside a section.
-//
 // A duplicate id is still refused: it makes the VALUES join ambiguous (two rows claim one target) and
 // it makes the sequence itself meaningless.
 export function numberWithinSections(
@@ -62,9 +49,7 @@ export async function nextDisplayOrder(
   return Number(res.rows[0]?.next ?? 0)
 }
 
-// Opens the slot at `at` by pushing the owner's tail down one, so a create can land there. Bounded by
-// the OWNER's row count — one investment's sections or one section's items, never the whole sheet
-// (1000+ rows). Runs on a caller-owned transaction
+// Runs on a caller-owned transaction
 // handle: the shift and the create it opens room for must commit together, or a double-fired insert
 // at the same index interleaves and lands two rows on one display_order (EX-464).
 export async function shiftDisplayOrderFrom(
@@ -88,16 +73,8 @@ export const insertDirectionSchema = z.enum(['above', 'below'])
 
 export type InsertDirectionT = z.infer<typeof insertDirectionSchema>
 
-// Where a row sits, read UNDER the lock on its whole owner block — the position `resolveInsertSlot`
-// starts from, and what lets its slot read be a plain SELECT and still be atomic with the UPDATE that
-// follows: `shiftDisplayOrderFrom` and `renumberDisplayOrder` acquire in ascending id order too, so no
-// pair of them can form a cycle (EX-632). The lock is bounded by ONE owner — an investment's sections
-// or a section's items — never the whole sheet.
-//
-// Lock and read are ONE statement on purpose: the owner is resolved inside the lock's own predicate,
-// so there is no window between learning which block to hold and reading a position out of it. A row
-// missing from the locked set (deleted, or reparented by something that doesn't exist today) simply
-// yields null — the resolvers fail closed rather than act on a block they don't hold.
+// Where a row sits, read UNDER the lock on its whole owner block: `shiftDisplayOrderFrom` and
+// `renumberDisplayOrder` acquire in ascending id order too, so no pair of them can form a cycle (EX-632).
 async function lockedPositionOf(
   db: DbExecutorT,
   scope: OrderScopeT,
@@ -114,9 +91,6 @@ async function lockedPositionOf(
   return { ownerId: Number(row.owner_id), displayOrder: Number(row.display_order) }
 }
 
-// Resolves „wstaw powyżej/poniżej <anchor>" into the owner whose block is being inserted into and the
-// slot `shiftDisplayOrderFrom` should open. Read server-side because the anchor's own display_order
-// is the input, and only the transaction can see its current value.
 export async function resolveInsertSlot(
   db: DbExecutorT,
   scope: OrderScopeT,
@@ -131,11 +105,8 @@ export async function resolveInsertSlot(
   }
 }
 
-// Rewrites a whole block's display_order in ONE statement — what „Zapisz kolejność" needs.
-//
 // The single statement is load-bearing: a half-applied renumber leaves rows sharing a display_order
-// (there is no unique constraint) and the reloaded order goes non-deterministic. It locks through the
-// same `ORDER BY id FOR UPDATE` subquery as shiftDisplayOrderFrom, so the two cannot deadlock (EX-632).
+// (there is no unique constraint) and the reloaded order goes non-deterministic.
 export async function renumberDisplayOrder(
   db: DbExecutorT,
   scope: OrderScopeT,

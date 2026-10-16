@@ -1,9 +1,3 @@
-// E2E fixture for EX-689 („Zapisz kolejność"). Three investments, one per scenario — each rewrites
-// display_order. przedmiary interleave the two sekcje (alfa 3/1/5, beta 2/6/4) and match neither the
-// seeded order nor the alphabet, keeping global / „zachowując sekcje" / filtered bakes distinguishable.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-sort.ts
-// Emits: SORT_SEED={"bake":<id>,"undo":<id>,"search":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -39,7 +33,6 @@ async function seedInvestment(
     ...ctx,
   })
 
-  // displayOrder is global across the rozpiska, not per section — matches what „Zapisz kolejność" rewrites.
   let itemOrder = 0
   for (const [sectionOrder, spec] of SHAPE.entries()) {
     const section = await payload.create({

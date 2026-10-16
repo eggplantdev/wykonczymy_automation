@@ -46,8 +46,6 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  // Payload's `/api/media/file/<filename>` and every reader that renders `media.url` must treat the
-  // row as one Payload made, and the ownership CTE reads `created_by_id`.
   it('persists the row the way a Payload upload would', async () => {
     const filename = `${FILENAME_PREFIX}paragon ł.jpg`
     const id = await insertMediaRow(db, {

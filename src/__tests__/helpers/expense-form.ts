@@ -13,7 +13,6 @@ export const expenseReferenceData = {
   investments: [{ id: 3, name: 'Mieszkanie Mokotów', status: 'active' as const }],
 } as unknown as ReturnType<typeof referenceDataFor>
 
-/** A wydatek inwestycyjny on „Mieszkanie Mokotów", paid from „Kasa Jana" — the shape a zgłoszenie prefills. */
 export function expenseValues(
   overrides: Partial<BulkExpenseFormValuesT> = {},
 ): BulkExpenseFormValuesT {

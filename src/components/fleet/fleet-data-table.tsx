@@ -28,9 +28,7 @@ export function FleetDataTable({ data }: { data: FleetRowT[] }) {
       columns={columns}
       storageKey="fleet"
       getRowHref={(row) => `/flota/${row.id}`}
-      // Retired cars stay listed — their history is still the answer to "when did we last…".
       getRowClassName={(row) => (row.status === 'RETIRED' ? 'opacity-60' : '')}
-      // Summed from the rendered rows, so the total matches what the search box left on screen.
       footer={(visibleColumnIds) => (
         <ColumnTotalRow
           visibleColumnIds={visibleColumnIds}

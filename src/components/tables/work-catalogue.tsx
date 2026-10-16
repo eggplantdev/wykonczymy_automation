@@ -32,9 +32,6 @@ import type {
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
-// The stawka as its źródło names it: a kwota, „auto", or the mnożnik — never the złotówka a mnożnik
-// implies for THIS cennik's own cena j.m., which is a number nobody agreed to and which the wpis
-// abandons the moment it lands in a rozpiska priced differently.
 const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const rate = catalogueRateFor(entry, plane)
   const source = catalogueSourceOf(rate)
@@ -45,14 +42,6 @@ const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   )
 }
 
-/**
- * The share of „Cena j.m." a stawka eats — its own sortable column, because it is the figure the
- * company's rule is written in. Over the ceiling it goes red and stops there: the katalog WARNS and
- * never blocks. „Auto" has no share at all — that udział belongs to an inwestycja.
- *
- * A mnożnik IS this share already, so it is read straight across rather than divided back out of a
- * kwota — dividing would print the same number one float residue worse.
- */
 const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const { rate, coeff } = catalogueRateFor(entry, plane)
   if (namesFigure(coeff)) return coeff
@@ -66,8 +55,6 @@ const share = (value: number | null, overCeiling: boolean) =>
     <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
   )
 
-// The break is written, not guessed from a width: these four labels are long enough to wrap on
-// their own, and left to the browser they came out three lines deep.
 const twoLines = (first: string, second: string) => () => (
   <span className="block">
     {first}
@@ -76,12 +63,9 @@ const twoLines = (first: string, second: string) => () => (
   </span>
 )
 
-// Per plane, because the próg is: the stawka bez narzędzi is the z-narzędziami one less 15%, so one
-// tooltip on both columns would name a liczba only one of them turns red at.
 const shareTooltip = (plane: ToolPlaneT) =>
   `Udział stawki w cenie j.m. Powyżej ${clientShareCeilingLabel(plane)} na czerwono.`
 
-// Lp. is the row's number in the KATALOG, pinned to alphabetical order over the whole catalogue, so
 // it survives every sort and filter. `row.index` would slide under the row and name nothing.
 const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
   col.display({
@@ -95,9 +79,6 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
     ),
   })
 
-// The picker's `size`s: its virtualized list lays out fixed, so the narrow columns hold these widths
-// and the opis fills the rest with its `size` as the floor. Their sum stays inside `dialog-xl` on a
-// 1440 screen. /katalog-prac lays out from content and never reads them.
 type DescriptionMarksT = {
   otherUnitIds: ReadonlySet<number>
   nearDuplicates: ReadonlyMap<number, readonly NearDuplicateT[]>
@@ -121,13 +102,9 @@ const descriptionColumnWith = ({ otherUnitIds, nearDuplicates }: DescriptionMark
     cell: (info) => (
       <span className="block font-medium">
         {info.getValue()}
-        {/* The same opis priced under another j.m. is not this wpis — it is a near-duplicate the
-            cennik may want to merge, so it is named here and never counted into „Kosztorysy". */}
         {otherUnitIds.has(info.row.original.id) && (
           <span className={MARK_CLASS}>występuje z inną j.m.</span>
         )}
-        {/* The twin's j.m., cena and kategoria ride along because they are what decides which of
-            the two to keep — and a twin sorted far away by opis would otherwise need a search. */}
         {nearDuplicates.get(info.row.original.id)?.map(({ entry, kind }) => (
           <span key={entry.id} className={MARK_CLASS}>
             {NEAR_DUPLICATE_LEADS[kind]}: {entry.description} — {entry.unit} ·{' '}
@@ -154,7 +131,6 @@ const translationColumns = TRANSLATION_LANGUAGES.map((language) =>
   }),
 )
 
-// Translations are worked on, not read while pricing, so the cennik opens without them.
 export const WORK_CATALOGUE_DEFAULT_VISIBILITY = Object.fromEntries(
   [...ALL_TRANSLATION_COLUMN_KEYS, 'workNote'].map((id) => [id, false]),
 )
@@ -191,10 +167,6 @@ const wToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'w_tools
   cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
 
-// The plane is named ONCE per column. Spelled out twice — in the accessor and again in the red-rule
-// argument — a copy-paste that updates only the first renders the w-tools verdict on the own-tools
-// column, and both numbers look plausible. The ids stay literal so a search for `wToolsShare` finds
-// the column the stored visibility map names.
 const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
   col.accessor((row) => shareOf(row, plane), {
     id,
@@ -203,10 +175,6 @@ const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
     cell: (info) => share(info.getValue(), isCatalogueOverCeiling(info.row.original, plane)),
   })
 
-// The źródło spelled out, beside the stawka that only IMPLIES it — „auto" and „×0,65" name their
-// own źródło, but „8,50 zł" is a kwota stała that reads like any other number. Sortable and its own
-// column so the cennik can be swept for „które prace jadą jeszcze na auto", which is the question
-// behind every rate review.
 const sourceColumn = (plane: ToolPlaneT, id: string, tools: string) =>
   col.accessor((row) => catalogueSourceOf(catalogueRateFor(row, plane)), {
     id,
@@ -245,8 +213,6 @@ const ownToolsShareColumn = shareColumn(
   PLANE_LABELS.own_tools.toLowerCase(),
 )
 
-// „Dodaj pracę" reads the cennik to pick from it, never to tune it, so the udział columns
-// and „Akcje" stay behind on /katalog-prac. They sit mid-order, hence assembled rather than sliced.
 export const WORK_CATALOGUE_PICKER_COLUMNS = [
   descriptionColumn,
   categoryColumn,
@@ -263,8 +229,6 @@ const workNoteColumn = col.accessor((row) => row.workNote ?? '', {
   cell: (info) => <span className="text-muted-foreground block">{info.getValue()}</span>,
 })
 
-// Both count distinct inwestycje, not pozycje: a praca repeated across five łazienki of one
-// mieszkanie is still one kosztorys that would miss it.
 const countColumn = (id: string, header: string, tooltip: string, count: (id: number) => number) =>
   col.accessor((row) => count(row.id), {
     id,

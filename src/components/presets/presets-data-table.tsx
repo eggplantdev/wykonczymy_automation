@@ -12,9 +12,7 @@ export function PresetsDataTable({ data }: { data: PresetRowT[] }) {
       data={data}
       columns={PRESET_COLUMNS}
       storageKey="presets"
-      // No initial sort: `listPresets` already orders by last edit, NULLS LAST — a client-side sort
-      // on „Utworzono" silently replaced it, so the library showed a szablon worked on this morning
-      // below one created last month and never touched.
+      // No initial sort: `listPresets` already orders by last edit, NULLS LAST
       toolbar={() => <DataTableToolbar actions={<CreateEmptyPresetDialog />} />}
       getRowHref={(row) => `/szablony/${row.id}`}
     />

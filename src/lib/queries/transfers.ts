@@ -56,21 +56,6 @@ export async function findTransfersRaw({
   )()
 }
 
-/**
- * Resolves `amount: { like: '...' }` to `id: { in: [...] }` via raw SQL.
- *
- * Two-query pattern:
- * 1. Raw SQL finds transaction IDs where amount starts with the search term
- *    (e.g. "15" matches 15, 150, 1500 — prefix match, not substring)
- * 2. Those IDs replace the amount condition in the Payload Where object
- *
- * Why not use Payload's `like` directly?
- * Payload's `like` operator doesn't work on numeric columns —
- * it silently returns all rows. So we bypass Payload for this filter
- * and use raw SQL with `amount::text LIKE '15%'`.
- *
- * Performance: uses the trigram GIN index from migration 20260412.
- */
 async function resolveAmountSearch(payload: Payload, where: Where): Promise<Where> {
   const amountCond = where.amount as Record<string, unknown> | undefined
   if (!amountCond || typeof amountCond !== 'object' || !('like' in amountCond)) return where
@@ -78,7 +63,6 @@ async function resolveAmountSearch(payload: Payload, where: Where): Promise<Wher
   const search = String(amountCond.like)
   const { amount: _, ...rest } = where
 
-  // If another filter already forced NO_RESULTS, keep it
   const idCond = rest.id as Record<string, unknown> | undefined
   if (idCond && 'equals' in idCond && idCond.equals === -1) return rest
 
@@ -94,13 +78,8 @@ async function resolveAmountSearch(payload: Payload, where: Where): Promise<Wher
   return { ...rest, id: { in: ids } }
 }
 
-/**
- * Fetch transactions by raw IDs, bypassing all filters (used by audit mode to splice
- * cancellation originals into the page result regardless of period or cancelled status).
- */
 async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
   if (ids.length === 0) return []
-  // Sort so the cache key is stable regardless of input order.
   const sortedIds = [...ids].sort((a, b) => a - b)
   return cached(
     async () => {
@@ -119,11 +98,6 @@ async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
   )()
 }
 
-/**
- * Fetch the originals referenced by CANCELLATION rows in `docs`, indexed by id.
- * Returns an empty map when there are no cancellation rows. Shared by the two
- * cancellation display paths (audit-mode splice and inline enrichment).
- */
 export async function buildCancellationOriginalsMap(
   docs: RawTransferDocT[],
 ): Promise<Map<number, RawTransferDocT>> {
@@ -137,11 +111,6 @@ export async function buildCancellationOriginalsMap(
 }
 
 /**
- * A CANCELLATION audit row stores none of the original's relational fields
- * (see cancelTransferAction — only amount/description are copied),
- * so it renders as all em-dashes. For display, borrow the original's investment /
- * registers / category / worker / payment method and stamp `originalType` for the Typ column.
- *
  * Display-only on purpose: the financial SQL in lib/db queries the DB directly and
  * never sees these merged docs, so this cannot affect register balances — unlike
  * persisting a sourceRegister onto the row, which the balance query would subtract.
@@ -156,9 +125,6 @@ export async function enrichCancellationOriginals(
     if (doc.type !== 'CANCELLATION') return doc
     const orig = originalsById.get(doc.cancelledTransaction as number)
     if (!orig) return doc
-    // Driven off the filter's own list, not a second hand-kept copy: the two answer the same
-    // question — display borrows what narrowing re-aims — and this slice caught them out of step,
-    // the metoda having been added to one and forgotten in the other.
     return {
       ...doc,
       ...Object.fromEntries(

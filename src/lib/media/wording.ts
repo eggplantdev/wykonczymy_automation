@@ -33,7 +33,6 @@ export function buildPreviewLabels(
       }
 }
 
-/** Shared by every non-invoice strip — a zip of site photos named „faktury-…" is a wrong answer. */
 export const ASSET_PREVIEW_LABELS = buildPreviewLabels(FILE_ARCHIVE_COPY)
 
 export const INVOICE_PREVIEW_LABELS = buildPreviewLabels(INVOICE_ARCHIVE_COPY)

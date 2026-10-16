@@ -19,12 +19,8 @@ import {
   DISCOUNT_LABEL,
 } from '@/lib/constants/financial-field-labels'
 
-// The tiles that RAISE the balance — everything else in `fields` is a cost. Routed by label because
-// the field list is flat strings + amounts by the time it reaches here.
 const CREDIT_LABELS: string[] = [INCOME_LABEL, DISCOUNT_LABEL, MATERIALS_DISCOUNT_LABEL, LOSS_LABEL]
 
-// Both figures render only inside the isAdminOrOwnerRole(...) block below, so this
-// note is shown exclusively to Admin/Owner — flags the figure as owner-level.
 const RESTRICTED_NOTE = '\nWidoczność — właściciel'
 const TOOLTIPS = {
   investorCosts:
@@ -67,8 +63,6 @@ const CREDIT_TOOLTIPS: Record<string, string> = {
 
 type FinancialStatsPropsT = {
   fields: FinancialFieldT[]
-  // Margin is computed server-side via calculateMargin(financials) and passed in — the
-  // component does not re-derive it, so listing and detail can't drift on marża.
   margin: number
   totalPayouts?: number
   settledFields?: FinancialFieldT[]

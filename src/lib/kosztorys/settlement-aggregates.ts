@@ -11,26 +11,10 @@ import type {
 } from '@/lib/kosztorys/types'
 
 export type StageAxisT = {
-  // Per-stage executed value at the view's price — the sheet's `SUM(<stage col>)` per etap.
   net: Map<number, number>
-  // Per-stage executed quantity, the axis the value above is split by.
   qty: Map<number, number>
 }
 
-/**
- * The etap axis: per-stage column totals across all rows at the active view's price (the sheet's
- * filled r396/r397). The suma transzy: how much each etap has executed, in value and in quantity.
- * Every stage in `stages` gets an entry in both maps (0 when no row touched it).
- *
- * Uses the same `stageValueForView` primitive the grid's per-stage cells show — each stage's value
- * is its qty share of the row's executed net — so Σ over the stages equals the row's executed value,
- * and Σ over all stages equals the executed total (the 'amount'-rabat reconciliation the sheet's
- * V–AE block exists for holds here by construction).
- *
- * The two axes ship together because the value is DERIVED from the quantity: this loop already reads
- * every `qtyInStage` to compute the share, so summing it costs nothing, whereas a caller wanting the
- * qty axis on its own has to walk the rows once per stage (EX-612).
- */
 export function stageAxisForView(
   rows: KosztorysV2RowT[],
   stages: KosztorysStageT[],
@@ -44,9 +28,6 @@ export function stageAxisForView(
   const viewStages = stagesForView(stages, view)
   for (const row of rows) {
     const totalQty = rowTotalQtyDone(row, viewStages, view)
-    // Price the row's executed net once, then split it by each stage's qty share — same figure
-    // stageValueForView yields per cell, but without re-pricing the row on every stage. A row with
-    // nothing executed has no value to split, but its quantities still belong on the qty axis.
     const rowNet = totalQty > 0 ? netForQtyForView(row, totalQty, view) : 0
     for (const st of viewStages) {
       const qtyInStage = row[stageKey(st.id)] ?? 0
@@ -58,17 +39,6 @@ export function stageAxisForView(
   return { net, qty }
 }
 
-/**
- * Subtotals per section for the active price view, over the full dataset (ignores filter/sort).
- * Order = first occurrence of each section in `rows` (treeToRows already yields section→displayOrder).
- *
- * Carries BOTH figures, the way the sheet's footer keeps S456 and T456 side by side: `plannedNet` is
- * what was offered, `net` what has been executed. Progress divides `net` by `currentPlannedNet`, the
- * Aktualizacja przedmiaru (EX-921), so an agreed extra does not read as past 100%.
- */
-// Overloaded on the literal so a caller that pins 'client' gets the przedmiar figure typed as present
-// and never writes a `?? 0` for a case it already excluded, while a caller passing a `view` variable
-// is forced to handle the null. The guarantee is structural — it cannot be forgotten at a call site.
 export function sectionSubtotalsForView(
   rows: KosztorysV2RowT[],
   stages: KosztorysStageT[],
@@ -88,12 +58,10 @@ export function sectionSubtotalsForView(
   // completionRatio AND share are progress/structure figures, so both are weighted at the client price
   // regardless of `view`: per-item price overrides shift a section's executed VALUE against the others,
   // so the same physical progress and the same cost split must not read differently per view.
-  // Accumulated apart from the money net above, which does follow the view.
   const clientBySection = new Map<number, { executed: number; agreed: number }>()
   const valueOf = computedColumnValues({ stages, view })
   const net = valueOf('net')
   const discount = valueOf('discountAmount')
-  // Both read at the client price in every view already (column-values.ts), so they serve both.
   const plannedNet = valueOf('plannedNet')
   const currentPlannedNet = valueOf('currentPlannedNet')
   const clientNet =
@@ -119,7 +87,6 @@ export function sectionSubtotalsForView(
     acc.net += net(row) ?? 0
     if (acc.plannedNet !== null) acc.plannedNet += plannedNet(row) ?? 0
     if (acc.currentPlannedNet !== null) acc.currentPlannedNet += currentPlannedNet(row) ?? 0
-    // 0 under a global discount.
     acc.discount += discount(row) ?? 0
     acc.itemCount += 1
     const client = clientBySection.get(row.sectionId)!

@@ -10,13 +10,8 @@ export const isStageMember = (stage: KosztorysStageT | undefined, workerId: numb
   stage?.split?.members.some((member) => member.workerId === workerId) ?? false
 
 /**
- * Which etapy a worker's view shows, and whether it may show prices at all. The one decision the
- * „Pracownicy" menu (disable), the mint action (refuse) and the page (notice instead of prices) all
- * read, so the three cannot disagree about a worker.
- *
  * A priced view needs exactly one stawka per pozycja: a plane-less etap has none yet, and etapy on
- * both rozliczenia would give one „Cena j.m." two meanings (design #11). The unconfirmed plane is
- * reported first — it is the fix the owner makes in the same menu.
+ * both rozliczenia would give one „Cena j.m." two meanings.
  */
 export function resolveWorkerScope(stages: KosztorysStageT[], workerId: number): WorkerScopeT {
   const own = stages.filter((stage) => isStageMember(stage, workerId))
@@ -38,7 +33,6 @@ export type ReportScopeRefusalT = WorkerScopeBlockReasonT | 'stages-completed'
 export const hasOpenStage = (ownStages: KosztorysStageT[]): boolean =>
   ownStages.some((stage) => !stage.completed)
 
-/** Why this worker may not report here — the link, the send and the scan all refuse on it. */
 export function reportScopeRefusal(scope: WorkerScopeT): ReportScopeRefusalT | null {
   if (scope.kind === 'blocked') return scope.reason
   return hasOpenStage(scope.stages) ? null : 'stages-completed'

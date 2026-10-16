@@ -47,10 +47,7 @@ const ENTITY_FILTER_KEYS = [
   'worker',
   'amount',
   'id',
-  // Narrows the list like the entity filters above, so „Wyczyść filtry" must reach it too —
-  // omitting it left a cleared panel still scoped to anulowania.
   'cancelledTransactionAudit',
-  // Revealing anulowane IS a departure from the default view, so it counts and clears as a filter.
   'showCancelled',
   'workerDrafts',
 ] as const
@@ -59,7 +56,6 @@ type TransferFiltersPropsT = FilterConfigT & {
   baseUrl: string
   className?: string
   totalFilteredAmount?: number
-  /** Server-derived (see TransferTableServer) — the list shows cancelled rows, the sum never does. */
   listsCancelled?: boolean
 }
 
@@ -83,7 +79,6 @@ export function TransferFilters({
 }: TransferFiltersPropsT) {
   const searchParams = useSearchParams()
   const { t } = useTranslation('transfers')
-  // Debounce in FilterMultiSelect batches rapid clicks to reduce how often we hit the server.
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)
 
@@ -102,8 +97,6 @@ export function TransferFilters({
     baseUrl,
     'workerDrafts',
   )
-  // Named as what the user turns ON, not the default they start in — hiding anulowane is the resting
-  // state, so „Ukryj anulowane" would read ticked before any filter was set. Always on in audit mode.
   const revealingCancelled = showCancelled || auditMode
 
   const cancelledToggles = [
@@ -117,8 +110,6 @@ export function TransferFilters({
       id: 'showCancelled',
       label: t('showCancelled'),
       active: revealingCancelled,
-      // Audit mode already pins anulowane on (`lib/queries/transfer-filters.ts`); disabled rather than
-      // dropped, since a row that vanishes takes the reason with it.
       disabled: auditMode,
       onToggle: () => setShowCancelled(!showCancelled),
     },
@@ -132,8 +123,6 @@ export function TransferFilters({
   const currentOtherCategories = getMultiParam('otherCategory')
   const currentExpenseCategories = getMultiParam('expenseCategory')
 
-  // Only revealing anulowane counts as a filter — they're hidden by default, so counting that too
-  // would report a filter to someone who set none.
   const hasEntityFilters = ENTITY_FILTER_KEYS.some((k) => getMultiParam(k).length > 0)
   const hasDateFilter = !!searchParams.get('from') || !!searchParams.get('to')
   const hasAnyFilter = hasEntityFilters || hasDateFilter
@@ -164,8 +153,6 @@ export function TransferFilters({
                 value: type,
                 label: t(`type_${type}`),
               }))}
-              // In „Tryb anulowań" every row is an anulowanie (`lib/queries/transfer-filters.ts`), so
-              // „Anulowanie" is locked on rather than offered as a choice that would do nothing.
               lockedValues={auditMode ? ['CANCELLATION'] : undefined}
               label={t('filterType')}
               icon={Tags}
@@ -275,9 +262,6 @@ export function TransferFilters({
         </ControlGrid>
       )}
 
-      {/* Own row, not the tail of the select row: typed search fields wrapped wherever the selects
-          happened to stop on a narrow screen. Outside the guard above too — search works with no
-          entity filters present. */}
       <ControlGrid>
         {showSearchFilters && (
           <>
@@ -323,8 +307,6 @@ export function TransferFilters({
   )
 }
 
-// Drops any character that isn't 0–9 (e.g. user paste with spaces, commas, "#" prefix).
-// Keeps the ID input safe to pass as a numeric URL param without further validation.
 function stripNonDigits(value: string): string {
   return value.replace(/\D/g, '')
 }

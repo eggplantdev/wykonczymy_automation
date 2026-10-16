@@ -15,9 +15,6 @@ import {
 import { GenerateOfferMenuItem } from '@/components/kosztorys/editor/actions/offer-print-action'
 import { AcceptanceProtocolMenuItem } from '@/components/kosztorys/editor/actions/acceptance-protocol-action'
 
-// Split out of „Opcje" because serving the client is its own errand — the owner reaches for it
-// before sending an offer, not while editing one. Mounted inside KosztorysActionsProvider (see
-// KosztorysActionsMenu), which is what its items and their dialogs read from.
 export function KosztorysInvestorMenu({ hasProtocol }: { hasProtocol: boolean }) {
   return (
     <DropdownMenu>

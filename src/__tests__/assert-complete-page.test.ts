@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import type { PaginatedDocs } from 'payload'
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 
-// Minimal PaginatedDocs stub — only the fields the guard reads. This tests the guard's
-// LOGIC (throw-when-truncated), not Payload's promise to set hasNextPage; validating that
-// promise against a real capped query is the deferred DB-integration test.
 const page = <T>(over: Partial<PaginatedDocs<T>>): PaginatedDocs<T> =>
   ({ docs: [], hasNextPage: false, totalDocs: 0, limit: 10, ...over }) as PaginatedDocs<T>
 

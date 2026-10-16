@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import type { RoleT } from '@/lib/auth/roles'
 
-// Risk #22: Faktury / Drukuj take a client `Where`, so an EMPLOYEE must never reach them.
 vi.mock('server-only', () => ({}))
 
 const session = vi.hoisted(() => ({ user: { id: 25, role: 'EMPLOYEE' as RoleT } }))

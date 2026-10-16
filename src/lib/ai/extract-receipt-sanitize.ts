@@ -4,7 +4,6 @@ import { normalizeNip } from '@/lib/utils/nip'
 import type { ReceiptExtractionT } from './receipt-extraction-schema'
 
 /**
- * The model's identity fields as the duplicate check can trust them, `''` meaning „not read".
  * Our own NIP is the buyer's printed on a faktura, never the seller's — kept, it would make every
  * faktura from every shop share one seller.
  */

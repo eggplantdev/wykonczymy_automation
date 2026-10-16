@@ -1,10 +1,6 @@
 import { AlertBadge } from '@/components/fleet/alert-badge'
 import { INSPECTION_TYPE_LABELS, type PerformedInspectionTypeT } from '@/lib/fleet/inspection-types'
 
-/**
- * The badge prints a short noun, not the type's own label: „Wymiana oleju do wymiany" is nonsense,
- * and the „do wymiany" framing comes from the column header and the tooltip instead.
- */
 const FLAG_BADGE_LABELS: Record<PerformedInspectionTypeT, string> = {
   TECHNICAL: 'Przegląd',
   INSURANCE: 'OC',

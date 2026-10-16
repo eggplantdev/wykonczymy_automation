@@ -9,8 +9,6 @@ type OptionalLinkPropsT = {
   target?: '_blank'
 }
 
-// Renders a `Link` when `href` resolves, otherwise the same children unlinked —
-// for cells/labels whose target entity may be missing (deleted, unassigned, etc).
 export function OptionalLink({ href, children, className, target }: OptionalLinkPropsT) {
   if (!href) return children
   return (

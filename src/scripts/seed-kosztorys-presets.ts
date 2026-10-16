@@ -1,9 +1,3 @@
-// E2E fixture for EX-442 (szablony kosztorysu). Two investments: `source` — 2 sekcje with przedmiar
-// and stage progress, the per-job fields a szablon must drop; `reload` — one sekcja/praca, replaced
-// by „Wczytaj szablon…". No szablon seeded — the spec's first scenario saves it through the dialog.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-presets.ts
-// Emits: PRESET_SEED={"source":<id>,"reload":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -46,7 +40,6 @@ async function seedInvestment(
     ...ctx,
   })
 
-  // displayOrder is global across the rozpiska, not per section — matches what the editor rewrites.
   let itemOrder = 0
   for (const [sectionOrder, spec] of shape.entries()) {
     const section = await payload.create({

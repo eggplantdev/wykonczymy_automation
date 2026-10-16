@@ -22,8 +22,6 @@ type InvoiceDownloadDialogPropsT = {
   fetchRows: TransferRowsFetchT
 }
 
-// The rows that produce the count are the rows „Pobierz" packs — one fetch, so the number shown can
-// never disagree with the archive.
 export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT) {
   const { locale, t } = useTranslation('transfers')
   const searchParams = useSearchParams()
@@ -31,6 +29,8 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
   const [open, setOpen] = useState(false)
   const [range, setRange] = useState<DateRangeT>(ALL_TIME)
   const [rows, setRows] = useState<TransferRowT[]>()
+  // Explicit state, not useTransition: a transition's pending flag would outlive `disown()` on close
+  // and show a stale spinner on a quick reopen.
   const [isCounting, setIsCounting] = useState(false)
   const request = useLatestRequest()
 

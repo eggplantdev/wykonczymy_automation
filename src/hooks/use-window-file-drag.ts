@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-/** Weak state: a file is over the window, this zone is a possible target but not the active one. */
 export const FILE_DRAG_ARMED_CLASS = 'ring-neon-cyan/40 ring-1'
-/** Strong state: the cursor is over this zone, releasing here will drop the file. */
 export const FILE_DRAG_OVER_CLASS = 'ring-neon-cyan ring-2'
 
 function isFileDrag(e: DragEvent): boolean {
@@ -12,9 +10,7 @@ function isFileDrag(e: DragEvent): boolean {
 }
 
 /**
- * Cancels the browser's default drop handling (else a stray drop navigates the tab) while mounted,
- * and reports whether a file is over the window. Per-dropzone, not per-layout, so never active
- * inside the Payload admin. Only calls `preventDefault` — several dropzones share this listener.
+ * Cancels the browser's default drop handling (else a stray drop navigates the tab) while mounted.
  */
 export function useWindowFileDrag(): boolean {
   const [isFileDragActive, setIsFileDragActive] = useState(false)

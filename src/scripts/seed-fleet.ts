@@ -1,10 +1,3 @@
-// E2E fixture for flota (EX-716) — a „Nie dotyczy (bezterminowo)" tick reaching the przegląd column
-// on /flota. Two vehicles per run under a timestamped registration prefix: the listing is global and
-// `registration` is unique. The costs vehicle has two priced przeglądy for „Koszty"/„Razem"; the
-// exemption vehicle has none, so its cell reads „brak danych" until ticked. Dates are long past.
-//
-// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-fleet.ts
-// Emits: FLEET_SEED={"prefix":"…","costs":{…},"exempt":{…}}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 

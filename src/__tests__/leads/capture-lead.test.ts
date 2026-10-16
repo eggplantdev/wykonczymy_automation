@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 
-// Unit test for the store-then-notify-then-autoreply contract. Store + both email
-// seams are mocked; we assert the persisted notifyStatus/autoReplyStatus and how
-// many send attempts ran.
 vi.mock('@/lib/leads/store-lead', () => ({ storeLead: vi.fn() }))
 vi.mock('@/lib/leads/notify', () => ({ notifyNewLead: vi.fn(), sendAutoReply: vi.fn() }))
 
@@ -67,10 +64,6 @@ describe('captureLead — notify + auto-reply', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
-  // The bug: a crash between the store (writes 'pending') and the status update
-  // left a row 'pending' with no email ever sent; redelivery short-circuited on
-  // created===false, so it was never retried. A 'pending' channel means "never
-  // attempted" — retry it; a settled channel ('sent'/'failed'/'skipped') is left alone.
   it('retries a pending channel on redelivery (crashed before the first send)', async () => {
     vi.mocked(storeLead).mockResolvedValue({
       lead: { ...baseLead, notifyStatus: 'pending', autoReplyStatus: 'pending' } as Lead,
@@ -95,8 +88,6 @@ describe('captureLead — notify + auto-reply', () => {
 })
 
 describe('captureLead — options', () => {
-  // The sweep suppresses the customer-facing channel but must never suppress the sales
-  // one: a lead recovered late is still a lead somebody has to call (EX-660).
   it('skips the auto-reply on request while still notifying sales', async () => {
     await captureLead(payload, input, { autoReply: 'skip' })
     expect(sendAutoReply).not.toHaveBeenCalled()
@@ -104,15 +95,12 @@ describe('captureLead — options', () => {
     expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'skipped' })
   })
 
-  // Guards the two webhook callers, which pass no options at all.
   it('sends both channels when no options are given', async () => {
     await captureLead(payload, input)
     expect(notifyNewLead).toHaveBeenCalledTimes(1)
     expect(sendAutoReply).toHaveBeenCalledTimes(1)
   })
 
-  // The sweep revalidates once for the whole run, so a per-row afterChange hook would
-  // be both redundant and — in the cron's Route Handler context — a runtime throw.
   it('forwards skipRevalidation to both the store and the status write', async () => {
     await captureLead(payload, input, { skipRevalidation: true })
     expect(storeLead).toHaveBeenCalledWith(payload, input, { skipRevalidation: true })

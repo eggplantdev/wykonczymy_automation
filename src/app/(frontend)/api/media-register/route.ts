@@ -19,10 +19,6 @@ import { logError } from '@/lib/utils/log-error'
 import { MEDIA_KINDS } from '@/types/media'
 
 /**
- * The second hop of a file too big for `/api/media-upload`: the browser has already PUT the bytes
- * to Blob under `filename`, and this turns that blob into a `media` row from its metadata and its
- * first KB.
- *
  * The filename comes from the client, so the route never deletes a blob it cannot prove is a
  * fresh, unreferenced upload: production Blob holds tax-retained faktury and has no undelete.
  */

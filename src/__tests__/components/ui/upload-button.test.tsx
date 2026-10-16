@@ -3,9 +3,6 @@ import { render, screen } from '@testing-library/react'
 import { UploadButton } from '@/components/ui/upload-button'
 
 describe('UploadButton', () => {
-  // The gallery withholds the picker while a REMOVAL is in flight too, and it used to do that by
-  // feeding the combined flag to `isUploading` — so deleting the last file left the empty state
-  // announcing „Przesyłanie…" for a delete. The two reasons to be disabled are now separate props.
   it('stays disabled for an unrelated reason without claiming an upload', () => {
     render(
       <UploadButton

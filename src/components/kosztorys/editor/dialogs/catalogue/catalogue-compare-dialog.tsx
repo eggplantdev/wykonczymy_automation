@@ -24,20 +24,6 @@ import {
 } from '@/lib/kosztorys/row-conditions/registry'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
 
-/**
- * „Porównaj z katalogiem" — the rozpiska read against the global cennik, and the one window that
- * writes in BOTH directions. Into the cennik: „Dodaj do katalogu" on a praca it lacks, „Edytuj w
- * katalogu" on one whose liczby drifted. Out of it: „Aktualizuj kosztorys", which pulls the ticked
- * liczby into the rozpiska itself, and accepting a „może chodzi o…" candidate, which gives a praca
- * the cennik's own name. The read-only viewer keeps the whole report and loses every one of those
- * entries.
- *
- * The hurt leaves an automatic wersja behind it (the action takes one before writing), so „Wersje"
- * undoes the whole batch — which is what makes „zaznacz wszystkie" a safe thing to offer.
- *
- * The report is the SAME comparison the „Problemy" counters read, taken off the editor context, so
- * the window and the toolbar can never disagree — and it is already computed when the window opens.
- */
 export function CatalogueCompareDialog() {
   const { open, setOpen: onOpenChange } = useKosztorysActions().catalogueCompare
   const {
@@ -55,13 +41,7 @@ export function CatalogueCompareDialog() {
   const [savingItemId, setSavingItemId] = useState<number | null>(null)
 
   // The „może chodzi o…" guesses, dice-matched against every entry in the cennik: O(pozycje ×
-  // katalog), 10.7 s at 400 probes. It may therefore never ride along with the classification that
-  // feeds the counters — it runs here, once, and only for a window someone actually opened.
-  //
-  // Deferred rather than gated on `open`: the report then paints hint-free on the opening frame and
-  // the scoring lands in the next, so the click that opens the window is never the click that blocks
-  // the main thread for a second. It also keeps the report non-null while the window animates shut,
-  // which a hard gate turned into a flash of the „brak" state on every close.
+  // katalog), 10.7 s at 400 probes.
   const withHints = useDeferredValue(open)
   const report = useMemo(() => {
     if (!catalogueComparison) return null
@@ -72,8 +52,7 @@ export function CatalogueCompareDialog() {
     }
   }, [withHints, catalogueComparison, workCatalogue])
 
-  // The rozpiska is underneath the window, so a narrowing gesture that left it open would read as a
-  // button that did nothing. Engaging, never toggling: the shared helper drops a condition that is
+  // Engaging, never toggling: the shared helper drops a condition that is
   // already on, so on a second visit „Pokaż w rozpisce" would UNDO the narrowing it promises.
   function narrowTo(conditionId: string) {
     if (!engagedConditionIds.has(conditionId)) toggleConditionExclusive(conditionId, PROBLEM_IDS)
@@ -106,9 +85,6 @@ export function CatalogueCompareDialog() {
                 status={diffs.length === 0 ? 'ok' : 'warn'}
                 verdict={diffsVerdict(diffs.length)}
               >
-                {/* Both numbers, because they disagree on purpose: one praca can differ on three
-                  liczby, so a fold announcing „5" that opens onto ten wiersze reads as a bug in the
-                  count rather than as three figures per praca. */}
                 {diffs.length > 0 && !readOnly && (
                   <ShowInRozpiskaButton
                     onClick={() => narrowTo(CATALOGUE_DIVERGENCE_CONDITION_ID)}
@@ -152,8 +128,6 @@ export function CatalogueCompareDialog() {
           )
         }}
       </SheetReportDialog>
-      {/* Mounted only while a praca is picked, so the preview fetch happens on the click and never
-          on opening the report. */}
       {savingItemId !== null && (
         <CatalogueItemFromKosztorysDialog
           itemId={savingItemId}
@@ -166,8 +140,6 @@ export function CatalogueCompareDialog() {
   )
 }
 
-// „Pokaż w rozpisce" reads identically in both blocks and means the same gesture in both, so it is one
-// component rather than two copies that could drift apart in wording.
 function ShowInRozpiskaButton({ onClick }: { onClick: () => void }) {
   return (
     <Button variant="link" size="xs" className="h-auto p-0" onClick={onClick}>

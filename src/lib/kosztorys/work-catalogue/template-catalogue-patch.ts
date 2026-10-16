@@ -38,14 +38,8 @@ type CatalogueUpdateT = Partial<
   >
 >
 
-/**
- * The katalog update a szablon cell edit stands for. Expects the patch already made whole by
- * `normalizeOverridePatch`, so a stawka arrives as its pair and lands as the katalog's pair — the
- * same source on both sides, no `impliedCatalogueRate` derivation needed.
- *
- * `matchKey` is returned whenever the opis or j.m. is touched, so the caller can check the key's
- * holder before writing.
- */
+// Expects the patch already made whole by `normalizeOverridePatch`, so a stawka arrives as its pair
+// and lands as the katalog's pair.
 export function catalogueUpdateFor(
   entry: WorkCatalogueItemT,
   patch: ItemPatchT,

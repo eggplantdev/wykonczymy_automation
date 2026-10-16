@@ -61,8 +61,6 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
 
   afterAll(purge)
 
-  // A worker's failed draft leaves his uploads in Blob; he may clean those, never a manager's page
-  // that another form is about to save.
   it('an EMPLOYEE reclaims only the files he uploaded', async () => {
     getCurrentUserJwt.mockResolvedValue({
       id: workerId,

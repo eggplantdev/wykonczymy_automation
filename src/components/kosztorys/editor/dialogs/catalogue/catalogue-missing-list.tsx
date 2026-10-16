@@ -16,22 +16,6 @@ import { unitLabel } from '@/lib/kosztorys/format'
 
 const SEARCH_RESULT_LIMIT = 8
 
-/**
- * „Brak w katalogu" — the prace the cennik has never heard of, each with up to three candidates it
- * might actually BE, and both ways out: take the cennik's name, or put the praca into the cennik.
- *
- * Its own component rather than `ItemList`: a candidate is a control, not a note, and the three
- * arkusz windows that share `ItemList` have nothing to click in that column.
- *
- * Accepting a candidate writes opis AND j.m., which is the whole point — the klucz is the pair, so
- * the praca only stops being „brak w katalogu" when both match. Prices stay put: this settles what
- * the praca is called, and the „Inne liczby" block it lands in is where what it costs is settled.
- *
- * One candidate per WIERSZ, with its j.m. and cena in fixed columns. Flowing them inline turned 38
- * prace into a wall of amber prose where no candidate had a beginning, an end, or anything that
- * looked clickable — and the choice this block exists for is a comparison between candidates, which
- * is only possible when the things being compared line up.
- */
 export function CatalogueMissingList({
   missing,
   catalogue,
@@ -45,14 +29,10 @@ export function CatalogueMissingList({
   onAcceptName: (itemId: number, name: CatalogueNameT) => Promise<boolean> | boolean
   onAddToCatalogue: (itemId: number) => void
 }) {
-  // One open search at a time, keyed by praca: the katalog runs to hundreds of wpisy and a field per
-  // wiersz would filter all of them on every keystroke of any of them.
   const [searchingItemId, setSearchingItemId] = useState<number | null>(null)
 
   return (
     <div className="space-y-2 text-xs">
-      {/* Said once, at the top: the gesture is a WRITE, and without a sentence naming it nothing on
-          a candidate wiersz says what a click changes or what it leaves alone. */}
       {!readOnly && (
         <p className="text-muted-foreground">
           Kliknij podpowiedź, żeby zapisać w kosztorysie nazwę z katalogu i jednostkę. Ceny zostają
@@ -91,8 +71,6 @@ export function CatalogueMissingList({
                 onClick={() => onAcceptName(row.itemId, catalogueNameOf(hint))}
               />
             ))}
-            {/* Offered even with no candidates — nothing scored above the threshold is the case
-                where searching by hand is the ONLY way in. */}
             {!readOnly && (
               <Button
                 variant="ghost"
@@ -131,7 +109,6 @@ const catalogueNameOf = ({
 
 const searchText = (entry: WorkCatalogueItemT) => `${entry.description} ${entry.unit}`
 
-// No `readOnly` here: the only way to open this is the toggle that a read-only viewer never gets.
 function CatalogueSearch({
   catalogue,
   onPick,
@@ -149,8 +126,6 @@ function CatalogueSearch({
         placeholder="Szukaj w katalogu..."
         className="w-full sm:w-72"
       />
-      {/* Capped rather than scrolled: the katalog holds hundreds of wpisy, and a list that long
-          inside a fold is a wall to scroll past on the way to the next praca. */}
       <div>
         {filteredData.slice(0, SEARCH_RESULT_LIMIT).map((entry) => (
           <CandidateRow

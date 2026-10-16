@@ -7,7 +7,8 @@ import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
 import { getDb } from '@/lib/db/get-db'
 
-// Scheduled from vercel.json.
+export const maxDuration = 300
+
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     if (items > 0) revalidateTag(CACHE_TAGS.workCatalogue, EXPIRE_NOW)
 
-    return NextResponse.json({ ok: true, items, failed }, { status: 200 })
+    return NextResponse.json({ ok: failed === 0, items, failed }, { status: 200 })
   } catch (err) {
     // TODO(EX-958) SENTRY-REQUIRED: the katalog stays untranslated until the next run or the button.
     console.error('[cron/translate-catalogue] Fill failed', err)

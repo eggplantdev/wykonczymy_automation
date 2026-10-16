@@ -15,8 +15,6 @@ const AI_COMMENT_LINES = [
   ['Co / ile założono', 'aiAssumptions'],
 ] as const
 
-// The draft lists one item per line; in the cell they would run on into each other, so they read as
-// one comma-separated answer.
 export const aiCommentLines = (row: Pick<KosztorysV2RowT, 'aiMissingData' | 'aiAssumptions'>) =>
   AI_COMMENT_LINES.flatMap(([question, field]) => {
     const answer = (row[field] ?? '')
@@ -27,7 +25,7 @@ export const aiCommentLines = (row: Pick<KosztorysV2RowT, 'aiMissingData' | 'aiA
     return answer ? [{ field, question, answer }] : []
   })
 
-// Each round appends „Label: answer” lines; split at the first colon so an answer may carry its own.
+// split at the first colon so an answer may carry its own.
 export const aiNewInformationLines = (text: string | null | undefined) =>
   (text ?? '')
     .split('\n')

@@ -57,15 +57,14 @@ import {
   EntityComboboxField,
   PaymentMethodField,
   SourceRegisterField,
-  LineItemsField,
 } from '@/components/forms/form-fields'
+import { LineItemsField } from '@/components/forms/expense-form/line-items-field'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 import { FormShell } from '../form-components/form-shell'
 import { RegisterBalanceSummary } from '../form-components/register-balance-summary'
 import { useExpenseFormStore } from '@/stores/form-stores'
-import { isBookableInvestment } from '@/lib/constants/investment-lock'
-import { isOfferedForBooking } from '@/lib/constants/investment-status'
+import { isBookableInvestment, isOfferedForBooking } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
@@ -73,9 +72,9 @@ import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 
-// Form state uses strings since HTML inputs/selects work with strings.
-// Numeric conversion happens in the server action.
 type FormValuesT = BulkExpenseFormValuesT
+
+export type ParagonRowT = { itemId: string; position: number; status: DecisionStatusT }
 
 export type ExpenseFormPrefillT = {
   values: FormValuesT
@@ -94,21 +93,18 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
-  // The prefill's read is still in flight; the form locks so the refill can't overwrite typing.
   isPrefillReading?: boolean
-  // The save uploads the prefill's files as the expense's invoices; without them it would book one
-  // with none.
   isSaveBlocked?: boolean
   secondaryAction?: React.ReactNode
-  // After each paragon booked or refused, while the dialog stays open.
   onDecided?: () => void
-  // `duplicateOf` when the last row went as a duplicate — it takes the whole zgłoszenie with it.
   onRemoveLastItem?: (duplicateOf?: DuplicateOfT) => void
-  // Reads the live rows, so a hint follows the row it is about as rows are removed.
-  renderAboveLineItems?: (api: {
-    lineItemIds: string[]
+  aboveLineItems?: React.ReactNode
+  wrapLineItem?: (api: {
+    itemId: string
     markDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
-    itemIdOfReadRow: (readRow: number) => string | undefined
+    paragonOfReadRow: (readRow: number) => ParagonRowT | undefined
+    disabled: boolean
+    renderRow: (hint: React.ReactNode) => React.ReactNode
   }) => React.ReactNode
 }
 
@@ -124,24 +120,20 @@ export function ExpenseForm({
   isSaveBlocked = false,
   secondaryAction,
   onRemoveLastItem,
-  renderAboveLineItems,
+  aboveLineItems,
+  wrapLineItem,
   onDecided,
 }: TransferFormPropsT) {
-  // With an AI read, each paragon is booked or refused by its own button; without one, the
-  // zgłoszenie is booked whole by „Zapisz".
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
   const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<DecisionStatusT>>(
     () => new Set(['accepted', 'rejected']),
   )
   const { recoveredFiles, submit } = useFormSubmit(formId)
   const { ask, dialogProps: missingInvoiceDialog } = useSubmitConfirm()
-  // Rides on the acceptance decision; nothing is stored until the save.
   const [duplicateOfByItemId, setDuplicateOfByItemId] = useState(
     () => new Map<string, DuplicateOfT>(),
   )
 
-  // Scoped by formId like every other draft consumer: `'expense'` is the only writer today, but the
-  // day an „Edytuj wydatek" dialog shares this slot its draft would otherwise seed the create form.
   const storedFormId = useExpenseFormStore((s) => s.formId)
   const draft = useExpenseFormStore((s) => s.formData)
   const storedValues = storedFormId === formId ? draft : null
@@ -156,8 +148,6 @@ export function ExpenseForm({
     isIngesting,
     registerFiles,
     attachFile,
-    // Keyed by id, so surviving rows' markers/files need no shift and the reactive store
-    // re-renders the removed row on its own.
     handleRemoveLineItem,
     replaceRows,
     removeFileAt,
@@ -171,7 +161,6 @@ export function ExpenseForm({
       : { recoveredFiles, storedLineItems: storedValues?.lineItems },
   )
 
-  // The zgłoszenie's photos are already media rows: booking links them instead of uploading again.
   const draftMediaIds = new Map(
     [...(prefill?.pagesByMediaId ?? [])].map(([id, page]) => [page, id]),
   )
@@ -184,13 +173,10 @@ export function ExpenseForm({
 
   function handleReset() {
     // Not plain `blankValues`: that snapshot is frozen at first render, so a default kasa pinned
-    // from inside this dialog (the button below the kasa field) would be undone by „Wyczyść" until
-    // the dialog was closed and reopened.
+    // from inside this dialog would be undone by „Wyczyść".
     form.reset({ ...blankValues, sourceRegister: getDefaultCashRegister(referenceData) })
-    // Fresh id so the row remounts and its uncontrolled FileInput drops the native FileList no reset
-    // reaches. Set apart from the reset above, not folded into it: reset adopts whatever it is given
-    // as the new defaults, and the next render would swap the stale row back in. Meta-free, or the
-    // draft listener re-persists what was just cleared.
+    // Set apart from the reset above: reset adopts whatever it is given as the new defaults, and the
+    // next render would swap the stale row back in.
     form.setFieldValue('lineItems', [makeLineItem({ expenseCategory: defaultExpenseCategory })], {
       dontUpdateMeta: true,
       dontRunListeners: true,
@@ -202,13 +188,10 @@ export function ExpenseForm({
     setDuplicateOfByItemId(new Map())
   }
 
-  // Fills the select only when it would otherwise be empty — a draft that already names an
-  // investment keeps it, so navigating between investments never rewrites a half-filled form.
   const investmentFromUrl = useInvestmentFromUrl(referenceData.investments)
 
-  // Held in state, not rebuilt inline: makeLineItem() mints a fresh uuid, so an inline literal
-  // handed to useAppForm was a new defaultValues on every render — the form re-applied it, which
-  // re-rendered, which minted another id → "Maximum update depth exceeded" the moment the dialog opened.
+  // Held in state, not rebuilt inline: makeLineItem() mints a fresh uuid → "Maximum update depth
+  // exceeded" the moment the dialog opened.
   const [blankValues] = useState<FormValuesT>(() => ({
     date: warsawToday(),
     type: 'INVESTMENT_EXPENSE',
@@ -227,10 +210,6 @@ export function ExpenseForm({
       ? {
           ...storedValues,
           investment: storedValues.investment || investmentFromUrl,
-          // A draft saved before a type left the dialog would restore a value the Select cannot render:
-          // it shows empty while the form still submits the removed type, which the server accepts.
-          // Coerced rather than dropping the whole draft — one stale field is not worth discarding
-          // everything the user typed.
           type: restorableType(storedValues.type),
         }
       : blankValues
@@ -249,18 +228,13 @@ export function ExpenseForm({
       onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
-      // Backstop to the disabled submit button (a keyboard Enter can bypass it): a row still
-      // ingesting hasn't stored its processed file yet, so getFiles() would read undefined for it
-      // and the line item would save without its receipt — silent loss.
+      // Backstop to the disabled submit button (a keyboard Enter can bypass it).
       if (isIngesting) {
         toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
         return false
       }
-      // Each paragon is booked by its own button; an Enter in a field books nothing.
       if (isSaveBlocked || isParagonMode) return false
 
-      // Cross the id→position seam once, here: the upload contract and the optimistic-store
-      // snapshot (persisted for recovery) are both positional (mediaIds[i] ↔ lineItems[i]).
       const files = positionalFiles(value.lineItems, getFiles())
 
       const missingInvoice =
@@ -270,8 +244,6 @@ export function ExpenseForm({
       const data = toBulkData(value, value.lineItems)
 
       await submit(!!keepOpen, {
-        // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
-        // every attached file is uploaded once here.
         action: () =>
           submitWithUploadRows(
             value.lineItems.length,
@@ -294,8 +266,6 @@ export function ExpenseForm({
         onSubmitSuccess,
         onReset: () => {
           handleReset()
-          // „Nie zamykaj" books a batch of receipts, which nearly always share one day. Set apart
-          // from the reset for the same reason as the line items there.
           if (keepOpen)
             form.setFieldValue('date', value.date, { dontUpdateMeta: true, dontRunListeners: true })
         },
@@ -323,8 +293,6 @@ export function ExpenseForm({
     renameFile: prefill ? () => {} : renameFile,
   })
 
-  // The reactive file store re-renders each FV label as generateFromReceipts renames its file — no
-  // remount needed, so this is just the scan.
   const handleGenerate = generateFromReceipts
 
   const currentType = useStore(form.store, (s) => s.values.type)
@@ -337,7 +305,9 @@ export function ExpenseForm({
     form,
     lineItems,
     replaceRows,
-    isBusy: isGenerating || isIngesting || isPrefillReading || isSaveBlocked,
+    isBusy: isGenerating || isIngesting || isPrefillReading,
+    isAcceptBlocked: (id) => isSaveBlocked && !getRowFiles(id)?.length,
+    isRegroupBlocked: isSaveBlocked,
     getFiles,
     ask,
     submit,
@@ -346,7 +316,6 @@ export function ExpenseForm({
     onDecided,
   })
 
-  // Booked and refused rows stay on screen; only what is still waiting adds up.
   const sumAmounts = (items: typeof lineItems) =>
     items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const total = sumAmounts(
@@ -368,16 +337,19 @@ export function ExpenseForm({
     setDuplicateOfByItemId((prev) => new Map(prev).set(itemId, duplicateOf))
   }
 
-  // Blanked, never reset — see clear-fields-for-type. Top-level fields ONLY: the rows, their queued
-  // invoice files and the per-row scan markers all survive a type change.
-  //
-  // They used to be wiped here, which cost the user a paid receipt scan and the re-attached file
-  // every time they picked the type after scanning — the order `use-receipt-generation` itself
-  // assumes, since the scan is what fills the row. The hazard that wipe cited (a queued file
-  // binding to a nonexistent row) cannot happen: files are keyed by row id and `positionalFiles`
-  // resolves them against the CURRENT rows, dropping a stale id rather than mis-binding it. Nor can
-  // a retained value reach the wire — `mapLineItem` drops every conditional per-row field off a type
-  // that does not show it. Clearing everything stays on „Wyczyść".
+  function paragonOfReadRow(
+    readRow: number,
+    positionOf: (itemId: string) => number | undefined,
+  ): ParagonRowT | undefined {
+    const itemId = draftReceipts.itemIdOfReadRow(readRow)
+    if (itemId === undefined) return undefined
+    const position = positionOf(itemId)
+    if (position === undefined) return undefined
+    return { itemId, position, status: receiptGrouping?.statusOf(itemId) ?? 'pending' }
+  }
+
+  // Top-level fields ONLY: the rows, their queued invoice files and the per-row scan markers all
+  // survive a type change.
   function resetConditionalFields(type: string) {
     staleFieldsForType(type).forEach(([field, value]) => form.setFieldValue(field, value))
     form.setFieldValue(
@@ -392,7 +364,6 @@ export function ExpenseForm({
         getDefaultCashRegister(referenceData),
       ),
     )
-    // The kasa may have just been blanked above, so the balance beside it no longer describes it.
     resetRegisterBalance()
   }
 
@@ -400,9 +371,6 @@ export function ExpenseForm({
     <FormShell form={form} onReset={handleReset}>
       <fieldset disabled={isPrefillReading} className="min-w-0">
         <FieldGroup>
-          {/* The netto hint sits UNDER the row, not on the Select as a `description` — FormBase
-          renders a description between the label and the control, which would push the type
-          Select down while „Data" beside it stayed put, breaking the row's alignment. */}
           <div className="space-y-1.5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <form.AppField
@@ -476,13 +444,7 @@ export function ExpenseForm({
             <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
           )}
 
-          {renderAboveLineItems?.({
-            lineItemIds: lineItems
-              .map((item) => item.id)
-              .filter((id) => draftReceipts.pendingIds.has(id)),
-            markDuplicate,
-            itemIdOfReadRow: draftReceipts.itemIdOfReadRow,
-          })}
+          {aboveLineItems}
 
           {!isDepositType(currentType) && (
             <LineItemsField
@@ -503,6 +465,17 @@ export function ExpenseForm({
               failedIds={failedIds}
               receiptGrouping={receiptGrouping}
               hiddenStatuses={isParagonMode ? hiddenStatuses : undefined}
+              wrapRow={
+                wrapLineItem &&
+                ((itemId, renderRow, positionOf) =>
+                  wrapLineItem({
+                    itemId,
+                    markDuplicate,
+                    paragonOfReadRow: (readRow) => paragonOfReadRow(readRow, positionOf),
+                    disabled: receiptGrouping?.disabled ?? false,
+                    renderRow,
+                  }))
+              }
               generationProgress={generationProgress}
               transferType={currentType}
               referenceData={referenceData}

@@ -1,11 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
-// The wrapper is the kosztorys plane's only chokepoint (raw SQL bypasses hooks and `access`), so
-// three things are asserted: it refuses on a locked investment, it resolves a row id to its
-// investment before asking, and it forwards `revalidate`/`opts` untouched — `ownerOnlyAction`, the
-// shape this was copied from, drops both, and losing them here would silently kill cache
-// invalidation in ~28 actions.
 vi.mock('server-only', () => ({}))
 
 const lockState = vi.hoisted(() => ({

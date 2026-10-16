@@ -11,9 +11,7 @@ import {
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
-// Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a
-// delete that leaves kosztorys rows behind, reads identically at the action's return value. The
-// session is mocked rather than `requireAuth`, so the role gate under test is the real one.
+// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
 vi.mock('server-only', () => ({}))
 

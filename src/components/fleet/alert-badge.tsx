@@ -2,10 +2,6 @@ import { AlertTriangle } from 'lucide-react'
 import { BADGE_BASE } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
 
-/**
- * One alarm shape for the fleet surfaces. A mark typed by hand and an automatically detected overrun
- * are the same alarm to whoever reads the row, so they must not drift apart into two reds.
- */
 export function AlertBadge({
   title,
   className,

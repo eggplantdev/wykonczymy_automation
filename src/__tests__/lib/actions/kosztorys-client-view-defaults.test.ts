@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 
-// „Zapisz jako domyślne" writes FIRM-WIDE state: the global it touches decides what every investment
-// without a row of its own serves to its client link. So this asserts the PERSISTED global, not the
-// action's return value.
 vi.mock('server-only', () => ({}))
 
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string }))
@@ -64,7 +61,6 @@ describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
   })
 })
 
-// A manager shares the link, so both the per-investment save and the firm-wide default are theirs.
 describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
   let payload: Payload
   let investmentId: number

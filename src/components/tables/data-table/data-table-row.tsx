@@ -12,7 +12,6 @@ type DataTableRowPropsT<TData> = {
   cells: Cell<TData, unknown>[]
   getRowHref?: (row: TData) => string | undefined
   getRowClassName?: (row: TData) => string
-  /** The virtualizer's `measureElement` — it reads the row's position from `data-index`. */
   measureRef?: (node: HTMLTableRowElement | null) => void
   index?: number
 }

@@ -27,7 +27,6 @@ export function useFillTranslationsAction(): TreeRewriteActionT {
   )
 
   function startWithNotice() {
-    // The menu closes on select, so the wait — up to a minute on a long kosztorys — needs its own word.
     toastMessage('Tłumaczę opisy i nazwy sekcji…', 'info', NOTICE_MS)
     start()
   }

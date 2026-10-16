@@ -3,10 +3,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { selectRegistersTrashedWithOwner } from '@/lib/db/worker-trash'
 
-/**
- * The worker first: the kasa guard refuses a kasa restored under an owner still in the trash. Only the
- * kasy that went with him come back — one trashed on its own before him stays where it was.
- */
+// The worker first: the kasa guard refuses a kasa restored under an owner still in the trash.
 export async function restoreWorker(
   payload: Payload,
   workerId: number,

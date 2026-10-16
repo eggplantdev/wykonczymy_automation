@@ -7,8 +7,6 @@ import { workerIdFromSegment } from '@/lib/kosztorys/worker-view/worker-links'
 
 export const viewport = REPORT_VIEWPORT
 
-// „Podgląd" for one worker, under the bare (share) layout so it is the link's exact twin. That layout
-// reads no session, so the guard lives here, as on /podglad-inwestora.
 export default async function WorkerPreviewPage({
   params,
 }: {

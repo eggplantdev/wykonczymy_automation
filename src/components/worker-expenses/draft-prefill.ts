@@ -10,7 +10,6 @@ import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 
 type DraftPrefillT = {
   lineItems: BulkExpenseFormValuesT['lineItems']
-  // Keyed by row position, the shape `ExpenseFormPrefillT.files` takes.
   files: Map<number, File[]>
   receipts: Map<string, DraftReceiptT[]>
   pagesByMediaId: Map<number, File>
@@ -37,13 +36,6 @@ export function lineItemForPart(
   }
 }
 
-/**
- * One row per paragon the AI read, then a blank row for each photo no read row names — so a read
- * that failed or hasn't landed yet still opens a row per photo for „Odczytaj dodane zdjęcia" to
- * fill. A read from before EX-1048 may be one row over every photo; it opens as that one row.
- * `files` are the downloaded pages in `draft.media` order — empty when the download failed and the
- * dialog opens only to reject.
- */
 export function buildDraftPrefill(
   draft: Pick<ExpenseDraftRowT, 'media' | 'aiRead'>,
   files: File[],
@@ -53,7 +45,6 @@ export function buildDraftPrefill(
     draft.media.flatMap((page, index) => (files[index] ? [[page.id, files[index]] as const] : [])),
   )
   const ownIds = new Set(draft.media.map((page) => page.id))
-  // `readRow` is the read's own position, which names the paragon where its pages cannot.
   const aiReadRows = draft.aiRead?.rows ?? []
   const readParts = aiReadRows.flatMap((read, readRow): DraftReceiptT[] =>
     read.mediaIds.length > 0 && read.mediaIds.every((id) => ownIds.has(id))
@@ -79,10 +70,6 @@ export function buildDraftPrefill(
   return { lineItems, files: rowFiles, receipts, pagesByMediaId }
 }
 
-/**
- * The category stays a manual pick: nothing on a draft without an investment says what kind of cost
- * it was.
- */
 export function withDraftTarget(
   draft: Pick<ExpenseDraftRowT, 'investmentId' | 'workerId'>,
   lineItems: BulkLineItemT[],

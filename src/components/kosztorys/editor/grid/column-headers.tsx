@@ -20,10 +20,8 @@ function withTip(node: ReactNode, tip: string): ReactNode {
   )
 }
 
-// A column header that offers the sort menu, or — with no `onSetSort`, i.e. a preview — the bare
-// label. The tip goes ONTO the sort trigger (same element), not around it: a second wrapping trigger
-// would fight the dropdown for the click. Plain labels have no trigger, so they wrap directly, and
-// they wrap (no truncate) into the fixed, taller header row (KosztorysEditorBody).
+// The tip goes ONTO the sort trigger (same element), not around it: a second wrapping trigger
+// would fight the dropdown for the click.
 function sortableHeader(
   label: string,
   field: string,
@@ -57,8 +55,6 @@ function surfaceDictionary(
   return opts.workerSurface ? opts.dictionary : undefined
 }
 
-// The label is resolved from `field`, never passed in: every header and the column picker then read
-// the same resolver, so a label that becomes view-dependent can't land in one and miss the other.
 export function columnTitle(
   field: string,
   opts: Pick<
@@ -77,18 +73,11 @@ export function columnTitle(
   return sortableHeader(
     columnLabelForView(field, opts.view, dictionary),
     field,
-    // Base key: a plane's „Cena j.m. netto" and „Źródło ceny wykonawcy" explain the same figure on
-    // both planes, so the tip is written once and every plane reads it.
     headerTipFor(field, { workerSurface: !!opts.workerSurface, dictionary }),
     opts,
   )
 }
 
-// Header of a per-stage value column: a read-only mirror of the stage's name. One source for the
-// name, so a rename moves all three of the stage's headers and a delete takes all three columns.
-// Deliberately not `StageHeader` — a mirror carries no rename/delete affordance of its own; its
-// label is simply one the column-label resolver cannot produce, the stage's name being data rather
-// than a static column label.
 export function stageValueHeader(
   stage: KosztorysStageT,
   axis: 'net' | 'gross',

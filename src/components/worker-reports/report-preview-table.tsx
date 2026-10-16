@@ -15,7 +15,6 @@ const col = createColumnHelper<ReportPreviewLineT>()
 
 type PropsT = { group: ReportLineKindT; lines: ReportPreviewLineT[] }
 
-// Read-only, in the builder's order: sekcja order then position, the order the worker sent it in.
 export function ReportPreviewTable({ group, lines }: PropsT) {
   const { t } = useTranslation('workerReports')
   const { t: tReport } = useTranslation('report')

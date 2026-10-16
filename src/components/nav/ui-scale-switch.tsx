@@ -26,7 +26,6 @@ function readScale(): UiScaleT {
   return parseUiScale(match?.[1])
 }
 
-// Tailwind sizes text and spacing in rem, so the root font-size scales the whole app at once.
 function applyScale(scale: UiScaleT) {
   document.cookie = `${UI_SCALE_COOKIE}=${scale}; path=/; max-age=${ONE_YEAR_SECONDS}; samesite=lax`
   document.documentElement.style.fontSize = scale === DEFAULT_UI_SCALE ? '' : `${scale}%`

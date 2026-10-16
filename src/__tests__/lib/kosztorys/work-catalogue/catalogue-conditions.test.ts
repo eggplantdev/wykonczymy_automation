@@ -50,7 +50,6 @@ describe('catalogue condition predicates', () => {
         descriptionTranslations: current,
       }),
     ).toBe(true)
-    // One language translated says nothing about the other.
     expect(matches('catalogue-no-translation-ru', { descriptionTranslations: current })).toBe(true)
   })
 

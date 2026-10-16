@@ -56,11 +56,9 @@ async function fixItems(db: DbExecutorT): Promise<void> {
 }
 
 /**
- * The same rules over the katalog prac. The key is recomputed alongside the texts because
- * `cleanDescription` also fixes punctuation ('ścian(pianka' → 'ścian (pianka') and `cleanUnit` fixes
- * transpositions (`klp` → `kpl`), and either moves the key:
- * left as it was it would point at a name that no longer exists, and the praca would stop matching
- * itself in „Porównaj z cennikiem".
+ * The key is recomputed alongside the texts because `cleanDescription` also fixes punctuation and
+ * `cleanUnit` fixes transpositions, and either moves the key: left as it was the praca would stop
+ * matching itself in „Porównaj z cennikiem".
  */
 async function fixCatalogue(db: DbExecutorT): Promise<void> {
   const items = await listCatalogueItems(db)
@@ -77,8 +75,7 @@ async function fixCatalogue(db: DbExecutorT): Promise<void> {
   )
 
   // The UNIQUE on `match_key` would reject the second UPDATE mid-loop, so collisions are caught
-  // before any write — two descriptions folding into one key are a duplicate, and which row survives
-  // is not ours to guess.
+  // before any write.
   const collisions = [...Map.groupBy(cleaned, (entry) => entry.matchKey).values()].filter(
     (bucket) => bucket.length > 1,
   )

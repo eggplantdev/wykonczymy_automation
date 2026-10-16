@@ -26,8 +26,6 @@ function defaultsFrom(preview: CatalogueSavePreviewT): WorkCatalogueItemFormValu
   const { candidate, existing } = preview
   return {
     description: candidate.description,
-    // The kategoria is the one field the KATALOG owns rather than the rozpiska: a sekcja is „Podłogi
-    // w pokoju 2", a kategoria is how the cennik is browsed. On an overwrite the existing one wins.
     category: existing?.category ?? candidate.category ?? '',
     unit: candidate.unit,
     clientPrice: String(candidate.clientPrice),
@@ -39,14 +37,6 @@ function defaultsFrom(preview: CatalogueSavePreviewT): WorkCatalogueItemFormValu
   }
 }
 
-/**
- * „Dodaj do katalogu" / „Edytuj w katalogu" — the SAME form the katalog's own edycja uses, opened
- * with the rozpiska's figures already in the fields. Not a preview with a yes/no: what the cennik
- * gets is a decision (kategoria, j.m., która stawka jest „auto"), and a praca typed into a kosztorys
- * often carries a nazwa or j.m. nobody would want frozen into a global cennik verbatim. The form is
- * also where a missing figure is FILLED IN rather than rejected — the write-it-blind route refused
- * such a praca with an error and left nowhere to fix it.
- */
 export function CatalogueItemFromKosztorysDialog({
   itemId,
   catalogue,
@@ -54,7 +44,6 @@ export function CatalogueItemFromKosztorysDialog({
   onOpenChange,
 }: {
   itemId: number
-  // Only for the kategoria suggestions — the preview fetch is what reads the praca's own katalog entry.
   catalogue: readonly WorkCatalogueItemT[]
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -75,9 +64,6 @@ export function CatalogueItemFromKosztorysDialog({
               : 'Katalog prac to wspólny cennik. Stawka bez własnego źródła idzie jako „auto" i policzy się ze współczynnika inwestycji, do której praca trafi; mnożnik przeliczy się od jej ceny j.m.'
           }
         />
-        {/* The old figures as a line rather than a second column of inputs: the fields already hold
-            what WILL be saved, and this is the only thing the form cannot show — what is being
-            replaced. */}
         {existing && (
           <Description size="xs">
             W katalogu teraz: cena j.m. {formatPLN(existing.clientPrice)},{' '}
@@ -85,8 +71,6 @@ export function CatalogueItemFromKosztorysDialog({
             {PLANE_LABELS.own_tools.toLowerCase()} {catalogueRateText(existing, 'own_tools')}.
           </Description>
         )}
-        {/* `DialogContent` is a `gap-4` column, so this only tops the gap up to the 24px every other
-            form dialog puts between its nagłówek and the first field. */}
         <div className="mt-2">
           {!preview ? (
             <Description size="xs">Wczytywanie…</Description>
@@ -105,7 +89,7 @@ export function CatalogueItemFromKosztorysDialog({
               submitLabel={existing ? 'Zapisz' : 'Dodaj'}
               submittingLabel="Zapisywanie..."
               onSubmitSuccess={() => onOpenChange(false)}
-              // Snapshot of a live row, same as the katalog's edycja — a restored draft would write
+              // Snapshot of a live row — a restored draft would write
               // back fields the owner never touched.
               persistDraft={false}
             />

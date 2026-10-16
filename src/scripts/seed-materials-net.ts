@@ -1,13 +1,6 @@
-// FIXTURE (EX-668): seeds the netto-materiały plane. Without it the dump has zero
-// `INVESTMENT_EXPENSE_NET` rows and `pnpm test:parity` compares nothing here.
-// Fourth db-test reset step: `pnpm seed:materials-net:test`; refuses any DB but `wykonczymy-test`.
-// The fixed investment id is what makes it reproducible, not what hides it — inw. 900101 IS in the
-// golden-master fixture, and its wydatki move kasa #5 there too, so this seed is part of the reset
-// ritual rather than optional. Raw SQL, not Payload, so the rows
+// Raw SQL, not Payload, so the rows
 // carry explicit ids and no hook fires (`recalculate-balances` calls `revalidateTag`, which throws
-// outside a request context). NOT because of the arkusz: since 2026-08-27 a sheet write needs
-// `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`, which lives only in Vercel Production, so the sync throws
-// long before Google is reached.
+// outside a request context).
 import { getPayload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import config from '../payload.config'
@@ -31,7 +24,6 @@ const VAT_RATE = 0.23
 type ExpenseRowT = {
   type: 'INVESTMENT_EXPENSE' | 'INVESTMENT_EXPENSE_NET'
   amount: number
-  /** What the faktura named. Only the netto type bills at it; a brutto row leaves it null. */
   netAmount: number | null
   settled: boolean
   date: string
@@ -49,7 +41,7 @@ const ROWS: ExpenseRowT[] = [
     date: '2026-06-05',
     label: 'materiał brutto',
   },
-  // Bills at netto while the kasa loses brutto. Both pairs are exactly 23% apart, so at a 0.23
+  // Both pairs are exactly 23% apart, so at a 0.23
   // materiały rate this fixture cannot tell the invoice brutto from one derived off the rate.
   {
     type: 'INVESTMENT_EXPENSE_NET',
@@ -67,8 +59,6 @@ const ROWS: ExpenseRowT[] = [
     date: '2026-06-26',
     label: 'materiał netto z faktury',
   },
-  // Settled brutto — „wliczone w robociznę": leaves materiały, lowers marża. Keeps the split
-  // three-way, where a bucketing regression shows.
   {
     type: 'INVESTMENT_EXPENSE',
     amount: 4_500,
@@ -97,7 +87,6 @@ async function run() {
     if (error) throw new Error(`wiersz „${row.label}" ${row.amount}/${row.netAmount}: ${error}`)
   }
 
-  // Kasa and kategoria come from data — the ids are whatever the dump happens to carry.
   const register = await db.execute(sql`SELECT id FROM cash_registers ORDER BY id LIMIT 1`)
   const registerId = register.rows[0] ? Number(register.rows[0].id) : null
   if (registerId === null) {

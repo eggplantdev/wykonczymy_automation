@@ -32,8 +32,7 @@ const itemRef = (row: KosztorysV2RowT): ItemRefT => ({
 })
 
 // A restore or „wczytaj szablon" mints new ids, so ids alone would read one restore as the whole
-// kosztorys removed and added again. Whatever ids leave unmatched on both sides is matched by
-// sekcja + opis + j.m. — the j.m. rides keyItems' section slot, so occurrences count per all three.
+// kosztorys removed and added again.
 function matchItems(pastRows: KosztorysV2RowT[], currentRows: KosztorysV2RowT[]) {
   const currentById = new Map(currentRows.map((row) => [row.id, row]))
   const matched = new Map<number, KosztorysV2RowT>()
@@ -53,8 +52,6 @@ function matchItems(pastRows: KosztorysV2RowT[], currentRows: KosztorysV2RowT[])
   return matched
 }
 
-// By id, then by position for what ids left unmatched — the same restore that remints item ids
-// remints the etapy.
 function matchStages(past: KosztorysStageT[], current: KosztorysStageT[]) {
   const currentById = new Map(current.map((stage) => [stage.id, stage]))
   const matched = new Map<number, KosztorysStageT>()

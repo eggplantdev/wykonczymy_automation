@@ -2,9 +2,6 @@ import { test, expect } from '@playwright/test'
 import { login } from './support/auth'
 import { waitForHydration } from './support/wait'
 
-// Unauthenticated on purpose: this spec drives the real login itself to prove the whole
-// cookie round-trip — payload-token is set on login, honored by requireAuth on the next RSC
-// request (the dashboard renders), and cleared by logout (redirect back to /zaloguj).
 test('login sets the session, dashboard renders, logout clears it', async ({ page }) => {
   await login(page)
 

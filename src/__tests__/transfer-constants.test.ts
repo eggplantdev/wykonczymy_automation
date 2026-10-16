@@ -39,15 +39,11 @@ import {
   VAT_PLANES,
 } from '@/lib/constants/transfers'
 
-// CHARACTERIZATION SUITE (EX-573 phase 0). Everything here is pinned against the
-// implementation as it stands BEFORE the spec-table rewrite. A test authored after the
-// rewrite proves nothing about behaviour preservation, so these expectations are written
+// these expectations are written
 // as hand-typed literals — never derived from the same arrays they guard, which would
 // make them tautologically green.
 
 type HelperFn = (type: string) => boolean
-
-// ── Truth table: every predicate × every type ───────────────────────────
 
 const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   isTransferType: {
@@ -60,10 +56,6 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsSourceRegister: {
     fn: needsSourceRegister,
-    // Everything except the three P&L figures with no cash movement, plus CANCELLATION.
-    // CANCELLATION was in this list until EX-573 phase 3 — a DELIBERATE behaviour change,
-    // not a drift: a cancellation annotates the row it reverses and moves no cash of its
-    // own, so offering it a „Kasa" picker only opened a path to draining that register.
     trueFor: [
       'OTHER_DEPOSIT',
       'OTHER',
@@ -158,8 +150,6 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   carriesVatPlane: {
     fn: carriesVatPlane,
-    // The tag names which side of the settlement a wpłata pays, so only a wpłata od inwestora
-    // has one — every other type stores null and validate.ts strips a smuggled plane.
     trueFor: ['INVESTOR_DEPOSIT'],
   },
   carriesPaymentMethod: {
@@ -176,12 +166,6 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
 }
 
-// No row in the truth table above, which is keyed on transfer type. The first three are
-// not boolean — their per-type answers are pinned by the spec-table consistency suite
-// instead (transfer-spec-table.test.ts). `isVatPlane` is boolean but narrows a VAT plane,
-// not a transfer type, so it gets its own suite below; `carriesNetAmount` and `planeFor` are
-// keyed on a PAIR the truth table above has no column for, so they too get their own.
-// `transferColorVar` returns a CSS colour, not a boolean.
 const NOT_A_TRANSFER_TYPE_PREDICATE = [
   'transferColorVar',
   'financialBucketOf',
@@ -195,9 +179,6 @@ const NOT_A_TRANSFER_TYPE_PREDICATE = [
 
 describe('transfer constants — helper truth table', () => {
   it('covers every exported predicate', () => {
-    // Derived from the module, not a hand-typed count — a `toHaveLength(15)` stays green
-    // forever while a newly exported predicate goes untested. Its one exclusion is named
-    // and justified, so adding an export forces a decision here rather than silence.
     const covered = [...Object.keys(HELPERS), ...NOT_A_TRANSFER_TYPE_PREDICATE]
     const exported = Object.entries(transfersModule)
       .filter(([, value]) => typeof value === 'function')
@@ -218,23 +199,12 @@ describe('transfer constants — helper truth table', () => {
 })
 
 describe('needsSourceRegister — CANCELLATION', () => {
-  // Flipped from true in EX-573 phase 3. A cancellation is an audit stub with no cash
-  // movement of its own — the register was already moved by the row being reversed. While
-  // this was true, the admin panel offered a cancellation a „Kasa" picker whose value
-  // nothing cleared (validate.ts returns early for CANCELLATION) and which would land in
-  // the `ELSE -amount` arm of sum-transfers.ts, silently draining that register.
-  //
-  // Defence, not repair: 0 of the 257 cancellations in the production dataset carry a
-  // register, which is why the golden master's 29 register balances are unmoved by this.
   it('is false — a cancellation gets no register picker', () => {
     expect(needsSourceRegister('CANCELLATION')).toBe(false)
   })
 })
 
 describe('canBeSettled vs isExpensesTabType — the equality that ended', () => {
-  // The two agreed for all 12 pre-netto types, which is why they were once a single
-  // predicate. That was a coincidence of the type set, not a rule, and
-  // INVESTMENT_EXPENSE_NET broke it: an expenses-tab row that must NOT be settleable.
   it('INVESTMENT_EXPENSE_NET is the counterexample', () => {
     expect(isExpensesTabType('INVESTMENT_EXPENSE_NET')).toBe(true)
     expect(canBeSettled('INVESTMENT_EXPENSE_NET')).toBe(false)
@@ -263,8 +233,6 @@ describe('needsExpenseCategory — investment-aware', () => {
     expect(needsExpenseCategory(type, hasInvestment)).toBe(expected)
   })
 })
-
-// ── Exact contents AND order of every membership array ──────────────────
 
 describe('membership arrays — exact contents and order', () => {
   it('TRANSFER_TYPES', () => {
@@ -295,9 +263,6 @@ describe('membership arrays — exact contents and order', () => {
   })
 
   it('TRANSACTION_TRANSFER_TYPES', () => {
-    // LABOR_COST and RABAT are back (EX-649) and leave again under EX-712. Reading both figures off
-    // the kosztorys only works once the kosztorys is IN the app; while it is still a spreadsheet the
-    // dialog was the only way to settle the investment at all.
     expect(TRANSACTION_TRANSFER_TYPES).toEqual([
       'OTHER',
       'CORRECTION',
@@ -329,8 +294,7 @@ describe('membership arrays — exact contents and order', () => {
     ])
   })
 
-  // Order IS the sheet's summary-block column layout (I–N), rewritten verbatim by
-  // setupTab on a reset/relink. A reorder here silently rewrites live client
+  // A reorder here silently rewrites live client
   // spreadsheets, with no failure preceding the damage.
   it('TRANSFERS_SUMMARY_TYPES — order is a live sheet column layout', () => {
     expect(TRANSFERS_SUMMARY_TYPES).toEqual([
@@ -367,8 +331,6 @@ describe('membership arrays — exact contents and order', () => {
   })
 })
 
-// ── Label and colour maps ───────────────────────────────────────────────
-
 describe('TRANSFER_TYPE_LABELS / TRANSFER_TYPE_COLORS', () => {
   it.each([
     ['CANCELLATION', 'Anulowanie', 'muted-foreground'],
@@ -396,8 +358,6 @@ describe('TRANSFER_TYPE_LABELS / TRANSFER_TYPE_COLORS', () => {
   })
 })
 
-// ── Unknown input ───────────────────────────────────────────────────────
-
 describe('every predicate returns false for unknown input', () => {
   for (const [name, { fn }] of Object.entries(HELPERS)) {
     it.each(['', 'UNKNOWN_TYPE', 'investment_expense'])(`${name}(%j) → false`, (input) => {
@@ -407,8 +367,6 @@ describe('every predicate returns false for unknown input', () => {
 })
 
 describe('unknown-tolerant predicates reject non-string input', () => {
-  // These three take `unknown` (collections/transfers.ts:250 relies on it) — the rest
-  // take `string`. Pinned so the rewrite can't quietly narrow the signature.
   const unknownTolerant: [string, (t: unknown) => boolean][] = [
     ['isSheetTransferTabType', isSheetTransferTabType],
     ['isExpensesTabType', isExpensesTabType],
@@ -422,15 +380,12 @@ describe('unknown-tolerant predicates reject non-string input', () => {
 })
 
 describe('carriesNetAmount — keyed on the pair, not the type', () => {
-  // Two unrelated reasons behind one predicate, and only one of them reads the plane: a netto
-  // wydatek carries a netto whatever the plane says, a wpłata only when it arrived as a przelew.
   it.each([
     ['INVESTMENT_EXPENSE_NET', 'NET', true],
     ['INVESTMENT_EXPENSE_NET', 'GROSS', true],
     ['INVESTMENT_EXPENSE_NET', undefined, true],
     ['INVESTOR_DEPOSIT', 'GROSS', true],
     ['INVESTOR_DEPOSIT', 'NET', false],
-    // Untagged is gotówka: one kwota netto, no brutto twin to name.
     ['INVESTOR_DEPOSIT', undefined, false],
     ['INVESTMENT_EXPENSE', 'GROSS', false],
     ['COMPANY_FUNDING', 'GROSS', false],
@@ -440,14 +395,10 @@ describe('carriesNetAmount — keyed on the pair, not the type', () => {
   })
 })
 
-// The method IS the plane, and both forms that name one read it here — the wpłata form when
-// booking, the edit form when filling in a legacy row — so a fork between the two is impossible.
 describe('planeFor — the method names the plane, on the deposit type alone', () => {
   it.each([
     ['INVESTOR_DEPOSIT', 'TRANSFER', 'GROSS'],
     ['INVESTOR_DEPOSIT', 'CASH', 'NET'],
-    // A przelew on any other type is only the tor it travelled: one kwota, and no brutto field on
-    // screen for a GROSS tag to name.
     ['INVESTMENT_EXPENSE', 'TRANSFER', 'NET'],
     ['COMPANY_FUNDING', 'TRANSFER', 'NET'],
     ['INVESTOR_DEPOSIT', undefined, 'NET'],
@@ -456,8 +407,6 @@ describe('planeFor — the method names the plane, on the deposit type alone', (
   })
 })
 
-// The predicate the whole fill-in turns on, named once so the form that offers the question, the
-// payload that carries the answer and the action that lets it through cannot drift apart.
 describe('canFillVatPlane — only a wpłata that never had a plane', () => {
   it.each([
     [{ type: 'INVESTOR_DEPOSIT', vatPlane: null }, true],
@@ -476,9 +425,6 @@ describe('isVatPlane', () => {
     expect(isVatPlane(plane)).toBe(true)
   })
 
-  // undefined is the stored state of every wpłata booked before EX-536 — it must narrow
-  // to false so the forms fall back to their own default instead of persisting a
-  // non-plane string as a plane.
   it.each(['', 'net', 'BRUTTO', undefined])('%j → false', (input) => {
     expect(isVatPlane(input)).toBe(false)
   })

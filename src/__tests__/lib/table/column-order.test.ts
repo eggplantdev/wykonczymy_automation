@@ -14,8 +14,6 @@ describe('orderColumnKeys', () => {
     expect(orderColumnKeys(KEYS, {})).toEqual(KEYS)
   })
 
-  // Every column answers to its rank, „Akcje" and „Opis prac" included — no column holds a slot the
-  // owner cannot drag it out of.
   it('ranks every key, chrome and identity alike', () => {
     expect(orderColumnKeys(KEYS, { actions: 99, description: -99 })).toEqual([
       'description',
@@ -49,7 +47,6 @@ describe('orderColumnKeys', () => {
 describe('rankForMove', () => {
   const baseRanks = baseRanksFromKeys(KEYS)
 
-  // The round-trip that matters: whatever rank a drop computes must actually place the key there.
   it.each([0, 1, 2, 3, 4, 5, 6])('places the moved key at index %i', (toIndex) => {
     const rank = rankForMove(KEYS, 'price', toIndex, {}, baseRanks)
     expect(orderColumnKeys(KEYS, { price: rank }).indexOf('price')).toBe(toIndex)
@@ -76,7 +73,6 @@ describe('rankForMove', () => {
 })
 
 describe('orderColumns', () => {
-  // Stage columns carry per-stage ids and answer to one group key — they have to travel as a block.
   const toKey = (id: string) => (id.startsWith('stage_') ? 'stages' : id)
   const columns = [
     { id: 'actions' },

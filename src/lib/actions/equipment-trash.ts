@@ -21,7 +21,6 @@ const findItem = (payload: Payload, id: number) =>
     disableErrors: true,
   })
 
-/** No refusal: an item is trashed wherever it is and whoever holds it — the confirm warns. */
 export async function trashEquipmentAction(equipmentId: number): Promise<ActionResultT> {
   return protectedAction(
     'trashEquipmentAction',

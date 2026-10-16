@@ -24,8 +24,6 @@ describe('allowedSummaryViews', () => {
     ])
   })
 
-  // Hiding the tab is not what protects the client document — it never receives these figures at
-  // all. This filter is the second barrier, not the only one.
   it('podgląd klienta gubi „Podwykonawcy" i „Marża", nawet gdy liczby przyszły', () => {
     expect(allowed(ALL, CLIENT)).toEqual(['summary', 'expenses', 'stages'])
   })
@@ -48,7 +46,6 @@ describe('allowedSummaryViews', () => {
     ).toEqual(['summary', 'expenses', 'stages', 'subcontractors', 'investment'])
   })
 
-  // The szablon workbench prices rows that belong to no investment — the tab would render nothing.
   it('bez rekordu inwestycji „Inwestycja" znika, reszta zostaje', () => {
     expect(
       allowed(ALL, {

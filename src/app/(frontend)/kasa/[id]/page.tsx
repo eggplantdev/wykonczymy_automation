@@ -34,8 +34,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const sort = parseTransferSort(sp)
 
   const registerId = Number(id)
-  // Strip sourceRegister from URL params — the page already scopes to this
-  // register via its own OR clause. Passing it through would collide (both
+  // Passing it through would collide (both
   // produce `where.or`).
   const { sourceRegister: _, ...filteredSp } = sp
   const urlFilters = buildTransferFilters(filteredSp, { id: user.id })
@@ -77,7 +76,6 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />
 
-      {/* Transactions table */}
       <TransfersSection
         title="Transfery"
         config={{

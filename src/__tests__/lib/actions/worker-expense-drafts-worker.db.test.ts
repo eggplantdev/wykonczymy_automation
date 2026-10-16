@@ -21,7 +21,6 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
 
-// Collected and never run: the read has its own spec, here only its scheduling is the contract.
 const scheduled = vi.hoisted(() => [] as unknown[])
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -34,8 +33,6 @@ const { deleteExpenseDraftAction, restoreExpenseDraftAction, sendExpenseDraftAct
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-worker-'
 
-// The worker's own writes are not a `protectedAction`, so the SQL scope (sender + pending) and the
-// target check are all that keeps one worker out of another's drafts and off a stranger's kasa.
 describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -190,7 +187,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       expect(await readDraft(result.data.draftId)).toMatchObject({ status: 'pending' })
     })
 
-    // The fast upload path writes the row itself — the ownership check must still see it as his.
     it('accepts a photo stored by the fast upload path', async () => {
       const mediaId = await insertMediaRow(db, {
         filename: `${FILENAME_PREFIX}send-fast-path.jpg`,
@@ -375,7 +371,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
   })
 
-  // A manager's action, unlike the rest of this file — the session is not the sender.
   it('„Przywróć” brings back only a rejected draft', async () => {
     const { draftId } = await ownDraft('restore')
     authState.userId = otherWorkerId

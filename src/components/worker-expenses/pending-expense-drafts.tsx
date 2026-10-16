@@ -28,7 +28,6 @@ type PropsT = {
   referenceData: ReferenceDataT
   // Per surface, so collapsing the queue on one page leaves it open on the other.
   storageKey?: string
-  // A link from the duplicate finder; its dialog opens once, on arrival.
   openDraftId?: number
 }
 
@@ -42,7 +41,6 @@ export function PendingExpenseDrafts({
   const { t, tp, locale } = useTranslation('expenseDrafts')
   const { open, openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
   const hasOpenedFromUrl = useRef(false)
-  // Pruned to the rows still listed whenever `drafts` changes, so a merged-away id drops out.
   const [selection, setSelection] = useState({ drafts, ids: NO_SELECTION })
   if (selection.drafts !== drafts) {
     const listed = new Set(drafts.map((draft) => draft.id))

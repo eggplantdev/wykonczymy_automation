@@ -11,7 +11,6 @@ type FilterKeyT =
   | 'expenseCategories'
   | 'type'
 
-/** Build full filter config from reference data, excluding specified filters (e.g. implicit entity on detail pages). */
 export function buildFilterConfig(
   refData: ReferenceDataBaseT,
   exclude?: FilterKeyT | FilterKeyT[],
@@ -27,7 +26,6 @@ export function buildFilterConfig(
     otherCategories: has('otherCategories') ? toOptions(refData.otherCategories) : undefined,
     expenseCategories: has('expenseCategories') ? toOptions(refData.expenseCategories) : undefined,
     transferTypes: has('type') ? TRANSFER_TYPES : undefined,
-    // Hidden for now - we only use cash for now
     showPaymentMethodFilter: false,
   }
 }

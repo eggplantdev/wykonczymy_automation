@@ -84,8 +84,6 @@ describe('patchSection', () => {
 })
 
 describe('orderRowsBySections', () => {
-  // The first pozycja of a sekcja bez pozycji arrives appended at the end — `applyAddItem` has no
-  // row of its section to follow. Without the re-lay it would number and band past sekcja 3.
   it('places the first pozycja of a middle itemless section between its neighbours', () => {
     const rows = [row(10, 1), row(30, 3), row(20, 2)]
 

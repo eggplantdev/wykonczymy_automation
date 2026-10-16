@@ -4,8 +4,6 @@ import {
   internalTransferFormSchema,
 } from '@/components/forms/internal-transfer-form/internal-transfer-schema'
 
-// ── createInternalTransferSchema (server-side, typed values) ─────────────
-
 describe('createInternalTransferSchema', () => {
   const validPayload = {
     amount: 100,
@@ -73,8 +71,6 @@ describe('createInternalTransferSchema', () => {
     expect(result.success).toBe(false)
   })
 })
-
-// ── internalTransferFormSchema (client-side, string values) ──────────────
 
 describe('internalTransferFormSchema', () => {
   const validForm = {

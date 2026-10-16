@@ -1,4 +1,3 @@
-/** Strip characters that break URLs, file systems, or Payload validation. */
 export function sanitizeFileName(name: string): string {
   return name
     .replace(/\s+/g, '-')

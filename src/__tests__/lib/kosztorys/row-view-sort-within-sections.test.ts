@@ -23,8 +23,6 @@ describe('sortRowsWithinSections', () => {
     ])
   })
 
-  // A section band presumes its rows are contiguous, so an interleaved input must come back grouped —
-  // otherwise the bands the sort now survives would render around the wrong rows.
   it('regroups a section whose rows arrive in two blocks', () => {
     const rows = [row(1, 10, 'b'), row(2, 20, 'z'), row(3, 10, 'a'), row(4, 20, 'y')]
 

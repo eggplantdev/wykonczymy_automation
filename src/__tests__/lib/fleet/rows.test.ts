@@ -4,11 +4,6 @@ import type { FleetDatasetT } from '@/lib/fleet/dataset'
 import type { InspectionTypeT } from '@/lib/fleet/inspection-types'
 import { ALL_TIME } from '@/lib/utils/date-range'
 
-// The projections below are what the listing and the digest both read. A deadline that renders
-// "fine" for a vehicle with nothing recorded, or a mileage delta computed against a missing
-// reading, is exactly the blind spot the module exists to close — so they are pinned here rather
-// than left to a browser check.
-
 const TODAY = '2026-08-18'
 
 type EventT = FleetDatasetT['events'][number]
@@ -223,8 +218,6 @@ describe('toRow — costs', () => {
     expect(row.totalCosts).toBe(1850)
   })
 
-  // An unknown price must not be laundered into „it was free" by the sum. It is skipped, and only a
-  // set where NOTHING carries a price collapses to `null` — which every surface renders as „—".
   it('leaves an unknown cost out of the total', () => {
     const row = toRow(
       vehicle,

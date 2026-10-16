@@ -19,9 +19,6 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
 
-// Attach (or reset) a fresh materiały tab on the investment's linked sheet.
-// Header + summary are written by the app — the owner builds nothing. Works on a
-// personal Google account because it never creates a new file (see approach A).
 export async function setupSheetAction(investmentId: number) {
   return investmentAction('setupSheetAction', { investmentId }, async ({ payload }) => {
     const sheetId = await getInvestmentSheetId(payload, investmentId)
@@ -51,22 +48,9 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
   )
 }
 
-/**
- * Link an EXISTING Google Sheet to an investment. Accepts a pasted sheet URL or a
- * raw id; verifies the service account can actually open it (else the sync/iframe
- * would silently fail), then stores its id. New-file creation from a template is
- * not offered — the service account has no Drive quota, so linking an existing
- * sheet is the only supported path.
- */
-// The service-account email a user must share their sheet with AS EDITOR before linking — the
-// Editor account, never the Viewer one the app reads with. Granting Editor to the reader would hand
-// write rights back to every laptop and preview deploy for that sheet, which is the hole the
-// two-account split exists to close.
-// Non-secret; surfaced in the setup dialog so the share step is clear up front
-// (not only discovered via the "share with…" error after a failed link attempt).
-// Requires auth (like every other action here) and never throws: returns '' if the
+// never throws: returns '' if the
 // caller isn't authed or the credential env var is unset, so the caller's
-// fire-and-forget `.then(setSaEmail)` can't raise an unhandled rejection (T3.2).
+// fire-and-forget `.then(setSaEmail)` can't raise an unhandled rejection
 export async function getServiceAccountEmailAction(): Promise<string> {
   const auth = await requireAuth(MANAGEMENT_ROLES)
   if (!auth.success) return ''
@@ -99,11 +83,9 @@ export async function linkSheetAction(investmentId: number, input: string) {
         return { success: false, error: 'Nieprawidłowy link lub identyfikator arkusza Google.' }
       }
 
-      // Refuse a sheet already registered as a kosztorys (linked or not). Two
+      // Two
       // investments sharing one tab would each treat the other's rows as orphans
-      // and delete them on sync (T1.3). The kosztoryses.google_sheet_id UNIQUE
-      // constraint is the belt-and-suspenders for direct admin edits; this guard
-      // surfaces the conflict with a Polish error instead of a 500.
+      // and delete them on sync
       const alreadyRegistered = await payload.find({
         collection: 'kosztoryses',
         where: { googleSheetId: { equals: sheetId } },
@@ -136,13 +118,6 @@ export async function linkSheetAction(investmentId: number, input: string) {
         overrideAccess: true,
       })
 
-      // Create-if-missing: build the expenses tab only when the linked sheet doesn't
-      // already have one. Never wipes an existing tab — the owner may be attaching a
-      // sheet they've already filled in by hand; that destructive path stays behind
-      // the explicit "Zresetuj wydatki inwestycyjne" button. Non-fatal: a Sheets
-      // hiccup here must not fail the link (the row is already registered) — the user
-      // can still reset manually, and the first sync surfaces a missing tab with that
-      // exact hint.
       try {
         await stampAllTabs(sheetId, payload, 'ensure')
       } catch (err) {
@@ -151,7 +126,6 @@ export async function linkSheetAction(investmentId: number, input: string) {
 
       return { success: true, data: { title: access.title } }
     },
-    // Affects both the kosztoryses listing and the investments table (hasSheet flips true).
     ['kosztoryses', 'investments'],
   )
 }
@@ -163,14 +137,12 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
-      // presetId is a create-only seed field; the edit form always sends '' — never write it.
-      // `assets` is dropped for a different reason: the edit form carries no file picker, so the
-      // schema's `.default([])` would arrive as an empty list and wipe the gallery. The attach /
-      // detach actions below are the field's only writers after create.
+      // the edit form carries no file picker, so the
+      // schema's `.default([])` would arrive as an empty list and wipe the gallery.
       const { presetId: _presetId, assets: _assets, ...investmentData } = parsed.data
-      // `user` is load-bearing, not decoration: without it `createLocalReq` sets `req.user = null`
+      // without it `createLocalReq` sets `req.user = null`
       // and `guardInvestmentStatusUnlock` refuses to reopen a zakończona inwestycja for EVERY role,
-      // właściciel included — the lock becomes a door with no key.
+      // właściciel included
       await payload.update({
         collection: 'investments',
         id,
@@ -184,7 +156,7 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
   )
 }
 
-// The acceptance protocol's write-back. Two fields only: sending the whole record from the
+// sending the whole record from the
 // editor's page-load copy would revert an edit made elsewhere since — a status change included.
 export async function updateInvestmentClientFieldsAction(
   id: number,
@@ -206,9 +178,8 @@ export async function updateInvestmentClientFieldsAction(
 
 const aiStageSchema = z.enum(INVESTMENT_AI_STAGES).nullable()
 
-// Its own action, not a field of `investmentSchema`: the edit form and the notes save send the whole
-// record, and a stage riding along would be overwritten from a stale copy. `protectedAction`, not
-// `investmentAction`: the stage is a label, so a zakończona inwestycja takes it too.
+// the edit form and the notes save send the whole
+// record, and a stage riding along would be overwritten from a stale copy.
 export async function setInvestmentAiStageAction(id: number, aiStage: InvestmentAiStageT | null) {
   return protectedAction(
     'setInvestmentAiStageAction',

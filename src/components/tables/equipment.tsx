@@ -26,9 +26,9 @@ type EquipmentColumnsArgsT = {
 }
 
 /**
- * `today` is a parameter rather than a `new Date()` inside a cell: every row on the page must answer
- * „za ile dni" as of the same instant, and a cell that reads the clock re-renders itself into a
- * different answer than its neighbour after midnight.
+ * `today` is a parameter: every row on the page must answer „za ile dni" as of the same instant, and
+ * a cell that reads the clock re-renders itself into a different answer than its neighbour after
+ * midnight.
  */
 export function getEquipmentColumns({
   today,
@@ -88,8 +88,6 @@ export function getEquipmentColumns({
     col.accessor((row) => warrantyDaysLeft(row.warrantyUntil, today) ?? undefined, {
       id: 'warranty',
       header: 'Gwarancja',
-      // An item with no recorded warranty has nothing to rank, so it parks at the end instead of
-      // leading a soonest-first sort.
       sortUndefined: 'last',
       cell: (info) => (
         <WarrantyCell
@@ -109,9 +107,7 @@ export function getEquipmentColumns({
       id: 'actions',
       header: 'Akcje',
       meta: { align: 'right' },
-      // Handing a tool over is the register's most frequent write, so it does not deserve a detour
-      // through the item's page. The row's own click is unaffected — `DataTableRow` ignores a click
-      // that landed on a button.
+      // The row's own click is unaffected — `DataTableRow` ignores a click that landed on a button.
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
           <TransferEquipmentDialog

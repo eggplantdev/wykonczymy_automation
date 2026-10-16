@@ -1,11 +1,7 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
 
-// Branded HTML email shell — card body + logo/wordmark footer, all inline styles so it
-// survives Gmail/Outlook (which strip <style> and don't support inline <svg>).
-// The logo is referenced by ABSOLUTE URL: email clients can't resolve relative
-// paths, and remote-image blocking is covered by the alt text.
+// all inline styles so it survives Gmail/Outlook (which strip <style> and don't support inline <svg>).
 
-// Palette lifted from the app icon (house + toolbox).
 const BRAND = {
   navy: '#1c4257',
   cream: '#f4efe4',
@@ -19,11 +15,9 @@ const BRAND = {
 type BrandedEmailT = {
   logoUrl: string
   heading?: string
-  /** Plain-text paragraphs; escaped and rendered in order. */
   paragraphs: string[]
-  /** Rendered after the paragraphs as a button — a styled `<a>`, since clients drop `<button>`. */
+  /** a styled `<a>`, since clients drop `<button>`. */
   cta?: { label: string; href: string }
-  /** Small print under a divider (e.g. "automatic reply"). Optional. */
   footer?: string
 }
 

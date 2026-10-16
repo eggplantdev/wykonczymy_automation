@@ -5,9 +5,6 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 export type SheetMeasuredQtyRowT = { id: number; qty: number | null }
 
 /**
- * Write the sheet's Pomiar claim onto many pozycje in one statement — a kosztorys runs to hundreds of
- * rows, and a per-row update would be that many round-trips for one button.
- *
  * The VALUES tuples are cast explicitly: a literal `NULL` has no type, so a batch whose first row
  * clears the figure would leave Postgres unable to infer the column and reject the whole update.
  */
@@ -26,8 +23,7 @@ export async function setSheetMeasuredQty(
     RETURNING i.id
   `)
   // The editor reseeds its grid off the investment's revision token, so a write that moves rows
-  // without moving that token leaves the owner looking at the pre-write figures until a hard reload
-  // — and leaves the remount armed for whatever unrelated edit comes next.
+  // without moving that token leaves the owner looking at the pre-write figures until a hard reload.
   if (res.rows.length > 0)
     await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
   return res.rows.length

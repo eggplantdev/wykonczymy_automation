@@ -16,14 +16,6 @@ export type FleetDatasetT = {
   events: InspectionRecordT[]
 }
 
-/**
- * The whole fleet in two reads — a handful of cars with a few events each, so a per-vehicle read
- * would buy nothing. Takes `payload` rather than importing `@payload-config`, which is what lets the
- * cron sweep share this with the cached query layer instead of keeping a second copy that drifts:
- * the digest mail and the listing must never disagree about what the fleet contains.
- *
- * Events arrive newest-first and every consumer relies on that ordering.
- */
 export async function loadFleetDataset(payload: Payload): Promise<FleetDatasetT> {
   const [vehicles, inspections] = await Promise.all([
     payload.find({
@@ -61,10 +53,6 @@ export async function loadFleetDataset(payload: Payload): Promise<FleetDatasetT>
   }
 }
 
-/**
- * Active and retired alike — the retired ones are filtered where urgency is decided, not here.
- * Generic so the sweep and the listing share one grouping while each keeps its own row shape.
- */
 export const groupByVehicle = <V extends VehicleSummaryT, E extends InspectionEventT>({
   vehicles,
   events,

@@ -39,10 +39,6 @@ const buttonVariants = cva(
         icon: 'size-9',
         badge: 'rounded-full px-2 py-0.5 text-xs',
       },
-      // Content alignment, split off `variant` because it is orthogonal to colour: a left-aligned
-      // button is a menu/filter row (sidebar link, filter trigger, section action) and any variant
-      // can be one. It was six hand-written `justify-start` classNames before, three of them also
-      // re-declaring the `gap-1.5` that `size="sm"` already sets.
       align: {
         center: 'justify-center',
         start: 'justify-start',
@@ -56,13 +52,9 @@ const buttonVariants = cva(
   },
 )
 
-// The animated accents from globals.css. A list rather than a cva variant because they compose —
-// `['comet', 'breathe']` is a legitimate answer a single-choice variant could not express.
 // `motion-safe:` rather than a `prefers-reduced-motion` block in globals.css: `!` puts the literal
 // token `gradient-border-comet!` in the class attribute, so a hand-written `.gradient-border-comet`
-// rule matches nothing. Dropping the utility under reduced motion falls back to the `ai` variant's
-// resting border and halo, which is the intended still state anyway. The `!` beats that resting
-// `gradient-border`; `breathe` adds a layer rather than replacing one, so it needs none.
+// rule matches nothing.
 const BUTTON_ANIMATION_CLASSES = {
   comet: 'motion-safe:gradient-border-comet!',
   breathe: 'motion-safe:neon-glow-duo-breathe',

@@ -16,8 +16,6 @@ const storedItem = (extra: Partial<StoredItemT> = {}): StoredItemT => ({
   ...extra,
 })
 
-// Every szablon and snapshot stored before EX-1017 lacks the key; restoring one must not invent a
-// link, and one stored since must keep the link it was saved with.
 describe('itemWithColumnDefaults — katalog link', () => {
   it('reads a payload without the field as no katalog entry', () => {
     expect(itemWithColumnDefaults(storedItem(), 0).catalogueItemId).toBeNull()

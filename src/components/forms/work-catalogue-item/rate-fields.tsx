@@ -15,11 +15,6 @@ const PLANE_LABEL = {
   ownTools: RATE_LABELS.own_tools,
 } as const
 
-// The selector carries the plane's own name: with both on „auto" the two inputs are gone, so the
-// selectors are the only thing left to tell the planes apart.
-//
-// `sourceLabels` is a prop because „auto" means a different inwestycja per caller: the katalog's
-// wpis has none yet, the rozpiska's praca already sits in one.
 export function RateField({
   form,
   plane,
@@ -38,8 +33,7 @@ export function RateField({
         name={`${plane}Source`}
         // The two inputs below UNMOUNT with the źródło, and TanStack keeps the errors an unmounted
         // field was left with — so a „jest wymagana" raised by a failed submit would then survive
-        // forever and block every later one. Resetting both drops the stale error together with the
-        // liczba the owner just stopped using.
+        // forever and block every later one.
         listeners={{
           onChange: () => {
             form.resetField(`${plane}Rate`)
@@ -58,7 +52,6 @@ export function RateField({
         )}
       </form.AppField>
 
-      {/* Hidden, not disabled: a disabled input still invites a liczba that would be thrown out. */}
       {source === 'amount' && (
         <form.AppField name={`${plane}Rate`}>
           {(field) => (

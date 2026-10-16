@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Podgląd and the PDF serve the same projection a worker link does, minus the token — so their ONLY
-// gate is requireAuth. Asserted by effect: a rejected session never reaches the kosztorys at all.
 vi.mock('server-only', () => ({}))
 
 const authState = vi.hoisted(() => ({

@@ -4,9 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 
 // Adding an item and saying where it went is one write or none: an item whose first event failed
-// reads as „nie wiadomo gdzie" for the rest of its life, which is the register's alarm state — and
-// nothing on screen tells that apart from a real gap. Asserted on the TABLE, not on the action's
-// result: a success value can sit on top of a half-written pair.
+// reads as „nie wiadomo gdzie" for the rest of its life.
 
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))

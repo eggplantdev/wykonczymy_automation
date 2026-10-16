@@ -3,11 +3,6 @@
 import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
 
-// Which conditions the user moved off their default, persisted in localStorage. Sparse: a key is
-// present only while its condition is engaged, so an absent key is the default and an untouched
-// surface stores nothing. „Engaged", not „active": a filter's default is ON and engaging it means
-// unticking it, so „active" would name the opposite state for half the registry.
-
 // createJsonMapStore binds its key at module scope, so a per-key store has to be cached rather than
 // built during render — a store built per render hands useSyncExternalStore a new `subscribe` every
 // time and it resubscribes forever.
@@ -32,9 +27,8 @@ export function useEngagedIds(storageKey: string): {
   const store = storeFor(storageKey)
   const engaged = useJsonMap<boolean>(store)
 
-  // Ids nobody recognises are carried through untouched rather than pruned here: the apply step
-  // already ignores them, and deleting one would drop a filter the user set under a condition that is
-  // only temporarily gone.
+  // Ids nobody recognises are carried through untouched rather than pruned here: deleting one would
+  // drop a filter the user set under a condition that is only temporarily gone.
   const engagedIds = useMemo(
     () => new Set(Object.keys(engaged).filter((id) => engaged[id])),
     [engaged],
@@ -49,9 +43,8 @@ export function useEngagedIds(storageKey: string): {
     })
   }
 
-  // Engages `id` and drops every other id in `within` — one member of a group at a time. The group is
-  // the caller's to name because this store holds two kinds at once: the „Problemy" list is exclusive,
-  // the filters stack, and an exclusivity that swept the whole store would untick those too.
+  // The group is the caller's to name because this store holds two kinds at once: the „Problemy" list
+  // is exclusive, the filters stack, and an exclusivity that swept the whole store would untick those too.
   function toggleExclusive(id: string, within: Iterable<string>) {
     store.update((prev) => {
       const engaging = !prev[id]
@@ -62,13 +55,6 @@ export function useEngagedIds(storageKey: string): {
     })
   }
 
-  // A whole list in ONE store write, because localStorage is what is behind it: sixteen toggles in a
-  // row would be sixteen serialisations of the same map and sixteen renders on the way to one state
-  // the user asked for once. Named ids rather than „wszystko", for the same reason `toggleExclusive` takes
-  // a group — the store holds the „Problemy" list too, and a sweep would untick that with it.
-  // Returns `prev` untouched when every id already stands where it is being put, like `clear` below:
-  // the store writes localStorage on every new identity, so „Odznacz wszystkie" pressed twice would
-  // serialise the same map again and re-render the whole table for nothing.
   function setMany(ids: Iterable<string>, engage: boolean) {
     store.update((prev) => {
       const next = { ...prev }

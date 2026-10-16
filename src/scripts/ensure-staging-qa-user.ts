@@ -1,10 +1,3 @@
-// Idempotent find-or-upsert of the permanent staging OWNER + MANAGER + EMPLOYEE used to log in to the Vercel
-// preview app for manual verification passes (see context/reference/manual-verification.md).
-// Unlike seed-e2e-user.ts this deliberately targets a REMOTE db (the preview Neon branch), so the
-// guard is the inverse of a localhost check: it refuses anything but the preview URL, and prod even
-// if the two were ever set equal — this machine holds the prod credential too.
-//
-// RUN: pnpm qa:staging-user
 import { pathToFileURL } from 'node:url'
 import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
@@ -40,7 +33,7 @@ async function upsertQaUser(payload: Payload, user: QaUserT, password: string): 
       // Five failed logins lock the account, and a new password alone does not lift that.
       data: { password, role: user.role, loginAttempts: 0, lockUntil: null },
       // The Users afterChange hook calls revalidateTag, which throws outside a request
-      // context (Local API script). skipRevalidation bypasses it.
+      // context (Local API script).
       context: { skipRevalidation: true },
     })
     console.log(

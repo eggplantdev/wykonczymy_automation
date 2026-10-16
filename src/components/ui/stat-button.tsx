@@ -7,8 +7,6 @@ type StatButtonPropsT = {
   value: string
   className?: string
   tooltip?: string
-  // Chart color token (e.g. 'chart-pink'). Colors border + value from one source so they stay in sync,
-  // matching the transfers table's per-type amount coloring. Use instead of a border-* className.
   color?: string
 }
 

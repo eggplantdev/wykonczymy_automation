@@ -6,12 +6,6 @@ import { hintLead } from '@/lib/kosztorys/work-catalogue/hint-lead'
 import type { UncataloguedUsageT } from '@/lib/kosztorys/work-catalogue/types'
 import { unitLabel } from '@/lib/kosztorys/format'
 
-/**
- * „Używane, a brak w katalogu" — what the kosztorysy price that the cennik has never heard of. Read
- * only: a candidate here is advice about what the praca might BE, and it is never counted into
- * „Kosztorysy" — that column counts exact matches alone, or a near-miss would inflate a wpis nobody
- * actually used. Collapsed, because the list runs long and the table is what the page is for.
- */
 export function UncataloguedUsageList({ groups }: { groups: readonly UncataloguedUsageT[] }) {
   return (
     <CollapsibleSection title={`Używane, a brak w katalogu (${groups.length})`} defaultOpen={false}>

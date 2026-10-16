@@ -10,8 +10,6 @@ const failNotFound = (): ActionResultT => ({
   code: 'NOT_FOUND',
 })
 
-// A deferred whose resolution the test controls, to force a slow forward save that finishes AFTER a
-// later-enqueued inverse would have, absent serialization.
 function deferred<T>() {
   let resolve!: (value: T) => void
   const promise = new Promise<T>((r) => {
@@ -26,13 +24,11 @@ describe('createSaveLanes', () => {
     const order: string[] = []
     const forwardGate = deferred<void>()
 
-    // Forward save is slow — it won't settle until the test opens the gate.
     const forward = lanes.enqueue('item:1:name', async () => {
       await forwardGate.promise
       order.push('forward')
       return ok()
     })
-    // Inverse enqueued while the forward is still in flight.
     const inverse = lanes.enqueue('item:1:name', async () => {
       order.push('inverse')
       return ok()
@@ -74,8 +70,6 @@ describe('createSaveLanes', () => {
     expect(onError).toHaveBeenCalledWith('rejected by server', undefined)
   })
 
-  // A rejection is a request that never completed — the browser's own text („Failed to fetch") is
-  // not a message for the user, and the code keeps it apart from a refusal the caller must reseed on.
   it('routes a rejected action to onError as a coded Polish failure and never rejects the lane (EX-940)', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const lanes = createSaveLanes()
@@ -90,8 +84,6 @@ describe('createSaveLanes', () => {
     )
   })
 
-  // Without the code the caller can only match on the sentence, and „your row is gone" would keep
-  // being handled as „your value was rejected" — a revert onto a tree that no longer exists.
   it('hands the failure code to onError so a stale-tree refusal is distinguishable', async () => {
     const lanes = createSaveLanes()
     const onError = vi.fn()
@@ -151,7 +143,6 @@ describe('drain', () => {
       await saves.drain(['progress:1:2'])
       expect(stored).toEqual([7])
 
-      // The timer it replaced must not fire a second write.
       await vi.advanceTimersByTimeAsync(1000)
       expect(stored).toEqual([7])
     } finally {

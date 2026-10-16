@@ -19,26 +19,8 @@ import { uploadFieldIds } from '@/lib/media/upload-field'
 import { notifyShapeAlert, notifyAssetFailure } from '@/lib/leads/notify'
 import { logError } from '@/lib/utils/log-error'
 
-/**
- * The download loop is serial and each asset gets its own timeout, so the handler's worst case is
- * `MAX_LANDING_ASSETS × FETCH_TIMEOUT_MS` plus the capture, plus the cleanup callback's own timeout
- * — `after()` moves that one past the response, but not out of the invocation. Declared explicitly
- * rather than left to the platform default, which would kill the invocation before any of our own
- * timeouts reported.
- */
 export const maxDuration = 300
 
-/**
- * POST /api/webhooks/landing
- *
- * The landing (`landing_26`) POSTs a signed JSON envelope here once its form has validated
- * server-side. Files are NOT in the body: the visitor uploads them straight to the landing's own
- * blob store, and we pull each one back from an allowlisted URL — see `fetchLandingAsset` for why
- * that URL is the dangerous part.
- *
- * Authenticity is an HMAC over the RAW body, the same mechanism as Meta's, since the landing is our
- * own code and can sign properly (unlike the WordPress forwarder's shared header secret).
- */
 export async function POST(request: NextRequest) {
   const raw = await request.text()
 
@@ -77,8 +59,7 @@ export async function POST(request: NextRequest) {
 
   const submission = parsed.data
 
-  // FIRST, and the only step allowed to fail the request: losing the enquiry is the outcome the
-  // landing's retry queue exists to prevent. The files come after, because downloading up to
+  // The files come after, because downloading up to
   // MAX_LANDING_ASSETS of them is by far the slowest thing here — behind it, a timeout would write
   // no lead at all, and the retry would find nothing, re-download the set and time out again.
   let lead: Lead
@@ -99,8 +80,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true }, { status: 200 })
   }
 
-  // A redelivery that already carries its files must not download a second set. One that carries
-  // none is the crash-between-capture-and-attach case, and does get another go.
+  // A redelivery that already carries its files must not download a second set.
   const alreadyHeld = uploadFieldIds(lead.assets).length
   const assets = alreadyHeld ? [] : (submission.assets ?? [])
 
@@ -125,8 +105,6 @@ export async function POST(request: NextRequest) {
         overrideAccess: true,
       })
     } catch (err) {
-      // The rows exist but nothing points at them, and Blob has no undelete — reclaim them rather
-      // than bill for files no surface can ever show.
       logError('[landing] Failed to attach assets to the lead', err)
       await deleteUnreferencedMedia(payload, mediaIds)
       failed.push(
@@ -139,14 +117,7 @@ export async function POST(request: NextRequest) {
   }
 
   // The landing deletes the submission's prefix wholesale, so releasing it is the claim that we
-  // hold EVERY file — which is why it is counted, not inferred from an empty `failed`. On a
-  // redelivery the loop never ran, so nothing failed because nothing was attempted, and the pass
-  // that did run may have dropped a file whose only copy is the landing's. Counting covers that
-  // case too: a redelivery whose first pass was complete still adds up, so a lost 200 costs a
-  // second callback rather than an orphaned prefix.
-  //
-  // Deliberately after the response: the callback may wait on a landing that is allowed to be
-  // down, and 10 s of that latency on a delivered enquiry is what makes the sender retry.
+  // hold EVERY file — which is why it is counted, not inferred from an empty `failed`.
   const held = alreadyHeld || (failed.length ? 0 : mediaIds.length)
   const expected = submission.assets?.length ?? 0
   if (expected > 0 && held === expected) {

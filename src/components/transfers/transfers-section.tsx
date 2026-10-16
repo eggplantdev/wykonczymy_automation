@@ -3,7 +3,6 @@ import { TransferTableServer } from '@/components/transfers/transfer-table-serve
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
 
 type TransfersSectionPropsT = {
-  /** Omit for a table that needs no heading — the page title already names it. */
   title?: string
   id?: string
   config: TransferTableConfigT

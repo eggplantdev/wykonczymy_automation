@@ -25,8 +25,6 @@ describe('qtyDoneByRow — the precomputed pomiar is the same answer the slow pa
     }
   })
 
-  // Without this the assertion above would hold just as well for a map nobody reads — and a hoist
-  // that silently stopped being consulted is precisely the regression worth catching.
   it('is actually consulted — a map lying about the pomiar moves the counts', () => {
     const lying = { ...CTX, qtyDoneByRowId: new Map(ROWS.map((r) => [r.id, 0])) }
     expect(countMatching(ROWS, 'has-measured-qty', lying)).toBe(0)

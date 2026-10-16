@@ -3,13 +3,6 @@ import type { Payload } from 'payload'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { WorkCatalogueItemDataT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 
-// The katalog's whole identity guarantee lives in one place — `matchKey`, computed inside the
-// action. These drive the REAL DB and assert the PERSISTED rows, because the two failures that
-// matter are both invisible from the return value: a refused duplicate that nonetheless wrote a
-// row, and a client-supplied key overriding the derived one.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -80,7 +73,6 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
 
   it('derives matchKey from opis + j.m., ignoring anything the client sends', async () => {
     const data = item()
-    // A client that posts its own key must not be able to steer uniqueness — Zod strips it.
     const result = await createCatalogueItemAction({
       ...data,
       matchKey: 'cokolwiek',
@@ -92,7 +84,6 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
   })
 
   it('refuses a duplicate opis+j.m. and writes NO second row', async () => {
-    // Same praca typed differently — case and diacritics fold away, so it is the same cennik entry.
     const duplicate = item({ description: `MALOWANIE SCIAN ${suffix}`, clientPrice: 99 })
 
     const result = await createCatalogueItemAction(duplicate)
@@ -118,7 +109,6 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
     const [existing] = await rowsFor(item({ unit: 'szt' }))
     const id = Number(existing!.id)
 
-    // Renaming the „szt" row onto the „m²" row's opis+j.m. is the collision.
     const collide = await updateCatalogueItemAction(id, item({ unit: 'm²' }))
     expect(collide.success).toBe(false)
 
@@ -158,10 +148,11 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
     await payload.update({
       collection: 'work-catalogue-items',
       id,
-      data: { descriptionTranslations: { uk: { text: 'Фарбування стін', source: data.description } } },
+      data: {
+        descriptionTranslations: { uk: { text: 'Фарбування стін', source: data.description } },
+      },
     })
 
-    // The dialog's copy of the row predates them: empty texts, nothing edited.
     const result = await updateCatalogueItemAction(id, {
       ...data,
       clientPrice: 41,

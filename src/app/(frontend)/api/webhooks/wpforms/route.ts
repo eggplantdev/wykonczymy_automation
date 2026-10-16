@@ -10,16 +10,8 @@ import { notifyShapeAlert } from '@/lib/leads/notify'
 import { logError } from '@/lib/utils/log-error'
 
 /**
- * POST /api/webhooks/wpforms
- *
- * A `wpforms_process_complete` snippet on the WordPress site POSTs each form
- * submission here (WPForms Lite has no webhook addon). Authenticity is a shared
- * secret sent as `X-Webhook-Secret` — WordPress can't HMAC-sign like Meta does.
- *
  * WPForms Lite does NOT persist entries, so this POST is often the ONLY durable
- * capture of the lead — hence loud failures, and the WP notification email stays
- * as the human backstop. Store-then-notify (via captureLead) means an email
- * failure can never lose the lead.
+ * capture of the lead.
  */
 export async function POST(request: NextRequest) {
   if (request.headers.get('x-webhook-secret') !== serverEnv.WPFORMS_WEBHOOK_SECRET) {
@@ -41,8 +33,6 @@ export async function POST(request: NextRequest) {
 
   const parsed = wpformsSubmissionSchema.safeParse(json)
   if (!parsed.success) {
-    // The forwarder's shape drifted (form rebuilt, snippet changed) — alert loudly
-    // rather than swallow the lead. 400 so a monitoring eye sees it; WP won't retry.
     logError('[wpforms] Submission failed schema validation', parsed.error.message)
     await notifyShapeAlert(payload, {
       leadgenId: 'wpforms',
@@ -56,8 +46,6 @@ export async function POST(request: NextRequest) {
   const input = wpformsToStoreLeadInput(parsed.data, submittedAt)
 
   if (!input.email) {
-    // Extraction found no email — the form may have renamed its email field.
-    // rawData still holds everything; alert so the drift is visible.
     await notifyShapeAlert(payload, {
       leadgenId: `wpforms form ${input.formId ?? '?'}`,
       reason: 'No email could be extracted from the WPForms submission',

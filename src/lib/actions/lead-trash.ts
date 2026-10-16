@@ -22,10 +22,6 @@ const findLead = (payload: Payload, id: number) =>
     disableErrors: true,
   })
 
-/**
- * An id that is gone or already in the trash is skipped rather than failing the batch — a second
- * tab may have moved it first — so `trashed` is what the toast reports, not the selection size.
- */
 export async function trashLeadsAction(
   leadIds: number[],
 ): Promise<ActionResultT<{ trashed: number }>> {

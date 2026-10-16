@@ -22,7 +22,7 @@ export function ToolbarToggle<T extends string>({
     <SimpleTooltip content={legend}>
       {/* SimpleTooltip's trigger is `asChild`, so Radix clones this child and hands it a ref —
           it needs a DOM node. ToggleGroup is a plain function component that never forwards one,
-          hence the span. `inline-flex` keeps it from disturbing the toolbar's layout. */}
+          hence the span. */}
       <span className="inline-flex">
         <ToggleGroup options={options} value={value} onChange={onChange} aria-label={ariaLabel} />
       </span>

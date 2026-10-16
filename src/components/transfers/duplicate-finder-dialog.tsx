@@ -41,7 +41,7 @@ type FinderStateT =
 const IDLE: FinderStateT = { status: 'idle' }
 const DOCUMENT_FORMS = ['dokument', 'dokumenty', 'dokumentów'] as const
 
-const columns = getExpenseDuplicateColumns<DuplicateMatchT>({ showParagon: false, linkMatch: true })
+const columns = getExpenseDuplicateColumns<DuplicateMatchT>({ linkMatch: true })
 
 const toRows = (group: DuplicateGroupT<CandidateT>): DuplicateMatchT[] =>
   group.members.map((member) => ({ ...member, reasons: group.reasons }))
@@ -71,7 +71,6 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
     )
   }
 
-  // A result belongs to the range it was asked for.
   function changeRange(next: DateRangeT) {
     request.disown()
     setRange(next)

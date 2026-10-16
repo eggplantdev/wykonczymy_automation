@@ -1,12 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-
 vi.mock('server-only', () => ({}))
 
 // after() (next/server) schedules the post-response sheet sync; it throws outside
-// a request scope. The sync isn't under test here, so no-op it.
+// a request scope.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -55,8 +53,6 @@ vi.mock('@/lib/db/sum-transfers', () => ({
 
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-
 const TX_ID = 'test-tx-id'
 
 function makeBulkTransferData(itemCount: number) {
@@ -80,10 +76,6 @@ beforeEach(() => {
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
 })
-
-// ═════════════════════════════════════════════════════════════════════════
-// Bulk Transfer — transaction rollback
-// ═════════════════════════════════════════════════════════════════════════
 
 describe('createBulkTransferAction — transaction safety', () => {
   it('commits when all items succeed', async () => {
@@ -126,12 +118,7 @@ describe('createBulkTransferAction — transaction safety', () => {
   })
 })
 
-// ═════════════════════════════════════════════════════════════════════════
-// Bulk Transfer — worker per row
-// ═════════════════════════════════════════════════════════════════════════
-
 describe('createBulkTransferAction — worker per row', () => {
-  // One receipt batch of „Inny wydatek” can mix buyers, so each row carries its own.
   it('OTHER writes each row its own worker, or none', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 
@@ -150,7 +137,6 @@ describe('createBulkTransferAction — worker per row', () => {
     expect(workers).toEqual([5, undefined])
   })
 
-  // A PAYOUT's worker is who gets paid — a row cannot redirect it.
   it('PAYOUT writes the form-level worker into every row, ignoring a per-row one', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 

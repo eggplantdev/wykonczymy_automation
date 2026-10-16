@@ -8,8 +8,6 @@ const SOURCE_OPTIONS = [
   { label: { en: 'Landing page form', pl: 'Strona docelowa' }, value: 'landing_form' },
 ] as const
 
-// The landing's form asks for these; Facebook Lead Ads cannot carry them, so on such a lead the
-// field would be a permanently empty row in /admin.
 const hideForFacebook = {
   condition: (data: { source?: string }) => data?.source !== 'facebook_lead_ads',
 }
@@ -19,7 +17,6 @@ const CONTACT_STATUS_OPTIONS = [
   { label: { en: 'Contacted', pl: 'Skontaktowano' }, value: 'contacted' },
 ] as const
 
-// Shared by notifyStatus + autoReplyStatus — outcome of an async side effect per lead.
 const DELIVERY_STATUS_OPTIONS = [
   { label: { en: 'Pending', pl: 'Oczekuje' }, value: 'pending' },
   { label: { en: 'Sent', pl: 'Wysłano' }, value: 'sent' },
@@ -84,7 +81,6 @@ export const Leads: CollectionConfig = {
       label: { en: 'Scope', pl: 'Zakres prac' },
       admin: hideForFacebook,
     },
-    // Text, not a number: the form invites a range („30–60 m²"), which no numeric column holds.
     {
       name: 'area',
       type: 'text',
@@ -99,7 +95,6 @@ export const Leads: CollectionConfig = {
       label: { en: 'Photos and files', pl: 'Zdjęcia i pliki' },
       admin: hideForFacebook,
     },
-    // Written only by the promotion action — the pointer back to what this zgłoszenie became.
     {
       name: 'investment',
       type: 'relationship',

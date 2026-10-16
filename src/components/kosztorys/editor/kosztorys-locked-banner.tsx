@@ -8,9 +8,6 @@ const LOCK_COPY: Record<InvestmentLockT, string> = {
     'Inwestycja jest w koszu — kosztorys jest tylko do odczytu. Aby go zmienić, przywróć ją z Kosza.',
 }
 
-// Not WarningBanner: nothing is wrong here. A closed investment is a normal end state, so the strip
-// explains the missing controls rather than screaming about them — and it names the one way out,
-// because that is the question the person reading it is about to ask.
 export function KosztorysLockedBanner({ lock }: { lock: InvestmentLockT }) {
   return (
     <p

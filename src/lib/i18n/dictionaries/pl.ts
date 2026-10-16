@@ -6,9 +6,7 @@ import {
   TRANSFER_TYPE_LABELS,
 } from '@/lib/constants/transfers'
 
-// The source dictionary: its shape is `TranslationsT`, so `uk` and `ru` fail the typecheck on any
-// missing or extra key. A counted phrase is `{ one, few, many, other }` — the `Intl.PluralRules`
-// categories — and `other` is the fraction form, which Polish and the crew languages all have.
+// `other` is the fraction form, which Polish and the crew languages all have.
 export const pl = {
   common: {
     decisionAccepted: 'Przyjęte',
@@ -306,8 +304,6 @@ export const pl = {
     formProgress: 'Postęp (wykonano / przedmiar)',
     formDocumentKind: 'Do wypełnienia — {{name}}',
   },
-  // The kosztorys grid as the worker's link renders it. Only what that surface reaches: the owner's
-  // editor reads the same Polish through `COLUMN_LABELS` and the tips, which take it from here.
   grid: {
     description: 'Opis prac',
     plannedQty: 'Przedmiar ofertowy',
@@ -356,7 +352,7 @@ export const pl = {
     tipPlannedDonePercent:
       'Ile procent przedmiaru ofertowego jest wykonane — we wszystkich etapach, także innych ekip.\nPowyżej 100% = wykonano więcej, niż zakładała oferta (np. po aktualizacji przedmiaru).\nKreska dla pozycji spoza oferty.',
   },
-  // The labels come from `lib/constants/transfers.ts` rather than a copy: the sheet sync and the
+  // The labels come from `lib/constants/transfers.ts`: the sheet sync and the
   // mail write them too, and the Polish screen must keep naming a type the way they do.
   transfers: {
     title: 'Transakcje',
@@ -449,7 +445,6 @@ export const pl = {
     viewTable: 'Tabela',
     viewCards: 'Karty',
   },
-  // The list primitives every table and filter bar shares.
   filters: {
     search: 'Szukaj...',
     noResults: 'Brak wyników',
@@ -491,7 +486,6 @@ export const pl = {
     noColumns: 'Brak kolumn',
     noData: 'Brak danych',
     selectAllOnPage: 'Zaznacz wszystkie na stronie',
-    // The listing has always said „wyników" whatever the count; kept so Polish reads as before.
     results: {
       one: '{{count}} wyników',
       few: '{{count}} wyników',
@@ -506,7 +500,6 @@ export const pl = {
     jumpBack: 'Cofnij {{count}} stron',
     jumpForward: 'Przeskocz {{count}} stron',
   },
-  // Faktury and plain files: previewing them, uploading them, and the ZIP they pack into.
   media: {
     invoiceArchiveProgress: 'Pobieranie faktur...',
     fileArchiveProgress: 'Pobieranie plików...',

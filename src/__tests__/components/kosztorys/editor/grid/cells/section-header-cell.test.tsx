@@ -37,9 +37,6 @@ function renderBand(collapsed: number[] = []) {
 
 beforeEach(() => vi.clearAllMocks())
 
-// The arrow is the only description of what's beneath it, so it must read the same collapsed-set
-// the grid uses — under zwężenie that set is empty, so it says „rozwinięta" because the rows are
-// on screen.
 describe('Belka sekcji — strzałka mówi to, co widać', () => {
   it('stoi otwarta, gdy sekcja nie jest zwinięta', () => {
     const { band } = renderBand()
@@ -95,8 +92,6 @@ describe('Belka sekcji — zwijanie', () => {
   })
 })
 
-// A collapsed sekcja has to keep its own commands reachable („Rozwiń", „Usuń sekcję") — which is
-// why the „Akcje" cell is the only one on the band that does not collapse.
 describe('Belka sekcji — komórka akcji', () => {
   it('nie zwija sekcji i nie daje menu tam, gdzie nie ma poleceń', async () => {
     const user = userEvent.setup()

@@ -13,10 +13,6 @@ import {
 } from '@/components/ui/summary-grid'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
-// The per-category „Wydatki inwestycyjne" split — each expense category's recorded brutto, plus a
-// separate frozen „… netto" row per category billed at netto; `byCategory` folds that row back into
-// its category for the investor, who is never shown how an invoice is billed. A non-null `netRate`
-// adds the netto and zł Różnica columns; null keeps it a single-amount-per-category table.
 export function MaterialsBreakdownTable({
   rows,
   netRate,
@@ -24,17 +20,13 @@ export function MaterialsBreakdownTable({
   byCategory = false,
 }: {
   rows: MaterialsBreakdownRowT[]
-  // The rate the Netto column strips, as a fraction — the saved materiały rate, and nothing else.
   // null means materiały settle brutto: the investor is billed the receipt, so a netto column would
-  // print an amount nobody owes. That is also how the company-plane („Rozliczone R+M") split renders.
+  // print an amount nobody owes.
   netRate: number | null
-  // Names the split — the same per-category shape also renders the settled („wliczone w robociznę")
-  // spend, which must never read as part of the investor's wydatki.
   caption?: string
   byCategory?: boolean
 }) {
-  // No filter here: it would make the table disagree with the `rows.length` its callers gate on,
-  // which is how the tab once rendered blank. The builders drop the zeros.
+  // No filter here: it would make the table disagree with the `rows.length` its callers gate on.
   if (rows.length === 0) return null
 
   const showNet = netRate != null
@@ -50,12 +42,7 @@ export function MaterialsBreakdownTable({
   return (
     <SummaryTable cols={cols} className="w-fit">
       <SummaryHeaderCell variant="label">{caption}</SummaryHeaderCell>
-      {/* „Netto" bare, not „bez VAT": a brutto row crosses at the saved materiały rate, not at VAT,
-            and a „… netto" row crosses at nothing — both its amounts are the invoice's. It leads
-            because it is the figure the investor is billed. */}
       {showNet && <SummaryHeaderCell>Netto</SummaryHeaderCell>}
-      {/* „Kwota", not „Brutto", where materiały settle brutto: with no rate to cross, there is only
-            one plane, and naming it invites the reader to look for a netto twin that isn't there. */}
       <SummaryHeaderCell>{showNet ? 'Brutto' : 'Kwota'}</SummaryHeaderCell>
       {showNet && <SummaryHeaderCell>Różnica</SummaryHeaderCell>}
       {priced.map(({ key, label, pair }) => (

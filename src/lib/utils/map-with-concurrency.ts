@@ -1,8 +1,3 @@
-/**
- * Run `fn` over `items` with at most `limit` promises in flight at once; results are
- * returned in input order regardless of completion order. A rejecting `fn` propagates
- * (rejects the whole call) — callers that need per-item isolation catch inside `fn`.
- */
 export async function mapWithConcurrency<T, R>(
   items: T[],
   limit: number,

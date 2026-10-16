@@ -11,10 +11,6 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 
-// Accepting a candidate is a WRITE dressed as a hint, and the two things that make it correct are
-// invisible to the engine spec: that it carries the j.m. along with the opis, and that a praca whose
-// name the cennik already holds is told the truth about why it is in this block.
-
 const entry = (over: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => {
   const description = over.description ?? 'Montaż syfonów'
   const unit = over.unit ?? 'szt'

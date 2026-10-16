@@ -27,7 +27,6 @@ export function WorkerReportStatusBadge({
   rejectedLineCount,
 }: PropsT) {
   const { t } = useTranslation('workerReports')
-  // A report with no lines has nothing to count, so it reads as its status.
   const pending = status === 'pending' ? lineCount - acceptedLineCount - rejectedLineCount : 0
   if (acceptedLineCount + rejectedLineCount + pending > 0) {
     return (

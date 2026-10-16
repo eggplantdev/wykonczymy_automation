@@ -3,8 +3,6 @@ import * as React from 'react'
 import { cn } from '@/lib/utils/cn'
 import Icon from '../icons/icon'
 
-// --- Styling primitives (no navigation logic) ---
-
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
     <nav

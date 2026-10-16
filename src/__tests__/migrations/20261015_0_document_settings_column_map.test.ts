@@ -4,8 +4,7 @@ import { sql, type MigrateUpArgs } from '@payloadcms/db-postgres'
 import { up, down } from '@/migrations/20261015_0_document_settings_column_map'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// The migration rewrites what every client and worker link is served, so it runs against real
-// jsonb. It updates whole tables, so each case runs inside a transaction that is rolled back — the
+// It updates whole tables, so each case runs inside a transaction that is rolled back — the
 // other specs in this shared DB never see a half-converted table.
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -109,7 +108,6 @@ describe.skipIf(!ENV_READY)('20261015_0_document_settings_column_map (DB)', () =
     })
   })
 
-  // Rerunning it, or a row the new code already saved, must not lose a choice.
   it('leaves a stored map untouched', async () => {
     await inRolledBackTx(async (tx) => {
       await seedClientRow(tx, { price: true })

@@ -12,8 +12,6 @@ type HistoryColumnDataT = {
   historyBase: Column<KosztorysV2RowT>['component']
 }
 
-// Module-level for the reason SyntheticAwareCell spells out: a per-column closure would be a new
-// component type on every render, and dsg remounts a cell whose type changed.
 function HistoryChangeCell(props: CellProps<KosztorysV2RowT, HistoryColumnDataT>) {
   const { rowData, columnData } = props
   const change = columnData.historyChange(rowData.id)
@@ -32,7 +30,6 @@ function HistoryChangeCell(props: CellProps<KosztorysV2RowT, HistoryColumnDataT>
   )
 }
 
-// Wrapped before `withSyntheticRows`, which then delegates its real rows here.
 export function withHistoryChanges(
   column: Column<KosztorysV2RowT>,
   diff: VersionDiffT,

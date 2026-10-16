@@ -10,9 +10,6 @@ export function derivePairChecks<T extends string>(
   return { a: value === config.a, b: value === config.b }
 }
 
-// Flips the clicked box and maps the resulting pair back to an axis value. Clearing both boxes is
-// allowed and resolves to `none` (hide this axis' columns) — no min-one guard, an empty table is a
-// legitimate view.
 export function togglePairAxis<T extends string>(
   value: T,
   clicked: 'a' | 'b',

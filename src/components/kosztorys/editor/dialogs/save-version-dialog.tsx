@@ -9,9 +9,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// "Zapisz wersję" — a named manual restore point. The field is prefilled with the current timestamp
-// (editable) so a quick save-and-Enter still yields a sensible label, while typing a real name gives
-// the entry a findable title in the "Wersje" list above the ambient auto history.
 export function SaveVersionDialog() {
   const { investmentId } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().version
@@ -21,7 +18,6 @@ export function SaveVersionDialog() {
 
   function handleOpenChange(next: boolean) {
     onOpenChange(next)
-    // Reseed the timestamp default on each open, not on close (avoids a flash of the old value).
     if (next) {
       setName(new Date().toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' }))
     }

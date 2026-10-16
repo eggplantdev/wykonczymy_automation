@@ -12,7 +12,6 @@ type PaginationBarPropsT = {
   totalDocs: number
   limit: number
   onLimitChange: (limit: number) => void
-  /** The page switch — URL links or local buttons, whichever the caller keeps its page in. */
   children?: ReactNode
   className?: string
 }

@@ -50,7 +50,6 @@ function TooltipContent({
   )
 }
 
-// Shared hover delay for every app tooltip, so retuning it is one edit.
 const TOOLTIP_DELAY = 500
 
 type SimpleTooltipPropsT = {
@@ -58,16 +57,10 @@ type SimpleTooltipPropsT = {
   children: React.ReactNode
   className?: string
   delayDuration?: number // hover ms before open
-  // Controlled open state, for a tooltip that has to say something the user didn't hover for — a
-  // rejected keystroke explaining itself in place. Omitted = uncontrolled hover, as everywhere else.
   open?: boolean
-  // Only meaningful alongside `open`: lets a controlled trigger keep tracking hover/focus/Escape
-  // instead of having to re-implement them.
   onOpenChange?: (open: boolean) => void
 }
 
-// Base tooltip. Use directly on INTERACTIVE triggers (buttons, toggles, sortable headers) — the
-// trigger keeps its own cursor. For a read-only explanation on plain text/fields use HintTooltip.
 function SimpleTooltip({
   content,
   children,
@@ -88,9 +81,6 @@ function SimpleTooltip({
 
 type HintTooltipPropsT = SimpleTooltipPropsT
 
-// Read-only explanation on non-interactive content: wraps the trigger in a `cursor-help` span so the
-// `?` cursor signals "hint, not control". `className` styles that wrapper (pass the trigger's own
-// text classes here). InfoTooltip is the icon flavor of the same thing.
 function HintTooltip({ children, className, ...props }: HintTooltipPropsT) {
   return (
     <SimpleTooltip {...props}>

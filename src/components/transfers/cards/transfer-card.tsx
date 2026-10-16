@@ -22,8 +22,6 @@ type PropsT = {
   className?: string
 }
 
-// Cells come from the table's own column defs, so links, invoice upload and edit/cancel behave exactly
-// as in the table, and a column the page excludes or the viewer hid is absent here too.
 function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
   const cell = row.getVisibleCells().find((candidate) => candidate.column.id === columnId)
   return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
@@ -31,8 +29,6 @@ function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
 
 const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
 
-// The label inside carries the meaning — a bare name could be the worker, the kasa's owner or whoever
-// booked it.
 const CHIP_BORDER = {
   register: 'border-chart-blue',
   worker: 'border-chart-yellow',

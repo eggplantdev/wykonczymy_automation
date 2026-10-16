@@ -6,8 +6,6 @@ import {
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { stripSectionOrdinal } from '@/lib/kosztorys/work-catalogue/section-category'
 
-// Kategoria stays in the values while the checkbox is off, so ticking it back on finds the sekcja
-// name still there.
 export const newItemFormSchema = workCatalogueItemBaseSchema
   .extend({ addToCatalogue: z.boolean() })
   .superRefine(refineRatePlanes)

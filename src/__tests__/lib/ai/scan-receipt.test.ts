@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// The receipt scan is byte-in / persist-nothing: scanReceipt takes the picked Files, hands the
-// model their BYTES, and creates NO media record — media is persisted only at submit. This pins
-// that contract; the orphaned-media bug came from persisting a file during the scan that was then
-// never linked to an expense (row removed, receipt swapped, form abandoned).
-
 const { extractReceiptSpy, getPayloadSpy } = vi.hoisted(() => ({
   extractReceiptSpy: vi.fn(),
   getPayloadSpy: vi.fn(),
@@ -68,8 +63,6 @@ describe('scanReceipt', () => {
     expect(pages[0].filename).toBe('receipt-x.png')
   })
 
-  // One invoice photographed across several pages is ONE model call — a total printed on the last
-  // page has to be found, and page order is the document's reading order.
   it('hands every page of one invoice to a single call, in order', async () => {
     await scanReceipt([receiptFile('page-1.png'), receiptFile('page-2.png')], [])
 
@@ -91,7 +84,6 @@ describe('scanReceipt', () => {
     const result = await scanReceipt([receiptFile()], [])
 
     expect(result.filename).toBeTruthy()
-    // Derived from the extracted Opis, not the original upload name.
     expect(result.filename).not.toBe('receipt-x.png')
   })
 
@@ -113,8 +105,6 @@ describe('scanReceipt', () => {
     expect(result.filename).toBeUndefined()
   })
 
-  // The netto sanity guard mirrors getNetAmountError's range rule: a netto the form would reject
-  // becomes a blank field rather than a red error on a number the user never typed.
   describe('netto sanity guard', () => {
     it('passes a plausible netto through untouched', async () => {
       expect(await scanWith({ amount: 12.5, netAmount: 10.16 })).toBe(10.16)
@@ -128,13 +118,10 @@ describe('scanReceipt', () => {
       expect(await scanWith({ amount: 12.5, netAmount: 0 })).toBeNull()
     })
 
-    // VAT-exempt / reverse-charge invoices genuinely print netto == brutto, and
-    // getNetAmountError permits it — discarding it as a suspected echo would contradict the form.
     it('keeps a netto equal to the brutto', async () => {
       expect(await scanWith({ amount: 12.5, netAmount: 12.5 })).toBe(12.5)
     })
 
-    // No brutto to compare against; the user types that one, so the netto is not second-guessed.
     it('keeps a netto when the brutto is null', async () => {
       expect(await scanWith({ amount: null, netAmount: 10.16 })).toBe(10.16)
     })

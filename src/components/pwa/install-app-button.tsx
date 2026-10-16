@@ -13,8 +13,6 @@ import { useInstallPromptStore } from '@/stores/install-prompt-store'
 // on a cold page — past this the button gives way to the browser-menu path.
 const PROMPT_WAIT_MS = 60_000
 
-// Phone-only (`sm:hidden`): desktop browsers mostly never fire `beforeinstallprompt`, so there the
-// button would only ever wait out into a menu hint written for Android.
 export function InstallAppButton() {
   const { t } = useTranslation('workerPage')
   const platform = useClientSnapshot(readPlatform)

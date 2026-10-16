@@ -16,7 +16,6 @@ import { logError } from '@/lib/utils/log-error'
 
 let cachedSecretKey: Uint8Array | undefined
 
-/** Derive the secret key from Payload's own config (cached after first call). */
 async function getSecretKey(): Promise<Uint8Array> {
   if (cachedSecretKey) return cachedSecretKey
   const payload = await getPayload({ config })
@@ -25,8 +24,7 @@ async function getSecretKey(): Promise<Uint8Array> {
 }
 
 // Tagged with the collection, not `entityTag('user', id)`, against the EX-849 rule: every write to
-// `users` already expires it, so a writer that locks an account out cannot forget to — and an
-// eviction costs one primary-key lookup per open session. The hour is a backstop for raw SQL.
+// `users` already expires it, so a writer that locks an account out cannot forget to.
 const SESSION_ALIVE_REVALIDATE_SECONDS = 3600
 
 const isSessionAliveCached = (userId: number, sid: string, role: RoleT): Promise<boolean> =>
@@ -38,11 +36,6 @@ const isSessionAliveCached = (userId: number, sid: string, role: RoleT): Promise
 
 type SessionT = { user: SessionUserT; issuedAt: number }
 
-/**
- * The token is 90 days long, so its signature alone cannot be the whole answer: deactivating or
- * trashing an account deletes its session rows, and the `sid` check here is what turns that into an
- * immediate logout. The answer is cached per `sid`, so a request pays a cache read, not a query.
- */
 export const getSession = cache(async (): Promise<SessionT | undefined> => {
   const cookieStore = await cookies()
   const token = cookieStore.get('payload-token')?.value

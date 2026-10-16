@@ -27,10 +27,6 @@ const toDeadline = (
   }
 }
 
-/**
- * `costRange` has no default on purpose: leaving it out would quietly change the number the cost
- * column shows, so every caller states which window it means.
- */
 export const toRow = (
   vehicle: FleetDatasetT['vehicles'][number],
   events: readonly InspectionRecordT[],
@@ -58,8 +54,7 @@ export const toRow = (
 }
 
 /**
- * One type's events, newest first, each carrying the distance since the entry below it. The delta is
- * `null` — never 0 — whenever either reading is missing, so "unknown" stays distinguishable from
+ * The delta is `null` — never 0 — whenever either reading is missing, so "unknown" stays distinguishable from
  * "the car didn't move".
  */
 export const historyOfType = (

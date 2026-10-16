@@ -17,7 +17,6 @@ export async function listCompanyKnowledge(db: DbExecutorT): Promise<CompanyKnow
   }))
 }
 
-/** A new entry goes above every other one, so the one just written is in view. */
 export async function nextTopDisplayOrder(db: DbExecutorT): Promise<number> {
   const result = await db.execute(sql`
     SELECT COALESCE(MIN(display_order), 0) - 1 AS next FROM company_knowledge
@@ -26,8 +25,7 @@ export async function nextTopDisplayOrder(db: DbExecutorT): Promise<number> {
 }
 
 // Writes `display_order` only: „Ostatnio zmienione” sorts on `updated_at`, and a drag that bumped it
-// would make every entry look freshly edited. Ids nobody sent keep their place, so an entry another
-// manager added meanwhile is not lost from the order.
+// would make every entry look freshly edited.
 export async function applyCompanyKnowledgeOrder(
   db: DbExecutorT,
   ids: readonly number[],

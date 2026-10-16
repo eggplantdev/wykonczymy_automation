@@ -18,7 +18,6 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('uploadMediaFromClient', () => {
-  // The row has to name exactly the key the browser PUT, or the register route finds no blob.
   it('registers the blob it just PUT, under the same key', async () => {
     await expect(uploadMediaFromClient(pdf(), 'projekt')).resolves.toBe(42)
 

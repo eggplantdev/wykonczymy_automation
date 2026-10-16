@@ -16,7 +16,6 @@ type ComboboxPropsT = {
   allowCustom?: boolean
   hideChevron?: boolean
   disabled?: boolean
-  /** Set inside a Dialog — see the `modal` note on the Popover below. */
   modal?: boolean
   className?: string
   contentClassName?: string
@@ -26,11 +25,6 @@ type ItemT = { key: string; label: string; commit: string; checked: boolean }
 
 const CREATE_KEY = '__create__'
 
-// Editable-value combobox: the input holds the actual value (type any custom one when allowCustom),
-// the list below is quick-picks — NOT a search/filter box. Focus stays in the input; Arrow keys move
-// a highlight (bg-accent, like the app's menus) instead of DOM focus, so there's no stray focus ring
-// and Tab doesn't land on options. Radix Popover portals to body (survives a `transform` ancestor);
-// keydown is stopped inside so a datasheet grid behind it can't also act on the keys.
 export function Combobox({
   value,
   onChange,
@@ -46,7 +40,7 @@ export function Combobox({
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
   const [active, setActive] = useState(0)
-  // Whether the highlight is the user's choice or just where it started. The list never filters by
+  // The list never filters by
   // the draft, so an untouched highlight points at an unrelated option — committing it would replace
   // what was typed with the first quick-pick.
   const [picked, setPicked] = useState(false)

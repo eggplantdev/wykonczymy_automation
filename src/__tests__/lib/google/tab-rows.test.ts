@@ -50,10 +50,6 @@ describe('transferRow', () => {
   })
 })
 
-// Criterion 2: per-type SUMIF over emitted rows must equal the filtered-view
-// totals 1:1. sumFilteredByType sums amount AS-IS with `cancelled IS NOT TRUE`,
-// scoped to the investment — replicate that selection over a seeded dataset and
-// compare against the sum of the rows transferRow() emits.
 describe('sheet totals == filtered view (criterion 2)', () => {
   type DocT = {
     id: number
@@ -85,7 +81,6 @@ describe('sheet totals == filtered view (criterion 2)', () => {
       d.cancelled !== true,
   )
 
-  // What sumFilteredByType would return for investment 31, per type.
   const dbTotal = (type: string) =>
     docs
       .filter((d) => d.investment === 31 && d.type === type && d.cancelled !== true)
@@ -155,10 +150,6 @@ describe('expenseRow (behavior unchanged by the refactor)', () => {
   })
 })
 
-// Billing fix: a settled ("wliczone w robociznę") expense must not reach the client's
-// SUM(E:E)/SUMIF, so on the BILL tab its column-E `amount` is 0 and its type is suffixed
-// " rozliczone" to mark the 0-cost line. The real amount lives on the separate tab
-// (settledExpenseRow), not here.
 describe('expenseRow — settled (R+M) routing (bill tab)', () => {
   it('settled INVESTMENT_EXPENSE: kwota 0, type suffixed " rozliczone"', () => {
     const row = expenseRow({
@@ -225,15 +216,8 @@ describe('expenseRow — settled (R+M) routing (bill tab)', () => {
   })
 })
 
-// Bridge invariant (3.3): the bug FAZA 1 + FAZA 2 each tested per-plane but nothing
-// crossed — app-math excluded settled, row-mapping suffixed settled, but no test asserted
-// the bill tab's client-facing SUM(E:E) obeys the same exclusion. This is that test: seed
-// a MIXED settled/non-settled dataset through `expenseRow` (the bill-tab builder) and assert
-// the column-E total the client sums equals only the non-settled real amounts. Proven red
-// against pre-FAZA-2 behavior (settled mirrored at real amount) before landing.
 describe('bill tab SUM(E:E) excludes settled — bridge invariant (3.3)', () => {
   const mat = { name: 'Materiały budowlane' }
-  // Mixed: settled rows carry real amounts that MUST NOT reach the client total.
   const docs: TxDocT[] = [
     { ...base, id: 1, amount: 250, expenseCategory: mat }, // non-settled
     { ...base, id: 2, amount: 500, settled: true, expenseCategory: mat }, // settled → 0
@@ -243,9 +227,7 @@ describe('bill tab SUM(E:E) excludes settled — bridge invariant (3.3)', () => 
   ]
   const rows = docs.map(expenseRow).filter((r) => r !== undefined)
 
-  // What the client's SUM(E:E) over the bill tab actually adds up.
   const columnESum = rows.reduce((s, r) => s + Number(r.amount), 0)
-  // What it SHOULD be: only the non-settled real amounts (settled is company-absorbed).
   const nonSettledTotal = docs.filter((d) => !d.settled).reduce((s, d) => s + Number(d.amount), 0)
 
   it('(a) every settled row writes column-E amount 0', () => {
@@ -269,7 +251,6 @@ describe('bill tab SUM(E:E) excludes settled — bridge invariant (3.3)', () => 
   })
 })
 
-// The separate "rozliczone R+M" tab shows settled expenses at their REAL amount, plain type.
 describe('settledExpenseRow (rozliczone tab)', () => {
   it('settled expense → real amount, plain category type', () => {
     const row = settledExpenseRow({
@@ -324,9 +305,6 @@ describe('settledExpenseRow (rozliczone tab)', () => {
   })
 })
 
-// Regression: the netto type used to mirror `amount` (brutto) into the owner's client-facing
-// sheet, putting the company's VAT reclaim on the client's invoice and pushing the sheet's
-// SUM(E:E) above the app's materiały total.
 describe('expenseRow — netto type bills the netto figure', () => {
   const netDoc: TxDocT = {
     ...base,

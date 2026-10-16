@@ -21,19 +21,13 @@ const TARGET_MISSING: Record<GateTargetKindT, string> = {
 }
 
 /**
- * Refuse every write that moves money on a settled or trashed investment. The kosztorys writes raw
+ * The kosztorys writes raw
  * SQL in a dozen places, so neither collection hooks nor Payload `access` see those writes — the
- * action layer is the only chokepoint that does. Wrapping `protectedAction` (the shape
- * `ownerOnlyAction` already uses) runs the check structurally, so a newly added kosztorys action
- * cannot forget a hand-copied `if`. Unlike role gates this one is stateful: it narrows on the
- * investment's status and trash marker, not on who is asking — no role edits a completed or trashed
- * investment.
+ * action layer is the only chokepoint that does.
  */
 export function investmentAction<TData = undefined>(
   label: string,
   target: GateTargetT,
-  // `investmentId` is handed down rather than re-derived: the gate has just resolved it from the
-  // row's parent, and the delete handlers used to pay a second query for the same fact.
   handler: (ctx: {
     payload: Payload
     user: SessionUserT
@@ -58,11 +52,11 @@ export function investmentAction<TData = undefined>(
           ...(await investmentGateFor(db, target.investmentId)),
         }
       } else {
-        // One round trip, not two: the editor fans a write out per changed cell, so a paste across
+        // the editor fans a write out per changed cell, so a paste across
         // fifty cells would otherwise pay fifty extra queries just to learn the parent's id.
         const owner = await investmentGateForRow(db, target.kind, target.id)
         if (owner === undefined) {
-          // The code, not just the sentence: `use-stale-tree-recovery` reseeds the whole tree on
+          // `use-stale-tree-recovery` reseeds the whole tree on
           // NOT_FOUND, and without it a write against a row someone else deleted leaves the editor
           // holding a stale tree behind a toast that explains nothing.
           return {

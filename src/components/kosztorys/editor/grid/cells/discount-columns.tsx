@@ -17,7 +17,6 @@ const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: 'amount', label: DISCOUNT_TYPE_LABELS.amount },
 ]
 
-// The type/value transitions live in discount-edit.ts — see there for why they're paired.
 function DiscountTypeCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
   if (disabled) {
     const label = DISCOUNT_OPTIONS.find((o) => o.value === (rowData.discountType ?? ''))?.label
@@ -30,8 +29,6 @@ function DiscountTypeCell({ rowData, setRowData, disabled }: CellProps<Kosztorys
       hideChevron
       onChange={(next) => {
         const switched = discountFromType(rowData, (next || null) as DiscountTypeT | null)
-        // A refused switch leaves the dropdown exactly where it was, so the user is owed the reason —
-        // otherwise the click reads as the menu being broken.
         if (switched.kind === 'blocked') return toastMessage(switched.message, 'error', 5000)
         setRowData({ ...rowData, ...switched.pair })
       }}
@@ -39,16 +36,11 @@ function DiscountTypeCell({ rowData, setRowData, disabled }: CellProps<Kosztorys
   )
 }
 
-// Silent on a refusal, the way every other pasted cell is (cell-edit.ts) — only the dropdown, where
-// a click went unanswered, owes the user a toast.
 function switchedRow(rowData: KosztorysV2RowT, next: DiscountTypeT | null): KosztorysV2RowT {
   const switched = discountFromType(rowData, next)
   return switched.kind === 'blocked' ? rowData : { ...rowData, ...switched.pair }
 }
 
-// A hand-rolled input rather than a stock numeric column, because an edit here has to reach
-// discountType too (discount-edit.ts), which a keyColumn can't do. The draft contract it runs on —
-// and the „12,5" → 125 incident behind it — is use-cell-draft.ts.
 function DiscountValueCell({
   rowData,
   setRowData,
@@ -68,8 +60,6 @@ export function discountValueColumn(titleNode: ReactNode): Column<KosztorysV2Row
     id: 'discountValue',
     title: titleNode,
     component: DiscountValueCell,
-    // Through the policy, not a hand-written pair: „what an emptied rabat means" is one rule, and it
-    // has to say the same thing whether the user cleared the field or hit Delete on the cell.
     copyValue: ({ rowData }) => decimalText(rowData.discountValue),
     pasteValue: ({ rowData, value }) => cellPaste(value, rowData, policy),
     deleteValue: ({ rowData }) => policy.clear(rowData),

@@ -69,9 +69,6 @@ function DropdownMenuItem({
   )
 }
 
-// An `onSelect` for an item whose effect is visible inside the menu itself — a toggle, a sort, a
-// filter. Radix closes the menu on every select; preventDefault keeps it open so the pick can be read
-// back (or changed again) without reopening.
 function keepMenuOpen(action?: () => void) {
   return (event: Event) => {
     event.preventDefault()
@@ -79,8 +76,7 @@ function keepMenuOpen(action?: () => void) {
   }
 }
 
-// Stays open by default: a checkbox is a state you set, not a command you run. Pass `onSelect` to
-// opt back into closing — a pick that opens a dialog has to, or the menu's focus trap fights it.
+// Pass `onSelect` to opt back into closing — a pick that opens a dialog has to, or the menu's focus trap fights it.
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -109,9 +105,6 @@ function DropdownMenuCheckboxItem({
   )
 }
 
-// The canonical checkbox row: check on the left (from CheckboxItem), label, optional glyph pushed to
-// the right edge. The one shape for every check-row so the plane picker and the Widok-kolumn menu
-// can't drift.
 function DropdownMenuCheckboxRow({
   label,
   trailing,
@@ -134,7 +127,6 @@ function DropdownMenuRadioGroup({
   return <DropdownMenuPrimitive.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />
 }
 
-// Stays open by default, like DropdownMenuCheckboxItem: picking one is a state you set.
 function DropdownMenuRadioItem({
   className,
   children,

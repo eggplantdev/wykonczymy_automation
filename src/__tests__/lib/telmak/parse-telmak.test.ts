@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { normalizeDocNumber, parseTelmak, plDateToIso } from '@/lib/telmak/parse-telmak'
 
-// Line arrays in the shape `pdfLines` produces from a Telmak PDF (cells joined with ` | `). The
-// buyer is invented; only Telmak's own NIP is real, because the parser rejects a page without it.
+// only Telmak's own NIP is real, because the parser rejects a page without it.
 const SELLER = 'Sprzedawca | TELMAK Przykład | NIP: 526-23-86-109'
 const BUYER = 'Nabywca | Firma Testowa Sp. z o.o. | ul. Zmyślona 1, 00-001 Nibylandia'
 

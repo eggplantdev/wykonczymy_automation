@@ -11,7 +11,6 @@ const stages: KosztorysStageT[] = [
   makeStage({ id: 101, ordinal: 2, plane: 'own_tools' }),
 ]
 
-// The editor's own opts: mutation callbacks present, so the actions column is built and cells are live.
 const editorOpts: BuildV2ColumnsOptsT = {
   view: 'client',
   stages,
@@ -30,15 +29,11 @@ describe('readOnly', () => {
   it('leaves the editor path untouched when unset', () => {
     const columns = buildV2Columns(editorOpts)
     expect(columns.map((c) => c.id)).toContain('actions')
-    // The data cells stay live — this is the regression the flag must not cause.
     expect(columns.some((c) => c.id === 'description' && !c.disabled)).toBe(true)
   })
 })
 
 describe('przedmiar-anchored columns', () => {
-  // The filter sits at the selection chokepoint, not in the assembly, so a column that starts being
-  // built unconditionally can only leak through here — the assertion is on the built grid, never on
-  // the set constant, which would just restate itself.
   it('drop their brutto half in a subcontractor view', () => {
     const columns = ids({ ...editorOpts, view: 'w_tools' })
     for (const id of ['plannedGross', 'remainingGross']) {

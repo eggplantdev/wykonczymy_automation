@@ -8,7 +8,6 @@ export function appendRoundBlock(existing: string | null, block: string): string
   return existing?.trim() ? `${existing}${ROUND_BLOCK_SEPARATOR}${block}` : block
 }
 
-// The block names its round itself, so a pozycja's history reads without the loader's help.
 export function assertRoundDraft(
   rows: readonly { section: string; description: string; qty: number; newInformation?: string }[],
   round: number,

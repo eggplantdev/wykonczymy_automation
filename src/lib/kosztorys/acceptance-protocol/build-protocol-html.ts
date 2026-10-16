@@ -115,7 +115,6 @@ function printDate(value: string): string {
   return value ? formatPLDate(value) : ''
 }
 
-// Escapes its own value, so every form field reaches the page through one door.
 function fill(value: string): string {
   return `<span class="fill">${escapeHtml(value)}</span>`
 }

@@ -14,7 +14,6 @@ const whereItIs = (location: EquipmentLocationT): string | undefined => {
   }
 }
 
-// Names where the item is, because trashing it does not bring it back from whoever holds it.
 export function describeEquipmentTrash(item: { name: string; location: EquipmentLocationT }) {
   return [
     `Przenieść „${item.name}" do kosza? Możesz go przywrócić z Kosza.`,

@@ -105,9 +105,8 @@ describe('buildSqlConditions — Where → SQL', () => {
 })
 
 /**
- * Every Where reaching this module is built in-repo, so anything unrecognised means a caller grew
- * something the translator wasn't taught. Skipping it silently is how a filter stops narrowing
- * without anyone noticing (EX-574) — each of these must throw instead.
+ * Skipping it silently is how a filter stops narrowing without anyone noticing — each of these must
+ * throw instead.
  */
 describe('buildSqlConditions — refuses what it cannot translate', () => {
   it('refuses an unknown operator', () => {

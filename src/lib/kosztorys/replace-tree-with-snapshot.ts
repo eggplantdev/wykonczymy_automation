@@ -12,37 +12,23 @@ import type { StoredSnapshotPayloadT } from './snapshot-format'
 type OptionsT = {
   investmentId: number
   // `manual`, not `auto`, is what makes a wholesale replacement genuinely undoable: an auto snapshot
-  // is ambient history — indistinguishable from the periodic autosaves in „Wersje", and thinned to
-  // one per day/week as it ages. A labelled manual row is exempt from the bands and shows up as a
-  // named targetable entry, so „przywróć stan sprzed" stays a click rather than a guess.
+  // is thinned to one per day/week as it ages.
   label: string
   takenBy: number
   tree: StoredSnapshotPayloadT
   // The reload path alone passes this: a preset's przedmiar is all zeroes, so a surviving amount
-  // discount would price the fresh rozpiska below nothing (`globalDiscountAmount` is deliberately
-  // unclamped — see calc.ts). Every other replacement keeps the live discount.
+  // discount would price the fresh rozpiska below nothing.
   clearGlobalDiscount?: boolean
-  // The sheet import alone passes this — see the note below on why every other caller must not.
   takeSettingsFromTree?: boolean
 }
 
-// Swap an investment's whole rozpiska for `tree`, reversibly. In ONE transaction: a forced pre-wipe
-// snapshot (captured on the transaction handle and BEFORE the wipe — outside it, a rollback would
-// leave the snapshot behind; after the wipe it would snapshot nothing) and the replacement itself.
-// Any throw rolls both back and the live kosztorys is untouched.
-//
 // The investment's own editor-settings (VAT, coefficients) are not taken from `tree` by default:
-// they are per-job pricing config, and a preset built for one job must not carry its config onto
-// another.
+// a preset built for one job must not carry its config onto another.
 //
-// `takeSettingsFromTree` is the sheet import's exception, and it is load-bearing rather than a
-// convenience: the import reads the markup out of the cennik's own formulas and, on the strength of
-// that, hands every praca running at exactly that markup to the global coefficient („auto") instead
-// of stamping it with a per-row multiplier. Drop the settings and those prace silently reprice at
-// whatever the investment happened to hold — 0,55 against the sheet's 0,5525 is 151 stawki wrong by
-// half a percent, each of them looking perfectly deliberate. `buildImportPlan` already merges VAT
-// and any coefficient the sheet had no opinion about from the live investment, so what arrives here
-// is the sheet's answer where it has one and the job's own everywhere else.
+// `takeSettingsFromTree` is the sheet import's exception: the import reads the markup out of the
+// cennik's own formulas and hands every praca running at exactly that markup to the global
+// coefficient („auto"). Drop the settings and those prace silently reprice at whatever the
+// investment happened to hold.
 export async function replaceTreeWithSnapshot(
   payload: Payload,
   options: OptionsT,
@@ -68,9 +54,6 @@ async function attemptReplacement(
       // superseded — and `current.settings` below would then write that stale config back.
       await lockInvestmentForReplace(db, investmentId)
 
-      // On `req`, so the read joins the transaction below and shares its snapshot: „przed" then
-      // describes exactly the tree the wipe is about to delete, not whatever a second connection
-      // happened to see.
       const current = await serializeKosztorys(investmentId, req)
       await insertSnapshot(db, {
         investmentId,
@@ -88,15 +71,9 @@ async function attemptReplacement(
       )
     },
     { skipRevalidation: true },
-    // The whole transaction reads ONE snapshot, so the forced „przed" snapshot and the wipe below
-    // can no longer describe two different trees (EX-718). Under READ COMMITTED an autosave from
-    // another tab committing between them was deleted by the wipe and absent from the snapshot —
-    // lost with no way back, on the one path that exists to undo an import or „Wyczyść kosztorys".
-    // The lock above cannot cover that writer: an UPDATE never touches the investment row. An INSERT
-    // does — its FK check takes FOR KEY SHARE on it and waits out the lock — so a concurrent insert
-    // lands AFTER the replacement, which is a legal order and not a lost write (its section may by
-    // then be gone, and the insert simply fails). The same interleaving now aborts the replacement,
-    // which is recoverable — the owner retries and the second attempt snapshots the tree that exists.
+    // Under READ COMMITTED an autosave from another tab committing between them was deleted by the
+    // wipe and absent from the snapshot.
+    // The lock above cannot cover that writer: an UPDATE never touches the investment row.
     { isolationLevel: 'repeatable read' },
   )
 }

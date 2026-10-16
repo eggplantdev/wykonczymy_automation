@@ -5,13 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
 
-// The kosztorys plane's gate is the action wrapper, not a hook — a dozen places write raw SQL that
-// no collection hook or Payload `access` rule ever sees. So the assertion has to be the SERVER'S
-// refusal against the real DB, action by action: a UI-visibility test would prove nothing about the
-// path that matters. The role is OWNER throughout, deliberately — the lock narrows on the
-// investment's STATUS, not on who is asking, and the highest management role refusing is the point.
-//
-// Same mock surface as the sibling action specs.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -51,7 +44,6 @@ const { compareWithSheet } = await import('@/lib/actions/kosztorys-import')
 const { insertCatalogueItemsAction } = await import('@/lib/actions/catalogue-to-kosztorys')
 const { INVESTMENT_LOCKED_MESSAGE } = await import('@/lib/constants/investment-lock')
 
-// Gated like the sibling specs: skips with no DB env, FAILS if env is set but the DB is unreachable.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'investment-lock-test-'
 
@@ -78,8 +70,6 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
     if (!firstUser) throw new Error('no user in the DB to attribute the action to')
     authState.userId = Number(firstUser.id)
 
-    // A crashed run leaves its investments behind, and financial-golden-master-db.test.ts enumerates
-    // this same DB with `limit: 0` — a leaked fixture would show up there as unexplained drift.
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)
 
     // Built while still „Aktywna", then closed: the fixture has to carry a real row of each kind, or
@@ -161,8 +151,6 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
     expect(await call()).toEqual({ success: false, error: INVESTMENT_LOCKED_MESSAGE })
   })
 
-  // The refusals above return before the handler, so the persisted rows are the proof no write leaked
-  // through one of them.
   it('leaves the rows untouched after every refusal', async () => {
     const item = await payload.findByID({
       collection: 'kosztorys-items',
@@ -180,8 +168,6 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
     expect(sections.totalDocs).toBe(1)
   })
 
-  // The other half of the boundary: the lock stops writes, not reads — and a preset is a GLOBAL
-  // template, so a finished kosztorys stays a legitimate source for one.
   it('still lists versions', async () => {
     expect((await listSnapshotsAction(investmentId)).success).toBe(true)
   })

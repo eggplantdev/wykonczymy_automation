@@ -10,9 +10,6 @@ type ExternalLinkPropsT = {
   className?: string
 }
 
-// A link to somewhere outside the app (always opens a new tab with a safe
-// `rel`). Two looks: `text` — a subtle inline link; `button` — a prominent CTA
-// (used as the mobile primary action when the embed is hidden).
 const VARIANT_CLASSES = {
   text: 'text-muted-foreground hover:text-foreground text-xs underline',
   button:

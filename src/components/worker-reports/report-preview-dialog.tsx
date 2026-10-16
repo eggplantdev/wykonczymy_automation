@@ -1,6 +1,6 @@
 'use client'
 
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ReportPreviewTable } from '@/components/worker-reports/report-preview-table'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'

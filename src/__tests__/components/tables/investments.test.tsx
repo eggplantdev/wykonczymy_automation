@@ -18,7 +18,6 @@ vi.mock('@/hooks/use-current-user', () => ({
   useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: 'OWNER' }),
 }))
 
-// The Kijowska shape: settled netto on materials alone, no kosztorys, no work, no wypłaty.
 const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => ({
   id: 1,
   name: 'Kijowska 17',

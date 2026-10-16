@@ -29,10 +29,8 @@ import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
 
 const col = createColumnHelper<InvestmentRowT>()
 
-// The kosztorys-sourced half of every doubled figure, plus „Pozostało do wypłaty", which has no v1
-// twin but reads the kosztorys all the same. Named here, beside the columns themselves, so
-// the toolbar's „Pokaż kolumny v2" switch and the columns cannot drift apart — and so EX-712, which
-// deletes the v1/v2 split once the rozjazd is zero everywhere, has one list to delete.
+// Named here, beside the columns themselves, so the toolbar's „Pokaż kolumny v2" switch and the
+// columns cannot drift apart.
 export const V2_COLUMN_IDS = [
   'balance',
   'balanceGross',
@@ -41,20 +39,13 @@ export const V2_COLUMN_IDS = [
   'subcontractorRemaining',
 ] as const
 
-// Every other v2 figure reads a missing kosztorys as a real zero — an investment settled on materials
-// alone is legitimate (owner, 2026-10-02). „Pozostało do wypłaty" alone withholds: with nothing owed
-// it would only reprint the wypłaty with a minus, and sort every legacy investment in among the real
-// overpayments.
-//
-// Off `hasKosztorys` rather than `totalLaborCosts !== 0`, which cannot tell the two apart: „pomiar z
-// natury" is the etap sum, so a rozpiska entered in full but not yet started sums to zero, and its
-// −wypłaty is a genuine zaliczka paid ahead of the work.
+// Off `hasKosztorys` rather than `totalLaborCosts !== 0`, which cannot tell the two apart: a rozpiska
+// entered in full but not yet started sums to zero.
 function NoKosztorys() {
   return <span className="text-muted-foreground text-xs">brak kosztorysu</span>
 }
 
-// A row with an unsettled etap has no amount at all — zero would read as a real figure: a crew
-// working for free on the marża, a crew paid in full on „Pozostało do wypłaty".
+// A row with an unsettled etap has no amount at all — zero would read as a real figure.
 function UnsettledStages() {
   return <span className="text-muted-foreground text-xs">ustaw etapy</span>
 }
@@ -64,11 +55,8 @@ function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined
   return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
 }
 
-// The tryb decides which bilans EXISTS — one column per investment, never two (owner, 2026-08-23).
-// The other one isn't merely uninteresting, it is unbuilt: since nothing is derived at VAT, a bilans
-// brutto on an investment settled netto deducts only the przelewy and silently drops every wpłata
-// gotówka. The same projection the Podsumowanie panel reads, so the listing can never print a kwota
-// the panel refuses to show.
+// A bilans brutto on an investment settled netto deducts only the przelewy and silently drops every
+// wpłata gotówka.
 function OtherSettlementMode({ row }: { row: InvestmentRowT }) {
   return (
     <span className="text-muted-foreground text-xs">
@@ -81,9 +69,8 @@ function settlesOn(row: InvestmentRowT, plane: 'net' | 'gross'): boolean {
   return axisShows(settlementModeToMoneyAxis(row.settlementMode))[plane]
 }
 
-// The other tryb's cell sorts last instead of by the figure behind it. The balance is computed for
-// every row whether or not the tryb builds it, so that cell would otherwise sort on a number the
-// column refuses to print — same reason `marginV2` carries `sortUndefined` below.
+// The balance is computed for every row whether or not the tryb builds it, so that cell would
+// otherwise sort on a number the column refuses to print.
 const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
   settlesOn(row, plane) ? row[plane === 'net' ? 'balance' : 'balanceGross'] : undefined
 
@@ -132,10 +119,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       cell: (info) => <AiProgressBadge step={info.getValue()} />,
     }),
 
-    // Every figure that exists on two planes is shown on BOTH, v1 beside v2: nothing here infers
-    // which plane an investment „really" belongs to, because while investments are still being moved
-    // off the spreadsheets one legitimately carries figures on both. Hide what you are not comparing
-    // today with the column picker.
     col.accessor('balanceFromTransactions', {
       id: 'balanceFromTransactions',
       header: 'Bilans netto v1',
@@ -153,7 +136,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
         return <BalanceCell value={info.row.original.balance} />
       },
     }),
-    // No v1 twin: brutto has only ever been computed on the plane its netto came from.
     col.accessor(balanceOrUndefined('gross'), {
       id: 'balanceGross',
       sortUndefined: 'last',
@@ -164,9 +146,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
         if (!settlesOn(row, 'gross')) return <OtherSettlementMode row={row} />
         return (
           <HintedValue
-            /* Whatever this figure drops, said out loud — the Podsumowanie panel says the same
-               sentence about the same wpłaty, and a bare number here contradicted it. The tryb is
-               brutto by the time a row carries these, which is the only tryb that strands any. */
             hint={
               row.strandedDeposits && (
                 <LabelHintIcon
@@ -200,8 +179,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
           }),
         ]
       : []),
-    // The transition's work queue: the two planes side by side on the figure they actually disagree
-    // about. Zero rozjazd everywhere means the move is done and both columns can go.
     col.accessor('totalLaborCostsFromTransactions', {
       id: 'laborCostsFromTransactions',
       header: 'Robocizna v1',
@@ -212,9 +189,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       id: 'laborCostsFromKosztorys',
       header: 'Robocizna v2',
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.laborCostsFromKosztorys },
-      // The rozjazd rides on this cell rather than a column of its own: as a column it was a bare
-      // number under a header nobody could decode, and it is only ever read against the v2 amount
-      // standing next to it.
       cell: (info) => {
         // Rounded: both sides are independent float folds, so a fully migrated investment lands a
         // sub-grosz residue apart rather than exactly equal, and the icon would never disappear.
@@ -223,7 +197,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
         )
         return (
           <HintedValue
-            /* No icon at zero — „nothing left to move" is the answer that needs no explanation. */
             hint={
               gap !== 0 && (
                 <LabelHintIcon
@@ -251,8 +224,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalSettled },
       cell: (info) => formatPLN(info.getValue()),
     }),
-    // Wypłaty (payouts) is admin/owner-only, matching the detail page where it
-    // sits alongside Marża behind the same role gate.
     ...(isAdminOrOwner
       ? [
           col.accessor('totalPayouts', {
@@ -263,8 +234,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
           }),
         ]
       : []),
-    // Ungated, unlike „Wypłaty" beside it: the owner wants every management role to see where a
-    // crew is still owed money.
     col.accessor('subcontractorRemaining', {
       id: 'subcontractorRemaining',
       sortUndefined: 'last',

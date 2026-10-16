@@ -8,10 +8,8 @@ const OVERRUN = 1
 const OWED = 2
 // Executed a hair past its przedmiar: −0.003 zł at the client price, −0.0036 zł at the stawka.
 const FLOAT_NOISE = 3
-// Past the ofertowy, inside the Aktualizacja przedmiaru — and the reverse.
 const WITHIN_CURRENT = 4
 const PAST_CURRENT = 5
-// Added outside the offer (ofertowy 0) and executed past its Aktualizacja przedmiaru.
 const OFF_OFFER_PAST_CURRENT = 6
 
 const tree = makeTree({
@@ -74,7 +72,6 @@ const toneOf = (columns: typeof ownerColumns, columnId: string) => {
   return (column?.columnData as ToneDataT).tone
 }
 
-// The worker's „Pozostało" never goes red — his document carries no alarms (document-alarms.test.tsx).
 describe('„Pozostało" overrun tone', () => {
   it.each([
     ['remaining', ownerColumns],
@@ -104,7 +101,6 @@ describe('„% wykonania" over-planned tone', () => {
     expect(toneOf(ownerColumns, 'plannedDonePercent')(row(PAST_CURRENT))).toBe('danger')
   })
 
-  // The offer-based figure is „—" without an ofertowy, and a red dash claims an overrun of nothing.
   it('the offer-based column stays muted on a pozycja spoza oferty', () => {
     expect(toneOf(ownerColumns, 'donePercent')(row(OFF_OFFER_PAST_CURRENT))).toBe('danger')
     expect(toneOf(ownerColumns, 'plannedDonePercent')(row(OFF_OFFER_PAST_CURRENT))).toBe('muted')

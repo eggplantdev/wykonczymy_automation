@@ -6,14 +6,12 @@ import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-d
 
 // `assets` is investments' first relationship field, so this asserts the join table the migration
 // created actually matches what Payload writes into it — a shape a mocked `payload.update` cannot
-// see. Asserted on investments_rels, not on the action's result: a success value sits on top of
-// whatever the write really did.
+// see.
 
 vi.mock('server-only', () => ({}))
 
 // The reclaim is handed to `after`, so it runs once the response is out — a no-op `after` would
 // drop it silently and the reclaim assertions below would pass over a file nothing ever checked.
-// Collected rather than run inline, because the assertions read the DB and must see it finished.
 const { scheduled } = vi.hoisted(() => ({ scheduled: [] as Promise<unknown>[] }))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -58,7 +56,6 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     return rows.map((row) => Number(row.media_id))
   }
 
-  /** Wait out the work the action deferred past its response. */
   const flushDeferred = () => Promise.all(scheduled.splice(0)).then(() => undefined)
 
   const mediaExists = async (id: number) => {

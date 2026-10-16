@@ -3,10 +3,6 @@ import { APIError } from 'payload'
 import { guardDeleteOnLockedInvestment } from '@/hooks/transfers/guard-delete'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
-// `validateTransfer` covers every write EXCEPT the delete, which Payload routes past
-// `beforeValidate` entirely. So what this spec pins is the hole that left: a booked transaction on a
-// zakończona inwestycja must not be removable, because `afterDelete` would then move the bilans and
-// the owner's arkusz on a settled job.
 const LOCKED_ID = 99
 
 function hookArgs(investment: unknown) {
@@ -37,7 +33,6 @@ describe('guardDeleteOnLockedInvestment', () => {
     )
   })
 
-  // A 500 would hide the reason behind „Something went wrong"; the refusal has to be readable.
   it('refuses with a public 403 rather than a bare Error', async () => {
     await expect(guardDeleteOnLockedInvestment(hookArgs(LOCKED_ID))).rejects.toBeInstanceOf(
       APIError,

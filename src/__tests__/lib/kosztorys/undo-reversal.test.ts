@@ -39,8 +39,6 @@ describe('planReversalWrites', () => {
     ])
   })
 
-  // `restore` is what a FAILED inverse rolls back to — the value the grid held going in, which is the
-  // opposite end of the change from what the write sends.
   it('sends the before value and restores the after under undo', () => {
     const [first] = planReversalWrites(FIELDS, STAGES, 'undo')
 

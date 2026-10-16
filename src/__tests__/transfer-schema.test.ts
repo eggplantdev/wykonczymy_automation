@@ -35,16 +35,12 @@ describe('validateLineItemCategories — CORRECTION (investment-conditional)', (
   })
 })
 
-// ── Helpers ─────────────────────────────────────────────────────────────
-
-/** Base valid server payload — override per type. */
 const base = {
   amount: 100,
   date: '2026-02-19',
   paymentMethod: 'CASH' as const,
 } as const
 
-/** Valid server payloads for each transfer type. */
 const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
   INVESTOR_DEPOSIT: {
     ...base,
@@ -75,7 +71,6 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
   OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
 }
 
-/** Convert a server payload to client (string) form. */
 function toClientPayload(server: Record<string, unknown>): Record<string, string> {
   const client: Record<string, string> = {
     description: '',
@@ -110,8 +105,6 @@ function errorPaths(result: {
   return result.error.issues.map((i) => i.path.join('.'))
 }
 
-// ── 2b: Server Schema — Valid payloads ──────────────────────────────────
-
 describe('createTransferSchema — valid payloads', () => {
   for (const [type, payload] of Object.entries(VALID_SERVER_PAYLOADS)) {
     it(`${type} — passes`, () => {
@@ -121,8 +114,6 @@ describe('createTransferSchema — valid payloads', () => {
   }
 })
 
-// ── 2b: Server Schema — Missing required fields ────────────────────────
-
 describe('createTransferSchema — missing required fields', () => {
   it('LABOR_COST without investment → error on investment', () => {
     const { investment, ...rest } = VALID_SERVER_PAYLOADS.LABOR_COST
@@ -131,8 +122,6 @@ describe('createTransferSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('investment')
   })
 
-  // A strata lowers the investor's bilans (EX-675), so the link is what tells it whose debt to
-  // lower — an unlinked one would be a concession credited to nobody.
   it('LOSS without investment → error on investment', () => {
     const { investment, ...rest } = VALID_SERVER_PAYLOADS.LOSS
     void investment
@@ -250,8 +239,6 @@ describe('createTransferSchema — missing required fields', () => {
   })
 })
 
-// ── 2b: Server Schema — vatPlane (netto/brutto bucket, EX-536) ──────────
-
 describe('createTransferSchema — vatPlane', () => {
   it('INVESTOR_DEPOSIT without vatPlane → passes (optional, third null state)', () => {
     const { vatPlane, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
@@ -259,8 +246,6 @@ describe('createTransferSchema — vatPlane', () => {
     expect(result.success).toBe(true)
   })
 
-  // A wpłata przelewem carries the netto its faktura names beside the brutto that moved — nothing
-  // crosses VAT here, so the netto is read off the document rather than derived from a stawka.
   it('INVESTOR_DEPOSIT with vatPlane = GROSS → passes when the faktura netto rides along', () => {
     const result = createTransferSchema.safeParse({
       ...VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT,
@@ -296,9 +281,6 @@ describe('createTransferSchema — vatPlane', () => {
   })
 })
 
-// The plane rides along on an edit so a legacy wpłata can be told what it was. What the schema may
-// NOT decide is whether THIS row may take it — write-once needs the stored row, so that gate is the
-// validate hook, with the action deciding whether the answer is sent at all.
 describe('updateTransferSchema — the plane rides along, gated elsewhere', () => {
   const VALID_UPDATE = {
     description: 'edited',
@@ -330,8 +312,6 @@ describe('updateTransferSchema — the plane rides along, gated elsewhere', () =
   })
 })
 
-// ── 2b: Server Schema — Amount edge cases ───────────────────────────────
-
 describe('createTransferSchema — amount edge cases', () => {
   it('amount = 0 → fails', () => {
     const result = createTransferSchema.safeParse({
@@ -358,8 +338,6 @@ describe('createTransferSchema — amount edge cases', () => {
   })
 })
 
-// ── Bulk transfer schema — per-line-item category ───────────────────────
-
 describe('createBulkExpenseSchema — per-line-item category', () => {
   const bulkBase = {
     date: '2026-02-25',
@@ -376,7 +354,7 @@ describe('createBulkExpenseSchema — per-line-item category', () => {
     expect(result.success).toBe(true)
   })
 
-  // The validate hook has always refused an OTHER without a category — the schema has to refuse it
+  // the schema has to refuse it
   // first, or the form submits and the user gets the hook's English error as a toast.
   it('OTHER without per-line category → error on that row', () => {
     const result = createBulkExpenseSchema.safeParse({
@@ -437,8 +415,6 @@ describe('createBulkExpenseSchema — per-line-item category', () => {
     expect(result.success).toBe(true)
   })
 
-  // GUARD B7 at the schema layer — the form's own gate on the netto figure. The hook is the real
-  // authority; this is what stops a bad line before it ever reaches the server action.
   describe('netAmount on the netto expense type', () => {
     const netBase = {
       ...bulkBase,
@@ -481,8 +457,6 @@ describe('createBulkExpenseSchema — per-line-item category', () => {
   })
 })
 
-// ── 2c: Client Schema — Valid payloads ──────────────────────────────────
-
 describe('transferFormSchema — valid payloads (string values)', () => {
   for (const [type, serverPayload] of Object.entries(VALID_SERVER_PAYLOADS)) {
     it(`${type} — passes`, () => {
@@ -492,10 +466,7 @@ describe('transferFormSchema — valid payloads (string values)', () => {
   }
 })
 
-// The netto/brutto kwota pair is an INVESTOR_DEPOSIT-only axis, but the plane is derived from the
-// payment method, which every deposit type offers. A „Zasilenie z konta firmowego" przelewem
-// therefore arrives tagged GROSS with only `amount` typed — the brutto field is never rendered for
-// it — and a plane-keyed branch would park the error on an input the user cannot see.
+// a plane-keyed branch would park the error on an input the user cannot see.
 
 describe('transferFormSchema — a non-investor deposit paid by przelew', () => {
   const przelew = (type: string) => ({
@@ -519,11 +490,7 @@ describe('transferFormSchema — a non-investor deposit paid by przelew', () => 
   })
 })
 
-// ── 2c: Client Schema — Missing required fields ────────────────────────
-
 describe('transferFormSchema — missing required fields', () => {
-  // A strata lowers the investor's bilans (EX-675), so the link is what tells it whose debt to
-  // lower — an unlinked one would be a concession credited to nobody.
   it('LOSS without investment → error on investment', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.LOSS)
     payload.investment = ''
@@ -614,8 +581,6 @@ describe('transferFormSchema — missing required fields', () => {
   })
 })
 
-// ── Unreadable-receipt sentinel — a row the model couldn't read must not save ──
-
 describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
   const validClient = {
     date: '2026-02-25',
@@ -676,8 +641,6 @@ describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
     expect(errorPaths(result)).toContain('lineItems.0.description')
   })
 })
-
-// ── 2d: Schema Parity — valid payloads agree ────────────────────────────
 
 describe('schema parity — valid payloads', () => {
   for (const [type, serverPayload] of Object.entries(VALID_SERVER_PAYLOADS)) {

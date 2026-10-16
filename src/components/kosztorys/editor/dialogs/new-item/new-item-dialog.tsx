@@ -22,8 +22,6 @@ function describeLanding({ placement, anchorDescription }: LandingT, sectionName
     : `Praca trafi ${side} pracę bez opisu.`
 }
 
-// With „Nie zamykaj po zapisaniu" the next praca lands under the one just saved, so a run of pracy
-// typed in a row keeps its order. An end-of-sekcja placement already does that by itself.
 const nextLanding = (landing: LandingT, saved: KosztorysItemT): LandingT =>
   landing.placement.kind === 'end'
     ? landing
@@ -32,7 +30,6 @@ const nextLanding = (landing: LandingT, saved: KosztorysItemT): LandingT =>
         anchorDescription: saved.description ?? '',
       }
 
-// Mounted only while a placement is chosen; the host owns that choice.
 export function NewItemDialog({
   placement,
   sectionName,

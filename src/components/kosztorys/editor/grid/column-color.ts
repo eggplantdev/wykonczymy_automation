@@ -6,7 +6,6 @@ import { stageIdOfKey } from '@/lib/kosztorys/stage-keys'
 import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// globals.css paints `--column-tint` as a background-image over whatever the cell already is.
 const COLUMN_TINT_CLASS = 'kosztorys-column-tint'
 
 const COMPLETED_STAGE_COLOR: SectionColorKeyT = 'green'
@@ -14,8 +13,7 @@ const COMPLETED_STAGE_COLOR: SectionColorKeyT = 'green'
 type ColumnColorOptsT = Pick<BuildV2ColumnsOptsT, 'columnColors' | 'stages'>
 
 // One key per column, never two tint classes: both would set `--column-tint`, and which one wins
-// would then follow Tailwind's stylesheet order, not this precedence. A zakończony etap outranks the
-// owner's own pick — it is a status every reader must see (EX-1034).
+// would then follow Tailwind's stylesheet order, not this precedence.
 function columnColorKey(id: string, opts: ColumnColorOptsT): SectionColorKeyT | undefined {
   const stageId = stageIdOfKey(id)
   if (stageId !== null && opts.stages.some((stage) => stage.id === stageId && stage.completed)) {

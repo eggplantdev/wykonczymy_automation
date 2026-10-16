@@ -42,16 +42,12 @@ async function buildHistoryList(investmentId: number, today: DayT): Promise<Hist
   return buildHistoryEntries(present, liveVersion(live))
 }
 
-// Every entry diffs up to ~1000 rows against the live tree, so the list is computed once and kept
-// until a write. `today` is in the key because midnight changes the list without any write:
-// yesterday's `auto` rows stop being „today's". The live tree is both the baseline and what fills a
-// stored row's gaps (settlement mode, older settings keys), hence the tree's tags beside the
-// snapshot one — not the preview's, whose wpłaty and categories this list never reads.
+// `today` is in the key because midnight changes the list without any write: yesterday's `auto`
+// rows stop being „today's".
 const cachedHistoryList = cached(buildHistoryList, ['preview-kosztorys-history'], {
   tags: [...KOSZTORYS_TREE_TAGS.map((tag) => CACHE_TAGS[tag]), CACHE_TAGS.kosztorysSnapshots],
 })
 
-// Not cached: it diffs against the live tree, which the caller already holds from the preview read.
 async function readPastVersion(
   investmentId: number,
   versionId: number,
@@ -73,8 +69,6 @@ async function readPastVersion(
   }
 }
 
-// Null on failure: the history rides beside the live kosztorys, and one unreadable stored row must
-// not take the present down with it — the page renders without the history instead.
 async function readInvestorHistory(
   investmentId: number,
   current: KosztorysTreeT,
@@ -93,13 +87,6 @@ async function readInvestorHistory(
   }
 }
 
-/**
- * The investor's change history behind a share link. `current` is the tree the page already read
- * through `getPreviewKosztorysByToken` — the version is diffed against exactly what the page shows.
- * `version` is null for any id that isn't one of this investment's `auto` / `daily` / `named` rows:
- * another investment's, a `manual` row, or none at all read the same, and the page renders the
- * present. Scoped by investment and kind, not by the listed set — an unlisted `auto` row opens too.
- */
 export async function getPreviewHistoryByToken(
   token: string,
   current: KosztorysTreeT,

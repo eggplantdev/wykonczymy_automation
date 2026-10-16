@@ -1,4 +1,3 @@
-/** Creates an object URL, triggers a download click, and revokes the URL. */
 export function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

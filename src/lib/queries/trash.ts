@@ -43,7 +43,6 @@ export function shapeTrashRows(
       Math.ceil((trashedAt.getTime() + ENTITY_TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
     )
 
-  // The live default for a kind with no exception; investments and workers override their part.
   const base = (row: { id: number; trashedAt: Date }) => ({
     id: row.id,
     trashedAt: row.trashedAt,

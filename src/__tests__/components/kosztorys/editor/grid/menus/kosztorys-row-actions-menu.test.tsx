@@ -32,8 +32,6 @@ beforeEach(() => vi.clearAllMocks())
 
 const POSITIONAL = ['Wstaw powyżej', 'Wstaw poniżej']
 
-// Against a sorted view the array position no longer mirrors display_order, so every positional
-// command goes dead while any sort is on, whatever its scope.
 describe('menu wiersza — komendy pozycyjne przy aktywnym sortowaniu', () => {
   it('wyszarza wstawianie', async () => {
     await openRowMenu(true)

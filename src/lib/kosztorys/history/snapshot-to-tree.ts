@@ -6,14 +6,6 @@ import {
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { HistoryVersionT } from './types'
 
-/**
- * A stored version as a tree, so it renders through the same `treeToRows` as the live one and no
- * figure can be computed two ways. What the payload never carried — settlement mode, the materiały
- * concession, and settings keys older than the row — comes from the live tree.
- *
- * An unknown rabat borrows the live one's MODE for the rows, which is all a row reads of it (whether
- * per-item rabaty apply). The amount is never shown for it: the version says „rabat nieznany".
- */
 export function snapshotToTree(
   payload: StoredSnapshotPayloadT,
   live: KosztorysTreeT,

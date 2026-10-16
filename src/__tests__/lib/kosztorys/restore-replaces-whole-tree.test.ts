@@ -6,16 +6,6 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The wipe has to remove EVERY section and etap of the investment, not the ones the incoming tree
-// happens to name — „Pobierz i zastąp" means the sheet decides what exists. A wipe that leaves rows
-// behind does not fail loudly: the restore inserts the fresh tree beside the survivor, and the
-// duplicate then reads as a praca „tylko w aplikacji" in „Porównaj z arkuszem" (the sheet import
-// shipped with exactly that defect — `payload.delete({ where })` collects per-document failures into
-// `result.errors` instead of throwing, so a partial wipe reported success).
-//
-// The colliding etap ordinal below is the second half of the same defect: a surviving etap 1 meets
-// `kosztorys_stages_investment_ordinal_unique` when the incoming etap 1 goes in, and the 23505 was
-// being translated into a bogus concurrent-write failure — a race that never happened.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))

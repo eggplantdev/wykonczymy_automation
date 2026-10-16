@@ -66,9 +66,6 @@ describe('computeSubcontractorSummary', () => {
   })
 })
 
-// EX-613: rows are per person, over the union of both sides. The failure this guards against is a
-// worker who is owed money going MISSING because they have no wypłata yet — the ledger alone would
-// never mention them.
 describe('computeSubcontractorSummary — per-worker attribution', () => {
   it('includes a worker with należne and no wypłaty at all', () => {
     const { rows } = computeSubcontractorSummary(500, [payout(1, 200, 'Anna')], {
@@ -134,8 +131,6 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
       expect(stateFor(0, 150, [])).toBe('no_stages')
     })
 
-    // Assigned but owed 0: nothing executed yet, OR the etapy still have no rozliczenie. Read off
-    // `stages`, not off the money — a plane-less etap is absent from byWorker entirely.
     it('no_executed_work — etapy assigned, nothing earned on them yet', () => {
       expect(stateFor(0, 150, [stage(10, 1)])).toBe('no_executed_work')
       expect(stateFor(0, 150, [makeStage({ id: 10, plane: null, split: oneWorkerSplit(1) })])).toBe(
@@ -147,8 +142,6 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
       expect(stateFor(200, 150, [stage(10, 1)])).toBe('settled')
     })
 
-    // `due` is a float sum over etap quantities, `paid` a Postgres SUM. Paying exactly what is owed
-    // used to leave remaining at ~-1e-13, which rendered a square worker as a red „nadpłata -0,00".
     it('paying exactly the należne is settled, not a float-noise overpayment', () => {
       const due = 0.1 + 0.2
       const { rows } = computeSubcontractorSummary(due, [payout(1, 0.3, 'Anna')], {
@@ -159,10 +152,6 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
       expect(rows[0]?.state).toBe('settled')
     })
 
-    // EX-613 regression: `due` is Σ qty × viewPrice (fractional plane coefficients), `paid` a raw
-    // SUM(amount) — neither rounded. Paying exactly the amount the UI displays left a −1e-13 residue,
-    // which `remaining >= 0` read as overpaid: the row turned destructive-red and claimed „nadpłata"
-    // while showing „pozostało -0,00". That is the paid-in-full case, i.e. the most common one.
     // 4.35 × 100 is 434.99999999999994 in binary floating point — it renders „435,00" and the owner
     // pays 435,00.
     const RESIDUE_DUE = 4.35 * 100
@@ -179,16 +168,11 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
       expect(rows[0].remaining).toBe(0)
     })
 
-    // A real overpayment is still a grosz or more, so rounding must not swallow one.
     it('overpaid — a one-grosz overpayment survives the rounding', () => {
       expect(stateFor(100, 100.01, [stage(10, 1)])).toBe('overpaid')
     })
   })
 
-  // The residual row is not a person, so neither person-shaped qualifier („brak przypisanych etapów"
-  // / „przypisane etapy bez wykonanych prac") is a true sentence about it. Before EX-613's review it
-  // got one or the other depending on whether ANY etap happened to be unassigned, because
-  // `assignedWorkerIds` contains `null` itself.
   describe('the unattributed residual is not a person', () => {
     const nullRowState = (stages: KosztorysStageT[]) =>
       computeSubcontractorSummary(0, [payout(null, 200)], {
@@ -218,9 +202,6 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
   })
 })
 
-// „Razem" under the worker table and „Pozostało do wypłaty" in the block beside it are the same
-// amount shown twice on one screen. In the 2026-08-25 rehearsal they read −131 494,73 and
-// −131 494,72, because one side rounded each worker separately and only then added them up.
 describe('subcontractorRowTotals — „Razem" cannot drift from the headline', () => {
   // 0.125 is exact in binary, so every row is a clean half-grosz rounded up: two rows rounded
   // separately come to 0,26 while together they are worth 0,25.
@@ -244,8 +225,6 @@ describe('subcontractorRowTotals — „Razem" cannot drift from the headline', 
     expect(subcontractorRowTotals(summary.rows).remaining).toBe(summary.remaining)
   })
 
-  // The rounding is there to cancel noise, not a real gap: if attribution lost money, „Razem" must
-  // show it rather than copy the headline's amount.
   it('still shows the gap when the rows do not add up to the headline', () => {
     const summary = computeSubcontractorSummary(1000, [], {
       byWorker: new Map([[1, 400]]),

@@ -18,25 +18,12 @@ import { useTranslation } from '@/hooks/use-translation'
 // Browsers cap concurrent connections per origin; larger batches just queue and stall the progress toast.
 const BATCH_SIZE = 6
 
-/**
- * Everything that happens *after* the rows are known: fetch each page, name it uniquely, zip,
- * hand the archive to the browser, and drive one in-place toast throughout.
- *
- * Kept apart from obtaining the rows because the two have separate auth needs — the transfers
- * toolbar fetches its rows through an authenticated server action, while the kosztorys Wydatki list
- * already has them in props and runs on the unauthenticated share path. Media is publicly readable, so packing needs no session either way.
- */
 export function useFileArchive() {
   const [isPending, startTransition] = useTransition()
   const toastIdRef = useRef<string | number | null>(null)
   const translator = useTranslation('media')
   const { t } = translator
 
-  /**
-   * Rows and files are counted separately because a row may carry several pages or none —
-   * `rowsWithFile` is what lets the closing toast say „2 pozycje bez faktury" instead of silently
-   * shipping a short archive.
-   */
   function pack(
     copy: ArchiveCopyT,
     nameParts: string[],
@@ -54,8 +41,6 @@ export function useFileArchive() {
       )
 
       try {
-        // Nothing to fetch is not a failed fetch — packing an empty set would announce the
-        // „nie udało się" wording over a set that never had a file in it.
         const downloadedFiles =
           files.length === 0
             ? 0
@@ -73,7 +58,6 @@ export function useFileArchive() {
     })
   }
 
-  /** Archives every page of every row, naming each file after its row's date and description. */
   function download(rows: ArchiveRowT[], nameParts: string[], copy: ArchiveCopyT) {
     pack(copy, nameParts, flattenArchiveRows(rows), {
       rows: rows.length,
@@ -81,10 +65,6 @@ export function useFileArchive() {
     })
   }
 
-  /**
-   * Archives one surface's files, already named by the caller — the preview dialog keeps each
-   * page's own filename, which the row-based naming would overwrite with a date.
-   */
   function downloadFiles(files: ArchiveFileT[], nameParts: string[], copy: ArchiveCopyT) {
     pack(copy, nameParts, files, { rows: 1, rowsWithFile: files.length > 0 ? 1 : 0 })
   }
@@ -148,7 +128,6 @@ function updateToast(
   toast.update(id, { render: message, type, autoClose, theme: 'dark' })
 }
 
-/** Nothing to pack is informational; a set that had files and delivered none is an error. */
 function toneFor({
   rowsWithFile,
   downloadedFiles,

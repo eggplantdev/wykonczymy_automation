@@ -93,8 +93,6 @@ describe('WorkCatalogueItemForm — źródło stawki', () => {
     expect(action.mock.calls[0][0]).toMatchObject({ wToolsRate: null, wToolsRateCoeff: null })
   })
 
-  // The whole point of the trzecie źródło: what lands in the katalog is the KROTNOŚĆ, not the kwota
-  // it happens to come out to at today's cena j.m.
   it('zapisuje mnożnik w jego własnej kolumnie, a kwotę zeruje', async () => {
     const { action, pickSource, user, save } = renderForm()
 

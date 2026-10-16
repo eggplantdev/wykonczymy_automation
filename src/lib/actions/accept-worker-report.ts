@@ -34,13 +34,6 @@ class AcceptRefusal extends Error {}
 
 const STALE = 'Zgłoszenie zmieniło się w innym oknie — odśwież je.'
 
-/**
- * Brings the etap in line with the kierownik's decision: a newly accepted line adds its ilość, an
- * already accepted one adds only the difference to what it was accepted at, and an undone one takes
- * its ilość back out. An odrzucona line touches only the report. Everything — the auto version, a new
- * etap, the figures and the report's record — is one transaction, so a failure anywhere leaves the
- * report and the rozpiska as they were.
- */
 export async function acceptWorkerReportAction(
   input: AcceptReportInputT,
 ): Promise<ActionResultT<AcceptReportResultT>> {
@@ -67,11 +60,12 @@ export async function acceptWorkerReportAction(
         throw error
       }
     },
+    // Expired on a save that only odrzuca lines too: the report queue is an uncached read, and these
+    // tags are what re-render it — narrowed, a rejected report keeps showing as pending.
     ['kosztorysStages', 'stageProgress', 'kosztorysItems', 'investments'],
   )
 }
 
-// Nothing reads report lines through a cache, so there is no tag to expire.
 export async function pointReportLineAction(
   investmentId: number,
   lineId: number,
@@ -116,8 +110,6 @@ async function acceptInTransaction(
   }
   const isAccepted = (lineId: number) => lineById.get(lineId)?.acceptedQty !== null
   const isRejected = (lineId: number) => lineById.get(lineId)?.isRejected === true
-  // A decision states what the window saw; another window's accept since then makes it a different
-  // decision, never silently a change of that one.
   const isStale =
     request.lines.some(
       (decision) => decision.seenQty !== (lineById.get(decision.lineId)?.acceptedQty ?? undefined),
@@ -125,7 +117,6 @@ async function acceptInTransaction(
   if (isStale) throw new AcceptRefusal(STALE)
   const freshLines = request.lines.filter((decision) => !isAccepted(decision.lineId))
   const changedLines = request.lines.filter((decision) => isAccepted(decision.lineId))
-  // A line undone, odrzucona or sent back in another window meanwhile has nothing left to change.
   const undoneIds = request.undone.filter(isAccepted)
   const rejectedIds = request.rejected.filter((lineId) => !isRejected(lineId))
   const unrejectedIds = request.unrejected.filter(isRejected)
@@ -145,9 +136,6 @@ async function acceptInTransaction(
   if (!tree) throw new AcceptRefusal('Zgłoszenie nie istnieje.')
   const isAdding = freshLines.length > 0
 
-  // One report, one etap: a change or an untick lands in the etap the report names, so the rest may
-  // join only that one — and none at all while it is gone or no longer his, until those lines are
-  // unticked and the report is free again.
   const recordedStageId = report.report.targetStageId
   const recordedStage = tree.stages.find((stage) => stage.id === recordedStageId)
   const staysAccepted = report.lines.some(
@@ -174,7 +162,6 @@ async function acceptInTransaction(
     return { decision, itemId }
   })
 
-  // An accepted line changes only in the etap and the pozycja it already went to.
   const acceptedItemOf = (line: WorkerReportLineRowT) => line.createdItemId ?? line.itemId
   const changes = changedLines.flatMap((decision) => {
     const line = lineById.get(decision.lineId) as WorkerReportLineRowT
@@ -191,7 +178,6 @@ async function acceptInTransaction(
     }
     return [{ itemId, delta }]
   })
-  // A deleted etap or pozycja took its figure with it: only the record is left to clear.
   const removals = undoneIds.flatMap((lineId) => {
     const line = lineById.get(lineId) as WorkerReportLineRowT
     const itemId = acceptedItemOf(line)

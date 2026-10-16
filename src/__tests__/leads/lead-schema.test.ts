@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { leadSchema } from '@/lib/leads/lead-schema'
 
-// All values fabricated — no real leadgen ids, names, or emails.
 const goodLead = {
   id: '1000000000000001',
   created_time: '2026-07-05T18:48:40+0000',

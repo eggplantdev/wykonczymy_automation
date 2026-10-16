@@ -24,11 +24,9 @@ type EquipmentFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
-  /** False on the edit dialogs — see `useManagedForm`. */
   persistDraft?: boolean
 }
 
-/** Edits one item's own attributes. Where it IS never appears here — that is „Przekaż". */
 export function EquipmentForm({
   formId,
   defaultValues,

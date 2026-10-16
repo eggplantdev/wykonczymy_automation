@@ -29,12 +29,6 @@ import { validateSourceRegister } from './validate-source-register'
 
 export type SettlePayoutsResultT = ActionResultT & { stale?: true }
 
-/**
- * One PAYOUT per ticked investment × worker pair, all or none. The dialog's figures are only what it
- * showed: every pair is re-read uncached and a batch built on a figure that has since moved is
- * refused whole, because a wypłata sized against a stale „Pozostało" is the one mistake here that
- * costs money.
- */
 export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettlePayoutsResultT> {
   return protectedAction(
     `settlePayoutsAction rows=${data.rows?.length ?? 0}`,
@@ -50,8 +44,6 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
 
       const investmentIds = [...new Set(rows.map((row) => row.investmentId))]
 
-      // skipSheetSync: the rows go to the owner's sheet in one batched write after commit, not one
-      // afterChange sync per row — same policy as the bulk wydatek.
       const outcome = await withPayloadTransaction(
         payload,
         async (
@@ -59,8 +51,7 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
         ): Promise<SettlePayoutsResultT | { createdIds: number[]; payouts: BookedPayoutT[] }> => {
           const db = await getDb(payload, req)
           // Two overlapping submits of one pair (two tabs, a double Enter) would both pass the
-          // re-read below and both book. Locked, the second waits for the first to commit and then
-          // re-reads a „Pozostało" that already counts its wypłata.
+          // re-read below and both book.
           const gates = await lockInvestmentGates(db, investmentIds)
           const refuse = (investmentId: number, reason: string): SettlePayoutsResultT => ({
             success: false,

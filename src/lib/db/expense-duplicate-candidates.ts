@@ -15,13 +15,11 @@ const IS_RECEIPT = inList(sql`t.type`, RECEIPT_TYPES)
 
 type MatchFilterT = { amountsCents: number[]; documentNumbers: string[] }
 
-/** What could match the probes — each value bound once, however many probes share it. */
 export const matchFilterOf = (probes: ExpenseDocT[]): MatchFilterT => ({
   amountsCents: [...new Set(probes.flatMap((probe) => cents(probe.amount) ?? []))],
   documentNumbers: [...new Set(probes.flatMap((probe) => documentNumberOf(probe) ?? []))],
 })
 
-// The finder probes the transakcje its scope resolved to; everyone else loads by what could match.
 export type TransactionSelectorT = MatchFilterT | { transactionIds: number[] }
 
 const toReadRows = (value: unknown): number[] => (Array.isArray(value) ? value.map(Number) : [])
@@ -112,6 +110,8 @@ async function loadBookedTransactions(
 
 // A transakcja booked from merged paragony carries their summed Kwota, which matches none of them —
 // so each paragon behind it is a candidate of its own, read off the zgłoszenie it came from.
+// Known gap: a merge of one read paragon with blank ones books a single read row, so `> 1` skips it
+// and its read part gets no candidate — telling it apart needs the merge's part count.
 async function loadMergedParagony(
   db: DbExecutorT,
   selector: TransactionSelectorT,
@@ -160,7 +160,6 @@ async function loadMergedParagony(
 
 type DraftReadSelectorT = { filter?: MatchFilterT; draftId?: number }
 
-/** The undecided read rows of pending zgłoszenia — every one, one zgłoszenie's, or those that could match. */
 export async function loadDraftCandidates(
   db: DbExecutorT,
   { filter, draftId }: DraftReadSelectorT = {},

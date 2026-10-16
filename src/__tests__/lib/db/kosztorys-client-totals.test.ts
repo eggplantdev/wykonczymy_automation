@@ -8,12 +8,6 @@ import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The client-view formula exists twice — in TS (settlement-client-totals, the reference) and in SQL
-// (kosztorys-client-totals, the copy the listing reads). This spec is the only thing standing between
-// that duplication and the two-planes-both-green drift `context/foundation/lessons.md` records, so it
-// compares the two implementations directly rather than either against a hand-computed number: a
-// hand-computed expectation would pin the SQL to whatever the test author believed the formula was.
-//
 // Coverage is by BRANCH of applyDiscount, not by scenario count — every branch the SQL CASE spells
 // out has to be exercised, or the CASE is guarded only where it happens to agree.
 
@@ -30,8 +24,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
 
-  // perItem: every discount branch at once. global: the same rows under an active global rabat, which
-  // must suppress all of them. bare: no items at all.
   const created = { perItem: 0, global: 0, bare: 0 }
 
   async function seedItems(investmentId: number) {
@@ -129,8 +121,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   })
 
   it('agrees with the TS formula under an active global rabat', async () => {
-    // The branch that is easiest to get wrong in SQL: the global rabat has to short-circuit the
-    // per-item CASE (every row prices gross) AND be subtracted once at the investment level.
     const [sqlRow, ts] = await Promise.all([sqlTotalsFor(created.global), tsTotals(created.global)])
 
     expect(sqlRow).toBeDefined()
@@ -141,8 +131,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   })
 
   it('suppresses per-item rabat only under the global one, and vice versa', async () => {
-    // Guards the two figures against a SQL copy that agrees on the totals by accident — under a
-    // global rabat the per-item discounts must contribute nothing, so laborCostsNetFromKosztorys === doneNet.
     const [perItem, global] = await Promise.all([
       sqlTotalsFor(created.perItem),
       sqlTotalsFor(created.global),
@@ -155,8 +143,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   })
 
   it('omits an investment with no kosztorys items rather than reporting zeros', async () => {
-    // Absence is what the read-switch's fallback keys on: a zero row would claim the kosztorys says
-    // the robocizna is 0 zł, and the listing would show that instead of the transactions figure.
     expect(await sqlTotalsFor(created.bare)).toBeUndefined()
   })
 })

@@ -18,7 +18,7 @@ type PropsT = {
 export function LanguageSelect({ value, onValueChange, disabled }: PropsT) {
   return (
     // On a phone the collapsed trigger shows the flag alone — the name would squeeze the header
-    // beside it. The open menu still names every language.
+    // beside it.
     <SimpleSelect
       variant="toolbar"
       className="max-sm:**:data-[slot=language-name]:sr-only"

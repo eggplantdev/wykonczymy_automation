@@ -10,14 +10,11 @@ type PropsT = {
   onChange: (color: SectionColorKeyT | null) => void
 }
 
-// The palette as a swatch grid, not a DropdownMenuItem list: 27 named menu rows would bury the rest
-// of the menu, and a colour is picked by eye. Rendered inside the open dropdown, so each swatch is a
-// plain button — a DropdownMenuItem would close the menu on select, and picking a colour is the one
-// action here you want to redo immediately after seeing it.
+// Rendered inside the open dropdown, so each swatch is a plain button — a DropdownMenuItem would
+// close the menu on select.
 export function SectionColorPicker({ value, onChange }: PropsT) {
   return (
     <div className="px-2 py-1.5">
-      {/* grid-cols-9 = the palette's nine hues, so the three tint rows read as one family per column. */}
       <div className="grid grid-cols-9 gap-1">
         {SECTION_COLORS.map((color) => (
           <button

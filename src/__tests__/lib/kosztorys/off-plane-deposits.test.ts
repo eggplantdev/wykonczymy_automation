@@ -11,10 +11,6 @@ import { cash, transfer, untagged } from '@/__tests__/helpers/deposit-rows'
 import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { VatPlaneT } from '@/lib/constants/transfers'
 
-// Two predicates on two different questions, deliberately kept apart: `isOffPlaneDeposit` asks „is
-// the tryb still telling the truth" (both directions), `strandsDeposit` asks „does this wpłata
-// vanish" (only the half that loses money). The table below is what stops a later refactor from
-// collapsing them into one.
 describe('the two off-plane predicates', () => {
   const PLANES: (VatPlaneT | null)[] = ['NET', 'GROSS', null]
   const row = (vatPlane: VatPlaneT | null) => ({ vatPlane })
@@ -64,8 +60,6 @@ describe('offPlaneDeposits', () => {
   })
 })
 
-// What flipping the tryb would cost, counted BEFORE the flip — nothing is rewritten when the owner
-// changes it, the rows simply stop counting.
 describe('depositsStrandedBy', () => {
   it('sums the face value of what a switch to brutto would silence', () => {
     expect(depositsStrandedBy([cash(100), untagged(50), transfer(1230, 950)], 'GROSS')).toEqual({
@@ -81,8 +75,6 @@ describe('depositsStrandedBy', () => {
   })
 })
 
-// The listing's twin of the warning: it folds its wpłaty in SQL and never holds a row, so the damage
-// has to be readable off the sums alone (EX-724).
 describe('strandedFromPlaneSums', () => {
   const sums = bucketDepositsByPlane([cash(100), untagged(50), transfer(1230, 950)])
 

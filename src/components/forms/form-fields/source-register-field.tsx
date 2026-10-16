@@ -11,8 +11,6 @@ type SourceRegisterFieldPropsT = {
   registerBalance: number | null
   isRegisterBalanceLoading: boolean
   fetchRegisterBalance: (registerId: string) => void
-  // Opt-in: only the expense form books register after register in one sitting, which is what makes
-  // re-pinning the default from inside the form worth a control.
   showSaveAsDefault?: boolean
   defaultCashRegisterId?: number
 }

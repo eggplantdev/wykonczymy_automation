@@ -6,11 +6,6 @@ import { columnNoun } from '@/lib/kosztorys/counted-nouns'
 import { FIELD_LABELS } from '@/lib/kosztorys/sheet-import/columns'
 import type { UnresolvedColumnsT } from '@/lib/kosztorys/sheet-import/resolve-columns'
 
-/**
- * Optional columns the header did not name. A missing required one refuses the read and lands in
- * „Problemy"; an optional one lets it succeed, so without this the window reports a clean comparison
- * having skipped a whole column.
- */
 export function SheetMissingColumnsBlock({
   investmentId,
   columns,

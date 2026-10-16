@@ -16,8 +16,6 @@ import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
-// Firm-wide, one set for every worker and investment (design #5). Same shape as the investor's
-// ClientViewSettingsT, but a separate type: the two hold keys from different ceilings.
 export type WorkerViewSettingsT = {
   hiddenColumns: string[]
   hideEmptyRows: boolean
@@ -56,10 +54,8 @@ export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
   columnRanks: {},
 }
 
-// Same fail-closed contract as `sanitizeClientViewSettings`: a key outside the worker ceiling is
-// dropped on read and on write, so a hand-edited `price` in the global's JSON is inert rather than a
-// way onto a worker's screen. „Closed" rests on the ceiling, not on the default hidden set — which is
-// why `workerVisibleColumns` builds from the groups and only ever subtracts.
+// A key outside the worker ceiling is dropped on read and on write, so a hand-edited `price` in the
+// global's JSON is inert rather than a way onto a worker's screen.
 export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT {
   if (typeof source !== 'object' || source === null) return WORKER_VIEW_DEFAULT_SETTINGS
   const { hiddenColumns, hideEmptyRows, hidePlannedOnceExecuted, columnRanks } = source as {
@@ -85,17 +81,17 @@ export function toStoredWorkerViewSettings(
   settings: WorkerViewSettingsT,
 ): Omit<WorkerViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
   const sanitized = sanitizeWorkerViewSettings(settings)
+  // The in-memory list is the owner's answer for every column; `sanitized` would read it as the
+  // legacy stored array and put a column added since back on its code default.
+  const hidden = Array.isArray(settings.hiddenColumns)
+    ? settings.hiddenColumns
+    : sanitized.hiddenColumns
   return {
     ...sanitized,
-    hiddenColumns: toHiddenColumnMap(sanitized.hiddenColumns, WORKER_VIEW_KEYS),
+    hiddenColumns: toHiddenColumnMap(hidden, WORKER_VIEW_KEYS),
   }
 }
 
-/**
- * The closed column list of one worker's view, in FULL grid ids. The stawka resolves to this plane's
- * `price__<plane>` only: disclosure matches the full id (plane-price-keys.ts `basePriceKey`), so the
- * other plane's rate and the client `price` are simply never in the set.
- */
 export function workerVisibleColumns(
   plane: ToolPlaneT,
   hidden: readonly string[],
@@ -109,8 +105,6 @@ export function workerVisibleColumns(
   return columns
 }
 
-// Ordered over the LOGICAL keys, then mapped: the stawka's rank is stored under `rate`, so one
-// firm-wide order serves both rozliczenia.
 export function workerDocumentColumns(plane: ToolPlaneT, ranks: ColumnRanksT): string[] {
   return orderDocumentKeys(WORKER_DOCUMENT_COLUMNS, ranks).map((key) =>
     key === WORKER_RATE_KEY ? planePriceKey('price', plane) : key,

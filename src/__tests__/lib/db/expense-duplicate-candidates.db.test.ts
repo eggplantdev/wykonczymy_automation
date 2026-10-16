@@ -55,7 +55,6 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     return Number(rows[0].id)
   }
 
-  // Raw INSERT: the transfer hooks (sheet sync, revalidation) have nothing to do with what is read here.
   async function insertTransaction(
     key: string,
     row: {
@@ -243,7 +242,6 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     expect(ours(byLegacyNote.matches)).toEqual([`transaction-${tx.legacyNote}`])
   })
 
-  // Bileciki merged into one transakcja book their sum, which matches none of them on its own.
   it('a paragon booked inside a merged transakcja matches on its own Kwota and points at it', async () => {
     const MERGED = 4321.09
     const { draftId: bookedDraftId } = await pendingDraftWithRead('merged', [
@@ -279,7 +277,6 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     )
   })
 
-  // EX-1053 follow-up: one receipt photographed twice inside one zgłoszenie.
   it('flags two undecided paragony of one zgłoszenie as duplicates of each other', async () => {
     const TWICE = 2718.28
     const receipt = { amount: TWICE, description: 'Leroy Merlin', documentDate: '2026-10-05' }
@@ -298,8 +295,6 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     expect(other.matches).toEqual([])
   })
 
-  // A booking whose response was lost left the dialog open: a decided paragon is no longer probed,
-  // and its waiting twin is still flagged against the transakcja booked from it.
   it('skips decided paragony and matches a waiting one to the transakcja booked from its twin', async () => {
     const SIBLING = 6182.47
     const { draftId } = await pendingDraftWithRead('sibling', [

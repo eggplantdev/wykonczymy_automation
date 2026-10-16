@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// The fill itself is covered by the action's spec; this asserts what the route adds — the auth gate
-// and that the katalog's cache expires exactly when a translation landed.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
@@ -48,8 +46,17 @@ describe('cron translate-catalogue route', () => {
     const res = await GET(authorized())
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ ok: true, items: 5, failed: 1 })
+    await expect(res.json()).resolves.toEqual({ ok: false, items: 5, failed: 1 })
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.workCatalogue, EXPIRE_NOW)
+  })
+
+  // `translateRows` never rejects, so an OpenRouter outage arrives as failed batches, not a throw.
+  it('reads as a failed run when every batch failed', async () => {
+    vi.mocked(fillCatalogueTranslations).mockResolvedValue({ items: 0, failed: 3 })
+
+    const res = await GET(authorized())
+
+    await expect(res.json()).resolves.toEqual({ ok: false, items: 0, failed: 3 })
   })
 
   it('leaves the cache alone when nothing was written', async () => {

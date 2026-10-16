@@ -4,16 +4,13 @@ import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/i
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { REVIEW_STATUSES } from '@/lib/kosztorys/review-status'
 
-// A sheet item. Client price = a snapshot. Subcontractor prices are derived from the
-// markup coefficient (investment), with one nullable per-item stawka per tool plane: a number is a
-// kwota frozen onto the praca, NULL means „auto" — derive it from the coefficient. `0` is a kwota
-// like any other, so neither field may carry a `defaultValue`: Payload treats a stored NULL as
-// present-but-empty and would backfill it, turning every „auto" praca into 0 zł (EX-766).
-// „Pomiar z natury"
-// (the executed quantity) is not stored — it is the stage sum (Σ D:M in the sheet), computed
-// live in the settlement layer. `sheetMeasuredQty` is not a second answer to that: it records what
-// the imported sheet CLAIMED, prices nothing, and exists only to be compared against the stage sum.
-// VAT does not live here — there is a single rate per investment (S-12, not yet implemented).
+// Subcontractor prices are derived from the markup coefficient (investment), with one nullable
+// per-item stawka per tool plane: a number is a kwota frozen onto the praca, NULL means „auto" —
+// derive it from the coefficient. `0` is a kwota like any other, so neither field may carry a
+// `defaultValue`: Payload treats a stored NULL as present-but-empty and would backfill it, turning
+// every „auto" praca into 0 zł (EX-766).
+// „Pomiar z natury" (the executed quantity) is not stored — it is the stage sum (Σ D:M in the
+// sheet), computed live in the settlement layer.
 export const KosztorysItems: CollectionConfig = {
   slug: 'kosztorys-items',
   labels: {
@@ -45,7 +42,7 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'descriptionTranslations', type: 'json', defaultValue: {} },
     { name: 'unit', type: 'text', label: { en: 'Unit', pl: 'Jednostka' } },
     { name: 'plannedQty', type: 'number', required: true, defaultValue: 0 },
-    // EX-921: Aktualizacja przedmiaru. Only a hand edit is stored — NULL follows plannedQty.
+    // Aktualizacja przedmiaru. Only a hand edit is stored — NULL follows plannedQty.
     { name: 'currentPlannedQty', type: 'number' },
     { name: 'sheetMeasuredQty', type: 'number', admin: { readOnly: true } },
     { name: 'discountType', type: 'text' },
@@ -53,25 +50,19 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'clientPrice', type: 'number', required: true, defaultValue: 0 },
     { name: 'wToolsOverrideValue', type: 'number' },
     { name: 'ownToolsOverrideValue', type: 'number' },
-    // The multiplier twin of the two above (EX-865): non-null = this praca's stawka is
-    // `clientPrice × coeff`, recomputed on every read. At most one of the pair is ever non-null —
-    // an invariant `updateItemFieldAction` enforces, since nothing here can.
+    // At most one of the pair is ever non-null — an invariant `updateItemFieldAction` enforces, since
+    // nothing here can.
     { name: 'wToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'ownToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'note', type: 'text', label: { en: 'Note', pl: 'Komentarz' } },
-    // EX-1017: the katalog prac entry this pozycja was taken from or saved to. A soft reference —
-    // no FK, so it may name an entry deleted since (see the migration).
     { name: 'catalogueItemId', type: 'number', admin: { readOnly: true } },
-    // EX-1006: an agent's draft and the manager's review of it. AI przedmiar is written only by the
-    // draft loader through the Local API — the grid shows it and never edits it.
     {
       name: 'aiPlannedQty',
       type: 'number',
       access: { create: () => false, update: () => false },
       label: { en: 'AI planned qty', pl: 'AI przedmiar' },
     },
-    // EX-1030: Komentarz AI — what the inquiry left unknown and what `aiPlannedQty` assumed in its
-    // place. Its own pair of fields, never Komentarz: that one the investor may be shown.
+    // Its own pair of fields, never Komentarz: that one the investor may be shown.
     {
       name: 'aiMissingData',
       type: 'text',
@@ -84,8 +75,6 @@ export const KosztorysItems: CollectionConfig = {
       access: { create: () => false, update: () => false },
       label: { en: 'AI: assumed', pl: 'Co / ile założono' },
     },
-    // EX-1057: a later AI round raises the flag; the grid lowers it through `updateItemFieldAction`
-    // (Local API), so REST stays closed like above.
     {
       name: 'aiNewInformation',
       type: 'textarea',

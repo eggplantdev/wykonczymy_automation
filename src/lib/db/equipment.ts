@@ -7,13 +7,8 @@ import type { EquipmentEventRowT, EquipmentRowT } from '@/lib/equipment/types'
 import { getDb } from './get-db'
 
 /**
- * „Gdzie jest" is the newest event per item, and it is computed by Postgres rather than by grouping
- * the whole log in JS the way the fleet does. The fleet can afford that — a few dozen cars — while
- * the register is deliberately open-ended: hundreds of tools, each with a handover per site visit.
- *
  * Ordered by `occurred_at`, never `created_at`: a handover typed in a week late must not become the
- * current state just because its row is the newest. `id DESC` only breaks a same-day tie, where the
- * insertion order is the sole remaining evidence of which happened last.
+ * current state just because its row is the newest.
  */
 const CURRENT_STATE = sql`
   SELECT DISTINCT ON (e.equipment_id)
@@ -27,8 +22,6 @@ const CURRENT_STATE = sql`
   ORDER BY e.equipment_id, e.occurred_at DESC, e.id DESC
 `
 
-// One join set, written once: the listing, the location filter and the employee card all render the
-// same row and must never disagree about what „u kogo" means — nor about a trashed item being gone.
 const OVERVIEW_COLUMNS = sql`
   q.id, q.name, q.serial_number, q.make, q.model, q.status,
   q.purchase_date, q.warranty_until, q.purchase_price, q.note,
@@ -73,15 +66,6 @@ export const loadEquipmentById = async (
   return result.rows.length === 0 ? null : toEquipmentRow(result.rows[0])
 }
 
-/**
- * The predicate is branched here rather than written as a `CASE` over both columns: a `CASE` is not
- * sargable, so neither `equipment_events_holder_idx` nor `..._warehouse_idx` could ever be used, and
- * this read runs uncached on every employee card. The „current" rule itself still lives in one place
- * (`CURRENT_STATE`), which is what the single-statement version was protecting.
- *
- * Retired statuses are excluded: a sold drill whose last event still names Marek is history, not
- * something he is holding — and this is the figure someone reads at a termination settlement.
- */
 const LIVE_STATUSES = sql`(${sqlList(LIVE_EQUIPMENT_STATUSES)})`
 
 export const loadEquipmentAtLocation = async (

@@ -47,13 +47,10 @@ export type ExpenseDraftRowT = {
   decidedAt: string | null
   decidedByName: string | null
   transfers: ExpenseDraftTransferT[]
-  // Set on a history row standing for one paragon the manager skipped while accepting the rest.
   skippedReceipt?: { id: number; isRestorable: boolean }
-  // A refusal management marked as a duplicate — shown to management only.
   duplicateOf?: DuplicateOfT
   media: ExpenseDraftMediaT[]
   aiRead: ExpenseDraftReadT | undefined
-  // Per paragon of the AI read; absent without one — such a zgłoszenie is decided whole.
   progress?: DraftProgressT
   acceptedReadRows: number[]
   rejectedReceipts: RejectedReceiptT[]
@@ -193,7 +190,6 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     ...(duplicateOf.success && { duplicateOf: duplicateOf.data }),
     media: toDraftMedia(row.media),
     aiRead: toDraftRead(row.ai_read),
-    // A paragon's own row shows its own status; the zgłoszenie's counter belongs on the draft row.
     progress: row.is_paragon_row
       ? undefined
       : toProgress(draftStatus, Number(row.read_count ?? 0), bookedReadRows, rejectedReceipts),
@@ -250,10 +246,7 @@ const PARTIES_NOT_TRASHED = sql`
 // An accepted draft stands behind a booked expense, so it stays listed whatever went to the trash.
 const LISTED_DRAFT = sql`(d.status <> 'rejected' OR (${PARTIES_NOT_TRASHED}))`
 
-// A decided zgłoszenie lists one row per paragon: each booked transakcja, each skipped paragon as
-// „odrzucony”, and a draft-level row when no transakcja is linked (pending, rejected, or its
-// transakcja deleted). The count runs before any filter, so filtering by status never changes which
-// pages a row shows: a lone row shows them all, as does a transakcja booked before paragony kept pages.
+// The count runs before any filter, so filtering by status never changes which pages a row shows.
 const PARAGON_ROWS = sql`
   WITH paragons AS (
     SELECT dt.draft_id, 'accepted'::text AS row_status, dt.transfer_id, NULL::int AS receipt_id,
@@ -299,7 +292,6 @@ const PARAGON_SELECT = sql`
   LEFT JOIN users decider ON decider.id = d.decided_by
 `
 
-// Keeps a zgłoszenie's rows together, transakcje before skipped paragony.
 const PARAGON_ORDER = sql`d.id DESC, pr.kind, pr.part`
 
 export async function listWorkerExpenseDrafts(
@@ -349,8 +341,6 @@ const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
   status: sql`array_position(ARRAY[${sqlList(EXPENSE_DRAFT_STATUSES)}]::text[], pr.row_status)`,
 }
 
-// An unknown column falls back to the default order, since the column picks a SQL fragment, not a bound
-// value. A pending draft has no decision, so it trails a decision sort either way.
 function draftHistoryOrderBy(sort: string | undefined): SqlT {
   if (!sort) return HISTORY_ORDER
   const column = sortParamColumnId(sort)
@@ -381,7 +371,6 @@ export async function listExpenseDraftHistory(
   return { rows: res.rows.map(toDraftRow), totalDocs: Number(countRes.rows[0]?.total ?? 0) }
 }
 
-/** Only parties that have a listed draft — any other option could only filter down to nothing. */
 export async function listExpenseDraftFilterOptions(
   db: DbExecutorT,
 ): Promise<{ investments: ReferenceItemT[]; workers: ReferenceItemT[] }> {
@@ -483,7 +472,6 @@ export async function decideExpenseDraft(
 const asIntArray = (values: number[]) =>
   sql`ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(values)}::jsonb)::int)`
 
-/** The read rows of one zgłoszenie already booked or refused — neither can be decided again. */
 export const decidedReadRows = (draftId: SqlT) => sql`
   SELECT unnest(dt.read_rows) FROM worker_expense_draft_transfers dt WHERE dt.draft_id = ${draftId}
   UNION
@@ -493,10 +481,6 @@ export const decidedReadRows = (draftId: SqlT) => sql`
 
 const DECIDED_READ_ROWS = decidedReadRows(sql`d.id`)
 
-/**
- * A zgłoszenie stays pending while any paragon of its read waits; then it is przyjęte if anything
- * was booked, else odrzucone. Without a read it has no paragony, so the first decision settles it.
- */
 export async function settleExpenseDraft(
   db: DbExecutorT,
   draftId: number,
@@ -522,13 +506,11 @@ export async function settleExpenseDraft(
   `)
 }
 
-// `clash` names the read rows someone else decided first; the zgłoszenie itself still waits.
 export type ParagonRefusalT = { refusal: 'not-pending' } | { refusal: 'clash'; readRows: number[] }
 
 /**
- * Books or refuses some paragony of a pending zgłoszenie, then settles it. Refused once the
- * zgłoszenie is decided or any of these paragony already is, so two managers can't both book one.
- * Returns the refused paragony as stored, for „cofnij".
+ * Refused once the zgłoszenie is decided or any of these paragony already is, so two managers can't
+ * both book one.
  */
 export async function decideExpenseParagons(
   db: DbExecutorT,
@@ -572,7 +554,6 @@ export type ExpenseDraftDecisionsT = Pick<
   'status' | 'acceptedReadRows' | 'rejectedReceipts'
 >
 
-/** What a „Przyjmij" dialog resyncs to when it can't tell whether its last decision landed. */
 export async function findExpenseDraftDecisions(
   db: DbExecutorT,
   draftId: number,
@@ -589,10 +570,6 @@ export async function findExpenseDraftDecisions(
   }
 }
 
-/**
- * „Odrzuć" on the whole zgłoszenie refuses every paragon still waiting. `'no-read'` = it has no
- * paragony, so the caller rejects it whole.
- */
 export async function rejectPendingParagons(
   db: DbExecutorT,
   decision: { draftId: number; decidedBy: number; duplicateOf?: DuplicateOfT },
@@ -620,9 +597,8 @@ export async function rejectPendingParagons(
 }
 
 /**
- * Puts a refused paragon back to „do sprawdzenia" on its own zgłoszenie. Only a paragon named by its
- * read row, and only on a zgłoszenie whose transakcje all name theirs — one booked before read rows
- * were kept would come back unbooked in the acceptance. `false` = not reopened here.
+ * Only a paragon named by its read row, and only on a zgłoszenie whose transakcje all name theirs —
+ * one booked before read rows were kept would come back unbooked in the acceptance.
  */
 export async function reopenSkippedReceipt(db: DbExecutorT, receiptId: number): Promise<boolean> {
   const res = await db.execute(sql`
@@ -642,7 +618,6 @@ export async function reopenSkippedReceipt(db: DbExecutorT, receiptId: number): 
   return true
 }
 
-/** Only a refusal is undone — an accepted draft already stands behind a booked expense. */
 export async function restoreRejectedExpenseDraft(
   db: DbExecutorT,
   draftId: number,
@@ -656,14 +631,6 @@ export async function restoreRejectedExpenseDraft(
   return res.rows.length > 0
 }
 
-/**
- * A skipped paragon comes back as a new pending zgłoszenie sharing the accepted parent's pages, at
- * the parent's send date — re-opening the parent would rebook what it already booked. It carries
- * the parent's read of that paragon, found by its `read_row` — one photo can hold several paragony,
- * so its pages alone don't name it. With no such row it carries an empty read instead of none: a
- * fresh read would list every paragon on the photo, the booked ones too. The delete is the gate: a
- * trashed party or a second restore deletes nothing and inserts nothing. `null` = refused.
- */
 export async function restoreSkippedReceipt(
   db: DbExecutorT,
   receiptId: number,
@@ -702,8 +669,6 @@ export async function restoreSkippedReceipt(
 export type MergeRefusalT = 'not-pending' | 'mixed' | 'decided' | 'unread'
 
 /**
- * Folds several pending zgłoszenia of one worker into the oldest, as if he had sent them as one:
- * its read becomes theirs chained in send order, so every paragon stays a read row of the result.
  * Refused once anything inside is decided — a decision names its read row by position, which the
  * chaining shifts — or while one has no read, whose photos would be paragony nothing tracks.
  */
@@ -784,8 +749,7 @@ export async function loadExpenseDraftForRead(
 /**
  * The first read stored wins: a skipped paragon and a duplicate hint name their row by its position
  * in the read, so a second read finishing later („Zobacz" while the send-time one runs) must not
- * renumber the rows under them. Returns the read the draft holds afterwards, or `undefined` once it
- * is no longer pending.
+ * renumber the rows under them.
  */
 export async function saveExpenseDraftRead(
   db: DbExecutorT,
@@ -805,11 +769,6 @@ export async function saveExpenseDraftRead(
   return toDraftRead(stored.rows[0]?.ai_read)
 }
 
-/**
- * A decided draft is the record behind an expense or a refusal, so only a pending one goes — and
- * only by its sender. Returns the pages it held (the CTE reads them before the cascade drops the
- * links), or `null` when nothing was deleted.
- */
 export async function deletePendingExpenseDraft(
   db: DbExecutorT,
   draft: { draftId: number; workerId: number },
@@ -849,8 +808,8 @@ export async function listAllDraftTransferIds(db: DbExecutorT): Promise<number[]
 }
 
 /**
- * Which of `mediaIds` a draft holds. The draft's pages live in a raw table, so the Payload-relation
- * scan of the media reclaim cannot see them and would take a waiting receipt for an orphan.
+ * The draft's pages live in a raw table, so the Payload-relation scan of the media reclaim cannot see
+ * them and would take a waiting receipt for an orphan.
  */
 export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): Promise<number[]> {
   if (mediaIds.length === 0) return []

@@ -10,14 +10,11 @@ const VAT_TIP = [
   'Ceny wpisujesz netto — Brutto i Suma brutto liczą się z tej stawki.',
 ].join('\n')
 
-// Reads the setter straight from the editor context (the panel renders inside the provider), so no
-// prop threads through KosztorysTotalsPanel.
 export function VatRateField({ disabled = false }: { disabled?: boolean }) {
   const { tree, handleVatChange } = useKosztorysEditorContext()
 
   return (
     <SettingsSection title="VAT" subtitle="Wybierz stawkę vat" hint={VAT_TIP}>
-      {/* VAT is stored as a fraction but entered as a percent: show ×100, commit ÷100. */}
       <DecimalField
         suffix="%"
         withSave

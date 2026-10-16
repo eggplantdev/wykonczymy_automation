@@ -2,11 +2,6 @@ import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-cond
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 /**
- * The pozycje a printed document actually contains: the audience's own hider and nothing else —
- * `clientConditionIds` owns which conditions may reach a reader outside the firm, and the grid's
- * plane, search and the owner's own filters are reading gestures that say nothing about what is
- * being offered.
- *
  * The offer's caller asks this BEFORE it opens a print window: a kosztorys whose every pozycja is
  * empty on both axes passes a `rows.length` guard and prints a branded header over an empty table.
  */

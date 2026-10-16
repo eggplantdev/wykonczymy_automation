@@ -5,8 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { PAST_RETENTION_DAYS, WITHIN_RETENTION_DAYS } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-// Asserted on which rows survive: the purge is the one delete nobody confirms.
-
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -24,7 +22,6 @@ describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
     return rows.length > 0
   }
 
-  // The worker and his kasa share one instant — the shape `trashWorker` writes.
   const trashedPair = async (slug: string, days: number) => {
     const worker = Number(
       (

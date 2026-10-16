@@ -45,19 +45,16 @@ export function KosztorysEditorToolbar({
     aiReview,
     setAiReview,
   } = useKosztorysEditorContext()
-  // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
 
   return (
     <div className="border-border relative shrink-0 border-b">
       <div className="flex flex-wrap items-center gap-x-1 gap-y-2 px-4 py-2">
-        {/* Stays on screen when the rest is folded: these two change what the rozpiska shows. */}
         <div className="flex w-full items-center gap-x-1 sm:contents">
           {!isTemplate && <KosztorysTotalsPanelToggle hasRows={subtotals.length > 0} />}
           {/* The workbench has a closed column list, so both crews' stawki are already on screen and
               this switch would move no column — while still moving the „Cena j.m." sort key and the
-              filter list. Its plane is pinned instead (useKosztorysViewState). */}
-          {/* „Oferta" pins the client plane, so the switch would move nothing while it is on. */}
+              filter list. */}
           {!isTemplate && !offer && (
             <ToolbarToggle
               legend={VIEW_LEGEND}
@@ -79,15 +76,13 @@ export function KosztorysEditorToolbar({
         </div>
 
         {/* Floats over the rozpiska: in flow it shortened the grid's flex track on every open/close,
-            remeasuring the virtualized window. `sm:contents` generates no box from 768 up, so these
-            classes stop applying there on their own. */}
+            remeasuring the virtualized window. */}
         <div
           className={cn(
             'bg-background border-border absolute inset-x-0 top-full z-30 w-full flex-wrap items-center gap-x-1 gap-y-2 border-b px-4 py-2 shadow-md sm:contents',
             toolsOpen ? 'flex' : 'hidden',
           )}
         >
-          {/* A closed kosztorys keeps every lens; only the entries that would write are gone. */}
           {!readOnly && <KosztorysAddMenu />}
           <SimpleTooltip content="Szukaj pozycji / sekcji">
             {/* SearchFilterInput takes no ref, so the tooltip anchors to a wrapper */}
@@ -97,8 +92,6 @@ export function KosztorysEditorToolbar({
                 onChange={setSearch}
                 placeholder="Szukaj…"
                 debounceMs={200}
-                // Parked narrow because five menus share this row, and widened while it is in use —
-                // a query too long to read back is worse than a tight row.
                 className={cn(
                   'w-full transition-[width] duration-150 sm:w-28 sm:focus-within:w-64',
                   search && 'sm:w-64',
@@ -106,23 +99,17 @@ export function KosztorysEditorToolbar({
               />
             </div>
           </SimpleTooltip>
-          {/* Claims free space only from `sm`: five menus are wider than a phone, and below `sm` the
-              group already has its own line. */}
           <div className="flex flex-wrap items-center gap-x-1 gap-y-2 sm:ml-auto">
-            {/* Spans both menus, not just „Opcje": „Porównaj z katalogiem" is now read from
+            {/* „Porównaj z katalogiem" is read from
                 „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
                 trigger and the dialog only reach the same state under one shared provider. */}
             <KosztorysActionsProvider workerReports={isTemplate ? undefined : workerReports}>
               <KosztorysActionsMenu protocolSource={protocolSource} />
-              {/* Absent when nothing is wrong, so it sits where the eye lands, not between two
-                  permanent controls. */}
               <KosztorysProblemsMenu />
               <WorkerReportsButton />
             </KosztorysActionsProvider>
             <KosztorysFiltersMenu />
             <KosztorysSectionsMenu />
-            {/* On the bar, not in „Kolumny", while the AI drafts are being tested: it is the switch
-                every test kosztorys is opened for. */}
             {aiReviewAvailable && (
               <Button
                 size="sm"
@@ -131,7 +118,7 @@ export function KosztorysEditorToolbar({
                 onClick={() => setAiReview(!aiReview)}
                 className="relative"
               >
-                {/* The `ai` look as a layer over the outline button rather than a variant swap: its
+                {/* The `ai` look as a layer over the outline button: its
                     border is a background gradient, which snaps instead of interpolating, while the
                     layer's opacity can fade. */}
                 <span
@@ -167,8 +154,6 @@ export function KosztorysEditorToolbar({
           </div>
         </div>
       </div>
-      {/* A second line inside the toolbar's block, not a strip of its own, so the border stays one
-          edge between chrome and grid however many chips are on. */}
       <KosztorysActiveFiltersBar />
     </div>
   )

@@ -8,7 +8,6 @@ type PurgeTrashedRowsOptsT = {
   deleteForever: (id: number) => Promise<DeleteForeverResultT>
   logPrefix: string
   tags: readonly (keyof typeof CACHE_TAGS)[]
-  /** Also expire `entityTag(entity, id)` for every purged row. */
   entity?: EntityNameT
 }
 
@@ -46,7 +45,6 @@ export async function purgeTrashedRows({
     }
   }
 
-  // Cron runs in a Route Handler context — `updateTag` throws here.
   if (purgedIds.length > 0) {
     for (const key of tags) revalidateTag(CACHE_TAGS[key], EXPIRE_NOW)
     if (entity) for (const id of purgedIds) revalidateTag(entityTag(entity, id), EXPIRE_NOW)

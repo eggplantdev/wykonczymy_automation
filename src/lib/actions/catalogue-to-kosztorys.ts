@@ -59,8 +59,6 @@ export async function insertCatalogueItemsAction(
   )
 }
 
-// The sekcja and the prace are written together, so „Anuluj" in the picker can never leave an orphan
-// sekcja behind.
 export async function createSectionWithCatalogueItemsAction(
   investmentId: number,
   sectionName: string,
@@ -117,10 +115,8 @@ const applyCatalogueSchema = z.object({
 const STALE_ITEM_ERROR = 'Część zaznaczonych pozycji już nie istnieje.'
 const STALE_CATALOGUE_ERROR = 'Część zaznaczonych prac nie jest już w katalogu.'
 
-// Taking a stawka means taking its ŹRÓDŁO, so BOTH kolumny of that płaszczyzna are written and one of
-// them lands as `null`. Writing only the column the katalog names would leave the pozycja's old
-// nadpisanie standing beside the new one, and the rozpiska reads such a pair as the OTHER źródło —
-// a mnożnik outranks a kwota, so „weź kwotę z katalogu" would have changed nothing on screen.
+// Writing only the column the katalog names would leave the pozycja's old
+// nadpisanie standing beside the new one, and the rozpiska reads such a pair as the OTHER źródło.
 const RATE_COLUMNS = [
   ['wToolsRate', { plane: 'w_tools', value: 'wToolsOverrideValue', coeff: 'wToolsOverrideCoeff' }],
   [
@@ -130,17 +126,9 @@ const RATE_COLUMNS = [
 ] as const
 
 /**
- * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every
- * liczba the owner ticked in „Porównaj z katalogiem prac".
- *
- * The wire carries ids and field names only. Every kwota that lands in the rozpiska is re-read from
- * the cennik here — same rule as `insertCatalogueItemsAction` — and the klucz is rebuilt from the
+ * the klucz is rebuilt from the
  * pozycja as it stands NOW rather than taken from the payload, so a window left open across a rename
  * ends in a Polish sentence instead of pricing a praca off the wrong wpis.
- *
- * Snapshots first: the write flattens hand-typed ceny and nadpisania across the whole rozpiska at
- * once and is irrecoverable by in-session undo — the same reason „Popraw literówki" and the rabat
- * procentowy snapshot.
  */
 export async function applyCatalogueToKosztorysAction(
   investmentId: number,
@@ -153,7 +141,7 @@ export async function applyCatalogueToKosztorysAction(
       const parsed = validateAction(applyCatalogueSchema, { investmentId, selections })
       if (!parsed.success) return parsed
 
-      // Folded per pozycja before anything reads the DB: a payload naming one praca twice would
+      // a payload naming one praca twice would
       // otherwise push the same id into a batch twice, and `UPDATE … FROM (VALUES …)` has no
       // opinion about which of the two duplicate rows wins.
       const wanted = new Map<number, Set<SeedConflictFieldT>>()
@@ -207,11 +195,9 @@ export async function applyCatalogueToKosztorysAction(
         applied.push(row)
       }
 
-      // One transaction, because the pair „kwota albo mnożnik" spans two of these batches (EX-865).
       // Five sequential UPDATE-y mean a connection dropped after the `*OverrideValue` batch and
       // before the `*OverrideCoeff` one leaves a pozycja carrying BOTH — and coeff outranks kwota, so
-      // the rozpiska quietly prices off the old mnożnik. The snapshot joins the same transaction: a
-      // rollback that left it standing would offer an undo to a state nothing changed from.
+      // the rozpiska quietly prices off the old mnożnik.
       await withPayloadTransaction(
         payload,
         async (req) => {

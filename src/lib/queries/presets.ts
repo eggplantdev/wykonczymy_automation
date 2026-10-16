@@ -28,8 +28,6 @@ export const getPresets = cached(
   { tags: [CACHE_TAGS.presets] },
 )
 
-// Section-granular view of the same library, for the "append a section from a szablon" picker.
-// Shares the `presets` tag with getPresets, so one invalidation refreshes both.
 export const getPresetSections = cached(
   async (): Promise<TemplateSectionMetaT[]> => {
     const payload = await getPayload({ config })

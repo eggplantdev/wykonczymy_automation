@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import type { TrashRowT } from '@/types/trash'
 
-// All three open read-only — a trashed investment is inspected here, not restored to be looked at.
 export function TrashedInvestmentLinks({ row }: { row: TrashRowT }) {
   return (
     <div className="flex flex-wrap items-center gap-1">

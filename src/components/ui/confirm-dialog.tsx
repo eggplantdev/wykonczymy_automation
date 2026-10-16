@@ -18,8 +18,6 @@ type PropsT = {
   description?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
-  // A confirm step exists because the action is hard to take back, so red is the default. `neutral`
-  // is the opt-out for the handful whose confirm only asks „na pewno?" about something reversible.
   variant?: 'alert' | 'neutral'
   onConfirm: () => void
   // Fired on every close — Cancel, Escape, overlay click, AND right after `onConfirm`, because the
@@ -27,7 +25,6 @@ type PropsT = {
   onCancel: () => void
 }
 
-// Controlled confirm dialog: the app-styled replacement for window.confirm.
 export function ConfirmDialog({
   open,
   title,
@@ -51,8 +48,6 @@ export function ConfirmDialog({
             </AlertDialogDescription>
           )}
         </div>
-        {/* Only a phone is narrower than the pair: there the buttons share the row, and a pair too
-            wide for it stacks, each button full width. */}
         <div className="mt-4 flex flex-wrap justify-end gap-2 *:max-sm:grow">
           <AlertDialogCancel>{cancelLabel ?? t('cancel')}</AlertDialogCancel>
           <AlertDialogAction

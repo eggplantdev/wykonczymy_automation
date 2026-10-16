@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
 
-// A trashed worker keeps his e-mail, so a second worker with that e-mail is refused — and the
-// sentence must send the owner to the Kosz, because no listing shows the worker who holds it.
-
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockImplementation(async () => ({

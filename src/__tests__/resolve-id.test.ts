@@ -39,8 +39,6 @@ describe('resolveId', () => {
   })
 })
 
-// ── entityTag ────────────────────────────────────────────────────────────
-
 describe('entityTag', () => {
   it('builds tag from collection and numeric id', () => {
     expect(entityTag('cash-register', 5)).toBe('cash-register:5')
@@ -51,8 +49,6 @@ describe('entityTag', () => {
   })
 })
 
-// ── CACHE_TAGS ───────────────────────────────────────────────────────────
-
 describe('CACHE_TAGS', () => {
   it('has expected keys', () => {
     expect(CACHE_TAGS).toHaveProperty('transfers')
@@ -62,7 +58,6 @@ describe('CACHE_TAGS', () => {
     expect(CACHE_TAGS).toHaveProperty('otherCategories')
   })
 
-  // `table:` names a raw-SQL table with no Payload collection behind it (kosztorys_snapshots).
   it('values follow the collection: / table: prefix pattern', () => {
     for (const value of Object.values(CACHE_TAGS)) {
       expect(value).toMatch(/^(collection|table):.+/)

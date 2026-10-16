@@ -3,10 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { buildViewRows } from '@/lib/kosztorys/row-view'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// What the grid shows = search → engaged conditions → sort. The three compose, and the pipeline order
-// is part of the contract: a condition applied after the sort would reorder the section blocks the
-// bands assume are contiguous.
-
 function row(
   id: number,
   sectionId: number,
@@ -57,7 +53,6 @@ describe('buildViewRows', () => {
       engagedConditionIds: new Set(['no-planned-qty']),
     })
 
-    // „malowanie sufitu" survives the search and is then hidden for having no przedmiar.
     expect(view.map((r) => r.id)).toEqual([1, 4])
   })
 
@@ -71,16 +66,12 @@ describe('buildViewRows', () => {
     expect(view.map((r) => r.id)).toEqual([1, 2, 3, 4])
   })
 
-  // The latch answers „nie zabieraj mi wiersza, który poprawiam" — it says nothing about a question
-  // the user is asking right now, and a search box that kept showing non-matches would be broken.
   it('does not hold a latched row against the search', () => {
     const view = buildViewRows({ ...base, search: 'aneks', latchedRowIds: new Set([1]) })
 
     expect(view.map((r) => r.id)).toEqual([3])
   })
 
-  // Search first, then sort: the comparator must only ever see the rows that survived, and the
-  // surviving set must be identical whichever way round it runs — this pins the set AND the order.
   it('sorts what the search left, within sections', () => {
     const view = buildViewRows({
       ...base,

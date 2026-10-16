@@ -14,8 +14,6 @@ type PropsT = {
   expenseCategories: ExpenseCategoryRefT[]
 }
 
-// Owns the v1 reading's two transaction aggregates, so the default v2 page never waits on sums it
-// does not show.
 export async function InvestmentV1Stats({
   statsWhere,
   materialsNetRate,

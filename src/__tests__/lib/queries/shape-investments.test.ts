@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 
-// server-only throws at import time outside Next.js — stub it out
 vi.mock('server-only', () => ({}))
 
 import { shapeInvestments } from '@/lib/queries/shape-investments'
@@ -103,8 +102,6 @@ describe('shapeInvestments', () => {
     expect(row.balance).toBeCloseTo(0, 10)
   })
 
-  // Material booked to no category is legacy — three investments carry it and no column shows it.
-  // It still belongs INSIDE „Wydatki inwestycyjne", or the total would understate what was spent.
   it('folds material with no category into the total', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
@@ -267,7 +264,6 @@ describe('shapeInvestments', () => {
   })
 
   it('falls back to the default VAT when the investment carries none', () => {
-    // The read applies DEFAULT_VAT to a null vat_rate, so a row can never gross to NaN here.
     const [row] = shapeInvestments(
       [baseInv],
       {
@@ -337,9 +333,8 @@ describe('shapeInvestments', () => {
   })
 })
 
-// EX-555: robocizna and rabat come from the kosztorys, and from nowhere else. The figures below are
-// chosen so the two planes DISAGREE — a listing that silently kept reading transactions would still
-// produce plausible numbers, just the old ones.
+// The figures below are chosen so the two planes DISAGREE — a listing that silently kept reading
+// transactions would still produce plausible numbers, just the old ones.
 describe('shapeInvestments robocizna source', () => {
   const transactionFinancials: InvestmentFinancialsMapT = {
     '5': {
@@ -374,10 +369,6 @@ describe('shapeInvestments robocizna source', () => {
     expect(row.balance).toBe(4047)
   })
 
-  // EX-649: the same two figures on the transactions plane ride along beside them, because during
-  // the move off the spreadsheets an investment carries robocizna on both and neither is derivable
-  // from the other. `margin` is the v1 figure and v1 IS the transactions plane — fed the kosztorys
-  // robocizna it matched no other surface in the app.
   it('carries the transactions plane beside the kosztorys one', () => {
     const [row] = shapeInvestments(
       [baseInv],
@@ -393,8 +384,6 @@ describe('shapeInvestments robocizna source', () => {
   })
 
   it('grosses the bilans on the kosztorys pair, not the transactions one', () => {
-    // The whole point of the switched VAT base: 3900 would produce a brutto figure that is not the
-    // netto one plus its tax.
     const [row] = shapeInvestments(
       [{ ...baseInv, vatRate: 0.23 }],
       transactionFinancials,
@@ -407,8 +396,6 @@ describe('shapeInvestments robocizna source', () => {
   })
 
   it('reads zero robocizny for an investment with no kosztorys', () => {
-    // 3900 zł of legacy LABOR_COST sits on this investment and must NOT appear here — v1 is the
-    // surface that reads the transactions plane, and someone re-enters that work into the kosztorys.
     const [missingMap] = shapeInvestments(
       [baseInv],
       transactionFinancials,
@@ -420,8 +407,6 @@ describe('shapeInvestments robocizna source', () => {
 
     expect(emptyMap).toEqual(missingMap)
     expect(emptyMap.totalLaborCosts).toBe(0)
-    // The transactions plane is untouched by the absence — that is the whole point of showing it:
-    // this investment's robocizna is readable ONLY here until someone enters it into the kosztorys.
     expect(emptyMap.totalLaborCostsFromTransactions).toBe(3900)
     expect(emptyMap.margin).toBe(2900) // 3900 − 1000 wypłat, same as with a kosztorys
     // Same map, different investment: the lookup must key on the id, not merely on the map existing.
@@ -431,10 +416,6 @@ describe('shapeInvestments robocizna source', () => {
     ).toBe(0)
   })
 
-  // A kosztorys fully entered but with no etap progress yet sums to exactly zero, because „pomiar z
-  // natury" IS the etap sum (EX-494). Read presence off that zero and the listing's „Pozostało do
-  // wypłaty" prints „brak kosztorysu" over a complete rozpiska whose crews were paid ahead — so
-  // presence travels as its own fact.
   it('tells an absent kosztorys from one that sums to zero', () => {
     const [zeroProgress] = shapeInvestments(
       [baseInv],
@@ -471,14 +452,12 @@ describe('shapeInvestments robocizna source', () => {
     )
 
     expect(withWork.hasKosztorys).toBe(true)
-    // Same map, different investment — presence must key on the id like every figure above it.
     expect(
       shapeInvestments([{ ...baseInv, id: 6 }], {}, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
         .hasKosztorys,
     ).toBe(false)
   })
 
-  // The owner set a stage by hand and the listing kept „Przeanalizowana”: a loaded draft lifted it.
   it('shows the stored stage, whatever the kosztorys carries', () => {
     const step = (inv: InvestmentWithNotesT) =>
       shapeInvestments([inv], transactionFinancials, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
@@ -490,9 +469,9 @@ describe('shapeInvestments robocizna source', () => {
   })
 })
 
-// EX-649: the second margin rides on the same row. The transactions plane sets 1000 zł of wypłat and
-// the kosztorys says 800 zł is owed for the work actually done — the two figures must NOT coincide,
-// or a column that kept reading `totalPayouts` would pass.
+// The transactions plane sets 1000 zł of wypłat and the kosztorys says 800 zł is owed for the work
+// actually done — the two figures must NOT coincide, or a column that kept reading
+// `totalPayouts` would pass.
 describe('shapeInvestments marża v2', () => {
   const transactionFinancials: InvestmentFinancialsMapT = {
     '5': {
@@ -525,8 +504,6 @@ describe('shapeInvestments marża v2', () => {
     )
 
     expect(row.marginV2).toBe(3200) // 5000 − 500 rabatu − 800 ekipie − 300 wliczonych − 200 straty
-    // The v1 column reads the other plane entirely — wypłaty instead of należne, and the obniżka
-    // materiałów the kosztorys knows nothing about. The two legitimately disagree.
     expect(row.margin).toBe(2000) // 3900 − 1000 wypłat − 200 straty − 300 wliczonych − 400 obniżki
   })
 
@@ -544,12 +521,10 @@ describe('shapeInvestments marża v2', () => {
     // `undefined`, not `null` — the row type carries the absence that way because TanStack's
     // `sortUndefined` is what keeps a withheld row out of the numeric comparator.
     expect(row.marginV2).toBeUndefined()
-    // Only the kosztorys figure is withheld; the transactions plane has no rozliczenie to miss.
     expect(row.margin).toBe(2000)
   })
 
   it('owes nothing to a crew for an investment with no kosztorys', () => {
-    // No kosztorys means no robocizna either, so the figure is what the company absorbed on its own.
     const [row] = shapeInvestments([baseInv], transactionFinancials, NO_MAP, NO_MAP, NO_DEPOSITS)
 
     expect(row.marginV2).toBe(-500) // 0 robocizny − 300 wliczonych − 200 straty
@@ -590,7 +565,6 @@ describe('shapeInvestments pozostało do wypłaty', () => {
   })
 
   it('withholds the figure when an etap carries work with no rozliczenie', () => {
-    // The należne would be short by an unknown amount, so any number would understate the debt.
     expect(remainingFor(1750, { hasUnconfirmedPlane: true })).toBeUndefined()
   })
 
@@ -626,8 +600,6 @@ describe('shapeInvestments pozostało do wypłaty', () => {
   })
 })
 
-// The bilans v2 IS the panel's „Pozostało do zapłaty" negated, and the wpłaty it deducts arrive per
-// plane — so these pin what each plane is worth.
 describe('shapeInvestments wpłaty', () => {
   const owes10k: KosztorysClientTotalsMapT = {
     '5': {
@@ -664,8 +636,6 @@ describe('shapeInvestments wpłaty', () => {
   })
 
   it('deducts nothing on netto for a przelew whose faktura named no netto', () => {
-    // A row the write path has refused since 2026-07-26 and prod has never held. It pays down the
-    // brutto plane by what moved and the netto plane by nothing — no netto is estimated at VAT.
     const netlessOnly: DepositPlaneSumsMapT = {
       '5': { paidNet: 0, paidGrossNet: 0, paidGross: 1230, paidNetCount: 0 },
     }
@@ -681,9 +651,6 @@ describe('shapeInvestments wpłaty', () => {
     expect(row.balanceGross).toBeCloseTo(-(12_300 - 1230), 10)
   })
 
-  // Both bilanse are computed for every row; the tryb decides which the listing prints (`settlesOn`
-  // in `components/tables/investments.tsx` projects it through `settlementModeToMoneyAxis`, whose own
-  // spec owns that table). All this row builder owes is carrying the tryb through untouched.
   it('carries the tryb the listing gates its two bilans columns on', () => {
     const carried = (mode: InvestmentWithNotesT['settlementMode']) =>
       shapeInvestments(
@@ -700,9 +667,6 @@ describe('shapeInvestments wpłaty', () => {
   })
 })
 
-// „Bilans brutto v2" deducts przelewy only, by design — so where a wpłata came gotówką the column
-// under-counts what the client paid. The panel screams about it; the listing needs the same fact on
-// the row to mark the cell (EX-724).
 describe('shapeInvestments wpłaty osierocone przez tryb brutto', () => {
   const mixedDeposits: DepositPlaneSumsMapT = {
     '5': {

@@ -19,10 +19,6 @@ const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-koszt
 const { getWorkerReportPage, getWorkerReportPreview } =
   await import('@/lib/queries/worker-report-page')
 
-// The token lookup is the whole access control for the worker's link, and the narrowing to one
-// worker's etapy is the whole privacy boundary between two crews on one site — both run against the
-// REAL DB, because a `where` that matched everything or a filter on the wrong id would pass any stub.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {

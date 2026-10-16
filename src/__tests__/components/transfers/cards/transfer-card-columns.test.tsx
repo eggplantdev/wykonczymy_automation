@@ -82,7 +82,6 @@ describe('TransferCard column visibility', () => {
   })
 })
 
-// A phone gets the cards, not the table, so the status column has to reach them too.
 describe('TransferCard payout status', () => {
   it('shows a wypłata’s status, and none on other types', async () => {
     render(

@@ -19,11 +19,6 @@ import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
 import type { LeadRowT } from '@/types/leads'
 
-/**
- * What the visitor typed that has no column on an inwestycja — folded into „Notatki" rather than
- * dropped, because the zgłoszenie stops being the place anyone looks once it has an inwestycja.
- * „Wiadomość" is not a `LeadRowT` column; it lives among the answers.
- */
 function buildNotes(lead: LeadRowT): string {
   return [
     ['Zakres prac', lead.scope],
@@ -38,8 +33,6 @@ function buildNotes(lead: LeadRowT): string {
 const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
 export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
-  // Tu promocja tworzy inwestycję Z tego zgłoszenia, więc komplet plików jest oczekiwaną domyślną —
-  // odznacza się wyjątki. (W „Załącznikach" jest odwrotnie: tam celem bywa cudza inwestycja.)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(
     () => new Set(lead.assets.map((file) => file.id)),
   )
@@ -52,8 +45,6 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
 
   if (lead.investmentId !== null) {
     return (
-      // Plain link, not a button: the name is the content of the cell, same as „Nazwa" on the
-      // inwestycje listing, and button chrome around a „<klient> <adres>" only forces it to truncate.
       <Link href={`/inwestycje/${lead.investmentId}`} className="text-primary hover:underline">
         {lead.investmentName ?? 'Inwestycja'}
       </Link>
@@ -71,8 +62,6 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   }
 
   const defaults: InvestmentFormValuesT = {
-    // An inwestycja is named for the job, not the person — the existing ones read „Jakub Korczak
-    // Zupnicza 14/31". Seeding it from `lead.name` alone just repeated „Osoba kontaktowa" below.
     name: [lead.name, lead.address].filter(Boolean).join(' '),
     address: lead.address,
     phone: lead.phone,
@@ -80,8 +69,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
     contactPerson: lead.name,
     notes: buildNotes(lead),
     reviewRequested: false,
-    // Nobody has agreed to do this work yet — a zgłoszenie is an enquiry, and „aktywna" would put
-    // it among the jobs actually running.
+    // Nobody has agreed to do this work yet — „aktywna" would put it among the jobs actually running.
     status: 'quote',
     presetId: '',
   }
@@ -127,7 +115,6 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
           <InvestmentForm
             formId={formId}
             defaultValues={defaults}
-            // The files come from the lead's own relation, so the form never collects them here.
             action={(data) => promoteLeadAction(lead.id, data, chosenIds)}
             successMessage="Inwestycja utworzona"
             submitLabel="Utwórz"

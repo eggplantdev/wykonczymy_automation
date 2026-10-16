@@ -21,8 +21,6 @@ const handlers = {
   resetFilters: vi.fn(),
 }
 
-// The bar reads the editor context directly, so the spec supplies it directly — the real editor
-// would make this pay for the grid to render.
 function renderBar(state: {
   engagedIds?: string[]
   collapsedSectionIds?: Set<number>
@@ -48,8 +46,6 @@ const removeChip = (user: ReturnType<typeof userEvent.setup>, name: RegExp) =>
 
 beforeEach(() => vi.clearAllMocks())
 
-// Four sources narrow the rozpiska, so a bar that knows three of them says „nic nie filtruje" over a
-// shorter grid — worse than no bar at all.
 describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
   it('wymienia wszystkie cztery źródła naraz', () => {
     renderBar({
@@ -80,8 +76,6 @@ describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
   })
 })
 
-// The X on a chip has to clear exactly what the chip names — a crossed wiring clears somebody
-// else's filter and reads as „pasek sam się przestawia".
 describe('Pasek aktywnych filtrów — X zdejmuje swoje źródło', () => {
   it('oddaje filtrowi jego własne przełączenie', async () => {
     const user = renderBar({ engagedIds: [FILTER_ID] })
@@ -91,8 +85,6 @@ describe('Pasek aktywnych filtrów — X zdejmuje swoje źródło', () => {
     expect(handlers.toggleCondition).toHaveBeenCalledExactlyOnceWith(FILTER_ID)
   })
 
-  // A problem is cleared through the same exclusive pick it arrived by, which also hands back the
-  // price plane — so the chip returns to the view the problem took the reader away from.
   it('zdejmuje problem wyborem wyłącznym, nie zwykłym przełączeniem', async () => {
     const user = renderBar({ engagedIds: [PROBLEM_ID] })
 

@@ -32,7 +32,6 @@ export async function seedInvestmentFromPreset(
       const existing = await txDb.execute(
         sql`SELECT 1 FROM kosztorys_sections WHERE investment_id = ${investmentId} LIMIT 1`,
       )
-      // Read-only bail: no writes happened, so committing this empty tree-check is equivalent to a rollback.
       if (existing.rows.length > 0) return 'not-empty'
       await applyPreset(payload, req, investmentId, tree)
       // A preset carries no etapy and the seed installs none: an etap's plane is forced at creation

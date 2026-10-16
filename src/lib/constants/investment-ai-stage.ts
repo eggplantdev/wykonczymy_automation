@@ -47,14 +47,12 @@ export const INVESTMENT_AI_STAGE_LABELS: Record<
   },
 }
 
-// No stored stage — where every investment starts.
 export const AI_STAGE_GATHERING = {
   pl: 'Uzupełnianie informacji',
   description:
     'Zbierasz informacje o inwestycji — treść wiadomości, ustalenia, zakres prac, zdjęcia, plan. Gdy masz komplet, oznacz „Gotowa do analizy”.',
 }
 
-// The listing's one „Analiza AI” step. Ordered — the sort reads the index.
 export const AI_PROGRESS_STEPS = ['none', ...INVESTMENT_AI_STAGES] as const
 
 export type AiProgressStepT = (typeof AI_PROGRESS_STEPS)[number]

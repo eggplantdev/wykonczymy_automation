@@ -98,8 +98,6 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
     expect(usedDescriptions.has(`${PREFIX} trashed`)).toBe(false)
   })
 
-  // A row added in the editor carries its Przedmiar before anyone names it, and a nameless praca
-  // would surface in „Używane, a brak w katalogu" as a bare j.m.
   it('skips a pozycja without an opis', () => {
     expect(blankInvestmentRows).toBe(0)
   })

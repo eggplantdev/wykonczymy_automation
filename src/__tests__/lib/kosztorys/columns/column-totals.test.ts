@@ -62,8 +62,6 @@ describe('columnTotalsForRows', () => {
   it('totals the etap axis by wartość netto/brutto only', () => {
     const all = totals()
 
-    // Each etap's wartość is its qty share of the rows it touched, so the two must add back up to the
-    // executed total — the reconciliation the sheet's per-etap block exists for.
     const stageNetSum =
       (all.get(stageValueNetKey(100)) ?? 0) + (all.get(stageValueNetKey(101)) ?? 0)
     expect(stageNetSum).toBeCloseTo(all.get('net') ?? 0, 10)
@@ -84,8 +82,6 @@ describe('columnTotalsForRows', () => {
     }
   })
 
-  // The total reads „ile oferty zostało do zrobienia", so a row past its przedmiar keeps its minus
-  // on its own line but does not eat into what the rest still owes.
   it('leaves a row with no przedmiar out of the „Pozostało" total', () => {
     // Section B is row 3 (no przedmiar, 1 × 30 executed) + row 4 (przedmiar 6 × 15, 2 executed).
     const sectionB = totals(rowsOf(20))
@@ -95,7 +91,6 @@ describe('columnTotalsForRows', () => {
     expect(sectionB.get('remaining')).toBeCloseTo(60, 10)
   })
 
-  // The issue's own case — inv. 139 „Prace dodatkowe": 6025,00 before, 6825,00 after.
   it('totals only the rows still owed, netto and brutto, over one overrun row', () => {
     const owed = [750, 1200, 375, 1000, 200, 1800, 1500]
     const extraWork: KosztorysTreeT = makeTree({
@@ -145,7 +140,6 @@ describe('columnTotalsForRows', () => {
     expect(subcontractor.get('remaining')).toBe(client.get('remaining'))
   })
 
-  // The crew's own przedmiar figure (owner, 2026-09-28): at the stawka, never with the client's rabat.
   it('totals „Wartość przedmiaru — <rozliczenie>" at the crew stawka, only in a crew view', () => {
     // Every row carries a 12 zł stawka z narzędziami over przedmiar 5 + 4 + 0 + 6; row 2's rabat of 8
     // is a client concession and stays out.
@@ -153,14 +147,11 @@ describe('columnTotalsForRows', () => {
     expect(totals(rows, 'client').has('plannedNetForPlane')).toBe(false)
   })
 
-  // The worker's „Pozostało" (EX-875 #9): work another crew finished is not owed to anyone, so the
-  // executed quantity spans every etap even though the price is this crew's stawka.
   it('totals the worker „Pozostało" off the all-etapy quantity it is handed', () => {
     const executedAll = { 1: 5, 2: 4, 3: 1, 4: 2 }
     const worker = columnTotalsForRows(rows, tree.stages, 'w_tools', tree.vatRate, executedAll)
 
-    // Row 4's (6 − 2) × 12; row 3 (no przedmiar, −12) is past the offer and skipped. The own-etapy
-    // quantities (2, 4, 1, 0) would read 108 still owed — row 1's 3 × 12 on top of row 4's 6 × 12.
+    // Row 4's (6 − 2) × 12; row 3 (no przedmiar, −12) is past the offer and skipped.
     expect(worker.get('remainingForPlane')).toBe(48)
     expect(totals(rows, 'w_tools').has('remainingForPlane')).toBe(false)
   })
@@ -172,11 +163,6 @@ describe('columnTotalsForRows', () => {
     expect(subcontractor.has(stageValueNetKey(101))).toBe(false)
   })
 
-  // A rabat globalny is a single subtraction the summary panel makes once, and it suppresses each
-  // row's own rabat (calc.ts `globalDiscountActive`). So these columns show the executed value with
-  // NEITHER applied — the footers sum to a „Razem" deliberately larger than the do-zapłaty figure.
-  // Pinned because both alternatives (subtracting it here, or keeping the per-row rabaty) are
-  // defensible designs someone could "fix" this into.
   it('totals the executed value with neither the rabat globalny nor the per-row rabaty applied', () => {
     const discounted: KosztorysTreeT = { ...tree, globalDiscount: { type: 'amount', value: 50 } }
     const net = columnTotalsForRows(treeToRows(discounted), discounted.stages, 'client', 0.08).get(
@@ -195,7 +181,6 @@ describe('columnTotalsForRows', () => {
   })
 
   it('totals the rabat taken per row, netto and brutto', () => {
-    // Row 2's kwota rabatu of 8, taken on its full przedmiar of 4.
     expect(totals().get('discountAmount')).toBe(8)
     expect(totals().get('discountAmountGross')).toBeCloseTo(8 * 1.08, 10)
   })
@@ -223,8 +208,6 @@ describe('columnTotalsForRows — the etap axis totals its own cells', () => {
   })
 })
 
-// EX-921: ofertowy 10, aktualizacja 15, wykonane 12 at 100 zł — inside the aktualizacja, past the
-// offer. The row is not an overrun, so „Pozostało" keeps its +300 zł in the total.
 describe('Aktualizacja przedmiaru w sumach', () => {
   const splitTree = makeTree({
     sections: [

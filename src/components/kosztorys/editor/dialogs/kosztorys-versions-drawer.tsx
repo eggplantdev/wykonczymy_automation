@@ -22,9 +22,6 @@ type PropsT = {
   flushPendingSaves: () => Promise<void>
 }
 
-// History panel: named manual versions are the prominent targetable entries; auto snapshots are the
-// ambient timestamped history below them. Restore gates behind a ConfirmDialog — the pre-restore auto
-// snapshot the action takes makes a mis-restore itself recoverable.
 export function KosztorysVersionsDrawer({
   investmentId,
   investmentName,
@@ -51,9 +48,7 @@ export function KosztorysVersionsDrawer({
       () => restoreSnapshot(snapshot.id, investmentId),
       'Przywracanie przerwane — odświeżam kosztorys',
       ({ data }) => {
-        // A warning, not a success, when assignments were dropped: the restore moved money the owner
-        // did not ask to move — należne recorded for a since-deleted person now sits in „Bez
-        // przypisanego pracownika". Their name can't be shown; the row they were on is gone from `users`.
+        // Their name can't be shown; the row they were on is gone from `users`.
         const dropped = data.droppedWorkerAssignments
         const skipped = data.skippedCatalogueItems ?? 0
         if (skipped > 0) {
@@ -64,9 +59,6 @@ export function KosztorysVersionsDrawer({
           )
         } else if (dropped > 0) {
           toastMessage(
-            // The count is per etap, not per person — n etapy may have named one deleted worker or n
-            // of them — so the cause clause stays number-free rather than asserting a headcount it
-            // doesn't know.
             `Przywrócono wersję. ${dropped} ${pluralize(dropped, ['etap', 'etapy', 'etapów'])} bez przypisania — nie odtworzono przypisań do usuniętych pracowników.`,
             'warning',
             8000,

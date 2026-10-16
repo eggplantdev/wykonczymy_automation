@@ -24,14 +24,8 @@ import { ROLE_KEYS } from '@/lib/i18n/role-keys'
 import { TRASH_HREF } from '@/lib/constants/sections'
 import { cn } from '@/lib/utils/cn'
 
-// Two scrollers, not one. `<main>` is the app's own, and inline style beats a utility class there
-// because the element already carries `overflow-y-auto`.
-//
-// The document is the second, and only on iOS: `h-screen` is `100vh`, which Safari resolves to the
-// LARGE viewport, so the shell stands taller than the visible page by the height of the bottom
-// toolbar and the whole document slides under the open drawer. `100dvh` on the shell would remove
-// that overflow — and with it the scroll that collapses the toolbar, costing that band on every
-// screen for the sake of one drawer. Freezing it while the drawer is open keeps both.
+// `h-screen` is `100vh`, which Safari resolves to the LARGE viewport, so the whole document slides
+// under the open drawer.
 function setScrollLocked(locked: boolean) {
   const main = document.querySelector('main')
   if (main) main.style.overflow = locked ? 'hidden' : ''
@@ -48,9 +42,7 @@ export function MobileNav() {
   const [open, setOpen] = useState(false)
   const [openedOn, setOpenedOn] = useState<string | null>(null)
 
-  // Closes when the navigation COMMITS, not on tap: until the route's shell arrives there is nothing
-  // new to show, so an onClick close left a blank wait that read as a dead tap. Clearing `openedOn`
-  // keeps Back from reopening.
+  // Clearing `openedOn` keeps Back from reopening.
   if (open && openedOn !== pathname) {
     setOpen(false)
     setOpenedOn(null)
@@ -66,7 +58,6 @@ export function MobileNav() {
     if (href === pathname) setOpen(false)
   }
 
-  // The drawer also closes without a handler — on a committed navigation, or on Back.
   useEffect(() => {
     setScrollLocked(open)
   }, [open])
@@ -85,12 +76,9 @@ export function MobileNav() {
         <Menu className="size-7" />
       </Button>
 
-      {/* `visibility` stays `visible` for the whole leave transition, so the slide-out plays out
-          before the drawer leaves the tab order. Tailwind v4 compiles `-translate-x-full` to the
-          `translate` property, so the transition has to name it. `dvh`, not `lvh`: a fixed element
-          can be painted `lvh` tall but iOS still only SHOWS the small viewport, so the bottom band
-          lands under the floating toolbar — unreachable. `dvh` grows back to `lvh` on its own once
-          the toolbar retracts. */}
+      {/* Tailwind v4 compiles `-translate-x-full` to the `translate` property, so the transition has
+          to name it. `dvh`, not `lvh`: a fixed element can be painted `lvh` tall but iOS still only
+          SHOWS the small viewport, so the bottom band lands under the floating toolbar — unreachable. */}
       <nav
         id="mobile-nav"
         className={cn(
@@ -99,7 +87,6 @@ export function MobileNav() {
         )}
       >
         <div className="flex shrink-0 items-start gap-3 px-3">
-          {/* Own box, so the X stays centred on the hamburger however tall the logo beside it grows. */}
           <div className="flex h-14 items-center">
             <Button
               variant="ghost"

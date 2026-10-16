@@ -5,9 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { countUnreadLeads } from '@/lib/db/notifications'
 import { fetchLeadsPage } from '@/lib/queries/leads'
 
-// A trashed lead has three readers to escape: the /zgloszenia rows, the „N nowych" count beside
-// them, and the raw-SQL nav badge. Counts are asserted as a difference — the shared test DB carries
-// leads of its own.
+// Counts are asserted as a difference — the shared test DB carries leads of its own.
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

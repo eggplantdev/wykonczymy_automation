@@ -40,16 +40,12 @@ describe('planKosztorysRenumber', () => {
     expect([...before].sort()).toEqual([1, 2, 3, 4])
   })
 
-  // What undo replays, so it must be the order the rows are stored in — which is what the caller
-  // reverts to when the server refuses the bake.
   it('reports the stored order as before', () => {
     const { before } = planKosztorysRenumber(ROWS, byDescription, 'asc')
 
     expect(before).toEqual([1, 2, 4, 3])
   })
 
-  // The stored indices may be gapped (a delete leaves holes); `before` is a sequence, so it carries
-  // the ORDER those gaps imply and the server re-closes them on the way back.
   it('reads a gapped section in stored order', () => {
     const gapped = [row(1, 10, 0, 'b'), row(2, 10, 7, 'a')]
 

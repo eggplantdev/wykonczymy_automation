@@ -14,6 +14,6 @@ worktree: ../wykonczymy-worktrees/szablony-plain-revalidation
 Linear: **EX-909** (z analizy EX-895). Po EX-908 — korzysta z tej samej metody pomiaru renderów.
 
 Archived on the owner's call with verification still owed: `e2e/szablony-list.spec.ts` is written but
-has never run (a worktree cannot build it — see `review-gate.md` § Tests & suite), `baseline.md` has
+has never run (a worktree cannot build it), `baseline.md` has
 no `# After` section, and the manual checks in `manual-checks.md` § EX-909 are unticked. Until one of
 those passes, the Back-to-/szablony fix is unverified in a browser.

@@ -8,9 +8,6 @@ export const CASH_REGISTER_NOT_TRASHED_MESSAGE = 'Najpierw przenieś kasę do ko
 /**
  * Through `payload.delete`, never raw SQL: `beforeDelete` re-counts live transactions inside the
  * delete itself, which is the last word on a kasa that picked one up after it was trashed.
- *
- * The FK strips the kasa from its cancelled rows without firing a Payload hook, so cache expiry is
- * each caller's job.
  */
 export async function deleteTrashedCashRegister(
   payload: Payload,

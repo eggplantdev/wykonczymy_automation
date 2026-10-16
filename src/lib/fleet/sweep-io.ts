@@ -8,7 +8,7 @@ export const loadFleetHistories = async (payload: Payload): Promise<VehicleHisto
   groupByVehicle(await loadFleetDataset(payload))
 
 /**
- * Record what was announced — called only after a successful send. A stamp written ahead of the mail
+ * A stamp written ahead of the mail
  * would silence the deadline for a week on a delivery that never happened.
  */
 export async function stampNotified(

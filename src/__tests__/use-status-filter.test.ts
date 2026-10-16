@@ -58,8 +58,6 @@ describe('selectionFrom — the persisted map', () => {
     expect([...selectionFrom({})].sort()).toEqual(['active', 'planowana', 'quote'])
   })
 
-  // The reason the map holds a flag per status instead of a list of the picked ones: „wybrano nic"
-  // and „jeszcze nie wybierano" are different answers, and a list says the same thing for both.
   it('honours an explicit all-false as the empty selection', () => {
     expect([
       ...selectionFrom({ active: false, completed: false, planowana: false, quote: false }),
@@ -103,7 +101,6 @@ describe('selectionFrom — a map saved before quote existed', () => {
     expect([...selectionFrom({ planowana: false, active: false, completed: false })]).toEqual([])
   })
 
-  // Unlike quote, rejected has no inherited flag: a declined offer stays hidden until ticked.
   it('hides rejected from a map saved before it existed', () => {
     expect(selectionFrom({ planowana: true, active: true, completed: true }).has('rejected')).toBe(
       false,

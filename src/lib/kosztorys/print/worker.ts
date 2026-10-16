@@ -22,7 +22,6 @@ export type WorkerPrintArgsT = {
   data: Extract<WorkerKosztorysT, { kind: 'ready' }>
   logoUrl: string
   fillByColorKey: ReadonlyMap<string, string>
-  // The worker's stored language: the paper reads like the link, amounts and dates stay pl-PL.
   locale: LanguageT
   sectionTranslations: SectionTranslationMapT
 }
@@ -38,8 +37,6 @@ const WORKER_PRINT_STYLES = `
                      border-bottom: 1px solid var(--print-rule-strong); }
 `
 
-// The web page's `WorkerSummary`, on paper: the same tables in the same order and the same labels,
-// so the two documents a worker may hold side by side read alike.
 function workerFooterHtml(summary: WorkerSummaryT, grid: TranslatorT<'grid'>): string {
   const labels = getTranslations(grid.locale).report
   const balance = [
@@ -94,9 +91,7 @@ function workerFooterHtml(summary: WorkerSummaryT, grid: TranslatorT<'grid'>): s
 
 /**
  * The worker's PDF, built off the same projection his link renders — never the editor's rows, which
- * carry every etap and the client price. The totals are the projection's own: the grand total is the
- * summary's figure for the money column, so the paper cannot add up to one the footer contradicts.
- * On a shared etap the rows are the whole etap's, so the executed grand total is too.
+ * carry every etap and the client price.
  */
 export function buildWorkerPrintHtml({
   data,
@@ -122,8 +117,6 @@ export function buildWorkerPrintHtml({
   )
 
   return buildKosztorysPrintHtml({
-    // The link's own empty-rows rule: an empty pozycja is worth nothing at any stawka, so dropping
-    // it moves no total.
     rows: documentRows(rows, stages, worker.settings.hideEmptyRows),
     columns: workerPrintColumns({
       plane: worker.plane,
@@ -151,8 +144,6 @@ export function buildWorkerPrintHtml({
 
 const FORM_EXTRA_ROWS = 10
 
-// `.ref` and `.figure` beat WIDE_PRINT_STYLES' 5.5pt cells: the number is what the scan reads back,
-// and the figures are what the worker reads before he writes.
 const WORKER_FORM_STYLES = `
 td.ref, td.figure { font-size: 7pt; white-space: nowrap; }
 col.c-ref { width: 16mm; }
@@ -175,11 +166,6 @@ function workerFormFooterHtml(locale: LanguageT): string {
 <thead><tr>${head}</tr></thead><tbody>${blank}</tbody></table></div>`
 }
 
-/**
- * The paper a worker fills in by hand: his PDF's rows with the pozycja's number in place of the money.
- * The number is the only thing the scan resolves a line by, so a pozycja without an opis — nothing a
- * worker could recognise — is left off rather than numbered.
- */
 export function buildWorkerFormHtml({
   data,
   logoUrl,

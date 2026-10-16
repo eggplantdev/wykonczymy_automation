@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { isBookableInvestment, isLockedStatus } from '@/lib/constants/investment-lock'
+import {
+  isBookableInvestment,
+  isLockedStatus,
+  isOfferedForBooking,
+} from '@/lib/constants/investment-lock'
+import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
 // `isBookableInvestment` takes a plain string, so no typecheck guards it against a new status —
 // this spec is the guard. Folding picker logic in here once broke sheet-linking for zakończone
@@ -15,4 +20,21 @@ describe('investment status gates', () => {
     expect(isBookableInvestment({ status })).toBe(bookable)
     expect(isLockedStatus(status)).toBe(locked)
   })
+})
+
+describe('isOfferedForBooking', () => {
+  const OFFERED = {
+    quote: false,
+    planowana: true,
+    active: true,
+    completed: false,
+    rejected: false,
+  }
+
+  it.each(Object.entries(OFFERED) as [InvestmentStatusT, boolean][])(
+    '%s → %s',
+    (status, offered) => {
+      expect(isOfferedForBooking({ status })).toBe(offered)
+    },
+  )
 })

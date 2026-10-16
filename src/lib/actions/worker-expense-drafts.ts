@@ -93,7 +93,6 @@ export async function sendExpenseDraftAction(
     })
     if (draftId === null) return noticeFailure('attachFailed')
     after(() => readExpenseDraftReceipts(db, draftId))
-    // The fresh page rides back on this response — a client `router.refresh()` was a third request.
     refresh()
     return { success: true, data: { draftId } }
   })
@@ -178,7 +177,6 @@ export async function mergeExpenseDraftsAction(
   )
 }
 
-// The read is saved on the draft, so the next open costs nothing.
 export async function readExpenseDraftAction(
   draftId: number,
 ): Promise<ActionResultT<{ aiRead?: ExpenseDraftReadT }>> {

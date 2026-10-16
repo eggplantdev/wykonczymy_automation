@@ -41,7 +41,7 @@ const tree = makeTree({
           description: 'Gładź',
           unit: 'm2',
           plannedQty: 4,
-          // Hand-edited Aktualizacja przedmiaru: the crew's form compares against it (EX-921).
+          // Hand-edited Aktualizacja przedmiaru: the crew's form compares against it.
           currentPlannedQty: 6,
           clientPrice: 23,
         },

@@ -53,7 +53,6 @@ function renderForm() {
   return userEvent.setup()
 }
 
-// Both are popover comboboxes over cmdk, not native selects — open, then click the entry by name.
 async function pickRequiredEntities(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('combobox', { name: /Inwestycja/i }))
   await user.click(await screen.findByText(INVESTMENT.name))
@@ -74,8 +73,6 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// EX-536 hardcoded the method as CASH regardless of the picker, silently booking transfers as
-// gotówka. The picker is only worth having if its answer reaches the payload.
 describe('Wpłata — metoda płatności trafia do zapisu', () => {
   it('zapisuje gotówkę, gdy nikt nie ruszył pola', async () => {
     const user = renderForm()
@@ -103,8 +100,6 @@ describe('Wpłata — metoda płatności trafia do zapisu', () => {
   })
 })
 
-// The method IS the plane: gotówka is one netto kwota, przelew arrives on a faktura naming both. A
-// picker that changed the tag without moving the kwota would book a brutto figure as netto.
 describe('Wpłata — metoda przestawia płaszczyznę kwoty', () => {
   it('pyta o jedną kwotę przy gotówce i o parę brutto/netto przy przelewie', async () => {
     const user = renderForm()

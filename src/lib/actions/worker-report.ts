@@ -20,7 +20,7 @@ const linesSchema = z
   .min(1, 'Zgłoszenie nie ma żadnej pracy')
   .max(MAX_LINES, 'Za dużo prac w jednym zgłoszeniu')
 
-/** A rozpiska line carries only its pozycja and ilość. No cache tags: every report read is uncached. */
+/** No cache tags: every report read is uncached. */
 export async function sendWorkerReportAction(
   token: string,
   lines: SendReportLineT[],

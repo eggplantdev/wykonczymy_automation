@@ -58,8 +58,6 @@ describe('evaluateImportGate', () => {
   })
 
   it('lets the import through when only an optional column went unresolved', () => {
-    // An optional column nobody recognised is data quietly missing from the kosztorys, not a refusal
-    // to read the sheet — the pick offered beside it is an improvement, never a gate.
     const gate = evaluateImportGate(
       preview({
         columns: {
@@ -76,8 +74,6 @@ describe('evaluateImportGate', () => {
   })
 
   it('blocks the import when the sheet itself could not be reached', () => {
-    // The failure travels as data so the dialog can render the address to share the sheet with, so a
-    // loaded preview is not proof the sheet was read.
     const gate = evaluateImportGate(
       preview({ failure: { reason: 'forbidden', serviceAccountEmail: 'sa@example.iam' } }),
       true,
@@ -110,8 +106,6 @@ describe('evaluateImportGate', () => {
   })
 
   it('does not call a footer row it never found a disagreement', () => {
-    // A sheet with no „R netto" row says nothing about whether the parse was right, so it must not
-    // raise the „sumy się nie zgadzają" warning — which would train the owner to ignore it.
     const notFound: FooterComparisonT = {
       key: 'executedNet',
       label: 'R netto - suma prac wykonannych',

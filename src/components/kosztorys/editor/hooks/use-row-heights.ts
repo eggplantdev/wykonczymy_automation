@@ -2,9 +2,6 @@
 
 import { createJsonMapStore, useJsonMap } from '@/hooks/create-json-map-store'
 
-// Row heights the owner dragged = row id→px map, persisted in localStorage. Sparse on purpose: only
-// rows someone actually dragged get an entry, so a 400-row kosztorys carries a handful of numbers
-// and everything else resolves to the resting height. Same store mechanics as useColumnWidths.
 const store = createJsonMapStore<number>('kosztorys-v2-row-heights')
 // Template item ids overlap kosztorys item ids, so a szablon keeps its own map.
 const templateStore = createJsonMapStore<number>('szablon-row-heights')

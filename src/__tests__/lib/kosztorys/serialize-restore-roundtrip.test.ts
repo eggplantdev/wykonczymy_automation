@@ -10,25 +10,14 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
-// The serialize→restore pair is the dangerous wipe-and-reinsert core, so we exercise it against the
-// REAL DB and assert PERSISTED state: restore is only correct if a re-serialize of the live tree
-// after restore is content-identical to the snapshot (new ids, same fields + order).
-//
-// Cache revalidation touches next/cache outside a request context; stub it so the collection
-// afterChange/afterDelete hooks fired during restore don't throw in node.
 // serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
-// cookies(), which has no request scope in node. Stub it success like the sibling DB specs.
+// cookies(), which has no request scope in node.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
 
-// Gated like the sibling DB specs: skips with no DB env (portable), FAILS if env is set but the DB
-// is unreachable. Run against the local DB with `--env-file=.env`.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// Canonical, id-free view of a snapshot: children keyed by their parent's stable order (section
-// displayOrder, item displayOrder, stage ordinal) rather than by the ids restore remints. Two trees
-// with identical content but different ids produce equal canonical forms.
 function canonical(snap: SnapshotPayloadT) {
   const sectionById = new Map(snap.sections.map((section) => [section.id, section]))
   const itemById = new Map(snap.items.map((item) => [item.id, item]))
@@ -80,7 +69,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    // A throwaway investment so the whole-tree wipe never touches seeded data; deleted (cascade) after.
     investmentId = await createTestInvestment(payload, 'snapshot-roundtrip-test', {
       vatRate: 0.23,
       wToolsCoeff: 0.7,
@@ -92,11 +80,9 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     const users = await payload.find({ collection: 'users', limit: 1, depth: 0, sort: 'id' })
     const workerId = Number(users.docs[0]!.id)
 
-    // Sekcja C exists purely for COLUMN COVERAGE. Restore hand-writes the INSERT column list and
+    // Restore hand-writes the INSERT column list and
     // zips values into it positionally, so a column the fixture never sets is a column whose mapping
-    // no test can catch being wrong. Its two items are the extremes — every nullable field null, and
-    // every nullable field set — plus the section colour, the stage plane, and a note carrying
-    // unicode + a newline (a naive value-quoting bug shows up there first).
+    // no test can catch being wrong.
     await createKosztorysTree(payload, investmentId, {
       sections: [
         {
@@ -128,8 +114,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
           name: 'Sekcja C — pokrycie kolumn',
           color: 'blue-soft',
           items: [
-            // Every nullable field null / every numeric field zero — the low extreme. Spelled out
-            // rather than left to the builder's defaults: this row's job is to state the extreme.
             {
               description: null,
               unit: null,
@@ -149,8 +133,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
             },
             {
               description: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
-              // Two languages, one of them out of date: `source` must survive verbatim, or a restore
-              // silently clears every „nieaktualne tłumaczenie" warning.
               descriptionTranslations: {
                 uk: {
                   text: 'Перегородка — ГК 12,5 „подвійна"',
@@ -169,23 +151,16 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               discountType: 'amount',
               discountValue: 33.33,
               clientPrice: 149.99,
-              // Kwota na jednej płaszczyźnie, mnożnik na drugiej: para kolumn przeżywa roundtrip
-              // tylko wtedy, gdy obie połowy są gdzieś niepuste — inaczej wypadnięcie `*OverrideCoeff`
-              // z serializacji przechodzi jako „wszędzie null".
               wToolsOverrideCoeff: 0.7,
               wToolsOverrideValue: null,
               ownToolsOverrideValue: 88.5,
               note: 'Uwaga: różnica ±5 cm\nDrugi wiersz — ćwierć „cudzysłów"',
               catalogueItemId: null,
-              // Fractional and different from both przedmiary, for the same reason as above.
               currentPlannedQty: 13.5,
               aiPlannedQty: 9.75,
               changeReason: 'AI pominęło narożniki',
               reviewStatus: 'edited',
             },
-            // The mirrored override combo. Per plane both legal states — „kwota stała" and „auto" —
-            // must appear somewhere, or a swapped pair of override columns survives the roundtrip
-            // unnoticed.
             {
               description: 'Odwrócone nadpisania',
               unit: 'szt',
@@ -202,11 +177,9 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
       ],
       stages: [
         { label: 'Etap 1', plane: 'w_tools', worker: workerId },
-        // The all-nullable extreme on a stages row: the omitted plane and worker default null too.
         { label: null },
         { label: 'Etap 3', plane: 'own_tools' },
       ],
-      // Sparse: the first item has both stages, every other item none.
       progress: [
         { item: 0, stage: 0, qtyDone: 4 },
         { item: 0, stage: 1, qtyDone: 2 },
@@ -223,8 +196,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
   it('restore(serialize()) is a content + order identity with fresh ids', async () => {
     const before = await serializeKosztorys(investmentId)
 
-    // Mutate the live tree so restore has real work to undo: change a price, delete a section,
-    // change the settings.
     await payload.update({
       collection: 'kosztorys-items',
       id: before.items[0].id,
@@ -246,7 +217,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
 
     const after = await serializeKosztorys(investmentId)
 
-    // New ids everywhere — proves a real wipe-and-reinsert, not an in-place no-op.
     const ids = (snap: SnapshotPayloadT) => snap.sections.map((s) => s.id).sort((a, b) => a - b)
     expect(ids(after)).not.toEqual(ids(before))
     expect(canonical(after)).toEqual(canonical(before))
@@ -258,8 +228,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     })
   })
 
-  // The rabat rides in the payload for the investor's history only. A restore that wrote it back
-  // would reset the rabat the owner set since — the reason it was left out of `settings`.
   it('captures the global rabat, and restore leaves the live one alone', async () => {
     await db.execute(sql`
       UPDATE investments SET global_discount_type = 'amount', global_discount_value = 500
@@ -284,8 +252,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(Number(live.rows[0].global_discount_value)).toBe(300)
   })
 
-  // A snapshot older than EX-921 has no Aktualizacja key: every row followed Przedmiar ofertowy then,
-  // so it must come back following it — not as 0, which would drop the whole rozpiska out of scope.
   it('restores a pre-EX-921 snapshot (no Aktualizacja) as following Przedmiar ofertowy', async () => {
     const current = await serializeKosztorys(investmentId)
     expect(current.items.some((item) => item.currentPlannedQty === 13.5)).toBe(true)
@@ -304,9 +270,6 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(after.items.map((item) => item.currentPlannedQty)).toEqual(after.items.map(() => null))
   })
 
-  // Snapshots taken before EX-943 carry one `workerId` per etap instead of a split. Restoring one
-  // must land that person as the etap's whole split — the reason the new field needed no
-  // schema-version bump.
   it('restores a pre-EX-943 snapshot (one workerId per etap) as a one-person split', async () => {
     const current = await serializeKosztorys(investmentId)
     const assigned = current.stages.find((stage) => stage.split)!
@@ -331,8 +294,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     )
   })
 
-  // Snapshots taken before EX-613 carry stages with no worker key at all. Restoring one must land
-  // unassigned rather than throw or write garbage. Runs last: it leaves the tree without
+  // Runs last: it leaves the tree without
   // assignments, and the identity test above is the one that depends on the fixture's.
   it('restores a pre-EX-613 snapshot (stages with no worker at all) as unassigned', async () => {
     const current = await serializeKosztorys(investmentId)

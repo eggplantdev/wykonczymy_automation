@@ -19,7 +19,6 @@ const getCompanyKnowledge = cached(
   { tags: [CACHE_TAGS.companyKnowledge] },
 )
 
-// Read by the dialog when it opens rather than by every page, so the book costs nothing until asked for.
 export async function fetchCompanyKnowledge(): Promise<ActionResultT<CompanyKnowledgeEntryT[]>> {
   return protectedAction('fetchCompanyKnowledge', async () => ({
     success: true,

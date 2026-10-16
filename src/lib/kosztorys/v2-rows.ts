@@ -2,7 +2,6 @@ import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 import { stageIdFromQtyKey, stageKey } from '@/lib/kosztorys/stage-keys'
 import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 
-// Item fields editable in the grid (= the keys of ItemPatchT). The diff compares only these.
 const ITEM_FIELDS = [
   'description',
   'descriptionTranslations',
@@ -82,10 +81,6 @@ export function diffRow(prev: KosztorysV2RowT, next: KosztorysV2RowT): RowDiffT 
 
 type CoeffPatchT = { wToolsCoeff?: number; ownToolsCoeff?: number }
 
-// Inverse of a global-coefficient panel edit: the before-values of ONLY the keys `patch` touched, so
-// a Cmd+Z restores exactly those and leaves an untouched wTools/ownTools alone. `current` is any live
-// row (coeffs are denormalized identically on all of them); undefined (empty grid) → the value is
-// undefined, a no-op the caller's `!= null` patch guard skips.
 export function inverseGlobalCoeffPatch(
   patch: CoeffPatchT,
   current: Pick<KosztorysV2RowT, 'globalWToolsCoeff' | 'globalOwnToolsCoeff'> | undefined,

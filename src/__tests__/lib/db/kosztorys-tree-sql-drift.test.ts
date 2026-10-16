@@ -2,16 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
-// Source-level drift guard for the hand-written tree query, mirroring reference-data-sql-drift.
-//
-// Why this file needs one at all: `selectKosztorysTreeData` replaced five `payload.find` calls, which
-// projected every column automatically, with a SELECT whose column list is maintained by hand. The
-// failure it invites is silent, not loud — a mapper reading `row.client_price` when the SELECT no
-// longer provides it gets `undefined`, and `num(undefined)` is 0. A price becomes zero and nothing
-// throws. (A *renamed* column is the loud case: Postgres rejects the query outright.)
-//
-// tsc does not cover this. The mappers return domain types, so a field ADDED to KosztorysItemT fails
-// to compile until it's mapped — but nothing ties the mapper's `row.X` reads back to the SELECT.
+// The failure it invites is silent, not loud — a mapper reading `row.client_price` when the SELECT
+// no longer provides it gets `undefined`, and `num(undefined)` is 0.
 
 const SOURCE = readFileSync(path.resolve(__dirname, '../../../lib/db/kosztorys-tree.ts'), 'utf-8')
 
@@ -30,7 +22,7 @@ const COLLECTIONS: CollectionT[] = [
 
 // `[^()]*?` keeps the match inside one subselect: the outer SELECT wraps each of these in a
 // coalesce(json_agg(...)) and a lazy `[\s\S]*?` would otherwise swallow the outer select list on its
-// way to the first `FROM <table>`. It also keeps the progress subselect from reaching past its JOIN.
+// way to the first `FROM <table>`.
 function selectColumns(table: string): Set<string> {
   const match = SOURCE.match(new RegExp(`SELECT\\s+([^()]*?)\\s+FROM\\s+${table}\\b`, 'i'))
   if (!match) return new Set()
@@ -89,7 +81,6 @@ describe('selectKosztorysTreeData SQL drift', () => {
       ...[...SOURCE.matchAll(/\bAS\s+(\w+)/gi)].map((match) => match[1]!.toLowerCase()),
     ])
 
-    // The body of selectKosztorysTreeData, from its return through the closing brace of the function.
     const body = SOURCE.match(/const row = res\.rows\[0\][\s\S]*?\n\}/)?.[0] ?? ''
     const accesses = rowAccesses(body)
 

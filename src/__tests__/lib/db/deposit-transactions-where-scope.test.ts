@@ -8,9 +8,6 @@ import {
 } from '@/lib/db/get-deposit-transactions'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// EX-600: what the spec pins is that opening this query to a caller `Where` didn't widen its surface
-// — the fixed `INVESTOR_DEPOSIT` + `cancelled IS NOT TRUE` guards still bound every result.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('getDepositTransactions (DB)', () => {
@@ -95,8 +92,7 @@ describe.skipIf(!ENV_READY)('getDepositTransactions (DB)', () => {
   })
 
   it('short-circuits the NO_RESULTS sentinel before touching the DB', async () => {
-    // A payload stand-in that would throw the moment `getDb` looked at it — reaching the DB fails
-    // loudly rather than passing on a coincidentally empty result.
+    // A payload stand-in that would throw the moment `getDb` looked at it
     const rows = await getDepositTransactions({} as Payload, { id: { equals: -1 } })
 
     expect(rows).toEqual([])

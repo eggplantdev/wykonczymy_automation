@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
-import { MediaPreviewTrigger } from '@/components/dialogs/media-preview-trigger'
+import { MediaPreviewTrigger } from '@/components/media/media-preview-trigger'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import { useInvestmentAssetsRemoval } from '@/hooks/use-investment-assets-removal'
 import { usePlanMarker } from '@/hooks/use-plan-marker'
@@ -31,10 +31,8 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
 
   // `setUploadField` is a read-modify-write, so an upload and a removal that overlap write back each
   // other's pre-change list — dropping the new file from the investment and leaking its media row.
-  // Each side therefore withholds the other's affordance for as long as its own work is in flight.
   const isBusy = isUploading || isRemoving
 
-  // The preview would sit on top of the upload dialog, so it steps aside before it opens.
   function openUpload(closePreview: () => void) {
     closePreview()
     setUploadOpen(true)
@@ -45,8 +43,6 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
   return (
     <>
       <div className="flex w-fit items-center gap-2">
-        {/* One button in both states: with files it opens the preview (which offers „Dodaj"), with
-            none it goes straight to the upload — an empty preview would be a dead end. */}
         {visibleFiles.length > 0 ? (
           <MediaPreviewButton
             files={visibleFiles}

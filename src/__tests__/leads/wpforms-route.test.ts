@@ -1,11 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
-// Route-handler unit test. We drive POST directly with a stub request and mock the
-// DB/notify/env seams, keeping the wpforms parser + normalize-lead real. The contract
-// under test: which requests are rejected (403/400) vs authenticated + captured (200),
-// and — the branch unique to this route — that a missing email alerts but never blocks
-// the capture (a website lead is saved even when no email could be extracted).
 vi.mock('next/server', () => ({
   NextResponse: {
     json: (body: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, body }),
@@ -21,7 +16,6 @@ import { POST } from '@/app/(frontend)/api/webhooks/wpforms/route'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
 
-// Fabricated, PII-free WPForms submission mirroring form 1686 ("/kontakt").
 const validFields = {
   '1': { name: 'Adres e-mail', value: 'jan@example.com', type: 'email' },
   '4': { name: 'Imię i nazwisko', value: 'Jan Kowalski', type: 'text' },
@@ -86,8 +80,6 @@ describe('POST /api/webhooks/wpforms', () => {
     expect(input.email).toBe('jan@example.com')
   })
 
-  // The branch unique to this route: no email extracted must still SAVE the lead
-  // (rawData holds everything) and additionally alert on the drift — never drop it.
   it('still captures (200) but alerts when no email can be extracted', async () => {
     const noEmail = { '4': { name: 'Imię i nazwisko', value: 'Jan Kowalski', type: 'text' } }
     const res = await POST(makeRequest(bodyFor({ fields: noEmail })))

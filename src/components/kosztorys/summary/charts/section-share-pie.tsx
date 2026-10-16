@@ -15,8 +15,6 @@ const BASES: OptionT<SectionPieBaseT>[] = [
   { value: 'executed', label: 'Wykonane' },
 ]
 
-// Sekcje as a share-of-whole pie, with a live Przedmiar ↔ Wykonane base toggle. Fed the client-priced,
-// view-invariant subtotals so switching base is a source-selection, never a re-calculation.
 export function SectionSharePie({ subtotals }: { subtotals: SectionSliceInputT[] }) {
   const [base, setBase] = useState<SectionPieBaseT>('planned')
 

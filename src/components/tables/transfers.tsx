@@ -78,9 +78,6 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
     }),
     col.accessor('vatPlane', {
       id: 'vatPlane',
-      // The tag names the FORM the wpłata arrived in, not the plane the bill is settled in — same
-      // dictionary as the deposit list in the panel, because „netto"/„brutto" for both on one screen
-      // left the reader guessing which a cell meant (owner, 2026-08-23).
       header: t('colVatPlane'),
       meta: { printValue: (row) => transferVatPlaneText(row, translator) },
       cell: (info) => transferVatPlaneText(info.row.original, translator),
@@ -118,9 +115,6 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       meta: { printValue: (row) => row.expenseCategoryName },
       cell: (info) => info.getValue(),
     }),
-    // TODO: click-to-expand for long descriptions. A `<DescriptionCell>` with `useState` +
-    // `line-clamp-3` rendered once and never responded to clicks; cause unclear (React Compiler,
-    // TanStack re-creating the cell node, or `block` vs `line-clamp-3`). Revisit if overflow bites.
     col.accessor('description', {
       id: 'description',
       header: t('colDescription'),
@@ -278,8 +272,6 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
     uncoloredAmounts = false,
   } = options
 
-  // Built once per column set, not per rendered row: the cell only knows its investment's id, so
-  // without this every row would rescan the whole reference list on every sort and filter pass.
   const lockedInvestmentIds = new Set(
     referenceData?.investments.filter((i) => !isBookableInvestment(i)).map((i) => i.id) ?? [],
   )
@@ -292,8 +284,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
       const row = info.row.original
       if (row.cancelled || isCancellationType(row.type)) return null
 
-      // Courtesy, not a gate — the collection hook refuses either write regardless. Read off
-      // reference data because the row carries the investment's name and id, never its status.
+      // Courtesy, not a gate — the collection hook refuses either write regardless.
       const lockedInvestment = row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
 
       const canEdit =
@@ -324,8 +315,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
 
   // Sortability is derived, never declared per column: a column showing a name from another table
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
-  // database has nothing to order by and the click would silently sort one page. Those columns narrow
-  // by filter instead (EX-777); deriving keeps the whitelist the single source of truth.
+  // database has nothing to order by and the click would silently sort one page.
   const columns: ColumnDef<TransferRowT, unknown>[] = [
     ...buildColumns(translator, uncoloredAmounts),
     actionsColumn,

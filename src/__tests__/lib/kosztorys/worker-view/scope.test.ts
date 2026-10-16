@@ -35,7 +35,6 @@ describe('resolveWorkerScope', () => {
     })
   })
 
-  // A plane-less etap has no stawka to show, so there is no price the view could honestly print.
   it('blocks a worker holding an etap with no rozliczenie', () => {
     expect(resolveWorkerScope([stage(1, 'w_tools', 5), stage(2, null, 5)], 5)).toEqual({
       kind: 'blocked',
@@ -43,7 +42,6 @@ describe('resolveWorkerScope', () => {
     })
   })
 
-  // One „Cena j.m." per pozycja must mean one stawka.
   it('blocks a worker whose etapy span both rozliczenia', () => {
     expect(resolveWorkerScope([stage(1, 'w_tools', 5), stage(2, 'own_tools', 5)], 5)).toEqual({
       kind: 'blocked',

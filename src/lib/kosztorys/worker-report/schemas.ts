@@ -3,12 +3,10 @@ import { pl } from '@/lib/i18n/dictionaries/pl'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { MAX_SCAN_PHOTOS } from '@/lib/kosztorys/worker-report/constants'
 
-// Beside the types, not in the actions: a `'use server'` module can export only async functions.
+// A `'use server'` module can export only async functions.
 
 const idSchema = z.number().int().positive()
 
-// The worker's send and the kierownik's accept refuse a non-positive ilość with one sentence. The
-// worker-facing sentences come from the dictionary, so the send action can name their key.
 const reportQtySchema = z.number().positive(pl.notices.qtyPositive)
 
 // A rozpiska line names only its pozycja — opis, j.m. and sekcja are copied on the server from the
@@ -35,9 +33,6 @@ export const acceptSchema = z
       z.object({ kind: z.literal('stage'), stageId: idSchema }),
       z.object({ kind: z.literal('new'), plane: z.enum(TOOL_PLANES).optional() }),
     ]),
-    // New lines, and accepted ones whose ilość changed. `itemId` only for a line re-pointed by hand
-    // after its pozycja was deleted; `seenQty` is the przyjęta ilość the window loaded, absent for a
-    // line it saw open.
     lines: z.array(
       z.object({
         lineId: idSchema,
@@ -46,10 +41,7 @@ export const acceptSchema = z
         seenQty: reportQtySchema.optional(),
       }),
     ),
-    // Accepted lines the kierownik unticked: their ilość comes back out of the etap.
     undone: z.array(idSchema),
-    // Lines odrzucone, one by one — an accepted one also sits in `undone`, which takes its ilość
-    // back out. `unrejected` are odrzucone ones sent back to waiting.
     rejected: z.array(idSchema),
     unrejected: z.array(idSchema),
   })
@@ -62,8 +54,6 @@ export const acceptSchema = z
 
 const scanQtySchema = z.number().nullable()
 
-// What one photo reads as. The ref stays the printed text — check digit included — so the resolver,
-// not the AI, decides whether it names a pozycja.
 export const scanPageSchema = z.object({
   rows: z.array(
     z.object({

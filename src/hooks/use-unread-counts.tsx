@@ -17,7 +17,6 @@ export function UnreadCountsProvider({
   return <UnreadCountsContext value={counts}>{children}</UnreadCountsContext>
 }
 
-// Suspends until the shell's fetch settles — only call it under a Suspense boundary.
 export function useUnreadCounts(): UnreadCountsT {
   const counts = use(UnreadCountsContext)
   if (!counts) throw new Error('useUnreadCounts must be used within UnreadCountsProvider')

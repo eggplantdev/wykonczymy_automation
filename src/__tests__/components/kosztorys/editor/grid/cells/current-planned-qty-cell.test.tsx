@@ -13,7 +13,6 @@ const Cell = COLUMN.component as React.ComponentType<Record<string, unknown>>
 
 const GREY = 'text-muted-foreground'
 
-// Stands in for react-datasheet-grid, including the Delete it routes through `deleteValue`.
 function CellHost({ initial }: { initial: number | null }) {
   const [row, setRow] = useState(
     () => ({ id: 1, plannedQty: 10, currentPlannedQty: initial }) as KosztorysV2RowT,

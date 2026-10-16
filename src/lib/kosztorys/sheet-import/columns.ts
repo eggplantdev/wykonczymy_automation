@@ -1,12 +1,6 @@
-// The header block is rows 1–3 and a field may be labelled on ANY of them: „rabat" appears on row 1
-// only, „komentarz" on row 3 only, „j.m." on both with different wording. Three rows is what every
-// sheet seen so far uses; the constant exists so a fourth-row sheet is one edit away.
 export const HEADER_BLOCK_ROWS = 3
 
-// Row 2 is the only thing separating the quantity columns from the money columns: row 1 labels both
-// blocks identically (the money block's row 1 is literally `=D1`), and row 3 gets renamed to crew
-// names on sheets where a crew owns an etap. Matching „wykonano" here is what keeps a 10-etap sheet
-// from importing 20 etapy.
+// Matching „wykonano" here is what keeps a 10-etap sheet from importing 20 etapy.
 export const STAGE_MARKER = 'wykonano'
 
 export type ColumnFieldT =
@@ -18,8 +12,6 @@ export type ColumnFieldT =
   | 'netValue'
   | 'comment'
 
-// The label shown to the owner when a column can't be resolved — the sheet's own wording, so the
-// message points at a cell they can actually find.
 export const FIELD_LABELS: Record<ColumnFieldT, string> = {
   plannedQty: 'Przedmiar',
   measuredQty: 'Pomiar z natury',
@@ -35,15 +27,8 @@ export const COLUMN_FIELDS = Object.keys(FIELD_LABELS) as ColumnFieldT[]
 export const isColumnField = (value: unknown): value is ColumnFieldT =>
   typeof value === 'string' && (COLUMN_FIELDS as string[]).includes(value)
 
-// Optional fields resolve to `undefined` instead of failing. Rabat is genuinely absent on some
-// sheets (Ryżowa 66/127 has no such column at all) and „komentarz" is never read — it is resolved
-// only so the preview can show the owner that we saw it. „Pomiar z natury" is optional for a
-// stronger reason: it feeds nothing but a reconciliation hint, so a sheet without it must import
-// exactly as before rather than fail on a column nobody's money depends on.
 export const OPTIONAL_FIELDS = ['discount', 'comment', 'measuredQty'] as const
 
-// The optional fields as a type, so anything that has to say something per-optional-field (the
-// preview's „czego nie odczytaliśmy" list) is exhaustive by the compiler rather than by review.
 export type OptionalFieldT = (typeof OPTIONAL_FIELDS)[number]
 
 const OPTIONAL_FIELD_SET: ReadonlySet<ColumnFieldT> = new Set(OPTIONAL_FIELDS)
@@ -63,7 +48,7 @@ const startsWith =
   (value) =>
     value.startsWith(prefix)
 
-// Spelling variants observed across the real sheets. All literals are pre-folded — no diacritics,
+// All literals are pre-folded — no diacritics,
 // lowercase — because they are compared against `fold()` output.
 export const FIELD_MATCHERS: Record<ColumnFieldT, MatcherT> = {
   plannedQty: exactly('przedmiar'),
@@ -72,26 +57,17 @@ export const FIELD_MATCHERS: Record<ColumnFieldT, MatcherT> = {
   clientPrice: exactly('cena j.m.', 'cena j.m', 'cena jm.', 'cena jm', 'cena jednostkowa'),
   // „rabat 8%" — the owner writes the rate into the header on some sheets.
   discount: startsWith('rabat'),
-  // Most sheets since 2026-07 split the column in two: „Wartość netto przedmiar" (S) and „Wartość
-  // netto pomiar z natury" (T), row 3 dropping the „netto". T is the one the sheet counts — the
-  // section total sums T and „pozostało do rozliczenia" is T minus the etapy — so only the Pomiar
-  // side is named here, which also keeps S from making the match ambiguous.
+  // Most sheets split the column in two: „Wartość netto przedmiar" (S) and „Wartość
+  // netto pomiar z natury" (T). T is the one the sheet counts so only the Pomiar side is named here
   netValue: exactly('wartosc netto', 'wartosc netto pomiar z natury', 'wartosc pomiar z natury'),
   comment: exactly('komentarz'),
 }
 
 export type RateGroupT = 'wToolsRate' | 'ownToolsRate'
 
-// A rate column is identified by a PAIR: the group banner and the row-3 sub-label. „cena j.m."
+// „cena j.m."
 // alone matches three columns in a `zakres pracy` tab — the client price plus one per price list —
 // so matching it on its own picks the client price and imports every rate at full price.
-//
-// The banners are named on TWO different axes depending on who set the sheet up: by tooling („z
-// narzędziami" / „bez narzędzi") or by who does the work („podwykonawca" / „pracownik"). They mean
-// the same split — a subcontractor brings their own tools, our employee uses ours — and the
-// arithmetic agrees: the second group is always the cheaper one. An unrecognised banner is a
-// failure that names it, never a guess by column order: silently swapping the two price lists
-// would put the wrong cost on every praca and stay invisible until the margin is wrong.
 export const RATE_GROUP_MATCHERS: Record<RateGroupT, MatcherT> = {
   wToolsRate: (value) =>
     value.startsWith('cennik z narzedziami') || value.startsWith('cennik podwykonawca'),
@@ -104,14 +80,11 @@ export const RATE_GROUP_LABELS: Record<RateGroupT, string> = {
   ownToolsRate: 'cennik bez narzędzi / pracownik',
 }
 
-// Within a rate group, the per-unit price rather than the „wartość suma" total.
 export const RATE_UNIT_PRICE_MATCHER: MatcherT = FIELD_MATCHERS.clientPrice
 
 export type FooterRowKeyT = 'plannedNet' | 'executedNet'
 
-// The named summary rows under the last praca. Prefix-matched because the owner's wording drifts
-// („wartość netto przedmiar", „R netto - suma prac wykonannych"). They live here rather than beside
-// the comparison because the PARSER needs them too: a footer label typed into the opis column looks
+// a footer label typed into the opis column looks
 // exactly like a section name, and only this list tells them apart.
 export const FOOTER_ROWS: ReadonlyArray<{
   key: FooterRowKeyT

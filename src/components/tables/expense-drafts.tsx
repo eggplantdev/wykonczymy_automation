@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { SelectPageHeader, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
@@ -24,13 +24,9 @@ const duplicateOfLabel = ({ source, id }: DuplicateOfT) =>
 
 type OptionsT = {
   isManagerView: boolean
-  // The dashboard queue: nothing in it is decided yet, and opening one is the whole point of the row.
   isPendingQueue?: boolean
-  // Management reads the worker's own table too, and only management may open the transfers list
-  // or the investment.
   canOpenTransfers?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
-  // The queue ticks zgłoszenia to merge them; read from `SelectedIdsContext`.
   selection?: { onToggle: (id: number) => void; onTogglePage: (ids: number[]) => void }
 }
 
@@ -175,7 +171,6 @@ export function useExpenseDraftColumns({
                 ) : (
                   <DraftStatusBadge status={draft.status} />
                 )}
-                {/* The worker sees only „Odrzucone". */}
                 {isManagerView && draft.duplicateOf && (
                   <span className="text-destructive text-xs whitespace-nowrap">
                     {duplicateOfLabel(draft.duplicateOf)}

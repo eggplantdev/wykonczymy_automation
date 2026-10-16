@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
@@ -107,12 +107,10 @@ export function WorkerReportReview({
     .filter((stage) => isStageMember(stage, report.workerId))
     .toSorted((first, second) => first.ordinal - second.ordinal)
   const scope = resolveWorkerScope(stages, report.workerId)
-  // The server holds a later accept to the etap the report already went to, while it exists.
   const recordedStage = ownStages.find((stage) => stage.id === report.target?.stageId)
   const hasRecordedFigures = stages.some((stage) => stage.id === report.target?.stageId)
-  // A report opens a new etap unless the kierownik picks one (owner, 2026-10-09) — a default of his
-  // latest etap silently folded a later etap's work into it. A new etap is refused while his etapy
-  // disagree on rozliczenie, so there the latest one stays the default.
+  // A report opens a new etap unless the kierownik picks one — a default of his
+  // latest etap silently folded a later etap's work into it.
   const isNewStageRefused = scope.kind === 'blocked' && scope.reason !== 'no-stages'
   const [target, setTarget] = useState(() =>
     String(
@@ -124,7 +122,6 @@ export function WorkerReportReview({
   const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<LineGroupT>>(new Set())
   const toggleGroup = (group: LineGroupT) =>
     setCollapsedGroups((current) => toggleInSet(current, group))
-  // A retry's answer, laid over the report this dialog was opened with — no refetch of the whole report.
   const [retranslated, setRetranslated] = useState<
     Record<number, Pick<ReportLineT, 'polishDescription' | 'descriptionLanguage'>>
   >({})
@@ -187,8 +184,6 @@ export function WorkerReportReview({
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(unverifiedRows, searchableText)
-  // Scored once per dopisana praca, not per render of a cell: dice over the whole cennik is the
-  // expensive part of „Porównaj z katalogiem" too.
   const candidates = hintCandidates(catalogue)
   const hintsByLine = Object.fromEntries(
     reportLines
@@ -229,9 +224,7 @@ export function WorkerReportReview({
   const flagCount =
     rejectedLines.filter((line) => line.acceptedQty === undefined).length + unrejectedLines.length
   const changeCount = tickedLines.length + changedLines.length + undoneLines.length + flagCount
-  // A plain first accept says how many go in; anything else is an edit of the decisions.
   const isFirstAccept = acceptedLines.length === 0 && flagCount === 0
-  // Only a line going into an etap for the first time needs one chosen.
   const isTargetReady =
     tickedLines.length === 0 ||
     (targetProblem === undefined && (!needsPlanePick || plane !== undefined))

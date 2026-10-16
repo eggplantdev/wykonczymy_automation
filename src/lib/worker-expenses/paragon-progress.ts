@@ -2,7 +2,6 @@ import type { DraftProgressT } from '@/lib/db/worker-expense-drafts'
 import type { ParagonDecisionT } from '@/lib/worker-expenses/paragon-decisions'
 import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
 
-// Counted in read rows, like the list's badge: a merged booking still covers each paragon it took.
 export function paragonProgress(
   receipts: Map<string, DraftReceiptT[]>,
   rowIds: string[],

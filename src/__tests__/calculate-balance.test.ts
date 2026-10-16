@@ -43,8 +43,6 @@ describe('calculateBalance', () => {
     ).toBe(5800)
   })
 
-  // EX-675. A strata is the amount the client stops being charged, so it raises the balance the
-  // way a rabat does — at face value, never grossed up.
   it('adds the loss so the client owes less', () => {
     expect(
       calculateBalance({
@@ -57,14 +55,11 @@ describe('calculateBalance', () => {
     ).toBe(6500)
   })
 
-  // EX-979: a premia is between the company and its worker; the investor must not owe a grosz less.
   it('ignores the premia', () => {
     const owed = { ...base, totalIncome: 10000, totalMaterialCosts: 3000, totalLaborCosts: 2000 }
     expect(calculateBalance({ ...owed, totalBonus: 205.01 })).toBe(calculateBalance(owed))
   })
 
-  // The reference defect: an expense the owner covered with a strata of the same amount must
-  // leave the client owing nothing (investment 62 — 362,84 of material against a 362,84 strata).
   it('cancels an expense covered by a loss of the same amount', () => {
     expect(
       calculateBalance({ ...base, totalMaterialCosts: 362.84, totalLoss: 362.84 }),

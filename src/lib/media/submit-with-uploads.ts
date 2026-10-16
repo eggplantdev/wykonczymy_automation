@@ -5,8 +5,7 @@ import type { MediaKindT } from '@/types/media'
 
 /**
  * Files land in Blob before the row that references them exists, so every path where the mutation
- * does not attach them must hand them back — Blob has no undelete. A throw from the mutation is
- * re-thrown rather than folded into a failure result, so the caller still sees it as a throw.
+ * does not attach them must hand them back — Blob has no undelete.
  */
 async function withOrphanCleanup<TIds, TResult extends ActionResultT<unknown> | ActionResultT>(
   resolve: () => Promise<TIds>,
@@ -17,8 +16,6 @@ async function withOrphanCleanup<TIds, TResult extends ActionResultT<unknown> | 
   try {
     ids = await resolve()
   } catch (err) {
-    // Only the upload error phrases itself for this UI; anything else is transport or a
-    // chunk-load failure, whose message is not something to put in front of the user.
     if (!(err instanceof MediaUploadError)) {
       return { success: false, error: UPLOAD_FAILED, messageKey: 'uploadFailed' }
     }
@@ -55,11 +52,6 @@ export function submitWithUploads<TResult extends ActionResultT<unknown> | Actio
   )
 }
 
-/**
- * Files per line-item row, positional — `rows[i]` are the files of `lineItems[i]`. A file
- * `existingIdOf` recognises is already a media row and is linked by its id instead of uploaded; it
- * is never discarded on failure, since the row it came from still holds it.
- */
 export function submitWithUploadRows(
   rowCount: number,
   files: Map<number, File[]>,
@@ -74,8 +66,6 @@ export function submitWithUploadRows(
       )
       .filter(([, rowFiles]) => rowFiles.length > 0),
   )
-  // Each row keeps its page order: a linked page takes its own id, an uploaded one the next id
-  // its row's upload returned.
   const linkRows = (uploadedRows: number[][]) =>
     Array.from({ length: rowCount }, (_, row) => {
       const uploaded = [...(uploadedRows[row] ?? [])]

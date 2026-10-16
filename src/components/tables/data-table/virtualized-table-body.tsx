@@ -13,8 +13,6 @@ import { EmptyRow } from './empty-row'
 type VirtualizedTableBodyPropsT<TData> = {
   parentRef: React.RefObject<HTMLDivElement | null>
   containerHeight: number
-  /** Sizes the scroll container instead of `containerHeight` — for a list whose height follows its
-   * layout, e.g. a `max-h-*` that lets a short list collapse. */
   containerClassName?: string
   headerGroups: HeaderGroup<TData>[]
   rows: Row<TData>[]

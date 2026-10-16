@@ -9,7 +9,6 @@ export type ReconSeedT = {
   laborCostsNetFromKosztorys: number
 }
 
-// Run a seed script against the TEST database and parse the one machine-readable line it prints.
 // A subprocess rather than an import: pulling the Payload config graph into Playwright's module
 // loader drags next/cache with it, which the loader cannot resolve.
 export function runSeedScript<T>(packageScript: string, marker: string): T {
@@ -25,11 +24,8 @@ export function runSeedScript<T>(packageScript: string, marker: string): T {
   return JSON.parse(line.slice(marker.length + 1)) as T
 }
 
-// Make rows written from outside the server process visible to it. `fetchReferenceData` is cached
-// with no `revalidate`, and `kosztorys_v2` resolves its investment off that cache — so a freshly
-// seeded investment 404s there until something invalidates it. „Odśwież dane" is that something,
-// and here it is SETUP: it runs before any measurement, so a spec that forbids a manual refresh
-// between its own write and its own read may still call this.
+// `fetchReferenceData` is cached with no `revalidate`, and `kosztorys_v2` resolves its investment
+// off that cache — so a freshly seeded investment 404s there until something invalidates it.
 export async function refreshReferenceData(browser: Browser): Promise<void> {
   const page = await browser.newPage({ storageState: 'e2e/.auth/user.json' })
   try {
@@ -40,8 +36,6 @@ export async function refreshReferenceData(browser: Browser): Promise<void> {
   }
 }
 
-// Seed, then make the new rows visible to the running server — the pair every `beforeAll` needs, so
-// no fixture can be seeded and then read through a stale cache.
 async function seedAndRefresh<T>(
   browser: Browser,
   packageScript: string,
@@ -52,21 +46,14 @@ async function seedAndRefresh<T>(
   return seed
 }
 
-// Each run creates fresh investments (the test DB is never reset), so two specs seeding this do not
-// collide.
 export const seedReconInvestments = (browser: Browser): Promise<ReconSeedT> =>
   seedAndRefresh(browser, 'seed:kosztorys-recon', 'RECON_SEED')
 
-// Two fresh investments of one shape — see seed-kosztorys-grid.ts. The test DB is never reset, so a
-// spec that types into the grid gets its own investment and never sees what another one typed.
 export type GridSeedT = { live: number; writes: number }
 
 export const seedGridInvestments = (browser: Browser): Promise<GridSeedT> =>
   seedAndRefresh(browser, 'seed:kosztorys-grid', 'GRID_SEED')
 
-// One fresh investment per target, because every test here DELETES part of a rozpiska: sharing one
-// would make each test depend on what the previous one left behind, and a dump investment would be
-// left mutilated for every later spec.
 export type DeleteSeedT = {
   item: number
   section: number
@@ -76,8 +63,6 @@ export type DeleteSeedT = {
 export const seedDeleteInvestments = (browser: Browser): Promise<DeleteSeedT> =>
   seedAndRefresh(browser, 'seed:kosztorys-deletes', 'DELETE_SEED')
 
-// One fresh investment per test, each two sekcje deep — see seed-work-catalogue.ts. The prace carry
-// the run's timestamp in their opis because the katalog prac is global and outlives the run.
 export type CatalogueSeedInvestmentT = { id: number; item: string; beta: string }
 
 export type CatalogueSeedT = {
@@ -88,8 +73,6 @@ export type CatalogueSeedT = {
 export const seedCatalogueInvestments = (browser: Browser): Promise<CatalogueSeedT> =>
   seedAndRefresh(browser, 'seed:work-catalogue', 'CATALOGUE_SEED')
 
-// Two fresh vehicles sharing one registration prefix — see seed-fleet.ts. The prefix is what the
-// spec types into the search box to narrow the global listing down to its own fixture.
 export type FleetSeedVehicleT = { id: number; registration: string }
 
 export type FleetSeedT = {

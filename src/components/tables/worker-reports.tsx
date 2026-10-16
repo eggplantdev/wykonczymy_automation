@@ -13,7 +13,6 @@ const col = createColumnHelper<ReportListRowT>()
 
 type OptionsT = {
   isManagerView: boolean
-  // `/inwestycje/[id]` is management-only, and management also reads the worker's own table.
   canOpenInvestment?: boolean
   actions?: (report: ReportListRowT) => ReactNode
 }

@@ -35,10 +35,6 @@ describe('verifySignature — Meta scope (the raw app secret, which Meta owns)',
   })
 })
 
-// The hole this closes: a cleanup body IS a `submissionId`, and so is part of every submission
-// envelope — so under one undifferentiated key a signed submission doubled as a valid „delete this
-// submission's files" instruction for anyone holding a copy of it. The oracle here derives the key
-// the same way the implementation does; what it proves is that the two scopes disagree.
 describe('verifySignature — scope separation', () => {
   const shared = 'shared-landing-secret'
   const payload = JSON.stringify({ submissionId: '9f2c1b64-7d3a-4e58-9a10-6c5b2e8f4d71' })

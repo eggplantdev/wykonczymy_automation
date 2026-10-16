@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 
-// A form left open from before the trash would still book into the kasa; this hook refuses it —
-// without freezing the cancelled rows that are the only ones still pointing at a trashed kasa.
 const TRASHED_ID = 66
 const LIVE_ID = 1
 
@@ -110,12 +108,14 @@ describe('validateTransfer — the trashed-kasa gate', () => {
     ).rejects.toThrow(CASH_REGISTER_TRASHED_MESSAGE)
   })
 
-  // The kasa was not NEWLY named by this write, so the edit is not the gate's business.
   it('lets an edit through when the row keeps its trashed kasa', async () => {
     const stored = { ...expense, sourceRegister: TRASHED_ID }
     await expect(
       validateTransfer(
-        hookArgs({ ...stored, description: 'poprawka' }, { operation: 'update', originalDoc: stored }),
+        hookArgs(
+          { ...stored, description: 'poprawka' },
+          { operation: 'update', originalDoc: stored },
+        ),
       ),
     ).resolves.not.toThrow()
   })

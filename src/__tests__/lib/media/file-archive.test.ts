@@ -8,8 +8,6 @@ import {
 } from '@/lib/media/file-archive'
 import { FILE_ARCHIVE_COPY, INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 
-// ── sanitizeForFilename ─────────────────────────────────────────────────
-
 describe('sanitizeForFilename', () => {
   it('replaces spaces with underscores', () => {
     expect(sanitizeForFilename('materiały budowlane')).toBe('materiały_budowlane')
@@ -36,8 +34,6 @@ describe('sanitizeForFilename', () => {
   })
 })
 
-// ── buildUniqueFilename ─────────────────────────────────────────────────
-
 describe('buildUniqueFilename', () => {
   it('builds filename from date, description, and original extension', () => {
     const used = new Set<string>()
@@ -50,7 +46,6 @@ describe('buildUniqueFilename', () => {
     const longDesc = 'A'.repeat(60)
     const name = buildUniqueFilename('2026-01-01', longDesc, 'doc.pdf', used)
     const base = name.replace('.pdf', '')
-    // 8 chars date + 1 underscore + 40 chars desc = 49
     expect(base).toBe(`20260101_${'A'.repeat(40)}`)
   })
 
@@ -127,8 +122,6 @@ describe('buildArchiveMessage', () => {
     ).toBe('Pobrano 5 faktur')
   })
 
-  // The bug the row/file split exists to kill: five rows yielding nine pages used to print
-  // „Pobrano 9 z 5".
   it('counts pages, not rows, when a row carries several', () => {
     expect(
       buildArchiveMessage(
@@ -213,8 +206,6 @@ describe('buildArchiveMessage', () => {
     ).toBe('Nie udało się pobrać żadnej faktury')
   })
 
-  // The dialog packs lead photos and rzuty through the same path, so the noun rides in with the
-  // caller — it toasted „Pobrano 3 faktury" over a set of zdjęcia until it did.
   it('takes its noun from the caller, not from faktury', () => {
     expect(
       buildArchiveMessage(
@@ -224,7 +215,6 @@ describe('buildArchiveMessage', () => {
     ).toBe('Pobrano 3 pliki')
   })
 
-  // A lead's gallery reported „2 pozycje bez faktury" over rows that never had one.
   it("qualifies an empty row in the caller's own words", () => {
     expect(
       buildArchiveMessage(

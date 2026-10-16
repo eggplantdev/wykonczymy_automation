@@ -8,7 +8,6 @@ const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> 
   plannedQty: formatQty,
   currentPlannedQty: formatQty,
   stageQty: formatQty,
-  // The price column's own format — „120" beside a quantity would read as one.
   price: formatPLN,
   plannedNet: formatNet,
   net: formatNet,
@@ -52,10 +51,8 @@ function changeLabel(change: FieldChangeT): string {
 
 const isDerived = ({ field }: FieldChangeT) => field === 'plannedNet' || field === 'net'
 
-// What someone typed, when there is one: the wartości move because a quantity or a price did, and
-// the grid already shows them old → new beside the row. A pozycja's own rabat has no column here,
-// so an item whose only change is derived lists the wartości themselves — otherwise it would count
-// as „Bez różnic" while the grid shows it changed.
+// A pozycja's own rabat has no column here, so an item whose only change is derived lists the
+// wartości themselves — otherwise it would count as „Bez różnic" while the grid shows it changed.
 function shownChanges(fields: FieldChangeT[]): FieldChangeT[] {
   const typed = fields.filter((change) => !isDerived(change))
   return typed.length > 0 ? typed : fields
@@ -112,8 +109,6 @@ export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
   return rows
 }
 
-// The list's count, without formatting a row it never shows: an early version can differ from today
-// in every pozycja, and the list builds one of these per entry.
 export function countChangeRows(diff: VersionDiffT): number {
   let count = diff.removed.length + diff.added.length
   for (const { fields } of diff.changed.values()) count += shownChanges(fields).length

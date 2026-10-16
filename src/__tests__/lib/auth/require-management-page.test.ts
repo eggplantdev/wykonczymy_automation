@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requireAuth = vi.fn()
-// Throws, because the real `redirect()` throws NEXT_REDIRECT. A bare `vi.fn()` returning `undefined`
-// lets the guard RESOLVE on the failure paths, so the spec would still pass if someone swapped the
-// redirect for `return null as never` — i.e. green while an EMPLOYEE walks into the editor.
+// Throws, because the real `redirect()` throws NEXT_REDIRECT.
 const redirect = vi.fn(() => {
   throw new Error('NEXT_REDIRECT')
 })
@@ -27,8 +25,6 @@ describe('requireManagementPage', () => {
   ])('redirects to the login page on %s', async (_case, authResult) => {
     requireAuth.mockResolvedValue(authResult)
 
-    // Rejecting is the pass condition, not a failure: `redirect()` halts the page by throwing
-    // NEXT_REDIRECT, so a guard that RESOLVED here would hand the caller an undefined user.
     await expect(requireManagementPage()).rejects.toThrow('NEXT_REDIRECT')
     expect(redirect).toHaveBeenCalledWith('/zaloguj')
   })

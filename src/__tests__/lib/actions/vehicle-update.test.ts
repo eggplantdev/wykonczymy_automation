@@ -4,13 +4,6 @@ import { parseVehicleExemptions } from '@/lib/fleet/exemptions'
 import { parseVehicleFlags } from '@/lib/fleet/flags'
 import type { VehicleFormDataT } from '@/components/forms/vehicle-form/vehicle-schema'
 
-// `updateVehicleAction` had no caller until the vehicle page grew an edit dialog, so „Wycofany" was
-// reachable only at creation. These drive the REAL DB and assert the PERSISTED row: a success flag
-// says the action ran, not which columns it left behind — and the row it edits carries the „do
-// wymiany" map, which the form knows nothing about and must not take with it.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -91,8 +84,6 @@ describe.skipIf(!ENV_READY)('updateVehicleAction (DB)', () => {
     expect(parseVehicleFlags(row.flags)).toEqual({ OIL_CHANGE: '2026-01-01' })
   })
 
-  // Regression: the domain schema used to make `year` optional, and Payload reads a missing key on
-  // update as "leave the column alone" — so emptying „Rocznik" saved successfully and changed nothing.
   it('clears „Rocznik" when the field is emptied', async () => {
     const result = await updateVehicleAction(vehicleId, edit({ year: null }))
     expect(result.success).toBe(true)
@@ -100,9 +91,6 @@ describe.skipIf(!ENV_READY)('updateVehicleAction (DB)', () => {
     expect((await stored()).year).toBeNull()
   })
 
-  // „bezterminowo" is the one field whose whole job is to SILENCE something — the weekly digest and
-  // the listing both branch on it — so a round-trip that quietly dropped it would surface as a
-  // reminder nobody can turn off, not as an error.
   it('round-trips the „nie dotyczy" exemptions, including back to none', async () => {
     await updateVehicleAction(vehicleId, edit({ exemptions: ['TECHNICAL'] }))
     expect(parseVehicleExemptions((await stored()).exemptions)).toEqual(['TECHNICAL'])

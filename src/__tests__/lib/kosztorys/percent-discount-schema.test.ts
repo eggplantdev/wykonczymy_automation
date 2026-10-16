@@ -11,7 +11,6 @@ describe('applyPercentDiscountSchema', () => {
     }
   })
 
-  // 0 IS the owner's way of turning the rabat off, so the mass-clear it causes is the intent.
   it('accepts 0 (turning the rabat off)', () => {
     expect(parse(0).success).toBe(true)
   })
@@ -25,7 +24,6 @@ describe('applyPercentDiscountSchema', () => {
     expect(parse(150).success).toBe(false)
   })
 
-  // z.coerce.number() turns a numeric string into a number (the action receives it from an input).
   it('coerces a numeric string', () => {
     const res = parse('15')
     expect(res.success).toBe(true)

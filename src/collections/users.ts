@@ -79,8 +79,6 @@ export const Users: CollectionConfig = {
       })),
       saveToJWT: true,
       access: {
-        // Only ADMIN/OWNER can set or change roles
-        // MANAGER creating a user → field not writable → defaults to EMPLOYEE
         create: isAdminOrOwnerField,
         update: isAdminOrOwnerField,
       },

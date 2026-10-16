@@ -1,24 +1,7 @@
-/**
- * The headings the „Filtry" list is read under — one per axis a row asks about, in reading order.
- * Sixteen noun phrases in one column are read as one pile; under a few headings the reader picks the
- * subject first and the row second, the same arrangement „Problemy" and „Sekcje" already use.
- *
- * Split by WHAT a row asks, never by the price plane it asks it on — the plane is already the tail of
- * the label (`planeViewSuffix`), and a heading repeating it would cut each stawka axis in half while
- * narrowing nothing: both halves of „ze stawką wykonawcy z kwoty stałej" are one question asked of two
- * crews, and they are read against each other.
- */
 export const FILTER_GROUPS = [
-  // First: on an AI kosztorys the draft is what is being read. Same heading as in „Problemy”.
   { id: 'ai-review', label: 'Przegląd AI' },
-  // Przedmiar and wykonana praca share one heading rather than getting one each: the pair that asks
-  // about BOTH at once („bez przedmiaru i bez wykonanej pracy") belongs to neither axis alone, and a
-  // third heading for one pair would file the same question in a place the reader looks at last.
   { id: 'quantities', label: 'Przedmiar i wykonana praca' },
   { id: 'rate-source', label: 'Źródło stawki wykonawcy' },
-  // Names the figure, not the jargon: „sufit" is a word only the code used, while the reader is
-  // deciding against a share of the cena. The liczba sits on the entries rather than here, because
-  // each plane has its own and a heading naming one of them would misreport the other.
   { id: 'rate-ceiling', label: 'Udział wykonawcy w cenie' },
   { id: 'note', label: 'Komentarz' },
   { id: 'discount', label: 'Rabat' },

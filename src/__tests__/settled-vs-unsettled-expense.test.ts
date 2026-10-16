@@ -13,11 +13,6 @@ type FiguresT = {
   settled: number
 }
 
-// Settled vs unsettled: adding ONE transaction must move the figures exactly as the
-// financial model predicts. A settled expense is a company cost off the client's books —
-// it moves ONLY marża and the settled bucket. The same expense left unsettled moves the
-// opposite way (bilans + client materiały). That contrast is the point of this file.
-
 const BASE: TypeSettledTotalT[] = [
   { type: 'INVESTOR_DEPOSIT', settled: false, total: 10000 },
   { type: 'INVESTMENT_EXPENSE', settled: false, total: 3000 },

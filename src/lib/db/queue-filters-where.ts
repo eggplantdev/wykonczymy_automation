@@ -3,7 +3,6 @@ import type { QueueFiltersT } from '@/types/filters'
 import { inList, type SqlT } from './sql-list'
 import { warsawDayWithin } from './sql-warsaw-day'
 
-/** `base AND` every filter the URL set, over a queue table aliased `alias`. */
 export function queueFiltersWhere(
   alias: 'd' | 'r',
   base: SqlT,

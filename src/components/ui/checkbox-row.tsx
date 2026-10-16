@@ -2,8 +2,6 @@ import type { ReactNode } from 'react'
 import { Checkbox, type CheckboxVariantT } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils/cn'
 
-// The whole row is the hit target, which is why the label carries the padding and the hover — a
-// bare `<Checkbox>` next to text gives a 16px one.
 export function CheckboxRow({
   checked,
   onCheckedChange,

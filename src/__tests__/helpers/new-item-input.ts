@@ -1,7 +1,6 @@
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
 import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 
-// For specs that need a praca to exist and don't care what it says — ordering, locks, renumbering.
 const FIXTURE_DATA: AddItemInputT['data'] = {
   description: 'Praca testowa',
   category: '',

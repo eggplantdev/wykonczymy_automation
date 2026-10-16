@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 
-// Mock modules that fail in test environment (server-only, CSS, React components)
 vi.mock('server-only', () => ({}))
 vi.mock('@/components/transfers/invoice-cell', () => ({ InvoiceCell: () => null }))
 vi.mock('@/components/transfers/note-popover', () => ({ NotePopover: () => null }))
@@ -10,8 +9,6 @@ import {
   buildTransferLookups,
   type TransferLookupsT,
 } from '@/lib/queries/transfer-mapping'
-
-// ── Mock data ───────────────────────────────────────────────────────
 
 const stubInvestment = {
   status: 'active' as const,
@@ -81,10 +78,6 @@ const baseDoc = {
   createdBy: 100,
   createdAt: '2026-02-20T00:00:00.000Z',
 }
-
-// ═══════════════════════════════════════════════════════════════════════
-// mapTransferRow — createdByName resolution
-// ═══════════════════════════════════════════════════════════════════════
 
 describe('mapTransferRow — createdByName', () => {
   it('resolves createdBy ID to user name via lookups', () => {

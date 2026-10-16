@@ -34,6 +34,8 @@ type OptionsT = {
   lineItems: BulkLineItemT[]
   replaceRows: (removeIds: string[], add: [id: string, files: File[]][]) => void
   isBusy: boolean
+  isAcceptBlocked: (id: string) => boolean
+  isRegroupBlocked: boolean
   getFiles: () => Map<string, File[]>
   ask: (copy: SubmitConfirmCopyT) => Promise<boolean>
   submit: ReturnType<typeof useFormSubmit>['submit']
@@ -54,6 +56,8 @@ export function useParagonDecisions({
   lineItems,
   replaceRows,
   isBusy,
+  isAcceptBlocked,
+  isRegroupBlocked,
   getFiles,
   ask,
   submit,
@@ -97,7 +101,6 @@ export function useParagonDecisions({
     onDecided?.()
   }
 
-  // A decided paragon stays in the list, so the dialog closes on the last one still waiting.
   function afterDecision(decidedIds: string[]) {
     onDecided?.()
     if ([...draftReceipts.pendingIds].every((id) => decidedIds.includes(id))) onSubmitSuccess()
@@ -107,13 +110,11 @@ export function useParagonDecisions({
     for (const [name, message] of errors) {
       form.setFieldMeta(name as never, (meta) => ({
         ...meta,
-        // Shaped like a schema issue, which is what the field's error line reads.
         errorMap: { ...meta?.errorMap, onSubmit: message && { message } },
       }))
     }
   }
 
-  // Validated on its own: the rows still waiting may be half-filled, and they aren't being booked.
   function validateSubset(subset: BulkLineItemT[]) {
     const value = form.state.values
     const indexOf = new Map(value.lineItems.map((item, index) => [item.id, index]))
@@ -203,7 +204,6 @@ export function useParagonDecisions({
     return rejected.filter((receipt) => parts.some((part) => isReceiptOf(receipt, part)))
   }
 
-  // One restore per refused paragon: a failure midway leaves some restored, which only a resync sees.
   async function undoReject(id: string) {
     setIsDeciding(true)
     try {
@@ -226,9 +226,10 @@ export function useParagonDecisions({
   const receiptGrouping = draftReceipts.grouping && {
     ...draftReceipts.grouping,
     ...(isParagonMode && {
+      isAcceptBlocked,
+      isRegroupBlocked,
       onDecide: (ids: string[], decision: 'accept' | 'reject') =>
         decision === 'accept' ? bookRows(ids) : rejectRows(ids),
-      // A photo refused without a read has no row the restore can name.
       undoFor: (id: string) => {
         const receipts = refusalsOf(id)
         return receipts.length > 0 && receipts.every((receipt) => receipt.readRow !== null)

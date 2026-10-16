@@ -9,23 +9,14 @@ import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 // the fresh tree must be asked for. `stale`: the refusal said the grid's rows are behind.
 export type OnTreeReplacedT = (opts?: { refetch?: boolean; stale?: boolean }) => void
 
-// Everything the editor hook owns plus the four values its caller supplies. The toolbar and its
-// controls read straight from here, so KosztorysEditorBody relays none of it.
 type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   investmentId: number
   investmentName: string
   tree: KosztorysTreeT
-  // Absent in preview — the versions button lives in the toolbar, which the client render omits.
   onOpenVersions?: () => void
-  // Fires after the whole tree is swapped out — remounts the body.
   onTreeReplaced?: OnTreeReplacedT
-  // Opens „Pobierz z arkusza Google". Owned above the toolbar because the empty-kosztorys screen
-  // offers it too. Absent in preview, which renders neither trigger.
   openImport?: () => void
   hasSheet: boolean
-  // Published rather than re-derived: eight controls asked „is this a szablon" and six called
-  // `editorNoun` for themselves, so „what is this editor" was answered in fourteen places that had to
-  // agree. Both are cheap — a boolean and one of two module constants — so nothing is memoised.
   isTemplate: boolean
   isTrashed: boolean
   noun: EditorNounT

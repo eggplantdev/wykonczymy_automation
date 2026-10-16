@@ -6,9 +6,8 @@ import {
 } from '@/components/equipment/where-filter-options'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 
-// The one dropdown that replaces a warehouse screen: people and warehouses are pickable side by
-// side, every workshop collapses onto one row, and an item nobody can place gets an option of its
-// own — without it, picking any place would hide it with no way left to bring it back.
+// an item nobody can place gets an option of its own — without it, picking any place would hide it
+// with no way left to bring it back.
 
 const row = (overrides: Partial<EquipmentRowT>): EquipmentRowT => ({
   id: 1,
@@ -27,8 +26,7 @@ const row = (overrides: Partial<EquipmentRowT>): EquipmentRowT => ({
   ...overrides,
 })
 
-const holder = (id: number, name: string) =>
-  row({ id, location: { kind: 'holder', id, name } })
+const holder = (id: number, name: string) => row({ id, location: { kind: 'holder', id, name } })
 const warehouse = (id: number, name: string) =>
   row({ id: id + 100, location: { kind: 'warehouse', id, name } })
 
@@ -49,7 +47,6 @@ describe('whereFilterOptions', () => {
     ])
   })
 
-  // Person 3 and warehouse 3 are different places; only the prefixed value keeps them apart.
   it('gives a person and a warehouse of the same id different values', () => {
     const options = whereFilterOptions([holder(3, 'Anna'), warehouse(3, 'Magazyn')])
 
@@ -71,8 +68,6 @@ describe('whereFilterOptions', () => {
     expect(options).toEqual([{ value: WHERE_UNKNOWN, label: 'Nie wiadomo gdzie' }])
   })
 
-  // A sold drill has nobody holding it BY DEFINITION — offering „nie wiadomo gdzie" would invite a
-  // hunt for something that is not missing.
   it('does not offer the unknown option for an item that is no longer ours', () => {
     expect(whereFilterOptions([row({ status: 'SOLD' })])).toEqual([])
   })
@@ -85,7 +80,6 @@ describe('whereFilterOptions', () => {
 })
 
 describe('whereFilterValue', () => {
-  // The value a row answers to has to be the one the option carries, or the filter hides everything.
   it('matches the option value of the place the item is in', () => {
     const rows = [holder(3, 'Anna Nowak'), warehouse(1, 'Magazyn główny'), row({ id: 9 })]
     const values = new Set(whereFilterOptions(rows).map((option) => option.value))

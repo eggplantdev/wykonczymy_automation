@@ -6,9 +6,6 @@ import { MobileNav } from '@/components/nav/mobile-nav'
 import { I18nContext } from '@/hooks/use-translation'
 import type { LanguageT } from '@/lib/i18n/languages'
 
-// EX-996: the drawer is the shell a worker reads on site, so it follows his account language;
-// without a provider it keeps the Polish every manager has always seen.
-
 vi.mock('next/navigation', () => ({ usePathname: () => '/pracownicy/7' }))
 vi.mock('@/hooks/use-current-user', () => ({
   useCurrentUser: () => ({ id: 7, email: 'jan@test.invalid', name: 'Jan', role: 'EMPLOYEE' }),

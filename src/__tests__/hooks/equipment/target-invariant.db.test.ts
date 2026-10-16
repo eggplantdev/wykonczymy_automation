@@ -6,14 +6,6 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 
-// „Gdzie jest sprzęt" is read off the newest event, so an event with no target — or with two — is not
-// a cosmetic data problem: it makes the derived answer either missing or ambiguous for the whole
-// item. The invariant is therefore pinned on the collection hook, exercised through
-// `payload.create/update` directly rather than through the server action: the action is one writer
-// and never the broken one — /admin and the Local API are the paths that would slip through.
-// Asserted on the PERSISTED ROW (pattern: `hooks/transfers/investment-write-guard.db.test.ts`) —
-// a returned document can look right while the column holds something else.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -95,9 +87,8 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
 
     const equipment = await payload.create({
       collection: 'equipment',
-      // `status` spelled out although the collection defaults it: Payload's generated create type
-      // models neither `defaultValue` nor the draft split, so omitting it makes the literal
-      // unassignable (same reason as `helpers/investment.ts`).
+      // Payload's generated create type models neither `defaultValue` nor the draft split, so
+      // omitting it makes the literal unassignable.
       data: { name: MARKER, status: 'IN_USE' },
       overrideAccess: true,
       context: { skipRevalidation: true },
@@ -142,8 +133,6 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     expect(row.service_provider).toBeNull()
   })
 
-  // The cost belongs to a repair, so it must not survive on a handover — otherwise a stray amount
-  // would be reported as service spend on an item that was merely handed to someone.
   it('drops a cost sent with a non-service target', async () => {
     const created = await createEvent({ warehouse: warehouseId, cost: 250 })
     const row = await persistedRow(Number(created.id))
@@ -152,8 +141,6 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     expect(row.cost).toBeNull()
   })
 
-  // Positive control: without it every assertion above would also pass on a build that nulls the
-  // cost unconditionally.
   it('keeps the cost on a service entry', async () => {
     const created = await createEvent({ serviceProvider: 'Serwis Narzędziowy', cost: 250 })
     const row = await persistedRow(Number(created.id))
@@ -162,9 +149,6 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     expect(Number(row.cost)).toBe(250)
   })
 
-  // „Na co to wziął" is a question about a person, so the link must not survive on a warehouse or a
-  // service row — the listing reads `investment_id` off the newest event with no condition, and such
-  // a row would render „leży w magazynie, na inwestycji X" as a fact.
   it('drops an investment sent with a non-holder target', async () => {
     const created = await createEvent({ warehouse: warehouseId, investment: investmentId })
     const row = await persistedRow(Number(created.id))
@@ -173,8 +157,6 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     expect(row.investment_id).toBeNull()
   })
 
-  // Positive control: without it the assertion above would also pass on a build that nulls the
-  // investment unconditionally.
   it('keeps the investment on a handover to a person', async () => {
     const created = await createEvent({ holder: holderId, investment: investmentId })
     const row = await persistedRow(Number(created.id))
@@ -183,9 +165,6 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     expect(row.investment_id).toBe(investmentId)
   })
 
-  // The one case a create-only spec would miss: a partial update carries only the NEW target, so the
-  // hook has to read the stored row to see the old one — and clear it rather than count it as a
-  // second target.
   it('refuses handing an item to a worker in the kosz, writing no event', async () => {
     const heldBy = sql`SELECT count(*)::int AS n FROM equipment_events
       WHERE note = ${MARKER} AND holder_id = ${holderId}`

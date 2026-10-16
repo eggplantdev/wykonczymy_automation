@@ -8,8 +8,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// Every case asserts the PERSISTED rows, never only the return value: a refusal that still wrote
-// row 1, or a `{ success: true }` from a rolled-back transaction, reads the same from the outside.
 vi.mock('server-only', () => ({}))
 // after() throws outside a request scope, so it runs the task inline; the sheet sync it schedules
 // needs live Google credentials and is not under test.
@@ -41,8 +39,6 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
   const marker = `settle-payouts-${Date.now()}`
   const worker = { a: 0, b: 0 }
   let registerId = 0
-  // a, b: worker a alone on a settled etap. withheld: worker b on a plane-less etap. locked: worker a,
-  // then set to zakończona. unassigned: an etap with nobody on it. split: one etap shared by a and b.
   const created = { a: 0, b: 0, withheld: 0, locked: 0, unassigned: 0, split: 0 }
 
   const tree = (plane: 'w_tools' | null, stageWorker: number | null) => ({
@@ -239,7 +235,6 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     expect(notifyPendingPayouts).not.toHaveBeenCalled()
   })
 
-  // EX-979: a premia moves the pair like a wypłata does, so a dialog opened before it is stale.
   it('reads a premia into the pair and refuses a submit that predates it', async () => {
     const before = await remainingOf(created.a, worker.a)
     await db.execute(sql`

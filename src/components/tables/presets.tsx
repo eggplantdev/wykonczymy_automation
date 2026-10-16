@@ -21,7 +21,6 @@ export const PRESET_COLUMNS = [
   }),
   col.accessor('updatedAt', {
     header: 'Zmieniono',
-    // „—" for a szablon predating the autosave: an empty cell would read as a failed lookup.
     cell: (info) => {
       const value = info.getValue()
       return value == null ? '—' : formatPLDate(value)

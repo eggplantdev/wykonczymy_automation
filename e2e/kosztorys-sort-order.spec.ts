@@ -3,9 +3,6 @@ import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { columnIndex, openEditor, pickKosztorysOption } from './drivers/kosztorys-grid'
 
-// EX-689 — commands are unit/DOM-covered elsewhere; this spec proves what only a reload can: sort
-// order is a VIEW until „Zapisz kolejność" bakes it, undo of a bake is a second write, and a bake
-// covers all rows even under a search filter.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 type SortSeedT = { bake: number; undo: number; search: number }
@@ -21,7 +18,6 @@ const SORT_COLUMN = COLUMN_LABELS.plannedQty
 
 // Both sekcje run through the sort, so none of the expected orders below can equal the seed by accident.
 const SEEDED = ['Alfa jeden', 'Alfa dwa', 'Alfa trzy', 'Beta jeden', 'Beta dwa', 'Beta trzy']
-// The shape every ascending bake in this file must produce.
 const BAKED_ASC = ['Alfa dwa', 'Alfa jeden', 'Alfa trzy', 'Beta jeden', 'Beta trzy', 'Beta dwa']
 
 // Reads rendered text, not a cell locator: „Opis prac" is a textarea that mounts only while editing,
@@ -55,7 +51,7 @@ async function expectOrder(page: Page, expected: string[]): Promise<void> {
 }
 
 // Pod sortowaniem kolejność w tablicy nie zgadza się z display_order — „Wstaw powyżej" wstawiłby
-// wiersz gdzie indziej niż pokazuje ekran. Tu sprawdzamy, czy menu wiersza to honoruje.
+// wiersz gdzie indziej niż pokazuje ekran.
 async function expectRowCommandsFrozen(
   page: Page,
   rowText: string,
@@ -110,8 +106,6 @@ test('„Zapisz kolejność" pod sortowaniem globalnym przeżywa wyczyszczenie s
   await expectOrder(page, SEEDED)
   await expect(bands(page)).toHaveCount(2)
 
-  // Globalne miesza obie sekcje w jedną listę — znikające pasy sekcji są jedynym widocznym znakiem
-  // tego przeplotu, w odróżnieniu od „zachowując sekcje".
   await sortBy(page, 'Sortuj rosnąco')
   await expectOrder(page, [
     'Alfa dwa',
@@ -125,13 +119,10 @@ test('„Zapisz kolejność" pod sortowaniem globalnym przeżywa wyczyszczenie s
 
   await persistOrder(page)
 
-  // Zapis przenumerowuje każdą sekcję tym samym kluczem, więc wiersze wracają pogrupowane, nie w
-  // przeplocie sprzed zapisu.
   await clearSort(page)
   await expect(bands(page)).toHaveCount(2)
   await expectOrder(page, BAKED_ASC)
 
-  // Siatka trzyma własny `rows`, więc dopiero przeładowanie sprawdza, czy zapis dotarł do Postgresa.
   await page.reload()
   await expectOrder(page, BAKED_ASC)
 })
@@ -143,8 +134,6 @@ test('cofnięcie „Zapisania kolejności" wraca do poprzedniego display_order p
   await expectOrder(page, SEEDED)
 
   await sortBy(page, 'Sortuj malejąco zachowując sekcje')
-  // Pasy sekcji zostają pod tym zakresem — poza menu wiersza nic na ekranie nie zdradza zamrożonej
-  // ręcznej kolejności.
   await expectRowCommandsFrozen(page, 'Alfa jeden', true)
   await persistOrder(page)
   await clearSort(page)
@@ -152,8 +141,6 @@ test('cofnięcie „Zapisania kolejności" wraca do poprzedniego display_order p
   await expectOrder(page, bakedDesc)
   await expectRowCommandsFrozen(page, 'Alfa jeden', false)
 
-  // Cofnięcie to drugi zapis całej rozpiski — lokalne wycofanie, które nigdy nie doszło do serwera,
-  // wygląda identycznie.
   const settled = serverAction(page)
   await pickKosztorysOption(page, /^Cofnij/)
   await settled
@@ -174,8 +161,6 @@ test('zapis przy wpisanej frazie porządkuje całą rozpiskę, nie tylko widoczn
   await expectOrder(page, ['Alfa dwa', 'Alfa jeden', 'Alfa trzy'])
   await persistOrder(page)
 
-  // Wiersze beta nigdy nie były na ekranie — zapis numeruje całą rozpiskę, inaczej ukryte wiersze
-  // wplotłyby się między numery zajęte przez widoczne.
   await page.reload()
   await expectOrder(page, BAKED_ASC)
 })

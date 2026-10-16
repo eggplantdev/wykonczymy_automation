@@ -8,8 +8,6 @@ export type ParagonOutcomesT = {
   rejectedReceipts?: RejectedReceiptT[]
 }
 
-// A row is decided only when every paragon in it is: a merged row half-booked elsewhere stays
-// waiting, and its split brings the still-open paragon back alone.
 export function paragonDecisions(
   receipts: Map<string, DraftReceiptT[]>,
   { acceptedReadRows = [], rejectedReceipts = [] }: ParagonOutcomesT,

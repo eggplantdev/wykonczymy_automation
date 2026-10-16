@@ -23,8 +23,6 @@ type ParagonFooterPropsT = {
   lineItems: BulkLineItemT[]
 }
 
-// Pinned while deciding: a zgłoszenie runs to dozens of paragony, and the selection's actions must
-// stay in reach from any of them. Negative offsets cancel the dialog's own padding.
 export function ParagonFooter({
   progress,
   hiddenStatuses,

@@ -16,12 +16,8 @@ export const FETCH_TIMEOUT_MS = 15_000
 export const MAX_ASSET_BYTES = 8 * 1024 * 1024
 
 /**
- * Reject anything but an `https:` URL whose **parsed hostname equals** the landing's blob host.
- *
  * Exact equality, never `includes`/`startsWith`: `evil.com/?x=blob.vercel-storage.com` and
- * `blob.vercel-storage.com.evil.com` both pass a substring test, and the whole point of the
- * allowlist is that this handler fetches a URL a stranger chose. Hostnames are compared
- * case-insensitively because `URL` lowercases the parsed side but the configured value is typed by hand.
+ * `blob.vercel-storage.com.evil.com` both pass a substring test
  */
 function assertAllowedUrl(rawUrl: string): URL {
   let url: URL
@@ -58,14 +54,8 @@ async function readCapped(response: Response): Promise<Buffer> {
 }
 
 /**
- * Turn one allowlisted landing blob URL into one `media` row, and return its id.
- *
- * Redirects are refused (`redirect: 'error'`) rather than followed: a redirect off the allowlisted
- * host is precisely the SSRF bypass the allowlist exists to stop, and the landing's own store never
- * needs one.
- *
- * `kind` is left unset — staff classify the file at promotion, and a guess here would be worse than
- * a blank (see `media.kind`).
+ * Redirects are refused (`redirect: 'error'`): a redirect off the allowlisted host is precisely the
+ * SSRF bypass the allowlist exists to stop.
  */
 export async function fetchLandingAsset(payload: Payload, asset: LandingAssetT): Promise<number> {
   const url = assertAllowedUrl(asset.url)

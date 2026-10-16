@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// The field's `min={0}` guards one caller; the floor has to hold at the action for any other (EX-819).
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

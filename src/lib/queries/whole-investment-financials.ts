@@ -18,9 +18,6 @@ export type InvestmentFinancialsSourceT = {
 }
 
 /**
- * The two whole-investment aggregate reads as ONE awaitable, so a caller can drop it into the same
- * `Promise.all` as the kosztorys tree it will later be derived against.
- *
  * Fetch and derive stay separate on purpose: deriving needs the tree's rate + mode, so a helper that
  * fetched AND derived could only run once the tree resolved — turning one parallel round of queries
  * into two serial ones behind the page's long pole.
@@ -43,13 +40,6 @@ export type WholeInvestmentFinancialsT = {
   settledBreakdown: MaterialsBreakdownRowT[]
 }
 
-/**
- * Rate + mode come from the kosztorys tree, not the investment row — they are what make
- * `materialsNetDiscount` a real term rather than 0. Every whole-investment surface derives through
- * here so the owner's editor, the investment panel and the client share cannot end up reading three
- * different materiały figures; `src/__tests__/investment-render-parity-db.test.ts` (`pnpm
- * test:parity`) polices that agreement.
- */
 export function deriveWholeInvestmentFinancials(
   { typeDistribution, breakdowns }: InvestmentFinancialsSourceT,
   settings: { materialsNetRate: number | null; settlementMode: SettlementModeT },

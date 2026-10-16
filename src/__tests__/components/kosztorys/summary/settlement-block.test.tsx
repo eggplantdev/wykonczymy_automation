@@ -81,8 +81,6 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-// The tryb rozliczenia decides which kwota column EXISTS at all — one, never two. Netto under tryb
-// brutto would describe a different debt than the one on the faktura.
 describe('Blok rozliczenia — tryb przestawia kolumnę kwot', () => {
   it('rozlicza na netto w trybie netto', () => {
     renderPanel('NET')
@@ -91,8 +89,6 @@ describe('Blok rozliczenia — tryb przestawia kolumnę kwot', () => {
     expect(screen.queryByText('Brutto')).toBeNull()
   })
 
-  // Owner's ruling of 2026-08-20: „Mieszane" settles on netto just like tryb netto — what is mixed
-  // is the WPŁATY, not the bill.
   it('rozlicza „Mieszane" na netto, jednym torem, a nie dwoma', () => {
     renderPanel('MIXED')
 
@@ -104,16 +100,14 @@ describe('Blok rozliczenia — tryb przestawia kolumnę kwot', () => {
   it('rozlicza na brutto w trybie brutto', () => {
     renderPanel('GROSS')
 
-    // 50 000 netto is 61 500 brutto and the wpłata przelewem carries 12 300 brutto — the whole column
-    // stands on the second plane, not just its header. The wpłata gotówką has no brutto.
+    // 50 000 netto is 61 500 brutto and the wpłata przelewem carries 12 300 brutto — The wpłata
+    // gotówką has no brutto.
     expect(amountFor('Łącznie')).toContain('61 500,00')
     expect(amountFor('Wpłaty')).toContain('12 300,00')
     expect(amountFor('Pozostało do zapłaty')).toContain('49 200,00')
   })
 })
 
-// If the figure at the bottom does not follow from the rows above it, the block computes by two
-// rules and neither is the one on screen.
 describe('Blok rozliczenia — czyta się w dół', () => {
   it('odejmuje wpłaty z obu płaszczyzn od łącznej kwoty', () => {
     renderPanel('NET')
@@ -136,8 +130,6 @@ describe('Blok rozliczenia — czyta się w dół', () => {
   })
 })
 
-// Under rozliczenie brutto the investor pays the full kwoty off the faktury, so a stawka on materiały
-// moves no figure. Greyed out with a reason rather than removed, which reads as a bug.
 describe('Blok rozliczenia — stawka materiałów pod trybem brutto', () => {
   it('gasi wybór i mówi dlaczego', async () => {
     const user = renderPanel('GROSS')

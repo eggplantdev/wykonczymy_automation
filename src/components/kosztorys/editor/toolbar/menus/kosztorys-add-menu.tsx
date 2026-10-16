@@ -44,16 +44,11 @@ export function KosztorysAddMenu() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {/* One entry for both routes: the szukajka finds a katalog praca, and its „Dodaj nową pracę…"
-              opens the form for one it did not find. */}
           <DropdownMenuItem onSelect={() => openCataloguePicker()}>
             <Hammer />
             Praca…
           </DropdownMenuItem>
-          {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
-          {/* Etapy are opened one after another for the same crew on the same terms, so a new one
-              copies the last one's rozliczenie and pracownicy — both stay editable in its header.
-              With nothing to copy the rozliczenie is picked here, never defaulted: it decides which
+          {/* With nothing to copy the rozliczenie is picked here, never defaulted: it decides which
               crew's stawka prices every quantity booked into the etap. */}
           {!isTemplate &&
             (lastPlane ? (

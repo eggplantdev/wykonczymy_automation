@@ -5,10 +5,6 @@ import { decimalText } from '@/lib/utils/decimal-text'
 type CurrentPlannedRowT = { plannedQty: number; currentPlannedQty: number | null }
 
 /**
- * „Aktualizacja przedmiaru". The second cell family whose `clear` writes `null`: an emptied cell
- * means „follow the Przedmiar ofertowy again", not „nothing to do" — that is a typed 0, which takes
- * the pozycja out of scope.
- *
  * The snapshot is the STORED value, null included, so undoing a first edit restores „follows"
  * rather than freezing today's ofertowy into the row.
  */

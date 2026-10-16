@@ -50,8 +50,6 @@ describe('resolveUploadIdRows', () => {
     expect(upload).toHaveBeenCalledTimes(2)
   })
 
-  // Page order IS the invoice's reading order, and uploads run concurrently — so a slow page 1
-  // must still land at index 0. This is the guard for that regrouping.
   it('keeps a row’s pages in attachment order even when a later page uploads first', async () => {
     upload.mockImplementation(async (f: File) => {
       if (f.name === 'p1.jpg') await new Promise((resolve) => setTimeout(resolve, 5))
@@ -67,8 +65,6 @@ describe('resolveUploadIdRows', () => {
     expect(result).toEqual([[1, 2, 3], [4]])
   })
 
-  // The pages that DID upload are already in Blob with nothing pointing at them, so the failure has
-  // to hand them back — a bare throw leaks them.
   it('reports the already-uploaded ids when a page fails', async () => {
     upload.mockImplementation(async (f: File) => {
       if (f.name === 'p2.jpg') throw new UploadRefusedError('413')
@@ -95,8 +91,6 @@ describe('resolveUploadIdRows', () => {
   })
 })
 
-// A later reader asks for the rysunki without opening every faktura only if `kind` reaches the row,
-// and it crosses every layer between the form and the upload route, so it is easy to drop.
 describe('resolveUploadIdRows — media kind', () => {
   beforeEach(() => {
     upload.mockReset().mockResolvedValue(1)

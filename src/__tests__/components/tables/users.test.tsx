@@ -77,7 +77,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     expect(bare(row.getByText(/do zapłaty aktywne \(2\)/).textContent ?? '')).toContain(
       bare(formatPLN(5000)),
     )
-    // Never netted: 5000 owed beside 4000 overpaid is not 1000.
     expect(bare(row.getByText(/nadpłata aktywne \(1\)/).textContent ?? '')).toContain(
       bare(formatPLN(4000)),
     )
@@ -122,7 +121,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
       bare(formatPLN(80)),
     )
 
-    // The choice outlives the page.
     unmount()
     render(<UserDataTable data={[jan]} cashRegisters={[]} />)
     expect(row().getByText(/do zapłaty zakończone \(1\)/)).toBeInTheDocument()

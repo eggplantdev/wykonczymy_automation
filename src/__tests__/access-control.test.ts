@@ -15,14 +15,10 @@ import {
 } from '@/access/index'
 import type { RoleT } from '@/lib/auth/roles'
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-
 const makeReq = (role: RoleT, id = 1) => ({ req: { user: { id, role } } })
 const noUser = { req: { user: undefined } } as unknown as ReturnType<typeof makeReq>
 
 const ALL_ROLES: RoleT[] = ['ADMIN', 'OWNER', 'MANAGER', 'EMPLOYEE']
-
-// ── hasAnyRole ───────────────────────────────────────────────────────────
 
 describe('hasAnyRole', () => {
   it.each(ALL_ROLES)('returns true when user role is %s and checked roles include it', (role) => {
@@ -49,8 +45,6 @@ describe('hasAnyRole', () => {
     expect(hasAnyRole({ id: 1 }, 'ADMIN')).toBe(false)
   })
 })
-
-// ── Boolean-only access ──────────────────────────────────────────────────
 
 describe('isAdminBoolean', () => {
   it('returns true for ADMIN', () => {
@@ -81,8 +75,6 @@ describe('isManager', () => {
     expect(isManager(makeReq(role) as never)).toBe(false)
   })
 })
-
-// ── Collection-level access ──────────────────────────────────────────────
 
 describe('isAdmin', () => {
   it('returns true for ADMIN', () => {
@@ -124,8 +116,6 @@ describe('isAuthenticated', () => {
   })
 })
 
-// ── canUpdateUser ────────────────────────────────────────────────────────
-
 describe('canUpdateUser', () => {
   const onId = (req: { req: unknown }, id: number) => ({ ...req, id }) as never
 
@@ -149,8 +139,6 @@ describe('canUpdateUser', () => {
     expect(canUpdateUser(onId(noUser, 7))).toBe(false)
   })
 })
-
-// ── rolesOrSelfField ─────────────────────────────────────────────────────
 
 describe('rolesOrSelfField', () => {
   const accessFn = rolesOrSelfField('worker_id', 'ADMIN', 'OWNER')
@@ -179,8 +167,6 @@ describe('rolesOrSelfField', () => {
     expect(accessFn(noUser as never)).toBe(false)
   })
 })
-
-// ── Field-level access ───────────────────────────────────────────────────
 
 describe('isAdminField', () => {
   it('returns true for ADMIN', () => {

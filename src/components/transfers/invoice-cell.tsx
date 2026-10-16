@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
 import { useInvoiceRemoval } from '@/hooks/use-invoice-removal'
@@ -36,7 +36,6 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
     invoices,
   )
 
-  // The worker sees his own transfers' faktury, but the upload and removal actions refuse him.
   if (!isManagementRole(role)) {
     return invoices.length > 0 ? (
       <MediaPreviewButton
@@ -61,7 +60,6 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
           files={visibleInvoices}
           variant={previewVariant}
           label={previewLabel}
-          // The preview would sit on top of the upload dialog, so it steps aside before it opens.
           onAdd={(closePreview) => {
             closePreview()
             setUploadOpen(true)

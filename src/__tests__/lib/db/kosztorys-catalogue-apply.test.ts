@@ -9,10 +9,6 @@ import {
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The batch update is one hand-written statement whose two risks only exist against a real Postgres:
-// an untyped NULL in the first VALUES tuple (which makes the server reject the whole statement, not
-// just that row) and the investment narrowing in the WHERE. A mocked executor would replay neither.
-
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('applyCatalogueValues (DB)', () => {
@@ -90,8 +86,6 @@ describe.skipIf(!ENV_READY)('applyCatalogueValues (DB)', () => {
     ])
 
     expect(updated).toBe(2)
-    // The persisted state, not the return value: the count comes back from the same statement that
-    // would have been rejected, so it cannot testify to its own success.
     expect((await readItem(itemIds[0])).wTools).toBeNull()
     expect((await readItem(itemIds[1])).wTools).toBe(72.5)
   })

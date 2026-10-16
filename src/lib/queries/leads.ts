@@ -31,8 +31,8 @@ const NO_FILES: Where = { assets: { exists: false } }
 
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
-// One search box over the four columns a caller is identified by. `like` reaches Postgres as ILIKE,
-// so case doesn't matter but diacritics do — „lukasz" will not find „Łukasz".
+// `like` reaches Postgres as ILIKE, so case doesn't matter but diacritics do — „lukasz" will not
+// find „Łukasz".
 function buildLeadSearch(search: string): Where | undefined {
   const term = search.trim()
   if (!term) return undefined
@@ -47,10 +47,6 @@ function buildLeadSearch(search: string): Where | undefined {
   }
 }
 
-/**
- * One media query for the whole page, not `depth: 1` on the find: 50 leads with photos each would
- * otherwise become 50 populated relations, and the strip needs four columns per file.
- */
 async function resolveLeadAssets(
   payload: Awaited<ReturnType<typeof getPayload>>,
   idsByLead: Map<number, number[]>,
@@ -84,7 +80,6 @@ async function resolveLeadAssets(
   return new Map(
     [...idsByLead].map(([leadId, ids]) => [
       leadId,
-      // A media row that no longer resolves is dropped rather than rendered as a hole.
       ids.flatMap((id) => (byId.has(id) ? [byId.get(id) as MediaFileT] : [])),
     ]),
   )
@@ -92,12 +87,6 @@ async function resolveLeadAssets(
 
 type PromotedInvestmentT = { name: string; assetIds: number[] }
 
-/**
- * What each promoted lead's inwestycja is called and which media it already holds — the name so the
- * link reads „Kowalska Kwiatowa 5" rather than the generic word, the ids so „Załączniki" can tell
- * „już przeniesione" apart. One find for the page rather than `depth: 1` on the leads, same
- * reasoning as `resolveLeadAssets`.
- */
 async function resolvePromotedInvestments(
   payload: Awaited<ReturnType<typeof getPayload>>,
   investmentIds: number[],

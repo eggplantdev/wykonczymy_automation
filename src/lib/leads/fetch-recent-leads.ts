@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { serverEnv } from '@/lib/env/server'
 
-// Match the Graph version used by the other lead helpers (fetch-lead.ts).
 const GRAPH = 'https://graph.facebook.com/v21.0'
 
 export type LeadFormSummaryT = {
@@ -21,7 +20,7 @@ const leadFormsResponseSchema = z.object({
 const recentLeadsResponseSchema = z.object({ data: z.array(z.unknown()).optional() })
 
 /**
- * Authenticated Graph GET with the Page token. Throws on a non-2xx or an `error`
+ * Throws on a non-2xx or an `error`
  * body so a caller (the reconcile action) can surface a real failure instead of
  * silently treating an auth error as "no leads".
  */
@@ -36,7 +35,6 @@ async function graphGet(path: string): Promise<unknown> {
   return body
 }
 
-/** All lead forms on the page (`leadsCount` lets the caller skip empty ones). */
 export async function listLeadForms(): Promise<LeadFormSummaryT[]> {
   const body = await graphGet(
     `${serverEnv.META_PAGE_ID}/leadgen_forms?fields=id,name,leads_count&limit=100`,
@@ -50,11 +48,6 @@ export async function listLeadForms(): Promise<LeadFormSummaryT[]> {
   }))
 }
 
-/**
- * The `limit` most recent submissions for a form via the bulk `/leads` edge.
- * Unlike the webhook path, this endpoint returns `field_data` inline — no second
- * per-lead fetch. Items are returned raw; the caller validates each with `leadSchema`.
- */
 export async function fetchRecentLeads(formId: string, limit: number): Promise<unknown[]> {
   const body = await graphGet(`${formId}/leads?fields=id,created_time,field_data&limit=${limit}`)
   const parsed = recentLeadsResponseSchema.safeParse(body)

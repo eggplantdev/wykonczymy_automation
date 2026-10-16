@@ -16,28 +16,16 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 
-// Presets reuse the snapshot serialize/apply core, so we exercise it against the REAL DB and assert
-// PERSISTED state (re-serialize after apply), the same discipline as serialize-restore-roundtrip.
-// A preset diverges from a snapshot in two deliberate ways that only a DB round-trip proves: job
-// fields are zeroed at serialize time, and apply must NOT write the target's settings.
-//
-// Cache revalidation touches next/cache outside a request context; stub it so any collection hooks
-// fired during apply don't throw in node.
 // serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
-// cookies(), which has no request scope in node. Stub it success like the sibling DB specs.
+// cookies(), which has no request scope in node.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
 
-// Gated like the sibling DB specs: skips with no DB env, FAILS if env is set but the DB is
-// unreachable. Discovered by the `skipIf(!ENV_READY)` marker and run against 5435 by test-integration.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const PRESET_PREFIX = 'preset-spec-'
 
-// Id-free, order-keyed view of a tree WITHOUT settings — a preset's apply intentionally leaves the
-// target's settings alone, so settings must be compared separately, never folded into structural
-// equality (cf. canonical() in serialize-restore-roundtrip, which keeps settings).
 function canonicalTree(snap: StoredSnapshotPayloadT) {
   const sectionById = new Map(snap.sections.map((s) => [s.id, s]))
   const itemById = new Map(snap.items.map((i) => [i.id, i]))
@@ -85,7 +73,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   let payload: Payload
   const investmentIds: number[] = []
 
-  // A throwaway investment with the given settings; tracked for cascade cleanup in afterAll.
   async function createInvestment(name: string, vat: number, wCoeff: number, oCoeff: number) {
     const id = await createTestInvestment(payload, name, {
       vatRate: vat,
@@ -96,8 +83,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     return id
   }
 
-  // A source tree with the job figures populated (qty, discount, progress) so serialize-as-preset has
-  // something real to zero out, plus a komentarz, which stays behind with them.
   async function buildSourceTree(investmentId: number) {
     await createKosztorysTree(payload, investmentId, {
       sections: [
@@ -189,23 +174,18 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
 
     const preset = await serializeKosztorysAsPreset(sourceId)
 
-    // Target starts empty with DIFFERENT settings — apply must not overwrite them.
     const targetId = await createInvestment(`${PRESET_PREFIX}target-roundtrip`, 0.08, 0.9, 0.6)
     await applyPresetTx(targetId, preset)
 
     const after = await serializeKosztorys(targetId)
 
-    // Structure (sections/items/stages/progress) is id-free identical to the preset.
     expect(canonicalTree(after)).toEqual(canonicalTree(preset))
 
-    // Job figures are zeroed everywhere — proven on the PERSISTED tree, not just the preset payload.
     for (const item of after.items) {
       expect(item.plannedQty).toBe(0)
-      // A reference figure belongs to the job it was imported for, never to the next one.
       expect(item.sheetMeasuredQty).toBeNull()
       expect(item.discountType).toBeNull()
       expect(item.discountValue).toBe(0)
-      // The AI review judges one job's draft, so a szablon must not hand it to the next one.
       expect(item.aiPlannedQty).toBeNull()
       expect(item.aiMissingData).toBeNull()
       expect(item.aiAssumptions).toBeNull()
@@ -214,11 +194,9 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
       expect(item.changeReason).toBeNull()
       expect(item.reviewStatus).toBeNull()
     }
-    // A remark about the WORK lives on its katalog entry; the pozycja's own one is about this job.
     expect(after.items.find((item) => item.description === 'Malowanie')!.note).toBeNull()
     expect(after.progress).toEqual([])
 
-    // Target's own settings survive the apply untouched (a preset carries no pricing config).
     expect(after.settings).toEqual({
       wToolsCoeff: 0.9,
       ownToolsCoeff: 0.6,
@@ -233,7 +211,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
 
     const after = await serializeKosztorys(spawnId)
-    // No etap is installed: its plane is forced at creation, and the seed has nothing to base one on.
     expect(after.stages).toEqual([])
     expect(after.progress).toEqual([])
     expect(after.sections.map((section) => section.name)).toEqual(['Salon', 'Łazienka'])
@@ -248,9 +225,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   it('seed onto an investment that already has etapy keeps them and adds none', async () => {
     const presetId = await createTemplateWithItems('hasetapy')
 
-    // The live shape behind the original bug: an empty tree (no sections) that nonetheless already
-    // carries etapy, because „Dodaj etap" works on an empty kosztorys.
-    // The seed used to install a starting etap here and collided with UNIQUE(investment_id, ordinal).
     const targetId = await createInvestment(`${PRESET_PREFIX}target-hasetapy`, 0.23, 0.7, 0.5)
     await createKosztorysTree(payload, targetId, {
       sections: [],
@@ -268,7 +242,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   it('seed rejects a non-empty investment and writes nothing', async () => {
     const presetId = await createTemplateWithItems('guard')
 
-    // A second investment that ALREADY has a tree — seeding it must be refused.
     const occupiedId = await createInvestment(`${PRESET_PREFIX}target-guard`, 0.23, 0.7, 0.5)
     await createKosztorysTree(payload, occupiedId, { sections: [{ name: 'Istniejąca' }] })
 
@@ -277,7 +250,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     const after = await serializeKosztorys(occupiedId)
 
     expect(result).toBe('not-empty')
-    // Nothing written — the pre-existing tree is byte-for-byte unchanged.
     expect(canonicalTree(after)).toEqual(canonicalTree(before))
   })
 
@@ -298,7 +270,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     // The szablon grows a section after the spawn.
     await addTestTemplateSection(payload, presetId, 'Nowa treść', [], { displayOrder: 2 })
 
-    // The spawned tree is frozen — no FK back to the szablon, so the edit is invisible to it.
     const spawnAfter = await serializeKosztorys(spawnId)
     expect(canonicalTree(spawnAfter)).toEqual(canonicalTree(spawnBefore))
   })

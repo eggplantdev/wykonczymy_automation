@@ -11,9 +11,6 @@ import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-
 import type { SubcontractorCellDataT } from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// Editable ONLY where the mnożnik is the source (`shownCoeff` decides WHICH figure shows). „Auto"
-// borrows the cena j.m. cell's muted italic for a derived figure, and „kwota stała" takes the grid's
-// „nie dotyczy" dash rather than a blank, which would read as an empty field somebody could fill.
 export function SubcontractorCoeffCell({
   rowData,
   setRowData,
@@ -38,7 +35,6 @@ export function SubcontractorCoeffCell({
     )
   }
 
-  // Both cells of a mnożnik row go red when the derived rate breaches the ceiling (owner, 2026-09-23).
   const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null
 
   return (

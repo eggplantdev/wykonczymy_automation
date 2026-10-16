@@ -17,16 +17,14 @@ const BONUS_DESCRIPTION = 'Wyrównanie nadpłaty'
 const bookOverpaymentBonusSchema = z.object({
   investmentId: z.number().int().positive(),
   workerId: z.number().int().positive(),
-  /** The nadpłata the dialog showed, as its negative „Pozostało" — refused when it no longer holds. */
   expectedRemaining: z.number().negative(),
 })
 
 export type BookOverpaymentBonusT = z.infer<typeof bookOverpaymentBonusSchema>
 
 /**
- * „Wyrównaj premią": one BONUS for exactly the pair's nadpłata. The amount is never sent — it is
- * re-read under the investment lock, and the click is refused when the figure the owner confirmed
- * has moved, the same contract as „Rozlicz wypłaty".
+ * The amount is never sent — it is re-read under the investment lock, and the click is refused when
+ * the figure the owner confirmed has moved.
  */
 export async function bookOverpaymentBonusAction(
   data: BookOverpaymentBonusT,
@@ -40,8 +38,6 @@ export async function bookOverpaymentBonusAction(
       if (!parsed.success) return parsed
       const { investmentId, workerId, expectedRemaining } = parsed.data
 
-      // The owner's sheet has no premia column (`transfersSheetTab: false`), so there is nothing to
-      // sync after commit.
       return withPayloadTransaction(
         payload,
         async (req): Promise<SettlePayoutsResultT> => {

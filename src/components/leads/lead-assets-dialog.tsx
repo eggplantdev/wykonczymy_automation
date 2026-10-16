@@ -28,12 +28,6 @@ export type InvestmentOptionT = { id: number; name: string; active?: boolean }
 
 type PropsT = { lead: LeadRowT; investments: InvestmentOptionT[] }
 
-/**
- * The zgłoszenie's own files: a viewer with a delete, plus the way to send any of them into any
- * inwestycja. The zgłoszenie keeps its relation after promotion, so „wszystko albo nic" at promotion
- * time was never the real shape — and the target is picked here rather than fixed to the zgłoszenie's
- * own inwestycja, because a file attached to the wrong one cannot be un-attached from this side.
- */
 export function LeadAssetsDialog({ lead, investments }: PropsT) {
   const [open, setOpen] = useState(false)
   // Opt-in: sending a file into somebody else's inwestycja cannot be undone from this side, so
@@ -64,8 +58,6 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
       setAttachedIds(null)
       return
     }
-    // The row already carries this for the zgłoszenie's own inwestycja — only a freely picked
-    // target is worth a round-trip.
     if (target === ownInvestmentId) {
       setAttachedIds(new Set(ownAssetIds))
       return
@@ -126,8 +118,6 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {/* The column header already reads „Załączniki" — repeating it in every cell is noise. The
-            min-width keeps a 1-digit and a 2-digit count the same size down the column. */}
         <Button
           variant="outline"
           size="xs"
@@ -210,8 +200,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
             <h3 className="text-muted-foreground text-sm font-medium">
               Już w inwestycji ({carried.length})
             </h3>
-            {/* No delete here: this strip is about the target, and „usuń" on it would detach the
-                file from the ZGŁOSZENIE instead — the inwestycja's own page owns that decision. */}
+            {/* No delete here: „usuń" on it would detach the file from the ZGŁOSZENIE instead */}
             <MediaStrip
               files={carried}
               labels={LEAD_ASSET_PREVIEW_LABELS}

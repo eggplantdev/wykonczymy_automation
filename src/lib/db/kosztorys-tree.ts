@@ -17,18 +17,6 @@ import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type { DbExecutorT } from './get-db'
 import { numOrNull, textOrNull } from './row-coerce'
 
-// Everything behind the editor tree in ONE round trip.
-//
-// The one round trip is NOT what makes this fast, and nothing new should be collapsed into a single
-// query on that reasoning — EX-597 measured the parallel-reads version it replaced and the round-trip
-// count was never the cost. Neon's latency is bimodal (~20–60 ms warm, ~160–200 ms cold), which is
-// what makes a small sample look structural. Record:
-// `context/archive/2026-07-27-decouple-panel-write-refresh/change.md` § Superseded beliefs.
-//
-// Each collection is aggregated server-side into a jsonb array, ordered inside the aggregate. Values
-// arrive already typed by JSON (numeric renders as a JSON number), but `num` stays on every figure
-// because a null column must read as 0, not NaN.
-
 const num = (v: unknown): number => Number(v ?? 0)
 
 export type KosztorysTreeDataT = {
@@ -87,8 +75,6 @@ export async function selectKosztorysTreeData(
           FROM kosztorys_stages WHERE investment_id = ${investmentId}
         ) st
       ) AS stages,
-      -- Flat beside the etapy rather than nested in them, so each subselect stays one plain SELECT
-      -- the SQL-drift spec can read.
       (
         SELECT coalesce(json_agg(m ORDER BY m.stage_id, m.id), '[]'::json)
         FROM (
@@ -98,7 +84,6 @@ export async function selectKosztorysTreeData(
           WHERE ks.investment_id = ${investmentId}
         ) m
       ) AS stage_members,
-      -- stage_progress carries no investment column, so it reaches the investment through its item.
       (
         SELECT coalesce(json_agg(p ORDER BY p.item_id, p.stage_id), '[]'::json)
         FROM (
@@ -136,8 +121,7 @@ export async function selectKosztorysTreeData(
       materialsNetRate: numOrNull(row.materials_net_rate),
       globalDiscountType: textOrNull(row.global_discount_type),
       globalDiscountValue: num(row.global_discount_value),
-      // Payload handed callers an ISO string; the driver hands back a Date. The revision token is
-      // compared by value in the editor shell, so the format has to stay stable.
+      // The revision token is compared by value in the editor shell, so the format has to stay stable.
       updatedAt: new Date(row.updated_at as string).toISOString(),
     },
   }
@@ -147,8 +131,6 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   id: Number(row.id),
   name: String(row.name ?? ''),
   displayOrder: num(row.display_order),
-  // Validated on read, not trusted: a key retired from the palette reads as unpinned rather than
-  // painting with a CSS var that no longer exists.
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
@@ -173,8 +155,8 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   // złotych instead of at the investment's współczynnik (EX-766).
   wToolsOverrideValue: numOrNull(row.w_tools_override_value),
   ownToolsOverrideValue: numOrNull(row.own_tools_override_value),
-  // Same reading of NULL one level over: absent means „no mnożnik here", while `0` is a mnożnik
-  // someone chose — a stawka of zero złotych (EX-865).
+  // Absent means „no mnożnik here", while `0` is a mnożnik someone chose — a stawka of zero złotych
+  // (EX-865).
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: textOrNull(row.note),
@@ -197,8 +179,6 @@ const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({
   completed: row.completed === true,
 })
 
-// Shared by every raw read of an etap's members, so the tree, the pairs path and the worker view
-// agree on what a stored split means.
 export function mapStageSplit(mode: unknown, members: RowT[]): StageSplitT | null {
   return normalizeStageSplit({
     mode: mode === 'amount' ? 'amount' : 'percent',

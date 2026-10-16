@@ -14,7 +14,7 @@ import type { ActionResultT } from '@/types/action'
 const STALE_LINE = 'Tej pracy nie można już przetłumaczyć — odśwież zgłoszenie.'
 
 // Straight to the stronger model: a retry follows a bad or missing answer, and the cheap one tends to
-// repeat itself. Nothing reads these columns through a cache, so there is no tag to expire.
+// repeat itself.
 export async function retranslateReportLineAction(
   investmentId: number,
   lineId: number,

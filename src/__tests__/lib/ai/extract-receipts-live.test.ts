@@ -22,7 +22,6 @@ describe.skipIf(!IS_ENABLED)('extractReceipts on real photos (live model)', () =
         [{ bytes, mediaType: sniffMime(bytes) ?? '', filename: file }],
         [],
       )
-      // An entry with no total is a blank row the manager fills or deletes, so only totals count.
       const totalled = receipts.flatMap((receipt) =>
         receipt.amount === null ? [] : [{ ...receipt, amount: receipt.amount }],
       )

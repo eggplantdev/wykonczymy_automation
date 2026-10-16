@@ -16,17 +16,13 @@ type PropsT = {
   trigger?: ReactNode
 }
 
-// Give an investment a kosztorys by linking an existing Google Sheet (paste its URL/id). Shared by
-// the investment page banner and the investments table cell. Create-from-template is not offered:
-// the service account has no Drive quota to create sheets.
+// Create-from-template is not offered: the service account has no Drive quota to create sheets.
 export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
   const [open, setOpen] = useState(false)
   const [link, setLink] = useState('')
   const [saEmail, setSaEmail] = useState('')
   const [pending, startTransition] = useTransition()
 
-  // Load the service-account email when the dialog opens, so the link section can
-  // tell the user exactly who to share their sheet with (fetched lazily, once).
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
     if (next && !saEmail)
@@ -65,7 +61,6 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
               Najpierw udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi, a
               następnie wklej jego link poniżej.
             </Description>
-            {/* No icon: this is the continuation of the note above it, not a second one. */}
             {saEmail && (
               <Description size="xs" withIcon={false}>
                 Konto usługi:{' '}

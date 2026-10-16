@@ -44,7 +44,6 @@ export function translationColumn(
     component: TranslationCell,
     minWidth: 360,
     grow: 2,
-    // Same overlay contract as „Opis prac": the textarea owns Enter and the arrows while editing.
     disableKeys: true,
     copyValue: ({ rowData }) => translationText(rowData.descriptionTranslations, language),
     deleteValue: ({ rowData }) => withRowTranslation(rowData, language, null),

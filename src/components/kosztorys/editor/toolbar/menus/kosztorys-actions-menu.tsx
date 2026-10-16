@@ -38,7 +38,6 @@ import {
   type AcceptanceProtocolSourceT,
 } from '@/components/kosztorys/editor/dialogs/acceptance-protocol-dialog'
 
-// Item and dialog are siblings, never nested — see KosztorysActionsProvider for why.
 export function KosztorysActionsMenu({
   protocolSource,
 }: {
@@ -62,9 +61,7 @@ export function KosztorysActionsMenu({
 
   return (
     <>
-      {/* A szablon has no investor and no crew on its etapy, so the previews through their eyes and
-          the share links have nobody to address here. The „Arkusz Google" section drops out by
-          itself — `hasSheet` gates it, and the workbench has no sheet attached. A trashed investment's
+      {/* A trashed investment's
           links refuse to open, so its menus would only hand out dead ones. */}
       {!isTemplate && !isTrashed && (
         <>
@@ -81,11 +78,6 @@ export function KosztorysActionsMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
           <DropdownMenuLabel>Edycja</DropdownMenuLabel>
-          {/* On a zakończona inwestycja everything that writes is gone, „Zapisz wersję" included —
-              a snapshot is a write and the server refuses it. „Porównaj z arkuszem" goes with them:
-              it refreshes the stored Pomiar in the same pass, so it reads like a comparison and
-              writes like an import. What survives is what only READS: saving a szablon off the
-              kosztorys. */}
           {!readOnly && (
             <>
               <DropdownMenuItem onSelect={undo} disabled={!canUndo}>
@@ -97,13 +89,10 @@ export function KosztorysActionsMenu({
                 <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
               </DropdownMenuItem>
               <ReorderMenuItem />
-              {/* A szablon's opisy are its katalog entries' — cleaned on /katalog-prac. */}
               {!isTemplate && <CleanItemTextsMenuItem />}
               <FillTranslationsMenuItem />
             </>
           )}
-          {/* Above the lock: it changes nothing in the kosztorys, so a zakończona inwestycja reads
-              with it too. */}
           <DropdownMenuCheckboxRow
             checked={fitRowsToContent}
             onCheckedChange={toggleFitRowsToContent}
@@ -133,8 +122,6 @@ export function KosztorysActionsMenu({
           <DropdownMenuLabel>Szablony</DropdownMenuLabel>
           <SavePresetMenuItem />
           {!readOnly && <ReloadPresetMenuItem />}
-          {/* Both entries can only answer „Inwestycja nie ma kosztorysu." without a linked sheet, and
-              both write, so the whole section goes under the lock. */}
           {!readOnly && hasSheet && (
             <>
               <DropdownMenuSeparator />

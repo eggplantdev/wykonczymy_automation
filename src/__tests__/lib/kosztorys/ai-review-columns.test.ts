@@ -29,7 +29,6 @@ describe('aiCommentLines — Komentarz AI', () => {
   })
 })
 
-// EX-1057: „Nowe informacje” sits beside Komentarz AI, so the reveal and the picker carry it with the rest.
 describe('AI_REVIEW_COLUMN_IDS — Nowe informacje', () => {
   it('follows Komentarz AI and has its label', () => {
     const ids: readonly string[] = AI_REVIEW_COLUMN_IDS
@@ -38,7 +37,6 @@ describe('AI_REVIEW_COLUMN_IDS — Nowe informacje', () => {
   })
 })
 
-// EX-1057: Komentarz AI beside it reads as label + bold answer — the two columns have to look the same.
 describe('aiNewInformationLines — Nowe informacje', () => {
   const round = (n: number, line: string) =>
     `Runda ${n} — AI przedmiar: 0 → 6,89 m²\nPowód: projekt wykonawczy\n${line}`

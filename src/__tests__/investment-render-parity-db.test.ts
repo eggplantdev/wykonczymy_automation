@@ -39,15 +39,6 @@ import type {
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentWithNotesT } from '@/types/reference-data'
 
-// REAL-PATH parity: assemble each figure the way each PAGE assembles it, over the real DB, for every
-// investment — the listing through `shapeInvestments` itself, the detail through
-// buildFinancialFields / calculateMargin as financial-stats.tsx does — then assert the two agree.
-//
-// Both sides read robocizna and rabat from the KOSZTORYS, because that is the plane the listing is
-// on; the v1 cards render the transactions plane by design. What this guards is `shapeInvestments`
-// drifting from the detail formulas (lessons.md:19).
-//
-// Skips with no DB env, FAILS if env is set but the DB is unreachable. Run via `pnpm test:parity`.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly paths (DB)', () => {
@@ -134,10 +125,6 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
     }
 
     const mismatches: string[] = []
-    // The dataset floor on the one axis this comparison is blind to: the prod dump carries no netto
-    // wydatek, so `materialsNetBilled` and the „wszystko netto" concession would be compared on
-    // nobody while the spec passes green. Counted in the COMPARED set, not queried from the DB — a
-    // row that exists but never reaches a comparison guards nothing.
     const covered = { netBilled: 0, concession: 0, remaining: 0 }
     for (const inv of investments) {
       const where = { investment: { equals: inv.id } }
@@ -146,9 +133,6 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         sumCategoryByTypeSettled(payload, where),
       ])
       const breakdowns = deriveCategoryBreakdowns(catRows)
-      // Two planes, and NOT interchangeable: the v1 columns are the raw transactions the detail page
-      // feeds v1, the v2 columns the same figures rebased onto the kosztorys reading. Comparing a v1
-      // column against the rebased object let the listing marża drift 235 908,25 zł while green.
       const invTotals = kosztorysTotals[String(inv.id)]
       const transactionFin = deriveFinancials(
         byType,
@@ -162,9 +146,6 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       if (transactionFin.materialsNetBilled !== 0) covered.netBilled++
       if (transactionFin.materialsNetDiscount !== 0) covered.concession++
 
-      // The REAL row builder, not a re-derivation of its formulas — a figure wrong ONLY inside
-      // `shapeInvestments` is what slipped past this spec before (lessons.md:19). Through it even
-      // with no transfers: the listing renders such an investment too.
       const listingFin = listingMap.get(inv.id)
       const [listingRow] = shapeInvestments(
         [inv],
@@ -178,16 +159,12 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       // side that happens to be 0 and pass green.
       expect(listingRow, `#${inv.id} ${inv.name} is missing from the listing`).toBeDefined()
 
-      // The formula ToggleStatButtons renders, over every card: FinancialStats partitions `fields`
-      // into rows without dropping any, so rows.flat() is `fields`.
       const detailBalanceFromTransactions = computeSummary(
         buildFinancialFields(transactionFin, expenseCategories),
         new Set(),
       )
       const netRate = effectiveMaterialsNetRate(inv.settlementMode, inv.materialsNetRate)
-      // The only reading of the brutto plane in the app, so the oracle has to be this call and not a
-      // second formula no surface renders. Both bilanse v2 come off it, netto included: a v1-shaped
-      // sum over `financialsOnReading` deducts `totalIncome`, which counts a przelew at its brutto
+      // a v1-shaped sum over `financialsOnReading` deducts `totalIncome`, which counts a przelew at its brutto
       // where the netto plane deducts the netto the faktura named — 230 zł apart on a 1230/1000 wpłata.
       const detailAmountDue = computeAmountDue(
         readingFromKosztorys(invTotals).laborCostsNet,
@@ -208,7 +185,6 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           transactionFin.totalLaborCosts,
         ],
         [
-          // The plane the defect lived on: bilans and marża both looked healthy while this drifted.
           'wydatki inwestycyjne',
           listingRow?.totalInvestmentExpense ?? 0,
           billedMaterials(
@@ -221,7 +197,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       ]
 
       // NOT the SQL fold on the right: the listing already reads it, so feeding it to both sides
-      // would compare the fold with itself. The tree is what the panel renders.
+      // would compare the fold with itself.
       const tree = await buildKosztorysTree(inv.id)
       const byPlane = subcontractorDueByPlane(treeToRows(tree), tree.stages)
       const detailMarginV2 = marginV2(detailFin, toSettlement(byPlane))
@@ -247,7 +223,6 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
               derivePayoutsByWorker(await getPayoutTransactionsForInvestment(payload, inv.id), []),
             ).remaining
       const listingRemaining = listingRow?.subcontractorRemaining
-      // Withheld against withheld agrees on nothing; only a printed kwota proves the figure.
       if (detailRemaining !== undefined && detailRemaining !== 0) covered.remaining++
       if (detailRemaining !== listingRemaining) {
         mismatches.push(

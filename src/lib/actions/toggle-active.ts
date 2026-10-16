@@ -65,15 +65,13 @@ export async function toggleUserActive(id: number, active: boolean) {
     cacheTag: 'users',
     data: (active) => ({ active }),
     overrideAccess: true,
-    // A deactivated account is locked out like a trashed one, so it answers to the same rules.
     refusal: async (payload, actor, id, active) => {
       const subject = await fetchRemovalSubject(await getDb(payload), id)
       if (!subject) return undefined
       if (!canManageAccount(actor.role, subject.role)) return MANAGER_SCOPE_MESSAGE
       return active ? undefined : removalRefusal(subject, { isSelf: actor.id === id })
     },
-    // A deactivated account is refused at login; this also shuts the `/admin` and REST sessions it
-    // already holds. After the update, which would otherwise write the sessions back.
+    // After the update, which would otherwise write the sessions back.
     afterUpdate: async (payload, id, active) => {
       if (active) return
       const db = await getDb(payload)

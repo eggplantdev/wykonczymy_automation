@@ -1,13 +1,3 @@
-// Manual-check fixture for „Pozostało do wypłaty" and „Rozlicz wypłaty" (EX-919) — the pair shapes
-// the prod dump lacks. Idempotent: every run deletes what the previous one seeded and rebuilds it.
-//
-//   Wypłaty A    Jan on a settled etap                  → payable, ahead-payable
-//   Wypłaty B    Jan + Piotr, an etap with nobody on it, a wypłata booked with nobody
-//                                                         → two workers + „Nieprzypisane"
-//   Wypłaty C    Piotr on an etap with work but no rozliczenie → withheld
-//   Wypłaty D    Jan on a settled etap, then zakończona  → locked
-//
-// Run: pnpm seed:worker-payouts (test DB, 5435)
 import { getPayload, type Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import config from '@payload-config'

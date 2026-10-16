@@ -10,8 +10,8 @@ type ArgsT = {
   counts: ReadonlyMap<string, number>
 }
 
-// Same rules as the editor's `filtersMenuModel`: ticked = visible, and a filter with nothing to match
-// is left off unless it is engaged — then its tick is the only way to bring the rows back.
+// A filter with nothing to match is left off unless it is engaged — then its tick is the only way to
+// bring the rows back.
 export function catalogueFiltersMenuModel({
   conditions,
   engagedIds,

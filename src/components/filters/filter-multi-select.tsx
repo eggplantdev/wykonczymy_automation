@@ -19,70 +19,42 @@ import { useTranslation } from '@/hooks/use-translation'
 
 type OptionT = { value: string; label: string }
 
-/**
- * „Zaznacz / odznacz wszystkie" for the `toggles` group, which `toggleAll` cannot reach — that one
- * owns the option list and the toggles are the caller's state. Exported so the producing hook states
- * the same shape instead of restating it, where a drift would only surface at the call site.
- */
 export type FilterTogglesBulkT = { allActive: boolean; onToggleAll: (next: boolean) => void }
 
 type FilterMultiSelectPropsT = {
-  // Empty for a menu built entirely out of `toggles`, which then renders as one trigger with a count
-  // instead of a row of loose buttons in the grid.
   values?: string[]
   onValuesChange?: (values: string[]) => void
   options?: OptionT[]
-  /**
-   * Ticked, unclickable, and outside the selection entirely — never written to the param, counted, or
-   * touched by „Zaznacz wszystkie". For a list whose scope already guarantees them: „Tryb anulowań"
-   * offers „Anulowanie" beside types it can narrow, and a dead tick is the honest way to show it.
-   */
+  /** Ticked, unclickable, and outside the selection entirely — never written to the param, counted, or
+   * touched by „Zaznacz wszystkie". */
   lockedValues?: string[]
   label: string
   icon?: LucideIcon
   searchable?: boolean
   triggerClassName?: string
-  // For tight surfaces where a tooltip carries the meaning.
   iconOnly?: boolean
   title?: string
   bulkLabels?: { select: string; deselect: string }
-  // Rows that tick a whole SUBSET of the options at once. Both hooks read the live local selection
-  // rather than state of their own, so unticking one member by hand unticks the group row with it.
   optionToggles?: ReadonlyArray<{
     label: string
     isActive: (current: string[]) => boolean
     select: (current: string[]) => string[]
   }>
-  // Caller-owned on/off rows above the options, so one menu can answer „czego nie widzę" with more
-  // than the option list instead of splitting it across triggers.
   toggles?: ReadonlyArray<{
     id: string
     label: string
-    // The heading this row is filed under, for a list long enough to be read by subject first. Rows
-    // arrive already ordered by it — this component only notices where it changes. Omitted by a
-    // caller whose rows are one flat list.
     groupLabel?: string
     description?: string
     active: boolean
     onToggle: () => void
     disabled?: boolean
   }>
-  // Optional, because a group of two or three rows is faster clicked than swept.
   togglesBulk?: FilterTogglesBulkT
-  // For the two groups this component owns; the toggle groups carry their own. Worth setting once a
-  // menu mixes rows acting on different things — a bare separator never says what each group is.
   actionsHeading?: string
   optionsHeading?: string
-  // A Button rather than a row with a checkmark because it is the one thing in the menu that is an
-  // action, not a state — its effect is to leave nothing engaged, so a tick would report nothing.
-  // `onReset` covers whatever the caller keeps outside the option list.
   resetAction?: { label: string; onReset: () => void; disabled?: boolean }
-  // Replaces the derived „how many options are ticked" count, for a caller whose menu hides things by
-  // more than the option list.
   triggerCount?: number
-  // Widens the panel for a menu whose rows are sentences rather than labels.
   contentClassName?: string
-  // Says what a tick means, for a menu where unticking hides rather than narrows to the ticked rows.
   intro?: { heading: string; hint?: string }
 }
 
@@ -91,13 +63,8 @@ export const FILTER_NONE = '__none__'
 const DEBOUNCE_MS = 600
 
 /**
- * One row, two groups: the option list's sweep and the toggles' sweep read the same labels and draw
- * the same icon, and a menu offering both would otherwise carry the sentence twice.
- *
  * `value` is an id rather than the visible sentence, which is what cmdk would derive: both rows say
- * the same words, so one menu showing both would hold two items under one value — an ambiguous
- * keyboard target and an ambiguous `getByRole('option', { name })`. `keywords` hands the sentence
- * back to the search filter that `value` no longer feeds.
+ * the same words, so one menu showing both would hold two items under one value.
  */
 function BulkSelectRow({
   id,
@@ -201,14 +168,10 @@ export function FilterMultiSelect({
     scheduleFlush(result)
   }
 
-  // Every toggle that is on, default or not: it IS narrowing the list, and once the panel is closed
-  // the trigger is the only place that says so.
   const activeToggleCount =
     toggles?.filter((toggle) => !toggle.disabled && toggle.active).length ?? 0
 
-  // Whatever the trigger counts is what it highlights, or the two disagree for a caller whose menu
-  // hides more than the option list. Two expressions, because highlighted is not „count > 0": „nic
-  // nie zaznaczone" is a filter that counts zero and still has to light up.
+  // „nic nie zaznaczone" is a filter that counts zero and still has to light up.
   const isFiltered = triggerCount == null ? !allSelected || activeToggleCount > 0 : triggerCount > 0
   const triggerBadgeCount = triggerCount ?? (allSelected ? 0 : selected.length) + activeToggleCount
 
@@ -242,10 +205,6 @@ export function FilterMultiSelect({
     }
   }, [])
 
-  // One run per heading, split where `groupLabel` changes rather than grouped by value: the caller
-  // orders the rows, so a repeated heading would mean the caller interleaved two axes — and showing
-  // that is more honest than silently reuniting them. A caller passing no `groupLabel` gets one
-  // headless run, which is the same flat list as before.
   const toggleRuns = (toggles ?? []).reduce<
     { heading: string | undefined; items: NonNullable<typeof toggles>[number][] }[]
   >((runs, toggle) => {
@@ -302,15 +261,9 @@ export function FilterMultiSelect({
           )}
         </FilterTriggerButton>
       </PopoverTrigger>
-      {/* Grows to whatever Radix measured between the trigger and the viewport edge. cmdk's stock
-          list is capped at 300px flat, which on a phone cut a 13-option menu in half. */}
+      {/* cmdk's stock list is capped at 300px flat, which on a phone cut a 13-option menu in half. */}
       <PopoverContent
-        className={cn(
-          // `overflow-hidden`, not the primitive's `overflow-y-auto`: the inner CommandList is what
-          // scrolls, so the header and footer stay put while the options move.
-          'flex flex-col overflow-hidden p-0',
-          contentClassName,
-        )}
+        className={cn('flex flex-col overflow-hidden p-0', contentClassName)}
         align="start"
       >
         {intro && (
@@ -340,8 +293,6 @@ export function FilterMultiSelect({
           <CommandList className="max-h-none">
             {toggles && toggles.length > 0 && (
               <>
-                {/* Above the headings rather than inside the first one, where it would read as
-                    acting on that axis alone. */}
                 {bulkToggleRow && <CommandGroup>{bulkToggleRow}</CommandGroup>}
                 {/* Keyed by each run's first row, not by its heading: an interleaved caller opens
                     two runs under one heading, and a heading key would collide. */}
@@ -380,8 +331,6 @@ export function FilterMultiSelect({
             )}
             {options.length > 0 && (
               <CommandGroup heading={optionsHeading}>
-                {/* Uncaptioned, the bulk rows act on the list below, so they belong inside its group
-                  rather than in a mute one above it. */}
                 {!actionsHeading && (
                   <>
                     {actionRows}

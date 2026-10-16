@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { RoleT } from '@/lib/auth/roles'
 
-// The held-equipment list on the worker page is a client-callable read open to an EMPLOYEE — the
-// gate must hand him his own holder list and nothing else.
 vi.mock('server-only', () => ({}))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({}) }))

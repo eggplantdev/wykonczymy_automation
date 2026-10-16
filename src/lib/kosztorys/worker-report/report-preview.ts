@@ -18,10 +18,6 @@ type WorkerDescriptionT = {
   workerDescriptionLanguage: string | undefined
 }
 
-/**
- * The opis as the worker reads it, for a manager to see beside the Polish: an extra he wrote
- * himself in his own words, otherwise the pozycja's translation into his language.
- */
 export function workerDescriptionOf(
   line: {
     description: string
@@ -61,7 +57,6 @@ export function buildReportPreview(
   { report, lines, media }: ReportPreviewReadT,
   { viewerLanguage, isManagement, sectionTranslations }: ViewerT,
 ): ReportPreviewT {
-  // Management reads the rozpiska as the owner wrote it, whatever its own account says.
   const language: LanguageT = isManagement ? 'pl' : viewerLanguage
   const workerLanguage = report.workerLanguage ?? undefined
 
@@ -104,7 +99,6 @@ export function buildReportPreview(
     }
   }
 
-  // A line without a live sekcja (a deleted pozycja, an extra nobody took) sorts after the rozpiska.
   const sorted = lines.toSorted(
     (first, second) =>
       (first.sectionOrder ?? Infinity) - (second.sectionOrder ?? Infinity) ||

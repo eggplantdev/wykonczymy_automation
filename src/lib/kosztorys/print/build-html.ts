@@ -5,10 +5,7 @@ import { PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 type KosztorysPrintArgsT = {
-  // Already the rows to print — which pozycje an audience sees is its own rule, decided by the caller.
   rows: KosztorysV2RowT[]
-  // Already capped by the audience's ceiling: this builder renders what it is handed and knows no
-  // allowlist of its own.
   columns: readonly PrintColumnT[]
   documentKind: string
   title: string
@@ -16,21 +13,14 @@ type KosztorysPrintArgsT = {
   pageTitle: string
   logoUrl: string
   fillByColorKey: ReadonlyMap<string, string>
-  // The column whose figure the section totals sit under. Hidden, and the totals go with it.
   moneyKey: string
   money: (n: number) => string
   totalNet: number
   sectionNetById: ReadonlyMap<number, number>
-  // Appended to the shared stylesheet, for a document whose shape the offer's page does not fit.
   extraStyles?: string
-  // Replaces the „Razem netto" block — printed whether or not the money column survived, because it is
-  // the audience's own balance, not a sum of the table.
   footerHtml?: string
-  // Set by the worker's document, printed in the worker's language; the offer keeps the Polish defaults.
   lang?: LanguageT
   totalLabel?: string
-  // Which column parity gets the stripe — the worker's form flips it so the columns he writes in and
-  // reads from stay white.
   stripeParity?: 0 | 1
 }
 
@@ -52,12 +42,9 @@ export function buildKosztorysPrintHtml({
   lang = 'pl',
   totalLabel = 'Razem',
 }: KosztorysPrintArgsT): string {
-  // The on-screen preview's column stripes, carried onto paper so the two read alike.
   const stripe = (index: number) => (index % 2 === stripeParity ? ' stripe' : '')
-  // Every sum in the document is a sum of the money column. With it hidden the owner has decided the
-  // reader sees no money, so the totals go with it rather than reappearing in a footer.
-  // The index is what the section total is placed by — „Pozostało" sits to its right, so a figure
-  // parked in the last cell would print the przedmiar's sum under the wrong heading.
+  // „Pozostało" sits to its right, so a figure parked in the last cell would print the przedmiar's
+  // sum under the wrong heading.
   const moneyIndex = columns.findIndex((column) => column.key === moneyKey)
   const withMoney = moneyIndex >= 0
 
@@ -70,10 +57,8 @@ export function buildKosztorysPrintHtml({
     if (sectionId === null || !withMoney) return
     const sectionNet = sectionNetById.get(sectionId)
     if (sectionNet === undefined) return
-    // Both documents pin „Opis prac" first, so the money column always has a label cell to its left.
-    // The floor only guards a future caller whose list pins nothing: `colspan="0"` means „to the end
-    // of the colgroup" in HTML5, and the browser would span the whole row. The filler count reads
-    // the SAME span, not `moneyIndex`, so the two cannot disagree by one.
+    // `colspan="0"` means „to the end of the colgroup" in HTML5, and the browser would span the
+    // whole row.
     const labelSpan = Math.max(1, moneyIndex)
     body.push(
       `<tr class="band-total">` +

@@ -6,8 +6,6 @@ import { CheckIcon, MinusIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils/cn'
 
-// `ai` matches the `ai` button: `gradient-border` paints the background itself, so the default's
-// fills would fight it rather than merge — the two variants share no colour classes.
 const CHECKBOX_VARIANT_CLASSES = {
   default:
     'border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground data-[state=indeterminate]:border-primary border',
@@ -44,7 +42,6 @@ function Checkbox({
   )
 }
 
-// Radix's own three-way value, so a group box says „część" instead of claiming the whole group.
 const checkedState = (selected: number, total: number): boolean | 'indeterminate' =>
   selected === 0 ? false : selected === total ? true : 'indeterminate'
 

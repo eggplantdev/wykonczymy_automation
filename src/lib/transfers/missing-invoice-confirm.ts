@@ -1,6 +1,5 @@
 import type { SubmitConfirmCopyT } from '@/components/forms/hooks/use-submit-confirm'
 
-// Neutral, and it never refuses: a purchase with no document still happened and has to be bookable.
 const MISSING_INVOICE_COPY = {
   title: 'Brak faktury',
   confirmLabel: 'Zapisz bez faktury',

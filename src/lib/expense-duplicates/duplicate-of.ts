@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-// What management marked a refused paragon a duplicate of (EX-1025).
 export const duplicateOfSchema = z.object({
   source: z.enum(['transaction', 'draft']),
   id: z.number().int().positive(),
@@ -8,8 +7,6 @@ export const duplicateOfSchema = z.object({
 
 export type DuplicateOfT = z.infer<typeof duplicateOfSchema>
 
-// A paragon management left out of an acceptance; `duplicateOf` when it was left out as a duplicate.
-// `readRow` is its row in the draft's AI read, which a restore carries over.
 export const skippedReceiptSchema = z.object({
   mediaIds: z.array(z.number().int().positive()),
   readRow: z.number().int().nonnegative().optional(),

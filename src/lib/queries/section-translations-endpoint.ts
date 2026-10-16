@@ -6,7 +6,6 @@ import { renderSectionName, sectionNameKey } from '@/lib/i18n/section-translatio
 import type { ActionResultT } from '@/types/action'
 import { getSectionTranslations } from './section-translations'
 
-// What the worker would see for THIS section, numbers filled in — so the manager edits real text.
 // An untranslated language is '', never the Polish fallback: an empty field must mean "none".
 export async function getSectionTranslationForName(
   sectionName: string,

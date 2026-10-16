@@ -36,7 +36,6 @@ export async function fetchDraftTransferIds(transferIds: number[]): Promise<numb
   return listDraftTransferIds(await getDb(await getPayload({ config })), transferIds)
 }
 
-/** Every transfer a draft was booked as — unscoped, so management only. */
 export async function fetchAllDraftTransferIds(): Promise<number[]> {
   return listAllDraftTransferIds(await managementDb())
 }

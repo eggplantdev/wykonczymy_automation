@@ -5,10 +5,8 @@ import type { StampT } from '@/lib/equipment/digest'
 import type { EquipmentWarrantyRowT } from '@/lib/equipment/types'
 
 /**
- * One read, narrowed to the only rows the sweep can ever announce — a retired item and an item with
- * no warranty date are both silent by construction. `assertCompletePage` fails the whole digest
- * closed on a second page, so the narrower the query, the further away that ceiling is.
- * Takes `payload` rather than importing `@payload-config` so the cron can share it.
+ * `assertCompletePage` fails the whole digest closed on a second page, so the narrower the query,
+ * the further away that ceiling is.
  */
 export async function loadWarrantyRows(payload: Payload): Promise<EquipmentWarrantyRowT[]> {
   const page = await payload.find({
@@ -37,12 +35,8 @@ export async function loadWarrantyRows(payload: Payload): Promise<EquipmentWarra
 }
 
 /**
- * Record what was announced — called only after a successful send. A stamp written ahead of the mail
- * would silence a warranty for good on a delivery that never happened, and unlike a fleet deadline
- * there is no weekly re-nag to recover it.
- *
- * `skipRevalidation` because forty stamps would otherwise bust the register's cache forty times for
- * one digest; the caller revalidates once when the loop is done.
+ * A stamp written ahead of the mail would silence a warranty for good on a delivery that never
+ * happened.
  */
 export async function stampNotified(
   payload: Payload,

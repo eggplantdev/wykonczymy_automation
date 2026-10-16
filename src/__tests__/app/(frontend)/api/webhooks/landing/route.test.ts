@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 import { LANDING_SUBMISSION } from '@/__tests__/fixtures/landing-submission'
 
-// Route-handler unit test, mirroring wpforms-route.test.ts: the DB, the mailer and the asset
-// fetcher are the mocked seams; the signature check and the landing parser stay real. What is
-// under test is which requests are refused, and — the branches unique to this route — that a file
-// that cannot be pulled never costs us the enquiry, and that a replay costs us nothing at all.
 vi.mock('next/server', () => ({
   after: (fn: () => unknown) => void fn(),
   NextResponse: {
@@ -101,9 +97,6 @@ describe('POST /api/webhooks/landing', () => {
     expect(notifyAssetFailure).not.toHaveBeenCalled()
   })
 
-  // The ordering this route is built around. The enquiry is the thing that must survive, and the
-  // downloads are the slow half — so the lead is written first and nothing about the files, not
-  // even all of them failing, may undo it.
   it('persists the lead even when every asset fetch throws', async () => {
     vi.mocked(fetchLandingAsset).mockRejectedValue(new Error('Pobranie nie powiodło się: HTTP 502'))
 
@@ -115,7 +108,6 @@ describe('POST /api/webhooks/landing', () => {
     expect(vi.mocked(notifyAssetFailure).mock.calls[0][1].stored).toBe(0)
   })
 
-  // The decision this route is built around: an incomplete photo set is the lesser failure, and
   // 200 is what lets the landing clear its queue row instead of replaying the whole submission.
   it('stores the lead, alerts and answers 200 when one asset cannot be pulled', async () => {
     vi.mocked(fetchLandingAsset)
@@ -129,8 +121,6 @@ describe('POST /api/webhooks/landing', () => {
     const alert = vi.mocked(notifyAssetFailure).mock.calls[0][1]
     expect(alert.stored).toBe(1)
     expect(alert.failed).toHaveLength(1)
-    // The url rides along because the file is still live in the landing's store — the alert is a
-    // recovery instruction, not just a record.
     expect(alert.failed[0].url).toBe(LANDING_SUBMISSION.assets![0].url)
   })
 
@@ -157,8 +147,6 @@ describe('POST /api/webhooks/landing', () => {
     expect(notifyAssetFailure).not.toHaveBeenCalled()
   })
 
-  // The other half of that guard. A redelivery whose lead carries NO files is the crash between
-  // capture and attach, and is the one case that does get another go at downloading them.
   it('retries the download when the captured lead carries no files', async () => {
     capturedLead([], false)
 
@@ -166,10 +154,7 @@ describe('POST /api/webhooks/landing', () => {
     expect(fetchLandingAsset).toHaveBeenCalledTimes(2)
   })
 
-  // An erased lead (EX-970) carries no files because the owner dropped them, not because a crash
-  // lost them — so the retry case above must not fire, and the landing may let its copies go.
   it('downloads nothing for an erased lead, and releases the landing copies', async () => {
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     vi.mocked(captureLead).mockResolvedValue({
       lead: { id: 1, assets: [], erasedAt: '2026-10-02T00:00:00.000Z' } as any,
       created: false,
@@ -197,8 +182,6 @@ describe('POST /api/webhooks/landing', () => {
     expect(releaseLandingAssets).not.toHaveBeenCalled()
   })
 
-  // Nothing failed on this pass because nothing was attempted — and the pass that DID run may have
-  // dropped a file. Counting what we hold against what was sent is what tells the two apart.
   it('keeps the landing copies on a redelivery that is missing a file', async () => {
     capturedLead([101], false)
 
@@ -208,8 +191,6 @@ describe('POST /api/webhooks/landing', () => {
     expect(releaseLandingAssets).not.toHaveBeenCalled()
   })
 
-  // A complete first pass whose 200 never reached the landing: it still holds the prefix, so the
-  // retry owes it the callback a second time rather than an orphan.
   it('releases again on a redelivery whose first pass was complete', async () => {
     capturedLead([101, 102], false)
 
@@ -218,8 +199,7 @@ describe('POST /api/webhooks/landing', () => {
     expect(releaseLandingAssets).toHaveBeenCalledWith(LANDING_SUBMISSION.submissionId)
   })
 
-  // The rows were reclaimed on our side, so our copy is gone too. Releasing here would leave the
-  // enquiry with no photos anywhere.
+  // Releasing here would leave the enquiry with no photos anywhere.
   it('keeps the landing copies when the attach write fails', async () => {
     update.mockRejectedValueOnce(new Error('db connection dropped'))
 

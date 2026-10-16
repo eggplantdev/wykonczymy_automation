@@ -168,8 +168,6 @@ describe('KosztorysWorkersMenu', () => {
     expect(within(dialog).queryByRole('button', { name: 'Wyłącz link' })).not.toBeInTheDocument()
   })
 
-  // Showing „nie jest wydany" — or offering „Wygeneruj link", which rotates a live one — on a read
-  // that failed would state something nobody checked.
   it('closes the link dialog when the link cannot be prepared', async () => {
     ensureWorkerLinkAction.mockRejectedValue(new Error('offline'))
     renderMenu()
@@ -194,7 +192,6 @@ describe('KosztorysWorkersMenu', () => {
     expect(celinaPrint).toHaveAttribute('aria-disabled', 'true')
   })
 
-  // The link is handed out per investment, as the investor's is — so a manager may do it.
   it('lets a manager open the podgląd and the link of a worker', async () => {
     renderMenu('MANAGER')
     await openMenu()
@@ -216,7 +213,6 @@ describe('KosztorysWorkersMenu', () => {
     })
   })
 
-  // Like the investor's „Udostępnij": the click is the hand-out, so the link lands in the clipboard.
   it('copies a worker’s link on the click', async () => {
     renderMenu()
     await openMenu()
@@ -242,7 +238,6 @@ describe('KosztorysWorkersMenu', () => {
     open.mockRestore()
   })
 
-  // The settings are firm-wide, and the owner handed them to managers on purpose (0f664eec).
   it('lets a manager edit the view settings', async () => {
     renderMenu('MANAGER')
     await openMenu()

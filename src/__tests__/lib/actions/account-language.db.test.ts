@@ -4,9 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { LanguageT } from '@/lib/i18n/languages'
 
-// The worker sets his own „Domyślny język” (EX-996): the write must land on the session's account
-// only, and Polish must store as the absence of a language, the same as „Edytuj pracownika” writes it.
-
 vi.mock('server-only', () => ({}))
 const session = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({

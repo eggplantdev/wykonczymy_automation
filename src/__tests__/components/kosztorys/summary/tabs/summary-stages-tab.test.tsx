@@ -45,7 +45,6 @@ describe('SummaryStagesTab', () => {
     expect(screen.queryByText('Tynki')).not.toBeInTheDocument()
   })
 
-  // The owner plans etapy before any work is booked against them, so their tab keeps the empty ones.
   it('keeps every etap on the owner’s tab', () => {
     renderTab([row()], false)
 

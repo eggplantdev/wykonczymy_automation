@@ -1,7 +1,3 @@
-/**
- * Merges param overrides into existing search params and returns a full URL.
- * Empty-string values delete the key.
- */
 export function buildUrlWithParams(
   baseUrl: string,
   currentParams: string,

@@ -6,18 +6,8 @@ import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import type { MaterialTransactionRowT } from '@/types/transfers'
 import type { PreviewFileT } from '@/types/media'
 
-// CHARACTERIZATION SUITE (EX-573 phase 0) — the bucketing rule, pinned before phase 2
-// rewrites deriveFinancials to read the spec table.
-//
-// Shape: feed ONE (type, settled) pair at a time and assert which buckets pick it up.
-// A whole-distribution snapshot would let two compensating errors cancel out; a single
-// pair per run makes every cell of the matrix independently observable, and a failure
-// names the exact pair that moved.
-
 const AMOUNT = 100
 
-// Invoice fields null throughout — the bucketing reconciles amounts, and a row's attached invoice
-// has no bearing on which bucket it lands in.
 const ROW_BASE = {
   date: '2026-07-26',
   label: 'Materiały',
@@ -31,9 +21,7 @@ type BucketNameT = Exclude<
   'categoryCosts' | 'settledCategoryCosts' | 'netCategoryCosts'
 >
 
-/** Which (type, settled) pairs land in each bucket today. Hand-typed, not derived. */
 const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
-  // The headline the two bilanses read — the sum of the two material buckets below.
   totalMaterialCosts: [
     ['INVESTMENT_EXPENSE', false],
     ['CORRECTION', false],
@@ -44,15 +32,10 @@ const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
     ['INVESTMENT_EXPENSE', false],
     ['CORRECTION', false],
   ],
-  // Ignores `settled` (like the deposit buckets): the netto type is `settleable: false`,
-  // so a settled netto row cannot be written — and were one ever forged, dropping it here
-  // would hide it from every figure instead of surfacing it.
   materialsNetBilled: [
     ['INVESTMENT_EXPENSE_NET', false],
     ['INVESTMENT_EXPENSE_NET', true],
   ],
-  // The deposit buckets ignore `settled` entirely — a settled deposit is not a concept,
-  // but the predicate does not exclude it, and that tolerance is the pinned behaviour.
   totalIncome: [
     ['INVESTOR_DEPOSIT', false],
     ['INVESTOR_DEPOSIT', true],
@@ -61,9 +44,6 @@ const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
     ['OTHER_DEPOSIT', false],
     ['OTHER_DEPOSIT', true],
   ],
-  // Since the write-switch (EX-555) this bucket is the FALLBACK rule, not the listing rule: an
-  // investment with kosztorys rows reads robocizna from the kosztorys and never reaches here. What
-  // is pinned below is what a legacy, kosztorys-less investment still bills at.
   totalLaborCosts: [
     ['LABOR_COST', false],
     ['LABOR_COST', true],
@@ -72,7 +52,6 @@ const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
     ['PAYOUT', false],
     ['PAYOUT', true],
   ],
-  // Fallback rule, same as totalLaborCosts above — the kosztorys branch supplies rabat itself.
   totalDiscount: [
     ['RABAT', false],
     ['RABAT', true],
@@ -92,7 +71,7 @@ const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
     ['CORRECTION', true],
   ],
   // Derived from materialsGrossBase and the investment's rate, which this matrix never supplies, so
-  // every pair must leave it at 0. Its own arithmetic lives in lib/db/investment-financials.test.ts.
+  // every pair must leave it at 0.
   materialsNetDiscount: [],
 }
 
@@ -104,9 +83,6 @@ const ALL_PAIRS: [string, boolean][] = TRANSFER_TYPES.flatMap((type) => [
 const isMember = (bucket: BucketNameT, [type, settled]: [string, boolean]) =>
   BUCKET_MEMBERSHIP[bucket].some(([t, s]) => t === type && s === settled)
 
-// `deriveFinancials` is the TRANSACTIONS plane. For robocizna and rabat that plane is now only the
-// fallback the listing takes when an investment has no kosztorys rows (EX-555); every other bucket
-// here is a cash movement the kosztorys knows nothing about and is still the one rule.
 describe('deriveFinancials — bucketing matrix (transactions plane)', () => {
   it('covers every bucket', () => {
     const financials = deriveFinancials([])
@@ -123,8 +99,6 @@ describe('deriveFinancials — bucketing matrix (transactions plane)', () => {
   for (const pair of ALL_PAIRS) {
     const [type, settled] = pair
     describe(`${type} · settled=${settled}`, () => {
-      // Both columns carry AMOUNT so the matrix stays one number wide; which column a
-      // type actually bills at is pinned separately, below.
       const financials = deriveFinancials([{ type, settled, total: AMOUNT, netTotal: AMOUNT }])
       for (const bucket of Object.keys(BUCKET_MEMBERSHIP) as BucketNameT[]) {
         const expected = isMember(bucket, pair) ? AMOUNT : 0
@@ -137,7 +111,6 @@ describe('deriveFinancials — bucketing matrix (transactions plane)', () => {
 })
 
 describe('deriveFinancials — the netto type bills at netTotal, never at total', () => {
-  // The whole point of the type: brutto leaves the register, netto bills the investor.
   // Reading `total` here would bill the client the VAT the owner reclaims.
   const financials = deriveFinancials([
     { type: 'INVESTMENT_EXPENSE_NET', settled: false, total: 1230, netTotal: 1000 },
@@ -212,9 +185,6 @@ describe('deriveCategoryBreakdowns — same membership, split by settled', () =>
     expect(settled.categoryCosts).toEqual(followsSettled ? [] : isMaterial ? cost : [])
   })
 
-  // netCategoryCosts is a SUBSET of categoryCosts, not a sibling total: the netto rows are
-  // counted once in the headline and named here only so a consumer can freeze that part
-  // against the global „wszystko netto" toggle.
   it('names the netto share per category without removing it from categoryCosts', () => {
     const { categoryCosts, netCategoryCosts } = deriveCategoryBreakdowns([
       { categoryId: 7, type: 'INVESTMENT_EXPENSE', settled: false, total: 200 },
@@ -237,8 +207,7 @@ describe('deriveCategoryBreakdowns — same membership, split by settled', () =>
     expect(netCategoryCosts).toEqual([])
   })
 
-  // The „… netto" row shows its invoice brutto, so the brutto must come from `amount` — 8% apart
-  // here, because a 23% pair is exactly what a rate-derived brutto would reproduce.
+  // 8% apart here, because a 23% pair is exactly what a rate-derived brutto would reproduce.
   describe('netCategoryGrossCosts — the invoice brutto of the netto rows', () => {
     const netRow = {
       categoryId: 7,
@@ -288,8 +257,6 @@ describe('deriveCategoryBreakdowns — same membership, split by settled', () =>
     ])
   })
 
-  // Σ settledCategoryCosts must equal totalSettled by construction — the invariant the
-  // „Materiały wliczone w robociznę" buttons rely on to sum to the headline figure.
   it('reconciles with deriveFinancials over a mixed distribution', () => {
     const rows = [
       { categoryId: 1, type: 'INVESTMENT_EXPENSE', settled: false, total: 100 },
@@ -319,9 +286,6 @@ describe('deriveCategoryBreakdowns — same membership, split by settled', () =>
   })
 })
 
-// Regression: the „Wydatki inwestycyjne" list mapped every row to its brutto `amount`, so a netto
-// row showed the client the VAT-inclusive figure and the list's Σ overshot the breakdown above it.
-// The list's per-row rule (billedAmountFor) and the aggregate rule (deriveFinancials) must agree.
 describe('per-row billed figure reconciles with the aggregate', () => {
   it('Σ billedAmountFor over the unsettled material rows === totalMaterialCosts', () => {
     const rows = [
@@ -347,12 +311,7 @@ describe('per-row billed figure reconciles with the aggregate', () => {
   })
 })
 
-// The wydatki list splits into three mutually exclusive tabs, so no single tab's Σ equals the
-// breakdown's „Razem" any more — the two expense tabs must add up to it instead. Without this the
-// tab filter could silently drop or double-count a type and no figure on screen would contradict it.
-// (The split's own behaviour is pinned in lib/kosztorys/expense-datasets.test.ts; this is the seam.)
 describe('the wydatki tabs partition the billed total', () => {
-  // `type` narrowed to required: deriveFinancials has no stale-cache tolerance to exercise here.
   const rows: (MaterialTransactionRowT & { type: TransferTypeT })[] = [
     { ...ROW_BASE, id: 1, type: 'INVESTMENT_EXPENSE', amount: 100, billed: 100, settled: false },
     { ...ROW_BASE, id: 2, type: 'CORRECTION', amount: -25, billed: -25, settled: false },

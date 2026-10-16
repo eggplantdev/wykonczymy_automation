@@ -10,20 +10,14 @@ type ReviewFieldsT = Pick<
   'aiPlannedQty' | 'plannedQty' | 'reviewStatus' | 'aiRecheck'
 >
 
-// An „AI kosztorys" is one an agent draft was loaded into. Without one, AI przedmiar is NULL on every
-// row and none of the review machinery applies — an ordinary kosztorys must not grow statuses.
 export function hasAiDraft(rows: readonly Pick<KosztorysItemT, 'aiPlannedQty'>[]): boolean {
   return rows.some((row) => row.aiPlannedQty !== null)
 }
 
-// Only rows the agent offered work on await a verdict — one it left out (0) or never saw (NULL) does not.
 export const aiOffered = (row: Pick<KosztorysItemT, 'aiPlannedQty'>): boolean =>
   (row.aiPlannedQty ?? 0) > 0
 
-// Asked only on an AI kosztorys: what the quantities say with nothing picked. A praca the agent left
-// out (0) or never saw (added later with „Nowa praca") reads as Dodana once it has a Przedmiar, so it
-// is asked for a Powód zmiany like the rest. The agent drafts blind to the Przedmiar already typed, so
-// landing on the same number is a verdict already given: Zaakceptowana, not one more pozycja to check.
+// The agent drafts blind to the Przedmiar already typed, so landing on the same number is a verdict already given: Zaakceptowana, not one more pozycja to check.
 export function derivedReviewStatus(row: ReviewFieldsT): ReviewStatusT | null {
   if (aiOffered(row)) return row.plannedQty === row.aiPlannedQty ? 'accepted' : null
   return row.plannedQty > 0 ? 'added' : null
@@ -38,11 +32,6 @@ function statusForTypedQty(row: ReviewFieldsT): ReviewStatusT | null {
   return row.plannedQty === 0 ? 'rejected' : 'edited'
 }
 
-// Status and Przedmiar are one concept in two columns: picking Zaakceptowana/Odrzucona writes the
-// quantity, typing a quantity writes the status. Both changes land in the same onChange batch, so
-// undo restores them together. A round's „Do ponownego sprawdzenia" flag (EX-1057) rides the same
-// batch: `pickStatus` lowers it on any pick — so re-picking the status already stored counts as a
-// pick and copies the round's new AI przedmiar — and a typed quantity lowers it here.
 export function applyReviewRules<RowT extends ReviewFieldsT & { id: number }>(
   next: readonly RowT[],
   prevById: ReadonlyMap<number, RowT>,

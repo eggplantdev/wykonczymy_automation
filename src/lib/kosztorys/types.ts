@@ -1,7 +1,3 @@
-// Flat types for the labor ("robocizna") breakdown. Relations are reduced to numeric *_id
-// values — the query fetches with depth 0.
-// VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item.
-
 import type { InvestmentLockT } from '@/lib/constants/investment-lock'
 import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
@@ -20,16 +16,11 @@ import type {
 } from '@/types/transfers'
 
 export type DiscountTypeT = 'percent' | 'amount'
-// type null = none (per-item rabaty apply). When set it overrides them and is subtracted once from
-// the executed total (PLN netto). A percent rabat isn't stored here — it is a one-shot tool that
-// stamps a percent into every per-item rabat (applyPercentDiscountToAllItemsAction).
 export type GlobalDiscountT = { type: 'amount' | null; value: number }
 export type KosztorysSectionT = {
   id: number
   name: string
   displayOrder: number
-  // Palette key (src/lib/kosztorys/section-colors.ts); null = unpinned — the pie colours this
-  // section by position.
   color: SectionColorKeyT | null
 }
 
@@ -37,8 +28,6 @@ export type ReviewStatusT = (typeof REVIEW_STATUSES)[number]
 
 export type KosztorysItemT = {
   id: number
-  // The pozycja's stable number (EX-949), printed on the fill-in form. Every row read from the DB
-  // has one; it is absent only on a row built in code and not inserted yet, which draws a fresh one.
   ref?: number
   sectionId: number
   displayOrder: number
@@ -47,57 +36,42 @@ export type KosztorysItemT = {
   descriptionTranslations: DescriptionTranslationsT
   unit: string | null
   plannedQty: number
-  // „Aktualizacja przedmiaru" (EX-921) — the scope agreed after the offer, which progress is measured
-  // against. null = never edited by hand, so it follows `plannedQty`; 0 = the pozycja dropped out of
+  // null = never edited by hand, so it follows `plannedQty`; 0 = the pozycja dropped out of
   // scope. Read it through `resolvedCurrentPlannedQty`, never directly.
   currentPlannedQty: number | null
   // „Pomiar z natury" as the imported sheet typed it — a reconciliation reference, never an input to
-  // any figure. null = the sheet made no claim (no column, empty cell, or a formula that only
-  // restates Σ etapów). The app never edits it: a re-import overwrites it wholesale.
+  // any figure.
   sheetMeasuredQty: number | null
   discountType: DiscountTypeT | null
   discountValue: number
   clientPrice: number
-  // Per-item subcontractor stawka, one nullable number per plane: a number = a kwota frozen onto
-  // the pozycja, null = „auto", derive it from the investment's effective współczynnik. `0` is a
-  // kwota like any other — a stawka someone set to zero on purpose — so it is NOT null and no
-  // reader may fold the two together (EX-766).
+  // null = „auto", derive it from the investment's effective współczynnik. `0` is a kwota like any
+  // other — a stawka someone set to zero on purpose — so it is NOT null and no reader may fold the
+  // two together.
   wToolsOverrideValue: number | null
   ownToolsOverrideValue: number | null
-  // The third source (EX-865): a per-praca multiplier against `clientPrice`, so the stawka moves
-  // when the cena j.m. does — the one thing a frozen kwota cannot do. At most one of a plane's pair
-  // is non-null; `updateItemFieldAction` is what keeps that true, since the types cannot.
   wToolsOverrideCoeff: number | null
   ownToolsOverrideCoeff: number | null
   note: string | null
-  // The katalog prac entry this pozycja came from or was saved to (EX-1017); null = never linked.
   // A soft reference: it may name an entry deleted since, so a reader resolves it, never trusts it.
   catalogueItemId: number | null
-  // An agent's draft of the Przedmiar (EX-1006). null = the agent never saw this row, 0 = it saw the
-  // row and left it out — the two read differently in review, so neither may stand in for the other.
+  // null = the agent never saw this row, 0 = it saw the row and left it out — the two read
+  // differently in review, so neither may stand in for the other.
   aiPlannedQty: number | null
-  // Komentarz AI (EX-1030): what the inquiry left unknown for `aiPlannedQty`, and what the agent
-  // assumed in its place. Never Komentarz — that one the investor may be shown.
   aiMissingData?: string | null
   aiAssumptions?: string | null
-  // A later AI round (EX-1057): one „Runda N — …” block appended per round that moved this pozycja,
-  // and the flag that round raised. Only the owner's Status pick or typed Przedmiar lowers it.
   aiNewInformation?: string | null
   aiRecheck?: boolean
   changeReason: string | null
   reviewStatus: ReviewStatusT | null
 }
 
-// Where a plane's subcontractor stawka comes from. One vocabulary for all four surfaces that branch
-// on it (siatka, sufit, filtry, katalog) — they used to encode it as booleans and drifted.
 export type PriceSourceT = 'auto' | 'coeff' | 'amount'
 
 export type NewItemPlacementT =
   | { kind: 'end'; sectionId: number }
   | { kind: 'next-to'; anchorItemId: number; dir: InsertDirectionT }
 
-// Single source of truth for the autosave patch: imported by the pure core (v2-rows diffRow) and by
-// updateItemFieldAction, whose zod validation is derived from this shape.
 export type ItemPatchT = Partial<
   Pick<
     KosztorysItemT,
@@ -120,26 +94,20 @@ export type ItemPatchT = Partial<
   >
 >
 
-// Subcontractor markup coefficients, one pair per investment.
 export type KosztorysGlobalCoeffsT = { wTools: number; ownTools: number }
 
-// Minimal shape for deriving the view price; KosztorysV2RowT satisfies it.
 export type ViewPricingT = KosztorysItemT & {
-  // Denormalized: the investment's global discount is set — per-item discounts stop applying
-  // (applyDiscount returns gross), the global discount is subtracted once at the total level.
   globalDiscountActive: boolean
   globalWToolsCoeff: number
   globalOwnToolsCoeff: number
 }
 
-// PriceViewT without 'client', so a plane IS a valid price view and flows straight into viewPrice().
-// The grain is the etap, not the pozycja (EX-565, owner-confirmed). null = undecided, which is NOT a
-// plane: such an etap belongs to no subcontractor bill and counts toward neither settlement figure.
+// null = undecided, which is NOT a plane: such an etap belongs to no subcontractor bill and counts
+// toward neither settlement figure.
 export type ToolPlaneT = 'w_tools' | 'own_tools'
 
-// EX-943: an etap's executed-work value is split between its workers. Every member but one carries an
-// entered value; the member with `takesRest` gets whatever the others leave. `value` is percent points
-// (25 = 25%) in 'percent' mode and zł in 'amount' mode, and is meaningless on the rest holder.
+// `value` is percent points (25 = 25%) in 'percent' mode and zł in 'amount' mode, and is meaningless
+// on the rest holder.
 export type StageSplitModeT = 'percent' | 'amount'
 
 export type StageMemberT = {
@@ -163,9 +131,6 @@ export type KosztorysStageT = {
   completed: boolean
 }
 
-// Mirrors ItemPatchT; the action's zod validation is derived from this shape. plane is never patched
-// to null — an explicit pick only ever confirms a concrete plane. The split is not a patch field: its
-// mode and members are one concept and are written whole by `updateStageSplitAction`.
 export type StagePatchT = Partial<{
   label: string | null
   plane: ToolPlaneT
@@ -183,138 +148,88 @@ export type KosztorysTreeT = {
   stages: KosztorysStageT[]
   progress: StageProgressT[]
   globalCoeffs: KosztorysGlobalCoeffsT
-  // One rate per investment, denormalized onto each row.
   vatRate: number
-  // Rides the tree (not the rows) because it is one value for the whole sheet and nothing per-row
-  // branches on it — unlike vatRate above.
   settlementMode: SettlementModeT
   // Fraction (0.23 = 23%) at which materiały are billed netto instead of at the brutto receipt.
   // `null` = the concession is off, which is a different state from 0%.
   materialsNetRate: number | null
-  // The `active` flag is denormalized onto each row; the amount is subtracted once at the total level.
   globalDiscount: GlobalDiscountT
-  // Change token = investment.updatedAt (ISO), which a restore always bumps. The editor shell keys
-  // its restore remount on it rather than on the `tree` prop's identity, which every render
-  // reshapes.
   revision: string
 }
 
-// The tree plus the investment-level figures the footer reconciles against. Assembled identically by
-// the admin page, the owner preview and the public share read, so the three can't drift. Every figure
-// is a row set or a server aggregate — a derived twin is how two hosts start disagreeing (EX-680).
 export type KosztorysEditorDataT = {
   investmentId: number
   tree: KosztorysTreeT
   investmentName: string
   // Kept apart all the way down: only `materialsGrossBase` may be repriced by the „wszystko netto"
-  // toggle. Their sum is the billed materiały total.
+  // toggle.
   materialsGrossBase: number
   materialsNetBilled: number
   materialsBreakdown: MaterialsBreakdownRowT[]
   // Company-plane material folded into robocizna, split per category.
   settledBreakdown: MaterialsBreakdownRowT[]
-  // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
   laborCostsNetFromTransactions: number
   discountNetFromTransactions: number
-  // Σ LOSS — the cost the company absorbed, which the settlement deducts at face value.
   investmentLoss: number
-  // Realized PAYOUT and BONUS rows: the block's sortable wypłaty list AND its per-worker Σ. Optional (default
-  // []) because the two client-view share entry points never render that block.
   payoutTransactions?: PayoutTransactionRowT[]
   // Required: the wpłaty TOTAL is summed from these rows, so a host that omits them isn't showing an
   // empty list — it is showing zero wpłaty against a debt that never got them deducted.
   depositTransactions: DepositTransactionRowT[]
-  // Both settled states. Required: every entry point serves this list, the client share included.
   materialTransactions: MaterialTransactionRowT[]
-  // Optional only for the ROLE gate the investment page applies (a MANAGER gets no marża), never as
-  // client-share stripping: both preview entrances pass it, so they compute from identical inputs.
   financials?: InvestmentFinancialsT
-  // Gates the toolbar's „Arkusz Google" entries, which would otherwise offer an import that can only
-  // answer „Inwestycja nie ma kosztorysu.". Optional: the client share renders no toolbar.
   hasSheet?: boolean
-  // „Zakończona" or in the trash: every write is refused server-side. The editor still renders in
-  // FULL — this is about interaction, not disclosure, which is what `preview` is about.
   lock?: InvestmentLockT
   // Set ONLY by the szablon page. Never derived from the pathname.
   isTemplate?: boolean
-  // Optional on cost, not on visibility: the client share renders no stage menu (EX-613).
   workers?: WorkerRefT[]
-  // The whole cennik, for the in-browser comparison behind the katalog problems. Optional for the
-  // reason spelled out on `RowConditionCtxT.catalogueRowIds`: the preview surfaces carry none.
   workCatalogue?: WorkCatalogueItemT[]
   // The investment's „Zdjęcia i pliki". `undefined` means „this surface has no gallery" (the szablon
   // workbench, both shares); `[]` means the investment simply has no files yet.
   assets?: MediaFileT[]
-  // The investment record behind this kosztorys, for the panel's „Inwestycja" tab. Same contract as
-  // `assets` above: `undefined` means this surface has no investment at all (the szablon workbench,
-  // both shares).
   investment?: InvestmentWithNotesT
-  // Only the investment page reads the reports; every other surface has none to show.
   workerReports?: WorkerReportsSeedT
 }
 
 export type WorkerReportsSeedT = {
   pendingCount: number
-  // From a „Zgłoszenia prac" row: the report the dialog opens on.
   openReportId: number | undefined
 }
 
-// --- v2 variant (react-datasheet-grid): a flat row with stages flattened
-// into stage_<stageId> keys so that keyColumn maps 1:1. ---
 export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
-  // Denormalized like sectionName: `rows` is the only carrier that reaches the summary subtotals,
-  // and the grid marker reads it per row.
   sectionColor: SectionColorKeyT | null
-  // Denormalized investment VAT rate (one for the whole kosztorys) — gross = net × (1 + vatRate).
   vatRate: number
   globalDiscountActive: boolean
-  // Denormalized global coefficients for deriving the subcontractor price on the row (ViewPricingT).
   globalWToolsCoeff: number
   globalOwnToolsCoeff: number
 }
 
-// Keyed off the constant so the type and diffRow's runtime `startsWith` can't drift. `import type`
-// keeps it erased — no runtime cycle with constants.ts, which imports types from here.
 export type StageKeyT = `${typeof STAGE_QTY_PREFIX}${number}`
 
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: StageKeyT]: number
 }
 
-// A section as the editor lists it — in the row's field names, so a row IS one and the band factories
-// take either. Kept apart from the rows because a section may have none (a „sekcja bez pozycji").
 export type SectionMetaT = Pick<KosztorysV2RowT, 'sectionId' | 'sectionName' | 'sectionColor'>
 
 export type SectionSubtotalT = {
   sectionId: number
   sectionName: string
-  // Carried through so the Podsumowanie pie can honour the section's pinned colour.
   sectionColor: SectionColorKeyT | null
   net: number // executed (the sheet's T), at the active price view — a MONEY figure
-  // Offered (the sheet's S), at the active price view — a MONEY figure. `null` outside the client
-  // view: the przedmiar is typed once for the WHOLE offered scope, so beside a plane-filtered `net`
-  // it would put one crew's numerator over everyone's denominator. There is no correct subcontractor
-  // reading to substitute — 0 would claim nothing was offered — so it is withheld, not guessed.
+  // Offered (the sheet's S). `null` outside the client view: the przedmiar is typed once for the
+  // WHOLE offered scope, so beside a plane-filtered `net` it would put one crew's numerator over
+  // everyone's denominator.
   plannedNet: number | null
-  // The same at the Aktualizacja przedmiaru (EX-921), withheld outside the client view for the same
-  // reason. The progress denominator — `plannedNet` stays the offer.
   currentPlannedNet: number | null
 
-  // Σ per-item rabat taken on the executed qty, at the active price view — a MONEY figure. 0 when
-  // the global discount is active. Lets the totals show „Rabat" without re-deriving it.
   discount: number
-  // 0..1, the section's share of all sections' executed value — weighted at the CLIENT price only, so
-  // like completionRatio it is a STRUCTURE figure that must not move with the price view.
   share: number
-  // Completion (executed ÷ Aktualizacja przedmiaru) weighted at the CLIENT price only — a PROGRESS
-  // figure, so it must not move with the price view. `null` when there is nothing to divide by.
+  // Weighted at the CLIENT price only — so it must not move with the price view.
   completionRatio: number | null
   itemCount: number
 }
 
-// Built at the client view, where the przedmiar figure is always present, so consumers pinned to it
-// (progress counter, section pie) never handle a `null` their call site already ruled out.
 export type SectionSubtotalClientT = SectionSubtotalT & {
   plannedNet: number
   currentPlannedNet: number

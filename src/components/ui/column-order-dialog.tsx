@@ -20,26 +20,15 @@ import { useTranslation } from '@/hooks/use-translation'
 type PropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  // The picker's own list, already in grid order — one source for „which columns exist and what are
-  // they called", so this window can't disagree with the visibility list beside it.
   items: ColumnToggleItemT[]
   ranks: ColumnRanksT
   baseRanks: ColumnRanksT
   onSetRank: (key: string, rank: number) => void
   onReset: () => void
-  // Defaults to „nothing stored" — right where reset means „forget", wrong where it returns to a
-  // stored order of its own.
   resetDisabled?: boolean
-  // Where the setting applies — the ranks are per-surface, so the sentence has to name that surface
-  // rather than promise it everywhere.
   description: string
 }
 
-// „Ustaw kolejność kolumn…" — a separate surface from the visibility picker on purpose: reordering is
-// rare, the picker is not, and one list doing both would need two gestures per row.
-//
-// Hidden columns stay on the list, greyed and still draggable, so a column's place can be set before
-// it is shown — the alternative is show it, drag it, hide it again.
 export function ColumnOrderDialog({
   open,
   onOpenChange,
@@ -56,14 +45,12 @@ export function ColumnOrderDialog({
   const keys = items.map((item) => item.id)
   const labels = new Map(items.map((item) => [item.id, item]))
 
-  // The list is driven locally while a drag is in flight and only committed on drop. Writing the
+  // Writing the
   // rank on every crossing instead would push a store update through the editor context mid-drag,
-  // rebuilding the whole grid between frames — that is what made dragging crawl.
+  // rebuilding the whole grid between frames.
   const [order, setOrder] = useDraft(keys, sameItems)
 
-  // Writes ONE key: the dragged group's new rank. Persisting the whole list would freeze today's
-  // default order in every browser (see use-column-order). The key comes from the row that was
-  // dragged, so nothing has to be inferred from the two orders.
+  // Persisting the whole list would freeze today's default order in every browser.
   function commitOrder(key: string) {
     if (sameItems(keys, order)) return
     onSetRank(key, rankForMove(keys, key, order.indexOf(key), ranks, baseRanks))

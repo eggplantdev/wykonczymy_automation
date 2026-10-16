@@ -32,8 +32,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        // Unpainted below sm, where the content is a full-screen sheet and no page is left to dim. The
-        // element stays — Radix hangs dismiss-on-click and the scroll lock off it.
+        // The element stays — Radix hangs dismiss-on-click and the scroll lock off it.
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-10000 bg-black/50 max-sm:bg-transparent',
         className,
       )}
@@ -57,9 +56,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          // Below sm this is a full-height sheet, not a floating box: `h-dvh` tracks the virtual
-          // keyboard where `vh` doesn't. Width/height overrides need an `sm:` prefix, or they hit the
-          // sheet too. Extra top padding since the sheet has no card border above the title.
+          // `h-dvh` tracks the virtual keyboard where `vh` doesn't.
           'bg-background fixed top-0 left-1/2 z-10000 flex h-dvh max-h-none w-full max-w-none -translate-x-1/2 flex-col gap-4 overflow-y-auto p-4 shadow-lg duration-200 outline-none max-sm:pt-6',
           'sm:max-w-dialog sm:top-1/2 sm:h-fit sm:max-h-[90vh] sm:-translate-y-1/2 sm:rounded-lg sm:p-6',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4',
@@ -98,8 +95,6 @@ function DialogHeader({
   return (
     <div
       data-slot="dialog-header"
-      // Right padding clears the floating chrome: the X always, plus the icon-only „Wyczyść
-      // formularz" beside it on a phone (ends ~96px in).
       className={cn('flex flex-col gap-2 pr-24 text-left sm:pr-10', className)}
       {...props}
     >

@@ -8,11 +8,8 @@ import { deletePushSubscriptions } from '@/lib/db/push-subscriptions'
 import { selectLiveRegisterIds } from '@/lib/db/worker-trash'
 import { workerUseBlocker } from '@/lib/workers/delete-blocker'
 
-/**
- * The worker and every kasa he owns go to the trash together, under one instant, or nothing does.
- * `withPayloadTransaction` commits a returned refusal, so every refusal is decided before the first
- * write — a used kasa found after another was already trashed would leave it trashed alone.
- */
+// `withPayloadTransaction` commits a returned refusal, so every refusal is decided before the first
+// write.
 export async function trashWorker(
   payload: Payload,
   workerId: number,

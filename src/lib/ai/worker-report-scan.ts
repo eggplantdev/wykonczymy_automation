@@ -5,9 +5,6 @@ import { providerErrorDetail } from './provider-error-detail'
 import { workerReportScanSchema, type ScanUnitT } from './worker-report-scan-schema'
 import type { ScanPageT } from '@/lib/kosztorys/worker-report/types'
 
-// Server-only through `./openrouter-client`: never pull it into the Payload CLI graph.
-
-/** One photo of the „Drukuj kartkę do zgłoszenia prac" form → the rows and extras written on it. */
 export async function readWorkerReportPage(
   page: ReceiptPageT,
   { units }: { units: readonly ScanUnitT[] },

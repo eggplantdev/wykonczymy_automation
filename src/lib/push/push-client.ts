@@ -13,7 +13,6 @@ const base64UrlToBytes = (base64Url: string): Uint8Array<ArrayBuffer> => {
   return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0))
 }
 
-/** A subscription signed for another key pair is dead weight: no push we sign will ever reach it. */
 const isSubscribedWithKey = (subscription: PushSubscription, publicKey: string): boolean => {
   const current = subscription.options.applicationServerKey
   if (!current) return false
@@ -24,7 +23,7 @@ const isSubscribedWithKey = (subscription: PushSubscription, publicKey: string):
   )
 }
 
-// Not `serviceWorker.ready`: outside production no worker is registered, and `ready` would then
+// outside production no worker is registered, and `ready` would then
 // never settle — holding the logout that waits on this forever.
 async function getPushSubscription(): Promise<PushSubscription | null> {
   const registration = await navigator.serviceWorker.getRegistration()
@@ -55,9 +54,7 @@ export async function subscribeThisDevice(publicKey: string): Promise<ActionResu
 }
 
 /**
- * iOS has no `pushsubscriptionchange`, so every app open re-registers the device — that is what heals
- * a server row lost to a 404/410 or a deactivation. A subscription signed for another key pair is only
- * dropped, never replaced: subscribing again needs a user gesture.
+ * iOS has no `pushsubscriptionchange`, so every app open re-registers the device
  */
 export async function syncPushSubscription(publicKey: string): Promise<boolean> {
   try {
@@ -76,11 +73,6 @@ export async function syncPushSubscription(publicKey: string): Promise<boolean> 
   }
 }
 
-/**
- * Best effort and never throws: it runs ahead of the logout, which must go through whatever the push
- * service or the network says. The browser side goes first — a device the server forgot but the
- * browser still holds would come back on the next open-time sync.
- */
 export async function unsubscribeThisDevice(): Promise<void> {
   try {
     if (!isPushSupported()) return
@@ -97,7 +89,6 @@ export async function unsubscribeThisDevice(): Promise<void> {
   }
 }
 
-/** A push's badge goes stale the moment he answers on another device, so every open re-reads it. */
 export async function syncAppBadge(): Promise<void> {
   if (!('setAppBadge' in navigator)) return
   try {

@@ -23,8 +23,6 @@ const COLUMNS: ColumnDef<RowT, string | number>[] = [
   { id: 'stage', accessorKey: 'stage', header: 'Etap' },
 ]
 
-// The toolbar is the only handle on visibility from outside, and it is also how the real callers
-// toggle a column — a checkbox list built on the same `table` instance.
 function renderTable() {
   render(
     <DataTable
@@ -90,8 +88,7 @@ describe('DataTable — header and body agree on which columns are visible', () 
 
 // The symptom above only appears in a compiled build, where the React Compiler memoizes
 // <DataTableRow> on its props — vitest goes through esbuild, so those assertions pass with or without
-// the fix. What IS observable in jsdom is the mechanism: the row renders the cells it is handed, so a
-// column change reaches it through a prop rather than a remount.
+// the fix.
 describe('DataTable — rows follow column visibility through their cells', () => {
   it('renders exactly the cells it is handed', () => {
     const table = renderHook(() =>

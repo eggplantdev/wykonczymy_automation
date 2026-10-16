@@ -10,11 +10,6 @@ import type {
 import { LABOR_TAB } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 
-/**
- * Why the sheet could not be read — one sentence per reason, each naming a DIFFERENT thing to do.
- * Shared by both sheet windows: they read the same sheet down the same path, so two accounts of the
- * same failure would be pure debt.
- */
 const VERDICTS: Record<SheetFailureReasonT, string> = {
   forbidden:
     'Ta aplikacja nie ma dostępu do arkusza. Udostępnij go jako Przeglądający adresowi poniżej, a potem spróbuj ponownie.',

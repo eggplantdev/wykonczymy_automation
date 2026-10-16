@@ -49,8 +49,6 @@ export function MarginForecastTable({ forecast, plane, onPlaneChange }: PropsT) 
           danger={forecast.margin < 0}
         />
       </SummaryTable>
-      {/* Belongs to the forecast alone: the actual margin prices each etap at the plane the etap
-          itself carries, so a scenario switch beside it would imply an effect it does not have. */}
       <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
         <Checkbox
           checked={plane === 'own_tools'}

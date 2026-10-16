@@ -17,7 +17,6 @@ const JUMP_SIZE = 5
 type PageNavPropsT = {
   currentPage: number
   totalPages: number
-  /** Wraps one control. `isInert` = it would go nowhere. */
   renderPage: (page: number, isInert: boolean, children: ReactNode) => ReactNode
 }
 

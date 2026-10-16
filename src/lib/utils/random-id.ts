@@ -1,6 +1,5 @@
 // `crypto.randomUUID` is exposed only in a secure context, so it is undefined whenever the dev
 // server is reached over a LAN IP (a phone hitting http://192.168.x.x) — localhost hides this.
-// `getRandomValues` carries no such gate, so the fallback is still a real random v4.
 export function randomId(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
 

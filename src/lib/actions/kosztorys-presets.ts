@@ -51,8 +51,6 @@ const nameHeldError = (holder: TemplateNameHolderT) =>
     error: holder === 'trashed' ? NAME_IN_TRASH_MESSAGE : NAME_TAKEN_MESSAGE,
   }) as const
 
-// The hooks' own revalidation would fire per write and inside the transaction; each action expires
-// what it changed itself.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
 export type SavePresetInputT =
@@ -139,8 +137,6 @@ export async function savePresetAction(
   )
 }
 
-// The only way a szablon is born without a source kosztorys: an empty tree the user then builds on
-// its own page.
 export async function createEmptyPresetAction(
   name: string,
 ): Promise<ActionResultT<{ id: number }>> {
@@ -169,8 +165,6 @@ export async function createEmptyPresetAction(
 const OWNER_ONLY_PRESET_MESSAGE =
   'Tylko właściciel lub administrator może zmieniać nazwy szablonów.'
 
-// The name IS the szablon's identity (unique, and the only thing the pickers show), so this is an
-// identity change, not cosmetics.
 export async function renamePresetAction(id: number, name: string): Promise<ActionResultT> {
   return ownerOnlyAction(
     'renamePresetAction',

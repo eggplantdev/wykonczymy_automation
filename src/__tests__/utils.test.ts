@@ -10,8 +10,6 @@ import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { getRelationName } from '@/lib/utils/get-relation-name'
 
-// ── getMonthDateRange ────────────────────────────────────────────────────
-
 describe('getMonthDateRange', () => {
   it('returns correct range for January', () => {
     expect(getMonthDateRange(1, 2024)).toEqual({ from: '2024-01-01', to: '2024-01-31' })
@@ -33,8 +31,6 @@ describe('getMonthDateRange', () => {
     expect(getMonthDateRange(4, 2024)).toEqual({ from: '2024-04-01', to: '2024-04-30' })
   })
 })
-
-// ── parsePagination ──────────────────────────────────────────────────────
 
 describe('parsePagination', () => {
   it('returns defaults for empty params', () => {
@@ -70,8 +66,6 @@ describe('parsePagination', () => {
   })
 })
 
-// ── buildPaginationMeta ──────────────────────────────────────────────────
-
 describe('buildPaginationMeta', () => {
   it('passes through all fields', () => {
     const result = buildPaginationMeta({ page: 2, totalPages: 5, totalDocs: 100 }, 20)
@@ -88,8 +82,6 @@ describe('buildPaginationMeta', () => {
     expect(result.currentPage).toBe(1)
   })
 })
-
-// ── buildUrlWithParams ───────────────────────────────────────────────────
 
 describe('buildUrlWithParams', () => {
   it('adds params to a clean URL', () => {
@@ -122,12 +114,9 @@ describe('buildUrlWithParams', () => {
   })
 })
 
-// ── formatPLN ────────────────────────────────────────────────────────────
-
 describe('formatPLN', () => {
   it('formats integer amounts', () => {
     const result = formatPLN(1000)
-    // Polish locale uses non-breaking space and "zł"
     expect(result).toContain('1')
     expect(result).toContain('000')
     expect(result).toContain('zł')
@@ -153,8 +142,6 @@ describe('formatPLN', () => {
     expect(result).toContain('zł')
   })
 
-  // A bilans is a negated figure, so an investment settled to the grosz reaches this as -0 or as a
-  // −7e-12 residue. Intl keeps that sign: the listing announced „-0,00 zł" for a debt of nothing.
   it('prints a settled-to-zero figure without a minus', () => {
     expect(formatPLN(-0)).not.toContain('-')
     expect(formatPLN(-7e-12)).not.toContain('-')
@@ -165,8 +152,6 @@ describe('formatPLN', () => {
     expect(formatPLN(-0.01)).toContain('-')
   })
 })
-
-// ── getRelationName ──────────────────────────────────────────────────────
 
 describe('getRelationName', () => {
   it('returns name from populated object', () => {

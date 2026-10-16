@@ -17,9 +17,6 @@ type SignedMoneyDisplayPropsT = {
   selectionCount?: { selected: number; total: number }
 }
 
-// One labelled money figure, coloured by sign. The default label is „Saldo" because a register
-// balance is the commonest caller, but nothing here is register-specific — marża, wypłaty and
-// „Saldo po transakcji" render through the same component.
 export function SignedMoneyDisplay({
   amount,
   label = 'Saldo',

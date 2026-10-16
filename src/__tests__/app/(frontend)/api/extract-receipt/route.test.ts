@@ -74,8 +74,6 @@ describe('POST /api/extract-receipt', () => {
     expect(mockScanReceipt).not.toHaveBeenCalled()
   })
 
-  // A malformed list is a client bug, not a provider failure — it must not land in the 500 branch
-  // that owes a Sentry capture.
   it('malformed category JSON is a 400, not a 500', async () => {
     const response = await POST(request([page()], '{not json'))
 

@@ -14,25 +14,6 @@ import {
 import type { HistoryKindT, HistoryMetaT } from '@/lib/kosztorys/history/types'
 import type { DbExecutorT } from './get-db'
 
-// The single reader/writer of the raw kosztorys_snapshots table (no Payload collection — the
-// notification_reads pattern). Retention has one authority, gcRetentionBands, swept daily by the cron;
-// nothing prunes on the insert path, so a capture is a plain INSERT.
-
-// THE RETENTION POLICY, in full:
-//
-//   0–30 days    every snapshot survives (~10 min apart while someone is editing)
-//   30–120 days  one per calendar day
-//   120–365 days one per calendar week
-//   past 365     gone, auto and manual alike
-//
-// The survivor of a bucket is its NEWEST row — how the work was left that day/week, not how it
-// started. Manual snapshots are exempt from both bands, bounded only by MAX_AGE_DAYS.
-//
-// `named` („Zapisz jako…") and `daily` (the nightly end-of-day state) are what the INVESTOR sees as
-// the change history, so they are never thinned by the bands and the 365-day ceiling does not reach
-// them: they live as long as the investment is open, and go a year after it was completed
-// (`completed_at`). A completed investment with no `completed_at` keeps them — investor history is
-// never deleted on missing data. `auto` and `manual` are the owner's restore points only.
 const FULL_DENSITY_DAYS = 30
 const DAILY_BAND_DAYS = 120
 const MAX_AGE_DAYS = 365
@@ -74,8 +55,6 @@ export async function insertSnapshot(
   return Number(res.rows[0].id)
 }
 
-// The investments whose kosztorys may still change: closed ones fall out by status, the
-// trash by its own column.
 export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
   const res = await db.execute(sql`
     SELECT id FROM investments
@@ -105,8 +84,6 @@ export async function latestSnapshot(
   }
 }
 
-// The restore path resolves the target investment from the row itself rather than trusting a
-// client-passed value. The caller reports a missing id as „nie znaleziono wersji".
 export async function getSnapshot(
   db: DbExecutorT,
   snapshotId: number,
@@ -150,12 +127,8 @@ const historyMeta = (row: Record<string, unknown>): HistoryMetaT => ({
   takenAt: new Date(row.taken_at as string | Date),
 })
 
-// What the investor's history can be built from: the newest `auto` and `daily` of each Warsaw day and
-// every `named` one. The per-day cut happens here so a month of 10-min rows never reaches the app;
-// which of a day's two rows wins is the history library's call, not SQL's. `manual` rows are the
-// owner's pre-restore points and never leave this query.
-// `HistoryKindT` in SQL. One fragment, because the list and the by-id read must agree: an id the list
-// offers that the read refuses renders the present under a past version's link.
+// One fragment, because the list and the by-id read must agree: an id the list offers that the read
+// refuses renders the present under a past version's link.
 const IS_HISTORY_KIND = sql`kind IN ('auto', 'daily', 'named')`
 
 export async function listHistoryMetas(
@@ -210,10 +183,6 @@ const RETENTION_SCOPES = {
   template: { table: sql.raw('template_snapshots'), owner: sql.raw('template_id') },
 } as const
 
-// Three statements rather than one, because each band is a separate sentence mapping 1:1 onto a test
-// case. STATELESS and IDEMPOTENT — the set of survivors IS the state, so a missed cron night costs
-// nothing and a second run deletes zero. The per-band breakdown is returned so the log says WHICH
-// band deleted: a band firing when it should not is otherwise silent and irreversible.
 export async function gcRetentionBands(
   db: DbExecutorT,
   scope: keyof typeof RETENTION_SCOPES,
@@ -226,10 +195,8 @@ export async function gcRetentionBands(
     RETURNING id
   `)
 
-  // The only date bucketing done in SQL in this repo (every other is JS, src/lib/utils/days.ts): the
-  // sweep has to decide what to delete WITHOUT shipping every row to the app, so don't „fix" it into
-  // the JS convention. Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would
-  // otherwise land in the previous calendar day.
+  // Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would otherwise land in
+  // the previous calendar day.
   const daily = await db.execute(sql`
     DELETE FROM ${table} WHERE id IN (
       SELECT id FROM (

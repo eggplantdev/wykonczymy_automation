@@ -26,7 +26,7 @@ const SHARE_SELECT = sql`
 `
 
 /**
- * The report link's token check. Deliberately blind to the investment's status and trash: the page
+ * Deliberately blind to the investment's status and trash: the page
  * explains a zakończona or trashed investment instead of 404ing, and the gate refuses its writes.
  */
 export async function readReportShare(
@@ -38,7 +38,6 @@ export async function readReportShare(
   return toShare(res.rows[0])
 }
 
-/** The share a kierownik's scan files under — the same gate as the link, without its token. */
 export async function readReportTarget(
   db: DbExecutorT,
   investmentId: number,
@@ -63,7 +62,6 @@ function toShare(row: Record<string, unknown> | undefined): ReportShareT | null 
   }
 }
 
-/** One link per investment × worker of these etap members; a link he already holds is kept. */
 export async function insertMissingWorkerReportShares(
   db: DbExecutorT,
   members: { stageId: number; workerId: number }[],

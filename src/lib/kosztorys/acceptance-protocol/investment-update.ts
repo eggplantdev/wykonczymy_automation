@@ -9,7 +9,6 @@ type ClientFieldsT = Pick<AcceptanceProtocolFormT, 'clientName' | 'siteAddress'>
 const isClientNameUntouched = (investment: InvestmentRefT, form: ClientFieldsT) =>
   form.clientName.trim() === prefilledClientName(investment).trim()
 
-// An address-only save must not persist the guess.
 export function investmentUpdateFromProtocol(
   investment: InvestmentRefT,
   form: ClientFieldsT,
@@ -22,7 +21,6 @@ export function investmentUpdateFromProtocol(
   }
 }
 
-// An untouched form must not offer to write the guess into the investment.
 export function hasInvestmentChanges(investment: InvestmentRefT, form: ClientFieldsT): boolean {
   return (
     !isClientNameUntouched(investment, form) ||

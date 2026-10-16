@@ -16,11 +16,8 @@ export type TrashRowT = {
   daysLeft: number
   /** False for an investment whose kosztorys was used — only a manual delete removes it. */
   autoPurges: boolean
-  /** Whether the row opens a kosztorys v1 (the Google sheet) — only an investment can. */
   hasSheet: boolean
-  /** The kasy that went to the trash with a worker — empty for every other kind. */
   pairedRegisters: string[]
-  /** What tells two rows of one name apart — three „szlifierka" are three different tools. */
   detail?: string
 }
 

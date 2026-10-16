@@ -3,8 +3,6 @@ import { ContactLink } from '@/components/ui/contact-link'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import type { InvestmentRefT } from '@/types/reference-data'
 
-// One list for two surfaces — the investment card and the editor's „Inwestycja" tab. Written out
-// twice they drifted on the first added field, with no type error and no test to catch it.
 export function buildInvestmentInfoFields(
   investment: Pick<
     InvestmentRefT,
@@ -21,8 +19,7 @@ export function buildInvestmentInfoFields(
 ) {
   return [
     { label: 'Adres', value: investment.address },
-    // Filtered on the raw field, not the rendered node — a `<ContactLink>` is always truthy, so
-    // filtering on it never dropped an empty phone/email.
+    // Filtered on the raw field, not the rendered node — a `<ContactLink>` is always truthy.
     {
       label: 'Telefon',
       value: investment.phone && <ContactLink type="phone" value={investment.phone} />,

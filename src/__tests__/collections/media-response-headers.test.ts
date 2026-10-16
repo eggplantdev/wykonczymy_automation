@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Media } from '@/collections/media'
 
-// EX-1021: the storage plugin serves `/api/media/file/<name>` from the app's origin with the type and
-// disposition the uploading browser declared, and its token route hands out a write token to any
-// session for any key — no `media` row needed. Blob stores `image/svg+xml` and `text/xml` as
-// `inline`, so a `<script>` in one ran as whoever opened the link (verified on the preview store,
-// 2026-10-15).
-
 const upload = typeof Media.upload === 'object' ? Media.upload : undefined
 
 // Mirrors what `@payloadcms/storage-vercel-blob`'s staticHandler builds from the blob's `head()`.

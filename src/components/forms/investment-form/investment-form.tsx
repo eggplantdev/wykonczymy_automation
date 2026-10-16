@@ -30,16 +30,13 @@ type InvestmentFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
-  /** False on the edit dialogs — see `useManagedForm`. */
   persistDraft?: boolean
   // Create-only seed-from-szablon picker; omitted on edit.
   presetOptions?: TemplateMetaT[]
   /** Create-only file picker. On edit the gallery on the investment's page owns `assets` — routing
    * them through the update action would send an empty list and wipe what is already attached. */
   collectAssets?: boolean
-  /** Mutually exclusive with `collectAssets`. */
   assetsInvestmentId?: number
-  /** Fires after a save that moved the status INTO „Zakończona" while no review request was sent. */
   onEnteredCompleted?: (data: InvestmentFormDataT) => void
 }
 
@@ -78,8 +75,6 @@ export function InvestmentForm({
       },
       persistDraft,
       onReset: resetFiles,
-      // Upload first, then create — the investment must never reference a media id that failed to
-      // land.
       action: async (data) => {
         if (!collectAssets) return action(data)
 
@@ -91,9 +86,6 @@ export function InvestmentForm({
 
         return submitWithUploads(files, (assets) => action({ ...data, assets }))
       },
-      // Only on the way IN, and only from another status: „Zakończona" is a one-way door for everyone
-      // but właściciel/admin, so the person closing the investment is told what they are giving up
-      // before the write, not by a refusal afterwards.
       confirmBeforeSubmit: (value) =>
         entersCompleted(value.status)
           ? {
@@ -160,8 +152,8 @@ export function InvestmentForm({
             )}
           </form.AppField>
 
-          {/* Container query, not a breakpoint: the two columns follow the dialog's width, and the
-              dialog is narrower than the viewport at which `sm:` would already have fired. */}
+          {/* The two columns follow the dialog's width, and the dialog is narrower than the viewport
+              at which `sm:` would already have fired. */}
           <div className="grid gap-4 @md/field-group:grid-cols-2">
             <form.AppField name="status">
               {(field) => (

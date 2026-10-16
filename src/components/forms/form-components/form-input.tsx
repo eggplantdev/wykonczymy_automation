@@ -3,7 +3,6 @@ import { FormControlPropsT } from '../types/form-types'
 import FormBase from './form-base'
 import { useFieldContext } from '../hooks/form-hooks'
 
-/** Normalize pasted numeric text: strip spaces, swap comma for dot. */
 function sanitizeNumericInput(raw: string): string {
   const cleaned = raw.replace(/\s/g, '').replace(',', '.')
   return cleaned

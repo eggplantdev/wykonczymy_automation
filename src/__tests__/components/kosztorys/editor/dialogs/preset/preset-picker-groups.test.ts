@@ -65,9 +65,6 @@ describe('groupPresetSections', () => {
 })
 
 describe('isGroupFullySelected', () => {
-  // The picker derives this above its own loading/empty guard, so it runs on renders where there is
-  // no active group at all — while the szablon list is still fetching, and when the library is empty.
-  // Reading `.metas` there crashed the dialog on every open.
   it('is false when there is no active group', () => {
     expect(isGroupFullySelected(undefined)).toBe(false)
   })

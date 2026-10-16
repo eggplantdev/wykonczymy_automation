@@ -6,7 +6,6 @@ import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// Already narrowed to his etapy, as the projection hands them over.
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1', split: oneWorkerSplit(3) }),
   makeStage({ id: 9, ordinal: 2, label: 'Etap 2', split: oneWorkerSplit(3) }),
@@ -40,7 +39,6 @@ describe('workerDataHiddenColumns', () => {
     const hidden = workerDataHiddenColumns([stageRow({ [stageKey(7)]: 2 })], STAGES, true)
 
     for (const id of PLANNED) expect(hidden.has(id), id).toBe(true)
-    // The checkbox names the Aktualizacja; a ticked ofertowy is the managers' deliberate choice.
     expect(hidden.has('plannedQty')).toBe(false)
     for (const id of [
       'stageQtySum',
@@ -61,7 +59,6 @@ describe('workerDataHiddenColumns', () => {
     for (const id of PLANNED) expect(hidden.has(id), id).toBe(false)
   })
 
-  // „Pozostało" is a real figure before any work and has its own tick.
   it('never takes „Pozostało" off', () => {
     for (const rows of [[stageRow()], [stageRow({ [stageKey(9)]: 1 })]]) {
       expect(workerDataHiddenColumns(rows, STAGES, true).has('remainingForPlane')).toBe(false)

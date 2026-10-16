@@ -35,7 +35,6 @@ export function HistoryBanner({ version }: { version: PastVersionT | null }) {
       {rows.length === 0 ? (
         <p className="text-muted-foreground">{differenceSummary(0)}</p>
       ) : (
-        // Open on arrival — the list is why the version was opened; folding it gives the grid room.
         <details open>
           <summary className="cursor-pointer font-medium">{differenceSummary(rows.length)}</summary>
           <div className="mt-1 max-h-64 overflow-auto">

@@ -10,11 +10,6 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { translationColumnLanguage } from '@/lib/kosztorys/translation-column-keys'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// Asserts the RENDERED column ids, like the money-axis test: the ids are what the user sees, and
-// going through buildV2Columns proves the predicate reaches the stage namespace. The three buckets
-// are derived from a one-sided tag (only progress is in COLUMN_LAYER), so these tests pin that
-// derivation — work = untagged-and-not-neutral, progress = tagged, neutral = always visible.
-
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1', plane: null }),
   makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
@@ -36,10 +31,7 @@ const PROGRESS_IDS = [
   'remaining',
   'remainingGross',
 ]
-// Untagged, not neutral → treated as the work layer.
 const WORK_IDS = ['plannedQty', 'price', 'plannedNet', 'net', 'gross', 'stage_7', 'stage_9']
-// Always visible; filtered to those actually rendered in the client view so the test never assumes
-// a column exists.
 const NEUTRAL_IDS = ['sectionName', 'description', 'stageQtySum'].filter((id) =>
   ids('both').includes(id),
 )
@@ -77,7 +69,6 @@ describe('buildV2Columns — oś praca/postęp', () => {
     }
   })
 
-  // Untagged, non-neutral columns are the work layer: shown under „praca", hidden under „postęp".
   it('kolumna bez tagu liczy się jako praca (fail-open ku pracy)', () => {
     expect(ids('work')).toContain('price')
     expect(ids('progress')).not.toContain('price')
@@ -95,7 +86,6 @@ describe('buildV2Columns — oś praca/postęp', () => {
   })
 })
 
-// Catches the rename that silently un-tags a layer column — the tag and the label live in one file.
 describe('COLUMN_LAYER + LAYER_NEUTRAL_COLUMNS', () => {
   it('każdy otagowany klucz to prawdziwa kolumna', () => {
     for (const key of Object.keys(COLUMN_LAYER)) expect(COLUMN_LABELS).toHaveProperty(key)

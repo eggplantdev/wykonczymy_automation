@@ -1,16 +1,3 @@
-// E2E fixture for the grid's read path and its write path — EX-497 and EX-604.
-//
-// TWO fresh investments of the same shape, one per test: the write test types new quantities and the
-// read test asserts exact figures, so sharing one would make the second read the first's leftovers.
-// The shape is the smallest in which both are provable — two etapy so „Pomiar z natury (etapy razem)" sums
-// rather than echoes, przedmiar 10 at 100 zł so „Pozostało" moves by a nameable amount, three prace
-// so a run of edits is a real burst with untouched rows as controls.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-kosztorys-grid.ts
-//
-// Emits one machine-readable line the spec parses: GRID_SEED={"live":<id>,"writes":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -34,8 +21,7 @@ async function seedInvestment(
     ...ctx,
   })
 
-  // An explicit plane on both etapy: a plane-less etap renders its quantity column locked, and a
-  // locked column cannot be typed into.
+  // An explicit plane on both etapy: a plane-less etap renders its quantity column locked.
   const stages = []
   for (const ordinal of [1, 2]) {
     stages.push(

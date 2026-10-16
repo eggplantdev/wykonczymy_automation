@@ -7,22 +7,10 @@ type WarrantyCellPropsT = {
   warrantyUntil: string | null
   daysLeft: number | null
   bucket: WarrantyBucketT | null
-  /** An item that is sold, lost or retired carries no urgency — its warranty is history. */
   muted?: boolean
 }
 
-/**
- * Its own component rather than the fleet's `DeadlineCell`: that one renders „bezterminowo" from an
- * `exempt` flag and „brak danych" per inspection type, two concepts equipment does not have. What
- * they do share — the Polish phrasing of „za ile" — is `daysLabel`, so a cell and a mail can never
- * word the same figure differently.
- *
- * A lapsed warranty is stated, not alarmed: nothing can be done about it, so it renders muted while
- * an approaching one gets the colour.
- */
 export function WarrantyCell({ warrantyUntil, daysLeft, bucket, muted }: WarrantyCellPropsT) {
-  // No date is not an alarm — plenty of tools are bought without one, and a column of red would
-  // train the owner to ignore the column.
   if (!warrantyUntil || daysLeft === null) {
     return <span className="text-muted-foreground text-xs">—</span>
   }

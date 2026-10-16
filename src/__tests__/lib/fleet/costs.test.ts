@@ -44,8 +44,6 @@ describe('summariseCosts', () => {
     expect(costs.total).toBe(1000)
   })
 
-  // „We have never done this" is not the claim „it was free" — the successor to the old rule about
-  // priceless entries, which a required „Koszt" made unreachable.
   it('leaves out a type with no inspection at all', () => {
     const costs = summariseCosts(history({ TECHNICAL: [entry('2026-01-01', 200)] }))
 
@@ -53,7 +51,6 @@ describe('summariseCosts', () => {
     expect(costs.entries).toHaveLength(1)
   })
 
-  // A free service is a real answer and must survive into the breakdown, not be mistaken for none.
   it('keeps a zero-cost inspection', () => {
     const costs = summariseCosts(history({ TECHNICAL: [entry('2026-01-01', 0)] }))
 
@@ -88,8 +85,6 @@ describe('summariseCosts', () => {
     ])
   })
 
-  // Two przeglądy happened and neither has a price: the count must still say two, while both totals
-  // refuse to claim 0 zł.
   it('leaves the total unknown for a type whose every entry is unpriced', () => {
     const costs = summariseCosts(
       history({ TECHNICAL: [entry('2026-01-01', null), entry('2025-01-01', null)] }),
@@ -99,8 +94,6 @@ describe('summariseCosts', () => {
     expect(costs.total).toBeNull()
   })
 
-  // A meter reading is not work anybody was billed for. Left in, it opens a „Odczyt licznika | 1 | —"
-  // bucket and inflates the „Razem" entry count with something that never had a price to begin with.
   it('leaves odometer readings out of the cost surface entirely', () => {
     const costs = summariseCosts(
       history({
@@ -152,8 +145,6 @@ describe('totalCost', () => {
     expect(totalCost(stored, { from: '2026-07-01', to: '2026-07-31' })).toBe(500)
   })
 
-  // An unknown price is not a free one: coercing `null` to 0 would be invisible in the total, which
-  // is exactly what makes it dangerous.
   it('skips the entries whose cost is unknown', () => {
     const mixed = [
       { performedAt: '2026-07-01', cost: null },
@@ -163,8 +154,6 @@ describe('totalCost', () => {
     expect(totalCost(mixed, ALL_TIME)).toBe(250)
   })
 
-  // Nothing left to add up is a different answer from „it was free" — the whole imported fleet lands
-  // in this state, and 0 zł would have been a lie on every one of the nine cars.
   it('is unknown when the window holds only unpriced entries', () => {
     const unpriced = [
       { performedAt: '2026-07-01', cost: null },
@@ -175,7 +164,6 @@ describe('totalCost', () => {
     expect(totalCost(unpriced, { from: '2026-07-02' })).toBeNull()
   })
 
-  // A real zero survives: free work is a price somebody typed.
   it('keeps a zero that was actually recorded', () => {
     expect(totalCost([{ performedAt: '2026-07-01', cost: 0 }], ALL_TIME)).toBe(0)
   })

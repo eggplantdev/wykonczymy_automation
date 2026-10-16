@@ -3,8 +3,6 @@ import { isAdminOrOwnerOrManager } from '@/access'
 import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Labor cost sheet section (a header grouping items). VAT does not live on the section —
-// there is a single rate per investment (S-12, not yet implemented).
 export const KosztorysSections: CollectionConfig = {
   slug: 'kosztorys-sections',
   labels: {
@@ -30,9 +28,6 @@ export const KosztorysSections: CollectionConfig = {
     { name: 'investment', type: 'relationship', relationTo: 'investments', required: true },
     { name: 'name', type: 'text', required: true, label: { en: 'Name', pl: 'Nazwa' } },
     { name: 'displayOrder', type: 'number', required: true, defaultValue: 0 },
-    // Palette key from src/lib/kosztorys/section-colors.ts (text, not a select → pg enum: the
-    // palette is a design-system list that grows, and each new swatch would otherwise owe an
-    // ALTER TYPE). null = unpinned → the pie falls back to its positional palette.
     { name: 'color', type: 'text', label: { en: 'Color', pl: 'Kolor' } },
   ],
 }

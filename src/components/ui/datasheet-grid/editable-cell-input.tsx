@@ -8,9 +8,6 @@ import { enterEscapeKeyDown } from '@/lib/utils/enter-escape-keydown'
 type PropsT = Omit<ComponentProps<'input'>, 'onKeyDown'> & {
   onEnter?: (event: KeyboardEvent<HTMLInputElement>) => void
   onEscape?: (event: KeyboardEvent<HTMLInputElement>) => void
-  // The grid's own editing flag for this cell. Passing it joins the cell to the grid's keyboard
-  // model — Enter and typing open it, the value arrives selected so the first character replaces it,
-  // and at rest the input is inert to the pointer so one click selects the cell like anywhere else.
   // Omitting it leaves the input permanently live, which is a cell reachable by mouse only.
   focus?: boolean
 }
@@ -23,8 +20,7 @@ export const EditableCellInput = forwardRef<HTMLInputElement, PropsT>(function E
 
   // Layout, not passive: the grid does not preventDefault the keystroke that starts an edit, so the
   // caret has to arrive before the browser delivers that character — one paint later and the first
-  // digit is typed into nothing. Same reason it blurs on the way out: without it the caret keeps
-  // blinking in a cell the grid no longer considers active.
+  // digit is typed into nothing.
   useLayoutEffect(() => {
     const node = input.current
     if (focus === undefined || !node) return

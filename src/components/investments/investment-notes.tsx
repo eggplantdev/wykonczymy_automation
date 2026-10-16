@@ -12,7 +12,6 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentWithNotesT } from '@/types/reference-data'
 
-// One key for every investment: collapsing a long note is a reading preference, not a per-record one.
 const NOTES_STORAGE_KEY = 'investment:notes'
 
 type PropsT = {

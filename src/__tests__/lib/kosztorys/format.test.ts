@@ -23,8 +23,6 @@ describe('formatPercent', () => {
     expect(formatPercent(1.2)).toBe('120%')
   })
 
-  // REGRESSION (owner, 2026-10-13): 14,30 done against 14,25 agreed is 100,35% — a red overrun cell
-  // that printed „100%", so the red read as a false alarm.
   it('an overrun never prints as 100%', () => {
     expect(formatPercent(14.3 / 14.25)).toBe('100,4%')
     expect(formatPercent(63.3 / 63.25)).toBe('100,1%')
@@ -40,9 +38,6 @@ describe('formatPercent', () => {
   })
 })
 
-// REGRESSION (`change.md` bug 3): a settlement that cancels out lands on a residue like −7e-12, not
-// on 0. `toLocaleString` rounds that to „0,00" but keeps its sign, so a fully settled investment
-// announced „-0,00 zł" — and „Wpłaty" reached it as a negated 0 for the same reason.
 describe('formatNet', () => {
   it('prints a settled-to-zero residue as „0,00", never „-0,00"', () => {
     expect(formatNet(-7e-12)).toBe('0,00')

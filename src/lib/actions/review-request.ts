@@ -35,7 +35,6 @@ export async function requestReviewAction(investmentId: number, email: string) {
         }
       }
 
-      // Send first: a failed send writes nothing, so the flag never claims a mail that didn't leave.
       try {
         await sendReviewRequestEmail(payload, parsed.data.email)
       } catch (error) {

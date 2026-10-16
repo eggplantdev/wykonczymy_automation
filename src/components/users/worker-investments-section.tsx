@@ -19,7 +19,6 @@ export function WorkerInvestmentsSection({
   locale,
 }: {
   investments: WorkerInvestmentLinkT[]
-  /** Picks the empty-state wording; the links themselves arrive already gated. */
   canReport: boolean
   locale: LanguageT
 }) {

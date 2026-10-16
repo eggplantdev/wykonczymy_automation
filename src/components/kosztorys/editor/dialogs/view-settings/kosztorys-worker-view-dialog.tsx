@@ -14,7 +14,10 @@ import {
   WORKER_VIEW_GROUPS,
   workerColumnLabel,
 } from '@/lib/kosztorys/worker-view/columns'
-import { sanitizeWorkerViewSettings } from '@/lib/kosztorys/worker-view/settings'
+import {
+  sanitizeWorkerViewSettings,
+  toStoredWorkerViewSettings,
+} from '@/lib/kosztorys/worker-view/settings'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -34,7 +37,7 @@ export function KosztorysWorkerViewDialog() {
       if (!draft) return
       const res = await settleAction(() => saveWorkerViewSettingsAction(draft))
       if (!res.success) return toastMessage(res.error, 'error')
-      onSaved(sanitizeWorkerViewSettings(draft))
+      onSaved(sanitizeWorkerViewSettings(toStoredWorkerViewSettings(draft)))
       toastMessage('Zapisano — zmiana obowiązuje na wszystkich linkach pracowników.', 'success')
       onOpenChange(false)
     })

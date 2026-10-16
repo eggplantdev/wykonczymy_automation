@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 
-// Form-input layer: every field is what its control produces — a string, or a boolean for a checkbox.
 export const investmentFormSchema = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   address: z.string(),
@@ -11,15 +10,11 @@ export const investmentFormSchema = z.object({
   notes: z.string(),
   reviewRequested: z.boolean(),
   status: z.enum(INVESTMENT_STATUSES),
-  // Optional seed template, only meaningful on create ('' = start empty). Not an investments
-  // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
   presetId: z.string(),
 })
 
 export type InvestmentFormValuesT = z.infer<typeof investmentFormSchema>
 
-// Domain layer the action validates: derived from the form schema so the field
-// list can't drift; optional text fields default to '' and email is validated.
 export const investmentSchema = investmentFormSchema.extend({
   address: z.string().optional().default(''),
   phone: z.string().optional().default(''),
@@ -30,14 +25,11 @@ export const investmentSchema = investmentFormSchema.extend({
   contactPerson: z.string().optional().default(''),
   notes: z.string().optional().default(''),
   reviewRequested: z.boolean().optional().default(false),
-  // Not a form value — no control collects it. The files are uploaded before submit and the ids
-  // ride in on the action call (`submitWithUploads`), so only the domain layer knows the field.
   assets: z.array(z.number()).optional().default([]),
 })
 
 // `z.input`, not `z.infer`: `assets` is supplied by the submit wrapper rather than by the form, so
-// a caller must be allowed to omit it. The action re-parses with `investmentSchema`, which is where
-// the defaults land.
+// a caller must be allowed to omit it.
 export type InvestmentFormDataT = z.input<typeof investmentSchema>
 
 export const investmentClientFieldsSchema = investmentSchema.pick({

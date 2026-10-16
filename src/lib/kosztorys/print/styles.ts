@@ -117,18 +117,8 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
                       font-weight: 600; letter-spacing: -.01em; color: #18181b; }
 `
 
-// For a document whose columns outgrow the portrait page — a worker's with its etapy, an offer the
-// owner widened with etap columns. Landscape alone runs out at a worker's fourth etap: at
-// the portrait widths the figures took 271mm of the 261mm available and the opis collapsed to one
-// letter per line. Narrower figures, a smaller type and a thinner inset leave the opis ~47mm at six
-// etapy. The headers run bottom-to-top so a label like „3etap parkieciarze netto" no longer sets its
-// column's width, and wrap at 22mm so that label does not set the header row's height either. 22mm and
-// the 10mm quantity column are the least that keeps „Выполнено — сумма этапов без инструментов (работник)"
-// inside its column instead of spilling onto the next etap.
 // The rotation sits on the span, not the th: WebKit ignores writing-mode on a table cell but still
 // applies its transform, so Safari printed every header horizontal and upside down.
-// The span sets its own text-align because `.num`'s right-align outranks `th` and, once rotated, pins a
-// wrapped label to the top while a one-line label sits at the bottom.
 export const WIDE_PRINT_STYLES = `
 @page { size: A4 landscape; }
 body { padding-left: 10mm; padding-right: 10mm; }

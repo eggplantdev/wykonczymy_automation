@@ -10,8 +10,6 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 const onGlobalCoeffChange = vi.fn()
 
 const OVER_CEILING = /przekracza 65%/
-// Its own pattern, because the message names THIS plane's ceiling — 65% on both would read as a
-// consistency that does not exist.
 const OVER_CEILING_OWN_TOOLS = /przekracza 55,25%/
 
 function renderSettings(coeffs = { wTools: 0.6, ownTools: 0.5 }) {
@@ -58,8 +56,6 @@ describe('Mnożnik ceny — próg ostrzega, nie odmawia', () => {
     expect(toastMessage).not.toHaveBeenCalled()
   })
 
-  // Each field measures its own ceiling: 0,65 is the standard stawka z narzędziami and an overpay bez
-  // narzędzi, because the bez-narzędzi rate is 15% lower by definition.
   it('to samo 0,65 przechodzi z narzędziami, a bez narzędzi ostrzega', async () => {
     const { user, ownTools } = renderSettings()
 
@@ -73,8 +69,7 @@ describe('Mnożnik ceny — próg ostrzega, nie odmawia', () => {
     )
   })
 
-  // Asserts the restore too, not just the absent commit: without it this passes just as well when
-  // `type` never landed. Re-queried because the restore remounts the input.
+  // Re-queried because the restore remounts the input.
   it('odmawia mnożnika ujemnego i mówi o tym', async () => {
     const { user, wTools } = renderSettings()
 
@@ -89,9 +84,6 @@ describe('Mnożnik ceny — próg ostrzega, nie odmawia', () => {
     expect(screen.getAllByRole('textbox')[0]).toHaveValue('0.6')
   })
 
-  // DecimalField commits on every blur — it re-parses the input instead of comparing it to the value
-  // it was given — so dropping `max` turned „wejdź i wyjdź" on a stored 0,9 into a real save: a toast,
-  // a server round-trip and a „Zmiana współczynnika" on the undo stack, for a change nobody made.
   it('milczy, gdy mnożnik ponad progiem tylko przechodzi przez focus', async () => {
     const { user, wTools, ownTools } = renderSettings({ wTools: 0.9, ownTools: 0.5 })
 

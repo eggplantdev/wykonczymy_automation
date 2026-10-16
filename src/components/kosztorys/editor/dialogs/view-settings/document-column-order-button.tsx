@@ -19,14 +19,10 @@ type PropsT<T extends ValueT> = {
   labelFor: (key: string) => string | undefined
   value: T
   onChange: (value: T) => void
-  // What „Przywróć domyślną kolejność" returns to: the firm's order for an offer, the built-in one
-  // for the worker set.
   resetRanks: ColumnRanksT
   disabled?: boolean
 }
 
-// Edits the draft only, like the ticks beside it — the order reaches a document on „Zapisz" or not at
-// all, so closing the settings window discards a drag the same way it discards an untick.
 export function DocumentColumnOrderButton<T extends ValueT>({
   keys,
   labelFor,

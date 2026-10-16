@@ -15,11 +15,7 @@ import type {
 } from '@/lib/kosztorys/work-catalogue/types'
 
 /**
- * Its own table rather than the shared `ComparisonTable`: a checkbox column breaks that component's
- * one rule (first column left, every other one right-aligned figures), and it is what the three
- * arkusz windows are built from — windows this change has nothing to do with.
- *
- * The selection lives here, keyed by `itemId` and by the machine field name. Not by row index: the
+ * The selection lives here, keyed by `itemId`. Not by row index: the
  * list is sorted by `maxDelta`, so an index means a different praca the moment anything is saved.
  */
 export function CatalogueDiffTable({
@@ -33,8 +29,6 @@ export function CatalogueDiffTable({
   onApply: (
     selections: { itemId: number; fields: SeedConflictFieldT[] }[],
   ) => Promise<boolean> | boolean
-  // The other direction, kept on the praca's own wiersz: an overwrite of the cennik carries all
-  // three liczby at once, so it is one entry per praca and never one per liczba.
   onEditInCatalogue: (itemId: number) => void
 }) {
   const [selection, setSelection] = useState<Map<number, Set<SeedConflictFieldT>>>(new Map())
@@ -49,8 +43,6 @@ export function CatalogueDiffTable({
       const fields = new Set(next.get(itemId) ?? [])
       if (fields.has(field)) fields.delete(field)
       else fields.add(field)
-      // An empty Set would keep the praca in the map and make „wszystko odznaczone" look like a
-      // selection of zero liczb on N prac.
       if (fields.size === 0) next.delete(itemId)
       else next.set(itemId, fields)
       return next
@@ -60,8 +52,6 @@ export function CatalogueDiffTable({
   function toggleItem(diff: CataloguePriceDiffT) {
     setSelection((prev) => {
       const next = new Map(prev)
-      // Partial counts as „not selected", so the first click on a half-ticked praca completes it —
-      // the gesture that follows from looking at a box that is not full.
       if (next.get(diff.itemId)?.size === diff.figures.length) next.delete(diff.itemId)
       else next.set(diff.itemId, new Set(diff.figures.map((figure) => figure.field)))
       return next
@@ -83,8 +73,6 @@ export function CatalogueDiffTable({
     const selections = [...selection].map(([itemId, fields]) => ({ itemId, fields: [...fields] }))
     const saved = await onApply(selections)
     setSaving(false)
-    // Only on success: a failed write leaves the rozjazdy standing, and clearing the ticks would
-    // make the owner re-find them.
     if (saved) setSelection(new Map())
   }
 
@@ -92,8 +80,6 @@ export function CatalogueDiffTable({
 
   return (
     <div className="space-y-2">
-      {/* Same shape as every other mass-select in the app (`filter-multi-select`): the `CheckCheck`
-          glyph plus a label that flips, rather than a bare header checkbox nobody reads as an offer. */}
       {!readOnly && (
         <Button variant="link" size="xs" className="h-auto p-0" onClick={toggleAll}>
           <CheckCheck />
@@ -154,8 +140,6 @@ function DiffGroup({
   onToggleFigure: (field: SeedConflictFieldT) => void
   onEditInCatalogue: () => void
 }) {
-  // What the praca would look like after saving exactly what is ticked — the ceiling has to warn
-  // BEFORE the write, and the owner ticks in bulk without opening a single praca.
   const priceFigure = diff.figures.find((figure) => figure.field === 'clientPrice')
   const clientPrice =
     priceFigure && fields?.has('clientPrice') ? priceFigure.catalogue : diff.clientPrice
@@ -243,16 +227,13 @@ function FigureRow({
       </td>
       {/* „auto" on either side, never the kwota it implies: that kwota is a product of this
           inwestycja's współczynnik, so printing it would show a number nobody entered and which
-          moves when the współczynnik does. A mnożnik prints as the mnożnik it is, with its kwota
-          beside it — there the multiple IS what was agreed, and the kwota follows from it. */}
+          moves when the współczynnik does. */}
       <td className="py-1 pl-3 text-right tabular-nums">
         {sideText(figure.kosztorys, figure.kosztorysSource, figure.kosztorysCoeff)}
       </td>
       <td className="py-1 pl-3 text-right tabular-nums">
         {sideText(figure.catalogue, figure.catalogueSource, figure.catalogueCoeff)}
       </td>
-      {/* Greyed where either side is „auto": the subtraction is still the honest gap, but one of its
-          operands is a derived kwota rather than a figure anybody typed. */}
       <td
         className={`py-1 pl-3 text-right tabular-nums ${
           figure.kosztorysSource === 'auto' || figure.catalogueSource === 'auto'

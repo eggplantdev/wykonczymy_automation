@@ -22,11 +22,8 @@ type ArgsT = {
   reportFailure: (error: string, code?: ActionErrorCodeT) => void
 }
 
-/**
- * The accepting window's side of an accept. The server ADDS to the etap, so every cell it touched must
- * be quiet before the call — an absolute autosave landing after the addition would erase it — and
- * afterwards the grid takes the server's figure rather than adding locally.
- */
+// The server ADDS to the etap, so every cell it touched must
+// be quiet before the call — an absolute autosave landing after the addition would erase it
 export function useWorkerReportAcceptance({
   flushUndoBuffer,
   drain,
@@ -36,7 +33,6 @@ export function useWorkerReportAcceptance({
   adoptRevision,
   reportFailure,
 }: ArgsT) {
-  // `cells` are the existing ones the save moves — an etap it creates has no lane yet.
   async function acceptReport(input: AcceptReportInputT, cells: StageCellT[]): Promise<boolean> {
     flushUndoBuffer()
     await drain(cells.map((cell) => stageLane(cell.itemId, cell.stageId)))
@@ -47,7 +43,6 @@ export function useWorkerReportAcceptance({
     }
     const { stage, revision } = res.data
     if (stage) adoptStage(stage)
-    // One pozycja may move in two etapy: an untick out of the old one, an accept into a new one.
     const cellsByItem = Map.groupBy(res.data.cells, (cell) => cell.itemId)
     if (cellsByItem.size > 0) {
       patchRows(

@@ -5,8 +5,6 @@ import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summar
 import type { InvestmentWithNotesT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 
-// The gallery's actions are `'use server'`, and the harness swaps those for stubs that THROW when
-// called. Nothing in this spec calls them, but the modules are imported eagerly.
 vi.mock('@/lib/actions/investment-assets', () => ({
   addInvestmentAssetsAction: vi.fn(),
   removeInvestmentAssetAction: vi.fn(),
@@ -85,8 +83,7 @@ describe('SummaryInvestmentTab — bramka galerii assetów', () => {
     ).toBeInTheDocument()
   })
 
-  // The szablon workbench and both share surfaces pass no `assets` at all. Rendering a gallery there
-  // would expose the files of whichever investment the szablon was cut from.
+  // Rendering a gallery there would expose the files of whichever investment the szablon was cut from.
   it('renders no gallery at all on a surface that carries none', () => {
     render(<SummaryInvestmentTab investment={INVESTMENT} />)
 

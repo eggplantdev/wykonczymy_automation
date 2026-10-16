@@ -10,10 +10,6 @@ import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// The szablon workbench narrows the grid to what a szablon actually carries. The assertions read
-// the RENDERED ids rather than the constant — the constant can be right while the selection still
-// lets a column through, or drops one.
-
 const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
@@ -25,7 +21,6 @@ function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
 describe('workshop columns', () => {
   it('renders nothing outside the warsztat list', () => {
     for (const id of workshopIds()) {
-      // Closes the row and is not a data column — the ceiling does not apply to it.
       if (id === 'layerGap') continue
       expect(WORKSHOP_VISIBLE_COLUMNS.has(id)).toBe(true)
     }
@@ -40,8 +35,6 @@ describe('workshop columns', () => {
     )
   })
 
-  // The menu offers the workbench no axes, so a money axis or layer stored on a kosztorys must not
-  // take a column away with nothing on screen to bring it back.
   it('ignores the money axis and the layer', () => {
     expect(workshopIds({ moneyAxis: 'none', layer: 'none', crewAxis: 'none' })).toEqual(
       workshopIds(),
@@ -55,7 +48,6 @@ describe('workshop columns', () => {
     expect(ids).toContain('description')
   })
 
-  // A problem engaged on the workbench still has to show the stawka that explains it.
   it('shows a column an engaged problem reveals, tick or no tick', () => {
     const ids = workshopIds({
       isHidden: (id) => id === 'workNote',
@@ -75,27 +67,15 @@ describe('workshop columns', () => {
     expect(ids[0]).toBe('workNote')
   })
 
-  // The menu offers the workbench no netto/brutto axis, so netto is not „the axis that happens to
-  // be on" — it is the only price a szablon can carry.
-  // Brutto is netto times THIS investment's VAT, which a preset does not take to the next one.
   it('carries the netto price and no brutto beside it', () => {
     expect(workshopIds()).toContain('price')
     expect(workshopIds()).not.toContain('priceGross')
   })
 
-  // Both halves per plane, because a source without its kwota is a control with no value on screen — and a stawka left off
-  // this list would be missing from the plane the szablon opens on, while
-  // `serializeKosztorysAsPreset` still carried it onto every budowa seeded from that szablon. Driven
-  // off TOOL_PLANES, not `ALL_PLANE_PRICE_KEYS`, so a key dropped from the constant fails here
-  // instead of quietly shrinking the loop.
-  // Szablony are where katalog prace get curated, so the comment the katalog holds on each one is
-  // shown there too.
   it('shows the Komentarz do pracy', () => {
     expect(workshopIds()).toContain('workNote')
   })
 
-  // A szablon is a list of katalog prace (EX-1017); a row's own Komentarz would be the one thing on
-  // it the katalog does not own.
   it('has no per-row Komentarz', () => {
     expect(workshopIds()).not.toContain('note')
   })
@@ -119,9 +99,6 @@ describe('workshop columns', () => {
     }
   })
 
-  // The grid runs `lockRows`, so the „Akcje" menu is the ONLY route to usuń / przesuń / wstaw
-  // a pozycja. It is not a data column the szablon carries, so the allowlist — written as a list of
-  // what travels to the next budowa — dropped it and left the warsztat a grid nobody could trim.
   it('keeps the row-actions column, the only route to delete or move a pozycja', () => {
     expect(workshopIds({ onRemoveItem: () => {} })).toContain('actions')
   })

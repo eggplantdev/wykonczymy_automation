@@ -36,3 +36,19 @@ export const investmentLockOf = (investment: {
  */
 export const isBookableInvestment = (investment: { status: string }): boolean =>
   !isLockedStatus(investment.status)
+
+// Owner rulings: Planowana stays (money is booked on planned work, 2026-10-15); Wycena is out pending
+// the owner's decision (EX-1066). A status set, not the ref's `active` flag — widening that flag
+// would leak Planowana into every other „aktywne” picker and count. The server still refuses only
+// Zakończona; this only decides what a booking form offers.
+const OFFERED_FOR_BOOKING: Record<InvestmentStatusT, boolean> = {
+  quote: false,
+  planowana: true,
+  active: true,
+  completed: false,
+  rejected: false,
+}
+
+export function isOfferedForBooking(investment: { status: InvestmentStatusT }): boolean {
+  return OFFERED_FOR_BOOKING[investment.status]
+}

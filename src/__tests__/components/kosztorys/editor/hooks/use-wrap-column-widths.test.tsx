@@ -93,8 +93,6 @@ describe('useWrapColumnWidths — which cell a column is measured from', () => {
   })
 })
 
-// EX-699: „Opis prac" leaves the DOM once the grid is scrolled past it, and a measurement taken then
-// reads as „this text needs one line" — so the next fit flattened every row to 32px and saved it.
 describe('useWrapColumnWidths — a column scrolled out of the horizontal window', () => {
   it('keeps the width it last measured when the header cell is gone', async () => {
     const description = headerCell(wrapColumnClass('description'), 317)

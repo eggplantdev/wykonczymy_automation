@@ -4,14 +4,8 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-postgres'
 
-// Stage actions carry their invariants in the server action, so we run the REAL action against
-// the REAL DB and assert PERSISTED STATE — the delete guard is only real if the row survives, and
-// the upsert is only correct if a re-entry mutates the same row instead of duplicating it.
-//
-// Same mock surface as the sibling delete-guard spec: requireAuth needs a request/cookie we lack
-// in node, and cache revalidation touches next/cache outside a request context.
 vi.mock('server-only', () => ({}))
-// A real user id (looked up in beforeAll), not a hardcoded 1: removeStageAction now takes a
+// A real user id (looked up in beforeAll), not a hardcoded 1: removeStageAction takes a
 // pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
 const authState = vi.hoisted(() => ({ userId: 0, otherUserId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -31,15 +25,12 @@ const {
 } = await import('@/lib/actions/kosztorys')
 const { WORKER_TRASHED_MESSAGE } = await import('@/lib/constants/worker-lock')
 
-// Gated like the sibling guard spec: skips with no DB env (portable), FAILS if env is set but the
-// DB is unreachable. Run against the local DB with `--env-file=.env`.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
-  // Cleaned up after each test; stage deletion cascades its own stage_progress rows, section its items.
   const createdSections: number[] = []
   const createdStages: number[] = []
   // Spread (not inlined) so payload's create overload doesn't mis-resolve to the draft branch.
@@ -154,8 +145,6 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
   }
 
   describe('removeStageAction — delete guard', () => {
-    // EX-477: a populated stage is no longer blocked — the StageHeader gates it behind a confirm
-    // dialog; the action snapshots first, then deletes the column (cascading its progress rows).
     it('deletes a stage with recorded progress (qty_done <> 0) and snapshots first', async () => {
       const sectionId = await createSection()
       const itemId = await createItem(sectionId)
@@ -199,7 +188,6 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
   })
 
   describe('updateStageSplitAction — the workers of an etap (EX-943)', () => {
-    // Assert the ROWS, not the action's result: a silently dropped member still returns success.
     async function splitOf(stageId: number) {
       const mode = await db.execute(
         sql`SELECT split_mode FROM kosztorys_stages WHERE id = ${stageId}`,
@@ -314,7 +302,6 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
   })
 
   describe('a worker in the kosz (EX-918)', () => {
-    // A prod-dump user borrowed for the test, so it goes back to live whatever the assertion does.
     async function withTrashedOther(run: () => Promise<void>) {
       await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${authState.otherUserId}`)
       try {

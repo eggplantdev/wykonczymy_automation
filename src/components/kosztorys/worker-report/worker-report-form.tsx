@@ -65,7 +65,6 @@ export function WorkerReportForm({ token, document, sentReports, sectionTranslat
       sectionTranslations={sectionTranslations}
       onSent={(next) => {
         setSent(next)
-        // Re-reads his sent list for the confirmation screen and the next report.
         router.refresh()
       }}
     />

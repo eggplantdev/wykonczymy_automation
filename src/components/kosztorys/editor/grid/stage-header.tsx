@@ -39,12 +39,9 @@ type PropsT = {
   stage: KosztorysStageT
   ops?: StageOpsT
   workers?: WorkerRefT[]
-  // Sorting by this etap's quantity — its header is the only place that offers it.
   sort?: SortPickT | null
   onSort?: (pick: SortPickT | null) => void
   onPersistOrder?: () => void
-  // The etap's executed value at its own plane — the pool the split dialog divides, the same figure
-  // the panel credits. 0 (or absent) means nothing has been executed here yet.
   executedValue?: number
   scaledDown?: boolean
   color?: SectionColorKeyT | null
@@ -82,8 +79,6 @@ export function StageHeader({
 
   const completedMark = stage.completed && <StageCompletedMark />
 
-  // No ops = a read-only mount (preview): no plane icon or warning — the rozliczenie is internal
-  // subcontractor information, never client-facing.
   if (!ops) {
     return (
       <span className="inline-flex min-w-0 items-center gap-1 px-1">
@@ -115,7 +110,6 @@ export function StageHeader({
                 stage.plane == null && 'text-destructive',
               )}
             >
-              {/* A wrench here would claim a crew nobody picked. */}
               {stage.plane != null && planeIcon(stage.plane)}
               {completedMark}
               <HeaderLabel
@@ -134,8 +128,6 @@ export function StageHeader({
                 />
               )}
               {scaledDown && <LabelHintIcon variant="splitScaled" size="lg" />}
-              {/* The etap menu holds the sort, so its trigger has to carry the sort's state too —
-                  otherwise the one column ordering the grid is the only one that never says so. */}
               {sort ? <SortIcon active={sort} /> : <ChevronDown className="opacity-50" />}
             </span>
             {workerLine && (
@@ -148,8 +140,6 @@ export function StageHeader({
         triggerTitle="Opcje etapu"
       >
         <DropdownMenuLabel>{COPY.planeSectionLabel}</DropdownMenuLabel>
-        {/* Single-select skinned as checkboxes. onCheckedChange ignores its arg — re-picking the
-            active plane can't unset it. */}
         {TOOL_PLANES.map((plane) => (
           <DropdownMenuCheckboxRow
             key={plane}

@@ -12,3 +12,6 @@ worktree: null
 ## Notes
 
 — nowe pole pracownika „może dodawać wydatki bez inwestycji"; taki pracownik na swojej stronie /pracownicy/[id] wysyła zgłoszenie wydatku (fakturę) bez wybierania inwestycji.
+
+**Decyzja (właściciel):** historia zgłoszonych wydatków u kierownika pokazuje „Bez inwestycji” tylko
+w kolumnie „Inwestycja” — filtr inwestycji nie dostaje takiej opcji.

@@ -93,6 +93,10 @@ Wiersz kasujemy **tylko na 404/410** (subskrypcja wygasła). 401/403 znaczy, że
 skasowanie wtedy wymazałoby wszystkie telefony przy pierwszym wysłaniu złą parą. Test dostarczenia na
 produkcji: `/api/test-push` (ADMIN-only, wysyła wyłącznie na urządzenia wywołującego).
 
+**Adresu usługi push nie zawężamy do listy hostów — świadomie.** `subscribePushAction` przyjmuje
+każdy endpoint `https`, więc każde zalogowane konto może sprawić, że serwer wyśle zaszyfrowany POST
+pod dowolny adres. Stałą listę odrzucono, bo mogłaby odmówić prawdziwej usłudze push.
+
 ## OpenRouter — świadomie bez bramki
 
 Szkodą są **pieniądze, zakapowane limitem wydatków** na koncie, czyli pozycja w budżecie, nie
@@ -104,6 +108,10 @@ nielimitowana i niewidoczna.
 Od EX-1001 płatny odczyt leci też **bez kliknięcia**: wysłanie wydatku przez pracownika, dodanie
 lub usunięcie zdjęcia i zmiana trybu odpalają w `after()` odczyt zdjęć zgłoszenia — z każdego
 środowiska, w którym ktoś wyśle zgłoszenie. Świadomie bez bramki, z tego samego powodu.
+
+Tak samo publiczny link „Zgłoszenie prac" odpala płatne tłumaczenie prac spoza rozpiski — do 2000 na
+jedno zgłoszenie, bez logowania. Zaakceptowane: token mają pracownicy firmy, a model jest tani; limit
+dopiero, gdyby pojawiło się nadużycie.
 
 Te `after()` w `lib/actions/worker-expense-drafts.ts` są **gołe, bez zapasowego
 `try { after(fn) } catch { await fn() }`** z `delete-unreferenced-media.ts`. Poza żądaniem

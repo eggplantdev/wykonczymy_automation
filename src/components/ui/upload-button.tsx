@@ -12,7 +12,6 @@ type UploadButtonPropsT = {
   onClick: () => void
 } & Pick<ButtonPropsT, 'size' | 'className'>
 
-/** The spinner is the only feedback a slow HEIC convert gives. */
 export function UploadButton({
   label,
   isUploading,

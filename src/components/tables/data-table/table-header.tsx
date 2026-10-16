@@ -27,9 +27,8 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
             const isVertical = header.column.columnDef.meta?.vertical
             const rawHeader = header.column.columnDef.header
 
-            // The header itself is the trigger, matching the kosztorys grid — no (i) icon competing
-            // for width with the sort arrow. Radix closes the tip on pointerdown, so the click that
-            // sorts also dismisses it instead of leaving it hanging over the re-sorted table.
+            // Radix closes the tip on pointerdown, so the click that sorts also dismisses it instead
+            // of leaving it hanging over the re-sorted table.
             const content = (
               <span
                 className={cn(
@@ -63,13 +62,9 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
                 onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
               >
                 {isVertical ? (
-                  // Left-aligned explicitly: a right-aligned label, once rotated, pins a wrapped one
-                  // to the top while a one-line one sits at the bottom. `h-max` is the line length:
-                  // left to the browser, a vertical box takes it from its ancestors' heights, which
-                  // in an auto-height dialog wrapped „Pomiar z natury” one word per line and spilled
-                  // the column's text into its neighbour. The flex wrapper is for WebKit: straight in
-                  // the cell, a vertical box counts as ONE line toward the column's minimum width, so
-                  // a squeezed column spilled its description (or a wrapped label) into the next one.
+                  // The flex wrapper is for WebKit: straight in the cell, a vertical box counts as
+                  // ONE line toward the column's minimum width, so a squeezed column spilled its
+                  // description (or a wrapped label) into the next one.
                   <span className="flex justify-center">
                     <span className="vertical-text h-max max-h-48 text-left">
                       {label}

@@ -5,7 +5,6 @@ import { pairKey, type WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payou
 export type StageDueRowT = {
   investmentId: number
   stageId: number
-  /** The etap's pool: executed work at its plane, 0 for a plane-less etap. */
   due: number
   hasUnconfirmedPlane: boolean
 }
@@ -17,12 +16,7 @@ export type PaidRowT = {
   bonus: number
 }
 
-/**
- * The per-etap pools and the wypłaty folded into (investment, worker) pairs, by the same rules
- * `subcontractorDueByPlane` applies to one investment: each member takes their `splitStagePool` share,
- * an etap without workers feeds the `null` pair, and a flagged etap flags every member. An etap
- * member whose share is 0 still gets a pair, so the dialog can show them assigned.
- */
+/** An etap member whose share is 0 still gets a pair, so the dialog can show them assigned. */
 export function foldWorkerPayoutPairs(
   stageDue: StageDueRowT[],
   splits: ReadonlyMap<number, StageSplitT | null>,

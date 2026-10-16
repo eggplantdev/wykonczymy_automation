@@ -72,8 +72,6 @@ describe('investment lock', () => {
       expect(lastSqlChunks()).toContain(table)
     })
 
-    // Both facts in one round trip: the delete handlers take the owner id straight off this answer
-    // rather than asking the same row a second time.
     it('answers owner and lock together', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'completed' }] })
@@ -108,7 +106,6 @@ describe('investment lock', () => {
       expect(await relatedInvestmentLockMessage(db, relation)).toBe(INVESTMENT_LOCKED_MESSAGE)
     })
 
-    // A row naming no investment moves no investment's money — and it must not cost a query.
     it('answers „not locked" for an absent relationship without asking the DB', async () => {
       const db = await getDb(fakePayload)
       expect(await relatedInvestmentLockMessage(db, null)).toBeUndefined()

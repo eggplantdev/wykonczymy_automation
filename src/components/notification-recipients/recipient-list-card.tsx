@@ -11,19 +11,11 @@ import type { RecipientListT } from '@/lib/email/recipients'
 type RecipientListCardPropsT = {
   list: RecipientListT
   title: string
-  /** How this stream decides what to send — the card is the only place anyone asks. */
   description?: React.ReactNode
   emails: string[]
-  /** Reading is `MANAGEMENT_ROLES` (the page's own gate); writing is owner/admin, as the action is. */
   canEdit: boolean
 }
 
-/**
- * Who gets one stream's notifications, shown on the page whose notifications they are.
- *
- * That placement is the whole point (owner, 2026-08-26): the complaint these lists answer was „I
- * can't see who gets notified", which a settings page — or /admin — would leave untouched.
- */
 export function RecipientListCard({
   list,
   title,
@@ -61,8 +53,6 @@ export function RecipientListCard({
         </Description>
       )}
       {emails.length === 0 ? (
-        // A stream with nobody in it makes its sender throw, so the page has to say so — an empty
-        // line reads as "nothing to see here".
         <Description tone="error" size="xs" className="mt-2">
           Nikt nie dostanie tych powiadomień — wysyłka zgłosi błąd.
         </Description>

@@ -20,15 +20,11 @@ import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
   line: ReportLineT
-  // A podpowiedź opens the katalog on its own praca.
   entryId: number | undefined
   onChange: (lineId: number, patch: Partial<LineDraftT>) => void
   onClose: () => void
 }
 
-// The praca goes into the rozpiska now, not on „Zapisz zmiany”: from here on the line is an ordinary
-// rozpiska line, and the server remembers its pozycja so a review closed unsaved finds it again. A
-// pozycja the sekcja already holds takes the ilość instead of a twin.
 export function AddLineToRozpiska({ line, entryId, onChange, onClose }: PropsT) {
   const {
     investmentId,
@@ -66,7 +62,6 @@ export function AddLineToRozpiska({ line, entryId, onChange, onClose }: PropsT) 
   ) => {
     if (held.matchedItemIds.length > 0) {
       onChange(line.id, held)
-      // Two pozycje holding the praca leave the pick to the kierownik, so there is nothing to remember yet.
       if (held.itemId !== undefined) rememberItem(held.itemId)
       return true
     }

@@ -5,16 +5,6 @@ import { insertStageMembers } from '@/lib/db/stage-split'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { StageSplitT } from '@/lib/kosztorys/types'
 
-// One declarative literal per tree, so a DB-gated spec states its fixture instead of assembling it —
-// hand-built payload.create runs cost ~60 lines before a spec asserted anything and let each spec's
-// column coverage drift on its own (EX-635).
-//
-// Sibling with a confusingly close name: helpers/kosztorys-tree.ts builds an in-memory KosztorysTreeT
-// for the pure-calculation specs. This one writes rows. They share nothing but the domain noun.
-
-// `investment` and `section` are the builder's job, and the timestamps are Payload's; everything else
-// a spec may set. Sourced off the generated types so a new column can't silently become unreachable
-// from the fixtures.
 type SectionSpecT = Partial<
   Omit<KosztorysSection, 'id' | 'investment' | 'createdAt' | 'updatedAt'>
 > & {
@@ -26,15 +16,13 @@ type ItemSpecT = Partial<
   Omit<KosztorysItem, 'id' | 'investment' | 'section' | 'createdAt' | 'updatedAt'>
 >
 
-// `worker` is shorthand for the one-person split most specs want; `split` states any other.
 type StageSpecT = Partial<Omit<KosztorysStage, 'id' | 'investment' | 'createdAt' | 'updatedAt'>> & {
   worker?: number | null
   split?: StageSplitT | null
 }
 
 // Items and stages are addressed by position — `item` indexes the FLATTENED item list (declaration
-// order across all sections), `stage` indexes `spec.stages`. Every call site wants "the first item",
-// so a key registry would be ceremony for nobody; an index reads fine against the literal above it.
+// order across all sections), `stage` indexes `spec.stages`.
 type ProgressSpecT = {
   item: number
   stage: number
@@ -53,8 +41,6 @@ type CreatedTreeT = {
   stageIds: number[]
 }
 
-// `skipRevalidation` matters for the same reason it does in helpers/investment.ts: the specs run
-// outside a request scope, where Payload's revalidation hooks throw.
 const FIXTURE_CONTEXT = { context: { skipRevalidation: true } } as const
 
 export async function createKosztorysTree(
@@ -72,7 +58,7 @@ export async function createKosztorysTree(
       data: {
         investment: investmentId,
         name: section.name,
-        // `??`, not `||` or a spread of defaults: a spec that deliberately ties two sections on
+        // a spec that deliberately ties two sections on
         // display_order 0 must be able to say 0, and one that sets `color: null` must get null.
         displayOrder: section.displayOrder ?? sectionIndex,
         color: section.color ?? null,

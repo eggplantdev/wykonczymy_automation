@@ -69,14 +69,11 @@ describe('PromoteLeadDialog', () => {
     expect(screen.getByLabelText('Telefon')).toHaveValue(LEAD.phone)
     expect(screen.getByLabelText('Email')).toHaveValue(LEAD.email)
     expect(screen.getByLabelText('Osoba kontaktowa')).toHaveValue(LEAD.name)
-    // The three answers an inwestycja has no column for, kept rather than dropped.
     expect(screen.getByLabelText('Notatki')).toHaveValue(
       'Zakres prac: Łazienka pod klucz\nMetraż: 12 m²\nWiadomość: Proszę o kontakt po 16.',
     )
   })
 
-  // A Facebook lead carries no address, and a name ending in a stray space is what the staff
-  // member then has to delete by hand on every single promotion.
   it('falls back to the name alone when the zgłoszenie has no address', async () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={{ ...LEAD, address: '' }} />)
@@ -86,8 +83,6 @@ describe('PromoteLeadDialog', () => {
     expect(await screen.findByLabelText('Nazwa')).toHaveValue(LEAD.name)
   })
 
-  // An enquiry is priced before anything is planned — Wycena is the first lifecycle stage, and
-  // „Aktywna" would file it among the jobs actually running.
   it('opens on „Wycena"', async () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={LEAD} />)
@@ -110,12 +105,9 @@ describe('PromoteLeadDialog', () => {
     await user.click(first)
 
     expect(screen.getByText('Przejdą do inwestycji: 1 z 2')).toBeInTheDocument()
-    // Held back, still on the zgłoszenie — the tile does not disappear.
     expect(first).not.toBeChecked()
   })
 
-  // The generic word says nothing on a row that already names the client — the link carries what
-  // the inwestycja is actually called, and falls back only when the name did not resolve.
   it('links to the investment by its own name', () => {
     render(
       <PromoteLeadDialog

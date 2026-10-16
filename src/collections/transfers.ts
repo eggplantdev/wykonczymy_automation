@@ -43,9 +43,6 @@ const TRANSFER_TYPES = [
   { label: { en: 'Cancellation', pl: 'Anulowanie' }, value: 'CANCELLATION' },
 ] as const satisfies readonly { label: { en: string; pl: string }; value: TransferTypeT }[]
 
-// The `satisfies` above rejects any value outside the TransferTypeT union; this asserts
-// the reverse — every union member has an option here — so adding a type to the const
-// source without wiring its Payload option fails typecheck instead of drifting silently.
 type _AllTransferTypesCovered = TransferTypeT extends (typeof TRANSFER_TYPES)[number]['value']
   ? true
   : never
@@ -104,11 +101,6 @@ export const Transfers: CollectionConfig = {
       },
     },
     {
-      // The netto twin of `amount` (brutto). On a netto wydatek it is what the investor is
-      // billed while brutto is what left the register; on a wpłata brutto it is what the
-      // faktura named as netto. Which rows carry it, and the netAmount ≤ amount rule, have one
-      // authority each: `carriesNetAmount` and hooks/transfers/validate.ts.
-      // Write-once, not immutable — same rule as `vatPlane` below.
       name: 'netAmount',
       type: 'number',
       label: { en: 'Net amount', pl: 'Kwota netto' },
@@ -138,21 +130,14 @@ export const Transfers: CollectionConfig = {
       access: { update: () => false },
     },
     {
-      // Null on every type but a wpłata od inwestora and a wydatek inwestycyjny netto — the two the
-      // forms ask it on (`carriesPaymentMethod`, enforced in the validate hook, which nulls it
-      // everywhere else). Not `required`: rows booked before that carry a method nobody chose.
+      // Not `required`: rows booked before that carry a method nobody chose.
       name: 'paymentMethod',
       type: 'select',
       label: { en: 'Payment Method', pl: 'Metoda płatności' },
       options: [...PAYMENT_METHODS],
     },
     {
-      // EX-536 netto/brutto wpłata bucket. Three-state: NET / GROSS / null. INVESTOR_DEPOSIT only —
-      // `carriesVatPlane` in the validate hook nulls it everywhere else. Not `required`, and the
-      // create schema keeps it `.optional()`: the form always sends a plane now, but rows written
-      // before that stay null and read as netto in the reconciliation.
-      // The quiet half of write-once (rule and rationale: hooks/transfers/validate.ts) — it STRIPS
-      // rather than refuses, and only on /admin and REST: a Local API write defaults to
+      // it STRIPS rather than refuses, and only on /admin and REST: a Local API write defaults to
       // `overrideAccess: true` and skips field access entirely.
       name: 'vatPlane',
       type: 'select',
@@ -187,7 +172,6 @@ export const Transfers: CollectionConfig = {
         condition: (data) => needsTargetRegister(typeOf(data)),
       },
     },
-    // --- Conditional fields based on type ---
     {
       name: 'investment',
       type: 'relationship',
@@ -233,12 +217,10 @@ export const Transfers: CollectionConfig = {
         condition: (data) => needsOtherCategory(typeOf(data)),
       },
     },
-    // --- Invoice documentation ---
     {
       name: 'invoice',
       type: 'upload',
       relationTo: 'media',
-      // One invoice, many pages: a long invoice needs several photos to be readable (EX-659).
       hasMany: true,
       label: { en: 'Invoice', pl: 'Faktura' },
     },
@@ -253,7 +235,6 @@ export const Transfers: CollectionConfig = {
         },
       },
     },
-    // Document identity for the duplicate check (EX-1025).
     {
       name: 'documentNumber',
       type: 'text',
@@ -270,7 +251,6 @@ export const Transfers: CollectionConfig = {
       type: 'text',
       label: { en: 'Document date', pl: 'Data na paragonie' },
     },
-    // --- Cancellation ---
     {
       name: 'cancelled',
       type: 'checkbox',
@@ -305,9 +285,6 @@ export const Transfers: CollectionConfig = {
         },
       },
     },
-    // --- The worker's answer to a wypłata (EX-1042) ---
-    // Written by `validateTransfer` on create and by the worker's raw-SQL decision only. A label:
-    // no figure reads it.
     {
       name: 'payoutStatus',
       type: 'select',
@@ -338,7 +315,6 @@ export const Transfers: CollectionConfig = {
       access: { update: () => false },
       admin: { readOnly: true, condition: (data) => carriesPayoutStatus(typeOf(data)) },
     },
-    // --- Metadata ---
     {
       name: 'createdBy',
       type: 'relationship',

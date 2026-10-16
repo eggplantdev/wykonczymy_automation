@@ -5,12 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 
-// The import replaces a whole kosztorys behind an automatic snapshot, so the only assertions worth
-// making are against PERSISTED state — a success result would hide a failed write, and the
-// „recoverable" guarantee is real only if the pre-import snapshot actually restores.
-//
-// The sheet itself is mocked at the reader: everything below it (resolve → parse → merge) is the
-// real code, so this spec exercises the write path without hitting Google.
 const authState = vi.hoisted(() => ({ userId: 0, role: 'OWNER' as string }))
 const sheetState = vi.hoisted(() => ({ spreadsheetId: 'sheet-under-test' as string | undefined }))
 
@@ -123,11 +117,6 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
     )
   })
 
-  // The bug this pins cost 151 stawki half a percent each and looked deliberate in the editor: the
-  // import hands a praca running at the cennik's own markup to the global coefficient („auto"), but
-  // `replaceTreeWithSnapshot` overwrote the plan's settings with the investment's live ones — so
-  // those prace repriced at whatever the investment held (0,55) instead of the sheet's (0,5525).
-  // Asserted on the persisted investment row, since the action's success result hid the whole thing.
   it('adopts the cennik’s markup as the investment’s multipliers, so „auto" prices at the sheet', async () => {
     await applyKosztorysImport(investmentId)
 
@@ -150,7 +139,7 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
 
   // Found by LABEL, not by „newest auto": the whole point of the pre-import row being `manual` is
   // that it survives the auto count cap + 7-day GC and stays identifiable among the periodic
-  // autosaves. Querying it the way the „Wersje" panel presents it is what pins that.
+  // autosaves.
   it('takes a labelled pre-import snapshot that restores the tree the import replaced', async () => {
     await payload.delete({
       collection: 'kosztorys-sections',
@@ -191,10 +180,6 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
     expect(await sectionNames()).not.toContain('Podłożone przez klienta')
   })
 
-  // The importer carries no role gate of its own: it sits at MANAGEMENT_ROLES like every other
-  // kosztorys mutation (restore included, which replaces the whole tree the same way). This pins that
-  // — a re-added ADMIN/OWNER narrowing would silently strip the feature from the role that runs the
-  // sites day to day.
   it('lets a MANAGER preview and apply', async () => {
     authState.role = 'MANAGER'
     try {

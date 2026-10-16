@@ -2,12 +2,6 @@ import { test, expect } from '@playwright/test'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { discountModeSelect, openSettlementOptions, pickDiscountMode } from './drivers/settlement'
 
-// EX-597 regression guard. A failed rabat save has to leave the panel describing the deal the data
-// still holds: the mode select back on „Kwotowy", the block usable again, and one toast saying why.
-// The bug this replaces silently broke all three at once — the optimistic value never committed, so
-// its rollback was invisible, and the transition that owned both never completed, leaving „Opcje
-// rozliczenia" permanently disabled. Only the browser sees that: the action returns the same failure
-// either way, and the DB (correctly) never moved.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 let investment: number

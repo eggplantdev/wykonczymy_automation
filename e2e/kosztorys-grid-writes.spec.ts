@@ -13,22 +13,6 @@ import {
   rowCell,
 } from './drivers/kosztorys-grid'
 
-// EX-497 (the read) and EX-604 (the write) — the same grid, its two directions.
-//
-// EX-497: „Pomiar z natury (etapy razem)" stopped being a typed figure and became the live sum of the stage
-// cells (the owner's sheet has O = SUM(D:M)). The arithmetic is unit-covered; what no layer below
-// the browser reaches is the WIRING — that the column renders as a locked computed cell in the real
-// datasheet-grid and recomputes on a stage edit without a reload.
-//
-// EX-604: `deferRefresh` made the per-cell autosave expire cache tags WITHOUT re-rendering the route
-// that fired it. That is the whole point of it, and it is also why a broken write is invisible in the
-// session that made it: the grid keeps rendering the typed value out of its own local `rows` state
-// whether or not anything ever reached Postgres. So the only honest read of „it saved" is a reload,
-// and the only honest read of „it coalesced" is counting the route refreshes the burst caused.
-//
-// Risk 3 of EX-604 — another route seeing the invalidation — is already guarded by
-// `investments-listing-kosztorys.spec.ts` (marża moves on /inwestycje with no „Odśwież dane"); a
-// second copy here would buy nothing.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 let seed: GridSeedT
@@ -58,10 +42,7 @@ async function typeStageQty(
   await commitCellValue(cell, String(qty))
 }
 
-// A refetch — a `router.refresh()`, or the router re-reading an entry an autosave marked stale — pulls
-// the CURRENT route as an RSC payload: a request to this pathname carrying `RSC: 1`. A prefetch carries
-// the same header and is excluded by its own. Counting requests rather than reading the hook is
-// deliberate: the cost EX-604 is about is the payload on the wire.
+// A prefetch carries the same header and is excluded by its own.
 function countRouteRefreshes(page: Page, pathname: string): () => number {
   let refreshes = 0
   page.on('request', (request) => {
@@ -83,24 +64,18 @@ test('„Pomiar z natury (etapy razem)" cannot be typed into and follows the eta
   await expect(sumCell).toHaveText(formatNet(SEEDED_DONE))
   await expect(remainingCell).toHaveText(formatNet((PLANNED_QTY - SEEDED_DONE) * PRICE))
 
-  // A computed cell has no input at all, where „Przedmiar" — typed by hand on the same row — does.
-  // The control is what makes the absence mean „locked" instead of „the grid never renders inputs".
   await expect((await rowCell(page, 'Praca jeden', PLANNED_COLUMN)).locator('input')).toHaveCount(1)
   await expect(sumCell.locator('input')).toHaveCount(0)
 
-  // And it stays locked when someone tries anyway: dsg refuses the keystrokes on a disabled cell,
-  // but „refuses" is only observable by aiming a value at it and finding the figure unmoved.
   await sumCell.click()
   await page.keyboard.type('99')
   await page.keyboard.press('Enter')
   await expect(sumCell).toHaveText(formatNet(SEEDED_DONE))
 
-  // The live half: one etap edited, and the sum plus everything anchored to it moves with no reload.
   await typeStageQty(page, 'Praca jeden', 'Etap 2', 5)
   await expect(sumCell).toHaveText(formatNet(SEEDED_DONE + 5))
   await expect(remainingCell).toHaveText(formatNet((PLANNED_QTY - SEEDED_DONE - 5) * PRICE))
 
-  // The neighbour is the proof the recompute is per row and not a repaint of the whole column.
   await expect(await rowCell(page, 'Praca dwa', SUM_COLUMN)).toHaveText(formatNet(SEEDED_DONE))
 })
 
@@ -116,28 +91,23 @@ test('a run of cell edits reaches Postgres and refetches the route at most once 
     { row: 'Praca dwa', qty: 2 },
     { row: 'Praca trzy', qty: 3 },
   ]
-  // Typed without awaiting each save, so their debounces overlap — that overlap IS the coalescing
-  // measured below. The burst as a whole is then waited out per write: a reload taken on one response
+  // The burst as a whole is then waited out per write: a reload taken on one response
   // aborts the debounces still pending, and two of the three values never reach Postgres.
   await settleWrites(page, typed.length, async () => {
     for (const { row, qty } of typed) await typeStageQty(page, row, 'Etap 2', qty)
   })
 
-  // The panel's figures come back from the server, so seeing the new total there is the first proof
-  // the writes landed — the grid alone would show the typed values either way.
   const executedNet = typed.reduce((sum, { qty }) => sum + (SEEDED_DONE + qty) * PRICE, 0)
   await expandSummaryPanel(page)
   await expect(page.getByText(formatNet(executedNet)).first()).toBeVisible({ timeout: 20_000 })
 
   // A stage-quantity autosave defers its tag's expiry (`EXPIRE_NEXT`), so its response carries no
-  // render and the router follows it with ONE refetch. That floor per edit is also the ceiling:
-  // anything above it is a refresh stacked on top of the autosave.
+  // render and the router follows it with ONE refetch.
   expect(refreshes()).toBeGreaterThanOrEqual(1)
   expect(refreshes()).toBeLessThanOrEqual(typed.length)
 
   // The grid seeds its rows into `useState` at mount, so „the value is on screen" and „the value is
-  // in Postgres" are two different facts — only a reload reads the second, and only once every save
-  // in the burst has landed (see `settleWrites`).
+  // in Postgres" are two different facts.
   await page.reload()
   await collapseSummaryPanel(page)
   for (const { row, qty } of typed) {

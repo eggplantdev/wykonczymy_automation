@@ -76,8 +76,6 @@ describe('columnValueResolver', () => {
     expect(value('plannedDonePercent')?.({ ...row, plannedQty: 0 })).toBeNull()
   })
 
-  // EX-921: Aktualizacja przedmiaru 15 against ofertowy 10 — the plane and progress figures follow
-  // the aktualizacja, the offer figure does not.
   it('reads progress and the crew figures off the Aktualizacja przedmiaru', () => {
     const updated = { ...row, currentPlannedQty: 15 }
     const client = columnValueResolver({ stages, view: 'w_tools' })
@@ -92,7 +90,6 @@ describe('columnValueResolver', () => {
     expect(worker('remainingForPlane')?.(updated)).toBe(2000) // (15 − 5) × 200
   })
 
-  // A pozycja accepted from a worker's zgłoszenie: no offer behind it, only the aktualizacja.
   it('has no offer percentage for a pozycja outside the offer', () => {
     const value = columnValueResolver({ stages, view: 'client' })
     const extra = { ...row, plannedQty: 0, currentPlannedQty: 5 }

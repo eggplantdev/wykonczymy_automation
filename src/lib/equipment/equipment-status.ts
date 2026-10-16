@@ -10,13 +10,7 @@ export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatusT, { en: string; pl:
   STOLEN: { en: 'Stolen', pl: 'Skradziony' },
 }
 
-/**
- * Statuses whose missing holder is an ANSWER, not a gap.
- *
- * A sold or stolen item legitimately has nobody holding it, so „nie wiadomo gdzie" would be a false
- * alarm; only an `IN_USE` item with no current event is a hole in the data. The warranty digest
- * reads the same predicate — chasing the warranty of a sold drill is history, not a task.
- */
+/** A sold or stolen item legitimately has nobody holding it, so „nie wiadomo gdzie" would be a false alarm */
 export const LIVE_EQUIPMENT_STATUSES = ['IN_USE'] as const
 
 export const isLiveStatus = (status: EquipmentStatusT): boolean =>

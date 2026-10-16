@@ -23,8 +23,6 @@ describe('uploadFileProblem', () => {
     expect(uploadFileProblem(picked)).toBe('uploadNotImageOrPdf')
   })
 
-  // An image the browser can show but the server's byte sniff refuses: an SVG is markup, and a
-  // public blob served as markup is how an upload becomes a script.
   it.each([
     ['SVG', file('logo.svg', 'image/svg+xml')],
     ['BMP', file('skan.bmp', 'image/bmp')],

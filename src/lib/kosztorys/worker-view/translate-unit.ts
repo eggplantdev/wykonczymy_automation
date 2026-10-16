@@ -16,7 +16,6 @@ const UNIT_TRANSLATIONS: Readonly<Record<string, Record<TranslationLanguageT, st
   godz: { uk: 'год.', ru: 'ч' },
 }
 
-// Polish stays exactly as the owner typed it — the link and the paper show what is in the rozpiska.
 export function translateUnit(unit: string, locale: LanguageT): string {
   if (locale === 'pl') return unit
   return UNIT_TRANSLATIONS[foldUnit(cleanUnit(unit))]?.[locale] ?? unit

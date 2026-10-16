@@ -7,8 +7,6 @@ import { formatPLDate } from '@/lib/utils/format-date'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 
-// Drawn like the printed PDF's footer (`print/worker.ts`), not like the grid: ruled tables under a
-// gridded sheet read as more of the sheet, and the worker holding both documents should see one.
 const TABLE = 'w-auto min-w-64 max-sm:text-xs'
 const CELL = 'py-1.5 pl-7 first:pl-0'
 const LABEL = cn(CELL, 'text-muted-foreground text-left')
@@ -20,7 +18,6 @@ const GRAND =
 // An overpayment is named rather than printed as a minus — „Pozostało do wypłaty −300" reads as a
 // debt the firm owes, which is the opposite of what it is.
 export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
-  // Nobody shares his etapy: the whole etap and 100% would only repeat his own amount.
   const hasSharedStage = summary.executedByStage.some((stage) => stage.share)
   const { t } = useTranslation('report')
   const gridDictionary = useTranslation('grid')

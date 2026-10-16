@@ -5,10 +5,7 @@ export type ExpenseDocT = {
   amount: number | null
   documentNumber: string | null
   sellerNip: string | null
-  // ISO `YYYY-MM-DD`, the date printed on the document.
   documentDate: string | null
-  // Rows booked before the identity columns carry the number on line 1 of „Notatka"
-  // and the seller + printed date in „Opis" („Castorama 06.10.2026") — the fallback reads those.
   invoiceNote: string | null
   description: string | null
 }
@@ -22,7 +19,7 @@ export type MatchVerdictT = {
 export const isWeakMatch = (reasons: MatchReasonT[]) =>
   reasons.every((reason) => reason === 'same-amount')
 
-// The booking (or sending) moment, needed only for the same-amount window.
+// The booking (or sending) moment.
 export type DatedDocT = ExpenseDocT & { date?: string }
 
 const SAME_AMOUNT_WINDOW_MONTHS = 3
@@ -33,8 +30,8 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 export const cents = (amount: number | null) => (amount === null ? null : Math.round(amount * 100))
 
 /**
- * Uppercased, whitespace stripped. A loyalty-card number or a date sits on „Notatka" line 1 now and
- * then, which is why a number only counts next to an agreeing amount — and why it needs a digit and
+ * A loyalty-card number or a date sits on „Notatka" line 1 now and then, which is why a number
+ * only counts next to an agreeing amount — and why it needs a digit and
  * five characters to count at all.
  */
 function normalizeDocumentNumber(raw: string | null | undefined): string | null {
@@ -47,7 +44,8 @@ export const documentNumberOf = (doc: ExpenseDocT) =>
   normalizeDocumentNumber(doc.documentNumber) ??
   normalizeDocumentNumber(firstNoteLine(doc.invoiceNote))
 
-function dayOf(doc: ExpenseDocT): DayT | null {
+/** The printed date — the column, else the date in „Opis" on a row booked before it existed. */
+export function dayOf(doc: ExpenseDocT): DayT | null {
   if (doc.documentDate && ISO_DATE.test(doc.documentDate)) return doc.documentDate
   const printed = doc.description?.match(PRINTED_DATE)
   return printed ? `${printed[3]}-${printed[2]}-${printed[1]}` : null
@@ -120,9 +118,7 @@ export function matchExpense(probe: DatedDocT, candidate: DatedDocT): MatchVerdi
   if (reasons.length > 0) return { reasons }
   if (!isSameAmount || !probe.date || !candidate.date) return null
 
-  // Mostly a row booked before the identity columns, with nothing read that could clear it. A
-  // different printed day, seller or number is a second purchase of the same thing. The window runs
-  // between the two documents, so a scan of an old period still finds its twins.
+  // The window runs between the two documents, so a scan of an old period still finds its twins.
   const [earlier, later] = [toWarsawDay(probe.date), toWarsawDay(candidate.date)].sort()
   const isWithinWindow = later <= addMonthsToDay(earlier, SAME_AMOUNT_WINDOW_MONTHS)
   return isWithinWindow && !isProvablyDifferent(probe, candidate)

@@ -15,7 +15,6 @@ type AdminButtonPropsT = React.ComponentProps<typeof Button> & {
 export function AdminButton({ collapsed = false, ...props }: AdminButtonPropsT) {
   const user = useCurrentUser()
 
-  // Mirrors `users.access.admin` — Payload refuses the panel to everyone else anyway.
   if (!isManagementRole(user.role)) return null
 
   return (

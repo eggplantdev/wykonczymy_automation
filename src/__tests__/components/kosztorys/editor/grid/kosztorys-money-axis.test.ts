@@ -10,9 +10,6 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
-// Asserts the RENDERED column ids rather than axisAllows' verdicts: the ids are what the user sees,
-// and going through buildV2Columns is what proves the predicate reaches the stage namespace at all.
-
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1', plane: null }),
   makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
@@ -44,7 +41,7 @@ describe('buildV2Columns — oś netto/brutto', () => {
   })
 
   // Bez tego „oba" przeszłoby też wtedy, gdyby axisAllows odrzucało wszystko: obie strony
-  // porównania zwężyłyby się tak samo. Sprawdzamy więc obecność, nie tylko równość.
+  // porównania zwężyłyby się tak samo.
   it('„oba" naprawdę pokazuje obie strony pary', () => {
     const visible = ids('both')
     for (const id of [...NET_IDS, ...GROSS_IDS, 'price']) expect(visible).toContain(id)
@@ -81,10 +78,8 @@ describe('buildV2Columns — oś netto/brutto', () => {
     expect(ids('gross', (id) => id === 'gross')).not.toContain('gross')
   })
 
-  // Na domyślnym pikerze (a nie przy pikerze otwartym na oścież, jak reszta testów) „brutto" zdejmuje
-  // OBIE strony bloku „Etapy — kwota": brutto chowa DEFAULT_HIDDEN_COLUMNS, netto zdejmuje oś. Każda
-  // połowa jest poprawna z osobna; złożenie idzie na dogfooding (manual-checks EX-485), więc pinujemy
-  // je tu jako świadomy stan, żeby nikt nie „naprawił" go przypadkiem.
+  // Każda połowa jest poprawna z osobna; pinujemy je tu jako świadomy stan, żeby nikt nie
+  // „naprawił" go przypadkiem.
   it('„brutto" na domyślnym pikerze nie zostawia żadnej kolumny wartości etapu', () => {
     const visible = ids('gross', (id) => DEFAULT_HIDDEN_COLUMNS.has(id))
     expect(visible.filter((id) => id.startsWith('stageValue'))).toEqual([])
@@ -100,8 +95,6 @@ describe('buildV2Columns — oś netto/brutto', () => {
   })
 })
 
-// Catches the rename that silently un-tags a money column — the tag and the label live in one file
-// precisely so this stays a one-line check.
 describe('COLUMN_MONEY_AXIS', () => {
   it('każdy otagowany klucz to prawdziwa kolumna', () => {
     for (const key of Object.keys(COLUMN_MONEY_AXIS)) expect(COLUMN_LABELS).toHaveProperty(key)

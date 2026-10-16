@@ -15,13 +15,6 @@ import {
 } from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// Same discipline as serialize-apply-preset: exercise against the REAL DB and assert PERSISTED state
-// by re-reading. next/cache is stubbed so the action's revalidateCollections (updateTag) doesn't throw
-// outside a request context; require-auth is stubbed so the REAL action runs — its selection→payload
-// resolution and rollback-on-error are exactly what specs (d)/(e) turn on and can't be proven from the
-// bare helper (which never sees an unknown section id).
-// unstable_cache is a passthrough here: the action's graph pulls in getPresetSections, and an
-// uncached read is exactly what the test wants (it re-reads the DB directly for its assertions).
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
@@ -41,9 +34,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     return id
   }
 
-  // Add one section + one item (with job fields populated and a coefficient override) to
-  // `investmentId`; returns the created section id. Job fields are populated so the zeroing at
-  // serialize time is observable on the appended copy.
   async function addSection(
     investmentId: number,
     name: string,
@@ -173,7 +163,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(result.success).toBe(false)
 
     const after = await serializeKosztorys(targetId)
-    // The unknown section is rejected before any write — the pre-existing tree is untouched.
     expect(after.sections.map((s) => s.name)).toEqual(before.sections.map((s) => s.name))
     expect(after.items).toHaveLength(before.items.length)
   })
@@ -191,9 +180,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(after.sections.filter((s) => s.name === 'Łazienka')).toHaveLength(2)
   })
 
-  // Regression: insertSections built its INSERT column list by hand, so a column added to the
-  // section table (here `color`) silently never round-tripped — the preset kept the colour, the
-  // appended copy came back unpinned.
   it('(f) the section colour survives the preset round trip', async () => {
     const { sectionId } = await buildPreset('f', 'Sekcja F', 'teal-deep')
 

@@ -41,7 +41,6 @@ import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
-// The host mounts this only while open, so every opening starts from the grid's current order.
 export function ReorderDialog({ onClose }: { onClose: () => void }) {
   const { rows, sections, investmentId, onTreeReplaced, noun, flushPendingSaves } =
     useKosztorysEditorContext()
@@ -57,7 +56,6 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
   )
   const sectionMeta = new Map(sections.map((section) => [section.sectionId, section]))
 
-  // Local to the dialog: nothing is written until „Zapisz kolejność”, so every move can be taken back.
   const [history, setHistory] = useState({
     past: [] as KosztorysLayoutT[],
     present: initial,
@@ -134,7 +132,6 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
   }
 
   function handleItemDragStart(event: DragEvent, id: number) {
-    // Dragging a row outside the selection drags that row alone, as in a spreadsheet.
     if (!selected.has(id)) {
       setSelected(new Set([id]))
       anchorRef.current = id
@@ -259,7 +256,6 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
               <div
                 key={section.sectionId}
                 data-section-block={section.sectionId}
-                // The rows paint the rail themselves: one on this wrapper would sit under their fills.
                 className={sectionColorRail(meta?.sectionColor)}
               >
                 {drop?.kind === 'section' && drop.beforeSectionId === section.sectionId && dropLine}

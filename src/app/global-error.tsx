@@ -11,8 +11,6 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Surfaces the root-layout crash in Vercel logs; `digest` correlates with the
-    // server-side stack Next redacts from the client.
     logError('[GLOBAL_ERROR]', error, { digest: error.digest })
   }, [error])
 

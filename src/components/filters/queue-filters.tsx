@@ -14,7 +14,6 @@ const FILTER_KEYS = ['status', 'investment', 'worker'] as const
 const toOptions = (items: ReferenceItemT[]) =>
   items.map((item) => ({ value: String(item.id), label: item.name }))
 
-// On/off rows of one menu; each is `?<param>=1` while on.
 type ToggleMenuT = { label: string; icon: LucideIcon; toggles: { param: string; label: string }[] }
 
 type PropsT = {

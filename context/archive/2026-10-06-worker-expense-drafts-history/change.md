@@ -55,7 +55,7 @@ na stronie pracownika listuje wszystkie zgłoszenia bez filtrów ani stronicowan
   mógł ją zmienić przy akceptacji); bez `types` — typ wybiera menedżer w dialogu, a zgadnięty typ
   odfiltrowałby właśnie ten wiersz. **Pracownik nie może otworzyć transakcji** — u niego kwota bez
   linku (jak `preview` w podsumowaniu). Zgłoszenie przyjęte jako kilka pozycji linkuje pierwszą
-  (znane ograniczenie, EX-971 review-gate :26).
+  (znane ograniczenie, EX-971).
 - **Kolumna „Decyzja” (kiedy · kto) — u obu**, menedżera i pracownika.
 - **Przyjęte zgłoszenia widoczne zawsze** (także z inwestycją w koszu / zablokowaną); **odrzucone
   z pracownikiem / inwestycją / kasą w koszu ukryte** — „Przywróć” i tak by je odrzucił

@@ -11,8 +11,6 @@ type PropsT = {
   max: number
   label: string
   placeholder: string
-  // `missing` is 0 once the trimmed text reaches `min`. The caller words it, so the field speaks the
-  // viewer's language without knowing there is one.
   counterText: (counts: { length: number; missing: number }) => string
   disabled?: boolean
 }

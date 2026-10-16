@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Unit test for the sweep core behind the daily cron.
-// The Graph fetch and capture seams are mocked; lead-schema + normalize-lead stay
-// real so the parse/normalize path is exercised.
 const { update } = vi.hoisted(() => ({ update: vi.fn() }))
 
 vi.mock('@/lib/leads/fetch-recent-leads', () => ({
@@ -18,7 +15,6 @@ import { fetchForm } from '@/lib/leads/fetch-form'
 import { captureLead } from '@/lib/leads/capture-lead'
 import type { Payload } from 'payload'
 
-// Fabricated, PII-free. 'adres_e-mail' key → email via normalizeLead's heuristic.
 const rawLead = (id: string, createdTime = '2026-07-08T07:09:14+0000') => ({
   id,
   created_time: createdTime,
@@ -31,8 +27,6 @@ const payload = { update } as unknown as Payload
 
 const clean = { failedForms: [], saturatedForms: [] }
 
-// Most cases care only about how many leads came back — the shape of a recovered row
-// gets its own case below.
 const counts = (result: Awaited<ReturnType<typeof runLeadReconcileSweep>>) => ({
   added: result.recovered.length,
   scanned: result.scanned,
@@ -47,9 +41,6 @@ beforeEach(() => {
 })
 
 describe('runLeadReconcileSweep', () => {
-  // The whole point of EX-660: a recovered lead goes through the normal capture path, so
-  // sales is notified like any other lead. Only the customer-facing reply is suppressed —
-  // and the sweep writes no statuses of its own, because it cannot know what was sent.
   it('captures a missing lead with the auto-reply suppressed and stamps nothing itself', async () => {
     vi.mocked(listLeadForms).mockResolvedValue([form('A', 1)])
     vi.mocked(fetchRecentLeads).mockResolvedValue([rawLead('1')])
@@ -72,8 +63,6 @@ describe('runLeadReconcileSweep', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
-  // Sales already got a per-lead notification, so this list is an audit trail for the ops
-  // alert — contact details would only duplicate what the notify mail already carried.
   it('returns each recovered lead as an audit row without contact details', async () => {
     const stored = {
       id: 11,
@@ -154,8 +143,6 @@ describe('runLeadReconcileSweep', () => {
       consoleError.mockRestore()
     })
 
-    // Form order is stable, so a throw would mean the forms after the broken one are
-    // never swept on any day — and the leads already stored would lose their alert.
     it('keeps sweeping after a form fails and reports it instead of throwing', async () => {
       vi.mocked(listLeadForms).mockResolvedValue([form('A', 1), form('B', 1), form('C', 1)])
       vi.mocked(fetchRecentLeads).mockImplementation(async (formId: string) => {
@@ -192,8 +179,6 @@ describe('runLeadReconcileSweep', () => {
     })
   })
 
-  // A full page means the window decided where we stopped, not the backlog. Tomorrow's
-  // page is a newer set, so anything past the limit is lost unless somebody is told.
   it('flags a form that filled a whole page as saturated', async () => {
     const fullPage = Array.from({ length: PER_FORM_LIMIT }, (_, index) => rawLead(`a${index}`))
     vi.mocked(listLeadForms).mockResolvedValue([form('A', PER_FORM_LIMIT + 15)])
@@ -221,8 +206,6 @@ describe('runLeadReconcileSweep', () => {
     expect(result.saturatedForms).toEqual([])
   })
 
-  // The webhook came back before the sweep ran: the newest lead is stored, but the blackout's 99
-  // leads fill the rest of the page and more may lie past it.
   it('flags a full page whose oldest lead is new, even when a newer one is stored', async () => {
     const minutesAgo = (minutes: number) =>
       new Date(Date.UTC(2026, 6, 8) - minutes * 60_000).toISOString()

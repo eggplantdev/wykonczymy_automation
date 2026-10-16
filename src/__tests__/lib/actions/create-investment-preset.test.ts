@@ -4,15 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// createInvestmentAction seeds the new investment's kosztorys from a preset best-effort. A seed
-// failure AFTER the investment row commits must stay NON-FATAL: the action returns success so
-// protectedAction runs the ['investments'] revalidation — else the just-created investment is
-// invisible in the cached list and the user retries into a duplicate (the F1 regression). We drive
-// the REAL action against the REAL DB and assert the PERSISTED row, not the return value: a
-// success flag alone can't prove the write landed.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -23,8 +14,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-// A controllable seed: the throw test flips `shouldThrow` to simulate a mid-seed DB error; every
-// other test delegates to the real seed so the 'not-found' path stays a true integration check.
 const seedControl = vi.hoisted(() => ({ shouldThrow: false }))
 vi.mock('@/lib/kosztorys/seed-from-preset', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/kosztorys/seed-from-preset')>()
@@ -113,13 +102,10 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
     // 2_000_000_000 is a presetId that cannot exist → seedInvestmentFromPreset returns 'not-found'.
     const res = await createInvestmentAction({ ...baseData(name), presetId: '2000000000' })
 
-    // The pre-F1 bug returned success:false here (seed failure flipped the whole action), which
-    // skipped revalidation and hid the committed investment.
     expect(res.success).toBe(true)
 
     const id = await investmentIdByName(name)
     expect(id).not.toBeNull()
-    // Seed skipped → the investment lands with an empty tree.
     expect(await sectionCount(id!)).toBe(0)
   })
 
@@ -131,8 +117,7 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
     const res = await createInvestmentAction({ ...baseData(name), presetId: '2000000000' })
 
     // Non-fatal: the investment commits before the seed, so the throw must not flip the action to
-    // failure (that would skip revalidation + invite a duplicate-creating retry). EX-508: the failure
-    // is no longer silent — success carries a warning the form surfaces as a toast.
+    // failure (that would skip revalidation + invite a duplicate-creating retry).
     expect(res.success).toBe(true)
     expect(res.success && res.warning).toBeTruthy()
 

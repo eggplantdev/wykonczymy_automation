@@ -31,7 +31,6 @@ type PageReadT = ScanPageT | 'failed' | undefined
 type PropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  // The kosztorys knows its investment; the listing leaves it to be picked here.
   investmentId?: number
   workers: ScanWorkerT[]
   onCreated: (reportId: number, investmentId: number) => void

@@ -32,8 +32,6 @@ describe('activeFiltersModel', () => {
     ])
   })
 
-  // The bar is read as „why is the grid short" — a source it stayed silent about would answer that
-  // question wrongly, not incompletely.
   it.each([
     ['a filter', { engagedIds: new Set(['no-planned-qty']) }],
     ['a problem', { engagedIds: new Set(['no-client-price']) }],
@@ -53,9 +51,6 @@ describe('activeFiltersModel', () => {
     expect(problem.label).toMatch(/^Tylko: /)
   })
 
-  // The menu row drops „w widoku …" because a heading sits over it; the chip has no heading, and it
-  // renders precisely while the narrowing is in force — so this is the surface where losing the plane
-  // actually costs the reader something.
   it('keeps the view on the chip for a problem whose menu row drops it', () => {
     const suffix = planeViewSuffix('own_tools')
     const [chip] = activeFiltersModel({
@@ -67,9 +62,6 @@ describe('activeFiltersModel', () => {
     expect(chip.removeLabel).toContain(suffix)
   })
 
-  // The two kinds reach the chip by different routes — a problem through `PROBLEM_CONDITIONS`, a
-  // filter straight off the registry — so the plane can be lost on one while the other still carries
-  // it.
   it('keeps the view on a filter chip too', () => {
     const [chip] = activeFiltersModel({
       ...NOTHING_ENGAGED,
@@ -101,8 +93,6 @@ describe('activeFiltersModel', () => {
     expect(activeFiltersModel({ ...NOTHING_ENGAGED, search: '   ' })).toEqual([])
   })
 
-  // A client condition is engaged by the investment's stored settings, not by a reading gesture, so
-  // an X for it would offer to edit a saved setting from a control that undoes gestures.
   it('never offers to remove a client condition', () => {
     const clientIds = ROW_CONDITIONS.filter((condition) => condition.kind === 'client').map(
       (condition) => condition.id,

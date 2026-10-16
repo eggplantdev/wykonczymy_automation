@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
 import { MEDIA_RELATIONS } from '@/lib/media/relating-collections'
 
-// The raw-table probes, held by tables Payload has no collection for.
 const rawHolders = vi.hoisted(() => ({ drafts: 0, reports: 0 }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: async () => ({}) }))
 vi.mock('@/lib/db/worker-expense-drafts', () => ({
@@ -41,8 +40,6 @@ describe('preventReferencedMediaDelete', () => {
     })
   })
 
-  // Every registry entry must actually be probed — an unprobed relation is a file deletable out
-  // from under a live record, which is the defect the registry exists to close.
   it.each(MEDIA_RELATIONS)('probes $collection.$field', async ({ collection, label }) => {
     await expect(runHook({ [collection]: 1 })).rejects.toMatchObject({
       message: expect.stringContaining(`${label}: 1`),

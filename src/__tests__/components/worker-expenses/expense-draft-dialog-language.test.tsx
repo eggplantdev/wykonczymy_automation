@@ -5,9 +5,6 @@ import { AppLanguageProvider } from '@/components/i18n/app-language-provider'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 
-// The worker's own page follows the account language (EX-996); a manager with no language set, or
-// a surface outside the provider, keeps reading the Polish it always did.
-
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => ({ refresh: vi.fn() }),

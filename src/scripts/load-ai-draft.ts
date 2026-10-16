@@ -1,26 +1,6 @@
-// Loads an agent's przedmiar draft into a LOCAL investment's kosztorys as AI przedmiar, so it can be
-// reviewed in the editor. Every pozycja gets a value — the draft's qty where sekcja + opis match
-// (folded like the sheet import's, so case, diacritics and known typos don't break a match), else 0
-// (the agent left it out) — and its Komentarz AI is replaced. Status and Powód zmiany are the owner's,
-// so the loader never writes them.
-// A draft row matching no pozycja is a praca the agent added beyond the kosztorys: it becomes a new
-// pozycja in its sekcja with Przedmiar 0, so the review shows it as an offer awaiting a verdict. A
-// draft row whose sekcja is missing stops the run before any write.
-// The investment's Etap AI is set to „Przeanalizowana”.
+// Status and Powód zmiany are the owner's, so the loader never writes them.
 //
 //   INV=<id> DRAFT=<path.json> node --env-file=.env --conditions=react-server --import tsx src/scripts/load-ai-draft.ts
-//
-// DRAFT: [{ "section": "Łazienka", "description": "Skucie płytek", "qty": 12.5, "unit": "m2", "clientPrice": 80,
-//           "missingData": "wysokość pomieszczeń", "assumptions": "2,75 m" }, …]
-// (`unit` and `clientPrice` are read only for an added pozycja. `missingData` / `assumptions` are
-// Komentarz AI — never Komentarz, which the investor may be shown; the loader writes no Komentarz.)
-//
-// ROUND=<N ≥ 2> loads a later round (EX-1057) instead. Only the pozycje the draft names are touched:
-// a matched one gets the new AI przedmiar, its „Runda N — …” block appended to „Nowe informacje” and
-// the „Do ponownego sprawdzenia” flag — its Komentarz AI stays; an unmatched row becomes a new
-// pozycja (Przedmiar 0) with the block and the flag; every pozycja the draft leaves out keeps
-// everything. Each row carries `"newInformation": "Runda N — …"`, and a round already loaded on any
-// pozycja is refused before anything is written.
 import { readFileSync } from 'node:fs'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
@@ -160,7 +140,6 @@ async function run() {
     added++
   }
 
-  // The listing reads „Analiza AI” off the stored stage alone.
   await payload.update({
     collection: 'investments',
     id: INVESTMENT_ID,

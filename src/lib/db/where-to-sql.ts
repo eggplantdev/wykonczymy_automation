@@ -1,6 +1,5 @@
 import type { Where } from 'payload'
 
-/** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
 export const isNoResultsSentinel = (where: Where): boolean => {
   const id = where.id as Record<string, unknown> | undefined
   return id !== undefined && 'equals' in id && id.equals === -1
@@ -24,17 +23,6 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   amount: 'amount',
 }
 
-/**
- * Translates a flat Payload Where object to SQL AND clauses.
- *
- * Anything this module hasn't been taught — field, operator or value type — throws rather than
- * being skipped (EX-574): every Where reaching here is built in-repo, so the sets are closed and a
- * throw can only mean a caller grew something new. A silent skip turns that into a filter that
- * quietly stops narrowing, which is how the sum tile came to disagree with the list below it.
- *
- * All values come from buildTransferFilters() which validates against known enums
- * and parses numeric IDs. escapeValue provides SQL injection protection as a second layer.
- */
 export function buildSqlConditions(where: Where): string {
   return Object.entries(where)
     .map(([field, condition]) => `AND ${renderField(field, condition)}`)
@@ -50,12 +38,9 @@ const OPERATORS: Record<string, (column: string, value: unknown) => string> = {
   greater_than_equal: (column, value) => `${column} >= ${escapeValue(value)}`,
   less_than: (column, value) => `${column} < ${escapeValue(value)}`,
   less_than_equal: (column, value) => `${column} <= ${escapeValue(value)}`,
-  // Prefix match on numeric columns (e.g. amount): cast to text, then LIKE '15%'
-  // Callers must pre-validate values — this path uses sql.raw(), not parameterized queries
   like: (column, value) => `${column}::text LIKE ${escapeValue(value)} || '%'`,
 }
 
-/** One field's operators, rendered as a single self-contained condition (no `AND` prefix). */
 function renderField(field: string, condition: unknown): string {
   if (field === 'or' || field === 'and') {
     if (!Array.isArray(condition) || condition.length === 0) {
@@ -81,8 +66,6 @@ function renderField(field: string, condition: unknown): string {
   })
 
   if (parts.length === 0) throw new Error(`where-to-sql: "${field}" carries no operator`)
-  // Parenthesised so a multi-operator field (an amount range) keeps its meaning when spliced
-  // into an OR list, rather than relying on AND binding tighter.
   return parts.length === 1 ? parts[0] : `(${parts.join(' AND ')})`
 }
 

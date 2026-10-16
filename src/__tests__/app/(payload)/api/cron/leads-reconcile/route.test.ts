@@ -1,10 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// The sweep itself is covered in lib/leads/reconcile-sweep.test.ts and the auth rule in
-// lib/cron/verify-cron-request.test.ts; this asserts what the route adds — the cache
-// flush, and the rule that both a recovery AND a failed sweep alert. A silent cron
-// patching a dead webhook forever is the failure this route exists to prevent.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
@@ -114,8 +110,6 @@ describe('cron leads-reconcile route', () => {
     )
   })
 
-  // A backstop that dies the same day the webhook does must not fail silently — the
-  // 500 only reaches a Vercel log nobody reads until they already suspect a problem.
   it('alerts when the sweep throws, and still reports a failed run', async () => {
     vi.mocked(runLeadReconcileSweep).mockRejectedValue(new Error('Graph request failed'))
 
@@ -144,7 +138,6 @@ describe('cron leads-reconcile route', () => {
       failedForms: ['B'],
       saturatedForms: [],
     })
-    // The leads that DID come back are already persisted, so they still owe both.
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.leads, { expire: 0 })
     expect(notifyReconcileRecovery).toHaveBeenCalledTimes(1)
     expect(notifyReconcileFailure).toHaveBeenCalledWith(expect.anything(), {

@@ -34,7 +34,6 @@ import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = {
-  // Absent on the owner's Podgląd: he sees the worker's whole surface but sends nothing as him.
   token?: string
   data: WorkerReportFormDataT
   document: Extract<WorkerKosztorysT, { kind: 'ready' }>
@@ -44,7 +43,7 @@ type PropsT = {
   onSent: (sent: SentT) => void
 }
 
-// Not `parseReportQty`: a negative it refuses must still show in the column, or „Popraw błędy”
+// a negative it refuses must still show in the column, or „Popraw błędy”
 // blocks the send with nothing on screen to correct.
 function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, number> {
   return Object.fromEntries(
@@ -57,7 +56,6 @@ function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, numbe
 
 const SHOWN = ['shown', 'hidden'] as const
 
-// Several switches in one menu: closing it after each would make him reopen it for the next.
 function keepMenuOpen(event: Event) {
   event.preventDefault()
 }
@@ -75,7 +73,6 @@ export function ReportGrid({
 }: PropsT) {
   const searchParams = useSearchParams()
   const hasRows = data.sections.some((section) => section.items.length > 0)
-  // With no rows there is no mode footer to switch back, and the summary has nothing to show.
   const [mode, setMode] = useState<ReportViewModeT>(() =>
     hasRows && opensOnSummaryView(searchParams) ? 'summary' : 'report',
   )
@@ -87,7 +84,6 @@ export function ReportGrid({
     'sm',
   )
   const isReport = mode === 'report'
-  // The full sheet is wider than a phone; the compact form is sized to fit one.
   const scrollsSideways = !isReport
   const { locale, t, tp } = useTranslation('report')
   const qtyByItem = draftQtyByItem(draft.draft.qtyByItem)
@@ -95,8 +91,7 @@ export function ReportGrid({
   return (
     <>
       {/* The body seeds its rows once, so a language or mode switch remounts it — reseeded from the
-          draft as it is now, or what he typed since the first mount would vanish from the column. The
-          remount also drops a search or „Tylko zgłaszane przeze mnie” left over from the other mode. */}
+          draft as it is now, or what he typed since the first mount would vanish from the column. */}
       <KosztorysEditorBody
         key={`${locale}-${mode}`}
         preview
@@ -119,7 +114,6 @@ export function ReportGrid({
           showDoneSum,
           showProgress,
           textSize,
-          // A negative stays in the draft as typed, so the send bar can refuse it.
           onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
           header: (controls) => (
             <div className={cn('sticky left-0', scrollsSideways && 'w-screen')}>
@@ -179,8 +173,6 @@ export function ReportGrid({
             </div>
           ),
           footer: (
-            // The full sheet is wider than the screen; screen-wide, its contents stay in view. The
-            // bottom padding keeps the fixed mode footer off the last line.
             <div className={cn('sticky left-0', hasRows && 'pb-20', scrollsSideways && 'w-screen')}>
               {isReport ? (
                 <>

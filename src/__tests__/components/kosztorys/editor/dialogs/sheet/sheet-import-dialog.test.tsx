@@ -77,8 +77,6 @@ const WORKERS: WorkerRefT[] = [
 const NO_PLANE_LABEL = 'Nie ustawiaj — wybiorę w kosztorysie'
 const W_TOOLS_LABEL = 'Wszystkie z narzędziami (podwykonawca)'
 
-// Stands in for the editor, which mounts this dialog ONCE for both of its triggers — the whole risk
-// is that closing it never unmounts it, so the pick has nowhere to go on its own.
 function DialogHost() {
   const [open, setOpen] = useState(false)
   return (
@@ -123,9 +121,8 @@ function renderDialog() {
 
 beforeEach(() => vi.clearAllMocks())
 
-// „Rozliczenie etapów" stamps every etap an import creates. The dialog never unmounts, so without
-// a reset on open the pick outlives „Anuluj" — the next import would silently inherit one nobody
-// chose this time.
+// The dialog never unmounts, so without a reset on open the pick outlives „Anuluj" — the next
+// import would silently inherit one nobody chose this time.
 describe('SheetImportDialog — the rozliczenie pick is per-opening', () => {
   it('opens on „nie ustawiaj"', async () => {
     const { openDialog, source } = renderDialog()
@@ -221,8 +218,6 @@ describe('SheetImportDialog — a request that never completed (EX-940)', () => 
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
   afterEach(() => vi.restoreAllMocks())
 
-  // The replacement may have committed server-side, so the editor refetches instead of keeping —
-  // and autosaving back — rows that no longer exist.
   it('closes, says so and hands the editor a refetch', async () => {
     applyKosztorysImport.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     const { user, openDialog } = renderDialog()

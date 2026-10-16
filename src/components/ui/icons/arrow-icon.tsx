@@ -21,7 +21,6 @@ export default function ArrowIcon({ size, className, direction }: PropsT) {
     <svg
       data-slot="icon"
       data-icon="arrow"
-      // data-size={size}
       className={cn('transition-transform', className)}
       style={{ transform: `rotate(${rotations[direction]})` }}
       viewBox="0 0 8.0009 9.99439"

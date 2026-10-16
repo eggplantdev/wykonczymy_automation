@@ -11,8 +11,6 @@ import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 type PropsT = {
-  // `null` while the caller's read is in flight — the placeholder is rendered here so both dialogs
-  // don't each carry the same branch.
   value: ClientViewSettingsT | null
   onChange: (value: ClientViewSettingsT) => void
   defaultColumnRanks: ColumnRanksT

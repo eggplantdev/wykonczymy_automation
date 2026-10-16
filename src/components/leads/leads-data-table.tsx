@@ -30,7 +30,6 @@ const getContactStatusUpdate = (contacted: boolean) =>
 type LeadsDataTablePropsT = {
   data: LeadRowT[]
   paginationMeta: PaginationMetaT
-  /** Targets for „Załączniki" — trimmed to id + name by the page, since the row shape is PII. */
   investments: InvestmentOptionT[]
 }
 
@@ -48,17 +47,14 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
   // arrow claiming an order the rows were never fetched in.
   const sorting = sortParamToSortingState(validLeadSort(searchParams.get('sort') ?? undefined))
 
-  // Pruned to the rows on screen whenever `data` changes, without an effect: a new page, search,
-  // filter or a trash's refresh drops what left, so a selection never reaches rows the user did not
-  // see when ticking — while a refresh that keeps the rows („Skontaktowano") keeps the ticks.
+  // Pruned to the rows on screen whenever `data` changes, so a selection never reaches rows the user
+  // did not see when ticking
   const [selection, setSelection] = useState({ data, ids: NO_SELECTION })
   if (selection.data !== data) {
     const onPage = new Set(data.map((lead) => lead.id))
     setSelection({ data, ids: new Set([...selection.ids].filter((id) => onPage.has(id))) })
   }
   const selectedIds = selection.ids
-  // Updaters rather than reads of `selectedIds`, so the column callbacks — and the columns — stay
-  // the same object across clicks.
   const updateSelection = (update: (ids: ReadonlySet<number>) => ReadonlySet<number>) =>
     setSelection((prev) => ({ ...prev, ids: update(prev.ids) }))
 

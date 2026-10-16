@@ -25,7 +25,6 @@ import { REPORT_SCOPE_REFUSAL_MESSAGES } from '@/lib/kosztorys/worker-view/label
 import { reportScopeRefusal } from '@/lib/kosztorys/worker-view/scope'
 import { cn } from '@/lib/utils/cn'
 
-// Mounted inside KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
   const { worker, workerReports } = useKosztorysActions()

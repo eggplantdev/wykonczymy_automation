@@ -1,12 +1,5 @@
 import { google } from 'googleapis'
 
-// Read-only deep inspection of a kosztorys sheet: dumps BOTH formulas and
-// formatted values, full rows (not capped at 60), with correct column letters
-// past Z. One-off analysis tool for the in-app-kosztorys POC design.
-//
-//   SHEET_ID=<id> [MAX_ROWS=400] [TABS="wydatki,transfery"] \
-//     node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/dump.txt
-
 const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
 if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not set')
 const creds = JSON.parse(raw)

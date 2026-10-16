@@ -8,8 +8,7 @@ import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // `opts` rides `columnData` so this component keeps ONE identity across renders — dsg answers a
-// changed `component` type with a remount (EX-422, lessons.md), which here tore down the menu's own
-// state and closed an open usuń/katalog dialog on any unrelated editor change.
+// changed `component` type with a remount.
 type RowActionsCellDataT = { opts: BuildV2ColumnsOptsT }
 
 function RowActionsCell({ rowData, columnData }: CellProps<KosztorysV2RowT, RowActionsCellDataT>) {
@@ -39,7 +38,7 @@ export function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>
     minWidth: 64,
     maxWidth: 64,
     // Not `disabled`: dsg treats that flag as "never focusable", which blocked the row-actions
-    // button from Tab/Enter entirely. `kosztorys-actions-cell` only strips dsg's own cell chrome.
+    // button from Tab/Enter entirely.
     cellClassName: 'kosztorys-actions-cell',
     columnData: { opts },
     component: RowActionsCell,

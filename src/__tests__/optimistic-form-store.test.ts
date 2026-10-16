@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { ActionResultT } from '@/types/action'
 
-// ── Mocks ────────────────────────────────────────────────────────────────
-
 const mockToastMessage = vi.fn()
 
 vi.mock('@/lib/utils/toast', () => ({
@@ -17,7 +15,6 @@ const pending = () => usePendingStore.getState().pending
 
 beforeEach(() => {
   mockToastMessage.mockReset()
-  // Reset store to initial state
   useOptimisticFormStore.setState({
     openFormId: null,
     submission: null,
@@ -26,8 +23,6 @@ beforeEach(() => {
   })
   usePendingStore.setState({ pending: new Map() })
 })
-
-// ── Dialog state ─────────────────────────────────────────────────────────
 
 describe('dialog state', () => {
   it('openDialog sets openFormId', () => {
@@ -68,8 +63,6 @@ describe('dialog state', () => {
   })
 })
 
-// ── submitOptimistically ─────────────────────────────────────────────────
-
 describe('submitOptimistically', () => {
   const files = new Map<number, File[]>()
   const onSuccess = vi.fn()
@@ -99,7 +92,6 @@ describe('submitOptimistically', () => {
 
     store().submitOptimistically('deposit', files, action, 'Wpłata dodana', onSuccess)
 
-    // Wait for the async action to resolve
     await vi.waitFor(() => {
       expect(store().submission).toBeNull()
     })
@@ -147,8 +139,6 @@ describe('submitOptimistically', () => {
     expect(store().submission?.invoiceFiles.get(0)).toEqual([page1, page2])
   })
 })
-
-// ── The global pill ──────────────────────────────────────────────────────
 
 // The indicator reads only the pending store, so an optimistic submit that fails to release its key
 // leaves a pill on screen with no dialog to explain it — every settle path must clear it.
@@ -241,8 +231,6 @@ describe('submitOptimistically raises the global pill', () => {
     expect(pending().get('deposit')).toBe('Zapisywanie…')
   })
 })
-
-// ── clearSubmission ──────────────────────────────────────────────────────
 
 describe('clearSubmission', () => {
   it('clears submission without affecting dialog state', () => {

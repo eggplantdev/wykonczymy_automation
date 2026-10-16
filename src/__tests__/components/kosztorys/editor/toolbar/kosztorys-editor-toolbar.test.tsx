@@ -12,9 +12,6 @@ vi.mock('next/navigation', () => ({
 
 type EditorContextT = Parameters<typeof KosztorysEditorProvider>[0]['editor']
 
-// Only the fields the toolbar and its menus read on the way to first paint. The cast is the point:
-// the editor context is the whole hook's return, and widening this stub to match it would be a
-// second implementation of the editor rather than a test of the toolbar.
 const editorContext = {
   investmentId: 7,
   investmentName: 'Testowa',
@@ -69,10 +66,8 @@ const editorContext = {
   workers: [],
 } as unknown as EditorContextT
 
-// „Udostępnij inwestorowi" reads the session's role to decide whether „Zapisz jako domyślne" is
-// offered, and the toolbar mounts that dialog on the way to first paint — so without a session the
-// whole toolbar throws. OWNER because the toolbar is what an owner opens; no assertion here turns on
-// the role.
+// „Udostępnij inwestorowi" reads the session's role, and the toolbar mounts that dialog on the way to
+// first paint — so without a session the whole toolbar throws.
 const sessionUser = {
   id: 1,
   email: 'owner@example.test',
@@ -94,15 +89,12 @@ const renderToolbar = (overrides: Partial<Record<string, unknown>> = {}) =>
   )
 
 describe('KosztorysEditorToolbar — przełącznik panelu', () => {
-  // The panel carries „Inwestycja", so an empty kosztorys has something to open — a disabled toggle
-  // would put Dokumentacja out of reach on exactly a fresh investment.
   it('stays clickable with no rows at all', () => {
     renderToolbar()
 
     expect(screen.getByRole('button', { name: /Podsumowanie/ })).not.toBeDisabled()
   })
 
-  // A szablon has no Przedmiar, etapy or investment, so the panel would print only zeros.
   it('is absent on the szablon workbench', () => {
     renderToolbar({ isTemplate: true })
 
@@ -117,9 +109,6 @@ describe('KosztorysEditorToolbar — „Widok cen"', () => {
     expect(screen.getByRole('group', { name: 'Widok cen' })).toBeInTheDocument()
   })
 
-  // The workbench shows both crews' stawki at once, so the switch moves no column — it only moves
-  // the „Cena j.m." sort key and which filters are counted, neither of which the owner came to the
-  // szablon to change. Its plane is pinned instead, which is what makes dropping the control safe: `pickView` is the only writer of the stored view.
   it('drops it on the szablon workbench', () => {
     renderToolbar({ isTemplate: true })
 

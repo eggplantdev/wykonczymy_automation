@@ -23,7 +23,6 @@ import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 const DEFAULT_PAGE_SIZE = 10
 
 const getStatus = (draft: ExpenseDraftRowT) => draft.status
-// What still waits on the manager is what he opens the page for; the decided ones are a filter away.
 const DEFAULT_STATUS_FILTER = ['pending']
 const getInvestment = (draft: ExpenseDraftRowT) =>
   draft.investmentId === null ? NO_INVESTMENT : String(draft.investmentId)
@@ -56,7 +55,6 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, canOpenTransfers }: 
     values: investmentFilter,
     setValues: setInvestmentFilter,
   } = useClientMultiFilter(byStatus, getInvestment)
-  // Only a pending draft can be deleted, so with none listed the column would stand empty.
   const hasActions = canSend && filtered.some((draft) => draft.status === 'pending')
   const columns = useExpenseDraftColumns({
     isManagerView: false,
@@ -73,8 +71,6 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, canOpenTransfers }: 
       : undefined,
   })
 
-  // Off the drafts, not the props' `investments`: those are where he may send today, and his history
-  // also holds investments he has since left.
   const investmentOptions = [
     ...new Map(
       drafts.map((draft) => [getInvestment(draft), draft.investmentName ?? t('noInvestment')]),

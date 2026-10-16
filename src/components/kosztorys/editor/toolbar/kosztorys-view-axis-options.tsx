@@ -11,11 +11,6 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
 const ICON_CLASS = 'size-4'
 
-// Three views over one dataset: they only change the active price and its derived values. The two
-// subcontractor views share their glyphs with the etap header via planeIcon (can't drift).
-// Shared by the view switcher and the „Stawki wykonawców" ticks, which is what the icons alone
-// could not guarantee: two independent maps over TOOL_PLANES is exactly how the two controls that
-// both name a płaszczyzna drift apart.
 const PLANE_OPTIONS = TOOL_PLANES.map((plane) => ({
   value: plane,
   label: PLANE_LABELS[plane],
@@ -50,8 +45,6 @@ export const MONEY_PAIR_CONFIG: PairAxisConfigT<MoneyAxisT> = {
   none: 'none',
 }
 
-// The Kolumny toggle is the strictest gate: an unchecked column is ANDed out in buildV2Columns
-// before any axis predicate runs, so it stays hidden regardless of the Kwoty/Warstwy options.
 export const KOLUMNY_HINT =
   'Jeśli odznaczysz którąś kolumnę, nie będzie widoczna niezależnie od wybranych opcji powyżej.'
 

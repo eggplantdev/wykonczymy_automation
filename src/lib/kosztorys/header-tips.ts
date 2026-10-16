@@ -8,8 +8,6 @@ import {
 
 const DISCOUNT_IS_CLIENT_ONLY = 'Rabat nie obniża stawek robocizny dla ekip.'
 
-// Read in every view, so a crew view has to say its base out loud: „Razem netto" beside it is at the
-// crew's rate over the crew's etapy.
 const CLIENT_BASE = 'Zawsze po cenie klienta, dla całego zakresu (wszystkie etapy).'
 
 const REMAINING = `Wartość aktualizacji przedmiaru minus wartość pomiaru.\nIle z uzgodnionego zakresu nie zostało jeszcze wykonane.\nNa minusie (na czerwono) = przekroczono aktualizację przedmiaru; suma w stopce pomija takie wiersze.\n\n${CLIENT_BASE}`
@@ -44,9 +42,6 @@ const HEADER_TIPS: Record<string, string> = {
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
 }
 
-// The worker's document is read by the crew, whose figures are pomiar × their own stawka: the
-// client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
-// Every tip his link shows is listed, because it is read in his language.
 const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   plannedQty: 'tipPlannedQty',
   currentPlannedQty: 'tipCurrentPlannedQty',
@@ -58,12 +53,6 @@ const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   plannedDonePercent: 'tipPlannedDonePercent',
 }
 
-/**
- * The map's only reader, so the base-key resolution lives here rather than at a call site — same
- * shape as `columnLabelForView`, `axisAllows` and `layerAllows`, which each own it too. One tip on
- * „Cena j.m." has to answer for both planes' rate columns; a second entry per plane is the drift
- * `column-config.ts` exists to prevent.
- */
 export function headerTipFor(
   columnId: string,
   {

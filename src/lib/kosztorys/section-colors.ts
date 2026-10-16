@@ -1,21 +1,9 @@
-// The palette a section can be pinned to: the nine chart hues at three tints (globals.css
-// `--color-section-*`). Written out as literals, never assembled from `${hue}-${tint}` — Tailwind
-// can't scan a template string, so a generated `bg-…` class would ship without its rule.
+// Tailwind can't scan a template string, so a generated `bg-…` class would ship without its rule.
 //
-// `fill` feeds recharts, which takes the raw CSS var as a `fill` prop (the same indirection
-// CHART_FILLS uses). The mid-tint rows deliberately point at `--color-chart-*` rather than their own
+// The mid-tint rows deliberately point at `--color-chart-*` rather than their own
 // `--color-section-*` alias: paintSlices subtracts pinned fills from the positional pool by STRING
 // equality against CHART_FILLS, so switching to the alias would silently let a pinned section and an
-// unpinned one render the same wedge. `swatch` is the picker's background utility; `label` is its
-// Polish name, stored rather than derived from the key so the palette's vocabulary has one home.
-//
-// `rail` carries the section's hue into the grid as a single custom property — the row paints
-// nothing itself; the rules that consume `--section-rail` (the gutter rail and the divider above a
-// section's first row) live in globals.css under `.kosztorys-grid`. Two reasons for the indirection:
-// dsg's stylesheet is UNLAYERED, so it outranks every `@layer utilities` rule regardless of
-// specificity and a utility would need `!` on each of the 27 entries; and a custom property set on
-// the row simply inherits down to the (absolutely positioned) cells, which no descendant selector
-// written as a Tailwind variant can reach cleanly.
+// unpinned one render the same wedge.
 export const SECTION_COLORS = [
   {
     key: 'blue-soft',
@@ -239,12 +227,6 @@ export const SECTION_COLORS = [
 
 export type SectionColorKeyT = (typeof SECTION_COLORS)[number]['key']
 
-// The picker lays the palette out `grid-cols-9` — hue across, tint down — so SECTION_COLORS is stored
-// row-major (nine jasne, nine bazowe, nine ciemne). Auto-assignment walks a THIRD order, because what
-// the sequence has to optimize is telling ADJACENT sections apart: exhaust one tint band across the
-// hue wheel before dropping to the next, and take the hues in a spread order rather than around the
-// wheel, so neighbours never land on two steps of the same hue (blue then turquoise) — and never on
-// three tints of one hue, which is what walking a hue's column top-to-bottom produced.
 const HUE_SPREAD_ORDER = [0, 5, 2, 6, 3, 8, 4, 1, 7] as const
 const TINTS_PER_HUE = 3
 const HUE_COUNT = SECTION_COLORS.length / TINTS_PER_HUE
@@ -254,17 +236,12 @@ export const SECTION_COLOR_SEQUENCE: readonly SectionColorKeyT[] = SECTION_COLOR
     SECTION_COLORS[Math.floor(i / HUE_COUNT) * HUE_COUNT + HUE_SPREAD_ORDER[i % HUE_COUNT]].key,
 )
 
-// Nth section's colour, wrapping once the palette runs out — 28 sections is rarer than a crash would
-// be forgivable, so it cycles rather than returning null.
 export function sectionColorForIndex(index: number): SectionColorKeyT {
   return SECTION_COLOR_SEQUENCE[index % SECTION_COLOR_SEQUENCE.length]
 }
 
 const BY_KEY = new Map(SECTION_COLORS.map((c) => [c.key as string, c]))
 
-// A section's stored colour is validated on read, not just on write: the column is plain text (the
-// palette grows without a migration), so a key retired from SECTION_COLORS must degrade to "unpinned"
-// rather than paint a slice with a dead CSS var.
 export function isSectionColorKey(value: unknown): value is SectionColorKeyT {
   return typeof value === 'string' && BY_KEY.has(value)
 }

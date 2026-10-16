@@ -1,5 +1,4 @@
-// No `server-only` here (half of src/lib/db skips it too): the bulk script runs these same helpers
-// under tsx, where that import throws.
+// No `server-only` here: the bulk script runs these same helpers under tsx, where that import throws.
 import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { textOrNull } from '@/lib/db/row-coerce'
@@ -10,9 +9,6 @@ import {
   type DescriptionTranslationsT,
 } from '@/lib/i18n/description-translations'
 
-// The two hand-typed text columns travel together: one button cleans both, and a praca with a blank
-// opis can still carry a j.m. worth tidying. The translations ride along because their `source` has
-// to follow a cleaned opis.
 export type ItemTextRowT = {
   id: number
   description: string | null
@@ -55,14 +51,11 @@ export async function setItemTexts(
     WHERE i.id = v.id AND i.investment_id = ${investmentId}
     RETURNING i.id
   `)
-  // The editor reseeds its grid off the investment's revision token — the same reason
-  // setSheetMeasuredQty bumps it.
   if (res.rows.length > 0)
     await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
   return res.rows.length
 }
 
-/** The AI fill's writer — translations only, never the opis or j.m. a manager may be editing. */
 export async function setItemTranslations(
   db: DbExecutorT,
   investmentId: number,

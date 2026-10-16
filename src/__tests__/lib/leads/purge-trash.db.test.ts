@@ -8,10 +8,6 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 
-// The purge is the one erase nobody confirms, so the assertion is on which leads keep their
-// contents — and an erased tombstone, which keeps its old trash date forever, must not be re-erased
-// every night.
-
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)

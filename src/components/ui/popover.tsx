@@ -21,12 +21,6 @@ function PopoverContent({
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
   return (
     <PopoverPrimitive.Portal>
-      {/* `w-72` is the wanted size, the available-* values the ceiling: a caller that asks for more
-          (`w-96` on the kosztorys problems menu) is 384px on a 375px phone and ran off the screen,
-          and a long popover ran off the bottom. Radix's values already account for the anchor and
-          its collision padding, so this caps to what is actually reachable rather than to the raw
-          viewport. Same pair `dropdown-menu.tsx` has always carried — a popover was the only one of
-          the two missing it. */}
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}

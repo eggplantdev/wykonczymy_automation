@@ -37,8 +37,6 @@ describe('itemKey', () => {
   })
 
   it('keys the same whether or not the opis was SHOUTED when the typo was fixed', () => {
-    // `cleanDescription` fixes spelling before it un-shouts, so a SHOUTED opis keeps its typo — the
-    // key has to survive that, or the cleaner would break exactly the rows it was pointed at.
     expect(key('GNIAZDKA NA ŚCIANCH POKOJU')).toBe(key('Gniazdka na ścianach pokoju'))
   })
 
@@ -46,8 +44,6 @@ describe('itemKey', () => {
     expect(key('Malowanie  ŚCIAN')).toBe(key('malowanie scian'))
   })
 
-  // The katalog corrections reach identity too, or the button applying them to a rozpiska tears it
-  // off the arkusz it is compared against.
   it('keys a name the owner corrected in the katalog the same as the one the rozpiska still has', () => {
     expect(key('Lutowanie taśm ledowych')).toBe(key('Lutowanie taśm LED'))
   })
@@ -59,8 +55,6 @@ describe('itemKey', () => {
     expect(key('motnaz tv')).toBe(key('Montaż TV'))
   })
 
-  // Whatever „Popraw literówki" would do to an opis, the key does not notice. Table-driven over the
-  // whole rule set so a rule added later has to hold it too.
   it.each(TYPO_FIXES.map(([from]) => from))(
     'keys „%s" the same before and after the cleaner rewrites it',
     (typo) => {
@@ -71,8 +65,6 @@ describe('itemKey', () => {
   )
 
   it('keeps a word-boundary rule from eating the middle of another word', () => {
-    // ` parc` → ` prac` needs its leading space, which `fold()` would otherwise trim off the rule —
-    // and „wyparcie" would silently become „wypracie", collapsing two unrelated prace onto one key.
     expect(key('Zabezpieczenie na wyparcie gruntu')).not.toBe(
       key('Zabezpieczenie na wypracie gruntu'),
     )
@@ -100,8 +92,6 @@ describe('keyItems', () => {
   })
 
   it('counts a corrected opis and its uncorrected twin as repeats of one praca', () => {
-    // This is the shape investment 90 was in: the cleaner corrected one copy, the import then read
-    // the pair as two different prace and kept both.
     const keyed = keyItems(
       [item(1, 'Gniazdka na ścianch'), item(2, 'Gniazdka na ścianach')],
       () => 'Elektryka',

@@ -46,8 +46,6 @@ const UNCONFIRMED_BADGE = 'Rozliczenie etapu niepotwierdzone'
 
 beforeEach(() => vi.clearAllMocks())
 
-// An etap with no rozliczenie enters no crew's account, so the header has to say it in the column
-// itself — not in the panel beside it, which nobody looks at while typing quantities.
 describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
   it('oznacza etap bez rozliczenia w samym nagłówku', () => {
     renderHeader(null)
@@ -71,8 +69,6 @@ describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
   })
 })
 
-// Splitting an etap with no rozliczenie would divide a silent 0 zł — the settlement pass rejects such
-// an etap before computing any kwota. So the split waits, rather than staying silent.
 describe('Nagłówek etapu — podział czeka na rozliczenie', () => {
   it('blokuje „Pracownicy etapu…", dopóki rozliczenia nie ma, i mówi dlaczego', async () => {
     const user = renderHeader(null)

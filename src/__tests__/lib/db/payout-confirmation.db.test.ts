@@ -14,10 +14,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 
-// Risk #27, the decision half: the worker's write is raw SQL behind an every-role action, so the
-// WHERE is the whole gate — whose wypłata it is, whether it still stands, whether it is still open.
-// Each case asserts the STORED row, not the boolean the statement returned.
-
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()

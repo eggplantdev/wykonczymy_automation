@@ -16,7 +16,6 @@ const UNSUBSCRIBE_WAIT_MS = 3_000
 
 type LogoutButtonPropsT = React.ComponentProps<typeof Button> & {
   collapsed?: boolean
-  /** Runs before the redirect tears the shell down — the drawer uses it to release its scroll lock. */
   beforeLogout?: () => void
 }
 
@@ -40,7 +39,6 @@ export function LogoutButton({ collapsed = false, beforeLogout, ...props }: Logo
             unsubscribeThisDevice(),
             new Promise((resolve) => setTimeout(resolve, UNSUBSCRIBE_WAIT_MS)),
           ])
-          // Only a failed request ever returns — a logout that lands redirects.
           const res = await settleAction(logoutAction)
           if (!res.success) toastMessage(failureMessage(locale, res), 'error')
         })

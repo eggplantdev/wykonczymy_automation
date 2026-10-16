@@ -5,12 +5,6 @@ import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// Two „Pobierz i zastąp" (or „Wczytaj szablon") on the SAME investment used to collide: each wipes
-// the tree its own transaction can see, and under READ COMMITTED the loser's DELETE never sees the
-// winner's freshly committed etapy — so its INSERT met kosztorys_stages_investment_ordinal_unique
-// and the owner got a raw duplicate-key dump from Postgres. The fix takes the investment row FOR
-// UPDATE first; this spec is the guard, and it needs a real DB because the defect IS the isolation
-// level.
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
 }))
@@ -76,7 +70,6 @@ describe.skipIf(!ENV_READY)('concurrent wholesale replacements (DB)', () => {
 
     expect(results.filter((result) => result.status === 'rejected')).toEqual([])
 
-    // The last writer wins wholesale — the etapy are the replacement's, not two replacements merged.
     const after = await serializeKosztorys(investmentId)
     expect(after.stages.map((stage) => stage.ordinal)).toEqual([1, 2, 3])
   })

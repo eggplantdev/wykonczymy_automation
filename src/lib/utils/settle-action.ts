@@ -6,11 +6,9 @@ const REQUEST_FAILED = 'Brak połączenia z serwerem — sprawdź internet albo 
 
 type RequestFailedT = FailureT & { code: 'REQUEST_FAILED' }
 
-// A server action never rejects on a handler throw — `protectedAction` catches those. It rejects only
-// when the request itself failed (offline, a deploy invalidating the action id), and inside a
-// `startTransition` that rejection escapes unhandled: no toast, and any pending flag the caller set stays
-// set. The code lets a caller whose write may have committed anyway (a tree replace) refetch instead of
-// reverting.
+// It rejects only when the request itself failed (offline, a deploy invalidating the action id), and
+// inside a `startTransition` that rejection escapes unhandled: no toast, and any pending flag the
+// caller set stays set.
 export async function settleAction<R extends { success: boolean }>(
   call: () => Promise<R>,
 ): Promise<R | RequestFailedT> {

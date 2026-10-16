@@ -8,16 +8,10 @@ import { toastMessage } from '@/lib/utils/toast'
 type SnapshotListT = {
   // null = not loaded yet (spinner); [] = loaded, empty.
   snapshots: SnapshotListItemT[] | null
-  // Drop the loaded list back to the spinner state (on close / after a restore) so a reopen refetches.
   reset: () => void
 }
 
-// Load the snapshot list whenever the drawer becomes visible. Keyed on the `open` state, NOT a click
-// handler, because the drawer is controlled by the parent toolbar and never sees the opening click — a
-// controlled Radix Dialog fires onOpenChange only on dismiss, never with `true` on a programmatic open.
-// Keying on visibility also means every path that opens the drawer refetches (today the toolbar,
-// tomorrow an auto-open after restore), which a trigger-click handler would miss. `active` drops a
-// response that lands after a close/reopen so a stale fetch can't populate the reopened list.
+// a controlled Radix Dialog fires onOpenChange only on dismiss, never with `true` on a programmatic open.
 export function useSnapshotList(investmentId: number, open: boolean): SnapshotListT {
   const { listSnapshots } = useEditorActions()
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)

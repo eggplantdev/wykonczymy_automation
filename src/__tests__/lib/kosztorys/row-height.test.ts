@@ -78,8 +78,6 @@ describe("resolveRowHeight · the recheck flag's floor (EX-1057)", () => {
 })
 
 describe('resolveRowHeight · the client preview never sees a drag', () => {
-  // The owner drags rows flat in the editor and opens „Widok inwestora" in the same browser, so the
-  // same localStorage map is in scope — and a leak clips exactly the descriptions the fit exists for.
   it('sizes to the content when no override is passed, whatever is stored elsewhere', () => {
     expect(resolveRowHeight({ isSectionBand: false, contentLines: 4 })).toBe(heightForLines(4))
   })
@@ -102,8 +100,6 @@ describe('fitRowHeight', () => {
     expect(fitRowHeight(42, 0)).toBe(ITEM_ROW_HEIGHT)
   })
 
-  // A band's resting height is taller than one line of text, so the shared floor in heightForLines
-  // is not enough — fitting a band to its one-line label would shrink it.
   it('floors a section band at the band height, not the item height', () => {
     expect(fitRowHeight(sectionHeaderRowId(7), 1)).toBe(SECTION_BAND_ROW_HEIGHT)
     expect(fitRowHeight(sectionHeaderRowId(7), 4)).toBe(heightForLines(4))
@@ -120,8 +116,6 @@ describe('resolveHeaderRowHeight', () => {
     expect(resolveHeaderRowHeight(10)).toBe(HEADER_ROW_HEIGHT)
   })
 
-  // Same corruption path as the rows: the header's height rides the same localStorage map, and NaN
-  // in dsg's layout arithmetic blanks the grid.
   it('ignores a corrupted stored height rather than passing NaN into the grid', () => {
     expect(resolveHeaderRowHeight(Number.NaN)).toBe(HEADER_ROW_HEIGHT)
   })

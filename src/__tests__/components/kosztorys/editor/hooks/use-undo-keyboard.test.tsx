@@ -34,8 +34,6 @@ describe('useUndoKeyboard', () => {
     expect(undo).not.toHaveBeenCalled()
   })
 
-  // Cmd+Z unclaimed by anyone is the browser's own undo, which replays the last grid cell edit behind
-  // the modal and saves it.
   it('keeps the browser from undoing a field behind an open dialog when focus is on the page body', () => {
     renderHook(() => useUndoKeyboard(vi.fn(), vi.fn()))
     document.body.insertAdjacentHTML(

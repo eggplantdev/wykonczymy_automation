@@ -5,14 +5,8 @@ import { getDb } from '@/lib/db/get-db'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
-// Wstawianie prac z katalogu, against the REAL DB and asserting the PERSISTED rows. Three things
-// are invisible from the return value and all three have bitten this codebase before: N rows must
-// get N DISTINCT display_orders (insertItems remaps RETURNING ids by (section_id, display_order)
-// and degrades to positional on a tie), both stawki must land as FROZEN amounts, and the 65%
-// ceiling must warn without refusing the write.
-//
-// Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
-// and revalidation touches next/cache outside a request context.
+// N rows must get N DISTINCT display_orders (insertItems remaps RETURNING ids by (section_id, display_order)
+// and degrades to positional on a tie).
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -22,13 +16,11 @@ vi.mock('@/lib/auth/require-auth', () => ({
   })),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-// after() throws outside a request scope; the section-name translation it schedules is covered by
-// translate-at-creation.test.ts.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
-// Pass-through unless a test arms it. The only way to reach „the sekcja was created, then the write
+// The only way to reach „the sekcja was created, then the write
 // failed" — the one state the shared transaction exists to make impossible — without racing a DELETE
 // against the action's own catalogue read.
 const placement = vi.hoisted(() => ({ failNext: false }))
@@ -303,7 +295,6 @@ describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
     const prices = { clientPrice: 100, wToolsRate: 50, ownToolsRate: 40 }
     const id = await createCatalogueItem(`Do istniejącej ${suffix}`, prices)
 
-    // Case and padding are the only difference — to the owner this is the same sekcja.
     const result = await createSectionWithCatalogueItemsAction(
       investmentId,
       `  łazienka ${suffix}  `,

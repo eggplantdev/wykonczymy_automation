@@ -31,8 +31,6 @@ type EquipmentDataTablePropsT = {
 
 const INITIAL_SORTING = [{ id: 'name', desc: false }]
 
-// From the constant, not from the data: unlike „Gdzie jest", the five statuses are a closed list, and
-// an owner looking for a skradziony item needs the option to exist before any row carries it.
 const STATUS_OPTIONS = EQUIPMENT_STATUSES.map((status) => ({
   value: status,
   label: EQUIPMENT_STATUS_LABELS[status].pl,
@@ -47,8 +45,6 @@ export function EquipmentDataTable({
   warehouses,
   investments,
 }: EquipmentDataTablePropsT) {
-  // Serial numbers are what someone reads off the nameplate while standing next to the tool, so they
-  // search alongside the words. `useSearchFilter` folds diacritics, so „szlifierka" finds „Szlifierka".
   const getSearchableText = useCallback(
     (row: EquipmentRowT) => `${row.name} ${row.make} ${row.model} ${row.serialNumber}`,
     [],
@@ -87,8 +83,6 @@ export function EquipmentDataTable({
       storageKey="equipment"
       initialSorting={INITIAL_SORTING}
       getRowHref={(row) => `/sprzet/${row.id}`}
-      // Sold, lost and retired items stay listed — the register is also the record of what we USED to
-      // have — but they are visibly out of the working set.
       getRowClassName={(row) => (isLiveStatus(row.status) ? '' : 'opacity-60')}
       toolbar={({ table, columnVisibility: cv, ...order }) => (
         <DataTableToolbar
