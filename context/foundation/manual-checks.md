@@ -798,6 +798,23 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Komórka zaznaczona bez wpisywania: **Enter** otwiera edycję, **Escape** zdejmuje zaznaczenie.
 - [ ] W trakcie edycji Tab i strzałki góra/dół dalej przechodzą między komórkami.
 
+## 2026-10-16 — umowa-dialog — „Umowa” generowana z widoku inwestycji
+
+- [ ] Inwestycja z „Dane do umowy” = Osoba prywatna i „taki sam” włączonym → „Umowa”: Zamawiający
+      to imię i nazwisko, Adres Zamawiającego = adres inwestycji, Miejscowość „Warszawie”, data =
+      dziś, Osoby odpowiedzialne „Bartosz Antonik, Yuri Abramenko”, Kwota netto = „Wartość netto
+      przedmiar” ze stopki kosztorysu.
+- [ ] „Dane do umowy” = Firma → Zamawiający to firma + NIP + repr., pola PESEL nie ma.
+- [ ] „taki sam” wyłączony, adres do umowy wpisany → Adres Zamawiającego to ten adres, a Adres
+      inwestycji dalej adres inwestycji.
+- [ ] Inwestycja bez kosztorysu → Kwota pusta, okno działa normalnie.
+- [ ] W oknie „Umowa” → „Edytuj dane inwestycji” → zmień imię klienta i zapisz → pola umowy
+      wypełniają się nowymi danymi.
+- [ ] „Generuj” z pustym Numerem, PESEL-em i terminami → podgląd wydruku: kropkowane puste miejsca,
+      „zwanym dalej (Zamawiającym)”, „Wykończymy sp. z o.o.”, linia „8% VAT”, podpisy na końcu;
+      „Zapisz jako PDF” proponuje nazwę „Umowa nr … — …”. Sprawdź w Chrome i Safari.
+- [ ] Inwestycja w koszu → brak przycisku „Umowa”.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
