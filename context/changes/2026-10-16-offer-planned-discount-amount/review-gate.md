@@ -31,3 +31,36 @@ Ran /simplify (4 agents) — 2 applied, 0 proposed, 6 dropped/dismissed; each fo
 ## Tests & suite
 
 Not run — the repo hook allows tests/typecheck/lint only on an explicit „odpal testy”. Touched specs + typecheck owed.
+
+---
+
+# Follow-up gate — rabat sums on the investor PDF · 2026-10-16
+
+Scope: `964ad22a2..711b3b75a` (5 files, no new files). Checks: code-review (correctness + comment noise).
+Dropped: 10x-impl-review (follow-up not in plan.md), structure audits (no new files, no new module),
+tailwind-v4-audit (no `className`), Step 0.5 browser pass (not requested).
+
+## Findings
+
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/__tests__/lib/kosztorys/print/offer.test.ts:321` · client-plane pin of the rabat sum unguarded — subcontractor-plane case now uses a discounted row and asserts `plannedDiscountAmount` = 50
+      test: TDD · unit — assertion added beside the netto pin
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/__tests__/lib/kosztorys/print/offer.test.ts:478` · global-discount case didn't assert the footer — `not.toContain('W tym rabat')` added
+      test: TDD · unit — the assertion is the guard
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/__tests__/lib/kosztorys/print/offer.test.ts:497` · hidden-rabat case passed vacuously without a totals box — asserts „Razem netto" present
+      test: TDD · unit — the assertion is the guard
+- [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/kosztorys/print/build-html.ts:133` · „W tym rabat" under a post-rabat „Razem netto" can read as "part of" — wording dictated by the user this session
+      test: no automated test — wording ruling
+- [x] 🔵 OBSERVATION · dropped · code-review · `src/__tests__/lib/kosztorys/print/offer.test.ts:490` · adjacency assertion breaks if a column between netto and rabat becomes default-visible — fails loud, not silently; churn not worth it
+      test: no automated test — no change made
+- [x] fixed · code-review · `src/lib/kosztorys/print/offer.ts:49` · `columns.some(key ===)` twice — `printed(key)` helper
+- [x] fixed · comment-noise · `src/lib/kosztorys/print/offer.ts:58` · totalKeys comment hard to parse — rewritten as the failure it prevents
+- [x] fixed · comment-noise · `src/lib/kosztorys/print/offer.ts:62` · totalDiscount comment restated the condition — deleted
+- [x] dropped · code-review · `src/lib/kosztorys/print/offer.ts:23` · `OFFER_TOTAL_KEYS` not `as const` — trivial
+
+## Simplify pass
+
+Ran /simplify inline (proportional: 5-file follow-up) — 0 applied beyond the code-review fixes above, 0 proposed.
+
+## Tests & suite
+
+Not run — awaiting „odpal testy”. Owed: `src/__tests__/lib/kosztorys/print/offer.test.ts` + typecheck.

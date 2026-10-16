@@ -46,6 +46,7 @@ export function buildOfferPrintHtml({
     (column) =>
       !empty.has(column.key) && !bypassedByGlobalDiscount(column.key, globalDiscountActive),
   )
+  const printed = (key: string) => columns.some((column) => column.key === key)
   return buildKosztorysPrintHtml({
     rows: documentRows(rows, stages, settings.hideEmptyRows),
     columns,
@@ -54,12 +55,12 @@ export function buildOfferPrintHtml({
     pageTitle: investmentName,
     logoUrl,
     fillByColorKey,
-    // A rabat sum alone would take the „Razem" label column and the netto box with it.
-    totalKeys: columns.some((column) => column.key === 'plannedNet') ? OFFER_TOTAL_KEYS : [],
+    // Without „Wartość netto" the rabat column would start the money columns and bring back the
+    // „Razem netto" box the owner hid.
+    totalKeys: printed('plannedNet') ? OFFER_TOTAL_KEYS : [],
     money: zloty,
     totalNet: columnTotals.get('plannedNet') ?? 0,
-    // Only beside a printed rabat column: the owner hid it on purpose otherwise.
-    totalDiscount: columns.some((column) => column.key === 'plannedDiscountAmount')
+    totalDiscount: printed('plannedDiscountAmount')
       ? (columnTotals.get('plannedDiscountAmount') ?? 0)
       : undefined,
     sectionTotalsById: sectionColumnTotals,

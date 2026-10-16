@@ -320,7 +320,15 @@ describe('buildOfferPrintHtml — oferta przed pierwszym wpisem', () => {
 describe('buildOfferPrintHtml — oferta jest dokumentem klienta', () => {
   it('drukuje sumę klienta, nawet gdy edytor stoi na płaszczyźnie podwykonawcy', () => {
     const rows = [
-      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 10, clientPrice: 100 }),
+      row({
+        id: 1,
+        sectionId: 10,
+        sectionName: 'Podłogi',
+        plannedQty: 10,
+        clientPrice: 100,
+        discountType: 'percent',
+        discountValue: 5,
+      }),
     ]
     const client = editorTotals(rows)
     const fromSubcontractorPlane = editorTotals(rows, 'w_tools')
@@ -328,6 +336,7 @@ describe('buildOfferPrintHtml — oferta jest dokumentem klienta', () => {
     const clientNet = netOf(client.columnTotals)
 
     expect(netOf(fromSubcontractorPlane.columnTotals)).toBe(clientNet)
+    expect(fromSubcontractorPlane.columnTotals.get('plannedDiscountAmount')).toBe(50)
     expect(html(rows, fromSubcontractorPlane)).toContain(zloty(clientNet))
   })
 })
@@ -482,6 +491,7 @@ describe('rabat kwota na przedmiarze', () => {
 
     expect(out).not.toMatch(amountHeader)
     expect(out).not.toContain('po rabacie')
+    expect(out).not.toContain('W tym rabat')
   })
 
   it('suma sekcji stoi też pod kwotą rabatu, a stopka dopisuje „W tym rabat"', () => {
@@ -494,7 +504,10 @@ describe('rabat kwota na przedmiarze', () => {
   })
 
   it('ukryta kolumna rabatu nie zostawia „W tym rabat" w stopce', () => {
-    expect(html([discounted])).not.toContain('W tym rabat')
+    const out = html([discounted])
+
+    expect(out).toContain('Razem netto')
+    expect(out).not.toContain('W tym rabat')
   })
 
   it('ukryta „Wartość netto" zabiera też sumy rabatu', () => {
