@@ -21,7 +21,8 @@ export const WorkCatalogueItems: CollectionConfig = {
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwnerOrManager,
     update: isAdminOrOwnerOrManager,
-    delete: isAdminOrOwnerOrManager,
+    // Only `deleteCatalogueItemAction` deletes: it stamps the szablony using the item and expires `presets`.
+    delete: () => false,
   },
   fields: [
     {

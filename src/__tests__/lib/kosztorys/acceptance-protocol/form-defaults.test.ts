@@ -19,7 +19,7 @@ describe('protocolFormDefaults', () => {
       acceptanceDate: TODAY,
       readinessDate: '',
       clientName: 'Anna Nowak',
-      contractorName: 'Wykończymy sp. z o. o.',
+      contractorName: 'Wykończymy sp. z o.o.',
       siteAddress: 'ul. Kwiatowa 1/2, Kraków',
       paymentDueDate: '',
     })

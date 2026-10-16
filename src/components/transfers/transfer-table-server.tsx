@@ -7,7 +7,7 @@ import {
   scopeNarrowsByOriginalOnlyField,
   scopeAuditThroughOriginal,
   stripCancelledFilters,
-  narrowToTransferIds,
+  withWorkerDrafts,
 } from '@/lib/queries/transfer-filters'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
@@ -34,7 +34,7 @@ export async function TransferTableServer({ config: pageConfig }: TransferTableS
         ...pageConfig,
         query: {
           ...pageConfig.query,
-          where: narrowToTransferIds(pageConfig.query.where, allDraftTransferIds, {
+          where: withWorkerDrafts(pageConfig.query.where, allDraftTransferIds, {
             throughOriginal: pageConfig.cancelledTransactionAudit,
           }),
         },
