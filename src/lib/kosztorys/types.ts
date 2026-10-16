@@ -7,7 +7,7 @@ import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { MediaFileT } from '@/types/media'
 import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
-import type { InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT, WorkerRefT } from '@/types/reference-data'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
   PayoutTransactionRowT,
@@ -186,7 +186,7 @@ export type KosztorysEditorDataT = {
   // The investment's „Zdjęcia i pliki". `undefined` means „this surface has no gallery" (the szablon
   // workbench, both shares); `[]` means the investment simply has no files yet.
   assets?: MediaFileT[]
-  investment?: InvestmentWithNotesT
+  investment?: InvestmentWithDetailsT
   workerReports?: WorkerReportsSeedT
 }
 

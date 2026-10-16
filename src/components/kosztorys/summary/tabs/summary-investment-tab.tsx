@@ -6,11 +6,11 @@ import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialo
 import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
-import type { InvestmentWithNotesT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 
 type PropsT = {
-  investment: InvestmentWithNotesT
+  investment: InvestmentWithDetailsT
   assets?: MediaFileT[]
 }
 

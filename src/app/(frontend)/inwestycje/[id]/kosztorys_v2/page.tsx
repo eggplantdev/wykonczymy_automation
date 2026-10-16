@@ -4,10 +4,10 @@ import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
 import {
-  fetchInvestmentNotes,
+  fetchInvestmentDetails,
   fetchReferenceData,
   findInvestmentRef,
-  withNotes,
+  withDetails,
 } from '@/lib/queries/reference-data'
 import {
   fetchPayoutTransactionsForInvestment,
@@ -43,7 +43,7 @@ export default async function InvestmentKosztorysV2Page({
   // getKosztorysTree throws — for a failed session AND for a missing investment — so anything
   // folded into the Promise.all beside it is racing that throw for the right to decide what the user sees.
   const user = await requireManagementPage()
-  const [refData, notesById] = await Promise.all([fetchReferenceData(), fetchInvestmentNotes()])
+  const [refData, detailsById] = await Promise.all([fetchReferenceData(), fetchInvestmentDetails()])
   const found = findInvestmentRef(refData, investmentId)
   if (!found) notFound()
   const { investment, trashed } = found
@@ -104,7 +104,7 @@ export default async function InvestmentKosztorysV2Page({
       workers={refData.workers}
       workCatalogue={workCatalogue}
       assets={assets}
-      investment={withNotes(investment, notesById)}
+      investment={withDetails(investment, detailsById)}
       hasSheet={investment.hasSheet}
       lock={investmentLockOf({ status: investment.status, trashed })}
       workerReports={{

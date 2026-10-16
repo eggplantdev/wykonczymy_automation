@@ -2,24 +2,50 @@
 
 import { SelectItem } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { FieldGroup } from '@/components/ui/field'
+import { FieldGroup, FieldLegend, FieldSet } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import { InvestmentAssetsField } from './investment-assets-field'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import { useStore } from '@/components/forms/hooks/form-hooks'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
-import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
+import {
+  investmentFormSchema,
+  type InvestmentBillingFormValuesT,
+  type InvestmentFormValuesT,
+} from './investment-schema'
 import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from './investment-schema'
 import type { TemplateMetaT } from '@/lib/db/templates'
 import type { ActionResultT } from '@/types/action'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
+import { INVESTMENT_STATUS_LABELS, INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 import {
-  INVESTMENT_STATUS_LABELS,
-  INVESTMENT_STATUSES,
-} from '@/lib/constants/investment-status'
+  INVESTMENT_CLIENT_TYPE_LABELS,
+  INVESTMENT_CLIENT_TYPES,
+} from '@/lib/constants/investment-client-type'
+
+// Hidden fields still hold whatever was typed before a switch — drop them so the record keeps only
+// what the form shows.
+function visibleBilling(billing: InvestmentBillingFormValuesT): InvestmentBillingFormValuesT {
+  const isPerson = billing.clientType === 'person'
+  const isCompany = billing.clientType === 'company'
+  return {
+    clientType: billing.clientType,
+    firstName: isPerson ? billing.firstName : '',
+    lastName: isPerson ? billing.lastName : '',
+    companyName: isCompany ? billing.companyName : '',
+    nip: isCompany ? billing.nip : '',
+    representative: isCompany ? billing.representative : '',
+    sameAsSite: billing.sameAsSite,
+    street: billing.sameAsSite ? '' : billing.street,
+    postalCode: billing.sameAsSite ? '' : billing.postalCode,
+    city: billing.sameAsSite ? '' : billing.city,
+    country: billing.sameAsSite ? '' : billing.country,
+  }
+}
 
 type InvestmentFormPropsT = {
   formId: string
@@ -98,9 +124,13 @@ export function InvestmentForm({
       toData: (value) => ({
         name: value.name,
         address: value.address,
+        postalCode: value.postalCode,
+        city: value.city,
+        country: value.country,
         phone: value.phone,
         email: value.email,
         contactPerson: value.contactPerson,
+        billing: visibleBilling(value.billing),
         notes: value.notes,
         reviewRequested: value.reviewRequested,
         status: value.status,
@@ -108,6 +138,8 @@ export function InvestmentForm({
       }),
     },
   )
+  const clientType = useStore(form.store, (s) => s.values.billing.clientType)
+  const isBillingSameAsSite = useStore(form.store, (s) => s.values.billing.sameAsSite)
 
   return (
     <>
@@ -118,7 +150,22 @@ export function InvestmentForm({
           </form.AppField>
 
           <form.AppField name="address">
-            {(field) => <field.Input label="Adres" placeholder="Adres inwestycji" showError />}
+            {(field) => (
+              <field.Input label="Ulica i numer" placeholder="Adres inwestycji" showError />
+            )}
+          </form.AppField>
+
+          <div className="grid gap-4 @md/field-group:grid-cols-2">
+            <form.AppField name="postalCode">
+              {(field) => <field.Input label="Kod pocztowy" placeholder="00-000" showError />}
+            </form.AppField>
+            <form.AppField name="city">
+              {(field) => <field.Input label="Miejscowość" showError />}
+            </form.AppField>
+          </div>
+
+          <form.AppField name="country">
+            {(field) => <field.Input label="Kraj" showError />}
           </form.AppField>
 
           <form.AppField name="phone">
@@ -136,6 +183,78 @@ export function InvestmentForm({
               <field.Input label="Osoba kontaktowa" placeholder="Imię i nazwisko" showError />
             )}
           </form.AppField>
+
+          <FieldSet className="gap-4">
+            <FieldLegend>Dane do umowy / faktury</FieldLegend>
+
+            <form.AppField name="billing.clientType">
+              {(field) => (
+                <field.Select label="Typ klienta" placeholder="— nie wybrano —" showError>
+                  {INVESTMENT_CLIENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {INVESTMENT_CLIENT_TYPE_LABELS[type].pl}
+                    </SelectItem>
+                  ))}
+                </field.Select>
+              )}
+            </form.AppField>
+
+            {clientType === 'person' && (
+              <div className="grid gap-4 @md/field-group:grid-cols-2">
+                <form.AppField name="billing.firstName">
+                  {(field) => <field.Input label="Imię" showError />}
+                </form.AppField>
+                <form.AppField name="billing.lastName">
+                  {(field) => <field.Input label="Nazwisko" showError />}
+                </form.AppField>
+              </div>
+            )}
+
+            {clientType === 'company' && (
+              <>
+                <form.AppField name="billing.companyName">
+                  {(field) => <field.Input label="Nazwa firmy" showError />}
+                </form.AppField>
+                <div className="grid gap-4 @md/field-group:grid-cols-2">
+                  <form.AppField name="billing.nip">
+                    {(field) => <field.Input label="NIP" showError />}
+                  </form.AppField>
+                  <form.AppField name="billing.representative">
+                    {(field) => (
+                      <field.Input
+                        label="Osoba reprezentująca"
+                        placeholder="Imię i nazwisko"
+                        showError
+                      />
+                    )}
+                  </form.AppField>
+                </div>
+              </>
+            )}
+
+            <form.AppField name="billing.sameAsSite">
+              {(field) => <field.Checkbox label="Adres taki sam jak adres inwestycji" />}
+            </form.AppField>
+
+            {!isBillingSameAsSite && (
+              <>
+                <form.AppField name="billing.street">
+                  {(field) => <field.Input label="Ulica i numer" showError />}
+                </form.AppField>
+                <div className="grid gap-4 @md/field-group:grid-cols-2">
+                  <form.AppField name="billing.postalCode">
+                    {(field) => <field.Input label="Kod pocztowy" placeholder="00-000" showError />}
+                  </form.AppField>
+                  <form.AppField name="billing.city">
+                    {(field) => <field.Input label="Miejscowość" showError />}
+                  </form.AppField>
+                </div>
+                <form.AppField name="billing.country">
+                  {(field) => <field.Input label="Kraj" showError />}
+                </form.AppField>
+              </>
+            )}
+          </FieldSet>
 
           <form.AppField name="notes">
             {(field) => (

@@ -28,7 +28,7 @@ import { type KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { InvestmentWithNotesT, WorkerRefT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT, WorkerRefT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 import type {
   PayoutTransactionRowT,
@@ -100,7 +100,7 @@ type PropsT = {
   // says so (a MANAGER gets no marża); the client share passes it like every other host, and the
   // tab is kept off the client by `preview` below
   financials?: InvestmentFinancialsT
-  investment?: InvestmentWithNotesT
+  investment?: InvestmentWithDetailsT
   assets?: MediaFileT[]
 }
 

@@ -3,6 +3,7 @@ import type { LanguageT } from '@/lib/i18n/languages'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
+import type { InvestmentClientTypeT } from '@/lib/constants/investment-client-type'
 
 export type ReferenceItemT = {
   id: number
@@ -41,9 +42,30 @@ export type InvestmentNotesT = {
   aiNotes: string
 }
 
+export type InvestmentBillingT = {
+  clientType: InvestmentClientTypeT | null
+  firstName: string
+  lastName: string
+  companyName: string
+  nip: string
+  representative: string
+  sameAsSite: boolean
+  street: string
+  postalCode: string
+  city: string
+  country: string
+}
+
+export type InvestmentDetailsT = InvestmentNotesT & {
+  postalCode: string
+  city: string
+  country: string
+  billing: InvestmentBillingT
+}
+
 // The edit dialog takes this type, not the slim one: it sends every field back, so a ref with blank
-// notes would overwrite the real ones.
-export type InvestmentWithNotesT = InvestmentRefT & InvestmentNotesT
+// details would overwrite the real ones.
+export type InvestmentWithDetailsT = InvestmentRefT & InvestmentDetailsT
 
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   role: RoleT

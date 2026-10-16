@@ -222,8 +222,8 @@ Additive. Human applies prod with `pnpm db:migrate:prod` before the push; previe
 
 #### Automated
 
-- [x] 1.1 Migration applies on local dev DB (5433)
-- [x] 1.2 Migration applies on test DB (5435) and `down` reverts cleanly
+- [x] 1.1 Migration applies on local dev DB (5433) — b6e74bd9f
+- [x] 1.2 Migration applies on test DB (5435) and `down` reverts cleanly — b6e74bd9f
 
 ### Phase 2: Form, read path and detail view
 

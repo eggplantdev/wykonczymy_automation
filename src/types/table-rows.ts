@@ -1,5 +1,5 @@
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
-import type { CashRegisterTypeT } from '@/types/reference-data'
+import type { CashRegisterTypeT, InvestmentBillingT } from '@/types/reference-data'
 import type { SheetStatusT } from '@/lib/constants/sheets'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
@@ -32,9 +32,13 @@ export type InvestmentRowT = {
   subcontractorRemaining?: number
   subcontractorsOwed?: number
   address: string
+  postalCode: string
+  city: string
+  country: string
   phone: string
   email: string
   contactPerson: string
+  billing: InvestmentBillingT
   reviewRequested: boolean
   notes: string
   hasSheet: boolean

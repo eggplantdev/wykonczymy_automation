@@ -10,12 +10,12 @@ import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import { updateInvestmentAction } from '@/lib/actions/investments'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import type { InvestmentWithNotesT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
 
 const NOTES_STORAGE_KEY = 'investment:notes'
 
 type PropsT = {
-  investment: InvestmentWithNotesT
+  investment: InvestmentWithDetailsT
   readOnly?: boolean
 }
 

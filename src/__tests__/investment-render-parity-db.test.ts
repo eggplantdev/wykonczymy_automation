@@ -37,7 +37,8 @@ import type {
   KosztorysSubcontractorDueMapT,
 } from '@/lib/queries/balances'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
-import type { InvestmentWithNotesT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
+import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -45,7 +46,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
   let payload: Payload | null = null
   // Rate and mode ride along because the LISTING side gets them, and without them the detail side is
   // a different formula the moment any investment has a rate saved.
-  let investments: InvestmentWithNotesT[] = []
+  let investments: InvestmentWithDetailsT[] = []
   let expenseCategories: { id: number; name: string }[] = []
   let setupError: unknown = null
 
@@ -80,6 +81,10 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         hasSheet: false,
         aiStage: d.aiStage ?? null,
         aiNotes: String(d.aiNotes ?? ''),
+        postalCode: '',
+        city: '',
+        country: '',
+        billing: NO_INVESTMENT_BILLING,
         createdAt: String(d.createdAt),
         materialsNetRate: d.materialsNetRate ?? null,
         settlementMode: (d.settlementMode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,

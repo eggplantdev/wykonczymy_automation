@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { InvestmentRowT } from '@/types/table-rows'
+import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
 import { bare } from '@/__tests__/helpers/money'
 
 vi.mock('next/navigation', () => ({
@@ -36,9 +37,13 @@ const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => 
   marginV2: -150,
   subcontractorRemaining: undefined,
   address: '',
+  postalCode: '',
+  city: '',
+  country: '',
   phone: '',
   email: '',
   contactPerson: '',
+  billing: NO_INVESTMENT_BILLING,
   reviewRequested: false,
   notes: '',
   hasSheet: false,

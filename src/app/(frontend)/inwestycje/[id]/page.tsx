@@ -7,10 +7,10 @@ import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import {
-  fetchInvestmentNotes,
+  fetchInvestmentDetails,
   fetchReferenceData,
   findInvestmentRef,
-  withNotes,
+  withDetails,
 } from '@/lib/queries/reference-data'
 import { InvestmentSummaryPanel } from '@/components/investments/investment-summary-panel'
 import { InvestmentAssetsSection } from '@/components/investments/investment-assets-section'
@@ -51,13 +51,13 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
-  const [refData, notesById] = await Promise.all([fetchReferenceData(), fetchInvestmentNotes()])
+  const [refData, detailsById] = await Promise.all([fetchReferenceData(), fetchInvestmentDetails()])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const found = findInvestmentRef(refData, investmentId)
   if (!found) notFound()
   const { trashed } = found
-  const investment = withNotes(found.investment, notesById)
+  const investment = withDetails(found.investment, detailsById)
 
   return (
     <PageWrapper title={investment.name}>
