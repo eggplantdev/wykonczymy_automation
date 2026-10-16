@@ -1,6 +1,5 @@
 'use client'
 
-import type { FilterTogglesBulkT } from '@/components/filters/filter-multi-select'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import type { UserRowT } from '@/types/table-rows'
 
@@ -53,21 +52,23 @@ export function useUserListFilters() {
     },
   ]
 
-  const togglesBulk: FilterTogglesBulkT = {
-    allActive: toggles.every((toggle) => toggle.active),
-    onToggleAll: (next) => {
-      setActiveWorkers(next)
-      setInactiveWorkers(next)
-      setActivePayouts(next)
-      setCompletedPayouts(next)
-    },
+  const clear = () => {
+    setActiveWorkers(false)
+    setInactiveWorkers(false)
+    setActivePayouts(false)
+    setCompletedPayouts(false)
   }
+
+  const anyPayoutTicked = activePayouts || completedPayouts
 
   return {
     toggles,
-    togglesBulk,
+    clear,
     isListed: (row: UserRowT) =>
       (!activeWorkers && !inactiveWorkers) || (row.active ? activeWorkers : inactiveWorkers),
-    payoutBuckets: { active: activePayouts, completed: completedPayouts },
+    payoutBuckets: {
+      active: !anyPayoutTicked || activePayouts,
+      completed: !anyPayoutTicked || completedPayouts,
+    },
   }
 }

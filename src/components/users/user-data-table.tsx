@@ -7,6 +7,7 @@ import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { ListFilter } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
+import { Description } from '@/components/ui/description'
 import { AddWorkerDialog } from '@/components/dialogs/add-worker-dialog'
 import {
   SettlePayoutsDialog,
@@ -35,7 +36,7 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
     toggleUserActive,
   )
 
-  const { toggles, togglesBulk, isListed, payoutBuckets } = useUserListFilters()
+  const { toggles, clear, isListed, payoutBuckets } = useUserListFilters()
 
   const getSearchableText = useCallback((row: UserRowT) => `${row.name} ${row.email}`, [])
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
@@ -63,6 +64,9 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
 
   return (
     <>
+      <Description withIcon={false}>
+        Widoczni pracownicy {rows.length} / {data.length}
+      </Description>
       <DataTable
         data={rows}
         columns={columns}
@@ -77,10 +81,9 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
                 label="Filtry"
                 icon={ListFilter}
                 triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                triggerCount={toggles.filter((toggle) => !toggle.active).length}
                 contentClassName="w-80"
                 toggles={toggles}
-                togglesBulk={togglesBulk}
+                onClearToggles={clear}
               />
             }
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
