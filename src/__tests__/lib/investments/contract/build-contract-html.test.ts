@@ -9,8 +9,8 @@ function contractForm(overrides: Partial<ContractFormT> = {}): ContractFormT {
     place: 'Warszawie',
     clientName: 'Anna Nowak',
     clientPesel: '90010112345',
-    clientAddress: 'Polna 3, 00-001 Kraków',
-    siteAddress: 'Mirabelki 5/93, 03-034 Warszawa',
+    clientAddress: { street: 'Polna 3', postalCode: '00-001', city: 'Kraków', country: '' },
+    siteAddress: { street: 'Mirabelki 5/93', postalCode: '03-034', city: 'Warszawa', country: '' },
     startWindow: '1 a 15 listopada',
     duration: '5 tygodni',
     supervisors: 'Bartosz Antonik, Yuri Abramenko',
@@ -29,6 +29,7 @@ describe('buildContractHtml', () => {
     expect(html).toContain(`UMOWA nr ${fill('2/10/2026')}`)
     expect(html).toContain(`zawarta w dniu ${fill('14.10.2026')} r. w ${fill('Warszawie')}`)
     expect(html).toContain(fill('90010112345'))
+    expect(html).toContain(`<span>Adres</span>${fill('Polna 3, 00-001 Kraków')}`)
     expect(html).toContain('zwanym dalej (Zamawiającym)')
     expect(html).toContain(`zlokalizowany jest: ${fill('Mirabelki 5/93, 03-034 Warszawa')}.`)
     expect(html).toContain(

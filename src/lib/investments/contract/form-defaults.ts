@@ -1,6 +1,12 @@
 import { DEFAULT_PLACE, DEFAULT_SUPERVISORS } from '@/lib/investments/contract/constants'
 import type { ContractFormT } from '@/lib/investments/contract/types'
-import { clientAddressOf, clientNameOf, siteAddressOf } from '@/lib/investments/prefill'
+import { formatAddress } from '@/lib/investments/format-address'
+import {
+  clientAddressPartsOf,
+  clientNameOf,
+  siteAddressOf,
+  siteAddressPartsOf,
+} from '@/lib/investments/prefill'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -21,8 +27,8 @@ export function contractFormDefaults({ investment, today, plannedNet }: ArgsT): 
     place: DEFAULT_PLACE,
     clientName: clientNameOf(investment),
     clientPesel: '',
-    clientAddress: clientAddressOf(investment),
-    siteAddress: siteAddressOf(investment),
+    clientAddress: clientAddressPartsOf(investment),
+    siteAddress: siteAddressPartsOf(investment),
     startWindow: '',
     duration: '',
     supervisors: DEFAULT_SUPERVISORS,
@@ -38,7 +44,7 @@ function isCompany(investment: InvestmentWithDetailsT): boolean {
 export function contractPrefillKey(investment: InvestmentWithDetailsT): string {
   return [
     clientNameOf(investment),
-    clientAddressOf(investment),
+    formatAddress(clientAddressPartsOf(investment)),
     siteAddressOf(investment),
     isCompany(investment),
   ].join('|')

@@ -7,6 +7,7 @@ import type {
   ContractPointT,
   ContractSectionT,
 } from '@/lib/investments/contract/types'
+import { formatAddress } from '@/lib/investments/format-address'
 import { escapeHtml } from '@/lib/utils/escape-html'
 import { formatPLDate } from '@/lib/utils/format-date'
 
@@ -18,6 +19,8 @@ const FIELD_TOKEN = new RegExp(`\\{(${CONTRACT_CLAUSE_FIELDS.join('|')})\\}`, 'g
 
 export function buildContractHtml({ form }: ArgsT): string {
   const date = form.signDate ? formatPLDate(form.signDate) : ''
+  const leadingSections = CONTRACT_SECTIONS.slice(0, -1)
+  const closingSection = CONTRACT_SECTIONS[CONTRACT_SECTIONS.length - 1]
 
   return `<!DOCTYPE html>
 <html lang="pl">
@@ -32,7 +35,7 @@ export function buildContractHtml({ form }: ArgsT): string {
 <div class="party">
 ${line('Imię i nazwisko / nazwa firmy', form.clientName)}
 ${form.isCompany ? '' : line('PESEL', form.clientPesel)}
-${line('Adres', form.clientAddress)}
+${line('Adres', formatAddress(form.clientAddress))}
 <p>zwanym dalej (Zamawiającym)</p>
 </div>
 <p class="connector">a</p>
@@ -42,8 +45,11 @@ ${line('Adres', form.clientAddress)}
 <p>zwaną dalej (Przyjmującym zamówienie).</p>
 </div>
 <p>Zamawiający i Przyjmujący zamówienie będą zwani łącznie „Stronami”, a osobno „Stroną”. Strony postanawiają, co następuje:</p>
-${CONTRACT_SECTIONS.map((section) => sectionHtml(section, form)).join('\n')}
+${leadingSections.map((section) => sectionHtml(section, form)).join('\n')}
+<div class="closing">
+${sectionHtml(closingSection, form)}
 <div class="signatures"><div>Zamawiający</div><div>Przyjmujący zamówienie</div></div>
+</div>
 </body>
 </html>`
 }
@@ -64,9 +70,13 @@ function line(label: string, value: string): string {
   return `<div class="line"><span>${escapeHtml(label)}</span>${fill(value)}</div>`
 }
 
+function clauseValue(field: ContractClauseFieldT, form: ContractFormT): string {
+  return field === 'siteAddress' ? formatAddress(form.siteAddress) : form[field]
+}
+
 function withFields(text: string, form: ContractFormT): string {
   return escapeHtml(text).replace(FIELD_TOKEN, (_, field: ContractClauseFieldT) =>
-    fill(form[field]),
+    fill(clauseValue(field, form)),
   )
 }
 

@@ -35,7 +35,7 @@ import type {
   AcceptanceProtocolFormT,
 } from '@/lib/kosztorys/acceptance-protocol/types'
 import type { MaterialsT } from '@/lib/kosztorys/summary-economics'
-import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { EditInvestmentPrefill } from '@/components/dialogs/edit-investment-prefill'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { warsawToday } from '@/lib/utils/days'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
@@ -153,12 +153,9 @@ function AcceptanceProtocolBody({
         <form.AppField name="siteAddress">
           {(field) => <field.Input label="Miejsce wykonania prac (adres)" />}
         </form.AppField>
-        <div className="flex items-center gap-3 sm:col-span-2">
-          <EditInvestmentDialog investment={investment} triggerText="Edytuj dane inwestycji" />
-          <Description size="xs" withIcon={false}>
-            Zamawiający i adres pochodzą z inwestycji — po zapisie protokół wypełni się ponownie.
-          </Description>
-        </div>
+        <EditInvestmentPrefill investment={investment} className="sm:col-span-2">
+          Zamawiający i adres pochodzą z inwestycji — po zapisie protokół wypełni się ponownie.
+        </EditInvestmentPrefill>
         <form.AppField name="contractorName">
           {(field) => <field.Input label="Wykonawca" />}
         </form.AppField>

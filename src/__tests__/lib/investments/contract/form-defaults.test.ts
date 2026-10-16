@@ -5,6 +5,8 @@ import { investment } from '@/__tests__/lib/kosztorys/acceptance-protocol/fixtur
 
 const TODAY = '2026-10-16'
 
+const siteParts = { street: 'Mirabelki 5/93', postalCode: '03-034', city: 'Warszawa', country: '' }
+
 const site = {
   address: 'Mirabelki 5/93',
   postalCode: '03-034',
@@ -34,8 +36,8 @@ describe('contractFormDefaults', () => {
       place: 'Warszawie',
       clientName: 'Anna Nowak',
       clientPesel: '',
-      clientAddress: 'Mirabelki 5/93, 03-034 Warszawa',
-      siteAddress: 'Mirabelki 5/93, 03-034 Warszawa',
+      clientAddress: siteParts,
+      siteAddress: siteParts,
       startWindow: '',
       duration: '',
       supervisors: 'Bartosz Antonik, Yuri Abramenko',
@@ -65,8 +67,13 @@ describe('contractFormDefaults', () => {
     })
 
     expect(form.clientName).toBe('Firma Testowa sp. z o.o., NIP 1234567890, repr. Jan Kowalski')
-    expect(form.clientAddress).toBe('Polna 3, 00-001 Kraków')
-    expect(form.siteAddress).toBe('Mirabelki 5/93, 03-034 Warszawa')
+    expect(form.clientAddress).toEqual({
+      street: 'Polna 3',
+      postalCode: '00-001',
+      city: 'Kraków',
+      country: '',
+    })
+    expect(form.siteAddress).toEqual(siteParts)
     expect(form.isCompany).toBe(true)
   })
 

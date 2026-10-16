@@ -1,3 +1,5 @@
+import type { AddressT } from '@/lib/investments/format-address'
+
 // Dates are `YYYY-MM-DD` as the date picker produces them; '' means left blank for the pen.
 export type ContractFormT = {
   number: string
@@ -5,8 +7,8 @@ export type ContractFormT = {
   place: string
   clientName: string
   clientPesel: string
-  clientAddress: string
-  siteAddress: string
+  clientAddress: AddressT
+  siteAddress: AddressT
   startWindow: string
   duration: string
   supervisors: string

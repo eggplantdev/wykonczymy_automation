@@ -1,6 +1,6 @@
 import type { InvestmentBillingT } from '@/types/reference-data'
 
-type AddressT = { street: string; postalCode: string; city: string; country: string }
+export type AddressT = { street: string; postalCode: string; city: string; country: string }
 
 const joinFilled = (parts: string[], separator: string) =>
   parts

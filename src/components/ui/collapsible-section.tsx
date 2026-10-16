@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
 import { Description } from '@/components/ui/description'
@@ -13,6 +13,7 @@ type CollapsibleSectionSizeT = 'lg' | 'sm'
 
 type CollapsibleSectionPropsT = {
   title: string
+  icon?: LucideIcon
   id?: string
   defaultOpen?: boolean
   storageKey?: string
@@ -44,6 +45,7 @@ function useSectionOpen(
 
 export function CollapsibleSection({
   title,
+  icon: Icon,
   id,
   defaultOpen = true,
   storageKey,
@@ -61,6 +63,9 @@ export function CollapsibleSection({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
         <div className="min-w-0 flex-1">
           <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">
+            {Icon && (
+              <Icon className={cn('text-foreground shrink-0', SIZE[size].chevron)} aria-hidden />
+            )}
             <h2 className={cn('text-foreground', SIZE[size].title)}>{title}</h2>
             <ChevronDown
               className={cn(
