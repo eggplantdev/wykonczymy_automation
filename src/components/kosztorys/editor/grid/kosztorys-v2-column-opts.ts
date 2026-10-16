@@ -56,6 +56,7 @@ export type BuildV2ColumnsOptsT = {
   revealedColumnIds?: ReadonlySet<string>
   canSaveItemToCatalogue?: boolean
   globalDiscountActive?: boolean
+  hasDiscount?: boolean
   // Omitting the mutation callbacks is NOT enough — a cell with no callback still takes focus and
   // enters edit mode, so a client-facing grid would look editable and swallow keystrokes.
   readOnly?: boolean

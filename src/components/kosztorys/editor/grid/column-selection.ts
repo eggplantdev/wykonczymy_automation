@@ -140,14 +140,22 @@ export function selectV2ToggleItems(
     if (UNPICKABLE_COLUMNS.has(id)) continue
     if (opts.workshopVisible) {
       if (WORKSHOP_VISIBLE_COLUMNS.has(id) && !WORKSHOP_UNPICKABLE_COLUMNS.has(id)) {
-        items.push({ id, label: columnLabelForView(id, opts.view), visible: !opts.isHidden?.(id) })
+        items.push({
+          id,
+          label: columnLabelForView(id, opts.view, undefined, { hasDiscount: opts.hasDiscount }),
+          visible: !opts.isHidden?.(id),
+        })
       }
       continue
     }
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(id)) continue
     if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(id)) continue
     if (!crewAxisAllows(id, opts.crewAxis ?? CREW_AXIS_DEFAULT)) continue
-    items.push({ id, label: columnLabelForView(id, opts.view), visible: !opts.isHidden?.(id) })
+    items.push({
+      id,
+      label: columnLabelForView(id, opts.view, undefined, { hasDiscount: opts.hasDiscount }),
+      visible: !opts.isHidden?.(id),
+    })
   }
   return items
 }

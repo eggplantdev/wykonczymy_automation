@@ -74,6 +74,7 @@ describe('worker columns', () => {
       'discountType',
       'discountValue',
       'discountAmount',
+      'plannedDiscountAmount',
       'stageValueGross_7',
       'note',
       planePriceKey('price', 'own_tools'),

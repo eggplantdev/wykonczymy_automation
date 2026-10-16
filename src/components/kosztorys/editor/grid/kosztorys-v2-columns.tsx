@@ -223,6 +223,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       ? [
           discountValueColumn(columnTitle('discountValue', opts)),
           discountTypeColumn(columnTitle('discountType', opts)),
+          resolvedColumn('plannedDiscountAmount'),
+          resolvedColumn('plannedDiscountAmountGross'),
           resolvedColumn('discountAmount'),
           resolvedColumn('discountAmountGross'),
         ]

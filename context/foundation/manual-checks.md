@@ -898,6 +898,20 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Kosztorys → etap oznaczony jako zakończony: kolumny etapu są w kolorze morskim, ✓ stoi w drugiej
       linii nagłówka przed imieniem pracownika (bez pracownika — sam ✓), pierwsza linia się nie rozjeżdża.
 
+## 2026-10-16 — offer-planned-discount-amount — „Rabat kwota netto (przedmiar)” + „— po rabacie” w ofercie
+
+- [ ] Kosztorys z rabatem 5 % na części pozycji → „Kolumny”: zaznacz „Rabat kwota netto (przedmiar)”.
+      Przy pozycji z rabatem stoi przedmiar × cena − „Wartość przedmiaru netto” (np. 30 × 45 zł → 67,50),
+      suma w stopce się zgadza; nagłówek „Wartość przedmiaru netto — po rabacie”.
+- [ ] Ten sam kosztorys, tryb brutto: zamiast netto stoi „Rabat kwota brutto (przedmiar)”.
+- [ ] Ta sama inwestycja → „Opcje” → „Ceny i rabat”: „Rabat kwota netto (przedmiar)” jest odznaczona.
+      Zaznacz → podgląd i link dla inwestora pokazują ją obok „Rabat”; „Drukuj PDF” drukuje ją, a nad
+      wartością stoi „Wartość netto — po rabacie”.
+- [ ] Inwestycja bez żadnego rabatu: nagłówki bez „— po rabacie”; zaznaczona w „Opcje” kolumna nie
+      pojawia się ani na podglądzie, ani w PDF.
+- [ ] Inwestycja z rabatem globalnym: nowych kolumn nie ma ani w „Kolumny” edytora, ani na dokumencie
+      dla inwestora.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

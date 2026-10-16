@@ -65,3 +65,26 @@ describe('columnBaseRanks', () => {
     expect(new Set(Object.values(columnBaseRanks)).size).toBe(Object.keys(columnBaseRanks).length)
   })
 })
+
+describe('rabat kwota na przedmiarze in the editor', () => {
+  it('sits between the rabat and the rabat on pomiar, netto and brutto', () => {
+    const ids = columnIds()
+    const at = ids.indexOf('plannedDiscountAmount')
+    expect(at).toBeGreaterThan(ids.indexOf('discountType'))
+    expect(ids[at + 1]).toBe('plannedDiscountAmountGross')
+    expect(ids[at + 2]).toBe('discountAmount')
+  })
+
+  it('is absent from a crew plane — the rabat is a client concession', () => {
+    const ids = columnIds({ view: 'w_tools' })
+    expect(ids).not.toContain('plannedDiscountAmount')
+    expect(ids).not.toContain('plannedDiscountAmountGross')
+  })
+
+  it('suffixes the przedmiar value in the picker only when the kosztorys has a rabat', () => {
+    const label = (opts: Partial<BuildV2ColumnsOptsT>) =>
+      grid(opts).columnToggleItems.find((item) => item.id === 'plannedNet')?.label
+    expect(label({ hasDiscount: true })).toBe('Wartość przedmiaru netto — po rabacie')
+    expect(label({})).toBe('Wartość przedmiaru netto')
+  })
+})

@@ -75,7 +75,7 @@ import {
 } from '@/lib/kosztorys/row-conditions/registry'
 import { STAGE_CONDITIONS, countMatchingStages } from '@/lib/kosztorys/stage-conditions'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
-import { investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { hasPlannedDiscount, investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { baseOrdinals } from '@/lib/kosztorys/section-band-rows'
 import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
@@ -525,6 +525,7 @@ export function useKosztorysEditor({
     // copy, so pushing them would revert the cennik.
     canSaveItemToCatalogue: editorOnly(!isTemplate),
     globalDiscountActive,
+    hasDiscount: hasPlannedDiscount(rows),
     divergenceFilterEngaged,
     engagedStageConditionIds,
     revealedColumnIds,

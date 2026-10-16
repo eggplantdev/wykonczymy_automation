@@ -4,7 +4,7 @@ import { offerPrintColumns, zloty } from '@/lib/kosztorys/print/offer-columns'
 import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import { bypassedByGlobalDiscount } from '@/lib/kosztorys/columns/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
-import { investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { hasPlannedDiscount, investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 export type OfferPrintArgsT = {
@@ -35,7 +35,12 @@ export function buildOfferPrintHtml({
 }: OfferPrintArgsT): string {
   const empty = investorEmptyColumnIds(rows, stages)
   const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
-  const columns = offerPrintColumns(stages, settings.hiddenColumns, settings.columnRanks).filter(
+  const columns = offerPrintColumns(
+    stages,
+    settings.hiddenColumns,
+    settings.columnRanks,
+    hasPlannedDiscount(rows),
+  ).filter(
     (column) =>
       !empty.has(column.key) && !bypassedByGlobalDiscount(column.key, globalDiscountActive),
   )

@@ -435,3 +435,43 @@ describe('rabat globalny', () => {
     expect(html([discountRow(false)], showing('discountValue'))).toContain(header)
   })
 })
+
+describe('rabat kwota na przedmiarze', () => {
+  const discounted = row({
+    id: 1,
+    plannedQty: 30,
+    clientPrice: 45,
+    discountType: 'percent',
+    discountValue: 5,
+  })
+  const plain = row({ id: 1, plannedQty: 30, clientPrice: 45 })
+  const amountHeader = header('Rabat kwota netto (przedmiar)')
+
+  it('drukuje zaznaczoną kwotę rabatu i „Wartość netto — po rabacie"', () => {
+    const out = html([discounted], showing('plannedDiscountAmount'))
+
+    expect(out).toMatch(amountHeader)
+    expect(out).toContain(`>${zloty(67.5)}</td>`) // 30 × 45 − 1282,50
+    expect(out).toMatch(header('Wartość netto — po rabacie'))
+  })
+
+  it('bez rabatu nie drukuje ani kolumny, ani dopisku', () => {
+    const out = html([plain], showing('plannedDiscountAmount'))
+
+    expect(out).not.toMatch(amountHeader)
+    expect(out).toMatch(header('Wartość netto'))
+    expect(out).not.toContain('po rabacie')
+  })
+
+  it('na domyślnych ustawieniach kolumna jest ukryta', () => {
+    expect(html([discounted])).not.toMatch(amountHeader)
+  })
+
+  it('rabat globalny zabiera kolumnę i dopisek', () => {
+    const global = { ...discounted, globalDiscountActive: true }
+    const out = html([global], showing('plannedDiscountAmount'))
+
+    expect(out).not.toMatch(amountHeader)
+    expect(out).not.toContain('po rabacie')
+  })
+})
