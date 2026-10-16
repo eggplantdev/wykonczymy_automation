@@ -49,25 +49,6 @@ describe('FilterMultiSelect — wiersze przełączników', () => {
     expect(runs[1]).toHaveTextContent('Trzeci')
     expect(runs[2]).toHaveTextContent('Czwarty')
   })
-
-  it('sweeps from above the headings, not from inside the first axis', async () => {
-    const onToggleAll = vi.fn()
-    render(
-      <FilterMultiSelect
-        label="Filtry"
-        toggles={[toggle('a', 'Pierwszy', 'Przedmiar')]}
-        togglesBulk={{ allActive: true, onToggleAll }}
-      />,
-    )
-    await openMenu(/^Filtry/)
-
-    expect(screen.getByRole('group', { name: 'Przedmiar' })).not.toHaveTextContent(
-      'Odznacz wszystkie',
-    )
-
-    await userEvent.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
-    expect(onToggleAll).toHaveBeenCalledWith(false)
-  })
 })
 
 describe('FilterMultiSelect — lista opcji: zaznacz, co chcesz widzieć', () => {

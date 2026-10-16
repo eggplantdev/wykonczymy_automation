@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { CheckCheck, CheckIcon, RotateCcw, X, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -18,8 +18,6 @@ import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 
 type OptionT = { value: string; label: string; count?: number }
-
-export type FilterTogglesBulkT = { allActive: boolean; onToggleAll: (next: boolean) => void }
 
 type FilterMultiSelectPropsT = {
   values?: string[]
@@ -51,13 +49,12 @@ type FilterMultiSelectPropsT = {
     onToggle: () => void
     disabled?: boolean
   }>
-  togglesBulk?: FilterTogglesBulkT
+  onClearToggles?: () => void
   actionsHeading?: string
   optionsHeading?: string
   resetAction?: { label: string; onReset: () => void; disabled?: boolean }
   triggerCount?: number
   contentClassName?: string
-  intro?: { heading: string; hint?: string }
   onOpen?: () => void
 }
 
@@ -107,9 +104,8 @@ export function FilterMultiSelect({
   bulkLabels,
   optionToggles,
   toggles,
-  togglesBulk,
+  onClearToggles,
   resetAction,
-  intro,
   actionsHeading,
   optionsHeading,
   triggerCount,
@@ -187,7 +183,6 @@ export function FilterMultiSelect({
     resetAction?.onReset()
   }
 
-
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -203,15 +198,6 @@ export function FilterMultiSelect({
     return runs
   }, [])
 
-  const bulkToggleRow = togglesBulk && (
-    <BulkSelectRow
-      id="bulk-toggles"
-      allSelected={togglesBulk.allActive}
-      labels={bulkLabels}
-      onSelect={() => togglesBulk.onToggleAll(!togglesBulk.allActive)}
-    />
-  )
-
   const showsClearRow = !bulkLabels && selected.length > 0
   const hasActionRows = bulkLabels != null || showsClearRow || (optionToggles?.length ?? 0) > 0
 
@@ -226,7 +212,11 @@ export function FilterMultiSelect({
         />
       )}
       {showsClearRow && (
-        <CommandItem value="clear-options" keywords={[t('clear')]} onSelect={() => selectValues([])}>
+        <CommandItem
+          value="clear-options"
+          keywords={[t('clear')]}
+          onSelect={() => selectValues([])}
+        >
           <X />
           {t('clear')}
         </CommandItem>
@@ -266,62 +256,73 @@ export function FilterMultiSelect({
         className={cn('flex flex-col overflow-hidden p-0', contentClassName)}
         align="start"
       >
-        {intro && (
-          <div className="border-border border-b px-3 py-2">
-            <p className="text-sm font-semibold">{intro.heading}</p>
-            {intro.hint && <p className="text-muted-foreground text-xs">{intro.hint}</p>}
-          </div>
-        )}
-        {resetAction && (
-          <div className="border-border border-b p-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start font-normal"
-              // `resetAction.disabled` speaks for what the caller owns outside this list; the local
-              // half is judged here, or the button stays dead for the whole debounce after a click.
-              disabled={(resetAction.disabled ?? false) && !hasPendingTicks}
-              onClick={handleReset}
-            >
-              <RotateCcw />
-              {resetAction.label}
-            </Button>
-          </div>
-        )}
         <Command className="min-h-0 flex-1">
           {searchable && <CommandInput placeholder={t('search')} />}
           <CommandList className="max-h-none">
+            {resetAction && (
+              <div className="border-border border-b p-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start font-normal"
+                  // `resetAction.disabled` speaks for what the caller owns outside this list; the local
+                  // half is judged here, or the button stays dead for the whole debounce after a click.
+                  disabled={(resetAction.disabled ?? false) && !hasPendingTicks}
+                  onClick={handleReset}
+                >
+                  <RotateCcw />
+                  {resetAction.label}
+                </Button>
+              </div>
+            )}
             {toggles && toggles.length > 0 && (
               <>
-                {bulkToggleRow && <CommandGroup>{bulkToggleRow}</CommandGroup>}
+                {onClearToggles && activeToggleCount > 0 && (
+                  <>
+                    <CommandGroup>
+                      <CommandItem
+                        value="clear-toggles"
+                        keywords={[t('clear')]}
+                        onSelect={onClearToggles}
+                      >
+                        <X />
+                        {t('clear')}
+                      </CommandItem>
+                    </CommandGroup>
+                    <CommandSeparator />
+                  </>
+                )}
                 {/* Keyed by each run's first row, not by its heading: an interleaved caller opens
                     two runs under one heading, and a heading key would collide. */}
-                {toggleRuns.map((run) => (
-                  <CommandGroup key={run.items[0].id} heading={run.heading}>
-                    {run.items.map((toggle) => (
-                      // Keyed by id: two plane headings can each hold a „Kwota stała (2)", and cmdk
-                      // treats rows sharing a value as one.
-                      <CommandItem
-                        key={toggle.id}
-                        value={toggle.id}
-                        keywords={[toggle.label]}
-                        disabled={toggle.disabled}
-                        onSelect={toggle.onToggle}
-                      >
-                        <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
-                        {toggle.description ? (
-                          <span className="flex flex-col">
-                            {toggle.label}
-                            <span className="text-muted-foreground text-xs">
-                              {toggle.description}
+                {toggleRuns.map((run, index) => (
+                  <Fragment key={run.items[0].id}>
+                    {index > 0 && <CommandSeparator />}
+                    <CommandGroup heading={run.heading}>
+                      {run.items.map((toggle) => (
+                        // Keyed by id: two plane headings can each hold a „Kwota stała (2)", and cmdk
+                        // treats rows sharing a value as one.
+                        <CommandItem
+                          key={toggle.id}
+                          value={toggle.id}
+                          keywords={[toggle.label]}
+                          disabled={toggle.disabled}
+                          onSelect={toggle.onToggle}
+                        >
+                          <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
+                          {toggle.description ? (
+                            <span className="flex flex-col">
+                              {toggle.label}
+                              <span className="text-muted-foreground text-xs">
+                                {toggle.description}
+                              </span>
                             </span>
-                          </span>
-                        ) : (
-                          toggle.label
-                        )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                          ) : (
+                            toggle.label
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Fragment>
                 ))}
                 {options.length > 0 && <CommandSeparator />}
               </>
