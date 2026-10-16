@@ -1,11 +1,11 @@
 export const PRINT_DOCUMENT_BASE_STYLES = `
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-/* The vertical margin has to live on @page: body padding does not repeat on continuation pages in
-   Safari, which ignores box-decoration-break on a block fragmented across pages, so page two started
-   its table at the sheet edge. The horizontal inset stays on the body, where the dialog's
-   „Marginesy: Brak" cannot take it away. The empty margin boxes suppress the browser's own header
-   and footer. */
+/* The dialog's „Marginesy: Brak" drops @page whole, so a margin there vanishes in Chrome; Safari
+   ignores box-decoration-break on a block split across pages, so a body padding there shows on page
+   one only. Hence vertical on @page by default, and on the cloned body padding (with @page zeroed)
+   wherever the unprefixed property — Chrome, Firefox — makes it repeat. The horizontal inset always
+   stays on the body. The empty margin boxes suppress the browser's own header and footer. */
 @page {
   margin: 16mm 0 14mm;
   @top-center { content: ''; }
@@ -16,6 +16,11 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: 9.5pt; line-height: 1.45; color: #18181b; margin: 0; padding: 0 18mm;
   font-variant-numeric: tabular-nums;
+}
+
+@supports (box-decoration-break: clone) {
+  @page { margin: 0; }
+  body { padding: 16mm 18mm 14mm; box-decoration-break: clone; }
 }
 
 .caption { font-size: 7pt; color: #71717a; }

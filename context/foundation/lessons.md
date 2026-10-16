@@ -248,7 +248,7 @@
   in the browser.
 - A custom font-size `@utility` must be registered in `cn.ts`'s `extendTailwindMerge`, or `cn()`
   drops it against `text-*` colours.
-- Print: vertical margin on `@page`, horizontal on body padding (`print/styles.ts`); check in Safari.
+- Print: vertical margin on `@page`, horizontal on body padding (`print/styles.ts`); where `@supports (box-decoration-break: clone)` (Chrome, Firefox) zero `@page` and clone the body padding, or „Marginesy: Brak” drops the vertical margin (`print-document-styles.ts`). Check in Safari and Chrome.
 - Flush on `visibilitychange`, not `sendBeacon` (server actions can't receive a beacon).
 - PWA: exempt the manifest/icons/SW in the proxy matcher; iOS standalone has a separate cookie jar;
   icons need the maskable safe zone. Web Push: delete a subscription only on 404/410, always send a
