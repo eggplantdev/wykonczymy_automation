@@ -18,6 +18,9 @@ export const LOCKED_INVESTMENT_STATUS = 'completed' satisfies InvestmentStatusT
 export const isLockedStatus = (status: string | null | undefined): boolean =>
   status === LOCKED_INVESTMENT_STATUS
 
+export const entersLockedStatus = (from: string, to: string): boolean =>
+  isLockedStatus(to) && !isLockedStatus(from)
+
 export const COMPLETE_INVESTMENT_CONFIRM = {
   title: 'Zakończyć inwestycję?',
   description:

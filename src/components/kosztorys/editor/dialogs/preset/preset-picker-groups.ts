@@ -2,6 +2,12 @@ import type { TemplateSectionMetaT } from '@/lib/db/templates'
 
 export const getPresetName = (group: PresetGroupT) => group.templateName
 
+// A kosztorys id is not a szablon id, so only the szablon's own editor has itself to leave out.
+export const isEditedTemplate = (
+  templateId: number,
+  editor: { isTemplate: boolean; investmentId: number },
+) => editor.isTemplate && templateId === editor.investmentId
+
 export type PresetGroupT = {
   templateId: number
   templateName: string

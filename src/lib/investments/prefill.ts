@@ -12,12 +12,17 @@ export function clientNameOf(investment: InvestmentWithDetailsT): string {
   )
 }
 
-export function siteAddressPartsOf(investment: InvestmentWithDetailsT): AddressT {
+type SiteAddressSourceT = Pick<
+  InvestmentWithDetailsT,
+  'address' | 'postalCode' | 'city' | 'country'
+>
+
+export function siteAddressPartsOf(investment: SiteAddressSourceT): AddressT {
   const { address, postalCode, city, country } = investment
   return { street: address, postalCode, city, country }
 }
 
-export function siteAddressOf(investment: InvestmentWithDetailsT): string {
+export function siteAddressOf(investment: SiteAddressSourceT): string {
   return formatAddress(siteAddressPartsOf(investment))
 }
 

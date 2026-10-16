@@ -15,8 +15,6 @@ import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { whenOnline } from '@/lib/utils/when-online'
 
 type PropsT = Omit<KosztorysEditorDataT, 'isTemplate'> & {
-  // Required: a szablon id and a kosztorys id share one number space, so the route must say which
-  // plane its writes land on.
   actions: EditorActionsT
 }
 

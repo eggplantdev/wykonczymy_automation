@@ -20,13 +20,13 @@ type PropsT = {
 export function CatalogueProblemsMenu({ toggles, onSelect }: PropsT) {
   if (toggles.length === 0) return null
 
-  const engaged = toggles.find((toggle) => toggle.active)
+  const isEngaged = toggles.some((toggle) => toggle.active)
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <FilterTriggerButton
-          active={Boolean(engaged)}
+          active={isEngaged}
           tone="destructive"
           icon={TriangleAlert}
           className={GRID_FILTER_TRIGGER_CLASS}

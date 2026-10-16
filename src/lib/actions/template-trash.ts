@@ -2,22 +2,20 @@
 
 import { protectedAction } from '@/lib/actions/run-action'
 import { TEMPLATE_TRASH_TAGS } from '@/lib/cache/tags'
+import { TEMPLATE_NOT_FOUND } from '@/lib/constants/not-found'
 import { isNameConfirmed, NAME_MISMATCH_MESSAGE } from '@/lib/constants/trash'
 import { getDb } from '@/lib/db/get-db'
 import { readTemplateTrashState, setTemplateTrashed } from '@/lib/db/template-trash'
 import { deleteTrashedTemplate } from '@/lib/kosztorys/templates/delete-template-forever'
 import type { ActionResultT } from '@/types/action'
 
-const MISSING_MESSAGE = 'Nie znaleziono szablonu'
-
-// A trashed szablon keeps holding its name, so a restore never collides with a live one.
 async function setTrashed(templateId: number, isTrashed: boolean, label: string) {
   return protectedAction(
     label,
     async ({ payload }): Promise<ActionResultT> => {
       const db = await getDb(payload)
       const state = await readTemplateTrashState(db, templateId)
-      if (!state) return { success: false, error: MISSING_MESSAGE }
+      if (!state) return { success: false, error: TEMPLATE_NOT_FOUND }
       if (state.isTrashed !== isTrashed) await setTemplateTrashed(db, templateId, isTrashed)
       return { success: true }
     },
@@ -42,7 +40,7 @@ export async function deleteTemplateForeverAction(
     async ({ payload }) => {
       const db = await getDb(payload)
       const state = await readTemplateTrashState(db, templateId)
-      if (!state) return { success: false, error: MISSING_MESSAGE }
+      if (!state) return { success: false, error: TEMPLATE_NOT_FOUND }
       if (!isNameConfirmed(confirmName, state.name)) {
         return { success: false, error: NAME_MISMATCH_MESSAGE }
       }

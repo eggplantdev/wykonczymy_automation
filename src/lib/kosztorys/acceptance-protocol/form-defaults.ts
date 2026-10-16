@@ -8,24 +8,26 @@ type ArgsT = {
   today: string
 }
 
-export function protocolFormDefaults({ investment, today }: ArgsT): AcceptanceProtocolFormT {
+function investmentPrefill(investment: InvestmentWithDetailsT) {
   return {
-    kind: 'final',
-    place: prefilledPlace(investment),
-    issueDate: today,
-    acceptanceDate: today,
-    readinessDate: '',
+    place: investment.city.trim() || 'Warszawa',
     clientName: clientNameOf(investment),
-    contractorName: CONTRACTOR_NAME,
     siteAddress: siteAddressOf(investment),
-    paymentDueDate: '',
   }
 }
 
-function prefilledPlace(investment: InvestmentWithDetailsT): string {
-  return investment.city.trim() || 'Warszawa'
+export function protocolFormDefaults({ investment, today }: ArgsT): AcceptanceProtocolFormT {
+  return {
+    kind: 'final',
+    issueDate: today,
+    acceptanceDate: today,
+    readinessDate: '',
+    contractorName: CONTRACTOR_NAME,
+    paymentDueDate: '',
+    ...investmentPrefill(investment),
+  }
 }
 
 export function protocolPrefillKey(investment: InvestmentWithDetailsT): string {
-  return [clientNameOf(investment), siteAddressOf(investment), prefilledPlace(investment)].join('|')
+  return JSON.stringify(investmentPrefill(investment))
 }

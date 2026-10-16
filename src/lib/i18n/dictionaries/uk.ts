@@ -314,6 +314,8 @@ export const uk: TranslationsT = {
     stageQtySumForPlane: 'Виконано — сума етапів {{plane}}',
     stageFallback: 'Етап {{ordinal}}',
     stageCompleted: 'Етап завершено',
+    stagesCompletedGroup: 'Завершені ({{count}})',
+    stagesActiveGroup: 'Активні ({{count}})',
     stageValueNetHeader: '{{stage}} нетто',
     netSuffix: 'нетто',
     total: 'Разом',
@@ -440,8 +442,6 @@ export const uk: TranslationsT = {
   filters: {
     search: 'Пошук...',
     noResults: 'Нічого не знайдено',
-    selectAll: 'Вибрати всі',
-    deselectAll: 'Зняти всі',
     clear: 'Очистити',
     year: 'Рік',
     month: 'Місяць',

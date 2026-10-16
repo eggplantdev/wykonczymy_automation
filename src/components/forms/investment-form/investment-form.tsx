@@ -21,7 +21,7 @@ import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from './investment-schema'
 import type { TemplateMetaT } from '@/lib/db/templates'
 import type { ActionResultT } from '@/types/action'
-import { COMPLETE_INVESTMENT_CONFIRM, isLockedStatus } from '@/lib/constants/investment-lock'
+import { COMPLETE_INVESTMENT_CONFIRM, entersLockedStatus } from '@/lib/constants/investment-lock'
 import { InvestmentStatusSelect } from '@/components/investments/investment-status-select'
 import {
   INVESTMENT_CLIENT_TYPE_LABELS,
@@ -89,8 +89,7 @@ export function InvestmentForm({
 }: InvestmentFormPropsT) {
   // Set by the action, consumed after `onSubmitSuccess`: the prompt opens through the shared dialog
   // store, so opening it before this dialog's own close would be undone by that close.
-  const entersCompleted = (status: string) =>
-    isLockedStatus(status) && !isLockedStatus(defaultValues.status)
+  const entersCompleted = (status: string) => entersLockedStatus(defaultValues.status, status)
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
   const { form, reset, submitConfirm } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>(
@@ -120,21 +119,7 @@ export function InvestmentForm({
       },
       confirmBeforeSubmit: (value) =>
         entersCompleted(value.status) ? COMPLETE_INVESTMENT_CONFIRM : null,
-      toData: (value) => ({
-        name: value.name,
-        address: value.address,
-        postalCode: value.postalCode,
-        city: value.city,
-        country: value.country,
-        phone: value.phone,
-        email: value.email,
-        contactPerson: value.contactPerson,
-        billing: visibleBilling(value.billing),
-        notes: value.notes,
-        reviewRequested: value.reviewRequested,
-        status: value.status,
-        presetId: value.presetId,
-      }),
+      toData: (value) => ({ ...value, billing: visibleBilling(value.billing) }),
     },
   )
   const clientType = useStore(form.store, (s) => s.values.billing.clientType)

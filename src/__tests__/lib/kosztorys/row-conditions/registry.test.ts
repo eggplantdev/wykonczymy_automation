@@ -326,9 +326,6 @@ describe('the rate-source trio', () => {
   })
 })
 
-// A tick narrows to what it names, so „untick X" from before the flip is reachable only by ticking
-// the rest of X's group — which holds only while the group's options never overlap and leave no
-// pozycja out.
 describe('every „Filtry" group is a partition', () => {
   const ctx: RowConditionCtxT = { ...CTX, aiColumnsShown: true }
   const rows = [

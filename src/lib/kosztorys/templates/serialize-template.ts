@@ -4,9 +4,7 @@ import { selectTemplateTreeData } from '@/lib/db/template-tree'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 
-// A szablon as the payload the kosztorys writers already apply (seed, reload, append sections), its
-// prace resolved from the katalog at this moment — the copy lands in the kosztorys, which keeps its
-// own values from then on. `undefined` when the szablon does not exist.
+// `undefined` when the szablon does not exist.
 export async function serializeTemplate(
   db: DbExecutorT,
   templateId: number,

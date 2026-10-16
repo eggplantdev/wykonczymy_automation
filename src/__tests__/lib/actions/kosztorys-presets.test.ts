@@ -252,8 +252,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await progressQty()).toEqual([])
   })
 
-  // A szablon praca is a katalog ref, so the copy takes the katalog's cena at this moment and
-  // starts the job with no przedmiar and no rabat.
   it('takes the szablon’s prace at the katalog price, with no przedmiar and no rabat', async () => {
     await seedLiveTree()
 
@@ -269,8 +267,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(Number(res.rows[0].discount_value)).toBe(0)
   })
 
-  // A szablon carries no pricing config; the defaults its serializer fills in must not land on a job
-  // that set its own — `restoreKosztorys` is handed the CURRENT settings instead.
   it('leaves the investment’s own VAT and coefficients alone', async () => {
     await seedLiveTree()
 
@@ -312,19 +308,16 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await progressQty()).toEqual([4])
   })
 
-  it.each([['does not exist', () => 2_000_000_000]])(
-    'writes nothing — not even a snapshot — when the source %s',
-    async (_, sourceId) => {
-      await seedLiveTree()
-      const before = await allSnapshotIds()
+  it('writes nothing — not even a snapshot — when the source does not exist', async () => {
+    await seedLiveTree()
+    const before = await allSnapshotIds()
 
-      const result = await reloadFromPresetAction(investmentId, sourceId())
+    const result = await reloadFromPresetAction(investmentId, 2_000_000_000)
 
-      expect(result).toMatchObject({ success: false, error: 'Nie znaleziono szablonu' })
-      expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])
-      expect(await allSnapshotIds()).toEqual(before)
-    },
-  )
+    expect(result).toMatchObject({ success: false, error: 'Nie znaleziono szablonu' })
+    expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])
+    expect(await allSnapshotIds()).toEqual(before)
+  })
 
   it('writes nothing when the source szablon is in the trash', async () => {
     const trashed = await createTestTemplate(payload, 'ex560-reload-fixture-trashed')
@@ -362,8 +355,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   })
 })
 
-// Every lifecycle assertion reads the templates rows and their layout — never the action's result
-// alone.
 describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -447,7 +438,6 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     return res.rows
   }
 
-  // A szablon's layout: sekcje in order, each with the katalog descriptions of its prace.
   async function layoutOf(id: number) {
     const res = await db.execute(sql`
       SELECT s.name,

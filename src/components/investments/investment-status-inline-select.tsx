@@ -4,7 +4,7 @@ import { useOptimistic, useState, useTransition } from 'react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { InvestmentStatusSelect } from '@/components/investments/investment-status-select'
 import { setInvestmentStatusAction } from '@/lib/actions/investments'
-import { COMPLETE_INVESTMENT_CONFIRM, isLockedStatus } from '@/lib/constants/investment-lock'
+import { COMPLETE_INVESTMENT_CONFIRM, entersLockedStatus } from '@/lib/constants/investment-lock'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -21,8 +21,7 @@ export function InvestmentStatusInlineSelect({ investment }: PropsT) {
   const [pendingCompletion, setPendingCompletion] = useState<InvestmentStatusT>()
   const openReviewPrompt = useReviewPromptStore((s) => s.openReviewPrompt)
 
-  function save(next: InvestmentStatusT) {
-    const entersCompleted = isLockedStatus(next) && !isLockedStatus(investment.status)
+  function save(next: InvestmentStatusT, entersCompleted: boolean) {
     startTransition(async () => {
       setStatus(next)
       const result = await settleAction(() => setInvestmentStatusAction(investment.id, next))
@@ -34,15 +33,15 @@ export function InvestmentStatusInlineSelect({ investment }: PropsT) {
         openReviewPrompt({
           id: investment.id,
           name: investment.name,
-          email: investment.email ?? '',
+          email: investment.email,
           reviewRequested: false,
         })
     })
   }
 
   function handleChange(next: InvestmentStatusT) {
-    if (isLockedStatus(next) && !isLockedStatus(investment.status)) setPendingCompletion(next)
-    else save(next)
+    if (entersLockedStatus(investment.status, next)) setPendingCompletion(next)
+    else save(next, false)
   }
 
   return (
@@ -52,7 +51,7 @@ export function InvestmentStatusInlineSelect({ investment }: PropsT) {
         open={pendingCompletion !== undefined}
         {...COMPLETE_INVESTMENT_CONFIRM}
         onConfirm={() => {
-          if (pendingCompletion) save(pendingCompletion)
+          if (pendingCompletion) save(pendingCompletion, true)
           setPendingCompletion(undefined)
         }}
         onCancel={() => setPendingCompletion(undefined)}

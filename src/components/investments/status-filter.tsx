@@ -33,8 +33,7 @@ export function StatusFilter({
   triggerClassName,
 }: StatusFilterPropsT) {
   const { t } = useTranslation('filters')
-  // Same reading of „active" as every FilterMultiSelect trigger: narrowed, not merely touched. Nothing
-  // ticked lists every status.
+  // Nothing ticked lists every status.
   const isFiltered =
     selectedStatuses.size > 0 && selectedStatuses.size !== INVESTMENT_STATUSES.length
 

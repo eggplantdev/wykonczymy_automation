@@ -18,23 +18,27 @@ export function KosztorysViewStagesSection({ stages }: { stages: KosztorysStageT
 
   const statusRows = [
     {
-      label: 'Zakończone',
+      key: 'stagesCompletedGroup',
       ids: stages.filter((stage) => stage.completed).map((stage) => stage.id),
     },
-    { label: 'Aktywne', ids: stages.filter((stage) => !stage.completed).map((stage) => stage.id) },
-  ].filter((row) => row.ids.length > 0)
+    {
+      key: 'stagesActiveGroup',
+      ids: stages.filter((stage) => !stage.completed).map((stage) => stage.id),
+    },
+  ] as const
 
   return (
     <>
       <DropdownMenuLabel>Etapy</DropdownMenuLabel>
       {statusRows.map((row) => {
+        if (row.ids.length === 0) return null
         const allShown = row.ids.every((id) => !isStageOff(id))
         return (
           <DropdownMenuCheckboxRow
-            key={row.label}
+            key={row.key}
             checked={allShown}
             onCheckedChange={() => setStagesHidden(row.ids, allShown)}
-            label={`${row.label} (${row.ids.length})`}
+            label={gridDictionary.t(row.key, { count: row.ids.length })}
           />
         )
       })}

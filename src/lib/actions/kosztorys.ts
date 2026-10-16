@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { sql } from '@payloadcms/db-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
+import { SECTION_NOT_FOUND } from '@/lib/constants/not-found'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -31,7 +32,7 @@ import {
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import {
-  insertDirectionSchema,
+  insertSectionSchema,
   numberWithinSections,
   renumberDisplayOrder,
   renumberDisplayOrderSchema,
@@ -70,7 +71,6 @@ import { mixedPlaneWorkersMessage } from '@/lib/constants/worker-lock'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 
 const stagePlaneSchema = z.enum(TOOL_PLANES)
-const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
 
 // Floor only: above 0,65 the mnożnik warns but saves (owner, 2026-09-21); below 0 is a typo.
@@ -324,11 +324,6 @@ export async function removeSectionAction(sectionId: number) {
   )
 }
 
-const insertSectionSchema = z.object({
-  anchorSectionId: z.number(),
-  dir: insertDirectionSchema,
-})
-
 export async function insertSectionAction(
   anchorSectionId: number,
   dir: InsertDirectionT,
@@ -359,7 +354,7 @@ export async function insertSectionAction(
         },
         { skipRevalidation: true },
       )
-      if (!created) return { success: false, error: SECTION_MISSING }
+      if (!created) return { success: false, error: SECTION_NOT_FOUND }
       return { success: true, data: created }
     },
     ['kosztorysSections'],
@@ -374,7 +369,7 @@ async function resolveNewItemSlot(
 ): Promise<{ sectionId: number; displayOrder: number } | { error: string }> {
   if (placement.kind === 'end') {
     const owner = await sectionOwnerAndNextItemOrder(db, placement.sectionId)
-    if (!owner) return { error: SECTION_MISSING }
+    if (!owner) return { error: SECTION_NOT_FOUND }
     return { sectionId: placement.sectionId, displayOrder: owner.nextDisplayOrder }
   }
   const slot = await resolveInsertSlot(db, 'kosztorys-items', placement.anchorItemId, placement.dir)

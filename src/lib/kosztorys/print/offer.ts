@@ -52,10 +52,12 @@ export function buildOfferPrintHtml({
     pageTitle: investmentName,
     logoUrl,
     fillByColorKey,
-    moneyKey: 'plannedNet',
+    totalKeys: ['plannedNet'],
     money: zloty,
     totalNet,
-    sectionNetById,
+    sectionTotalsById: new Map(
+      [...sectionNetById].map(([sectionId, net]) => [sectionId, new Map([['plannedNet', net]])]),
+    ),
     extraStyles: columns.length > PORTRAIT_COLUMN_LIMIT ? WIDE_PRINT_STYLES : '',
   })
 }

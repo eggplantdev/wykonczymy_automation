@@ -333,7 +333,6 @@ describe('editorConditionIds', () => {
     expect(editorConditionIds(plain, false, false)).toBe(plain)
   })
 
-  // Under a global rabat the pair matches nothing, so a kept tick would empty the grid.
   it('drops a rabat tick while a global rabat is on', () => {
     const withDiscount = new Set(['has-discount', 'no-measured-qty'])
     expect([...editorConditionIds(withDiscount, false, true)]).toEqual(['no-measured-qty'])

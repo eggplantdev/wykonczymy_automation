@@ -10,10 +10,7 @@ import { markTemplateTreeReplaced } from '@/lib/db/templates'
 import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import type { TemplateSnapshotPayloadT } from './snapshot-payload'
 
-// Swap a szablon's whole layout, reversibly: a version of what stands is written first, on the
-// caller's transaction, so a rollback takes it too and the overwrite stays one click back in
-// „Wersje" — a labelled `manual` one by default, an `auto` one as a restore's restore point. The
-// stamp write comes first: it locks the szablon row before the read, so the version describes
+// The stamp write comes first: it locks the szablon row before the read, so the version describes
 // exactly the layout the wipe deletes.
 export async function replaceTemplateLayout(
   db: DbExecutorT,

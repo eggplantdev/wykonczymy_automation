@@ -37,11 +37,6 @@ export function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItem
   }
 }
 
-/**
- * The cennik rows named by id, returned in the CALLER's order — the wstawianie writes them in the
- * order the user ticked them, and SQL has no opinion about that order.
- */
-// Which of these katalog ids still name an entry.
 export async function existingCatalogueIds(
   db: DbExecutorT,
   ids: readonly number[],
@@ -53,6 +48,10 @@ export async function existingCatalogueIds(
   return new Set(res.rows.map((row) => Number(row.id)))
 }
 
+/**
+ * The cennik rows named by id, returned in the CALLER's order — the wstawianie writes them in the
+ * order the user ticked them, and SQL has no opinion about that order.
+ */
 export async function listCatalogueItemsByIds(
   db: DbExecutorT,
   ids: readonly number[],
@@ -139,11 +138,6 @@ export async function listCatalogueTranslationsByMatchKey(
       toDescriptionTranslations(row.description_translations),
     ]),
   )
-}
-
-export async function listCatalogueMatchKeys(db: DbExecutorT): Promise<Set<string>> {
-  const result = await db.execute(sql`SELECT match_key FROM work_catalogue_items`)
-  return new Set(result.rows.map((row) => String(row.match_key)))
 }
 
 export async function insertCatalogueItems(

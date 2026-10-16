@@ -1,6 +1,6 @@
 import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import { activeFilterNarrowsPhrase } from '@/lib/kosztorys/counted-nouns'
-import { listLabels } from '@/lib/kosztorys/row-conditions/queries'
+import { joinPhrases, listLabels } from '@/lib/kosztorys/row-conditions/queries'
 import { REPORT_UNREPORTED_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 
@@ -8,7 +8,6 @@ export type EmptyGridCopyT = { title: string; description?: string }
 
 type ArgsT = {
   preview: boolean
-  /** The „Filtry" menu's ticks — each narrows the grid to what it matches. */
   filters: readonly RowConditionT[]
   /** Engaged conditions that REMOVE what they match — the client document's hiders. */
   clientHiders: readonly RowConditionT[]
@@ -25,7 +24,11 @@ function filtersDescription(filters: readonly RowConditionT[]): string | undefin
   if (named.length > MAX_NAMED_FILTERS) {
     return `${named.length} ${activeFilterNarrowsPhrase(named.length)} pozycje — zmień je w menu „Filtry".`
   }
-  const labels = listLabels(named)
+  const byGroup = new Map<string, RowConditionT[]>()
+  for (const condition of named) {
+    byGroup.set(condition.filterGroup, [...(byGroup.get(condition.filterGroup) ?? []), condition])
+  }
+  const labels = joinPhrases([...byGroup.values()].map((group) => listLabels(group, 'lub')))
   return labels ? `Filtry pokazują tylko pozycje ${labels}.` : undefined
 }
 

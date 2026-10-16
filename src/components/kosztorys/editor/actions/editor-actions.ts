@@ -18,8 +18,7 @@ import type { ActionResultT } from '@/types/action'
 /**
  * The route hands in the set for its plane — a kosztorys id and a szablon id share one number
  * space, so a szablon calling a kosztorys action would write into whichever investment carries its
- * id. `ownerId` is the kosztorys's investment or the szablon. Writes a szablon never shows (etapy,
- * rozliczenie, arkusz) stay direct imports.
+ * id.
  */
 export type EditorActionsT = {
   // The editor's plane is read from here, never passed beside the set, so the two can't disagree.
@@ -49,10 +48,7 @@ export type EditorActionsT = {
   autoSnapshot: (ownerId: number) => Promise<ActionResultT>
   saveSnapshot: (ownerId: number, label: string) => Promise<ActionResultT>
   listSnapshots: (ownerId: number) => Promise<ActionResultT<SnapshotListItemT[]>>
-  restoreSnapshot: (
-    snapshotId: number,
-    ownerId: number,
-  ) => Promise<ActionResultT<RestoreResultT>>
+  restoreSnapshot: (snapshotId: number, ownerId: number) => Promise<ActionResultT<RestoreResultT>>
   fillTranslations: (ownerId: number) => Promise<ActionResultT<TranslationFillResultT>>
   readRevision: (ownerId: number) => Promise<string | undefined>
   savePreset: (ownerId: number, input: SavePresetInputT) => Promise<ActionResultT>

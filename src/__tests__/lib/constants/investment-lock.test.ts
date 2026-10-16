@@ -7,8 +7,7 @@ import {
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
 // `isBookableInvestment` takes a plain string, so no typecheck guards it against a new status —
-// this spec is the guard. Folding picker logic in here once broke sheet-linking for zakończone
-// inwestycje.
+// this spec is the guard.
 describe('investment status gates', () => {
   it.each([
     ['active', true, false],

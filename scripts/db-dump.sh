@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Dumps prod into dumps/dump-latest.sql with a progress bar estimated from the previous dump's size.
 set -euo pipefail
 
 source .env

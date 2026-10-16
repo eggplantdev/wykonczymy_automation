@@ -29,8 +29,6 @@ import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
 
 const col = createColumnHelper<InvestmentRowT>()
 
-// Named here, beside the columns themselves, so the „Warstwy" ticks in „Kolumny" and the columns
-// cannot drift apart.
 export const V1_COLUMN_IDS = [
   'balanceFromTransactions',
   'margin',

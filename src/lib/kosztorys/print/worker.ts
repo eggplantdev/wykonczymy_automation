@@ -106,35 +106,35 @@ export function buildWorkerPrintHtml({
   const rows = treeToRows(tree)
   const { stages } = tree
   const dataHidden = workerDataHiddenColumns(rows, stages, worker.settings.hidePlannedOnceExecuted)
-  // With the przedmiar's value off the paper, the section totals follow the executed value — left on
-  // „Wartość przedmiaru" they would vanish with it (build-html prints them under the money column).
-  const moneyKey = dataHidden.has('plannedNetForPlane') ? 'net' : 'plannedNetForPlane'
-  const sectionNetById = new Map(
-    [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
-      sectionId,
-      columnTotalsForRows(rowsOfSection, stages, worker.plane, tree.vatRate).get(moneyKey) ?? 0,
-    ]),
-  )
+  const columns = workerPrintColumns({
+    plane: worker.plane,
+    stages,
+    hiddenColumns: worker.settings.hiddenColumns,
+    columnRanks: worker.settings.columnRanks,
+    executedQtyByItem: worker.executedQtyByItem,
+    dictionary: grid,
+  }).filter((column) => !dataHidden.has(column.key))
+  const totalsOf = (rowsToTotal: typeof rows) =>
+    columnTotalsForRows(rowsToTotal, stages, worker.plane, tree.vatRate, worker.executedQtyByItem)
+  const grandTotals = totalsOf(rows)
 
   return buildKosztorysPrintHtml({
     rows: documentRows(rows, stages, worker.settings.hideEmptyRows),
-    columns: workerPrintColumns({
-      plane: worker.plane,
-      stages,
-      hiddenColumns: worker.settings.hiddenColumns,
-      columnRanks: worker.settings.columnRanks,
-      executedQtyByItem: worker.executedQtyByItem,
-      dictionary: grid,
-    }).filter((column) => !dataHidden.has(column.key)),
+    columns,
     documentKind: createTranslator(locale, 'report').t('documentKind', { name: worker.name }),
     title: investmentName,
     pageTitle: `${investmentName} — ${worker.name}`,
     logoUrl,
     fillByColorKey,
-    moneyKey,
+    totalKeys: columns.map((column) => column.key).filter((key) => grandTotals.has(key)),
     money: formatPLN,
-    totalNet: moneyKey === 'net' ? worker.summary.stagesWholeNet : worker.summary.plannedNet,
-    sectionNetById,
+    sectionTotalsById: new Map(
+      [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
+        sectionId,
+        totalsOf(rowsOfSection),
+      ]),
+    ),
+    grandTotals,
     extraStyles: WIDE_PRINT_STYLES + WORKER_PRINT_STYLES,
     footerHtml: workerFooterHtml(worker.summary, grid),
     lang: locale,
@@ -193,11 +193,9 @@ export function buildWorkerFormHtml({
     pageTitle: `${investmentName} — ${worker.name}`,
     logoUrl,
     fillByColorKey,
-    // No column carries money, so no section totals.
-    moneyKey: 'net',
+    totalKeys: [],
     money: formatPLN,
-    totalNet: 0,
-    sectionNetById: new Map(),
+    sectionTotalsById: new Map(),
     extraStyles: WIDE_PRINT_STYLES + WORKER_FORM_STYLES,
     footerHtml: workerFormFooterHtml(locale),
     lang: locale,

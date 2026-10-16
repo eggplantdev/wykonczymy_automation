@@ -24,26 +24,34 @@ export function applyRowConditions(
 ): KosztorysV2RowT[] {
   const active = [...engagedIds].map((id) => BY_ID.get(id)).filter((c) => c !== undefined)
   if (active.length === 0) return rows
-  const facets = Map.groupBy(
-    active.filter((condition) => condition.kind === 'filter'),
-    (condition) => condition.filterGroup,
-  )
+  const facets = [
+    ...Map.groupBy(
+      active.filter((condition) => condition.kind === 'filter'),
+      (condition) => condition.filterGroup,
+    ).values(),
+  ]
   const keepers = active.filter((condition) => condition.kind === 'diagnostic')
   const hiders = active.filter((condition) => condition.kind === 'client')
 
   return rows.filter(
     (row) =>
       latchedRowIds?.has(row.id) ||
-      ([...facets.values()].every((facet) => facet.some((c) => c.matches(row, ctx))) &&
+      (facets.every((facet) => facet.some((c) => c.matches(row, ctx))) &&
         !hiders.some((condition) => condition.matches(row, ctx)) &&
         (keepers.length === 0 || keepers.some((condition) => condition.matches(row, ctx)))),
   )
 }
 
+export function joinPhrases(phrases: readonly string[], conjunction = 'i'): string {
+  if (phrases.length < 2) return phrases[0] ?? ''
+  return `${phrases.slice(0, -1).join(', ')} ${conjunction} ${phrases[phrases.length - 1]}`
+}
+
 export function listLabels(conditions: readonly RowConditionT[], conjunction = 'i'): string {
-  const labels = conditions.map((condition) => condition.label)
-  if (labels.length < 2) return labels[0] ?? ''
-  return `${labels.slice(0, -1).join(', ')} ${conjunction} ${labels[labels.length - 1]}`
+  return joinPhrases(
+    conditions.map((condition) => condition.label),
+    conjunction,
+  )
 }
 
 export function engagedConditionsOfKind(

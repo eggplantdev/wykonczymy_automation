@@ -5,6 +5,7 @@ import type { Payload } from 'payload'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { templateAction } from '@/lib/actions/template-action'
 import type { RestoreResultT, SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import { TEMPLATE_NOT_FOUND } from '@/lib/constants/not-found'
 import { TEMPLATE_TRASHED_MESSAGE } from '@/lib/constants/template-lock'
 import { snapshotLabelSchema } from '@/lib/kosztorys/snapshot-label-schema'
 import { getDb } from '@/lib/db/get-db'
@@ -21,7 +22,6 @@ import { restoreTemplateSnapshot } from '@/lib/kosztorys/templates/restore-templ
 import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import type { ActionResultT } from '@/types/action'
 
-const TEMPLATE_NOT_FOUND = 'Nie znaleziono szablonu'
 const SNAPSHOT_NOT_FOUND = 'Nie znaleziono wersji'
 
 // Capturing a version is not an edit of the szablon, so it goes past `templateAction`, which would
@@ -43,8 +43,7 @@ async function captureTemplateSnapshot(
   return { success: true }
 }
 
-// The editor's periodic auto version — the same client interval as the kosztorys, gated on the undo
-// revision, so an untouched szablon writes nothing.
+// Gated on the undo revision, so an untouched szablon writes nothing.
 export async function templateSnapshotAction(templateId: number): Promise<ActionResultT> {
   return protectedAction('templateSnapshotAction', async ({ payload, user }) =>
     captureTemplateSnapshot(payload, templateId, { kind: 'auto', label: null, takenBy: user.id }),

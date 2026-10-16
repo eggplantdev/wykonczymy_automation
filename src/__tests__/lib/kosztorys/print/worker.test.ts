@@ -109,6 +109,14 @@ const headersOf = (out: string) =>
 
 const sectionTotal = (amount: number) => `Razem — Łazienka</td><td class="num">${formatPLN(amount)}`
 
+const totalUnder = (out: string, header: string, rowClass = 'band-total') => {
+  const row = new RegExp(`<tr class="${rowClass}">(.*?)</tr>`).exec(out)?.[1] ?? ''
+  const cells = [...row.matchAll(/<td([^>]*)>(.*?)<\/td>/g)].flatMap(([, attributes, content]) =>
+    Array<string>(Number(/colspan="(\d+)"/.exec(attributes)?.[1] ?? 1)).fill(content),
+  )
+  return cells[headersOf(out).indexOf(header)]
+}
+
 const footerLine = (label: string, amount: number) =>
   `<td class="label">${label}</td><td class="value">${formatPLN(amount)}</td>`
 
@@ -141,6 +149,24 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).toContain(sectionTotal(summary.plannedNet))
   })
 
+  it('totals every money column per section and for the whole kosztorys, „Pozostało” included', () => {
+    const out = html(projection({ hidePlannedOnceExecuted: false }))
+    const remainingHeader = headersOf(out).find((header) => header.startsWith('Pozostało')) ?? ''
+    // Tynk: all 5 done across the crews; Gładź: 1 of 4.
+    const expected = [
+      [PLANNED_NET_HEADER, (5 + 4) * RATE],
+      [NET_HEADER, (2 + 1) * RATE],
+      [remainingHeader, 3 * RATE],
+    ] as const
+
+    for (const [header, amount] of expected) {
+      expect(totalUnder(out, header), header).toBe(formatPLN(amount))
+      expect(totalUnder(out, header, 'grand-total'), header).toBe(formatPLN(amount))
+    }
+    expect(totalUnder(out, RATE_HEADER)).toBe('')
+    expect(out.indexOf('<tr class="grand-total">')).toBeGreaterThan(out.lastIndexOf('band-total'))
+  })
+
   it('totals a shared etap whole and prints his share beside it in the etap table', () => {
     const sharedStages: KosztorysStageT[] = [
       {
@@ -167,7 +193,7 @@ describe('buildWorkerPrintHtml', () => {
     const out = html(data)
     const whole = 2 * RATE + 1 * RATE
 
-    expect(out).toContain(sectionTotal(whole))
+    expect(totalUnder(out, NET_HEADER)).toBe(formatPLN(whole))
     const { summary } = data.worker
     const values = (...cells: string[]) =>
       cells.map((cell) => `<td class="value">${cell}</td>`).join('')
@@ -318,7 +344,7 @@ describe('buildWorkerPrintHtml', () => {
       expect(headers).toContain(NET_HEADER)
       expect(headers).not.toContain(second)
       expect(headers).not.toContain(`${second} netto`)
-      expect(out).toContain(sectionTotal(data.worker.summary.executedNet))
+      expect(totalUnder(out, NET_HEADER)).toBe(formatPLN(data.worker.summary.executedNet))
     })
 
     it('keeps the przedmiar pair beside the settlement columns with the checkbox off', () => {

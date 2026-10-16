@@ -9,8 +9,7 @@ export type ActiveFilterChipT = {
   // Across the whole kosztorys, never over the survivors — a chip whose number counted what its own
   // filter left standing would move every time anything else was ticked.
   count?: number
-  // built from the bare name rather than from `label`, whose
-  // „Tylko:" prefix would read back as „Usuń: Tylko: …".
+  // Not `label`: its „Tylko:" prefix would read back as „Usuń: Tylko: …".
   removeLabel: string
   removal: ChipRemovalT
 }

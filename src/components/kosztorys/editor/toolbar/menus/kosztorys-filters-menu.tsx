@@ -12,17 +12,12 @@ export function KosztorysFiltersMenu() {
 
   if (toggles.length === 0) return null
 
-  const triggerCount = toggles.filter((toggle) => toggle.active).length
-
   return (
     <FilterMultiSelect
       label="Filtry"
-      triggerCount={triggerCount}
       icon={ListFilter}
       title="Co widać: pozycje"
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
-      // a plane heading carries the crew's name, so at 20rem it wrapped onto two lines and the list
-      // stopped reading as a list.
       contentClassName="w-112"
       toggles={toggles}
       onClearToggles={clear}

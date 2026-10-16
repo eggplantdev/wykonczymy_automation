@@ -11,7 +11,12 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { cn } from '@/lib/utils/cn'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
-import { getPresetName, groupPresetSections, type PresetGroupT } from './preset-picker-groups'
+import {
+  getPresetName,
+  groupPresetSections,
+  isEditedTemplate,
+  type PresetGroupT,
+} from './preset-picker-groups'
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -54,9 +59,7 @@ export function ReloadFromPresetDialog() {
   const copy = COPY[isTemplate ? 'szablon' : 'kosztorys']
 
   const groups = groupPresetSections(sections ?? [], new Set()).filter(
-    // A szablon reloaded from itself would change nothing — the action refuses it anyway. A kosztorys
-    // id is not a szablon id, so only the szablon's own editor has itself to leave out.
-    (group) => !isTemplate || group.templateId !== investmentId,
+    (group) => !isEditedTemplate(group.templateId, { isTemplate, investmentId }),
   )
   const {
     filteredData: filteredGroups,

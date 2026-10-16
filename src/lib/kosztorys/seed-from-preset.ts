@@ -9,12 +9,8 @@ import { serializeTemplate } from './templates/serialize-template'
 
 export type SeedResultT = 'ok' | 'not-found' | 'not-empty'
 
-// Reads the szablon (never a client value) through its serializer, which resolves each praca from
-// the katalog as it stands. In ONE transaction it re-checks the target tree is empty and applies it
-// — a throw rolls back and the tree is untouched. The empty-guard is a cheap invariant, not a lock:
-// it does NOT serialize two simultaneous seeds, since under READ COMMITTED a zero-row SELECT takes
-// no lock and there's no UNIQUE(investment_id). Returns a discriminant; the CALLING ACTION owns
-// auth + revalidation.
+// The empty-guard does NOT serialize two simultaneous seeds: under READ COMMITTED a zero-row SELECT
+// takes no lock and there's no UNIQUE(investment_id).
 export async function seedInvestmentFromPreset(
   payload: Payload,
   investmentId: number,

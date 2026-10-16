@@ -16,8 +16,6 @@ const TABLE_BY_KIND: Record<GateTargetKindT, string> = {
   stage: 'kosztorys_stages',
 }
 
-export type InvestmentGateT = { lockMessage: string | undefined }
-
 // Trashed wins over completed: a restore brings back whatever status the investment had, so „set it
 // to Aktywna" would send the user to a control they cannot reach while it sits in the trash.
 export function lockMessageOf(row: Record<string, unknown> | undefined): string | undefined {
@@ -26,26 +24,14 @@ export function lockMessageOf(row: Record<string, unknown> | undefined): string 
   return undefined
 }
 
-export function investmentGateOf(row: Record<string, unknown> | undefined): InvestmentGateT {
-  return { lockMessage: lockMessageOf(row) }
-}
-
-export async function investmentGateFor(
-  db: DbExecutorT,
-  investmentId: number,
-): Promise<InvestmentGateT> {
-  const res = await db.execute(
-    sql`SELECT status, trashed_at FROM investments WHERE id = ${investmentId}`,
-  )
-  return investmentGateOf(res.rows[0])
-}
-
 export async function investmentLockMessage(
   db: DbExecutorT,
   investmentId: number,
 ): Promise<string | undefined> {
-  const { lockMessage } = await investmentGateFor(db, investmentId)
-  return lockMessage
+  const res = await db.execute(
+    sql`SELECT status, trashed_at FROM investments WHERE id = ${investmentId}`,
+  )
+  return lockMessageOf(res.rows[0])
 }
 
 /**
@@ -77,7 +63,7 @@ export async function investmentGateForRow(
   db: DbExecutorT,
   kind: GateTargetKindT,
   id: number,
-): Promise<({ investmentId: number } & InvestmentGateT) | undefined> {
+): Promise<{ investmentId: number; lockMessage: string | undefined } | undefined> {
   const res = await db.execute(
     sql`SELECT i.id, i.status, i.trashed_at FROM ${sql.raw(TABLE_BY_KIND[kind])} r
         JOIN investments i ON i.id = r.investment_id
@@ -85,7 +71,7 @@ export async function investmentGateForRow(
   )
   const row = res.rows[0]
   if (!row) return undefined
-  return { investmentId: Number(row.id), ...investmentGateOf(row) }
+  return { investmentId: Number(row.id), lockMessage: lockMessageOf(row) }
 }
 
 export async function relatedInvestmentLockMessage(

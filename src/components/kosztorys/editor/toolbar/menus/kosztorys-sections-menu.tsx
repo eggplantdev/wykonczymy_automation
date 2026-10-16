@@ -30,7 +30,6 @@ export function KosztorysSectionsMenu() {
     .map((s) => String(s.sectionId))
 
   function onValuesChange(next: string[]) {
-    // Collapse is stored positively, so the complement of the ticked set is what gets folded.
     const keptOpen = new Set(next)
     setCollapsedSectionIds(
       new Set(subtotals.filter((s) => !keptOpen.has(String(s.sectionId))).map((s) => s.sectionId)),

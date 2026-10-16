@@ -1,12 +1,9 @@
-// No `server-only` here: the katalog seed script reaches this module under tsx, where that import throws.
 import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull } from './row-coerce'
 
-// A szablon lives in its own tables (EX-1075): `templates` → `template_sections` → `template_items`,
-// each praca a katalog entry at a place. Every reader here answers for a LIVE szablon — one in the
-// trash is absent from the list, the pickers and every write that names it, until it is restored.
+// Every reader here answers for a LIVE szablon only.
 // The name checks are the exception: `templates_name_idx` counts a trashed szablon, so they must too.
 
 export type TemplateMetaT = {
@@ -18,7 +15,6 @@ export type TemplateMetaT = {
   updatedAt: string | null
 }
 
-// One row per section across all live szablony; `sectionId` names its szablon on its own.
 export type TemplateSectionMetaT = {
   templateId: number
   templateName: string
@@ -168,7 +164,6 @@ export async function listTemplateSections(db: DbExecutorT): Promise<TemplateSec
   }))
 }
 
-// Section id → the live szablon that owns it.
 export async function templateOwnersOfSections(
   db: DbExecutorT,
   sectionIds: readonly number[],

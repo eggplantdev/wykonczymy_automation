@@ -33,13 +33,13 @@ export function KosztorysProblemsMenu() {
 
   if (problemToggles.length === 0) return null
 
-  const engaged = problemToggles.find((toggle) => toggle.active)
+  const isEngaged = problemToggles.some((toggle) => toggle.active)
 
   return (
     <DropdownMenu onOpenChange={(open) => open && refreshProblemRows()}>
       <DropdownMenuTrigger asChild>
         <FilterTriggerButton
-          active={Boolean(engaged)}
+          active={isEngaged}
           tone="destructive"
           icon={TriangleAlert}
           className={TOOLBAR_FILTER_TRIGGER_CLASS}

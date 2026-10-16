@@ -11,9 +11,8 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 
-// A szablon praca is nothing but a katalog ref, so deleting the entry must take the praca with it —
-// a trashed szablon included, or restoring it would bring back a praca with no content. A kosztorys
-// row keeps its own copy and must survive.
+// Deleting the entry must take the praca with it — a trashed szablon included, or restoring it would
+// bring back a praca with no content.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -50,15 +49,19 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
     trashedTemplateId = await createTestTemplate(payload, 'catalogue-delete-trashed')
     kosztorysId = await createTestInvestment(payload, `catalogue-delete-kosztorys ${entryId}`)
 
-    itemIds.live = (await addTestTemplateSection(payload, liveTemplateId, 'Salon', [entryId]))
-      .itemIds[0]
+    itemIds.live = (
+      await addTestTemplateSection(payload, liveTemplateId, 'Salon', [entryId])
+    ).itemIds[0]
     itemIds.trashed = (
       await addTestTemplateSection(payload, trashedTemplateId, 'Salon', [entryId])
     ).itemIds[0]
     const row = { description: 'Malowanie', unit: 'm2', clientPrice: 30, catalogueItemId: entryId }
     itemIds.kosztorys =
-      (await createKosztorysTree(payload, kosztorysId, { sections: [{ name: 'Salon', items: [row] }] }))
-        .itemIds[0] ?? 0
+      (
+        await createKosztorysTree(payload, kosztorysId, {
+          sections: [{ name: 'Salon', items: [row] }],
+        })
+      ).itemIds[0] ?? 0
     await db.execute(sql`
       UPDATE templates
       SET content_edited_at = now() - interval '2 days', updated_at = now() - interval '2 days'
@@ -94,10 +97,8 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
     expect(await exists('template_items', itemIds.live)).toBe(false)
     expect(await exists('template_items', itemIds.trashed)).toBe(false)
     expect(await exists('kosztorys_items', itemIds.kosztorys)).toBe(true)
-    // The szablon's content changed, so the list's „ostatnia zmiana" moves with it.
     expect(await movedToday(liveTemplateId, 'content_edited_at')).toBe(true)
     expect(await movedToday(trashedTemplateId, 'content_edited_at')).toBe(true)
-    // An open editor of the szablon notices the vanished praca by its revision.
     expect(await movedToday(liveTemplateId, 'updated_at')).toBe(true)
   })
 })

@@ -13,10 +13,12 @@ type KosztorysPrintArgsT = {
   pageTitle: string
   logoUrl: string
   fillByColorKey: ReadonlyMap<string, string>
-  moneyKey: string
+  totalKeys: readonly string[]
   money: (n: number) => string
-  totalNet: number
-  sectionNetById: ReadonlyMap<number, number>
+  sectionTotalsById: ReadonlyMap<number, ReadonlyMap<string, number>>
+  // In-table, under each total column; without it the document closes on the „Razem netto" box.
+  grandTotals?: ReadonlyMap<string, number>
+  totalNet?: number
   extraStyles?: string
   footerHtml?: string
   lang?: LanguageT
@@ -32,10 +34,11 @@ export function buildKosztorysPrintHtml({
   pageTitle,
   logoUrl,
   fillByColorKey,
-  moneyKey,
+  totalKeys,
   money,
+  sectionTotalsById,
+  grandTotals,
   totalNet,
-  sectionNetById,
   extraStyles = '',
   footerHtml,
   stripeParity = 1,
@@ -43,29 +46,41 @@ export function buildKosztorysPrintHtml({
   totalLabel = 'Razem',
 }: KosztorysPrintArgsT): string {
   const stripe = (index: number) => (index % 2 === stripeParity ? ' stripe' : '')
-  // „Pozostało" sits to its right, so a figure parked in the last cell would print the przedmiar's
-  // sum under the wrong heading.
-  const moneyIndex = columns.findIndex((column) => column.key === moneyKey)
+  const moneyIndex = columns.findIndex((column) => totalKeys.includes(column.key))
   const withMoney = moneyIndex >= 0
+  // `colspan="0"` means „to the end of the colgroup" in HTML5, and the browser would span the
+  // whole row.
+  const labelSpan = Math.max(1, moneyIndex)
+  const totalCells = (totals: ReadonlyMap<string, number>) =>
+    columns
+      .slice(labelSpan)
+      .map((column) => {
+        const total = totalKeys.includes(column.key) ? totals.get(column.key) : undefined
+        return total === undefined ? '<td></td>' : `<td class="num">${money(total)}</td>`
+      })
+      .join('')
 
+  const colgroup = `<colgroup>${columns
+    .map((column) => `<col${column.colClass ? ` class="${column.colClass}"` : ''}>`)
+    .join('')}</colgroup>`
+  // WebKit ignores `break-inside` on a table row and paginates each cell's lines on its own, so Safari
+  // printed a row's opis on the next page and its figures on this one; a whole table it keeps together.
   const body: string[] = []
+  const pushRow = (tr: string, tableClass = 'row') =>
+    body.push(`<table class="${tableClass}">${colgroup}<tbody>${tr}</tbody></table>`)
   let sectionId: number | null = null
   let sectionName = ''
   let sectionFill = 'transparent'
 
   const closeSection = () => {
     if (sectionId === null || !withMoney) return
-    const sectionNet = sectionNetById.get(sectionId)
-    if (sectionNet === undefined) return
-    // `colspan="0"` means „to the end of the colgroup" in HTML5, and the browser would span the
-    // whole row.
-    const labelSpan = Math.max(1, moneyIndex)
-    body.push(
+    const sectionTotals = sectionTotalsById.get(sectionId)
+    if (sectionTotals === undefined) return
+    pushRow(
       `<tr class="band-total">` +
         `<td class="rail" colspan="${labelSpan}" style="border-left-color:${escapeHtml(sectionFill)}">` +
         `${escapeHtml(totalLabel)} — ${escapeHtml(sectionName)}</td>` +
-        `<td class="num">${money(sectionNet)}</td>` +
-        `<td></td>`.repeat(Math.max(0, columns.length - labelSpan - 1)) +
+        totalCells(sectionTotals) +
         `</tr>`,
     )
   }
@@ -76,14 +91,15 @@ export function buildKosztorysPrintHtml({
       sectionId = row.sectionId
       sectionName = row.sectionName
       sectionFill = (row.sectionColor && fillByColorKey.get(row.sectionColor)) || '#a1a1aa'
-      body.push(
+      pushRow(
         `<tr class="band"><td colspan="${Math.max(1, columns.length)}">` +
           `<div class="band-inner" style="border-color:${escapeHtml(sectionFill)}">` +
           `<span class="band-chip" style="background:${escapeHtml(sectionFill)}"></span>` +
           `<span class="band-name">${escapeHtml(sectionName)}</span></div></td></tr>`,
+        'row band-row',
       )
     }
-    body.push(
+    pushRow(
       `<tr>` +
         columns
           .map(
@@ -97,10 +113,18 @@ export function buildKosztorysPrintHtml({
     )
   }
   closeSection()
+  if (withMoney && grandTotals) {
+    pushRow(
+      `<tr class="grand-total"><td colspan="${labelSpan}">${escapeHtml(totalLabel)}</td>` +
+        totalCells(grandTotals) +
+        `</tr>`,
+      'row grand-row',
+    )
+  }
 
   const totals =
     footerHtml ??
-    (withMoney
+    (withMoney && totalNet !== undefined
       ? `
 <div class="totals"><table><tbody>
 <tr class="grand"><td class="label">Razem netto</td><td class="value">${money(totalNet)}</td></tr>
@@ -121,10 +145,6 @@ export function buildKosztorysPrintHtml({
     })
     .join('')}</tr>`
 
-  const colgroup = `<colgroup>${columns
-    .map((column) => `<col${column.colClass ? ` class="${column.colClass}"` : ''}>`)
-    .join('')}</colgroup>`
-
   return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -134,9 +154,9 @@ export function buildKosztorysPrintHtml({
 </head>
 <body>
 ${brand}
-<table>
-${colgroup}
-<thead>${head}</thead><tbody>${body.join('')}</tbody></table>
+<table class="sheet">
+<thead><tr class="sheet-head"><td class="sheet-cell"><table>${colgroup}<thead>${head}</thead></table></td></tr></thead>
+<tbody><tr class="sheet-body"><td class="sheet-cell">${body.join('')}</td></tr></tbody></table>
 ${totals}
 </body>
 </html>`

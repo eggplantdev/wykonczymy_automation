@@ -11,6 +11,7 @@ import {
   isSubcontractorPriceNegative,
   clientShareCeilingLabel,
 } from '@/lib/kosztorys/subcontractor-price-guard'
+import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { isTranslationStale, translationText } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
@@ -69,6 +70,66 @@ const percentRateProblemLabel = (plane: ToolPlaneT, count: number) =>
   `Stawki wykonawców liczone według formuły — ta inwestycja ma materiały wliczone w robociznę, ` +
   `więc stawki liczone ze współczynnika będą zawyżone; ustaw „Źródło ceny wykonawcy" na „kwota stała" ` +
   `(${count})`
+
+const PLANE_SLUG = { w_tools: 'w-tools', own_tools: 'own-tools' } as const satisfies Record<
+  ToolPlaneT,
+  string
+>
+
+const planeSlug = (plane: ToolPlaneT) => PLANE_SLUG[plane]
+
+const rateSourceConditions = (plane: ToolPlaneT): RowConditionT[] =>
+  (
+    [
+      ['manual', 'amount', 'z kwoty stałej', 'Kwota stała'],
+      ['coeff', 'coeff', 'z własnego mnożnika', 'Własny mnożnik'],
+      ['formula', 'auto', '„auto"', 'Auto'],
+    ] as const
+  ).map(([idPrefix, source, labelTail, menuLabel]) => ({
+    id: `${idPrefix}-rate-${planeSlug(plane)}`,
+    label: `ze stawką wykonawcy ${labelTail}` + planeViewSuffix(plane),
+    menuLabel,
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: `rate-source-${planeSlug(plane)}` as const,
+    plane,
+    revealsColumns: priceColumnsFor(plane),
+    matches: (row) => priceSourceOf(row, plane) === source,
+  }))
+
+const rateCeilingConditions = (plane: ToolPlaneT): RowConditionT[] => {
+  const ceiling = clientShareCeilingLabel(plane)
+  const shared = {
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: `rate-ceiling-${planeSlug(plane)}` as const,
+    plane,
+    revealsColumns: priceColumnsFor(plane),
+  } as const
+  return [
+    {
+      ...shared,
+      id: `own-rate-over-ceiling-${planeSlug(plane)}`,
+      label: `z własną stawką ponad ${ceiling} ceny` + planeViewSuffix(plane),
+      menuLabel: `Ponad ${ceiling} ceny`,
+      matches: (row) => isOwnRateOverCeiling(row, plane),
+    },
+    {
+      ...shared,
+      id: `own-rate-within-ceiling-${planeSlug(plane)}`,
+      label: `z własną stawką w granicy ${ceiling} ceny` + planeViewSuffix(plane),
+      menuLabel: `W granicy ${ceiling} ceny`,
+      matches: (row) => priceSourceOf(row, plane) !== 'auto' && !isOwnRateOverCeiling(row, plane),
+    },
+    {
+      ...shared,
+      id: `rate-ceiling-na-${planeSlug(plane)}`,
+      label: 'ze stawką wykonawcy „auto" — udział nie dotyczy' + planeViewSuffix(plane),
+      menuLabel: 'Nie dotyczy (auto)',
+      matches: (row) => priceSourceOf(row, plane) === 'auto',
+    },
+  ]
+}
 
 /** Each predicate is written `!(x > 0)` rather than `x === 0`, so a null, an undefined and a negative
  * all read as „nie ma" — the grid writes null into a cleared cell. */
@@ -143,148 +204,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'measured',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
   },
-  {
-    id: 'manual-rate-w-tools',
-    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
-    menuLabel: 'Kwota stała',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source-w-tools',
-    plane: 'w_tools',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'amount',
-  },
-  {
-    id: 'coeff-rate-w-tools',
-    label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('w_tools'),
-    menuLabel: 'Własny mnożnik',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source-w-tools',
-    plane: 'w_tools',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'coeff',
-  },
-  {
-    id: 'formula-rate-w-tools',
-    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
-    menuLabel: 'Auto',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source-w-tools',
-    plane: 'w_tools',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
-  },
-  {
-    id: 'manual-rate-own-tools',
-    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
-    menuLabel: 'Kwota stała',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source-own-tools',
-    plane: 'own_tools',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'amount',
-  },
-  {
-    id: 'coeff-rate-own-tools',
-    label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('own_tools'),
-    menuLabel: 'Własny mnożnik',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source-own-tools',
-    plane: 'own_tools',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'coeff',
-  },
-  {
-    id: 'formula-rate-own-tools',
-    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
-    menuLabel: 'Auto',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source-own-tools',
-    plane: 'own_tools',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
-  },
-  {
-    id: 'own-rate-over-ceiling-w-tools',
-    label:
-      `z własną stawką ponad ${clientShareCeilingLabel('w_tools')} ceny` +
-      planeViewSuffix('w_tools'),
-    menuLabel: `Ponad ${clientShareCeilingLabel('w_tools')} ceny`,
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling-w-tools',
-    plane: 'w_tools',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => isOwnRateOverCeiling(row, 'w_tools'),
-  },
-  {
-    id: 'own-rate-within-ceiling-w-tools',
-    label:
-      `z własną stawką w granicy ${clientShareCeilingLabel('w_tools')} ceny` +
-      planeViewSuffix('w_tools'),
-    menuLabel: `W granicy ${clientShareCeilingLabel('w_tools')} ceny`,
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling-w-tools',
-    plane: 'w_tools',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) =>
-      priceSourceOf(row, 'w_tools') !== 'auto' && !isOwnRateOverCeiling(row, 'w_tools'),
-  },
-  {
-    id: 'rate-ceiling-na-w-tools',
-    label: 'ze stawką wykonawcy „auto" — udział nie dotyczy' + planeViewSuffix('w_tools'),
-    menuLabel: 'Nie dotyczy (auto)',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling-w-tools',
-    plane: 'w_tools',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
-  },
-  {
-    id: 'own-rate-over-ceiling-own-tools',
-    label:
-      `z własną stawką ponad ${clientShareCeilingLabel('own_tools')} ceny` +
-      planeViewSuffix('own_tools'),
-    menuLabel: `Ponad ${clientShareCeilingLabel('own_tools')} ceny`,
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling-own-tools',
-    plane: 'own_tools',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => isOwnRateOverCeiling(row, 'own_tools'),
-  },
-  {
-    id: 'own-rate-within-ceiling-own-tools',
-    label:
-      `z własną stawką w granicy ${clientShareCeilingLabel('own_tools')} ceny` +
-      planeViewSuffix('own_tools'),
-    menuLabel: `W granicy ${clientShareCeilingLabel('own_tools')} ceny`,
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling-own-tools',
-    plane: 'own_tools',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) =>
-      priceSourceOf(row, 'own_tools') !== 'auto' && !isOwnRateOverCeiling(row, 'own_tools'),
-  },
-  {
-    id: 'rate-ceiling-na-own-tools',
-    label: 'ze stawką wykonawcy „auto" — udział nie dotyczy' + planeViewSuffix('own_tools'),
-    menuLabel: 'Nie dotyczy (auto)',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling-own-tools',
-    plane: 'own_tools',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
-  },
+  ...TOOL_PLANES.flatMap(rateSourceConditions),
+  ...TOOL_PLANES.flatMap(rateCeilingConditions),
   {
     id: 'has-discount',
     label: 'z rabatem',

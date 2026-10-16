@@ -2,8 +2,7 @@
 
 import { useEngagedIds } from '@/hooks/use-engaged-ids'
 
-// a filter describes the state of one budowa, and carrying it to the next one would narrow rows nobody
-// chose to narrow.
+// Keyed per investment: a filter describes one budowa, and carried to the next it would narrow rows nobody chose to narrow.
 const STORAGE_KEY_PREFIX = 'kosztorys-show:'
 
 const TEMPLATE_STORAGE_KEY_PREFIX = 'szablon-show:'

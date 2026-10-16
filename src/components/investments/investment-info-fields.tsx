@@ -1,11 +1,8 @@
 import { AiStageSelect } from '@/components/investments/ai-stage-select'
 import { ContactLink } from '@/components/ui/contact-link'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
-import {
-  formatAddress,
-  formatBillingAddress,
-  formatBillingParty,
-} from '@/lib/investments/format-address'
+import { formatBillingAddress, formatBillingParty } from '@/lib/investments/format-address'
+import { siteAddressOf } from '@/lib/investments/prefill'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 
 export function buildInvestmentInfoFields(
@@ -29,12 +26,7 @@ export function buildInvestmentInfoFields(
   return [
     {
       label: 'Adres',
-      value: formatAddress({
-        street: investment.address,
-        postalCode: investment.postalCode,
-        city: investment.city,
-        country: investment.country,
-      }),
+      value: siteAddressOf(investment),
     },
     // Filtered on the raw field, not the rendered node — a `<ContactLink>` is always truthy.
     {

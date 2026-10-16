@@ -9,6 +9,7 @@ import type {
 } from '@/lib/investments/contract/types'
 import { formatAddress } from '@/lib/investments/format-address'
 import { escapeHtml } from '@/lib/utils/escape-html'
+import { fill, line } from '@/lib/utils/print-document-fields'
 import { formatPLDate } from '@/lib/utils/format-date'
 
 type ArgsT = {
@@ -60,14 +61,6 @@ function pageTitle(form: ContractFormT): string {
   const client = form.clientName.trim()
   const head = number ? `Umowa nr ${number}` : 'Umowa'
   return client ? `${head} — ${client}` : head
-}
-
-function fill(value: string): string {
-  return `<span class="fill">${escapeHtml(value)}</span>`
-}
-
-function line(label: string, value: string): string {
-  return `<div class="line"><span>${escapeHtml(label)}</span>${fill(value)}</div>`
 }
 
 function clauseValue(field: ContractClauseFieldT, form: ContractFormT): string {

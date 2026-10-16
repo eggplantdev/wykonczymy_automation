@@ -3,18 +3,40 @@ import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
 import { REPORT_UNREPORTED_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 
-const condition = (id: string, label: string) => ({ id, label }) as RowConditionT
+const condition = (id: string, label: string, filterGroup = 'planned') =>
+  ({ id, label, filterGroup }) as RowConditionT
 
 describe('emptyGridCopy', () => {
   it('names the filters that emptied the grid', () => {
     const copy = emptyGridCopy({
       preview: false,
-      filters: [condition('no-planned', 'bez przedmiaru'), condition('planned', 'z przedmiarem')],
+      filters: [
+        condition('no-planned', 'bez przedmiaru'),
+        condition('no-measured', 'bez wykonanej pracy', 'measured'),
+      ],
       clientHiders: [],
       diagnostics: [],
     })
     expect(copy.title).toBe('Brak pozycji spełniających filtry')
-    expect(copy.description).toBe('Filtry pokazują tylko pozycje bez przedmiaru i z przedmiarem.')
+    expect(copy.description).toBe(
+      'Filtry pokazują tylko pozycje bez przedmiaru i bez wykonanej pracy.',
+    )
+  })
+
+  it('joins two ticks of one group with „lub", since either one keeps a row', () => {
+    const copy = emptyGridCopy({
+      preview: false,
+      filters: [
+        condition('no-planned', 'bez przedmiaru'),
+        condition('planned', 'z przedmiarem'),
+        condition('no-measured', 'bez wykonanej pracy', 'measured'),
+      ],
+      clientHiders: [],
+      diagnostics: [],
+    })
+    expect(copy.description).toBe(
+      'Filtry pokazują tylko pozycje bez przedmiaru lub z przedmiarem i bez wykonanej pracy.',
+    )
   })
 
   it('counts the filters instead of listing them once there are too many to read', () => {

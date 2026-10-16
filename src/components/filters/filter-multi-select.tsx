@@ -75,17 +75,24 @@ function BulkSelectRow({
 }: {
   id: string
   allSelected: boolean
-  labels?: { select: string; deselect: string }
+  labels: { select: string; deselect: string }
   onSelect: () => void
 }) {
-  const { t } = useTranslation('filters')
-  const text = allSelected
-    ? (labels?.deselect ?? t('deselectAll'))
-    : (labels?.select ?? t('selectAll'))
+  const text = allSelected ? labels.deselect : labels.select
   return (
     <CommandItem value={id} keywords={[text]} onSelect={onSelect}>
       <CheckCheck />
       {text}
+    </CommandItem>
+  )
+}
+
+function ClearRow({ id, onSelect }: { id: string; onSelect: () => void }) {
+  const { t } = useTranslation('filters')
+  return (
+    <CommandItem value={id} keywords={[t('clear')]} onSelect={onSelect}>
+      <X />
+      {t('clear')}
     </CommandItem>
   )
 }
@@ -121,9 +128,7 @@ export function FilterMultiSelect({
   const selectableOptions = options.filter((o) => !isLocked(o.value))
   const allValues = selectableOptions.map((o) => o.value)
 
-  const deriveSelected = (vals: string[]) => vals.filter((value) => value !== LEGACY_NONE)
-
-  const committed = deriveSelected(values)
+  const committed = values.filter((value) => value !== LEGACY_NONE)
   const selected = localSelected ?? committed
   const allSelected = selected.length === selectableOptions.length
   const hasPendingTicks =
@@ -140,7 +145,7 @@ export function FilterMultiSelect({
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       onOpen?.()
-      setLocalSelected(deriveSelected(values))
+      setLocalSelected(committed)
       setOpen(true)
       return
     }
@@ -172,8 +177,7 @@ export function FilterMultiSelect({
     scheduleFlush(next)
   }
 
-  // Drops a pending debounce, which would otherwise land after the reset and put the clicks back. The
-  // values themselves are the caller's to reset: to „Sekcje" an empty list folds every sekcja.
+  // Drops a pending debounce, which would otherwise land after the reset and put the clicks back.
   function handleReset() {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
@@ -211,16 +215,7 @@ export function FilterMultiSelect({
           onSelect={() => selectValues(allSelected ? [] : [...allValues])}
         />
       )}
-      {showsClearRow && (
-        <CommandItem
-          value="clear-options"
-          keywords={[t('clear')]}
-          onSelect={() => selectValues([])}
-        >
-          <X />
-          {t('clear')}
-        </CommandItem>
-      )}
+      {showsClearRow && <ClearRow id="clear-options" onSelect={() => selectValues([])} />}
       {optionToggles?.map((group) => (
         <CommandItem
           key={group.label}
@@ -280,14 +275,7 @@ export function FilterMultiSelect({
                 {onClearToggles && activeToggleCount > 0 && (
                   <>
                     <CommandGroup>
-                      <CommandItem
-                        value="clear-toggles"
-                        keywords={[t('clear')]}
-                        onSelect={onClearToggles}
-                      >
-                        <X />
-                        {t('clear')}
-                      </CommandItem>
+                      <ClearRow id="clear-toggles" onSelect={onClearToggles} />
                     </CommandGroup>
                     <CommandSeparator />
                   </>

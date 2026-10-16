@@ -15,7 +15,6 @@ export function CatalogueFiltersMenu({ toggles, onToggle, onClear }: PropsT) {
   return (
     <FilterMultiSelect
       label="Filtry"
-      triggerCount={toggles.filter((toggle) => toggle.active).length}
       icon={ListFilter}
       title="Co widać: prace"
       triggerClassName={GRID_FILTER_TRIGGER_CLASS}

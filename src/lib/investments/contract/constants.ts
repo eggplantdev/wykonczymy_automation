@@ -1,5 +1,3 @@
-import type { ContractClauseFieldT } from '@/lib/investments/contract/types'
-
 export const CONTRACTOR = {
   name: 'Wykończymy sp. z o.o.',
   seat: 'Warszawie',
@@ -16,10 +14,10 @@ export const DEFAULT_SUPERVISORS = 'Bartosz Antonik, Yuri Abramenko'
 
 export const DEFAULT_PLACE = 'Warszawie'
 
-export const CONTRACT_CLAUSE_FIELDS: readonly ContractClauseFieldT[] = [
+export const CONTRACT_CLAUSE_FIELDS = [
   'siteAddress',
   'startWindow',
   'duration',
   'supervisors',
   'plannedNet',
-]
+] as const

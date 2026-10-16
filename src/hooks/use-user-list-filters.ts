@@ -5,6 +5,9 @@ import type { UserRowT } from '@/types/table-rows'
 
 const SHOWN = ['shown', 'hidden'] as const
 
+// Nothing ticked in a group shows the whole group.
+const shown = (self: boolean, sibling: boolean) => self || !sibling
+
 export function useUserListFilters() {
   const [activeWorkers, setActiveWorkers] = usePersistedFlag('users:active-workers', SHOWN, true)
   const [inactiveWorkers, setInactiveWorkers] = usePersistedFlag(
@@ -59,16 +62,14 @@ export function useUserListFilters() {
     setCompletedPayouts(false)
   }
 
-  const anyPayoutTicked = activePayouts || completedPayouts
-
   return {
     toggles,
     clear,
     isListed: (row: UserRowT) =>
-      (!activeWorkers && !inactiveWorkers) || (row.active ? activeWorkers : inactiveWorkers),
+      row.active ? shown(activeWorkers, inactiveWorkers) : shown(inactiveWorkers, activeWorkers),
     payoutBuckets: {
-      active: !anyPayoutTicked || activePayouts,
-      completed: !anyPayoutTicked || completedPayouts,
+      active: shown(activePayouts, completedPayouts),
+      completed: shown(completedPayouts, activePayouts),
     },
   }
 }

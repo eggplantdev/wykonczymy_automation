@@ -9,10 +9,8 @@ type TemplateSectionSliceT = {
   items: SnapshotPayloadT['items'][number][]
 }
 
-// „Sekcja z szablonu" on either plane: the picked sections with their prace, resolved from the
-// katalog. A szablon can contribute several sections, so each is serialized once; the result keeps
-// the client's order so appended sections land in the order they were picked. `undefined` when any
-// picked section is not in a live szablon.
+// The result keeps the client's order so appended sections land in the order they were picked.
+// `undefined` when any picked section is not in a live szablon.
 export async function resolveSectionSlices(
   db: DbExecutorT,
   sectionIds: number[],

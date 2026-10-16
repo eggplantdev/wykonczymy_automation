@@ -22,21 +22,21 @@ vi.mock('payload', async (importOriginal) => ({
 }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute: vi.fn() })) }))
 vi.mock('@/lib/db/investment-gate', () => ({
-  investmentGateFor: vi.fn(async () => ({ lockMessage: lockState.lockMessage })),
+  investmentLockMessage: vi.fn(async () => lockState.lockMessage),
   investmentGateForRow: vi.fn(async () => lockState.rowOwner),
 }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
 const { INVESTMENT_LOCKED_MESSAGE, INVESTMENT_TRASHED_MESSAGE } =
   await import('@/lib/constants/investment-lock')
-const { investmentGateFor, investmentGateForRow } = await import('@/lib/db/investment-gate')
+const { investmentLockMessage, investmentGateForRow } = await import('@/lib/db/investment-gate')
 
 describe('investmentAction', () => {
   beforeEach(() => {
     lockState.lockMessage = undefined
     lockState.rowOwner = { investmentId: 5, lockMessage: undefined }
     revalidateCollections.mockClear()
-    vi.mocked(investmentGateFor).mockClear()
+    vi.mocked(investmentLockMessage).mockClear()
     vi.mocked(investmentGateForRow).mockClear()
   })
 
@@ -67,7 +67,7 @@ describe('investmentAction', () => {
     const handler = vi.fn(async () => ({ success: true as const }))
     await investmentAction('t', { kind: 'item', id: 3 }, handler)
     expect(vi.mocked(investmentGateForRow).mock.calls[0]?.slice(1)).toEqual(['item', 3])
-    expect(vi.mocked(investmentGateFor)).not.toHaveBeenCalled()
+    expect(vi.mocked(investmentLockMessage)).not.toHaveBeenCalled()
     expect(handler).toHaveBeenCalledOnce()
   })
 

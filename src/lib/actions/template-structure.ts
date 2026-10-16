@@ -1,10 +1,10 @@
 'use server'
 
 import { after } from 'next/server'
-import { z } from 'zod'
 import { templateAction } from '@/lib/actions/template-action'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 import { validateAction } from '@/lib/actions/run-action'
+import { SECTION_NOT_FOUND } from '@/lib/constants/not-found'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import {
   deleteTemplateItem,
@@ -17,11 +17,15 @@ import {
 } from '@/lib/db/template-structure'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { findCatalogueItemByKey, findTemplateItemCatalogueEntry } from '@/lib/db/work-catalogue'
-import { addItemSchema, TEMPLATE_ITEM_NEEDS_CATALOGUE, type AddItemInputT } from '@/lib/kosztorys/add-item-schema'
+import {
+  addItemSchema,
+  TEMPLATE_ITEM_NEEDS_CATALOGUE,
+  type AddItemInputT,
+} from '@/lib/kosztorys/add-item-schema'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { CreatedSectionT } from '@/lib/kosztorys/create-section'
 import {
-  insertDirectionSchema,
+  insertSectionSchema,
   resolveInsertSlot,
   shiftDisplayOrderFrom,
   type InsertDirectionT,
@@ -32,7 +36,12 @@ import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
-import type { ItemPatchT, KosztorysItemT, KosztorysSectionT, NewItemPlacementT } from '@/lib/kosztorys/types'
+import type {
+  ItemPatchT,
+  KosztorysItemT,
+  KosztorysSectionT,
+  NewItemPlacementT,
+} from '@/lib/kosztorys/types'
 import {
   catalogueUpdateFor,
   pickCataloguePatch,
@@ -54,10 +63,6 @@ import {
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import type { ActionResultT } from '@/types/action'
 
-// The szablon plane's twins of the structural writes in `kosztorys.ts`. A szablon praca is a link to
-// its katalog entry and nothing else, so every editable column of the grid is a katalog field.
-
-const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
 
 // A przedmiar, rabat or uwaga typed into a szablon has nowhere to live — the row carries only its
@@ -119,7 +124,6 @@ export async function updateTemplateSectionFieldAction(sectionId: number, patch:
   )
 }
 
-// Same top placement and the same empty-szablon tie as `addSectionAction`.
 export async function addTemplateSectionAction(
   templateId: number,
 ): Promise<ActionResultT<CreatedSectionT>> {
@@ -140,11 +144,6 @@ export async function addTemplateSectionAction(
     },
   )
 }
-
-const insertSectionSchema = z.object({
-  anchorSectionId: z.number(),
-  dir: insertDirectionSchema,
-})
 
 export async function insertTemplateSectionAction(
   anchorSectionId: number,
@@ -173,7 +172,7 @@ export async function insertTemplateSectionAction(
         },
         { skipRevalidation: true },
       )
-      if (!created) return { success: false, error: SECTION_MISSING }
+      if (!created) return { success: false, error: SECTION_NOT_FOUND }
       return { success: true, data: created }
     },
   )
@@ -207,7 +206,7 @@ async function resolveNewTemplateItemSlot(
 ): Promise<{ sectionId: number; displayOrder: number } | { error: string }> {
   if (placement.kind === 'end') {
     const owner = await templateSectionAndNextItemOrder(db, placement.sectionId)
-    if (!owner) return { error: SECTION_MISSING }
+    if (!owner) return { error: SECTION_NOT_FOUND }
     return { sectionId: placement.sectionId, displayOrder: owner.nextDisplayOrder }
   }
   const slot = await resolveInsertSlot(db, 'template-items', placement.anchorItemId, placement.dir)
@@ -330,11 +329,15 @@ async function appendIntoTemplateSectionNamed(
   if (existingId === undefined) return undefined
   const owner = await templateSectionAndNextItemOrder(db, existingId)
   if (!owner) throw new Error(`Sekcja ${existingId} zniknęła w trakcie zapisu.`)
-  const slice = await placeInTemplateSection(db, owner.section, owner.nextDisplayOrder, catalogueItems)
+  const slice = await placeInTemplateSection(
+    db,
+    owner.section,
+    owner.nextDisplayOrder,
+    catalogueItems,
+  )
   return { ...slice, createdSection: false }
 }
 
-// The kosztorys plane's `createSectionWithCatalogueItems`, race re-read after the shift included.
 export async function createTemplateSectionWithCatalogueItemsAction(
   templateId: number,
   sectionName: string,

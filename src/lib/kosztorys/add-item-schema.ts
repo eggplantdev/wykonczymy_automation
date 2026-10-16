@@ -13,9 +13,8 @@ const newItemPlacementSchema = z.discriminatedUnion('kind', [
 
 export const addItemSchema = z.object({
   placement: newItemPlacementSchema,
-  // The katalog's own domain schema, not a copy: the dialog's praca and a katalog entry are the same
-  // fields, and `insertItems` bypasses Payload's field rules, so this is the only backstop against a
-  // negative cena or both columns of one płaszczyzna set.
+  // `insertItems` bypasses Payload's field rules, so this is the only backstop against a negative
+  // cena or both columns of one płaszczyzna set.
   data: workCatalogueItemSchema,
   catalogue: z
     .object({
@@ -30,6 +29,4 @@ export const addItemSchema = z.object({
 
 export type AddItemInputT = z.infer<typeof addItemSchema>
 
-// A szablon praca with no katalog entry would be the only one whose content lives nowhere else
-// (EX-1017).
 export const TEMPLATE_ITEM_NEEDS_CATALOGUE = 'Praca w szablonie musi być w katalogu prac.'

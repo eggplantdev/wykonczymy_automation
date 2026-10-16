@@ -1,3 +1,4 @@
+import type { CONTRACT_CLAUSE_FIELDS } from '@/lib/investments/contract/constants'
 import type { AddressT } from '@/lib/investments/format-address'
 
 // Dates are `YYYY-MM-DD` as the date picker produces them; '' means left blank for the pen.
@@ -16,12 +17,7 @@ export type ContractFormT = {
   isCompany: boolean
 }
 
-export type ContractClauseFieldT =
-  | 'siteAddress'
-  | 'startWindow'
-  | 'duration'
-  | 'supervisors'
-  | 'plannedNet'
+export type ContractClauseFieldT = (typeof CONTRACT_CLAUSE_FIELDS)[number]
 
 // Point text may carry `{field}` tokens, filled from the form as dotted fields.
 export type ContractPointT = {

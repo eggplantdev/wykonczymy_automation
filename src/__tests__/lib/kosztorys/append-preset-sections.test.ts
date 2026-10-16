@@ -74,9 +74,15 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
       wToolsRate: 97.5,
     })
     entryIds.push(entryId)
-    const { sectionId } = await addTestTemplateSection(payload, templateId, sectionName, [entryId], {
-      color,
-    })
+    const { sectionId } = await addTestTemplateSection(
+      payload,
+      templateId,
+      sectionName,
+      [entryId],
+      {
+        color,
+      },
+    )
     return { sectionId }
   }
 
@@ -118,7 +124,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(item.unit).toBe('m2')
     expect(item.clientPrice).toBe(150)
     expect(item.wToolsOverrideValue).toBe(97.5)
-    // A szablon praca carries no job figures, so the copy starts the job empty.
     expect(item.plannedQty).toBe(0)
     expect(item.discountType).toBeNull()
     expect(item.discountValue).toBe(0)
@@ -201,8 +206,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(after.sections.find((s) => s.name === 'Sekcja G')?.color).toBeNull()
   })
 
-  // Only a live szablon is a source: a trashed one is gone from the picker, and an open picker must
-  // not still copy from it.
   it('(h) refuses a section of a trashed szablon and persists nothing', async () => {
     const { sectionId } = await buildPreset('h', 'Z kosza')
     const db = await getDb(payload)
