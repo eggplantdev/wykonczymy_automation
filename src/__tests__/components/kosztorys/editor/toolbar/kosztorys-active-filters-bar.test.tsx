@@ -54,8 +54,8 @@ describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
       search: 'kafle',
     })
 
-    expect(screen.getByText(/Ukryto: pozycje z rabatem/)).toBeInTheDocument()
-    expect(screen.getByText(/^Tylko:/)).toBeInTheDocument()
+    expect(screen.getByText(/Tylko: pozycje z rabatem/)).toBeInTheDocument()
+    expect(screen.getAllByText(/^Tylko:/)).toHaveLength(2)
     expect(screen.getByText('Zwinięte sekcje')).toBeInTheDocument()
     expect(screen.getByText('Szukaj: „kafle"')).toBeInTheDocument()
   })
@@ -80,7 +80,7 @@ describe('Pasek aktywnych filtrów — X zdejmuje swoje źródło', () => {
   it('oddaje filtrowi jego własne przełączenie', async () => {
     const user = renderBar({ engagedIds: [FILTER_ID] })
 
-    await removeChip(user, /Pokaż z powrotem pozycje z rabatem/)
+    await removeChip(user, /Przestań pokazywać tylko pozycje z rabatem/)
 
     expect(handlers.toggleCondition).toHaveBeenCalledExactlyOnceWith(FILTER_ID)
   })

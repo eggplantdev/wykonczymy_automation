@@ -223,6 +223,7 @@ export function useKosztorysEditor({
     workerPlane: worker?.plane,
     isTemplate,
     aiDraft,
+    globalDiscountActive: rows.some((row) => row.globalDiscountActive),
   })
 
   const { widths, setWidth, dropWidth } = useColumnWidths()

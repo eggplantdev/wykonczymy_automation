@@ -12,7 +12,7 @@ const NOTHING_ENGAGED = {
 }
 
 describe('activeFiltersModel', () => {
-  it('shows nothing while nothing hides pozycje', () => {
+  it('shows nothing while nothing narrows the pozycje', () => {
     expect(activeFiltersModel(NOTHING_ENGAGED)).toEqual([])
   })
 
@@ -41,13 +41,13 @@ describe('activeFiltersModel', () => {
     expect(activeFiltersModel({ ...NOTHING_ENGAGED, ...engaged })).toHaveLength(1)
   })
 
-  it('says which way each kind pulls, since the two are opposite', () => {
+  it('reads a filter and a problem the same way, since both now narrow', () => {
     const [filter, problem] = activeFiltersModel({
       ...NOTHING_ENGAGED,
       engagedIds: new Set(['no-planned-qty', 'no-client-price']),
     })
 
-    expect(filter.label).toMatch(/^Ukryto: /)
+    expect(filter.label).toMatch(/^Tylko: /)
     expect(problem.label).toMatch(/^Tylko: /)
   })
 

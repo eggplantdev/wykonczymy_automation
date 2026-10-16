@@ -1,6 +1,5 @@
 'use client'
 
-import type { FilterTogglesBulkT } from '@/components/filters/filter-multi-select'
 import {
   filtersMenuModel,
   type FilterToggleT,
@@ -11,14 +10,13 @@ import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 
 export function useKosztorysFilterMenu(): {
   toggles: (FilterToggleT & { onToggle: () => void })[]
-  togglesBulk: FilterTogglesBulkT
   resetAction: ReturnType<typeof useFilterResetAction>
 } {
   const {
     engagedConditionIds,
     conditionCounts,
     toggleCondition,
-    setConditions,
+    rows,
     globalDiscount,
     crewAxis,
     isTemplate,
@@ -28,25 +26,11 @@ export function useKosztorysFilterMenu(): {
   const toggles = filtersMenuModel({
     engagedIds: engagedConditionIds,
     counts: conditionCounts,
+    rowCount: rows.length,
     perItemDiscountInert: isGlobalDiscountActive(globalDiscount),
     crewAxis,
     isTemplate,
   }).map((toggle) => ({ ...toggle, onToggle: () => toggleCondition(toggle.id) }))
 
-  return {
-    toggles,
-    // Scoped to the rows the menu is actually showing: a zawężenie left
-    // off the list has nothing to hide, so engaging it would remove no pozycja and only pull that
-    // plane's price columns onto the screen (`revealsColumns`) — with no row in the menu to untick it
-    // from.
-    togglesBulk: {
-      allActive: toggles.every((toggle) => toggle.active),
-      onToggleAll: (next) =>
-        setConditions(
-          toggles.map((toggle) => toggle.id),
-          !next,
-        ),
-    },
-    resetAction,
-  }
+  return { toggles, resetAction }
 }

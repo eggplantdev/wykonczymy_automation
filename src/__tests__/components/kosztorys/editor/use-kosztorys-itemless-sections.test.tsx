@@ -187,7 +187,7 @@ describe('sekcja bez pozycji w edytorze', () => {
   })
 
   it('shows itemless bands despite a persisted id of a condition that no longer exists', () => {
-    localStorage.setItem('kosztorys-filters:1', JSON.stringify({ 'removed-condition': true }))
+    localStorage.setItem('kosztorys-show:1', JSON.stringify({ 'removed-condition': true }))
     const { result } = renderEditor()
 
     expect(result.current.showItemless).toBe(true)

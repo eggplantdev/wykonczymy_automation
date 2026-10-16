@@ -10,7 +10,7 @@ export type ActiveFilterChipT = {
   // filter left standing would move every time anything else was ticked.
   count?: number
   // built from the bare name rather than from `label`, whose
-  // „Ukryto:" / „Tylko:" prefix would read back as „Usuń: Ukryto: …".
+  // „Tylko:" prefix would read back as „Usuń: Tylko: …".
   removeLabel: string
   removal: ChipRemovalT
 }
@@ -34,8 +34,8 @@ export function activeFiltersModel({
     if (condition.kind !== 'filter' || !engagedIds.has(condition.id)) continue
     chips.push({
       id: condition.id,
-      label: `Ukryto: pozycje ${condition.label}`,
-      removeLabel: `Pokaż z powrotem pozycje ${condition.label}`,
+      label: `Tylko: pozycje ${condition.label}`,
+      removeLabel: `Przestań pokazywać tylko pozycje ${condition.label}`,
       count: counts.get(condition.id) ?? 0,
       removal: 'condition',
     })
