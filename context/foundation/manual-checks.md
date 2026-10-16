@@ -722,6 +722,24 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       inwestycji, a zapis bez zmian ich nie czyści.
 - [ ] Protokół odbioru → „Zaktualizuj dane inwestycji” dalej zapisuje osobę kontaktową i adres.
 
+## 2026-10-16 — investment-form-layout-status-select — nowy układ formularza inwestycji + status z listy
+
+- [ ] „Nowa inwestycja” / „Edytuj inwestycję” / „Dodaj” przy leadzie na desktopie: okno jest szersze niż
+      dotąd; poniżej 768px nadal zajmuje cały ekran.
+- [ ] Formularz inwestycji: kolejność to status (sam badge z listą, bez etykiety), „Nazwa”, „Notatki”,
+      zdjęcia (przycisk na szerokość treści, bez nagłówka), „Prośba o opinię wysłana”, sekcja „Kontakt”,
+      „Adres inwestycji”, „Dane do umowy / faktury”.
+- [ ] Formularz → wpisz „Osoba kontaktowa” „Jan Kowalski”, „Typ klienta: Osoba prywatna” przy pustych
+      „Imię”/„Nazwisko” → wypełniają się „Jan” / „Kowalski”; gdy były już wpisane, zostają bez zmian.
+- [ ] Edycja → zmień status na „Zakończona” i zapisz → pyta „Zakończyć inwestycję?” jak dotąd.
+- [ ] Strona aktywnej inwestycji → status nad listą danych to lista z badge'em; wiersza „Status”
+      w liście nie ma. Zmiana na inny status zapisuje się od razu i zostaje po odświeżeniu.
+- [ ] Strona inwestycji → wybierz „Zakończona” → okno „Zakończyć inwestycję?”; „Anuluj” zostawia stary
+      status, „Zakończ” zapisuje i (gdy prośba o opinię nie była wysłana) proponuje jej wysłanie.
+- [ ] Zakończona inwestycja jako kierownik → zmiana statusu na „Aktywna” kończy się komunikatem błędu,
+      a lista wraca do „Zakończona”; jako właściciel — przechodzi.
+- [ ] Inwestycja w koszu → brak listy statusu, wiersz „Status” w liście danych jest jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
