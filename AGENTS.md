@@ -285,4 +285,3 @@ blames `globals.css`. Repair: `pnpm install --force`, `rm -rf .next`, restart de
   `pnpm db:import:test`; `pnpm test:e2e` starts the container but does not import. Seeds on top are per
   plane (`seed:materials-net:test` is required by the render-parity spec) — which counter needs which
   seed: `context/foundation/test-plan.md` §5.
-- **Legacy client sheet dumps** live outside git: `context/reference/legacy-sheet-dumps.md`.

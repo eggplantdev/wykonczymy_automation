@@ -14,8 +14,10 @@ worktree: null
 One-off action: the work catalogue is built from the template kosztorys (~400 works), but some works
 exist only in old investment sheets. Pull them out and add them to the catalogue.
 
-Pipeline, dumps, report figures and the 2026-09-02 prod load (940 items):
-`context/reference/legacy-sheet-dumps.md`.
+The 2026-09-02 prod load put 940 items into the catalogue. The pipeline (`fetch-grids.ts`, analysis,
+report, export/import) was deleted in `1fb50e6c` — recover with
+`git show 1fb50e6c^:src/scripts/legacy-sheet-import/<file>.ts`; `fetch-grids.ts` re-pulls the sheets
+read-only. The local sheet dumps were deleted on 2026-10-16.
 
 ### Owner rulings (2026-08-31)
 
