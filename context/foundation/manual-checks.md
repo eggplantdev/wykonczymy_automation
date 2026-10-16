@@ -821,6 +821,14 @@ tylko komórka, a siatka ich nie widzi.
       „Zapisz jako PDF” proponuje nazwę „Umowa nr … — …”. Sprawdź w Chrome i Safari.
 - [ ] Inwestycja w koszu → brak przycisku „Umowa”.
 
+## 2026-10-16 — worker-drafts-in-type-filter — „Zgłoszone wydatki” w „Typ” + szersza kolumna pracowników
+
+- [ ] Kasa (lub pulpit kierownika) → „Typ”: na liście jest „Zgłoszone wydatki”, osobnego przycisku obok
+      filtrów już nie ma. Zaznacz → zostają tylko zgłoszone wydatki, „Typ (1)”; „Wyczyść” w liście zdejmuje.
+- [ ] „Typ” → „Zgłoszone wydatki” + „Wydatek inwestycyjny”: widać tylko zgłoszone wydatki inwestycyjne.
+- [ ] Pracownicy → kolumna „Imię i nazwisko” jest szersza; typowe imię z nazwiskiem mieści się w jednej
+      linii.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
