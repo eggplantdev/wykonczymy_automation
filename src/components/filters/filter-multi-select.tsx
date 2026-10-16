@@ -58,6 +58,7 @@ type FilterMultiSelectPropsT = {
   triggerCount?: number
   contentClassName?: string
   intro?: { heading: string; hint?: string }
+  onOpen?: () => void
 }
 
 // The param carries exactly the ticked values; [] = nothing ticked = no filter. A link saved under
@@ -113,6 +114,7 @@ export function FilterMultiSelect({
   optionsHeading,
   triggerCount,
   contentClassName,
+  onOpen,
 }: FilterMultiSelectPropsT) {
   const { t } = useTranslation('filters')
   const [open, setOpen] = useState(false)
@@ -141,6 +143,7 @@ export function FilterMultiSelect({
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
+      onOpen?.()
       setLocalSelected(deriveSelected(values))
       setOpen(true)
       return

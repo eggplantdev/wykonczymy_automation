@@ -44,11 +44,16 @@ export const PROBLEM_IDS = PROBLEM_CONDITIONS.map((problem) => problem.id)
 const STAGE_PROBLEM_IDS = STAGE_CONDITIONS.map((condition) => condition.id)
 
 /**
- * The row latch holds rows only for these: its release („Odśwież — ukryj poprawione") renders only
- * while a problem is engaged, so latching under a „Prace" filter would hold rows nothing can release.
- * The worker's „Tylko zgłoszone” is the one non-problem in the list — toggling it is his release.
+ * Opening „Problemy" or „Filtry" releases the latch; a condition latched with neither of those as its
+ * release would hold edited rows forever. The worker's „Tylko zgłoszone” is released by toggling it.
  */
-const LATCHING_IDS = [...PROBLEM_IDS, REPORT_UNREPORTED_CONDITION_ID]
+const LATCHING_IDS = [
+  ...PROBLEM_IDS,
+  ...ROW_CONDITIONS.filter((condition) => condition.kind === 'filter').map(
+    (condition) => condition.id,
+  ),
+  REPORT_UNREPORTED_CONDITION_ID,
+]
 
 export function engagedLatchingIds(engaged: ReadonlySet<string>): Set<string> {
   return new Set(LATCHING_IDS.filter((id) => engaged.has(id)))
