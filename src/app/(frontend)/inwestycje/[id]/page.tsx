@@ -26,6 +26,7 @@ import { InvestmentV1Stats } from '@/components/investments/investment-v1-stats'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
+import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
@@ -77,7 +78,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         )}
         <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
       </div>
-      <InfoList items={buildInvestmentInfoFields(investment, { isReadOnly: trashed })} />
+      {!trashed && <InvestmentStatusInlineSelect investment={investment} />}
+      <InfoList
+        items={buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed })}
+      />
       <InvestmentNotes investment={investment} readOnly={trashed} />
       <InvestmentAiNotes aiNotes={investment.aiNotes} />
 

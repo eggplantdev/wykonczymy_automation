@@ -24,7 +24,7 @@ export function buildInvestmentInfoFields(
     | 'reviewRequested'
     | 'aiStage'
   >,
-  { isReadOnly = false }: { isReadOnly?: boolean } = {},
+  { isReadOnly = false, hideStatus = false }: { isReadOnly?: boolean; hideStatus?: boolean } = {},
 ) {
   return [
     {
@@ -48,7 +48,10 @@ export function buildInvestmentInfoFields(
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Zamawiający', value: formatBillingParty(investment.billing) },
     { label: 'Adres do umowy', value: formatBillingAddress(investment.billing) },
-    { label: 'Status', value: <InvestmentStatusBadge status={investment.status} /> },
+    {
+      label: 'Status',
+      value: !hideStatus && <InvestmentStatusBadge status={investment.status} />,
+    },
     { label: 'Opinia', value: investment.reviewRequested && 'Wysłano' },
     {
       label: 'Etap AI',

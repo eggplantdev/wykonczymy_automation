@@ -15,6 +15,7 @@ import {
 } from '@/components/forms/investment-form/investment-schema'
 import { createInvestment } from '@/lib/investments/create-investment'
 import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
+import { INVESTMENT_STATUSES, type InvestmentStatusT } from '@/lib/constants/investment-status'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
@@ -169,6 +170,24 @@ export async function updateInvestmentClientFieldsAction(
       if (!parsed.success) return parsed
 
       await payload.update({ collection: 'investments', id, data: parsed.data, user })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}
+
+const statusSchema = z.enum(INVESTMENT_STATUSES)
+
+// `user` lets `guardInvestmentStatusUnlock` admit the właściciel; without it every role is refused.
+export async function setInvestmentStatusAction(id: number, status: InvestmentStatusT) {
+  return protectedAction(
+    'setInvestmentStatusAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(statusSchema, status)
+      if (!parsed.success) return parsed
+
+      await payload.update({ collection: 'investments', id, data: { status: parsed.data }, user })
 
       return { success: true }
     },
