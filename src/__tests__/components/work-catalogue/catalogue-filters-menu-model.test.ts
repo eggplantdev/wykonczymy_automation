@@ -19,7 +19,7 @@ describe('catalogueFiltersMenuModel', () => {
     expect(model({ [AMOUNT]: 3, [COEFF]: 0, 'catalogue-no-price': 5 })).toEqual([
       {
         id: AMOUNT,
-        groupLabel: 'Źródło stawki — z narzędziami (podwykonawca)',
+        groupLabel: 'Źródło stawki wykonawcy — z narzędziami (podwykonawca)',
         label: 'Kwota stała (3)',
         active: false,
       },
@@ -42,10 +42,10 @@ describe('catalogueFiltersMenuModel', () => {
       'catalogue-within-ceiling-w_tools': 5,
       'catalogue-ceiling-na-w_tools': 3,
     }).map((toggle) => [toggle.groupLabel, toggle.label])
-    const group = 'Udział w cenie — z narzędziami (podwykonawca)'
+    const group = 'Udział wykonawcy w cenie — z narzędziami (podwykonawca)'
     expect(labels).toEqual([
-      [group, 'Ponad 65% (2)'],
-      [group, 'W granicy 65% (5)'],
+      [group, 'Ponad 65% ceny (2)'],
+      [group, 'W granicy 65% ceny (5)'],
       [group, 'Nie dotyczy (auto lub bez ceny j.m.) (3)'],
     ])
   })

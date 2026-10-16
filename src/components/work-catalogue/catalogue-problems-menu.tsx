@@ -1,6 +1,6 @@
 'use client'
 
-import { RotateCcw, TriangleAlert } from 'lucide-react'
+import { TriangleAlert } from 'lucide-react'
 import {
   FilterTriggerButton,
   GRID_FILTER_TRIGGER_CLASS,
@@ -8,11 +8,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-  keepMenuOpen,
 } from '@/components/ui/dropdown-menu'
 import { DropdownCheckGroups, type DropdownCheckItemT } from '@/components/ui/dropdown-check-groups'
 
@@ -39,19 +35,6 @@ export function CatalogueProblemsMenu({ toggles, onSelect }: PropsT) {
         </FilterTriggerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        {engaged && (
-          <>
-            <DropdownMenuLabel>Zawężenie</DropdownMenuLabel>
-            <DropdownMenuItem
-              onSelect={keepMenuOpen(() => onSelect(engaged.id))}
-              className="text-muted-foreground"
-            >
-              <RotateCcw />
-              Zresetuj filtry
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
         <DropdownCheckGroups items={toggles} onSelect={onSelect} />
       </DropdownMenuContent>
     </DropdownMenu>

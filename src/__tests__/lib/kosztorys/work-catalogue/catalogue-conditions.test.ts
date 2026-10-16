@@ -104,18 +104,21 @@ describe('every „Filtry" group is a partition', () => {
 
   it('splits by plane: each group heading names its plane', () => {
     expect([...groups.keys()]).toEqual([
-      'Źródło stawki — z narzędziami (podwykonawca)',
-      'Źródło stawki — bez narzędzi (pracownik)',
-      'Udział w cenie — z narzędziami (podwykonawca)',
-      'Udział w cenie — bez narzędzi (pracownik)',
+      'Źródło stawki wykonawcy — z narzędziami (podwykonawca)',
+      'Źródło stawki wykonawcy — bez narzędzi (pracownik)',
+      'Udział wykonawcy w cenie — z narzędziami (podwykonawca)',
+      'Udział wykonawcy w cenie — bez narzędzi (pracownik)',
     ])
   })
 
-  it.each([...groups.entries()])('%s: every praca matches exactly one option', (_group, options) => {
-    for (const row of rows) {
-      expect(options.filter((option) => option.matches(row))).toHaveLength(1)
-    }
-  })
+  it.each([...groups.entries()])(
+    '%s: every praca matches exactly one option',
+    (_group, options) => {
+      for (const row of rows) {
+        expect(options.filter((option) => option.matches(row))).toHaveLength(1)
+      }
+    },
+  )
 })
 
 describe('applyCatalogueConditions', () => {
@@ -141,9 +144,9 @@ describe('applyCatalogueConditions', () => {
   })
 
   it('narrows across groups', () => {
-    expect(
-      apply(['catalogue-source-amount-w_tools', 'catalogue-within-ceiling-w_tools']),
-    ).toEqual([amount])
+    expect(apply(['catalogue-source-amount-w_tools', 'catalogue-within-ceiling-w_tools'])).toEqual([
+      amount,
+    ])
   })
 
   it('reaches what unticking „ponad" used to: w granicy + nie dotyczy', () => {

@@ -43,7 +43,7 @@ import {
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { findNearDuplicates } from '@/lib/kosztorys/work-catalogue/catalogue-near-duplicates'
-import { itemNoun } from '@/lib/kosztorys/counted-nouns'
+import { Description } from '@/components/ui/description'
 import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const INITIAL_SORTING = [{ id: 'description', desc: false }]
@@ -64,6 +64,7 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     engagedIds,
     toggle: toggleCondition,
     toggleExclusive,
+    setMany: setConditions,
     clear: clearConditions,
   } = useEngagedIds('work-catalogue-show')
 
@@ -182,10 +183,9 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
           /* Counted off `filteredData`, not off the deferred list the table renders: behind the
            spinner the count would still be naming the previous search for as long as ~950 rows
            take to redraw. */
-          <span className="text-muted-foreground block text-sm">
-            {filteredData.length} {itemNoun(filteredData.length)}
-            {filteredData.length !== data.length && ` z ${data.length}`}
-          </span>
+          <Description withIcon={false}>
+            Widoczne prace {filteredData.length} / {data.length}
+          </Description>
         }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
@@ -229,11 +229,12 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
                 <CatalogueFiltersMenu
                   toggles={filterToggles}
                   onToggle={toggleCondition}
-                  resetAction={{
-                    label: 'Zresetuj filtry',
-                    onReset: resetFilters,
-                    disabled: chips.length === 0,
-                  }}
+                  onClear={() =>
+                    setConditions(
+                      filterToggles.map((toggle) => toggle.id),
+                      false,
+                    )
+                  }
                 />
                 <CatalogueProblemsMenu
                   toggles={problemToggles}
