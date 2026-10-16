@@ -61,10 +61,3 @@ export const investmentSchema = investmentFormSchema.extend({
 // `z.input`, not `z.infer`: `assets` is supplied by the submit wrapper rather than by the form, so
 // a caller must be allowed to omit it.
 export type InvestmentFormDataT = z.input<typeof investmentSchema>
-
-export const investmentClientFieldsSchema = investmentSchema.pick({
-  contactPerson: true,
-  address: true,
-})
-
-export type InvestmentClientFieldsT = z.input<typeof investmentClientFieldsSchema>

@@ -26,9 +26,14 @@ type EditInvestmentDialogPropsT = {
     | 'status'
   >
   showLabel?: boolean
+  triggerText?: string
 }
 
-export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDialogPropsT) {
+export function EditInvestmentDialog({
+  investment,
+  showLabel,
+  triggerText,
+}: EditInvestmentDialogPropsT) {
   const formId = `edit-investment-${investment.id}`
   const openReviewPrompt = useReviewPromptStore((s) => s.openReviewPrompt)
 
@@ -37,7 +42,13 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
       formId={formId}
       showKeepOpen={false}
       className="sm:max-w-dialog-md"
-      trigger={<EditButton label="Edytuj inwestycję" showLabel={showLabel} />}
+      trigger={
+        <EditButton
+          label="Edytuj inwestycję"
+          text={triggerText}
+          showLabel={showLabel || triggerText !== undefined}
+        />
+      }
       title="Edytuj inwestycję"
       description={investment.name}
     >

@@ -1,6 +1,9 @@
-import type { InvestmentRefT } from '@/types/reference-data'
+import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
 
-export function investment(overrides: Partial<InvestmentRefT> = {}): InvestmentRefT {
+export function investment(
+  overrides: Partial<InvestmentWithDetailsT> = {},
+): InvestmentWithDetailsT {
   return {
     id: 42,
     name: 'Jan Testowy Kwiatowa 1/2',
@@ -16,6 +19,7 @@ export function investment(overrides: Partial<InvestmentRefT> = {}): InvestmentR
     materialsNetRate: null,
     settlementMode: 'NET',
     vatRate: 0.08,
+    ...NO_INVESTMENT_DETAILS,
     ...overrides,
   }
 }

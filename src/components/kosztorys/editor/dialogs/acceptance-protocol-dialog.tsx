@@ -1,7 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Fragment } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Description } from '@/components/ui/description'
@@ -14,16 +13,15 @@ import {
   SummaryTable,
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
-import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
+import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { buildProtocolHtml } from '@/lib/kosztorys/acceptance-protocol/build-protocol-html'
 import { ACCEPTANCE_KIND_LABELS } from '@/lib/kosztorys/acceptance-protocol/constants'
-import { protocolFormDefaults } from '@/lib/kosztorys/acceptance-protocol/form-defaults'
 import {
-  hasInvestmentChanges,
-  investmentUpdateFromProtocol,
-} from '@/lib/kosztorys/acceptance-protocol/investment-update'
+  protocolFormDefaults,
+  protocolPrefillKey,
+} from '@/lib/kosztorys/acceptance-protocol/form-defaults'
 import {
   protocolScopeRows,
   scopeQuantityText,
@@ -37,17 +35,17 @@ import type {
   AcceptanceProtocolFormT,
 } from '@/lib/kosztorys/acceptance-protocol/types'
 import type { MaterialsT } from '@/lib/kosztorys/summary-economics'
-import { updateInvestmentClientFieldsAction } from '@/lib/actions/investments'
+import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { warsawToday } from '@/lib/utils/days'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { toastMessage } from '@/lib/utils/toast'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { DepositTransactionRowT } from '@/types/transfers'
 
 export type AcceptanceProtocolSourceT = {
-  investment: InvestmentRefT
+  investment: InvestmentWithDetailsT
   materials: MaterialsT
   depositTransactions: DepositTransactionRowT[]
   lossAmount: number
@@ -65,7 +63,13 @@ export function AcceptanceProtocolDialog({ source }: { source: AcceptanceProtoco
           title="Protokół odbioru prac"
           description="Sprawdź dane i wygeneruj protokół do druku lub zapisu jako PDF. Puste pola zostają do wypełnienia długopisem."
         />
-        <AcceptanceProtocolBody source={source} onClose={() => setOpen(false)} />
+        {/* Remounted when the investment's prefill changes, so a save in „Edytuj dane inwestycji”
+            lands in the protocol fields. */}
+        <AcceptanceProtocolBody
+          key={protocolPrefillKey(source.investment)}
+          source={source}
+          onClose={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   )
@@ -93,31 +97,6 @@ function AcceptanceProtocolBody({
   const form = useAppForm({
     defaultValues: protocolFormDefaults({ investment, today: warsawToday() }),
   })
-  const clientName = useStore(form.store, (state) => state.values.clientName)
-  const siteAddress = useStore(form.store, (state) => state.values.siteAddress)
-  const [isSaving, setIsSaving] = useState(false)
-  const canUpdateInvestment =
-    !isSaving && hasInvestmentChanges(investment, { clientName, siteAddress })
-
-  async function handleUpdateInvestment() {
-    setIsSaving(true)
-    try {
-      const result = await updateInvestmentClientFieldsAction(
-        investment.id,
-        investmentUpdateFromProtocol(investment, { clientName, siteAddress }),
-      )
-      if (!result.success) {
-        toastMessage(result.error ?? 'Nie udało się zaktualizować inwestycji', 'error', 4000)
-        return
-      }
-      toastMessage('Zaktualizowano dane inwestycji', 'success')
-    } catch {
-      toastMessage('Nie udało się zaktualizować inwestycji', 'error', 4000)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   function handleGenerate() {
     const values: AcceptanceProtocolFormT = form.state.values
     const target = openPrintWindow(`Protokół odbioru prac — ${values.clientName}`)
@@ -175,16 +154,9 @@ function AcceptanceProtocolBody({
           {(field) => <field.Input label="Miejsce wykonania prac (adres)" />}
         </form.AppField>
         <div className="flex items-center gap-3 sm:col-span-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void handleUpdateInvestment()}
-            disabled={!canUpdateInvestment}
-          >
-            {isSaving ? 'Zapisywanie…' : 'Zaktualizuj dane inwestycji'}
-          </Button>
+          <EditInvestmentDialog investment={investment} triggerText="Edytuj dane inwestycji" />
           <Description size="xs" withIcon={false}>
-            Zapisuje Zamawiającego jako osobę kontaktową i adres w inwestycji.
+            Zamawiający i adres pochodzą z inwestycji — po zapisie protokół wypełni się ponownie.
           </Description>
         </div>
         <form.AppField name="contractorName">
