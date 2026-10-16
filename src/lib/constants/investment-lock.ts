@@ -18,6 +18,13 @@ export const LOCKED_INVESTMENT_STATUS = 'completed' satisfies InvestmentStatusT
 export const isLockedStatus = (status: string | null | undefined): boolean =>
   status === LOCKED_INVESTMENT_STATUS
 
+export const COMPLETE_INVESTMENT_CONFIRM = {
+  title: 'Zakończyć inwestycję?',
+  description:
+    'Zakończona inwestycja jest tylko do odczytu — nikt nie dopisze transakcji ani nie zmieni kosztorysu. Odblokować może ją wyłącznie właściciel lub administrator, ustawiając status z powrotem na „Aktywna".',
+  confirmLabel: 'Zakończ',
+}
+
 export type InvestmentLockT = 'completed' | 'trashed'
 
 export const investmentLockOf = (investment: {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field } from '@/components/ui/field'
 import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
 import { UploadButton } from '@/components/ui/upload-button'
 import {
@@ -15,10 +15,10 @@ export function InvestmentAssetsField({ investmentId }: { investmentId: number }
 
   return (
     <Field>
-      <FieldLabel>Zdjęcia i pliki</FieldLabel>
       <UploadButton
         label={INVESTMENT_ASSETS_UPLOAD_TITLE}
         isUploading={isUploading}
+        className="w-fit!"
         onClick={() => setUploadOpen(true)}
       />
 
