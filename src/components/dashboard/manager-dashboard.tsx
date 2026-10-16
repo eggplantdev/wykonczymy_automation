@@ -7,6 +7,7 @@ import type { RoleT } from '@/lib/auth/roles'
 import { ManagerDashboardPanels } from '@/components/dashboard/manager-dashboard-panels'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { SmsTestDialog } from '@/components/dashboard/sms-test-dialog'
 import { PAGE_TITLES, SECTION_IDS } from '@/lib/constants/sections'
 import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 import { toOptions } from '@/lib/utils/build-filter-config'
@@ -26,6 +27,8 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
 
   return (
     <PageWrapper title={PAGE_TITLES.transactions}>
+      <SmsTestDialog />
+
       <ManagerDashboardPanels
         referenceData={{
           ...referenceDataBase,
