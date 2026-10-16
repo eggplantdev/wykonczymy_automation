@@ -769,6 +769,13 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Kasy, Sprzęt, „Dodaj z katalogu” w kosztorysie → filtry z listą: nic zaznaczone = wszystko,
       zaznaczone = tylko one.
 
+## 2026-10-16 — transfer-view-switch-mobile — przełącznik tabela/karty na telefonie
+
+- [ ] Telefon (390px) → Transakcje: przełącznik tabela/karty stoi sam w pierwszym rzędzie, pod nim
+      „Szukaj duplikatów” i „Kolumny” obok siebie; nic nie wystaje poza ekran.
+- [ ] Desktop → Transakcje: przełącznik, „Szukaj duplikatów” i „Kolumny” w jednym rzędzie po prawej,
+      jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

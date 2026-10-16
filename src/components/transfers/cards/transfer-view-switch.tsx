@@ -13,13 +13,14 @@ const VIEW_OPTIONS = [
 type PropsT = {
   view: TransferViewT
   onChange: (view: TransferViewT) => void
+  className?: string
 }
 
-export function TransferViewSwitch({ view: activeView, onChange }: PropsT) {
+export function TransferViewSwitch({ view: activeView, onChange, className }: PropsT) {
   const { t } = useTranslation('transfers')
 
   return (
-    <div className="bg-muted flex h-8 w-fit items-center rounded-md p-0.5">
+    <div className={cn('bg-muted flex h-8 w-fit items-center rounded-md p-0.5', className)}>
       {VIEW_OPTIONS.map(({ view, labelKey, icon: Icon }) => {
         const isActive = view === activeView
         const label = t(labelKey)
