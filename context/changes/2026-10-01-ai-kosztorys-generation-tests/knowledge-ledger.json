@@ -126,5 +126,21 @@
     "decision": "skipped",
     "note": "owner: not an AI error, moved to elektryka this time",
     "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63856,
+    "reason": "no raczej trzeba policzyć tynkowanie wszystkich bruzd, bo te które są pod płytkami też trzeba wypłenić. nie można zostawić pustej przestrzeni pod płytkami, bo to niezgodnie ze sztuką.",
+    "decision": "lifted",
+    "note": "katalog 774 append: bruzdy pod płytkami też tynkujemy",
+    "date": "2026-10-16"
+  },
+  {
+    "investment": 212,
+    "item": 63863,
+    "reason": "przy stawianiu nowych ścianek trzeba w narożnik zewnętrzny wkleić narożnik. w narożniki wewnętrzne nie kleimy.",
+    "decision": "skipped",
+    "note": "owner dropped it: no rule for counting the mb",
+    "date": "2026-10-16"
   }
 ]
