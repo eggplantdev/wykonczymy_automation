@@ -28,6 +28,7 @@ import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
 import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { ContractDialog } from '@/components/investments/contract-dialog'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
 import { SheetButton } from '@/components/dialogs/sheet-button'
@@ -70,6 +71,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
       <div className="flex flex-wrap items-center gap-2">
         {!trashed && <EditInvestmentDialog investment={investment} showLabel />}
+        {!trashed && <ContractDialog investment={investment} />}
         {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
           <RequestReviewButton investment={investment} showLabel />
         )}
