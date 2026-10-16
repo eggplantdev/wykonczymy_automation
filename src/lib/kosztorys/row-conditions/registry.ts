@@ -1,6 +1,6 @@
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { priceSourceOf, resolvedCurrentPlannedQty, subcontractorPrice } from '@/lib/kosztorys/calc'
-import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/format'
+import { planeViewSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { aiOffered, effectiveReviewStatus } from '@/lib/kosztorys/review-status'
@@ -92,7 +92,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez przedmiaru',
     sectionLabel: 'Sekcje bez przedmiaru',
     kind: 'filter',
-    filterGroup: 'quantities',
+    filterGroup: 'planned',
     matches: (row) => !(resolvedCurrentPlannedQty(row) > 0),
   },
   {
@@ -100,7 +100,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z przedmiarem',
     sectionLabel: 'Sekcje z przedmiarem',
     kind: 'filter',
-    filterGroup: 'quantities',
+    filterGroup: 'planned',
     matches: (row) => resolvedCurrentPlannedQty(row) > 0,
   },
   {
@@ -108,7 +108,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez wykonanej pracy',
     sectionLabel: 'Sekcje bez wykonanej pracy',
     kind: 'filter',
-    filterGroup: 'quantities',
+    filterGroup: 'measured',
     matches: (row, ctx) => !(qtyDone(row, ctx) > 0),
   },
   {
@@ -116,7 +116,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą',
     sectionLabel: 'Sekcje z wykonaną pracą',
     kind: 'filter',
-    filterGroup: 'quantities',
+    filterGroup: 'measured',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
   },
   {
@@ -124,7 +124,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez przedmiaru i bez wykonanej pracy',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'quantities',
+    filterGroup: 'filled',
     matches: isEmptyOnBothAxes,
   },
   {
@@ -132,16 +132,16 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z przedmiarem lub wykonaną pracą',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'quantities',
+    filterGroup: 'filled',
     matches: (row, ctx) => !isEmptyOnBothAxes(row, ctx),
   },
   {
     id: 'manual-rate-w-tools',
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
-    menuLabel: 'Kwota stała' + planeDashSuffix('w_tools'),
+    menuLabel: 'Kwota stała',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-source',
+    filterGroup: 'rate-source-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => priceSourceOf(row, 'w_tools') === 'amount',
@@ -149,10 +149,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'coeff-rate-w-tools',
     label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('w_tools'),
-    menuLabel: 'Własny mnożnik' + planeDashSuffix('w_tools'),
+    menuLabel: 'Własny mnożnik',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-source',
+    filterGroup: 'rate-source-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => priceSourceOf(row, 'w_tools') === 'coeff',
@@ -160,10 +160,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'formula-rate-w-tools',
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
-    menuLabel: 'Auto' + planeDashSuffix('w_tools'),
+    menuLabel: 'Auto',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-source',
+    filterGroup: 'rate-source-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
@@ -171,10 +171,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'manual-rate-own-tools',
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
-    menuLabel: 'Kwota stała' + planeDashSuffix('own_tools'),
+    menuLabel: 'Kwota stała',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-source',
+    filterGroup: 'rate-source-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => priceSourceOf(row, 'own_tools') === 'amount',
@@ -182,10 +182,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'coeff-rate-own-tools',
     label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('own_tools'),
-    menuLabel: 'Własny mnożnik' + planeDashSuffix('own_tools'),
+    menuLabel: 'Własny mnożnik',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-source',
+    filterGroup: 'rate-source-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => priceSourceOf(row, 'own_tools') === 'coeff',
@@ -193,10 +193,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'formula-rate-own-tools',
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
-    menuLabel: 'Auto' + planeDashSuffix('own_tools'),
+    menuLabel: 'Auto',
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-source',
+    filterGroup: 'rate-source-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
@@ -206,10 +206,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `z własną stawką ponad ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
-    menuLabel: `Ponad ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
+    menuLabel: `Ponad ${clientShareCeilingLabel('w_tools')} ceny`,
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-ceiling',
+    filterGroup: 'rate-ceiling-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => isOwnRateOverCeiling(row, 'w_tools'),
@@ -219,10 +219,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `bez własnej stawki ponad ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
-    menuLabel: `Poniżej ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
+    menuLabel: `Poniżej ${clientShareCeilingLabel('w_tools')} ceny`,
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-ceiling',
+    filterGroup: 'rate-ceiling-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => !isOwnRateOverCeiling(row, 'w_tools'),
@@ -232,10 +232,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `z własną stawką ponad ${clientShareCeilingLabel('own_tools')} ceny` +
       planeViewSuffix('own_tools'),
-    menuLabel: `Ponad ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
+    menuLabel: `Ponad ${clientShareCeilingLabel('own_tools')} ceny`,
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-ceiling',
+    filterGroup: 'rate-ceiling-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => isOwnRateOverCeiling(row, 'own_tools'),
@@ -245,11 +245,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `bez własnej stawki ponad ${clientShareCeilingLabel('own_tools')} ceny` +
       planeViewSuffix('own_tools'),
-    menuLabel:
-      `Poniżej ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
+    menuLabel: `Poniżej ${clientShareCeilingLabel('own_tools')} ceny`,
     sectionLabel: null,
     kind: 'filter',
-    filterGroup: 'rate-ceiling',
+    filterGroup: 'rate-ceiling-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => !isOwnRateOverCeiling(row, 'own_tools'),

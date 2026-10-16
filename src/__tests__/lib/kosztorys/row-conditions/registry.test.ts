@@ -14,6 +14,7 @@ import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { FILTER_GROUPS } from '@/lib/kosztorys/filter-groups'
 
 // Throws on an id nobody knows, unlike `countMatching`, which answers 0 — every `toBe(false)` below
 // would pass vacuously the day a condition is renamed.
@@ -330,6 +331,43 @@ describe('the rate-source trio', () => {
     expect(matches('manual-rate-w-tools', coeff)).toBe(false)
     expect(matches('formula-rate-w-tools', coeff)).toBe(false)
   })
+})
+
+// A tick narrows to what it names, so „untick X" from before the flip is reachable only by ticking
+// the rest of X's group — which holds only while the group's options never overlap and leave no
+// pozycja out.
+describe('every „Filtry" group is a partition', () => {
+  const ctx: RowConditionCtxT = { ...CTX, aiColumnsShown: true }
+  const rows = [
+    row({ id: 1 }),
+    row({ id: 2, plannedQty: 0 }),
+    row({ id: 3, plannedQty: 0, currentPlannedQty: 12, [stageKey(1)]: 4 }),
+    row({ id: 4, plannedQty: 30, currentPlannedQty: 0 }),
+    row({ id: 5, plannedQty: 0, aiPlannedQty: 7 }),
+    row({ id: 6, [stageKey(1)]: 40, note: 'sprawdzić' }),
+    row({ id: 7, note: '   ', discountType: 'percent', discountValue: 10 }),
+    row({ id: 8, wToolsOverrideValue: 99, ownToolsOverrideValue: 10 }),
+    row({ id: 9, wToolsOverrideValue: 10, ownToolsOverrideValue: 99 }),
+    row({ id: 10, wToolsOverrideCoeff: 0.4, ownToolsOverrideCoeff: 0.99 }),
+    row({ id: 11, wToolsOverrideCoeff: 0.99, ownToolsOverrideCoeff: 0.3, clientPrice: 0 }),
+    row({ id: 12, discountType: 'amount', discountValue: 0 }),
+  ]
+
+  for (const group of FILTER_GROUPS) {
+    it(`„${group.label}" — every pozycja matches exactly one option, and every option is exercised`, () => {
+      const options = ROW_CONDITIONS.filter(
+        (c) => c.kind === 'filter' && c.filterGroup === group.id,
+      )
+      expect(options.length).toBeGreaterThanOrEqual(2)
+      for (const subject of rows) {
+        const hits = options.filter((option) => option.matches(subject, ctx)).map((o) => o.id)
+        expect({ row: subject.id, hits: hits.length }).toEqual({ row: subject.id, hits: 1 })
+      }
+      for (const option of options) {
+        expect(rows.some((subject) => option.matches(subject, ctx))).toBe(true)
+      }
+    })
+  }
 })
 
 describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew guard', () => {

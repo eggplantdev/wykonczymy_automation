@@ -28,8 +28,8 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
   ]
   const ids = (subject: KosztorysV2RowT[]) => subject.map((r) => r.id)
 
-  it('hides what a filter matches — „Schowaj pozycje bez przedmiaru"', () => {
-    expect(ids(applyRowConditions(rows, ['no-planned-qty'], CTX))).toEqual([3, 4])
+  it('narrows to what a ticked filter matches — „Pokaż tylko pozycje z przedmiarem"', () => {
+    expect(ids(applyRowConditions(rows, ['has-planned-qty'], CTX))).toEqual([3, 4])
   })
 
   it('keeps only what a diagnostic matches — „Pokaż tylko pozycje bez ceny j.m."', () => {
@@ -40,12 +40,12 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
     expect(ids(applyRowConditions(rows, ['no-client-price'], CTX, new Set([4])))).toEqual([1, 3, 4])
   })
 
-  it('keeps a latched row a filter would hide', () => {
-    expect(ids(applyRowConditions(rows, ['no-planned-qty'], CTX, new Set([1])))).toEqual([1, 3, 4])
+  it('keeps a latched row a filter would leave out', () => {
+    expect(ids(applyRowConditions(rows, ['has-planned-qty'], CTX, new Set([1])))).toEqual([1, 3, 4])
   })
 
-  it('applies the hiders first, then keeps only what a diagnostic still matches', () => {
-    expect(ids(applyRowConditions(rows, ['no-planned-qty', 'no-client-price'], CTX))).toEqual([3])
+  it('narrows by the filters, then keeps only what a diagnostic still matches', () => {
+    expect(ids(applyRowConditions(rows, ['has-planned-qty', 'no-client-price'], CTX))).toEqual([3])
   })
 
   it('unions two diagnostics rather than intersecting them', () => {
@@ -87,6 +87,67 @@ describe('applyRowConditions — each kind pulls the direction its wording promi
     expect(ids(applyRowConditions(rows, ['no-such-condition', 'no-client-price'], CTX))).toEqual([
       1, 3,
     ])
+  })
+})
+
+describe('applyRowConditions — ticks in one group widen, ticks in different groups narrow', () => {
+  const rows = [
+    row({ id: 1, plannedQty: 0, note: 'x' }),
+    row({ id: 2, plannedQty: 0 }),
+    row({ id: 3, plannedQty: 10, note: 'x' }),
+    row({ id: 4, plannedQty: 10, wToolsOverrideValue: 20 }),
+  ]
+  const ids = (engaged: string[]) => applyRowConditions(rows, engaged, CTX).map((r) => r.id)
+
+  it('shows every pozycja once both halves of a pair are ticked', () => {
+    expect(ids(['has-planned-qty', 'no-planned-qty'])).toEqual([1, 2, 3, 4])
+  })
+
+  it('shows only what matches a tick in every group', () => {
+    expect(ids(['has-planned-qty', 'has-note'])).toEqual([3])
+  })
+
+  it('widens within a plane’s „Źródło stawki" and narrows against the other plane', () => {
+    expect(ids(['manual-rate-w-tools', 'formula-rate-w-tools'])).toEqual([1, 2, 3, 4])
+    expect(ids(['manual-rate-w-tools', 'formula-rate-own-tools'])).toEqual([4])
+  })
+})
+
+// Before the flip an engaged filter HID what it matched; every hide-set must stay reachable by
+// ticking the rest of each group.
+describe('applyRowConditions — every result of the untick-to-hide menu is still reachable', () => {
+  const oldHide = (subject: KosztorysV2RowT[], hidden: string[]) =>
+    subject.filter((r) => !hidden.some((id) => countMatching([r], id, CTX) > 0)).map((r) => r.id)
+  const rows = [
+    row({ id: 1, plannedQty: 0 }),
+    row({ id: 2, plannedQty: 0, [stageKey(1)]: 5 }),
+    row({ id: 3, plannedQty: 10 }),
+    row({ id: 4, plannedQty: 10, [stageKey(1)]: 5 }),
+    row({ id: 5, plannedQty: 0, currentPlannedQty: 8 }),
+    row({ id: 6, wToolsOverrideValue: 20, ownToolsOverrideCoeff: 0.3 }),
+    row({ id: 7, wToolsOverrideCoeff: 0.4 }),
+  ]
+  const ticked = (engaged: string[]) => applyRowConditions(rows, engaged, CTX).map((r) => r.id)
+
+  it('„bez przedmiaru" + „bez wykonanej pracy" hidden == „z przedmiarem" + „z wykonaną pracą" ticked', () => {
+    expect(ticked(['has-planned-qty', 'has-measured-qty'])).toEqual(
+      oldHide(rows, ['no-planned-qty', 'no-measured-qty']),
+    )
+  })
+
+  it('„Auto" hidden on both planes == the other two sources ticked per plane', () => {
+    expect(
+      ticked([
+        'manual-rate-w-tools',
+        'coeff-rate-w-tools',
+        'manual-rate-own-tools',
+        'coeff-rate-own-tools',
+      ]),
+    ).toEqual(oldHide(rows, ['formula-rate-w-tools', 'formula-rate-own-tools']))
+  })
+
+  it('„bez przedmiaru i bez wykonanej pracy" hidden == its other half ticked', () => {
+    expect(ticked(['non-empty-both-axes'])).toEqual(oldHide(rows, ['empty-both-axes']))
   })
 })
 
@@ -244,7 +305,7 @@ describe('isFoldSuppressed', () => {
   })
 
   it('stands them down under an engaged filter too', () => {
-    expect(isFoldSuppressed('', new Set(['no-planned-qty']))).toBe(true)
+    expect(isFoldSuppressed('', new Set(['has-planned-qty']))).toBe(true)
   })
 
   it('leaves the folds standing under the client‘s own hider, which is a stored setting', () => {
@@ -255,23 +316,34 @@ describe('isFoldSuppressed', () => {
     expect(isFoldSuppressed('', new Set(['no-client-price']))).toBe(false)
   })
 
-  it('leaves them standing under the hider „Przegląd AI" engages on every switch-on', () => {
-    expect(isFoldSuppressed('', new Set(['no-planned-or-ai-qty']))).toBe(false)
-    expect(isFoldSuppressed('', new Set(['has-planned-or-ai-qty']))).toBe(true)
+  it('leaves them standing under the tick „Przegląd AI" engages on every switch-on', () => {
+    expect(isFoldSuppressed('', new Set(['has-planned-or-ai-qty']))).toBe(false)
+    expect(isFoldSuppressed('', new Set(['no-planned-or-ai-qty']))).toBe(true)
   })
 })
 
 describe('editorConditionIds', () => {
-  const stored = new Set(['no-planned-or-ai-qty', 'has-note'])
+  const stored = new Set(['has-planned-or-ai-qty', 'has-note'])
 
   it('counts the „Przegląd AI" filters only while the view is on', () => {
-    expect(editorConditionIds(stored, true)).toBe(stored)
-    expect([...editorConditionIds(stored, false)]).toEqual(['has-note'])
+    expect(editorConditionIds(stored, true, false)).toBe(stored)
+    expect([...editorConditionIds(stored, false, false)]).toEqual(['has-note'])
   })
 
-  it('hands the same set back when none is stored', () => {
-    const plain = new Set(['has-note'])
-    expect(editorConditionIds(plain, false)).toBe(plain)
+  it('hands the same set back when nothing is dropped', () => {
+    const plain = new Set(['has-note', 'has-discount'])
+    expect(editorConditionIds(plain, false, false)).toBe(plain)
+  })
+
+  // Under a global rabat the pair matches nothing, so a kept tick would empty the grid.
+  it('drops a rabat tick while a global rabat is on', () => {
+    const withRabat = new Set(['has-discount', 'has-note'])
+    expect([...editorConditionIds(withRabat, false, true)]).toEqual(['has-note'])
+    const commented = [row({ id: 1, globalDiscountActive: true, note: 'x' })]
+    expect(applyRowConditions(commented, withRabat, CTX)).toHaveLength(0)
+    expect(
+      applyRowConditions(commented, editorConditionIds(withRabat, false, true), CTX),
+    ).toHaveLength(1)
   })
 })
 

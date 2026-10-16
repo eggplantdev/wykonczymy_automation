@@ -2,7 +2,7 @@ import { crewAxisShows, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import {
   CLIENT_EMPTY_CONDITION_ID,
-  NO_PLANNED_OR_AI_QTY_CONDITION_ID,
+  HAS_PLANNED_OR_AI_QTY_CONDITION_ID,
   REPORT_UNREPORTED_CONDITION_ID,
   ROW_CONDITIONS,
 } from '@/lib/kosztorys/row-conditions/registry'
@@ -16,10 +16,6 @@ import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 const BY_ID = new Map(ROW_CONDITIONS.map((condition) => [condition.id, condition]))
 
-// Keepers are named explicitly and everything else hides: a fourth kind added later must not fall
-// through into „keep only what it matches", which would blank the grid rather than hide a row.
-const isHider = (condition: RowConditionT) => condition.kind !== 'diagnostic'
-
 export function applyRowConditions(
   rows: KosztorysV2RowT[],
   engagedIds: Iterable<string>,
@@ -28,13 +24,18 @@ export function applyRowConditions(
 ): KosztorysV2RowT[] {
   const active = [...engagedIds].map((id) => BY_ID.get(id)).filter((c) => c !== undefined)
   if (active.length === 0) return rows
-  const keepers = active.filter((condition) => !isHider(condition))
-  const hiders = active.filter(isHider)
+  const facets = Map.groupBy(
+    active.filter((condition) => condition.kind === 'filter'),
+    (condition) => condition.filterGroup,
+  )
+  const keepers = active.filter((condition) => condition.kind === 'diagnostic')
+  const hiders = active.filter((condition) => condition.kind === 'client')
 
   return rows.filter(
     (row) =>
       latchedRowIds?.has(row.id) ||
-      (!hiders.some((condition) => condition.matches(row, ctx)) &&
+      ([...facets.values()].every((facet) => facet.some((c) => c.matches(row, ctx))) &&
+        !hiders.some((condition) => condition.matches(row, ctx)) &&
         (keepers.length === 0 || keepers.some((condition) => condition.matches(row, ctx)))),
   )
 }
@@ -70,14 +71,10 @@ export function engagedPlane(engagedIds: Iterable<string>): ToolPlaneT | undefin
   return undefined
 }
 
-export function engagedHiders(engagedIds: ReadonlySet<string>): RowConditionT[] {
-  return ROW_CONDITIONS.filter((condition) => isHider(condition) && engagedIds.has(condition.id))
-}
-
 export function isFoldSuppressed(search: string, engagedIds: ReadonlySet<string>): boolean {
   if (search.trim() !== '') return true
   for (const id of engagedIds) {
-    if (id !== NO_PLANNED_OR_AI_QTY_CONDITION_ID && BY_ID.get(id)?.kind === 'filter') return true
+    if (id !== HAS_PLANNED_OR_AI_QTY_CONDITION_ID && BY_ID.get(id)?.kind === 'filter') return true
   }
   return false
 }
@@ -130,8 +127,8 @@ export function sectionIdsWhereAllMatch(
 }
 
 /**
- * An ENGAGED condition is listed regardless of the gate: it is hiding pozycje right now, and the menu
- * is where a tick comes back.
+ * An ENGAGED condition is listed regardless of the gate: it is narrowing the pozycje right now, and the
+ * menu is where its tick comes off.
  */
 export function offeredFilterConditions({
   engagedIds,
@@ -154,20 +151,33 @@ export function offeredFilterConditions({
   )
 }
 
-const AI_REVIEW_FILTER_IDS = ROW_CONDITIONS.filter(
-  (condition) => condition.kind === 'filter' && condition.filterGroup === 'ai-review',
-).map((condition) => condition.id)
+const AI_REVIEW_FILTER_IDS: ReadonlySet<string> = new Set(
+  ROW_CONDITIONS.filter(
+    (condition) => condition.kind === 'filter' && condition.filterGroup === 'ai-review',
+  ).map((condition) => condition.id),
+)
+
+const INERT_UNDER_GLOBAL_DISCOUNT_IDS: ReadonlySet<string> = new Set(
+  ROW_CONDITIONS.filter(
+    (condition) => condition.kind === 'filter' && condition.inertUnderGlobalDiscount,
+  ).map((condition) => condition.id),
+)
 
 /**
  * The „Przegląd AI" filters count only while the view is on, so a pick remembered from the last pass
- * shows no chip and no (0) entry on a visit that never switched it on.
+ * shows no chip and no (0) entry on a visit that never switched it on. The rabat pair counts only
+ * without a global rabat, where it matches nothing and would empty the grid.
  */
 export function editorConditionIds(
   persistedIds: ReadonlySet<string>,
   aiReview: boolean,
+  globalDiscountActive: boolean,
 ): ReadonlySet<string> {
-  if (aiReview || !AI_REVIEW_FILTER_IDS.some((id) => persistedIds.has(id))) return persistedIds
-  return new Set([...persistedIds].filter((id) => !AI_REVIEW_FILTER_IDS.includes(id)))
+  const drops = (id: string) =>
+    (!aiReview && AI_REVIEW_FILTER_IDS.has(id)) ||
+    (globalDiscountActive && INERT_UNDER_GLOBAL_DISCOUNT_IDS.has(id))
+  if (![...persistedIds].some(drops)) return persistedIds
+  return new Set([...persistedIds].filter((id) => !drops(id)))
 }
 
 // Module-level instances, so the sets below are referentially stable and the editor's memos don't
