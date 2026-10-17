@@ -490,6 +490,12 @@ not see it — verify reads the database directly.
 **Redeploy the production app** once `--verify` comes back clean; a new deployment starts with an
 empty Data Cache. Then open a converted invoice in the live app before calling the run done.
 
+**Status (2026-10-15):** the production run (2026-09-15) marked all 18 rows `converted`; its
+snapshot dirs were deleted on 2026-10-15. The 18 original HEICs survive under their original names in the FTP blob mirror
+(`/blob_backups/`, which never prunes). The manifests are gone; `oldFilename` / `oldFilesize` are
+that file's name and byte size, and the old `mime_type` is `image/heic`. The procedure below is for a
+re-run.
+
 **Rollback.** The snapshot dirs, and nothing else — **both of them**, because the canary in step 2
 wrote to its own dir and those two rows are converted just as irreversibly as the rest:
 

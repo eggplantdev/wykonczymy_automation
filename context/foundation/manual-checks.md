@@ -636,7 +636,7 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 ## EX-1075 — szablon-own-structure — szablon jako odwołania do katalogu prac
 
-- [ ] Szablony → otwórz szablon → menu „…” przy dowolnej pracy: nie ma „Aktualizuj pozycję w katalogu
+- [x] Szablony → otwórz szablon → menu „…” przy dowolnej pracy: nie ma „Aktualizuj pozycję w katalogu
       prac” ani „Zapisz pozycję do katalogu prac”; „Wstaw powyżej/poniżej”, „Ustaw kolejność…” i „Usuń
       pozycję” są jak dotąd.
 - [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
@@ -759,6 +759,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       „Z przedmiarem”): widać pozycje jednej LUB drugiej.
 - [ ] Kosztorys → zaznacz opcje z dwóch różnych grup (np. „Z przedmiarem” i „Z wykonaną
       pracą”): widać tylko pozycje spełniające obie naraz.
+- [ ] Kosztorys → „Filtry” → „Puste pozycje” → zaznacz „Z przedmiarem lub wykonaną pracą”: widać
+      każdą pozycję z przedmiarem ofertowym, aktualizacją przedmiaru albo wykonaną pracą — także te z
+      wykonaną pracą bez przedmiaru; znikają tylko pozycje puste na wszystkich trzech.
 - [ ] Kosztorys, Katalog prac, Pracownicy → „Filtry”: między grupami opcji jest linia oddzielająca, jak
       między sekcjami w „Kolumny”.
 - [ ] Kosztorys → „Kolumny”: sekcja „Etapy” stoi pod „Warstwy”, nad listą kolumn. Etapy działają jak

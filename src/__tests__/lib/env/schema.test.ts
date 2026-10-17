@@ -39,6 +39,7 @@ const baseEnv = {
   KOSZTORYS_TEMPLATE_SHEET_ID: 'sheet-id',
   OPENROUTER_API_KEY: 'x',
   CRON_SECRET: 'x',
+  VERCEL_DEPLOYMENT_ID: 'dpl_test',
 }
 
 const WRITER_JSON = JSON.stringify({
@@ -195,6 +196,29 @@ describe('serverSchema — Editor service-account credential', () => {
     const result = serverSchema.safeParse({ ...baseEnv, VERCEL_ENV: 'preview' })
 
     expect(result.success).toBe(true)
+  })
+})
+
+describe('serverSchema — deployment id', () => {
+  const { VERCEL_DEPLOYMENT_ID: _absent, ...withoutDeploymentId } = baseEnv
+
+  it.each([
+    ['production', { ...productionEnv, BLOB_READ_WRITE_TOKEN: PROD_TOKEN }],
+    ['preview', { ...baseEnv, VERCEL_ENV: 'preview' }],
+  ])('refuses a %s boot without VERCEL_DEPLOYMENT_ID', (_vercelEnv, env) => {
+    const { VERCEL_DEPLOYMENT_ID: _missing, ...withoutId } = env
+    const result = serverSchema.safeParse(withoutId)
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues.map((issue) => issue.path.join('.'))).toEqual([
+      'VERCEL_DEPLOYMENT_ID',
+    ])
+  })
+
+  it.each(['development', undefined])('does not demand it when VERCEL_ENV is %s', (vercelEnv) => {
+    expect(serverSchema.safeParse({ ...withoutDeploymentId, VERCEL_ENV: vercelEnv }).success).toBe(
+      true,
+    )
   })
 })
 

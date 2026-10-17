@@ -7,6 +7,7 @@ export const FILTER_GROUPS = [
   { id: 'planned', label: 'Przedmiar' },
   { id: 'planned-update', label: 'Aktualizacja przedmiaru' },
   { id: 'measured', label: 'Wykonana praca' },
+  { id: 'filled', label: 'Puste pozycje' },
   { id: 'rate-source-w-tools', label: 'Źródło stawki wykonawcy' + planeDashSuffix('w_tools') },
   { id: 'rate-source-own-tools', label: 'Źródło stawki wykonawcy' + planeDashSuffix('own_tools') },
   { id: 'rate-ceiling-w-tools', label: 'Udział wykonawcy w cenie' + planeDashSuffix('w_tools') },

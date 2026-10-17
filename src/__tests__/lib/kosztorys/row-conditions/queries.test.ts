@@ -145,6 +145,15 @@ describe('applyRowConditions — every result of the untick-to-hide menu is stil
       ]),
     ).toEqual(oldHide(rows, ['formula-rate-w-tools', 'formula-rate-own-tools']))
   })
+
+  it('„bez przedmiaru i bez wykonanej pracy" hidden == its other half ticked', () => {
+    expect(ticked(['non-empty-both-axes'])).toEqual(oldHide(rows, ['empty-both-axes']))
+  })
+
+  it('„z przedmiarem lub wykonaną pracą" is the union the two separate groups cannot reach', () => {
+    expect(ticked(['non-empty-both-axes'])).toEqual([2, 3, 4, 5])
+    expect(ticked(['has-planned-qty', 'has-measured-qty'])).toEqual([4])
+  })
 })
 
 describe('countMatching — over the full dataset, so it can reach zero', () => {
