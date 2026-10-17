@@ -759,6 +759,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       „Z przedmiarem”): widać pozycje jednej LUB drugiej.
 - [ ] Kosztorys → zaznacz opcje z dwóch różnych grup (np. „Z przedmiarem” i „Z wykonaną
       pracą”): widać tylko pozycje spełniające obie naraz.
+- [ ] Kosztorys → „Filtry” → „Puste pozycje” → zaznacz „Z przedmiarem lub wykonaną pracą”: widać
+      każdą pozycję z przedmiarem ofertowym, aktualizacją przedmiaru albo wykonaną pracą — także te z
+      wykonaną pracą bez przedmiaru; znikają tylko pozycje puste na wszystkich trzech.
 - [ ] Kosztorys, Katalog prac, Pracownicy → „Filtry”: między grupami opcji jest linia oddzielająca, jak
       między sekcjami w „Kolumny”.
 - [ ] Kosztorys → „Kolumny”: sekcja „Etapy” stoi pod „Warstwy”, nad listą kolumn. Etapy działają jak

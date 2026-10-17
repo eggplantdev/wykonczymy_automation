@@ -204,6 +204,23 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'measured',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
   },
+  // Its own group: ticks in „Przedmiar" and „Wykonana praca" AND together, so only this pair reaches their union.
+  {
+    id: 'empty-both-axes',
+    label: 'bez przedmiaru i bez wykonanej pracy',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'filled',
+    matches: isEmptyOnBothAxes,
+  },
+  {
+    id: 'non-empty-both-axes',
+    label: 'z przedmiarem lub wykonaną pracą',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'filled',
+    matches: (row, ctx) => !isEmptyOnBothAxes(row, ctx),
+  },
   ...TOOL_PLANES.flatMap(rateSourceConditions),
   ...TOOL_PLANES.flatMap(rateCeilingConditions),
   {

@@ -159,6 +159,19 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
   })
 
+  it('the „Filtry" pair reads both axes together, and its complement is its negation', () => {
+    const cases = [
+      row({ plannedQty: 0 }),
+      row({ plannedQty: 5 }),
+      row({ plannedQty: 0, [stageKey(2)]: 3 }),
+    ]
+    expect(cases.map((r) => matches('empty-both-axes', r))).toEqual([true, false, false])
+    expect(cases.map((r) => matches('non-empty-both-axes', r))).toEqual([false, true, true])
+    expect(cases.map((r) => matches('empty-both-axes', r))).toEqual(
+      cases.map((r) => matches('client-empty', r)),
+    )
+  })
+
   it('„z ujemną stawką wykonawcy" reads the stawka as paid, per plane', () => {
     expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: -1 }))).toBe(true)
     expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 0 }))).toBe(false)

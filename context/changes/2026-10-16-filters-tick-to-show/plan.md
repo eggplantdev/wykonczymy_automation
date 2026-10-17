@@ -56,16 +56,16 @@ exclusive and together cover every row. Then „untick S" today equals „tick t
 tomorrow, and AND between groups is unchanged. The only thing that goes is the useless „everything
 unticked → empty" state.
 
-| Group today | Partition? | Fix |
-| --- | --- | --- |
-| Kosztorys „Przegląd AI" pair | yes (while the view is on) | none |
-| Kosztorys „Przedmiar i wykonana praca" (6 options) | three overlapping pairs | split into 3 groups, one pair each |
-| Kosztorys „Źródło stawki wykonawcy" (3 options × 2 planes) | yes per plane; the planes overlap | split per plane |
-| Kosztorys „Udział wykonawcy w cenie" (2 × 2 planes) | yes per plane | split per plane |
-| Kosztorys Komentarz, Rabat pairs | yes | none (Rabat needs inert handling, see Phase 1) |
-| Catalogue „Źródło stawki" (3 × 2 planes) | yes per plane | split per plane |
-| Catalogue „Udział w cenie" (over / within per plane) | **not exhaustive** — auto and unpriced rows are in neither | add a residual option per plane, plus split per plane |
-| Option lists | each option is a value, so trivially a partition | none |
+| Group today                                                | Partition?                                                 | Fix                                                   |
+| ---------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- |
+| Kosztorys „Przegląd AI" pair                               | yes (while the view is on)                                 | none                                                  |
+| Kosztorys „Przedmiar i wykonana praca" (6 options)         | three overlapping pairs                                    | split into 3 groups, one pair each                    |
+| Kosztorys „Źródło stawki wykonawcy" (3 options × 2 planes) | yes per plane; the planes overlap                          | split per plane                                       |
+| Kosztorys „Udział wykonawcy w cenie" (2 × 2 planes)        | yes per plane                                              | split per plane                                       |
+| Kosztorys Komentarz, Rabat pairs                           | yes                                                        | none (Rabat needs inert handling, see Phase 1)        |
+| Catalogue „Źródło stawki" (3 × 2 planes)                   | yes per plane                                              | split per plane                                       |
+| Catalogue „Udział w cenie" (over / within per plane)       | **not exhaustive** — auto and unpriced rows are in neither | add a residual option per plane, plus split per plane |
+| Option lists                                               | each option is a value, so trivially a partition           | none                                                  |
 
 Without the catalogue residual option, today's „untick ponad 65%" (which leaves w granicy + auto +
 unpriced) would become unreachable.
@@ -212,8 +212,8 @@ registry into partitions. TDD: the equivalence and partition specs come first.
 - Facet, partition and equivalence specs pass:
   `pnpm exec vitest run src/__tests__/lib/kosztorys/row-conditions/`
 - Existing consumers of the engine still pass: `pnpm exec vitest run
-  src/__tests__/lib/kosztorys/client-document-subtotals.test.ts
-  src/__tests__/lib/kosztorys/measure-discrepancy.test.ts`
+src/__tests__/lib/kosztorys/client-document-subtotals.test.ts
+src/__tests__/lib/kosztorys/measure-discrepancy.test.ts`
 
 #### Manual Verification
 
@@ -567,7 +567,9 @@ Landed after the four phases, on owner feedback (a432e5a70, 909fb0879, caef2d3f7
 
 - „Przedmiar i wykonana praca" is two facet groups, not one — the Przedmiar group and the executed-work
   group combine with AND like any other pair of groups.
-- „Komentarz" and „Puste" are gone from „Filtry"; nothing reached them that another filter doesn't.
+- „Komentarz" is gone from „Filtry". „Puste pozycje" was dropped too, then restored (2026-10-17): its
+  „z przedmiarem lub wykonaną pracą" is the only way to the union of the Przedmiar and executed-work
+  groups, since ticks across groups AND together.
 - „Etapy" reads ticked = visible, with „Zakończone" / „Aktywne" bulk rows above the stage columns.
 - Option lists offer „Wyczyść" instead of „Zaznacz wszystkie", since nothing ticked already shows all.
 - A link saved before this change can still carry the old `__none__` marker for „nothing selected";
