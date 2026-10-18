@@ -444,17 +444,17 @@ Run once, after phase 4:
 
 #### Automated
 
-- [x] 0.1 `baseline.md` records median before-numbers (integration total + per project, parity, `db:reset:test`)
+- [x] 0.1 `baseline.md` records median before-numbers (integration total + per project, parity, `db:reset:test`) — 2ea553e62
 
 ### Phase 1: Test DB from a template clone
 
 #### Automated
 
-- [ ] 1.1 Forced rebuild creates the template with its fingerprint comment
-- [ ] 1.2 Warm `db:reset:test` reuses the template in under 5 s
-- [ ] 1.3 A stale fingerprint triggers a rebuild
-- [ ] 1.4 `pnpm test:parity` passes on a cloned DB
-- [ ] 1.5 `pnpm test:integration` passes and logs the clone step
+- [x] 1.1 Forced rebuild creates the template with its fingerprint comment
+- [x] 1.2 Warm `db:reset:test` reuses the template in under 5 s
+- [x] 1.3 A stale fingerprint triggers a rebuild
+- [x] 1.4 `pnpm test:parity` passes on a cloned DB
+- [x] 1.5 `pnpm test:integration` passes and logs the clone step
 
 ### Phase 2: Group A — `vi.spyOn` specs into `db-shared`
 
