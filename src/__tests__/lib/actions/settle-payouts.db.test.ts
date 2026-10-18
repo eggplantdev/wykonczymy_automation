@@ -9,18 +9,10 @@ import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-// after() throws outside a request scope, so it runs the task inline; the sheet sync it schedules
-// needs live Google credentials and is not under test.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: (task: () => unknown) => void task() }
-})
-vi.mock('@/lib/actions/sheets-sync', () => ({ syncBulkExpensesToSheet: vi.fn() }))
-const { notifyPendingPayouts } = vi.hoisted(() => ({ notifyPendingPayouts: vi.fn() }))
-vi.mock('@/lib/push/notify-pending-payouts', () => ({ notifyPendingPayouts }))
-
-const { settlePayoutsAction } = await import('@/lib/actions/settle-payouts')
+import { flushAfter } from '@/__tests__/stubs/next-server'
+import { syncBulkExpensesToSheet } from '@/lib/actions/sheets-sync'
+import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
+import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
 
 const ITEMS = [{ description: 'pozycja', plannedQty: 10, clientPrice: 100 }]
 
@@ -68,6 +60,8 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     })
 
   beforeAll(async () => {
+    vi.mocked(syncBulkExpensesToSheet).mockResolvedValue(undefined)
+    vi.mocked(notifyPendingPayouts).mockResolvedValue(undefined)
     payload = await bootTestPayload()
     db = await getDb(payload)
 
@@ -117,7 +111,6 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
 
   afterEach(async () => {
     vi.restoreAllMocks()
-    notifyPendingPayouts.mockClear()
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${marker}%`}`)
   })
 
@@ -165,8 +158,10 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     })
     expect(ahead).toMatchObject({ investment_id: created.b, amount: remainingB + 150 })
     expect(ahead.description).toMatch(new RegExp(`^${marker}\\nw tym zaliczka 150,00`))
+    await flushAfter()
+    expect(syncBulkExpensesToSheet).toHaveBeenCalledTimes(1)
     expect(notifyPendingPayouts).toHaveBeenCalledTimes(1)
-    expect(notifyPendingPayouts.mock.calls[0][1]).toEqual([
+    expect(vi.mocked(notifyPendingPayouts).mock.calls[0][1]).toEqual([
       { workerId: worker.a, amount: remainingA },
       { workerId: worker.a, amount: remainingB + 150 },
     ])
@@ -221,6 +216,7 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     ])
     expect(result).toMatchObject({ success: false, stale: true })
     expect(await booked()).toHaveLength(0)
+    await flushAfter()
     expect(notifyPendingPayouts).not.toHaveBeenCalled()
   })
 

@@ -469,20 +469,20 @@ Run once, after phase 4:
 
 #### Automated
 
-- [x] 3.1 No `vi.mock` / `vi.doMock` left in the 7 group-B specs
-- [x] 3.2 Group-B specs and the direct importers of seam modules pass in `db-shared`
-- [x] 3.3 `pnpm test:integration` passes twice; a shuffled run passes (seed 18993)
-- [x] 3.4 Integration duration recorded: 52 s (54.4 s, 49.4 s; shuffled 49.7 s)
+- [x] 3.1 No `vi.mock` / `vi.doMock` left in the 7 group-B specs — a1b3cb9b6
+- [x] 3.2 Group-B specs and the direct importers of seam modules pass in `db-shared` — a1b3cb9b6
+- [x] 3.3 `pnpm test:integration` passes twice; a shuffled run passes (seed 18993) — a1b3cb9b6
+- [x] 3.4 Integration duration recorded: 52 s (54.4 s, 49.4 s; shuffled 49.7 s) — a1b3cb9b6
 
 ### Phase 4: Group C — external-service seams
 
 #### Automated
 
-- [ ] 4.1 No `vi.mock` / `vi.doMock` in any `*.db.test.ts`
-- [ ] 4.2 The `db` project collects 0 files
-- [ ] 4.3 The 11 group-C specs pass
-- [ ] 4.4 `pnpm test:integration` passes twice; a shuffled run passes
-- [ ] 4.5 Integration duration recorded (target ≤ 40 s)
+- [x] 4.1 No `vi.mock` / `vi.doMock` in any `*.db.test.ts`
+- [x] 4.2 The `db` project collects 0 files
+- [x] 4.3 The 11 group-C specs pass
+- [x] 4.4 `pnpm test:integration` passes twice; a shuffled run passes (seed 24236)
+- [x] 4.5 Integration duration recorded: 42 s (36.4 s, 47.3 s; shuffled 57.8 s) — target ≤ 40 s met on one run only, under load 8
 
 ### Whole-tree Gate
 

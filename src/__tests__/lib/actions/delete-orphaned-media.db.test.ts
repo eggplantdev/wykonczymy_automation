@@ -5,19 +5,17 @@ import { getDb } from '@/lib/db/get-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import { deleteOrphanedMediaAction } from '@/lib/actions/delete-orphaned-media'
 
 // The ownership filter runs against the real `media` rows; only the reclaim is replaced, so the
 // spec reads which ids reached it without deleting fixture rows through the Blob plugin.
-
-const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
-vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
 
 const FILENAME_PREFIX = 'ex-971-orphan-'
 
 describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
-  let deleteOrphanedMediaAction: typeof import('@/lib/actions/delete-orphaned-media').deleteOrphanedMediaAction
   let ownMedia: number
   let foreignMedia: number
   let workerId: number
@@ -28,13 +26,11 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
   const insertMedia = (name: string, uploadedBy: number) =>
     insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
-  const reclaimedIds = () => reclaimUnreferencedMedia.mock.calls.at(-1)?.[1]
+  const reclaimedIds = () => vi.mocked(reclaimUnreferencedMedia).mock.calls.at(-1)?.[1]
 
   beforeAll(async () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
-    deleteOrphanedMediaAction = (await import('@/lib/actions/delete-orphaned-media'))
-      .deleteOrphanedMediaAction
     await purge()
 
     const { rows } = await db.execute(sql`SELECT id FROM users ORDER BY id LIMIT 2`)
@@ -44,7 +40,7 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
     foreignMedia = await insertMedia('foreign', otherUserId)
   })
 
-  beforeEach(() => reclaimUnreferencedMedia.mockReset().mockResolvedValue(undefined))
+  beforeEach(() => vi.mocked(reclaimUnreferencedMedia).mockResolvedValue(undefined))
 
   afterAll(purge)
 

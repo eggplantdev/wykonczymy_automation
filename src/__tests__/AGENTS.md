@@ -13,6 +13,11 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
     `revalidate.test.ts` opts out, via `vi.unmock`); `next/server`'s `after` queues into
     `stubs/next-server`'s `scheduled` — run the work with `flushAfter()`.
   - DB only (`setup/db.ts`): the session — see below. It resets to OWNER id 1 before each file.
+    Plus the pass-through seams listed there: each is the real export wrapped in a `vi.fn`, reset to
+    the real one before each file. Steer one with `vi.mocked(fn)` and set an external service's
+    result before the code calls it — the reset hands back the real network call. A new DB spec that
+    needs a module mock adds a seam there; a per-file `vi.mock` still works but costs ~1.2 s of
+    import and runs the spec isolated.
   - dom (`setup/dom.ts`): `@/lib/utils/toast` (import `toastMessage` and assert it as the mock);
     `next/navigation` → `stubs/next-navigation` (assert `router.push`, set `navigationState.pathname`
     / `.searchParams`).
@@ -21,8 +26,8 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   gone by the first test: create it in `beforeEach`.
 - **A DB spec that never calls `vi.mock` / `vi.doMock` runs in `db-shared`** — one module cache and
   one Payload boot for every such file. `vitest.config.ts` sorts by reading the source, so the first
-  module mock moves a spec to the isolated `db` project on its own. `vi.spyOn` is fine: `setup/db.ts`
-  restores every spy at the end of each file.
+  module mock moves a spec to the isolated `db` project on its own.
+  `vi.spyOn` is fine: `setup/db.ts` restores every spy at the end of each file.
 - **The session is mocked one level below `requireAuth`**: `get-current-user-jwt` →
   `stubs/get-current-user-jwt`, steered through its `authState`, so the real role gate runs. A DB
   spec gets it from `setup/db.ts` and never re-mocks it — a per-file `vi.mock` would move it to the

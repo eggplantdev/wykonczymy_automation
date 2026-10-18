@@ -13,11 +13,8 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
-
-const { translateToPolish } = vi.hoisted(() => ({ translateToPolish: vi.fn() }))
-vi.mock('@/lib/ai/translate', () => ({ translateToPolish }))
-
-const { retranslateReportLineAction } = await import('@/lib/actions/worker-report-translation')
+import { translateToPolish } from '@/lib/ai/translate'
+import { retranslateReportLineAction } from '@/lib/actions/worker-report-translation'
 
 const ORIGINAL = 'Занесення плит'
 
@@ -63,9 +60,9 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
   })
 
   beforeEach(() => {
-    translateToPolish
-      .mockReset()
-      .mockResolvedValue(new Map([[ORIGINAL, { language: 'uk', polish: 'Wniesienie płyt' }]]))
+    vi.mocked(translateToPolish).mockResolvedValue(
+      new Map([[ORIGINAL, { language: 'uk', polish: 'Wniesienie płyt' }]]),
+    )
   })
 
   afterAll(async () => {
@@ -96,7 +93,9 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
   })
 
   it('keeps a Polish translation the retry calls Polish — the model misread the language, not the line', async () => {
-    translateToPolish.mockResolvedValue(new Map([[ORIGINAL, { language: 'pl', polish: null }]]))
+    vi.mocked(translateToPolish).mockResolvedValue(
+      new Map([[ORIGINAL, { language: 'pl', polish: null }]]),
+    )
     const { reportId, lineIds } = await sendReport([extra])
     await db.execute(sql`
       UPDATE worker_report_lines SET polish_description = 'Wniesienie płyt', description_language = 'uk'
@@ -116,7 +115,7 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
   })
 
   it('fails without touching the line when the model gives no answer', async () => {
-    translateToPolish.mockResolvedValue(new Map())
+    vi.mocked(translateToPolish).mockResolvedValue(new Map())
     const { reportId, lineIds } = await sendReport([extra])
 
     const res = await retranslateReportLineAction(investmentId, lineIds[0])

@@ -9,19 +9,9 @@ import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
-
-const { extractReceipt, extractReceipts } = vi.hoisted(() => ({
-  extractReceipt: vi.fn(),
-  extractReceipts: vi.fn(),
-}))
-vi.mock('@/lib/ai/openrouter', () => ({ extractReceipt, extractReceipts }))
-const { fetchMediaBytes } = vi.hoisted(() => ({ fetchMediaBytes: vi.fn() }))
-vi.mock('@/lib/media/blob-public-url', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/media/blob-public-url')>()),
-  fetchMediaBytes,
-}))
-
-const { readExpenseDraftReceipts } = await import('@/lib/actions/read-expense-draft-receipts')
+import { extractReceipt, extractReceipts } from '@/lib/ai/openrouter'
+import { fetchMediaBytes } from '@/lib/media/blob-public-url'
+import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-receipts'
 
 const FILENAME_PREFIX = 'ex-1001-read-'
 
@@ -83,9 +73,9 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   beforeEach(() => {
     vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_testStore_secret')
-    extractReceipt.mockReset().mockResolvedValue(reading())
-    extractReceipts.mockReset().mockResolvedValue([reading()])
-    fetchMediaBytes
+    vi.mocked(extractReceipt).mockReset().mockResolvedValue(reading())
+    vi.mocked(extractReceipts).mockReset().mockResolvedValue([reading()])
+    vi.mocked(fetchMediaBytes)
       .mockReset()
       .mockImplementation(
         async (_store: string, media: { filename: string; mimeType: string }) => ({
@@ -111,7 +101,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
     expect(extractReceipt).not.toHaveBeenCalled()
     expect(extractReceipts).toHaveBeenCalledTimes(2)
-    expect(extractReceipts.mock.calls.map(([pages]) => pages.length)).toEqual([1, 1])
+    expect(vi.mocked(extractReceipts).mock.calls.map(([pages]) => pages.length)).toEqual([1, 1])
     const row = {
       description: 'Leroy Merlin 11.07.2026',
       amount: 123,
@@ -129,7 +119,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   it('„Kilka wydatków” stores a row per paragon on each photo; an unreadable or unfetched photo keeps the sentinel', async () => {
     const { draftId, mediaIds } = await createDraft('per-photo', 3)
-    extractReceipts.mockImplementation(async (pages: { filename: string }[]) =>
+    vi.mocked(extractReceipts).mockImplementation(async (pages: { filename: string }[]) =>
       pages[0].filename.endsWith('-1.jpg')
         ? []
         : [
@@ -137,7 +127,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
             reading({ description: 'Parking', amount: 5, netAmount: null, invoiceNote: '' }),
           ],
     )
-    fetchMediaBytes.mockImplementationOnce(async () => {
+    vi.mocked(fetchMediaBytes).mockImplementationOnce(async () => {
       throw new Error('Blob 404')
     })
 
@@ -162,7 +152,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   // Stored, or every „Zobacz" would pay the model again for the same answer.
   it('stores a draft the AI could not read at all', async () => {
     const { draftId, mediaIds } = await createDraft('all-unreadable', 2)
-    extractReceipts.mockResolvedValue([])
+    vi.mocked(extractReceipts).mockResolvedValue([])
 
     await readExpenseDraftReceipts(db, draftId)
 
@@ -177,7 +167,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   it('returns a stored read without asking the AI again', async () => {
     const { draftId } = await createDraft('already-read', 2)
     const stored = await readExpenseDraftReceipts(db, draftId)
-    extractReceipts.mockClear()
+    vi.mocked(extractReceipts).mockClear()
 
     expect(await readExpenseDraftReceipts(db, draftId)).toEqual(stored)
     expect(extractReceipts).not.toHaveBeenCalled()
@@ -185,7 +175,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   it('stores the sentinel per photo when no photo reached the AI', async () => {
     const { draftId, mediaIds } = await createDraft('all-unfetched', 2)
-    fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))
+    vi.mocked(fetchMediaBytes).mockRejectedValue(new Error('Blob 404'))
 
     await readExpenseDraftReceipts(db, draftId)
 
@@ -202,7 +192,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   it('the first read stored wins an overlapping one, and both callers get it', async () => {
     const { draftId, mediaIds } = await createDraft('overlap', 1)
     const first = { rows: [{ mediaIds, description: 'Castorama', amount: 10 }] }
-    extractReceipts.mockImplementation(async () => {
+    vi.mocked(extractReceipts).mockImplementation(async () => {
       await db.execute(sql`
         UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify(first)}::jsonb WHERE id = ${draftId}
       `)
@@ -217,7 +207,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   it('a draft decided while the AI reads is left as the record it became', async () => {
     const { draftId } = await createDraft('decided', 1)
-    extractReceipts.mockImplementation(async () => {
+    vi.mocked(extractReceipts).mockImplementation(async () => {
       await decideExpenseDraft(db, {
         draftId,
         decidedBy: workerId,

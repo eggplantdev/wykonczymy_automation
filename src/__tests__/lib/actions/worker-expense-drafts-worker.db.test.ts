@@ -13,12 +13,12 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { scheduled } from '@/__tests__/stubs/next-server'
-
-const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
-vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
-
-const { deleteExpenseDraftAction, restoreExpenseDraftAction, sendExpenseDraftAction } =
-  await import('@/lib/actions/worker-expense-drafts')
+import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import {
+  deleteExpenseDraftAction,
+  restoreExpenseDraftAction,
+  sendExpenseDraftAction,
+} from '@/lib/actions/worker-expense-drafts'
 
 const FILENAME_PREFIX = 'ex-971-worker-'
 
@@ -137,7 +137,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   beforeEach(() => {
     authState.userId = workerId
     authState.role = 'EMPLOYEE'
-    reclaimUnreferencedMedia.mockReset().mockResolvedValue(undefined)
+    vi.mocked(reclaimUnreferencedMedia).mockResolvedValue(undefined)
   })
 
   afterAll(async () => {

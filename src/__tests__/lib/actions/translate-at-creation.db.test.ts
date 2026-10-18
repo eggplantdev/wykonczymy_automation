@@ -12,18 +12,17 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { flushAfter } from '@/__tests__/stubs/next-server'
-
-const { translateTexts } = vi.hoisted(() => ({ translateTexts: vi.fn() }))
-vi.mock('@/lib/ai/translate', () => ({ translateTexts }))
-
-const { addItemAction, updateSectionFieldAction } = await import('@/lib/actions/kosztorys')
-const { createCatalogueItemAction } = await import('@/lib/actions/work-catalogue')
+import { translateTexts } from '@/lib/ai/translate'
+import { addItemAction, updateSectionFieldAction } from '@/lib/actions/kosztorys'
+import { createCatalogueItemAction } from '@/lib/actions/work-catalogue'
 
 const answer = (texts: Record<string, { uk?: string; ru?: string }>) =>
-  translateTexts.mockImplementation(
-    async (asked: readonly string[]) =>
-      new Map(asked.filter((text) => texts[text]).map((text) => [text, texts[text]!])),
-  )
+  vi
+    .mocked(translateTexts)
+    .mockImplementation(
+      async (asked: readonly string[]) =>
+        new Map(asked.filter((text) => texts[text]).map((text) => [text, texts[text]!])),
+    )
 
 describe.skipIf(!ENV_READY)('AI translation at creation (DB)', () => {
   let payload: Payload
@@ -45,7 +44,7 @@ describe.skipIf(!ENV_READY)('AI translation at creation (DB)', () => {
   })
 
   beforeEach(() => {
-    translateTexts.mockReset()
+    vi.mocked(translateTexts).mockResolvedValue(new Map())
   })
 
   afterAll(async () => {
@@ -98,7 +97,7 @@ describe.skipIf(!ENV_READY)('AI translation at creation (DB)', () => {
     })
 
     it('still saves the praca, untranslated and with a notice, when the AI throws', async () => {
-      translateTexts.mockRejectedValue(new Error('provider down'))
+      vi.mocked(translateTexts).mockRejectedValue(new Error('provider down'))
 
       const res = await addItemAction(input(`Fugowanie ${suffix}`, true))
 

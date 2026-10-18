@@ -7,11 +7,8 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-const { translateTexts } = vi.hoisted(() => ({ translateTexts: vi.fn() }))
-vi.mock('@/lib/ai/translate', () => ({ translateTexts }))
-
-const { fillCatalogueTranslationsAction } = await import('@/lib/actions/work-catalogue')
+import { translateTexts } from '@/lib/ai/translate'
+import { fillCatalogueTranslationsAction } from '@/lib/actions/work-catalogue'
 
 describe.skipIf(!ENV_READY)('fillCatalogueTranslationsAction (DB)', () => {
   let payload: Payload
@@ -63,7 +60,7 @@ describe.skipIf(!ENV_READY)('fillCatalogueTranslationsAction (DB)', () => {
 
   it('writes only missing and stale translations, keeps a current one and counts what the AI dropped', async () => {
     // Answers only this spec's rows: the shared DB's own untranslated katalog stays unwritten.
-    translateTexts.mockImplementation(async (texts: readonly string[]) => {
+    vi.mocked(translateTexts).mockImplementation(async (texts: readonly string[]) => {
       const answered = new Map<string, { uk: string; ru: string }>()
       for (const text of texts) {
         if (text === MISSING || text === STALE)
@@ -74,7 +71,7 @@ describe.skipIf(!ENV_READY)('fillCatalogueTranslationsAction (DB)', () => {
 
     const res = await fillCatalogueTranslationsAction()
 
-    const asked: string[] = translateTexts.mock.calls[0]![0]
+    const asked: readonly string[] = vi.mocked(translateTexts).mock.calls[0]![0]
     expect(asked).toEqual(expect.arrayContaining([MISSING, STALE, FAILED]))
     expect(asked).not.toContain(FRESH)
     // FAILED's two languages, plus whatever the shared DB's katalog already lacked.

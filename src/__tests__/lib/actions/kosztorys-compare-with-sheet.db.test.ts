@@ -9,40 +9,16 @@ import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import type { sheets_v4 } from 'googleapis'
+import { getInvestmentSheet } from '@/lib/google/sheet-lookup'
+import { getReadonlySheetsClient } from '@/lib/google/readonly-sheets-client'
+import { readImportGrids } from '@/lib/kosztorys/sheet-import/read-sheet'
+import { applyKosztorysImport, compareWithSheet } from '@/lib/actions/kosztorys-import'
 
-const sheetState = vi.hoisted(() => ({
+const sheetState = {
   spreadsheetId: 'sheet-under-test' as string | undefined,
   formulas: [] as (string | number)[][],
-}))
-
-vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  getInvestmentSheet: vi
-    .fn()
-    .mockImplementation(async () =>
-      sheetState.spreadsheetId === undefined
-        ? undefined
-        : { id: 1, googleSheetId: sheetState.spreadsheetId, sheetColumnMapping: {} },
-    ),
-}))
-vi.mock('@/lib/google/readonly-sheets-client', () => ({
-  getReadonlySheetsClient: vi.fn().mockResolvedValue({}),
-}))
-vi.mock('@/lib/kosztorys/sheet-import/read-sheet', async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  readImportGrids: vi.fn().mockImplementation(async () => ({
-    laborGrid: BIALOSTOCKA_ROWS,
-    laborGridFormulas: sheetState.formulas,
-    laborTabGid: 70964819,
-    rateTabs: [
-      ratesTab('zakres pracy z narzędziami', [
-        { description: 'montaż jednostki wewnętrznej', wTools: 78, ownTools: 60 },
-      ]),
-    ],
-  })),
-}))
-
-const { applyKosztorysImport, compareWithSheet } = await import('@/lib/actions/kosztorys-import')
+}
 
 // Białostocka's first praca sits at grid index 4 (sheet row 5); its Pomiar reading as a formula is
 // exactly the „przepisany z Przedmiaru" case the refresh must translate into „no measurement".
@@ -54,6 +30,22 @@ describe.skipIf(!ENV_READY)('compareWithSheet — persisted state (DB)', () => {
   let investmentId: number
 
   beforeAll(async () => {
+    vi.mocked(getInvestmentSheet).mockImplementation(async () =>
+      sheetState.spreadsheetId === undefined
+        ? undefined
+        : { id: 1, googleSheetId: sheetState.spreadsheetId, sheetColumnMapping: {} },
+    )
+    vi.mocked(getReadonlySheetsClient).mockReturnValue({} as sheets_v4.Sheets)
+    vi.mocked(readImportGrids).mockImplementation(async () => ({
+      laborGrid: BIALOSTOCKA_ROWS,
+      laborGridFormulas: sheetState.formulas,
+      laborTabGid: 70964819,
+      rateTabs: [
+        ratesTab('zakres pracy z narzędziami', [
+          { description: 'montaż jednostki wewnętrznej', wTools: 78, ownTools: 60 },
+        ]),
+      ],
+    }))
     payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)

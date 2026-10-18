@@ -12,7 +12,7 @@ const { seams, passThrough } = vi.hoisted(() => {
   const registry = globalThis as {
     dbSeams?: { modules: Map<string, Record<string, unknown>>; seams: Mock[] }
   }
-  const { modules, seams } = (registry.dbSeams ??= { modules: new Map(), seams: [] })
+  const { modules, seams } = (registry.dbSeams ??= { modules: new Map(), seams: [] as Mock[] })
   const passThrough = async (
     importOriginal: () => Promise<Record<string, unknown>>,
     ...names: string[]
@@ -47,6 +47,35 @@ vi.mock('@/lib/kosztorys/serialize-kosztorys', (importOriginal) =>
 )
 vi.mock('@/lib/kosztorys/seed-from-preset', (importOriginal) =>
   passThrough(importOriginal, 'seedInvestmentFromPreset'),
+)
+// External services: still pass-through, so a spec that steers one sets its own result first —
+// the per-file reset hands back the real network call.
+vi.mock('@/lib/ai/translate', (importOriginal) =>
+  passThrough(importOriginal, 'translateTexts', 'translateToPolish'),
+)
+vi.mock('@/lib/ai/openrouter', (importOriginal) =>
+  passThrough(importOriginal, 'extractReceipt', 'extractReceipts'),
+)
+vi.mock('@/lib/google/sheet-lookup', (importOriginal) =>
+  passThrough(importOriginal, 'getInvestmentSheet'),
+)
+vi.mock('@/lib/google/readonly-sheets-client', (importOriginal) =>
+  passThrough(importOriginal, 'getReadonlySheetsClient'),
+)
+vi.mock('@/lib/kosztorys/sheet-import/read-sheet', (importOriginal) =>
+  passThrough(importOriginal, 'readImportGrids'),
+)
+vi.mock('@/lib/media/blob-public-url', (importOriginal) =>
+  passThrough(importOriginal, 'fetchMediaBytes'),
+)
+vi.mock('@/lib/media/delete-unreferenced-media', (importOriginal) =>
+  passThrough(importOriginal, 'reclaimUnreferencedMedia'),
+)
+vi.mock('@/lib/actions/sheets-sync', (importOriginal) =>
+  passThrough(importOriginal, 'syncBulkExpensesToSheet'),
+)
+vi.mock('@/lib/push/notify-pending-payouts', (importOriginal) =>
+  passThrough(importOriginal, 'notifyPendingPayouts'),
 )
 
 // `db-shared` keeps one module instance for every file, so a role set by the previous file would

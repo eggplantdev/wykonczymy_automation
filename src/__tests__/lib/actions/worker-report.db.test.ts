@@ -9,11 +9,8 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { flushAfter } from '@/__tests__/stubs/next-server'
-
-const { translateToPolish } = vi.hoisted(() => ({ translateToPolish: vi.fn() }))
-vi.mock('@/lib/ai/translate', () => ({ translateToPolish }))
-
-const { sendWorkerReportAction } = await import('@/lib/actions/worker-report')
+import { translateToPolish } from '@/lib/ai/translate'
+import { sendWorkerReportAction } from '@/lib/actions/worker-report'
 
 describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   let payload: Payload
@@ -54,7 +51,7 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   })
 
   beforeEach(() => {
-    translateToPolish.mockReset().mockResolvedValue(new Map())
+    vi.mocked(translateToPolish).mockResolvedValue(new Map())
   })
 
   afterAll(async () => {
@@ -63,7 +60,7 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   })
 
   it('stores the Polish of an extra after the send, leaving the rozpiska line alone', async () => {
-    translateToPolish.mockResolvedValue(
+    vi.mocked(translateToPolish).mockResolvedValue(
       new Map([['Занесення плит', { language: 'uk', polish: 'Wniesienie płyt' }]]),
     )
     const res = await sendWorkerReportAction(token, [
@@ -87,7 +84,7 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   })
 
   it('still sends, leaving the extra untranslated, when the AI throws', async () => {
-    translateToPolish.mockRejectedValue(new Error('provider down'))
+    vi.mocked(translateToPolish).mockRejectedValue(new Error('provider down'))
     const res = await sendWorkerReportAction(token, [
       { kind: 'extra', description: 'Монтаж дверей', unit: 'szt', qty: 1 },
     ])

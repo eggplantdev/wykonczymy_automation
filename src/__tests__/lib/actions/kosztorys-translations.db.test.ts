@@ -10,13 +10,11 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { translateTexts } from '@/lib/ai/translate'
+import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 
 // The AI is the one boundary faked: `translateTexts` already drops a failed batch from its map, so a
 // text absent here is exactly what a failed batch looks like to the action.
-const { translateTexts } = vi.hoisted(() => ({ translateTexts: vi.fn() }))
-vi.mock('@/lib/ai/translate', () => ({ translateTexts }))
-
-const { fillKosztorysTranslationsAction } = await import('@/lib/actions/kosztorys-translations')
 
 describe.skipIf(!ENV_READY)('fillKosztorysTranslationsAction (DB)', () => {
   let payload: Payload
@@ -47,7 +45,7 @@ describe.skipIf(!ENV_READY)('fillKosztorysTranslationsAction (DB)', () => {
     } = await createKosztorysTree(payload, investmentId, {
       sections: [{ name: SECTION, items: [{ description: translated }, { description: failed }] }],
     })
-    translateTexts.mockResolvedValue(
+    vi.mocked(translateTexts).mockResolvedValue(
       new Map([
         [translated, { uk: 'Фарбування', ru: 'Покраска' }],
         [SECTION, { uk: `Ванна ${suffix} 2`, ru: `Ванная ${suffix} 3` }],
