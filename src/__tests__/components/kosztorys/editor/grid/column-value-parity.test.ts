@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
@@ -72,7 +72,7 @@ const COMPUTED_CELL = computedColumn('probe', 'probe', () => null).component
 type ComputedDataT = { compute: (row: KosztorysV2RowT) => number | null }
 
 function computedColumnsOf(opts: BuildV2ColumnsOptsT) {
-  return buildV2Columns(opts).filter((column) => column.component === COMPUTED_CELL)
+  return buildV2Grid(opts).columns.filter((column) => column.component === COMPUTED_CELL)
 }
 
 function expectCellsMatchSort(

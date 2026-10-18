@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import {
-  buildV2Columns,
-  buildV2Grid,
-} from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
@@ -23,8 +20,8 @@ const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
   row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })
 
 function previewIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Columns({ view: 'client', previewVisible: true, stages: STAGES, ...extra })
-    .map((column) => column.id)
+  return buildV2Grid({ view: 'client', previewVisible: true, stages: STAGES, ...extra })
+    .columns.map((column) => column.id)
     .filter((id): id is string => id != null)
 }
 
@@ -118,7 +115,7 @@ describe('preview columns', () => {
 
   it('never surfaces the sheet pomiar to the client', () => {
     const columnData = (opts: Partial<BuildV2ColumnsOptsT>) =>
-      buildV2Columns({ view: 'client', stages: STAGES, ...opts }).find(
+      buildV2Grid({ view: 'client', stages: STAGES, ...opts }).columns.find(
         (column) => column.id === 'stageQtySum',
       )?.columnData as { tip?: unknown }
 
@@ -160,11 +157,11 @@ describe('preview columns', () => {
   })
 
   it('ignores the hidden set outside the preview', () => {
-    const editorIds = buildV2Columns({
+    const editorIds = buildV2Grid({
       view: 'client',
       stages: STAGES,
       documentHiddenColumns: new Set(['unit']),
-    }).map((column) => column.id)
+    }).columns.map((column) => column.id)
 
     expect(editorIds).toContain('unit')
   })
@@ -181,7 +178,7 @@ describe('preview columns', () => {
 
 describe('the pair: allowlist + price plane', () => {
   const unpinned = (view: 'w_tools' | 'own_tools') => () =>
-    buildV2Columns({ view, previewVisible: true, stages: STAGES })
+    buildV2Grid({ view, previewVisible: true, stages: STAGES }).columns
 
   it('throws on previewVisible without view=client', () => {
     expect(unpinned('w_tools')).toThrow(/previewVisible requires view='client'/)
@@ -195,7 +192,7 @@ describe('the pair: allowlist + price plane', () => {
         expect(visible).not.toContain(planePriceKey(base, plane))
       }
     }
-    const editorIds = buildV2Columns({ view: 'client', stages: STAGES, crewAxis: 'both' }).map(
+    const editorIds = buildV2Grid({ view: 'client', stages: STAGES, crewAxis: 'both' }).columns.map(
       (c) => c.id,
     )
     expect(editorIds).toContain(planePriceKey('price', 'w_tools'))

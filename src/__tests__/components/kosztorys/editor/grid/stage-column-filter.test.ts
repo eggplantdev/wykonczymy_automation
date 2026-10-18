@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
@@ -18,8 +18,8 @@ const FINE: KosztorysStageT = makeStage({
 const STAGES = [BARE, NO_WORKER, FINE]
 
 const columnIds = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>
-  buildV2Columns({ view: 'client', stages: STAGES, ...opts })
-    .map((column) => column.id)
+  buildV2Grid({ view: 'client', stages: STAGES, ...opts })
+    .columns.map((column) => column.id)
     .filter((id): id is string => id != null)
 
 const stagesOnAxis = (ids: string[], keyFor: (stageId: number) => string): number[] =>

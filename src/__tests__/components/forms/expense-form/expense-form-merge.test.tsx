@@ -127,7 +127,7 @@ describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => 
 
     await merge(user, [1, 3])
 
-    expect(screen.getAllByText(/zdjecie-10[12]/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/zdjecie-101/)).toHaveLength(2)
     expect(screen.queryByText('parking')).toBeNull()
   })
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
@@ -65,7 +65,7 @@ const row = (id: number) => rows.find((candidate) => candidate.id === id) as Kos
 
 type ToneDataT = { tone: (r: KosztorysV2RowT) => string }
 
-const ownerColumns = buildV2Columns({ view: 'client', stages: tree.stages })
+const ownerColumns = buildV2Grid({ view: 'client', stages: tree.stages }).columns
 
 const toneOf = (columns: typeof ownerColumns, columnId: string) => {
   const column = columns.find((candidate) => candidate.id === columnId)

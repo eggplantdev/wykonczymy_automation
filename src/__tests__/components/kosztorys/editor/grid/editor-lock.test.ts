@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
@@ -19,8 +19,8 @@ const editorOpts: BuildV2ColumnsOptsT = {
 }
 
 const ids = (opts: Partial<BuildV2ColumnsOptsT>): string[] =>
-  buildV2Columns({ ...editorOpts, ...opts })
-    .map((column) => column.id)
+  buildV2Grid({ ...editorOpts, ...opts })
+    .columns.map((column) => column.id)
     .filter((id): id is string => id != null)
 
 describe('a locked kosztorys', () => {

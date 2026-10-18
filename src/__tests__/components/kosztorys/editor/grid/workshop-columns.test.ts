@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildV2Columns,
-  buildV2Grid,
-} from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
@@ -13,8 +10,8 @@ import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Columns({ view: 'client', workshopVisible: true, stages: STAGES, ...extra })
-    .map((column) => column.id)
+  return buildV2Grid({ view: 'client', workshopVisible: true, stages: STAGES, ...extra })
+    .columns.map((column) => column.id)
     .filter((id): id is string => id != null)
 }
 
@@ -103,8 +100,8 @@ describe('workshop columns', () => {
   })
 
   it('narrows nothing on an ordinary kosztorys', () => {
-    const ordinary = buildV2Columns({ view: 'client', stages: STAGES })
-      .map((column) => column.id)
+    const ordinary = buildV2Grid({ view: 'client', stages: STAGES })
+      .columns.map((column) => column.id)
       .filter((id): id is string => id != null)
 
     expect(ordinary).toContain('plannedQty')

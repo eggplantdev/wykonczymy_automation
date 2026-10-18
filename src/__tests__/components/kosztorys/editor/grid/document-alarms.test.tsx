@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -30,7 +30,7 @@ const tree = makeTree({
 })
 const overrunRow = treeToRows(tree)[0] as KosztorysV2RowT
 
-const workerColumns = buildV2Columns({
+const workerColumns = buildV2Grid({
   view: 'w_tools',
   stages: tree.stages.filter((stage) => stage.plane === 'w_tools'),
   readOnly: true,
@@ -40,13 +40,13 @@ const workerColumns = buildV2Columns({
     columnRanks: {},
     executedQtyByItem: { [OVERRUN]: 1 },
   },
-})
-const investorColumns = buildV2Columns({
+}).columns
+const investorColumns = buildV2Grid({
   view: 'client',
   stages: tree.stages,
   readOnly: true,
   previewVisible: true,
-})
+}).columns
 
 type ToneT = string | ((row: KosztorysV2RowT) => string)
 

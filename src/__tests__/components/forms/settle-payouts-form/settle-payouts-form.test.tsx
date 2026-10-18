@@ -264,6 +264,12 @@ describe('SettlePayoutsForm', () => {
   describe('Wyrównaj premią', () => {
     const bonusButton = (label: string) =>
       rowOf(label).queryByRole('button', { name: 'Wyrównaj premią' })
+    const bookBonus = async (user: ReturnType<typeof userEvent.setup>) => {
+      await user.click(bonusButton('Brzozowa')!)
+      const confirm = await screen.findByRole('alertdialog')
+      await user.click(within(confirm).getByRole('button', { name: 'Zaksięguj premię' }))
+      return confirm
+    }
 
     it('offers the premia only on an unticked nadpłata row', async () => {
       const user = userEvent.setup()
@@ -336,12 +342,7 @@ describe('SettlePayoutsForm', () => {
       )
       await retype(user, 'Akacjowa', '750')
 
-      await user.click(bonusButton('Brzozowa')!)
-      await user.click(
-        within(await screen.findByRole('alertdialog')).getByRole('button', {
-          name: 'Zaksięguj premię',
-        }),
-      )
+      await bookBonus(user)
 
       await waitFor(() => expect(bonusButton('Brzozowa')).not.toBeInTheDocument())
       expect(amount('Akacjowa')).toHaveValue('600')
@@ -356,12 +357,7 @@ describe('SettlePayoutsForm', () => {
       })
       const { reloadRows } = renderForm()
 
-      await user.click(bonusButton('Brzozowa')!)
-      await user.click(
-        within(await screen.findByRole('alertdialog')).getByRole('button', {
-          name: 'Zaksięguj premię',
-        }),
-      )
+      await bookBonus(user)
 
       await waitFor(() => expect(reloadRows).toHaveBeenCalledOnce())
       expect(toastMessage).toHaveBeenCalledWith('Kwoty zmieniły się', 'warning', 5000)

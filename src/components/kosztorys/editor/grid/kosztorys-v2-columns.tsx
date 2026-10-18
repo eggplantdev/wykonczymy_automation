@@ -365,10 +365,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   return opts.onRemoveItem ? [actionColumn(opts), ...dataColumns] : dataColumns
 }
 
-export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
-  return selectV2Columns(orderAssembled(assembleV2Columns(opts), opts), opts)
-}
-
 export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
   columns: Column<KosztorysV2RowT>[]
   columnToggleItems: ColumnToggleItemT[]

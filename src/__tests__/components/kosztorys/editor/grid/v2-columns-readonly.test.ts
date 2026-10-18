@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
@@ -17,17 +17,17 @@ const editorOpts: BuildV2ColumnsOptsT = {
   onRemoveItem: () => {},
 }
 
-const ids = (opts: BuildV2ColumnsOptsT) => buildV2Columns(opts).map((c) => c.id)
+const ids = (opts: BuildV2ColumnsOptsT) => buildV2Grid(opts).columns.map((c) => c.id)
 
 describe('readOnly', () => {
   it('disables every column and drops the row-actions column', () => {
-    const columns = buildV2Columns({ ...editorOpts, readOnly: true })
+    const columns = buildV2Grid({ ...editorOpts, readOnly: true }).columns
     expect(columns.every((c) => c.disabled)).toBe(true)
     expect(columns.map((c) => c.id)).not.toContain('actions')
   })
 
   it('leaves the editor path untouched when unset', () => {
-    const columns = buildV2Columns(editorOpts)
+    const columns = buildV2Grid(editorOpts).columns
     expect(columns.map((c) => c.id)).toContain('actions')
     expect(columns.some((c) => c.id === 'description' && !c.disabled)).toBe(true)
   })

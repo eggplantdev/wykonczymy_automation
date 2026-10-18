@@ -5,7 +5,7 @@ import {
   COLUMN_MONEY_AXIS,
   DEFAULT_HIDDEN_COLUMNS,
 } from '@/lib/kosztorys/columns/column-config'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
@@ -16,8 +16,8 @@ const STAGES: KosztorysStageT[] = [
 ]
 
 function ids(axis: MoneyAxisT, isHidden?: (id: string) => boolean): string[] {
-  return buildV2Columns({ view: 'client', stages: STAGES, moneyAxis: axis, isHidden })
-    .map((c) => c.id)
+  return buildV2Grid({ view: 'client', stages: STAGES, moneyAxis: axis, isHidden })
+    .columns.map((c) => c.id)
     .filter((id): id is string => id != null)
 }
 
@@ -42,9 +42,11 @@ const NEUTRAL_IDS = [
   'plannedDonePercent',
 ]
 
-describe('buildV2Columns — oś netto/brutto', () => {
+describe('buildV2Grid — oś netto/brutto', () => {
   it('„oba" renderuje dokładnie to co grid bez trybu — tryb jest opt-out', () => {
-    expect(ids('both')).toEqual(buildV2Columns({ view: 'client', stages: STAGES }).map((c) => c.id))
+    expect(ids('both')).toEqual(
+      buildV2Grid({ view: 'client', stages: STAGES }).columns.map((c) => c.id),
+    )
   })
 
   // Bez tego „oba" przeszłoby też wtedy, gdyby axisAllows odrzucało wszystko: obie strony

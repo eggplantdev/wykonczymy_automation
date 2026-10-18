@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
@@ -20,7 +20,7 @@ function stage(id: number, ordinal: number, label: string): KosztorysStageT {
 }
 
 function headerTexts(stages: KosztorysStageT[], stageId: number) {
-  const columns = buildV2Columns({ view: 'client', stages, moneyAxis: 'both' })
+  const columns = buildV2Grid({ view: 'client', stages, moneyAxis: 'both' }).columns
   const ids = [stageKey(stageId), stageValueNetKey(stageId), stageValueGrossKey(stageId)]
   return ids.map((id) => {
     const column = columns.find((c) => c.id === id)
@@ -66,16 +66,16 @@ describe('per-stage columns — an etap is deleted', () => {
   })
 
   it('renders no per-etap column at all once the last one is gone', () => {
-    const withStage = buildV2Columns({
+    const withStage = buildV2Grid({
       view: 'client',
       stages: [stage(DEMOLITION, 1, 'Rozbiórki')],
       moneyAxis: 'both',
-    })
+    }).columns
     const perStage = (columns: typeof withStage) =>
       columns.filter((column) => PER_STAGE_IDS.includes(column.id ?? ''))
     expect(perStage(withStage)).toHaveLength(3)
 
-    const emptied = buildV2Columns({ view: 'client', stages: [], moneyAxis: 'both' })
+    const emptied = buildV2Grid({ view: 'client', stages: [], moneyAxis: 'both' }).columns
 
     expect(perStage(emptied)).toEqual([])
   })

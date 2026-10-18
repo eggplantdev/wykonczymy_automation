@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
@@ -9,14 +9,14 @@ import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
 
 function ids(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Columns({
+  return buildV2Grid({
     view: 'client',
     stages: STAGES,
     hasAiDraft: true,
     onRemoveItem: () => {},
     ...extra,
   })
-    .map((column) => column.id)
+    .columns.map((column) => column.id)
     .filter((id): id is string => id != null && id !== 'layerGap')
 }
 

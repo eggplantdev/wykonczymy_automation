@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -13,7 +13,7 @@ const STAGES: KosztorysStageT[] = [
 const ROW = { id: 1, sectionId: 10, [stageKey(7)]: 12 } as unknown as KosztorysV2RowT
 
 const stageColumn = (stageId: number) =>
-  buildV2Columns({ view: 'client', stages: STAGES }).find(
+  buildV2Grid({ view: 'client', stages: STAGES }).columns.find(
     (column) => column.id === stageKey(stageId),
   )
 

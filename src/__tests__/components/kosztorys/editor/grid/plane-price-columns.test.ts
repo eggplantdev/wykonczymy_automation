@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildV2Columns,
-  buildV2Grid,
-} from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 import { layerAllows } from '@/lib/kosztorys/layer'
@@ -21,8 +18,8 @@ const MODE_IDS = PLANES.map((plane) => planePriceKey('priceMode', plane))
 const COEFF_IDS = PLANES.map((plane) => planePriceKey('priceCoeff', plane))
 
 function ids(opts: Partial<BuildV2ColumnsOptsT> & Pick<BuildV2ColumnsOptsT, 'view'>): string[] {
-  return buildV2Columns({ stages: STAGES, crewAxis: 'both', ...opts })
-    .map((column) => column.id)
+  return buildV2Grid({ stages: STAGES, crewAxis: 'both', ...opts })
+    .columns.map((column) => column.id)
     .filter((id): id is string => id != null)
 }
 
@@ -129,7 +126,7 @@ describe('subcontractor rate columns, both planes', () => {
     const autoRow = { wToolsOverrideValue: null, wToolsOverrideCoeff: null } as never
 
     for (const view of VIEWS) {
-      const columns = buildV2Columns({ view, stages: STAGES, crewAxis: 'both' })
+      const columns = buildV2Grid({ view, stages: STAGES, crewAxis: 'both' }).columns
       for (const id of PRICE_IDS) {
         const column = columns.find((entry) => entry.id === id)
         const disabled = column?.disabled
@@ -143,7 +140,7 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('binds each column to its own plane, not to the active view', () => {
-    const columns = buildV2Columns({ view: 'client', stages: STAGES, crewAxis: 'both' })
+    const columns = buildV2Grid({ view: 'client', stages: STAGES, crewAxis: 'both' }).columns
     const planeOf = (id: string) =>
       (columns.find((column) => column.id === id)?.columnData as { view?: string } | undefined)
         ?.view
