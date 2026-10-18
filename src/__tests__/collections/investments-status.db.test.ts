@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload, RequiredDataFromCollectionSlug } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -9,11 +9,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // No type spans the collection's select options and the Postgres enum — a status the form offers but
 // no migration added passes typecheck and fails only on save.
-
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
 
 const MARKER = 'investment-status-db'
 

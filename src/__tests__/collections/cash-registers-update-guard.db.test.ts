@@ -9,6 +9,8 @@ import {
 } from '@/lib/constants/cash-register-lock'
 import { OWNER_TRASHED_RESTORE_MESSAGE, WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 // Every assertion reads the row back: a refused update that still wrote something is the failure this
 // guards, and a rejected promise alone would not show it.
@@ -18,15 +20,6 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
   let ownerId: number
   let otherOwnerId: number
-
-  async function createRegister(name: string): Promise<number> {
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name, type: 'AUXILIARY', owner: ownerId },
-      context: { skipRevalidation: true },
-    })
-    return Number(register.id)
-  }
 
   function updateRegister(id: number, data: Record<string, unknown>) {
     return payload.update({
@@ -45,22 +38,15 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     return result.rows[0] as { name: string; owner_id: number; trashed_at: string | null }
   }
 
-  async function createUser(email: string): Promise<number> {
-    const user = await payload.create({
-      collection: 'users',
-      data: { name: email, role: 'EMPLOYEE', email, password: 'test-password-123' },
-      context: { skipRevalidation: true },
-    })
-    return Number(user.id)
-  }
-
   beforeAll(async () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    ownerId = await createUser('registers-update-guard@test.local')
-    otherOwnerId = await createUser('registers-update-guard-other@test.local')
+    ownerId = await createTestUser(payload, { email: 'registers-update-guard@test.local' })
+    otherOwnerId = await createTestUser(payload, {
+      email: 'registers-update-guard-other@test.local',
+    })
   })
 
   afterAll(async () => {
@@ -68,7 +54,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   })
 
   it('refuses an edit of a trashed kasa', async () => {
-    const id = await createRegister('Kasa w koszu')
+    const id = await createTestRegister(payload, ownerId, 'Kasa w koszu')
     await db.execute(sql`UPDATE cash_registers SET trashed_at = now() WHERE id = ${id}`)
 
     await expect(updateRegister(id, { name: 'Nowa nazwa' })).rejects.toThrow(
@@ -78,7 +64,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   })
 
   it('refuses an owner change on a kasa with live transactions', async () => {
-    const id = await createRegister('Kasa używana')
+    const id = await createTestRegister(payload, ownerId, 'Kasa używana')
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
       VALUES ('owner-lock live expense', 50, now(),
@@ -92,7 +78,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   })
 
   it('lets a used kasa keep its owner through an ordinary edit', async () => {
-    const id = await createRegister('Kasa używana, zmiana nazwy')
+    const id = await createTestRegister(payload, ownerId, 'Kasa używana, zmiana nazwy')
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
       VALUES ('owner-lock rename expense', 50, now(),
@@ -104,7 +90,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   })
 
   it('ignores trashedAt on an access-checked update (a MANAGER REST PATCH)', async () => {
-    const id = await createRegister('Kasa z REST')
+    const id = await createTestRegister(payload, ownerId, 'Kasa z REST')
 
     await payload.update({
       collection: 'cash-registers',
@@ -118,7 +104,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   })
 
   it('lets the owner of an unused kasa change', async () => {
-    const id = await createRegister('Kasa pusta')
+    const id = await createTestRegister(payload, ownerId, 'Kasa pusta')
 
     await updateRegister(id, { owner: otherOwnerId })
     expect(Number((await readRow(id)).owner_id)).toBe(otherOwnerId)
@@ -136,13 +122,9 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
 
     it('refuses a new kasa for a trashed worker', async () => {
       await withOtherOwnerTrashed(async () => {
-        await expect(
-          payload.create({
-            collection: 'cash-registers',
-            data: { name: 'Kasa dla kosza', type: 'AUXILIARY', owner: otherOwnerId },
-            context: { skipRevalidation: true },
-          }),
-        ).rejects.toThrow(WORKER_TRASHED_MESSAGE)
+        await expect(createTestRegister(payload, otherOwnerId, 'Kasa dla kosza')).rejects.toThrow(
+          WORKER_TRASHED_MESSAGE,
+        )
       })
       const rows = await db.execute(
         sql`SELECT id FROM cash_registers WHERE owner_id = ${otherOwnerId} AND name = 'Kasa dla kosza'`,
@@ -151,7 +133,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     })
 
     it('refuses handing an unused kasa to a trashed worker', async () => {
-      const id = await createRegister('Kasa pusta, właściciel w koszu')
+      const id = await createTestRegister(payload, ownerId, 'Kasa pusta, właściciel w koszu')
       await withOtherOwnerTrashed(async () => {
         await expect(updateRegister(id, { owner: otherOwnerId })).rejects.toThrow(
           WORKER_TRASHED_MESSAGE,
@@ -161,12 +143,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     })
 
     it('refuses restoring a kasa while its owner is in the kosz', async () => {
-      const register = await payload.create({
-        collection: 'cash-registers',
-        data: { name: 'Kasa pracownika w koszu', type: 'AUXILIARY', owner: otherOwnerId },
-        context: { skipRevalidation: true },
-      })
-      const id = Number(register.id)
+      const id = await createTestRegister(payload, otherOwnerId, 'Kasa pracownika w koszu')
       await db.execute(sql`UPDATE cash_registers SET trashed_at = now() WHERE id = ${id}`)
       await withOtherOwnerTrashed(async () => {
         await expect(updateRegister(id, { trashedAt: null })).rejects.toThrow(

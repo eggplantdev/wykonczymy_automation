@@ -5,6 +5,8 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 describe.skipIf(!ENV_READY)('users default-kasa guard (DB)', () => {
   let payload: Payload
@@ -37,30 +39,13 @@ describe.skipIf(!ENV_READY)('users default-kasa guard (DB)', () => {
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    const user = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Domyślna Kasa',
-        role: 'EMPLOYEE',
-        email: 'default-register-guard@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    userId = await createTestUser(payload, {
+      name: 'Domyślna Kasa',
+      email: 'default-register-guard@test.local',
     })
-    userId = Number(user.id)
 
-    const createRegister = async (name: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'cash-registers',
-            data: { name, type: 'AUXILIARY', owner: userId },
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
-    liveRegisterId = await createRegister('Kasa żywa')
-    trashedRegisterId = await createRegister('Kasa w koszu')
+    liveRegisterId = await createTestRegister(payload, userId, 'Kasa żywa')
+    trashedRegisterId = await createTestRegister(payload, userId, 'Kasa w koszu')
   })
 
   afterAll(async () => {

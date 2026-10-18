@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
   let payload: Payload
@@ -33,17 +34,10 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
 
     investmentId = await createTestInvestment(payload, 'users-delete-guard-investment')
 
-    const worker = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Pracownik Do Usunięcia',
-        role: 'EMPLOYEE',
-        email: 'users-delete-guard@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    workerId = await createTestUser(payload, {
+      name: 'Pracownik Do Usunięcia',
+      email: 'users-delete-guard@test.local',
     })
-    workerId = Number(worker.id)
 
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, worker_id, cancelled)
@@ -176,17 +170,10 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard — cancelled rows (DB)', 
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    const worker = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Pracownik Anulowanej Wypłaty',
-        role: 'EMPLOYEE',
-        email: 'users-delete-guard-cancelled@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    workerId = await createTestUser(payload, {
+      name: 'Pracownik Anulowanej Wypłaty',
+      email: 'users-delete-guard-cancelled@test.local',
     })
-    workerId = Number(worker.id)
 
     const inserted = await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, worker_id, cancelled)
@@ -204,17 +191,10 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard — cancelled rows (DB)', 
   })
 
   it('deletes a worker whose only reference is authorship of a cancelled row', async () => {
-    const author = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Autor Anulowanej Transakcji',
-        role: 'EMPLOYEE',
-        email: 'users-delete-guard-author@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    const authorId = await createTestUser(payload, {
+      name: 'Autor Anulowanej Transakcji',
+      email: 'users-delete-guard-author@test.local',
     })
-    const authorId = Number(author.id)
 
     const inserted = await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, created_by_id, cancelled)
@@ -265,16 +245,8 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard — account removal (DB)',
   let ownerId: number
   let otherOwnerId: number
 
-  const createOwner = async (email: string) =>
-    Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: { name: 'Właściciel Testowy', role: 'OWNER', email, password: 'test-password-123' },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+  const createOwner = (email: string) =>
+    createTestUser(payload, { name: 'Właściciel Testowy', email, role: 'OWNER' })
 
   const otherLiveOwners = async () => {
     const { fetchRemovalSubject } = await import('@/lib/db/account-removal')
