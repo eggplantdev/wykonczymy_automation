@@ -21,7 +21,7 @@ import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
 // after() schedules the sheet sync and the payout push (live credentials); it also throws outside a
-// request scope. Not under test.
+// request scope.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -73,7 +73,7 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
   // The ledger test leaves this as the state every cancel / edit below moves from.
   let expected: FiguresT
   const ctx = { context: { skipRevalidation: true } }
-  const today = new Date().toISOString().slice(0, 10)
+  const today = warsawToday()
 
   async function figures(): Promise<FiguresT> {
     const financials = deriveFinancials(
@@ -219,7 +219,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     }
     expect(await figures(), 'step 0').toEqual(expected)
 
-    // bilans = wpłaty − (materiały + robocizna) + rabat + materialsNetDiscount + strata
     const ledger: [CreateTransferFormT, Partial<FiguresT>][] = [
       [
         booking(1, {
@@ -238,7 +237,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
           investment: investmentId,
           expenseCategory: expenseCategoryId,
         }),
-        // A 10 000 − 3 000; bilans 10 000 − 3 000
         { registerA: 7_000, materials: 3_000, balance: 7_000 },
       ],
       [
@@ -249,22 +247,18 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
           investment: investmentId,
           expenseCategory: expenseCategoryId,
         }),
-        // A 7 000 − (−200); materiały 3 000 − 200; bilans 10 000 − 2 800
         { registerA: 7_200, materials: 2_800, balance: 7_200 },
       ],
       [
         booking(4, { type: 'LABOR_COST', amount: 5_000, investment: investmentId }),
-        // bilans 10 000 − (2 800 + 5 000)
         { labor: 5_000, balance: 2_200 },
       ],
       [
         booking(5, { type: 'RABAT', amount: 400, investment: investmentId }),
-        // bilans 2 200 + 400
         { discount: 400, balance: 2_600 },
       ],
       [
         booking(6, { type: 'LOSS', amount: 150, investment: investmentId }),
-        // bilans 2 600 + 150
         { loss: 150, balance: 2_750 },
       ],
       [
@@ -275,12 +269,12 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
           investment: investmentId,
           worker: workerId,
         }),
-        // A 7 200 − 1 000; a wypłata is not in bilans v1
+        // a wypłata is not in bilans v1
         { registerA: 6_200, payouts: 1_000, remaining: due - 1_000 },
       ],
       [
         booking(8, { type: 'BONUS', amount: 300, investment: investmentId, worker: workerId }),
-        // Pozostało due − 1 000 + 300; no kasa, no bilans
+        // no kasa, no bilans
         { bonus: 300, remaining: due - 700 },
       ],
       [
@@ -290,7 +284,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
           sourceRegister: registerA,
           targetRegister: registerB,
         }),
-        // A 6 200 − 500, B 0 + 500
         { registerA: 5_700, registerB: 500 },
       ],
     ]
@@ -381,7 +374,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     expect(await bulkExpense(description, [100, 250.5, 49.5])).toEqual({ success: true })
 
     expect((await rowsDescribed(description)).map((row) => row.amount)).toEqual([100, 250.5, 49.5])
-    // 0 − (100 + 250.5 + 49.5)
     expect(await sumRegisterBalance(payload, registerC)).toBe(-400)
   })
 
@@ -400,7 +392,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     expect(result.success).toBe(false)
     expect(calls).toBe(2)
     expect(await rowsDescribed(description)).toEqual([])
-    // unchanged from the batch above
     expect(await sumRegisterBalance(payload, registerC)).toBe(-400)
   })
 
@@ -471,7 +462,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
         description: `Anulowanie transakcji #${id}\n${reason(5)}`,
       },
     ])
-    // bilans 2 750 − 400
     expected = { ...expected, discount: 0, balance: 2_350 }
     expect(await figures()).toEqual(expected)
   })
@@ -481,7 +471,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
       success: true,
     })
 
-    // A 5 700 + 3 000; materiały 2 800 − 3 000; bilans 10 000 − (−200 + 5 000) + 150
     expected = { ...expected, registerA: 8_700, materials: -200, balance: 5_350 }
     expect(await figures()).toEqual(expected)
   })
@@ -492,7 +481,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     expect(await cancelTransferAction(id, { reason: reason(3) })).toEqual({ success: true })
 
     expect((await cancellationsOf(id)).map((row) => row.amount)).toEqual([-200])
-    // A 8 700 − 200; materiały −200 + 200; bilans 10 000 − 5 000 + 150
     expected = { ...expected, registerA: 8_500, materials: 0, balance: 5_150 }
     expect(await figures()).toEqual(expected)
   })
@@ -502,7 +490,6 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
       success: true,
     })
 
-    // Pozostało due − 700 − 300
     expected = { ...expected, bonus: 0, remaining: due - 1_000 }
     expect(await figures()).toEqual(expected)
   })
@@ -537,8 +524,22 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     expect(await editLabor(6_000)).toEqual({ success: true })
 
     expect(await amountEditsOf(await stepId(4))).toEqual([{ previous: 5_000, next: 6_000 }])
-    // bilans 5 150 − (6 000 − 5 000)
     expected = { ...expected, labor: 6_000, balance: 4_150 }
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('cancels once when two cancels of the same transfer race', async () => {
+    const id = await stepId(6)
+
+    const results = await Promise.all([
+      cancelTransferAction(id, { reason: reason(6) }),
+      cancelTransferAction(id, { reason: reason(6) }),
+    ])
+
+    expect(results).toContainEqual({ success: true })
+    expect(results).toContainEqual({ success: false, error: 'Transakcja jest już anulowana.' })
+    expect(await cancellationsOf(id)).toHaveLength(1)
+    expected = { ...expected, loss: 0, balance: 4_000 }
     expect(await figures()).toEqual(expected)
   })
 })
