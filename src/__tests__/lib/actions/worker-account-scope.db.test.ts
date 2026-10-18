@@ -5,13 +5,12 @@ import { getDb } from '@/lib/db/get-db'
 import type { RoleT } from '@/lib/auth/roles'
 import type { WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser } from '@/__tests__/helpers/user'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const PASSWORD = 'test-password-123'
 const OWNER_EMAIL = 'scope-owner@test.local'

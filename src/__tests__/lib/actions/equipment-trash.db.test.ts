@@ -1,6 +1,7 @@
 import { describe, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 import { ENV_READY } from '@/__tests__/helpers/payload'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
@@ -9,20 +10,13 @@ const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 describe.skipIf(!ENV_READY)('equipment trash actions (DB)', () => {
   describeTrashContract({
     table: 'equipment',
     nameColumn: 'name',
     prefix: 'EX-916 akcje',
-    create: (payload, name) =>
-      payload.create({
-        collection: 'equipment',
-        data: { name, status: 'IN_USE' },
-        overrideAccess: true,
-        context: { skipRevalidation: true },
-      }),
+    create: async (payload, name) => ({ id: await createTestEquipment(payload, name) }),
     addChild: (payload, equipmentId) =>
       payload.create({
         collection: 'equipment-events',

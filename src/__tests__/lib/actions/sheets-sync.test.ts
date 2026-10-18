@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 import type { MaterialSyncPreviewT } from '@/lib/actions/sheets-sync'
 import { setGoogleCredentialEnv } from '@/__tests__/helpers/google-credentials'
+import { activeInvestmentExecute } from '@/__tests__/helpers/transfer-hook-args'
 
 const valuesGetMock = vi.fn()
 const valuesAppendMock = vi.fn()
@@ -65,7 +66,7 @@ const mockPayload = {
   findByID: findByIDMock,
   // The completed-investment lock reads the status through the drizzle adapter, so the double needs
   // one — „aktywna", since the lock has its own spec and the sync is the subject here.
-  db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } },
+  db: { drizzle: { execute: activeInvestmentExecute } },
 } as unknown as Payload
 
 vi.mock('payload', async (importOriginal) => {
@@ -76,9 +77,7 @@ vi.mock('payload', async (importOriginal) => {
   }
 })
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const {
   previewMaterialSync,

@@ -1,5 +1,6 @@
 import { describe, vi } from 'vitest'
 import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
+import { createTestInspection, createTestVehicle } from '@/__tests__/helpers/fleet-db'
 import { ENV_READY } from '@/__tests__/helpers/payload'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
@@ -8,27 +9,17 @@ const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 describe.skipIf(!ENV_READY)('vehicle trash actions (DB)', () => {
   describeTrashContract({
     table: 'vehicles',
     nameColumn: 'registration',
     prefix: 'EX915 A',
-    create: (payload, registration) =>
-      payload.create({
-        collection: 'vehicles',
-        data: { registration, make: 'Ford', model: 'Transit', status: 'ACTIVE' },
-        overrideAccess: true,
-        context: { skipRevalidation: true },
-      }),
+    create: async (payload, registration) => ({
+      id: await createTestVehicle(payload, registration),
+    }),
     addChild: (payload, vehicleId) =>
-      payload.create({
-        collection: 'vehicle-inspections',
-        data: { vehicle: vehicleId, type: 'TECHNICAL', performedAt: '2026-08-01T00:00:00.000Z' },
-        overrideAccess: true,
-        context: { skipRevalidation: true },
-      }),
+      createTestInspection(payload, vehicleId, '2026-08-01T00:00:00.000Z'),
     childTable: 'vehicle_inspections',
     childForeignKey: 'vehicle_id',
     loadActions: async () => {

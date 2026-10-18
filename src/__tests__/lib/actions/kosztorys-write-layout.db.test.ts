@@ -6,12 +6,11 @@ import { readInvestmentRevision } from '@/lib/db/investment-revision'
 import { LAYOUT_STALE } from '@/lib/kosztorys/reorder-layout'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { writeKosztorysLayoutAction } = await import('@/lib/actions/kosztorys')
 

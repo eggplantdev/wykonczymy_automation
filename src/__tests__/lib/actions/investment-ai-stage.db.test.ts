@@ -8,15 +8,10 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const MARKER = 'investment-ai-stage-action-db'
 

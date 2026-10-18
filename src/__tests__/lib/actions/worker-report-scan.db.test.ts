@@ -10,16 +10,13 @@ import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/lab
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { createTestUser } from '@/__tests__/helpers/user'
+import { scheduled } from '@/__tests__/stubs/next-server'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-const scheduled = vi.hoisted(() => [] as (() => unknown)[])
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: (task: () => unknown) => void scheduled.push(task) }
-})
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { createScannedReportAction } = await import('@/lib/actions/worker-report-scan')
 
@@ -34,20 +31,10 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
   let itemId: number
   let itemRef: number
 
-  const ctx = { context: { skipRevalidation: true } }
+  const purgeMedia = () => purgeTestMedia(db, FILENAME_PREFIX)
 
-  const purgeMedia = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
-
-  // Raw INSERT: an upload through Payload would push bytes at the Blob store for a fixture nothing opens.
-  async function insertMedia(name: string, uploadedBy = managerId): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string, uploadedBy = managerId) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
   const mediaExists = async (id: number) =>
     (await db.execute(sql`SELECT 1 FROM media WHERE id = ${id}`)).rows.length > 0
@@ -75,14 +62,15 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     await purgeFixtureUsers(db)
 
     investmentId = await createTestInvestment(payload, 'EX-949 scan report spec')
-    const user = (name: string, email: string, role: 'EMPLOYEE' | 'MANAGER') =>
-      payload.create({
-        collection: 'users',
-        data: { name, role, email, password: 'test-password-123' },
-        ...ctx,
-      })
-    workerId = Number((await user('Jan Skanowany', 'scan-worker@test.local', 'EMPLOYEE')).id)
-    managerId = Number((await user('Kierownik Skanu', 'scan-manager@test.local', 'MANAGER')).id)
+    workerId = await createTestUser(payload, {
+      name: 'Jan Skanowany',
+      email: 'scan-worker@test.local',
+    })
+    managerId = await createTestUser(payload, {
+      name: 'Kierownik Skanu',
+      email: 'scan-manager@test.local',
+      role: 'MANAGER',
+    })
     authState.userId = managerId
     authState.role = 'MANAGER'
     ;({
@@ -98,9 +86,7 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     )
   })
 
-  beforeEach(() => {
-    scheduled.length = 0
-  })
+  beforeEach(() => {})
 
   afterAll(async () => {
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})

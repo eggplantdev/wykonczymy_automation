@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 // Real `payload.update`, because the update rewrites the sessions array from the merged doc — a
 // delete ordered before it would be undone, and only the persisted rows show that.
@@ -13,7 +14,6 @@ const actor = vi.hoisted(() => ({ id: 1, role: 'OWNER', name: 'T', email: 't@t.p
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => actor),
 }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const EMAIL = 'toggle-active-sessions@test.local'
 const PASSWORD = 'test-password-123'
@@ -34,15 +34,11 @@ describe.skipIf(!ENV_READY)('toggleUserActive — sessions (DB)', () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    workerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: { name: 'Konto Sesji', role: 'EMPLOYEE', email: EMAIL, password: PASSWORD },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+    workerId = await createTestUser(payload, {
+      name: 'Konto Sesji',
+      email: EMAIL,
+      password: PASSWORD,
+    })
   })
 
   afterAll(async () => {
@@ -100,16 +96,8 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
     payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    const create = async (name: string, role: 'OWNER' | 'EMPLOYEE', email: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'users',
-            data: { name, role, email, password: PASSWORD },
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
+    const create = (name: string, role: 'OWNER' | 'EMPLOYEE', email: string) =>
+      createTestUser(payload, { name, role, email, password: PASSWORD })
     ownerId = await create('Właściciel Fikstura', 'OWNER', 'toggle-owner@test.local')
     employeeId = await create('Pracownik Fikstura', 'EMPLOYEE', 'toggle-employee@test.local')
   })

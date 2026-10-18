@@ -4,15 +4,9 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-const session = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: session.userId, email: 'stale@token.invalid', name: 'Jan', role: 'EMPLOYEE' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const PREFIX = 'ex996'
 
@@ -44,12 +38,13 @@ describe.skipIf(!ENV_READY)('changeOwnLanguageAction (DB)', () => {
   beforeAll(async () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
+    authState.role = 'EMPLOYEE'
     actions = await import('@/lib/actions/account-language')
   })
 
   beforeEach(async () => {
     await cleanUp()
-    session.userId = await create(`${PREFIX}-self@test.invalid`, null)
+    authState.userId = await create(`${PREFIX}-self@test.invalid`, null)
     otherId = await create(`${PREFIX}-other@test.invalid`, 'ru')
   })
 
@@ -61,7 +56,7 @@ describe.skipIf(!ENV_READY)('changeOwnLanguageAction (DB)', () => {
     const result = await actions.changeOwnLanguageAction('uk')
 
     expect(result.success).toBe(true)
-    expect(await storedLanguage(session.userId)).toBe('uk')
+    expect(await storedLanguage(authState.userId)).toBe('uk')
     expect(await storedLanguage(otherId)).toBe('ru')
   })
 
@@ -70,13 +65,13 @@ describe.skipIf(!ENV_READY)('changeOwnLanguageAction (DB)', () => {
     const result = await actions.changeOwnLanguageAction('pl')
 
     expect(result.success).toBe(true)
-    expect(await storedLanguage(session.userId)).toBeNull()
+    expect(await storedLanguage(authState.userId)).toBeNull()
   })
 
   it('refuses a value outside the language list and writes nothing', async () => {
     const result = await actions.changeOwnLanguageAction('de' as LanguageT)
 
     expect(result.success).toBe(false)
-    expect(await storedLanguage(session.userId)).toBeNull()
+    expect(await storedLanguage(authState.userId)).toBeNull()
   })
 })

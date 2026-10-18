@@ -1,17 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-vi.mock('@payload-config', () => ({ default: {} }))
-
-const mockRequireAuth = vi.fn()
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
   getPayload: vi.fn().mockResolvedValue({}),
 }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('next/headers', () => ({
   headers: async () => new Headers({ 'user-agent': 'iPhone Safari' }),
 }))
@@ -28,13 +24,14 @@ vi.mock('@/lib/db/push-subscriptions', () => ({
 
 const { subscribePushAction, unsubscribePushAction } = await import('@/lib/actions/push')
 
-const worker = { id: 7, email: 'w@test.local', name: 'Worker', role: 'EMPLOYEE' as const }
+const WORKER_ID = 7
 const PHONE = 'https://push.test.local/phone'
 const subscription = { endpoint: PHONE, keys: { p256dh: 'p256dh', auth: 'auth' } }
 
 beforeEach(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {})
-  mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: worker })
+  authState.userId = WORKER_ID
+  authState.role = 'EMPLOYEE'
   upsertPushSubscription.mockReset()
   deletePushSubscription.mockReset()
 })
@@ -42,7 +39,7 @@ beforeEach(() => {
 describe('subscribePushAction', () => {
   it('registers the device for the session account', async () => {
     expect(await subscribePushAction(subscription)).toEqual({ success: true })
-    expect(upsertPushSubscription).toHaveBeenCalledExactlyOnceWith(db, worker.id, {
+    expect(upsertPushSubscription).toHaveBeenCalledExactlyOnceWith(db, WORKER_ID, {
       endpoint: PHONE,
       p256dh: 'p256dh',
       auth: 'auth',
@@ -61,7 +58,7 @@ describe('subscribePushAction', () => {
   )
 
   it('refuses a caller without a session', async () => {
-    mockRequireAuth.mockResolvedValue({ success: false, error: 'Brak sesji' })
+    vi.mocked(getCurrentUserJwt).mockResolvedValueOnce(undefined)
 
     expect((await subscribePushAction(subscription)).success).toBe(false)
     expect(upsertPushSubscription).not.toHaveBeenCalled()
@@ -71,6 +68,6 @@ describe('subscribePushAction', () => {
 describe('unsubscribePushAction', () => {
   it('removes the device only from the session account', async () => {
     expect(await unsubscribePushAction(PHONE)).toEqual({ success: true })
-    expect(deletePushSubscription).toHaveBeenCalledExactlyOnceWith(db, worker.id, PHONE)
+    expect(deletePushSubscription).toHaveBeenCalledExactlyOnceWith(db, WORKER_ID, PHONE)
   })
 })

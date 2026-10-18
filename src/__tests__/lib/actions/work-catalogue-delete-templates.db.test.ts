@@ -10,14 +10,13 @@ import {
   createTestTemplate,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Deleting the entry must take the praca with it — a trashed szablon included, or restoring it would
 // bring back a praca with no content.
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { deleteCatalogueItemAction } = await import('@/lib/actions/work-catalogue')
 

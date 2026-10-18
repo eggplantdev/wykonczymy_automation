@@ -4,9 +4,9 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const PREFIX = 'ex968'
 const LIVE = `${PREFIX}-live@test.invalid`
@@ -42,17 +42,8 @@ describe.skipIf(!ENV_READY)('worker e-mail clash (DB)', () => {
     actions = await import('@/lib/actions/workers')
     await cleanUp()
 
-    const create = async (email: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'users',
-            data: { name: 'Jan Testowy', email, role: 'EMPLOYEE', password: crypto.randomUUID() },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
+    const create = (email: string) =>
+      createTestUser(payload, { name: 'Jan Testowy', email, password: crypto.randomUUID() })
     liveId = await create(LIVE)
     const trashedId = await create(TRASHED)
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${trashedId}`)

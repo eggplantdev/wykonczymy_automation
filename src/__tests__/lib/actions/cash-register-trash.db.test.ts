@@ -5,6 +5,9 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
+import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
@@ -12,7 +15,6 @@ const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
   let payload: Payload
@@ -20,16 +22,8 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
   let actions: typeof import('@/lib/actions/cash-register-trash')
   let ownerId: number
 
-  const createRegister = async (name: string, type: 'AUXILIARY' | 'MAIN' = 'AUXILIARY') =>
-    Number(
-      (
-        await payload.create({
-          collection: 'cash-registers',
-          data: { name, type, owner: ownerId },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+  const createRegister = (name: string, type: 'AUXILIARY' | 'MAIN' = 'AUXILIARY') =>
+    createTestRegister(payload, ownerId, name, { type })
 
   const trashedAt = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT trashed_at FROM cash_registers WHERE id = ${id}`)
@@ -64,20 +58,10 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     actions = await import('@/lib/actions/cash-register-trash')
     await purgeFixtureUsers(db)
 
-    ownerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Kosz Kas',
-            role: 'EMPLOYEE',
-            email: 'kosz-kas-actions@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+    ownerId = await createTestUser(payload, {
+      name: 'Kosz Kas',
+      email: 'kosz-kas-actions@test.local',
+    })
   })
 
   beforeEach(() => {
@@ -92,19 +76,33 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('lets a MANAGER trash, restore and delete an AUXILIARY kasa forever', async () => {
-    const id = await createRegister('Kasa managera')
-    session.role = 'MANAGER'
-
-    expect((await actions.trashCashRegisterAction(id)).success).toBe(true)
-    expect(await trashedAt(id)).not.toBeNull()
-
-    expect((await actions.restoreCashRegisterAction(id)).success).toBe(true)
-    expect(await trashedAt(id)).toBeNull()
-
-    expect((await actions.trashCashRegisterAction(id)).success).toBe(true)
-    expect((await actions.deleteCashRegisterForeverAction(id, 'Kasa managera')).success).toBe(true)
-    expect(await exists(id)).toBe(false)
+  describeTrashContract({
+    table: 'cash_registers',
+    nameColumn: 'name',
+    prefix: 'kosz-kas kontrakt',
+    create: async (contractPayload, name) => ({
+      id: await createTestRegister(contractPayload, ownerId, name),
+    }),
+    addChild: (_contractPayload, registerId) => insertTransaction(registerId, true),
+    childTable: 'transactions',
+    childForeignKey: 'source_register_id',
+    loadActions: async () => {
+      const trashActions = await import('@/lib/actions/cash-register-trash')
+      return {
+        trash: trashActions.trashCashRegisterAction,
+        restore: trashActions.restoreCashRegisterAction,
+        deleteForever: trashActions.deleteCashRegisterForeverAction,
+      }
+    },
+    setRole: (role) => {
+      session.role = role
+    },
+    missingError: 'Kasa nie istnieje.',
+    notInTrashError: 'Najpierw przenieś kasę do kosza.',
+    revalidated: {
+      trash: ['cashRegisters', 'users'],
+      deleteForever: ['cashRegisters', 'users', 'transfers'],
+    },
   })
 
   it('refuses a delete forever whose typed name does not match', async () => {
@@ -123,20 +121,6 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
       (await actions.deleteCashRegisterForeverAction(id, ' Kasa do potwierdzenia ')).success,
     ).toBe(true)
     expect(await exists(id)).toBe(false)
-  })
-
-  it('expires the kasy and users readers, and the transfers too on a delete', async () => {
-    const id = await createRegister('Kasa tagi')
-
-    await actions.trashCashRegisterAction(id)
-    expect(revalidateCollections.mock.calls.at(-1)?.[0]).toEqual(['cashRegisters', 'users'])
-
-    await actions.deleteCashRegisterForeverAction(id, 'Kasa tagi')
-    expect(revalidateCollections.mock.calls.at(-1)?.[0]).toEqual([
-      'cashRegisters',
-      'users',
-      'transfers',
-    ])
   })
 
   it('refuses a MANAGER every action on a MAIN kasa', async () => {
@@ -209,15 +193,5 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     await actions.restoreCashRegisterAction(id)
     expect(await trashedAt(id)).toBeNull()
     expect(await defaultOf(ownerId)).toBeNull()
-  })
-
-  it('refuses to delete forever a kasa that is not in the trash', async () => {
-    const id = await createRegister('Kasa poza koszem')
-
-    expect(await actions.deleteCashRegisterForeverAction(id, 'Kasa poza koszem')).toEqual({
-      success: false,
-      error: 'Najpierw przenieś kasę do kosza.',
-    })
-    expect(await exists(id)).toBe(true)
   })
 })

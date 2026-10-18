@@ -8,16 +8,12 @@ import { EXPIRE_NEXT, EXPIRE_NOW } from '@/lib/cache/tags'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-// after() schedules the sheet sync (live Google credentials) and throws outside a request scope.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
 const { revalidateTag } = await import('@/__tests__/stubs/next-cache')
@@ -37,17 +33,16 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
   const ctx = { context: { skipRevalidation: true } }
 
   async function createDraft(name: string): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${workerId})
-      RETURNING id
-    `)
+    const mediaId = await insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, {
+      kind: null,
+      createdById: workerId,
+    })
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId,
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      mediaIds: [Number(rows[0].id)],
+      mediaIds: [mediaId],
     })
     if (draftId === null) throw new Error('draft fixture refused')
     return draftId
@@ -103,21 +98,14 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
       { name: 'Decide W', email: 'worker-expense-decide@test.local', registerName: 'Kasa W' },
       ctx,
     ))
-    const managers = await payload.find({
-      collection: 'users',
-      where: { role: { equals: 'OWNER' } },
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
+    authState.userId = await firstUserId(payload, { role: 'OWNER' })
     const categories = await payload.find({
       collection: 'expense-categories',
       limit: 1,
       depth: 0,
       overrideAccess: true,
     })
-    if (!managers.docs[0] || !categories.docs[0]) throw new Error('missing OWNER / category')
-    authState.userId = Number(managers.docs[0].id)
+    if (!categories.docs[0]) throw new Error('missing category')
     expenseCategoryId = Number(categories.docs[0].id)
   })
 
@@ -125,7 +113,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     await db.execute(sql`
       DELETE FROM transactions WHERE source_register_id = ${registerId}
     `)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})
     await purgeFixtureUsers(db)
   })

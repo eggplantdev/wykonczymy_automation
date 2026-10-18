@@ -6,9 +6,7 @@ const lockState = vi.hoisted(() => ({
   rowOwner: undefined as { investmentId: number; lockMessage: string | undefined } | undefined,
 }))
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-vi.mock('@payload-config', () => ({ default: {} }))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
   getPayload: vi.fn(async () => ({})),

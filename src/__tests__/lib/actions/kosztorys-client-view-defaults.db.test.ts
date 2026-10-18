@@ -1,0 +1,89 @@
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import type { Payload } from 'payload'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
+
+const { saveClientViewDefaultsAction, saveClientViewSettingsAction } =
+  await import('@/lib/actions/kosztorys-client-view')
+const { findClientViewRow } = await import('@/lib/queries/kosztorys-client-view')
+const { createTestInvestment, deleteTestInvestment } =
+  await import('@/__tests__/helpers/investment')
+
+const SETTINGS = { hiddenColumns: ['discountValue'], hideEmptyRows: false, columnRanks: {} }
+
+describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
+  let payload: Payload
+
+  const readGlobal = () => payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
+
+  const resetGlobal = () =>
+    payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: { hiddenColumns: null, hideEmptyRows: true },
+    })
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    await resetGlobal()
+  })
+
+  // The global is firm-wide state, not this spec's own row: left mutated it decides what a later
+  // spec's investment serves.
+  afterAll(async () => {
+    await resetGlobal()
+  })
+
+  it('stores the set as the firm-wide default, sanitized against the ceiling', async () => {
+    const res = await saveClientViewDefaultsAction({
+      ...SETTINGS,
+      hiddenColumns: [...SETTINGS.hiddenColumns, 'aiPlannedQty'],
+    })
+
+    expect(res.success).toBe(true)
+    const stored = await readGlobal()
+    // `note` is hidden by default and shown here: stored as `false`, or it would read back hidden.
+    expect(stored.hiddenColumns).toMatchObject({ discountValue: true, note: false })
+    expect(stored.hiddenColumns).not.toHaveProperty('aiPlannedQty')
+    expect(stored.hideEmptyRows).toBe(false)
+  })
+})
+
+describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
+  let payload: Payload
+  let investmentId: number
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    investmentId = await createTestInvestment(payload, 'client view manager spec')
+    authState.role = 'MANAGER'
+  })
+
+  afterAll(async () => {
+    authState.role = 'OWNER'
+    if (investmentId) await deleteTestInvestment(payload, investmentId)
+    await payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: { hiddenColumns: null, hideEmptyRows: true },
+    })
+  })
+
+  it("saves this investment's settings", async () => {
+    const res = await saveClientViewSettingsAction(investmentId, SETTINGS)
+
+    expect(res.success).toBe(true)
+    const row = await findClientViewRow(payload, investmentId)
+    expect(row?.hiddenColumns).toMatchObject({ discountValue: true, net: false })
+    expect(row?.hideEmptyRows).toBe(false)
+  })
+
+  it('stores the firm-wide default', async () => {
+    const res = await saveClientViewDefaultsAction(SETTINGS)
+
+    expect(res.success).toBe(true)
+    const stored = await payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
+    expect(stored.hiddenColumns).toMatchObject({ discountValue: true, net: false })
+    expect(stored.hideEmptyRows).toBe(false)
+  })
+})

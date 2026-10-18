@@ -4,8 +4,6 @@ import { pl } from '@/lib/i18n/dictionaries/pl'
 
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
   getPayload: vi.fn(async () => ({})),
@@ -19,7 +17,6 @@ const WORKER_ID = 7
 
 describe('payout confirmation actions', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     getCurrentUserJwt.mockResolvedValue({
       id: WORKER_ID,
       email: 'w@t.com',

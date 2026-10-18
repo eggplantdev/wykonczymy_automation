@@ -1,21 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
-import { warsawToday } from '@/lib/utils/days'
 import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
-
-// Outside a request scope (i.e. in these unit tests) the real after() throws.
-const { afterWork } = vi.hoisted(() => ({ afterWork: [] as Promise<unknown>[] }))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return {
-    ...actual,
-    after: (fn: () => unknown) => {
-      afterWork.push(Promise.resolve(fn()))
-    },
-  }
-})
-
-const flushAfter = () => Promise.all(afterWork.splice(0)).then(() => undefined)
+import { flushAfter } from '@/__tests__/stubs/next-server'
 
 const mockSyncSingle = vi.fn()
 const mockSyncBulk = vi.fn()
@@ -30,8 +16,7 @@ const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
 const mockFindByID = vi.fn()
 const mockDelete = vi.fn()
-// The media reference scan asks once per relation for the whole batch and reads the held ids off
-// the matched docs, so a live reference is staged as a doc carrying that id — not as a count.
+// Resolves to the ids still referenced somewhere — those survive the orphan reclaim.
 const mockFindReferences = vi.fn()
 const mockBeginTransaction = vi.fn()
 const mockCommitTransaction = vi.fn()
@@ -42,7 +27,6 @@ const mockPayload = {
   update: mockUpdate,
   findByID: mockFindByID,
   delete: mockDelete,
-  find: mockFindReferences,
   db: {
     beginTransaction: mockBeginTransaction,
     commitTransaction: mockCommitTransaction,
@@ -71,8 +55,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
 }))
 
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
 const mockDbExecute = vi.fn()
 
 vi.mock('@/lib/db/get-db', () => ({
@@ -83,6 +65,7 @@ vi.mock('@/lib/db/get-db', () => ({
 const mockRecordDetachments = vi.fn()
 vi.mock('@/lib/db/media-detachments', () => ({
   recordDetachments: (...args: unknown[]) => mockRecordDetachments(...args),
+  findReferencedMediaIds: (...args: unknown[]) => mockFindReferences(...args),
   closeDetachments: vi.fn(),
 }))
 vi.mock('@/lib/db/sum-transfers', () => ({
@@ -172,8 +155,7 @@ beforeEach(() => {
   mockFindByID.mockReset()
   mockDelete.mockReset().mockResolvedValue(undefined)
   mockRecordDetachments.mockReset()
-  afterWork.length = 0
-  mockFindReferences.mockReset().mockResolvedValue({ docs: [] })
+  mockFindReferences.mockReset().mockResolvedValue([])
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
@@ -791,8 +773,7 @@ describe('deleteOrphanedMediaAction', () => {
   // The ids come straight from the browser and the join-table FK cascades, so an unguarded delete
   // would let any caller strip pages off other people's expenses.
   it('refuses an id a transfer still references', async () => {
-    // First relation asked is `transactions.invoice` — a transfer still holds page 101.
-    mockFindReferences.mockResolvedValueOnce({ docs: [{ invoice: [101] }] })
+    mockFindReferences.mockResolvedValueOnce([101])
 
     await deleteOrphanedMediaAction([101, 102])
     await flushAfter()

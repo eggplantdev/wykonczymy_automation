@@ -7,13 +7,8 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 // The refusal leg mocks the SESSION rather than `requireAuth`, so
 // the role gate under test is the real one.
 
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const FILENAME = 'ex-829-rzut.jpg'
 

@@ -4,19 +4,20 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { createTestInvestment } from '@/__tests__/helpers/investment'
 
 // `assets` is investments' first relationship field, so this asserts the join table the migration
 // created actually matches what Payload writes into it — a shape a mocked `payload.update` cannot
 // see.
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const NAME = 'EX-802 investment assets'
 const FILENAMES = ['ex-802-a.jpg', 'ex-802-b.jpg']
-const FILENAME_PREFIX = 'ex-802-%'
+const FILENAME_PREFIX = 'ex-802-'
 
 describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
   let payload: Payload
@@ -27,7 +28,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
 
   const purge = async () => {
     await db.execute(sql`DELETE FROM investments WHERE name = ${NAME}`)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${FILENAME_PREFIX}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
   }
 
   const attachedIds = async () => {
@@ -65,25 +66,10 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
   beforeEach(async () => {
     await purge()
 
-    // Raw INSERT, not payload.create: an upload through Payload would push bytes at the Blob store
-    // for a fixture nothing ever opens.
     mediaIds = []
-    for (const filename of FILENAMES) {
-      const { rows } = await db.execute(sql`
-        INSERT INTO media (filename, mime_type, filesize, kind)
-        VALUES (${filename}, 'image/jpeg', 1024, 'zdjecie')
-        RETURNING id
-      `)
-      mediaIds.push(Number(rows[0].id))
-    }
+    for (const filename of FILENAMES) mediaIds.push(await insertTestMedia(db, filename))
 
-    const investment = await payload.create({
-      collection: 'investments',
-      data: { name: NAME, status: 'active', settlementMode: 'NET', assets: [] },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    investmentId = Number(investment.id)
+    investmentId = await createTestInvestment(payload, NAME)
   })
 
   afterAll(purge)

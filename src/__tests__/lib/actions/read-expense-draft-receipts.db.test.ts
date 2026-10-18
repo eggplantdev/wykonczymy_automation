@@ -8,6 +8,7 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
 const { extractReceipt, extractReceipts } = vi.hoisted(() => ({
   extractReceipt: vi.fn(),
@@ -46,12 +47,12 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   async function createDraft(name: string, pageCount: number) {
     const mediaIds: number[] = []
     for (let page = 0; page < pageCount; page++) {
-      const { rows } = await db.execute(sql`
-        INSERT INTO media (filename, mime_type, filesize, created_by_id)
-        VALUES (${`${FILENAME_PREFIX}${name}-${page}.jpg`}, 'image/jpeg', 1024, ${workerId})
-        RETURNING id
-      `)
-      mediaIds.push(Number(rows[0].id))
+      mediaIds.push(
+        await insertTestMedia(db, `${FILENAME_PREFIX}${name}-${page}.jpg`, {
+          kind: null,
+          createdById: workerId,
+        }),
+      )
     }
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId,
@@ -98,7 +99,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   afterAll(async () => {
     vi.unstubAllEnvs()
     await db.execute(sql`DELETE FROM worker_expense_drafts WHERE worker_id = ${workerId}`)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})
     await purgeFixtureUsers(db)
   })

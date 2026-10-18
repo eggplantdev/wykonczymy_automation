@@ -7,20 +7,16 @@ import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-ex
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { scheduled } from '@/__tests__/stubs/next-server'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
-
-const scheduled = vi.hoisted(() => [] as unknown[])
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: (task: unknown) => void scheduled.push(task) }
-})
 
 const { deleteExpenseDraftAction, restoreExpenseDraftAction, sendExpenseDraftAction } =
   await import('@/lib/actions/worker-expense-drafts')
@@ -40,14 +36,8 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
 
   const ctx = { context: { skipRevalidation: true } }
 
-  async function insertMedia(name: string, uploadedBy: number): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string, uploadedBy: number) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
   async function createDraft(
     name: string,
@@ -132,22 +122,16 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       { name: 'Writes O', email: 'worker-expense-writes-o@test.local', registerName: 'Kasa O' },
       ctx,
     ))
-    const inactive = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'Kasa W stara', owner: workerId, type: 'AUXILIARY', active: false },
-      ...ctx,
+    inactiveRegisterId = await createTestRegister(payload, workerId, 'Kasa W stara', {
+      active: false,
     })
-    inactiveRegisterId = Number(inactive.id)
 
-    const stage = await payload.create({
-      collection: 'kosztorys-stages',
-      data: { investment: investmentId, ordinal: 1, splitMode: 'percent' },
-      overrideAccess: true,
-      ...ctx,
-    })
+    const {
+      stageIds: [stageId],
+    } = await createKosztorysTree(payload, investmentId, { sections: [], stages: [{ ordinal: 1 }] })
     await db.execute(sql`
       INSERT INTO kosztorys_stage_workers (stage_id, worker_id, value, takes_rest)
-      VALUES (${stage.id}, ${workerId}, 50, false), (${stage.id}, ${otherWorkerId}, 50, false)
+      VALUES (${stageId}, ${workerId}, 50, false), (${stageId}, ${otherWorkerId}, 50, false)
     `)
   })
 
@@ -155,7 +139,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     authState.userId = workerId
     authState.role = 'EMPLOYEE'
     reclaimUnreferencedMedia.mockReset().mockResolvedValue(undefined)
-    scheduled.length = 0
   })
 
   afterAll(async () => {
@@ -163,7 +146,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     await db.execute(
       sql`DELETE FROM worker_expense_drafts WHERE worker_id IN (${workerId}, ${otherWorkerId})`,
     )
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     for (const id of [investmentId, strangerInvestmentId]) {
       if (id) await deleteTestInvestment(payload, id).catch(() => {})
     }

@@ -11,6 +11,7 @@ import {
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
@@ -18,7 +19,6 @@ const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const PREFIX = 'kosz-inwestycji trash-actions'
 
@@ -80,22 +80,45 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
   afterAll(purge)
 
-  it('lets a MANAGER trash, restore and delete forever', async () => {
-    const id = await createInvestment(`${PREFIX} manager`)
-    session.role = 'MANAGER'
-
-    expect((await actions.trashInvestmentAction(id)).success).toBe(true)
-    expect(await trashedAt(id)).not.toBeNull()
-
-    expect((await actions.restoreInvestmentAction(id)).success).toBe(true)
-    expect(await trashedAt(id)).toBeNull()
-
-    expect((await actions.trashInvestmentAction(id)).success).toBe(true)
-    expect((await actions.deleteInvestmentForeverAction(id, `${PREFIX} manager`)).success).toBe(
-      true,
-    )
-    const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
-    expect(rows).toHaveLength(0)
+  describeTrashContract({
+    table: 'investments',
+    nameColumn: 'name',
+    prefix: `${PREFIX} kontrakt`,
+    create: async (contractPayload, name) => ({
+      id: await createTestInvestment(contractPayload, name, { status: 'quote' }),
+    }),
+    addChild: (contractPayload, investmentId) =>
+      createKosztorysTree(contractPayload, investmentId, {
+        sections: [{ name: 'S', items: [{ plannedQty: 2 }] }],
+      }),
+    childTable: 'kosztorys_items',
+    childForeignKey: 'investment_id',
+    loadActions: async () => {
+      const trashActions = await import('@/lib/actions/investment-trash')
+      return {
+        trash: trashActions.trashInvestmentAction,
+        restore: trashActions.restoreInvestmentAction,
+        deleteForever: trashActions.deleteInvestmentForeverAction,
+      }
+    },
+    setRole: (role) => {
+      session.role = role
+    },
+    missingError: 'Inwestycja nie istnieje.',
+    notInTrashError: 'Najpierw przenieś inwestycję do kosza.',
+    revalidated: {
+      trash: ['investments'],
+      deleteForever: [
+        'investments',
+        'kosztoryses',
+        'kosztorysSections',
+        'kosztorysItems',
+        'kosztorysStages',
+        'stageProgress',
+        'transfers',
+        'equipmentEvents',
+      ],
+    },
   })
 
   it('refuses an EMPLOYEE every trash action', async () => {
@@ -168,17 +191,6 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect((await actions.restoreInvestmentAction(id)).success).toBe(true)
     expect(await trashedAt(id)).toBeNull()
     expect(await countRows('kosztorys_items', id)).toBe(2)
-  })
-
-  it('refuses to delete forever an investment that is not in the trash', async () => {
-    const id = await createInvestment(`${PREFIX} not-trashed`)
-
-    const result = await actions.deleteInvestmentForeverAction(id, `${PREFIX} not-trashed`)
-
-    expect(result).toEqual({ success: false, error: 'Najpierw przenieś inwestycję do kosza.' })
-    expect(await countRows('kosztorys_items', id)).toBe(0)
-    const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
-    expect(rows).toHaveLength(1)
   })
 
   it('demands the name for a used kosztorys, then deletes it with everything under it', async () => {

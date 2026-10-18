@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
 // The ownership filter runs against the real `media` rows; only the reclaim is replaced, so the
 // spec reads which ids reached it without deleting fixture rows through the Blob plugin.
@@ -13,7 +14,6 @@ const { getCurrentUserJwt, reclaimUnreferencedMedia } = vi.hoisted(() => ({
 }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const FILENAME_PREFIX = 'ex-971-orphan-'
 
@@ -26,17 +26,10 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
   let workerId: number
   let otherUserId: number
 
-  const purge = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+  const purge = () => purgeTestMedia(db, FILENAME_PREFIX)
 
-  async function insertMedia(name: string, uploadedBy: number): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string, uploadedBy: number) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
   const reclaimedIds = () => reclaimUnreferencedMedia.mock.calls.at(-1)?.[1]
 

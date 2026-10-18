@@ -3,10 +3,10 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { VehicleFormDataT } from '@/components/forms/vehicle-form/vehicle-schema'
+import { createTestVehicle } from '@/__tests__/helpers/fleet-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const PREFIX = 'EX915D'
 
@@ -41,19 +41,8 @@ describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
     actions = await import('@/lib/actions/fleet')
     await db.execute(sql`DELETE FROM vehicles WHERE upper(trim(registration)) LIKE ${`${PREFIX}%`}`)
 
-    const create = async (registration: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'vehicles',
-            data: { registration, make: 'Ford', model: 'Transit', status: 'ACTIVE' },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
-    liveId = await create(`${PREFIX}LIVE`)
-    const trashedId = await create(`${PREFIX}KOSZ`)
+    liveId = await createTestVehicle(payload, `${PREFIX}LIVE`)
+    const trashedId = await createTestVehicle(payload, `${PREFIX}KOSZ`)
     await db.execute(sql`UPDATE vehicles SET trashed_at = now() WHERE id = ${trashedId}`)
   })
 

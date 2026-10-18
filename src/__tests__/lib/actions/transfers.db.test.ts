@@ -14,20 +14,14 @@ import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { warsawToday } from '@/lib/utils/days'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-// after() schedules the sheet sync and the payout push (live credentials); it also throws outside a
-// request scope.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const {
   createTransferAction,
@@ -134,18 +128,12 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     db = await getDb(payload)
     await cleanUp()
 
-    const [owners, categories] = await Promise.all([
-      payload.find({
-        collection: 'users',
-        where: { role: { equals: 'OWNER' } },
-        limit: 1,
-        depth: 0,
-        overrideAccess: true,
-      }),
+    const [ownerId, categories] = await Promise.all([
+      firstUserId(payload, { role: 'OWNER' }),
       payload.find({ collection: 'expense-categories', limit: 1, depth: 0, overrideAccess: true }),
     ])
-    if (!owners.docs[0] || !categories.docs[0]) throw new Error('missing OWNER / category')
-    authState.userId = Number(owners.docs[0].id)
+    if (!categories.docs[0]) throw new Error('missing category')
+    authState.userId = ownerId
     expenseCategoryId = Number(categories.docs[0].id)
 
     investmentId = await createTestInvestment(payload, `${MARKER} ledger`)
