@@ -601,3 +601,18 @@
 - Evidence: EX-893 put szablony in `investments` (status `szablon`); EX-1075 moved them out, guards
   in the action gate, listings, counters and the golden master went with it. Moved with an additive
   copy migration first and a `RUN-AFTER-DEPLOY` drop after the deploy.
+
+## Delete a test only after naming the bug it would stop catching
+
+- Before removing a spec as dead or redundant, answer "which production bug becomes undetectable if
+  this goes?". "None, because <the other guard>" passes; anything else keeps it. A case that looks
+  like a twin is often the only guard of one branch (the matrix that can't tell netto from brutto,
+  the positive control that also tears down the fixture rows).
+- A negative-only browser assertion (`not.toContainText`, `toHaveCount(0)`) passes on any typo or
+  label rename — pair it with a positive control proving the element it looks for can appear.
+- `it.each` is not the lever for test bulk: a skeleton sweep over the whole suite found 52 LOC of
+  identical shapes. The wins were hand-merged clusters and a shared stub replacing copied mock
+  scaffolding.
+- Evidence: the 2026-10 suite audit (`context/archive/2026-09-15-test-suite-audit/`). The review
+  gate restored two cases phase 2 had dropped, because each was the only proof that a hook calls its
+  helper or that an early return fires.
