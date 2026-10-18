@@ -2,26 +2,12 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { createInvestmentAction } from '@/lib/actions/investments'
+import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-const seedControl = vi.hoisted(() => ({ shouldThrow: false }))
-vi.mock('@/lib/kosztorys/seed-from-preset', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/kosztorys/seed-from-preset')>()
-  return {
-    ...actual,
-    seedInvestmentFromPreset: vi.fn(
-      async (...args: Parameters<typeof actual.seedInvestmentFromPreset>) => {
-        if (seedControl.shouldThrow) throw new Error('boom: seed failed mid-transaction')
-        return actual.seedInvestmentFromPreset(...args)
-      },
-    ),
-  }
-})
-
-const { createInvestmentAction } = await import('@/lib/actions/investments')
 
 describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (DB)', () => {
   let payload: Payload
@@ -35,7 +21,7 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
   })
 
   afterEach(() => {
-    seedControl.shouldThrow = false
+    vi.mocked(seedInvestmentFromPreset).mockReset()
   })
 
   afterAll(async () => {
@@ -91,7 +77,9 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
   })
 
   it('when the preset seed throws, keeps the investment and returns a seed-failure warning', async () => {
-    seedControl.shouldThrow = true
+    vi.mocked(seedInvestmentFromPreset).mockRejectedValueOnce(
+      new Error('boom: seed failed mid-transaction'),
+    )
     const name = 'ex508-seed-throw-test'
     createdNames.push(name)
 

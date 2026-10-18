@@ -460,19 +460,19 @@ Run once, after phase 4:
 
 #### Automated
 
-- [x] 2.1 The 4 group-A specs run in `db-shared`
-- [x] 2.2 `pnpm test:integration` passes twice
-- [x] 2.3 A shuffled integration run passes (seed 26043)
-- [x] 2.4 Integration duration recorded: 62 s (64.0 s, 60.3 s; shuffled 67.4 s)
+- [x] 2.1 The 4 group-A specs run in `db-shared` — a656dd518
+- [x] 2.2 `pnpm test:integration` passes twice — a656dd518
+- [x] 2.3 A shuffled integration run passes (seed 26043) — a656dd518
+- [x] 2.4 Integration duration recorded: 62 s (64.0 s, 60.3 s; shuffled 67.4 s) — a656dd518
 
 ### Phase 3: Group B — domain pass-through seams
 
 #### Automated
 
-- [ ] 3.1 No `vi.mock` / `vi.doMock` left in the 7 group-B specs
-- [ ] 3.2 Group-B specs and the direct importers of seam modules pass in `db-shared`
-- [ ] 3.3 `pnpm test:integration` passes twice; a shuffled run passes
-- [ ] 3.4 Integration duration recorded
+- [x] 3.1 No `vi.mock` / `vi.doMock` left in the 7 group-B specs
+- [x] 3.2 Group-B specs and the direct importers of seam modules pass in `db-shared`
+- [x] 3.3 `pnpm test:integration` passes twice; a shuffled run passes (seed 18993)
+- [x] 3.4 Integration duration recorded: 52 s (54.4 s, 49.4 s; shuffled 49.7 s)
 
 ### Phase 4: Group C — external-service seams
 

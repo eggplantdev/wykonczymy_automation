@@ -4,28 +4,12 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { getSnapshot } from '@/lib/db/snapshots'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
+import { restoreSnapshotAction, saveSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-
-let onSnapshotRead: (() => Promise<void>) | undefined
-vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/kosztorys/serialize-kosztorys')>()
-  return {
-    ...actual,
-    // Forwards every argument: a mock that dropped `req` would move the read onto its own connection.
-    serializeKosztorys: async (...args: Parameters<typeof actual.serializeKosztorys>) => {
-      const tree = await actual.serializeKosztorys(...args)
-      await onSnapshotRead?.()
-      return tree
-    },
-  }
-})
-
-const { restoreSnapshotAction, saveSnapshotAction } =
-  await import('@/lib/actions/kosztorys-snapshots')
 
 describe.skipIf(!ENV_READY)('version restore vs a concurrent autosave (DB)', () => {
   let payload: Payload
@@ -43,7 +27,6 @@ describe.skipIf(!ENV_READY)('version restore vs a concurrent autosave (DB)', () 
   })
 
   afterAll(async () => {
-    onSnapshotRead = undefined
     if (investmentId) await deleteTestInvestment(payload, investmentId)
   })
 
@@ -60,16 +43,19 @@ describe.skipIf(!ENV_READY)('version restore vs a concurrent autosave (DB)', () 
       `)
       const snapshotId = Number(named.rows[0].id)
 
+      const readTree = vi.mocked(serializeKosztorys).getMockImplementation()!
       // No `req`: a separate connection committing on its own, as an autosave from another tab does.
-      onSnapshotRead = async () => {
-        onSnapshotRead = undefined // the restore's retry, if any, must not race itself
+      // Forwards every argument: a seam that dropped `req` would move the read onto its own connection.
+      vi.mocked(serializeKosztorys).mockImplementationOnce(async (...args) => {
+        const tree = await readTree(...args)
         await payload.update({
           collection: 'kosztorys-items',
           id: itemId,
           data: { description: 'Malowanie — poprawka z drugiej karty' },
           context: { skipRevalidation: true },
         })
-      }
+        return tree
+      })
 
       expect((await restoreSnapshotAction(snapshotId, investmentId)).success).toBe(true)
 

@@ -4,27 +4,11 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import type { AddItemInputT } from '@/lib/actions/kosztorys'
+import { addItemAction, type AddItemInputT } from '@/lib/actions/kosztorys'
+import { applyCatalogueWrite } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-// Pass-through unless a test arms it — the only way to fail the katalog write without racing the
-// action's own reads.
-const catalogueWrite = vi.hoisted(() => ({ failNext: false }))
-vi.mock('@/lib/kosztorys/work-catalogue/write-catalogue-entry', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/lib/kosztorys/work-catalogue/write-catalogue-entry')>()
-  return {
-    ...actual,
-    applyCatalogueWrite: async (...args: Parameters<typeof actual.applyCatalogueWrite>) => {
-      if (catalogueWrite.failNext) throw new Error('katalog write failed')
-      return actual.applyCatalogueWrite(...args)
-    },
-  }
-})
-
-const { addItemAction } = await import('@/lib/actions/kosztorys')
 
 type DataT = AddItemInputT['data']
 
@@ -44,7 +28,7 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
   })
 
   afterEach(async () => {
-    catalogueWrite.failNext = false
+    vi.mocked(applyCatalogueWrite).mockReset()
     for (const id of createdSections.splice(0)) {
       await db.execute(sql`DELETE FROM kosztorys_sections WHERE id = ${id}`)
     }
@@ -262,7 +246,8 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     const sectionId = await createSection()
     const description = `Wycofana ${suffix}`
 
-    catalogueWrite.failNext = true
+    // The only way to fail the katalog write without racing the action's own reads.
+    vi.mocked(applyCatalogueWrite).mockRejectedValueOnce(new Error('katalog write failed'))
     const result = await addItemAction(
       atEnd(sectionId, { description }, { mode: 'new', keepCatalogueCategory: true }),
     )

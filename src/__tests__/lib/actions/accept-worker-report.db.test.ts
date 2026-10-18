@@ -3,7 +3,8 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
-import { insertWorkerReport, readWorkerReport } from '@/lib/db/worker-reports'
+import { insertWorkerReport, readWorkerReport, settleReport } from '@/lib/db/worker-reports'
+import { acceptWorkerReportAction, pointReportLineAction } from '@/lib/actions/accept-worker-report'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -11,23 +12,6 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
-
-// The last write of the transaction: failing it is the one way to reach „the tree, the etap and the
-// version were all written, then the accept failed" without racing the action.
-const recording = vi.hoisted(() => ({ failNext: false }))
-vi.mock('@/lib/db/worker-reports', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/db/worker-reports')>()
-  return {
-    ...actual,
-    settleReport: async (...args: Parameters<typeof actual.settleReport>) => {
-      if (recording.failNext) throw new Error('record failed')
-      return actual.settleReport(...args)
-    },
-  }
-})
-
-const { acceptWorkerReportAction, pointReportLineAction } =
-  await import('@/lib/actions/accept-worker-report')
 
 describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
   let payload: Payload
@@ -127,7 +111,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
   })
 
   afterEach(async () => {
-    recording.failNext = false
+    vi.mocked(settleReport).mockReset()
     if (investmentId) await deleteTestInvestment(payload, investmentId)
   })
 
@@ -335,7 +319,9 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 2 }])
     const snapshotsBefore = await snapshotCount()
     const treeBefore = await selectKosztorysTreeData(db, investmentId)
-    recording.failNext = true
+    // The last write of the transaction: failing it is the one way to reach „the tree, the etap and
+    // the version were all written, then the accept failed" without racing the action.
+    vi.mocked(settleReport).mockRejectedValueOnce(new Error('record failed'))
 
     await expect(
       accept({

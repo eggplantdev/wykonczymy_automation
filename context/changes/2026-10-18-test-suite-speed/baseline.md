@@ -5,7 +5,7 @@ commit this change starts from. The after-measurement repeats them with `measure
 
 | Command                                                   | Before                      | Phase 1 | Phase 2 | Phase 3 | Phase 4 | After |
 | --------------------------------------------------------- | --------------------------- | ------- | ------- | ------- | ------- | ----- |
-| `test:integration` vitest duration                        | ~70 s                       | 89 s¹   | 62 s³   |         |         |       |
+| `test:integration` vitest duration                        | ~70 s                       | 89 s¹   | 62 s³   | 52 s⁴   |         |       |
 | — `db` project (22 files): total / import / tests         | 45.95 s / 26.89 s / 16.83 s |         |         |         |         |       |
 | — `db-shared` project (135 files): total / import / tests | 31.92 s / 4.43 s / 26.90 s  |         |         |         |         |       |
 | `test:parity` wall-clock                                  | 31.8 s                      | 6.4 s   |         |         |         |       |
@@ -16,3 +16,4 @@ lock); Phase 1 does not touch the vitest run itself, so the delta is noise until
 after-measurement repeats it on an idle machine.
 ² Warm clone; a rebuild (missing or stale template) takes 30.4 s.
 ³ Mean of two runs (64.0 s, 60.3 s); import 25 s, tests 35 s across both projects.
+⁴ Mean of two runs (54.4 s, 49.4 s); import 17 s, tests 33 s; shuffled run 49.7 s.

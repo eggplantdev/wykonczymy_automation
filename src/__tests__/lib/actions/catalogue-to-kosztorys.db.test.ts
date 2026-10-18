@@ -3,6 +3,11 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { placeCatalogueItems } from '@/lib/kosztorys/work-catalogue/place-catalogue-items'
+import {
+  insertCatalogueItemsAction,
+  createSectionWithCatalogueItemsAction,
+} from '@/lib/actions/catalogue-to-kosztorys'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -11,25 +16,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // N rows must get N DISTINCT display_orders (insertItems remaps RETURNING ids by (section_id, display_order)
 // and degrades to positional on a tie).
-// The only way to reach „the sekcja was created, then the write
-// failed" — the one state the shared transaction exists to make impossible — without racing a DELETE
-// against the action's own catalogue read.
-const placement = vi.hoisted(() => ({ failNext: false }))
-vi.mock('@/lib/kosztorys/work-catalogue/place-catalogue-items', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/lib/kosztorys/work-catalogue/place-catalogue-items')>()
-  return {
-    ...actual,
-    placeCatalogueItems: async (...args: Parameters<typeof actual.placeCatalogueItems>) => {
-      if (placement.failNext) throw new Error('placement failed')
-      return actual.placeCatalogueItems(...args)
-    },
-  }
-})
-
-const { insertCatalogueItemsAction, createSectionWithCatalogueItemsAction } =
-  await import('@/lib/actions/catalogue-to-kosztorys')
-
 describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -51,7 +37,7 @@ describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
   })
 
   afterEach(async () => {
-    placement.failNext = false
+    vi.mocked(placeCatalogueItems).mockReset()
     for (const id of createdSections.splice(0)) {
       await db.execute(sql`DELETE FROM kosztorys_sections WHERE id = ${id}`)
     }
@@ -246,7 +232,10 @@ describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
     })
     const name = `Osierocona ${suffix}`
 
-    placement.failNext = true
+    // The only way to reach „the sekcja was created, then the write failed" — the one state the shared
+    // transaction exists to make impossible — without racing a DELETE against the action's own
+    // catalogue read.
+    vi.mocked(placeCatalogueItems).mockRejectedValueOnce(new Error('placement failed'))
     const result = await createSectionWithCatalogueItemsAction(investmentId, name, [id])
     expect(result.success).toBe(false)
 

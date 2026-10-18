@@ -2,6 +2,14 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import {
+  createEmptyPresetAction,
+  reloadFromPresetAction,
+  renamePresetAction,
+  savePresetAction,
+} from '@/lib/actions/kosztorys-presets'
+import { restoreSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
+import { serializeTemplate } from '@/lib/kosztorys/templates/serialize-template'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -17,26 +25,6 @@ import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-// A live szablon cannot hold a tree that breaks on insert — its own unique indexes stop it — so the
-// rollback case swaps in a serialized tree whose etapy collide on (investment_id, ordinal), the
-// cheapest way to make `restoreKosztorys` throw AFTER the wipe and the snapshot insert.
-const serializeControl = vi.hoisted(() => ({ brokenId: 0, broken: null as unknown }))
-vi.mock('@/lib/kosztorys/templates/serialize-template', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/lib/kosztorys/templates/serialize-template')>()
-  return {
-    ...actual,
-    serializeTemplate: vi.fn(async (...args: Parameters<typeof actual.serializeTemplate>) =>
-      args[1] === serializeControl.brokenId
-        ? (serializeControl.broken as SnapshotPayloadT)
-        : actual.serializeTemplate(...args),
-    ),
-  }
-})
-
-const { createEmptyPresetAction, reloadFromPresetAction, renamePresetAction, savePresetAction } =
-  await import('@/lib/actions/kosztorys-presets')
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
 const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
@@ -89,8 +77,14 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     )
     await addTestTemplateSection(payload, presetId, 'Z szablonu', [entryId])
     brokenPresetId = await createTestTemplate(payload, 'ex560-reload-fixture-broken')
-    serializeControl.brokenId = brokenPresetId
-    serializeControl.broken = brokenPresetPayload()
+    // A live szablon cannot hold a tree that breaks on insert — its own unique indexes stop it — so
+    // the rollback case swaps in a serialized tree whose etapy collide on (investment_id, ordinal),
+    // the cheapest way to make `restoreKosztorys` throw AFTER the wipe and the snapshot insert.
+    const serialize = vi.mocked(serializeTemplate).getMockImplementation()!
+    const broken = brokenPresetPayload()
+    vi.mocked(serializeTemplate).mockImplementation(async (...args) =>
+      args[1] === brokenPresetId ? broken : serialize(...args),
+    )
   })
 
   afterAll(async () => {
@@ -255,7 +249,6 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     const snapshotIds = await preReloadSnapshotIds()
     expect(snapshotIds.length).toBeGreaterThan(0)
 
-    const { restoreSnapshotAction } = await import('@/lib/actions/kosztorys-snapshots')
     await restoreSnapshotAction(snapshotIds[0], investmentId)
 
     expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])

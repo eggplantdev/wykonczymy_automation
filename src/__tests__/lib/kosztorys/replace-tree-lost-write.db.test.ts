@@ -9,21 +9,6 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-let onSnapshotRead: (() => Promise<void>) | undefined
-vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/kosztorys/serialize-kosztorys')>()
-  return {
-    ...actual,
-    // Forwards every argument: the replacement passes its transaction-scoped `req`, and a mock that
-    // dropped it would quietly move the read back onto its own connection — testing the wrong thing.
-    serializeKosztorys: async (...args: Parameters<typeof actual.serializeKosztorys>) => {
-      const tree = await actual.serializeKosztorys(...args)
-      await onSnapshotRead?.()
-      return tree
-    },
-  }
-})
-
 describe.skipIf(!ENV_READY)('wholesale replacement vs a concurrent autosave (DB)', () => {
   let payload: Payload
   let investmentId: number
@@ -53,7 +38,6 @@ describe.skipIf(!ENV_READY)('wholesale replacement vs a concurrent autosave (DB)
   })
 
   afterAll(async () => {
-    onSnapshotRead = undefined
     if (investmentId) await deleteTestInvestment(payload, investmentId)
   })
 
@@ -65,17 +49,21 @@ describe.skipIf(!ENV_READY)('wholesale replacement vs a concurrent autosave (DB)
       const before = await serializeKosztorys(investmentId)
       const snapshotsBefore = await listSnapshots(await getDb(payload), investmentId)
 
+      const readTree = vi.mocked(serializeKosztorys).getMockImplementation()!
       // Runs with no `req`, so it is a separate connection committing on its own — exactly what an
       // autosave from another tab is.
-      onSnapshotRead = async () => {
-        onSnapshotRead = undefined // the replacement's retry, if any, must not race itself
+      // Forwards every argument: the replacement passes its transaction-scoped `req`, and a seam that
+      // dropped it would quietly move the read back onto its own connection — testing the wrong thing.
+      vi.mocked(serializeKosztorys).mockImplementationOnce(async (...args) => {
+        const tree = await readTree(...args)
         await payload.update({
           collection: 'kosztorys-items',
           id: itemId,
           data: { description: 'Malowanie — poprawka z drugiej karty' },
           context: { skipRevalidation: true },
         })
-      }
+        return tree
+      })
 
       await replaceTreeWithSnapshot(payload, {
         investmentId,
