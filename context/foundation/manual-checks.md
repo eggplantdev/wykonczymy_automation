@@ -1001,6 +1001,12 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       przywrócony", a paragon wraca jako osobne oczekujące zgłoszenie z tą samą notatką i
       odczytem AI.
 
+## EX-1080 — restore-lock-first — „Przywróć wersję" zapisuje stan sprzed przywrócenia
+
+- [ ] Kosztorys z zapisaną wersją → zmień opis pozycji → „Wersje" → przywróć tę wersję: rozpiska
+      wraca do stanu wersji (łącznie z VAT i współczynnikami), a na liście wersji pojawia się nowa
+      automatyczna wersja z opisem sprzed przywrócenia; przywrócenie jej oddaje zmieniony opis.
+
 ## EX-1079 — worker-account-scope — „Edytuj pracownika" trzyma zasady kont
 
 - [ ] Jako Manager otwórz stronę Właściciela w „Pracownicy": brak przycisku „Edytuj pracownika".
