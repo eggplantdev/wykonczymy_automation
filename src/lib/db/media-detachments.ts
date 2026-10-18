@@ -16,6 +16,17 @@ const isReferenced = sql.join(
   sql.raw(' OR '),
 )
 
+export async function countMediaHolders(
+  db: DbExecutorT,
+  table: string,
+  mediaId: number,
+): Promise<number> {
+  const { rows } = await db.execute(sql`
+    SELECT count(*)::int AS total FROM ${sql.identifier(table)} WHERE media_id = ${mediaId}
+  `)
+  return Number(rows[0]?.total ?? 0)
+}
+
 export async function findReferencedMediaIds(
   db: DbExecutorT,
   mediaIds: number[],

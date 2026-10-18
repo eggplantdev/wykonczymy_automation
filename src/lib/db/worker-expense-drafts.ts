@@ -834,10 +834,3 @@ export function pendingDraftsHint(blockers: string[]): string {
     ? ' Zgłoszenia wydatków najpierw przyjmij lub odrzuć.'
     : ''
 }
-
-export async function countDraftsHoldingMedia(db: DbExecutorT, mediaId: number): Promise<number> {
-  const res = await db.execute(sql`
-    SELECT count(*)::int AS total FROM worker_expense_draft_media WHERE media_id = ${mediaId}
-  `)
-  return Number(res.rows[0]?.total ?? 0)
-}

@@ -1045,6 +1045,13 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       (bilans, marża) uwzględniają wydatek za pierwszym razem i nie cofają się przy kolejnym
       odświeżeniu.
 
+## 2026-10-18 — media-holders-one-list — pliki ze zgłoszeń dalej chronione
+
+- [ ] Zgłoszenie prac lub zgłoszenie wydatku pracownika ze zdjęciem/paragonem: plik nie pojawia się
+      w „Koszu plików" jako nieprzypięty, a próba jego usunięcia kończy się komunikatem „Nie można
+      usunąć pliku — jest używany w innych miejscach (zgłoszenia prac / zgłoszenia wydatków)".
+      Zdjęcie dalej widać w zgłoszeniu (refaktor listy tabel — zachowanie bez zmian).
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
