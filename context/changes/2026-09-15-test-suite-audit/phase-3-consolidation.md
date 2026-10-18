@@ -85,14 +85,14 @@ Mutation-checked in `lib/actions/transfers.ts`: CANCELLATION-type refusal, PAYOU
 form-level worker, refusal permission verb, depth 0, legacy wpłata `netAmount ?? null`, CANCELLATION
 `createdBy` — each broken guard fails a merged case.
 
-- [x] · dropped · R-db · `transfer-actions` valid INVESTOR_DEPOSIT / PAYOUT → success · −17 / `transfers.db.test.ts:208` ledger steps 1, 7
-- [x] · dropped · R-db · `transfer-actions` LABOR_COST skips `validateSourceRegister` + `queriedTables` · −19 / `transfers.db.test.ts:208` step 4
-- [x] · dropped · R-db · `transfer-actions` rollback mid-batch · −12 / `transfers.db.test.ts:429`
-- [x] · dropped · R-db · `bulk-transaction.test.ts` deleted; rollback → `transfers.db.test.ts:429`, its two worker-per-row cases moved to `transfer-actions` · −131
-- [x] · dropped · R-db · `transfer-actions` cancel success · −27 / `transfers.db.test.ts:498`
-- [x] · dropped · R-db · `transfer-actions` cancel / update on a cancelled row · −20 / `transfers.db.test.ts:551` (shared `fetchAndAuthorize`)
-- [x] · dropped · R-db · `transfer-actions` cancel audit-row create failure · −10 / `transfers.db.test.ts:487`
-- [x] · dropped · R-db · `transfer-actions` BONUS MANAGER refusal, single path · `transfers.db.test.ts:381`; bulk half stays
+- [x] · dropped · R-db · `transfer-actions` valid INVESTOR_DEPOSIT / PAYOUT → success · −17 / `transfers.db.test.ts:203` ledger steps 1, 7
+- [x] · dropped · R-db · `transfer-actions` LABOR_COST skips `validateSourceRegister` + `queriedTables` · −19 / `transfers.db.test.ts:203` step 4
+- [x] · dropped · R-db · `transfer-actions` rollback mid-batch · −12 / `transfers.db.test.ts:380`
+- [x] · dropped · R-db · `bulk-transaction.test.ts` deleted; rollback → `transfers.db.test.ts:380`, its two worker-per-row cases moved to `transfer-actions` · −131
+- [x] · dropped · R-db · `transfer-actions` cancel success · −27 / `transfers.db.test.ts:448`
+- [x] · dropped · R-db · `transfer-actions` cancel / update on a cancelled row · −20 / `transfers.db.test.ts:497` (shared `fetchAndAuthorize`)
+- [x] · dropped · R-db · `transfer-actions` cancel audit-row create failure · −10 / `transfers.db.test.ts:437`
+- [x] · dropped · R-db · `transfer-actions` BONUS MANAGER refusal, single path · `transfers.db.test.ts:333`; bulk half stays
 - [x] · fixed · trim · `transfer-actions` CANCELLATION audit row asserts only `createdBy` = canceller (now ≠ creator) and no `paymentMethod` · −12
 - [x] · fixed · merge · `transfer-actions` update „passes all edited fields" folded into update success · −20
 - [x] · fixed · describe.each · `transfer-actions` cancel + update permission matrices → one table over both actions (4 allow, 3 refuse with no-write assert, depth 0, update failure) · −150

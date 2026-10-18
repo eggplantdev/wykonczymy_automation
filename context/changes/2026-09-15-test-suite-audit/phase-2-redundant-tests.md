@@ -191,7 +191,7 @@ Paths under `components/kosztorys/editor/` unless noted.
 - [x] · fixed · R1 · `derive-financials-bucketing.test.ts:123-129` materialsGrossBase / totalSettled untouched · the matrix cell INVESTMENT_EXPENSE_NET·settled=false asserts 0 for both, whatever the amount
 - [x] · fixed · R1 · `lib/leads/fetch-lead-errors.test.ts` 'error object despite a 200', 'returns the raw body on success' · fetch-lead.test.ts:49-52 (stronger regex), :44-47; orphan comment reattached to the surviving test
 - [x] · fixed · R1 · `lib/leads/reconcile-sweep.test.ts` 'does not flag a form whose page came back short' · :44-51 (short page, saturatedForms `[]`)
-- [x] · fixed · R1 · `lib/leads/store-lead.test.ts` 'creates when no sibling exists', 'returns the existing sibling' · store-lead.db.test.ts:42-62 (DB)
+- [x] · fixed · R1 · `lib/leads/store-lead.test.ts` 'creates when no sibling exists', 'returns the existing sibling' · store-lead.db.test.ts:42-62 (DB); 'returns the existing sibling' restored by the review gate — the DB case can't see the early return
 - [x] · fixed · R1 · `leads/capture-lead.test.ts` 'sends both channels when no options are given' · :28-33 happy path
 - [x] · fixed · R5 · `leads/normalize-lead.test.ts` 'does not promote a CUSTOM field via the key heuristic' + `:32 not.toContain('Bemowo')` · exact toBe name/phone at :23-28 and :36-41
 - [x] · fixed · R1 · `leads/lead-schema.test.ts` 'parses a lead without the optional form_id' · reconcile-sweep :44 (real leadSchema, rawLead has no form_id)
@@ -203,12 +203,12 @@ Paths under `components/kosztorys/editor/` unless noted.
 - [x] · fixed · vacuous · `leads/notify.test.ts:45` `subject not.toContain('TEST')` removed · the subject is a constant with no TEST branch
 - [x] · fixed · R1 · `lib/leads/fetch-landing-asset.test.ts:49` link-local row · `http://` is refused by the protocol check, the same branch as the 'plain http' row
 - [x] · fixed · R1 · `hooks/transfers/invoice-on-cancellation.db.test.ts` 'still refuses a CANCELLATION create with no reference' · validate-hook 'still refuses a cancellation with no original' + validate-error-surfacing :35
-- [x] · fixed · R1 · `hooks/transfers/vat-plane-write-guard.db.test.ts` 'strips a plane…', 'keeps the plane…' + companyFunding fixture · validate-hook vatPlane :359-377; DB keep stays at the 'legacy wpłata' test
+- [x] · fixed · R1 · `hooks/transfers/vat-plane-write-guard.db.test.ts` 'strips a plane…', 'keeps the plane…' + companyFunding fixture · validate-hook vatPlane :280-310; DB keep stays at the 'legacy wpłata' test
 - [x] · fixed · R1 · `hooks/transfers/guard-delete.test.ts` 'string id', 'no investment' · lib/db/investment-gate.test.ts:103-113
 - [x] · fixed · wrong title · `hooks/transfers/guard-delete.test.ts` '…public 403…' now also asserts `status: 403`
-- [x] · fixed · R1 · `hooks/transfers/delete-invoice-media.test.ts` 'keeps a page another expense still references' · lib/media/delete-unreferenced-media.test.ts:65-70 (transactions `[2]` spared)
+- [x] · fixed · R1 · `hooks/transfers/delete-invoice-media.test.ts` 'keeps a page another expense still references' · lib/media/delete-unreferenced-media.test.ts:65-70 (transactions `[2]` spared); restored by the review gate — the helper spec can't see whether the hook calls it
 - [x] · fixed · R1 · `hooks/transfers/validate-lock.test.ts` 'lets an invoice-only write through', 'lets an invoice removal through' · invoice-on-locked-investment.db.test.ts:104, :115 (DB)
-- [x] · fixed · R1 · `hooks/investments/guard-status-unlock.test.ts` 'lets %s reopen' (OWNER, ADMIN), 're-save with the same status' · lib/actions/investment-unlock.test.ts:81, :89, :108 (DB)
+- [x] · fixed · R1 · `hooks/investments/guard-status-unlock.test.ts` 'lets %s reopen' (OWNER, ADMIN), 're-save with the same status' · lib/actions/investment-unlock.test.ts:69, :77, :96 (DB)
 - [x] · fixed · R1 · `hooks/investments/stamp-completed-at.test.ts` 'a refused unlock throws before the date is cleared' (+ the unused import and role param) · its `:82` could never fail (the hook returns a copy and never mutates `data`); the refusal is in guard-status-unlock :23-30
 - [x] · fixed · R1 · `app/(payload)/api/cron/translate-catalogue/route.test.ts` 'reads as a failed run when every batch failed' · :43-51 (`failed=1` → `ok:false`, `ok = failed === 0`)
 - [x] · fixed · wrong title · `app/(frontend)/api/media-register/route.test.ts` 'sniffs only the first KB…' → 'still sniffs the type when the CDN ignores the range…', now asserts `mimeType: 'application/pdf'`
