@@ -20,7 +20,7 @@ if [ -n "$push_to_prod" ]; then
   fi
   # --diff-filter=A: only ADDED migrations are pending applies. A rename/edit or a
   # deletion (e.g. removing a smoke-test migration) is never something prod needs.
-  added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$')
+  added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$' || true)
   if [ -n "$added" ]; then
     # A migration that rewrites what the OLD code reads must run once the new deploy is live —
     # migrating first serves the old code a shape it misreads. A data rewrite says so with a
@@ -54,8 +54,6 @@ if [ -n "$push_to_prod" ]; then
   fi
 fi
 
-# The unit, typecheck and DB legs share one lock hold so they can overlap; the unit leg never selects
-# `*.db.test.ts`, so without the DB legs the destructive restore path never runs before a push.
 bash scripts/with-test-lock.sh bash scripts/pre-push-tests.sh || exit 1
 
 echo "Dumping production DB from Neon..."

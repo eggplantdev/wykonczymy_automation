@@ -37,8 +37,6 @@ function stubServerActions(): Plugin {
       const names = [...code.matchAll(/^export (?:async )?function (\w+)/gm)].map(
         ([, name]) => name,
       )
-      // On `globalThis`: the dom setup resets every stub per file, but a shared project evaluates
-      // this module once per worker.
       return [
         "import { vi } from 'vitest'",
         'const stubs = (globalThis.serverActionStubs ??= [])',
@@ -58,7 +56,7 @@ function stubServerActions(): Plugin {
 // A spec that mocks a module, or patches Node's resolver, would leak that into every later file
 // sharing the module cache.
 const isolatesModules = (file: string) =>
-  /\bvi\.(mock|doMock)\(|require\.cache|_resolveFilename/.test(
+  /\bvi\.(mock|doMock|unmock|resetModules)\(|require\.cache|_resolveFilename/.test(
     readFileSync(path.join(__dirname, file), 'utf8'),
   )
 const partition = (files: string[]) => ({
@@ -72,13 +70,11 @@ const nodeSpecs = partition(
 const dbSpecs = partition(specs('src/__tests__/**/*.db.test.ts'))
 const domSpecs = partition(specs('src/__tests__/**/*.test.tsx'))
 
-// `passWithNoTests`: a partition can come out empty once its last module mock is gone.
 const baseTest = {
   globals: true,
   css: false,
   clearMocks: true,
   restoreMocks: true,
-  passWithNoTests: true,
 }
 
 const nodeTest = {
@@ -115,32 +111,27 @@ const domTest = {
   environment: 'jsdom',
   setupFiles: ['./src/__tests__/setup/stores.ts', './src/__tests__/setup/dom.ts'],
   testTimeout: 20_000,
-  // Hundreds of small ESM files each, transformed per file without a prebundle.
   deps: { optimizer: { client: { enabled: true, include: ['react-day-picker', 'date-fns'] } } },
 }
 
-// Each `*-shared` project keeps one module graph for all its files instead of one per file — the
-// import cost (~1.2 s per DB file) is paid once per worker.
+const pair = (
+  name: string,
+  project: typeof nodeProject,
+  test: typeof nodeTest | typeof domTest,
+  files: ReturnType<typeof partition>,
+) => [
+  { ...project, test: { ...test, name, include: files.isolated } },
+  { ...project, test: { ...test, name: `${name}-shared`, include: files.shared, isolate: false } },
+]
+
 export default defineConfig({
   test: {
     projects: [
-      { ...nodeProject, test: { ...nodeTest, name: 'node', include: nodeSpecs.isolated } },
-      {
-        ...nodeProject,
-        test: { ...nodeTest, name: 'node-shared', include: nodeSpecs.shared, isolate: false },
-      },
+      ...pair('node', nodeProject, nodeTest, nodeSpecs),
       // Own projects so the unit run never collects them: each one loads the Payload/Drizzle graph
       // only to skip without a DB env. `pnpm test:integration` and `pnpm test:parity` select both.
-      { ...dbProject, test: { ...dbTest, name: 'db', include: dbSpecs.isolated } },
-      {
-        ...dbProject,
-        test: { ...dbTest, name: 'db-shared', include: dbSpecs.shared, isolate: false },
-      },
-      { ...domProject, test: { ...domTest, name: 'dom', include: domSpecs.isolated } },
-      {
-        ...domProject,
-        test: { ...domTest, name: 'dom-shared', include: domSpecs.shared, isolate: false },
-      },
+      ...pair('db', dbProject, dbTest, dbSpecs),
+      ...pair('dom', domProject, domTest, domSpecs),
     ],
   },
 })

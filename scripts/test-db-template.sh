@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-#   ensure [--force]  rebuild wykonczymy-test-template when it is missing, stale or forced
-#   clone             recreate wykonczymy-test from the template
 set -euo pipefail
 cd "$(dirname "$0")/.."
 set -a; . ./.env; set +a
@@ -10,7 +8,8 @@ TEMPLATE="wykonczymy-test-template"
 MAX_AGE_DAYS=7
 # Without leaving the dump out, every push would rebuild: pre-push rewrites the dump each time.
 FINGERPRINT_INPUTS=(src/migrations/*.ts src/scripts/perf-seed-kosztorys.ts
-  src/scripts/seed-deposit-planes.ts src/scripts/seed-materials-net.ts scripts/reset-sequences.sql)
+  src/scripts/seed-deposit-planes.ts src/scripts/seed-materials-net.ts scripts/reset-sequences.sql
+  src/collections/{kosztorys-items,kosztorys-sections,kosztorys-stages,stage-progress}.ts)
 
 sql() { docker exec -i wykonczymy-test psql -U "$POSTGRES_USER" -d postgres -v ON_ERROR_STOP=1 -qtA "$@"; }
 
@@ -22,7 +21,7 @@ ensure() {
 
   if [ "$force" = "--force" ]; then reason="forced"
   elif [ -z "$comment" ]; then reason="missing"
-  elif [ "$comment" = "${comment#fingerprint=$fingerprint }" ]; then reason="migrations or seeds changed"
+  elif [ "$comment" = "${comment#fingerprint=$fingerprint }" ]; then reason="migrations, seeds or seeded collections changed"
   elif [ $(( $(date +%s) - ${built:-0} )) -gt $(( MAX_AGE_DAYS * 86400 )) ]; then reason="older than $MAX_AGE_DAYS days"
   fi
 
@@ -33,7 +32,11 @@ ensure() {
 
   echo "→ test DB template: rebuilding — $reason"
   [ -s dumps/dump-latest.sql ] || pnpm db:dump
+  # A clone whose CREATE failed leaves no database, and the import connects to it.
+  [ -n "$(sql -c "SELECT 1 FROM pg_database WHERE datname = '$DB'")" ] || sql -c "CREATE DATABASE \"$DB\"" >/dev/null
   pnpm db:import:test
+  # Its three seeds are baked into the golden-master fixture, so a reset that skips one leaves the
+  # fixture describing a dataset this container does not hold.
   pnpm seed:kosztorys:test
   pnpm seed:deposits:test
   pnpm seed:materials-net:test
@@ -55,9 +58,10 @@ clone() {
   echo "→ test DB: cloned from template"
 }
 
-docker compose up -d --wait db-test >/dev/null 2>&1
+docker compose up -d --wait db-test >/dev/null
 case "${1:-}" in
   ensure) ensure "${2:-}" ;;
   clone) clone ;;
-  *) echo "usage: test-db-template.sh ensure [--force] | clone" >&2; exit 64 ;;
+  reset) ensure && clone ;;
+  *) echo "usage: test-db-template.sh ensure [--force] | clone | reset" >&2; exit 64 ;;
 esac

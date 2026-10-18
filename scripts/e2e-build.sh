@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Rebuilds `.next-e2e` only when what the build reads changed: specs, tests, docs and repo scripts
-# never reach it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -10,7 +8,7 @@ STAMP="$DIST/e2e-fingerprint"
 fingerprint() {
   local paths
   paths=$(mktemp)
-  git ls-files -co --exclude-standard -- . ':!e2e' ':!src/__tests__' ':!context' ':!*.md' ':!scripts' \
+  git -c core.quotePath=false ls-files -co --exclude-standard -- . ':!e2e' ':!src/__tests__' ':!context' ':!*.md' ':!scripts' \
     ':!.husky' ':!playwright*.ts' | while IFS= read -r f; do [ -f "$f" ] && printf '%s\n' "$f"; done > "$paths"
   # `.env` is ignored by git, yet the build inlines its NEXT_PUBLIC_* values.
   { paste "$paths" <(git hash-object --stdin-paths < "$paths"); cat .env .env.local 2>/dev/null

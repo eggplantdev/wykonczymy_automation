@@ -3,8 +3,6 @@ import { resetAuthState } from '@/__tests__/stubs/get-current-user-jwt'
 
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
-// Pass-through seams a spec steers with `vi.mocked(fn)` to fail one write mid-transaction — a
-// per-file `vi.mock` would move the spec out of `db-shared`.
 const { passThrough, resetSeams } = await vi.hoisted(() => import('@/__tests__/setup/seams'))
 
 vi.mock('@/lib/db/worker-reports', (importOriginal) => passThrough(importOriginal, 'settleReport'))

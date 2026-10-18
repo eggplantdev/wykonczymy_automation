@@ -319,8 +319,8 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 2 }])
     const snapshotsBefore = await snapshotCount()
     const treeBefore = await selectKosztorysTreeData(db, investmentId)
-    // The last write of the transaction: failing it is the one way to reach „the tree, the etap and
-    // the version were all written, then the accept failed" without racing the action.
+    // Failing it is the one way to reach „the tree, the etap and the version were all written, then
+    // the accept failed" without racing the action.
     vi.mocked(settleReport).mockRejectedValueOnce(new Error('record failed'))
 
     await expect(

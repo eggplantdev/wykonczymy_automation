@@ -232,9 +232,8 @@ describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
     })
     const name = `Osierocona ${suffix}`
 
-    // The only way to reach „the sekcja was created, then the write failed" — the one state the shared
-    // transaction exists to make impossible — without racing a DELETE against the action's own
-    // catalogue read.
+    // The only way to reach „the sekcja was created, then the write failed" without racing a DELETE
+    // against the action's own catalogue read.
     vi.mocked(placeCatalogueItems).mockRejectedValueOnce(new Error('placement failed'))
     const result = await createSectionWithCatalogueItemsAction(investmentId, name, [id])
     expect(result.success).toBe(false)
