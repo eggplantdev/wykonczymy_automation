@@ -481,7 +481,7 @@ export const decidedReadRows = (draftId: SqlT) => sql`
 
 const DECIDED_READ_ROWS = decidedReadRows(sql`d.id`)
 
-export async function settleExpenseDraft(
+async function settleExpenseDraft(
   db: DbExecutorT,
   draftId: number,
   decidedBy: number | null,

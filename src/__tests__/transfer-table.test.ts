@@ -4,11 +4,7 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/components/transfers/invoice-cell', () => ({ InvoiceCell: () => null }))
 vi.mock('@/components/transfers/note-popover', () => ({ NotePopover: () => null }))
 
-import {
-  mapTransferRow,
-  buildTransferLookups,
-  type TransferLookupsT,
-} from '@/lib/queries/transfer-mapping'
+import { mapTransferRow, buildTransferLookups } from '@/lib/queries/transfer-mapping'
 
 const stubInvestment = {
   status: 'active' as const,

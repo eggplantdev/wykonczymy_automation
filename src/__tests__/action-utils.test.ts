@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { z } from 'zod'
 import type { Payload } from 'payload'
-import type { SessionUserT } from '@/types/auth'
 
 vi.mock('server-only', () => ({}))
 
@@ -15,10 +14,6 @@ const { validateAction } = await import('@/lib/actions/run-action')
 const { validateSourceRegister } = await import('@/lib/actions/validate-source-register')
 
 const fakePayload = {} as Payload
-
-const adminUser: SessionUserT = { id: 1, email: 'a@t.com', name: 'Admin', role: 'ADMIN' }
-const managerUser: SessionUserT = { id: 2, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }
-const employeeUser: SessionUserT = { id: 3, email: 'e@t.com', name: 'Emp', role: 'EMPLOYEE' }
 
 const dbRows: Record<number, Record<string, unknown>> = {
   1: { id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 2 },

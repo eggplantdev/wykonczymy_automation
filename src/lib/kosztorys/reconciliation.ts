@@ -1,5 +1,4 @@
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
 // Both sides are netto — grossing the kosztorys side would false-fire by the whole VAT amount.
 

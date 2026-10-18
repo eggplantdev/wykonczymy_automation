@@ -5,7 +5,7 @@ import { useMemo, useSyncExternalStore } from 'react'
 // getSnapshot returns the raw string so server and first client render agree on the empty snapshot →
 // no hydration mismatch, and useSyncExternalStore's string equality skips redundant re-renders.
 
-export const EMPTY_MAP_SNAPSHOT = '{}'
+const EMPTY_MAP_SNAPSHOT = '{}'
 
 // JSON.parse('null') is null, and arrays/primitives parse fine too — any of them would make a later
 // `map[id]` read throw and permanently white-screen the grid (nothing clears the key).

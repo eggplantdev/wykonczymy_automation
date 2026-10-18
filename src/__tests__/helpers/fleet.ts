@@ -20,7 +20,7 @@ export const event = (
   ...overrides,
 })
 
-export const vehicle = (overrides: Partial<VehicleSummaryT> = {}): VehicleSummaryT => {
+const vehicle = (overrides: Partial<VehicleSummaryT> = {}): VehicleSummaryT => {
   const id = overrides.id ?? 1
 
   return {

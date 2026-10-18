@@ -15,7 +15,7 @@ export type DeadlineBucketT = (typeof DEADLINE_BUCKETS)[number]
 export const classifyDeadline = (nextDueAt: DayT | null, today: DayT): DeadlineBucketT | null =>
   classifyBucket(DEADLINE_BUCKETS, nextDueAt, today)
 
-export const MAILED_BUCKET_MAX = 7
+const MAILED_BUCKET_MAX = 7
 
 export const isMailedBucket = (bucket: DeadlineBucketT): boolean => bucket <= MAILED_BUCKET_MAX
 

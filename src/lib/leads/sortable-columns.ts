@@ -1,4 +1,4 @@
-export const SERVER_SORTABLE_LEAD_COLUMNS = [
+const SERVER_SORTABLE_LEAD_COLUMNS = [
   'id',
   'source',
   'name',

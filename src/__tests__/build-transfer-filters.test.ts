@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 
 const managerCtx = { id: 1 } as const
-const employeeCtx = { id: 5 } as const
 
 describe('buildTransferFilters — role scoping', () => {
   it('onlyOwnTransfers adds createdBy filter', () => {

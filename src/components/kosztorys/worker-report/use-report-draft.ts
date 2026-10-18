@@ -16,7 +16,7 @@ function parseDraft(raw: string | null): ReportDraftT {
     : EMPTY_DRAFT
 }
 
-export function pruneDraft(
+function pruneDraft(
   draft: ReportDraftT,
   liveItemIds: ReadonlySet<number>,
 ): { draft: ReportDraftT; droppedCount: number } {

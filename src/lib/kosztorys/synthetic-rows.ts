@@ -7,7 +7,7 @@ export const SPACER_ROW_ID = -2
 // A decimal order apart, so no real sectionId can carry a header id down into footer territory —
 // section ids are DB serials and will not reach 999_000 in this lifetime.
 export const SECTION_HEADER_ROW_BASE = -1_000
-export const SECTION_FOOTER_ROW_BASE = -1_000_000
+const SECTION_FOOTER_ROW_BASE = -1_000_000
 
 export function sectionHeaderRowId(sectionId: number): number {
   return SECTION_HEADER_ROW_BASE - sectionId

@@ -1,5 +1,4 @@
 import type { KosztorysItemT, KosztorysSectionT, PriceSourceT } from '@/lib/kosztorys/types'
-import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 
 // A stawka is one of THREE things per plane: a frozen ZŁOTÓWKA that travels into every rozpiska verbatim,
@@ -35,21 +34,7 @@ export type CatalogueNameT = Pick<
   'description' | 'unit' | 'descriptionTranslations'
 >
 
-export type SeedOccurrenceT = {
-  sectionName: string
-  clientPrice: number
-  wToolsRate: CatalogueRateT
-  ownToolsRate: CatalogueRateT
-}
-
 export type SeedConflictFieldT = 'clientPrice' | 'wToolsRate' | 'ownToolsRate'
-
-export type SeedConflictT = {
-  matchKey: string
-  description: string
-  fields: SeedConflictFieldT[]
-  occurrences: SeedOccurrenceT[]
-}
 
 export type CatalogueSourceItemT = {
   description: string

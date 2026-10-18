@@ -44,7 +44,7 @@ export function translate<NS extends NamespaceT>(
   return interpolate(entry, params)
 }
 
-export function translatePlural<NS extends NamespaceT>(
+function translatePlural<NS extends NamespaceT>(
   locale: LanguageT,
   namespace: NS,
   key: PluralKeyT<NS>,
@@ -96,5 +96,4 @@ export function createTranslator<NS extends NamespaceT>(
 export const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
 export const POLISH_ACCOUNT = createTranslator(DEFAULT_LANGUAGE, 'account')
 export const POLISH_TRANSFERS = createTranslator(DEFAULT_LANGUAGE, 'transfers')
-export const POLISH_FILTERS = createTranslator(DEFAULT_LANGUAGE, 'filters')
 export const POLISH_MEDIA = createTranslator(DEFAULT_LANGUAGE, 'media')

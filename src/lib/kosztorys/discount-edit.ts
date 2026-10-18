@@ -16,7 +16,7 @@ const IMPLIED_TYPE: DiscountTypeT = 'percent'
  * travels into the section and footer totals, reading as the client being owed money for work that
  * was done.
  */
-export const MAX_DISCOUNT_PERCENT = 100
+const MAX_DISCOUNT_PERCENT = 100
 
 function withDiscountValue<RowT extends DiscountPairT>(current: RowT, value: number): RowT {
   return { ...current, discountType: current.discountType ?? IMPLIED_TYPE, discountValue: value }

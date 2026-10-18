@@ -74,7 +74,7 @@ export async function getInvestmentName(id: string): Promise<string | null> {
   return findInvestmentRef(await fetchReferenceData(), Number(id))?.investment.name ?? null
 }
 
-export async function getInvestment(id: string) {
+async function getInvestment(id: string) {
   return cached(
     async () => {
       const elapsed = perfStart()

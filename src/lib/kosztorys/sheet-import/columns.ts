@@ -22,7 +22,7 @@ export const FIELD_LABELS: Record<ColumnFieldT, string> = {
   comment: 'komentarz',
 }
 
-export const COLUMN_FIELDS = Object.keys(FIELD_LABELS) as ColumnFieldT[]
+const COLUMN_FIELDS = Object.keys(FIELD_LABELS) as ColumnFieldT[]
 
 export const isColumnField = (value: unknown): value is ColumnFieldT =>
   typeof value === 'string' && (COLUMN_FIELDS as string[]).includes(value)

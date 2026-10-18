@@ -104,7 +104,6 @@ import { applyReviewRules, hasAiDraft } from '@/lib/kosztorys/review-status'
 import type {
   ItemPatchT,
   KosztorysItemT,
-  KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
   NewItemPlacementT,
