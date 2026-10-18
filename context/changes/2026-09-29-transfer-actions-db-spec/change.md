@@ -1,7 +1,7 @@
 ---
 change_id: transfer-actions-db-spec
 title: Transfer actions asserted on persisted state — close test-plan risk #3 (EX-911)
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-10-18
 archived_at: null

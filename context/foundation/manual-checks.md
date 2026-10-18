@@ -952,6 +952,16 @@ tylko komórka, a siatka ich nie widzi.
       zaznacz inną ukrytą domyślnie, zapisz i odśwież stronę — wybór się utrzymuje; podgląd i PDF
       pokazują dokładnie te kolumny (odczyt starego formatu usunięty, zachowanie bez zmian).
 
+## EX-911 — transfer-actions-db-spec — anulowanie i edycja kwoty zapisują się razem z wpisem w historii
+
+- [ ] Transakcje → anuluj wydatek z kasy, podając powód: wiersz jest oznaczony jako anulowany,
+      pojawia się wiersz anulowania z tym powodem, saldo kasy i bilans inwestycji wracają do stanu
+      sprzed wydatku.
+- [ ] Anuluj wydatek materiałowy inwestycji podpiętej do arkusza: jego wiersz znika z arkusza jak
+      dotąd.
+- [ ] Zmień kwotę robocizny na inwestycji: lista pokazuje nową kwotę, historia zmian kwoty ma wpis
+      stara → nowa, bilans przesuwa się o różnicę.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
