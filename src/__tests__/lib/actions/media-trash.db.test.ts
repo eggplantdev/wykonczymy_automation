@@ -4,17 +4,12 @@ import { sql } from '@payloadcms/db-postgres'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { insertTestMedia } from '@/__tests__/helpers/media'
 import { getDb } from '@/lib/db/get-db'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'kosz-plikow restore'
 const FILENAME = 'kosz-plikow-restore.jpg'
 
@@ -46,9 +41,8 @@ describe.skipIf(!ENV_READY)('restoreDetachedFileAction (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    authState.role = 'ADMIN'
+    payload = await bootTestPayload()
     db = await getDb(payload)
     assets = await import('@/lib/actions/investment-assets')
     ;({ restoreDetachedFileAction } = await import('@/lib/actions/media-trash'))
