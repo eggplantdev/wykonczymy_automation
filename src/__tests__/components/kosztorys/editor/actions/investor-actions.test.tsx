@@ -56,7 +56,7 @@ describe('useInvestorActions — „Udostępnij"', () => {
   })
 
   it('keeps the latest click’s link when an earlier answer lands after it', async () => {
-    const first = Promise.withResolvers()
+    const first = Promise.withResolvers<Awaited<ReturnType<typeof ensureShareLinkAction>>>()
     vi.mocked(ensureShareLinkAction)
       .mockReturnValueOnce(first.promise)
       .mockResolvedValueOnce({ success: true, data: 'drugi' })
@@ -81,7 +81,7 @@ describe('useInvestorActions — „Udostępnij"', () => {
   // Safari refuses a clipboard write that starts after an await, so it must start on the click.
   it('starts the clipboard write before the link is known', async () => {
     setClipboard(true)
-    const read = Promise.withResolvers()
+    const read = Promise.withResolvers<Awaited<ReturnType<typeof ensureShareLinkAction>>>()
     vi.mocked(ensureShareLinkAction).mockReturnValue(read.promise)
 
     const { result } = renderHook(() => useInvestorActions())

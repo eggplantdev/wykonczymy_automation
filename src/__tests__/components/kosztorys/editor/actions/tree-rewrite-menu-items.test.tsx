@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 
 import {
   DropdownMenu,
@@ -52,13 +52,13 @@ describe.each([
   {
     label: /Uzupełnij tłumaczenia/,
     other: /Popraw literówki/,
-    action: fillKosztorysTranslationsAction,
+    action: vi.mocked(fillKosztorysTranslationsAction) as Mock,
     data: { items: 0, sections: 0, failed: 0 },
   },
   {
     label: /Popraw literówki/,
     other: /Uzupełnij tłumaczenia/,
-    action: cleanItemTextsAction,
+    action: vi.mocked(cleanItemTextsAction) as Mock,
     data: 0,
   },
 ])('$label', ({ label, other, action, data }) => {

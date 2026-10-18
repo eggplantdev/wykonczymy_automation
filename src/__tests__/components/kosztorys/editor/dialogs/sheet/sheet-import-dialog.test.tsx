@@ -13,7 +13,7 @@ import { applyKosztorysImport } from '@/lib/actions/kosztorys-import'
 
 vi.mocked(applyKosztorysImport).mockResolvedValue({
   success: true,
-  data: { sections: 2, items: 9, stages: 3 },
+  data: { sections: 2, items: 9, stages: 3, droppedWorkerAssignments: 0 },
 })
 vi.mocked(useKosztorysEditorContext).mockImplementation(
   () => ({ flushPendingSaves: async () => {} }) as never,

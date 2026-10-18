@@ -57,8 +57,8 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
   it('ponowne otwarcie w trakcie odczytu nie zleca drugiego', async () => {
-    const readCall = Promise.withResolvers()
-    readExpenseDraftAction.mockReturnValue(readCall.promise)
+    const readCall = Promise.withResolvers<Awaited<ReturnType<typeof readExpenseDraftAction>>>()
+    vi.mocked(readExpenseDraftAction).mockReturnValue(readCall.promise)
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
     const user = userEvent.setup()
 
@@ -74,7 +74,7 @@ describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
   })
 
   it('nieudany odczyt mówi, dlaczego, i odblokowuje pusty wiersz', async () => {
-    readExpenseDraftAction.mockResolvedValue({ success: false, error: 'Brak uprawnień' })
+    vi.mocked(readExpenseDraftAction).mockResolvedValue({ success: false, error: 'Brak uprawnień' })
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Zweryfikuj' }))
@@ -93,7 +93,7 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
   })
 
   it('otwiera dialog bez zapisu i bez odczytu, a zgłoszenie da się odrzucić', async () => {
-    rejectExpenseDraftAction.mockResolvedValue({ success: true, data: undefined })
+    vi.mocked(rejectExpenseDraftAction).mockResolvedValue({ success: true })
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
     const user = userEvent.setup()
 
@@ -239,7 +239,7 @@ describe('zgłoszenie bez inwestycji', () => {
 
 describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
   beforeEach(() => {
-    readExpenseDraftAction.mockResolvedValue({ success: true, data: { aiRead: read } })
+    vi.mocked(readExpenseDraftAction).mockResolvedValue({ success: true, data: { aiRead: read } })
     window.history.replaceState(null, '', '/zgloszenia-wydatkow?zgloszenie=7&status=pending')
   })
 

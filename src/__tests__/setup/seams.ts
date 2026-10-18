@@ -2,10 +2,13 @@ import { vi, type Mock } from 'vitest'
 
 // On `globalThis`: a module cached by an earlier shared file keeps the seam it imported then, so a
 // fresh `vi.fn` per file would leave the spec steering an instance the code under test never calls.
-const registry = globalThis as {
-  seamRegistry?: { modules: Map<string, Record<string, unknown>>; seams: Mock[] }
-}
-const { modules, seams } = (registry.seamRegistry ??= { modules: new Map(), seams: [] })
+type SeamRegistryT = { modules: Map<string, Record<string, unknown>>; seams: Mock[] }
+
+const registry = globalThis as { seamRegistry?: SeamRegistryT }
+const { modules, seams }: SeamRegistryT = (registry.seamRegistry ??= {
+  modules: new Map(),
+  seams: [],
+})
 
 export async function passThrough(
   importOriginal: () => Promise<Record<string, unknown>>,
