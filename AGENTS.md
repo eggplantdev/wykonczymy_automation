@@ -256,7 +256,7 @@ INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts  # sy
 Both seed scripts wipe that investment's kosztorys first.
 
 **Suites are serialized machine-wide.** Every heavy script (`test`, `test:integration`, `test:parity`,
-`test:coverage`, `test:e2e*`) and the pre-push unit leg run under `scripts/with-test-lock.sh` — a
+`test:coverage`, `test:e2e*`) and the pre-push test legs (one hold, legs in parallel) run under `scripts/with-test-lock.sh` — a
 `mkdir` mutex on `/tmp/dev-test-suite.lock` shared across checkouts, worktrees and repos, because two
 suites at once on this laptop take ~5× as long and fail on the clock. A single
 `pnpm exec vitest run <file>` is deliberately **not** locked. `NO_TEST_LOCK=1` skips the lock.

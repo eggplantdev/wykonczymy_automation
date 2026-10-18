@@ -1,7 +1,7 @@
 ---
 change_id: prepush-overlap
 title: Run the pre-push unit, integration and typecheck legs at once
-status: implementing
+status: implemented
 created: 2026-10-18
 updated: 2026-10-18
 archived_at: null

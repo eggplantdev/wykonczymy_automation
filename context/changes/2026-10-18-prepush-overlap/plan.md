@@ -81,12 +81,12 @@ Overlapped (unit + integration + `tsc`, then parity):
 
 #### Automated
 
-- [x] 1.1 Leads spec passes 20× under load
+- [x] 1.1 Leads spec passes 20× under load — d83b1dfdf
 
 ### Phase 2: Parallel pre-push legs
 
 #### Automated
 
-- [ ] 2.1 `bash -n` on hook and script
-- [ ] 2.2 Forced failure names the leg
-- [ ] 2.3 Script green 3×, times recorded
+- [x] 2.1 `bash -n` on hook and script
+- [x] 2.2 Forced failure names the leg
+- [x] 2.3 Script green 3×, times recorded

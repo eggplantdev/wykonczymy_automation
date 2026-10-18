@@ -1071,10 +1071,13 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       a kolumna „Przedmiar” wystaje z prawej (tabela przewija się w bok). Na desktopie bez zmian.
 - [ ] Telefon → raport pracownika (`/z/…`): kolumny tabeli wyglądają jak dotąd.
 
-## 2026-10-18 — unit-suite-speed — hook pre-push z typecheckiem równolegle
+## 2026-10-18 — prepush-overlap — testy w hooku pre-push równolegle
 
-- [ ] Następny prawdziwy `git push`: sekcja „typecheck” pojawia się po „DB integration specs” z
-      wynikiem `tsc`, a cały hook trwa krócej o mniej więcej czas typechecku.
+- [ ] Następny prawdziwy `git push`: najpierw nagłówek „unit tests + typecheck + DB integration specs
+      (in parallel)”, potem trzy sekcje z wynikami, „DB parity + golden master” i zrzut bazy. Część
+      testowa trwa ok. 70–85 s zamiast ok. 100 s.
+- [ ] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
+      typecheck”, a zrzut bazy się nie uruchamia.
 
 # Zamknięte — indeks
 
