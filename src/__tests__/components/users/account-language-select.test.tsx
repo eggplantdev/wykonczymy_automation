@@ -5,8 +5,6 @@ import { AccountLanguageSelect } from '@/components/users/account-language-selec
 import { changeOwnLanguageAction } from '@/lib/actions/account-language'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/actions/account-language', () => ({ changeOwnLanguageAction: vi.fn() }))
-
 const USER_ID = 7
 const REPORT_KEY = `worker-report-lang:${USER_ID}`
 

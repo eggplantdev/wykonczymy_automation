@@ -57,6 +57,9 @@ vi.mock('next/navigation', async (importOriginal) => ({
 // `dom-shared` runs every file in one jsdom window; these run before the spec's own top-level setup.
 Object.assign(navigationState, { pathname: '/', searchParams: new URLSearchParams() })
 resetAuthState()
+for (const action of (globalThis as { serverActionStubs?: Mock[] }).serverActionStubs ?? []) {
+  action.mockReset()
+}
 window.history.replaceState(null, '', '/')
 localStorage.clear()
 sessionStorage.clear()

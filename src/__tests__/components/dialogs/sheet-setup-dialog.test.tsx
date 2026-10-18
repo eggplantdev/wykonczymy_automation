@@ -2,13 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SheetSetupDialog } from '@/components/dialogs/sheet-setup-dialog'
+import { getServiceAccountEmailAction, linkSheetAction } from '@/lib/actions/investments'
 import { toastMessage } from '@/lib/utils/toast'
 
-const linkSheetAction = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/actions/investments', () => ({
-  getServiceAccountEmailAction: () => Promise.resolve('reader@example.test'),
-  linkSheetAction,
-}))
+vi.mocked(getServiceAccountEmailAction).mockResolvedValue('reader@example.test')
 
 describe('SheetSetupDialog', () => {
   beforeEach(() => {
@@ -16,7 +13,7 @@ describe('SheetSetupDialog', () => {
   })
 
   it('reports a request that never reached the server with an error toast', async () => {
-    linkSheetAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(linkSheetAction).mockRejectedValue(new TypeError('Failed to fetch'))
     const user = userEvent.setup()
 
     render(<SheetSetupDialog investmentId={7} trigger={<button>Otwórz</button>} />)

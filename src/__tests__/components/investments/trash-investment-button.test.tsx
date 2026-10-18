@@ -2,19 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
+import { trashInvestmentAction } from '@/lib/actions/investment-trash'
+import { getInvestmentKosztorysUsed } from '@/lib/queries/investment-kosztorys-used'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import { toastMessage } from '@/lib/utils/toast'
 import { router } from '@/__tests__/stubs/next-navigation'
-
-const trashInvestmentAction = vi.fn()
-vi.mock('@/lib/actions/investment-trash', () => ({
-  trashInvestmentAction: (...args: unknown[]) => trashInvestmentAction(...args),
-}))
-
-const getInvestmentKosztorysUsed = vi.fn()
-vi.mock('@/lib/queries/investment-kosztorys-used', () => ({
-  getInvestmentKosztorysUsed: (...args: unknown[]) => getInvestmentKosztorysUsed(...args),
-}))
 
 async function openDialog() {
   render(
@@ -33,11 +25,11 @@ async function confirmTrash() {
 describe('TrashInvestmentButton', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    getInvestmentKosztorysUsed.mockResolvedValue({ success: true, data: false })
+    vi.mocked(getInvestmentKosztorysUsed).mockResolvedValue({ success: true, data: false })
   })
 
   it('warns that the kosztorys is in use before moving it to the trash', async () => {
-    getInvestmentKosztorysUsed.mockResolvedValue({ success: true, data: true })
+    vi.mocked(getInvestmentKosztorysUsed).mockResolvedValue({ success: true, data: true })
 
     await openDialog()
 
@@ -54,7 +46,7 @@ describe('TrashInvestmentButton', () => {
   })
 
   it('opens no dialog when the kosztorys check fails', async () => {
-    getInvestmentKosztorysUsed.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(getInvestmentKosztorysUsed).mockRejectedValue(new TypeError('Failed to fetch'))
 
     await openDialog()
 
@@ -64,7 +56,7 @@ describe('TrashInvestmentButton', () => {
   })
 
   it('reports a request that never reached the server (offline) with an error toast', async () => {
-    trashInvestmentAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(trashInvestmentAction).mockRejectedValue(new TypeError('Failed to fetch'))
 
     await confirmTrash()
 

@@ -388,15 +388,15 @@ Compare against the research baseline (`research.md` §5: 175 s wall, 725.8 user
 
 #### Automated
 
-- [x] 2.1 dom + dom-shared pass with the optimizer
+- [x] 2.1 dom + dom-shared pass with the optimizer — 37146326b
 
 ### Phase 3: Server-action seams
 
 #### Automated
 
-- [ ] 3.1 Converted specs pass individually
-- [ ] 3.2 dom + dom-shared pass
-- [ ] 3.3 dom-shared collects ≥ 112 files
+- [x] 3.1 Converted specs pass individually
+- [x] 3.2 dom + dom-shared pass
+- [x] 3.3 dom-shared collects ≥ 112 files
 
 ### Phase 4: Top-module seams
 

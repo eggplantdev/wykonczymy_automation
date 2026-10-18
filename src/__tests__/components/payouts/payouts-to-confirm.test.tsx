@@ -7,10 +7,8 @@ import { acceptPayoutAction, rejectPayoutAction } from '@/lib/actions/payout-con
 import { CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
 import type { PayoutToConfirmT } from '@/lib/db/payout-confirmation'
 
-vi.mock('@/lib/actions/payout-confirmation', () => ({
-  acceptPayoutAction: vi.fn(async () => ({ success: true })),
-  rejectPayoutAction: vi.fn(async () => ({ success: true })),
-}))
+vi.mocked(acceptPayoutAction).mockResolvedValue({ success: true })
+vi.mocked(rejectPayoutAction).mockResolvedValue({ success: true })
 
 const payout = (overrides: Partial<PayoutToConfirmT>): PayoutToConfirmT => ({
   id: 1,

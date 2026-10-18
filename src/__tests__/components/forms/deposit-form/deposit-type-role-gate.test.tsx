@@ -8,12 +8,11 @@ import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 import type { RoleT } from '@/lib/auth/roles'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { createTransferAction } from '@/lib/actions/transfers'
 
 navigationState.pathname = '/kasa'
 
-vi.mock('@/lib/actions/transfers', () => ({
-  createTransferAction: vi.fn(async () => ({ success: true })),
-}))
+vi.mocked(createTransferAction).mockResolvedValue({ success: true })
 
 async function openTypeMenu(currentUserRole: RoleT) {
   render(

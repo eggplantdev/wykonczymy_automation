@@ -6,8 +6,6 @@ import { setMediaKindAction } from '@/lib/actions/media-kind'
 import { toastMessage } from '@/lib/utils/toast'
 import type { MediaFileT } from '@/types/media'
 
-vi.mock('@/lib/actions/media-kind', () => ({ setMediaKindAction: vi.fn() }))
-
 const FILE = { id: 7, url: '/rzut.jpg', filename: 'rzut.jpg', kind: null } as unknown as MediaFileT
 
 describe('usePlanMarker', () => {

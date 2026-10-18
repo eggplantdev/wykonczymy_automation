@@ -7,10 +7,6 @@ import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 import { router } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('@/lib/actions/kosztorys-presets', () => ({
-  createEmptyPresetAction: vi.fn(),
-}))
-
 describe('CreateEmptyPresetDialog', () => {
   it('refuses to submit a szablon with no name', async () => {
     const user = userEvent.setup()

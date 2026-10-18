@@ -13,30 +13,16 @@ import { deleteEquipmentForeverAction } from '@/lib/actions/equipment-trash'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { TrashKindT } from '@/types/trash'
 
-vi.mock('@/lib/actions/investment-trash', () => ({
-  deleteInvestmentForeverAction: vi.fn(async () => ({ success: true })),
-  restoreInvestmentAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/template-trash', () => ({
-  deleteTemplateForeverAction: vi.fn(async () => ({ success: true })),
-  restoreTemplateAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/cash-register-trash', () => ({
-  deleteCashRegisterForeverAction: vi.fn(async () => ({ success: true })),
-  restoreCashRegisterAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/worker-trash', () => ({
-  deleteWorkerForeverAction: vi.fn(async () => ({ success: true })),
-  restoreWorkerAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/vehicle-trash', () => ({
-  deleteVehicleForeverAction: vi.fn(async () => ({ success: true })),
-  restoreVehicleAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/equipment-trash', () => ({
-  deleteEquipmentForeverAction: vi.fn(async () => ({ success: true })),
-  restoreEquipmentAction: vi.fn(),
-}))
+for (const action of [
+  deleteInvestmentForeverAction,
+  deleteTemplateForeverAction,
+  deleteCashRegisterForeverAction,
+  deleteWorkerForeverAction,
+  deleteVehicleForeverAction,
+  deleteEquipmentForeverAction,
+]) {
+  vi.mocked(action).mockResolvedValue({ success: true })
+}
 
 const NAME = 'Mieszkanie Kowalskich'
 

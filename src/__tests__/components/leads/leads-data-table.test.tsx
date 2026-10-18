@@ -10,9 +10,7 @@ import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 navigationState.pathname = '/zgloszenia'
 
-vi.mock('@/lib/actions/lead-trash', () => ({
-  trashLeadsAction: vi.fn(async () => ({ success: true, data: { trashed: 2 } })),
-}))
+vi.mocked(trashLeadsAction).mockResolvedValue({ success: true, data: { trashed: 2 } })
 
 const leadRow = (id: number, name: string): LeadRowT => ({
   id,

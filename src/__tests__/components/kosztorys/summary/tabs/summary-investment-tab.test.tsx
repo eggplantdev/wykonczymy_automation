@@ -6,12 +6,6 @@ import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 import type { MediaFileT } from '@/types/media'
 
-vi.mock('@/lib/actions/investment-assets', () => ({
-  addInvestmentAssetsAction: vi.fn(),
-  removeInvestmentAssetAction: vi.fn(),
-  removeAllInvestmentAssetsAction: vi.fn(),
-}))
-
 const PHOTO: MediaFileT = {
   id: 1,
   url: '/api/media/file/salon.jpg',

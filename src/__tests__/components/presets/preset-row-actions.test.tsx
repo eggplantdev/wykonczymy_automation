@@ -6,9 +6,7 @@ import { PresetRowActions } from '@/components/presets/preset-row-actions'
 import { trashTemplateAction } from '@/lib/actions/template-trash'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/actions/template-trash', () => ({
-  trashTemplateAction: vi.fn(async () => ({ success: true })),
-}))
+vi.mocked(trashTemplateAction).mockResolvedValue({ success: true })
 
 const PRESET = {
   id: 42,

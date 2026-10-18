@@ -34,12 +34,23 @@ function stubServerActions(): Plugin {
     transform(code, id) {
       if (!/\.tsx?$/.test(id) || !/^\s*['"]use server['"]/.test(code)) return
       // A future `export const` would not match and the import fails by name — loud, not silent.
-      return [...code.matchAll(/^export (?:async )?function (\w+)/gm)]
-        .map(
-          ([, name]) =>
-            `export async function ${name}() { throw new Error('${name}: server action called from a component spec — assert the pre-action UI, or vi.mock it') }`,
-        )
-        .join('\n')
+      const names = [...code.matchAll(/^export (?:async )?function (\w+)/gm)].map(
+        ([, name]) => name,
+      )
+      // On `globalThis`: the dom setup resets every stub per file, but a shared project evaluates
+      // this module once per worker.
+      return [
+        "import { vi } from 'vitest'",
+        'const stubs = (globalThis.serverActionStubs ??= [])',
+        'const stub = (name) => {',
+        '  const action = vi.fn(async () => {',
+        '    throw new Error(`${name}: server action called from a component spec — assert the pre-action UI, or steer it with vi.mocked`)',
+        '  })',
+        '  stubs.push(action)',
+        '  return action',
+        '}',
+        ...names.map((name) => `export const ${name} = stub('${name}')`),
+      ].join('\n')
     },
   }
 }

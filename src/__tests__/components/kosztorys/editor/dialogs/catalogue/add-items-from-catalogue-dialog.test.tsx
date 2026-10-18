@@ -3,17 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AddItemsFromCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/add-items-from-catalogue-dialog'
+import {
+  createSectionWithCatalogueItemsAction,
+  insertCatalogueItemsAction,
+} from '@/lib/actions/catalogue-to-kosztorys'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
-
-const insertCatalogueItemsAction = vi.fn()
-const createSectionWithCatalogueItemsAction = vi.fn()
-
-vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
-  insertCatalogueItemsAction: (...args: unknown[]) => insertCatalogueItemsAction(...args),
-  createSectionWithCatalogueItemsAction: (...args: unknown[]) =>
-    createSectionWithCatalogueItemsAction(...args),
-}))
 
 const CATALOGUE: WorkCatalogueItemT[] = [
   {
@@ -86,8 +81,8 @@ async function openSectionPicker(user: ReturnType<typeof userEvent.setup>) {
 
 describe('AddItemsFromCatalogueDialog — „Dodaj do:"', () => {
   beforeEach(() => {
-    insertCatalogueItemsAction.mockResolvedValue({ success: true, data: SLICE })
-    createSectionWithCatalogueItemsAction.mockResolvedValue({
+    vi.mocked(insertCatalogueItemsAction).mockResolvedValue({ success: true, data: SLICE })
+    vi.mocked(createSectionWithCatalogueItemsAction).mockResolvedValue({
       success: true,
       data: { ...SLICE, createdSection: true },
     })

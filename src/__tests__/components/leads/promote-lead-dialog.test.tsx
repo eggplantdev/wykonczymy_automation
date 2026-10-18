@@ -3,16 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
+import { promoteLeadAction } from '@/lib/actions/promote-lead'
+import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { LeadRowT } from '@/types/leads'
 
-vi.mock('@/lib/actions/promote-lead', () => ({
-  promoteLeadAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/actions/lead-assets', () => ({
-  attachLeadAssetsAction: vi.fn(async () => ({ success: true })),
-  removeLeadAssetAction: vi.fn(async () => ({ success: true })),
-}))
+vi.mocked(promoteLeadAction).mockResolvedValue({ success: true })
+vi.mocked(attachLeadAssetsAction).mockResolvedValue({ success: true })
+vi.mocked(removeLeadAssetAction).mockResolvedValue({ success: true })
 
 const ASSETS = [
   {

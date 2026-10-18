@@ -7,10 +7,6 @@ import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-vi.mock('@/lib/actions/accept-worker-report', () => ({
-  acceptWorkerReportAction: vi.fn(),
-}))
-
 const NEW_STAGE = { id: 30, ordinal: 3 } as KosztorysStageT
 
 function renderAcceptance() {

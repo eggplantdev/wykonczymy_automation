@@ -3,10 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
+import { listSnapshotsAction, restoreSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { toastMessage } from '@/lib/utils/toast'
-
-const restoreSnapshotAction = vi.hoisted(() => vi.fn())
 
 const SNAPSHOT: SnapshotListItemT = {
   id: 3,
@@ -17,12 +16,7 @@ const SNAPSHOT: SnapshotListItemT = {
   takenByName: null,
 }
 
-vi.mock('@/lib/actions/kosztorys-snapshots', () => ({
-  saveSnapshotAction: vi.fn(),
-  snapshotAction: vi.fn(),
-  listSnapshotsAction: vi.fn(async () => ({ success: true, data: [SNAPSHOT] })),
-  restoreSnapshotAction,
-}))
+vi.mocked(listSnapshotsAction).mockResolvedValue({ success: true, data: [SNAPSHOT] })
 
 describe('KosztorysVersionsDrawer — a restore whose request never completed', () => {
   beforeEach(() => {
@@ -32,7 +26,7 @@ describe('KosztorysVersionsDrawer — a restore whose request never completed', 
   // The restore may have committed server-side, so the grid must refetch rather than keep — and
   // autosave back — the pre-restore rows.
   it('closes, says so and reseeds the editor with a refetch', async () => {
-    restoreSnapshotAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(restoreSnapshotAction).mockRejectedValue(new TypeError('Failed to fetch'))
     const onOpenChange = vi.fn()
     const onRestored = vi.fn()
     render(

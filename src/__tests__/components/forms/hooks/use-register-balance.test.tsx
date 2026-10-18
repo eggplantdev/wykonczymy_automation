@@ -5,8 +5,6 @@ import { useRegisterBalance } from '@/components/forms/hooks/use-register-balanc
 import { getRegisterBalance } from '@/lib/queries/register-balance'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
-
 const balance = (registerBalance: number) => ({ registerBalance })
 
 describe('Saldo kasy — wyścig przestawień', () => {

@@ -3,16 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { LeadAssetsDialog } from '@/components/leads/lead-assets-dialog'
-import { attachLeadAssetsAction } from '@/lib/actions/lead-assets'
+import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
+import { getInvestmentAssetIds } from '@/lib/queries/investment-asset-ids'
 import type { LeadRowT } from '@/types/leads'
 
-vi.mock('@/lib/actions/lead-assets', () => ({
-  attachLeadAssetsAction: vi.fn(async () => ({ success: true })),
-  removeLeadAssetAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/queries/investment-asset-ids', () => ({
-  getInvestmentAssetIds: vi.fn(async () => ({ success: true, data: [] })),
-}))
+vi.mocked(attachLeadAssetsAction).mockResolvedValue({ success: true })
+vi.mocked(removeLeadAssetAction).mockResolvedValue({ success: true })
+vi.mocked(getInvestmentAssetIds).mockResolvedValue({ success: true, data: [] })
 
 const ASSETS = [
   {

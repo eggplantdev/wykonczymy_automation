@@ -12,15 +12,6 @@ import {
 import { discountNetFromGross } from '@/lib/kosztorys/calc'
 import { usePendingStore } from '@/stores/pending-store'
 
-vi.mock('@/lib/actions/kosztorys', () => ({
-  applyPercentDiscountToAllItemsAction: vi.fn(),
-  updateInvestmentCoeffsAction: vi.fn(),
-  updateInvestmentGlobalDiscountAction: vi.fn(),
-  updateInvestmentMaterialsNetRateAction: vi.fn(),
-  updateInvestmentSettlementModeAction: vi.fn(),
-  updateInvestmentVatAction: vi.fn(),
-}))
-
 const TREE = {
   globalDiscount: { percent: 0, amount: 0 },
   vatRate: 0.23,

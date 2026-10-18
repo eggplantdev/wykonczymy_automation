@@ -11,9 +11,7 @@ import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 navigationState.pathname = '/kasa'
 
-vi.mock('@/lib/actions/transfers', () => ({
-  createTransferAction: vi.fn(async () => ({ success: true })),
-}))
+vi.mocked(createTransferAction).mockResolvedValue({ success: true })
 
 const INVESTMENT = {
   id: 4,

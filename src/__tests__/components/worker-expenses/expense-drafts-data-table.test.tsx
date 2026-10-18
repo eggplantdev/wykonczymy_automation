@@ -3,23 +3,18 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ExpenseDraftsDataTable } from '@/components/worker-expenses/expense-drafts-data-table'
+import {
+  restoreExpenseDraftAction,
+  restoreSkippedReceiptAction,
+} from '@/lib/actions/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 navigationState.pathname = '/zgloszenia-wydatkow'
 
-const { restoreExpenseDraftAction, restoreSkippedReceiptAction } = vi.hoisted(() => ({
-  restoreExpenseDraftAction: vi.fn(async () => ({ success: true })),
-  restoreSkippedReceiptAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
-  restoreExpenseDraftAction,
-  restoreSkippedReceiptAction,
-  readExpenseDraftAction: vi.fn(),
-  rejectExpenseDraftAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
+vi.mocked(restoreExpenseDraftAction).mockResolvedValue({ success: true })
+vi.mocked(restoreSkippedReceiptAction).mockResolvedValue({ success: true })
 
 const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDraftRowT => ({
   id,

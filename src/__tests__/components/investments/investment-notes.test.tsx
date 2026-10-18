@@ -8,8 +8,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 
-vi.mock('@/lib/actions/investments', () => ({ updateInvestmentAction: vi.fn() }))
-
 const INVESTMENT: InvestmentWithDetailsT = {
   ...NO_INVESTMENT_DETAILS,
   id: 7,
