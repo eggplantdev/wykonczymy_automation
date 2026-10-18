@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { STORAGE_STATE } from './global-setup'
 import { settleWrite, waitForHydration } from './support/wait'
 import { GRID_VIEWPORT, editorCell, openEditor } from './drivers/kosztorys-grid'
+import { isInvestmentOffered, openExpenseDialog } from './drivers/expenses'
 import { LOCKED_INVESTMENT } from '@/scripts/e2e-dump-rows'
 
 test.use({ viewport: GRID_VIEWPORT })
@@ -90,18 +91,10 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   await page.keyboard.press('Escape')
 
   await page.goto(`/inwestycje/${LOCKED_INVESTMENT.id}`)
-  const wydatek = page.getByRole('button', { name: /Wydatek/ }).first()
-  await waitForHydration(wydatek)
-  await wydatek.click()
-  await page.getByText('Nowy wydatek').first().waitFor()
+  await openExpenseDialog(page)
   const investmentField = page.getByLabel('Inwestycja')
   await expect(investmentField).not.toContainText(LOCKED_INVESTMENT.name)
-  await investmentField.click()
-  await expect(page.getByRole('option', { name: LOCKED_INVESTMENT.name, exact: true })).toHaveCount(
-    0,
-  )
-  await page.keyboard.press('Escape')
-  await page.keyboard.press('Escape')
+  expect(await isInvestmentOffered(page, LOCKED_INVESTMENT.name)).toBe(false)
 
   await page.goto(`/inwestycje/${LOCKED_INVESTMENT.id}`)
   const edit = page.getByRole('button', { name: 'Edytuj inwestycję' })

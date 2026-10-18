@@ -3,8 +3,8 @@ import { commitCellValue, gridRow } from './drivers/kosztorys-grid'
 import { readSeed } from './support/seeds'
 import { waitForHydration } from './support/wait'
 
-// The visitor's context carries no cookie: „Wyślij" is a Server Action POST on the share path, which
-// the proxy must let through on the token alone.
+// „Wyślij" is a Server Action POST on the share path, which the proxy must let through on the token
+// alone.
 test('a worker sends a zgłoszenie from his /z/ link with no session and it reaches the queue', async ({
   page,
   browser,
@@ -25,7 +25,10 @@ test('a worker sends a zgłoszenie from his /z/ link with no session and it reac
     await commitCellValue(quantity, '2')
 
     await visitor.getByRole('button', { name: 'Wyślij (1)' }).click()
-    await visitor.getByRole('alertdialog').getByRole('button', { name: 'Wyślij', exact: true }).click()
+    await visitor
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Wyślij', exact: true })
+      .click()
     await expect(visitor.getByRole('heading', { name: 'Wysłano do weryfikacji' })).toBeVisible()
   } finally {
     await visitorContext.close()
@@ -40,7 +43,7 @@ test('a worker sends a zgłoszenie from his /z/ link with no session and it reac
   await waitForHydration(preview)
   await preview.click()
   const dialog = page.getByRole('dialog').filter({ hasText: 'Zgłoszenie wykonanych prac' })
-  await expect(
-    dialog.getByRole('row').filter({ hasText: report.itemDescription }),
-  ).toContainText('2 m2')
+  await expect(dialog.getByRole('row').filter({ hasText: report.itemDescription })).toContainText(
+    '2 m2',
+  )
 })

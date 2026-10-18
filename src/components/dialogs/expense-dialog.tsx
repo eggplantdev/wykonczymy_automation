@@ -16,7 +16,7 @@ export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
       formId="expense"
       className="sm:max-w-dialog-lg"
       trigger={
-        <Button variant="red" size="sm">
+        <Button variant="red" size="sm" aria-label="Wydatek">
           <Rocket />
           <span className="hidden lg:block">Wydatek </span>
         </Button>

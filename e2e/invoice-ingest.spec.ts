@@ -1,14 +1,8 @@
-import {
-  test,
-  expect,
-  type FileChooser,
-  type Locator,
-  type Page,
-  type Route,
-} from '@playwright/test'
+import { test, expect, type Page, type Route } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
 import { settleWrite, waitForHydration } from './support/wait'
 import { openExpenseDialog } from './drivers/expenses'
+import { filePicker, pickThrough, rowOf } from './drivers/invoices'
 import { readSeed } from './support/seeds'
 import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 
@@ -29,23 +23,8 @@ async function openSeededExpense(page: Page, tag: 'heic' | 'blocked' | 'cell'): 
   return description
 }
 
-const rowOf = (page: Page, description: string) =>
-  page.getByRole('row').filter({ hasText: description })
-
-const filePicker = (scope: Locator) => scope.locator('div[role="button"]:has(input[type="file"])')
-
 const savedAs = (base: string) => new RegExp(`${base}-[0-9a-z]{12}\\.jpg`)
 const previewOf = (base: string) => new RegExp(`^Podgląd faktury: ${base}-[0-9a-z]{12}\\.jpg$`)
-
-// A selector aimed at the hidden input instead would keep passing after the control stopped opening it.
-async function pickThrough(
-  page: Page,
-  open: () => Promise<void>,
-  files: Parameters<FileChooser['setFiles']>[0],
-): Promise<void> {
-  const [chooser] = await Promise.all([page.waitForEvent('filechooser'), open()])
-  await chooser.setFiles(files)
-}
 
 test('HEIC z pickera edycji przelewu zapisuje się jako JPG', async ({ page }) => {
   const description = await openSeededExpense(page, 'heic')

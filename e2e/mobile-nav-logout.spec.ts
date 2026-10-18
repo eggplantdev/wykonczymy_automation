@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 import { login } from './support/auth'
 import { waitForHydration } from './support/wait'
+import { PHONE_VIEWPORT } from './support/viewport'
 
 // Logout revokes only this session's `sid`, so a fresh login keeps the shared `.auth` sessions alive.
-test.use({ storageState: { cookies: [], origins: [] }, viewport: { width: 390, height: 844 } })
+test.use({ storageState: { cookies: [], origins: [] }, viewport: PHONE_VIEWPORT })
 
 const rootOverflow = (page: Page) => page.evaluate(() => document.documentElement.style.overflow)
 

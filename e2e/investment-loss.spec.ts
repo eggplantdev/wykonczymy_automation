@@ -1,5 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
 import { pickComboOption } from './drivers/combo'
+import {
+  openExpenseDialog,
+  pickExpenseType,
+  submitExpenseForm,
+  waitForExpenseDialogToClose,
+} from './drivers/expenses'
 import { parsePln, uniqueAmount } from './support/money'
 import { readListingFigure } from './support/table'
 import { waitForHydration } from './support/wait'
@@ -13,21 +19,13 @@ import {
 
 // the type is picked FIRST because switching it re-runs `resetConditionalFields`, which rewrites the investment field.
 async function bookLoss(page: Page, investmentName: string, amount: number): Promise<void> {
-  const trigger = page.getByRole('button', { name: /Wydatek/ }).first()
-  await trigger.waitFor()
-  await waitForHydration(trigger)
-  await trigger.click()
-
-  await page.getByText('Nowy wydatek').first().waitFor()
-  await page.getByLabel('Typ wydatku', { exact: true }).click()
-  await page.getByRole('option', { name: 'Strata', exact: true }).click()
+  await openExpenseDialog(page)
+  await pickExpenseType(page, 'Strata')
   await pickComboOption(page, 'Inwestycja', investmentName)
   await page.getByLabel('Kwota').first().fill(amount.toFixed(2))
   await page.locator('[id="lineItems[0].description"]').fill(`E2E strata ${Date.now()}`)
-
-  // `exact`, because „Zapisz jako domyślną kasę" sits in the same dialog on other types.
-  await page.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await page.getByText('Nowy wydatek').first().waitFor({ state: 'hidden' })
+  await submitExpenseForm(page)
+  await waitForExpenseDialogToClose(page)
 }
 
 async function readSettlement(

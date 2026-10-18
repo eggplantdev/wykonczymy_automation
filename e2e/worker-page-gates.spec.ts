@@ -1,15 +1,10 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { E2E_WORKERS, workerCredentials } from '@/scripts/e2e-user-credentials'
 import { WORKER_STORAGE_STATE } from './global-setup'
 import { fillLoginForm, loginAsWorker } from './support/auth'
+import { expectNotFound } from './support/not-found'
 import { readSeed, type E2ESeedsT } from './support/seeds'
 import { waitForHydration } from './support/wait'
-
-// The status code is unassertable: `(frontend)/loading.tsx` flushes the shell at 200 before
-// `notFound()` runs. Bounded well above the project's 20 s for the shell hydrating around it.
-async function expectNotFound(page: Page): Promise<void> {
-  await expect(page.getByText('Nie znaleziono')).toBeVisible({ timeout: 60_000 })
-}
 
 let workers: E2ESeedsT['workers']
 

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { openInvestmentExpenseForm, submitExpenseForm } from './drivers/expenses'
+import { openInvestmentExpenseForm, saveExpenseForm } from './drivers/expenses'
+import { PHONE_VIEWPORT } from './support/viewport'
 import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 
-const VIEWPORT = { width: 390, height: 844 }
-test.use({ viewport: VIEWPORT })
+test.use({ viewport: PHONE_VIEWPORT })
 
 test('na telefonie wydatek dodaje się przez pełnoekranowy arkusz i ląduje w kasie', async ({
   page,
@@ -13,14 +13,8 @@ test('na telefonie wydatek dodaje się przez pełnoekranowy arkusz i ląduje w k
   await openInvestmentExpenseForm(page, '2.34', description)
 
   const sheet = page.getByRole('dialog').filter({ hasText: 'Nowy wydatek' })
-  const box = await sheet.boundingBox()
-  expect(box, 'the sheet has no box').not.toBeNull()
-  expect(box?.y).toBe(0)
-  expect(box?.height).toBe(VIEWPORT.height)
-  expect(box?.width).toBe(VIEWPORT.width)
+  expect(await sheet.boundingBox()).toMatchObject({ y: 0, ...PHONE_VIEWPORT })
 
-  await submitExpenseForm(page)
-  await page.getByRole('button', { name: 'Zapisz bez faktury' }).click()
-  await expect(sheet).toBeHidden()
+  await saveExpenseForm(page)
   await expect(page.getByRole('cell', { name: description }).first()).toBeVisible()
 })

@@ -10,8 +10,7 @@ export async function pickExpenseType(page: Page, label: string): Promise<void> 
 }
 
 export async function openExpenseDialog(page: Page): Promise<void> {
-  // Below `lg` the „Wydatek" label is hidden, so a name-based locator finds nothing on a phone.
-  const trigger = page.locator('header button:has(svg.lucide-rocket)')
+  const trigger = page.getByRole('button', { name: 'Wydatek', exact: true })
   await trigger.waitFor()
   await waitForHydration(trigger)
   const title = page.getByText('Nowy wydatek').first()
@@ -58,6 +57,10 @@ export async function createInvestmentExpense(
   netAmount?: string,
 ): Promise<void> {
   await openInvestmentExpenseForm(page, amount, description, netAmount)
+  await saveExpenseForm(page)
+}
+
+export async function saveExpenseForm(page: Page): Promise<void> {
   await submitExpenseForm(page)
   const saveWithoutInvoice = page.getByRole('button', { name: 'Zapisz bez faktury' })
   const refusal = page.getByRole('dialog').locator('[data-slot=field-error]')
@@ -66,7 +69,7 @@ export async function createInvestmentExpense(
   await waitForExpenseDialogToClose(page)
 }
 
-async function waitForExpenseDialogToClose(page: Page): Promise<void> {
+export async function waitForExpenseDialogToClose(page: Page): Promise<void> {
   const title = page.getByText('Nowy wydatek').first()
   try {
     await title.waitFor({ state: 'hidden' })

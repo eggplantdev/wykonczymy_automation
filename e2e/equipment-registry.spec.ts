@@ -136,7 +136,11 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   await expect(await equipmentCell(page, EQUIPMENT, 'Miejsce')).toHaveText('—')
 
   await page.goto('/pracownicy')
-  await page.locator('table tbody tr').filter({ hasText: worker }).first().click()
+  await page
+    .locator('table tbody tr')
+    .filter({ has: page.getByRole('cell', { name: worker, exact: true }) })
+    .first()
+    .click()
   await page.waitForURL(/\/pracownicy\/\d+/)
   const held = page
     .locator('div')

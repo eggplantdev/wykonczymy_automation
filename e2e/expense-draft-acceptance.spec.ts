@@ -2,9 +2,6 @@ import { test, expect } from '@playwright/test'
 import { readSeed } from './support/seeds'
 import { waitForHydration } from './support/wait'
 
-// The zgłoszenie's photo lives in the preview Blob store: the dialog downloads it back into a File,
-// and the booking links that File's media instead of uploading it again.
-
 test('a manager books a worker zgłoszenie from its photo and stored read onto his kasa', async ({
   page,
 }) => {
@@ -33,7 +30,5 @@ test('a manager books a worker zgłoszenie from its photo and stored read onto h
   await expect(page.getByRole('row').filter({ hasText: draft.note })).toContainText('przyjęty')
 
   await page.goto(`/kasa/${draft.registerId}`)
-  await expect(page.getByRole('row').filter({ hasText: draft.description })).toContainText(
-    '87,65',
-  )
+  await expect(page.getByRole('row').filter({ hasText: draft.description })).toContainText('87,65')
 })

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { isInvestmentOffered } from './drivers/expenses'
+import { expectNotFound } from './support/not-found'
 import { readSeed } from './support/seeds'
 import { waitForHydration } from './support/wait'
 
@@ -10,7 +11,6 @@ const trashSection = (page: Page) =>
   page.locator('section').filter({ has: page.getByRole('heading', { name: 'Inwestycje' }) })
 
 async function trashFromListing(page: Page, name: string): Promise<void> {
-  await page.goto('/inwestycje')
   const trash = listingRow(page, name).getByRole('button', { name: 'Usuń inwestycję' })
   await waitForHydration(trash)
   await trash.click()
@@ -29,6 +29,7 @@ test('an investment goes to Kosz, comes back, and is deleted forever only under 
   test.slow()
   const investment = readSeed('trash')
 
+  await page.goto('/inwestycje')
   await trashFromListing(page, investment.name)
   expect(await isInvestmentOffered(page, investment.name), 'still offered after the trash').toBe(
     false,
@@ -57,5 +58,5 @@ test('an investment goes to Kosz, comes back, and is deleted forever only under 
   await expect(trashSection(page).getByText(investment.name, { exact: true })).toHaveCount(0)
 
   await page.goto(`/inwestycje/${investment.id}`)
-  await expect(page.getByText('Nie znaleziono')).toBeVisible({ timeout: 60_000 })
+  await expectNotFound(page)
 })
