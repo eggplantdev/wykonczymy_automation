@@ -25,11 +25,9 @@ describe('leafColumnIds', () => {
 describe('base ranks under a stored rank', () => {
   it('does not move when a column has already been dragged', () => {
     const declared = leafColumnIds(COLUMNS)
-    const base = baseRanksFromKeys(declared)
     const ranks = { worker: -1 }
 
     expect(orderColumnKeys(declared, ranks)).toEqual(['worker', 'id', 'date', 'amount'])
-    expect(baseRanksFromKeys(leafColumnIds(COLUMNS))).toEqual(base)
   })
 
   it('lands a second drop where it was dropped', () => {

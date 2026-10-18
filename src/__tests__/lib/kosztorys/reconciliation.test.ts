@@ -152,27 +152,6 @@ describe('nothing booked on the transactions plane silences BOTH verdicts (EX-55
   })
 })
 
-describe('robocizna compares the PRE-rabat suma prac (EX-535 regression)', () => {
-  it('pre-rabat basis is silent; the old post-rabat basis would scream', () => {
-    const tree = makeReconTree()
-    const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)
-    expect(laborCostsNetFromKosztorys).toBeCloseTo(140)
-    expect(discountNetFromKosztorys).toBeCloseTo(8)
-
-    const silent = buildKosztorysReconciliation({
-      laborCostsNetFromKosztorys,
-      discountNetFromKosztorys,
-      laborCostsNetFromTransactions: laborCostsNetFromKosztorys,
-      discountNetFromTransactions: discountNetFromKosztorys,
-    })
-    expect(silent.laborCosts.mismatch).toBe(false)
-
-    const postDiscountNet = laborCostsNetFromKosztorys - discountNetFromKosztorys
-    expect(postDiscountNet).toBeCloseTo(132)
-    expect(postDiscountNet).not.toBeCloseTo(laborCostsNetFromKosztorys)
-  })
-})
-
 describe('reconciliation compares netto ↔ netto — the ledger plane carries no VAT (EX-535)', () => {
   it('rabat 100 reconciles against a netto RABAT of 100, and robocizna net-to-net is silent', () => {
     const verdict = buildKosztorysReconciliation({

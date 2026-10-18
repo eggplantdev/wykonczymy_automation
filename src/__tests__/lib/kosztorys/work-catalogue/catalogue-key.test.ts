@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { cleanDescription, TYPO_FIXES } from '@/lib/kosztorys/clean-description'
-import { itemKey } from '@/lib/kosztorys/sheet-import/item-key'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 const key = (description: string, unit: string | null = 'm2') => catalogueKey(description, unit)
@@ -48,11 +47,6 @@ describe('catalogueKey', () => {
 
   it('keeps the same opis priced per different j.m. apart', () => {
     expect(key('Malowanie ścian', 'm2')).not.toBe(key('Malowanie ścian', 'szt'))
-  })
-
-  it('drops the section, unlike the sheet-import item key', () => {
-    expect(itemKey('Łazienka', 'Skucie tynku', 0)).not.toBe(itemKey('Kuchnia', 'Skucie tynku', 0))
-    expect(catalogueKey('Skucie tynku', 'm2')).toBe(catalogueKey('Skucie tynku', 'm2'))
   })
 
   it('gives a missing j.m. a member of its own, so two of them collide', () => {

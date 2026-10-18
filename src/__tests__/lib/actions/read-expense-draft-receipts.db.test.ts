@@ -4,7 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { UNREADABLE_RECEIPT, type ReceiptExtractionT } from '@/lib/ai/receipt-extraction-schema'
 import { getDb } from '@/lib/db/get-db'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
@@ -45,7 +44,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   let workerId: number
   let registerId: number
 
-  async function createDraft(name: string, pageCount: number, scanMode: ScanModeT) {
+  async function createDraft(name: string, pageCount: number) {
     const mediaIds: number[] = []
     for (let page = 0; page < pageCount; page++) {
       const { rows } = await db.execute(sql`
@@ -63,10 +62,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
       mediaIds,
     })
     if (draftId === null) throw new Error('draft fixture refused')
-    // Drafts sent before EX-1048 still carry the worker's „Jeden wydatek”.
-    await db.execute(
-      sql`UPDATE worker_expense_drafts SET scan_mode = ${scanMode} WHERE id = ${draftId}`,
-    )
     return { draftId, mediaIds }
   }
 
@@ -111,8 +106,8 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('reads a multi-photo „Jeden wydatek” photo by photo', async () => {
-    const { draftId, mediaIds } = await createDraft('one-invoice', 2, 'one-invoice')
+  it('reads a multi-photo draft photo by photo, keeping the whole reading', async () => {
+    const { draftId, mediaIds } = await createDraft('multi-photo', 2)
 
     await readExpenseDraftReceipts(db, draftId)
 
@@ -135,7 +130,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('„Kilka wydatków” stores a row per paragon on each photo; an unreadable or unfetched photo keeps the sentinel', async () => {
-    const { draftId, mediaIds } = await createDraft('per-photo', 3, 'one-per-photo')
+    const { draftId, mediaIds } = await createDraft('per-photo', 3)
     extractReceipts.mockImplementation(async (pages: { filename: string }[]) =>
       pages[0].filename.endsWith('-1.jpg')
         ? []
@@ -166,36 +161,9 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  it('reads a one-photo „Jeden wydatek” paragon by paragon', async () => {
-    const { draftId, mediaIds } = await createDraft('one-photo-invoice', 1, 'one-invoice')
-    extractReceipts.mockResolvedValue([
-      reading({ description: 'Castorama', netAmount: null, invoiceNote: '' }),
-      reading({ description: 'Parking', amount: 5, netAmount: null, invoiceNote: '' }),
-    ])
-
-    await readExpenseDraftReceipts(db, draftId)
-
-    expect(extractReceipt).not.toHaveBeenCalled()
-    expect(await readOf(draftId)).toEqual({
-      rows: [
-        { mediaIds, description: 'Castorama', amount: 123, filename: 'castorama.jpg' },
-        { mediaIds, description: 'Parking', amount: 5, filename: 'parking.jpg' },
-      ],
-    })
-  })
-
-  it('reads a „Jeden wydatek” over 8 photos photo by photo', async () => {
-    const { draftId } = await createDraft('over-cap', 9, 'one-invoice')
-
-    await readExpenseDraftReceipts(db, draftId)
-
-    expect(extractReceipts).toHaveBeenCalledTimes(9)
-    expect(((await readOf(draftId)) as { rows: unknown[] }).rows).toHaveLength(9)
-  })
-
   // Stored, or every „Zobacz" would pay the model again for the same answer.
   it('stores a draft the AI could not read at all', async () => {
-    const { draftId, mediaIds } = await createDraft('all-unreadable', 2, 'one-per-photo')
+    const { draftId, mediaIds } = await createDraft('all-unreadable', 2)
     extractReceipts.mockResolvedValue([])
 
     await readExpenseDraftReceipts(db, draftId)
@@ -209,7 +177,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('returns a stored read without asking the AI again', async () => {
-    const { draftId } = await createDraft('already-read', 2, 'one-per-photo')
+    const { draftId } = await createDraft('already-read', 2)
     const stored = await readExpenseDraftReceipts(db, draftId)
     extractReceipts.mockClear()
 
@@ -218,7 +186,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('stores the sentinel per photo when no photo reached the AI', async () => {
-    const { draftId, mediaIds } = await createDraft('all-unfetched', 2, 'one-per-photo')
+    const { draftId, mediaIds } = await createDraft('all-unfetched', 2)
     fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))
 
     await readExpenseDraftReceipts(db, draftId)
@@ -234,7 +202,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   // A skipped paragon and a duplicate hint name their row by its position in the stored read, so a
   // second read („Zobacz" while the send-time one runs) must not swap it for a different one.
   it('the first read stored wins an overlapping one, and both callers get it', async () => {
-    const { draftId, mediaIds } = await createDraft('overlap', 1, 'one-per-photo')
+    const { draftId, mediaIds } = await createDraft('overlap', 1)
     const first = { rows: [{ mediaIds, description: 'Castorama', amount: 10 }] }
     extractReceipts.mockImplementation(async () => {
       await db.execute(sql`
@@ -250,7 +218,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('a draft decided while the AI reads is left as the record it became', async () => {
-    const { draftId } = await createDraft('decided', 1, 'one-per-photo')
+    const { draftId } = await createDraft('decided', 1)
     extractReceipts.mockImplementation(async () => {
       await decideExpenseDraft(db, {
         draftId,

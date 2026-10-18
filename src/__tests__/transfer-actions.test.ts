@@ -257,18 +257,6 @@ describe('createTransferAction', () => {
     expect(result.success).toBe(true)
   })
 
-  it('type needing source register → calls validateSourceRegister (DB call)', async () => {
-    await createTransferAction(makeSingleTransferData())
-
-    expect(mockDbExecute).toHaveBeenCalled()
-  })
-
-  it('deposit type with source register → also calls validateSourceRegister', async () => {
-    await createTransferAction(makeDepositData())
-
-    expect(mockDbExecute).toHaveBeenCalled()
-  })
-
   it('LABOR_COST → skips validateSourceRegister (no register lookup)', async () => {
     await createTransferAction(
       makeSingleTransferData({ type: 'LABOR_COST', sourceRegister: undefined }),

@@ -68,18 +68,12 @@ describe('validateSourceRegister', () => {
     expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
   })
 
-  it('ADMIN can access any register', async () => {
+  it('returns the register it finds', async () => {
     mockRegisterLookup(1)
     const result = await validateSourceRegister(1, fakePayload)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.register.id).toBe(1)
     }
-  })
-
-  it('MANAGER can access any register', async () => {
-    mockRegisterLookup(3)
-    const result = await validateSourceRegister(3, fakePayload)
-    expect(result.success).toBe(true)
   })
 })

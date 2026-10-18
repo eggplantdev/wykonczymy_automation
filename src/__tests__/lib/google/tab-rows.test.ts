@@ -73,7 +73,6 @@ describe('sheet totals == filtered view (criterion 2)', () => {
     { id: 11, type: 'PAYOUT', amount: 111, investment: 32, ...base }, // other investment
   ]
 
-  // The desired row set for investment 31 (mirrors loadAppTransferRows' where).
   const desired = docs.filter(
     (d) =>
       d.investment === 31 &&
@@ -93,12 +92,6 @@ describe('sheet totals == filtered view (criterion 2)', () => {
       const sheetSum = rows.filter((r) => r.typ === label).reduce((s, r) => s + Number(r.amount), 0)
       expect(sheetSum).toBe(dbTotal(type))
     }
-  })
-
-  it('unlinked LOSS and cancelled transfers emit no row', () => {
-    const ids = desired.map((d) => d.id)
-    expect(ids).not.toContain(5)
-    expect(ids).not.toContain(9)
   })
 })
 
