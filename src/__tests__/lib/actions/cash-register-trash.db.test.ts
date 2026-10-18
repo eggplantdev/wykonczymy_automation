@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -7,13 +7,7 @@ import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
-
-// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
-}))
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
   let payload: Payload
@@ -64,7 +58,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
   })
 
   beforeEach(() => {
-    session.role = 'OWNER'
+    authState.role = 'OWNER'
     revalidateCollections.mockClear()
   })
 
@@ -94,7 +88,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
       }
     },
     setRole: (role) => {
-      session.role = role
+      authState.role = role
     },
     missingError: 'Kasa nie istnieje.',
     notInTrashError: 'Najpierw przenieś kasę do kosza.',
@@ -126,7 +120,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     const live = await createRegister('Główna żywa', 'MAIN')
     const trashed = await createRegister('Główna w koszu', 'MAIN')
     await actions.trashCashRegisterAction(trashed)
-    session.role = 'MANAGER'
+    authState.role = 'MANAGER'
 
     expect(await actions.trashCashRegisterAction(live)).toEqual({
       success: false,
@@ -145,7 +139,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     const live = await createRegister('Pracownik żywa')
     const trashed = await createRegister('Pracownik w koszu')
     await actions.trashCashRegisterAction(trashed)
-    session.role = 'EMPLOYEE'
+    authState.role = 'EMPLOYEE'
 
     expect((await actions.trashCashRegisterAction(live)).success).toBe(false)
     expect((await actions.restoreCashRegisterAction(trashed)).success).toBe(false)

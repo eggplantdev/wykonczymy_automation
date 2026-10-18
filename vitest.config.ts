@@ -62,6 +62,7 @@ const nodeTest = {
 
 const dbTest = {
   ...nodeTest,
+  setupFiles: [...nodeTest.setupFiles, './src/__tests__/setup/db.ts'],
   // A cold Payload boot in a DB spec's beforeAll runs ~9-10s, past the 10s default.
   hookTimeout: 30_000,
 }

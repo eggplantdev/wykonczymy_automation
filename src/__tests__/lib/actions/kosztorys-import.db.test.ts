@@ -11,7 +11,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const sheetState = vi.hoisted(() => ({ spreadsheetId: 'sheet-under-test' as string | undefined }))
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getInvestmentSheet: vi

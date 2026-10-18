@@ -10,8 +10,6 @@ import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
-
 let onSnapshotRead: (() => Promise<void>) | undefined
 vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/kosztorys/serialize-kosztorys')>()

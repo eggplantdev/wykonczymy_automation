@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -12,10 +12,6 @@ import { canonicalTree } from '@/__tests__/helpers/canonical-snapshot'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-// serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
-// cookies(), which has no request scope in node.
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const canonical = (snap: SnapshotPayloadT) => ({ ...canonicalTree(snap), settings: snap.settings })
 

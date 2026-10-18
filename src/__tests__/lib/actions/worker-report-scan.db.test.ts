@@ -15,8 +15,6 @@ import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { scheduled } from '@/__tests__/stubs/next-server'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
-
 const { createScannedReportAction } = await import('@/lib/actions/worker-report-scan')
 
 const FILENAME_PREFIX = 'ex-949-scan-'

@@ -12,7 +12,6 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 // The last write of the transaction: failing it is the one way to reach „the tree, the etap and the
 // version were all written, then the accept failed" without racing the action.
 const recording = vi.hoisted(() => ({ failNext: false }))

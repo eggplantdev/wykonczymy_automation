@@ -12,6 +12,7 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   - node + DB (`setup/node.ts`): `@/lib/cache/revalidate` → `stubs/cache-revalidate` (only
     `revalidate.test.ts` opts out, via `vi.unmock`); `next/server`'s `after` queues into
     `stubs/next-server`'s `scheduled` — run the work with `flushAfter()`.
+  - DB only (`setup/db.ts`): the session — see below. It resets to OWNER id 1 before each file.
   - dom (`setup/dom.ts`): `@/lib/utils/toast` (import `toastMessage` and assert it as the mock);
     `next/navigation` → `stubs/next-navigation` (assert `router.push`, set `navigationState.pathname`
     / `.searchParams`).
@@ -21,11 +22,12 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
 - **A DB spec that never calls `vi.mock` / `vi.doMock` / `vi.spyOn` runs in `db-shared`** — one
   module cache and one Payload boot for every such file. `vitest.config.ts` sorts by reading the
   source, so the first mock moves a spec to the isolated `db` project on its own.
-- **The session is mocked one level below `requireAuth`**: `vi.mock('@/lib/auth/get-current-user-jwt',
-() => import('@/__tests__/stubs/get-current-user-jwt'))`, setting the role / user through its
-  `authState`, so the real role gate runs. Never mock `@/lib/auth/require-auth` to pass a gate —
-  a role the app refuses must fail the spec. `@/hooks/use-current-user` takes
-  `stubs/use-current-user`, which reads the same `authState`.
+- **The session is mocked one level below `requireAuth`**: `get-current-user-jwt` →
+  `stubs/get-current-user-jwt`, steered through its `authState`, so the real role gate runs. A DB
+  spec gets it from `setup/db.ts` and never re-mocks it — a per-file `vi.mock` would move it to the
+  isolated `db` project; a node or dom spec declares the `vi.mock` itself. Never mock
+  `@/lib/auth/require-auth` to pass a gate — a role the app refuses must fail the spec.
+  `@/hooks/use-current-user` takes `stubs/use-current-user`, which reads the same `authState`.
 - **Never add a constant to `@/lib/utils/toast`** — the dom setup mocks it as `{ toastMessage }`
   alone, so any other export is `undefined` in every component spec. Notice wording and timing live in
   `lib/utils/notice.ts`.

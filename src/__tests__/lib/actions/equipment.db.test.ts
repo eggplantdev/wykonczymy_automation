@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -8,8 +8,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Adding an item and saying where it went is one write or none: an item whose first event failed
 // reads as „nie wiadomo gdzie" for the rest of its life.
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const NAME = 'EX-758 create-in-one-transaction'
 const MISSING_HOLDER_ID = 2_000_000_000

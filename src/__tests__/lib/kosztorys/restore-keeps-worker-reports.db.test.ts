@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -10,8 +10,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 describe.skipIf(!ENV_READY)('restore keeps worker reports (DB)', () => {
   let payload: Payload

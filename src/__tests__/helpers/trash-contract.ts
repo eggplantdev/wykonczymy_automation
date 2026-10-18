@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import type { ActionResultT } from '@/types/action'
+import type { RoleT } from '@/lib/auth/roles'
 import { bootTestPayload } from '@/__tests__/helpers/payload'
 
 type TrashActionsT = {
@@ -21,7 +22,7 @@ export type TrashContractT = {
   childTable: string
   childForeignKey: string
   loadActions: () => Promise<TrashActionsT>
-  setRole: (role: string) => void
+  setRole: (role: RoleT) => void
   missingError: string
   notInTrashError: string
   revalidated: { trash: string[]; deleteForever: string[] }

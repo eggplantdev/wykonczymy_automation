@@ -9,7 +9,6 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 // Pass-through unless a test arms it — the only way to fail the katalog write without racing the
 // action's own reads.
 const catalogueWrite = vi.hoisted(() => ({ failNext: false }))

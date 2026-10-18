@@ -15,7 +15,6 @@ const sheetState = vi.hoisted(() => ({
   formulas: [] as (string | number)[][],
 }))
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getInvestmentSheet: vi

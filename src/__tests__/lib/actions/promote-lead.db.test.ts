@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -9,8 +9,6 @@ import { createTestInvestment } from '@/__tests__/helpers/investment'
 
 // a „copy" would pass every count assertion while quietly doubling the storage bill — so the ids
 // themselves are what this asserts.
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const NAME = 'EX-802 promoted lead'
 const OTHER_NAME = 'EX-802 unrelated investment'

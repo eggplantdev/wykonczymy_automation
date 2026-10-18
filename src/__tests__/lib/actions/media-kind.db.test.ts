@@ -1,14 +1,9 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-// The refusal leg mocks the SESSION rather than `requireAuth`, so
-// the role gate under test is the real one.
-
-const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 const FILENAME = 'ex-829-rzut.jpg'
 
@@ -41,7 +36,7 @@ describe.skipIf(!ENV_READY)('setMediaKindAction (DB)', () => {
       RETURNING id
     `)
     mediaId = Number(rows[0].id)
-    getCurrentUserJwt.mockResolvedValue({ id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' })
+    Object.assign(authState, { userId: 1, role: 'ADMIN' })
   })
 
   afterAll(purge)
@@ -54,7 +49,7 @@ describe.skipIf(!ENV_READY)('setMediaKindAction (DB)', () => {
   })
 
   it('leaves the row untouched for an EMPLOYEE', async () => {
-    getCurrentUserJwt.mockResolvedValue({ id: 2, role: 'EMPLOYEE', name: 'E', email: 'e@t.pl' })
+    authState.role = 'EMPLOYEE'
 
     const result = await setMediaKindAction(mediaId, 'projekt')
 

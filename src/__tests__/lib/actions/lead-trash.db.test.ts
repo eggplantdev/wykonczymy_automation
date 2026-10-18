@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -6,13 +6,7 @@ import { fetchTrashedLeads } from '@/lib/db/lead-trash'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
-
-// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
-}))
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 const PREFIX = 'EX-970 lead'
 const FILE_PREFIX = 'ex-970-lead-trash-'
@@ -68,7 +62,7 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
   })
 
   beforeEach(() => {
-    session.role = 'OWNER'
+    authState.role = 'OWNER'
   })
 
   afterAll(async () => {
@@ -78,7 +72,7 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
   })
 
   it('lets a MANAGER trash in bulk, restore, and erase a lead into a tombstone', async () => {
-    session.role = 'MANAGER'
+    authState.role = 'MANAGER'
     const first = await createLead()
     const second = await createLead()
 
@@ -142,7 +136,7 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
 
   it('refuses an EMPLOYEE every action', async () => {
     const lead = await createLead()
-    session.role = 'EMPLOYEE'
+    authState.role = 'EMPLOYEE'
 
     expect((await actions.trashLeadsAction([lead.id])).success).toBe(false)
     expect((await readLead(lead.id)).trashed_at).toBeNull()

@@ -14,7 +14,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { scheduled } from '@/__tests__/stubs/next-server'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
 

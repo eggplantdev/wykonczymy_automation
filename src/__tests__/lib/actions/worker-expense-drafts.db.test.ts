@@ -12,8 +12,6 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
-
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
 const { revalidateTag } = await import('@/__tests__/stubs/next-cache')
 const { revalidateCollections } = await import('@/__tests__/stubs/cache-revalidate')

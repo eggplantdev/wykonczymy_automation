@@ -1,15 +1,9 @@
-import { describe, vi } from 'vitest'
+import { describe } from 'vitest'
 import type { Payload } from 'payload'
 import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
 import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 import { ENV_READY } from '@/__tests__/helpers/payload'
-
-// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
-}))
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 describe.skipIf(!ENV_READY)('equipment trash actions (DB)', () => {
   describeTrashContract({
@@ -39,7 +33,7 @@ describe.skipIf(!ENV_READY)('equipment trash actions (DB)', () => {
       }
     },
     setRole: (role) => {
-      session.role = role
+      authState.role = role
     },
     missingError: 'Sprzęt nie istnieje.',
     notInTrashError: 'Najpierw przenieś sprzęt do kosza.',

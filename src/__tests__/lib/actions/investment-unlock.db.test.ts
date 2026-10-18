@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -10,7 +10,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The unit spec on `guardInvestmentStatusUnlock` hands the hook a `req.user` and so can never see
 // whether the real route supplies one.
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { updateInvestmentAction } = await import('@/lib/actions/investments')
 const { INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE } =

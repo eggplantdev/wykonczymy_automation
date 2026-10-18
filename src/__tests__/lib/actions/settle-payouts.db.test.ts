@@ -19,7 +19,6 @@ vi.mock('next/server', async (importOriginal) => {
 vi.mock('@/lib/actions/sheets-sync', () => ({ syncBulkExpensesToSheet: vi.fn() }))
 const { notifyPendingPayouts } = vi.hoisted(() => ({ notifyPendingPayouts: vi.fn() }))
 vi.mock('@/lib/push/notify-pending-payouts', () => ({ notifyPendingPayouts }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { settlePayoutsAction } = await import('@/lib/actions/settle-payouts')
 
