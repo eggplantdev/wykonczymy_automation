@@ -8,6 +8,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import path from 'node:path'
 import {
   api,
+  byKosztorysOrder,
   BASE,
   callAction,
   CASES_ROOT,
@@ -95,9 +96,7 @@ async function run() {
   const investmentId = created.docs[0].id
 
   const rozpiska = template
-    .toSorted(
-      (a, b) => a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder,
-    )
+    .toSorted(byKosztorysOrder)
     .map((i) =>
       [i.section.displayOrder, i.section.name, i.id, i.description, i.unit, i.clientPrice, ''].join(
         ' | ',

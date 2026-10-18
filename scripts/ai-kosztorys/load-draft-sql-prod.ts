@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { assertRoundDraft, hasRoundBlock, ROUND_BLOCK_SEPARATOR } from '@/lib/kosztorys/ai-round'
 import { sectionItemKey } from '@/lib/kosztorys/sheet-import/item-key'
-import { api, assertRoundFieldsDeployed, CASES_ROOT, itemsOf } from './prod-client'
+import { assertRoundFieldsDeployed, CASES_ROOT, itemsOf, sectionsOf } from './prod-client'
 
 type DraftRowT = {
   section: string
@@ -51,6 +51,9 @@ async function run() {
   const rowByKey = new Map(draft.map((row) => [sectionItemKey(row.section, row.description), row]))
 
   const items = await itemsOf(investmentId)
+  const itemByKey = new Map(
+    items.map((item) => [sectionItemKey(item.section.name, item.description), item]),
+  )
   if (!items.length)
     throw new Error(`#${investmentId} has no kosztorys — run fill-case-prod.ts first`)
   if (ROUND !== undefined) {
@@ -58,9 +61,7 @@ async function run() {
     const loaded = items.filter((item) => hasRoundBlock(item.aiNewInformation, ROUND))
     if (loaded.length) throw new Error(`Runda ${ROUND} is already on ${loaded.length} pozycji`)
   }
-  const { docs: sections } = await api<{ docs: { id: number; name: string }[] }>(
-    `/kosztorys-sections?where[investment][equals]=${investmentId}&limit=0&pagination=false&depth=0`,
-  )
+  const sections = await sectionsOf(investmentId)
   const sectionByKey = new Map(sections.map((s) => [sectionItemKey(s.name, null), s]))
 
   const matchedKeys = new Set<string>()
@@ -143,11 +144,7 @@ async function run() {
   }
 
   const total = draft.reduce((sum, row) => {
-    const item = items.find(
-      (i) =>
-        sectionItemKey(i.section.name, i.description) ===
-        sectionItemKey(row.section, row.description),
-    )
+    const item = itemByKey.get(sectionItemKey(row.section, row.description))
     return sum + row.qty * (item?.clientPrice ?? row.clientPrice ?? 0)
   }, 0)
   console.log(

@@ -8,6 +8,7 @@ import { homedir } from 'node:os'
 import path from 'node:path'
 import {
   api,
+  byKosztorysOrder,
   BASE,
   CASES_ROOT,
   forAiAnalysis,
@@ -65,9 +66,7 @@ async function run() {
   console.log(`${assets.length} files downloaded`)
 
   const rozpiska = (isEmpty ? template : items)
-    .toSorted(
-      (a, b) => a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder,
-    )
+    .toSorted(byKosztorysOrder)
     .map((i) =>
       [i.section.displayOrder, i.section.name, i.id, i.description, i.unit, i.clientPrice, ''].join(
         ' | ',

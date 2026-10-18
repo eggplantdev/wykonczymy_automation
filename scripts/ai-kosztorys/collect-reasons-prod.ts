@@ -6,7 +6,7 @@
 //     node --import tsx scripts/ai-kosztorys/collect-reasons-prod.ts
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { api, CASES_ROOT, itemsOf, norm } from './prod-client'
+import { api, byKosztorysOrder, CASES_ROOT, itemsOf, norm } from './prod-client'
 
 type LedgerEntryT = {
   investment: number
@@ -46,10 +46,7 @@ async function run() {
     const withReason = (await itemsOf(id)).filter((item) => item.changeReason?.trim())
     const items = withReason
       .filter((item) => !decided.has(ledgerKey(item.id, item.changeReason ?? '')))
-      .sort(
-        (a, b) =>
-          a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder,
-      )
+      .sort(byKosztorysOrder)
     const skipped = withReason.length - items.length
 
     console.log(

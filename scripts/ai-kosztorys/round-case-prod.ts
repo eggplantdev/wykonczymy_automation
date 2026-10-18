@@ -12,6 +12,7 @@ import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys
 import { effectiveReviewStatus } from '@/lib/kosztorys/review-status'
 import {
   api,
+  byKosztorysOrder,
   assertRoundFieldsDeployed,
   BASE,
   CASES_ROOT,
@@ -45,11 +46,10 @@ const lines = (text: string) => text.split('\n').map(norm).filter(Boolean)
 const cell = (value: string | number | null | undefined) =>
   value === null || value === undefined ? '' : norm(String(value))
 
-function baseline(): RoundRecordT {
+function baseline(kase: CaseT): RoundRecordT {
   const previous = path.join(ROUNDS_DIR, `${ROUND - 1}.json`)
   if (existsSync(previous)) return JSON.parse(readFileSync(previous, 'utf8'))
   if (ROUND !== 2) throw new Error(`no record of round ${ROUND - 1} (${previous})`)
-  const kase: CaseT = JSON.parse(readFileSync(path.join(CASE_DIR, 'case.json'), 'utf8'))
   return {
     round: 1,
     at: '',
@@ -83,7 +83,7 @@ async function run() {
   const recordFile = path.join(ROUNDS_DIR, `${ROUND}.json`)
   if (existsSync(recordFile)) throw new Error(`round ${ROUND} already has a record (${recordFile})`)
   const kase: CaseT = JSON.parse(readFileSync(path.join(CASE_DIR, 'case.json'), 'utf8'))
-  const previous = baseline()
+  const previous = baseline(kase)
 
   const investment = await api<InvestmentT>(`/investments/${kase.investmentId}?depth=1`)
   const assets = (investment.assets ?? []).filter(forAiAnalysis)
@@ -94,11 +94,7 @@ async function run() {
   const newNotes = lines(notes).filter((line) => !knownLines.has(line))
   const items = await itemsOf(kase.investmentId)
   assertRoundFieldsDeployed(items)
-  const kosztorys = items
-    .toSorted(
-      (a, b) => a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder,
-    )
-    .map(kosztorysLine)
+  const kosztorys = items.toSorted(byKosztorysOrder).map(kosztorysLine)
 
   for (const asset of newFiles) console.log(`new file  ${asset.filename}`)
   for (const line of newNotes) console.log(`new note  ${line}`)
