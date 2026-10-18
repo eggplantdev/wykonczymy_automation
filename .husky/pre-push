@@ -65,7 +65,6 @@ leg() {
   "$@" || { echo "✗ pre-push FAILED at: $*" >&2; exit 1; }
 }
 
-leg "typecheck" pnpm run typecheck
 # Wrapped by hand: this leg calls vitest directly rather than `pnpm test`, so it would
 # otherwise be the one heavy run that escapes the machine-wide lock. The three legs below
 # go through package.json scripts, which are wrapped there; a nested call inherits this hold.
@@ -73,7 +72,17 @@ leg "unit tests" bash scripts/with-test-lock.sh pnpm vitest run --silent --proje
 
 # The unit leg above never selects `*.db.test.ts`, so without this leg the destructive restore path
 # never runs before a push.
+# `tsc` runs beside the single-worker integration leg, on cores it leaves idle. Called through the
+# bin, not `pnpm run`, so the EXIT trap's kill reaches `tsc` itself and never orphans it.
+typecheck_log=$(mktemp)
+node_modules/.bin/tsc --noEmit > "$typecheck_log" 2>&1 &
+typecheck_pid=$!
+trap 'kill "$typecheck_pid" 2>/dev/null; rm -f "$typecheck_log"' EXIT
 leg "DB integration specs" pnpm test:integration
+echo "── pre-push: typecheck ──────────────────────────────"
+wait "$typecheck_pid" && typecheck_status=0 || typecheck_status=$?
+cat "$typecheck_log"
+[ "$typecheck_status" -eq 0 ] || { echo "✗ pre-push FAILED at: tsc --noEmit" >&2; exit 1; }
 
 # DB-backed listing-vs-detail parity sweep over every real investment, against the SAME isolated
 # 5435 test DB (prod-dump content) that test:integration just brought up and kept schema-current —

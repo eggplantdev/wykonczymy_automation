@@ -402,13 +402,13 @@ Compare against the research baseline (`research.md` §5: 175 s wall, 725.8 user
 
 #### Automated
 
-- [x] 4.1 Converted specs pass individually
-- [x] 4.2 dom-shared collects ≥ 135 files
-- [x] 4.3 `pnpm test:integration` passes
+- [x] 4.1 Converted specs pass individually — 87d34b94f
+- [x] 4.2 dom-shared collects ≥ 135 files — 87d34b94f
+- [x] 4.3 `pnpm test:integration` passes — 87d34b94f
 
 ### Phase 5: Typecheck alongside integration
 
 #### Automated
 
-- [ ] 5.1 `bash -n .husky/pre-push`
-- [ ] 5.2 Typecheck failure path reports FAILED
+- [x] 5.1 `bash -n .husky/pre-push`
+- [x] 5.2 Typecheck failure path reports FAILED
