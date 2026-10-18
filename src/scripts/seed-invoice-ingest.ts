@@ -47,5 +47,6 @@ export async function seedInvoiceIngest(payload: Payload, ownerId: number) {
     heic: await ownExpense('heic'),
     blocked: await ownExpense('blocked'),
     cell: await ownExpense('cell'),
+    bigPdf: await ownExpense('big-pdf'),
   }
 }
