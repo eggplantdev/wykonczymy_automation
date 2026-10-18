@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import { EXPIRE_NEXT, EXPIRE_NOW } from '@/lib/cache/tags'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -172,7 +172,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
 
     expect(await accept(draftId, description)).toEqual({
       success: false,
-      error: DRAFT_ALREADY_DECIDED,
+      error: pl.notices.draftAlreadyDecided,
       messageKey: 'draftAlreadyDecided',
       code: 'ALREADY_DECIDED',
     })
@@ -190,7 +190,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
 
     expect(await rejectExpenseDraftAction(accepted)).toEqual({
       success: false,
-      error: DRAFT_ALREADY_DECIDED,
+      error: pl.notices.draftAlreadyDecided,
       messageKey: 'draftAlreadyDecided',
     })
     expect(await readDraft(accepted)).toEqual(before)

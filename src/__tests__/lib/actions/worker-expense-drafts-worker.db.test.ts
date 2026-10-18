@@ -4,7 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertMediaRow } from '@/lib/db/media'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
@@ -333,7 +333,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
 
       expect(await deleteExpenseDraftAction(draftId)).toEqual({
         success: false,
-        error: DRAFT_ALREADY_DECIDED,
+        error: pl.notices.draftAlreadyDecided,
         messageKey: 'draftAlreadyDecided',
       })
 

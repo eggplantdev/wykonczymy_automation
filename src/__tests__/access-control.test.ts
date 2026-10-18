@@ -1,16 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import {
   hasAnyRole,
-  isAdminBoolean,
   isAdminOrOwnerOrManagerBoolean,
   isManager,
-  isAdmin,
   isAdminOrOwner,
   isAdminOrOwnerOrManager,
   isAuthenticated,
   canUpdateUser,
-  rolesOrSelfField,
-  isAdminField,
   isAdminOrOwnerField,
 } from '@/access/index'
 import type { RoleT } from '@/lib/auth/roles'
@@ -46,16 +42,6 @@ describe('hasAnyRole', () => {
   })
 })
 
-describe('isAdminBoolean', () => {
-  it('returns true for ADMIN', () => {
-    expect(isAdminBoolean(makeReq('ADMIN') as never)).toBe(true)
-  })
-
-  it.each(['OWNER', 'MANAGER', 'EMPLOYEE'] as RoleT[])('returns false for %s', (role) => {
-    expect(isAdminBoolean(makeReq(role) as never)).toBe(false)
-  })
-})
-
 describe('isAdminOrOwnerOrManagerBoolean', () => {
   it.each(['ADMIN', 'OWNER', 'MANAGER'] as RoleT[])('returns true for %s', (role) => {
     expect(isAdminOrOwnerOrManagerBoolean(makeReq(role) as never)).toBe(true)
@@ -73,16 +59,6 @@ describe('isManager', () => {
 
   it.each(['ADMIN', 'OWNER', 'EMPLOYEE'] as RoleT[])('returns false for %s', (role) => {
     expect(isManager(makeReq(role) as never)).toBe(false)
-  })
-})
-
-describe('isAdmin', () => {
-  it('returns true for ADMIN', () => {
-    expect(isAdmin(makeReq('ADMIN') as never)).toBe(true)
-  })
-
-  it('returns false for non-ADMIN', () => {
-    expect(isAdmin(makeReq('EMPLOYEE') as never)).toBe(false)
   })
 })
 
@@ -137,44 +113,6 @@ describe('canUpdateUser', () => {
 
   it('returns false when no user', () => {
     expect(canUpdateUser(onId(noUser, 7))).toBe(false)
-  })
-})
-
-describe('rolesOrSelfField', () => {
-  const accessFn = rolesOrSelfField('worker_id', 'ADMIN', 'OWNER')
-
-  it('returns true for ADMIN', () => {
-    expect(accessFn(makeReq('ADMIN') as never)).toBe(true)
-  })
-
-  it('returns true for OWNER', () => {
-    expect(accessFn(makeReq('OWNER') as never)).toBe(true)
-  })
-
-  it('returns Where clause for MANAGER', () => {
-    expect(accessFn(makeReq('MANAGER', 42) as never)).toEqual({
-      worker_id: { equals: 42 },
-    })
-  })
-
-  it('returns Where clause for EMPLOYEE', () => {
-    expect(accessFn(makeReq('EMPLOYEE', 7) as never)).toEqual({
-      worker_id: { equals: 7 },
-    })
-  })
-
-  it('returns false when no user', () => {
-    expect(accessFn(noUser as never)).toBe(false)
-  })
-})
-
-describe('isAdminField', () => {
-  it('returns true for ADMIN', () => {
-    expect(isAdminField(makeReq('ADMIN') as never)).toBe(true)
-  })
-
-  it.each(['OWNER', 'MANAGER', 'EMPLOYEE'] as RoleT[])('returns false for %s', (role) => {
-    expect(isAdminField(makeReq(role) as never)).toBe(false)
   })
 })
 

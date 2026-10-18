@@ -16,16 +16,12 @@ export const hasAnyRole = (user: UserWithRole, ...roles: RoleT[]): boolean =>
 
 type BooleanAccess = ({ req }: { req: PayloadRequest }) => boolean
 
-export const isAdminBoolean: BooleanAccess = ({ req: { user } }) => hasRole(user, 'ADMIN')
-
 export const isAdminOrOwnerOrManagerBoolean: BooleanAccess = ({ req: { user } }) =>
   hasAnyRole(user, 'ADMIN', 'OWNER', 'MANAGER')
 
 export const isAuthenticatedBoolean: BooleanAccess = ({ req: { user } }) => Boolean(user)
 
 export const isManager: BooleanAccess = ({ req: { user } }) => hasRole(user, 'MANAGER')
-
-export const isAdmin: Access = ({ req: { user } }) => hasRole(user, 'ADMIN')
 
 export const isAdminOrOwner: Access = ({ req: { user } }) => hasAnyRole(user, 'ADMIN', 'OWNER')
 
@@ -40,16 +36,6 @@ export const canUpdateUser: Access = ({ req: { user } }) => {
   if (hasRole(user, 'MANAGER')) return { role: { equals: 'EMPLOYEE' } }
   return false
 }
-
-export const rolesOrSelfField =
-  (field: string, ...roles: RoleT[]): Access =>
-  ({ req: { user } }) => {
-    if (!user) return false
-    if (hasAnyRole(user, ...roles)) return true
-    return { [field]: { equals: user.id } }
-  }
-
-export const isAdminField: FieldAccess = ({ req: { user } }) => hasRole(user, 'ADMIN')
 
 export const isAdminOrOwnerField: FieldAccess = ({ req: { user } }) =>
   hasAnyRole(user, 'ADMIN', 'OWNER')

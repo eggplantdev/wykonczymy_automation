@@ -1,24 +1,6 @@
 import { z } from 'zod'
 import { refineAmount, refineDate } from '@/lib/utils/validation'
 
-export const createInternalTransferSchema = z
-  .object({
-    description: z.string().optional().default(''),
-    amount: z.number().positive('Kwota musi być większa niż 0'),
-    date: z.string().min(1, 'Data jest wymagana'),
-    sourceRegister: z.number({ error: 'Kasa źródłowa jest wymagana' }),
-    targetRegister: z.number({ error: 'Kasa docelowa jest wymagana' }),
-  })
-  .superRefine((data, ctx) => {
-    if (data.targetRegister === data.sourceRegister) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Kasa docelowa musi być inna niż kasa źródłowa',
-        path: ['targetRegister'],
-      })
-    }
-  })
-
 export const internalTransferFormSchema = z
   .object({
     description: z.string(),
