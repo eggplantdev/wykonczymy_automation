@@ -1,7 +1,7 @@
 ---
 change_id: kosz-plikow
 title: Kosz plików — odroczone kasowanie z Bloba zamiast natychmiastowego
-status: implemented
+status: in_review
 created: 2026-09-22
 updated: 2026-10-18
 archived_at: null

@@ -987,6 +987,10 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Paragon w zgłoszeniu wydatku pracownika i zdjęcie w zgłoszeniu prac przeżywają przebieg crona
       nietknięte.
 - [ ] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+- [ ] „Usuń na zawsze" przy inwestycji, szablonie i zgłoszeniu w Koszu wygląda i działa jak dotąd:
+      ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
+- [ ] Zgłoszenie, które wcześniej straciło plik do Kosza, usunięte na zawsze: plik znika też z
+      sekcji „Pliki".
 
 # Zamknięte — indeks
 
