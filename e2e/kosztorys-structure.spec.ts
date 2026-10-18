@@ -4,10 +4,11 @@ import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import { type E2ESeedsT, readSeed } from './support/seeds'
 import { clickAndSettle } from './support/wait'
 import {
-  GRID_VIEWPORT,
   collapseSummaryPanel,
-  gridRow,
+  GRID_VIEWPORT,
   openEditor,
+  openRowMenu,
+  openSectionMenu,
   pickKosztorysOption,
   rowCell,
   sectionBand,
@@ -45,17 +46,6 @@ async function rozpiska(page: Page): Promise<string[]> {
   }, COLUMN_LABELS.description)
 }
 
-const itemRow = (page: Page, text: string) =>
-  gridRow(page, text).filter({ has: page.locator('[title="Akcje wiersza"]') })
-
-async function openRowMenu(page: Page, text: string): Promise<void> {
-  await itemRow(page, text).locator('[title="Akcje wiersza"]').click()
-}
-
-async function openSectionMenu(page: Page, name: string): Promise<void> {
-  await sectionBand(page, name).locator('[title="Akcje sekcji"]').click()
-}
-
 const menuItem = (page: Page, name: string | RegExp) =>
   page.getByRole('menuitem', { name, exact: true })
 
@@ -77,9 +67,7 @@ async function fillNewItem(
   await dialog.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' }).setChecked(catalogue)
 }
 
-// The write is safe either way — it is the SCREEN that loses the race: the router applies each
-// action's reply as a re-render, and a command issued while the previous reply is still in flight is
-// painted over by it.
+// A command issued while the previous action's reply is still in flight is painted over by it.
 async function saveNewItem(page: Page): Promise<void> {
   await clickAndSettle(newItemDialog(page).getByRole('button', { name: 'Dodaj', exact: true }))
   await expect(newItemDialog(page)).toHaveCount(0)

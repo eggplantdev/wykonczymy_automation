@@ -3,10 +3,10 @@ import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { type E2ESeedsT, readSeed } from './support/seeds'
 import { clickAndSettle, settleWrite } from './support/wait'
 import {
-  GRID_VIEWPORT,
   columnIndex,
-  gridRow,
+  GRID_VIEWPORT,
   openEditor,
+  openRowMenu,
   pickKosztorysOption,
   sectionBands,
 } from './drivers/kosztorys-grid'
@@ -61,7 +61,7 @@ async function expectRowCommandsFrozen(
   frozen: boolean,
 ): Promise<void> {
   await scrollGridHome(page)
-  await gridRow(page, rowText).getByRole('button', { name: 'Akcje wiersza' }).click()
+  await openRowMenu(page, rowText)
   const entry = page.getByRole('menuitem', { name: 'Wstaw powyżej', exact: true })
   // `not.toHaveAttribute` is satisfied by an element that isn't there at all, so the live case has
   // to say the entry exists before it says it is live.

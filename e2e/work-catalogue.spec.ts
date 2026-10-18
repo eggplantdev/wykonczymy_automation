@@ -5,13 +5,13 @@ import { expectMoney } from './support/money'
 import { tableCell } from './support/table'
 import { settleWrite, waitForHydration } from './support/wait'
 import {
-  GRID_VIEWPORT,
   collapseSummaryPanel,
   commitCellValue,
-  gridRow,
+  GRID_VIEWPORT,
   openEditor,
+  openRowMenu,
+  openSectionMenu,
   rowCell,
-  sectionBand,
 } from './drivers/kosztorys-grid'
 
 test.use({ viewport: GRID_VIEWPORT })
@@ -29,7 +29,7 @@ const PRICE_COLUMN = COLUMN_LABELS.price
 const CATALOGUE_PRICE_COLUMN = 'Cena j.m.'
 
 async function openSaveDialog(page: Page, description: string): Promise<Locator> {
-  await gridRow(page, description).getByRole('button', { name: 'Akcje wiersza' }).click()
+  await openRowMenu(page, description)
   // A pozycja already linked to the katalog offers „Aktualizuj…" in place of „Zapisz…".
   await page
     .getByRole('menuitem', { name: /^(Zapisz pozycję do|Aktualizuj pozycję w) katalogu prac$/ })
@@ -160,7 +160,7 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(page.getByText('Dodano do katalogu')).toBeVisible()
 
-  await sectionBand(page, 'Sekcja beta').getByRole('button', { name: 'Akcje sekcji' }).click()
+  await openSectionMenu(page, 'Sekcja beta')
   await page.getByRole('menuitem', { name: 'Dodaj pracę do sekcji…' }).click()
 
   const picker = page.getByRole('dialog')
