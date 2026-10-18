@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { z } from 'zod'
 import type { Payload } from 'payload'
 
-vi.mock('server-only', () => ({}))
-
 const mockDbExecute = vi.fn()
 
 vi.mock('@/lib/db/get-db', () => ({

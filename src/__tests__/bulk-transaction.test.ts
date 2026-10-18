@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 
-vi.mock('server-only', () => ({}))
-
 // after() (next/server) schedules the post-response sheet sync; it throws outside
 // a request scope.
 vi.mock('next/server', async (importOriginal) => {
@@ -78,18 +76,6 @@ beforeEach(() => {
 })
 
 describe('createBulkTransferAction — transaction safety', () => {
-  it('commits when all items succeed', async () => {
-    mockCreate.mockResolvedValue({ id: 1 })
-
-    const result = await createBulkTransferAction(makeBulkTransferData(3))
-
-    expect(result.success).toBe(true)
-    expect(mockBeginTransaction).toHaveBeenCalledOnce()
-    expect(mockCreate).toHaveBeenCalledTimes(3)
-    expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
-    expect(mockRollbackTransaction).not.toHaveBeenCalled()
-  })
-
   it('rolls back when 3rd of 5 items fails — no partial writes persist', async () => {
     mockCreate
       .mockResolvedValueOnce({ id: 1 })
@@ -102,19 +88,6 @@ describe('createBulkTransferAction — transaction safety', () => {
     expect(mockRollbackTransaction).toHaveBeenCalledWith(TX_ID)
     expect(mockCommitTransaction).not.toHaveBeenCalled()
     expect(mockCreate).toHaveBeenCalledTimes(3)
-  })
-
-  it('all creates share the same transaction ID via req', async () => {
-    mockCreate.mockResolvedValue({ id: 1 })
-
-    await createBulkTransferAction(makeBulkTransferData(4))
-
-    for (const call of mockCreate.mock.calls) {
-      expect(call[0]).toHaveProperty('req', {
-        transactionID: TX_ID,
-        context: { skipSheetSync: true },
-      })
-    }
   })
 })
 

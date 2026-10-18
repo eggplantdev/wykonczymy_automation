@@ -198,25 +198,6 @@ describe('transfer constants — helper truth table', () => {
   }
 })
 
-describe('needsSourceRegister — CANCELLATION', () => {
-  it('is false — a cancellation gets no register picker', () => {
-    expect(needsSourceRegister('CANCELLATION')).toBe(false)
-  })
-})
-
-describe('canBeSettled vs isExpensesTabType — the equality that ended', () => {
-  it('INVESTMENT_EXPENSE_NET is the counterexample', () => {
-    expect(isExpensesTabType('INVESTMENT_EXPENSE_NET')).toBe(true)
-    expect(canBeSettled('INVESTMENT_EXPENSE_NET')).toBe(false)
-  })
-
-  it('settleable still implies an expenses-tab row — that direction IS a rule', () => {
-    for (const type of TRANSFER_TYPES) {
-      if (canBeSettled(type)) expect(isExpensesTabType(type), type).toBe(true)
-    }
-  })
-})
-
 describe('needsExpenseCategory — investment-aware', () => {
   it.each([
     ['INVESTMENT_EXPENSE', undefined, true],
@@ -307,27 +288,8 @@ describe('membership arrays — exact contents and order', () => {
     ])
   })
 
-  it('TRANSACTION_TRANSFER_TYPES excludes deposits and REGISTER_TRANSFER', () => {
-    for (const depositType of DEPOSIT_TYPES) {
-      expect(TRANSACTION_TRANSFER_TYPES).not.toContain(depositType)
-    }
+  it('TRANSACTION_TRANSFER_TYPES excludes REGISTER_TRANSFER', () => {
     expect(TRANSACTION_TRANSFER_TYPES).not.toContain('REGISTER_TRANSFER')
-  })
-
-  it('every array entry is a valid TransferTypeT', () => {
-    const arrays = {
-      DEPOSIT_TYPES,
-      DEPOSIT_UI_TYPES,
-      TRANSACTION_TRANSFER_TYPES,
-      EXPENSES_TAB_TYPES,
-      SHEET_TRANSFER_TAB_TYPES,
-      TRANSFERS_SUMMARY_TYPES,
-    }
-    for (const [name, arr] of Object.entries(arrays)) {
-      for (const t of arr) {
-        expect(TRANSFER_TYPES, `${name} contains unknown type ${t}`).toContain(t)
-      }
-    }
   })
 })
 

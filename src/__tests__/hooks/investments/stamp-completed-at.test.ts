@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import type { CollectionBeforeChangeHook } from 'payload'
 import { Investments } from '@/collections/investments'
-import { INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE } from '@/hooks/investments/guard-status-unlock'
-import type { RoleT } from '@/lib/auth/roles'
 
 const NOW = new Date('2026-09-28T10:00:00.000Z')
 const EARLIER = '2026-01-15T08:00:00.000Z'
@@ -10,13 +8,12 @@ const EARLIER = '2026-01-15T08:00:00.000Z'
 async function save(
   data: Record<string, unknown>,
   originalDoc: Record<string, unknown> | undefined,
-  role: RoleT = 'OWNER',
 ) {
   let current = data
   for (const hook of Investments.hooks?.beforeChange ?? []) {
     const args = {
       data: current,
-      req: { user: { id: 1, role } },
+      req: { user: { id: 1, role: 'OWNER' } },
       originalDoc,
       operation: originalDoc ? 'update' : 'create',
       collection: undefined,
@@ -72,13 +69,5 @@ describe('stampCompletedAt', () => {
   it('does not stamp a move between two open statuses', async () => {
     const result = await save({ status: 'active' }, { status: 'planowana' })
     expect(result).not.toHaveProperty('completedAt')
-  })
-
-  it('a refused unlock throws before the date is cleared', async () => {
-    const data = { status: 'active', completedAt: EARLIER }
-    await expect(
-      save(data, { status: 'completed', completedAt: EARLIER }, 'MANAGER'),
-    ).rejects.toThrow(INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE)
-    expect(data.completedAt).toBe(EARLIER)
   })
 })

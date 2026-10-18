@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('server-only', () => ({}))
-
 const mockLogin = vi.fn()
 vi.mock('@payloadcms/next/auth', () => ({
   login: (...args: unknown[]) => mockLogin(...args),

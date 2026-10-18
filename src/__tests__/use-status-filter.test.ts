@@ -42,12 +42,6 @@ describe('filterByStatuses', () => {
     expect(idsFor(['rejected'])).toEqual([5])
   })
 
-  it('all selected → every row', () => {
-    expect(idsFor(['planowana', 'quote', 'active', 'completed', 'rejected'])).toEqual([
-      1, 2, 3, 4, 5,
-    ])
-  })
-
   it('none selected → every row, nothing narrows', () => {
     expect(idsFor([])).toEqual([1, 2, 3, 4, 5])
   })

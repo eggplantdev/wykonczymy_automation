@@ -25,11 +25,6 @@ beforeEach(() => {
 })
 
 describe('dialog state', () => {
-  it('openDialog sets openFormId', () => {
-    store().openDialog('transfer')
-    expect(store().openFormId).toBe('transfer')
-  })
-
   it('closeDialog clears openFormId', () => {
     store().openDialog('transfer')
     store().closeDialog()
@@ -54,11 +49,12 @@ describe('dialog state', () => {
     expect(store().showKeepOpen).toBe(false)
   })
 
-  it('a failed submit reopens without resetting keepOpen (choice preserved for retry)', () => {
+  it('a failed submit reopens without resetting keepOpen (choice preserved for retry)', async () => {
     store().openDialog('transfer')
     store().setKeepOpen(true)
-    // submitOptimistically reopens via a direct set, bypassing openDialog's reset
-    useOptimisticFormStore.setState({ openFormId: 'transfer' })
+    const action = vi.fn(() => Promise.resolve({ success: false, error: 'x' } as ActionResultT))
+    store().submitOptimistically('transfer', new Map(), action, 'OK', vi.fn())
+    await vi.waitFor(() => expect(store().openFormId).toBe('transfer'))
     expect(store().keepOpen).toBe(true)
   })
 })

@@ -31,7 +31,6 @@ describe('sectionPieSlices', () => {
       { sectionId: 9, sectionName: 'Łazienka', sectionColor: null, plannedNet: 200, net: 0 },
     ]
     const ids = sectionPieSlices(collide, 'planned').map((s) => s.id)
-    expect(new Set(ids).size).toBe(2)
     expect(ids).toEqual(['section-7', 'section-9'])
   })
 

@@ -1,14 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import {
   PAST_RETENTION_DAYS,
   trashDaysAgo,
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
-
-vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = `EX-970 purge ${Date.now()}`
@@ -69,6 +68,6 @@ describe.skipIf(!ENV_READY)('purgeLeadTrash (DB)', () => {
     expect((await erasedAt(expired)).erased_at).not.toBeNull()
     expect(await erasedAt(recent)).toMatchObject({ name: `${PREFIX} 2`, erased_at: null })
     expect(await erasedAt(live)).toMatchObject({ name: `${PREFIX} 3`, erased_at: null })
-    expect(await selectPurgeableLeadIds(db, 30)).not.toContain(expired)
+    expect(await selectPurgeableLeadIds(db, ENTITY_TRASH_RETENTION_DAYS)).not.toContain(expired)
   })
 })

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('server-only', () => ({}))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))

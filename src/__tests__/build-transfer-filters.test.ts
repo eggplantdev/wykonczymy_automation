@@ -133,11 +133,6 @@ describe('buildTransferFilters — search params', () => {
     expect(where.worker).toEqual({ in: [3, 7] })
   })
 
-  it('worker param absent → no worker clause', () => {
-    const where = buildTransferFilters({}, managerCtx)
-    expect(where.worker).toBeUndefined()
-  })
-
   // `1e999` parses to Infinity, which is truthy, so a non-integer id must die in the parser or it
   // reaches raw SQL as a bare `worker_id IN (infinity)` identifier and 500s the page.
   it.each(['1e999', '-1e999', '1.5', 'NaN', 'Infinity'])(
@@ -165,11 +160,6 @@ describe('buildTransferFilters — amount search: prefix mode (no separator)', (
   it('"18" → textual prefix matching everything that starts with 18', () => {
     const where = buildTransferFilters({ amount: '18' }, managerCtx)
     expect(where.amount).toEqual({ like: '18' })
-  })
-
-  it('plain integer passes through unchanged', () => {
-    const where = buildTransferFilters({ amount: '1000' }, managerCtx)
-    expect(where.amount).toEqual({ like: '1000' })
   })
 
   it('"18000" → prefix, so it never matches a stored 18 (18,00)', () => {

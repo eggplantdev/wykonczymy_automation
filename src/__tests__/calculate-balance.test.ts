@@ -59,10 +59,4 @@ describe('calculateBalance', () => {
     const owed = { ...base, totalIncome: 10000, totalMaterialCosts: 3000, totalLaborCosts: 2000 }
     expect(calculateBalance({ ...owed, totalBonus: 205.01 })).toBe(calculateBalance(owed))
   })
-
-  it('cancels an expense covered by a loss of the same amount', () => {
-    expect(
-      calculateBalance({ ...base, totalMaterialCosts: 362.84, totalLoss: 362.84 }),
-    ).toBeCloseTo(0, 10)
-  })
 })

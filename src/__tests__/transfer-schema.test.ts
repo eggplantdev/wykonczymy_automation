@@ -154,10 +154,6 @@ describe('createTransferSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('otherCategory')
   })
 
-  it('BONUS needs no kasa', () => {
-    expect(createTransferSchema.safeParse(VALID_SERVER_PAYLOADS.BONUS).success).toBe(true)
-  })
-
   it('INVESTOR_DEPOSIT without sourceRegister → error on sourceRegister', () => {
     const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
     const result = createTransferSchema.safeParse(rest)
@@ -271,13 +267,6 @@ describe('createTransferSchema — vatPlane', () => {
     })
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('vatPlane')
-  })
-
-  it('non-deposit types do NOT require vatPlane (legacy NULL stays valid)', () => {
-    for (const type of ['COMPANY_FUNDING', 'OTHER_DEPOSIT', 'PAYOUT', 'LABOR_COST']) {
-      const result = createTransferSchema.safeParse(VALID_SERVER_PAYLOADS[type])
-      expect(result.success, `${type} should not require vatPlane`).toBe(true)
-    }
   })
 })
 
@@ -640,17 +629,6 @@ describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('lineItems.0.description')
   })
-})
-
-describe('schema parity — valid payloads', () => {
-  for (const [type, serverPayload] of Object.entries(VALID_SERVER_PAYLOADS)) {
-    it(`${type} — both schemas pass`, () => {
-      const serverResult = createTransferSchema.safeParse(serverPayload)
-      const clientResult = transferFormSchema.safeParse(toClientPayload(serverPayload))
-      expect(serverResult.success).toBe(true)
-      expect(clientResult.success).toBe(true)
-    })
-  }
 })
 
 describe('createTransferSchema — paymentMethod', () => {

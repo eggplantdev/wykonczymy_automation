@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
-
-// The leads collection's afterChange hook calls revalidateTag, which throws outside a
-// Next request context.
-
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'

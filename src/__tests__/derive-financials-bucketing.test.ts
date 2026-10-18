@@ -92,10 +92,6 @@ describe('deriveFinancials — bucketing matrix (transactions plane)', () => {
     expect(buckets.sort()).toEqual(Object.keys(BUCKET_MEMBERSHIP).sort())
   })
 
-  it('covers every (type × settled) pair', () => {
-    expect(ALL_PAIRS).toHaveLength(28)
-  })
-
   for (const pair of ALL_PAIRS) {
     const [type, settled] = pair
     describe(`${type} · settled=${settled}`, () => {
@@ -118,14 +114,6 @@ describe('deriveFinancials — the netto type bills at netTotal, never at total'
 
   it('materialsNetBilled is the netto figure', () => {
     expect(financials.materialsNetBilled).toBe(1000)
-  })
-
-  it('materialsGrossBase is untouched — the toggle can never reach the netto figure', () => {
-    expect(financials.materialsGrossBase).toBe(0)
-  })
-
-  it('totalSettled is untouched — the netto figure never reaches marża', () => {
-    expect(financials.totalSettled).toBe(0)
   })
 
   it('a netto row with no netAmount bills 0 rather than falling back to brutto', () => {

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 
-vi.mock('server-only', () => ({}))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))
@@ -139,12 +138,16 @@ describe('POST /api/media-register', () => {
     expect(mockDel).toHaveBeenCalledWith(BLOB_URL, { token: 'vercel_blob_rw_store1_secret' })
   })
 
-  it('sniffs only the first KB when the CDN ignores the range and sends the whole file', async () => {
+  it('still sniffs the type when the CDN ignores the range and sends the whole file', async () => {
     const whole = new Uint8Array(6_000)
     whole.set(PDF_HEAD)
     fetchMock.mockResolvedValue(new Response(whole, { status: 200 }))
 
     expect((await POST(request({ filename: FILENAME }))).status).toBe(200)
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ mimeType: 'application/pdf' }),
+    )
   })
 
   it('answers 500 and keeps the blob when the range read fails', async () => {

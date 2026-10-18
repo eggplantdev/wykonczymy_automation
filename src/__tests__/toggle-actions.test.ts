@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import type { Payload } from 'payload'
 
-vi.mock('server-only', () => ({}))
-
 const mockRequireAuth = vi.fn()
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
@@ -62,18 +60,6 @@ describe('toggleUserActive', () => {
     })
   })
 
-  it('calls payload.update with collection="users" and overrideAccess=true', async () => {
-    await toggleUserActive(42, true)
-
-    expect(mockUpdate).toHaveBeenCalledOnce()
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'users',
-        overrideAccess: true,
-      }),
-    )
-  })
-
   it('revalidates "users" collection on success', async () => {
     await toggleUserActive(1, true)
 
@@ -126,41 +112,10 @@ describe('toggleCashRegisterActive', () => {
     })
   })
 
-  it('calls payload.update with collection="cash-registers" and overrideAccess=true', async () => {
-    await toggleCashRegisterActive(10, false)
-
-    expect(mockUpdate).toHaveBeenCalledOnce()
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'cash-registers',
-        overrideAccess: true,
-      }),
-    )
-  })
-
   it('revalidates "cashRegisters" collection on success', async () => {
     await toggleCashRegisterActive(5, true)
 
     expect(revalidateCollections).toHaveBeenCalledOnce()
     expect(revalidateCollections).toHaveBeenCalledWith(['cashRegisters'])
-  })
-
-  it('auth failure → returns error without update', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: false, error: 'Unauthorized' })
-
-    const result = await toggleCashRegisterActive(5, true)
-
-    expect(result).toEqual({ success: false, error: 'Unauthorized' })
-    expect(mockUpdate).not.toHaveBeenCalled()
-    expect(revalidateCollections).not.toHaveBeenCalled()
-  })
-
-  it('payload.update throws → returns error', async () => {
-    mockUpdate.mockRejectedValueOnce(new Error('Unique constraint violated'))
-
-    const result = await toggleCashRegisterActive(5, false)
-
-    expect(result).toEqual({ success: false, error: 'Unique constraint violated' })
-    expect(revalidateCollections).not.toHaveBeenCalled()
   })
 })

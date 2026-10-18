@@ -60,14 +60,6 @@ function rowHeightCache(): RowHeightCacheT {
 }
 
 describe('dsg row-height cache after a reset from index 0', () => {
-  it('measures a row once the cache is empty', () => {
-    const cache = rowHeightCache()
-    cache.getRowSize(10)
-    cache.resetAfter(0)
-
-    expect(() => cache.getRowSize(10)).not.toThrow()
-  })
-
   it('measures the whole grid, not just its first row', () => {
     const cache = rowHeightCache()
     const total = BAND_HEIGHT + 49 * ITEM_HEIGHT

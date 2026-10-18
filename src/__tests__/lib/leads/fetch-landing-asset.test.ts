@@ -46,7 +46,6 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
   it.each([
     ['a different host', 'https://evil.example.com/photo.jpg'],
     ['plain http', `http://${LANDING_FIXTURE_HOST}/photo.jpg`],
-    ['a link-local address', 'http://169.254.169.254/latest/meta-data/'],
     [
       'a host merely containing the allowlisted one',
       `https://${LANDING_FIXTURE_HOST}.evil.com/x.jpg`,

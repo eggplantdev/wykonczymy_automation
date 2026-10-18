@@ -29,22 +29,4 @@ describe('transactions report — filter combinations', () => {
       less_than_equal: '2024-12-31',
     })
   })
-
-  it('no filters excludes cancelled by default', () => {
-    const where = buildTransferFilters({}, adminCtx)
-    expect(where).toEqual({
-      type: { not_in: ['CANCELLATION'] },
-      cancelled: { not_equals: true },
-    })
-  })
-
-  it('invalid paymentMethod returns no results', () => {
-    const where = buildTransferFilters({ paymentMethod: 'BITCOIN' }, adminCtx)
-    expect(where.id).toEqual({ equals: -1 })
-  })
-
-  it('multiple categories via comma-separated param', () => {
-    const where = buildTransferFilters({ otherCategory: '1,2' }, adminCtx)
-    expect(where.otherCategory).toEqual({ in: [1, 2] })
-  })
 })

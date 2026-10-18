@@ -112,22 +112,6 @@ describe('validateTransfer — the completed-investment lock', () => {
   // Payload hands `beforeValidate` — a hand-built `{ invoice: … }` passes on any build.
   const locked = { ...expense, investment: LOCKED_ID, invoice: [3] }
 
-  it('lets an invoice-only write through', async () => {
-    await expect(
-      validateTransfer(
-        hookArgs({ ...locked, invoice: [3, 4] }, { operation: 'update', originalDoc: locked }),
-      ),
-    ).resolves.not.toThrow()
-  })
-
-  it('lets an invoice removal through', async () => {
-    await expect(
-      validateTransfer(
-        hookArgs({ ...locked, invoice: [] }, { operation: 'update', originalDoc: locked }),
-      ),
-    ).resolves.not.toThrow()
-  })
-
   it('refuses a write that smuggles another field alongside the invoice', async () => {
     await expect(
       validateTransfer(

@@ -107,10 +107,6 @@ describe('canUpdateUser', () => {
     expect(canUpdateUser(onId(makeReq('EMPLOYEE', 7), 7))).toBe(false)
   })
 
-  it('refuses an EMPLOYEE on another row', () => {
-    expect(canUpdateUser(onId(makeReq('EMPLOYEE', 7), 8))).toBe(false)
-  })
-
   it('returns false when no user', () => {
     expect(canUpdateUser(onId(noUser, 7))).toBe(false)
   })

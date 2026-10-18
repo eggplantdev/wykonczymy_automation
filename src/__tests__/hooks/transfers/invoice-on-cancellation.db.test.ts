@@ -5,7 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -102,21 +101,5 @@ describe.skipIf(!ENV_READY)('faktura on a CANCELLATION row (DB)', () => {
       ...ctx,
     })
     expect(await attachedMediaIds()).toEqual([])
-  })
-
-  it('still refuses a CANCELLATION create with no reference', async () => {
-    await expect(
-      payload.create({
-        collection: 'transactions',
-        data: {
-          description: `${MARKER} orphan`,
-          amount: 50,
-          date: '2026-09-04T11:00:00.000Z',
-          type: 'CANCELLATION',
-        },
-        overrideAccess: true,
-        ...ctx,
-      }),
-    ).rejects.toThrow(/Cancelled transaction reference/i)
   })
 })

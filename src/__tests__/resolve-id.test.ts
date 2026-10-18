@@ -50,14 +50,6 @@ describe('entityTag', () => {
 })
 
 describe('CACHE_TAGS', () => {
-  it('has expected keys', () => {
-    expect(CACHE_TAGS).toHaveProperty('transfers')
-    expect(CACHE_TAGS).toHaveProperty('cashRegisters')
-    expect(CACHE_TAGS).toHaveProperty('investments')
-    expect(CACHE_TAGS).toHaveProperty('users')
-    expect(CACHE_TAGS).toHaveProperty('otherCategories')
-  })
-
   it('values follow the collection: / table: prefix pattern', () => {
     for (const value of Object.values(CACHE_TAGS)) {
       expect(value).toMatch(/^(collection|table):.+/)

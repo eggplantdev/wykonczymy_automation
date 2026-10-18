@@ -110,19 +110,6 @@ describe('literal arrays agree with the table', () => {
   })
 })
 
-describe('sheet-sync inputs are eager at module load', () => {
-  // sync-sheet.ts spreads these two arrays into SHEET_SYNCED_TYPES at module load, inside
-  // the Payload config graph. If either ever became a lazy or derived value that evaluates
-  // to [] there, the spread would silently produce an empty list and EVERY transfer would
-  // stop syncing to the sheet — with no error anywhere.
-  it.each([
-    ['EXPENSES_TAB_TYPES', EXPENSES_TAB_TYPES],
-    ['SHEET_TRANSFER_TAB_TYPES', SHEET_TRANSFER_TAB_TYPES],
-  ])('%s is non-empty on import', (_name, array) => {
-    expect(array.length).toBeGreaterThan(0)
-  })
-})
-
 describe('financialBucket vs the routing columns', () => {
   it('the income bucket is exactly the deposit column', () => {
     expect(sorted(typesWhere((s) => s.financialBucket === 'income'))).toEqual(

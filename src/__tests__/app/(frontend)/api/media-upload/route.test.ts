@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 
-vi.mock('server-only', () => ({}))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))

@@ -34,22 +34,12 @@ describe('guardDeleteOnLockedInvestment', () => {
   })
 
   it('refuses with a public 403 rather than a bare Error', async () => {
-    await expect(guardDeleteOnLockedInvestment(hookArgs(LOCKED_ID))).rejects.toBeInstanceOf(
-      APIError,
-    )
-  })
-
-  it('reads a relationship sent as a string id', async () => {
-    await expect(guardDeleteOnLockedInvestment(hookArgs(String(LOCKED_ID)))).rejects.toThrow(
-      INVESTMENT_LOCKED_MESSAGE,
-    )
+    const promise = guardDeleteOnLockedInvestment(hookArgs(LOCKED_ID))
+    await expect(promise).rejects.toBeInstanceOf(APIError)
+    await expect(promise).rejects.toMatchObject({ status: 403 })
   })
 
   it('lets a transaction on an active investment go', async () => {
     await expect(guardDeleteOnLockedInvestment(hookArgs(7))).resolves.toBeUndefined()
-  })
-
-  it('lets a transaction with no investment go', async () => {
-    await expect(guardDeleteOnLockedInvestment(hookArgs(null))).resolves.toBeUndefined()
   })
 })

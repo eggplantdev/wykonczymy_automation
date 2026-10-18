@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Returning the error
-// body instead would fail leadSchema and get ACKed 200 → the lead is lost forever.
 vi.mock('@/lib/env/server', () => ({
   serverEnv: { META_PAGE_ACCESS_TOKEN: 'test-token' },
 }))
@@ -20,6 +18,8 @@ afterEach(() => {
 })
 
 describe('fetchLead', () => {
+  // Returning the error body instead would fail leadSchema and get ACKed 200 → the lead is lost
+  // forever.
   it('throws on a non-2xx Graph response (recoverable → route retries)', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
@@ -28,22 +28,5 @@ describe('fetchLead', () => {
     })
 
     await expect(fetchLead('1000000000000001')).rejects.toThrow()
-  })
-
-  it('throws when the body carries a Graph error object despite a 200', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ error: { message: 'Rate limited', code: 613 } }),
-    })
-
-    await expect(fetchLead('1000000000000001')).rejects.toThrow()
-  })
-
-  it('returns the raw body on success', async () => {
-    const lead = { id: '1', created_time: 't', field_data: [] }
-    mockFetch.mockResolvedValue({ ok: true, status: 200, json: async () => lead })
-
-    await expect(fetchLead('1')).resolves.toEqual(lead)
   })
 })

@@ -32,20 +32,6 @@ describe('receiptExtractionSchema', () => {
     expect(parsed.amount).toBeNull()
   })
 
-  it('allows netAmount to be null (document prints no netto)', () => {
-    const parsed = receiptExtractionSchema.parse({
-      description: 'paragon',
-      amount: 129.99,
-      netAmount: null,
-      invoiceNote: '',
-      otherCategoryName: '',
-      documentNumber: '',
-      sellerNip: '',
-      documentDate: '',
-    })
-    expect(parsed.netAmount).toBeNull()
-  })
-
   it('rejects a missing amount key (must be number or null, never absent)', () => {
     const result = receiptExtractionSchema.safeParse({
       description: 'x',

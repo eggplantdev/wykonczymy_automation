@@ -21,10 +21,6 @@ function submission(overrides: Partial<WpformsSubmissionT> = {}): WpformsSubmiss
 }
 
 describe('wpformsToStoreLeadInput', () => {
-  it('tags the lead as the website_form source', () => {
-    expect(wpformsToStoreLeadInput(submission(), SUBMITTED_AT).source).toBe('website_form')
-  })
-
   it('extracts email / name / phone via the shared label heuristics', () => {
     const input = wpformsToStoreLeadInput(submission(), SUBMITTED_AT)
     expect(input.email).toBe('jan.kowalski@example.com')

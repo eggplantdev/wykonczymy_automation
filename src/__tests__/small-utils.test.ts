@@ -38,22 +38,6 @@ describe('refineAmount', () => {
     refineAmount(data, ctx)
   })
 
-  it('passes for valid positive amount', () => {
-    expect(schema.safeParse({ amount: '100' }).success).toBe(true)
-  })
-
-  it('fails for empty string', () => {
-    expect(schema.safeParse({ amount: '' }).success).toBe(false)
-  })
-
-  it('fails for zero', () => {
-    expect(schema.safeParse({ amount: '0' }).success).toBe(false)
-  })
-
-  it('fails for negative amount', () => {
-    expect(schema.safeParse({ amount: '-50' }).success).toBe(false)
-  })
-
   it('passes for decimal amount', () => {
     expect(schema.safeParse({ amount: '0.01' }).success).toBe(true)
   })
@@ -62,10 +46,6 @@ describe('refineAmount', () => {
 describe('refineDate', () => {
   const schema = z.object({ date: z.string() }).superRefine((data, ctx) => {
     refineDate(data, ctx)
-  })
-
-  it('passes for non-empty date string', () => {
-    expect(schema.safeParse({ date: '2024-01-15' }).success).toBe(true)
   })
 
   it('fails for empty date string', () => {

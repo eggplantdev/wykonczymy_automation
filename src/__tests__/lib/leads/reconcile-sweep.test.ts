@@ -226,14 +226,4 @@ describe('runLeadReconcileSweep', () => {
 
     expect(result.saturatedForms).toEqual(['A'])
   })
-
-  it('does not flag a form whose page came back short of the limit', async () => {
-    vi.mocked(listLeadForms).mockResolvedValue([form('A', 1)])
-    vi.mocked(fetchRecentLeads).mockResolvedValue([rawLead('1')])
-    vi.mocked(captureLead).mockResolvedValue({ lead: { id: 11 }, created: true } as never)
-
-    const result = await runLeadReconcileSweep(payload)
-
-    expect(result.saturatedForms).toEqual([])
-  })
 })

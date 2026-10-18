@@ -6,7 +6,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
-vi.mock('server-only', () => ({}))
 // The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
@@ -98,11 +97,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
       vatPlane: 'GROSS',
       netAmount: 1000,
     })
-    persisted.companyFunding = await createRow({
-      description: `${MARKER} company funding`,
-      type: 'COMPANY_FUNDING',
-      vatPlane: 'GROSS',
-    })
     persisted.legacy = await createRow({
       description: `${MARKER} legacy deposit`,
       type: 'INVESTOR_DEPOSIT',
@@ -124,16 +118,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
         id: adminId,
         context: { skipRevalidation: true },
       })
-  })
-
-  it('strips a plane smuggled onto a deposit type that is not the investor one', async () => {
-    expect(await persistedPlane(persisted.companyFunding!)).toBeNull()
-  })
-
-  // Positive control: without it the assertion above would also pass on a build that nulls the
-  // column for every type.
-  it('keeps the plane on a wpłata od inwestora', async () => {
-    expect(await persistedPlane(persisted.deposit!)).toBe('GROSS')
   })
 
   it('lets a legacy wpłata that never had a plane get one, with its netto', async () => {

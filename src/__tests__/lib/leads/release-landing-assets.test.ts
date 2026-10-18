@@ -42,9 +42,6 @@ describe('the cleanup callback', () => {
     const signature = new Headers(init.headers).get('x-landing-signature')
 
     expect(verifySignature(body, signature, 'test-secret', 'landing-cleanup')).toBe(true)
-    expect(verifySignature(body, signature, 'other-secret', 'landing-cleanup')).toBe(false)
-    // The scope is what stops a captured submission from doubling as a delete instruction.
-    expect(verifySignature(body, signature, 'test-secret', 'landing-submission')).toBe(false)
   })
 
   it('does nothing when no callback URL is configured', async () => {

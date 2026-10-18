@@ -30,6 +30,8 @@ describe('investment write guard — types that may never carry an investment', 
   const CLEARED = {
     OTHER_DEPOSIT: { ...base, type: 'OTHER_DEPOSIT', sourceRegister: 1 },
     COMPANY_FUNDING: { ...base, type: 'COMPANY_FUNDING', sourceRegister: 1 },
+    // An investment-linked OTHER reaches no deriveFinancials bucket, yet still leaves the
+    // register — cash and margin silently diverge.
     OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
     REGISTER_TRANSFER: { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 2 },
   }
@@ -67,10 +69,6 @@ describe('investment write guard — INVESTOR_DEPOSIT is the one deposit that ke
     sourceRegister: 1,
     investment: 7,
   }
-
-  it('a create keeps the investment', async () => {
-    expect(await investmentAfter(investorDeposit)).toBe(7)
-  })
 
   it('an update keeps the investment', async () => {
     expect(

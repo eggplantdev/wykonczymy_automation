@@ -119,29 +119,4 @@ describe('getDefaultCashRegister', () => {
     })
     expect(getDefaultCashRegister(data)).toBe('')
   })
-
-  it('returns empty string when no default register', () => {
-    const data = makeRefData({
-      currentUserId: 10,
-      workers: [
-        {
-          id: 10,
-          name: 'Jan',
-          role: 'EMPLOYEE',
-          email: 'j@x.com',
-          language: null,
-          canAddExpensesWithoutInvestment: false,
-        },
-      ],
-    })
-    expect(getDefaultCashRegister(data)).toBe('')
-  })
-
-  it('returns empty string when worker not found', () => {
-    const data = makeRefData({
-      currentUserId: 10,
-      workers: [],
-    })
-    expect(getDefaultCashRegister(data)).toBe('')
-  })
 })

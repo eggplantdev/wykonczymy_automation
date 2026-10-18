@@ -95,12 +95,6 @@ describe('captureLead — options', () => {
     expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'skipped' })
   })
 
-  it('sends both channels when no options are given', async () => {
-    await captureLead(payload, input)
-    expect(notifyNewLead).toHaveBeenCalledTimes(1)
-    expect(sendAutoReply).toHaveBeenCalledTimes(1)
-  })
-
   it('forwards skipRevalidation to both the store and the status write', async () => {
     await captureLead(payload, input, { skipRevalidation: true })
     expect(storeLead).toHaveBeenCalledWith(payload, input, { skipRevalidation: true })

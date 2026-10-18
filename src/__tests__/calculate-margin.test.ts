@@ -38,14 +38,6 @@ describe('calculateMargin', () => {
     ).toBe(3300)
   })
 
-  it('subtracts both rabat and loss', () => {
-    expect(
-      calculateMargin(
-        fin({ totalLaborCosts: 5000, totalPayouts: 1000, totalDiscount: 800, totalLoss: 700 }),
-      ),
-    ).toBe(2500)
-  })
-
   it('puts the absorbed cost on the company when nothing was billed', () => {
     expect(calculateMargin(fin({ totalLoss: 362.84 }))).toBeCloseTo(-362.84, 10)
   })

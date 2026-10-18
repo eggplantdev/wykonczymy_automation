@@ -7,7 +7,6 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }

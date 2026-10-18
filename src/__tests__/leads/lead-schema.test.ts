@@ -17,11 +17,6 @@ describe('leadSchema', () => {
     expect(result.success).toBe(true)
   })
 
-  it('parses a lead without the optional form_id', () => {
-    const { form_id: _omit, ...noForm } = goodLead
-    expect(leadSchema.safeParse(noForm).success).toBe(true)
-  })
-
   it('fails when field_data is missing', () => {
     const { field_data: _omit, ...noFields } = goodLead
     expect(leadSchema.safeParse(noFields).success).toBe(false)

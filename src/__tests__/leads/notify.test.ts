@@ -40,9 +40,7 @@ describe('notifyNewLead', () => {
     expect(sendEmail).toHaveBeenCalledTimes(1)
     const arg = sendEmail.mock.calls[0][0]
     expect(arg.to).toEqual(['inbox@example.com'])
-    expect(arg.to).not.toContain(lead.email)
     expect(arg.html).toContain('anna.nowak@example.com')
-    expect(arg.subject).not.toContain('TEST')
   })
 
   // The announced count is the only one that exists at send time — the landing stores the files

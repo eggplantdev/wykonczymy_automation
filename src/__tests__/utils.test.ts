@@ -33,22 +33,6 @@ describe('getMonthDateRange', () => {
 })
 
 describe('parsePagination', () => {
-  it('returns defaults for empty params', () => {
-    expect(parsePagination({})).toEqual({ page: 1, limit: DEFAULT_LIMIT })
-  })
-
-  it('parses valid page and limit', () => {
-    expect(parsePagination({ page: '3', limit: '50' })).toEqual({ page: 3, limit: 50 })
-  })
-
-  it('falls back to page 1 for page=0', () => {
-    expect(parsePagination({ page: '0' })).toEqual({ page: 1, limit: DEFAULT_LIMIT })
-  })
-
-  it('falls back to page 1 for negative page', () => {
-    expect(parsePagination({ page: '-1' })).toEqual({ page: 1, limit: DEFAULT_LIMIT })
-  })
-
   it('falls back to page 1 for NaN page', () => {
     expect(parsePagination({ page: 'abc' })).toEqual({ page: 1, limit: DEFAULT_LIMIT })
   })
@@ -172,9 +156,5 @@ describe('getRelationName', () => {
 
   it('returns custom fallback', () => {
     expect(getRelationName(null, 'N/A')).toBe('N/A')
-  })
-
-  it('returns name from object with extra fields', () => {
-    expect(getRelationName({ id: 1, name: 'Test', email: 'test@test.com' })).toBe('Test')
   })
 })

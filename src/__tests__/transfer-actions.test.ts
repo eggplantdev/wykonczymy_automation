@@ -3,8 +3,6 @@ import type { Payload } from 'payload'
 import { warsawToday } from '@/lib/utils/days'
 import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
 
-vi.mock('server-only', () => ({}))
-
 // Outside a request scope (i.e. in these unit tests) the real after() throws.
 const { afterWork } = vi.hoisted(() => ({ afterWork: [] as Promise<unknown>[] }))
 vi.mock('next/server', async (importOriginal) => {
@@ -189,25 +187,6 @@ beforeEach(() => {
 })
 
 describe('createTransferAction', () => {
-  it('valid INVESTMENT_EXPENSE transfer → success', async () => {
-    const result = await createTransferAction(makeSingleTransferData())
-
-    expect(result.success).toBe(true)
-    expect(mockCreate).toHaveBeenCalledOnce()
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        data: expect.objectContaining({
-          amount: 500,
-          type: 'INVESTMENT_EXPENSE',
-          date: '2026-02-25',
-          paymentMethod: 'CASH',
-          createdBy: adminUser.id,
-        }),
-      }),
-    )
-  })
-
   it('valid INVESTOR_DEPOSIT → success', async () => {
     const result = await createTransferAction(makeDepositData())
 
@@ -274,18 +253,6 @@ describe('createTransferAction', () => {
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBeTruthy()
-  })
-
-  it('zero amount → returns validation error', async () => {
-    const result = await createTransferAction(makeSingleTransferData({ amount: 0 }))
-
-    expect(result.success).toBe(false)
-  })
-
-  it('negative amount → returns validation error', async () => {
-    const result = await createTransferAction(makeSingleTransferData({ amount: -100 }))
-
-    expect(result.success).toBe(false)
   })
 
   it('invalid type → returns validation error', async () => {

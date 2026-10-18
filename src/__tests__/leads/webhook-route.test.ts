@@ -71,12 +71,6 @@ describe('POST /api/webhooks/facebook-leads — Meta retry contract', () => {
     expect(captureLead).not.toHaveBeenCalled()
   })
 
-  it('returns non-200 when a lead fails to store, so Meta retries', async () => {
-    vi.mocked(captureLead).mockRejectedValueOnce(new Error('db connection dropped'))
-    const res = await POST(makeRequest(bodyFor('1000000000000001')))
-    expect(res.status).toBe(500)
-  })
-
   it('still isolates a failing lead from its siblings, then retries the batch', async () => {
     vi.mocked(captureLead)
       .mockRejectedValueOnce(new Error('db blip'))

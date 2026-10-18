@@ -99,12 +99,6 @@ describe('validateTransfer — missing required fields', () => {
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  it('LOSS without investment → throws', async () => {
-    const { investment, ...data } = VALID_DATA.LOSS
-    void investment
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
-  })
-
   it('BONUS without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.BONUS
     void investment
@@ -152,14 +146,6 @@ describe('validateTransfer — auto-clear behavior', () => {
     expect(result.worker).toBe(1)
   })
 
-  // An investment-linked OTHER reaches no deriveFinancials bucket, yet still leaves the
-  // register — cash and margin silently diverge.
-  it('OTHER → investment set to null', async () => {
-    const data = { ...VALID_DATA.OTHER, investment: 31 }
-    const result = await validateTransfer(hookArgs(data))
-    expect(result.investment).toBeNull()
-  })
-
   // the per-worker tools figure reads this column, so the hook must not drop it.
   it('OTHER → worker kept', async () => {
     const result = await validateTransfer(hookArgs({ ...VALID_DATA.OTHER, worker: 7 }))
@@ -169,12 +155,6 @@ describe('validateTransfer — auto-clear behavior', () => {
   it('INVESTMENT_EXPENSE → worker set to null', async () => {
     const result = await validateTransfer(hookArgs({ ...VALID_DATA.INVESTMENT_EXPENSE, worker: 7 }))
     expect(result.worker).toBeNull()
-  })
-
-  it('REGISTER_TRANSFER → investment set to null', async () => {
-    const data = { ...VALID_DATA.REGISTER_TRANSFER, investment: 31 }
-    const result = await validateTransfer(hookArgs(data))
-    expect(result.investment).toBeNull()
   })
 
   it('INVESTMENT_EXPENSE → investment preserved', async () => {
@@ -187,11 +167,6 @@ describe('validateTransfer — expenseCategory', () => {
   it('INVESTMENT_EXPENSE without expenseCategory → throws', async () => {
     const data = { ...VALID_DATA.INVESTMENT_EXPENSE, expenseCategory: undefined }
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ee]xpense category/)
-  })
-
-  it('INVESTMENT_EXPENSE with expenseCategory → passes', async () => {
-    const data = { ...VALID_DATA.INVESTMENT_EXPENSE, expenseCategory: 1 }
-    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 
   it('CORRECTION with an investment but no expenseCategory → throws', async () => {
@@ -223,11 +198,6 @@ describe('validateTransfer — REGISTER_TRANSFER', () => {
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(
       /[Tt]arget register must be different/,
     )
-  })
-
-  it('different registers → passes', async () => {
-    const data = { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 2 }
-    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 })
 

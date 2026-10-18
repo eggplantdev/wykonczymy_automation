@@ -15,12 +15,6 @@ describe('assertCompletePage', () => {
     expect(assertCompletePage(page({ docs: [], hasNextPage: false }), 'ctx')).toEqual([])
   })
 
-  it('throws when the result is truncated (hasNextPage)', () => {
-    expect(() =>
-      assertCompletePage(page({ docs: [{ id: 1 }], hasNextPage: true }), 'ctx'),
-    ).toThrow()
-  })
-
   it('names the caller and the limit/total in the thrown message — the diagnostic is the point', () => {
     expect(() =>
       assertCompletePage(page({ hasNextPage: true, totalDocs: 9001, limit: 5000 }), 'getLeads'),

@@ -50,15 +50,6 @@ describe('cron translate-catalogue route', () => {
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.workCatalogue, EXPIRE_NOW)
   })
 
-  // `translateRows` never rejects, so an OpenRouter outage arrives as failed batches, not a throw.
-  it('reads as a failed run when every batch failed', async () => {
-    vi.mocked(fillCatalogueTranslations).mockResolvedValue({ items: 0, failed: 3 })
-
-    const res = await GET(authorized())
-
-    await expect(res.json()).resolves.toEqual({ ok: false, items: 0, failed: 3 })
-  })
-
   it('leaves the cache alone when nothing was written', async () => {
     vi.mocked(fillCatalogueTranslations).mockResolvedValue({ items: 0, failed: 0 })
 

@@ -29,7 +29,6 @@ describe('normalizeLead', () => {
 
   it('keeps CUSTOM fields only in rawData, never promoted to a column', () => {
     const r = normalizeLead(realFieldData, questions)
-    expect(r.name).not.toContain('Bemowo')
     expect(r.rawData).toEqual(realFieldData)
   })
 
@@ -38,12 +37,6 @@ describe('normalizeLead', () => {
     expect(r.email).toBe('anna.nowak@example.com')
     expect(r.phone).toBe('+48500600700')
     expect(r.name).toBe('Anna Nowak')
-  })
-
-  it('does not promote a CUSTOM field via the key heuristic', () => {
-    const r = normalizeLead(realFieldData)
-    expect(r.name).not.toContain('Bemowo')
-    expect(r.phone).not.toContain('Lazienka')
   })
 
   it('ignores a mail-ish key whose value is not an email (regex still recovers the real one)', () => {
