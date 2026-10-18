@@ -6,9 +6,10 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 // „Podgląd pracownika" sits behind a management session; the token page never asks for one.
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-kosztorys')
 const { getWorkerReportPage, getWorkerReportPreview } =
@@ -27,15 +28,6 @@ describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {
   const workerToken = `test-token-ex966-worker-${suffix}`
   const investorToken = `test-token-ex966-investor-${suffix}`
 
-  const createWorker = async (name: string, email: string) => {
-    const created = await payload.create({
-      collection: 'users',
-      data: { name, role: 'EMPLOYEE', email, password: 'test-password-123' },
-      context: { skipRevalidation: true },
-    })
-    return Number(created.id)
-  }
-
   const readyPage = async () => {
     const page = await getWorkerReportPage(workerToken)
     if (page?.kind !== 'ready') throw new Error('expected a ready page')
@@ -48,8 +40,14 @@ describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {
     await purgeFixtureUsers(db)
 
     investmentId = await createTestInvestment(payload, 'EX-966 worker report page spec')
-    workerId = await createWorker('Jan Kowalski', 'worker-report-page-own@test.local')
-    otherWorkerId = await createWorker('Piotr Nowak', 'worker-report-page-other@test.local')
+    workerId = await createTestUser(payload, {
+      name: 'Jan Kowalski',
+      email: 'worker-report-page-own@test.local',
+    })
+    otherWorkerId = await createTestUser(payload, {
+      name: 'Piotr Nowak',
+      email: 'worker-report-page-other@test.local',
+    })
     ;({ stageIds, itemIds } = await createKosztorysTree(payload, investmentId, {
       sections: [
         {

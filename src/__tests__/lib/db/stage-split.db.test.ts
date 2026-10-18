@@ -7,6 +7,7 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('stage members mint the worker report link (DB)', () => {
   let payload: Payload
@@ -15,15 +16,6 @@ describe.skipIf(!ENV_READY)('stage members mint the worker report link (DB)', ()
   let annaId: number
   let bogdanId: number
   let stageIds: number[]
-
-  const createWorker = async (name: string, email: string) => {
-    const created = await payload.create({
-      collection: 'users',
-      data: { name, role: 'EMPLOYEE', email, password: 'test-password-123' },
-      context: { skipRevalidation: true },
-    })
-    return Number(created.id)
-  }
 
   const persistedTokens = async (workerId?: number) => {
     const shares = await payload.find({
@@ -44,8 +36,14 @@ describe.skipIf(!ENV_READY)('stage members mint the worker report link (DB)', ()
     await purgeFixtureUsers(db)
 
     investmentId = await createTestInvestment(payload, 'EX-985 stage link mint spec')
-    annaId = await createWorker('Anna Etapowa', 'stage-mint-anna@test.local')
-    bogdanId = await createWorker('Bogdan Etapowy', 'stage-mint-bogdan@test.local')
+    annaId = await createTestUser(payload, {
+      name: 'Anna Etapowa',
+      email: 'stage-mint-anna@test.local',
+    })
+    bogdanId = await createTestUser(payload, {
+      name: 'Bogdan Etapowy',
+      email: 'stage-mint-bogdan@test.local',
+    })
     ;({ stageIds } = await createKosztorysTree(payload, investmentId, {
       sections: [{ name: 'Sekcja A', items: [{ description: 'Malowanie', plannedQty: 10 }] }],
       stages: [{ worker: annaId }, { worker: annaId }, { worker: null }],

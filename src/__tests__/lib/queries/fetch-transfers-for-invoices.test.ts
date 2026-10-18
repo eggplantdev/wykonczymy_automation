@@ -1,15 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Where } from 'payload'
-import type { RoleT } from '@/lib/auth/roles'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-const session = vi.hoisted(() => ({ user: { id: 25, role: 'EMPLOYEE' as RoleT } }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async (allowedRoles: readonly RoleT[]) =>
-    allowedRoles.includes(session.user.role)
-      ? { success: true, user: { ...session.user, email: 'w@example.test', name: 'Pracownik' } }
-      : { success: false, error: 'Brak uprawnień' },
-  ),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const fetchAllTransferRows = vi.fn(async (_where: Where, _opts: unknown) => [])
 vi.mock('@/lib/queries/fetch-transfer-rows', () => ({
@@ -21,7 +14,7 @@ const { fetchFilteredTransfers } = await import('@/lib/queries/fetch-transfers-f
 describe('fetchFilteredTransfers', () => {
   beforeEach(() => {
     fetchAllTransferRows.mockClear()
-    session.user.role = 'EMPLOYEE'
+    authState.role = 'EMPLOYEE'
   })
 
   it('stays management-only — it takes a client Where', async () => {
@@ -45,7 +38,7 @@ describe('fetchFilteredTransfers', () => {
 describe('fetchFilteredTransfers — invoice range', () => {
   beforeEach(() => {
     fetchAllTransferRows.mockClear()
-    session.user.role = 'MANAGER'
+    authState.role = 'MANAGER'
   })
 
   it('replaces the table window with the range', async () => {

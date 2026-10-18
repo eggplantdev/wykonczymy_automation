@@ -21,7 +21,6 @@ vi.mock('googleapis', () => ({
 const SHEET = '152HYswm1ESgQxbk8rMt9JSeX1R-ppj49rbcZZtyCNBs'
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.resetModules()
   setGoogleCredentialEnv()
   spreadsheetsGetMock.mockResolvedValue({ data: { properties: { title: 'Kowalski, Polna 3' } } })

@@ -14,7 +14,6 @@ vi.mock('@/lib/queries/kosztorys', () => ({ buildKosztorysTree }))
 vi.mock('payload', () => ({
   getPayload: vi.fn(async () => ({ findByID: vi.fn(), find: vi.fn() })),
 }))
-vi.mock('@payload-config', () => ({ default: {} }))
 
 const { requireAuth } = await import('@/lib/auth/require-auth')
 const { MANAGEMENT_ROLES } = await import('@/lib/auth/roles')

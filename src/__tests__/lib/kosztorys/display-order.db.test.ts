@@ -4,12 +4,11 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const {
   addItemAction,
@@ -33,7 +32,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     authState.userId = await firstUserId(payload)
   })
 
-  // A crashed run leaves its investments behind, and financial-golden-master-db.test.ts enumerates
+  // A crashed run leaves its investments behind, and financial-golden-master.db.test.ts enumerates
   // this same DB with `limit: 0` — a leaked fixture would show up there as unexplained drift.
   beforeAll(async () => {
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)

@@ -10,9 +10,10 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { restHolderId } from '@/lib/kosztorys/stage-split'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 // serializeKosztorys reads through the editor's authed query path, which wants a request scope.
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', () => {
   let payload: Payload
@@ -28,29 +29,15 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
 
     investmentId = await createTestInvestment(payload, 'restore-deleted-worker-test')
 
-    const doomed = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Ktoś Usunięty',
-        role: 'EMPLOYEE',
-        email: 'restore-deleted-worker@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    doomedWorkerId = await createTestUser(payload, {
+      name: 'Ktoś Usunięty',
+      email: 'restore-deleted-worker@test.local',
     })
-    doomedWorkerId = Number(doomed.id)
 
-    const kept = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Ktoś Nadal Tu Pracuje',
-        role: 'EMPLOYEE',
-        email: 'restore-kept-worker@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    keptWorkerId = await createTestUser(payload, {
+      name: 'Ktoś Nadal Tu Pracuje',
+      email: 'restore-kept-worker@test.local',
     })
-    keptWorkerId = Number(kept.id)
 
     await createKosztorysTree(payload, investmentId, {
       sections: [
@@ -124,17 +111,10 @@ describe.skipIf(!ENV_READY)('restore with a since-trashed etap assignee (DB)', (
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'restore-trashed-worker-test')
-    const worker = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Ktoś W Koszu',
-        role: 'EMPLOYEE',
-        email: 'restore-trashed-worker@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    trashedWorkerId = await createTestUser(payload, {
+      name: 'Ktoś W Koszu',
+      email: 'restore-trashed-worker@test.local',
     })
-    trashedWorkerId = Number(worker.id)
 
     await createKosztorysTree(payload, investmentId, {
       sections: [

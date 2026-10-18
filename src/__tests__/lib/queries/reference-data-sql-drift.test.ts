@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
-const SOURCE = readFileSync(path.resolve(__dirname, '../lib/queries/reference-data.ts'), 'utf-8')
+const SOURCE = readFileSync(
+  path.resolve(process.cwd(), 'src/lib/queries/reference-data.ts'),
+  'utf-8',
+)
 
 type EntityT = {
   label: string

@@ -1,12 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { serverEnv } = vi.hoisted(() => ({
-  serverEnv: { LANDING_WEBHOOK_SECRET: 'test-secret' } as {
-    LANDING_WEBHOOK_SECRET: string
-    LANDING_CLEANUP_URL?: string
-  },
-}))
-vi.mock('@/lib/env/server', () => ({ serverEnv }))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
 import { releaseLandingAssets } from '@/lib/leads/release-landing-assets'
@@ -22,8 +15,8 @@ const lastCall = () => {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  serverEnv.LANDING_CLEANUP_URL = 'https://landing.example/api/leads/cleanup'
+  vi.stubEnv('LANDING_WEBHOOK_SECRET', 'test-secret')
+  vi.stubEnv('LANDING_CLEANUP_URL', 'https://landing.example/api/leads/cleanup')
   fetchMock.mockResolvedValue({ ok: true, status: 200 })
 })
 
@@ -45,7 +38,7 @@ describe('the cleanup callback', () => {
   })
 
   it('does nothing when no callback URL is configured', async () => {
-    serverEnv.LANDING_CLEANUP_URL = undefined
+    vi.stubEnv('LANDING_CLEANUP_URL', undefined)
 
     await expect(releaseLandingAssets('id')).resolves.toBeUndefined()
     expect(fetchMock).not.toHaveBeenCalled()

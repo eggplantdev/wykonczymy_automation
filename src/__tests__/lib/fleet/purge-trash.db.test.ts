@@ -8,6 +8,7 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestInspection, createTestVehicle } from '@/__tests__/helpers/fleet-db'
 
 // The purge is the one delete nobody confirms, so the assertion is on which cars survive — a count
 // in the result would read the same over a purge that deleted the wrong one.
@@ -31,31 +32,11 @@ describe.skipIf(!ENV_READY)('purgeVehicleTrash (DB)', () => {
     db = await getDb(payload)
     await db.execute(sql`DELETE FROM vehicles WHERE registration LIKE ${`${PREFIX}%`}`)
 
-    const createVehicle = async (suffix: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'vehicles',
-            data: {
-              registration: `${PREFIX}${suffix}`,
-              make: 'Ford',
-              model: 'Transit',
-              status: 'ACTIVE',
-            },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
+    const createVehicle = (suffix: string) => createTestVehicle(payload, `${PREFIX}${suffix}`)
     expired = await createVehicle('1')
     recent = await createVehicle('2')
     live = await createVehicle('3')
-    await payload.create({
-      collection: 'vehicle-inspections',
-      data: { vehicle: expired, type: 'TECHNICAL', performedAt: '2026-08-01T00:00:00.000Z' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
+    await createTestInspection(payload, expired, '2026-08-01T00:00:00.000Z')
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'vehicles')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'vehicles')
   })

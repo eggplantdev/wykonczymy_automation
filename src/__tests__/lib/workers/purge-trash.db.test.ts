@@ -2,8 +2,13 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { PAST_RETENTION_DAYS, WITHIN_RETENTION_DAYS } from '@/__tests__/helpers/investment'
+import {
+  PAST_RETENTION_DAYS,
+  WITHIN_RETENTION_DAYS,
+  trashDaysAgo,
+} from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const MARKER = 'kosz-pracownikow purge'
@@ -21,33 +26,12 @@ describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
   }
 
   const trashedPair = async (slug: string, days: number) => {
-    const worker = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: slug,
-            role: 'EMPLOYEE',
-            email: `${slug}@test.local`,
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
+    const { ownerId: worker, registerId: register } = await createRegisterOwner(
+      payload,
+      { name: slug, email: `${slug}@test.local`, registerName: `Kasa ${slug}` },
+      { context: { skipRevalidation: true } },
     )
-    const register = Number(
-      (
-        await payload.create({
-          collection: 'cash-registers',
-          data: { name: `Kasa ${slug}`, type: 'AUXILIARY', owner: worker },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-    await db.execute(sql`
-      WITH stamp AS (SELECT now() - make_interval(days => ${days}) AS at)
-      UPDATE users SET trashed_at = (SELECT at FROM stamp) WHERE id = ${worker}
-    `)
+    await trashDaysAgo(db, worker, days, 'users')
     await db.execute(sql`
       UPDATE cash_registers SET trashed_at = (SELECT trashed_at FROM users WHERE id = ${worker})
       WHERE id = ${register}

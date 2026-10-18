@@ -949,6 +949,9 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Inwestycja z kilkoma wpłatami inwestora, w tym jedną anulowaną → kosztorys (rozliczenie)
       oraz panel podsumowania inwestycji: widać te same wpłaty co przed zmianą, bez anulowanej,
       najnowsze na górze; wpłaty innej inwestycji się nie pojawiają.
+
+## EX-1033 — document-settings-column-map — odczyt starego formatu ustawień kolumn usunięty
+
 - [ ] Kosztorys → ustawienia widoku dla inwestora oraz widoku pracownika: odznacz jedną kolumnę,
       zaznacz inną ukrytą domyślnie, zapisz i odśwież stronę — wybór się utrzymuje; podgląd i PDF
       pokazują dokładnie te kolumny (odczyt starego formatu usunięty, zachowanie bez zmian).
@@ -1032,6 +1035,15 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       SELECT): liczba wierszy `kosztorys_snapshots` z `kind = 'daily'` z tej nocy ≈ liczba inwestycji,
       w których poprzedniego dnia ktoś zmienił kosztorys — nie ~50–80 jak po wcześniejszych takich
       wdrożeniach.
+
+## EX-1089 — cache-tag-epoch — po zapisie odczyt nie wraca do stanu sprzed zmiany
+
+- [ ] Inwestycja → zmień nazwę lub status i zapisz, od razu odśwież stronę, potem przejdź na
+      „Inwestycje" i z powrotem: wszędzie widać nową wartość, także po kolejnym odświeżeniu — bez
+      klikania „Odśwież dane".
+- [ ] Dodaj wydatek do inwestycji i od razu odśwież jej stronę oraz listę „Inwestycje": kwoty
+      (bilans, marża) uwzględniają wydatek za pierwszym razem i nie cofają się przy kolejnym
+      odświeżeniu.
 
 # Zamknięte — indeks
 

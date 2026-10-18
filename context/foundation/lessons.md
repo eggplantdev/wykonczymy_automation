@@ -123,7 +123,7 @@
   Two such tables today (drafts, worker reports), each with a hand-added probe — build a registry at
   the third.
 - A stored match key (`match_key`) is a backfill obligation: every writer computes it the same way,
-  and a drift spec with a real floor (`catalogue-key-collisions.test.ts`) asserts it. Prefer linking
+  and a drift spec with a real floor (`catalogue-key-collisions.db.test.ts`) asserts it. Prefer linking
   by id (`catalogueItemId`) — a stale key then bites only unlinked rows.
 - One concept stored in two columns is written by independent patches — atomicity follows the write
   path (`normalizeOverridePatch`), and a migration fixes legacy pairs with `CASE WHEN`.
@@ -134,7 +134,7 @@
   external referrers tolerate it: `worker_report_lines` (`SET NULL`), `kosztorys_items.ref` (global
   sequence + Damm digit, carried by `insertItems` as `ref ?? DEFAULT`). A new referrer reopens it.
 - A field added to a tree entity is not done until the raw INSERT column list knows it
-  (`insert-kosztorys-tree.ts`, e.g. `STAGE_INSERT_COLUMNS`); `insert-schema-drift.test.ts` checks both
+  (`insert-kosztorys-tree.ts`, e.g. `STAGE_INSERT_COLUMNS`); `insert-schema-drift.db.test.ts` checks both
   directions against `information_schema`.
 - The undo of a destructive replace is a snapshot taken **inside** the transaction, before the wipe:
   pass the transaction's `req` to `captureAutoSnapshot` / `serializeKosztorys` — without it the tree is
@@ -329,7 +329,9 @@
   in-flight action. Wait on the `next-action` response (`settleWrite`), and count writes
   (`settleWrites(page, count)`) — waiting by shape matches the wrong one. Confirm by label plus
   reload, or by a DB query.
-- Prefetch re-poisons the router cache after a write: assert after `refreshData` / `refreshUntil`.
+- A render in flight during a write stores pre-write rows stamped as fresh; `cached()` keys on a tag
+  epoch so the next reader misses that entry. Assert after one `settleWrite` + reload — a retry
+  around „Odśwież dane" hides a regression of that guard.
 - In a dsg QA pass use the app's own controls and role selectors; don't instrument a defect the code
   cannot produce.
 

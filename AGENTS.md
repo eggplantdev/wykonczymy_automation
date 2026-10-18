@@ -180,13 +180,15 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
 
 ## Testing
 
-**The file extension picks the runner:** `src/__tests__/**/*.test.ts` → node; `*.test.tsx` → jsdom with
-`@testing-library/react`; Playwright specs under `e2e/` (`pnpm test:e2e`, against `db-test` on 5435).
-Route a browser-level risk to the DOM layer first; Playwright only when it crosses client → server
-action → DB → revalidation. Harness traps: `src/__tests__/AGENTS.md`.
+**The file name picks the runner:** `src/__tests__/**/*.test.ts` → node; `*.test.tsx` → jsdom with
+`@testing-library/react`; `*.db.test.ts` → the `db` project, run only by `pnpm test:integration`
+against 5435 (`pnpm test` never collects it) — a spec that needs the DB must carry the suffix;
+Playwright specs under `e2e/` (`pnpm test:e2e`, against `db-test` on 5435). Route a browser-level
+risk to the DOM layer first; Playwright only when it crosses client → server action → DB →
+revalidation. Harness traps: `src/__tests__/AGENTS.md`.
 
-- **Specs live under `src/__tests__`, never colocated** — `scripts/test-integration.sh` discovers DB specs
-  by grepping that tree, so a colocated spec never runs in pre-push. Mirror the source path in full,
+- **Specs live under `src/__tests__`, never colocated** — the vitest projects include only that tree,
+  so a colocated spec never runs. Mirror the source path in full,
   every directory included: `src/lib/db/x.ts` → `src/__tests__/lib/db/x.test.ts`. A spec for a
   `components/**` module goes under `__tests__/components/**`, even when its subject is kosztorys logic.
 - Start from a risk in `context/foundation/test-plan.md`, never from "cover this file"; extend the plan

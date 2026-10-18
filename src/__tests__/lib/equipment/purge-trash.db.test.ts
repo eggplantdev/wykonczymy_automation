@@ -8,6 +8,7 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 
 // The purge is the one delete nobody confirms, so the assertion is on which items survive — a count
 // in the result would read the same over a purge that deleted the wrong one.
@@ -31,17 +32,7 @@ describe.skipIf(!ENV_READY)('purgeEquipmentTrash (DB)', () => {
     db = await getDb(payload)
     await db.execute(sql`DELETE FROM equipment WHERE name LIKE ${`${PREFIX}%`}`)
 
-    const createItem = async (suffix: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'equipment',
-            data: { name: `${PREFIX} ${suffix}`, status: 'IN_USE' },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
+    const createItem = (suffix: string) => createTestEquipment(payload, `${PREFIX} ${suffix}`)
     expired = await createItem('po terminie')
     recent = await createItem('w okresie')
     live = await createItem('żywy')

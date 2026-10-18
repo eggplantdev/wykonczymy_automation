@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { groupByVehicle, loadFleetDataset } from '@/lib/fleet/dataset'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestInspection, createTestVehicle } from '@/__tests__/helpers/fleet-db'
 
 const REGISTRATION = 'EX915 DATASET'
 
@@ -18,19 +19,8 @@ describe.skipIf(!ENV_READY)('fleet dataset skips a trashed vehicle (DB)', () => 
 
     await db.execute(sql`DELETE FROM vehicles WHERE registration = ${REGISTRATION}`)
 
-    const vehicle = await payload.create({
-      collection: 'vehicles',
-      data: { registration: REGISTRATION, make: 'Ford', model: 'Transit', status: 'ACTIVE' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    vehicleId = Number(vehicle.id)
-    await payload.create({
-      collection: 'vehicle-inspections',
-      data: { vehicle: vehicleId, type: 'TECHNICAL', performedAt: '2026-08-01T00:00:00.000Z' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
+    vehicleId = await createTestVehicle(payload, REGISTRATION)
+    await createTestInspection(payload, vehicleId, '2026-08-01T00:00:00.000Z')
   })
 
   afterAll(async () => {

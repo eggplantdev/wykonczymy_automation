@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { loadWarrantyRows } from '@/lib/equipment/sweep-io'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 
 const MARKER = 'EX-916 warranty'
 
@@ -18,13 +19,9 @@ describe.skipIf(!ENV_READY)('warranty sweep skips a trashed item (DB)', () => {
 
     await db.execute(sql`DELETE FROM equipment WHERE name = ${MARKER}`)
 
-    const item = await payload.create({
-      collection: 'equipment',
-      data: { name: MARKER, status: 'IN_USE', warrantyUntil: '2026-10-15T00:00:00.000Z' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
+    equipmentId = await createTestEquipment(payload, MARKER, {
+      warrantyUntil: '2026-10-15T00:00:00.000Z',
     })
-    equipmentId = Number(item.id)
   })
 
   afterAll(async () => {

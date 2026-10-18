@@ -171,8 +171,8 @@ and a crew paid ahead as a loss.
   read as a contradiction („the kosztorys says this much, the crew got that much"), so the block is
   shown under it with a caption; wypłaty still don't enter the figure (`margin-actual-table.tsx`).
 
-Guarded by `investment-render-parity-db.test.ts` (listing's `marża v2` vs the same figure computed
-from the tree) and by the SQL↔TS parity of the listing fold in `kosztorys-subcontractor-due.test.ts`.
+Guarded by `investment-render-parity.db.test.ts` (listing's `marża v2` vs the same figure computed
+from the tree) and by the SQL↔TS parity of the listing fold in `kosztorys-subcontractor-due.db.test.ts`.
 
 ### „Pozostało do wypłaty" on the listing
 
@@ -291,7 +291,7 @@ three surfaces, and any modifier that moves the bilans has to be taught to **all
 
 A modifier taught to only some of them shows one investment two different debts on two screens.
 That is the primary risk of any change here, not the arithmetic. The parity guard
-(`investment-render-parity-db.test.ts`) exists to catch mechanisms 1↔2 drifting; 3 is pinned by
+(`investment-render-parity.db.test.ts`) exists to catch mechanisms 1↔2 drifting; 3 is pinned by
 unit tests plus a whole-investment fixture.
 
 ### Face value vs gross-up is a choice between two primitives

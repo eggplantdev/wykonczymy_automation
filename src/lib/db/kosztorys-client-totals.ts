@@ -4,7 +4,7 @@ import type { KosztorysClientTotalsT } from '@/lib/kosztorys/settlement-client-t
 import type { DbExecutorT } from './get-db'
 
 // TS is the reference implementation; this is the copy, pinned against it by a DB-backed parity
-// spec (__tests__/lib/db/kosztorys-client-totals.test.ts).
+// spec (__tests__/lib/db/kosztorys-client-totals.db.test.ts).
 
 export type KosztorysClientTotalsRowT = KosztorysClientTotalsT & { investmentId: number }
 

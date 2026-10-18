@@ -1,16 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 
-function deferred<T>() {
-  let resolve!: (value: T) => void
-  let reject!: (reason: unknown) => void
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res
-    reject = rej
-  })
-  return { promise, resolve, reject }
-}
-
 describe('mapWithConcurrency', () => {
   it('preserves input order in results regardless of completion order', async () => {
     const results = await mapWithConcurrency([10, 20, 30], 2, async (n) => n * 2)
@@ -48,7 +38,7 @@ describe('mapWithConcurrency', () => {
 
   it('starts a queued item only after a slot frees (limit=1 serializes)', async () => {
     const order: number[] = []
-    const gates = [deferred<void>(), deferred<void>()]
+    const gates = [Promise.withResolvers<void>(), Promise.withResolvers<void>()]
 
     const run = mapWithConcurrency([0, 1], 1, async (_item, i) => {
       order.push(i)

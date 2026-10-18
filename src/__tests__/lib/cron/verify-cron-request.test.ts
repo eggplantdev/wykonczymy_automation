@@ -1,17 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
 import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
 
 describe('isAuthorizedCronRequest', () => {
-  const previous = process.env.CRON_SECRET
-
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
-  })
-
-  afterEach(() => {
-    process.env.CRON_SECRET = previous
+    vi.stubEnv('CRON_SECRET', 'test-secret')
   })
 
   const request = (headers: Record<string, string> = {}) =>
@@ -34,7 +28,7 @@ describe('isAuthorizedCronRequest', () => {
   })
 
   it('rejects everything when CRON_SECRET is unset', () => {
-    delete process.env.CRON_SECRET
+    vi.stubEnv('CRON_SECRET', undefined)
     expect(isAuthorizedCronRequest(request({ authorization: 'Bearer test-secret' }))).toBe(false)
     expect(isAuthorizedCronRequest(request({ authorization: 'Bearer ' }))).toBe(false)
   })

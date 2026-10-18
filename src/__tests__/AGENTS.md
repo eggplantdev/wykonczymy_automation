@@ -7,21 +7,32 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   Without the swap Next does in the browser, one statically-imported action drags Payload, the DB
   client and a live Nodemailer socket into a jsdom spec. Every stubbed export **throws** when called:
   assert the UI on the way to the action, or `vi.mock` the action explicitly.
-- **Mocking `@/lib/cache/revalidate` takes the shared stub:**
-  `vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))`, importing
-  the spy from that stub to assert. A hand-rolled factory misses any export it doesn't list; the
-  missing one comes back `undefined` and `protectedAction` swallows the TypeError into
-  `{ success: false }`, which reads as a business-logic failure. Not aliased globally because
-  `revalidate.test.ts` tests the real module.
-- **Mocking `@/lib/auth/require-auth` takes the shared stub** (`() => import('@/__tests__/stubs/require-auth')`),
-  setting the role / user through its `authState`. Hand-roll a factory only for what the stub can't
-  express, e.g. gating on `allowedRoles`.
-- **Never add a constant to a module specs mock by hand.** `@/lib/utils/toast` is hand-mocked in
-  ~22 specs, so a constant exported from it is `undefined` in all of them. Notice wording and timing
-  live in `lib/utils/notice.ts`; `toast.ts` stays the side effect alone.
+- **Some modules are mocked for every spec by a setup file** — never re-mock them per spec; import
+  the stub's state to drive or assert them:
+  - node + DB (`setup/node.ts`): `@/lib/cache/revalidate` → `stubs/cache-revalidate` (only
+    `revalidate.test.ts` opts out, via `vi.unmock`); `next/server`'s `after` queues into
+    `stubs/next-server`'s `scheduled` — run the work with `flushAfter()`.
+  - dom (`setup/dom.ts`): `@/lib/utils/toast` (import `toastMessage` and assert it as the mock);
+    `next/navigation` → `stubs/next-navigation` (assert `router.push`, set `navigationState.pathname`
+    / `.searchParams`).
+- **`clearMocks` and `restoreMocks` are on** — no `vi.clearAllMocks()` / `vi.restoreAllMocks()` in a
+  spec. `restoreMocks` restores every `vi.spyOn` before each test, so a spy created in `beforeAll` is
+  gone by the first test: create it in `beforeEach`.
+- **A DB spec that never calls `vi.mock` / `vi.doMock` / `vi.spyOn` runs in `db-shared`** — one
+  module cache and one Payload boot for every such file. `vitest.config.ts` sorts by reading the
+  source, so the first mock moves a spec to the isolated `db` project on its own.
+- **The session is mocked one level below `requireAuth`**: `vi.mock('@/lib/auth/get-current-user-jwt',
+() => import('@/__tests__/stubs/get-current-user-jwt'))`, setting the role / user through its
+  `authState`, so the real role gate runs. Never mock `@/lib/auth/require-auth` to pass a gate —
+  a role the app refuses must fail the spec. `@/hooks/use-current-user` takes
+  `stubs/use-current-user`, which reads the same `authState`.
+- **Never add a constant to `@/lib/utils/toast`** — the dom setup mocks it as `{ toastMessage }`
+  alone, so any other export is `undefined` in every component spec. Notice wording and timing live in
+  `lib/utils/notice.ts`.
 - **jsdom has no layout engine** — `matchMedia`, `ResizeObserver` and `scrollIntoView` are stubbed in
   `setup/dom.ts`. Radix and cmdk gate on them; without the stubs a popover mounts and instantly hides,
   and the failure reads as a bad selector.
 - **The golden master is not in the integration discovery** — it asserts the whole dataset against a
   committed fixture and runs via `pnpm test:parity`, because its neighbours create rows in the same
-  shared DB. Dataset-floor counters and the seeds that fill them: `context/foundation/test-plan.md` §5.
+  shared DB. `test:parity` re-imports and re-seeds that DB first (`db:reset:test`), since E2E writes
+  to the investments the fixture covers. Dataset-floor counters and the seeds that fill them: `context/foundation/test-plan.md` §5.

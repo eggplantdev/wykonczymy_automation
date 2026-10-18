@@ -10,19 +10,11 @@ const failNotFound = (): ActionResultT => ({
   code: 'NOT_FOUND',
 })
 
-function deferred<T>() {
-  let resolve!: (value: T) => void
-  const promise = new Promise<T>((r) => {
-    resolve = r
-  })
-  return { promise, resolve }
-}
-
 describe('createSaveLanes', () => {
   it('serializes same-key writes: an inverse enqueued during an in-flight forward runs after it', async () => {
     const lanes = createSaveLanes()
     const order: string[] = []
-    const forwardGate = deferred<void>()
+    const forwardGate = Promise.withResolvers<void>()
 
     const forward = lanes.enqueue('item:1:name', async () => {
       await forwardGate.promise
@@ -43,7 +35,7 @@ describe('createSaveLanes', () => {
   it('does not serialize across different keys: a fast write on key B need not wait for a slow one on key A', async () => {
     const lanes = createSaveLanes()
     const order: string[] = []
-    const gateA = deferred<void>()
+    const gateA = Promise.withResolvers<void>()
 
     const slowA = lanes.enqueue('item:1:name', async () => {
       await gateA.promise
@@ -109,7 +101,7 @@ describe('createSaveLanes', () => {
 describe('drain', () => {
   it('waits for an in-flight write on a listed lane', async () => {
     const lanes = createSaveLanes()
-    const gate = deferred<void>()
+    const gate = Promise.withResolvers<void>()
     let isStored = false
     void lanes.enqueue('progress:1:2', async () => {
       await gate.promise
@@ -199,8 +191,8 @@ describe('drainAll', () => {
 
   it('waits for every in-flight write, on lanes it was never told about', async () => {
     const lanes = createSaveLanes()
-    const name = deferred<void>()
-    const unit = deferred<void>()
+    const name = Promise.withResolvers<void>()
+    const unit = Promise.withResolvers<void>()
     const stored: string[] = []
     void lanes.enqueue('item:7:name', async () => {
       await name.promise

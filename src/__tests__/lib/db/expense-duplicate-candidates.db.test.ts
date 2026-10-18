@@ -12,10 +12,12 @@ import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
-import { authState } from '@/__tests__/stubs/require-auth'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { findExpenseDraftDuplicates } = await import('@/lib/queries/expense-draft-duplicates')
 
@@ -39,15 +41,12 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
 
   const ctx = { context: { skipRevalidation: true } }
 
-  async function insertMedia(name: string): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (url, filename, mime_type, filesize, created_by_id)
-      VALUES (${`https://blob.test/${FILENAME_PREFIX}${name}.jpg`}, ${`${FILENAME_PREFIX}${name}.jpg`},
-        'image/jpeg', 1024, ${workerId})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, {
+      kind: null,
+      createdById: workerId,
+      url: `https://blob.test/${FILENAME_PREFIX}${name}.jpg`,
+    })
 
   async function insertTransaction(
     key: string,
@@ -102,7 +101,7 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
       DELETE FROM worker_expense_drafts
       WHERE worker_id IN (SELECT id FROM users WHERE email = 'expense-duplicates@test.local')
     `)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
   }
 
   beforeAll(async () => {
@@ -117,15 +116,7 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
       { name: 'Dup Worker', email: 'expense-duplicates@test.local', registerName: 'Kasa Dup' },
       ctx,
     ))
-    const managers = await payload.find({
-      collection: 'users',
-      where: { role: { equals: 'OWNER' } },
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    if (!managers.docs[0]) throw new Error('missing OWNER')
-    authState.userId = Number(managers.docs[0].id)
+    authState.userId = await firstUserId(payload, { role: 'OWNER' })
 
     await insertTransaction('byAmount', {
       amount: AMOUNT,

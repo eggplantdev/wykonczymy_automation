@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { updateTag, revalidateTag } from '@/__tests__/stubs/next-cache'
 import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+
+vi.unmock('@/lib/cache/revalidate')
 
 describe('revalidateCollections', () => {
   beforeEach(() => {

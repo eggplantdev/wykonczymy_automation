@@ -3,22 +3,16 @@ import type { Payload, Where } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import type { RoleT } from '@/lib/auth/roles'
 import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
 import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/types'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-const authState = vi.hoisted(() => ({ role: 'OWNER' }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async (roles: readonly RoleT[]) =>
-    roles.includes(authState.role as RoleT)
-      ? { success: true, user: { id: 1, email: 'o@t.com', name: 'Owner', role: authState.role } }
-      : { success: false, error: 'Brak uprawnień' },
-  ),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { findExpenseDuplicateGroups } = await import('@/lib/queries/expense-duplicate-groups')
 
@@ -56,7 +50,7 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
       DELETE FROM worker_expense_drafts
       WHERE worker_id IN (SELECT id FROM users WHERE email = 'expense-groups@test.local')
     `)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
   }
 
   beforeAll(async () => {
@@ -116,13 +110,16 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
       investment: investmentB,
     })
 
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (url, filename, mime_type, filesize, created_by_id)
-      VALUES (${`https://blob.test/${FILENAME_PREFIX}0.jpg`}, ${`${FILENAME_PREFIX}0.jpg`}, 'image/jpeg', 1024, ${workerId}),
-        (${`https://blob.test/${FILENAME_PREFIX}1.jpg`}, ${`${FILENAME_PREFIX}1.jpg`}, 'image/jpeg', 1024, ${workerId})
-      RETURNING id
-    `)
-    const pages = rows.map((row) => Number(row.id))
+    const pages: number[] = []
+    for (const filename of [`${FILENAME_PREFIX}0.jpg`, `${FILENAME_PREFIX}1.jpg`]) {
+      pages.push(
+        await insertTestMedia(db, filename, {
+          kind: null,
+          createdById: workerId,
+          url: `https://blob.test/${filename}`,
+        }),
+      )
+    }
     const inserted = await insertWorkerExpenseDraft(db, {
       workerId,
       investmentId: investmentA,
@@ -143,7 +140,7 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
       SET ai_read = ${JSON.stringify(aiRead)}::jsonb, sent_at = '2026-10-07T08:00:00Z'::timestamptz
       WHERE id = ${draftId}
     `)
-  }, 30000)
+  })
 
   afterAll(async () => {
     if (!db) return

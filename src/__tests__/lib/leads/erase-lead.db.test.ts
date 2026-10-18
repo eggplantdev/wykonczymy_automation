@@ -31,7 +31,7 @@ describe.skipIf(!ENV_READY)('eraseTrashedLead (DB)', () => {
     })
     leadId = Number(lead.id)
     await db.execute(sql`UPDATE leads SET trashed_at = now() WHERE id = ${leadId}`)
-  }, 30000)
+  })
 
   afterAll(async () => {
     if (!db) return

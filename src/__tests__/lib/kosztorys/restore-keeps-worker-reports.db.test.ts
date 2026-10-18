@@ -10,8 +10,9 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 describe.skipIf(!ENV_READY)('restore keeps worker reports (DB)', () => {
   let payload: Payload
@@ -26,17 +27,10 @@ describe.skipIf(!ENV_READY)('restore keeps worker reports (DB)', () => {
     await purgeFixtureUsers(db)
 
     investmentId = await createTestInvestment(payload, 'restore-keeps-reports-test')
-    const worker = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Zgłaszający',
-        role: 'EMPLOYEE',
-        email: 'restore-keeps-reports@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    workerId = await createTestUser(payload, {
+      name: 'Zgłaszający',
+      email: 'restore-keeps-reports@test.local',
     })
-    workerId = Number(worker.id)
     ;[itemId] = (
       await createKosztorysTree(payload, investmentId, {
         sections: [{ name: 'Salon', items: [{ description: 'Malowanie', unit: 'm2' }] }],

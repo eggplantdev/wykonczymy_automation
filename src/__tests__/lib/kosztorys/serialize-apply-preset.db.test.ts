@@ -20,7 +20,7 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
 // cookies(), which has no request scope in node.
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const PRESET_PREFIX = 'preset-spec-'
 const ZEROED_JOB_FIGURES = { plannedQty: 0, discountType: null, discountValue: 0 }

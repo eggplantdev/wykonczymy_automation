@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia } from '@/__tests__/helpers/media'
 
 // Unique per run so re-runs never collide on the compound unique index.
 const runTag = `test-${Date.now()}`
@@ -26,9 +27,7 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
 
   beforeAll(async () => {
     payload = await bootTestPayload()
-    // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the
-    // default 10s hook budget is too tight (observed ~8.6–10s).
-  }, 30000)
+  })
 
   afterAll(async () => {
     for (const id of createdIds) {
@@ -136,14 +135,7 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     const db = await getDb(payload)
     const mediaIds: number[] = []
     for (const filename of [`${runTag}-lazienka.jpg`, `${runTag}-salon.jpg`]) {
-      // Raw INSERT, not payload.create: an upload through Payload would push bytes at the Blob
-      // store for a fixture nothing ever opens.
-      const { rows } = await db.execute(sql`
-        INSERT INTO media (filename, mime_type, filesize, kind)
-        VALUES (${filename}, 'image/jpeg', 1024, 'zdjecie')
-        RETURNING id
-      `)
-      mediaIds.push(Number(rows[0].id))
+      mediaIds.push(await insertTestMedia(db, filename))
     }
 
     const { lead } = await storeLead(payload, {

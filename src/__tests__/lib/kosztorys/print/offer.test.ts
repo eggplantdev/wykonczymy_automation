@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { buildOfferPrintHtml, type OfferPrintArgsT } from '@/lib/kosztorys/print/offer'
-import { offerPrintColumns, printableKeys } from '@/lib/kosztorys/print/offer-columns'
+import { offerPrintColumns, printableKeys, zloty } from '@/lib/kosztorys/print/offer-columns'
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import {
   CLIENT_DOCUMENT_COLUMNS,
@@ -98,10 +98,11 @@ const bandTotalSpans = (out: string) => {
   return { totalRow, spanSum: spans.reduce((sum, span) => sum + span, 0) }
 }
 
-const zloty = (n: number) =>
-  `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
-
 describe('buildOfferPrintHtml — dokument', () => {
+  it('grupuje tysiące także w czterocyfrowej kwocie', () => {
+    expect(zloty(1500)).toBe('1\u00a0500 zł')
+  })
+
   it('otwiera samodzielny dokument nazwany inwestycją', () => {
     const out = html([row()])
 

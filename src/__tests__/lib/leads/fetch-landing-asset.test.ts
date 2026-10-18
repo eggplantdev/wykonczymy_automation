@@ -34,7 +34,6 @@ const streamed = (chunks: Uint8Array[], headers: Record<string, string>): Respon
     },
   }) as unknown as Response
 
-beforeEach(() => vi.clearAllMocks())
 afterEach(() => vi.unstubAllGlobals())
 
 describe('fetchLandingAsset — what it refuses to fetch', () => {

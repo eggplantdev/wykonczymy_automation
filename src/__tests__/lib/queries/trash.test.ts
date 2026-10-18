@@ -1,6 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
-
-vi.mock('@payload-config', () => ({ default: {} }))
+import { describe, it, expect } from 'vitest'
 
 import { shapeTrashRows } from '@/lib/queries/trash'
 import type { TrashedInvestmentRowT } from '@/lib/db/investment-trash'

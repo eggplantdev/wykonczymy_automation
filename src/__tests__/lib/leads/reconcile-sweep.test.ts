@@ -35,7 +35,6 @@ const counts = (result: Awaited<ReturnType<typeof runLeadReconcileSweep>>) => ({
 })
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.mocked(fetchForm).mockResolvedValue({ questions: [] })
   update.mockResolvedValue(undefined)
 })

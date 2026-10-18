@@ -48,7 +48,7 @@ describe.skipIf(!ENV_READY)('purgeLeadTrash (DB)', () => {
     live = await createLead('3')
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'leads')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'leads')
-  }, 30000)
+  })
 
   afterAll(async () => {
     for (const id of [expired, recent, live]) {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 type OptionsT = {
   quality: number
@@ -36,10 +36,6 @@ function makeFile(name: string, type: string, size = 1024): File {
 function compressorResult(name: string, type: string, size = 1024): Blob {
   return Object.assign(new Blob([new Uint8Array(size)], { type }), { name })
 }
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
 
 describe('compressImage', () => {
   it('keeps the picked filename when the format is unchanged', async () => {

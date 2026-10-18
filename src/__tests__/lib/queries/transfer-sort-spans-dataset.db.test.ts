@@ -17,8 +17,7 @@ describe.skipIf(!ENV_READY)('transfer sort spans the whole filtered set (DB)', (
     everyDoc = all.docs
     const page = await findTransfersRaw({ page: 1, limit: PAGE_LIMIT, sort: '-amount' })
     firstPage = page.docs
-    // 30s: the first getPayload cold-inits Payload's schema.
-  }, 30000)
+  })
 
   it('has more rows than one page, or the assertions below prove nothing', () => {
     expect(everyDoc.length).toBeGreaterThan(PAGE_LIMIT)

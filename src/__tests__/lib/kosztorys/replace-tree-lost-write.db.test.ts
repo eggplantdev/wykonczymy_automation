@@ -9,7 +9,7 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 let onSnapshotRead: (() => Promise<void>) | undefined
 vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {

@@ -32,7 +32,7 @@ describe.skipIf(!ENV_READY)('assertCompletePage against Payload find (DB)', () =
       })
       createdIds.push(lead.id)
     }
-  }, 30000)
+  })
 
   afterAll(async () => {
     for (const id of createdIds) {

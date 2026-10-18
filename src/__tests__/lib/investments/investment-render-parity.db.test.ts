@@ -11,6 +11,7 @@ import { calculateMargin } from '@/lib/db/calculate-margin'
 import { buildFinancialFields } from '@/lib/queries/investment-financial-fields'
 import { computeSummary } from '@/components/ui/toggle-stat-buttons'
 import { round2 } from '@/__tests__/helpers/money'
+import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import {
   SETTLEMENT_MODE_DEFAULT,
   effectiveMaterialsNetRate,
@@ -104,6 +105,8 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           `Cause: ${String(setupError)}`,
       )
     }
+    // The `!payload` guard doesn't narrow inside the per-investment closure below.
+    const booted = payload
 
     const listingMap = await sumAllInvestmentFinancials(payload)
     const kosztorysTotals: KosztorysClientTotalsMapT = {}
@@ -126,13 +129,13 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       depositPlaneSums[String(investmentId)] = sums
     }
 
-    const mismatches: string[] = []
     const covered = { netBilled: 0, concession: 0, remaining: 0 }
-    for (const inv of investments) {
+    const perInvestment = await mapWithConcurrency(investments, 6, async (inv) => {
+      const mismatches: string[] = []
       const where = { investment: { equals: inv.id } }
       const [byType, catRows] = await Promise.all([
-        sumFilteredByType(payload, where),
-        sumCategoryByTypeSettled(payload, where),
+        sumFilteredByType(booted, where),
+        sumCategoryByTypeSettled(booted, where),
       ])
       const breakdowns = deriveCategoryBreakdowns(catRows)
       const invTotals = kosztorysTotals[String(inv.id)]
@@ -222,7 +225,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           ? undefined
           : computeSubcontractorSummary(
               byPlane.combined,
-              derivePayoutsByWorker(await getPayoutTransactionsForInvestment(payload, inv.id), []),
+              derivePayoutsByWorker(await getPayoutTransactionsForInvestment(booted, inv.id), []),
             ).remaining
       const listingRemaining = listingRow?.subcontractorRemaining
       if (detailRemaining !== undefined && detailRemaining !== 0) covered.remaining++
@@ -238,7 +241,9 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           )
         }
       }
-    }
+      return mismatches
+    })
+    const mismatches = perInvestment.flat()
 
     expect(mismatches).toEqual([])
     expect(investments.length).toBeGreaterThan(0)

@@ -8,8 +8,9 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
   let payload: Payload
@@ -29,33 +30,13 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    const ownerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Kosz Kas Purge',
-            role: 'EMPLOYEE',
-            email: 'kosz-kas-purge@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-    const createRegister = async (name: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'cash-registers',
-            data: { name, type: 'AUXILIARY', owner: ownerId },
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
-    expired = await createRegister('Kasa do wyczyszczenia')
-    recent = await createRegister('Kasa w okresie')
-    pinned = await createRegister('Kasa z transakcją po koszu')
+    const ownerId = await createTestUser(payload, {
+      name: 'Kosz Kas Purge',
+      email: 'kosz-kas-purge@test.local',
+    })
+    expired = await createTestRegister(payload, ownerId, 'Kasa do wyczyszczenia')
+    recent = await createTestRegister(payload, ownerId, 'Kasa w okresie')
+    pinned = await createTestRegister(payload, ownerId, 'Kasa z transakcją po koszu')
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, pinned, PAST_RETENTION_DAYS, 'cash_registers')
