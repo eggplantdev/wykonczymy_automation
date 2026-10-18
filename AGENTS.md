@@ -288,8 +288,8 @@ blames `globals.css`. Repair: `pnpm install --force`, `rm -rf .next`, restart de
   `wykonczymy-db`), restored from Neon dumps — `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by pre-push) and `pnpm db:import`.
   Confirm before wiping it: a restore loses anything entered locally since the last dump.
 - **E2E:** isolated `db-test` container on 5435 (`DB_POSTGRES_URL_TEST`, db `wykonczymy-test`). Reset with
-  `pnpm db:import:test`. `pnpm test:e2e`, integration and parity clone it from
-  `wykonczymy-test-template` (`test:e2e:warm` does not), rebuilt when a migration or seed changes, after
+  `pnpm db:reset:test`. `pnpm test:e2e`, integration and parity clone it from
+  `wykonczymy-test-template` (`test:e2e:warm` does not), rebuilt when a migration, a seed or a collection the seeds write changes, after
   7 days, or on `pnpm db:template:test`. Seeds on top are per
   plane (`seed:materials-net:test` is required by the render-parity spec) — which counter needs which
   seed: `context/foundation/test-plan.md` §5.

@@ -1073,9 +1073,10 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 
 ## 2026-10-18 — prepush-overlap — testy w hooku pre-push równolegle
 
-- [ ] Następny prawdziwy `git push`: najpierw nagłówek „unit tests + typecheck + DB integration specs
-      (in parallel)”, potem trzy sekcje z wynikami, „DB parity + golden master” i zrzut bazy. Część
-      testowa trwa ok. 70–85 s zamiast ok. 100 s.
+- [ ] Następny prawdziwy `git push`: najpierw nagłówek „unit tests + typecheck + DB integration specs,
+      parity (in parallel)”, potem trzy sekcje z wynikami („DB integration specs + parity” ostatnia)
+      i zrzut bazy. Część testowa trwa ok. 70–80 s zamiast ok. 100 s (dłużej, gdy przebudowuje się
+      szablon bazy testowej).
 - [ ] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
       typecheck”, a zrzut bazy się nie uruchamia.
 

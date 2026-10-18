@@ -87,6 +87,6 @@ Overlapped (unit + integration + `tsc`, then parity):
 
 #### Automated
 
-- [x] 2.1 `bash -n` on hook and script
-- [x] 2.2 Forced failure names the leg
-- [x] 2.3 Script green 3×, times recorded
+- [x] 2.1 `bash -n` on hook and script — 29dfc3b16
+- [x] 2.2 Forced failure names the leg — 29dfc3b16
+- [x] 2.3 Script green 3×, times recorded — 29dfc3b16
