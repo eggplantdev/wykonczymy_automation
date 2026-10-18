@@ -380,15 +380,15 @@ Compare against the research baseline (`research.md` §5: 175 s wall, 725.8 user
 
 #### Automated
 
-- [x] 1.1 Shared projects collect ≥ 357 node and ≥ 84 dom files
-- [x] 1.2 `pnpm test` passes
-- [x] 1.3 Shuffled shared projects pass
+- [x] 1.1 Shared projects collect ≥ 357 node and ≥ 84 dom files — a0b78ca6b
+- [x] 1.2 `pnpm test` passes — a0b78ca6b
+- [x] 1.3 Shuffled shared projects pass — a0b78ca6b
 
 ### Phase 2: Dom prebundle
 
 #### Automated
 
-- [ ] 2.1 dom + dom-shared pass with the optimizer
+- [x] 2.1 dom + dom-shared pass with the optimizer
 
 ### Phase 3: Server-action seams
 

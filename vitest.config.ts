@@ -104,6 +104,8 @@ const domTest = {
   environment: 'jsdom',
   setupFiles: ['./src/__tests__/setup/stores.ts', './src/__tests__/setup/dom.ts'],
   testTimeout: 20_000,
+  // Hundreds of small ESM files each, transformed per file without a prebundle.
+  deps: { optimizer: { client: { enabled: true, include: ['react-day-picker', 'date-fns'] } } },
 }
 
 // Each `*-shared` project keeps one module graph for all its files instead of one per file — the
