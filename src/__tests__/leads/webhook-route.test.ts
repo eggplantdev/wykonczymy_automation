@@ -1,12 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
-vi.mock('next/server', () => ({
-  NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, body }),
-  },
-}))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({}) }))
 vi.mock('@/lib/leads/verify-signature', () => ({ verifySignature: vi.fn(() => true) }))
 vi.mock('@/lib/leads/fetch-lead', () => ({ fetchLead: vi.fn() }))
@@ -35,7 +29,6 @@ const makeRequest = (raw: string, sig = 'sha256=deadbeef'): NextRequest =>
   }) as unknown as NextRequest
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.mocked(verifySignature).mockReturnValue(true)
   vi.mocked(fetchLead).mockResolvedValue(validLead)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

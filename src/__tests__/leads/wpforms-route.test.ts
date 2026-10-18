@@ -1,14 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
-vi.mock('next/server', () => ({
-  NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, body }),
-  },
-}))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({}) }))
-vi.mock('@/lib/env/server', () => ({ serverEnv: { WPFORMS_WEBHOOK_SECRET: 'test-secret' } }))
 vi.mock('@/lib/leads/capture-lead', () => ({ captureLead: vi.fn() }))
 vi.mock('@/lib/leads/notify', () => ({ notifyShapeAlert: vi.fn(async () => {}) }))
 
@@ -38,7 +31,7 @@ const makeRequest = (raw: string, secret = 'test-secret'): NextRequest =>
   }) as unknown as NextRequest
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.stubEnv('WPFORMS_WEBHOOK_SECRET', 'test-secret')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   vi.mocked(captureLead).mockResolvedValue({ lead: { id: 1 } as any, created: true })
   vi.mocked(notifyShapeAlert).mockResolvedValue(undefined)

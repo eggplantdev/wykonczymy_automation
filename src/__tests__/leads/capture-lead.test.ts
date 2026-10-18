@@ -17,7 +17,6 @@ const input = { source: 'facebook_lead_ads', externalId: 'x' } as never
 const dataOf = () => update.mock.calls.at(-1)?.[0]?.data
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.mocked(storeLead).mockResolvedValue({ lead: baseLead, created: true })
   vi.mocked(notifyNewLead).mockResolvedValue(undefined)
   vi.mocked(sendAutoReply).mockResolvedValue(undefined)

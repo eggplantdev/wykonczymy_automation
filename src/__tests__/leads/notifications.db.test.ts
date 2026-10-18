@@ -37,9 +37,7 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markSeen (DB)', () => {
     payload = await bootTestPayload()
 
     userId = await firstUserId(payload)
-    // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the
-    // default 10s hook budget is too tight (observed ~8.6–10s).
-  }, 30000)
+  })
 
   afterAll(async () => {
     await clearCursor()
