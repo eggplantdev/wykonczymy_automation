@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, vi, type Mock } from 'vitest'
+import { beforeAll, vi, type Mock } from 'vitest'
 import { resetAuthState } from '@/__tests__/stubs/get-current-user-jwt'
 
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
@@ -84,7 +84,3 @@ beforeAll(() => {
   resetAuthState()
   for (const seam of seams) seam.mockReset()
 })
-
-// `restoreMocks` restores only before each test, so a spy from a file's last test would still be
-// live in the next file's beforeAll.
-afterAll(() => vi.restoreAllMocks())

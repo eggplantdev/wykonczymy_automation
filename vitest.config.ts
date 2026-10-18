@@ -44,20 +44,37 @@ function stubServerActions(): Plugin {
   }
 }
 
-// A spec that mocks a module would leak that mock into every later file sharing the module cache.
-const dbSpecs = globSync('src/__tests__/**/*.db.test.ts', { cwd: __dirname })
-const mocksModules = (file: string) =>
-  /\bvi\.(mock|doMock)\(/.test(readFileSync(path.join(__dirname, file), 'utf8'))
-const dbSpecsThatMock = dbSpecs.filter(mocksModules)
-const dbSpecsMockFree = dbSpecs.filter((file) => !mocksModules(file))
+// A spec that mocks a module, or patches Node's resolver, would leak that into every later file
+// sharing the module cache.
+const isolatesModules = (file: string) =>
+  /\bvi\.(mock|doMock)\(|require\.cache|_resolveFilename/.test(
+    readFileSync(path.join(__dirname, file), 'utf8'),
+  )
+const partition = (files: string[]) => ({
+  isolated: files.filter(isolatesModules),
+  shared: files.filter((file) => !isolatesModules(file)),
+})
+const specs = (pattern: string) => globSync(pattern, { cwd: __dirname })
+const nodeSpecs = partition(
+  specs('src/__tests__/**/*.test.ts').filter((file) => !file.endsWith('.db.test.ts')),
+)
+const dbSpecs = partition(specs('src/__tests__/**/*.db.test.ts'))
+const domSpecs = partition(specs('src/__tests__/**/*.test.tsx'))
 
-const baseTest = { globals: true, css: false, clearMocks: true, restoreMocks: true }
+// `passWithNoTests`: a partition can come out empty once its last module mock is gone.
+const baseTest = {
+  globals: true,
+  css: false,
+  clearMocks: true,
+  restoreMocks: true,
+  passWithNoTests: true,
+}
 
 const nodeTest = {
   ...baseTest,
   testTimeout: 15_000,
   unstubEnvs: true,
-  setupFiles: ['./src/__tests__/setup/node.ts'],
+  setupFiles: ['./src/__tests__/setup/stores.ts', './src/__tests__/setup/node.ts'],
 }
 
 const dbTest = {
@@ -66,53 +83,50 @@ const dbTest = {
   hookTimeout: 30_000,
 }
 
+const nodeProject = {
+  resolve: { alias: unitAlias },
+  css: postcss,
+}
+
+const dbProject = {
+  resolve: { alias },
+  css: postcss,
+}
+
+const domProject = {
+  resolve: { alias: unitAlias },
+  css: postcss,
+  plugins: [stubServerActions()],
+}
+
+const domTest = {
+  ...baseTest,
+  environment: 'jsdom',
+  setupFiles: ['./src/__tests__/setup/stores.ts', './src/__tests__/setup/dom.ts'],
+  testTimeout: 20_000,
+}
+
+// Each `*-shared` project keeps one module graph for all its files instead of one per file — the
+// import cost (~1.2 s per DB file) is paid once per worker.
 export default defineConfig({
   test: {
     projects: [
+      { ...nodeProject, test: { ...nodeTest, name: 'node', include: nodeSpecs.isolated } },
       {
-        resolve: { alias: unitAlias },
-        css: postcss,
-        test: {
-          ...nodeTest,
-          name: 'node',
-          include: ['src/__tests__/**/*.test.ts'],
-          exclude: ['src/__tests__/**/*.db.test.ts'],
-        },
+        ...nodeProject,
+        test: { ...nodeTest, name: 'node-shared', include: nodeSpecs.shared, isolate: false },
       },
       // Own projects so the unit run never collects them: each one loads the Payload/Drizzle graph
       // only to skip without a DB env. `pnpm test:integration` and `pnpm test:parity` select both.
+      { ...dbProject, test: { ...dbTest, name: 'db', include: dbSpecs.isolated } },
       {
-        resolve: { alias },
-        css: postcss,
-        test: {
-          ...dbTest,
-          name: 'db',
-          include: dbSpecsThatMock,
-        },
+        ...dbProject,
+        test: { ...dbTest, name: 'db-shared', include: dbSpecs.shared, isolate: false },
       },
-      // One module graph for the whole project instead of one per file: ~1.2s of import per file.
+      { ...domProject, test: { ...domTest, name: 'dom', include: domSpecs.isolated } },
       {
-        resolve: { alias },
-        css: postcss,
-        test: {
-          ...dbTest,
-          name: 'db-shared',
-          include: dbSpecsMockFree,
-          isolate: false,
-        },
-      },
-      {
-        resolve: { alias: unitAlias },
-        css: postcss,
-        plugins: [stubServerActions()],
-        test: {
-          ...baseTest,
-          name: 'dom',
-          include: ['src/__tests__/**/*.test.tsx'],
-          environment: 'jsdom',
-          setupFiles: ['./src/__tests__/setup/dom.ts'],
-          testTimeout: 20_000,
-        },
+        ...domProject,
+        test: { ...domTest, name: 'dom-shared', include: domSpecs.shared, isolate: false },
       },
     ],
   },

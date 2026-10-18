@@ -1,4 +1,4 @@
-import { beforeEach, vi } from 'vitest'
+import { afterAll, beforeEach, vi } from 'vitest'
 import { scheduled } from '@/__tests__/stubs/next-server'
 
 vi.mock('next/server', async (importOriginal) => ({
@@ -11,4 +11,12 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 beforeEach(() => {
   scheduled.length = 0
+})
+
+// `restoreMocks` restores only before each test, so a spy, stubbed global or fake clock from a
+// file's last test would still be live in the next file of a shared project.
+afterAll(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+  vi.useRealTimers()
 })

@@ -69,7 +69,7 @@ leg "typecheck" pnpm run typecheck
 # Wrapped by hand: this leg calls vitest directly rather than `pnpm test`, so it would
 # otherwise be the one heavy run that escapes the machine-wide lock. The three legs below
 # go through package.json scripts, which are wrapped there; a nested call inherits this hold.
-leg "unit tests" bash scripts/with-test-lock.sh pnpm vitest run --silent --project node --project dom
+leg "unit tests" bash scripts/with-test-lock.sh pnpm vitest run --silent --project node --project node-shared --project dom --project dom-shared
 
 # The unit leg above never selects `*.db.test.ts`, so without this leg the destructive restore path
 # never runs before a push.

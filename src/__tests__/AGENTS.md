@@ -18,16 +18,23 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
     result before the code calls it — the reset hands back the real network call. A new DB spec that
     needs a module mock adds a seam there; a per-file `vi.mock` still works but costs ~1.2 s of
     import and runs the spec isolated.
-  - dom (`setup/dom.ts`): `@/lib/utils/toast` (import `toastMessage` and assert it as the mock);
+  - dom (`setup/dom.ts`): `@/lib/utils/toast` (import `toastMessage` and assert it as the mock — one
+    instance for every file of a worker);
     `next/navigation` → `stubs/next-navigation` (assert `router.push`, set `navigationState.pathname`
     / `.searchParams`).
 - **`clearMocks` and `restoreMocks` are on** — no `vi.clearAllMocks()` / `vi.restoreAllMocks()` in a
   spec. `restoreMocks` restores every `vi.spyOn` before each test, so a spy created in `beforeAll` is
   gone by the first test: create it in `beforeEach`.
-- **A DB spec that never calls `vi.mock` / `vi.doMock` runs in `db-shared`** — one module cache and
-  one Payload boot for every such file. `vitest.config.ts` sorts by reading the source, so the first
-  module mock moves a spec to the isolated `db` project on its own.
-  `vi.spyOn` is fine: `setup/db.ts` restores every spy at the end of each file.
+- **A spec that never calls `vi.mock` / `vi.doMock` runs in a shared project** (`node-shared`,
+  `dom-shared`, `db-shared`) — one module cache per worker for every such file. `vitest.config.ts`
+  sorts by reading the source, so the first module mock (or a `require.cache` / `_resolveFilename`
+  patch) moves a spec to the isolated project on its own. `vi.spyOn`, `vi.stubGlobal` and fake
+  timers are fine: the setups restore them at the end of each file.
+- **Shared state is reset per file, at setup top level** — so a spec may set it at its own top level:
+  every zustand store goes back to its initial state (`setup/stores.ts`); in dom also
+  `navigationState`, `authState`, `location` (`/`), `localStorage` / `sessionStorage`, and the DOM
+  is emptied after each test. Any other module-level state (a cache, a singleton) a spec mutates
+  leaks into the next shared file — reset it in the spec.
 - **The session is mocked one level below `requireAuth`**: `get-current-user-jwt` →
   `stubs/get-current-user-jwt`, steered through its `authState`, so the real role gate runs. A DB
   spec gets it from `setup/db.ts` and never re-mocks it — a per-file `vi.mock` would move it to the

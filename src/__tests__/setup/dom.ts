@@ -1,5 +1,8 @@
-import { vi } from 'vitest'
+import { afterAll, afterEach, vi, type Mock } from 'vitest'
+import { cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { resetAuthState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // Radix and cmdk gate on them — without the stubs a popover mounts and
 // instantly hides
@@ -40,10 +43,33 @@ if (!Element.prototype.hasPointerCapture) {
   Element.prototype.releasePointerCapture = () => {}
 }
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+// On `globalThis`: a module cached by an earlier `dom-shared` file keeps the toast it imported then.
+vi.mock('@/lib/utils/toast', () => ({
+  toastMessage: ((globalThis as { domToast?: Mock }).domToast ??= vi.fn()),
+}))
 
 // The App Router hooks throw outside a mounted Next app.
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   ...(await import('@/__tests__/stubs/next-navigation')),
 }))
+
+// `dom-shared` runs every file in one jsdom window; these run before the spec's own top-level setup.
+Object.assign(navigationState, { pathname: '/', searchParams: new URLSearchParams() })
+resetAuthState()
+window.history.replaceState(null, '', '/')
+localStorage.clear()
+sessionStorage.clear()
+
+// Testing Library registers its auto-cleanup once per module instance — in `dom-shared` only for
+// the first file.
+afterEach(() => {
+  cleanup()
+  document.body.innerHTML = ''
+})
+
+afterAll(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+  vi.useRealTimers()
+})
