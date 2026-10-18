@@ -933,6 +933,19 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Ten sam PDF z Chrome: wydruk poziomy, nagłówki kolumn powtarzają się na każdej stronie.
 - [ ] „Drukuj PDF” oferty dla inwestora i formularz pracownika do wypełnienia wyglądają jak dotąd.
 
+## 2026-10-18 — dead-code-cleanup — usunięty martwy kod, zachowanie bez zmian
+
+- [ ] Lista z więcej niż jedną stroną (np. „Wypłaty”): strzałki poprzednia/następna strona i „…”
+      w paginacji wyświetlają się i działają jak dotąd.
+- [ ] Pole wyszukiwanego wyboru w formularzu (np. inwestycja w „Dodaj transakcję”): strzałka
+      rozwijania jest widoczna, lista się otwiera.
+- [ ] Kosztorys z rabatem kwotowym: „Do zapłaty” = suma netto − rabat, tak jak przed zmianą;
+      to samo na widoku inwestycji (robocizna i rabat z kosztorysu).
+- [ ] Kosztorys inwestycji z materiałami wliczonymi w robociznę → „Problemy”: pozycja o stawkach
+      wykonawców liczonych według formuły pokazuje ten sam opis z liczbą wierszy.
+- [ ] „Transfer między kasami” z tą samą kasą źródłową i docelową: zapis jest odrzucony z
+      komunikatem jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
