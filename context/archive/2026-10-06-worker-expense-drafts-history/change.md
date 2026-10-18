@@ -22,7 +22,7 @@ na stronie pracownika listuje wszystkie zgłoszenia bez filtrów ani stronicowan
 
 ### Decyzje (właściciel, 2026-10-06)
 
-- **Odwraca decyzję z EX-971** („Strona managera to lista Transakcji, bez osobnej podstrony”,
+- **Odwraca decyzję z `worker-expenses`** („Strona managera to lista Transakcji, bez osobnej podstrony”,
   `context/archive/2026-10-05-worker-expenses/change.md`): historia zgłoszeń dostaje własną stronę.
 - **Nowa strona menedżera „Zgłoszenia wydatków”** — wariant „Zgłoszeń wykonanych prac”
   (`/zgloszenia-prac`): ten sam silnik TanStack (`components/tables/data-table/`), paginacja po URL,
@@ -38,7 +38,7 @@ na stronie pracownika listuje wszystkie zgłoszenia bez filtrów ani stronicowan
   narzucony przez serwer (tylko on), bez kolumny i filtra „Pracownik”; akcje Edytuj / Usuń na
   czekających. Filtr zgłoszeń w jego Transakcjach niepotrzebny.
 - **Bez zmian widoczności kolumn na telefonie** — tabela ta sama wszędzie, na 390 px przewija się
-  w poziomie (strona pracownika musi działać na telefonie, EX-985).
+  w poziomie (strona pracownika musi działać na telefonie).
 - **Domyślne limity na stronie pracownika:** transakcje — 20 ostatnich (dziś 100 — `DEFAULT_LIMIT`), zgłoszenia —
   10 ostatnich. Starsze przez stronicowanie.
 
@@ -55,7 +55,7 @@ na stronie pracownika listuje wszystkie zgłoszenia bez filtrów ani stronicowan
   mógł ją zmienić przy akceptacji); bez `types` — typ wybiera menedżer w dialogu, a zgadnięty typ
   odfiltrowałby właśnie ten wiersz. **Pracownik nie może otworzyć transakcji** — u niego kwota bez
   linku (jak `preview` w podsumowaniu). Zgłoszenie przyjęte jako kilka pozycji linkuje pierwszą
-  (znane ograniczenie, EX-971).
+  (znane ograniczenie z `worker-expenses`).
 - **Kolumna „Decyzja” (kiedy · kto) — u obu**, menedżera i pracownika.
 - **Przyjęte zgłoszenia widoczne zawsze** (także z inwestycją w koszu / zablokowaną); **odrzucone
   z pracownikiem / inwestycją / kasą w koszu ukryte** — „Przywróć” i tak by je odrzucił

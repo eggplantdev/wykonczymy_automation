@@ -7,7 +7,6 @@ updated: 2026-10-06
 archived_at: 2026-10-06T09:04:20Z
 branch: staging
 worktree: null
-linear: EX-999
 ---
 
 ## Notes

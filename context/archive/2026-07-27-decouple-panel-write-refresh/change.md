@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-**EX-597.** The spike log (`research.md`, deleted 2026-08-08) is in git history; the two
+The spike log (`research.md`, deleted 2026-08-08) is in git history; the two
 framework/method findings went to `context/foundation/lessons.md` (the "server action forces a route
 render" mechanism and the Neon warm/cold measurement rule).
 
@@ -70,7 +70,7 @@ the action's own payload, so it could not have seen a second refresh path 80 lin
 
 > **Superseded:** „Opcje rozliczenia" moved off the investment page into the kosztorys editor
 > (`a6050f2c`), first behind `?ustawienia=1`, later into a popover (`745ceda5`). The tree read is now
-> one `json_agg` query, `getInvestmentName` became `fetchReferenceData` (EX-608), and the media read
+> one `json_agg` query, `getInvestmentName` became `fetchReferenceData`, and the media read
 > expires with `EXPIRE_NOW` (rationale in code).
 
 ---
@@ -83,7 +83,7 @@ Shipped state of the four „Opcje rozliczenia" controls:
 | --------------------- | ------- | ---------- | ----------------------------------------------------------- |
 | VAT                   | ✅      | ✅         | value is denormalized onto `rows` — client-owned, patchable |
 | rabat globalny        | ✅      | ✅         | same                                                        |
-| sposób rozliczenia    | ✅      | ❌         | lives only on `tree` — server-owned, mount-frozen (EX-441)  |
+| sposób rozliczenia    | ✅      | ❌         | lives only on `tree` — server-owned, mount-frozen           |
 | stawka netto wydatków | ✅      | ❌         | same                                                        |
 
 The rule is mechanical, not a judgement call: **a setting is optimistic exactly when its value is

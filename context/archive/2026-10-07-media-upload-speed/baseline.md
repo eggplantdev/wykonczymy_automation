@@ -1,6 +1,6 @@
 # Baseline — worker expense-draft send („Wyślij" → dialog closed)
 
-Measured 2026-10-07 on staging, before any EX-1012 code, under three network profiles. Repeat the
+Measured 2026-10-07 on staging, before any code of this change, under three network profiles. Repeat the
 same protocol after the change and compare the medians.
 
 ## Summary — median click → dialog closed
@@ -11,7 +11,7 @@ same protocol after the change and compare the medians.
 | Warsaw LTE           | 3 729 ms | 7 188 ms  | 11 899 ms | 81 % (9.6 s)              |
 | Unthrottled          | 2 940 ms | 6 277 ms  | 10 717 ms | 88 % (9.4 s)              |
 
-**After EX-1012** (same protocol, see [After EX-1012](#after-ex-1012)):
+**After the change** (same protocol, see [After the change](#after-the-change)):
 
 | Profile              | 1 photo                      | 3 photos                      | 6 photos                       |
 | -------------------- | ---------------------------- | ----------------------------- | ------------------------------ |
@@ -40,7 +40,7 @@ that is ~0.2 s at the measured ~12 Mbps uplink, so ~1 s per PUT is Blob API over
 | Account     | `qa-staging-worker@…` (user 85), page `/pracownicy/85`; kasa 54; inwestycja 137 „Etap 1" membership added by the OWNER through the UI                                                          |
 | Viewport    | 390 × 844                                                                                                                                                                                      |
 | Fixtures    | 6 synthetic JPEGs (no PII), 4032×3024, q86, ~3.26 MB each; after pick-time compression **~305 KB each** (304 110–305 082 B, from the `size` field of `POST /api/media`)                        |
-| Flow        | „Dodaj wydatek" → `setInputFiles` → wait for „Wyślij" enabled → note `EX-1012 baseline Np HH:MM:SS` → click „Wyślij"                                                                           |
+| Flow        | „Dodaj wydatek" → `setInputFiles` → wait for „Wyślij" enabled → note `upload-speed baseline Np HH:MM:SS` → click „Wyślij"                                                                      |
 | Window      | capture-phase click listener on „Wyślij" (t0) → MutationObserver sees no open `[role=dialog]` (t1)                                                                                             |
 | Runs        | 1 warm-up (discarded) + 3 runs each at 1 / 3 / 6 photos, back to back                                                                                                                          |
 | Per request | `page.on('request')` + `request.timing()`; start = ms after t0, dur = requestStart → responseEnd                                                                                               |
@@ -156,29 +156,29 @@ Warm-up (1 photo, discarded): 3 008 ms.
 
 ## Cleanup
 
-All 30 drafts (`EX-1012 baseline …`: 10 per profile, warm-ups included) were deleted through the worker
+All 30 drafts (`upload-speed baseline …`: 10 per profile, warm-ups included) were deleted through the worker
 UI: „Usuń" → „Usunąć wydatek?" → „Usuń". `/pracownicy/85` shows none.
 
 During the Fast 4G cleanup the drafts list did **not** update after a successful delete: the row
 stayed until a full reload. The LTE / unthrottled harness reloads after every delete, so it neither
 confirms nor rules this out on a fast link. All 20 of its deletes were confirmed after the reload. This
-bug is not in EX-1012's scope.
+bug is not in this change's scope.
 
 Not checked: whether a deleted draft's media rows and Blob objects are removed. The OWNER-granted etap
 membership on inwestycja 137 was left in place for the after-change run.
 
-## After EX-1012
+## After the change
 
 Measured 2026-10-07 12:08–12:21 (CEST) against the branch preview, not staging: the branch was pushed
 on its own (`media-upload-speed` @ `74272259`) and served at
 `https://wykonczymy-git-media-upload-speed-wykonczymys-projects.vercel.app`. That is the same preview
 DB, preview Blob store, account, fixtures, harness and throttle profiles as the baseline. The only code
-difference from the measured staging is EX-1012.
+difference from the measured staging is this change.
 
 What changed in the harness:
 
 - Requests to `POST /api/media-upload` are classified as `fast`.
-- The tag is `EX-1012 after …`.
+- The tag is `upload-speed after …`.
 - It runs as a standalone Playwright script, with one freshly launched Chrome per profile, instead of
   the shared MCP browser, which another session held. The script is `scratchpad/run-after.mjs`
   (not kept).
@@ -213,7 +213,7 @@ per photo and then the action. There was no token request, no Blob `PUT` from th
   fast links, which already send 6 photos in 2.6–4 s, while on Fast 4G — where a send hurts — the
   uplink is the floor and more parallel uploads would only split it.
 - **Fast 4G is now bound by the uplink.** 6 × ~305 KB is ~1.83 MB, which takes ~10.8 s at
-  ≈1.35 Mbps. The 13.6 s median is close to that floor. Before EX-1012, the serialized server chain was
+  ≈1.35 Mbps. The 13.6 s median is close to that floor. Before this change, the serialized server chain was
   stacked on top of the upload.
 - **The server side of one upload is mostly the Blob put.** 50 `[PERF] mediaUpload` lines from
   `vercel logs --branch media-upload-speed`:
@@ -234,6 +234,6 @@ per photo and then the action. There was no token request, no Blob `PUT` from th
 
 Cleanup: all 30 drafts were deleted through the worker UI. The harness confirmed 21 deletes after a
 reload. The remaining 9 were checked by a second pass, which found 2 still listed, deleted them, and
-then `/pracownicy/85` showed no `EX-1012` row. One of those two had been reported as gone by the
+then `/pracownicy/85` showed no `upload-speed` row. One of those two had been reported as gone by the
 harness's own reload and then showed up again. This is the stale drafts-list behaviour noted under
-Cleanup above, and it is outside EX-1012's scope.
+Cleanup above, and it is outside this change's scope.

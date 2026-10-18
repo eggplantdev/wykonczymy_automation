@@ -65,8 +65,7 @@ are written up in `lessons.md`; what they mean for the harness:
    entry and a link prefetch that started before the write re-fills it AFTER `updateTag` expired the
    tag, so the refresh re-reads pre-write rows. Specs that must read back a write now call
    `refreshData` (the app's „Odśwież dane" = `revalidatePath('/', 'layout')`). This is a product race,
-   not a test artefact — it is reachable by a user who hovers a link before saving, and is filed as
-   **EX-808**.
+   not a test artefact — it is reachable by a user who hovers a link before saving.
 5. **An exit animation hides a wrong assumption.** `client-share` clicked „Lista wydatków" to open a
    section that is open by default, and the 200 ms collapse animation kept the content mounted just
    long enough for six assertions to pass — by one millisecond, per the trace. Toggles are now read
@@ -99,9 +98,9 @@ page rendering its pre-write face, and 45 s of retrying that never moved. Both w
    invalidation is the `media` afterChange hook, so `media-all` answered once without the new file and
    the row rendered „Dodaj fakturę" over a `transactions_rels` row that existed. Fixed with
    `EXPIRE_NOW` (`{ expire: 0 }`) at every site outside an action, and `EXPIRE_NEXT` (`{ expire: 1 }`)
-   in `deferRefresh` — `expire: 0` there would re-render the route EX-597 stopped re-rendering.
+   in `deferRefresh` — `expire: 0` there would re-render the route that deferral stopped re-rendering.
    Written up in `lessons.md`.
-9. **A poisoned cache entry never recovers on its own (EX-808 again).** `notification-recipients` read
+9. **A poisoned cache entry never recovers on its own.** `notification-recipients` read
    a list that Postgres already held, after a full navigation. A refill by a prefetch render that
    began before the write carries the refiller's own timestamp, which is later than the expiry — so
    the entry is valid, not stale, and re-reading it is pointless. Specs that read back a write now

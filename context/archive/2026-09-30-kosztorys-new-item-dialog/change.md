@@ -11,7 +11,7 @@ worktree: ../wykonczymy-worktrees/kosztorys-new-item-dialog
 
 ## Notes
 
-Linear: EX-951. (EX-951 names `worker-report/extra-work-dialog.tsx` as a reuse candidate; that file does not exist and the EX-947 extra-work rows carry no price or stawki — not a reuse base, see research.md.)
+(`worker-report/extra-work-dialog.tsx` was proposed as a reuse candidate; that file does not exist and the worker-report extra-work rows carry no price or stawki — not a reuse base, see research.md.)
 
 Replace the blank „Nowa praca" row with a form dialog (opis, j.m., cena j.m., stawki źródła) opened from:
 

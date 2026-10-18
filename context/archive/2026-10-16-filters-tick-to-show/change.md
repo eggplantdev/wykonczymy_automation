@@ -13,7 +13,7 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/filters-tick-
 
 — flip every „Filtry" menu (kosztorys editor, szablon, work catalogue, users, and the option-list filters) from "untick to hide" to faceted "tick what you want to see": nothing ticked = everything, OR within a group, AND across groups. Split „Przedmiar i wykonana praca" into separate facets. Must keep every filter combination that works today reachable.
 
-Reverses the EX-665 grammar (`c6c32570d`, 2026-08-14: „ptaszek znaczy widoczne", untick hides) — owner
+Reverses the tick grammar (`c6c32570d`, 2026-08-14: „ptaszek znaczy widoczne", untick hides) — owner
 ruling 2026-10-16: unticking to narrow is misleading.
 
 Equivalence condition for "no filter lost": every group must be an exhaustive, mutually exclusive

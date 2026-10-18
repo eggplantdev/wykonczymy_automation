@@ -11,4 +11,4 @@ worktree: null
 
 ## Notes
 
-— Szablony kosztorysów go to the trash (/kosz) instead of a hard delete. Linear EX-914. Research: context/changes/2026-09-29-kosz-pozostalych-encji/research.md § 3, § 7.
+— Szablony kosztorysów go to the trash (/kosz) instead of a hard delete. Research: context/changes/2026-09-29-kosz-pozostalych-encji/research.md § 3, § 7.

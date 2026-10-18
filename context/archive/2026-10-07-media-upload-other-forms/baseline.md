@@ -1,6 +1,6 @@
 # Baseline — upload forms on the slow path (bulk expense, gallery, large invoice)
 
-Measured 2026-10-07 on staging, before any EX-1014 code, under two network profiles. Repeat the
+Measured 2026-10-07 on staging, before any code of this change, under two network profiles. Repeat the
 same protocol after the change and compare the medians.
 
 ## Summary — median t0 → success notice
@@ -18,7 +18,7 @@ out.
 
 **The serialized `POST /api/media` chain sets the time for scenarios 1 and 2, and it does not depend
 on the network.** It takes ~7.0–7.3 s for 4 files and ~16.6–18.2 s for 10 files under both profiles:
-~1.75 s per file, one at a time, as in the EX-1012 baseline. LTE and unthrottled differ by less than
+~1.75 s per file, one at a time, as in the media-upload-speed baseline. LTE and unthrottled differ by less than
 1 s in both scenarios. Only scenario 3 is bound by the network: one 6.4 MB Blob `PUT` takes ~7.5 s on
 LTE and ~3.2 s unthrottled. Its single `POST /api/media` still costs 2.5–3.3 s, more than a photo's,
 since the server works on the whole 6.4 MB file.
@@ -31,22 +31,22 @@ nothing, so t1 is the success toast for all three scenarios (see [Caveats](#cave
 
 ## Protocol (common to all profiles)
 
-|             |                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Target      | `https://wykonczymy-git-staging-wykonczymys-projects.vercel.app` → deployment `dpl_5gewWaxhBRyrc8XbaWAizN8Yw1jL` (created 2026-10-07 13:50, Ready 13:54 CEST), `staging` @ `e935a89f`; preview DB + preview Blob. EX-1012 is merged here (`911d3e68`), but only the worker-draft surfaces use its fast path.                                                                                                                 |
-| Account     | the fixed staging OWNER `qa-staging@wykonczymy.test` (user 68), desktop                                                                                                                                                                                                                                                                                                                                                      |
-| Viewport    | 1440 × 900                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Test data   | investment 184 „EX-1014 baseline" (active), kasa 54 „QA-1001 Kasa pracownika"; target transfer #5411 „EX-1014 baseline PDF target" (1,00 zł, `INVESTMENT_EXPENSE`) for scenario 3                                                                                                                                                                                                                                            |
-| Fixtures    | 10 synthetic JPEGs (no PII), 4032×3024: `fixture-1..6` from EX-1012 (~3.26 MB) plus `fixture-7..10` made with the same generator (3.09–3.24 MB, q86). After pick-time compression **~305 KB each** (291 759–305 082 B, from the `size` field of `POST /api/media`). One synthetic PDF 1.4, `ex1014-baseline-6mb.pdf`, **6 438 870 B**, two pages of embedded JPEGs (fixtures 7 and 8); PDFs are not compressed at pick time. |
-| Runs        | 1 warm-up (discarded) + 3 runs per scenario, back to back, scenario order 3 → 2 → 1                                                                                                                                                                                                                                                                                                                                          |
-| Per request | `page.on('request')` + `request.timing()`; start = ms after t0, dur = requestStart → responseEnd                                                                                                                                                                                                                                                                                                                             |
-| Network     | CDP `Network.emulateNetworkConditions`, set again at the start of every run; see each profile                                                                                                                                                                                                                                                                                                                                |
+|             |                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Target      | `https://wykonczymy-git-staging-wykonczymys-projects.vercel.app` → deployment `dpl_5gewWaxhBRyrc8XbaWAizN8Yw1jL` (created 2026-10-07 13:50, Ready 13:54 CEST), `staging` @ `e935a89f`; preview DB + preview Blob. media-upload-speed is merged here (`911d3e68`), but only the worker-draft surfaces use its fast path.                                                                                                                 |
+| Account     | the fixed staging OWNER `qa-staging@wykonczymy.test` (user 68), desktop                                                                                                                                                                                                                                                                                                                                                                 |
+| Viewport    | 1440 × 900                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Test data   | investment 184 „other-forms baseline" (active), kasa 54 „QA-1001 Kasa pracownika"; target transfer #5411 „other-forms baseline PDF target" (1,00 zł, `INVESTMENT_EXPENSE`) for scenario 3                                                                                                                                                                                                                                               |
+| Fixtures    | 10 synthetic JPEGs (no PII), 4032×3024: `fixture-1..6` from media-upload-speed (~3.26 MB) plus `fixture-7..10` made with the same generator (3.09–3.24 MB, q86). After pick-time compression **~305 KB each** (291 759–305 082 B, from the `size` field of `POST /api/media`). One synthetic PDF 1.4, `ex1014-baseline-6mb.pdf`, **6 438 870 B**, two pages of embedded JPEGs (fixtures 7 and 8); PDFs are not compressed at pick time. |
+| Runs        | 1 warm-up (discarded) + 3 runs per scenario, back to back, scenario order 3 → 2 → 1                                                                                                                                                                                                                                                                                                                                                     |
+| Per request | `page.on('request')` + `request.timing()`; start = ms after t0, dur = requestStart → responseEnd                                                                                                                                                                                                                                                                                                                                        |
+| Network     | CDP `Network.emulateNetworkConditions`, set again at the start of every run; see each profile                                                                                                                                                                                                                                                                                                                                           |
 
-| Scenario                                   | Flow                                                                                                                                                                                                                                                                                                               | t0                                                                                          | t1                        |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ------------------------- |
-| 1 · Bulk expense, 4 invoiced rows          | From `/inwestycje/184`, top bar „Wydatek" → „Nowy wydatek" (Inwestycja prefilled) → Kasa „QA-1001" → „Dodaj pozycję" ×3 → per row Kwota `1`, Opis `EX-1014 baseline 4r <profile> HH:MM:SS #n`, one JPEG (fixtures 1–4) in the row's FV input → wait until 4 previews show and „Zapisz" is enabled → click „Zapisz" | capture-phase click on „Zapisz"                                                             | toast „Transakcje dodane" |
-| 2 · 10 photos into the gallery             | `/inwestycje/184` with an empty gallery → „Dokumentacja inwestycji (brak plików)" → „Dodaj zdjęcia lub pliki" → `setInputFiles` with fixtures 1–10                                                                                                                                                                 | capture-phase `change` on the file input (there is no confirm step: the pick is the submit) | toast „Pliki dodane"      |
-| 3 · One PDF over 4 MB onto an invoice cell | `/inwestycje/184`, transfers table, row „EX-1014 baseline PDF target" → „Dodaj fakturę" → `setInputFiles` with the PDF                                                                                                                                                                                             | capture-phase `change` on the file input (no confirm step)                                  | toast „Faktura dodana"    |
+| Scenario                                   | Flow                                                                                                                                                                                                                                                                                                                   | t0                                                                                          | t1                        |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------- |
+| 1 · Bulk expense, 4 invoiced rows          | From `/inwestycje/184`, top bar „Wydatek" → „Nowy wydatek" (Inwestycja prefilled) → Kasa „QA-1001" → „Dodaj pozycję" ×3 → per row Kwota `1`, Opis `other-forms baseline 4r <profile> HH:MM:SS #n`, one JPEG (fixtures 1–4) in the row's FV input → wait until 4 previews show and „Zapisz" is enabled → click „Zapisz" | capture-phase click on „Zapisz"                                                             | toast „Transakcje dodane" |
+| 2 · 10 photos into the gallery             | `/inwestycje/184` with an empty gallery → „Dokumentacja inwestycji (brak plików)" → „Dodaj zdjęcia lub pliki" → `setInputFiles` with fixtures 1–10                                                                                                                                                                     | capture-phase `change` on the file input (there is no confirm step: the pick is the submit) | toast „Pliki dodane"      |
+| 3 · One PDF over 4 MB onto an invoice cell | `/inwestycje/184`, transfers table, row „other-forms baseline PDF target" → „Dodaj fakturę" → `setInputFiles` with the PDF                                                                                                                                                                                             | capture-phase `change` on the file input (no confirm step)                                  | toast „Faktura dodana"    |
 
 The scenario 2 gallery is emptied and the scenario 3 invoice removed through the UI after every
 run, so each run starts from the same state.
@@ -64,7 +64,7 @@ pick → first token request takes 1.04–1.59 s on LTE and 1.15–1.19 s unthro
 
 Measured 14:05–14:10 (CEST) in a freshly launched browser. Throttle: latency 50 ms, down 20 Mbps
 (`20e6/8` B/s), up 10 Mbps (`10e6/8` B/s). Profile check: the solo 6.44 MB PDF `PUT` takes
-7.18–7.85 s (≈6.6–7.2 Mbps effective). EX-1012's LTE 1 MB probe measured 6.6 Mbps.
+7.18–7.85 s (≈6.6–7.2 Mbps effective). media-upload-speed's LTE 1 MB probe measured 6.6 Mbps.
 
 | Scenario                 | Run 1  | Run 2  | Run 3  | **Median**    | Warm-up |
 | ------------------------ | ------ | ------ | ------ | ------------- | ------- |
@@ -101,15 +101,15 @@ the machine's real link, not a lab line. Profile check: the solo 6.44 MB PDF `PU
 | 2 · 10 photos, gallery   | 20 808 | 19 787 | 21 234 | **20 808 ms** | 21 637  |
 | 3 · 6.4 MB PDF, invoice  | 6 949  | 6 160  | 7 729  | **6 949 ms**  | 6 905   |
 
-| Step                                  | Requests                    | Duration                                                       | Notes                                                              |
-| ------------------------------------- | --------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Token                                 | 1 per file                  | 96–198 ms                                                      |                                                                    |
-| Blob `PUT` (photo)                    | 1 per photo, ≤4 in parallel | 4 parallel 1.21–1.82 s · photos 5–10 one at a time 0.97–2.07 s | ~1 s floor per PUT that bandwidth does not explain (as in EX-1012) |
-| Blob `PUT` (6.4 MB PDF)               | 1                           | 3.01–3.87 s                                                    |                                                                    |
-| `POST /api/media`                     | serialized                  | photo 1.38–3.18 s, typically 1.6–1.8 s · PDF 2.60–3.34 s       |                                                                    |
-| Scenario 1 action (bulk create)       | 1                           | 791–979 ms                                                     |                                                                    |
-| Scenario 2 action (attach to gallery) | 1                           | 529–777 ms                                                     |                                                                    |
-| Scenario 3 action (attach invoice)    | 1                           | 508–580 ms                                                     |                                                                    |
+| Step                                  | Requests                    | Duration                                                       | Notes                                                                         |
+| ------------------------------------- | --------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Token                                 | 1 per file                  | 96–198 ms                                                      |                                                                               |
+| Blob `PUT` (photo)                    | 1 per photo, ≤4 in parallel | 4 parallel 1.21–1.82 s · photos 5–10 one at a time 0.97–2.07 s | ~1 s floor per PUT that bandwidth does not explain (as in media-upload-speed) |
+| Blob `PUT` (6.4 MB PDF)               | 1                           | 3.01–3.87 s                                                    |                                                                               |
+| `POST /api/media`                     | serialized                  | photo 1.38–3.18 s, typically 1.6–1.8 s · PDF 2.60–3.34 s       |                                                                               |
+| Scenario 1 action (bulk create)       | 1                           | 791–979 ms                                                     |                                                                               |
+| Scenario 2 action (attach to gallery) | 1                           | 529–777 ms                                                     |                                                                               |
+| Scenario 3 action (attach invoice)    | 1                           | 508–580 ms                                                     |                                                                               |
 
 | Scenario (median run) | Pick ingest | Token + PUTs (until first media POST) | Serialized media POSTs | Action  |
 | --------------------- | ----------- | ------------------------------------- | ---------------------- | ------- |
@@ -141,15 +141,15 @@ More upload parallelism or more bandwidth would not shorten it.
   action's computed end lands 0.12–0.35 s after the toast, so starts are recorded up to ~0.3 s late.
   Durations come from `request.timing()` and are not affected. The phase tables are rounded with that
   in mind.
-- **Fixtures 7–10 are new.** EX-1012 had six JPEGs; four more were made with the same generator
+- **Fixtures 7–10 are new.** media-upload-speed had six JPEGs; four more were made with the same generator
   (different seeds) to reach 10. All ten compress to ~305 KB, so the per-file work is comparable.
 - **The PDF is ~6.4 MB of embedded JPEG data** in a minimal valid PDF 1.4 (with an xref table; Payload
-  rejects a PDF without one). It is over the 4 MiB route-body cap on purpose: after EX-1014 it takes
+  rejects a PDF without one). It is over the 4 MiB route-body cap on purpose: after this change it takes
   the browser `PUT` + `POST /api/media-register` path, not the fast path.
-- **What is on staging.** EX-1012 is merged, so `POST /api/media-upload` exists, but not one request
+- **What is on staging.** media-upload-speed is merged, so `POST /api/media-upload` exists, but not one request
   in these runs used it. Every file took token → Blob `PUT` → serialized `POST /api/media`. That is
-  the path EX-1014 replaces.
-- **Throttle persistence.** As in EX-1012, CDP emulation persists across CDP sessions on one page, so
+  the path this change replaces.
+- **Throttle persistence.** As in media-upload-speed, CDP emulation persists across CDP sessions on one page, so
   each profile ran in its own freshly launched browser. Both were checked by the PDF `PUT`.
 - The LTE upload cap (10 Mbps) is close to the real uplink (~13–17 Mbps by the PDF PUT), so for the
   photo scenarios the two profiles differ mostly by the added latency.
@@ -163,10 +163,10 @@ More upload parallelism or more bandwidth would not shorten it.
 
 All through the OWNER UI on `/inwestycje/184`:
 
-- **Bulk expense (scenario 1):** 36 transfers `EX-1014 baseline 4r …` (16 LTE, 16 unthrottled,
+- **Bulk expense (scenario 1):** 36 transfers `other-forms baseline 4r …` (16 LTE, 16 unthrottled,
   warm-ups included, plus 4 from the dry run). For each, the invoice was removed in the cell preview
   („Usuń" → „Czy na pewno chcesz usunąć fakturę?" → „Usuń"), and then the transfer was cancelled
-  („Anuluj transakcję", reason `EX-1014 baseline cleanup`, „Tak, anuluj"). The UI has no delete for
+  („Anuluj transakcję", reason `other-forms baseline cleanup`, „Tak, anuluj"). The UI has no delete for
   transfers, so this leaves 36 cancelled transfers and 36 `CANCELLATION` audit rows on investment 184.
   A read-only query on the preview DB confirms that none of them has an invoice attached.
 - **Gallery (scenario 2):** emptied by the harness after every run („Dokumentacja inwestycji (10)" →
@@ -177,7 +177,7 @@ All through the OWNER UI on `/inwestycje/184`:
 
 Left behind:
 
-- Investment 184 „EX-1014 baseline" (active) and transfer #5411 „EX-1014 baseline PDF target"
+- Investment 184 „other-forms baseline" (active) and transfer #5411 „other-forms baseline PDF target"
   (1,00 zł, not cancelled), kept for the Phase 3 run. An investment that holds transfers cannot be
   trashed (`investmentDeleteBlocker`).
 - **Three `media` rows that nothing references:** ids 2148, 2208 and 2218, all `fixture-5-….jpg`,
@@ -187,7 +187,7 @@ Left behind:
   row per run, or a reclaim that missed one) is open. It was not investigated here, and they were
   left in place.
 
-## After EX-1014
+## After the change
 
 Measured 2026-10-07, 14:48–14:55 (CEST), same protocol as the baseline above (same harness with the
 target URL and request matchers changed, same OWNER account, investment 184, transfer #5411, fixtures,
@@ -312,9 +312,9 @@ bound by the one Blob `PUT` (7.2–7.7 s on LTE, 2.8–3.1 s unthrottled); the s
 
 All through the OWNER UI on `/inwestycje/184`, as in the baseline:
 
-- **Bulk expense (scenario 1):** 32 transfers `EX-1014 after 4r …` (16 LTE + 16 unthrottled, warm-ups
+- **Bulk expense (scenario 1):** 32 transfers `other-forms after 4r …` (16 LTE + 16 unthrottled, warm-ups
   included). Invoice removed in the cell preview, then the transfer cancelled with reason
-  `EX-1014 after cleanup`. One cleanup pass timed out on a cancel dialog and was resumed for the last
+  `other-forms after cleanup`. One cleanup pass timed out on a cancel dialog and was resumed for the last
   six; a read-only query on the preview DB confirms all 32 are cancelled and none has an invoice
   attached. That leaves 32 cancelled transfers and 32 `CANCELLATION` rows on investment 184, on top
   of the baseline's 36.

@@ -24,7 +24,7 @@ need compression you can still work with.
 ## First-round rulings (2026-09-22)
 
 - **Category model: "what the file is", not "when it was made".** `media.kind`
-  (`faktura` / `projekt` / `zdjecie` / `inne`, EX-802, migration `20260921_0_media_kind.ts`) already
+  (`faktura` / `projekt` / `zdjecie` / `inne`, migration `20260921_0_media_kind.ts`) already
   existed but only the admin panel wrote it; this change starts writing it from the upload path.
 - **Existing rows stay `NULL`.** No backfill, no guessing from provenance.
 - **Compression profile is per surface.** Invoices keep `1920×1080` / `q 0.6`; assets move toward
@@ -42,7 +42,7 @@ need compression you can still work with.
 > information too."
 
 - **`kind` is a marker.** The app writes one value — `projekt` — and nothing else. `NULL` stops
-  meaning "unknown" and starts meaning "not for analysis". The EX-802 enum stays untouched; the other
+  meaning "unknown" and starts meaning "not for analysis". The existing enum stays untouched; the other
   values are still set only by hand in the panel.
 - **Invoice surfaces set nothing.** What the file is, the relation says (`transactions.invoice`); a
   marker would only repeat it. Nothing ever filters on `faktura`.

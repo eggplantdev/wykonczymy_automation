@@ -11,7 +11,7 @@ worktree: .claude/worktrees/szablon-own-structure
 
 ## Notes
 
-A szablon pozycja means only "a katalog entry + sekcja + kolejność" (EX-1017). It still lives in
+A szablon pozycja means only "a katalog entry + sekcja + kolejność". It still lives in
 `kosztorys_items`, though, and that row carries its own copy of the opis, j.m., ceny, stawki,
 mnożniki and tłumaczenia. The app never reads the copy: `selectKosztorysTreeData` substitutes the
 katalog's values for a szablon host. Nothing refreshes the copy either, so it goes stale on the first
@@ -38,10 +38,10 @@ having to exclude it (6 such filters today), which is the same kind of compromis
 
 Done 2026-10-15, ahead of the change:
 
-- Prod: 47 of the 50 „Wersje” of szablon „Kosztorys 2026 kolory” deleted (owner's go). They predated
-  EX-1017 and carried no katalog links, so restoring one revived the dead copy. The 3 left (12.10) are
+- Prod: 47 of the 50 „Wersje” of szablon „Kosztorys 2026 kolory” deleted (owner's go). They carried no katalog links,
+  so restoring one revived the dead copy. The 3 left (12.10) are
   fully linked. The trashed „Kosztorys 2026” keeps its 6; it auto-purges around 2026-11-07.
-- „Aktualizuj pozycję w katalogu prac” hidden in a szablon (`use-kosztorys-editor.ts`). EX-1017
+- „Aktualizuj pozycję w katalogu prac” hidden in a szablon (`use-kosztorys-editor.ts`). `template-from-catalogue`
   scoped it to kosztorys; in a szablon it read the stale row copy and would push it over the katalog.
   Only the UI hides it: `saveItemToCatalogueAction` still accepts a szablon pozycja (stale tab or a
   direct call, management only). Owner, 2026-10-15: no server refusal now — it goes away with the
@@ -58,7 +58,7 @@ snapshots, kosz).
 
 1. **Editor writes through injected actions.** The szablon gets its own action set
    (`lib/actions/template-*.ts`, own gate); the route hands the shared editor its action set (prop /
-   hook — never `KosztorysEditorProvider`, EX-496). Kosztorys actions stay untouched and carry no
+   hook — never `KosztorysEditorProvider`). Kosztorys actions stay untouched and carry no
    „is this a szablon” branch. Rejected: branching inside each action (the exclusion compromise moved
    into actions) and a separate szablon editor (two grids that drift).
 2. **„Wersje” in their own table, refs only.** `template_snapshots` (FK to the szablon, cascade); the
@@ -109,7 +109,7 @@ snapshots, kosz).
    Simplified: `fill-translations-from-catalogue`, `fill-description-translations`,
    `fix-kosztorys-descriptions` lose their „szablony included” branch — a szablon's text lives in the
    katalog they already cover. Deleted (done, unrunnable after the change, kept in git history): the
-   EX-1017 one-offs `link-kosztorys-items-to-catalogue`, `sync-template-translations`.
+   `template-from-catalogue` one-offs `link-kosztorys-items-to-catalogue`, `sync-template-translations`.
 
 Derived, not asked: the szablon's tree reads `DEFAULT_COEFFS` / `DEFAULT_VAT` /
 `SETTLEMENT_MODE_DEFAULT` as constants. Verified on prod (read-only, 2026-10-15): both szablony carry

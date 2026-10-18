@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-536 netto/brutto wpłata bucket flag. Stored as an enum to match the collection's `select`
+// Netto/brutto wpłata bucket flag. Stored as an enum to match the collection's `select`
 // field (Payload maps selects to pg enums, never varchar). Nullable, no default, no backfill —
 // legacy deposits stay NULL and subtract at face on both axes. Three-state (NET/GROSS/NULL) so a
 // NULL can never collapse into NET under a `!flag` shortcut; the enum IS the CHECK constraint.

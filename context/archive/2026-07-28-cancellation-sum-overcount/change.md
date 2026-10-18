@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-EX-574 (High, project Wykonczymy). `stripCancelledFilters` drops the default
+`stripCancelledFilters` drops the default
 `type: { not_in: ['CANCELLATION'] }` alongside the `cancelled` condition, but the SQL in
 `sumFilteredByType` only re-adds `cancelled IS NOT TRUE`. A CANCELLATION row copies the original's
 amount verbatim and carries `cancelled = false`, so a cancelled transaction nets to +1× instead of 0.
@@ -26,20 +26,20 @@ Linear issue does not state:
   `transfer-table-server.tsx`) is wrong: it would zero the tile in audit mode
   (`?cancelledTransactionAudit=1`), where the list is exclusively CANCELLATION rows.
 
-**Scope: two defects, one change** (owner, 2026-07-28). Alongside EX-574, the same tile drops the
+**Scope: two defects, one change** (owner, 2026-07-28). Alongside the cancellation overcount, the same tile drops the
 amount filter's upper bound — `buildTransferFilters` emits `less_than`, which `where-to-sql.ts:82-92`
 does not handle and silently ignores. `?amount=500,00` lists 20 rows totalling 10 000 zł under a tile
 reading 22 560 189,17 zł. Same file, same tile, same spec; each gets its own red test and commit.
 
-**Dispositions (owner, 2026-07-28):** both defects tracked under EX-574, no second issue. The
+**Dispositions (owner, 2026-07-28):** both defects tracked in one issue. The
 `/raporty` E2E is deferred to the `e2e-backlog` label rather than authored. The `showCancelled`/audit
 residual mismatch stays unfixed, but the tile gains an on-screen note saying what it counts.
 
-> **Superseded:** `/raporty` is disabled until EX-598 (`src/app/(frontend)/raporty/page.tsx`); the
+> **Superseded:** `/raporty` was disabled (`src/app/(frontend)/raporty/page.tsx`); the
 > Pulpit remains an exposed surface.
 
 Prior research on the transfer-type surface: `context/archive/2026-07-25-transfer-type-spec-table/change.md` (its `research.md` was distilled into that file and deleted 2026-08-08).
-Related: EX-573 (transfer-type spec table) — independent, no need to wait for it.
+Related: the transfer-type spec table — independent, no need to wait for it.
 
 ## Kept from `research.md` / `repro.md` (both deleted 2026-08-08)
 

@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-1049: a line is odrzucona only by an explicit decision, and a report stays pending until every
+// A line is odrzucona only by an explicit decision, and a report stays pending until every
 // line has one. Before this, the first accept closed the whole report and every line not yet looked
 // at read as odrzucona to the worker.
 // Backfill: a report rejected as a whole rejected each of its lines. A report partly accepted and

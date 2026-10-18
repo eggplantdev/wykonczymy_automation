@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-Closes out EX-686 (it deletes the action that change added), so its commits sit on the
+Closes out the `pomiar-bez-etapu` change (it deletes the action that change added), so its commits sit on the
 `pomiar-bez-etapu` branch — one branch for both.
 
 The „Porównaj z arkuszem" (compare with sheet) action: reads the sheet live, computes both sides,
@@ -49,8 +49,7 @@ arbitrate anything.
 - **Refreshing is not a choice.** The stored number is a copy of the sheet's Pomiar; since the dialog
   reads the sheet live anyway, "keep the old copy" is an answer nobody would pick. The button went;
   refresh happens on open and the dialog reports what changed.
-- **The mass class gets a count, point classes get rows.** „Pomiar przepisany z Przedmiaru" (241 of
-  336) is collective and closes by fixing the sheet or filling stages. „Przedmiar liczony z etapu" (7)
+- **The mass class gets a count, point classes get rows.** „Pomiar przepisany z Przedmiaru" (241 of 336) is collective and closes by fixing the sheet or filling stages. „Przedmiar liczony z etapu" (7)
   and error values are fixed one cell at a time — those are listed.
 - **The row number is a link** straight to the cell in the sheet.
 
@@ -78,5 +77,5 @@ listed the top of the sheet with no label of what was wrong.
 
 ## Deferred
 
-E2E for both actions: **EX-687** (`e2e-backlog`) — needs a stubbed Sheets client first, otherwise a
-browser spec has nothing to assert. EX-686 has the same gap, noted on the same issue.
+E2E for both actions (`e2e-backlog`) — needs a stubbed Sheets client first, otherwise a
+browser spec has nothing to assert. The `pomiar-bez-etapu` action had the same gap.

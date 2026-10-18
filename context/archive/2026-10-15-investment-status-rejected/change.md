@@ -1,6 +1,6 @@
 ---
 change_id: investment-status-rejected
-title: Status inwestycji „Odrzucona” + przelewy tylko na aktywnej (EX-1066)
+title: Status inwestycji „Odrzucona” + przelewy tylko na aktywnej
 status: archived
 created: 2026-10-15
 updated: 2026-10-15
@@ -10,8 +10,6 @@ worktree: ../wykonczymy-worktrees/investment-status-rejected
 ---
 
 ## Notes
-
-Linear: EX-1066 — https://linear.app/ex-plant/issue/EX-1066
 
 Decyzje właściciela (2026-10-15):
 

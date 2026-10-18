@@ -11,14 +11,14 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/ai-translatio
 
 ## Notes
 
-— Tłumaczenia AI (EX-992, under EX-946, blocks EX-949): AI fills missing/stale uk/ru translations of opisy, section names and translates prace spoza rozpiski into Polish
+— Tłumaczenia AI (blocks `worker-report-scan`): AI fills missing/stale uk/ru translations of opisy, section names and translates prace spoza rozpiski into Polish
 
-Linear: **EX-992** under umbrella **EX-946**. Lands **before EX-949** (kartka → AI). EX-949 then only
+Lands **before `worker-report-scan`** (kartka → AI), which then only
 reads the scan and reuses this change's translation function for prace written in Ukrainian.
 
 ### Decisions (user, 2026-10-05)
 
-- **Reverses EX-948's "no AI call in the app".** Translations are generated in the app, through the
+- **Reverses the earlier "no AI call in the app".** Translations are generated in the app, through the
   existing OpenRouter setup (`src/lib/ai/openrouter.ts`).
 - **No review step.** The AI's translation is final; the owner corrects mistakes by hand.
 - **Kosztorys: „Problemy → Tłumaczenia" gains a „bez tłumaczenia (UA/RU)" condition.** This reverses

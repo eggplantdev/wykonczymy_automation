@@ -61,11 +61,12 @@ No migration: `investments.vat_rate` is `NOT NULL DEFAULT 0.08`.
 
 ## Side changes (review 2026-08-07)
 
-- ~~**The „Marża" tab is hidden** (`TODO(EX-649)`)~~ — parked because the tab read the transactions
+- ~~**The „Marża" tab is hidden**~~ — parked because the tab read the transactions
   plane while sitting in the kosztorys panel.
 
   > **Superseded (`30791066`, `2026-08-18-marza-prognoza-rzeczywista`):** the tab is back, carrying
   > the forecast and actual margin.
+
 - **Settlement: both money columns stand in every mode** — the mode decides the „Do zapłaty"
   arithmetic, not which columns exist. The client view (`preview`) included (owner ruling).
 - **The materials-rate control is ~~hidden~~ greyed out in brutto mode** (reversed in `3975ffc3`) —

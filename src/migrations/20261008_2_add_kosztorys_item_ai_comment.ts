@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-1030: Komentarz AI — what the inquiry left unknown for a pozycja's AI przedmiar and what the
+// Komentarz AI — what the inquiry left unknown for a pozycja's AI przedmiar and what the
 // agent assumed in its place. Kept apart from Komentarz, which the investor may be shown.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`

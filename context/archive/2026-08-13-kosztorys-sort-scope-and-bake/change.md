@@ -11,8 +11,8 @@ worktree: null
 
 ## Notes
 
-Builds on EX-682/EX-683, which had made sorting within-section only; this change restores global
-sorting as a deliberate, named mode next to it (EX-688).
+Builds on the sort-within-sections change, which had made sorting within-section only; this change restores global
+sorting as a deliberate, named mode next to it.
 
 ### Decisions (2026-08-13)
 
@@ -33,7 +33,7 @@ sorting happens — as one command covering all sections at once. Owner's reason
 can't be sorted in isolation. The within-section mode orders **every** section and the global mode
 mixes them all, so a save hooked to one section saved a slice of something that could never be
 invoked alone; the row menu also implied the row had something to do with it. This dropped the
-single-section server action (EX-683) and its spec. The validation schema rejects repeated ids but
+single-section server action and its spec. The validation schema rejects repeated ids but
 **not** repeated indexes, because each section numbers from zero.
 
 ### Correction 2 — save always enabled

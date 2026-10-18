@@ -11,11 +11,11 @@ worktree: null
 
 ## Notes
 
-EX-555, widened on 2026-08-12 from the discount alone to the whole write-switch (`RABAT` +
+Widened on 2026-08-12 from the discount alone to the whole write-switch (`RABAT` +
 `LABOR_COST`).
 
-> **Superseded (EX-649):** the write-switch half is reversed — `LABOR_COST` and `RABAT` are bookable
-> again for every investment until EX-712 (AGENTS.md § Transfer Business Logic). The read-switch
+> **Superseded:** the write-switch half is reversed — `LABOR_COST` and `RABAT` are bookable
+> again for every investment, temporarily (AGENTS.md § Transfer Business Logic). The read-switch
 > (labor and discount from the kosztorys, no fallback) stands.
 
 ### Problem
@@ -56,7 +56,7 @@ The same investment showed a different balance on the listing than in its own Po
   switched v1 too.
 - **v2 margin also from the kosztorys**, fed the same reading the panel already computes.
 - **Write-switch escape hatches:** the Payload panel and `z.enum(TRANSFER_TYPES)` in actions were
-  accepted (as in EX-557); the sessionStorage expense draft was fixed, being the only one an ordinary
+  accepted (as in the legacy deposit types change); the sessionStorage expense draft was fixed, being the only one an ordinary
   user hits.
 - **Deposits unchanged.** The listing's `'income'` bucket and the panel's `INVESTOR_DEPOSIT` filter
   differ formally but were identical on prod data (no `COMPANY_FUNDING` with an investment, every

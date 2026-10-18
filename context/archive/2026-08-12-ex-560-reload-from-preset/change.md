@@ -14,7 +14,7 @@ worktree: null
 „Przeładuj z szablonu" (reload from preset) onto a non-empty investment: a snapshot before the
 wipe, atomic, reversible via the existing restore.
 
-Owner ruling (2026-08-12, EX-560): the preset stays a **separate fast path** next to the sheet
+Owner ruling (2026-08-12): the preset stays a **separate fast path** next to the sheet
 import — the case is a fresh investment where a little was entered by hand and the owner wants to
 start over without setting up a sheet. Fully reversible via the forced pre-wipe snapshot, so no
 objection to allowing it.

@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-506: third investment status `planowana` (prospect/proposal). Additive — no data
+// Third investment status `planowana` (prospect/proposal). Additive — no data
 // migration; existing rows keep `active`. Postgres 12+ allows ADD VALUE inside Payload's
 // transaction as long as the new value isn't *used* in the same transaction (it isn't here).
 export async function up({ db }: MigrateUpArgs): Promise<void> {

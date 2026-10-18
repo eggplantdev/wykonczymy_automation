@@ -27,12 +27,12 @@ i liczba pozycji, bez statusu, bez szczegółów, bez otwarcia.
   Kolumny jak na `/zgloszenia-prac` bez „Pracownik”.
 - **Pracownik musi móc otworzyć zgłoszenie.** Ścieżka menedżera (wiersz → edytor
   `/inwestycje/<id>/kosztorys_v2?zgloszenie=<id>`, weryfikacja) odpada: edytor jest tylko dla
-  zarządu (`requireManagementPage`) i tylko na komputer, a strona pracownika musi działać na 390 px
-  (EX-985). Stąd nowy **podgląd tylko do odczytu** (okno z wiersza tabeli).
+  zarządu (`requireManagementPage`) i tylko na komputer, a strona pracownika musi działać na 390 px.
+  Stąd nowy **podgląd tylko do odczytu** (okno z wiersza tabeli).
 - **Podgląd pokazuje przy każdej pozycji ilość zgłoszoną i ilość przyjętą** (albo „odrzucona”),
   także dla prac dodatkowych.
 - **Tłumaczenia:** nagłówki w `components/tables/worker-reports.tsx` są wpisane po polsku — tabela
-  na stronie pracownika mówi językiem jego konta (EX-996), więc dostają tłumaczenia.
+  na stronie pracownika mówi językiem jego konta, więc dostają tłumaczenia.
 - **Start dopiero po commicie bieżącego review strony pracownika**
   (`worker-expense-drafts-history`) — ta sama `pracownicy/[id]/page.tsx`.
 - **`/zgloszenia-prac` przestaje przenosić do kosztorysu kliknięciem w wiersz.** Wejście do

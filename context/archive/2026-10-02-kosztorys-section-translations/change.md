@@ -11,7 +11,7 @@ worktree: ../wykonczymy-worktrees/kosztorys-section-translations
 
 ## Notes
 
-EX-965: translate kosztorys section names (UA/RU) on the worker report link; etapy stay untranslated (owner 2026-10-01)
+translate kosztorys section names (UA/RU) on the worker report link; etapy stay untranslated (owner 2026-10-01)
 
 ### Decisions
 
@@ -28,12 +28,12 @@ EX-965: translate kosztorys section names (UA/RU) on the worker report link; eta
 - **Edited from the section menu, „Tłumaczenie sekcji…" with UA and RU fields (user, 2026-10-02,
   /10x-plan).** There is no list page. The manager types real numbers. On save, the numbers must equal
   the name's, in order, or the save is refused.
-- **No „bez tłumaczenia" problem in „Problemy" (user, 2026-10-02, /10x-plan).** It follows EX-948's
+- **No „bez tłumaczenia" problem in „Problemy" (user, 2026-10-02, /10x-plan).** It follows the opisy
   reasoning for opisy: most rozpiski never reach a UA/RU crew.
 - **The first translations are seeded by the migration and never overwrite an existing entry (user,
   2026-10-02, /10x-plan).** There is no fill script. A later name is filled in the dialog.
 - **The report link only (user, 2026-10-02, /10x-plan).** `/p`, „Podgląd pracownika" and the PDF go
-  to EX-966 on the same lookup.
+  to the single-worker-view change on the same lookup.
 - **A standalone number anywhere in a section name is a placeholder (user, 2026-10-02).** „Łazienka 1
   wanna" and „Łazienka 2 wanna" share the key `łazienka # wanna`, and the number is put back in place
   in the translation. A number glued to letters („230V") is part of the text.

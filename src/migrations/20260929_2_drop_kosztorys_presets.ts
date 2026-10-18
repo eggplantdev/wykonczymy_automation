@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// The DESTRUCTIVE half of EX-893: 20260929_1 moved every szablon onto its own investment, so the
+// The DESTRUCTIVE half of 20260929_1: 20260929_1 moved every szablon onto its own investment, so the
 // shared workshop, `kosztorys_presets` and both `template_preset_id` pointers are now read by nothing.
 // Runs only once the new deploy is live — the old code SELECTs these columns (Postgres 42703).
 //

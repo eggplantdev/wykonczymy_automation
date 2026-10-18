@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-921: „Aktualizacja przedmiaru”. Only a hand edit is stored — NULL means the row follows
+// „Aktualizacja przedmiaru”. Only a hand edit is stored — NULL means the row follows
 // Przedmiar ofertowy, so there is no backfill and an unedited row keeps following it.
 //
 // The investor document stores what is HIDDEN, so an investment with saved settings would show the

@@ -1,6 +1,6 @@
 ---
 change_id: worker-report-scan
-title: A photo of a worker's filled-in paper becomes a zgłoszenie prac via AI (EX-949)
+title: A photo of a worker's filled-in paper becomes a zgłoszenie prac via AI
 status: archived
 created: 2026-10-05
 updated: 2026-10-06
@@ -11,11 +11,11 @@ worktree: null
 
 ## Notes
 
-worker-report-scan — EX-949: skan wypełnionej kartki pracownika (zdjęcie) → szkic zgłoszenia prac przez AI
+worker-report-scan: skan wypełnionej kartki pracownika (zdjęcie) → szkic zgłoszenia prac przez AI
 
-Linear: **EX-949** under umbrella **EX-946** — slice 3 of the arc in
-`context/archive/2026-09-30-worker-work-reports/change.md` § The arc. Blocked by **EX-992** (AI
-translations, in progress); **EX-988** (PDF in the worker's language) is done.
+Slice 3 of the arc in
+`context/archive/2026-09-30-worker-work-reports/change.md` § The arc. Blocked by `ai-translations`
+(in progress); the PDF in the worker's language is done.
 
 ### Decided with the owner (2026-10-05)
 
@@ -95,8 +95,8 @@ translations, in progress); **EX-988** (PDF in the worker's language) is done.
 ### Reuse
 
 - The receipt reader (`src/lib/ai/openrouter.ts`, `generateObject` over OpenRouter, image + PDF,
-  timeout + model fallback, `MAX_RECEIPT_PAGES`) is the vision path — EX-949 adds a schema + prompt,
+  timeout + model fallback, `MAX_RECEIPT_PAGES`) is the vision path — this change adds a schema + prompt,
   not AI infrastructure.
 - Translating Ukrainian free text from the scan: already wired — every sent report runs
-  `after(translateReportExtras)` (`src/lib/ai/translate.ts`, EX-992), so the read returns extras
+  `after(translateReportExtras)` (`src/lib/ai/translate.ts`), so the read returns extras
   verbatim. The arc's "only in-app AI" line predates ai-translations and is stale.

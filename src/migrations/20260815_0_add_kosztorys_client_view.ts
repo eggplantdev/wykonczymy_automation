@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-695 client preview settings: one row per investment describing what its client sees, plus the
+// Client preview settings: one row per investment describing what its client sees, plus the
 // firm-wide defaults global every investment falls back to.
 // `investment_id` is UNIQUE (one settings row per investment) and ON DELETE CASCADE.
 // `payload_locked_documents_rels` gets its `kosztorys_client_view_id` column here — Payload's

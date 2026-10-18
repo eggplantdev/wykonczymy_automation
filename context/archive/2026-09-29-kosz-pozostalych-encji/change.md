@@ -29,5 +29,5 @@ see `research.md` § 8.
   use on prod yet, so they are the lowest priority, and building them first would not make kasy or
   pracownicy easier: the hard parts there (the name-map split in `fetchReferenceData`, the auth gate,
   entity tags) do not exist in fleet or equipment. The shared prep — the `TRASH_KINDS` table from the
-  EX-914 review note on EX-915, and moving `TRASH_RETENTION_DAYS` out of `investment-lock.ts` — lands
-  in Kasy (EX-917) instead, as the second kind in the trash.
+  review note on the szablony trash, and moving `TRASH_RETENTION_DAYS` out of `investment-lock.ts` — lands
+  in Kasy instead, as the second kind in the trash.

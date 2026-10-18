@@ -19,7 +19,7 @@ editor's "Opcje" menu, invoked per investment on demand. Not a one-shot migratio
 
 **Direction and scope.** Sheet → app only. Imports **rabat, robocizna (stawki), etapy** and the item
 tree. Deliberately untouched: settlement mode, materials net rate, global discount, VAT, the global
-coefficients, per-etap worker (EX-613), stage labels, section colors, notes — none of that exists in
+coefficients, per-etap worker, stage labels, section colors, notes — none of that exists in
 any sheet, so it stays hand-entered per investment.
 
 > **Superseded (06bf1b04):** the stage settlement plane is now chosen once in the import dialog.

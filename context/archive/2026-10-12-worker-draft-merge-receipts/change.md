@@ -11,8 +11,6 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-draft-
 
 ## Notes
 
-Linear: EX-1048
-
 „Połącz” / „Rozłącz” rows in the worker zgłoszenie „Przyjmij” dialog; always read paragon by
 paragon. „Jeden wydatek” is removed from the worker's dialog (owner, 2026-10-13) — the manager merges.
 

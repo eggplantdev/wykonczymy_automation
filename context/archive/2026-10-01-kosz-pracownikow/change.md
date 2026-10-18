@@ -11,4 +11,4 @@ worktree: null
 
 ## Notes
 
-Kosz: pracownicy — trash an unused worker (EX-918). Umbrella: context/changes/2026-09-29-kosz-pozostalych-encji/research.md §6. Reference implementation: context/archive/2026-09-30-kosz-kas.
+Kosz: pracownicy — trash an unused worker. Umbrella: context/changes/2026-09-29-kosz-pozostalych-encji/research.md §6. Reference implementation: context/archive/2026-09-30-kosz-kas.

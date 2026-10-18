@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-Dogfooding jednego widoku pracownika po EX-966 — poprawki znalezione przy używaniu „Zgłoszenia prac" z „Podsumowaniem" i „Podglądu pracownika"
+Dogfooding jednego widoku pracownika po `worker-single-view` — poprawki znalezione przy używaniu „Zgłoszenia prac" z „Podsumowaniem" i „Podglądu pracownika"
 
 ### Uwagi z dogfoodingu (właściciel, 2026-10-05)
 
@@ -35,7 +35,7 @@ Dogfooding jednego widoku pracownika po EX-966 — poprawki znalezione przy uży
      `minimumScale: 1` (`REPORT_VIEWPORT`), inaczej przeglądarka oddala widok i stopka jedzie po
      arkuszu. Nagłówek i stopka są przyklejone do lewej krawędzi, gdy strona przewija się w bok.
 
-   **Zrobione w 7effd260**; spec i manual checki EX-966 poprawione w p2/p3.
+   **Zrobione w 7effd260**; spec i manual checki `worker-single-view` poprawione w p2/p3.
 
 3. **Rozliczenie pod tabelą wygląda jak stopka PDF-a pracownika**, nie jak siatka: tabele bez
    ramek, wyrównane do prawej, szare etykiety, nagłówek z kreską pod spodem, „Pozostało do wypłaty"

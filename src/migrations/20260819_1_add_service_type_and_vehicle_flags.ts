@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-711: „Serwis" — the ad-hoc repair, distinct from the yearly przegląd okresowy (TECHNICAL) and
+// „Serwis" — the ad-hoc repair, distinct from the yearly przegląd okresowy (TECHNICAL) and
 // from a warranty-period service (WARRANTY) — plus `vehicles.flags`, the manual „do wymiany" marks.
 //
 // `flags` is a jsonb map `inspection type → the day it was marked`, not a boolean per type: the day

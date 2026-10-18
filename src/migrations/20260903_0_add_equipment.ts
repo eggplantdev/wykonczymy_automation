@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-758 equipment register: one row per physical item, plus an append-only event log. An item
+// Equipment register: one row per physical item, plus an append-only event log. An item
 // stores no "where is it" column — the current location is always the newest event for that item,
 // which is what keeps the trail of who had it when it went missing.
 //

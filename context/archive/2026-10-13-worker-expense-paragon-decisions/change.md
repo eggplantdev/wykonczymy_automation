@@ -11,9 +11,9 @@ worktree: null
 
 ## Notes
 
-Accept or reject a worker expense zgłoszenie paragon by paragon, with a shared three-number counter badge. Linear: EX-1053.
+Accept or reject a worker expense zgłoszenie paragon by paragon, with a shared three-number counter badge.
 
-Shaped with the user 2026-10-13 (follow-up to EX-1048, mirrors the per-line decisions of „Zgłoszenia wykonanych prac”):
+Shaped with the user 2026-10-13 (follow-up to `worker-draft-merge-receipts`, mirrors the per-line decisions of „Zgłoszenia wykonanych prac”):
 
 - „Przyjmij” dialog lists only paragony still „do sprawdzenia”; per row „Przyjmij” / „Odrzuć”, plus
   „Przyjmij zaznaczone (N)” / „Odrzuć zaznaczone (N)” over the existing row checkboxes. A decided row
@@ -50,14 +50,14 @@ Open for the plan:
   from is a read row like any other and the whole per-paragon path applies unchanged. Cost: no
   automatic re-read on the next open — „Odczytaj ponownie" on the row is the retry. Every page now
   gets a read row (a blank or the unreadable sentinel), so a page without one exists only on a
-  zgłoszenie read before EX-1048.
-- ~~A row is booked after only a subset check against `bulkExpenseFormSchema`, so a failure shows a toast, not the field error.~~ **Done (EX-1053).**
+  zgłoszenie read before `worker-draft-merge-receipts`.
+- ~~A row is booked after only a subset check against `bulkExpenseFormSchema`, so a failure shows a toast, not the field error.~~ **Done.**
 - ~~The counter badge, the queue and „Połącz zgłoszenia" are translated (pl/uk/ru); the badge shows
   only parts above 0. The paragon dialog stays Polish, like the whole expense form. The badge is not
-  yet shared with work reports (EX-1049 worktree).~~ **Done (EX-1053).**
+  yet shared with work reports (work reports worktree).~~ **Done.**
 - Worktree dev needs `next dev --webpack`: Turbopack rejects the symlinked node_modules.
-- ~~Test fixtures for `ExpenseDraftRowT` lack `acceptedReadRows` / `rejectedReceipts`.~~ **Done (EX-1053).**
-- ~~**Przyjmij / Odrzuć is extremely slow** (owner, 2026-10-13) — must be fixed before this ships.~~ **Done (EX-1053).**
+- ~~Test fixtures for `ExpenseDraftRowT` lack `acceptedReadRows` / `rejectedReceipts`.~~ **Done.**
+- ~~**Przyjmij / Odrzuć is extremely slow** (owner, 2026-10-13) — must be fixed before this ships.~~ **Done.**
 - A decided paragon stays in the dialog as its full row, folded and locked. On reopen an accepted row shows the AI read, not what was booked if the manager edited it, and a merged booking shows as its separate paragony.
 - ~~**A booking whose response is lost desyncs the dialog** (hit 2026-10-13, draft 24): the request
   was cut client-side (`ECONNRESET`) while the server committed transakcja #5890 for read rows
@@ -66,7 +66,7 @@ Open for the plan:
   rozpatrzone" — wrong, the zgłoszenie is still pending — and the duplicate check flagged them as
   duplicates of their own transakcje. Needed: on `REQUEST_FAILED` or a clash, re-read the draft's
   decided read rows and resync the dialog (the case `settleAction`'s `code` exists for), and a
-  clash notice that names paragony rather than the whole zgłoszenie.~~ **Done (EX-1053).**
+  clash notice that names paragony rather than the whole zgłoszenie.~~ **Done.**
 - **Historia status column** (owner, 2026-10-13): „czeka" is dropped while the counter is shown
   (done in the spike) — „Do sprawdzenia N" says it. Still open: an old zgłoszenie (no per-paragon data) should still get the counter, not fall back to the status
   badge alone. Owner to come back to the exact rule.

@@ -11,7 +11,7 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/investment-re
 
 ## Notes
 
-Linear: EX-973. Prośba o opinię Google dla zakończonej inwestycji. Decisions (owner, 2026-10-02):
+Prośba o opinię Google dla zakończonej inwestycji. Decisions (owner, 2026-10-02):
 
 1. On a status change to „Zakończona" in `investment-form`, the existing confirm dialog also asks
    whether to send the review request.
@@ -38,7 +38,7 @@ Deviations from the plan (accepted at the review gate):
   listing hides completed rows by default and the row that triggered it unmounts.
 - The listing trigger sits in „Akcje", not in the „Opinia" column, which shows „Wysłano" / „—".
 - The action refuses a trashed investment, with the shared trashed message.
-- The old `review` column is dropped in EX-974, after this deploy.
+- The old `review` column is dropped after this deploy.
 - Owner, after the local send test: one request per client. Once sent, the „Poproś o opinię"
   button is gone from the listing and the page; unticking „Prośba o opinię wysłana" in the edit
   form is the only way to send again. No server-side block — hiding the button is the whole rule.

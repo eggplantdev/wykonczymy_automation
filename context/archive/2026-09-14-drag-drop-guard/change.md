@@ -31,6 +31,6 @@ Second thread: the dropzone should be visible from the moment a file is dragged 
   solved, so we don't narrow it to one dropzone.
 - **2026-09-14 (owner):** **no enlarging** the dropzone during a drag — neither by real height nor by
   `scale`. Resizing shifts content out from under the cursor mid-drag.
-- **2026-09-14 (owner):** E2E for this change **canceled** (EX-774 → Canceled). The risk is purely
+- **2026-09-14 (owner):** E2E for this change **canceled**. The risk is purely
   browser-level with zero server logic, and a suite run takes ~1 h — the `drag-drop-guard` manual
   checks carry the verification.

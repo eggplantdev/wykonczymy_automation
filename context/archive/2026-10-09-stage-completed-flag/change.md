@@ -11,7 +11,7 @@ worktree: ../wykonczymy-stage-completed
 
 ## Notes
 
-Linear: EX-1034. Shaped with the user 2026-10-09:
+Shaped with the user 2026-10-09:
 
 - New „zakończony" flag on an etap, toggled by MANAGER and up, reversible.
 - **Per worker:** an investment stays on a worker's list (zgłoszenie prac links, zgłoszenie wydatku

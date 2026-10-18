@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-745. „Następna wymiana przy (km)" let the digest judge an oil change on a figure the fleet
+// „Następna wymiana przy (km)" let the digest judge an oil change on a figure the fleet
 // table and the vehicle page never read, so one car came out overdue in the mail and clean in the
 // app. The alarm is the flat 10 000 km interval on every surface now, and nothing reads this column.
 // DEPLOY ORDER IS THE REVERSE OF AGENTS.md's DEFAULT, as for every destructive migration: ship the

@@ -30,10 +30,10 @@ Agreed in discussion (2026-09-14):
    "default" is not one number (52 px on the band, content with the toggle on, 32 px otherwise), so
    the label promised something other than what it did. Removing an override still has no UI path.
 4. The table header (key `header`) has a handle, no row menu and no `onFit`; its override is also
-   irreversible — left open. Filed as **EX-776** together with the section band and the
+   irreversible — left open. Tracked together with the section band and the
    `SECTION_BAND_ROW_HEIGHT` floor in `fitRowHeight()`, unreachable from the UI.
 
-## Closing point 4 — EX-776 (2026-09-15)
+## Closing point 4 (2026-09-15)
 
 Owner rulings, recorded here because the issue will be gone. The rule that orders them: **the
 „Dopasuj wysokość do treści" command belongs to a row whose override permanently cuts it off from its

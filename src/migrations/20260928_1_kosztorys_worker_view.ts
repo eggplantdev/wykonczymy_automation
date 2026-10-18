@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-875 worker view: one named link per (investment, worker), plus the firm-wide worker view
+// Worker view: one named link per (investment, worker), plus the firm-wide worker view
 // settings global. The pair is unique here because Payload's `unique` is single-column; both FKs
 // CASCADE — a link whose investment or worker is gone must not stay reachable.
 // `payload_locked_documents_rels` gets its `kosztorys_worker_shares_id` column — Payload's

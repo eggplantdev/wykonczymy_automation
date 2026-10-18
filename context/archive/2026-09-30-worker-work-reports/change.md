@@ -13,9 +13,9 @@ worktree: null
 
 worker-work-reports — pracownik zgłasza wykonane ilości w swoich etapach z imiennego linku (telefon/komputer), manager weryfikuje checkboxami i akceptacja dodaje do etapu; slice 1 z 3 (2: tłumaczenia UA, 3: kartka→AI)
 
-Linear: **EX-947** (slice 1) under umbrella **EX-946**; slices 2–3 = **EX-948**, **EX-949**.
+Slice 1 of 3; slices 2–3 are `worker-report-translations-ua` and `worker-report-scan`.
 
-This is the „część 2" that EX-875 deferred (`kosztorys-editor-domain-notes.md` § Widok pracownika):
+This is the „część 2" that the earlier worker-view work deferred (`kosztorys-editor-domain-notes.md` § Widok pracownika):
 the named `/p/⟨nazwisko⟩/[token]` link already identifies the worker and scopes him to the etapy he
 is assigned to, precisely so this change does not have to rewrite it.
 
@@ -34,14 +34,14 @@ an options menu, grouped by date and worker. A report is small: usually a dozen-
 1. **Quantities, not hours.** The worker enters ilość in the pozycja's own j.m. — the same figure an
    etap column holds. No hours model.
 2. **A worker may report into the same etap more than once, so acceptance ADDS** to the etap's
-   quantity, never overwrites it. The same holds for two workers sharing an etap (EX-943).
+   quantity, never overwrites it. The same holds for two workers sharing an etap (`kosztorys-stage-worker-split`).
 3. **The manager may correct a quantity before accepting.** The report keeps both the reported and
    the accepted figure.
 4. **Notification = an in-app badge only** (a new stream beside leads / fleet / equipment). No mail.
 5. **Phone + desktop first; AI reading of paper sheets comes last** (slice 3).
 6. **„Arkusz" = the in-app rozpiska.** Investments still on a Google Sheet are out of scope.
 7. **Phone support is required** for the worker surface — a deliberate exception to AGENTS.md's
-   narrow phone scope (EX-785). Record it there when this ships.
+   narrow phone scope. Record it there when this ships.
 
 8. **A UI spike comes first, before the real implementation** — first the worker form (phone +
    desktop), then the manager's verification dialog. Only after the owner has seen both do we plan
@@ -249,7 +249,7 @@ the top.
     the worker is no longer in it, adding is refused until those lines are unticked — no migration
     of the old figures to a new etap.
 28. **Report screens count „prace”**, not „pozycje”.
-29. **The all-reports list is paginated and filtered like the other listings** — EX-955.
+29. **The all-reports list is paginated and filtered like the other listings**.
 
 ### Persistence and access — grounded (2026-09-30)
 

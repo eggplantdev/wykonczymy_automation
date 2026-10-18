@@ -11,7 +11,7 @@ worktree: .claude/worktrees/ex-573-spec-table
 
 ## Notes
 
-Tracked as **EX-573**: invert the transfer-type axis into one `TRANSFER_TYPE_SPECS` table
+Invert the transfer-type axis into one `TRANSFER_TYPE_SPECS` table
 (`src/lib/constants/transfers.ts`) with every membership export derived from it. The rationale lives
 in that file's docblock. Landed before `netto-expense-type` Phase 1, whose trap it closed:
 `canBeSettled` aliased `isExpensesTabType` by coincidence, and `INVESTMENT_EXPENSE_NET` is exactly

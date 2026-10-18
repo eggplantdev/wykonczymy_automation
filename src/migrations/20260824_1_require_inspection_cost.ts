@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-729: „Koszt" becomes required on a przegląd. Without it the fleet listing's new cost column
+// „Koszt" becomes required on a przegląd. Without it the fleet listing's new cost column
 // would render one `0 zł` for two different claims — „it cost nothing" and „nobody typed a price".
 // The column can only tell the truth once the source cannot be left empty.
 //

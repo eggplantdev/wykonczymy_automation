@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// `transactions.invoice` becomes hasMany (EX-659): one invoice can need several photographed pages.
+// `transactions.invoice` becomes hasMany: one invoice can need several photographed pages.
 // Payload moves a hasMany relation off the scalar `invoice_id` column onto a `<collection>_rels`
 // join table, so the shape below mirrors `payload_locked_documents_rels` — that is the only
 // hasMany precedent in this DB.

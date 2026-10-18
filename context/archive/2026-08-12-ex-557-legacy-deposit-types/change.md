@@ -11,8 +11,6 @@ worktree: null
 
 ## Notes
 
-EX-557.
-
 ### Owner ruling (2026-08-12) — CORRECTS the earlier EDIT in the issue
 
 The July EDIT in the issue („Inna wpłata — chowamy w formularzach", i.e. hide it in the forms) was
@@ -31,7 +29,7 @@ Rules in force:
    panel still showed the investment field, and `hooks/transfers/validate.ts` let it through.
 3. **„Zasilenie z konta firmowego" is visible only to ADMIN/OWNER**; „Inna wpłata" has no role limit.
 4. **„Wpłata od inwestora" stays the only deposit with an investment** and the only one carrying
-   net/gross (EX-536).
+   net/gross.
 
 The LEGACY marker from the July EDIT **does not apply** — both types are live, just investment-free.
 

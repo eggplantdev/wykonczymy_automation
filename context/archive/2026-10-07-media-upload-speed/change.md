@@ -14,8 +14,8 @@ worktree: ../wykonczymy-worktrees/media-upload-speed
 A worker's „Wyślij" on the expense-draft dialog takes seconds per photo before the dialog closes. The
 draft action itself is fast (prod `[PERF]` 68 ms); the time is the serialized `POST /api/media` per
 photo. Research: `research.md` (its „Follow-up — owner discussion" section records how the
-direction below was reached). Linear: **EX-1012** (this change), **EX-1013** (thumbnails / lead
-dialogs), **EX-1014** (other upload forms).
+direction below was reached). Related changes: thumbnails / lead
+dialogs, other upload forms.
 
 Owner decisions (2026-10-07):
 
@@ -44,6 +44,6 @@ Owner decisions (2026-10-07):
   per-`POST /api/media` durations from the Vercel logs. The same protocol is repeated after the change.
 - **Separate changes, not this one:** (1) dropping thumbnails — the lead dialogs move to the shared
   preview modal with a „Zobacz" button, every lead file goes to the inwestycja (removal before that
-  happens in the modal), `MediaStrip` and `imageSizes` go — EX-1013; (2) the other upload forms — EX-1014.
+  happens in the modal), `MediaStrip` and `imageSizes` go; (2) the other upload forms.
 - Base the change on `staging`; the research read code from `staging` (6d64a524) because the working
   tree was on an unrelated spike branch.
