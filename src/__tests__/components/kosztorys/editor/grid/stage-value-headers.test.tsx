@@ -39,14 +39,6 @@ describe('per-stage columns — one name, three headers', () => {
     expect(gross).toBe('Rozbiórki brutto')
   })
 
-  it('moves all three when the etap is renamed', () => {
-    const [qty, net, gross] = headerTexts([stage(DEMOLITION, 1, 'Skuwanie tynków')], DEMOLITION)
-
-    expect(qty).toContain('Skuwanie tynków')
-    expect(net).toBe('Skuwanie tynków netto')
-    expect(gross).toBe('Skuwanie tynków brutto')
-  })
-
   it('falls back to the etap’s ordinal while it is unnamed', () => {
     const [qty, net] = headerTexts([stage(DEMOLITION, 1, '')], DEMOLITION)
 

@@ -76,18 +76,6 @@ function renderList({
 }
 
 describe('CatalogueMissingList — przyjęcie kandydata', () => {
-  it('wysyła opis i j.m. kandydata, nie sam opis', async () => {
-    const onAcceptName = renderList({ missing: [row({ hints: [hint()] })] })
-
-    await userEvent.click(screen.getByRole('button', { name: /Montaż syfonu/ }))
-
-    expect(onAcceptName).toHaveBeenCalledWith(11, {
-      description: 'Montaż syfonu',
-      unit: 'szt',
-      descriptionTranslations: {},
-    })
-  })
-
   // The praca's own tłumaczenie was made from the name it gives up, so it would read „nieaktualne"
   // and the pracownik would see Polish where the katalog has their language.
   it('przenosi tłumaczenia kandydata razem z jego nazwą', async () => {

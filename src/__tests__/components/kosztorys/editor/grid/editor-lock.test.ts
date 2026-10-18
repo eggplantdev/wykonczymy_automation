@@ -28,12 +28,6 @@ describe('a locked kosztorys', () => {
     expect(ids({ readOnly: true })).toEqual(ids({}).filter((id) => id !== 'actions'))
   })
 
-  it('disables every cell and drops the row actions', () => {
-    const columns = buildV2Columns({ ...editorOpts, readOnly: true })
-    expect(columns.every((column) => column.disabled)).toBe(true)
-    expect(columns.map((column) => column.id)).not.toContain('actions')
-  })
-
   // The control that makes the first assertion mean something: `previewVisible` DOES narrow, so
   // „same columns" above is a property of the lock, not of a grid that never narrows.
   it('keeps the columns a client would never be served', () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
+import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
@@ -100,7 +101,8 @@ describe('column reveal', () => {
   })
 
   it('never widens a client preview', () => {
-    const ids = columnIds({ previewVisible: true, revealedColumnIds: new Set(['priceMode']) })
-    expect(ids).not.toContain('priceMode')
+    const rate = planePriceKey('price', 'own_tools')
+    const ids = columnIds({ previewVisible: true, revealedColumnIds: new Set([rate]) })
+    expect(ids).not.toContain(rate)
   })
 })

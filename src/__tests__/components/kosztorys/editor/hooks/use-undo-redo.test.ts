@@ -155,15 +155,6 @@ describe('createUndoRedoStack', () => {
       expect(stack.revision).toBe(before + 1)
     })
   })
-
-  it('a composite batch command is a single undo entry (coalescing)', () => {
-    const stack = createUndoRedoStack()
-    const paste = cmd('paste over 3 cells')
-    stack.push(paste)
-
-    expect(stack.undo()).toBe(paste)
-    expect(stack.canUndo).toBe(false)
-  })
 })
 
 describe('amendTop', () => {

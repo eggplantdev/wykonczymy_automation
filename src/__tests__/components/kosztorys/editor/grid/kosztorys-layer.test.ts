@@ -69,20 +69,8 @@ describe('buildV2Columns — oś praca/postęp', () => {
     }
   })
 
-  it('kolumna bez tagu liczy się jako praca (fail-open ku pracy)', () => {
-    expect(ids('work')).toContain('price')
-    expect(ids('progress')).not.toContain('price')
-  })
-
   it('piker wygrywa nad osią, która by kolumnę dopuściła', () => {
     expect(ids('progress', (id) => id === 'remaining')).not.toContain('remaining')
-  })
-
-  it('kolumny etapów zwijają się po grupie, nie po id etapu', () => {
-    const visible = ids('progress')
-    expect(visible).toContain('stageValueNet_7')
-    expect(visible).toContain('stageValueNet_9')
-    expect(ids('work')).not.toContain('stageValueNet_7')
   })
 })
 

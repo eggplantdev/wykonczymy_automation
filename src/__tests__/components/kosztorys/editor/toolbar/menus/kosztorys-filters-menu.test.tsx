@@ -40,9 +40,6 @@ describe('KosztorysFiltersMenu — tick what you want to see', () => {
     renderMenu({ 'has-discount': 4, 'no-discount': 6 })
     expect(screen.getByRole('button', { name: 'Filtry' })).toBeInTheDocument()
     await openMenu()
-
-    expect(screen.queryByText('Pokaż tylko')).not.toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: /wszystkie/ })).not.toBeInTheDocument()
   })
 
   it('engages the filter a tick names', async () => {

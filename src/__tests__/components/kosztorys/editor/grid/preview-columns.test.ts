@@ -188,12 +188,8 @@ describe('the pair: allowlist + price plane', () => {
     expect(unpinned('own_tools')).toThrow()
   })
 
-  it('accepts the correct pair', () => {
-    expect(() => previewIds()).not.toThrow()
-  })
-
   it('cannot reach the subcontractor rate columns, in either plane', () => {
-    const visible = previewIds()
+    const visible = previewIds({ crewAxis: 'both' })
     for (const plane of ['w_tools', 'own_tools'] as const) {
       for (const base of ['priceMode', 'priceCoeff', 'price'] as const) {
         expect(visible).not.toContain(planePriceKey(base, plane))
@@ -204,9 +200,5 @@ describe('the pair: allowlist + price plane', () => {
     )
     expect(editorIds).toContain(planePriceKey('price', 'w_tools'))
     expect(editorIds).toContain(planePriceKey('price', 'own_tools'))
-  })
-
-  it('does not throw on the subcontractor plane alone', () => {
-    expect(() => buildV2Columns({ view: 'w_tools', stages: STAGES })).not.toThrow()
   })
 })

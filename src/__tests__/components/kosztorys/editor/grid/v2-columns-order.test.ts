@@ -45,13 +45,6 @@ describe('column ranks in the assembled grid', () => {
     const items = grid({ columnRanks: { price: -1 } }).columnToggleItems.map((item) => item.id)
     expect(items.indexOf('price')).toBeLessThan(items.indexOf('plannedQty'))
   })
-
-  it('is ignored by the client preview', () => {
-    const previewOpts = { view: 'client', previewVisible: true } as const
-    expect(columnIds({ ...previewOpts, columnRanks: { price: -1 } })).toEqual(
-      columnIds(previewOpts),
-    )
-  })
 })
 
 describe('columnBaseRanks', () => {

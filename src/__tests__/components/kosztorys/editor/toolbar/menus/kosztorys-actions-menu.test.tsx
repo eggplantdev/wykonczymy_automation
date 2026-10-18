@@ -5,7 +5,6 @@ import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
 
 const editorState = vi.hoisted(() => ({ isTemplate: false }))
 
@@ -41,13 +40,11 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 function renderToolbar(isTemplate: boolean) {
   editorState.isTemplate = isTemplate
   render(
-    <CurrentUserProvider user={{ id: 1, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }}>
-      <ReorderHost>
-        <KosztorysActionsProvider>
-          <KosztorysActionsMenu />
-        </KosztorysActionsProvider>
-      </ReorderHost>
-    </CurrentUserProvider>,
+    <ReorderHost>
+      <KosztorysActionsProvider>
+        <KosztorysActionsMenu />
+      </KosztorysActionsProvider>
+    </ReorderHost>,
   )
 }
 

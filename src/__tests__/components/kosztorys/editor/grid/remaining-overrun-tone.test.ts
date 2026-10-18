@@ -73,16 +73,16 @@ const toneOf = (columns: typeof ownerColumns, columnId: string) => {
 }
 
 describe('„Pozostało" overrun tone', () => {
-  it.each([
-    ['remaining', ownerColumns],
-    ['remainingGross', ownerColumns],
-  ] as const)('%s is red only past the przedmiar', (columnId, columns) => {
-    const tone = toneOf(columns, columnId)
+  it.each(['remaining', 'remainingGross'] as const)(
+    '%s is red only past the przedmiar',
+    (columnId) => {
+      const tone = toneOf(ownerColumns, columnId)
 
-    expect(tone(row(OVERRUN))).toBe('danger')
-    expect(tone(row(OWED))).toBe('muted')
-    expect(tone(row(FLOAT_NOISE))).toBe('muted')
-  })
+      expect(tone(row(OVERRUN))).toBe('danger')
+      expect(tone(row(OWED))).toBe('muted')
+      expect(tone(row(FLOAT_NOISE))).toBe('muted')
+    },
+  )
 
   it.each(['remaining', 'remainingGross'] as const)(
     '%s reads the Aktualizacja przedmiaru, not the ofertowy',

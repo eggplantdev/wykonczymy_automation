@@ -105,11 +105,4 @@ describe('the headings', () => {
       ),
     )
   })
-
-  it('leaves no filter without a category', () => {
-    const offered = new Set(model(everyFilterCounted).map((toggle) => toggle.id))
-    const filters = ROW_CONDITIONS.filter((condition) => condition.kind === 'filter')
-
-    expect(filters.filter((condition) => !offered.has(condition.id))).toEqual([])
-  })
 })

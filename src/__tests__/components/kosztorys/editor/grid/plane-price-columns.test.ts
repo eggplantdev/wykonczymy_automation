@@ -80,7 +80,7 @@ describe('subcontractor rate columns, both planes', () => {
     }
   })
 
-  it('starts hidden in every view, so nobody meets new columns unasked', () => {
+  it('stays off the grid and the picker until the crew axis is on — not via the default-hidden list', () => {
     const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     for (const id of planeIds) expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(false)
 

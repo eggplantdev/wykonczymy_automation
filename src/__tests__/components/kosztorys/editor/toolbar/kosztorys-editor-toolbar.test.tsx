@@ -4,7 +4,6 @@ import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/ko
 import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
 import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysEditorProvider } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
@@ -20,9 +19,9 @@ const editorContext = {
   setSearch: vi.fn(),
   view: 'client',
   setView: vi.fn(),
-  moneyAxis: 'netto',
+  moneyAxis: 'net',
   setMoneyAxis: vi.fn(),
-  layer: 'all',
+  layer: 'both',
   setLayer: vi.fn(),
   subtotals: [],
   readOnly: false,
@@ -66,26 +65,15 @@ const editorContext = {
   workers: [],
 } as unknown as EditorContextT
 
-// „Udostępnij inwestorowi" reads the session's role, and the toolbar mounts that dialog on the way to
-// first paint — so without a session the whole toolbar throws.
-const sessionUser = {
-  id: 1,
-  email: 'owner@example.test',
-  name: 'Testowy Właściciel',
-  role: 'OWNER',
-} as const
-
 const renderToolbar = (overrides: Partial<Record<string, unknown>> = {}) =>
   render(
-    <CurrentUserProvider user={sessionUser}>
-      <KosztorysEditorProvider editor={{ ...editorContext, ...overrides } as EditorContextT}>
-        <CataloguePickerHost>
-          <ReorderHost>
-            <KosztorysEditorToolbar />
-          </ReorderHost>
-        </CataloguePickerHost>
-      </KosztorysEditorProvider>
-    </CurrentUserProvider>,
+    <KosztorysEditorProvider editor={{ ...editorContext, ...overrides } as EditorContextT}>
+      <CataloguePickerHost>
+        <ReorderHost>
+          <KosztorysEditorToolbar />
+        </ReorderHost>
+      </CataloguePickerHost>
+    </KosztorysEditorProvider>,
   )
 
 describe('KosztorysEditorToolbar — przełącznik panelu', () => {

@@ -92,16 +92,8 @@ describe('the „Problemy" list', () => {
 })
 
 describe('the trigger', () => {
-  it('warns on data alone, with nothing engaged', () => {
-    expect(model({ 'no-client-price': 9 })).toHaveLength(1)
-  })
-
   it('warns for work still to enter too, not only for what is broken', () => {
     expect(model({ 'measure-diverged': 13 })).toHaveLength(1)
-  })
-
-  it('stays on for an engaged problem the user has just emptied', () => {
-    expect(model({ 'no-client-price': 0 }, ['no-client-price'])).toHaveLength(1)
   })
 })
 

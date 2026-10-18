@@ -10,7 +10,6 @@ import {
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
 
 const toastMessage = vi.hoisted(() => vi.fn())
 const fillKosztorysTranslationsAction = vi.hoisted(() => vi.fn())
@@ -48,17 +47,15 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 
 function renderMenu() {
   render(
-    <CurrentUserProvider user={{ id: 1, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }}>
-      <KosztorysActionsProvider>
-        <DropdownMenu>
-          <DropdownMenuTrigger>Opcje</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <CleanItemTextsMenuItem />
-            <FillTranslationsMenuItem />
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </KosztorysActionsProvider>
-    </CurrentUserProvider>,
+    <KosztorysActionsProvider>
+      <DropdownMenu>
+        <DropdownMenuTrigger>Opcje</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <CleanItemTextsMenuItem />
+          <FillTranslationsMenuItem />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </KosztorysActionsProvider>,
   )
 }
 

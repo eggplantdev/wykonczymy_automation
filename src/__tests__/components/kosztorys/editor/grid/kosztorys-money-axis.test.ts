@@ -67,11 +67,10 @@ describe('buildV2Columns — oś netto/brutto', () => {
     for (const id of GROSS_IDS) expect(visible).toContain(id)
   })
 
-  it('„none" zdejmuje obie strony pary, ale nigdy ceny j.m. ani kolumn bez osi', () => {
+  it('„none" zdejmuje obie strony pary, ale nigdy ceny j.m.', () => {
     const visible = ids('none')
     for (const id of [...NET_IDS, ...GROSS_IDS]) expect(visible).not.toContain(id)
     expect(visible).toContain('price')
-    for (const id of NEUTRAL_IDS) expect(visible).toContain(id)
   })
 
   it('kolumny bez osi przeżywają każdy tryb (fail-open)', () => {

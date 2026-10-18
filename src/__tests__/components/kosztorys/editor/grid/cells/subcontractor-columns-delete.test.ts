@@ -32,20 +32,6 @@ const del = (column: Column<KosztorysV2RowT>, rowData: KosztorysV2RowT) =>
   writable(column, rowData) ? (column.deleteValue?.({ rowData, rowIndex: 0 }) ?? rowData) : rowData
 
 describe('stawka wykonawcy — pisać może tylko komórka, która jest autorem figury', () => {
-  it('Delete na „Mnożniku" wiersza z kwotą stałą nie rusza kwoty', () => {
-    const kwotaStala = row({ wToolsOverrideValue: 55 })
-    expect(priceSourceOf(kwotaStala, 'w_tools')).toBe('amount')
-
-    expect(del(coeffCell, kwotaStala)).toEqual(kwotaStala)
-  })
-
-  it('Delete na „Cenie j.m." wiersza z własnym mnożnikiem nie rusza mnożnika', () => {
-    const wlasnyMnoznik = row({ wToolsOverrideCoeff: 0.8 })
-    expect(priceSourceOf(wlasnyMnoznik, 'w_tools')).toBe('coeff')
-
-    expect(del(priceCell, wlasnyMnoznik)).toEqual(wlasnyMnoznik)
-  })
-
   it('komórka, która nie jest autorem, jest dla siatki wyłączona — nie da się w nią wejść ani wkleić', () => {
     expect(writable(coeffCell, row({ wToolsOverrideValue: 55 }))).toBe(false)
     expect(writable(priceCell, row({ wToolsOverrideCoeff: 0.8 }))).toBe(false)

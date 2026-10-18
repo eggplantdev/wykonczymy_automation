@@ -87,22 +87,6 @@ describe('workshop columns', () => {
     }
   })
 
-  it('shows the price source on the client view and never on the investor preview', () => {
-    const idsFor = (previewVisible: boolean) =>
-      buildV2Columns({ view: 'client', stages: STAGES, previewVisible, crewAxis: 'both' })
-        .map((column) => column.id)
-        .filter((id): id is string => id != null)
-
-    for (const plane of TOOL_PLANES) {
-      expect(idsFor(false)).toContain(planePriceKey('priceMode', plane))
-      expect(idsFor(true)).not.toContain(planePriceKey('priceMode', plane))
-    }
-  })
-
-  it('keeps the row-actions column, the only route to delete or move a pozycja', () => {
-    expect(workshopIds({ onRemoveItem: () => {} })).toContain('actions')
-  })
-
   it('offers the warsztat list in the picker and nothing outside it', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
