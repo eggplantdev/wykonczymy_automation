@@ -42,7 +42,12 @@ export function TrashedRowActions({ row }: { row: TrashRowT }) {
             disabled={pending}
             onClick={() => setDeleting(true)}
           />
-          <DeleteForeverDialog row={row} open={deleting} onClose={() => setDeleting(false)} />
+          <DeleteForeverDialog
+            row={row}
+            deleteForever={kind.deleteForever}
+            open={deleting}
+            onClose={() => setDeleting(false)}
+          />
         </>
       )}
     </div>

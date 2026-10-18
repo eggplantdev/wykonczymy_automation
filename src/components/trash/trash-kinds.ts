@@ -17,6 +17,7 @@ import type { ActionResultT } from '@/types/action'
 import type { TrashKindT, TrashRowT } from '@/types/trash'
 
 export type DeleteForeverConfigT = {
+  note?: (row: TrashRowT) => string | undefined
   action: (id: number, confirmName: string) => Promise<ActionResultT>
   lost?: string
   nameLabel: string
@@ -27,7 +28,6 @@ type TrashKindConfigT = {
   sectionTitle: string
   restore: (id: number) => Promise<ActionResultT>
   restored: string
-  note?: (row: TrashRowT) => string | undefined
   deleteForever?: DeleteForeverConfigT
 }
 
@@ -37,8 +37,8 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     sectionTitle: 'Inwestycje',
     restore: restoreInvestmentAction,
     restored: 'Inwestycja przywrócona.',
-    note: (row) => (row.autoPurges ? undefined : KOSZTORYS_IN_USE_WARNING),
     deleteForever: {
+      note: (row) => (row.autoPurges ? undefined : KOSZTORYS_IN_USE_WARNING),
       action: deleteInvestmentForeverAction,
       lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
       nameLabel: 'Nazwa inwestycji',
@@ -49,8 +49,8 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     sectionTitle: 'Szablony',
     restore: restoreTemplateAction,
     restored: 'Szablon przywrócony.',
-    note: () => 'Kosztorysy założone z tego szablonu zostają bez zmian.',
     deleteForever: {
+      note: () => 'Kosztorysy założone z tego szablonu zostają bez zmian.',
       action: deleteTemplateForeverAction,
       lost: 'sekcje, pozycje i wersje szablonu',
       nameLabel: 'Nazwa szablonu',
@@ -104,8 +104,8 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     sectionTitle: 'Zgłoszenia',
     restore: restoreLeadAction,
     restored: 'Zgłoszenie przywrócone.',
-    note: () => 'Inwestycja założona z tego zgłoszenia i jej pliki zostają bez zmian.',
     deleteForever: {
+      note: () => 'Inwestycja założona z tego zgłoszenia i jej pliki zostają bez zmian.',
       action: deleteLeadForeverAction,
       lost: 'dane kontaktowe, odpowiedzi z formularza i pliki, których nie ma w żadnej inwestycji',
       nameLabel: 'Nazwa zgłoszenia',

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { TRASH_KINDS } from '@/components/trash/trash-kinds'
+import type { DeleteForeverConfigT } from '@/components/trash/trash-kinds'
 import { isNameConfirmed } from '@/lib/constants/trash'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -11,12 +11,12 @@ import type { TrashRowT } from '@/types/trash'
 
 type PropsT = {
   row: TrashRowT
+  deleteForever: DeleteForeverConfigT
   open: boolean
   onClose: () => void
 }
 
-export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
-  const { note, deleteForever } = TRASH_KINDS[row.kind]
+export function DeleteForeverDialog({ row, deleteForever, open, onClose }: PropsT) {
   const [typedName, setTypedName] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -24,8 +24,6 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
     setTypedName('')
     onClose()
   }
-
-  if (!deleteForever) return null
 
   const onConfirm = () => {
     startTransition(async () => {
@@ -44,7 +42,7 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
       description={[
-        note?.(row),
+        deleteForever.note?.(row),
         deleteForever.lost
           ? `„${row.name}" zniknie bezpowrotnie, razem z: ${deleteForever.lost}.`
           : `„${row.name}" zniknie bezpowrotnie.`,
