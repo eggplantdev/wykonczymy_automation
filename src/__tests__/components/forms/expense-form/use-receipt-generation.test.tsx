@@ -9,7 +9,6 @@ import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { usePendingStore } from '@/stores/pending-store'
 
 vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
 // `mapWithConcurrency` propagates, so anything torn down outside the `finally` is skipped.
@@ -53,7 +52,6 @@ function scanned(overrides: Partial<ReceiptFillResultT> = {}): ReceiptFillResult
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   usePendingStore.setState({ pending: new Map() })
 })
 
@@ -103,10 +101,8 @@ describe('useReceiptGeneration — the form is released whatever the scan does',
   })
 
   it('holds the pending pill up for as long as the scan runs', async () => {
-    let release!: (data: ReceiptFillResultT) => void
-    vi.mocked(scanReceiptClient).mockReturnValue(
-      new Promise<ReceiptFillResultT>((resolve) => (release = resolve)),
-    )
+    const scan = Promise.withResolvers<ReceiptFillResultT>()
+    vi.mocked(scanReceiptClient).mockReturnValue(scan.promise)
     const { result } = renderGeneration()
 
     let finished!: Promise<void>
@@ -117,7 +113,7 @@ describe('useReceiptGeneration — the form is released whatever the scan does',
     expect(usePendingStore.getState().pending.size).toBe(1)
 
     await act(async () => {
-      release(scanned())
+      scan.resolve(scanned())
       await finished
     })
 

@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useWorkerReportAcceptance } from '@/components/kosztorys/editor/hooks/use-worker-report-acceptance'
 import { acceptWorkerReportAction } from '@/lib/actions/accept-worker-report'
@@ -48,8 +48,6 @@ function renderAcceptance() {
   const { result } = renderHook(() => useWorkerReportAcceptance(args))
   return { result, args, calls }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('useWorkerReportAcceptance', () => {
   it('quiets the touched cells before the call, and adopts the new etap before writing into it', async () => {

@@ -1,13 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { StageSplitDialog } from '@/components/kosztorys/editor/dialogs/stage-split/stage-split-dialog'
 import type { StageSplitT } from '@/lib/kosztorys/types'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { WorkerRefT } from '@/types/reference-data'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const ANNA = 1
 const BOB = 2
@@ -73,8 +71,6 @@ async function type(user: ReturnType<typeof userEvent.setup>, index: number, tex
   await user.clear(input)
   await user.type(input, `${text}{Enter}`)
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('„Pracownicy etapu…"', () => {
   it('shows each person their złote from the pool as the values change', async () => {

@@ -1,16 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ExpenseDraftsDataTable } from '@/components/worker-expenses/expense-drafts-data-table'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/zgloszenia-wydatkow',
-  useRouter: () => ({ refresh: vi.fn(), replace: vi.fn(), push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/zgloszenia-wydatkow'
+
 const { restoreExpenseDraftAction, restoreSkippedReceiptAction } = vi.hoisted(() => ({
   restoreExpenseDraftAction: vi.fn(async () => ({ success: true })),
   restoreSkippedReceiptAction: vi.fn(async () => ({ success: true })),
@@ -22,7 +20,6 @@ vi.mock('@/lib/actions/worker-expense-drafts', () => ({
   rejectExpenseDraftAction: vi.fn(),
 }))
 vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDraftRowT => ({
   id,
@@ -55,8 +52,6 @@ function renderTable(rows: ExpenseDraftRowT[]) {
     />,
   )
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('„Przywróć” na liście „Zgłoszenia wydatków”', () => {
   it('a skipped paragon restores itself, not its accepted zgłoszenie', async () => {

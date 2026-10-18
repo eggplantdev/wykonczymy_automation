@@ -7,14 +7,13 @@ import { createTransferAction } from '@/lib/actions/transfers'
 import { useDepositFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { ReferenceDataT } from '@/types/reference-data'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/kasa',
-}))
+navigationState.pathname = '/kasa'
+
 vi.mock('@/lib/actions/transfers', () => ({
   createTransferAction: vi.fn(async () => ({ success: true })),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const INVESTMENT = {
   id: 4,
@@ -68,7 +67,6 @@ async function pickMethod(user: ReturnType<typeof userEvent.setup>, label: RegEx
 const submittedPayload = () => vi.mocked(createTransferAction).mock.calls[0]?.[0]
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useDepositFormStore.getState().resetFormData()
   useOptimisticFormStore.setState({ keepOpen: true })
 })

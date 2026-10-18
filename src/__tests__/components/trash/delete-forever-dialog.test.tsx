@@ -6,6 +6,7 @@ import { DeleteForeverDialog } from '@/components/trash/delete-forever-dialog'
 import { TRASH_KINDS } from '@/components/trash/trash-kinds'
 import { deleteCashRegisterForeverAction } from '@/lib/actions/cash-register-trash'
 import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
+import { deleteTemplateForeverAction } from '@/lib/actions/template-trash'
 import { deleteWorkerForeverAction } from '@/lib/actions/worker-trash'
 import { deleteVehicleForeverAction } from '@/lib/actions/vehicle-trash'
 import { deleteEquipmentForeverAction } from '@/lib/actions/equipment-trash'
@@ -15,6 +16,10 @@ import type { TrashKindT } from '@/types/trash'
 vi.mock('@/lib/actions/investment-trash', () => ({
   deleteInvestmentForeverAction: vi.fn(async () => ({ success: true })),
   restoreInvestmentAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/template-trash', () => ({
+  deleteTemplateForeverAction: vi.fn(async () => ({ success: true })),
+  restoreTemplateAction: vi.fn(),
 }))
 vi.mock('@/lib/actions/cash-register-trash', () => ({
   deleteCashRegisterForeverAction: vi.fn(async () => ({ success: true })),
@@ -32,7 +37,6 @@ vi.mock('@/lib/actions/equipment-trash', () => ({
   deleteEquipmentForeverAction: vi.fn(async () => ({ success: true })),
   restoreEquipmentAction: vi.fn(),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const NAME = 'Mieszkanie Kowalskich'
 
@@ -58,7 +62,7 @@ const renderDialog = (kind: TrashKindT, autoPurges = true) =>
 describe('DeleteForeverDialog', () => {
   it.each([
     ['investment', 'Nazwa inwestycji', deleteInvestmentForeverAction],
-    ['template', 'Nazwa szablonu', deleteInvestmentForeverAction],
+    ['template', 'Nazwa szablonu', deleteTemplateForeverAction],
     ['cash-register', 'Nazwa kasy', deleteCashRegisterForeverAction],
     ['worker', 'Imię i nazwisko', deleteWorkerForeverAction],
     ['vehicle', 'Rejestracja', deleteVehicleForeverAction],

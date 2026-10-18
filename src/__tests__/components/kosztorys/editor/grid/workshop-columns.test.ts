@@ -4,15 +4,10 @@ import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kos
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
+import { gridColumnIds, STAGES_7 } from '@/__tests__/helpers/grid-columns'
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Grid({ view: 'client', workshopVisible: true, stages: STAGES, ...extra })
-    .columns.map((column) => column.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ view: 'client', workshopVisible: true, stages: STAGES_7, ...extra })
 }
 
 describe('workshop columns', () => {
@@ -88,7 +83,7 @@ describe('workshop columns', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
       workshopVisible: true,
-      stages: STAGES,
+      stages: STAGES_7,
       isHidden: (id) => id === 'workNote',
     })
     const ids = columnToggleItems.map((item) => item.id)
@@ -100,9 +95,7 @@ describe('workshop columns', () => {
   })
 
   it('narrows nothing on an ordinary kosztorys', () => {
-    const ordinary = buildV2Grid({ view: 'client', stages: STAGES })
-      .columns.map((column) => column.id)
-      .filter((id): id is string => id != null)
+    const ordinary = gridColumnIds({ view: 'client', stages: STAGES_7 })
 
     expect(ordinary).toContain('plannedQty')
     expect(ordinary).toContain('net')

@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY as COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
@@ -43,8 +43,6 @@ const openMenu = async (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByTitle('Opcje etapu'))
 
 const UNCONFIRMED_BADGE = 'Rozliczenie etapu niepotwierdzone'
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
   it('oznacza etap bez rozliczenia w samym nagłówku', () => {

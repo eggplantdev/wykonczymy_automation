@@ -11,9 +11,6 @@ import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-}))
 vi.mock('@/lib/actions/transfers', () => ({
   createBulkTransferAction: vi.fn(async () => ({ success: true })),
 }))
@@ -21,11 +18,8 @@ vi.mock('@/lib/actions/worker-expense-drafts', () => ({
   rejectExpenseParagonsAction: vi.fn(async () => ({ success: true, data: [] })),
   restoreSkippedReceiptAction: vi.fn(),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploadRows: async (
     _count: number,
@@ -95,7 +89,6 @@ async function decide(
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useOptimisticFormStore.setState({ keepOpen: false })
 })
 

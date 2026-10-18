@@ -37,13 +37,10 @@ vi.mock('@/lib/media/submit-with-uploads', () => ({
   },
 }))
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const PAGE = { rows: [{ ref: '35812-7', qty: 2, isUncertain: false }], extras: [] }
 const photo = () => new File(['x'], 'kartka.jpg', { type: 'image/jpeg' })
 
 beforeEach(() => {
-  vi.clearAllMocks()
   picked.files = []
   URL.createObjectURL = vi.fn(() => 'blob:photo')
   URL.revokeObjectURL = vi.fn()

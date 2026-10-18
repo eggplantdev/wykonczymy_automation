@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useExternalChangeReload } from '@/components/kosztorys/editor/hooks/use-external-change-reload'
 import { readKosztorysRevision } from '@/lib/queries/kosztorys-revision'
@@ -26,8 +26,6 @@ async function returnToTab() {
     window.dispatchEvent(new Event('focus'))
   })
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('useExternalChangeReload', () => {
   it('reloads when another window moved the revision', async () => {

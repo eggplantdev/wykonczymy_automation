@@ -49,7 +49,6 @@ const previewButton = () => screen.queryByRole('button', { name: /^Dokumentacja 
 
 describe('InvestmentAssetsControl', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     isUploading.mockReturnValue(false)
   })
 

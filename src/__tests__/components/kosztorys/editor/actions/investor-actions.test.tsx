@@ -3,12 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useInvestorActions } from '@/components/kosztorys/editor/actions/investor-actions'
 import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
+import { toastMessage } from '@/lib/utils/toast'
 
-const toastMessage = vi.hoisted(() => vi.fn())
 const readClientViewSettings = vi.hoisted(() => vi.fn())
 const ensureShareLinkAction = vi.hoisted(() => vi.fn())
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
 vi.mock('@/lib/actions/kosztorys-share', () => ({ ensureShareLinkAction }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
@@ -42,7 +41,6 @@ async function share() {
 
 describe('useInvestorActions — „Udostępnij"', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     writeText.mockResolvedValue(undefined)
     write.mockResolvedValue(undefined)
     setClipboard(false)
@@ -62,16 +60,16 @@ describe('useInvestorActions — „Udostępnij"', () => {
   })
 
   it('keeps the latest click’s link when an earlier answer lands after it', async () => {
-    let resolveFirst: (value: unknown) => void = () => {}
+    const first = Promise.withResolvers()
     ensureShareLinkAction
-      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+      .mockReturnValueOnce(first.promise)
       .mockResolvedValueOnce({ success: true, data: 'drugi' })
 
     const { result } = renderHook(() => useInvestorActions())
     act(() => result.current.requestShare())
     act(() => result.current.requestShare())
     await waitFor(() => expect(result.current.shareToken).toBe('drugi'))
-    await act(async () => resolveFirst({ success: true, data: 'pierwszy' }))
+    await act(async () => first.resolve({ success: true, data: 'pierwszy' }))
 
     expect(result.current.shareToken).toBe('drugi')
   })
@@ -87,15 +85,15 @@ describe('useInvestorActions — „Udostępnij"', () => {
   // Safari refuses a clipboard write that starts after an await, so it must start on the click.
   it('starts the clipboard write before the link is known', async () => {
     setClipboard(true)
-    let resolveRead: (value: unknown) => void = () => {}
-    ensureShareLinkAction.mockReturnValue(new Promise((resolve) => (resolveRead = resolve)))
+    const read = Promise.withResolvers()
+    ensureShareLinkAction.mockReturnValue(read.promise)
 
     const { result } = renderHook(() => useInvestorActions())
     act(() => result.current.requestShare())
 
     expect(write).toHaveBeenCalledTimes(1)
     const [[item]] = write.mock.calls[0] as [[{ items: Record<string, Promise<Blob>> }]]
-    resolveRead({ success: true, data: 'stary' })
+    read.resolve({ success: true, data: 'stary' })
     const blob = await item.items['text/plain']
     expect(await blob.text()).toBe(investorShareUrl('stary'))
   })

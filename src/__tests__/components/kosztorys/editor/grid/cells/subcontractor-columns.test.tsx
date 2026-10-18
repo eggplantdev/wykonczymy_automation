@@ -10,8 +10,6 @@ import {
 import type { KosztorysV2RowT, ViewPricingT } from '@/lib/kosztorys/types'
 import { pricingRow } from '@/__tests__/fixtures/subcontractor-pricing-row'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const VIEW = 'w_tools'
 
 const PRICE_COLUMN = subcontractorPriceColumn(VIEW, 'Cena j.m.')

@@ -9,12 +9,8 @@ import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicat
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { router } from '@/__tests__/stubs/next-navigation'
 
-const replace = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-  useRouter: () => ({ refresh: vi.fn(), replace }),
-}))
 const { readExpenseDraftAction, rejectExpenseDraftAction } = vi.hoisted(() => ({
   readExpenseDraftAction: vi.fn(),
   rejectExpenseDraftAction: vi.fn(),
@@ -27,10 +23,7 @@ vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() })
 vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
   findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
 
 const draft: ExpenseDraftRowT = {
   id: 7,
@@ -59,7 +52,6 @@ const referenceData = {
 } as unknown as ReturnType<typeof referenceDataFor>
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response(new Blob(['jpg'], { type: 'image/jpeg' }))),
@@ -70,8 +62,8 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
   it('ponowne otwarcie w trakcie odczytu nie zleca drugiego', async () => {
-    let land: (value: unknown) => void = () => {}
-    readExpenseDraftAction.mockReturnValue(new Promise((resolve) => (land = resolve)))
+    const readCall = Promise.withResolvers()
+    readExpenseDraftAction.mockReturnValue(readCall.promise)
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
     const user = userEvent.setup()
 
@@ -80,7 +72,7 @@ describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
     act(() => useOptimisticFormStore.getState().closeDialog())
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
     await screen.findByRole('textbox', { name: 'Opis' })
-    await act(async () => land({ success: true, data: { aiRead: read } }))
+    await act(async () => readCall.resolve({ success: true, data: { aiRead: read } }))
 
     expect(await screen.findByDisplayValue('Klej do płytek')).toBeEnabled()
     expect(readExpenseDraftAction).toHaveBeenCalledTimes(1)
@@ -267,7 +259,7 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
     )
 
     expect(await screen.findByDisplayValue('Klej do płytek')).toBeInTheDocument()
-    expect(replace).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
     expect(window.location.search).toBe('?zgloszenie=7&status=pending')
 
     rerender(
@@ -289,7 +281,7 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
 
     expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie zostało już rozpatrzone.', 'warning')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(replace).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
     expect(window.location.search).toBe('?status=pending')
   })
 })

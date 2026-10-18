@@ -41,7 +41,6 @@ function renderInput(props: Parameters<typeof SearchHost>[0] = {}) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   // Testing Library decides whether to pump a frozen clock by looking for a global `jest`, and under
   // Vitest there is none — so it awaits a `setTimeout(…, 0)` that nobody will ever advance and every
   // interaction hangs until the spec times out.

@@ -5,9 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Sidebar } from '@/components/nav/sidebar'
 
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: 'OWNER' }),
-}))
+vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
 vi.mock('@/hooks/use-nav-links', () => ({
   useNavLinks: () => ({
     links: [{ href: '/przelewy', label: 'Przelewy', icon: Home }],

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'
 import { SortMenuItems } from '@/components/kosztorys/editor/grid/sort-menu-items'
@@ -19,8 +19,6 @@ function renderSortMenu(active: SortPickT | null = null, persist?: () => void) {
   )
   return userEvent.setup()
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('menu kolumny — cztery komendy sortowania', () => {
   it.each([

@@ -6,7 +6,6 @@ import { AiStageSelect } from '@/components/investments/ai-stage-select'
 import { setInvestmentAiStageAction } from '@/lib/actions/investments'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/investments', () => ({ setInvestmentAiStageAction: vi.fn() }))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 

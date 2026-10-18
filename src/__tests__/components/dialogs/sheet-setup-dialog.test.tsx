@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SheetSetupDialog } from '@/components/dialogs/sheet-setup-dialog'
+import { toastMessage } from '@/lib/utils/toast'
 
 const linkSheetAction = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/actions/investments', () => ({
@@ -9,14 +10,8 @@ vi.mock('@/lib/actions/investments', () => ({
   linkSheetAction,
 }))
 
-const toastMessage = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/utils/toast', () => ({
-  toastMessage,
-}))
-
 describe('SheetSetupDialog', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 

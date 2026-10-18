@@ -1,14 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { DataTable, type DataTableToolbarContextT } from '@/components/tables/data-table/data-table'
 import { rankForMove } from '@/lib/table/column-order'
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-}))
 
 const STORAGE_KEY = 'transfers'
 const ORDER_KEY = `table-column-order:${STORAGE_KEY}`

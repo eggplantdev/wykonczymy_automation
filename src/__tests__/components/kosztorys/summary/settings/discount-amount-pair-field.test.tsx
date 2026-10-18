@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { DiscountAmountPairField } from '@/components/kosztorys/summary/settings/discount-amount-pair-field'
 import { discountNetFromGross } from '@/lib/kosztorys/calc'
@@ -17,8 +17,6 @@ function renderField(value = 0, vatRate = 0.08) {
     save: screen.getByRole('button', { name: 'Zapisz' }),
   }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Rabat kwotowy — pola netto i brutto', () => {
   it('5000 wpisane w brutto przy 8% pokazuje netto przed zapisem i zapisuje jego netto', async () => {

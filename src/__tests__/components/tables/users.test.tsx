@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { UserDataTable } from '@/components/users/user-data-table'
 import { ROLES } from '@/lib/auth/roles'
@@ -8,12 +8,9 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import type { PayoutBucketT } from '@/lib/kosztorys/worker-payout-pairs'
 import type { UserRowT } from '@/types/table-rows'
 import { bare } from '@/__tests__/helpers/money'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-  usePathname: () => '/pracownicy',
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/pracownicy'
 
 const worker = (
   id: number,

@@ -5,10 +5,8 @@ import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 import { layerAllows } from '@/lib/kosztorys/layer'
 import { axisAllows } from '@/lib/kosztorys/money-axis'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
+import type { ToolPlaneT } from '@/lib/kosztorys/types'
+import { gridColumnIds, STAGES_7 } from '@/__tests__/helpers/grid-columns'
 
 const PLANES: ToolPlaneT[] = ['w_tools', 'own_tools']
 const VIEWS = ['client', 'w_tools', 'own_tools'] as const
@@ -18,9 +16,7 @@ const MODE_IDS = PLANES.map((plane) => planePriceKey('priceMode', plane))
 const COEFF_IDS = PLANES.map((plane) => planePriceKey('priceCoeff', plane))
 
 function ids(opts: Partial<BuildV2ColumnsOptsT> & Pick<BuildV2ColumnsOptsT, 'view'>): string[] {
-  return buildV2Grid({ stages: STAGES, crewAxis: 'both', ...opts })
-    .columns.map((column) => column.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ stages: STAGES_7, crewAxis: 'both', ...opts })
 }
 
 describe('subcontractor rate columns, both planes', () => {
@@ -52,7 +48,11 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('offers each rate column as its own picker entry, named by plane', () => {
-    const { columnToggleItems } = buildV2Grid({ view: 'w_tools', stages: STAGES, crewAxis: 'both' })
+    const { columnToggleItems } = buildV2Grid({
+      view: 'w_tools',
+      stages: STAGES_7,
+      crewAxis: 'both',
+    })
     const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     const entries = columnToggleItems.filter((item) => planeIds.includes(item.id))
 
@@ -71,7 +71,11 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('offers the source entry in the picker of the client view', () => {
-    const { columnToggleItems } = buildV2Grid({ view: 'client', stages: STAGES, crewAxis: 'both' })
+    const { columnToggleItems } = buildV2Grid({
+      view: 'client',
+      stages: STAGES_7,
+      crewAxis: 'both',
+    })
     for (const id of MODE_IDS) {
       expect(columnToggleItems.some((item) => item.id === id)).toBe(true)
     }
@@ -82,7 +86,7 @@ describe('subcontractor rate columns, both planes', () => {
     for (const id of planeIds) expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(false)
 
     for (const view of VIEWS) {
-      const { columns, columnToggleItems } = buildV2Grid({ view, stages: STAGES })
+      const { columns, columnToggleItems } = buildV2Grid({ view, stages: STAGES_7 })
       const visible = columns.map((column) => column.id)
       for (const id of planeIds) {
         expect(visible).not.toContain(id)
@@ -95,7 +99,7 @@ describe('subcontractor rate columns, both planes', () => {
     const revealed = planePriceKey('price', 'own_tools')
     const { columns } = buildV2Grid({
       view: 'client',
-      stages: STAGES,
+      stages: STAGES_7,
       crewAxis: 'none',
       revealedColumnIds: new Set([revealed]),
     })
@@ -126,7 +130,7 @@ describe('subcontractor rate columns, both planes', () => {
     const autoRow = { wToolsOverrideValue: null, wToolsOverrideCoeff: null } as never
 
     for (const view of VIEWS) {
-      const columns = buildV2Grid({ view, stages: STAGES, crewAxis: 'both' }).columns
+      const columns = buildV2Grid({ view, stages: STAGES_7, crewAxis: 'both' }).columns
       for (const id of PRICE_IDS) {
         const column = columns.find((entry) => entry.id === id)
         const disabled = column?.disabled
@@ -140,7 +144,7 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('binds each column to its own plane, not to the active view', () => {
-    const columns = buildV2Grid({ view: 'client', stages: STAGES, crewAxis: 'both' }).columns
+    const columns = buildV2Grid({ view: 'client', stages: STAGES_7, crewAxis: 'both' }).columns
     const planeOf = (id: string) =>
       (columns.find((column) => column.id === id)?.columnData as { view?: string } | undefined)
         ?.view

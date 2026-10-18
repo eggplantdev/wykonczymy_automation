@@ -1,14 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { subcontractorPriceColumn } from '@/components/kosztorys/editor/grid/cells/subcontractor-columns'
 import { toastMessage } from '@/lib/utils/toast'
 import type { KosztorysV2RowT, ViewPricingT } from '@/lib/kosztorys/types'
 import { pricingRow } from '@/__tests__/fixtures/subcontractor-pricing-row'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const VIEW = 'w_tools'
 const PRICE_COLUMN = subcontractorPriceColumn(VIEW, 'Cena j.m.')
@@ -61,8 +59,6 @@ function renderCell(props: Parameters<typeof CellHost>[0] = {}) {
   const view = render(<CellHost {...props} />)
   return { ...view, user: userEvent.setup(), input: screen.getByRole('textbox') }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Cena wykonawcy — wartość ponad sufitem', () => {
   it('zostaje w wierszu i ostrzega zamiast cofać', async () => {

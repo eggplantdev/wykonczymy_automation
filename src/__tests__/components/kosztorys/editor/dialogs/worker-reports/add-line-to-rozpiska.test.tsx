@@ -16,7 +16,6 @@ vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
   createSectionWithCatalogueItemsAction: vi.fn(),
   insertCatalogueItemsAction,
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: 7,

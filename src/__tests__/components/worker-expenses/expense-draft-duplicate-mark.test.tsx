@@ -21,18 +21,11 @@ import type { DuplicateMatchT } from '@/lib/expense-duplicates/types'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-}))
 vi.mock('@/lib/actions/transfers', () => ({
   createBulkTransferAction: vi.fn(async () => ({ success: true })),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
 
 function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
   return {
@@ -87,7 +80,6 @@ function scanned(description: string, amount: number): ReceiptFillResultT {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useOptimisticFormStore.setState({ keepOpen: false })
 })
 

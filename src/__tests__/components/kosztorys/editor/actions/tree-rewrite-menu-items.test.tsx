@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   DropdownMenu,
@@ -10,14 +10,13 @@ import {
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
+import { toastMessage } from '@/lib/utils/toast'
 
-const toastMessage = vi.hoisted(() => vi.fn())
 const fillKosztorysTranslationsAction = vi.hoisted(() => vi.fn())
 const cleanItemTextsAction = vi.hoisted(() => vi.fn())
 const onTreeReplaced = vi.hoisted(() => vi.fn())
 const flushPendingSaves = vi.hoisted(() => vi.fn(async () => {}))
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/actions/kosztorys-translations', () => ({ fillKosztorysTranslationsAction }))
 vi.mock('@/lib/actions/kosztorys', () => ({
   addItemAction: vi.fn(),
@@ -75,8 +74,6 @@ describe.each([
     data: 0,
   },
 ])('$label', ({ label, other, action, data }) => {
-  beforeEach(() => vi.clearAllMocks())
-
   it('runs only after the pending cell saves have settled', async () => {
     const flush = Promise.withResolvers<void>()
     flushPendingSaves.mockReturnValueOnce(flush.promise)
@@ -94,8 +91,8 @@ describe.each([
   })
 
   it('stays disabled across a menu close and reopen while the run is in flight', async () => {
-    let finish: (value: unknown) => void = () => {}
-    action.mockReturnValue(new Promise((resolve) => (finish = resolve)))
+    const run = Promise.withResolvers()
+    action.mockReturnValue(run.promise)
     renderMenu()
 
     await openMenu()
@@ -105,7 +102,7 @@ describe.each([
     expect(screen.getByRole('menuitem', { name: label })).toHaveAttribute('data-disabled')
     await userEvent.click(screen.getByRole('menuitem', { name: label }))
 
-    finish({ success: true, data })
+    run.resolve({ success: true, data })
     await vi.waitFor(() =>
       expect(screen.getByRole('menuitem', { name: label })).not.toHaveAttribute('data-disabled'),
     )
@@ -113,8 +110,8 @@ describe.each([
   })
 
   it('locks the other tree rewrite while it runs', async () => {
-    let finish: (value: unknown) => void = () => {}
-    action.mockReturnValue(new Promise((resolve) => (finish = resolve)))
+    const run = Promise.withResolvers()
+    action.mockReturnValue(run.promise)
     renderMenu()
 
     await openMenu()
@@ -123,7 +120,7 @@ describe.each([
 
     expect(screen.getByRole('menuitem', { name: other })).toHaveAttribute('data-disabled')
 
-    finish({ success: true, data })
+    run.resolve({ success: true, data })
     await vi.waitFor(() =>
       expect(screen.getByRole('menuitem', { name: other })).not.toHaveAttribute('data-disabled'),
     )

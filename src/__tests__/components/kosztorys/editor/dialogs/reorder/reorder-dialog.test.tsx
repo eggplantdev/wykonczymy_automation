@@ -26,7 +26,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   updateSectionFieldAction: vi.fn(),
   writeKosztorysLayoutAction: vi.fn(),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: 7,
@@ -58,7 +57,6 @@ const moveHere = (name: string) =>
 
 describe('ReorderDialog', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     editor.flushPendingSaves.mockResolvedValue(undefined)
     writeLayout.mockResolvedValue({ success: true })
   })
@@ -109,12 +107,8 @@ describe('ReorderDialog', () => {
   })
 
   it('writes the layout only after the pending cell saves have settled', async () => {
-    let settle!: () => void
-    editor.flushPendingSaves.mockReturnValue(
-      new Promise<void>((resolve) => {
-        settle = resolve
-      }),
-    )
+    const flush = Promise.withResolvers<void>()
+    editor.flushPendingSaves.mockReturnValue(flush.promise)
     renderDialog()
 
     fireEvent.click(row('Gruntowanie'))
@@ -124,7 +118,7 @@ describe('ReorderDialog', () => {
     expect(editor.flushPendingSaves).toHaveBeenCalledTimes(1)
     expect(writeLayout).not.toHaveBeenCalled()
 
-    settle()
+    flush.resolve()
     await waitFor(() => expect(writeLayout).toHaveBeenCalledTimes(1))
   })
 

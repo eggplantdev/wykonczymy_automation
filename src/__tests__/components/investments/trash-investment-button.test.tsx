@@ -3,12 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
-
-const refresh = vi.fn()
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh }),
-}))
+import { toastMessage } from '@/lib/utils/toast'
+import { router } from '@/__tests__/stubs/next-navigation'
 
 const trashInvestmentAction = vi.fn()
 vi.mock('@/lib/actions/investment-trash', () => ({
@@ -18,11 +14,6 @@ vi.mock('@/lib/actions/investment-trash', () => ({
 const getInvestmentKosztorysUsed = vi.fn()
 vi.mock('@/lib/queries/investment-kosztorys-used', () => ({
   getInvestmentKosztorysUsed: (...args: unknown[]) => getInvestmentKosztorysUsed(...args),
-}))
-
-const toastMessage = vi.fn()
-vi.mock('@/lib/utils/toast', () => ({
-  toastMessage: (...args: unknown[]) => toastMessage(...args),
 }))
 
 async function openDialog() {
@@ -41,7 +32,6 @@ async function confirmTrash() {
 
 describe('TrashInvestmentButton', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
     getInvestmentKosztorysUsed.mockResolvedValue({ success: true, data: false })
   })
@@ -80,7 +70,7 @@ describe('TrashInvestmentButton', () => {
 
     await waitFor(() => expect(toastMessage).toHaveBeenCalledWith(expect.any(String), 'error'))
     expect(toastMessage).not.toHaveBeenCalledWith(expect.anything(), 'success')
-    expect(refresh).not.toHaveBeenCalled()
+    expect(router.refresh).not.toHaveBeenCalled()
     expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 })

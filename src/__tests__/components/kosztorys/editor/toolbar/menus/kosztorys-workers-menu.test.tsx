@@ -72,7 +72,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.clearAllMocks()
   stages = STAGES
 })
 

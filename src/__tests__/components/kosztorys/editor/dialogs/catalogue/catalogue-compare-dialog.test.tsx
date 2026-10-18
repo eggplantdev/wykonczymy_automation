@@ -63,7 +63,6 @@ const COMPARISON: CatalogueComparisonT = {
 const SHOW_IN_ROZPISKA = 'Pokaż w rozpisce'
 
 beforeEach(() => {
-  vi.clearAllMocks()
   engagedConditionIds = new Set()
   catalogueComparison = COMPARISON
   workCatalogue = []

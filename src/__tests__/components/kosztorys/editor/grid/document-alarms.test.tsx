@@ -9,8 +9,6 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { pricingRow } from '@/__tests__/fixtures/subcontractor-pricing-row'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const OVERRUN = 1
 const tree = makeTree({
   sections: [

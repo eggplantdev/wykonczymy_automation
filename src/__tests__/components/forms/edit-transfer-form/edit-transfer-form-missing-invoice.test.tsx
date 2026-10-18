@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { EditTransferForm } from '@/components/forms/edit-transfer-form/edit-transfer-form'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
@@ -8,16 +8,11 @@ import { transferRow } from '@/__tests__/fixtures/transfer-row'
 import { updateTransferAction } from '@/lib/actions/transfers'
 import type { TransferRowT } from '@/types/transfers'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-}))
 vi.mock('@/lib/actions/transfers', () => ({
   updateTransferAction: vi.fn(async () => ({ success: true })),
   removeTransferInvoiceAction: vi.fn(),
   removeAllTransferInvoicesAction: vi.fn(),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploads: (_files: File[], submit: (ids: number[]) => Promise<unknown>) => submit([]),
 }))
@@ -32,8 +27,6 @@ const referenceData = {
 function renderForm(row: TransferRowT) {
   render(<EditTransferForm row={row} referenceData={referenceData} onSubmitSuccess={vi.fn()} />)
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Edytuj transakcję — wydatek inwestycyjny bez faktury', () => {
   it('pyta przed zapisem, a „Popraw" nic nie wysyła', async () => {

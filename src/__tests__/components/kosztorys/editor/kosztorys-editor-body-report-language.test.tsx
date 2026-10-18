@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { ru } from '@/lib/i18n/dictionaries/ru'
@@ -11,29 +11,14 @@ import { TranslationsProvider } from '@/components/kosztorys/worker-report/trans
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
 import { workerAudience } from '@/__tests__/helpers/worker-audience'
+import { stubGridLayout } from '@/__tests__/helpers/grid-layout'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/z/inwestycja/jan/token',
-}))
+navigationState.pathname = '/z/inwestycja/jan/token'
 
-// dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0.
-vi.mock('react-resize-detector', () => ({
-  useResizeDetector: () => ({ width: 1600, height: 800 }),
-}))
+vi.mock('react-resize-detector', () => import('@/__tests__/stubs/react-resize-detector'))
 
-beforeAll(() => {
-  const rect = { x: 0, y: 0, top: 0, left: 0, right: 1600, bottom: 800, width: 1600, height: 800 }
-  HTMLElement.prototype.getBoundingClientRect = () => ({ ...rect, toJSON: () => rect })
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get: () => 1600,
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get: () => 800,
-  })
-})
+stubGridLayout()
 
 const STAGES = [stage(7, 1, 'Płytki')]
 const CURRENT = tree([item(1, 'Płytki', 12, 100)], STAGES, [{ itemId: 1, stageId: 7, qtyDone: 5 }])

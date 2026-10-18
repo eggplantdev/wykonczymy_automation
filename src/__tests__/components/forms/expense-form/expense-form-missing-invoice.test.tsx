@@ -13,17 +13,11 @@ import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-}))
 vi.mock('@/lib/actions/transfers', () => ({
   createBulkTransferAction: vi.fn(async () => ({ success: true })),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploadRows: (
     _rowCount: number,
@@ -56,7 +50,6 @@ function renderForm(values: BulkExpenseFormValuesT, files: Map<number, File[]>) 
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useOptimisticFormStore.setState({ keepOpen: false })
 })
 

@@ -4,11 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  useRouter: () => ({ refresh: vi.fn() }),
-}))
-
 const { sendExpenseDraftAction } = vi.hoisted(() => ({ sendExpenseDraftAction: vi.fn() }))
 vi.mock('@/lib/actions/worker-expense-drafts', () => ({ sendExpenseDraftAction }))
 const { submitWithUploads } = vi.hoisted(() => ({

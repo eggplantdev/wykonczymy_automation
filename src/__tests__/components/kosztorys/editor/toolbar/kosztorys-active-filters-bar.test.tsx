@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -43,8 +43,6 @@ function renderBar(state: {
 
 const removeChip = (user: ReturnType<typeof userEvent.setup>, name: RegExp) =>
   user.click(screen.getByRole('button', { name }))
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Pasek aktywnych filtrów — co stoi na ekranie', () => {
   it('wymienia wszystkie cztery źródła naraz', () => {

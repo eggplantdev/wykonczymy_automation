@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import { diffVersions } from '@/lib/kosztorys/history/diff-versions'
@@ -9,30 +9,14 @@ import type { KosztorysEditorDataT, KosztorysTreeT } from '@/lib/kosztorys/types
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree, version } from '@/__tests__/helpers/kosztorys-history'
 import { workerAudience } from '@/__tests__/helpers/worker-audience'
+import { stubGridLayout } from '@/__tests__/helpers/grid-layout'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/k/token',
-}))
+navigationState.pathname = '/k/token'
 
-// dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0, which
-// renders the header and nothing under it.
-vi.mock('react-resize-detector', () => ({
-  useResizeDetector: () => ({ width: 1600, height: 800 }),
-}))
+vi.mock('react-resize-detector', () => import('@/__tests__/stubs/react-resize-detector'))
 
-beforeAll(() => {
-  const rect = { x: 0, y: 0, top: 0, left: 0, right: 1600, bottom: 800, width: 1600, height: 800 }
-  HTMLElement.prototype.getBoundingClientRect = () => ({ ...rect, toJSON: () => rect })
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get: () => 1600,
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get: () => 800,
-  })
-})
+stubGridLayout()
 
 const DATA = {
   investmentId: 1,

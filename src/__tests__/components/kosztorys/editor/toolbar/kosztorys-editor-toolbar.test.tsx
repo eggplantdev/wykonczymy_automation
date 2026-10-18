@@ -5,10 +5,6 @@ import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catal
 import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysEditorProvider } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-}))
-
 type EditorContextT = Parameters<typeof KosztorysEditorProvider>[0]['editor']
 
 const editorContext = {

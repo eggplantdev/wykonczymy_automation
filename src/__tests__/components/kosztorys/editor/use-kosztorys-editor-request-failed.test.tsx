@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
@@ -28,7 +28,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   updateInvestmentVatAction: vi.fn(),
   applyPercentDiscountToAllItemsAction: vi.fn(),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 // The row-level handlers reach the grid only through the column opts, never the hook's return.
 const grid = vi.hoisted(() => ({ opts: undefined as BuildV2ColumnsOptsT | undefined }))
@@ -78,10 +77,8 @@ const offline = () => Promise.reject(new TypeError('Failed to fetch'))
 
 describe('edytor kosztorysu — żądanie, które nie dotarło', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
-  afterEach(() => vi.restoreAllMocks())
 
   it('brings a removed pozycja back', async () => {
     vi.mocked(removeItemAction).mockImplementation(offline)

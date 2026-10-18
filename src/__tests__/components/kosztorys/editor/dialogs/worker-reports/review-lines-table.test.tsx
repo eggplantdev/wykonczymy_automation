@@ -8,10 +8,6 @@ import {
 } from '@/components/kosztorys/editor/dialogs/worker-reports/review-lines-table'
 import type { LineDraftT } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-}))
-
 const ORIGINAL = 'Монтаж плінтусів'
 
 const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({

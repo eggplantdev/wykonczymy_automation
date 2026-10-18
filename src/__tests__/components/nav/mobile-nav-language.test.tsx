@@ -5,11 +5,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { MobileNav } from '@/components/nav/mobile-nav'
 import { I18nContext } from '@/hooks/use-translation'
 import type { LanguageT } from '@/lib/i18n/languages'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/pracownicy/7' }))
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 7, email: 'jan@test.invalid', name: 'Jan', role: 'EMPLOYEE' }),
-}))
+navigationState.pathname = '/pracownicy/7'
+
+vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
+
+authState.role = 'EMPLOYEE'
+authState.userId = 7
 vi.mock('@/hooks/use-nav-links', () => ({
   useNavLinks: () => ({ links: [], isActive: () => false }),
 }))

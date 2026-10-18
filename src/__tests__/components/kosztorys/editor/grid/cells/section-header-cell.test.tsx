@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   SectionHeaderCell,
@@ -34,8 +34,6 @@ function renderBand(collapsed: number[] = []) {
   const view = render(<SectionHeaderCell rowData={ROW} slot="label" context={context(collapsed)} />)
   return { ...view, user: userEvent.setup(), band: screen.getByRole('button', { name: /Kuchnia/ }) }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Belka sekcji — strzałka mówi to, co widać', () => {
   it('stoi otwarta, gdy sekcja nie jest zwinięta', () => {

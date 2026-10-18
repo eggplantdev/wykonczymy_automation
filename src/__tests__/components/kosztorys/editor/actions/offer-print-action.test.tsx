@@ -6,13 +6,12 @@ import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu
 import { GenerateOfferMenuItem } from '@/components/kosztorys/editor/actions/offer-print-action'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
+import { toastMessage } from '@/lib/utils/toast'
 
-const toastMessage = vi.hoisted(() => vi.fn())
 const readClientViewSettings = vi.hoisted(() => vi.fn())
 const editorContext = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
 const actionsContext = vi.hoisted(() => ({ clientView: null as unknown }))
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => editorContext.value,
@@ -45,7 +44,6 @@ async function clickOffer() {
 
 describe('GenerateOfferMenuItem', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     actionsContext.clientView = null
     setRows([row({ id: 1, plannedQty: 10, clientPrice: 100 })])
   })

@@ -6,7 +6,6 @@ import { LeadAssetsDialog } from '@/components/leads/lead-assets-dialog'
 import { attachLeadAssetsAction } from '@/lib/actions/lead-assets'
 import type { LeadRowT } from '@/types/leads'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/lead-assets', () => ({
   attachLeadAssetsAction: vi.fn(async () => ({ success: true })),
   removeLeadAssetAction: vi.fn(async () => ({ success: true })),

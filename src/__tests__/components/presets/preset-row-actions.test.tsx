@@ -9,7 +9,6 @@ import { toastMessage } from '@/lib/utils/toast'
 vi.mock('@/lib/actions/template-trash', () => ({
   trashTemplateAction: vi.fn(async () => ({ success: true })),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const PRESET = {
   id: 42,

@@ -5,8 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DecimalField } from '@/components/ui/decimal-field'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 // four decimals is the DEFAULT here, not an exotic entry.
 const COEFF = 0.5525
 

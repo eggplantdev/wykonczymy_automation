@@ -6,19 +6,11 @@ import {
 } from '@/lib/kosztorys/columns/column-config'
 import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { LayerT } from '@/lib/kosztorys/layer'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { translationColumnLanguage } from '@/lib/kosztorys/translation-column-keys'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [
-  makeStage({ id: 7, label: 'Etap 1', plane: null }),
-  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
-]
+import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
 
 function ids(layer: LayerT, isHidden?: (id: string) => boolean): string[] {
-  return buildV2Grid({ view: 'client', stages: STAGES, layer, isHidden })
-    .columns.map((c) => c.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ view: 'client', stages: STAGES_7_9, layer, isHidden })
 }
 
 const PROGRESS_IDS = [
@@ -39,7 +31,7 @@ const NEUTRAL_IDS = ['sectionName', 'description', 'stageQtySum'].filter((id) =>
 describe('buildV2Grid — oś praca/postęp', () => {
   it('„bez filtra" renderuje dokładnie to co grid bez trybu — tryb jest opt-out', () => {
     expect(ids('both')).toEqual(
-      buildV2Grid({ view: 'client', stages: STAGES }).columns.map((c) => c.id),
+      buildV2Grid({ view: 'client', stages: STAGES_7_9 }).columns.map((c) => c.id),
     )
   })
 

@@ -12,18 +12,14 @@ import { fetchExpenseDraftDecisions } from '@/lib/queries/expense-draft-decision
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/', unstable_rethrow: () => {} }))
 vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
 vi.mock('@/lib/actions/worker-expense-drafts', () => ({
   rejectExpenseParagonsAction: vi.fn(),
   restoreSkippedReceiptAction: vi.fn(),
 }))
 vi.mock('@/lib/queries/expense-draft-decisions', () => ({ fetchExpenseDraftDecisions: vi.fn() }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
 vi.mock('@/lib/media/submit-with-uploads', () => ({
   submitWithUploadRows: async (
     _count: number,
@@ -77,7 +73,6 @@ const descriptions = () =>
   screen.getAllByRole('textbox', { name: 'Opis' }).map((input) => (input as HTMLInputElement).value)
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useOptimisticFormStore.setState({ keepOpen: false })
 })
 

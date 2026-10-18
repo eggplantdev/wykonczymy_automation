@@ -1,11 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { createFormStore } from '@/stores/create-form-store'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 type ValuesT = { name: string }
 
@@ -28,8 +26,6 @@ function renderManagedForm(persistDraft: boolean) {
   )
   return { ...hook, onSubmitSuccess }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('useManagedForm — a failed save on a form without a draft', () => {
   it('keeps the dialog open with the typed values', async () => {

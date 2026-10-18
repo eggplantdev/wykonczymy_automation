@@ -6,11 +6,7 @@ import { InvoiceDownloadDialog } from '@/components/transfers/invoice-download-d
 import type { TransferRowsFetchT } from '@/components/transfers/transfer-table-config'
 import type { TransferRowT } from '@/types/transfers'
 import type { PreviewFileT } from '@/types/media'
-
-const url = vi.hoisted(() => ({ params: new URLSearchParams() }))
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => url.params,
-}))
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 const download = vi.fn()
 vi.mock('@/hooks/use-file-archive', () => ({
@@ -35,7 +31,7 @@ const openDialog = async () => {
 const downloadButton = () => screen.getByRole('button', { name: 'Pobierz' })
 
 beforeEach(() => {
-  url.params = new URLSearchParams()
+  navigationState.searchParams = new URLSearchParams()
   download.mockClear()
 })
 
@@ -52,7 +48,7 @@ describe('InvoiceDownloadDialog', () => {
   })
 
   it('opens on the table range and counts files, not rows', async () => {
-    url.params = new URLSearchParams({ from: '2026-09-01', to: '2026-09-30' })
+    navigationState.searchParams = new URLSearchParams({ from: '2026-09-01', to: '2026-09-30' })
     const rows = [row(1, [page(1), page(2)]), row(2, [page(3)])]
     const fetchRows = vi.fn<TransferRowsFetchT>(async () => ({ success: true, data: rows }))
     render(<InvoiceDownloadDialog fetchRows={fetchRows} />)
@@ -67,7 +63,7 @@ describe('InvoiceDownloadDialog', () => {
   })
 
   it('shows 0 and keeps „Pobierz" disabled when the range has no faktury', async () => {
-    url.params = new URLSearchParams({ from: '2026-09-01', to: '2026-09-30' })
+    navigationState.searchParams = new URLSearchParams({ from: '2026-09-01', to: '2026-09-30' })
     const fetchRows = vi.fn<TransferRowsFetchT>(async () => ({
       success: true,
       data: [row(1, [])],
@@ -81,7 +77,7 @@ describe('InvoiceDownloadDialog', () => {
   })
 
   it('flags Od after Do and does not fetch', async () => {
-    url.params = new URLSearchParams({ from: '2026-09-30', to: '2026-09-01' })
+    navigationState.searchParams = new URLSearchParams({ from: '2026-09-30', to: '2026-09-01' })
     const fetchRows = vi.fn<TransferRowsFetchT>()
     render(<InvoiceDownloadDialog fetchRows={fetchRows} />)
 

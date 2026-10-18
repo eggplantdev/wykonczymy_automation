@@ -9,6 +9,7 @@ import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds } from '@/__tests__/helpers/grid-columns'
 
 const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', split: oneWorkerSplit(3) })]
 
@@ -25,9 +26,7 @@ function workerOpts(
 }
 
 function workerIds(extra: Partial<BuildV2ColumnsOptsT> = {}, hidden: string[] = []): string[] {
-  return buildV2Grid({ ...workerOpts('w_tools', hidden), ...extra })
-    .columns.map((column) => column.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ ...workerOpts('w_tools', hidden), ...extra })
 }
 
 describe('worker columns', () => {

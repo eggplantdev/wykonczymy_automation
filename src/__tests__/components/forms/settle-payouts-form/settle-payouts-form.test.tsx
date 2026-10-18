@@ -10,18 +10,12 @@ import { toastMessage } from '@/lib/utils/toast'
 import { BLOCKED_PAIR_REASON, type SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { bare } from '@/__tests__/helpers/money'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/settle-payouts', () => ({ settlePayoutsAction: vi.fn() }))
 vi.mock('@/lib/actions/book-overpayment-bonus', () => ({ bookOverpaymentBonusAction: vi.fn() }))
 vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
-const viewer = vi.hoisted(() => ({ role: 'OWNER' }))
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: viewer.role }),
-}))
+vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
 
 const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   investmentId: 1,
@@ -95,7 +89,7 @@ const staleRefusal = () =>
   })
 
 beforeEach(() => {
-  viewer.role = 'OWNER'
+  authState.role = 'OWNER'
   vi.mocked(settlePayoutsAction).mockReset()
   vi.mocked(bookOverpaymentBonusAction).mockReset()
   // Pending by default: a saldo re-read resolving after a test ends lands outside act().
@@ -284,7 +278,7 @@ describe('SettlePayoutsForm', () => {
     })
 
     it('is not offered to a MANAGER, who may not grant a premia', () => {
-      viewer.role = 'MANAGER'
+      authState.role = 'MANAGER'
       renderForm()
       expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
     })

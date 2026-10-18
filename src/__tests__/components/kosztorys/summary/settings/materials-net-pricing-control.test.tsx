@@ -1,11 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { MaterialsNetPricingControl } from '@/components/kosztorys/summary/settings/materials-net-pricing-control'
 import { toastMessage } from '@/lib/utils/toast'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const onMaterialsNetRateChange = vi.fn()
 
@@ -23,8 +21,6 @@ function renderControl() {
     save: screen.getByRole('button', { name: 'Zapisz' }),
   }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Stawka vat na materiały — wartość spoza 0–100%', () => {
   it('odmawia 230%, mówi o tym i zostawia zapisaną stawkę', async () => {

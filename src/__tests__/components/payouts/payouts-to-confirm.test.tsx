@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PayoutsToConfirm } from '@/components/payouts/payouts-to-confirm'
 import { acceptPayoutAction, rejectPayoutAction } from '@/lib/actions/payout-confirmation'
@@ -11,7 +11,6 @@ vi.mock('@/lib/actions/payout-confirmation', () => ({
   acceptPayoutAction: vi.fn(async () => ({ success: true })),
   rejectPayoutAction: vi.fn(async () => ({ success: true })),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const payout = (overrides: Partial<PayoutToConfirmT>): PayoutToConfirmT => ({
   id: 1,
@@ -26,8 +25,6 @@ const payout = (overrides: Partial<PayoutToConfirmT>): PayoutToConfirmT => ({
 })
 
 const rowOf = (description: string) => within(screen.getByText(description).closest('li')!)
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Wypłaty do potwierdzenia', () => {
   it('offers each wypłata only the answers it can still take', () => {
@@ -76,10 +73,8 @@ describe('Wypłaty do potwierdzenia', () => {
   })
 
   it('locks the row while its acceptance is in flight', async () => {
-    let settle: (value: { success: true }) => void = () => {}
-    vi.mocked(acceptPayoutAction).mockImplementationOnce(
-      () => new Promise((resolve) => (settle = resolve)),
-    )
+    const accept = Promise.withResolvers<{ success: true }>()
+    vi.mocked(acceptPayoutAction).mockImplementationOnce(() => accept.promise)
     const user = userEvent.setup()
     render(<PayoutsToConfirm payouts={[payout({ id: 7, description: 'czeka' })]} />)
 
@@ -91,7 +86,7 @@ describe('Wypłaty do potwierdzenia', () => {
     expect(rowOf('czeka').getByRole('button', { name: 'Potwierdzam' })).toBeDisabled()
     expect(rowOf('czeka').getByRole('button', { name: 'Odrzuć' })).toBeDisabled()
 
-    settle({ success: true })
+    accept.resolve({ success: true })
     await waitFor(() =>
       expect(rowOf('czeka').getByRole('button', { name: 'Potwierdzam' })).toBeEnabled(),
     )

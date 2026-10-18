@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
@@ -7,12 +7,9 @@ import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { I18nContext } from '@/hooks/use-translation'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { TRANSFER_TYPES } from '@/lib/constants/transfers'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => '/pracownicy/7',
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/pracownicy/7'
 
 const CONFIG: TransferTableConfigT = {
   query: { page: 1, limit: 100, where: {}, sort: '-date' },

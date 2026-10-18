@@ -1,10 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { TrashedRowActions } from '@/components/trash/trashed-row-actions'
 import type { TrashRowT } from '@/types/trash'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const row = (overrides: Partial<TrashRowT>): TrashRowT => ({
   kind: 'file',

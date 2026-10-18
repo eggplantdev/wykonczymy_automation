@@ -3,6 +3,7 @@ import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-col
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds } from '@/__tests__/helpers/grid-columns'
 
 // One etap per plane, so a subcontractor view has both something to keep and something to drop —
 // with both planes null every view-scoped assertion below would compare against an empty axis.
@@ -16,8 +17,6 @@ const editorOpts: BuildV2ColumnsOptsT = {
   stages,
   onRemoveItem: () => {},
 }
-
-const ids = (opts: BuildV2ColumnsOptsT) => buildV2Grid(opts).columns.map((c) => c.id)
 
 describe('readOnly', () => {
   it('disables every column and drops the row-actions column', () => {
@@ -35,27 +34,27 @@ describe('readOnly', () => {
 
 describe('przedmiar-anchored columns', () => {
   it('drop their brutto half in a subcontractor view', () => {
-    const columns = ids({ ...editorOpts, view: 'w_tools' })
+    const columns = gridColumnIds({ ...editorOpts, view: 'w_tools' })
     for (const id of ['plannedGross', 'remainingGross']) {
       expect(columns).not.toContain(id)
     }
   })
 
   it('keep the przedmiar quantity and its netto figures in a subcontractor view', () => {
-    const columns = ids({ ...editorOpts, view: 'w_tools' })
+    const columns = gridColumnIds({ ...editorOpts, view: 'w_tools' })
     for (const id of ['plannedQty', 'plannedNet', 'donePercent', 'remaining']) {
       expect(columns).toContain(id)
     }
   })
 
   it('leaves the view its own etapy — and only its own', () => {
-    const columns = ids({ ...editorOpts, view: 'w_tools' })
+    const columns = gridColumnIds({ ...editorOpts, view: 'w_tools' })
     expect(columns).toContain('stage_100')
     expect(columns).not.toContain('stage_101')
   })
 
   it('stay in the client view', () => {
-    const columns = ids(editorOpts)
+    const columns = gridColumnIds(editorOpts)
     for (const id of ['plannedQty', 'plannedNet', 'donePercent', 'remaining']) {
       expect(columns).toContain(id)
     }

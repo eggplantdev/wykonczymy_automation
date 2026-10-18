@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { LongTextCell } from '@/components/ui/datasheet-grid/long-text-cell'
 import { withDocumentListener } from '@/__tests__/helpers/document-listener'
@@ -18,8 +18,6 @@ function renderOverlay(value: string | null = VALUE) {
     textarea: screen.getByRole('textbox') as HTMLTextAreaElement,
   }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('LongTextCell — the overlay and the grid underneath it', () => {
   it('opens on the full value, selected, so the first key replaces it', () => {

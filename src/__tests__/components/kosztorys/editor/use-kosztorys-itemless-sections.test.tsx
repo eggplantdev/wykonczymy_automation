@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import type { UndoRedoApiT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
@@ -84,10 +84,6 @@ function renderEditor(undoRedo: UndoRedoApiT = stackUndoRedo().api) {
 
 const sectionIds = (result: { current: ReturnType<typeof useKosztorysEditor> }) =>
   result.current.sections.map((section) => section.sectionId)
-
-beforeEach(() => {
-  vi.clearAllMocks()
-})
 
 describe('sekcja bez pozycji w edytorze', () => {
   it('stands in the section list although no row carries it', () => {

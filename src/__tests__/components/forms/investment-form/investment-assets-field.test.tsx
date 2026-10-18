@@ -11,7 +11,6 @@ vi.mock('@/hooks/use-media-upload', () => ({
 
 describe('InvestmentAssetsField', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     isUploading.mockReturnValue(false)
   })
 

@@ -1,15 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { decimalText } from '@/lib/utils/decimal-text'
 import { toastMessage } from '@/lib/utils/toast'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 type QtyRowT = KosztorysV2RowT & { plannedQty: number }
 
@@ -47,8 +45,6 @@ function renderCell() {
     storedQty: () => screen.getByRole('status').textContent,
   }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('DecimalCell — a separator must survive the keystroke that commits before it', () => {
   it('stores 12,5 rather than 125 when the comma is typed', async () => {

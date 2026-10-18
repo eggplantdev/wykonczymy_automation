@@ -75,7 +75,6 @@ const openSettings = async (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByRole('button', { name: /Opcje rozliczenia/ }))
 
 beforeEach(() => {
-  vi.clearAllMocks()
   // The picked view is remembered, so without this the next test opens the panel where the previous
   // one left it.
   localStorage.clear()

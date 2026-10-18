@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
 import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import { toastMessage } from '@/lib/utils/toast'
 
-const toastMessage = vi.hoisted(() => vi.fn())
 const restoreSnapshotAction = vi.hoisted(() => vi.fn())
 
 const SNAPSHOT: SnapshotListItemT = {
@@ -17,7 +17,6 @@ const SNAPSHOT: SnapshotListItemT = {
   takenByName: null,
 }
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 vi.mock('@/lib/actions/kosztorys-snapshots', () => ({
   saveSnapshotAction: vi.fn(),
   snapshotAction: vi.fn(),
@@ -27,10 +26,8 @@ vi.mock('@/lib/actions/kosztorys-snapshots', () => ({
 
 describe('KosztorysVersionsDrawer — a restore whose request never completed', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
-  afterEach(() => vi.restoreAllMocks())
 
   // The restore may have committed server-side, so the grid must refetch rather than keep — and
   // autosave back — the pre-restore rows.

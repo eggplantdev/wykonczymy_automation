@@ -1,11 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { UnreadBadge } from '@/components/nav/unread-badge'
 import { UnreadCountsProvider } from '@/hooks/use-unread-counts'
 import type { UnreadStreamT } from '@/types/notifications'
-
-const pathname = vi.hoisted(() => ({ current: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.current }))
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 const VALUES = {
   leads: 3,
@@ -20,7 +18,7 @@ const VALUES = {
 const COUNTS = Object.assign(Promise.resolve(VALUES), { status: 'fulfilled', value: VALUES })
 
 function renderBadge(stream: UnreadStreamT, path: string, at: string) {
-  pathname.current = at
+  navigationState.pathname = at
   return render(
     <UnreadCountsProvider counts={COUNTS}>
       <UnreadBadge stream={stream} path={path} />

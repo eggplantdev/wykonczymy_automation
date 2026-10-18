@@ -2,27 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
 
 // Asserted on rendered ids rather than on the constant, because the ids are the document a client
 // reads — a constant can be right while the selection still drops half of it.
-
-const STAGES: KosztorysStageT[] = [
-  makeStage({ id: 7, label: 'Etap 1', plane: null }),
-  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
-]
 
 const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
   row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })
 
 function previewIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Grid({ view: 'client', previewVisible: true, stages: STAGES, ...extra })
-    .columns.map((column) => column.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ view: 'client', previewVisible: true, stages: STAGES_7_9, ...extra })
 }
 
 describe('preview columns', () => {
@@ -115,7 +107,7 @@ describe('preview columns', () => {
 
   it('never surfaces the sheet pomiar to the client', () => {
     const columnData = (opts: Partial<BuildV2ColumnsOptsT>) =>
-      buildV2Grid({ view: 'client', stages: STAGES, ...opts }).columns.find(
+      buildV2Grid({ view: 'client', stages: STAGES_7_9, ...opts }).columns.find(
         (column) => column.id === 'stageQtySum',
       )?.columnData as { tip?: unknown }
 
@@ -140,7 +132,7 @@ describe('preview columns', () => {
   })
 
   it('drops an empty etap by its full ids and keeps the filled one', () => {
-    const empty = emptySettlementColumnIds([stageRow({ [stageKey(7)]: 2 })], STAGES)
+    const empty = emptySettlementColumnIds([stageRow({ [stageKey(7)]: 2 })], STAGES_7_9)
     const visible = previewIds({ documentHiddenColumns: empty })
 
     expect(visible).not.toContain('stage_9')
@@ -159,7 +151,7 @@ describe('preview columns', () => {
   it('ignores the hidden set outside the preview', () => {
     const editorIds = buildV2Grid({
       view: 'client',
-      stages: STAGES,
+      stages: STAGES_7_9,
       documentHiddenColumns: new Set(['unit']),
     }).columns.map((column) => column.id)
 
@@ -170,7 +162,7 @@ describe('preview columns', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
       previewVisible: true,
-      stages: STAGES,
+      stages: STAGES_7_9,
     })
     expect(columnToggleItems).toEqual([])
   })
@@ -178,7 +170,7 @@ describe('preview columns', () => {
 
 describe('the pair: allowlist + price plane', () => {
   const unpinned = (view: 'w_tools' | 'own_tools') => () =>
-    buildV2Grid({ view, previewVisible: true, stages: STAGES }).columns
+    buildV2Grid({ view, previewVisible: true, stages: STAGES_7_9 }).columns
 
   it('throws on previewVisible without view=client', () => {
     expect(unpinned('w_tools')).toThrow(/previewVisible requires view='client'/)
@@ -192,9 +184,11 @@ describe('the pair: allowlist + price plane', () => {
         expect(visible).not.toContain(planePriceKey(base, plane))
       }
     }
-    const editorIds = buildV2Grid({ view: 'client', stages: STAGES, crewAxis: 'both' }).columns.map(
-      (c) => c.id,
-    )
+    const editorIds = buildV2Grid({
+      view: 'client',
+      stages: STAGES_7_9,
+      crewAxis: 'both',
+    }).columns.map((c) => c.id)
     expect(editorIds).toContain(planePriceKey('price', 'w_tools'))
     expect(editorIds).toContain(planePriceKey('price', 'own_tools'))
   })

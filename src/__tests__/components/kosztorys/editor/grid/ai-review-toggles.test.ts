@@ -1,23 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
+import { gridColumnIds, STAGES_7 } from '@/__tests__/helpers/grid-columns'
 
 function ids(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Grid({
+  return gridColumnIds({
     view: 'client',
-    stages: STAGES,
+    stages: STAGES_7,
     hasAiDraft: true,
     onRemoveItem: () => {},
     ...extra,
-  })
-    .columns.map((column) => column.id)
-    .filter((id): id is string => id != null && id !== 'layerGap')
+  }).filter((id) => id !== 'layerGap')
 }
 
 const sorted = (list: Iterable<string>) => [...list].sort()

@@ -6,13 +6,10 @@ import { LeadsDataTable } from '@/components/leads/leads-data-table'
 import { trashLeadsAction } from '@/lib/actions/lead-trash'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { LeadRowT } from '@/types/leads'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => '/zgloszenia',
-  useSearchParams: () => new URLSearchParams(),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+navigationState.pathname = '/zgloszenia'
+
 vi.mock('@/lib/actions/lead-trash', () => ({
   trashLeadsAction: vi.fn(async () => ({ success: true, data: { trashed: 2 } })),
 }))
