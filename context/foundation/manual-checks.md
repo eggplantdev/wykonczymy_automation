@@ -636,9 +636,6 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 ## EX-1075 — szablon-own-structure — szablon jako odwołania do katalogu prac
 
-- [x] Szablony → otwórz szablon → menu „…” przy dowolnej pracy: nie ma „Aktualizuj pozycję w katalogu
-      prac” ani „Zapisz pozycję do katalogu prac”; „Wstaw powyżej/poniżej”, „Ustaw kolejność…” i „Usuń
-      pozycję” są jak dotąd.
 - [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
       nadal jest i otwiera okno zapisu do katalogu.
 - [ ] Szablony → „Nowy szablon”, zmiana nazwy, otwarcie: działa; nazwa już zajęta (także przez szablon

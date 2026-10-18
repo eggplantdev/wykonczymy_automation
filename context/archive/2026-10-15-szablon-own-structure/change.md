@@ -1,10 +1,10 @@
 ---
 change_id: szablon-own-structure
 title: Szablon — własna struktura danych zamiast pozycji kosztorysu z martwą kopią
-status: implemented
+status: archived
 created: 2026-10-15
-updated: 2026-10-15
-archived_at: null
+updated: 2026-10-18
+archived_at: 2026-10-18T09:35:00Z
 branch: szablon-own-structure
 worktree: .claude/worktrees/szablon-own-structure
 ---
@@ -50,7 +50,9 @@ Done 2026-10-15, ahead of the change:
   deleted still brings that praca back unlinked, with its old copy (`insert-kosztorys-tree.ts:74-77`).
   An FK on the new table removes it.
 
-Research: `research.md`.
+Research (2026-10-15): separate tables (L) vs blanked copy (S–M) — the schema/data migration was
+cheap; the cost sat in the shared editor machinery (gate keyed on `kosztorys_items` ids, ~20 actions,
+snapshots, kosz).
 
 ## Plan decisions (owner, 2026-10-15)
 
@@ -113,3 +115,16 @@ Derived, not asked: the szablon's tree reads `DEFAULT_COEFFS` / `DEFAULT_VAT` /
 `SETTLEMENT_MODE_DEFAULT` as constants. Verified on prod (read-only, 2026-10-15): both szablony carry
 exactly those defaults (0.65 / 0.5525 / 8% / NET), and the totals panel that edits them is hidden in a
 szablon — no capability is lost.
+
+Left without an automated test (accepted):
+
+- Migration 2 (`20261016_0_drop_szablon_investments`): verified once on a local prod-dump copy — no
+  committed spec (decision 7).
+- The 8 szablon E2E specs were updated in this change but not run by the agent; the owner runs them.
+
+Deliberate, from the review gate:
+
+- The REST read on the `templates` collections shows trashed szablony to management; the AI scripts
+  filter `trashedAt` themselves.
+- A katalog edit made from one szablon cell does not mark the other szablony using that entry as
+  edited — same as editing in /katalog-prac; only the structural cascade (katalog delete) moves them.
