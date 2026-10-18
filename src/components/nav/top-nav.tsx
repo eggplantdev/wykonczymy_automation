@@ -19,7 +19,11 @@ export function TopNav({ referenceData, investmentCrumb }: TopNavPropsT) {
     <header className="border-border bg-background flex h-14 items-center justify-between gap-3 border-b p-4 px-3">
       <MobileNav />
       <StandaloneBackButton />
-      <Suspense fallback={null}>{investmentCrumb}</Suspense>
+      {/* The slot arrives wrapped in template.tsx's motion.div, which can't shrink on its own —
+          without min-w-0 here a long investment name pushes the actions off a phone screen. */}
+      <div className="min-w-0">
+        <Suspense fallback={null}>{investmentCrumb}</Suspense>
+      </div>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <CompanyKnowledgeButton className="max-sm:hidden" />
         {referenceData && (

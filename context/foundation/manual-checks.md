@@ -1052,6 +1052,25 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       usunąć pliku — jest używany w innych miejscach (zgłoszenia prac / zgłoszenia wydatków)".
       Zdjęcie dalej widać w zgłoszeniu (refaktor listy tabel — zachowanie bez zmian).
 
+## 2026-10-18 — mobile-375-qa — poprawki widoków na telefonie (375 px)
+
+- [ ] Telefon (375 px) → podgląd zdjęcia z załącznika: przyciski akcji chowają się pod „Więcej
+      akcji” (⋯), a zdjęcie zajmuje większość ekranu.
+- [ ] Na desktopie ten sam podgląd zdjęcia wygląda jak dotąd — przyciski w rzędzie, bez „⋯”.
+- [ ] Telefon → „Rozlicz wypłaty”: „Kasa”, „Do rozdysponowania” i „Data” stoją jedna pod drugą
+      i nie nachodzą na siebie; na desktopie dalej w jednym rzędzie.
+- [ ] Telefon → inwestycja z długą nazwą: nazwa w górnym pasku skraca się, a przyciski po prawej
+      zostają na ekranie.
+- [ ] Telefon → dialog z długim tytułem bez spacji (np. nazwa pliku): tytuł łamie się, nie wychodzi
+      za ekran ani pod ✕.
+- [ ] Telefon → raporty pracowników: „Skanuj raport (AI)” mieści się w ekranie na pełną szerokość;
+      katalog prac → „Uzupełnij tłumaczenia (AI)” tak samo.
+- [ ] Telefon → kosztorys: „Opcje” ma tę samą szerokość co sąsiednie przyciski, a długa nazwa
+      inwestycji w nagłówku łamie się na dwie linie zamiast wypychać przyciski.
+- [ ] Telefon → link kosztorysu dla klienta i podgląd inwestora: „Opis prac” łamie się w ekranie,
+      a kolumna „Przedmiar” wystaje z prawej (tabela przewija się w bok). Na desktopie bez zmian.
+- [ ] Telefon → raport pracownika (`/z/…`): kolumny tabeli wyglądają jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

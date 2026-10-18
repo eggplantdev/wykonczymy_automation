@@ -26,7 +26,13 @@ export function FillCatalogueTranslationsButton({ count }: { count: number }) {
   if (count === 0) return null
 
   return (
-    <Button size="sm" variant="ai" onClick={fill} disabled={pending}>
+    <Button
+      size="sm"
+      variant="ai"
+      onClick={fill}
+      disabled={pending}
+      className="max-sm:col-span-2"
+    >
       {pending ? <GradientSpinner /> : <WandSparkles className="text-neon-cyan" />}
       <span className="text-neon-cyan font-semibold">
         {pending ? 'Tłumaczę…' : `Uzupełnij tłumaczenia (AI) · ${count}`}

@@ -31,13 +31,13 @@ export function PreviewHeaderActions({
   const [historyOpen, setHistoryOpen] = useState(false)
 
   return (
-    <div className="ml-auto flex shrink-0 items-center gap-2">
+    <div className="ml-auto flex shrink-0 items-center gap-2 max-sm:order-last max-sm:grid max-sm:w-full max-sm:auto-cols-fr max-sm:grid-flow-col">
       {(history || emptyRowCount > 0) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="lg" variant="outline">
               <Settings />
-              <span className="max-sm:sr-only">Opcje</span>
+              Opcje
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

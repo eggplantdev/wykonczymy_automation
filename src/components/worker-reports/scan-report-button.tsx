@@ -32,7 +32,7 @@ export function ScanReportButton() {
 
   return (
     <>
-      <Button variant="ai" size="sm" onClick={openDialog}>
+      <Button variant="ai" size="sm" onClick={openDialog} className="max-sm:col-span-2">
         <WandSparkles className="text-neon-cyan" />
         <span className="text-neon-cyan font-semibold">{SCAN_REPORT_LABEL}</span>
       </Button>
