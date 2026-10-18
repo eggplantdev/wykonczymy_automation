@@ -6,7 +6,7 @@ branch: staging
 repository: wykonczymy
 topic: 'Where does the remaining test wall-clock time go, and what cuts it further?'
 tags: [research, testing, vitest, playwright, pre-push, test-db]
-status: in_progress
+status: complete
 last_updated: 2026-10-18
 last_updated_by: Claude
 ---
@@ -30,7 +30,9 @@ and which levers cut it further, ranked by saving vs risk?
   `CREATE DATABASE … TEMPLATE` clone measured 1.4 s (§2).
 - **A full E2E run is 12–20 min, not ~1 h.** The hour was six cold re-runs in a fix loop, each
   rebuilding the app (~2.2–2.8 min fixed cost per run) (§4).
-- **Unit (node + dom): pending** — the measuring agent hasn't reported yet (§5).
+- **Unit (node + dom): 175 s, ~90 % of it module import.** Splitting both into isolated + shared
+  projects (the `db-shared` pattern) measured 121 s; adding a `date-fns` / `react-day-picker`
+  prebundle on dom, 103 s — both with 0 failures (§5).
 - **Side finding:** the hourly Neon backup GitHub Action has failed every run since
   2026-10-16 17:48 UTC at „Compare against previous backup" — the pre-push `db:dump` is the only
   fresh prod backup until it's fixed.
@@ -101,7 +103,32 @@ on a test DB left by an E2E run — likely leftover-data coupling, not investiga
 
 ### 5. Unit — node (419 files) + dom (162 files)
 
-Pending: the measuring agent is still running. To be appended as a follow-up.
+8 cores (4P + 4E), vitest 4.0.18, Node 24.15. Load average stayed 6–50 from other agents' dev and
+E2E servers, which the test lock doesn't cover — compare user CPU-seconds, not wall.
+
+| Run                                 | Wall  | import (summed) | tests (summed) | user CPU-s |
+| ----------------------------------- | ----- | --------------- | -------------- | ---------- |
+| node + dom, clean                   | 175 s | 663.98 s        | 262.43 s       | 725.8      |
+| node alone (419 files, 5025 tests)  | 48 s  | 241.61 s        | 7.36 s         | 216.8      |
+| dom alone (162 files, 851 tests)    | 109 s | 379.32 s        | 184.82 s       | 496.6      |
+| split (isolated + shared, both)     | 121 s | 457.07 s        | 224.40 s       | 455.5      |
+| split + dom `deps.optimizer.client` | 103 s | 367.73 s        | 228.92 s       | 373.1      |
+
+- **Import is the cost.** node: every test in 419 files runs in 6.9 s total; the rest is ~0.58 s of
+  import per file. Summed import by module — node: `date-fns` 36 %, `@payloadcms/db-postgres` 33 %
+  (83 src files import `sql` from it); dom: `date-fns` 66 % (the `date-fns/locale` barrel from
+  `form-date-picker.tsx:6` and `date-filter-button.tsx:6`, the index barrel from react-day-picker).
+- **dom test time** is userEvent driving Radix in jsdom: 7 files over 5 s (worst `new-item-dialog`
+  12.8 s), 24 over 2 s. Worst import: `report-grid.test.tsx` 17.6 s (whole editor-body graph).
+- **Whole-project `--no-isolate` fails** — node 18 files (17 call `vi.mock`, one rewrites
+  `require.cache`); dom 124 of 162 (RTL's auto-cleanup registers once), 35 with an
+  `afterEach(cleanup)`, 31 of which mock and 4 assert the per-file `toastMessage` mock
+  (`setup/dom.ts:47`). Hence the split: mock-free files only.
+- `--pool=threads`: no gain (191 s). A `date-fns` locale subpath import: within noise after the
+  split; overlaps the prebundle.
+
+Experiment configs and per-run JSON: the session scratchpad `research-unit/` (`vitest.split.config.ts`
+is a working draft of the split + prebundle).
 
 ### 6. typecheck
 
@@ -121,6 +148,8 @@ Pending: the measuring agent is still running. To be appended as a follow-up.
 | 7   | E2E: parallel group (2–3 workers) for specs on their own seeded records, serial group for shared-state specs                                                        | ~5 min per full run                        | medium: CPU contention, shared DB                                         |
 | 8   | E2E: shorten the combo confirmation wait / type-to-filter                                                                                                           | ~2–2.5 min per run (if confirmed)          | low                                                                       |
 | 9   | E2E: reset the test DB from the template before each run                                                                                                            | <1 min; mainly repeatability               | low                                                                       |
+| 10  | Unit: split node and dom into isolated + shared projects; `afterEach(cleanup)` in `setup/dom.ts`                                                                    | ~54 s per `pnpm test`                      | low–medium: same pattern as `db-shared`                                   |
+| 11  | Unit: prebundle `date-fns` + `react-day-picker` on dom (`deps.optimizer.client`)                                                                                    | ~18 s on top of 10                         | low                                                                       |
 
 Not worth it: trimming `db-shared` tests; lazy-loading `googleapis` (moot after lever 1);
 per-worker E2E databases (each needs its own server, shared `.next-e2e` data cache); sharding
@@ -152,6 +181,5 @@ the only serializer left.
 
 ## Open Questions
 
-- Unit suite breakdown (§5).
 - Why the backup Action fails at „Compare against previous backup".
 - Whether the combo miss is real (needs a trace on a warm server).
