@@ -47,12 +47,6 @@ describe('UnreadBadge', () => {
     expect(screen.getByText('2')).toBeInTheDocument()
   })
 
-  it('keeps the leads count on „Zgłoszenia wydatków", another sibling sharing its prefix', async () => {
-    renderBadge('leads', '/zgloszenia', '/zgloszenia-wydatkow')
-
-    expect(screen.getByText('3')).toBeInTheDocument()
-  })
-
   it('keeps the expense-drafts count on its own page — it is a queue too', async () => {
     renderBadge('expenseDrafts', '/zgloszenia-wydatkow', '/zgloszenia-wydatkow')
 

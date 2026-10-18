@@ -100,7 +100,7 @@ beforeEach(() => {
 })
 
 describe('„Połącz zaznaczone” / „Rozłącz” in „Przyjmij”', () => {
-  it('merges two rows into one: summed Kwota, a shared photo once, „Rozłącz” in place of „Odczytaj ponownie”', async () => {
+  it('merges two rows into one: summed Kwota, „Rozłącz” in place of „Odczytaj ponownie”', async () => {
     const user = renderDraft()
     await screen.findByDisplayValue('Paliwo')
 

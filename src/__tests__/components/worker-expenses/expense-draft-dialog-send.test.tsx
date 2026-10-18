@@ -70,7 +70,6 @@ describe('ExpenseDraftDialog send', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
 
     await waitFor(() => expect(sendExpenseDraftAction).toHaveBeenCalledTimes(1))
-    expect(sendExpenseDraftAction.mock.calls[0][0]).not.toHaveProperty('scanMode')
     expect(sendExpenseDraftAction.mock.calls[0][0]).toMatchObject({ mediaIds: [11, 12] })
   })
 

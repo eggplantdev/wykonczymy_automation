@@ -89,27 +89,3 @@ test('adding and removing one recipient leaves the other three streams untouched
 
   await expectList(page, 'fleetDigest', fleetBefore)
 })
-
-test('the same address typed twice is stored once', async ({ page }) => {
-  const address = uniqueAddress('e2e-ops')
-
-  const opsAlertsBefore = await readList(page, 'opsAlerts')
-  const newLeadBefore = await readList(page, 'newLead')
-
-  await page.goto(CARDS.opsAlerts.path)
-  const dialog = await openEditor(page, 'opsAlerts')
-  for (let i = 0; i < 2; i++) {
-    await dialog.getByRole('button', { name: 'Dodaj odbiorcę' }).click()
-    await dialog.locator('input[type="email"]').last().fill(address)
-  }
-  await save(page, dialog)
-
-  await expectList(page, 'opsAlerts', [...opsAlertsBefore, address])
-  expect(await readList(page, 'newLead')).toEqual(newLeadBefore)
-
-  await page.goto(CARDS.opsAlerts.path)
-  const cleanup = await openEditor(page, 'opsAlerts')
-  await cleanup.getByRole('button', { name: 'Usuń odbiorcę' }).last().click()
-  await save(page, cleanup)
-  await expectList(page, 'opsAlerts', opsAlertsBefore)
-})

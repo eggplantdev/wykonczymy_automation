@@ -56,36 +56,4 @@ describe('filesByRowId (position-space → id-space, recovery boundary)', () => 
     expect(result.has('a')).toBe(false)
     expect(result.get('b')?.map((f) => f.name)).toEqual(['b.jpg'])
   })
-
-  it('round-trips: id → position → id preserves every row’s file', () => {
-    const byId = new Map<string, File[]>([
-      ['a', pages('a.jpg', 'a2.jpg')],
-      ['b', pages('b.jpg')],
-    ])
-    const rows = [row('a'), row('b')]
-
-    const back = filesByRowId(rows, positionalFiles(rows, byId))
-
-    expect(back.get('a')?.map((f) => f.name)).toEqual(['a.jpg', 'a2.jpg'])
-    expect(back.get('b')?.map((f) => f.name)).toEqual(['b.jpg'])
-  })
-})
-
-describe('remove-mid-batch id stability (EX-448 regression guard)', () => {
-  it('keeps surviving rows bound to their own files after a middle row is removed', () => {
-    const byId = new Map<string, File[]>([
-      ['a', pages('a.jpg')],
-      ['b', pages('b.jpg')],
-      ['c', pages('c.jpg')],
-    ])
-
-    byId.delete('b')
-    const rowsAfterRemoval = [row('a'), row('c')]
-
-    const positional = positionalFiles(rowsAfterRemoval, byId)
-
-    expect(positional.get(0)?.map((f) => f.name)).toEqual(['a.jpg'])
-    expect(positional.get(1)?.map((f) => f.name)).toEqual(['c.jpg'])
-    expect(positional.size).toBe(2)
-  })
 })

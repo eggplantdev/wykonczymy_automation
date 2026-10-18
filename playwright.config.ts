@@ -21,8 +21,7 @@ export default defineConfig({
   workers: 1,
   timeout: 300_000,
   expect: { timeout: 45_000 },
-  // No global `storageState` here — that would break the unauthenticated smoke
-  // and login specs.
+  // No global `storageState` here — that would break the unauthenticated login spec.
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

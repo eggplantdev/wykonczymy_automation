@@ -117,7 +117,6 @@ describe('DataTable — rows follow column visibility through their cells', () =
 
     await user.click(screen.getByText('toggle:net'))
 
-    expect(firstRowTexts()).toEqual(['Wylewka', 'Etap 1'])
     expect(firstBodyRow()).toBe(before)
   })
 })

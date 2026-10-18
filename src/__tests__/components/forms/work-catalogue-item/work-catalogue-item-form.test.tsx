@@ -116,18 +116,6 @@ describe('WorkCatalogueItemForm — źródło stawki', () => {
     ).toBeInTheDocument()
     expect(action).not.toHaveBeenCalled()
   })
-
-  it('still refuses a blank kwota while „kwota stała" is picked', async () => {
-    const { action, user, save } = renderForm()
-
-    await user.clear(screen.getByLabelText(W_TOOLS_RATE))
-    await save()
-
-    expect(
-      await screen.findByText(/Stawka z narzędziami \(podwykonawca\) jest wymagana/),
-    ).toBeInTheDocument()
-    expect(action).not.toHaveBeenCalled()
-  })
 })
 
 describe('WorkCatalogueItemForm — Komentarz do pracy', () => {

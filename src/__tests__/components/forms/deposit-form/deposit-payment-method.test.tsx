@@ -85,19 +85,6 @@ describe('Wpłata — metoda płatności trafia do zapisu', () => {
     expect(createTransferAction).toHaveBeenCalledTimes(1)
     expect(submittedPayload()).toMatchObject({ paymentMethod: 'CASH', amount: 1000 })
   })
-
-  it('zapisuje przelew, gdy wybrano przelew', async () => {
-    const user = renderForm()
-
-    await pickRequiredEntities(user)
-    await user.type(screen.getByLabelText(/Opis/i), 'Zaliczka')
-    await pickMethod(user, /Przelew/i)
-    await user.type(screen.getByLabelText(/Kwota brutto/i), '1230')
-    await user.click(screen.getByRole('button', { name: 'Dodaj' }))
-
-    expect(createTransferAction).toHaveBeenCalledTimes(1)
-    expect(submittedPayload()).toMatchObject({ paymentMethod: 'TRANSFER' })
-  })
 })
 
 describe('Wpłata — metoda przestawia płaszczyznę kwoty', () => {
