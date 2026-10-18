@@ -7,8 +7,14 @@
 #        - size floor      : catches an empty/aborted dump
 #        - row floor        : transactions >= MIN_TX  (catches wrong/empty DB)
 #        - freshness        : newest date within FRESH_DAYS (catches frozen DB)
-#        - no-shrink        : key-table counts must not drop vs the previous
-#                             backup pulled from FTP (catches data loss/downgrade)
+#        - no-shrink        : key-table counts must not drop more than
+#                             SHRINK_TOLERANCE_PCT vs the previous backup pulled
+#                             from FTP (catches mass data loss)
+#        - no-rewind        : key-table id sequences must not go backwards vs the
+#                             previous backup (catches a downgrade to an older
+#                             branch/restore, however small)
+#      A manual run with accept_shrink=true uploads despite either, to reset the
+#      baseline after a deliberate large delete or a prod restore.
 #   3. Uploads to the remote server via FTPS
 #   4. Removes backups older than RETENTION_DAYS from the remote dir
 #
@@ -38,6 +44,10 @@ on:
         description: 'Remote dir to upload to (leave default for safe test runs)'
         required: false
         default: '/db_backups/test/'
+      accept_shrink:
+        description: 'Upload even if no-shrink / no-rewind fails (set target_dir to /db_backups/ to reset the baseline)'
+        type: boolean
+        default: false
 
 jobs:
   backup-and-upload:
@@ -53,6 +63,10 @@ jobs:
       MIN_TX: '2000' # transactions floor — sanity check, not exact count (real prod 2342 @ 2026-06; headroom below current so legit transfer deletes don't false-alarm)
       FRESH_DAYS: '3' # newest date in dump must be within this
       KEY_TABLES: 'transactions investments cash_registers users'
+      # A failed run uploads nothing, so the baseline never advances: with zero tolerance one
+      # legitimate delete (a migration, „Usuń na zawsze") fails every run from then on.
+      SHRINK_TOLERANCE_PCT: '5'
+      ACCEPT_SHRINK: ${{ github.event.inputs.accept_shrink || 'false' }}
 
     steps:
       - name: Install LFTP
@@ -149,21 +163,35 @@ jobs:
               f {n++}
               END {print n+0}'
           }
+          seq_value() { # <file> <table> — the id sequence never goes back on a live DB, deletes included
+            gzip -dc "$1" | sed -nE "s/^SELECT pg_catalog\.setval\('public\.$2_id_seq', ([0-9]+),.*/\1/p" | head -1
+          }
 
           DRIFT=0
           for t in $KEY_TABLES; do
             NEW_C=$(count_rows "$BACKUP_FILE" "$t")
             OLD_C=$(count_rows prev.sql.gz "$t")
-            printf '   %-18s prev=%-6s new=%-6s Δ=%+d\n' "$t" "$OLD_C" "$NEW_C" "$((NEW_C - OLD_C))"
-            if [ "$NEW_C" -lt "$OLD_C" ]; then
-              echo "   ↳ ❌ $t shrank ($OLD_C → $NEW_C)"; DRIFT=1
+            NEW_S=$(seq_value "$BACKUP_FILE" "$t"); NEW_S=${NEW_S:-0}
+            OLD_S=$(seq_value prev.sql.gz "$t"); OLD_S=${OLD_S:-0}
+            printf '   %-18s prev=%-6s new=%-6s Δ=%+d  seq %s → %s\n' "$t" "$OLD_C" "$NEW_C" "$((NEW_C - OLD_C))" "$OLD_S" "$NEW_S"
+            if [ $(( (OLD_C - NEW_C) * 100 )) -gt $(( OLD_C * SHRINK_TOLERANCE_PCT )) ]; then
+              echo "   ↳ ❌ $t shrank more than ${SHRINK_TOLERANCE_PCT}% ($OLD_C → $NEW_C)"; DRIFT=1
+            fi
+            if [ "$NEW_S" -lt "$OLD_S" ]; then
+              echo "   ↳ ❌ $t id sequence went back ($OLD_S → $NEW_S) — older DB?"; DRIFT=1
             fi
           done
           rm -f prev.sql.gz
           if [ "$DRIFT" -ne 0 ]; then
-            echo "❌ a key table shrank vs previous backup — refusing to trust this dump"; exit 1
+            if [ "$ACCEPT_SHRINK" = "true" ]; then
+              echo "⚠️ accept_shrink=true — uploading despite the drift above; this dump becomes the baseline"
+              exit 0
+            fi
+            echo "❌ no-shrink / no-rewind failed vs previous backup — refusing to trust this dump"
+            echo "   deliberate? re-run manually with accept_shrink=true and target_dir=/db_backups/"
+            exit 1
           fi
-          echo "✅ no-shrink OK"
+          echo "✅ no-shrink / no-rewind OK"
 
       # ---- 4. upload + retention ----------------------------------------
       - name: Upload via FTPS and prune old backups

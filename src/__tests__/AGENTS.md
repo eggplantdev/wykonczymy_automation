@@ -36,5 +36,5 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   and the failure reads as a bad selector.
 - **The golden master is not in the integration discovery** — it asserts the whole dataset against a
   committed fixture and runs via `pnpm test:parity`, because its neighbours create rows in the same
-  shared DB. `test:parity` re-imports and re-seeds that DB first (`db:reset:test`), since E2E writes
-  to the investments the fixture covers. Dataset-floor counters and the seeds that fill them: `context/foundation/test-plan.md` §5.
+  shared DB. Both DB legs first clone that DB from a seeded template (`db:reset:test`), since E2E
+  writes to the investments the fixture covers. Dataset-floor counters and the seeds that fill them: `context/foundation/test-plan.md` §5.
