@@ -64,7 +64,7 @@ describe('InvoiceCell', () => {
     expect(within(dialog).getByRole('button', { name: 'Dodaj stronę' })).toBeInTheDocument()
   })
 
-  it('asks before removing a page and warns the file is gone for good', async () => {
+  it('asks before removing a page and says it goes to the trash', async () => {
     const user = userEvent.setup()
     removeTransferInvoiceAction.mockResolvedValue({ success: true })
     render(<InvoiceCell transactionId={3} invoices={[PAGE_ONE, PAGE_TWO]} />)
@@ -75,7 +75,7 @@ describe('InvoiceCell', () => {
     )
 
     expect(screen.getByText('Czy na pewno chcesz usunąć tę stronę?')).toBeInTheDocument()
-    expect(screen.getByText(/bezpowrotnie/)).toBeInTheDocument()
+    expect(screen.getByText(/trafią do Kosza na 7 dni/)).toBeInTheDocument()
     expect(removeTransferInvoiceAction).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Usuń' }))

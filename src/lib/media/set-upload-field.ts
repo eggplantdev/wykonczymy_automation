@@ -1,5 +1,6 @@
 import type { CollectionSlug, Payload } from 'payload'
-import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import { getDb } from '@/lib/db/get-db'
+import { closeDetachments, recordDetachments } from '@/lib/db/media-detachments'
 import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
 import { perfStart } from '@/lib/perf'
 
@@ -14,6 +15,8 @@ export const investmentAssetsField = (investmentId: number) =>
 
 /**
  * Two writers on one field inside the same find→update window still lose one of their lists.
+ * Dropped files are recorded before the update: a crash in between leaves an attached file in the
+ * trash, which the nightly sweep heals, never a detached file without provenance.
  */
 export async function setUploadField(
   payload: Payload,
@@ -25,15 +28,17 @@ export async function setUploadField(
   const doc = await payload.findByID({ collection, id, depth: 0 })
   const currentIds = uploadFieldIds((doc as unknown as Record<string, UploadFieldT>)[field])
   const next = nextIds(currentIds)
+  const dropped = currentIds.filter((mediaId) => !next.includes(mediaId))
+  const added = next.filter((mediaId) => !currentIds.includes(mediaId))
   console.log(`[PERF]   findByID(${collection}/${id}) ${step()}ms`)
+
+  const db = await getDb(payload)
+  await recordDetachments(db, { collection, field, id }, dropped)
 
   await payload.update({ collection, id, data: { [field]: next } })
   console.log(`[PERF]   payload.update(${collection}/${id}) ${step()}ms`)
 
-  await reclaimUnreferencedMedia(
-    payload,
-    currentIds.filter((mediaId) => !next.includes(mediaId)),
-  )
+  await closeDetachments(db, added)
 }
 
 export function appendUploadIds(mediaIds: number[]) {

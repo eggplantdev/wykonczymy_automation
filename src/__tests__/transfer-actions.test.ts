@@ -80,6 +80,11 @@ vi.mock('@/lib/db/get-db', () => ({
     execute: (...args: unknown[]) => mockDbExecute(...args),
   }),
 }))
+const mockRecordDetachments = vi.fn()
+vi.mock('@/lib/db/media-detachments', () => ({
+  recordDetachments: (...args: unknown[]) => mockRecordDetachments(...args),
+  closeDetachments: vi.fn(),
+}))
 vi.mock('@/lib/db/sum-transfers', () => ({
   sumRegisterBalance: vi.fn().mockResolvedValue(99999),
 }))
@@ -97,6 +102,7 @@ const {
 const { deleteOrphanedMediaAction } = await import('@/lib/actions/delete-orphaned-media')
 
 const TX_ID = 'test-tx-id'
+const INVOICE_FIELD = { collection: 'transactions', field: 'invoice', id: 10 }
 
 function makeSingleTransferData(overrides = {}) {
   return {
@@ -165,6 +171,7 @@ beforeEach(() => {
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
   mockFindByID.mockReset()
   mockDelete.mockReset().mockResolvedValue(undefined)
+  mockRecordDetachments.mockReset()
   afterWork.length = 0
   mockFindReferences.mockReset().mockResolvedValue({ docs: [] })
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
@@ -728,16 +735,13 @@ describe('removeTransferInvoiceAction', () => {
     )
   })
 
-  it('deletes only the media the new list dropped', async () => {
+  it('moves only the dropped page to the trash, deleting nothing', async () => {
     mockFindByID.mockResolvedValueOnce({ invoice: [55, 56, 57] })
 
     await removeTransferInvoiceAction(10, 56)
-    await flushAfter()
 
-    expect(mockDelete).toHaveBeenCalledWith(
-      expect.objectContaining({ collection: 'media', id: 56 }),
-    )
-    expect(mockDelete).toHaveBeenCalledTimes(1)
+    expect(mockRecordDetachments).toHaveBeenCalledWith(expect.anything(), INVOICE_FIELD, [56])
+    expect(mockDelete).not.toHaveBeenCalled()
   })
 
   it('removing a page that is not attached changes nothing', async () => {
@@ -746,34 +750,29 @@ describe('removeTransferInvoiceAction', () => {
     await removeTransferInvoiceAction(10, 99)
 
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { invoice: [55] } }))
-    expect(mockDelete).not.toHaveBeenCalledWith(expect.objectContaining({ collection: 'media' }))
+    expect(mockRecordDetachments).toHaveBeenCalledWith(expect.anything(), INVOICE_FIELD, [])
   })
 })
 
 describe('removeAllTransferInvoicesAction', () => {
-  it('clears the list and deletes every page', async () => {
+  it('clears the list and moves every page to the trash', async () => {
     mockFindByID.mockResolvedValueOnce({ invoice: [55, 56] })
 
     const result = await removeAllTransferInvoicesAction(10)
-    await flushAfter()
 
     expect(result.success).toBe(true)
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { invoice: [] } }))
-    expect(mockDelete).toHaveBeenCalledWith(
-      expect.objectContaining({ collection: 'media', id: 55 }),
-    )
-    expect(mockDelete).toHaveBeenCalledWith(
-      expect.objectContaining({ collection: 'media', id: 56 }),
-    )
+    expect(mockRecordDetachments).toHaveBeenCalledWith(expect.anything(), INVOICE_FIELD, [55, 56])
+    expect(mockDelete).not.toHaveBeenCalled()
   })
 
-  it('a transfer with no invoice → clears to an empty list, deletes nothing', async () => {
+  it('a transfer with no invoice → clears to an empty list, trashes nothing', async () => {
     mockFindByID.mockResolvedValueOnce({ invoice: null })
 
     await removeAllTransferInvoicesAction(10)
 
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { invoice: [] } }))
-    expect(mockDelete).not.toHaveBeenCalledWith(expect.objectContaining({ collection: 'media' }))
+    expect(mockRecordDetachments).toHaveBeenCalledWith(expect.anything(), INVOICE_FIELD, [])
   })
 })
 

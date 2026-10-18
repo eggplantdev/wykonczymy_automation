@@ -97,14 +97,21 @@ describe('InvestmentAssetsControl', () => {
     expect(within(dialog).queryByRole('button', { name: /fakturę/ })).not.toBeInTheDocument()
   })
 
-  // Blob has no undelete, so wiping the whole gallery in one click waits for the file trash (EX-862).
-  it('offers no bulk removal, even with several files', async () => {
+  it('offers bulk removal once the gallery holds several files', async () => {
     const user = userEvent.setup()
+    removeAllInvestmentAssetsAction.mockResolvedValue({ success: true })
     renderGallery([PHOTO, SECOND_PHOTO])
 
     await user.click(previewButton()!)
-    const dialog = screen.getByRole('dialog')
-    expect(within(dialog).queryByRole('button', { name: 'Usuń wszystkie' })).not.toBeInTheDocument()
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Usuń wszystkie' }),
+    )
+
+    expect(screen.getByText(/trafią do Kosza na 7 dni/)).toBeInTheDocument()
+    expect(removeAllInvestmentAssetsAction).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Usuń' }))
+    expect(removeAllInvestmentAssetsAction).toHaveBeenCalledWith(7)
   })
 
   it('asks before removing a file and calls the action once confirmed', async () => {
@@ -138,15 +145,16 @@ describe('InvestmentAssetsControl', () => {
     expect(within(dialog).queryByRole('button', { name: 'Dodaj kolejne' })).not.toBeInTheDocument()
   })
 
-  it('asks before removing the last file and says it is gone for good', async () => {
+  it('asks before removing the last file and says it goes to the trash', async () => {
     const user = userEvent.setup()
     renderGallery([PHOTO])
 
     await user.click(previewButton()!)
     const dialog = screen.getByRole('dialog')
+    expect(within(dialog).queryByRole('button', { name: 'Usuń wszystkie' })).not.toBeInTheDocument()
 
     await user.click(within(dialog).getByRole('button', { name: 'Usuń' }))
     expect(screen.getByText('Usunąć plik?')).toBeInTheDocument()
-    expect(screen.getByText(/bezpowrotnie/)).toBeInTheDocument()
+    expect(screen.getByText(/trafią do Kosza na 7 dni/)).toBeInTheDocument()
   })
 })
