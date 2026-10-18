@@ -410,5 +410,5 @@ Compare against the research baseline (`research.md` §5: 175 s wall, 725.8 user
 
 #### Automated
 
-- [x] 5.1 `bash -n .husky/pre-push`
-- [x] 5.2 Typecheck failure path reports FAILED
+- [x] 5.1 `bash -n .husky/pre-push` — c18618369
+- [x] 5.2 Typecheck failure path reports FAILED — c18618369

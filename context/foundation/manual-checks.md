@@ -1071,6 +1071,11 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       a kolumna „Przedmiar” wystaje z prawej (tabela przewija się w bok). Na desktopie bez zmian.
 - [ ] Telefon → raport pracownika (`/z/…`): kolumny tabeli wyglądają jak dotąd.
 
+## 2026-10-18 — unit-suite-speed — hook pre-push z typecheckiem równolegle
+
+- [ ] Następny prawdziwy `git push`: sekcja „typecheck” pojawia się po „DB integration specs” z
+      wynikiem `tsc`, a cały hook trwa krócej o mniej więcej czas typechecku.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

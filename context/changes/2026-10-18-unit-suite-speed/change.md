@@ -1,7 +1,7 @@
 ---
 change_id: unit-suite-speed
 title: Cut the pre-push unit leg and overlap typecheck with integration
-status: implementing
+status: implemented
 created: 2026-10-18
 updated: 2026-10-18
 archived_at: null
