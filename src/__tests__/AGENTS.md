@@ -19,9 +19,10 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
 - **`clearMocks` and `restoreMocks` are on** — no `vi.clearAllMocks()` / `vi.restoreAllMocks()` in a
   spec. `restoreMocks` restores every `vi.spyOn` before each test, so a spy created in `beforeAll` is
   gone by the first test: create it in `beforeEach`.
-- **A DB spec that never calls `vi.mock` / `vi.doMock` / `vi.spyOn` runs in `db-shared`** — one
-  module cache and one Payload boot for every such file. `vitest.config.ts` sorts by reading the
-  source, so the first mock moves a spec to the isolated `db` project on its own.
+- **A DB spec that never calls `vi.mock` / `vi.doMock` runs in `db-shared`** — one module cache and
+  one Payload boot for every such file. `vitest.config.ts` sorts by reading the source, so the first
+  module mock moves a spec to the isolated `db` project on its own. `vi.spyOn` is fine: `setup/db.ts`
+  restores every spy at the end of each file.
 - **The session is mocked one level below `requireAuth`**: `get-current-user-jwt` →
   `stubs/get-current-user-jwt`, steered through its `authState`, so the real role gate runs. A DB
   spec gets it from `setup/db.ts` and never re-mocks it — a per-file `vi.mock` would move it to the

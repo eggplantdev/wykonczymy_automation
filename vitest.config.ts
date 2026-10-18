@@ -47,7 +47,7 @@ function stubServerActions(): Plugin {
 // A spec that mocks a module would leak that mock into every later file sharing the module cache.
 const dbSpecs = globSync('src/__tests__/**/*.db.test.ts', { cwd: __dirname })
 const mocksModules = (file: string) =>
-  /\bvi\.(mock|doMock|spyOn)\(/.test(readFileSync(path.join(__dirname, file), 'utf8'))
+  /\bvi\.(mock|doMock)\(/.test(readFileSync(path.join(__dirname, file), 'utf8'))
 const dbSpecsThatMock = dbSpecs.filter(mocksModules)
 const dbSpecsMockFree = dbSpecs.filter((file) => !mocksModules(file))
 
@@ -63,7 +63,6 @@ const nodeTest = {
 const dbTest = {
   ...nodeTest,
   setupFiles: [...nodeTest.setupFiles, './src/__tests__/setup/db.ts'],
-  // A cold Payload boot in a DB spec's beforeAll runs ~9-10s, past the 10s default.
   hookTimeout: 30_000,
 }
 
@@ -91,7 +90,7 @@ export default defineConfig({
           include: dbSpecsThatMock,
         },
       },
-      // One Payload boot for the whole project instead of one per file: ~12s against ~10s per file.
+      // One module graph for the whole project instead of one per file: ~1.2s of import per file.
       {
         resolve: { alias },
         css: postcss,

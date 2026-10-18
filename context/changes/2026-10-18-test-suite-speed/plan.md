@@ -450,20 +450,20 @@ Run once, after phase 4:
 
 #### Automated
 
-- [x] 1.1 Forced rebuild creates the template with its fingerprint comment
-- [x] 1.2 Warm `db:reset:test` reuses the template in under 5 s
-- [x] 1.3 A stale fingerprint triggers a rebuild
-- [x] 1.4 `pnpm test:parity` passes on a cloned DB
-- [x] 1.5 `pnpm test:integration` passes and logs the clone step
+- [x] 1.1 Forced rebuild creates the template with its fingerprint comment — bd3ed4869
+- [x] 1.2 Warm `db:reset:test` reuses the template in under 5 s — bd3ed4869
+- [x] 1.3 A stale fingerprint triggers a rebuild — bd3ed4869
+- [x] 1.4 `pnpm test:parity` passes on a cloned DB — bd3ed4869
+- [x] 1.5 `pnpm test:integration` passes and logs the clone step — bd3ed4869
 
 ### Phase 2: Group A — `vi.spyOn` specs into `db-shared`
 
 #### Automated
 
-- [ ] 2.1 The 4 group-A specs run in `db-shared`
-- [ ] 2.2 `pnpm test:integration` passes twice
-- [ ] 2.3 A shuffled integration run passes
-- [ ] 2.4 Integration duration recorded
+- [x] 2.1 The 4 group-A specs run in `db-shared`
+- [x] 2.2 `pnpm test:integration` passes twice
+- [x] 2.3 A shuffled integration run passes (seed 26043)
+- [x] 2.4 Integration duration recorded: 62 s (64.0 s, 60.3 s; shuffled 67.4 s)
 
 ### Phase 3: Group B — domain pass-through seams
 
