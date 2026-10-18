@@ -36,7 +36,6 @@ const baseEnv = {
     client_email: 'sa@example.iam.gserviceaccount.com',
     private_key: 'key',
   }),
-  KOSZTORYS_TEMPLATE_SHEET_ID: 'sheet-id',
   OPENROUTER_API_KEY: 'x',
   CRON_SECRET: 'x',
   VERCEL_DEPLOYMENT_ID: 'dpl_test',
