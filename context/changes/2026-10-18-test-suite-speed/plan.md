@@ -478,15 +478,15 @@ Run once, after phase 4:
 
 #### Automated
 
-- [x] 4.1 No `vi.mock` / `vi.doMock` in any `*.db.test.ts`
-- [x] 4.2 The `db` project collects 0 files
-- [x] 4.3 The 11 group-C specs pass
-- [x] 4.4 `pnpm test:integration` passes twice; a shuffled run passes (seed 24236)
-- [x] 4.5 Integration duration recorded: 42 s (36.4 s, 47.3 s; shuffled 57.8 s) — target ≤ 40 s met on one run only, under load 8
+- [x] 4.1 No `vi.mock` / `vi.doMock` in any `*.db.test.ts` — be38987b3
+- [x] 4.2 The `db` project collects 0 files — be38987b3
+- [x] 4.3 The 11 group-C specs pass — be38987b3
+- [x] 4.4 `pnpm test:integration` passes twice; a shuffled run passes (seed 24236) — be38987b3
+- [x] 4.5 Integration duration recorded: 42 s (36.4 s, 47.3 s; shuffled 57.8 s) — target ≤ 40 s met on one run only, under load 8 — be38987b3
 
 ### Whole-tree Gate
 
 #### Automated
 
-- [ ] G.1 `pnpm typecheck` and `pnpm lint` pass
-- [ ] G.2 After-measurement repeats Phase 0's commands; `baseline.md` "after" column filled with the saving per command
+- [x] G.1 `pnpm typecheck` and `pnpm lint` pass — typecheck green; lint clean on every changed file (repo-wide errors are in untracked `.worktrees/`, `.playwright-mcp/` and the untouched `use-investment-from-url.test.ts`)
+- [x] G.2 After-measurement repeats Phase 0's commands; `baseline.md` "after" column filled with the saving per command — integration 70 s → 35.6 s, parity 31.8 s → 5.3 s, `db:reset:test` 27.3 s → 2.5 s

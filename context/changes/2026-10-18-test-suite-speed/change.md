@@ -1,7 +1,7 @@
 ---
 change_id: test-suite-speed
 title: Cut test-suite wall-clock time further
-status: implementing
+status: implemented
 created: 2026-10-18
 updated: 2026-10-18
 branch: staging
