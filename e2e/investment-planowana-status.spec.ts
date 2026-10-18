@@ -2,8 +2,7 @@ import { test, expect, type Locator, type Page } from '@playwright/test'
 import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import { readListingCell } from './support/table'
 import { waitForHydration } from './support/wait'
-import { openExpenseDialog } from './drivers/expenses'
-import { EXPENSE_INVESTMENT } from '@/scripts/e2e-dump-rows'
+import { isInvestmentOffered } from './drivers/expenses'
 
 const STATUS_COLUMN = 'Status'
 
@@ -26,18 +25,6 @@ async function readActiveCount(page: Page): Promise<number> {
   const shown = Number(/(\d+) \//.exec((await counter.textContent()) ?? '')?.[1])
   await page.evaluate((key) => localStorage.removeItem(key), STATUS_FILTER_KEY)
   return shown
-}
-
-// Every call also checks a known-bookable investment is in the same open list: without that,
-// „the prospekt is not offered" would pass just as well on a picker that rendered nothing at all.
-async function investmentIsOffered(page: Page, name: string): Promise<boolean> {
-  await page.goto('/')
-  await openExpenseDialog(page)
-  await page.getByLabel('Inwestycja').click()
-  await expect(page.getByRole('option', { name: EXPENSE_INVESTMENT, exact: true })).toHaveCount(1)
-  const count = await page.getByRole('option', { name, exact: true }).count()
-  await page.keyboard.press('Escape')
-  return count > 0
 }
 
 // The status select has no label, so it is found as the form's first field.
@@ -67,7 +54,7 @@ test('prospekt jest widoczny na liście, ale nie liczy się jako aktywny — dop
   )
   expect(await readActiveCount(page), 'prospekt doliczony do aktywnych').toBe(activeBefore)
   // Owner ruling 2026-10-15: money is booked on planned work, so Planowana is offered for booking.
-  expect(await investmentIsOffered(page, PROSPECT), 'prospekt poza pickerem wydatku').toBe(true)
+  expect(await isInvestmentOffered(page, PROSPECT), 'prospekt poza pickerem wydatku').toBe(true)
 
   // From the investment's own page rather than the listing row: the row is itself a link, so the
   // edit there would be a click inside a navigating element.
@@ -91,5 +78,5 @@ test('prospekt jest widoczny na liście, ale nie liczy się jako aktywny — dop
   expect(await readActiveCount(page), 'promocja nie podniosła licznika aktywnych').toBe(
     activeBefore + 1,
   )
-  expect(await investmentIsOffered(page, PROSPECT), 'promowana inwestycja poza pickerem').toBe(true)
+  expect(await isInvestmentOffered(page, PROSPECT), 'promowana inwestycja poza pickerem').toBe(true)
 })

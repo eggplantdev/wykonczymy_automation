@@ -106,3 +106,15 @@ export async function openExpenseInvestment(page: Page): Promise<number> {
   )
   return id
 }
+
+// Every call also checks a known-bookable investment is in the same open list: without that,
+// „the prospekt is not offered" would pass just as well on a picker that rendered nothing at all.
+export async function isInvestmentOffered(page: Page, name: string): Promise<boolean> {
+  await page.goto('/')
+  await openExpenseDialog(page)
+  await page.getByLabel('Inwestycja').click()
+  await expect(page.getByRole('option', { name: EXPENSE_INVESTMENT, exact: true })).toHaveCount(1)
+  const count = await page.getByRole('option', { name, exact: true }).count()
+  await page.keyboard.press('Escape')
+  return count > 0
+}
