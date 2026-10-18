@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
 vi.mock('@/lib/db/snapshots', () => ({ gcSnapshots: vi.fn() }))
@@ -57,18 +56,11 @@ const STEPS = {
 type StepT = keyof typeof STEPS
 
 describe('cron cleanup route', () => {
-  const previous = process.env.CRON_SECRET
-
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
+    vi.stubEnv('CRON_SECRET', 'test-secret')
     for (const step of Object.keys(STEPS) as StepT[]) {
       vi.mocked(STEPS[step]).mockResolvedValue(RESULTS[step] as never)
     }
-  })
-
-  afterEach(() => {
-    process.env.CRON_SECRET = previous
-    vi.clearAllMocks()
   })
 
   function request(headers: Record<string, string> = {}) {

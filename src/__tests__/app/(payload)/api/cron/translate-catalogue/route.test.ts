@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))
 vi.mock('@/lib/ai/fill-catalogue-translations', () => ({ fillCatalogueTranslations: vi.fn() }))
 
@@ -13,18 +11,15 @@ import { fillCatalogueTranslations } from '@/lib/ai/fill-catalogue-translations'
 import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 
 describe('cron translate-catalogue route', () => {
-  const previous = process.env.CRON_SECRET
   let consoleError: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
+    vi.stubEnv('CRON_SECRET', 'test-secret')
     consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    process.env.CRON_SECRET = previous
     consoleError.mockRestore()
-    vi.clearAllMocks()
   })
 
   function request(headers: Record<string, string> = {}) {

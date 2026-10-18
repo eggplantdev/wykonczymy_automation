@@ -25,7 +25,6 @@ function request(files: File[], otherCategoryNames?: string) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   mockGetUser.mockResolvedValue({ id: 1, role: 'MANAGER' })
   mockScanReceipt.mockResolvedValue({ amount: 100 })
 })

@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
 vi.mock('@/lib/leads/reconcile-sweep', () => ({ runLeadReconcileSweep: vi.fn() }))
 vi.mock('@/lib/leads/notify', () => ({
   notifyReconcileRecovery: vi.fn(),
@@ -32,20 +30,17 @@ const sweepResult = (over: Partial<Awaited<ReturnType<typeof runLeadReconcileSwe
 })
 
 describe('cron leads-reconcile route', () => {
-  const previous = process.env.CRON_SECRET
   let consoleError: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
+    vi.stubEnv('CRON_SECRET', 'test-secret')
     consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.mocked(notifyReconcileRecovery).mockResolvedValue(undefined)
     vi.mocked(notifyReconcileFailure).mockResolvedValue(undefined)
   })
 
   afterEach(() => {
-    process.env.CRON_SECRET = previous
     consoleError.mockRestore()
-    vi.clearAllMocks()
   })
 
   function request(headers: Record<string, string> = {}) {

@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))
 
 const mockGetUser = vi.fn()
@@ -45,7 +44,6 @@ function request(body: unknown) {
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000)
 
 beforeEach(() => {
-  vi.clearAllMocks()
   process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_store1_secret'
   vi.stubGlobal('fetch', fetchMock)
   mockGetUser.mockResolvedValue({ id: 7, role: 'EMPLOYEE' })
