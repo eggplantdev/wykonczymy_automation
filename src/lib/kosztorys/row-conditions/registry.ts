@@ -66,7 +66,7 @@ function settledAtPercentRate(
   )
 }
 
-const percentRateProblemLabel = (plane: ToolPlaneT, count: number) =>
+const percentRateProblemLabel = (count: number) =>
   `Stawki wykonawców liczone według formuły — ta inwestycja ma materiały wliczone w robociznę, ` +
   `więc stawki liczone ze współczynnika będą zawyżone; ustaw „Źródło ceny wykonawcy" na „kwota stała" ` +
   `(${count})`
@@ -394,7 +394,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    problemLabel: (count) => percentRateProblemLabel('w_tools', count),
+    problemLabel: percentRateProblemLabel,
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'w_tools'),
   },
   {
@@ -404,7 +404,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
-    problemLabel: (count) => percentRateProblemLabel('own_tools', count),
+    problemLabel: percentRateProblemLabel,
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'own_tools'),
   },
   ...TRANSLATION_LANGUAGES.flatMap((language): RowConditionT[] => [

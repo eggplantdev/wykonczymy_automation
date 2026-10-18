@@ -448,21 +448,21 @@ describe('rabat globalny — nadpisuje rabat per pozycja', () => {
 
 describe('globalDiscountAmount / do zapłaty', () => {
   it('kwota jest płaska', () => {
-    expect(globalDiscountAmount(1000, { type: 'amount', value: 250 })).toBe(250)
+    expect(globalDiscountAmount({ type: 'amount', value: 250 })).toBe(250)
   })
 
   it('brak rabatu / zero → 0', () => {
-    expect(globalDiscountAmount(1000, { type: null, value: 0 })).toBe(0)
-    expect(globalDiscountAmount(1000, { type: 'amount', value: 0 })).toBe(0)
+    expect(globalDiscountAmount({ type: null, value: 0 })).toBe(0)
+    expect(globalDiscountAmount({ type: 'amount', value: 0 })).toBe(0)
   })
 
   it('legacy procent → 0 (rabat globalny jest już tylko kwotowy)', () => {
-    expect(globalDiscountAmount(1000, { type: 'percent' as never, value: 10 })).toBe(0)
+    expect(globalDiscountAmount({ type: 'percent' as never, value: 10 })).toBe(0)
   })
 
   it('do zapłaty = suma − rabat', () => {
     const totalNet = 1000
-    expect(totalNet - globalDiscountAmount(totalNet, { type: 'amount', value: 250 })).toBe(750)
+    expect(totalNet - globalDiscountAmount({ type: 'amount', value: 250 })).toBe(750)
   })
 })
 

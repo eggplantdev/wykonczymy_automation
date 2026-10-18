@@ -113,7 +113,7 @@ function executedNetAsEditorShows(
     const pricing = { ...asClientPricing(item), globalDiscountActive: true }
     gross += netForQtyForView(pricing, qtyDone.get(item.id) ?? 0, 'client')
   }
-  return gross - globalDiscountAmount(gross, globalDiscount)
+  return gross - globalDiscountAmount(globalDiscount)
 }
 
 function planeTotals(
