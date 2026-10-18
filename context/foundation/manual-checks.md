@@ -1079,6 +1079,13 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
       typecheck”, a zrzut bazy się nie uruchamia.
 
+## 2026-10-18 — e2e-run-speed — E2E bez zbędnego buildu, na świeżej bazie
+
+- [ ] Następny pełny `pnpm test:e2e`: na początku „test DB: cloned from template”, potem build bez
+      sprawdzania typów, i cały przebieg przechodzi.
+- [ ] Drugi `pnpm test:e2e` bez zmian w `src/` (zmieniony tylko spec): w logu „e2e build: reused”,
+      serwer startuje w kilka sekund, a wyniki są takie same.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

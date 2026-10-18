@@ -53,10 +53,7 @@ export default defineConfig({
   // reuseExistingServer:false is load-bearing: with it true, a running
   // `next dev` (or a stale prod server) gets silently reused and the suite tests the wrong target.
   webServer: {
-    // `unstable_cache` persists to `<dist>/cache/fetch-cache`, which
-    // survives both a rebuild and a `pnpm db:import:test` — so a run started after the test DB was
-    // restored serves figures computed from rows that no longer exist.
-    command: `rm -rf ${E2E_DIST_DIR}/cache/fetch-cache && pnpm build && pnpm start`,
+    command: 'bash scripts/e2e-build.sh && pnpm start',
     env: { PORT, NEXT_DIST_DIR: E2E_DIST_DIR, DB_POSTGRES_URL: TEST_DB_URL },
     url: BASE_URL,
     reuseExistingServer: false,

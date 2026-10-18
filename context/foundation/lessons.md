@@ -320,6 +320,8 @@
 - Start the server with `pnpm test:e2e:warm:server`, iterate with `pnpm test:e2e:warm`. Never a
   hand-pasted `next start` — without `DB_POSTGRES_URL_TEST` the specs mutate the 5433 dev DB. Never
   re-run the full build per hypothesis, never `pkill` by pattern.
+- A cold `pnpm test:e2e` rebuilds `.next-e2e` only when a file the build reads changed
+  (`scripts/e2e-build.sh`); editing a spec alone reuses the build.
 - Helpers: waits in `e2e/support/wait.ts`, UI drivers in `e2e/drivers/*` (cmdk:
   `pickComboOption`). Playwright can't import the Payload graph — seed via a subprocess; wait for
   hydration (`waitForHydration`); `workers: 1`; seeds pass `context: { skipRevalidation: true }`.
