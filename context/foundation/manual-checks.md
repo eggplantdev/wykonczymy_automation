@@ -1019,6 +1019,13 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Jako Właściciel „Edytuj pracownika" u pracownika zalogowanego na telefonie → odznacz „Aktywny"
       i zapisz: telefon przy następnym kliknięciu zostaje wylogowany.
 
+## EX-1077 — scan-blocks-save — „Zapisz" czeka na odczyt paragonu
+
+- [ ] Zgłoszenie wydatku z inwestycją, jedna pozycja ze zdjęciem paragonu i jedna bez → „Odczytaj
+      ponownie" przy pozycji ze zdjęciem: póki trwa odczyt, „Zapisz" jest wyszarzony, a Enter w polu
+      pokazuje „Poczekaj na odczytanie paragonów."; po odczycie „Zapisz" → „Zapisz bez faktury":
+      zapisana transakcja ma opis i kwotę z odczytu.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
