@@ -1,10 +1,10 @@
 ---
 change_id: offer-planned-discount-amount
 title: Show the rabat amount on przedmiar in the offer and the kosztorys editor
-status: implementing
+status: archived
 created: 2026-10-16
-updated: 2026-10-16
-archived_at: null
+updated: 2026-10-18
+archived_at: 2026-10-18T09:25:00Z
 branch: offer-planned-discount-amount
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/offer-planned-discount-amount
 ---
@@ -26,3 +26,16 @@ Agreed with the user (2026-10-16):
   (b921b9476 dropped „po rabacie" from the executed-value column because it read as a granted rabat
   on offers that had none — the conditional label avoids repeating that).
 - Keep the existing „Rabat kwota netto" single-meaning (rabat on pomiar); don't overload it.
+
+Decisions and known gaps from the review gate (2026-10-16):
+
+- Known gap, no test: `hasPlannedDiscount` reads przedmiar only, so a rabat row with przedmiar 0 but
+  „aktualizacja przedmiaru" > 0 leaves the „aktualizacji" headers without „— po rabacie". Header hint
+  on a rare state; widening the predicate would also un-drop the empty column (the same predicate
+  feeds `investorEmptyColumnIds`), so it was left alone.
+- The „Opcje" checklist keeps the plain name „Rabat kwota netto (przedmiar)" — a setting keeps one
+  stable name (`COLUMN_LABELS`); the „— po rabacie" suffix lives only on headers
+  (`withAfterDiscountSuffix`).
+- Follow-up the user asked for (2026-10-16): the investor PDF also prints the rabat sum under each
+  „Razem — <sekcja>" row and a „W tym rabat" line under „Razem netto". The wording „W tym rabat" is
+  the user's even though „Razem netto" is already post-rabat — don't reword it.
