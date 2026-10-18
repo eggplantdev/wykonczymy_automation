@@ -7,9 +7,8 @@ import {
   loadEquipmentById,
   loadEquipmentOverview,
 } from '@/lib/db/equipment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 
 const MARKER = 'EX-758 current state'

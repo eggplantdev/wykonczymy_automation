@@ -5,7 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import type { InvestmentFormDataT } from '@/components/forms/investment-form/investment-schema'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The unit spec on `guardInvestmentStatusUnlock` hands the hook a `req.user` and so can never see

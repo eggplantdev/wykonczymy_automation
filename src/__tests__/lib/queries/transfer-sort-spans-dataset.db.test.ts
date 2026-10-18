@@ -2,8 +2,6 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { findTransfersRaw, type RawTransferDocT } from '@/lib/queries/transfers'
 import { ENV_READY } from '@/__tests__/helpers/payload'
 
-// Sorting that only sees already-fetched rows makes „największe kwoty" mean „on this page".
-
 const PAGE_LIMIT = 20
 
 describe.skipIf(!ENV_READY)('transfer sort spans the whole filtered set (DB)', () => {

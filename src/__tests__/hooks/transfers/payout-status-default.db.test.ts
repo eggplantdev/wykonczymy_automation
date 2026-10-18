@@ -4,10 +4,9 @@ import type { Transaction } from '@/payload-types'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createTestRegister } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
-import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 const MARKER = 'payout status default'
 const CONTEXT = { skipRevalidation: true, skipSheetSync: true }

@@ -7,7 +7,7 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const sheetState = vi.hoisted(() => ({

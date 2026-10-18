@@ -2,11 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createTestRegister } from '@/__tests__/helpers/register'
 import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
-import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('users default-kasa guard (DB)', () => {
   let payload: Payload

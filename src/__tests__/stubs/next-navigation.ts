@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-// One router for the whole file, so a spec can assert `router.push` instead of a fresh `vi.fn` per render.
+// One router for the whole file, so a spec can assert `router.push`.
 export const router = {
   push: vi.fn(),
   replace: vi.fn(),
@@ -10,7 +10,6 @@ export const router = {
   forward: vi.fn(),
 }
 
-// A spec sets these where it needs a route; the hooks read them on every render.
 export const navigationState = {
   pathname: '/',
   searchParams: new URLSearchParams(),

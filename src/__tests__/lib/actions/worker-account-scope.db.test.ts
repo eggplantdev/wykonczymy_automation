@@ -6,9 +6,8 @@ import type { RoleT } from '@/lib/auth/roles'
 import type { WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 

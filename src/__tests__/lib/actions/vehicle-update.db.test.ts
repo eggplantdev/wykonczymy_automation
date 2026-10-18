@@ -4,7 +4,7 @@ import { parseVehicleExemptions } from '@/lib/fleet/exemptions'
 import { parseVehicleFlags } from '@/lib/fleet/flags'
 import type { VehicleFormDataT } from '@/components/forms/vehicle-form/vehicle-schema'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { createTestVehicle } from '@/__tests__/helpers/fleet-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 

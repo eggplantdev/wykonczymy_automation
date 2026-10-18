@@ -42,8 +42,6 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
-    // A real user id, not the stub's 1: removeStageAction takes a pre-delete snapshot whose
-    // taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
     authState.userId = Number(firstUser.id)
     otherUserId = Number(users.docs[1]?.id ?? firstUser.id)
   })

@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import type { Payload } from 'payload'
 
-const mockRequireAuth = vi.fn()
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const mockUpdate = vi.fn()
 const mockPayload = { update: mockUpdate } as unknown as Payload
@@ -25,10 +23,9 @@ vi.mock('@/lib/db/account-removal', () => ({ fetchRemovalSubject: vi.fn() }))
 
 const { toggleUserActive, toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
 
-const mockUser = { id: 1, email: 'a@t.com', name: 'Admin', role: 'ADMIN' as const }
-
 beforeEach(() => {
-  mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: mockUser })
+  authState.userId = 1
+  authState.role = 'ADMIN'
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
   revalidateCollections.mockReset()
 })
@@ -53,12 +50,12 @@ describe('toggleUserActive', () => {
     expect(revalidateCollections).toHaveBeenCalledWith(['users'])
   })
 
-  it('auth failure → returns { success: false } without update', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: false, error: 'Unauthorized' })
+  it('refuses an EMPLOYEE, writing nothing', async () => {
+    authState.role = 'EMPLOYEE'
 
-    const result = await toggleUserActive(1, true)
+    const result = await toggleUserActive(2, true)
 
-    expect(result).toEqual({ success: false, error: 'Unauthorized' })
+    expect(result).toEqual({ success: false, error: 'Brak uprawnień' })
     expect(mockUpdate).not.toHaveBeenCalled()
     expect(revalidateCollections).not.toHaveBeenCalled()
   })

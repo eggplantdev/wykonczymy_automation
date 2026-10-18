@@ -7,12 +7,10 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-// The number printed on a fill-in form must survive every wipe-and-reinsert that is the SAME
-// work (restore) and must never be reused by one that is new work (szablon, a new praca) — a reused
-// number would resolve an old paper onto someone else's pozycja.
+// A reused number would resolve an old paper onto someone else's pozycja.
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { addItemAction } = await import('@/lib/actions/kosztorys')

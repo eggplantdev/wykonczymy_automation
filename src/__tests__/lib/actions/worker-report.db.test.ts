@@ -4,11 +4,10 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { listWorkerReports, readWorkerReport } from '@/lib/db/worker-reports'
 import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { flushAfter } from '@/__tests__/stubs/next-server'
 
 const { translateToPolish } = vi.hoisted(() => ({ translateToPolish: vi.fn() }))

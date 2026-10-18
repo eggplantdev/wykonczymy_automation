@@ -9,7 +9,7 @@ import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { canonicalTree } from '@/__tests__/helpers/canonical-snapshot'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 

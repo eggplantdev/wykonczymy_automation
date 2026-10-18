@@ -18,7 +18,6 @@ const liveTree = (overrides: Partial<KosztorysItemT> = {}, rest: Partial<Kosztor
 const stored = (live: KosztorysTreeT): StoredSnapshotPayloadT =>
   JSON.parse(JSON.stringify(serializeTree(live)))
 
-// A row written before the deploys that added these keys.
 function withoutDeployAddedKeys(payload: StoredSnapshotPayloadT): StoredSnapshotPayloadT {
   return {
     ...payload,
