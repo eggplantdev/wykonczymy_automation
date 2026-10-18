@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { EquipmentFormDataT } from '@/components/forms/equipment-form/equipment-schema'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
@@ -71,10 +72,7 @@ describe.skipIf(!ENV_READY)('equipment serial clash (DB)', () => {
     actions = await import('@/lib/actions/equipment')
     await purge()
 
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the event to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
 
     warehouseId = Number(
       (

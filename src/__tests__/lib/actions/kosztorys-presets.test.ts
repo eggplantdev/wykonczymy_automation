@@ -14,16 +14,11 @@ import {
 } from '@/__tests__/helpers/template'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const authState = vi.hoisted(() => ({ userId: 0 }))
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 // A live szablon cannot hold a tree that breaks on insert — its own unique indexes stop it — so the
@@ -70,18 +65,6 @@ function brokenPresetPayload(): SnapshotPayloadT {
     progress: [],
     settings: { wToolsCoeff: 1, ownToolsCoeff: 1, vatRate: 23 },
   }
-}
-
-async function firstUserId(payload: Payload): Promise<number> {
-  const users = await payload.find({
-    collection: 'users',
-    limit: 1,
-    depth: 0,
-    overrideAccess: true,
-  })
-  const firstUser = users.docs[0]
-  if (!firstUser) throw new Error('no user in the DB to attribute the action to')
-  return Number(firstUser.id)
 }
 
 describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', () => {
@@ -142,38 +125,17 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
       overrideAccess: true,
     })
 
-    const section = await payload.create({
-      collection: 'kosztorys-sections',
-      data: { investment: investmentId, name: 'Stan sprzed wczytania', displayOrder: 0 },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
-    })
-    const item = await payload.create({
-      collection: 'kosztorys-items',
-      data: {
-        investment: investmentId,
-        section: Number(section.id),
-        displayOrder: 0,
-        description: 'Praca wpisana ręcznie',
-        unit: 'm2',
-        plannedQty: 12,
-        clientPrice: 50,
-        discountValue: 0,
-      },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
-    })
-    const stage = await payload.create({
-      collection: 'kosztorys-stages',
-      data: { splitMode: 'percent', investment: investmentId, ordinal: 1, label: 'Etap 1' },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
-    })
-    await payload.create({
-      collection: 'stage-progress',
-      data: { item: Number(item.id), stage: Number(stage.id), qtyDone: 4 },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
+    await createKosztorysTree(payload, investmentId, {
+      sections: [
+        {
+          name: 'Stan sprzed wczytania',
+          items: [
+            { description: 'Praca wpisana ręcznie', unit: 'm2', plannedQty: 12, clientPrice: 50 },
+          ],
+        },
+      ],
+      stages: [{ label: 'Etap 1' }],
+      progress: [{ item: 0, stage: 0, qtyDone: 4 }],
     })
   }
 

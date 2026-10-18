@@ -7,6 +7,7 @@ import {
   listTransferFacets,
 } from '@/lib/db/sum-transfers'
 import { deriveFinancials } from '@/lib/db/investment-financials'
+import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import {
   fakePayload,
   lastSql,
@@ -271,22 +272,7 @@ describe('listTransferFacets', () => {
 
 describe('deriveFinancials', () => {
   it('returns zeros for empty array', () => {
-    expect(deriveFinancials([])).toEqual({
-      categoryCosts: [],
-      totalMaterialCosts: 0,
-      materialsGrossBase: 0,
-      materialsNetBilled: 0,
-      totalIncome: 0,
-      totalLaborCosts: 0,
-      totalPayouts: 0,
-      totalDiscount: 0,
-      totalLoss: 0,
-      totalBonus: 0,
-      totalSettled: 0,
-      materialsNetDiscount: 0,
-      settledCategoryCosts: [],
-      netCategoryCosts: [],
-    })
+    expect(deriveFinancials([])).toEqual(ZERO_FINANCIALS)
   })
 })
 

@@ -3,6 +3,8 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 const authState = vi.hoisted(() => ({
   userId: 0,
@@ -39,15 +41,7 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the snapshot to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, 'restore-snapshot-test')
   })
 
@@ -74,26 +68,10 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
   }
 
   it('reverts a mutated tree and creates exactly one forced auto snapshot', async () => {
-    const section = await payload.create({
-      collection: 'kosztorys-sections',
-      data: {
-        investment: investmentId,
-        name: 'Original',
-        displayOrder: 0,
-      },
-      ...ctx,
-    })
-    await payload.create({
-      collection: 'kosztorys-items',
-      data: {
-        investment: investmentId,
-        section: section.id,
-        displayOrder: 0,
-        plannedQty: 0,
-        discountValue: 0,
-        clientPrice: 0,
-      },
-      ...ctx,
+    const {
+      sectionIds: [sectionId],
+    } = await createKosztorysTree(payload, investmentId, {
+      sections: [{ name: 'Original', items: [{}] }],
     })
 
     const saved = await saveSnapshotAction(investmentId, 'przed zmianą')
@@ -106,7 +84,7 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
 
     await payload.update({
       collection: 'kosztorys-sections',
-      id: section.id,
+      id: sectionId,
       data: { name: 'Zmienione' },
       ...ctx,
     })

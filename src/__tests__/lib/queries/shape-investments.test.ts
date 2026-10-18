@@ -54,20 +54,11 @@ describe('shapeInvestments', () => {
   it('computes balance and margin from financials', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
-        categoryCosts: [],
+        ...ZERO_FINANCIALS,
         totalMaterialCosts: 1000,
         materialsGrossBase: 1000,
-        materialsNetBilled: 0,
         totalIncome: 9547,
-        totalLaborCosts: 0,
         totalPayouts: 1000,
-        totalDiscount: 0,
-        totalLoss: 0,
-        totalBonus: 0,
-        totalSettled: 0,
-        materialsNetDiscount: 0,
-        settledCategoryCosts: [],
-        netCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments(
@@ -107,21 +98,14 @@ describe('shapeInvestments', () => {
   it('prices each bucket on the plane it was recorded on when a rate is set', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
+        ...ZERO_FINANCIALS,
         // Category 1 mixes planes: 1150 brutto receipts + 100 already billed netto.
         categoryCosts: [{ categoryId: 1, total: 1250 }],
         netCategoryCosts: [{ categoryId: 1, total: 100 }],
         totalMaterialCosts: 1250,
         materialsGrossBase: 1150,
         materialsNetBilled: 100,
-        totalIncome: 0,
-        totalLaborCosts: 0,
-        totalPayouts: 0,
-        totalDiscount: 0,
-        totalLoss: 0,
-        totalBonus: 0,
-        totalSettled: 0,
         materialsNetDiscount: 230,
-        settledCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments(
@@ -138,20 +122,12 @@ describe('shapeInvestments', () => {
   it('leaves the saved rate inert under rozliczenie brutto', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
+        ...ZERO_FINANCIALS,
         categoryCosts: [{ categoryId: 1, total: 1250 }],
         netCategoryCosts: [{ categoryId: 1, total: 100 }],
         totalMaterialCosts: 1250,
         materialsGrossBase: 1150,
         materialsNetBilled: 100,
-        totalIncome: 0,
-        totalLaborCosts: 0,
-        totalPayouts: 0,
-        totalDiscount: 0,
-        totalLoss: 0,
-        totalBonus: 0,
-        totalSettled: 0,
-        materialsNetDiscount: 0,
-        settledCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments(
@@ -167,20 +143,11 @@ describe('shapeInvestments', () => {
   it('grosses the bilans on the prace alone and passes the settled spend through', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
-        categoryCosts: [],
-        netCategoryCosts: [],
+        ...ZERO_FINANCIALS,
         totalMaterialCosts: 1000,
         materialsGrossBase: 1000,
-        materialsNetBilled: 0,
         totalIncome: 9547,
-        totalLaborCosts: 0,
-        totalPayouts: 0,
-        totalDiscount: 0,
-        totalLoss: 0,
-        totalBonus: 0,
         totalSettled: 250,
-        materialsNetDiscount: 0,
-        settledCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments(
@@ -207,22 +174,7 @@ describe('shapeInvestments', () => {
     const [row] = shapeInvestments(
       [{ ...baseInv, vatRate: 0.05 }],
       {
-        '5': {
-          categoryCosts: [],
-          netCategoryCosts: [],
-          totalMaterialCosts: 0,
-          materialsGrossBase: 0,
-          materialsNetBilled: 0,
-          totalIncome: 0,
-          totalLaborCosts: 0,
-          totalPayouts: 0,
-          totalDiscount: 0,
-          totalLoss: 0,
-          totalBonus: 0,
-          totalSettled: 0,
-          materialsNetDiscount: 0,
-          settledCategoryCosts: [],
-        },
+        '5': { ...ZERO_FINANCIALS },
       },
       {
         '5': {
@@ -243,22 +195,7 @@ describe('shapeInvestments', () => {
     const [row] = shapeInvestments(
       [baseInv],
       {
-        '5': {
-          categoryCosts: [],
-          netCategoryCosts: [],
-          totalMaterialCosts: 0,
-          materialsGrossBase: 0,
-          materialsNetBilled: 0,
-          totalIncome: 0,
-          totalLaborCosts: 0,
-          totalPayouts: 0,
-          totalDiscount: 0,
-          totalLoss: 0,
-          totalBonus: 0,
-          totalSettled: 0,
-          materialsNetDiscount: 0,
-          settledCategoryCosts: [],
-        },
+        '5': { ...ZERO_FINANCIALS },
       },
       {
         '5': {
@@ -277,6 +214,7 @@ describe('shapeInvestments', () => {
   it('keeps material with no category inside wydatki inwestycyjne', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
+        ...ZERO_FINANCIALS,
         categoryCosts: [
           { categoryId: 1, total: 1250 },
           { categoryId: 2, total: 500 },
@@ -285,15 +223,7 @@ describe('shapeInvestments', () => {
         totalMaterialCosts: 1990, // the two categories plus a 240 uncategorised correction
         materialsGrossBase: 1890,
         materialsNetBilled: 100,
-        totalIncome: 0,
-        totalLaborCosts: 0,
-        totalPayouts: 0,
-        totalDiscount: 0,
-        totalLoss: 0,
-        totalBonus: 0,
-        totalSettled: 0,
         materialsNetDiscount: 378,
-        settledCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments(
@@ -314,20 +244,12 @@ describe('shapeInvestments', () => {
 describe('shapeInvestments robocizna source', () => {
   const transactionFinancials: InvestmentFinancialsMapT = {
     '5': {
-      categoryCosts: [],
-      netCategoryCosts: [],
+      ...ZERO_FINANCIALS,
       totalMaterialCosts: 1000,
       materialsGrossBase: 1000,
-      materialsNetBilled: 0,
       totalIncome: 9547,
       totalLaborCosts: 3900,
       totalPayouts: 1000,
-      totalDiscount: 0,
-      totalLoss: 0,
-      totalBonus: 0,
-      totalSettled: 0,
-      materialsNetDiscount: 0,
-      settledCategoryCosts: [],
     },
   }
 
@@ -451,20 +373,15 @@ describe('shapeInvestments robocizna source', () => {
 describe('shapeInvestments marża v2', () => {
   const transactionFinancials: InvestmentFinancialsMapT = {
     '5': {
-      categoryCosts: [],
-      netCategoryCosts: [],
+      ...ZERO_FINANCIALS,
       totalMaterialCosts: 1000,
       materialsGrossBase: 1000,
-      materialsNetBilled: 0,
       totalIncome: 9547,
       totalLaborCosts: 3900,
       totalPayouts: 1000,
-      totalDiscount: 0,
       totalLoss: 200,
-      totalBonus: 0,
       totalSettled: 300,
       materialsNetDiscount: 400,
-      settledCategoryCosts: [],
     },
   }
 

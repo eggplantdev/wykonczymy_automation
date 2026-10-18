@@ -11,6 +11,7 @@ import {
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
@@ -60,8 +61,7 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    authState.userId = Number(users.docs[0]?.id)
+    authState.userId = await firstUserId(payload)
     const worker = await payload.create({
       collection: 'users',
       data: {

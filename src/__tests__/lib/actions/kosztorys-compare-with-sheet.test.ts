@@ -3,22 +3,19 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 const sheetState = vi.hoisted(() => ({
   spreadsheetId: 'sheet-under-test' as string | undefined,
   formulas: [] as (string | number)[][],
 }))
 
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -65,15 +62,7 @@ describe.skipIf(!ENV_READY)('compareWithSheet — persisted state (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the snapshot to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, 'kosztorys-refresh-measured-qty-test')
   })
 
@@ -97,26 +86,21 @@ describe.skipIf(!ENV_READY)('compareWithSheet — persisted state (DB)', () => {
     sheetState.formulas = []
     await applyKosztorysImport(investmentId)
 
-    const section = await payload.create({
-      collection: 'kosztorys-sections',
-      data: { investment: investmentId, name: 'Poza arkuszem', displayOrder: 99 },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
-    })
-    await payload.create({
-      collection: 'kosztorys-items',
-      data: {
-        investment: investmentId,
-        section: section.id,
-        displayOrder: 0,
-        description: 'praca wpisana ręcznie',
-        plannedQty: 3,
-        sheetMeasuredQty: 7,
-        clientPrice: 100,
-        discountValue: 0,
-      },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
+    await createKosztorysTree(payload, investmentId, {
+      sections: [
+        {
+          name: 'Poza arkuszem',
+          displayOrder: 99,
+          items: [
+            {
+              description: 'praca wpisana ręcznie',
+              plannedQty: 3,
+              sheetMeasuredQty: 7,
+              clientPrice: 100,
+            },
+          ],
+        },
+      ],
     })
 
     // Every stored figure deliberately wrong, so a green assertion can only come from a real write.

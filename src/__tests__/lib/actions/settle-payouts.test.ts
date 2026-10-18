@@ -7,6 +7,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
 // after() throws outside a request scope, so it runs the task inline; the sheet sync it schedules
@@ -18,13 +19,7 @@ vi.mock('next/server', async (importOriginal) => {
 vi.mock('@/lib/actions/sheets-sync', () => ({ syncBulkExpensesToSheet: vi.fn() }))
 const { notifyPendingPayouts } = vi.hoisted(() => ({ notifyPendingPayouts: vi.fn() }))
 vi.mock('@/lib/push/notify-pending-payouts', () => ({ notifyPendingPayouts }))
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { settlePayoutsAction } = await import('@/lib/actions/settle-payouts')

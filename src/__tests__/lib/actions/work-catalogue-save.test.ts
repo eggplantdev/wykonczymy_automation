@@ -3,15 +3,12 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { saveItemToCatalogueAction } = await import('@/lib/actions/work-catalogue')
@@ -48,39 +45,19 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     if (!investment) throw new Error('no investment in the DB to attach test fixtures to')
     investmentId = Number(investment.id)
 
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the action to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
 
     suffix = `TEST-${Date.now()}`
 
-    const section = await payload.create({
-      collection: 'kosztorys-sections',
-      data: { investment: investmentId, name: `Łazienka ${suffix} 2`, displayOrder: 0 },
-      overrideAccess: true,
-      ...ctx,
+    const { sectionIds } = await createKosztorysTree(payload, investmentId, {
+      sections: [
+        { name: `Łazienka ${suffix} 2` },
+        { name: `Hydraulika ${suffix} 5` },
+        { name: ' 9' },
+      ],
     })
-    sectionId = Number(section.id)
-    createdSections.push(sectionId)
-
-    const otherSection = await payload.create({
-      collection: 'kosztorys-sections',
-      data: { investment: investmentId, name: `Hydraulika ${suffix} 5`, displayOrder: 1 },
-      overrideAccess: true,
-      ...ctx,
-    })
-    otherSectionId = Number(otherSection.id)
-    createdSections.push(otherSectionId)
-
-    const namelessSection = await payload.create({
-      collection: 'kosztorys-sections',
-      data: { investment: investmentId, name: ' 9', displayOrder: 2 },
-      overrideAccess: true,
-      ...ctx,
-    })
-    namelessSectionId = Number(namelessSection.id)
-    createdSections.push(namelessSectionId)
+    ;[sectionId, otherSectionId, namelessSectionId] = sectionIds
+    createdSections.push(...sectionIds)
   })
 
   afterEach(async () => {

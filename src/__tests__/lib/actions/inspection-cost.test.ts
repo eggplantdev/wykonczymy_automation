@@ -1,15 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import type { InspectionFormDataT } from '@/components/forms/inspection-form/inspection-schema'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { createInspectionAction } = await import('@/lib/actions/fleet')
@@ -49,10 +45,7 @@ describe.skipIf(!ENV_READY)('createInspectionAction — cost (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
 
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the action to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
 
     const created = await payload.create({
       collection: 'vehicles',

@@ -7,9 +7,7 @@ import { getSnapshot, listSnapshots } from '@/lib/db/snapshots'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
 let onSnapshotRead: (() => Promise<void>) | undefined
 vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {

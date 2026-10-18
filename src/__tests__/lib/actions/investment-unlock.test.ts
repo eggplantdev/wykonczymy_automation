@@ -4,17 +4,13 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import type { InvestmentFormDataT } from '@/components/forms/investment-form/investment-schema'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 // The unit spec on `guardInvestmentStatusUnlock` hands the hook a `req.user` and so can never see
 // whether the real route supplies one.
-const authState = vi.hoisted(() => ({ userId: 0, role: 'OWNER' as string }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { updateInvestmentAction } = await import('@/lib/actions/investments')
@@ -62,15 +58,7 @@ describe.skipIf(!ENV_READY)('reopening a completed investment (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the action to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)
   })
 

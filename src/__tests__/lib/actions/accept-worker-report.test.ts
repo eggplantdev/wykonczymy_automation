@@ -9,6 +9,7 @@ import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
@@ -112,8 +113,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    authState.userId = Number(users.docs[0]?.id)
+    authState.userId = await firstUserId(payload)
 
     workerId = await makeUser('Jan Zgłaszający', 'accept-report@test.local')
     otherWorkerId = await makeUser('Piotr Inny', 'accept-report-other@test.local')

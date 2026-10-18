@@ -4,15 +4,11 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const {
@@ -37,15 +33,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the action to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
   })
 
   // A crashed run leaves its investments behind, and financial-golden-master-db.test.ts enumerates

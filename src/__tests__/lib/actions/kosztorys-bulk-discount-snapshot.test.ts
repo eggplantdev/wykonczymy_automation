@@ -2,16 +2,13 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { sql } from '@payloadcms/db-postgres'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { applyPercentDiscountToAllItemsAction } = await import('@/lib/actions/kosztorys')
@@ -32,15 +29,7 @@ describe.skipIf(!ENV_READY)('bulk percent rabat — snapshot-before-overwrite (D
     // Self-provisioned rather than borrowed: the oldest prod-dump investments are
     // `completed`, and a completed investment refuses every kosztorys write.
     investmentId = await createTestInvestment(payload, `bulk-discount-test-${Date.now()}`)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the snapshot to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
   })
 
   afterAll(async () => {
@@ -53,35 +42,17 @@ describe.skipIf(!ENV_READY)('bulk percent rabat — snapshot-before-overwrite (D
     }
   })
 
-  const ctx = { context: { skipRevalidation: true } }
-
   async function createItemWithDiscount(): Promise<number> {
-    const section = await payload.create({
-      collection: 'kosztorys-sections',
-      data: {
-        investment: investmentId,
-        name: 'rabat-test',
-        displayOrder: 0,
-      },
-      overrideAccess: true,
-      ...ctx,
+    const { sectionIds, itemIds } = await createKosztorysTree(payload, investmentId, {
+      sections: [
+        {
+          name: 'rabat-test',
+          items: [{ plannedQty: 10, clientPrice: 100, discountType: 'amount', discountValue: 50 }],
+        },
+      ],
     })
-    createdSections.push(Number(section.id))
-    const item = await payload.create({
-      collection: 'kosztorys-items',
-      data: {
-        investment: investmentId,
-        section: Number(section.id),
-        displayOrder: 0,
-        plannedQty: 10,
-        clientPrice: 100,
-        discountType: 'amount',
-        discountValue: 50,
-      },
-      overrideAccess: true,
-      ...ctx,
-    })
-    return Number(item.id)
+    createdSections.push(...sectionIds)
+    return itemIds[0]
   }
 
   // Newest auto-snapshot id, or 0 — a capture is proven by this rising (the global retention sweep

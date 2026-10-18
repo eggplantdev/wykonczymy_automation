@@ -10,9 +10,7 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 // (`adapter.sessions[txId].db`). When that shape changes on a Payload upgrade, getDb does not throw:
 // it SILENTLY falls back to the non-transactional handle, restore stops being atomic, and a throw
 // mid-reinsert leaves the tree half-wiped with nothing to say so.
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 

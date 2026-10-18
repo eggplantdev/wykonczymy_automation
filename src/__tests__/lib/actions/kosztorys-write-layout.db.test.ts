@@ -6,15 +6,11 @@ import { readInvestmentRevision } from '@/lib/db/investment-revision'
 import { LAYOUT_STALE } from '@/lib/kosztorys/reorder-layout'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { writeKosztorysLayoutAction } = await import('@/lib/actions/kosztorys')
@@ -35,8 +31,7 @@ describe.skipIf(!ENV_READY)('writeKosztorysLayoutAction — persisted layout (DB
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    authState.userId = Number(users.docs[0]?.id)
+    authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, `layout-test-${Date.now()}`)
     otherInvestmentId = await createTestInvestment(payload, `layout-test-other-${Date.now()}`)
     ;({ sectionIds, itemIds } = await createKosztorysTree(payload, investmentId, {

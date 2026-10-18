@@ -8,6 +8,7 @@ import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
 // The seeded wypłaty go through the transfers' afterChange sheet sync, which schedules on after() —
@@ -16,13 +17,7 @@ vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
-const authState = vi.hoisted(() => ({ userId: 0, role: 'OWNER' }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { bookOverpaymentBonusAction } = await import('@/lib/actions/book-overpayment-bonus')

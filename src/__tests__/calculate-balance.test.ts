@@ -1,29 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { calculateBalance } from '@/lib/db/calculate-balance'
-import type { InvestmentFinancialsT } from '@/types/investment-financials'
-
-const base: InvestmentFinancialsT = {
-  categoryCosts: [],
-  totalMaterialCosts: 0,
-  materialsGrossBase: 0,
-  materialsNetBilled: 0,
-  totalIncome: 0,
-  totalLaborCosts: 0,
-  totalPayouts: 0,
-  totalDiscount: 0,
-  totalLoss: 0,
-  totalBonus: 0,
-  totalSettled: 0,
-  materialsNetDiscount: 0,
-  settledCategoryCosts: [],
-  netCategoryCosts: [],
-}
+import { ZERO_FINANCIALS } from '@/types/investment-financials'
 
 describe('calculateBalance', () => {
   it('is income minus material and labour costs when there is no rabat', () => {
     expect(
       calculateBalance({
-        ...base,
+        ...ZERO_FINANCIALS,
         totalIncome: 10000,
         totalMaterialCosts: 3000,
         totalLaborCosts: 2000,
@@ -34,7 +17,7 @@ describe('calculateBalance', () => {
   it('adds the rabat so the client owes less', () => {
     expect(
       calculateBalance({
-        ...base,
+        ...ZERO_FINANCIALS,
         totalIncome: 10000,
         totalMaterialCosts: 3000,
         totalLaborCosts: 2000,
@@ -46,7 +29,7 @@ describe('calculateBalance', () => {
   it('adds the loss so the client owes less', () => {
     expect(
       calculateBalance({
-        ...base,
+        ...ZERO_FINANCIALS,
         totalIncome: 10000,
         totalMaterialCosts: 3000,
         totalLaborCosts: 2000,
@@ -56,7 +39,12 @@ describe('calculateBalance', () => {
   })
 
   it('ignores the premia', () => {
-    const owed = { ...base, totalIncome: 10000, totalMaterialCosts: 3000, totalLaborCosts: 2000 }
+    const owed = {
+      ...ZERO_FINANCIALS,
+      totalIncome: 10000,
+      totalMaterialCosts: 3000,
+      totalLaborCosts: 2000,
+    }
     expect(calculateBalance({ ...owed, totalBonus: 205.01 })).toBe(calculateBalance(owed))
   })
 })

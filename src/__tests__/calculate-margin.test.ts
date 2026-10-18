@@ -1,23 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 import { deriveFinancials } from '@/lib/db/investment-financials'
-import type { InvestmentFinancialsT } from '@/types/investment-financials'
+import { ZERO_FINANCIALS, type InvestmentFinancialsT } from '@/types/investment-financials'
 
 const fin = (p: Partial<InvestmentFinancialsT>): InvestmentFinancialsT => ({
-  categoryCosts: [],
-  totalMaterialCosts: 0,
-  materialsGrossBase: 0,
-  materialsNetBilled: 0,
-  totalIncome: 0,
-  totalLaborCosts: 0,
-  totalPayouts: 0,
-  totalDiscount: 0,
-  totalLoss: 0,
-  totalBonus: 0,
-  totalSettled: 0,
-  materialsNetDiscount: 0,
-  settledCategoryCosts: [],
-  netCategoryCosts: [],
+  ...ZERO_FINANCIALS,
   ...p,
 })
 

@@ -5,24 +5,9 @@ import {
 } from '@/lib/queries/investment-financial-fields'
 import { DISCOUNT_LABEL } from '@/lib/constants/financial-field-labels'
 import { calculateBalance } from '@/lib/db/calculate-balance'
-import type { InvestmentFinancialsT } from '@/types/investment-financials'
+import { ZERO_FINANCIALS, type InvestmentFinancialsT } from '@/types/investment-financials'
 
-const base: InvestmentFinancialsT = {
-  categoryCosts: [],
-  totalMaterialCosts: 0,
-  materialsGrossBase: 0,
-  materialsNetBilled: 0,
-  totalIncome: 5000,
-  totalLaborCosts: 1000,
-  totalPayouts: 0,
-  totalDiscount: 0,
-  totalLoss: 0,
-  totalBonus: 0,
-  totalSettled: 0,
-  materialsNetDiscount: 0,
-  settledCategoryCosts: [],
-  netCategoryCosts: [],
-}
+const base: InvestmentFinancialsT = { ...ZERO_FINANCIALS, totalIncome: 5000, totalLaborCosts: 1000 }
 
 const NOTHING_BILLED_NET = { netCategoryCosts: [], netCategoryGrossCosts: [] }
 

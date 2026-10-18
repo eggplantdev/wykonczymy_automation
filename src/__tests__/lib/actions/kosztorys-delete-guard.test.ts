@@ -3,17 +3,13 @@ import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-postgres'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 vi.mock('server-only', () => ({}))
 // A real user id (looked up in beforeAll), not a hardcoded 1: removeSectionAction takes a
 // pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { removeItemAction, removeSectionAction } = await import('@/lib/actions/kosztorys')
@@ -37,15 +33,7 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     // Self-provisioned rather than borrowed: the oldest prod-dump investments are
     // `completed`, and a completed investment refuses every kosztorys write.
     investmentId = await createTestInvestment(payload, `delete-guard-test-${Date.now()}`)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
   })
 
   afterAll(async () => {

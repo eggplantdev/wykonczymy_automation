@@ -6,18 +6,13 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 // EX-949: the number printed on a fill-in form must survive every wipe-and-reinsert that is the SAME
 // work (restore) and must never be reused by one that is new work (szablon, a new praca) — a reused
 // number would resolve an old paper onto someone else's pozycja.
 vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { addItemAction } = await import('@/lib/actions/kosztorys')

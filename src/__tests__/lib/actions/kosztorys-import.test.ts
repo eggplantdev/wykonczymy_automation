@@ -4,17 +4,12 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
+import { authState } from '@/__tests__/stubs/require-auth'
 
-const authState = vi.hoisted(() => ({ userId: 0, role: 'OWNER' as string }))
 const sheetState = vi.hoisted(() => ({ spreadsheetId: 'sheet-under-test' as string | undefined }))
 
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
   ...(await importOriginal<object>()),

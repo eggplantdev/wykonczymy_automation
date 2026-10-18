@@ -8,12 +8,7 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 vi.mock('server-only', () => ({}))
 // „Podgląd pracownika" sits behind a management session; the token page never asks for one.
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
 const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-kosztorys')
 const { getWorkerReportPage, getWorkerReportPreview } =

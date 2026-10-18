@@ -10,17 +10,13 @@ import {
   createTestTemplate,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 // Deleting the entry must take the praca with it — a trashed szablon included, or restoring it would
 // bring back a praca with no content.
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { deleteCatalogueItemAction } = await import('@/lib/actions/work-catalogue')
@@ -41,8 +37,7 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    authState.userId = Number(users.docs[0]?.id)
+    authState.userId = await firstUserId(payload)
 
     entryId = await createTestCatalogueEntry(payload, 'Malowanie', { clientPrice: 30 })
     liveTemplateId = await createTestTemplate(payload, 'catalogue-delete-live')

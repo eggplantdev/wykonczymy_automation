@@ -18,7 +18,7 @@ import {
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
-import type { InvestmentFinancialsT } from '@/types/investment-financials'
+import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import { round2 } from '@/__tests__/helpers/money'
 
 // It proves PRESERVATION, not correctness: a figure the app computes wrongly today is
@@ -65,23 +65,6 @@ type SnapshotT = {
   inputHashes: { investments: HashMapT; registers: HashMapT }
   investments: Record<string, InvestmentSnapshotT>
   registers: Record<string, number>
-}
-
-const ZERO_FINANCIALS: InvestmentFinancialsT = {
-  categoryCosts: [],
-  totalMaterialCosts: 0,
-  materialsGrossBase: 0,
-  materialsNetBilled: 0,
-  totalIncome: 0,
-  totalLaborCosts: 0,
-  totalPayouts: 0,
-  totalDiscount: 0,
-  totalLoss: 0,
-  totalBonus: 0,
-  totalSettled: 0,
-  materialsNetDiscount: 0,
-  settledCategoryCosts: [],
-  netCategoryCosts: [],
 }
 
 const toPairs = (costs: { categoryId: number; total: number }[]): CategoryPairT[] =>

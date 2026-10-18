@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { sql } from '@payloadcms/db-postgres'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 // EX-613 puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
 // They are warnings, not gates — and „not a gate" is only true if the write actually lands. So this
@@ -15,13 +16,7 @@ vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
