@@ -173,7 +173,7 @@ export function MediaPreviewDialog({
     )
   }
 
-  const actions = [
+  const candidateActions: (PreviewActionT | false | null | undefined)[] = [
     onRemove &&
       active && {
         key: 'remove',
@@ -215,7 +215,8 @@ export function MediaPreviewDialog({
           icon: Download,
           href: { href: active.url, download: active.filename ?? '' },
         },
-  ].filter((action): action is PreviewActionT => Boolean(action))
+  ]
+  const actions = candidateActions.filter((action): action is PreviewActionT => Boolean(action))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
