@@ -8,6 +8,8 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { canonicalTree } from '@/__tests__/helpers/canonical-snapshot'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
 // serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
@@ -16,45 +18,7 @@ vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-function canonical(snap: SnapshotPayloadT) {
-  const sectionById = new Map(snap.sections.map((section) => [section.id, section]))
-  const itemById = new Map(snap.items.map((item) => [item.id, item]))
-  const stageById = new Map(snap.stages.map((stage) => [stage.id, stage]))
-
-  const sections = [...snap.sections]
-    .sort((a, b) => a.displayOrder - b.displayOrder)
-    .map(({ id: _id, ...rest }) => rest)
-
-  const items = snap.items
-    .map(({ id: _id, sectionId, ...rest }) => ({
-      sectionOrder: sectionById.get(sectionId)!.displayOrder,
-      ...rest,
-    }))
-    .sort((a, b) => a.sectionOrder - b.sectionOrder || a.displayOrder - b.displayOrder)
-
-  const stages = [...snap.stages]
-    .sort((a, b) => a.ordinal - b.ordinal)
-    .map(({ id: _id, ...r }) => r)
-
-  const progress = snap.progress
-    .map((entry) => {
-      const item = itemById.get(entry.itemId)!
-      return {
-        sectionOrder: sectionById.get(item.sectionId)!.displayOrder,
-        itemOrder: item.displayOrder,
-        stageOrdinal: stageById.get(entry.stageId)!.ordinal,
-        qtyDone: entry.qtyDone,
-      }
-    })
-    .sort(
-      (a, b) =>
-        a.sectionOrder - b.sectionOrder ||
-        a.itemOrder - b.itemOrder ||
-        a.stageOrdinal - b.stageOrdinal,
-    )
-
-  return { sections, items, stages, progress, settings: snap.settings }
-}
+const canonical = (snap: SnapshotPayloadT) => ({ ...canonicalTree(snap), settings: snap.settings })
 
 describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
   let payload: Payload
@@ -73,10 +37,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
       ownToolsCoeff: 0.5,
     })
 
-    // A real user id, not a hardcoded 1 — worker_id FKs users.id and a fresh prod-dump test DB has
-    // no guaranteed user 1.
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0, sort: 'id' })
-    const workerId = Number(users.docs[0]!.id)
+    const workerId = await firstUserId(payload)
 
     // Restore hand-writes the INSERT column list and
     // zips values into it positionally, so a column the fixture never sets is a column whose mapping
@@ -185,6 +146,15 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     })
   })
 
+  const restore = (snapshot: SnapshotPayloadT) =>
+    withPayloadTransaction(
+      payload,
+      (req) => restoreKosztorys(payload, req, investmentId, snapshot),
+      {
+        skipRevalidation: true,
+      },
+    )
+
   afterAll(async () => {
     if (investmentId) {
       await deleteTestInvestment(payload, investmentId)
@@ -207,11 +177,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     })
     await db.execute(sql`UPDATE investments SET vat_rate = 0.08 WHERE id = ${investmentId}`)
 
-    await withPayloadTransaction(
-      payload,
-      (req) => restoreKosztorys(payload, req, investmentId, before),
-      { skipRevalidation: true },
-    )
+    await restore(before)
 
     const after = await serializeKosztorys(investmentId)
 
@@ -237,11 +203,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     await db.execute(
       sql`UPDATE investments SET global_discount_value = 300 WHERE id = ${investmentId}`,
     )
-    await withPayloadTransaction(
-      payload,
-      (req) => restoreKosztorys(payload, req, investmentId, captured),
-      { skipRevalidation: true },
-    )
+    await restore(captured)
 
     const live = await db.execute(sql`
       SELECT global_discount_type, global_discount_value FROM investments WHERE id = ${investmentId}
@@ -258,11 +220,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
       items: current.items.map(({ currentPlannedQty: _dropped, ...rest }) => rest),
     } as unknown as SnapshotPayloadT
 
-    await withPayloadTransaction(
-      payload,
-      (req) => restoreKosztorys(payload, req, investmentId, legacy),
-      { skipRevalidation: true },
-    )
+    await restore(legacy)
 
     const after = await serializeKosztorys(investmentId)
     expect(after.items.map((item) => item.currentPlannedQty)).toEqual(after.items.map(() => null))
@@ -280,11 +238,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
       })),
     } as unknown as SnapshotPayloadT
 
-    await withPayloadTransaction(
-      payload,
-      (req) => restoreKosztorys(payload, req, investmentId, legacy),
-      { skipRevalidation: true },
-    )
+    await restore(legacy)
 
     const after = await serializeKosztorys(investmentId)
     expect(after.stages.find((stage) => stage.ordinal === assigned.ordinal)?.split).toEqual(
@@ -301,11 +255,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
       stages: current.stages.map(({ split: _dropped, ...rest }) => rest),
     } as unknown as SnapshotPayloadT
 
-    await withPayloadTransaction(
-      payload,
-      (req) => restoreKosztorys(payload, req, investmentId, legacy),
-      { skipRevalidation: true },
-    )
+    await restore(legacy)
 
     const after = await serializeKosztorys(investmentId)
     expect(after.stages.map((stage) => stage.split)).toEqual(after.stages.map(() => null))

@@ -113,17 +113,19 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     return ids
   }
 
+  async function newSection(invId: number): Promise<number> {
+    const [id] = await sectionsInDisplayOrder(invId, 1)
+    return id
+  }
+
+  async function addItems(sectionId: number, count: number): Promise<void> {
+    for (let i = 0; i < count; i++) await addItemAction(appendAt(sectionId))
+  }
+
   describe('insert-at opens the slot (DO1)', () => {
     it('inserting an item mid-section shifts the tail and lands at the index', async () => {
-      const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
-
-      await addItemAction(appendAt(sectionId))
-      await addItemAction(appendAt(sectionId))
-      await addItemAction(appendAt(sectionId))
+      const sectionId = await newSection(await freshInvestment())
+      await addItems(sectionId, 3)
       const before = await itemIdsInOrder(sectionId)
       expect(await itemOrders(sectionId)).toEqual([0, 1, 2])
 
@@ -177,10 +179,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
 
     it('refuses an insert against a section that no longer exists', async () => {
       const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
+      const sectionId = await newSection(investmentId)
       await removeSectionAction(sectionId)
 
       const inserted = await insertSectionAction(sectionId, 'below')
@@ -207,14 +206,9 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
   describe('the bake numbers per section, all-or-nothing (DO5)', () => {
     it('restarts at 0 in each section, following the sequence sent', async () => {
       const investmentId = await freshInvestment()
-      const first = await addSectionAction(investmentId)
-      const second = await addSectionAction(investmentId)
-      expect([first.success, second.success]).toEqual([true, true])
-      if (!first.success || !second.success) return
-      const [sectionA, sectionB] = [first.data.section.id, second.data.section.id]
-
-      for (const sectionId of [sectionA, sectionA, sectionB, sectionB])
-        await addItemAction(appendAt(sectionId))
+      const [sectionA, sectionB] = await sectionsInDisplayOrder(investmentId, 2)
+      await addItems(sectionA, 2)
+      await addItems(sectionB, 2)
       const [a0, a1] = await itemIdsInOrder(sectionA)
       const [b0, b1] = await itemIdsInOrder(sectionB)
 
@@ -231,13 +225,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
 
     it('refuses the whole bake — writing nothing — when one id is stale', async () => {
       const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
-
-      await addItemAction(appendAt(sectionId))
-      await addItemAction(appendAt(sectionId))
+      const sectionId = await newSection(investmentId)
+      await addItems(sectionId, 2)
       const [i0, i1] = await itemIdsInOrder(sectionId)
       const doomed = await addItemAction(appendAt(sectionId))
       expect(doomed.success).toBe(true)
@@ -253,14 +242,11 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
 
     it('refuses ids belonging to another investment', async () => {
       const mine = await freshInvestment()
-      const theirs = await freshInvestment()
-      const mySection = await addSectionAction(mine)
-      const theirSection = await addSectionAction(theirs)
-      expect([mySection.success, theirSection.success]).toEqual([true, true])
-      if (!mySection.success || !theirSection.success) return
-      await addItemAction(appendAt(theirSection.data.section.id))
+      await newSection(mine)
+      const theirSection = await newSection(await freshInvestment())
+      await addItems(theirSection, 1)
 
-      const [theirItem] = await itemIdsInOrder(theirSection.data.section.id)
+      const [theirItem] = await itemIdsInOrder(theirSection)
       const baked = await renumberKosztorysOrderAction(mine, [theirItem])
       expect(baked.success).toBe(false)
     })

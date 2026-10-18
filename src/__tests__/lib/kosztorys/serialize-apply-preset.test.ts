@@ -8,6 +8,7 @@ import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { canonicalTree } from '@/__tests__/helpers/canonical-snapshot'
 import {
   addTestTemplateSection,
   createTestCatalogueEntry,
@@ -23,49 +24,9 @@ vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const PRESET_PREFIX = 'preset-spec-'
+const ZEROED_JOB_FIGURES = { plannedQty: 0, discountType: null, discountValue: 0 }
 
-function canonicalTree(snap: StoredSnapshotPayloadT) {
-  const sectionById = new Map(snap.sections.map((s) => [s.id, s]))
-  const itemById = new Map(snap.items.map((i) => [i.id, i]))
-  const stageById = new Map(snap.stages.map((s) => [s.id, s]))
-
-  const sections = [...snap.sections]
-    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-    .map(({ id: _id, ...rest }) => rest)
-
-  // `ref` is an identity like `id`: a szablon mints new ones (item-ref.db.test.ts asserts that).
-  const items = snap.items
-    .map(({ id: _id, ref: _ref, sectionId, ...rest }) => ({
-      sectionOrder: sectionById.get(sectionId)!.displayOrder ?? 0,
-      ...rest,
-    }))
-    .sort(
-      (a, b) => a.sectionOrder - b.sectionOrder || (a.displayOrder ?? 0) - (b.displayOrder ?? 0),
-    )
-
-  const stages = [...snap.stages]
-    .sort((a, b) => a.ordinal - b.ordinal)
-    .map(({ id: _id, ...r }) => r)
-
-  const progress = snap.progress
-    .map((entry) => {
-      const item = itemById.get(entry.itemId)!
-      return {
-        sectionOrder: sectionById.get(item.sectionId)!.displayOrder ?? 0,
-        itemOrder: item.displayOrder ?? 0,
-        stageOrdinal: stageById.get(entry.stageId)!.ordinal,
-        qtyDone: entry.qtyDone,
-      }
-    })
-    .sort(
-      (a, b) =>
-        a.sectionOrder - b.sectionOrder ||
-        a.itemOrder - b.itemOrder ||
-        a.stageOrdinal - b.stageOrdinal,
-    )
-
-  return { sections, items, stages, progress }
-}
+const canonicalPreset = (snap: StoredSnapshotPayloadT) => canonicalTree(snap, { dropRef: true })
 
 describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   let payload: Payload
@@ -177,20 +138,20 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
 
     const after = await serializeKosztorys(targetId)
 
-    expect(canonicalTree(after)).toEqual(canonicalTree(preset))
+    expect(canonicalPreset(after)).toEqual(canonicalPreset(preset))
 
     for (const item of after.items) {
-      expect(item.plannedQty).toBe(0)
-      expect(item.sheetMeasuredQty).toBeNull()
-      expect(item.discountType).toBeNull()
-      expect(item.discountValue).toBe(0)
-      expect(item.aiPlannedQty).toBeNull()
-      expect(item.aiMissingData).toBeNull()
-      expect(item.aiAssumptions).toBeNull()
-      expect(item.aiNewInformation).toBeNull()
-      expect(item.aiRecheck).toBe(false)
-      expect(item.changeReason).toBeNull()
-      expect(item.reviewStatus).toBeNull()
+      expect(item).toMatchObject({
+        ...ZEROED_JOB_FIGURES,
+        sheetMeasuredQty: null,
+        aiPlannedQty: null,
+        aiMissingData: null,
+        aiAssumptions: null,
+        aiNewInformation: null,
+        aiRecheck: false,
+        changeReason: null,
+        reviewStatus: null,
+      })
     }
     expect(after.items.find((item) => item.description === 'Malowanie')!.note).toBeNull()
     expect(after.progress).toEqual([])
@@ -213,11 +174,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     expect(after.progress).toEqual([])
     expect(after.sections.map((section) => section.name)).toEqual(['Salon', 'Łazienka'])
     expect(after.items).toHaveLength(3)
-    for (const item of after.items) {
-      expect(item.plannedQty).toBe(0)
-      expect(item.discountType).toBeNull()
-      expect(item.discountValue).toBe(0)
-    }
+    for (const item of after.items) expect(item).toMatchObject(ZEROED_JOB_FIGURES)
   })
 
   it('seed onto an investment that already has etapy keeps them and adds none', async () => {
@@ -248,7 +205,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     const after = await serializeKosztorys(occupiedId)
 
     expect(result).toBe('not-empty')
-    expect(canonicalTree(after)).toEqual(canonicalTree(before))
+    expect(canonicalPreset(after)).toEqual(canonicalPreset(before))
   })
 
   it('seed refuses a source that is not a live szablon and writes nothing', async () => {
@@ -269,6 +226,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     await addTestTemplateSection(payload, presetId, 'Nowa treść', [], { displayOrder: 2 })
 
     const spawnAfter = await serializeKosztorys(spawnId)
-    expect(canonicalTree(spawnAfter)).toEqual(canonicalTree(spawnBefore))
+    expect(canonicalPreset(spawnAfter)).toEqual(canonicalPreset(spawnBefore))
   })
 })

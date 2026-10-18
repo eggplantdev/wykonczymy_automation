@@ -87,6 +87,17 @@ function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {})
 const header = (label: string) =>
   new RegExp(`<th[^>]*><span>${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</span></th>`)
 
+const headersOf = (out: string) =>
+  [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
+
+const bandTotalSpans = (out: string) => {
+  const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
+  const spans = [...totalRow.matchAll(/<td[^>]*?(?:colspan="(\d+)")?[^>]*>/g)].map((m) =>
+    Number(m[1] ?? 1),
+  )
+  return { totalRow, spanSum: spans.reduce((sum, span) => sum + span, 0) }
+}
+
 const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
 
@@ -260,12 +271,20 @@ describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => 
 
 describe('buildOfferPrintHtml — oferta przed pierwszym wpisem', () => {
   const ticked = showing('remaining', 'currentPlannedNet')
+  const updatedRows = [
+    row({
+      id: 1,
+      plannedQty: 10,
+      currentPlannedQty: 12,
+      clientPrice: 100,
+      [stageKey(CTX.stages[0]!.id)]: 4,
+    }),
+  ]
 
   it('bez wpisów drukuje Opis, Przedmiar ofertowy, j.m., Cena j.m. i Wartość netto', () => {
     const out = html([row({ id: 1, plannedQty: 10, clientPrice: 100 })], ticked)
-    const headers = [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
 
-    expect(headers).toEqual([
+    expect(headersOf(out)).toEqual([
       'Opis prac',
       'Przedmiar ofertowy',
       'Jednostka miary',
@@ -275,32 +294,14 @@ describe('buildOfferPrintHtml — oferta przed pierwszym wpisem', () => {
   })
 
   it('po pierwszym wpisie dokłada Aktualizację przedmiaru, a jej wartość zostawia odznaczoną', () => {
-    const rows = [
-      row({
-        id: 1,
-        plannedQty: 10,
-        currentPlannedQty: 12,
-        clientPrice: 100,
-        [stageKey(CTX.stages[0]!.id)]: 4,
-      }),
-    ]
-    const out = html(rows)
+    const out = html(updatedRows)
 
     expect(out).toMatch(header('Aktualizacja przedmiaru'))
     expect(out).not.toMatch(header(columnLabelForView('currentPlannedNet', 'client')))
   })
 
   it('zaznaczona wartość aktualizacji drukuje się po pierwszym wpisie', () => {
-    const rows = [
-      row({
-        id: 1,
-        plannedQty: 10,
-        currentPlannedQty: 12,
-        clientPrice: 100,
-        [stageKey(CTX.stages[0]!.id)]: 4,
-      }),
-    ]
-    const out = html(rows, ticked)
+    const out = html(updatedRows, ticked)
 
     expect(out).toMatch(header(columnLabelForView('currentPlannedNet', 'client')))
     expect(out).toContain(zloty(1200))
@@ -351,23 +352,16 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
       },
     })
 
-    const headerCells = out.match(/<th(?:\s[^>]*)?>/g) ?? []
-    const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
-    const spans = [...totalRow.matchAll(/<td[^>]*?(?:colspan="(\d+)")?[^>]*>/g)].map((m) =>
-      Number(m[1] ?? 1),
-    )
-
-    expect(headerCells).toHaveLength(2)
-    expect(spans.reduce((sum, span) => sum + span, 0)).toBe(2)
+    expect(out.match(/<th(?:\s[^>]*)?>/g) ?? []).toHaveLength(2)
+    expect(bandTotalSpans(out).spanSum).toBe(2)
   })
 
   it('drukuje kolumny w kolejności zapisanej dla oferty, „Opis prac" zawsze pierwszy', () => {
     const out = html([row()], {
       settings: { ...DEFAULT_SETTINGS, columnRanks: { description: 99, plannedNet: -2, unit: -1 } },
     })
-    const headers = [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
 
-    expect(headers.slice(0, 3)).toEqual(['Opis prac', 'Wartość netto', 'Jednostka miary'])
+    expect(headersOf(out).slice(0, 3)).toEqual(['Opis prac', 'Wartość netto', 'Jednostka miary'])
   })
 
   it('suma sekcji idzie za kolumną wartości, gdy ta stoi tuż za „Opis prac"', () => {
@@ -375,15 +369,11 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
       row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
     ]
     const out = html(rows, { settings: { ...DEFAULT_SETTINGS, columnRanks: { plannedNet: -1 } } })
-    const headerCount = (out.match(/<th(?:\s[^>]*)?>/g) ?? []).length
-    const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
-    const spans = [...totalRow.matchAll(/<td[^>]*?(?:colspan="(\d+)")?[^>]*>/g)].map((m) =>
-      Number(m[1] ?? 1),
-    )
+    const { totalRow, spanSum } = bandTotalSpans(out)
 
     expect(totalRow).toContain(`colspan="1"`)
     expect(totalRow).toContain(`Razem — Podłogi</td><td class="num">${zloty(100)}`)
-    expect(spans.reduce((sum, span) => sum + span, 0)).toBe(headerCount)
+    expect(spanSum).toBe((out.match(/<th(?:\s[^>]*)?>/g) ?? []).length)
   })
 
   it('escapuje kolor sekcji i adres logo, więc żaden nie zamyka atrybutu', () => {

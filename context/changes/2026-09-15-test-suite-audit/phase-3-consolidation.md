@@ -56,7 +56,7 @@ Out of scope: `transfer-actions.test.ts`, `bulk-transaction.test.ts`, `lib/actio
 - [x] · skipped · it.each · `expense-draft-duplicate-mark`, `draft-prefill`, `line-draft`, `new-item-dialog` and other large DOM specs · each case asserts different things (research §8)
 - [x] · skipped · vacuous · `e2e/investment-lock.spec.ts:93-95` positive control · not runnable here and „Pobierz z arkusza Google" may need a linked sheet — not obviously right; „Zapisz jako nowy szablon" already proves the menu opened
 
-### lib/kosztorys (−320 net)
+### lib/kosztorys (−453 net)
 
 - [x] · fixed · weak · `sheet-import/build-sheet-comparison.test.ts` `executedNetFromSheet > 0` → `toBeCloseTo(2287.5, 6)`, hand-derived Σetapów × cena − rabat · +1
 - [x] · fixed · helper adoption · `baseItem` in 13 files (`kosztorys-sort-value`, `kosztorys-calc`, `margin-forecast`, `build-import-plan`, `subcontractor-price-guard`, `subcontractor-price-edit`, `kosztorys-empty-sections`, `build-catalogue-comparison`, `row-conditions/fixtures`, `client-document-subtotals`, `item-key`, `build-measured-qty-refresh`, `build-sheet-comparison`) · ≈−180
@@ -67,7 +67,17 @@ Out of scope: `transfer-actions.test.ts`, `bulk-transaction.test.ts`, `lib/actio
 - [x] · dismissed · helper adoption · `createKosztorysTree` · no hand-rolled chains in the partition
 - [x] · dismissed · helper adoption · measure-discrepancy, price-divergence, serialize-restore-roundtrip, cell-edit, item-to-catalogue · not a `baseItem` shape
 - [x] · dropped · it.each · `kosztorys-calc` globalDiscountAmount / isGlobalDiscountActive · ≤4 LOC, cases carry rationale
-- [x] · skipped · not scanned · `print/offer`, `print/worker`, `subcontractor-due-by-plane`, `sheet-import/resolve-columns`, `columns/column-totals`, `serialize-*`, `display-order` · time-box
+- [x] · fixed · stale expectation · `print/worker` rate column under a section total expects the „Razem — Łazienka" label (`labelSpan` spans every column left of the first total since 53c3a5b22; `''` never passed) · ±0
+- [x] · fixed · assertion merge · `print/worker` header order → one `slice(0, 3).toEqual` · −2
+- [x] · fixed · helper · `print/offer` local `headersOf` / `bandTotalSpans`, one shared `updatedRows` fixture · −16
+- [x] · fixed · helper + it.each · `subcontractor-due-by-plane` `dueFor()` for 11 build-then-compute pairs, hoisted `sumOf`, pomiar-per-view pair → table · −42
+- [x] · fixed · assertion merge + it.each · `sheet-import/resolve-columns` single-assert layout cases folded into the wide-layout case; Pomiar absent/ambiguous and the 3 „fails …" cases → tables; module-level `expectRefused` · −44
+- [x] · fixed · it.each · `sheet-import/resolve-columns-mapping` 3 „ignores a pointing …" cases → one table · −14
+- [x] · fixed · redundant · `display-order-plan` dropped „covers every row exactly once" — the exact `toEqual` on `after` / `before` already fails on any mutation it would catch · −7
+- [x] · fixed · helper · `display-order` (DB) `newSection` / `addItems` replace 6 add-section-assert-unwrap blocks · −24
+- [x] · fixed · dedup · `serialize-restore-roundtrip` + `serialize-apply-preset` near-copies of a canonicalizer → `helpers/canonical-snapshot.ts`; roundtrip adopts `firstUserId` + local `restore()`; preset zero checks → `toMatchObject(ZEROED_JOB_FIGURES)` · −82 (−129 / +47 helper)
+- [x] · dismissed · it.each · `columns/column-totals` · every case asserts a different figure
+- [x] · dropped · it.each · `templates/serialize-template` fixture loop · same length after prettier
 
 ### Cross-cutting boilerplate (≈−550 net)
 

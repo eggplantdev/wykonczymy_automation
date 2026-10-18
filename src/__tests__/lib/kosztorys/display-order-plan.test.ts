@@ -33,13 +33,6 @@ describe('planKosztorysRenumber', () => {
     expect(after).toEqual([4, 2, 1, 3])
   })
 
-  it('covers every row exactly once', () => {
-    const { before, after } = planKosztorysRenumber(ROWS, byDescription, 'asc')
-
-    expect([...after].sort()).toEqual([1, 2, 3, 4])
-    expect([...before].sort()).toEqual([1, 2, 3, 4])
-  })
-
   it('reports the stored order as before', () => {
     const { before } = planKosztorysRenumber(ROWS, byDescription, 'asc')
 
