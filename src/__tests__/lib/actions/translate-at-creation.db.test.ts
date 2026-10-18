@@ -9,11 +9,9 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { flushAfter } from '@/__tests__/stubs/next-server'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { translateTexts } = vi.hoisted(() => ({ translateTexts: vi.fn() }))
 vi.mock('@/lib/ai/translate', () => ({ translateTexts }))

@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
+import { seedTransaction } from '@/scripts/seed-transaction'
 
-const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
 const QTY_DONE = 5
 const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE
@@ -58,29 +59,6 @@ async function seedKosztorys(payload: Payload, name: string): Promise<SeededInve
   return { investmentId: investment.id, name }
 }
 
-type TxnSeed = {
-  type: 'LABOR_COST' | 'RABAT'
-  amount: number
-  investment: number
-  description: string
-  sourceRegister?: number
-}
-
-// The transaction afterChange balance hook calls revalidateTag, which throws outside a Next request
-// context. disableTransaction lets the insert survive that throw.
-async function seedTransaction(payload: Payload, txn: TxnSeed): Promise<void> {
-  try {
-    await payload.create({
-      collection: 'transactions',
-      disableTransaction: true,
-      data: { ...txn, paymentMethod: 'TRANSFER', date: new Date().toISOString() },
-    })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    if (!message.includes('static generation store')) throw error
-  }
-}
-
 export async function seedKosztorysReconciliation(payload: Payload) {
   // A per-run suffix keeps names unique — the test DB is not reset between runs, so a stable name
   // would collide.
@@ -97,7 +75,7 @@ export async function seedKosztorysReconciliation(payload: Payload) {
     type: 'RABAT',
     amount: 30,
     investment: mismatch.investmentId,
-    sourceRegister: SOURCE_REGISTER_ID,
+    sourceRegister: EXPENSE_REGISTER.id,
     description: 'E2E rabat (niezgodny)',
   })
 

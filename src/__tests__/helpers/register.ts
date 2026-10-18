@@ -36,17 +36,3 @@ export async function createTestRegister(
   })
   return Number(register.id)
 }
-
-/** An existing scan rather than a fresh upload: creating one would push bytes to the Blob store. */
-export async function findExistingMediaId(payload: Payload): Promise<number> {
-  const media = await payload.find({
-    collection: 'media',
-    limit: 1,
-    sort: 'id',
-    depth: 0,
-    overrideAccess: true,
-  })
-  const scan = media.docs[0]
-  if (!scan) throw new Error('no media row in the DB to attach as a faktura')
-  return Number(scan.id)
-}

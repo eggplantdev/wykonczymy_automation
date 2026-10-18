@@ -7,10 +7,9 @@ import {
   trashDaysAgo,
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
+import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
   let payload: Payload

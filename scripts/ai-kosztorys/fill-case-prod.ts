@@ -22,6 +22,7 @@ import {
   itemsOfTemplate,
   norm,
   resolveActions,
+  sectionsOf,
   type ItemT,
 } from './prod-client'
 
@@ -45,12 +46,6 @@ const CASE_DIR = path.join(CASES_ROOT, 'cases', process.env.CASE ?? '')
 const read = (file: string) => readFileSync(path.join(CASE_DIR, file), 'utf8')
 const has = (file?: string) => !!file && existsSync(path.join(CASE_DIR, file))
 const sectionKey = (name: string) => sectionItemKey(name, null)
-const sectionsOf = async (investmentId: number) =>
-  (
-    await api<{ docs: { id: number; name: string; displayOrder: number }[] }>(
-      `/kosztorys-sections?where[investment][equals]=${investmentId}&limit=0&pagination=false&depth=0`,
-    )
-  ).docs
 const templateSectionsOf = async (templateId: number) =>
   (
     await api<{ docs: { id: number; name: string }[] }>(

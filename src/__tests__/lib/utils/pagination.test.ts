@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_LIMIT, parsePagination } from '@/lib/utils/pagination'
+import {
+  ALLOWED_LIMITS,
+  DEFAULT_LIMIT,
+  buildPaginationMeta,
+  parsePagination,
+} from '@/lib/utils/pagination'
 
 describe('parsePagination', () => {
   it('falls back to the caller default, and to 100 when none is given', () => {
@@ -26,5 +31,38 @@ describe('parsePagination', () => {
     ['an overflowing page', { page: '1e999' }, 1],
   ])('reads %s as page %i', (_label, searchParams, expected) => {
     expect(parsePagination(searchParams).page).toBe(expected)
+  })
+
+  it('falls back to page 1 for NaN page', () => {
+    expect(parsePagination({ page: 'abc' })).toEqual({ page: 1, limit: DEFAULT_LIMIT })
+  })
+
+  it('falls back to default limit for disallowed limit', () => {
+    expect(parsePagination({ limit: '25' })).toEqual({ page: 1, limit: DEFAULT_LIMIT })
+  })
+
+  it.each(ALLOWED_LIMITS)('accepts allowed limit %d', (limit) => {
+    expect(parsePagination({ limit: String(limit) })).toEqual({ page: 1, limit })
+  })
+
+  it('ignores array values for page', () => {
+    expect(parsePagination({ page: ['1', '2'] })).toEqual({ page: 1, limit: DEFAULT_LIMIT })
+  })
+})
+
+describe('buildPaginationMeta', () => {
+  it('passes through all fields', () => {
+    const result = buildPaginationMeta({ page: 2, totalPages: 5, totalDocs: 100 }, 20)
+    expect(result).toEqual({
+      currentPage: 2,
+      totalPages: 5,
+      totalDocs: 100,
+      limit: 20,
+    })
+  })
+
+  it('defaults currentPage to 1 when page is undefined', () => {
+    const result = buildPaginationMeta({ totalPages: 1, totalDocs: 3 }, 20)
+    expect(result.currentPage).toBe(1)
   })
 })

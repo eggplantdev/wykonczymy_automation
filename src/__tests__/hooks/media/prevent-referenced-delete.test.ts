@@ -2,15 +2,12 @@ import { APIError } from 'payload'
 import type { CollectionBeforeDeleteHook, CollectionSlug } from 'payload'
 import { describe, expect, it, vi } from 'vitest'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
-import { MEDIA_RELATIONS } from '@/lib/media/relating-collections'
+import { MEDIA_RELATIONS, RAW_MEDIA_HOLDERS } from '@/lib/media/relating-collections'
 
-const rawHolders = vi.hoisted(() => ({ drafts: 0, reports: 0 }))
+const rawHolders = vi.hoisted(() => new Map<string, number>())
 vi.mock('@/lib/db/get-db', () => ({ getDb: async () => ({}) }))
-vi.mock('@/lib/db/worker-expense-drafts', () => ({
-  countDraftsHoldingMedia: async () => rawHolders.drafts,
-}))
-vi.mock('@/lib/db/worker-reports', () => ({
-  countReportsHoldingMedia: async () => rawHolders.reports,
+vi.mock('@/lib/db/media-detachments', () => ({
+  countMediaHolders: async (_db: unknown, table: string) => rawHolders.get(table) ?? 0,
 }))
 
 function runHook(referencedBy: Partial<Record<CollectionSlug, number>>) {
@@ -46,17 +43,14 @@ describe('preventReferencedMediaDelete', () => {
     })
   })
 
-  it.each([
-    ['drafts', 'zgłoszenia wydatków'],
-    ['reports', 'zgłoszenia prac'],
-  ] as const)('probes the raw %s table', async (holder, label) => {
-    rawHolders[holder] = 1
+  it.each(RAW_MEDIA_HOLDERS)('probes the raw $table table', async ({ table, label }) => {
+    rawHolders.set(table, 1)
     try {
       await expect(runHook({})).rejects.toMatchObject({
         message: expect.stringContaining(`${label}: 1`),
       })
     } finally {
-      rawHolders[holder] = 0
+      rawHolders.delete(table)
     }
   })
 })

@@ -1,18 +1,16 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload, Where } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
 import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
 import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/types'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { findExpenseDuplicateGroups } = await import('@/lib/queries/expense-duplicate-groups')
 

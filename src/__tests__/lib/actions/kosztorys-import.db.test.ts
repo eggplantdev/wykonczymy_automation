@@ -6,12 +6,11 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const sheetState = vi.hoisted(() => ({ spreadsheetId: 'sheet-under-test' as string | undefined }))
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   getInvestmentSheet: vi

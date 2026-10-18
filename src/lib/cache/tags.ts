@@ -24,12 +24,8 @@ export const CACHE_TAGS = {
   warehouses: 'collection:warehouses',
 } as const
 
-/**
- * The entities a cache entry may key on, singular. A closed union rather than `string` because the
- * name has to match on both sides and nothing else catches a typo: a producer tagging
- * `investments:6` and a consumer expiring `investment:6` compile fine and leave a permanently stale
- * read.
- */
+// A closed union, not `string`: a producer tagging `investments:6` and a consumer expiring
+// `investment:6` would compile fine and leave a permanently stale read.
 export type EntityNameT = 'investment' | 'cash-register'
 
 export const entityTag = (entity: EntityNameT, id: number | string) => `${entity}:${id}` as const
@@ -150,12 +146,7 @@ export const EXPIRE_NOW = { expire: 0 } as const
 /**
  * The deferred twin: expires the tag without streaming a render back in the action response. It
  * does NOT spare the calling route — the client follows up with a GET of it (lessons.md).
- *
- * `revalidate()` ends with `if (!profile || cacheLife?.expire === 0) store.pathWasRevalidated = …`,
- * and that flag is what makes a Server Action stream a fresh render of its own route back in the
- * action response. So `EXPIRE_NOW` inside an action is observationally identical to `updateTag` —
- * including the 90-193 ms per debounced save that `EXPIRE_NEXT` spares the editor's autosaves. Any
- * non-zero `expire` leaves the flag unset, and one second is past by the time the next request for
- * another route arrives, so the entry is a hard miss rather than a stale-while-revalidate hit.
+ * `EXPIRE_NOW` inside an action is observationally identical to `updateTag` — including the
+ * 90-193 ms per debounced save that this spares the editor's autosaves.
  */
 export const EXPIRE_NEXT = { expire: 1 } as const

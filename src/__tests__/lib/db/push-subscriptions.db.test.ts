@@ -8,9 +8,8 @@ import {
   selectLivePushSubscriptions,
   upsertPushSubscription,
 } from '@/lib/db/push-subscriptions'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 const PHONE = 'https://push.test.local/phone'
 const TABLET = 'https://push.test.local/tablet'

@@ -12,8 +12,6 @@ import {
 } from '@/__tests__/helpers/template'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
-
 const { templateAction } = await import('@/lib/actions/template-action')
 
 describe.skipIf(!ENV_READY)('templateAction (DB)', () => {

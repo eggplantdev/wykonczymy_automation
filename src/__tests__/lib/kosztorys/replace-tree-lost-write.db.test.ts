@@ -6,10 +6,8 @@ import { getDb } from '@/lib/db/get-db'
 import { getSnapshot, listSnapshots } from '@/lib/db/snapshots'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 let onSnapshotRead: (() => Promise<void>) | undefined
 vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {

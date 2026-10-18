@@ -1,11 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { updateInvestmentCoeffsAction } = await import('@/lib/actions/kosztorys')
 

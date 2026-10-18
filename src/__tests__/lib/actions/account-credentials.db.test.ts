@@ -7,8 +7,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { createTestUser } from '@/__tests__/helpers/user'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
-
 const PREFIX = 'ex989'
 const SELF = `${PREFIX}-self@test.invalid`
 const OTHER = `${PREFIX}-other@test.invalid`

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
@@ -11,7 +11,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 // (`adapter.sessions[txId].db`). When that shape changes on a Payload upgrade, getDb does not throw:
 // it SILENTLY falls back to the non-transactional handle, restore stops being atomic, and a throw
 // mid-reinsert leaves the tree half-wiped with nothing to say so.
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 describe.skipIf(!ENV_READY)('restore rollback on error (DB)', () => {
   let payload: Payload

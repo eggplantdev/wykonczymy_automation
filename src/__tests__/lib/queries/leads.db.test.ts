@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -8,8 +8,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia } from '@/__tests__/helpers/media'
 
 // Counts are asserted as a difference — the shared test DB carries leads of its own.
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const MARKER = `EX-970 hidden ${Date.now()}`
 // No `notification_reads` row exists for it, so the badge reads from the stream's epoch.

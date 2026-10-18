@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -11,12 +11,11 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Deleting the entry must take the praca with it — a trashed szablon included, or restoring it would
 // bring back a praca with no content.
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { deleteCatalogueItemAction } = await import('@/lib/actions/work-catalogue')
 

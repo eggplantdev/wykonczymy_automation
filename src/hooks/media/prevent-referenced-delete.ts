@@ -1,7 +1,11 @@
 import { makePreventDelete } from '@/hooks/prevent-delete'
-import { countDraftsHoldingMedia } from '@/lib/db/worker-expense-drafts'
-import { countReportsHoldingMedia } from '@/lib/db/worker-reports'
-import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
+import type { DbExecutorT } from '@/lib/db/get-db'
+import { countMediaHolders } from '@/lib/db/media-detachments'
+import {
+  MEDIA_RELATIONS,
+  RAW_MEDIA_HOLDERS,
+  mediaReferenceWhere,
+} from '@/lib/media/relating-collections'
 
 /**
  * Every `*_rels` FK into `media` is ON DELETE cascade, so without this the delete succeeds and
@@ -14,9 +18,10 @@ export const preventReferencedMediaDelete = makePreventDelete({
       where: (id: string | number) => mediaReferenceWhere(field, id),
       label,
     })),
-    // Mirrors RAW_MEDIA_HOLDER_TABLES by hand; a new raw holder table goes in both.
-    { label: 'zgłoszenia wydatków', count: (db, id) => countDraftsHoldingMedia(db, Number(id)) },
-    { label: 'zgłoszenia prac', count: (db, id) => countReportsHoldingMedia(db, Number(id)) },
+    ...RAW_MEDIA_HOLDERS.map(({ table, label }) => ({
+      label,
+      count: (db: DbExecutorT, id: string | number) => countMediaHolders(db, table, Number(id)),
+    })),
   ],
   message: (blockers) =>
     `Nie można usunąć pliku — jest używany w innych miejscach (${blockers.join(', ')}). Najpierw odepnij go tam.`,

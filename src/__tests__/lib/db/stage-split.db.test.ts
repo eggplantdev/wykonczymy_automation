@@ -3,11 +3,10 @@ import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { replaceStageSplit } from '@/lib/db/stage-split'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('stage members mint the worker report link (DB)', () => {
   let payload: Payload

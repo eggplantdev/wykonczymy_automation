@@ -1,16 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { parseVehicleFlags } from '@/lib/fleet/flags'
 import { warsawToday } from '@/lib/utils/days'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { createTestVehicle } from '@/__tests__/helpers/fleet-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The re-tick trap: a mark already answered by an inspection still has its old day in the stored
 // map, so "keep whatever is stored" would write back a day the history covers and the tick would
 // silently do nothing.
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const { setVehicleFlagsAction } = await import('@/lib/actions/fleet')
 

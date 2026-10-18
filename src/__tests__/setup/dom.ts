@@ -40,7 +40,6 @@ if (!Element.prototype.hasPointerCapture) {
   Element.prototype.releasePointerCapture = () => {}
 }
 
-// A spec asserting a toast imports `toastMessage` and reads it as the mock.
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 // The App Router hooks throw outside a mounted Next app.

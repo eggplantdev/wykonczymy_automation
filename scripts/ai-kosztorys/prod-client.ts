@@ -8,7 +8,6 @@ import type { ReviewStatusT } from '@/lib/kosztorys/types'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 
 export const BASE = 'https://wykonczymy.vercel.app'
-// The cases live in the private repo eggplantdev/wykonczymy-ai-cases, cloned next to this one.
 export const CASES_ROOT =
   process.env.AI_CASES_DIR ?? path.join(import.meta.dirname, '../../../wykonczymy-ai-cases')
 const TOKEN = readFileSync(process.env.TOKEN_FILE ?? '', 'utf8').trim()
@@ -125,6 +124,17 @@ export const itemsOf = async (investmentId: number) =>
     )
   ).docs
 
+type OrderedItemT = Pick<ItemT, 'displayOrder' | 'section'>
+export const byKosztorysOrder = (a: OrderedItemT, b: OrderedItemT) =>
+  a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder
+
+export const sectionsOf = async (investmentId: number) =>
+  (
+    await api<{ docs: ItemT['section'][] }>(
+      `/kosztorys-sections?where[investment][equals]=${investmentId}&limit=0&pagination=false&depth=0`,
+    )
+  ).docs
+
 type TemplateItemDocT = {
   id: number
   displayOrder: number
@@ -162,15 +172,6 @@ export async function itemsOfTemplate(templateId: number): Promise<ItemT[]> {
     catalogueItemId: catalogueItem.id,
     section: { id: section.id, name: section.name, displayOrder: section.displayOrder },
   }))
-}
-
-export function keyed(items: ItemT[]) {
-  const byKey = new Map<string, ItemT[]>()
-  for (const item of items) {
-    const key = `${norm(item.section.name)}|${norm(item.description ?? '')}`
-    byKey.set(key, [...(byKey.get(key) ?? []), item])
-  }
-  return byKey
 }
 
 export async function uploadMedia(name: string, bytes: Buffer, mimeType: string, kind: MediaKindT) {

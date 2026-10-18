@@ -552,6 +552,7 @@ export const uk: TranslationsT = {
     previewLoadFailed: 'Не вдалося завантажити перегляд.',
     previousPage: 'Попередня сторінка',
     nextPage: 'Наступна сторінка',
+    moreActions: 'Більше дій',
     dropOrClick: 'Перетягніть або натисніть',
     unsupportedFormat: 'Непідтримуваний формат файлу. Дозволено: {{allowed}}',
     mimeImages: 'зображення',

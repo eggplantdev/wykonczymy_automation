@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-983, the DESTRUCTIVE tail: the `/p` link and the `kosztorys-worker-shares` collection
+// The DESTRUCTIVE tail: the `/p` link and the `kosztorys-worker-shares` collection
 // are gone from the code (ab573bda6), so the table and its lock-rels column are read by nothing.
 // Runs only once that deploy is live — the old code's Payload lock-check SELECTs the column (42703).
 export async function up({ db }: MigrateUpArgs): Promise<void> {

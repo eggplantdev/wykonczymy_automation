@@ -6,11 +6,9 @@ import { getSnapshot } from '@/lib/db/snapshots'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 let onSnapshotRead: (() => Promise<void>) | undefined
 vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {
@@ -49,7 +47,6 @@ describe.skipIf(!ENV_READY)('version restore vs a concurrent autosave (DB)', () 
     if (investmentId) await deleteTestInvestment(payload, investmentId)
   })
 
-  // Timeout: an untimed `it` hangs the serial pre-push integration leg forever with no output.
   it(
     'keeps an edit committed between the snapshot read and the wipe restorable',
     { timeout: 30_000 },

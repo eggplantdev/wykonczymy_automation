@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
-import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
+import { BONUS_FORBIDDEN_MESSAGE, type RoleT } from '@/lib/auth/roles'
 import { flushAfter } from '@/__tests__/stubs/next-server'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 const mockSyncSingle = vi.fn()
 const mockSyncBulk = vi.fn()
@@ -41,8 +42,6 @@ const otherManagerUser = { id: 4, email: 'mgr2@t.com', name: 'Manager2', role: '
 
 const VALID_CANCEL_REASON = 'Test reason at least ten chars'
 
-const mockRequireAuth = vi.fn()
-
 vi.mock('payload', async (importOriginal) => {
   const actual = await importOriginal<typeof import('payload')>()
   return {
@@ -51,9 +50,12 @@ vi.mock('payload', async (importOriginal) => {
   }
 })
 
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
+
+const signInAs = (user: { id: number; role: RoleT }) => {
+  authState.userId = user.id
+  authState.role = user.role
+}
 
 const mockDbExecute = vi.fn()
 
@@ -159,7 +161,7 @@ beforeEach(() => {
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
-  mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: adminUser })
+  signInAs(adminUser)
   mockDbExecute.mockReset().mockResolvedValue({ rows: [defaultDbRow()] })
   mockSyncSingle.mockReset()
   mockSyncBulk.mockReset()
@@ -279,13 +281,22 @@ describe('createTransferAction', () => {
   })
 
   it('manager can transfer from any register regardless of owner', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
+    signInAs(managerUser)
     // Register owner_id = 1, managerUser.id = 3
     mockDbExecute.mockResolvedValueOnce({ rows: [defaultDbRow({ owner_id: 1 })] })
 
     const result = await createTransferAction(makeSingleTransferData())
 
     expect(result.success).toBe(true)
+  })
+
+  it('refuses an EMPLOYEE, writing nothing', async () => {
+    signInAs({ id: 5, role: 'EMPLOYEE' })
+
+    const result = await createTransferAction(makeSingleTransferData())
+
+    expect(result).toEqual({ success: false, error: 'Brak uprawnień' })
+    expect(mockCreate).not.toHaveBeenCalled()
   })
 })
 
@@ -420,7 +431,7 @@ describe('BONUS — only ADMIN / OWNER grant a premia', () => {
   const bonus = { type: 'BONUS' as const, sourceRegister: undefined, worker: 1 }
 
   it('refuses a MANAGER on the bulk path, writing nothing', async () => {
-    mockRequireAuth.mockResolvedValue({ success: true, user: managerUser })
+    signInAs(managerUser)
 
     const result = await createBulkTransferAction(makeBulkTransferData(1, bonus))
 
@@ -429,7 +440,7 @@ describe('BONUS — only ADMIN / OWNER grant a premia', () => {
   })
 
   it.each([ownerUser, adminUser])('lets $role book one', async (user) => {
-    mockRequireAuth.mockResolvedValue({ success: true, user })
+    signInAs(user)
 
     const result = await createTransferAction(makeSingleTransferData(bonus))
 
@@ -468,7 +479,7 @@ describe.each([
     ['an ADMIN', adminUser, managerUser.id],
     ['an OWNER', ownerUser, managerUser.id],
   ])('lets %s through', async (_label, user, createdBy) => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user })
+    signInAs(user)
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy }))
 
     expect((await run()).success).toBe(true)
@@ -489,7 +500,7 @@ describe.each([
       `Nie masz uprawnień do ${verb} tej transakcji.`,
     ],
   ])('refuses %s, writing nothing', async (_label, user, original, error) => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user })
+    signInAs(user)
     mockFindByID.mockResolvedValueOnce(original)
 
     expect(await run()).toEqual({ success: false, error })

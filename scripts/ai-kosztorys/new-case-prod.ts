@@ -8,6 +8,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import path from 'node:path'
 import {
   api,
+  byKosztorysOrder,
   BASE,
   callAction,
   CASES_ROOT,
@@ -17,7 +18,7 @@ import {
   type MediaKindT,
 } from './prod-client'
 
-// A szablon is a `templates` row: its id is not the id of the investment it was before EX-1075.
+// A szablon is a `templates` row: its id is not the id of the investment it used to be.
 const PRESET_ID = Number(process.env.PRESET_ID)
 if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
 const DRY = process.env.DRY === '1'
@@ -95,9 +96,7 @@ async function run() {
   const investmentId = created.docs[0].id
 
   const rozpiska = template
-    .toSorted(
-      (a, b) => a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder,
-    )
+    .toSorted(byKosztorysOrder)
     .map((i) =>
       [i.section.displayOrder, i.section.name, i.id, i.description, i.unit, i.clientPrice, ''].join(
         ' | ',

@@ -4,15 +4,12 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // The ownership filter runs against the real `media` rows; only the reclaim is replaced, so the
 // spec reads which ids reached it without deleting fixture rows through the Blob plugin.
 
-const { getCurrentUserJwt, reclaimUnreferencedMedia } = vi.hoisted(() => ({
-  getCurrentUserJwt: vi.fn(),
-  reclaimUnreferencedMedia: vi.fn(),
-}))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
+const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
 
 const FILENAME_PREFIX = 'ex-971-orphan-'
@@ -52,12 +49,7 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
   afterAll(purge)
 
   it('an EMPLOYEE reclaims only the files he uploaded', async () => {
-    getCurrentUserJwt.mockResolvedValue({
-      id: workerId,
-      role: 'EMPLOYEE',
-      name: 'E',
-      email: 'e@t.pl',
-    })
+    Object.assign(authState, { userId: workerId, role: 'EMPLOYEE' })
 
     const result = await deleteOrphanedMediaAction([ownMedia, foreignMedia])
 
@@ -66,12 +58,7 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
   })
 
   it('management reclaims every id it names', async () => {
-    getCurrentUserJwt.mockResolvedValue({
-      id: workerId,
-      role: 'MANAGER',
-      name: 'M',
-      email: 'm@t.pl',
-    })
+    Object.assign(authState, { userId: workerId, role: 'MANAGER' })
 
     await deleteOrphanedMediaAction([ownMedia, foreignMedia])
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -6,8 +6,6 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { sql } from '@payloadcms/db-postgres'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const {
   addStageAction,
@@ -42,8 +40,6 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
-    // A real user id, not the stub's 1: removeStageAction takes a pre-delete snapshot whose
-    // taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
     authState.userId = Number(firstUser.id)
     otherUserId = Number(users.docs[1]?.id ?? firstUser.id)
   })

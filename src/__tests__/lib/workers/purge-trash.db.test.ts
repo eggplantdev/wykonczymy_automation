@@ -7,8 +7,8 @@ import {
   WITHIN_RETENTION_DAYS,
   trashDaysAgo,
 } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const MARKER = 'kosz-pracownikow purge'

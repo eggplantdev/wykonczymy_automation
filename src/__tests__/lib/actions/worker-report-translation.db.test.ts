@@ -8,15 +8,11 @@ import {
   readWorkerReport,
   type WorkerReportLineInputT,
 } from '@/lib/db/worker-reports'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
+import { createTestUser, purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
 
 const { translateToPolish } = vi.hoisted(() => ({ translateToPolish: vi.fn() }))
 vi.mock('@/lib/ai/translate', () => ({ translateToPolish }))

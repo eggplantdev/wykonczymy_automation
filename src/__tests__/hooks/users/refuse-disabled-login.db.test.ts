@@ -2,10 +2,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { DISABLED_ACCOUNT_ERROR } from '@/lib/constants/worker-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 // Payload writes the session row BEFORE `beforeLogin` runs and revokes it on a throw — the assertion
 // on `users_sessions` is what proves no usable session survives a refused login.

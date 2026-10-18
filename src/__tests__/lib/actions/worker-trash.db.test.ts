@@ -1,26 +1,16 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createTestRegister } from '@/__tests__/helpers/register'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
-import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { trashDaysAgo } from '@/__tests__/helpers/investment'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // Every refusal is asserted on the rows, not the result: the pair is one transaction that commits a
 // returned refusal, so a refusal decided after the first write would still leave a kasa trashed.
-
-const { session } = vi.hoisted(() => ({ session: { id: 1, role: 'OWNER' } }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => ({
-    id: session.id,
-    role: session.role,
-    name: 'T',
-    email: 't@t.pl',
-  })),
-}))
 
 const PASSWORD = 'test-password-123'
 const MARKER = 'kosz-pracownikow actions'
@@ -68,8 +58,8 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
   })
 
   beforeEach(() => {
-    session.id = 1
-    session.role = 'OWNER'
+    authState.userId = 1
+    authState.role = 'OWNER'
   })
 
   afterAll(async () => {
@@ -138,7 +128,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('refuses trashing your own account', async () => {
     const worker = await createWorker()
-    session.id = worker.id
+    authState.userId = worker.id
 
     expect(await actions.trashWorkerAction(worker.id)).toEqual({
       success: false,
@@ -149,7 +139,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('answers a MANAGER about an OWNER as missing', async () => {
     const owner = await createWorker('OWNER')
-    session.role = 'MANAGER'
+    authState.role = 'MANAGER'
 
     const result = await actions.trashWorkerAction(owner.id)
 

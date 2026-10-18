@@ -22,8 +22,7 @@ const qtyDone = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   ctx.qtyDoneByRowId?.get(row.id) ?? rowTotalQtyDone(row, ctx.stages, 'client')
 
 // Both przedmiary count: a pozycja added after the offer has ofertowy 0 and a priced
-// aktualizacja, and the client's document still shows that figure. So unlike „bez przedmiaru", an
-// offer Przedmiar alone already makes a row non-empty here.
+// aktualizacja, and the client's document still shows that figure.
 const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   !(row.plannedQty > 0) && !(resolvedCurrentPlannedQty(row) > 0) && !(qtyDone(row, ctx) > 0)
 

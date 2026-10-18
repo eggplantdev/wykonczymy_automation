@@ -13,11 +13,8 @@ type UploadFieldTargetT = {
 export const investmentAssetsField = (investmentId: number) =>
   ({ collection: 'investments', field: 'assets', id: investmentId }) as const
 
-/**
- * Two writers on one field inside the same find→update window still lose one of their lists.
- * Dropped files are recorded before the update: a crash in between leaves an attached file in the
- * trash, which the nightly sweep heals, never a detached file without provenance.
- */
+// Dropped files are recorded before the update: a crash in between leaves an attached file in the
+// trash, which the nightly sweep heals, never a detached file without provenance.
 export async function setUploadField(
   payload: Payload,
   { collection, field, id }: UploadFieldTargetT,

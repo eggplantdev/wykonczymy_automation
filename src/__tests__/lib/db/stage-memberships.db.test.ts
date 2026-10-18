@@ -4,7 +4,6 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { listWorkersWithActiveStages, listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import {
   createTestInvestment,
   deleteTestInvestment,
@@ -12,7 +11,7 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
   let payload: Payload

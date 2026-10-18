@@ -5,9 +5,9 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { listTransferFacets, sumFilteredByType, sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 const MARKER = 'sum-transfers db'
 const ctx = { context: { skipRevalidation: true, skipSheetSync: true } }

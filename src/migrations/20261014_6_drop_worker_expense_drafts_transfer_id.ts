@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-1007, the DESTRUCTIVE tail: `worker_expense_draft_transfers` (20261006_2) holds the
+// The DESTRUCTIVE tail: `worker_expense_draft_transfers` (20261006_2) holds the
 // link, and the column stayed only while the old deploy could still write it. The backfill catches a
 // row that deploy wrote after 20261006_2 copied the rest; dropping the column drops its index.
 // Runs only once that deploy is live — the old code writes the column (42703).

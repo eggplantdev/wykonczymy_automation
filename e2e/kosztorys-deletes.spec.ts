@@ -2,12 +2,14 @@ import { test, expect, type Page } from '@playwright/test'
 import { type E2ESeedsT, readSeed } from './support/seeds'
 import { clickAndSettle } from './support/wait'
 import {
-  GRID_VIEWPORT,
   collapseSummaryPanel,
   expectCellValue,
+  GRID_VIEWPORT,
   gridRow,
   LOAD_VERSION_ITEM,
   openEditor,
+  openRowMenu,
+  openSectionMenu,
   pickKosztorysOption,
   rowCell,
   sectionBand,
@@ -36,7 +38,7 @@ test('deleting a populated pozycja asks first, and the version it leaves behind 
   await openEditor(page, seed.item)
   await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1)
 
-  await gridRow(page, 'Praca alfa jeden').getByRole('button', { name: 'Akcje wiersza' }).click()
+  await openRowMenu(page, 'Praca alfa jeden')
   await page.getByRole('menuitem', { name: 'Usuń pozycję' }).click()
 
   await expect(confirm(page)).toContainText('Usunąć pozycję?')
@@ -48,7 +50,7 @@ test('deleting a populated pozycja asks first, and the version it leaves behind 
   await collapseSummaryPanel(page)
   await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1)
 
-  await gridRow(page, 'Praca alfa jeden').getByRole('button', { name: 'Akcje wiersza' }).click()
+  await openRowMenu(page, 'Praca alfa jeden')
   await page.getByRole('menuitem', { name: 'Usuń pozycję' }).click()
   await clickAndSettle(confirm(page).getByRole('button', { name: 'Usuń' }))
 
@@ -78,7 +80,7 @@ test('deleting a populated sekcja takes its prace with it and leaves the other s
   await openEditor(page, seed.section)
   await expect(sectionBand(page, 'Sekcja beta')).toHaveCount(1)
 
-  await sectionBand(page, 'Sekcja beta').getByRole('button', { name: 'Akcje sekcji' }).click()
+  await openSectionMenu(page, 'Sekcja beta')
   await page.getByRole('menuitem', { name: 'Usuń sekcję' }).click()
 
   await expect(confirm(page)).toContainText('Sekcja beta')

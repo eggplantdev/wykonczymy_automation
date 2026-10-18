@@ -597,6 +597,10 @@ właściciel poprawia ręcznie.
   woła AI**: siatka zapisuje każdą komórkę osobno, więc odpowiedź AI przychodząca po kilku sekundach
   ścigałaby się z następną edycją, a opis poprawiany po kawałku kosztowałby wywołanie na każdy krok.
   Tłumaczenie robi się nieaktualne, trafia do „Problemów" i naprawia je przycisk hurtowy.
+- **Co noc (02:00 UTC) katalog dotłumacza się sam** — cron `/api/cron/translate-catalogue` robi to,
+  co „Uzupełnij tłumaczenia (AI)" w Katalogu prac, więc obejmuje też szablony (ich opisy to wpisy
+  katalogu); rozpiski inwestycji dalej tylko przyciskiem. Tłumaczenie przy zapisie odrzucone —
+  dialogi czekałyby 2–3 s.
 - **Nieudane AI nigdy nie blokuje zapisu ani wysyłki** — wiersz zapisuje się bez tłumaczenia i wychodzi
   jako brakujący. AI działa przed otwarciem transakcji zapisu; żadna transakcja nie czeka na model.
 - **Spóźniona odpowiedź przegrywa.** Zapis tłumaczenia jest warunkowy: trafia tylko wtedy, gdy wiersz
@@ -1981,6 +1985,9 @@ samego szablonu trzyma to, co w nim wpisano, więc zamknięta lista kolumn szabl
 potem po cichu przy użyciu szablonu.
 
 ## Szablon jest inwestycją o statusie `szablon` (2026-09-29)
+
+> **Nieaktualne od 2026-10-16** — szablon ma własne tabele, zob. „Szablon ma własne tabele
+> (2026-10-15)". Aktualny został tylko ostatni akapit (kosztorysy z szablonu to zamrożone kopie).
 
 Treść szablonu to **drzewo kosztorysu jego własnej inwestycji** — ta sama tabela sekcji i prac, te
 same akcje, te same „Wersje". Nie ma już biblioteki jsonb (`kosztorys_presets`), wspólnego warsztatu

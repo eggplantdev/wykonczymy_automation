@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { CollectionBeforeDeleteHook, Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -12,8 +12,6 @@ import { createTestInvestment } from '@/__tests__/helpers/investment'
 // `assets` is investments' first relationship field, so this asserts the join table the migration
 // created actually matches what Payload writes into it — a shape a mocked `payload.update` cannot
 // see.
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const NAME = 'EX-802 investment assets'
 const FILENAMES = ['ex-802-a.jpg', 'ex-802-b.jpg']

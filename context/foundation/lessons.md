@@ -136,10 +136,12 @@
 - A field added to a tree entity is not done until the raw INSERT column list knows it
   (`insert-kosztorys-tree.ts`, e.g. `STAGE_INSERT_COLUMNS`); `insert-schema-drift.db.test.ts` checks both
   directions against `information_schema`.
-- The undo of a destructive replace is a snapshot taken **inside** the transaction, before the wipe:
-  pass the transaction's `req` to `captureAutoSnapshot` / `serializeKosztorys` — without it the tree is
-  read on another connection, outside the locks. Import and `replaceTreeWithSnapshot` pass
-  it; the version restore, catalogue insert and worker-report accept still don't (EX-1080).
+- The undo of a destructive replace is a snapshot taken in the wiping transaction: lock the
+  investment, then read, snapshot and wipe at `repeatable read`, retried on `40001`. Passing `req` alone
+  is not enough — at READ COMMITTED an autosave (a plain UPDATE, which never waits on the investment
+  lock) committing between the snapshot read and the wipe is deleted and missing from the snapshot.
+  Every tree wipe (import, preset reload, „Przywróć wersję") goes through `replaceTreeWithSnapshot`;
+  a new wipe that takes its own snapshot reopens that loss.
 
 ## Snapshot payloads: bump the schema version on the rationale, type the tolerance
 

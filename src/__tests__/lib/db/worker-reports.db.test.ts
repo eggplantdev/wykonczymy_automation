@@ -14,11 +14,10 @@ import {
 } from '@/lib/db/worker-reports'
 import { setLineTranslations } from '@/lib/db/worker-report-line-translations'
 import { ALL_TIME } from '@/lib/utils/date-range'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
 const FILENAME_PREFIX = 'worker-reports-db-test-'

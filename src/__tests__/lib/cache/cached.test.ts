@@ -16,7 +16,7 @@ vi.mock('next/cache', async () => ({
 
 const TAG = 'collection:notification-recipients'
 
-// Next's own handler, so the spec asserts Next's expiry rule rather than a fake of it.
+// Next's own handler, so the spec asserts Next's expiry rule.
 function installIncrementalCache(): FileSystemCache {
   const handler = new FileSystemCache({
     fs: undefined as never,

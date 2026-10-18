@@ -159,12 +159,9 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
 - `src/scripts/data` — input data a one-off script reads at runtime. Test fixtures go to
   `src/__tests__/fixtures/`, or `e2e/fixtures/` for files a Playwright spec or E2E seed uploads.
 - **The AI kosztorys agent flow lives in the private repo `../wykonczymy-ai-cases`** — drafting
-  („przeanalizuj kolejne inwestycje”), later rounds, lifting Powody zmiany, and every experiment,
-  evaluation or analysis of the flow. Its `README.md` is the method, the research log and the open
-  ideas (Improvement loop, Next) — read it in full first. Each case, experiment and its log entry goes
-  there, never under `context/` here: nothing in that repo is deleted, it is the analysis and
-  fine-tuning data. You may write and commit there. Only an app change the flow needs is a normal
-  change in this repo; the tooling is `scripts/ai-kosztorys/`, run from this repo's root.
+  („przeanalizuj kolejne inwestycje”), rounds, Powody zmiany, experiments, analysis. Read its
+  `README.md` in full first; cases, experiments and log entries go there, never under `context/`,
+  and you may commit there. Tooling: `scripts/ai-kosztorys/`, run from this repo's root.
 - Per-feature schemas/hooks live under `src/components/forms/<form>/`; `src/types` is cross-feature only.
 - **A hook's home follows its consumer count, counted in directories:** one form → `forms/<form>/`;
   two or more forms → `forms/hooks/` (domain-aware ones too); a non-form surface → `src/hooks/`.
@@ -181,16 +178,16 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
 ## Testing
 
 **The file name picks the runner:** `src/__tests__/**/*.test.ts` → node; `*.test.tsx` → jsdom with
-`@testing-library/react`; `*.db.test.ts` → the `db` project, run only by `pnpm test:integration`
+`@testing-library/react`; `*.db.test.ts` → the DB projects (`db` / `db-shared`), run only by `pnpm test:integration`
 against 5435 (`pnpm test` never collects it) — a spec that needs the DB must carry the suffix;
 Playwright specs under `e2e/` (`pnpm test:e2e`, against `db-test` on 5435). Route a browser-level
 risk to the DOM layer first; Playwright only when it crosses client → server action → DB →
 revalidation. Harness traps: `src/__tests__/AGENTS.md`.
 
 - **Specs live under `src/__tests__`, never colocated** — the vitest projects include only that tree,
-  so a colocated spec never runs. Mirror the source path in full,
-  every directory included: `src/lib/db/x.ts` → `src/__tests__/lib/db/x.test.ts`. A spec for a
-  `components/**` module goes under `__tests__/components/**`, even when its subject is kosztorys logic.
+  so a colocated spec never runs. Mirror the source path in full, every directory included:
+  `src/lib/db/x.ts` → `src/__tests__/lib/db/x.test.ts`. A spec for a `components/**` module goes
+  under `__tests__/components/**`, even when its subject is kosztorys logic.
 - Start from a risk in `context/foundation/test-plan.md`, never from "cover this file"; extend the plan
   with `/10x-test-plan` for an uncovered risk. Then route: **new code test-first** → `/10x-tdd`;
   **protecting existing code** → `/10x-research` → `/10x-plan` → `/10x-implement`; **browser-level
@@ -212,8 +209,8 @@ revalidation. Harness traps: `src/__tests__/AGENTS.md`.
   and the Payload graph read them as Polish; add a translator parameter beside them.
 - **Phone scope is narrow:** at 390px only navigation, adding and showing transactions, the
   worker report page `(share)/z/[investment]/[name]/[token]`, an EMPLOYEE's own
-  `/pracownicy/[id]` and the „Manual Wykończymy" dialog must work. The kosztorys editor
-  is desktop-only. No app-wide touch-target floor.
+  `/pracownicy/[id]`, the „Manual Wykończymy" dialog and the kosztorys editor must work. No
+  app-wide touch-target floor.
 - **Breakpoints are overridden** in `src/styles/globals.css`: `sm`=768, `md`=1024, `lg`=1280. `sm:` is the
   single mobile→desktop break; both an upstream `sm:` and `md:` become `sm:` here. Never add a
   640 breakpoint.

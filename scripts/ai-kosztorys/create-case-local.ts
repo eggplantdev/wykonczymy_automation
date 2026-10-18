@@ -13,7 +13,7 @@ import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { assertLocalDb } from '@/scripts/assert-local-db'
 
-// A szablon is a `templates` row: its id is not the id of the investment it was before EX-1075.
+// A szablon is a `templates` row: its id is not the id of the investment it used to be.
 const PRESET_ID = Number(process.env.PRESET_ID)
 if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
 assertLocalDb('create-case-local')

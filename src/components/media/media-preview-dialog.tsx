@@ -4,6 +4,12 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { useFileArchive } from '@/hooks/use-file-archive'
 import { usePdfObjectUrl } from '@/hooks/use-pdf-object-url'
@@ -14,15 +20,18 @@ import { dedupeFilename } from '@/lib/media/file-archive'
 import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { fetchPdfObjectUrl } from '@/lib/media/pdf-object-url'
 import { splitExtension } from '@/lib/utils/append-short-id'
+import { cn } from '@/lib/utils/cn'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
 import {
   ChevronLeft,
   ChevronRight,
   Download,
   DraftingCompass,
+  Ellipsis,
   Plus,
   Printer,
   Trash2,
+  type LucideIcon,
 } from 'lucide-react'
 import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
 
@@ -34,6 +43,16 @@ const ZoomablePreviewImage = dynamic(
 )
 
 const PREVIEW_IMAGE_SIZES = '(max-width: 767.98px) calc(100vw - 2rem), calc(100vw - 3rem)'
+
+type PreviewActionT = {
+  key: string
+  label: string
+  icon: LucideIcon
+  destructive?: boolean
+  disabled?: boolean
+  onSelect?: () => void
+  href?: { href: string; download: string }
+}
 
 export type MediaPreviewDialogPropsT = {
   files: PreviewFileT[]
@@ -154,6 +173,50 @@ export function MediaPreviewDialog({
     )
   }
 
+  const actions = [
+    onRemove &&
+      active && {
+        key: 'remove',
+        label: isMultiPage ? labels.removeOneOfMany : labels.removeOne,
+        icon: Trash2,
+        destructive: true,
+        onSelect: () => onRemove(active),
+      },
+    onRemoveAll && {
+      key: 'removeAll',
+      label: labels.removeAll,
+      icon: Trash2,
+      destructive: true,
+      onSelect: onRemoveAll,
+    },
+    planMarker &&
+      active && {
+        key: 'plan',
+        label: planMarker.isMarked(active) ? planMarker.markedLabel : planMarker.label,
+        icon: DraftingCompass,
+        disabled: planMarker.isMarked(active),
+        onSelect: () => planMarker.onMark(active),
+      },
+    onAdd && { key: 'add', label: labels.add, icon: Plus, onSelect: onAdd },
+    // A single PDF renders in the browser's native viewer, which already has print in its toolbar.
+    (!isPdf || isMultiPage) && {
+      key: 'print',
+      label: t('print'),
+      icon: Printer,
+      onSelect: handlePrint,
+    },
+    // Shown for a single PDF too: the native viewer's own download names the file after the
+    // blob: URL it was handed, not after the faktura.
+    isMultiPage
+      ? { key: 'downloadAll', label: t('downloadAll'), icon: Download, onSelect: handleDownloadAll }
+      : active && {
+          key: 'download',
+          label: t('download'),
+          icon: Download,
+          href: { href: active.url, download: active.filename ?? '' },
+        },
+  ].filter((action): action is PreviewActionT => Boolean(action))
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Below `sm` the base DialogContent is already a full-bleed sheet — every override here has
@@ -203,90 +266,91 @@ export function MediaPreviewDialog({
           {!active && <p className="text-muted-foreground text-sm">{labels.empty}</p>}
         </div>
 
-        {isMultiPage && (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={activeIndex === 0}
-              onClick={() => setPageIndex(activeIndex - 1)}
-              aria-label={t('previousPage')}
-            >
-              <ChevronLeft />
-            </Button>
-            <span className="text-muted-foreground text-sm tabular-nums">
-              {activeIndex + 1} / {files.length}
-            </span>
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={activeIndex === files.length - 1}
-              onClick={() => setPageIndex(activeIndex + 1)}
-              aria-label={t('nextPage')}
-            >
-              <ChevronRight />
-            </Button>
-          </div>
-        )}
-
-        <DialogFooter>
-          {onRemove && active && (
-            <Button variant="destructive" onClick={() => onRemove(active)}>
-              <Trash2 />
-              {isMultiPage ? labels.removeOneOfMany : labels.removeOne}
-            </Button>
+        <div
+          className={cn(
+            'flex items-center gap-2 max-sm:justify-between sm:justify-center',
+            !isMultiPage && 'sm:hidden',
           )}
-          {onRemoveAll && (
-            <Button variant="destructive" onClick={onRemoveAll}>
-              <Trash2 />
-              {labels.removeAll}
-            </Button>
+        >
+          {isMultiPage && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                disabled={activeIndex === 0}
+                onClick={() => setPageIndex(activeIndex - 1)}
+                aria-label={t('previousPage')}
+              >
+                <ChevronLeft />
+              </Button>
+              <span className="text-muted-foreground text-sm tabular-nums">
+                {activeIndex + 1} / {files.length}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                disabled={activeIndex === files.length - 1}
+                onClick={() => setPageIndex(activeIndex + 1)}
+                aria-label={t('nextPage')}
+              >
+                <ChevronRight />
+              </Button>
+            </div>
           )}
-          {planMarker && active && (
-            <Button
-              variant="outline"
-              disabled={planMarker.isMarked(active)}
-              onClick={() => planMarker.onMark(active)}
-            >
-              <DraftingCompass />
-              {planMarker.isMarked(active) ? planMarker.markedLabel : planMarker.label}
-            </Button>
-          )}
-          {onAdd && (
-            <Button variant="outline" onClick={onAdd}>
-              <Plus />
-              {labels.add}
-            </Button>
-          )}
-          {/* A single PDF renders in the browser's native viewer, which already has print in its
-              toolbar. */}
-          {(!isPdf || isMultiPage) && (
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer />
-              {t('print')}
-            </Button>
-          )}
-          {/* Shown for a single PDF too: the native viewer's own download names the file after the
-              blob: URL it was handed, not after the faktura. */}
-          {isMultiPage ? (
-            <Button variant="outline" onClick={handleDownloadAll}>
-              <Download />
-              {t('downloadAll')}
-            </Button>
-          ) : (
-            active && (
-              <Button variant="outline" asChild>
-                <a
-                  href={active.url}
-                  download={active.filename ?? ''}
-                  target="_blank"
-                  rel="noopener noreferrer"
+          {/* Stacked full-width below `sm`, the actions would eat most of a phone screen. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="ml-auto sm:hidden">
+                <Ellipsis />
+                <span className="sr-only">{t('moreActions')}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {actions.map(({ key, label, icon: Icon, destructive, disabled, onSelect, href }) => (
+                <DropdownMenuItem
+                  key={key}
+                  variant={destructive ? 'destructive' : 'default'}
+                  disabled={disabled}
+                  onSelect={onSelect}
+                  asChild={!!href}
                 >
-                  <Download />
-                  {t('download')}
+                  {href ? (
+                    <a {...href} target="_blank" rel="noopener noreferrer">
+                      <Icon />
+                      {label}
+                    </a>
+                  ) : (
+                    <>
+                      <Icon />
+                      {label}
+                    </>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <DialogFooter className="max-sm:hidden">
+          {actions.map(({ key, label, icon: Icon, destructive, disabled, onSelect, href }) =>
+            href ? (
+              <Button key={key} variant="outline" asChild>
+                <a {...href} target="_blank" rel="noopener noreferrer">
+                  <Icon />
+                  {label}
                 </a>
               </Button>
-            )
+            ) : (
+              <Button
+                key={key}
+                variant={destructive ? 'destructive' : 'outline'}
+                disabled={disabled}
+                onClick={onSelect}
+              >
+                <Icon />
+                {label}
+              </Button>
+            ),
           )}
         </DialogFooter>
       </DialogContent>

@@ -6,15 +6,12 @@ import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
 import { insertWorkerReport, readWorkerReport } from '@/lib/db/worker-reports'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
 
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 // The last write of the transaction: failing it is the one way to reach „the tree, the etap and the
 // version were all written, then the accept failed" without racing the action.
 const recording = vi.hoisted(() => ({ failNext: false }))

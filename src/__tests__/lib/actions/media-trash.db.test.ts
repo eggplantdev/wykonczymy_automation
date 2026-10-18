@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
@@ -6,8 +6,6 @@ import { insertTestMedia } from '@/__tests__/helpers/media'
 import { getDb } from '@/lib/db/get-db'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const NAME = 'kosz-plikow restore'
 const FILENAME = 'kosz-plikow-restore.jpg'

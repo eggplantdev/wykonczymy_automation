@@ -11,17 +11,14 @@ import {
 } from '@/lib/constants/investment-lock'
 import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
 import type { CreateTransferFormT } from '@/lib/schemas/transfer'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
-import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { warsawToday } from '@/lib/utils/days'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const {
   createTransferAction,

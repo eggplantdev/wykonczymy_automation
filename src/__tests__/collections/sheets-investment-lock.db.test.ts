@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 

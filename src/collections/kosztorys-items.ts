@@ -4,13 +4,9 @@ import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/i
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { REVIEW_STATUSES } from '@/lib/kosztorys/review-status'
 
-// Subcontractor prices are derived from the markup coefficient (investment), with one nullable
-// per-item stawka per tool plane: a number is a kwota frozen onto the praca, NULL means „auto" —
-// derive it from the coefficient. `0` is a kwota like any other, so neither field may carry a
+// A stawka's NULL means „auto" and `0` is a kwota like any other, so neither field may carry a
 // `defaultValue`: Payload treats a stored NULL as present-but-empty and would backfill it, turning
 // every „auto" praca into 0 zł.
-// „Pomiar z natury" (the executed quantity) is not stored — it is the stage sum (Σ D:M in the
-// sheet), computed live in the settlement layer.
 export const KosztorysItems: CollectionConfig = {
   slug: 'kosztorys-items',
   labels: {

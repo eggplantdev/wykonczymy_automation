@@ -123,6 +123,19 @@ export const sectionBands = (page: Page) => page.locator('.dsg-row.kosztorys-sec
 export const sectionBand = (page: Page, name: string) =>
   sectionBands(page).filter({ has: page.locator(`input[value="${name}"]`) })
 
+const rowActions = (page: Page) => page.getByRole('button', { name: 'Akcje wiersza' })
+
+export async function openRowMenu(page: Page, text: string): Promise<void> {
+  await gridRow(page, text)
+    .filter({ has: rowActions(page) })
+    .getByRole('button', { name: 'Akcje wiersza' })
+    .click()
+}
+
+export async function openSectionMenu(page: Page, name: string): Promise<void> {
+  await sectionBand(page, name).getByRole('button', { name: 'Akcje sekcji' }).click()
+}
+
 export async function rowCell(page: Page, rowText: string, header: string): Promise<Locator> {
   return gridRow(page, rowText)
     .locator('.dsg-cell')

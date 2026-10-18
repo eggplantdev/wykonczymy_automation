@@ -1,19 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // Real `payload.update`, because the update rewrites the sessions array from the merged doc — a
 // delete ordered before it would be undone, and only the persisted rows show that.
-
-const actor = vi.hoisted(() => ({ id: 1, role: 'OWNER', name: 'T', email: 't@t.pl' }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => actor),
-}))
 
 const EMAIL = 'toggle-active-sessions@test.local'
 const PASSWORD = 'test-password-123'
@@ -103,12 +98,12 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
   })
 
   afterAll(async () => {
-    Object.assign(actor, { id: 1, role: 'OWNER' })
+    Object.assign(authState, { userId: 1, role: 'OWNER' })
     await purgeFixtureUsers(db)
   })
 
   it('refuses a MANAGER deactivating an OWNER, and the OWNER stays active', async () => {
-    Object.assign(actor, { id: employeeId, role: 'MANAGER' })
+    Object.assign(authState, { userId: employeeId, role: 'MANAGER' })
     const { toggleUserActive } = await import('@/lib/actions/toggle-active')
 
     const result = await toggleUserActive(ownerId, false)
@@ -118,7 +113,7 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
   })
 
   it('refuses deactivating your own account, and it stays active', async () => {
-    Object.assign(actor, { id: ownerId, role: 'OWNER' })
+    Object.assign(authState, { userId: ownerId, role: 'OWNER' })
     const { toggleUserActive } = await import('@/lib/actions/toggle-active')
 
     expect(await toggleUserActive(ownerId, false)).toEqual({
@@ -129,7 +124,7 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
   })
 
   it('lets a MANAGER deactivate an EMPLOYEE', async () => {
-    Object.assign(actor, { id: ownerId, role: 'MANAGER' })
+    Object.assign(authState, { userId: ownerId, role: 'MANAGER' })
     const { toggleUserActive } = await import('@/lib/actions/toggle-active')
 
     expect(await toggleUserActive(employeeId, false)).toEqual({ success: true })
