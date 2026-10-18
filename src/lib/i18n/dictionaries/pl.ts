@@ -560,6 +560,7 @@ export const pl = {
     previewLoadFailed: 'Nie udało się wczytać podglądu.',
     previousPage: 'Poprzednia strona',
     nextPage: 'Następna strona',
+    moreActions: 'Więcej akcji',
     dropOrClick: 'Przeciągnij lub kliknij',
     unsupportedFormat: 'Nieobsługiwany format pliku. Dozwolone: {{allowed}}',
     mimeImages: 'obrazy',
