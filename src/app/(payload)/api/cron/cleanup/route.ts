@@ -14,6 +14,7 @@ import { purgeTrash } from '@/lib/investments/purge-trash'
 import { purgeLeadTrash } from '@/lib/leads/purge-trash'
 import { purgeTemplateTrash } from '@/lib/kosztorys/templates/purge-trash'
 import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
+import { gcMedia } from '@/lib/media/gc-media'
 
 export const maxDuration = 300
 
@@ -38,6 +39,8 @@ export async function GET(request: NextRequest) {
   const equipmentTrash = await runStep('equipmentTrash', () => purgeEquipmentTrash(payload, db))
   const leadTrash = await runStep('leadTrash', () => purgeLeadTrash(payload, db))
   const templateTrash = await runStep('templateTrash', () => purgeTemplateTrash(db))
+  // Last, so files the purges above just orphaned enter the trash tonight, not tomorrow.
+  const media = await runStep('media', () => gcMedia(payload, db))
   const results = {
     snapshots,
     templateSnapshots,
@@ -48,6 +51,7 @@ export async function GET(request: NextRequest) {
     equipmentTrash,
     leadTrash,
     templateTrash,
+    media,
   }
   const steps = Object.values(results)
   const threw = steps.filter((step) => step === null).length

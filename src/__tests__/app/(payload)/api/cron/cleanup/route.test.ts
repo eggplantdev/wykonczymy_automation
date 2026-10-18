@@ -13,6 +13,7 @@ vi.mock('@/lib/equipment/purge-trash', () => ({ purgeEquipmentTrash: vi.fn() }))
 vi.mock('@/lib/leads/purge-trash', () => ({ purgeLeadTrash: vi.fn() }))
 vi.mock('@/lib/db/template-snapshots', () => ({ gcTemplateSnapshots: vi.fn() }))
 vi.mock('@/lib/kosztorys/templates/purge-trash', () => ({ purgeTemplateTrash: vi.fn() }))
+vi.mock('@/lib/media/gc-media', () => ({ gcMedia: vi.fn() }))
 
 import { GET } from '@/app/(payload)/api/cron/cleanup/route'
 import { getPayload } from 'payload'
@@ -25,6 +26,7 @@ import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
 import { purgeLeadTrash } from '@/lib/leads/purge-trash'
 import { gcTemplateSnapshots } from '@/lib/db/template-snapshots'
 import { purgeTemplateTrash } from '@/lib/kosztorys/templates/purge-trash'
+import { gcMedia } from '@/lib/media/gc-media'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
@@ -38,6 +40,7 @@ const RESULTS = {
   leadTrash: { purged: 3, blocked: 0, failed: 0 },
   templateSnapshots: { deleted: 2, ceiling: 1, daily: 1, weekly: 0 },
   templateTrash: { purged: 1, blocked: 0, failed: 0 },
+  media: { recorded: 3, healed: 1, deleted: 2, failed: 0 },
 }
 const STEPS = {
   snapshots: gcSnapshots,
@@ -49,6 +52,7 @@ const STEPS = {
   leadTrash: purgeLeadTrash,
   templateSnapshots: gcTemplateSnapshots,
   templateTrash: purgeTemplateTrash,
+  media: gcMedia,
 }
 type StepT = keyof typeof STEPS
 

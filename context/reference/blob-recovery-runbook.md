@@ -150,20 +150,14 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   a reference count of 0 means "safe to ignore", a count of 1 means "an invoice is missing".
   **The bytes survive in the preview store**, which is a point-in-time copy of production, so the
   recovery path is a targeted pull from preview rather than an FTP restore.
-- **The reverse case — a row with a live blob that nothing references — is a known, unswept leak.**
-  On 2026-10-15 production held **104** such `media` rows of 2445 (no row in any of the seven
-  `media_id` FK tables except `payload_locked_documents_rels`), almost all created 2026-04…08, all with
-  no `kind`; only 2 in the preceding 30 days, both invoices. Nothing sweeps them, because
-  `deleteUnreferencedMedia` runs only on a write that drops a reference. A sweep cron would delete
-  those 104 old invoices from a store with no undelete, so it waits on an owner decision.
-  One known source is the reclaim itself: it is best-effort per id, so one `payload.delete` that throws
-  is logged as `[media] delete unreferenced media failed` and its row and blob stay. The EX-1014
-  harness hit this 4 times in ~16 runs of „add 10 photos → Usuń wszystkie" back to back. Ids from
-  consecutive runs were exactly 10 apart, so no extra row was created: one attached photo survived
-  its reclaim. The reclaim ran in `after()` while the next run was already uploading to the same
-  investment. Why that one delete threw was never established: the preview DB was re-restored and
-  the logs had expired before anyone looked. If it recurs, grep the Vercel runtime logs for that line
-  the same day, before any preview restore. Production showed no gallery-shaped orphan.
+- **The reverse case — a row with a live blob that nothing references — goes through the file
+  trash.** On 2026-10-15 production held **104** such `media` rows of 2445, almost all invoices
+  created 2026-04…08 with no `kind`. The nightly `gcMedia` step of `/api/cron/cleanup`
+  (`src/lib/media/gc-media.ts`) records every unreferenced row in `media_detachments` and deletes it
+  7 days later (`FILE_TRASH_RETENTION_DAYS`), at most 100 a night. A row with no known source is not
+  restorable from „Kosz" — the owner accepted that those 104 expire (kosz-plikow, ruling 2b). The
+  FTP mirror never prunes and runs half an hour before the cleanup, so a swept file's bytes stay
+  recoverable there.
 - **A blob with no row at all is a second, accepted leak.** A direct-to-Blob upload whose PUT lands
   and whose `/api/media-register` then fails (`src/lib/media/client-upload.ts`) leaves bytes in the
   store with no `media` row; `discardOrphanedUploads` works on media ids, so it cannot reach them.
@@ -543,7 +537,7 @@ What is genuinely unrecoverable:
 | **FTP credentials**                | Held only in GitHub Actions secrets and the owner's `.env`.                                                                  | Backups can be intact and still unreachable.                                                     |
 | **30-day dump retention**          | `RETENTION_DAYS: 30` in `db-backup.yml` prunes older dumps. The blob mirror does not prune.                                  | Corruption noticed on day 31 is gone.                                                            |
 | **Nightly DB window**              | Cron is `0 4-22 * * *` UTC → no dump 00:00–06:00 Warsaw.                                                                     | Up to ~6h of writes, in the lowest-activity hours.                                               |
-| **Same-day blob uploads**          | Mirror runs 03:30 UTC daily.                                                                                                 | Up to ~24h of invoices have a `media` row and no bytes.                                          |
+| **Same-day blob uploads**          | Mirror runs 03:00 UTC daily.                                                                                                 | Up to ~24h of invoices have a `media` row and no bytes.                                          |
 | **Shared secrets on the far side** | `WPFORMS_WEBHOOK_SECRET` and `META_VERIFY_TOKEN` are re-mintable, but the WordPress and Meta ends must be re-synced by hand. | Recoverable; costs coordination, not data.                                                       |
 
 Two fixes that need no drill: a **second backup destination**, and the FTP credentials recorded
@@ -567,7 +561,7 @@ somewhere that survives the laptop.
     new → merged manifest → floor+completeness validation). Dependency-free. **Verified live:**
     ran against the morning manifest, store had grown 1771→1781, downloaded exactly the 10 new
     files, merged manifest to 1781, passed. ESLint-ignored per repo precedent.
-  - `.github/workflows/blob-backup.yml` — daily 03:30 UTC (off the hourly db window),
+  - `.github/workflows/blob-backup.yml` — daily 03:00 UTC (off the hourly db window),
     `workflow_dispatch → test/` gate. FTPS pull-manifest → run script → `mirror -R` (additive,
     no `--delete`, no prune) new files + manifest.
   - Needs GitHub secret **`BLOB_READ_WRITE_TOKEN`** (+ existing FTP secrets).

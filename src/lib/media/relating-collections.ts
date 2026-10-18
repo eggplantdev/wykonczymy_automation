@@ -4,15 +4,42 @@ export type MediaRelationT = {
   collection: CollectionSlug
   field: string
   label: string
+  relsTable: string
 }
 
 export const MEDIA_RELATIONS: readonly MediaRelationT[] = [
-  { collection: 'transactions', field: 'invoice', label: 'transakcje' },
-  { collection: 'vehicle-inspections', field: 'attachments', label: 'przeglądy' },
-  { collection: 'equipment-events', field: 'attachments', label: 'przekazania sprzętu' },
-  { collection: 'investments', field: 'assets', label: 'inwestycje' },
-  { collection: 'leads', field: 'assets', label: 'zgłoszenia' },
+  {
+    collection: 'transactions',
+    field: 'invoice',
+    label: 'transakcje',
+    relsTable: 'transactions_rels',
+  },
+  {
+    collection: 'vehicle-inspections',
+    field: 'attachments',
+    label: 'przeglądy',
+    relsTable: 'vehicle_inspections_rels',
+  },
+  {
+    collection: 'equipment-events',
+    field: 'attachments',
+    label: 'przekazania sprzętu',
+    relsTable: 'equipment_events_rels',
+  },
+  {
+    collection: 'investments',
+    field: 'assets',
+    label: 'inwestycje',
+    relsTable: 'investments_rels',
+  },
+  { collection: 'leads', field: 'assets', label: 'zgłoszenia', relsTable: 'leads_rels' },
 ]
+
+// The workers' receipts and report photos sit outside Payload's relations; the media sweep must see them.
+export const RAW_MEDIA_HOLDER_TABLES = [
+  'worker_expense_draft_media',
+  'worker_report_media',
+] as const
 
 export function mediaReferenceWhere(
   field: string,

@@ -222,20 +222,20 @@ przebieg wymusza re-import bazy testowej — doszła migracja) · `pnpm build`.
 
 #### Automated
 
-- [x] Faza 1 — migracja `<data>_N_media_detachments.ts` + rejestracja w `src/migrations/index.ts`
-- [x] Faza 1 — `src/lib/db/media-detachments.ts` (`recordDetachments`, `closeDetachments`) + `FILE_TRASH_RETENTION_DAYS` w `lib/constants/trash.ts`
-- [x] Faza 1 — `setUploadField` zapisuje odpięcie zamiast kasować; zamyka wpis przy przypięciu
-- [x] Faza 1 — trzy zestawy etykiet przestają mówić „bezpowrotnie"
-- [x] Faza 1 — `src/__tests__/lib/db/media-detachments.test.ts` (nowy, DB-owy)
-- [x] Faza 1 — `investment-assets.db.test.ts` odwrócony: plik przeżywa, wpis w koszu istnieje
-- [x] Faza 1 — `transfer-actions.test.ts` przenosi asercję z `mockDelete` na zapis odpięcia
-- [x] Faza 1 — `invoice-cell.test.tsx` + `investment-assets-control.test.tsx` na nowe zdanie
-- [x] Faza 1 — „Usuń wszystkie" z powrotem w galerii inwestycji (EX-862) + odwrócony spec
-- [ ] Faza 2 — `MEDIA_RELATIONS` dostaje `relsTable`, obok `RAW_MEDIA_HOLDER_TABLES`
-- [ ] Faza 2 — `src/lib/media/gc-media.ts` (zapisz sieroty → zalecz → skasuj szeregowo)
-- [ ] Faza 2 — `/api/cron/cleanup` dokłada krok `media` jako ostatni
-- [ ] Faza 2 — zamiana godzin: `vercel.json` na `30 3`, `blob-backup.yml` na `0 3`
-- [ ] Faza 2 — `src/__tests__/lib/media/gc-media.test.ts` (nowy, DB-owy)
+- [x] Faza 1 — migracja `<data>_N_media_detachments.ts` + rejestracja w `src/migrations/index.ts` (2dddc0c35)
+- [x] Faza 1 — `src/lib/db/media-detachments.ts` (`recordDetachments`, `closeDetachments`) + `FILE_TRASH_RETENTION_DAYS` w `lib/constants/trash.ts` (2dddc0c35)
+- [x] Faza 1 — `setUploadField` zapisuje odpięcie zamiast kasować; zamyka wpis przy przypięciu (2dddc0c35)
+- [x] Faza 1 — trzy zestawy etykiet przestają mówić „bezpowrotnie" (2dddc0c35)
+- [x] Faza 1 — `src/__tests__/lib/db/media-detachments.test.ts` (nowy, DB-owy) (2dddc0c35)
+- [x] Faza 1 — `investment-assets.db.test.ts` odwrócony: plik przeżywa, wpis w koszu istnieje (2dddc0c35)
+- [x] Faza 1 — `transfer-actions.test.ts` przenosi asercję z `mockDelete` na zapis odpięcia (2dddc0c35)
+- [x] Faza 1 — `invoice-cell.test.tsx` + `investment-assets-control.test.tsx` na nowe zdanie (2dddc0c35)
+- [x] Faza 1 — „Usuń wszystkie" z powrotem w galerii inwestycji (EX-862) + odwrócony spec (2dddc0c35)
+- [x] Faza 2 — `MEDIA_RELATIONS` dostaje `relsTable`, obok `RAW_MEDIA_HOLDER_TABLES`
+- [x] Faza 2 — `src/lib/media/gc-media.ts` (zapisz sieroty → zalecz → skasuj szeregowo)
+- [x] Faza 2 — `/api/cron/cleanup` dokłada krok `media` jako ostatni
+- [x] Faza 2 — zamiana godzin: `vercel.json` na `30 3`, `blob-backup.yml` na `0 3`
+- [x] Faza 2 — `src/__tests__/lib/media/gc-media.test.ts` (nowy, DB-owy)
 - [ ] Faza 3 — `TrashKindT` + `TRASH_KINDS.file`; grupa usuwania opcjonalna; `restoreBlockedReason`
 - [ ] Faza 3 — `fetchDetachedFiles` + wiersze plików w `shapeTrashRows` / `getTrashContents`
 - [ ] Faza 3 — `src/lib/actions/media-trash.ts` (`restoreDetachedFileAction`)
