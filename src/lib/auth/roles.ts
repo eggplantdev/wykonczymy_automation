@@ -35,6 +35,14 @@ export const BONUS_FORBIDDEN_MESSAGE = 'Premię może przyznać tylko właścici
 export const canManageAccount = (actorRole: RoleT, targetRole: RoleT): boolean =>
   actorRole !== 'MANAGER' || targetRole === 'EMPLOYEE'
 
+export const assignableRoles = (actorRole: RoleT, currentRole?: RoleT): RoleT[] =>
+  ROLES.filter(
+    (role) =>
+      role === currentRole ||
+      (canManageAccount(actorRole, role) &&
+        (currentRole === undefined || canManageAccount(actorRole, currentRole))),
+  )
+
 type AccountT = { id: number; role: RoleT }
 
 export const canTrashAccount = (actor: AccountT, target: AccountT): boolean =>

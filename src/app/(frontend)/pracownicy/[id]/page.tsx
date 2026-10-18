@@ -1,6 +1,12 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { canViewWorkerPage, isManagementRole, ROLES } from '@/lib/auth/roles'
+import {
+  assignableRoles,
+  canManageAccount,
+  canViewWorkerPage,
+  isManagementRole,
+  ROLES,
+} from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { InstallAppButton } from '@/components/pwa/install-app-button'
@@ -141,7 +147,13 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     <PageWrapper title={worker.name} className="pb-20 sm:pb-20 lg:pb-20">
       {(isManager || isOwnPage) && (
         <div className="flex flex-wrap gap-2">
-          {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
+          {isManager && (isOwnPage || canManageAccount(currentUser.role, role)) && (
+            <EditWorkerDialog
+              worker={worker}
+              cashRegisters={refData.cashRegisters}
+              roles={assignableRoles(currentUser.role, role)}
+            />
+          )}
           {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
           {isOwnPage && <InstallAppButton />}
           {isOwnPage && <PushToggle className="w-fit" />}

@@ -5,14 +5,16 @@ import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { updateWorkerAction } from '@/lib/actions/workers'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
+import type { RoleT } from '@/lib/auth/roles'
 import type { WorkerRefT, ReferenceItemT } from '@/types/reference-data'
 
 type EditWorkerDialogPropsT = {
   worker: WorkerRefT
   cashRegisters: ReferenceItemT[]
+  roles: RoleT[]
 }
 
-export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogPropsT) {
+export function EditWorkerDialog({ worker, cashRegisters, roles }: EditWorkerDialogPropsT) {
   const formId = `edit-worker-${worker.id}`
 
   return (
@@ -45,6 +47,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
           keepOpen={keepOpen}
           persistDraft={false}
           cashRegisters={cashRegisters}
+          roles={roles}
         />
       )}
     </FormDialog>

@@ -8,7 +8,7 @@ import FormFooter from '@/components/forms/form-components/form-footer'
 import { CashRegisterField } from '@/components/forms/form-fields'
 import { workerFormSchema, type WorkerFormValuesT } from './worker-schema'
 import { useWorkerFormStore } from '@/stores/form-stores'
-import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { LANGUAGES } from '@/lib/i18n/languages'
 import type { WorkerFormDataT } from './worker-schema'
@@ -26,6 +26,7 @@ type WorkerFormPropsT = {
   keepOpen?: boolean
   persistDraft?: boolean
   cashRegisters: ReferenceItemT[]
+  roles: RoleT[]
 }
 
 export function WorkerForm({
@@ -39,6 +40,7 @@ export function WorkerForm({
   keepOpen,
   persistDraft,
   cashRegisters,
+  roles,
 }: WorkerFormPropsT) {
   const { form, reset } = useManagedForm<WorkerFormValuesT, WorkerFormDataT>({
     formId,
@@ -79,7 +81,7 @@ export function WorkerForm({
         <form.AppField name="role">
           {(field) => (
             <field.Select label="Rola" showError>
-              {ROLES.map((role) => (
+              {roles.map((role) => (
                 <SelectItem key={role} value={role}>
                   {ROLE_LABELS[role].pl}
                 </SelectItem>

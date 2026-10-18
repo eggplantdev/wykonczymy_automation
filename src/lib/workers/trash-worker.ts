@@ -3,9 +3,8 @@ import type { Payload, PayloadRequest } from 'payload'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { trashCashRegister } from '@/lib/cash-registers/trash-cash-register'
 import { getDb } from '@/lib/db/get-db'
-import { deleteUserSessions } from '@/lib/db/user-sessions'
-import { deletePushSubscriptions } from '@/lib/db/push-subscriptions'
 import { selectLiveRegisterIds } from '@/lib/db/worker-trash'
+import { revokeAccountAccess } from '@/lib/workers/account-removal'
 import { workerUseBlocker } from '@/lib/workers/delete-blocker'
 
 // `withPayloadTransaction` commits a returned refusal, so every refusal is decided before the first
@@ -38,7 +37,6 @@ export async function trashWorker(
     overrideAccess: true,
     req,
   })
-  await deleteUserSessions(db, workerId)
-  await deletePushSubscriptions(db, workerId)
+  await revokeAccountAccess(db, workerId)
   return undefined
 }

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES, canTrashAccount } from '@/lib/auth/roles'
+import { ADMIN_OR_OWNER_MANAGER_ROLES, assignableRoles, canTrashAccount } from '@/lib/auth/roles'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchWorkerPayoutPairs } from '@/lib/queries/balances'
 import { workerColumnFigures } from '@/lib/kosztorys/worker-payout-pairs'
@@ -37,7 +37,11 @@ export default async function UsersListPage() {
 
   return (
     <PageWrapper title={PAGE_TITLES.employees}>
-      <UserDataTable data={rows} cashRegisters={refData.cashRegisters} />
+      <UserDataTable
+        data={rows}
+        cashRegisters={refData.cashRegisters}
+        assignableRoles={assignableRoles(session.user.role)}
+      />
     </PageWrapper>
   )
 }
