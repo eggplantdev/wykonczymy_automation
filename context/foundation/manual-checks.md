@@ -1026,6 +1026,13 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       pokazuje „Poczekaj na odczytanie paragonów."; po odczycie „Zapisz" → „Zapisz bez faktury":
       zapisana transakcja ma opis i kwotę z odczytu.
 
+## EX-1076 — daily-snapshot-change-detection — nocna kopia kosztorysu tylko po zmianie
+
+- [ ] Noc po najbliższym wdrożeniu, które dokłada pole do pozycji kosztorysu (odczyt z proda, tylko
+      SELECT): liczba wierszy `kosztorys_snapshots` z `kind = 'daily'` z tej nocy ≈ liczba inwestycji,
+      w których poprzedniego dnia ktoś zmienił kosztorys — nie ~50–80 jak po wcześniejszych takich
+      wdrożeniach.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

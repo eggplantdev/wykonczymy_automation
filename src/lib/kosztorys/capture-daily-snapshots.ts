@@ -3,10 +3,29 @@ import { isDeepStrictEqual } from 'node:util'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { insertSnapshot, latestSnapshot, listDailyEligibleInvestmentIds } from '@/lib/db/snapshots'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
+import { snapshotToTree } from '@/lib/kosztorys/history/snapshot-to-tree'
 import { serializeTree } from '@/lib/kosztorys/serialize-tree'
+import type {
+  KosztorysSnapshotPayloadT,
+  StoredSnapshotPayloadT,
+} from '@/lib/kosztorys/snapshot-format'
+import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { endOfPreviousWarsawDay } from '@/lib/utils/days'
 
 type DailyCaptureResultT = { stored: number; unchanged: number; failed: number }
+
+// jsonb's shape: without it an `undefined` key reads as a change every night.
+const asJsonb = <T>(value: T): T => JSON.parse(JSON.stringify(value))
+
+// Rendered as the history reads them, or a key a deploy added stores a full copy of every open investment.
+export function sameDailyState(
+  previous: StoredSnapshotPayloadT,
+  current: KosztorysSnapshotPayloadT,
+  live: KosztorysTreeT,
+): boolean {
+  const render = (payload: StoredSnapshotPayloadT) => asJsonb(snapshotToTree(payload, live).tree)
+  return isDeepStrictEqual(render(previous), render(asJsonb(current)))
+}
 
 export async function captureDailySnapshot(
   db: DbExecutorT,
@@ -16,12 +35,9 @@ export async function captureDailySnapshot(
   const previous = await latestSnapshot(db, investmentId, 'daily')
   if (previous && previous.takenAt.getTime() >= takenAt.getTime()) return 'unchanged'
 
-  const payload = serializeTree(await buildKosztorysTree(investmentId))
-  // Through JSON so both sides have jsonb's shape (no `undefined` keys); compared as objects, because
-  // jsonb does not keep key order and a string comparison would see every night as a change.
-  if (previous && isDeepStrictEqual(JSON.parse(JSON.stringify(payload)), previous.payload)) {
-    return 'unchanged'
-  }
+  const live = await buildKosztorysTree(investmentId)
+  const payload = serializeTree(live)
+  if (previous && sameDailyState(previous.payload, payload, live)) return 'unchanged'
 
   await insertSnapshot(db, {
     investmentId,
