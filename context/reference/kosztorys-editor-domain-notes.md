@@ -1010,6 +1010,10 @@ względem bieżącej wersji — to samo porównanie, które pokazuje widok dnia.
 Historia sprzed wdrożenia to najnowszy `auto` z każdego dnia, który przetrwał przerzedzanie.
 **Stare reguły dla starych wierszy:** przeszłe `manual` nie stają się kamieniami milowymi, a przeszłe
 `auto` dalej przerzedzają się i wygasają pasmami.
+**„Różni się" znaczy: tak, jak czyta to historia.** Nocny cron porównuje oba wiersze po przepuszczeniu
+przez czytnik historii (z wartościami domyślnymi kolumn), więc klucz dodany przez wdrożenie, z wartością
+domyślną, nie jest zmianą. Surowe porównanie zapisywało pełną kopię każdej otwartej inwestycji po każdym
+takim wdrożeniu (39% wierszy `daily` na zrzucie z 16.10.2026).
 
 **Dlaczego jedna wersja z końca dnia**, a nie wersje 10-minutowe ani lista wybrana przez właściciela:
 wersje co 10 min pokazują stany w połowie edycji, a lista układana przez właściciela pozwalałaby mu

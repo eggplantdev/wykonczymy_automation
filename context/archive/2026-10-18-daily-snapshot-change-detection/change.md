@@ -1,10 +1,10 @@
 ---
 change_id: daily-snapshot-change-detection
 title: Daily snapshot ignores keys a deploy added with their default (EX-1076 step 1)
-status: implementing
+status: archived
 created: 2026-10-18
 updated: 2026-10-18
-archived_at: null
+archived_at: 2026-10-18T14:32:35Z
 branch: null
 worktree: null
 ---
