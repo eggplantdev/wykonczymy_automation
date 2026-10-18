@@ -11,6 +11,19 @@ import {
 import { fakePayload, mockExecute, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
 import { getDb } from '@/lib/db/get-db'
 
+// `lastSql` reads only the first chunk; the table name arrives as a nested `sql.raw` chunk.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sqlText(node: any): string {
+  if (Array.isArray(node?.value)) return node.value.join('')
+  if (Array.isArray(node?.queryChunks)) return node.queryChunks.map(sqlText).join('')
+  return ''
+}
+
+function lastSqlChunks(): string {
+  const calls = mockExecute.mock.calls
+  return sqlText(calls[calls.length - 1]?.[0])
+}
+
 describe('investment lock', () => {
   beforeEach(resetFakePayload)
 
@@ -45,6 +58,20 @@ describe('investment lock', () => {
   })
 
   describe('investmentGateForRow', () => {
+    it.each([
+      ['item', 'kosztorys_items'],
+      ['section', 'kosztorys_sections'],
+      ['stage', 'kosztorys_stages'],
+    ] as const)('reads %s from %s', async (kind, table) => {
+      const db = await getDb(fakePayload)
+      mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'active' }] })
+      expect(await investmentGateForRow(db, kind, 7)).toEqual({
+        investmentId: 42,
+        lockMessage: undefined,
+      })
+      expect(lastSqlChunks()).toContain(table)
+    })
+
     it('answers owner and lock together', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'completed' }] })

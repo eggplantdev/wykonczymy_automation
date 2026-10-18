@@ -5,7 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { isSessionAlive } from '@/lib/db/user-sessions'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
 
 const EMAIL = 'session-alive@test.local'
 const PASSWORD = 'test-password-123'
@@ -20,11 +19,15 @@ describe.skipIf(!ENV_READY)('isSessionAlive (DB)', () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    userId = await createTestUser(payload, {
-      name: 'Konto Sesji',
-      email: EMAIL,
-      password: PASSWORD,
-    })
+    userId = Number(
+      (
+        await payload.create({
+          collection: 'users',
+          data: { name: 'Konto Sesji', role: 'EMPLOYEE', email: EMAIL, password: PASSWORD },
+          context: { skipRevalidation: true },
+        })
+      ).id,
+    )
   })
 
   beforeEach(async () => {

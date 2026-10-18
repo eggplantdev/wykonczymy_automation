@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -9,8 +9,11 @@ import {
 } from '@/lib/db/equipment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
-import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
+
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: () => {} }
+})
 
 const MARKER = 'EX-758 current state'
 
@@ -41,10 +44,17 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     await db.execute(sql`DELETE FROM warehouses WHERE name = ${MARKER}`)
     await purgeFixtureUsers(db)
 
-    holderId = await createTestUser(payload, {
-      name: 'Equipment Current Holder',
-      email: 'equipment-current-holder@test.local',
+    const holder = await payload.create({
+      collection: 'users',
+      data: {
+        name: 'Equipment Current Holder',
+        role: 'EMPLOYEE',
+        email: 'equipment-current-holder@test.local',
+        password: 'test-password-123',
+      },
+      context: { skipRevalidation: true },
     })
+    holderId = Number(holder.id)
 
     const warehouse = await payload.create({
       collection: 'warehouses',
@@ -54,7 +64,13 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     })
     warehouseId = Number(warehouse.id)
 
-    equipmentId = await createTestEquipment(payload, MARKER)
+    const equipment = await payload.create({
+      collection: 'equipment',
+      data: { name: MARKER, status: 'IN_USE' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    equipmentId = Number(equipment.id)
 
     // Written in the order that would trap a `created_at` reading: the handover to the person
     // HAPPENED later but is ENTERED first, so the warehouse row is the newest row in the table.
@@ -108,11 +124,16 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
   })
 
   it('leaves a retired item off the list of who is holding equipment', async () => {
-    const soldId = await createTestEquipment(payload, `${MARKER} sprzedany`, { status: 'SOLD' })
+    const sold = await payload.create({
+      collection: 'equipment',
+      data: { name: `${MARKER} sprzedany`, status: 'SOLD' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
     await payload.create({
       collection: 'equipment-events',
       data: {
-        equipment: soldId,
+        equipment: Number(sold.id),
         note: MARKER,
         occurredAt: '2026-08-20T00:00:00.000Z',
         holder: holderId,
@@ -122,9 +143,9 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     } as Parameters<Payload['create']>[0])
 
     const held = await loadEquipmentAtLocation(payload, { kind: 'holder', id: holderId })
-    await db.execute(sql`DELETE FROM equipment WHERE id = ${soldId}`)
+    await db.execute(sql`DELETE FROM equipment WHERE id = ${Number(sold.id)}`)
 
-    expect(held.map((row) => row.id)).not.toContain(soldId)
+    expect(held.map((row) => row.id)).not.toContain(Number(sold.id))
   })
 
   // The column carries a unique index and Postgres treats two empty strings as a collision, so
@@ -163,9 +184,16 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
   })
 
   it('returns an item that has never moved with no location at all', async () => {
-    const freshId = await createTestEquipment(payload, `${MARKER} nietknięty`)
-    const row = (await loadEquipmentOverview(payload)).find((candidate) => candidate.id === freshId)
-    await db.execute(sql`DELETE FROM equipment WHERE id = ${freshId}`)
+    const fresh = await payload.create({
+      collection: 'equipment',
+      data: { name: `${MARKER} nietknięty`, status: 'IN_USE' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    const row = (await loadEquipmentOverview(payload)).find(
+      (candidate) => candidate.id === Number(fresh.id),
+    )
+    await db.execute(sql`DELETE FROM equipment WHERE id = ${Number(fresh.id)}`)
 
     expect(row?.location).toEqual({ kind: 'unknown' })
     expect(row?.locatedAt).toBeNull()

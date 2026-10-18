@@ -158,6 +158,13 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
   `src/lib/queries`.
 - `src/scripts/data` — input data a one-off script reads at runtime. Test fixtures go to
   `src/__tests__/fixtures/`, or `e2e/fixtures/` for files a Playwright spec or E2E seed uploads.
+- **The AI kosztorys agent flow lives in the private repo `../wykonczymy-ai-cases`** — drafting
+  („przeanalizuj kolejne inwestycje”), later rounds, lifting Powody zmiany, and every experiment,
+  evaluation or analysis of the flow. Its `README.md` is the method, the research log and the open
+  ideas (Improvement loop, Next) — read it in full first. Each case, experiment and its log entry goes
+  there, never under `context/` here: nothing in that repo is deleted, it is the analysis and
+  fine-tuning data. You may write and commit there. Only an app change the flow needs is a normal
+  change in this repo; the tooling is `scripts/ai-kosztorys/`, run from this repo's root.
 - Per-feature schemas/hooks live under `src/components/forms/<form>/`; `src/types` is cross-feature only.
 - **A hook's home follows its consumer count, counted in directories:** one form → `forms/<form>/`;
   two or more forms → `forms/hooks/` (domain-aware ones too); a non-form surface → `src/hooks/`.

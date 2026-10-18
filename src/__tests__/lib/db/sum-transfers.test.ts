@@ -8,11 +8,22 @@ import {
 } from '@/lib/db/sum-transfers'
 import { deriveFinancials } from '@/lib/db/investment-financials'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
-import { fakePayload, mockExecute, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
+import {
+  fakePayload,
+  lastSql,
+  mockExecute,
+  resetFakePayload,
+} from '@/__tests__/helpers/fake-payload-sql'
 
 beforeEach(resetFakePayload)
 
 describe('sumRegisterBalance', () => {
+  it('returns 0 for empty result (COALESCE)', async () => {
+    mockExecute.mockResolvedValue({ rows: [{ balance: '0' }] })
+    const result = await sumRegisterBalance(fakePayload, 1)
+    expect(result).toBe(0)
+  })
+
   it('handles negative balance', async () => {
     mockExecute.mockResolvedValue({ rows: [{ balance: '-300.50' }] })
     const result = await sumRegisterBalance(fakePayload, 1)
@@ -214,6 +225,20 @@ describe('sumFilteredByType — Where handling', () => {
     expect(result).toEqual([])
     expect(mockExecute).not.toHaveBeenCalled()
   })
+
+  it('splices the translated conditions into the WHERE slot', async () => {
+    await sumFilteredByType(fakePayload, { investment: { in: [5] } })
+    expect(lastSql()).toContain('AND investment_id IN (5)')
+  })
+
+  it('empty where produces no extra conditions', async () => {
+    await sumFilteredByType(fakePayload, {})
+    const queryStr = lastSql()
+    expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
+    // The base SELECT contains an unrelated `AND` inside the settled re-bucket CASE.
+    const conditionsSlot = queryStr.split('cancelled IS NOT TRUE')[1].split('GROUP BY')[0]
+    expect(conditionsSlot.trim()).toBe('')
+  })
 })
 
 describe('listTransferFacets', () => {
@@ -221,6 +246,21 @@ describe('listTransferFacets', () => {
     const result = await listTransferFacets(fakePayload, { id: { equals: -1 } })
     expect(result).toEqual({ investmentIds: [], types: [] })
     expect(mockExecute).not.toHaveBeenCalled()
+  })
+
+  it("reads only the worker's scope", async () => {
+    mockExecute.mockResolvedValue({ rows: [{ investment_ids: [], types: [] }] })
+    await listTransferFacets(fakePayload, {
+      and: [{ or: [{ worker: { equals: 25 } }, { sourceRegister: { in: [37] } }] }],
+    })
+    expect(lastSql()).toContain('worker_id = 25')
+    expect(lastSql()).toContain('source_register_id IN (37)')
+  })
+
+  it('never offers „Anulowanie” — the list hides those rows', async () => {
+    mockExecute.mockResolvedValue({ rows: [{ investment_ids: [], types: [] }] })
+    await listTransferFacets(fakePayload, {})
+    expect(lastSql()).toMatch(/type\s*<>\s*'CANCELLATION'/)
   })
 
   it('maps the aggregated arrays', async () => {

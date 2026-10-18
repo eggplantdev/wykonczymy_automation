@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -14,6 +14,11 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: () => {} }
+})
 
 const MARKER = 'payout confirmation spec'
 const CONTEXT = { skipRevalidation: true, skipSheetSync: true }

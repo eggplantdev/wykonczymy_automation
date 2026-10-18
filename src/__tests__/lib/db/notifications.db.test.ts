@@ -5,7 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { countUnreadFleetDeadlines, countUnreadWarranties } from '@/lib/db/notifications'
 import { warsawToday } from '@/lib/utils/days'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestEquipment, createTestVehicle } from '@/__tests__/helpers/fleet-db'
 
 // Asserted as a difference against the shared test DB, whose dump carries badges of its own.
 
@@ -33,7 +32,13 @@ describe.skipIf(!ENV_READY)('nav badges skip a trashed row (DB)', () => {
     await db.execute(sql`DELETE FROM vehicles WHERE registration = ${REGISTRATION}`)
     await db.execute(sql`DELETE FROM equipment WHERE name = ${MARKER}`)
 
-    vehicleId = await createTestVehicle(payload, REGISTRATION)
+    const vehicle = await payload.create({
+      collection: 'vehicles',
+      data: { registration: REGISTRATION, make: 'Ford', model: 'Transit', status: 'ACTIVE' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    vehicleId = Number(vehicle.id)
     await payload.create({
       collection: 'vehicle-inspections',
       data: {
@@ -46,7 +51,13 @@ describe.skipIf(!ENV_READY)('nav badges skip a trashed row (DB)', () => {
       context: { skipRevalidation: true },
     })
 
-    equipmentId = await createTestEquipment(payload, MARKER, { warrantyUntil: inDays(10) })
+    const item = await payload.create({
+      collection: 'equipment',
+      data: { name: MARKER, status: 'IN_USE', warrantyUntil: inDays(10) },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    equipmentId = Number(item.id)
   })
 
   afterAll(async () => {

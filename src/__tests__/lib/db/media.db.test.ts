@@ -5,8 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { deleteMediaRow, insertMediaRow, isMediaFilenameReferenced } from '@/lib/db/media'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-import { createTestUser } from '@/__tests__/helpers/user'
-import { purgeTestMedia } from '@/__tests__/helpers/media'
 
 const FILENAME_PREFIX = 'ex-1012-media-'
 
@@ -15,22 +13,32 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
   let uploaderId: number
 
+  const purgeMedia = () =>
+    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+
   beforeAll(async () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
 
-    await purgeTestMedia(db, FILENAME_PREFIX)
+    await purgeMedia()
     await purgeFixtureUsers(db)
 
-    uploaderId = await createTestUser(payload, {
-      name: 'Fast Upload Worker',
-      email: 'fast-upload-worker@test.local',
+    const uploader = await payload.create({
+      collection: 'users',
+      data: {
+        name: 'Fast Upload Worker',
+        role: 'EMPLOYEE',
+        email: 'fast-upload-worker@test.local',
+        password: 'test-password-123',
+      },
+      context: { skipRevalidation: true },
     })
+    uploaderId = Number(uploader.id)
   })
 
   afterAll(async () => {
     if (!db) return
-    await purgeTestMedia(db, FILENAME_PREFIX)
+    await purgeMedia()
     await purgeFixtureUsers(db)
   })
 
