@@ -284,6 +284,8 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       if ('error' in result) return { success: false, error: result.error }
       const { original } = result
 
+      // No skipSheetSync: the update hook's after() sync removes the sheet row and re-reads the
+      // transfer post-commit, so a rolled-back cancel syncs the uncancelled state.
       await withPayloadTransaction(
         payload,
         async (req) => {

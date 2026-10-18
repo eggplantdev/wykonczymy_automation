@@ -23,6 +23,10 @@
   dev server booted before the migration keeps erroring until restarted.
 - Restore and migrate are one operation: `pnpm db:import:test && pnpm db:migrate:test`. Shared-DB
   fixtures clean up on **entry** (`purgeFixtureUsers`), because a crashed run never reaches teardown.
+- Transaction fixtures are deleted with raw SQL, never `payload.delete` — its hook removes the
+  invoice media and their Blob files. The FKs into `transactions` are SET NULL, so `purgeFixtureUsers`
+  misses CANCELLATION and `amount_edits` rows: delete them explicitly, keyed by a description marker
+  that the cancel reason carries into the CANCELLATION row (EX-911).
 
 ## A new Payload collection's migration has a fixed checklist
 
