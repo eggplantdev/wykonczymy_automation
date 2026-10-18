@@ -121,7 +121,7 @@ describe('drain', () => {
     const drained = lanes.drain(['progress:1:2']).then(() => {
       isDrained = true
     })
-    await Promise.resolve()
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(isDrained).toBe(false)
 
     gate.resolve()
