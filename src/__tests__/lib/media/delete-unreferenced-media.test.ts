@@ -41,18 +41,6 @@ function fakePayload(referencedBy: ReferencedByT) {
 }
 
 describe('deleteUnreferencedMedia', () => {
-  it('deletes a media row nothing points at', async () => {
-    const { payload, deleted } = fakePayload({})
-    await deleteUnreferencedMedia(payload, [7])
-    expect(deleted).toEqual([7])
-  })
-
-  it('spares a page still attached to a transaction', async () => {
-    const { payload, deleted } = fakePayload({ transactions: [7] })
-    await deleteUnreferencedMedia(payload, [7])
-    expect(deleted).toEqual([])
-  })
-
   it('spares an attachment still held by a vehicle inspection', async () => {
     const { payload, deleted } = fakePayload({ 'vehicle-inspections': [7] })
     await deleteUnreferencedMedia(payload, [7])

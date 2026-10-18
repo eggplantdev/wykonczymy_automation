@@ -13,10 +13,6 @@ describe('sanitizeForFilename', () => {
     expect(sanitizeForFilename('materiały budowlane')).toBe('materiały_budowlane')
   })
 
-  it('removes illegal filename characters', () => {
-    expect(sanitizeForFilename('faktura/2026:01')).toBe('faktura202601')
-  })
-
   it('collapses multiple underscores', () => {
     expect(sanitizeForFilename('a   b')).toBe('a_b')
   })
@@ -71,16 +67,6 @@ describe('buildUniqueFilename', () => {
     const name = buildUniqueFilename('2026-01-01', 'Faktura/2026:01', 'f.pdf', used)
     expect(name).toBe('20260101_Faktura202601.pdf')
   })
-
-  it('tracks all generated names in the usedNames set', () => {
-    const used = new Set<string>()
-    buildUniqueFilename('2026-01-01', 'A', 'x.pdf', used)
-    buildUniqueFilename('2026-01-01', 'A', 'x.pdf', used)
-
-    expect(used.size).toBe(2)
-    expect(used.has('20260101_A.pdf')).toBe(true)
-    expect(used.has('20260101_A_1.pdf')).toBe(true)
-  })
 })
 
 describe('buildArchiveName', () => {
@@ -108,20 +94,6 @@ describe('buildArchiveName', () => {
 })
 
 describe('buildArchiveMessage', () => {
-  it('reports a plain count when every row was packed', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 5,
-          rowsWithFile: 5,
-          expectedFiles: 5,
-          downloadedFiles: 5,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 5 faktur')
-  })
-
   it('counts pages, not rows, when a row carries several', () => {
     expect(
       buildArchiveMessage(

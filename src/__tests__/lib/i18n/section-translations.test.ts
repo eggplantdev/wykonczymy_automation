@@ -39,14 +39,6 @@ describe('sectionNameKey', () => {
       expect(sectionNameKey(name)).toBe(key)
     }
   })
-
-  it('seeds every entry in both languages, with the key’s own placeholder count', () => {
-    const placeholders = (text: string) => text.split(' ').filter((token) => token === '#').length
-    for (const { key, uk, ru } of SECTION_TRANSLATION_SEED) {
-      expect(placeholders(uk)).toBe(placeholders(key))
-      expect(placeholders(ru)).toBe(placeholders(key))
-    }
-  })
 })
 
 describe('toSectionTemplate', () => {

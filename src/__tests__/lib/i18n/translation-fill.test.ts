@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
-  escapeCell,
   exportUntranslated,
   parseTranslationFile,
   planTranslationFill,
   type TranslationFillRowT,
 } from '@/lib/i18n/translation-fill'
+
+const escapeCell = (text: string) =>
+  text.replace(/\\/gu, '\\\\').replace(/\n/gu, '\\n').replace(/\t/gu, '\\t')
 
 const row = (
   id: number,

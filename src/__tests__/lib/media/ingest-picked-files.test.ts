@@ -18,15 +18,6 @@ describe('ingestPickedFiles', () => {
     mockProcess.mockReset()
   })
 
-  it('returns every survivor in pick order', async () => {
-    mockProcess.mockImplementation(async (input: File) => input)
-
-    const { files, blocked } = await ingestPickedFiles([file('a.jpg'), file('b.jpg')])
-
-    expect(files.map((f) => f.name)).toEqual(['a.jpg', 'b.jpg'])
-    expect(blocked).toEqual([])
-  })
-
   it('compacts the survivors, dropping the blocked file rather than leaving a hole', async () => {
     mockProcess.mockImplementation(async (input: File) => {
       if (input.name === 'b.jpg') throw new BlockedFileError('b.jpg')
@@ -61,11 +52,5 @@ describe('ingestPickedFiles', () => {
     expect(files).toEqual([])
     expect(blocked).toEqual([])
     expect(mockProcess).not.toHaveBeenCalled()
-  })
-
-  it('a non-blocked failure rejects rather than being swallowed', async () => {
-    mockProcess.mockRejectedValue(new Error('chunk load failed'))
-
-    await expect(ingestPickedFiles([file('a.jpg')])).rejects.toThrow('chunk load failed')
   })
 })

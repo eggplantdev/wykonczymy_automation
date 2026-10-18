@@ -39,9 +39,6 @@ const unescapeCell = (cell: string) =>
     code === 'n' ? '\n' : code === 't' ? '\t' : '\\',
   )
 
-export const escapeCell = (text: string) =>
-  text.replace(/\\/gu, '\\\\').replace(/\n/gu, '\\n').replace(/\t/gu, '\\t')
-
 export function parseTranslationFile(content: string): Map<string, string> {
   const out = new Map<string, string>()
   for (const line of content.split('\n')) {

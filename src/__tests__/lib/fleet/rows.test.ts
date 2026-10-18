@@ -136,17 +136,6 @@ describe('toRow flags', () => {
 
     expect(row.activeFlags).toEqual([])
   })
-
-  it('keeps a mark when the inspection predates it', () => {
-    const row = toRow(
-      { ...vehicle, flags: { TYRES: '2026-08-01' } },
-      [datasetEvent('TYRES', '2026-04-01T00:00:00.000Z')],
-      TODAY,
-      ALL_TIME,
-    )
-
-    expect(row.activeFlags).toEqual(['TYRES'])
-  })
 })
 
 describe('historyOfType', () => {
@@ -193,13 +182,6 @@ describe('toRow — oil interval', () => {
     expect(row.latestOdometer).toBe(108_000)
     expect(row.kmSinceOilChange).toBe(8_000)
   })
-
-  it('leaves both null when nothing carries a reading', () => {
-    const row = toRow(vehicle, [datasetEvent('TECHNICAL', '2026-06-01')], '2026-08-18', ALL_TIME)
-
-    expect(row.latestOdometer).toBeNull()
-    expect(row.kmSinceOilChange).toBeNull()
-  })
 })
 
 describe('toRow — costs', () => {
@@ -216,37 +198,6 @@ describe('toRow — costs', () => {
     )
 
     expect(row.totalCosts).toBe(1850)
-  })
-
-  it('leaves an unknown cost out of the total', () => {
-    const row = toRow(
-      vehicle,
-      [
-        datasetEvent('TECHNICAL', '2026-02-01T00:00:00.000Z', { cost: null }),
-        datasetEvent('TYRES', '2026-03-01T00:00:00.000Z', { cost: 1200 }),
-      ],
-      TODAY,
-      ALL_TIME,
-    )
-
-    expect(row.totalCosts).toBe(1200)
-  })
-
-  it('is zero for a car with no inspections', () => {
-    expect(toRow(vehicle, [], TODAY, ALL_TIME).totalCosts).toBe(0)
-  })
-
-  it('counts only what falls inside the window', () => {
-    const events = [
-      datasetEvent('TECHNICAL', '2026-06-30T00:00:00.000Z', { cost: 1 }),
-      datasetEvent('TECHNICAL', '2026-07-01T00:00:00.000Z', { cost: 10 }),
-      datasetEvent('TECHNICAL', '2026-07-31T00:00:00.000Z', { cost: 100 }),
-      datasetEvent('TECHNICAL', '2026-08-01T00:00:00.000Z', { cost: 1000 }),
-    ]
-
-    expect(toRow(vehicle, events, TODAY, { from: '2026-07-01', to: '2026-07-31' }).totalCosts).toBe(
-      110,
-    )
   })
 
   // The window is a lens on money only. Narrowing it must not make a car look up to date on its

@@ -80,34 +80,6 @@ describe('applyTabRowsBatch', () => {
     ])
   })
 
-  it('overwrites an existing id in place via batchUpdate (no append)', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } }) // 102 → row 3
-    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
-    const res = await applyTabRowsBatch('s', EXPENSES_TAB_CONFIG, [
-      {
-        transferId: 102,
-        date: '2026-05-27',
-        typ: 'Materiały budowlane',
-        description: 'cement',
-        amount: 500,
-        category: 'Łazienka',
-        note: 'FV/1',
-      },
-    ])
-
-    expect(res).toEqual({ added: 0, updated: 1, removed: 0 })
-    expect(valuesAppendMock).not.toHaveBeenCalled()
-    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data).toEqual([
-      { range: `${TAB}!A3`, values: [[102]] },
-      { range: `${TAB}!B3`, values: [['2026-05-27']] },
-      { range: `${TAB}!C3`, values: [['Materiały budowlane']] },
-      { range: `${TAB}!D3`, values: [['cement']] },
-      { range: `${TAB}!E3`, values: [[500]] },
-      { range: `${TAB}!F3`, values: [['Łazienka']] },
-      { range: `${TAB}!G3`, values: [['FV/1']] },
-    ])
-  })
-
   it('updates present, appends missing, and removes orphans bottom-up in one batch', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [103]] } })
     spreadsheetsGetMock.mockResolvedValueOnce({

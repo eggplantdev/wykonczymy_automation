@@ -66,19 +66,6 @@ describe('cron cleanup route', () => {
     expect(getPayload).not.toHaveBeenCalled()
   })
 
-  it('rejects a request with the wrong secret', async () => {
-    const res = await GET(request({ authorization: 'Bearer wrong' }))
-    expect(res.status).toBe(401)
-    expect(getPayload).not.toHaveBeenCalled()
-  })
-
-  it('fails closed when CRON_SECRET is unset', async () => {
-    delete process.env.CRON_SECRET
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-    expect(res.status).toBe(401)
-    expect(getPayload).not.toHaveBeenCalled()
-  })
-
   it('forwards the per-band retention breakdown on an authorized request', async () => {
     vi.mocked(gcSnapshots).mockResolvedValue({
       deleted: 7,

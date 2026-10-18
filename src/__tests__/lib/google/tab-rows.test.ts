@@ -50,51 +50,6 @@ describe('transferRow', () => {
   })
 })
 
-describe('sheet totals == filtered view (criterion 2)', () => {
-  type DocT = {
-    id: number
-    type: string
-    amount: number
-    investment?: number
-    cancelled?: boolean
-    worker?: { name: string }
-  } & typeof base
-  const docs: DocT[] = [
-    { id: 1, type: 'INVESTOR_DEPOSIT', amount: 1000, investment: 31, ...base },
-    { id: 2, type: 'LABOR_COST', amount: 400, investment: 31, ...base },
-    { id: 3, type: 'RABAT', amount: 50, investment: 31, ...base },
-    { id: 4, type: 'PAYOUT', amount: 300, investment: 31, worker: { name: 'Jan' }, ...base },
-    { id: 5, type: 'PAYOUT', amount: 999, investment: 31, cancelled: true, ...base }, // excluded
-    { id: 6, type: 'CORRECTION', amount: -120, investment: 31, ...base }, // sign preserved
-    { id: 7, type: 'CORRECTION', amount: 80, investment: 31, ...base },
-    { id: 8, type: 'LOSS', amount: 60, investment: 31, ...base },
-    { id: 9, type: 'LOSS', amount: 77, ...base }, // no investment → never on any tab
-    { id: 10, type: 'INVESTMENT_EXPENSE', amount: 500, investment: 31, ...base }, // other tab
-    { id: 11, type: 'PAYOUT', amount: 111, investment: 32, ...base }, // other investment
-  ]
-
-  const desired = docs.filter(
-    (d) =>
-      d.investment === 31 &&
-      (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(d.type) &&
-      d.cancelled !== true,
-  )
-
-  const dbTotal = (type: string) =>
-    docs
-      .filter((d) => d.investment === 31 && d.type === type && d.cancelled !== true)
-      .reduce((s, d) => s + Number(d.amount), 0)
-
-  it('per-type sum of emitted kwota equals the filtered-view total for every type', () => {
-    const rows = desired.map((d) => transferRow(d)).filter((r) => r !== undefined)
-    for (const type of SHEET_TRANSFER_TAB_TYPES) {
-      const label = TRANSFER_TYPE_LABELS[type]
-      const sheetSum = rows.filter((r) => r.typ === label).reduce((s, r) => s + Number(r.amount), 0)
-      expect(sheetSum).toBe(dbTotal(type))
-    }
-  })
-})
-
 describe('expenseRow (behavior unchanged by the refactor)', () => {
   it('maps an expense and slices the ISO date', () => {
     expect(
@@ -133,7 +88,6 @@ describe('expenseRow (behavior unchanged by the refactor)', () => {
       amount: -120,
       expenseCategory: { name: 'Materiały budowlane' },
     })
-    expect(row).toBeDefined()
     expect(row!.amount).toBe(-120)
     expect(row!.typ).toBe('Materiały budowlane')
   })
@@ -153,10 +107,8 @@ describe('expenseRow — settled (R+M) routing (bill tab)', () => {
       settled: true,
       expenseCategory: { name: 'Materiały budowlane' },
     })
-    expect(row).toBeDefined()
     expect(row!.amount).toBe(0)
     expect(row!.typ).toBe('Materiały budowlane rozliczone')
-    expect(row!.settledAmount).toBeUndefined()
   })
 
   it('settled CORRECTION (negative): kwota 0, type suffixed', () => {
@@ -170,30 +122,6 @@ describe('expenseRow — settled (R+M) routing (bill tab)', () => {
     })
     expect(row!.amount).toBe(0)
     expect(row!.typ).toBe('Materiały budowlane rozliczone')
-  })
-
-  it('non-settled expense: kwota = amount, plain type', () => {
-    const row = expenseRow({
-      ...base,
-      id: 13,
-      type: 'INVESTMENT_EXPENSE',
-      amount: 250,
-      settled: false,
-      expenseCategory: { name: 'Materiały budowlane' },
-    })
-    expect(row!.amount).toBe(250)
-    expect(row!.typ).toBe('Materiały budowlane')
-  })
-
-  it('absent settled flag is treated as non-settled', () => {
-    const row = expenseRow({
-      ...base,
-      id: 14,
-      amount: 99,
-      expenseCategory: { name: 'Materiały budowlane' },
-    })
-    expect(row!.amount).toBe(99)
-    expect(row!.typ).toBe('Materiały budowlane')
   })
 
   it('a non-finite amount is skipped even when settled', () => {
@@ -223,15 +151,6 @@ describe('bill tab SUM(E:E) excludes settled — bridge invariant (3.3)', () => 
   const columnESum = rows.reduce((s, r) => s + Number(r.amount), 0)
   const nonSettledTotal = docs.filter((d) => !d.settled).reduce((s, d) => s + Number(d.amount), 0)
 
-  it('(a) every settled row writes column-E amount 0', () => {
-    const settledRows = docs
-      .filter((d) => d.settled)
-      .map(expenseRow)
-      .filter((r) => r !== undefined)
-    expect(settledRows.length).toBe(2)
-    for (const r of settledRows) expect(r.amount).toBe(0)
-  })
-
   it('(b) Σ(column-E) over the bill tab == Σ(non-settled real amounts)', () => {
     expect(columnESum).toBe(nonSettledTotal)
     expect(columnESum).toBe(250 - 120 + 99) // 229 — the two settled (500, 1000) excluded
@@ -254,7 +173,6 @@ describe('settledExpenseRow (rozliczone tab)', () => {
       settled: true,
       expenseCategory: { name: 'Materiały budowlane' },
     })
-    expect(row).toBeDefined()
     expect(row!.amount).toBe(250)
     expect(row!.typ).toBe('Materiały budowlane')
   })

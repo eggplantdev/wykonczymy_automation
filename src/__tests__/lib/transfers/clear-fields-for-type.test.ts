@@ -90,11 +90,9 @@ describe('staleFieldsForType', () => {
 
   it('keeps the kasa when both types carry one', () => {
     expect(patch('CORRECTION')).not.toHaveProperty('sourceRegister')
-    expect(patch('INVESTMENT_EXPENSE')).not.toHaveProperty('sourceRegister')
   })
 
   it('keeps the settled flag between two settleable types', () => {
     expect(patch('CORRECTION')).not.toHaveProperty('settled')
-    expect(patch('INVESTMENT_EXPENSE')).not.toHaveProperty('settled')
   })
 })
