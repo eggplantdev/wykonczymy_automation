@@ -12,6 +12,7 @@ import { seedClientShare } from '@/scripts/seed-client-share'
 import { seedE2eExpenseDraft } from '@/scripts/seed-e2e-expense-draft'
 import { seedE2eTrash } from '@/scripts/seed-e2e-trash'
 import { seedE2eUser } from '@/scripts/seed-e2e-user'
+import { seedE2eWorkerReport } from '@/scripts/seed-e2e-worker-report'
 import { seedE2eWorkers } from '@/scripts/seed-e2e-workers'
 import { seedFleet } from '@/scripts/seed-fleet'
 import { seedInvoiceIngest } from '@/scripts/seed-invoice-ingest'
@@ -60,6 +61,7 @@ async function seedSuite(payload: Payload) {
     shareLink: await seedKosztorysBands(payload),
     sort: await seedKosztorysSort(payload),
     trash: await seedE2eTrash(payload),
+    workerReport: await seedE2eWorkerReport(payload),
     structure: await seedKosztorysStructure(payload),
     undo: await seedKosztorysUndo(payload),
     versions: await seedKosztorysReconciliation(payload),

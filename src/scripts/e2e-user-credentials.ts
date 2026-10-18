@@ -14,6 +14,7 @@ export const E2E_WORKERS = {
   other: { name: 'E2E Pracownik Drugi', email: 'e2e-worker-other@wykonczymy.test' },
   credentials: { name: 'E2E Pracownik Dane', email: 'e2e-worker-credentials@wykonczymy.test' },
   expenseDraft: { name: 'E2E Pracownik Zgłoszenia', email: 'e2e-worker-draft@wykonczymy.test' },
+  report: { name: 'E2E Pracownik Rozpiski', email: 'e2e-worker-report@wykonczymy.test' },
 } as const
 
 export const workerCredentials = (key: keyof typeof E2E_WORKERS): E2ECredentialsT => ({
