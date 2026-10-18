@@ -6,7 +6,7 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/
 import type { GlobalDiscountT, KosztorysItemT } from '@/lib/kosztorys/types'
 import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const SPREADSHEET_ID = 'sheet-abc'
 const NO_GLOBAL_DISCOUNT: GlobalDiscountT = { type: null, value: 0 }
@@ -20,26 +20,14 @@ const source = (overrides: Partial<ImportGridsT> = {}): ImportGridsT => ({
 })
 
 const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysItemT => ({
+  ...baseItem,
   sectionId: 1,
-  displayOrder: 0,
   description: null,
-  descriptionTranslations: {},
   unit: null,
   plannedQty: 0,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 0,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   ...overrides,
 })
 
@@ -127,7 +115,8 @@ describe('buildSheetComparison', () => {
     // The offer: 1×1500−9% + 0×15 + 2×120 = 1605.
     expect(totals.plannedNetFromSheet).toBeCloseTo(1605, 6)
     expect(totals.plannedNetFromApp).toBeCloseTo(totals.plannedNetFromSheet, 6)
-    expect(totals.executedNetFromSheet).toBeGreaterThan(0)
+    // Executed: Σetapów × cena − rabat = 1×1500−9% + 50×15−9% + 2×120 = 2287.5.
+    expect(totals.executedNetFromSheet).toBeCloseTo(2287.5, 6)
     expect(totals.executedNetFromApp).toBe(0)
   })
 

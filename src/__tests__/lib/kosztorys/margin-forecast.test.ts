@@ -1,29 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import { marginForecastByPlane } from '@/lib/kosztorys/margin-forecast'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 
 const item: ViewPricingT = {
+  ...baseItem,
   id: 1,
-  sectionId: 10,
-  displayOrder: 0,
   description: 'Malowanie',
-  descriptionTranslations: {},
-  unit: 'm2',
   plannedQty: 10,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 20,
-  wToolsOverrideValue: 12,
-  ownToolsOverrideValue: 10,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
   globalOwnToolsCoeff: 0.55,

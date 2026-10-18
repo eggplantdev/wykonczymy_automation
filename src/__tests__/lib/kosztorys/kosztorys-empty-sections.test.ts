@@ -3,31 +3,18 @@ import { countMatching, sectionIdsWhereAllMatch } from '@/lib/kosztorys/row-cond
 import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
-import { makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> = {}) {
   return {
+    ...baseItem,
     id,
     sectionId,
-    displayOrder: 0,
     description: `Pozycja ${id}`,
-    descriptionTranslations: {},
-    unit: 'm2',
     plannedQty: 10,
-    sheetMeasuredQty: null,
-    discountType: null,
-    discountValue: 0,
     clientPrice: 100,
     wToolsOverrideValue: null,
     ownToolsOverrideValue: null,
-    wToolsOverrideCoeff: null,
-    ownToolsOverrideCoeff: null,
-    note: null,
-    catalogueItemId: null,
-    currentPlannedQty: null,
-    aiPlannedQty: null,
-    changeReason: null,
-    reviewStatus: null,
     ...overrides,
   } satisfies KosztorysItemT
 }

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import {
   attachCatalogueHints,
   buildCatalogueComparison,
@@ -12,27 +13,14 @@ const SETTINGS = { wToolsCoeff: 0.65, ownToolsCoeff: 0.5 }
 let nextId = 1
 
 const item = (overrides: Partial<KosztorysItemT> = {}): KosztorysItemT => ({
+  ...baseItem,
   id: nextId++,
   sectionId: 1,
-  displayOrder: 0,
   description: 'Malowanie ścian',
-  descriptionTranslations: {},
-  unit: 'm2',
   plannedQty: 10,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   ...overrides,
 })
 
@@ -56,116 +44,86 @@ const entry = (overrides: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT 
   }
 }
 
+const NO_RATES = { wToolsRate: null, ownToolsRate: null }
+const W_TOOLS_LABEL = 'Stawka z narzędziami (podwykonawca)'
+
+const compareOne = (
+  itemOverrides: Partial<KosztorysItemT>,
+  entryOverrides: Partial<WorkCatalogueItemT>,
+) => buildCatalogueComparison([item(itemOverrides)], [entry(entryOverrides)], SETTINGS)
+
+const figureOf = (result: ReturnType<typeof buildCatalogueComparison>, label = W_TOOLS_LABEL) =>
+  result.diffs[0]?.figures.find((figure) => figure.label === label)
+
 describe('buildCatalogueComparison', () => {
-  it('nie robi rozjazdu z różnicy poniżej tolerancji groszowej', () => {
-    const result = buildCatalogueComparison(
-      [item({ clientPrice: 100.002 })],
-      [entry({ wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
-
-    expect(result.matching).toBe(1)
-    expect(result.diffs).toHaveLength(0)
-  })
-
-  it('nie robi rozjazdu z pół grosza — po zaokrągleniu obie kwoty to 14,88 zł', () => {
-    const result = buildCatalogueComparison(
-      [item({ clientPrice: 14.875 })],
-      [entry({ clientPrice: 14.88, wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
+  it.each<[string, Partial<KosztorysItemT>, Partial<WorkCatalogueItemT>]>([
+    [
+      'nie robi rozjazdu z różnicy poniżej tolerancji groszowej',
+      { clientPrice: 100.002 },
+      NO_RATES,
+    ],
+    [
+      'nie robi rozjazdu z pół grosza — po zaokrągleniu obie kwoty to 14,88 zł',
+      { clientPrice: 14.875 },
+      { clientPrice: 14.88, ...NO_RATES },
+    ],
+    [
+      'porównuje stawkę nadpisaną kwotowo, nie wyliczoną z współczynnika',
+      { wToolsOverrideValue: 65 },
+      { ownToolsRate: null },
+    ],
+  ])('%s', (_, itemOverrides, entryOverrides) => {
+    const result = compareOne(itemOverrides, entryOverrides)
 
     expect(result.diffs).toHaveLength(0)
     expect(result.matching).toBe(1)
   })
 
   it('raportuje rozjazd o cały grosz', () => {
-    const result = buildCatalogueComparison(
-      [item({ clientPrice: 14.87 })],
-      [entry({ clientPrice: 14.88, wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const result = compareOne({ clientPrice: 14.87 }, { clientPrice: 14.88, ...NO_RATES })
 
     expect(result.diffs[0].figures.map((figure) => figure.label)).toContain('Cena j.m.')
   })
 
   it('raportuje rozjazd samej stawki podwykonawcy przy zgodnej cenie', () => {
-    const result = buildCatalogueComparison(
-      [item()],
-      [entry({ wToolsRate: 80, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const result = compareOne({}, { wToolsRate: 80, ownToolsRate: null })
 
     expect(result.matching).toBe(0)
     expect(result.diffs).toHaveLength(1)
-    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual([
-      'Stawka z narzędziami (podwykonawca)',
-    ])
+    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual([W_TOOLS_LABEL])
     expect(result.diffs[0].figures[0].kosztorys).toBeCloseTo(65, 6)
     expect(result.diffs[0].figures[0].delta).toBeCloseTo(-15, 6)
   })
 
-  it('porównuje stawkę nadpisaną kwotowo, nie wyliczoną z współczynnika', () => {
-    const result = buildCatalogueComparison(
-      [item({ wToolsOverrideValue: 65 })],
-      [entry({ ownToolsRate: null })],
-      SETTINGS,
-    )
-
-    expect(result.diffs).toHaveLength(0)
-    expect(result.matching).toBe(1)
-  })
-
   it('przy obu stawkach „auto" różnica ceny raportuje się RAZ, nie trzy razy', () => {
-    const result = buildCatalogueComparison(
-      [item({ clientPrice: 200 })],
-      [entry({ clientPrice: 100, wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const result = compareOne({ clientPrice: 200 }, { clientPrice: 100, ...NO_RATES })
 
     expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual(['Cena j.m.'])
     expect(result.diffs[0].maxDelta).toBeCloseTo(100, 6)
   })
 
   it('„auto" w cenniku liczy się z ceny KATALOGU, gdy rozpiska ma własne nadpisanie', () => {
-    const result = buildCatalogueComparison(
-      [item({ clientPrice: 200, wToolsOverrideValue: 130 })],
-      [entry({ clientPrice: 100, wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
+    const wTools = figureOf(
+      compareOne({ clientPrice: 200, wToolsOverrideValue: 130 }, { clientPrice: 100, ...NO_RATES }),
     )
 
-    const wTools = result.diffs[0].figures.find(
-      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
-    )
     expect(wTools?.catalogue).toBeCloseTo(65, 6)
     expect(wTools?.kosztorys).toBeCloseTo(130, 6)
   })
 
   it('zamrożona kwota przeciw katalogowemu „auto" to rozjazd nawet przy tej samej kwocie', () => {
-    const result = buildCatalogueComparison(
-      [item({ wToolsOverrideValue: 65 })],
-      [entry({ wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const wTools = figureOf(compareOne({ wToolsOverrideValue: 65 }, NO_RATES))
 
-    const wTools = result.diffs[0].figures.find(
-      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
-    )
     expect(wTools?.delta).toBeCloseTo(0, 6)
     expect(wTools?.kosztorysSource).toBe('amount')
     expect(wTools?.catalogueSource).toBe('auto')
   })
 
   it('mnożnik przeciw równej mu kwocie to rozjazd, choć delta jest zerowa', () => {
-    const result = buildCatalogueComparison(
-      [item({ wToolsOverrideCoeff: 0.65 })],
-      [entry({ wToolsRate: 65, ownToolsRate: null })],
-      SETTINGS,
+    const wTools = figureOf(
+      compareOne({ wToolsOverrideCoeff: 0.65 }, { wToolsRate: 65, ownToolsRate: null }),
     )
 
-    const wTools = result.diffs[0].figures.find(
-      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
-    )
     expect(wTools?.delta).toBeCloseTo(0, 6)
     expect(wTools?.kosztorysSource).toBe('coeff')
     expect(wTools?.kosztorysCoeff).toBe(0.65)
@@ -173,39 +131,21 @@ describe('buildCatalogueComparison', () => {
   })
 
   it('dwa mnożniki o tej samej wartości milczą', () => {
-    const result = buildCatalogueComparison(
-      [item({ wToolsOverrideCoeff: 0.65 })],
-      [entry({ wToolsRate: null, wToolsRateCoeff: 0.65, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const result = compareOne({ wToolsOverrideCoeff: 0.65 }, { ...NO_RATES, wToolsRateCoeff: 0.65 })
 
-    expect(
-      result.diffs[0]?.figures.find((f) => f.label === 'Stawka z narzędziami (podwykonawca)'),
-    ).toBeUndefined()
+    expect(figureOf(result)).toBeUndefined()
   })
 
   it('rozpiskowe „auto" przeciw katalogowej kwocie to rozjazd w drugą stronę', () => {
-    const result = buildCatalogueComparison(
-      [item()],
-      [entry({ wToolsRate: 80, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const wTools = figureOf(compareOne({}, { wToolsRate: 80, ownToolsRate: null }))
 
-    const wTools = result.diffs[0].figures.find(
-      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
-    )
     expect(wTools?.kosztorysSource).toBe('auto')
     expect(wTools?.catalogueSource).toBe('amount')
   })
 
   it('„Cena j.m." nigdy nie jest „auto"', () => {
-    const result = buildCatalogueComparison(
-      [item({ clientPrice: 120 })],
-      [entry({ wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
+    const price = figureOf(compareOne({ clientPrice: 120 }, NO_RATES), 'Cena j.m.')
 
-    const price = result.diffs[0].figures.find((f) => f.label === 'Cena j.m.')
     expect(price?.kosztorysSource).toBe('amount')
     expect(price?.catalogueSource).toBe('amount')
   })
@@ -217,18 +157,8 @@ describe('buildCatalogueComparison', () => {
         item({ description: 'Duża różnica', clientPrice: 300 }),
       ],
       [
-        entry({
-          description: 'Mała różnica',
-          clientPrice: 100,
-          wToolsRate: null,
-          ownToolsRate: null,
-        }),
-        entry({
-          description: 'Duża różnica',
-          clientPrice: 100,
-          wToolsRate: null,
-          ownToolsRate: null,
-        }),
+        entry({ description: 'Mała różnica', clientPrice: 100, ...NO_RATES }),
+        entry({ description: 'Duża różnica', clientPrice: 100, ...NO_RATES }),
       ],
       SETTINGS,
     )
@@ -237,35 +167,30 @@ describe('buildCatalogueComparison', () => {
   })
 
   it('praca spoza katalogu ląduje w missing, nigdy w diffs', () => {
-    const result = buildCatalogueComparison(
-      [item({ description: 'Nieznana praca', clientPrice: 999 })],
-      [entry()],
-      SETTINGS,
-    )
+    const result = compareOne({ description: 'Nieznana praca', clientPrice: 999 }, {})
 
     expect(result.diffs).toHaveLength(0)
     expect(result.missing.map((row) => row.description)).toEqual(['Nieznana praca'])
   })
 
   it('ta sama nazwa w innej jednostce to brak w katalogu, nie rozjazd', () => {
-    const result = buildCatalogueComparison([item({ unit: 'szt' })], [entry()], SETTINGS)
+    const result = compareOne({ unit: 'szt' }, {})
 
     expect(result.diffs).toHaveLength(0)
     expect(result.missing).toHaveLength(1)
   })
 
   it('nie podpowiada nic samo z siebie — to osobny, leniwy przebieg', () => {
-    const result = buildCatalogueComparison(
-      [item({ description: 'Gładzie gipsowe', unit: 'm2' })],
-      [entry({ description: 'Gładź gipsowa' })],
-      SETTINGS,
+    const result = compareOne(
+      { description: 'Gładzie gipsowe', unit: 'm2' },
+      { description: 'Gładź gipsowa' },
     )
 
     expect(result.missing[0].hints).toEqual([])
   })
 
   it('pomija pozycje bez opisu', () => {
-    const result = buildCatalogueComparison([item({ description: '   ' })], [entry()], SETTINGS)
+    const result = compareOne({ description: '   ' }, {})
 
     expect(result).toEqual({ matching: 0, diffs: [], missing: [], entryByItemId: new Map() })
   })

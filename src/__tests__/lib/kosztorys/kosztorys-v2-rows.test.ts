@@ -73,29 +73,20 @@ describe('diffRow', () => {
     expect(diffRow(prev, next)).toEqual({ stageChanges: [{ stageId: 101, qty: 3 }] })
   })
 
-  it('bez zmian → pusty diff', () => {
+  it.each<[string, Record<string, unknown>]>([
+    ['bez zmian → pusty diff', {}],
+    [
+      'nie bierze kolumn kwotowych za postęp etapu',
+      { [stageValueNetKey(101)]: 999, [stageValueGrossKey(101)]: 999 },
+    ],
+    // Bez tego Number('x') → NaN pojechałoby do zapisu jako id etapu.
+    ['nie bierze klucza z prefiksem ilości, ale bez id etapu, za postęp', { stage_x: 5 }],
+    // Gdyby przeciekł do `itemPatch`, arkuszowa wartość zapisywałaby się z
+    // powrotem przy każdej edycji wiersza i rozjazd nigdy by nie zniknął.
+    ['nie zapisuje pomiaru z arkusza jako edycji pozycji', { sheetMeasuredQty: 42 }],
+  ])('%s', (_, patch) => {
     const [prev] = treeToRows(tree)
-    expect(diffRow(prev, { ...prev })).toEqual({})
-  })
-
-  it('nie bierze kolumn kwotowych za postęp etapu', () => {
-    const [prev] = treeToRows(tree)
-    const next = { ...prev, [stageValueNetKey(101)]: 999, [stageValueGrossKey(101)]: 999 }
-    expect(diffRow(prev, next)).toEqual({})
-  })
-
-  // Bez tego
-  // Number('x') → NaN pojechałoby do zapisu jako id etapu.
-  it('nie bierze klucza z prefiksem ilości, ale bez id etapu, za postęp', () => {
-    const [prev] = treeToRows(tree)
-    expect(diffRow(prev, { ...prev, stage_x: 5 } as typeof prev)).toEqual({})
-  })
-
-  // Gdyby przeciekł do `itemPatch`, arkuszowa wartość zapisywałaby się z
-  // powrotem przy każdej edycji wiersza i rozjazd nigdy by nie zniknął.
-  it('nie zapisuje pomiaru z arkusza jako edycji pozycji', () => {
-    const [prev] = treeToRows(tree)
-    expect(diffRow(prev, { ...prev, sheetMeasuredQty: 42 })).toEqual({})
+    expect(diffRow(prev, { ...prev, ...patch } as typeof prev)).toEqual({})
   })
 
   it('prefiksy etapowe są parami rozłączne', () => {
@@ -313,29 +304,19 @@ describe('wartość wiersza idzie za etapami', () => {
   describe('hasStagesOverPlanned', () => {
     const offered = (over: Partial<KosztorysV2RowT> = {}) => row({ plannedQty: 10, ...over })
 
-    it('robota w granicach Przedmiaru się nie świeci', () => {
-      expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 4 }), stages)).toBe(false)
-      expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 10 }), stages)).toBe(false)
-    })
-
-    it('etapy ponad Przedmiar → czerwień', () => {
-      expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 11 }), stages)).toBe(true)
-    })
-
-    it('robota bez Przedmiaru się nie świeci', () => {
-      expect(hasStagesOverPlanned(offered({ plannedQty: 0, [stageKey(100)]: 5 }), stages)).toBe(
+    it.each<[string, Partial<KosztorysV2RowT>, boolean]>([
+      ['robota w granicach Przedmiaru się nie świeci', { [stageKey(100)]: 4 }, false],
+      ['robota równa Przedmiarowi się nie świeci', { [stageKey(100)]: 10 }, false],
+      ['etapy ponad Przedmiar → czerwień', { [stageKey(100)]: 11 }, true],
+      ['robota bez Przedmiaru się nie świeci', { plannedQty: 0, [stageKey(100)]: 5 }, false],
+      [
+        'robota przy Przedmiarze null się nie świeci',
+        { plannedQty: null as unknown as number, [stageKey(100)]: 5 },
         false,
-      )
-      expect(
-        hasStagesOverPlanned(
-          offered({ plannedQty: null as unknown as number, [stageKey(100)]: 5 }),
-          stages,
-        ),
-      ).toBe(false)
-    })
-
-    it('pusty wiersz nie świeci się na czerwono', () => {
-      expect(hasStagesOverPlanned(offered({ plannedQty: 0 }), stages)).toBe(false)
+      ],
+      ['pusty wiersz nie świeci się na czerwono', { plannedQty: 0 }, false],
+    ])('%s', (_, over, expected) => {
+      expect(hasStagesOverPlanned(offered(over), stages)).toBe(expected)
     })
   })
 
@@ -440,27 +421,28 @@ describe('revertField', () => {
 describe('applyRestoreItem — reinsert a removed row after a failed delete', () => {
   const row = (id: number) => ({ id }) as KosztorysV2RowT
 
-  it('wstawia usunięty wiersz z powrotem za sąsiada, którego wcześniej następował', () => {
-    const removed = row(2)
-    const after = applyRestoreItem([row(1), row(3), row(4)], removed, 1)
-    expect(after.map((r) => r.id)).toEqual([1, 2, 3, 4])
-  })
-
-  it('wstawia na początek, gdy wiersz był pierwszy (afterId === null)', () => {
-    const after = applyRestoreItem([row(2), row(3)], row(1), null)
-    expect(after.map((r) => r.id)).toEqual([1, 2, 3])
-  })
-
-  it('trafia we właściwe miejsce mimo współbieżnej edycji podczas await', () => {
+  it.each<[string, number[], number, number | null, number[]]>([
+    [
+      'wstawia usunięty wiersz z powrotem za sąsiada, którego wcześniej następował',
+      [1, 3, 4],
+      2,
+      1,
+      [1, 2, 3, 4],
+    ],
+    ['wstawia na początek, gdy wiersz był pierwszy (afterId === null)', [2, 3], 1, null, [1, 2, 3]],
     // Row 2 was removed after row 1; while the delete was in flight the user inserted row 9 at the
     // front. A stale absolute index would misplace 2 — anchoring on afterId=1 keeps it correct.
-    const after = applyRestoreItem([row(9), row(1), row(3)], row(2), 1)
-    expect(after.map((r) => r.id)).toEqual([9, 1, 2, 3])
-  })
-
-  it('dokleja na koniec, gdy sąsiad zniknął w międzyczasie', () => {
-    const after = applyRestoreItem([row(3), row(4)], row(2), 1)
-    expect(after.map((r) => r.id)).toEqual([3, 4, 2])
+    [
+      'trafia we właściwe miejsce mimo współbieżnej edycji podczas await',
+      [9, 1, 3],
+      2,
+      1,
+      [9, 1, 2, 3],
+    ],
+    ['dokleja na koniec, gdy sąsiad zniknął w międzyczasie', [3, 4], 2, 1, [3, 4, 2]],
+  ])('%s', (_, ids, removed, afterId, expected) => {
+    const after = applyRestoreItem(ids.map(row), row(removed), afterId)
+    expect(after.map((r) => r.id)).toEqual(expected)
   })
 })
 

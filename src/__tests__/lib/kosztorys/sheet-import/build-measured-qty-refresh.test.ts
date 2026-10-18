@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import { buildMeasuredQtyRefresh } from '@/lib/kosztorys/sheet-import/build-measured-qty-refresh'
 import type { ImportGridsT } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
@@ -24,26 +25,14 @@ function withoutPomiarHeader(): (string | number)[][] {
 }
 
 const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysItemT => ({
+  ...baseItem,
   sectionId: 1,
-  displayOrder: 0,
   description: null,
-  descriptionTranslations: {},
   unit: null,
   plannedQty: 0,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 0,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   ...overrides,
 })
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import { cleanDescription, TYPO_FIXES } from '@/lib/kosztorys/clean-description'
 import { foldDescription, itemKey, keyItems } from '@/lib/kosztorys/sheet-import/item-key'
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
@@ -6,27 +7,15 @@ import type { KosztorysItemT } from '@/lib/kosztorys/types'
 const key = (description: string) => itemKey('Wyburzenia', description, 0)
 
 const item = (id: number, description: string): KosztorysItemT => ({
+  ...baseItem,
   id,
   sectionId: 1,
-  displayOrder: 0,
   description,
-  descriptionTranslations: {},
   unit: null,
   plannedQty: 0,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 0,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
 })
 
 describe('itemKey', () => {

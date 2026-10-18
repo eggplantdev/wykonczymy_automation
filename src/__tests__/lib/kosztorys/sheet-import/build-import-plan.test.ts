@@ -6,7 +6,7 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const RATES = [
   { description: 'zakup, transport i wniesienie towaru budowlanego', wTools: 975, ownTools: 750 },
@@ -28,32 +28,18 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
     sections: [{ id: 7, name: 'Klimatyzacja', displayOrder: 0, color: 'blue' }],
     items: [
       {
+        ...baseItem,
         id: 70,
         ref: 4070,
         sectionId: 7,
-        displayOrder: 0,
         description: 'montaż jednostki wewnętrznej',
-        descriptionTranslations: {},
         unit: 'szt.',
         plannedQty: 9,
         sheetMeasuredQty: 99,
-        discountType: null,
-        discountValue: 0,
         clientPrice: 999,
         wToolsOverrideValue: null,
         ownToolsOverrideValue: null,
-        wToolsOverrideCoeff: null,
-        ownToolsOverrideCoeff: null,
         note: 'ustalone z klientem',
-        catalogueItemId: null,
-        currentPlannedQty: null,
-        aiPlannedQty: null,
-        aiMissingData: null,
-        aiAssumptions: null,
-        aiNewInformation: null,
-        aiRecheck: false,
-        changeReason: null,
-        reviewStatus: null,
       },
     ],
     stages: Array.from({ length: 6 }, (_, index) =>
