@@ -196,8 +196,9 @@ rekordu z poprzedniego przebiegu weryfikacji nie jest stałą; szukaj stanu od n
 and each separate Playwright MCP call is slower (`browser_type` alone takes >1 s). To check that
 several edits undo in one step, make them inside one `browser_evaluate`.
 
-**The kosztorys „Filtry" menu is inverted too.** Every option starts ticked; unticking hides those
-rows (chip „Ukryto: …"), it never narrows to them. Only „Problemy" means show-only („Tylko: …").
+**The kosztorys „Filtry" menu is show-only (since 2026-10-16).** Nothing starts ticked; a tick narrows
+to those rows (chip „Tylko: …") — OR within a group, AND across groups. Old saved picks were dropped by
+a storage-key rename.
 
 **Grid resize handles capture the pointer** (`setPointerCapture`). `browser_drag` never shows the
 intermediate state; send `pointerdown` → `pointermove`×N → `pointerup` to the `role="separator"`
