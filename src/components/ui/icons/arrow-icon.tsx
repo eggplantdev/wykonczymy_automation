@@ -16,7 +16,7 @@ const rotations: Record<DirectionT, string> = {
   left: '270deg',
 }
 
-export default function ArrowIcon({ size, className, direction }: PropsT) {
+export default function ArrowIcon({ className, direction }: PropsT) {
   return (
     <svg
       data-slot="icon"
