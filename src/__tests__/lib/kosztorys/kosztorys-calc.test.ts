@@ -331,7 +331,7 @@ describe('rowPlannedDiscountForView — rabat w złotych na przedmiarze', () => 
   const amount = { discountType: 'amount' as const, discountValue: 30 }
 
   it.each<[string, Partial<ViewPricingT>, PriceViewT, number]>([
-    ['rabat procentowy = przedmiar × cena − wartość przedmiaru', percent, 'client', 24], // 240 − 216
+    ['rabat procentowy = przedmiar × cena − wartość przedmiaru', percent, 'client', 24],
     ['rabat kwotowy', amount, 'client', 30],
     ['bez rabatu → 0', {}, 'client', 0],
     ['przedmiar 0 → 0, nawet przy rabacie kwotowym', { ...amount, plannedQty: 0 }, 'client', 0],
@@ -354,8 +354,8 @@ describe('netForQtyForView — zerowa ilość nie niesie wartości ani rabatu', 
 
 describe('netto per widok ceny', () => {
   it('liczy wykonanie z ceny aktywnego widoku', () => {
-    expect(netForQtyForView(item, TOTAL_QTY, 'w_tools')).toBe(120) // 10 × 12
-    expect(netForQtyForView(item, TOTAL_QTY, 'own_tools')).toBe(100) // 10 × 10
+    expect(netForQtyForView(item, TOTAL_QTY, 'w_tools')).toBe(120)
+    expect(netForQtyForView(item, TOTAL_QTY, 'own_tools')).toBe(100)
   })
 })
 

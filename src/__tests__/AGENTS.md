@@ -13,6 +13,9 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   missing one comes back `undefined` and `protectedAction` swallows the TypeError into
   `{ success: false }`, which reads as a business-logic failure. Not aliased globally because
   `revalidate.test.ts` tests the real module.
+- **Mocking `@/lib/auth/require-auth` takes the shared stub** (`() => import('@/__tests__/stubs/require-auth')`),
+  setting the role / user through its `authState`. Hand-roll a factory only for what the stub can't
+  express, e.g. gating on `allowedRoles`.
 - **Never add a constant to a module specs mock by hand.** `@/lib/utils/toast` is hand-mocked in
   ~22 specs, so a constant exported from it is `undefined` in all of them. Notice wording and timing
   live in `lib/utils/notice.ts`; `toast.ts` stays the side effect alone.

@@ -12,15 +12,10 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { authState } from '@/__tests__/stubs/require-auth'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'k@t.com', name: 'Kierownik', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { translateToPolish } = vi.hoisted(() => ({ translateToPolish: vi.fn() }))

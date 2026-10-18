@@ -6,8 +6,6 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-// A real user id is set in beforeAll — the snapshot's `taken_by` FK-references users(id), so a
-// fabricated id would fail the manual-insert path.
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))

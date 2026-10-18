@@ -79,10 +79,10 @@ describe('diffRow', () => {
       'nie bierze kolumn kwotowych za postęp etapu',
       { [stageValueNetKey(101)]: 999, [stageValueGrossKey(101)]: 999 },
     ],
-    // Bez tego Number('x') → NaN pojechałoby do zapisu jako id etapu.
+    // Without this, Number('x') → NaN would be saved as a stage id.
     ['nie bierze klucza z prefiksem ilości, ale bez id etapu, za postęp', { stage_x: 5 }],
-    // Gdyby przeciekł do `itemPatch`, arkuszowa wartość zapisywałaby się z
-    // powrotem przy każdej edycji wiersza i rozjazd nigdy by nie zniknął.
+    // Leaked into `itemPatch`, the sheet value would be written back on every row edit and the
+    // drift would never clear.
     ['nie zapisuje pomiaru z arkusza jako edycji pozycji', { sheetMeasuredQty: 42 }],
   ])('%s', (_, patch) => {
     const [prev] = treeToRows(tree)

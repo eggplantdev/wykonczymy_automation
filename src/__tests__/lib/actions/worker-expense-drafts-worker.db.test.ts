@@ -8,15 +8,10 @@ import { pl } from '@/lib/i18n/dictionaries/pl'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0, role: 'EMPLOYEE' }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'w@t.com', name: 'Worker', role: authState.role },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))

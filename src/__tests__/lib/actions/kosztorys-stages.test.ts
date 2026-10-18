@@ -3,17 +3,10 @@ import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-postgres'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
-// A real user id (looked up in beforeAll), not a hardcoded 1: removeStageAction takes a
-// pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
-const authState = vi.hoisted(() => ({ userId: 0, otherUserId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const {
@@ -31,6 +24,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
+  let otherUserId: number
   const createdSections: number[] = []
   const createdStages: number[] = []
   // Spread (not inlined) so payload's create overload doesn't mis-resolve to the draft branch.
@@ -54,8 +48,10 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
+    // A real user id, not the stub's 1: removeStageAction takes a pre-delete snapshot whose
+    // taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
     authState.userId = Number(firstUser.id)
-    authState.otherUserId = Number(users.docs[1]?.id ?? firstUser.id)
+    otherUserId = Number(users.docs[1]?.id ?? firstUser.id)
   })
 
   afterAll(async () => {
@@ -188,7 +184,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
         mode: 'percent' as const,
         members: [
           { workerId: authState.userId, value: 0, takesRest: true },
-          { workerId: authState.otherUserId, value: 25, takesRest: false },
+          { workerId: otherUserId, value: 25, takesRest: false },
         ],
       }
 
@@ -197,7 +193,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
         mode: 'percent',
         members: [
           [authState.userId, 0, true],
-          [authState.otherUserId, 25, false],
+          [otherUserId, 25, false],
         ],
       })
 
@@ -223,7 +219,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
         mode: 'amount',
         members: [
           { workerId: authState.userId, value: 0, takesRest: true },
-          { workerId: authState.otherUserId, value: 100, takesRest: false },
+          { workerId: otherUserId, value: 100, takesRest: false },
         ],
       })
 
@@ -237,7 +233,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
         mode: 'percent',
         members: [
           { workerId: authState.userId, value: 30, takesRest: false },
-          { workerId: authState.otherUserId, value: 20, takesRest: false },
+          { workerId: otherUserId, value: 20, takesRest: false },
         ],
       })
 
@@ -279,13 +275,11 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
 
   describe('a worker in the kosz (EX-918)', () => {
     async function withTrashedOther(run: () => Promise<void>) {
-      await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${authState.otherUserId}`)
+      await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${otherUserId}`)
       try {
         await run()
       } finally {
-        await db.execute(
-          sql`UPDATE users SET trashed_at = NULL WHERE id = ${authState.otherUserId}`,
-        )
+        await db.execute(sql`UPDATE users SET trashed_at = NULL WHERE id = ${otherUserId}`)
       }
     }
 
@@ -303,7 +297,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
           mode: 'percent',
           members: [
             { workerId: authState.userId, value: 0, takesRest: true },
-            { workerId: authState.otherUserId, value: 25, takesRest: false },
+            { workerId: otherUserId, value: 25, takesRest: false },
           ],
         })
 
@@ -319,7 +313,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
       await withTrashedOther(async () => {
         const res = await addStageAction(investmentId, 'w_tools', {
           mode: 'percent',
-          members: [{ workerId: authState.otherUserId, value: 0, takesRest: true }],
+          members: [{ workerId: otherUserId, value: 0, takesRest: true }],
         })
 
         expect(res).toEqual({ success: false, error: WORKER_TRASHED_MESSAGE })

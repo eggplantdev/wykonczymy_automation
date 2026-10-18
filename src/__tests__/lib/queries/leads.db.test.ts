@@ -8,9 +8,7 @@ import { fetchLeadsPage } from '@/lib/queries/leads'
 // Counts are asserted as a difference — the shared test DB carries leads of its own.
 
 vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: async () => ({ success: true, user: { id: 1, role: 'OWNER' } }),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = `EX-970 hidden ${Date.now()}`

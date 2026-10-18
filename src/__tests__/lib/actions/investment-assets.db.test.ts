@@ -3,6 +3,7 @@ import type { CollectionBeforeDeleteHook, Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 // `assets` is investments' first relationship field, so this asserts the join table the migration
 // created actually matches what Payload writes into it — a shape a mocked `payload.update` cannot
@@ -22,12 +23,7 @@ vi.mock('next/server', async (importOriginal) => {
     },
   }
 })
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -64,6 +60,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
   }
 
   beforeAll(async () => {
+    authState.role = 'ADMIN'
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })

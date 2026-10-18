@@ -7,6 +7,7 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 // EX-949: the number printed on a fill-in form must survive every wipe-and-reinsert that is the SAME
 // work (restore) and must never be reused by one that is new work (szablon, a new praca) — a reused
@@ -43,8 +44,7 @@ describe.skipIf(!ENV_READY)('kosztorys item ref (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0, sort: 'id' })
-    authState.userId = Number(users.docs[0]!.id)
+    authState.userId = await firstUserId(payload)
 
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)
     sourceId = await createTestInvestment(payload, `${FIXTURE_PREFIX}source-${Date.now()}`)

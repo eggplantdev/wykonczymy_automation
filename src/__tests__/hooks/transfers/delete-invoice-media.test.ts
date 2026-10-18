@@ -54,6 +54,15 @@ describe('deleteInvoiceMediaAfterDelete', () => {
     expect(mockDelete).not.toHaveBeenCalled()
   })
 
+  it('keeps a page another expense still references', async () => {
+    mockFind.mockResolvedValueOnce({ docs: [{ invoice: [55] }] })
+
+    await runHook([55, 56])
+
+    expect(mockDelete).toHaveBeenCalledTimes(1)
+    expect(mockDelete).toHaveBeenCalledWith(expect.objectContaining({ id: 56 }))
+  })
+
   // Enlisting the delete in the expense-delete transaction means one Postgres-level failure aborts
   // that transaction.
   it('runs the media delete outside the expense-delete transaction', async () => {

@@ -9,6 +9,7 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 vi.mock('server-only', () => ({}))
 // The seeded wypłaty go through the transfers' afterChange sheet sync, which schedules on after() —
@@ -70,8 +71,8 @@ describe.skipIf(!ENV_READY)('bookOverpaymentBonusAction (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    const [users, registers] = await Promise.all([
-      payload.find({ collection: 'users', limit: 1, sort: 'id', depth: 0, overrideAccess: true }),
+    const [userId, registers] = await Promise.all([
+      firstUserId(payload),
       payload.find({
         collection: 'cash-registers',
         limit: 1,
@@ -80,8 +81,8 @@ describe.skipIf(!ENV_READY)('bookOverpaymentBonusAction (DB)', () => {
         overrideAccess: true,
       }),
     ])
-    if (!users.docs[0] || !registers.docs[0]) throw new Error('missing DB fixtures')
-    workerId = Number(users.docs[0].id)
+    if (!registers.docs[0]) throw new Error('missing DB fixtures')
+    workerId = userId
     registerId = Number(registers.docs[0].id)
     authState.userId = workerId
 

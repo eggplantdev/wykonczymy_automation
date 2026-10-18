@@ -261,7 +261,6 @@ describe('subcontractorDueByPlane — shared etapy', () => {
 })
 
 describe('pomiar liczony po planie etapu', () => {
-  // Row 1: stage 100 = 2, stage 101 = 3.
   it.each([
     ['każdy widok podwykonawcy widzi tylko swoje etapy, klient widzi całe O', mixed, 2, 3],
     ['etap bez wybranego trybu nie należy do żadnego widoku podwykonawcy', allNull, 0, 0],

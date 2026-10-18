@@ -21,6 +21,13 @@ beforeEach(() => {
 })
 
 describe('storeLead — idempotency & race', () => {
+  it('returns the existing sibling without creating (redelivery)', async () => {
+    find.mockResolvedValueOnce(asFind([winner]))
+    const result = await storeLead(payload, input)
+    expect(result).toEqual({ lead: winner, created: false })
+    expect(create).not.toHaveBeenCalled()
+  })
+
   it('recovers from a lost unique-index race: create throws, the winner is re-read', async () => {
     find.mockResolvedValueOnce(asFind([])) // initial lookup: not there yet
     create.mockRejectedValueOnce(new Error('duplicate key value violates unique constraint'))

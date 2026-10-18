@@ -6,6 +6,7 @@ import { getDb } from '@/lib/db/get-db'
 import { getSnapshot, listSnapshots } from '@/lib/db/snapshots'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
@@ -37,8 +38,7 @@ describe.skipIf(!ENV_READY)('wholesale replacement vs a concurrent autosave (DB)
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
 
-    const users = await payload.find({ collection: 'users', limit: 1, pagination: false })
-    takenBy = Number(users.docs[0].id)
+    takenBy = await firstUserId(payload)
 
     investmentId = await createTestInvestment(payload, 'replace-tree-lost-write-test', {
       vatRate: 0.23,

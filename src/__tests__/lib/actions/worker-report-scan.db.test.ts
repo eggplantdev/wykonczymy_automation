@@ -10,15 +10,10 @@ import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/lab
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'k@t.com', name: 'Kierownik', role: 'MANAGER' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 const scheduled = vi.hoisted(() => [] as (() => unknown)[])
 vi.mock('next/server', async (importOriginal) => {
@@ -92,6 +87,7 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     workerId = Number((await user('Jan Skanowany', 'scan-worker@test.local', 'EMPLOYEE')).id)
     managerId = Number((await user('Kierownik Skanu', 'scan-manager@test.local', 'MANAGER')).id)
     authState.userId = managerId
+    authState.role = 'MANAGER'
     ;({
       itemIds: [itemId],
     } = await createKosztorysTree(payload, investmentId, {

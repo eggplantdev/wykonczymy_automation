@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db/get-db'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { sql } from '@payloadcms/db-postgres'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 // EX-613 puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
 // They are warnings, not gates — and „not a gate" is only true if the write actually lands. So this
@@ -38,7 +39,7 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
     db = await getDb(payload)
 
     // sort by id: parallel specs create and delete transient investments with the highest ids.
-    const [investments, users, registers] = await Promise.all([
+    const [investments, userId, registers] = await Promise.all([
       payload.find({
         collection: 'investments',
         // A zakończona inwestycja refuses every write (EX-748), and the lowest ids in the fixture DB
@@ -49,7 +50,7 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
         depth: 0,
         overrideAccess: true,
       }),
-      payload.find({ collection: 'users', limit: 1, sort: 'id', depth: 0, overrideAccess: true }),
+      firstUserId(payload),
       payload.find({
         collection: 'cash-registers',
         limit: 1,
@@ -59,11 +60,10 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
       }),
     ])
     const investment = investments.docs[0]
-    const user = users.docs[0]
     const register = registers.docs[0]
-    if (!investment || !user || !register) throw new Error('missing DB fixtures for a PAYOUT')
+    if (!investment || !register) throw new Error('missing DB fixtures for a PAYOUT')
     investmentId = Number(investment.id)
-    workerId = Number(user.id)
+    workerId = userId
     registerId = Number(register.id)
     authState.userId = workerId
   })

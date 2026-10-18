@@ -92,8 +92,8 @@ const headersOf = (out: string) =>
 
 const bandTotalSpans = (out: string) => {
   const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
-  const spans = [...totalRow.matchAll(/<td[^>]*?(?:colspan="(\d+)")?[^>]*>/g)].map((m) =>
-    Number(m[1] ?? 1),
+  const spans = [...totalRow.matchAll(/<td([^>]*)>/g)].map((m) =>
+    Number(/colspan="(\d+)"/.exec(m[1])?.[1] ?? 1),
   )
   return { totalRow, spanSum: spans.reduce((sum, span) => sum + span, 0) }
 }

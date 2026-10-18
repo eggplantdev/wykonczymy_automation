@@ -241,7 +241,7 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   })
 
   // A szablon's przedmiar is all zeroes, so a surviving amount discount would price the fresh
-  // rozpiska below nothing — `globalDiscountAmount` is deliberately unclamped (calc.ts).
+  // rozpiska below nothing — `globalDiscountAmount` does not clamp it.
   it('zeroes the rabat globalny, which would otherwise outlive the work it discounts', async () => {
     await seedLiveTree()
     await setGlobalDiscount(INVESTMENT_DISCOUNT)

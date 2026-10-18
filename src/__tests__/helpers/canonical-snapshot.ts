@@ -1,7 +1,6 @@
 import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 
-// `dropRef`: a szablon mints new refs (item-ref.db.test.ts asserts that), so for a preset `ref` is
-// an identity like `id`.
+// `dropRef`: a szablon mints new refs, so for a preset `ref` is an identity like `id`.
 export function canonicalTree(snap: StoredSnapshotPayloadT, { dropRef = false } = {}) {
   const sectionById = new Map(snap.sections.map((section) => [section.id, section]))
   const itemById = new Map(snap.items.map((item) => [item.id, item]))

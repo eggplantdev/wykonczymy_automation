@@ -8,18 +8,14 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -39,6 +35,7 @@ describe.skipIf(!ENV_READY)('setInvestmentAiStageAction (DB)', () => {
   const purge = () => db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${MARKER} %`}`)
 
   beforeAll(async () => {
+    authState.role = 'ADMIN'
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })

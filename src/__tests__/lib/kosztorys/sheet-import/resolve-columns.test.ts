@@ -107,8 +107,7 @@ describe('resolveLaborColumns', () => {
     expect(result.columns.netValue).toBe(19)
   })
 
-  // An optional column the resolver cannot pin down is dropped, not escalated: refusing here would
-  // reject a sheet that imported fine before the column was ever looked for.
+  // Refusing here would reject a sheet that imported fine before the column was ever looked for.
   it.each([
     ['with no', 'absent', 14, ''],
     ['whose second', 'ambiguous', 20, null],

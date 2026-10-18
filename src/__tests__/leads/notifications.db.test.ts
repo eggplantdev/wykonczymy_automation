@@ -5,6 +5,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { STREAMS, countUnreadLeads, markSeen } from '@/lib/db/notifications'
 import { getDb } from '@/lib/db/get-db'
+import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -38,9 +39,7 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markSeen (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
 
-    const users = await payload.find({ collection: 'users', limit: 1, overrideAccess: true })
-    if (users.docs.length === 0) throw new Error('no user in local DB to attach a read cursor to')
-    userId = users.docs[0].id
+    userId = await firstUserId(payload)
     // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the
     // default 10s hook budget is too tight (observed ~8.6–10s).
   }, 30000)

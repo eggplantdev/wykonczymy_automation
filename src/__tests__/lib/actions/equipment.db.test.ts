@@ -3,22 +3,17 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 // Adding an item and saying where it went is one write or none: an item whose first event failed
 // reads as „nie wiadomo gdzie" for the rest of its life.
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -75,6 +70,7 @@ describe.skipIf(!ENV_READY)(
       ;({ createEquipmentAction } = await import('@/lib/actions/equipment'))
 
       authState.userId = await firstUserId(payload)
+      authState.role = 'ADMIN'
 
       await purge()
       const warehouse = await payload.create({

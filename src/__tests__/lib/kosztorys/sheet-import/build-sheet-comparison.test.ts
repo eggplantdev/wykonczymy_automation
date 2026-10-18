@@ -112,10 +112,8 @@ describe('buildSheetComparison', () => {
   it('reckons both sides through calc, agreeing when the app holds the same prace', () => {
     const { totals } = compare()
 
-    // The offer: 1×1500−9% + 0×15 + 2×120 = 1605.
     expect(totals.plannedNetFromSheet).toBeCloseTo(1605, 6)
     expect(totals.plannedNetFromApp).toBeCloseTo(totals.plannedNetFromSheet, 6)
-    // Executed: Σetapów × cena − rabat = 1×1500−9% + 50×15−9% + 2×120 = 2287.5.
     expect(totals.executedNetFromSheet).toBeCloseTo(2287.5, 6)
     expect(totals.executedNetFromApp).toBe(0)
   })

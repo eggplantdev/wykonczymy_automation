@@ -7,8 +7,6 @@ import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
 vi.mock('server-only', () => ({}))
-// A real user id (looked up in beforeAll), not a hardcoded 1: removeSectionAction takes a
-// pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 

@@ -1,14 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ role: 'OWNER' as string }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: 0, email: 'o@t.com', name: 'Owner', role: authState.role },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { saveRecipientListAction } = await import('@/lib/actions/notification-recipients')

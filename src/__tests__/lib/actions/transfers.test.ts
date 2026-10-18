@@ -332,7 +332,7 @@ describe('createBulkTransferAction', () => {
 
   it.each([
     ['no line items', { lineItems: [] }],
-    ['a zero-amount line', { lineItems: [{ description: 'Bad', amount: 0 }] }],
+    ['a zero-amount line', { lineItems: [{ description: 'Bad', amount: 0, expenseCategory: 1 }] }],
   ])('refuses a batch with %s', async (_label, overrides) => {
     const result = await createBulkTransferAction(makeBulkTransferData(1, overrides) as never)
 
@@ -694,6 +694,7 @@ describe('addTransferInvoicesAction', () => {
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ collection: 'transactions', id: 10, data: { invoice } }),
     )
+    await flushAfter()
     expect(mockDelete).not.toHaveBeenCalledWith(expect.objectContaining({ collection: 'media' }))
   })
 
