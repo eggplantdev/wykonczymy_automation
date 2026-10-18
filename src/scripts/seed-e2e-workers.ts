@@ -5,11 +5,11 @@ import { E2E_WORKERS, workerCredentials } from '@/scripts/e2e-user-credentials'
 const WORKER_REGISTER_NAME = 'E2E Kasa pracownika'
 
 // Users and kasy fire revalidateTag in afterChange, which throws outside a request scope.
-const SCRIPT_CONTEXT = { skipRevalidation: true }
+export const SCRIPT_CONTEXT = { skipRevalidation: true }
 
 // Keyed by name, not e-mail: the credentials spec changes the e-mail, and the next run must find the
 // same account and put the seeded login back.
-async function upsertWorker(payload: Payload, key: keyof typeof E2E_WORKERS): Promise<number> {
+export async function upsertWorker(payload: Payload, key: keyof typeof E2E_WORKERS): Promise<number> {
   const { name } = E2E_WORKERS[key]
   const data = {
     ...workerCredentials(key),
@@ -45,10 +45,14 @@ async function upsertWorker(payload: Payload, key: keyof typeof E2E_WORKERS): Pr
   return Number(created.id)
 }
 
-async function upsertWorkerRegister(payload: Payload, ownerId: number): Promise<number> {
+export async function upsertWorkerRegister(
+  payload: Payload,
+  ownerId: number,
+  name: string,
+): Promise<number> {
   const existing = await payload.find({
     collection: 'cash-registers',
-    where: { name: { equals: WORKER_REGISTER_NAME } },
+    where: { name: { equals: name } },
     limit: 1,
     depth: 0,
     overrideAccess: true,
@@ -57,7 +61,7 @@ async function upsertWorkerRegister(payload: Payload, ownerId: number): Promise<
   if (found) return Number(found.id)
   const created = await payload.create({
     collection: 'cash-registers',
-    data: { name: WORKER_REGISTER_NAME, owner: ownerId, type: 'AUXILIARY' },
+    data: { name, owner: ownerId, type: 'AUXILIARY' },
     overrideAccess: true,
     context: SCRIPT_CONTEXT,
   })
@@ -70,7 +74,7 @@ export async function seedE2eWorkers(payload: Payload) {
   return {
     self: {
       id: selfId,
-      registerId: await upsertWorkerRegister(payload, selfId),
+      registerId: await upsertWorkerRegister(payload, selfId, WORKER_REGISTER_NAME),
       registerName: WORKER_REGISTER_NAME,
     },
     other: { id: await upsertWorker(payload, 'other') },

@@ -9,6 +9,7 @@ import {
   LOSS_INVESTMENT,
 } from '@/scripts/e2e-dump-rows'
 import { seedClientShare } from '@/scripts/seed-client-share'
+import { seedE2eExpenseDraft } from '@/scripts/seed-e2e-expense-draft'
 import { seedE2eUser } from '@/scripts/seed-e2e-user'
 import { seedE2eWorkers } from '@/scripts/seed-e2e-workers'
 import { seedFleet } from '@/scripts/seed-fleet'
@@ -42,6 +43,7 @@ async function seedSuite(payload: Payload) {
   await restoreDumpInvestments(payload)
   return {
     clientShare: await seedClientShare(payload),
+    expenseDraft: await seedE2eExpenseDraft(payload),
     depositGross: await seedKosztorysBands(payload),
     depositNet: await seedKosztorysBands(payload),
     fleet: await seedFleet(payload),
