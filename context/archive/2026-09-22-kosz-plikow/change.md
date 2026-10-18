@@ -1,10 +1,10 @@
 ---
 change_id: kosz-plikow
 title: Kosz plików — odroczone kasowanie z Bloba zamiast natychmiastowego
-status: in_review
+status: archived
 created: 2026-09-22
 updated: 2026-10-18
-archived_at: null
+archived_at: 2026-10-18T12:04:44Z
 branch: feat/kosz-plikow
 worktree: .claude/worktrees/kosz-plikow
 ---
@@ -104,3 +104,11 @@ właściciela:
   wyjątku.
 - **Plik odpięty od inwestycji, która sama leży w Koszu, jest widoczny, ale nie do przywrócenia** —
   wyszarzony z dopiskiem „najpierw przywróć inwestycję". Przywrócenie pliku nie przywraca inwestycji.
+
+## Stan przy archiwizacji (2026-10-18)
+
+- Zmergowane do lokalnego `staging`, nie wypchnięte. Migracja `20261018_0_media_detachments` jest
+  addytywna — `pnpm db:migrate:prod` (człowiek) przed pushem.
+- Bramka całego drzewa nie przeszła w pełni: typecheck i lint czyste, specy dotknięte zmianą zielone
+  (unit/DOM 45, DB 98); `pnpm test`, `test:integration` i `build` pominięte decyzją użytkownika.
+- E2E „usuń → Kosz/Pliki → Przywróć" należne: EX-1085 (`e2e-backlog`).

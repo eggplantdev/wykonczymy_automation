@@ -14,6 +14,7 @@ export const preventReferencedMediaDelete = makePreventDelete({
       where: (id: string | number) => mediaReferenceWhere(field, id),
       label,
     })),
+    // Mirrors RAW_MEDIA_HOLDER_TABLES by hand; a new raw holder table goes in both.
     { label: 'zgłoszenia wydatków', count: (db, id) => countDraftsHoldingMedia(db, Number(id)) },
     { label: 'zgłoszenia prac', count: (db, id) => countReportsHoldingMedia(db, Number(id)) },
   ],

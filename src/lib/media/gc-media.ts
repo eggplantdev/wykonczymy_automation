@@ -26,6 +26,7 @@ export async function gcMedia(
 
   let deleted = 0
   let failed = 0
+  // Serial on purpose: parallel Payload deletes on Neon share one session — each reports success, one commits.
   for (const mediaId of expired) {
     try {
       await payload.delete({ collection: 'media', id: mediaId })

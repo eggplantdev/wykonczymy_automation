@@ -157,7 +157,9 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   7 days later (`FILE_TRASH_RETENTION_DAYS`), at most 100 a night. A row with no known source is not
   restorable from „Kosz" — the owner accepted that those 104 expire (kosz-plikow, ruling 2b). The
   FTP mirror never prunes and runs half an hour before the cleanup, so a swept file's bytes stay
-  recoverable there.
+  recoverable there. A delete that throws keeps its entry open and is retried every night, so check
+  `media.failed` in the cleanup log after the first production nights: a run of permanent failures
+  could fill the 100-a-night cap.
   One known source is the immediate reclaim (`deleteUnreferencedMedia`, still used when a
   transaction is deleted): it is best-effort per id, so one `payload.delete` that throws is logged
   as `[media] delete unreferenced media failed` and its row and blob stay until the sweep picks
