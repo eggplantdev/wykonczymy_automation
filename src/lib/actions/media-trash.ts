@@ -11,7 +11,6 @@ import type { ActionResultT } from '@/types/action'
 
 const FILE_GONE_MESSAGE = 'Tego pliku nie ma już w Koszu.'
 
-// The tags follow the source, known only once the entry is read.
 function revalidateSource(parent: DetachedFileRowT['parent']) {
   if (parent.kind === 'investment') revalidateEntities(investmentEntityOpts(parent.id).entityTags)
   else revalidateCollections([parent.kind === 'lead' ? 'leads' : 'transfers'])

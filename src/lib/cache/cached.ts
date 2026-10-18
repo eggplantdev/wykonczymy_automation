@@ -10,7 +10,8 @@ import { serverEnv } from '@/lib/env/server'
 const DEPLOY_ID = serverEnv.VERCEL_DEPLOYMENT_ID ?? `local-${process.pid}`
 
 // Without it, a render that read rows before a write but stored them after the tag expired serves
-// those pre-write rows as fresh until the next write.
+// those pre-write rows as fresh until the next write. A write landing during the epoch's own save
+// still slips through — a window of milliseconds, accepted.
 const tagEpoch = (tags: string[]) =>
   unstable_cache(async () => Date.now(), ['epoch', ...[...tags].sort(), DEPLOY_ID], { tags })
 

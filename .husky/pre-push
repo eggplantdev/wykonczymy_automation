@@ -71,11 +71,8 @@ leg "typecheck" pnpm run typecheck
 # go through package.json scripts, which are wrapped there; a nested call inherits this hold.
 leg "unit tests" bash scripts/with-test-lock.sh pnpm vitest run --silent --project node --project dom
 
-# DB-backed integration specs (restore/snapshot wipe-and-reinsert, delete guards, leads) against
-# the ISOLATED 5435 test DB. They live in the `db` vitest project (`*.db.test.ts`), which the unit
-# leg above doesn't select, so without this leg the destructive restore path never runs before a
-# push. The script ups db-test, keeps its schema current (re-imports the prod dump only when
-# migrations changed), and runs the specs serially. See scripts/test-integration.sh.
+# The unit leg above never selects `*.db.test.ts`, so without this leg the destructive restore path
+# never runs before a push.
 leg "DB integration specs" pnpm test:integration
 
 # DB-backed listing-vs-detail parity sweep over every real investment, against the SAME isolated

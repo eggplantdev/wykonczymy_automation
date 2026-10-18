@@ -66,7 +66,6 @@ test('prospekt jest widoczny na liście, ale nie liczy się jako aktywny — dop
     INVESTMENT_STATUS_LABELS.planowana.pl,
   )
   expect(await readActiveCount(page), 'prospekt doliczony do aktywnych').toBe(activeBefore)
-  // Owner ruling 2026-10-15: money is booked on planned work, so Planowana is offered for booking.
   expect(await investmentIsOffered(page, PROSPECT), 'prospekt poza pickerem wydatku').toBe(true)
 
   // From the investment's own page rather than the listing row: the row is itself a link, so the

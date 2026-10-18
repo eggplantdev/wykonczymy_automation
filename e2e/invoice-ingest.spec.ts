@@ -22,7 +22,6 @@ const FIXTURE = (name: string) => fileURLToPath(new URL(`fixtures/${name}`, impo
 const HEIC = FIXTURE('paragon.heic')
 const RECEIPTS = ['paragon-a.jpg', 'paragon-b.jpg', 'paragon-c.jpg'].map(FIXTURE)
 
-// A seeded row we own, so „Edytuj transakcję" is enabled and the faktura cell starts empty.
 async function openSeededExpense(page: Page, tag: 'heic' | 'blocked' | 'cell'): Promise<string> {
   const description = readSeed('invoiceIngest')[tag]
   await page.goto(`/kasa/${EXPENSE_REGISTER.id}`)

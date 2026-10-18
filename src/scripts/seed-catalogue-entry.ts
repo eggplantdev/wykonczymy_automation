@@ -3,8 +3,8 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 const ctx = { context: { skipRevalidation: true } }
 
-// A szablon keeps only katalog-linked prace. Found before created because `matchKey` is unique
-// across a katalog no run resets, so the second run would collide with the first one's entry.
+// Found before created because `matchKey` is unique across a katalog no run resets, so the second
+// run would collide with the first one's entry.
 export async function seedCatalogueEntry(payload: Payload, description: string): Promise<number> {
   const matchKey = catalogueKey(description, 'm2')
   const { docs } = await payload.find({
