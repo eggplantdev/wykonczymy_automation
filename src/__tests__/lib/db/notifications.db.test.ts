@@ -125,6 +125,12 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markSeen (DB)', () => {
     const lead1 = await storeLead(payload, makeInput(`${runTag}-a`))
     const lead2 = await storeLead(payload, makeInput(`${runTag}-b`))
     createdLeadIds.push(lead1.lead.id, lead2.lead.id)
+    // Payload stamps `created_at` from the host clock in ms; the cursor uses Postgres `now()`.
+    await (
+      await getDb(payload)
+    ).execute(
+      sql`UPDATE leads SET created_at = now() WHERE id IN (${lead1.lead.id}, ${lead2.lead.id})`,
+    )
 
     expect(await countUnreadLeads(payload, userId)).toBe(2)
 
