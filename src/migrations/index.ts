@@ -155,6 +155,7 @@ import * as migration_20261015_2_add_template_tables from './20261015_2_add_temp
 import * as migration_20261016_0_drop_szablon_investments from './20261016_0_drop_szablon_investments'
 import * as migration_20261016_1_investment_billing_data from './20261016_1_investment_billing_data'
 import * as migration_20261018_0_media_detachments from './20261018_0_media_detachments'
+import * as migration_20261018_1_drop_worker_expense_drafts_scan_mode from './20261018_1_drop_worker_expense_drafts_scan_mode'
 
 export const migrations = [
   {
@@ -941,5 +942,10 @@ export const migrations = [
     up: migration_20261018_0_media_detachments.up,
     down: migration_20261018_0_media_detachments.down,
     name: '20261018_0_media_detachments',
+  },
+  {
+    up: migration_20261018_1_drop_worker_expense_drafts_scan_mode.up,
+    down: migration_20261018_1_drop_worker_expense_drafts_scan_mode.down,
+    name: '20261018_1_drop_worker_expense_drafts_scan_mode',
   },
 ]

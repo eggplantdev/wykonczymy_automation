@@ -219,9 +219,8 @@ export async function insertWorkerExpenseDraft(
       FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(media_id, position)
       JOIN media m ON m.id = v.media_id AND m.created_by_id = ${draft.workerId}
     ), draft AS (
-      INSERT INTO worker_expense_drafts (worker_id, investment_id, cash_register_id, note, scan_mode)
-      SELECT ${draft.workerId}, ${draft.investmentId}, ${draft.cashRegisterId}, ${draft.note},
-        'one-per-photo'
+      INSERT INTO worker_expense_drafts (worker_id, investment_id, cash_register_id, note)
+      SELECT ${draft.workerId}, ${draft.investmentId}, ${draft.cashRegisterId}, ${draft.note}
       WHERE (SELECT count(*) FROM pages_in) = ${draft.mediaIds.length}
       RETURNING id
     ), pages AS (
@@ -642,11 +641,11 @@ export async function restoreSkippedReceipt(
       WHERE sr.id = ${receiptId} AND sr.draft_id = d.id AND d.status = 'accepted'
         AND cardinality(sr.media_ids) > 0 AND ${PARTIES_NOT_TRASHED}
       RETURNING d.id AS parent_id, d.worker_id, d.investment_id, d.cash_register_id, d.note,
-        d.scan_mode, d.sent_at, d.ai_read -> 'rows' -> sr.read_row AS read_row, sr.media_ids
+        d.sent_at, d.ai_read -> 'rows' -> sr.read_row AS read_row, sr.media_ids
     ), draft AS (
       INSERT INTO worker_expense_drafts
-        (worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, ai_read)
-      SELECT worker_id, investment_id, cash_register_id, note, scan_mode, sent_at,
+        (worker_id, investment_id, cash_register_id, note, sent_at, ai_read)
+      SELECT worker_id, investment_id, cash_register_id, note, sent_at,
         CASE WHEN ARRAY(SELECT jsonb_array_elements_text(read_row -> 'mediaIds')::int ORDER BY 1)
             = ARRAY(SELECT unnest(media_ids) ORDER BY 1)
           THEN jsonb_build_object('rows', jsonb_build_array(read_row))

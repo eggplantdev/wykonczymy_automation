@@ -583,7 +583,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     const draftRow = async (draftId: number) =>
       (
         await db.execute(sql`
-          SELECT worker_id, investment_id, cash_register_id, note, scan_mode, status,
+          SELECT worker_id, investment_id, cash_register_id, note, status,
             sent_at = ${SENT_AT}::timestamptz AS has_parent_sent_at, ai_read,
             ARRAY(SELECT media_id FROM worker_expense_draft_media
               WHERE draft_id = d.id ORDER BY position) AS pages,
@@ -659,7 +659,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         investment_id: restoreInvestmentId,
         cash_register_id: registerId,
         note: 'z budowy',
-        scan_mode: 'one-per-photo',
         status: 'pending',
         has_parent_sent_at: true,
         ai_read: { rows: [{ mediaIds: [pages[1]], amount: 20, description: 'farba' }] },

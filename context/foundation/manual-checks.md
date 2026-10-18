@@ -354,7 +354,8 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 ## EX-1065 — catalogue-auto-translate — nocny cron dotłumacza katalog prac
 
 - [ ] Katalog prac → „Uzupełnij tłumaczenia (AI)” nadal tłumaczy i zeruje licznik, jak dotąd.
-- [ ] Vercel → Settings → Cron Jobs po wdrożeniu na produkcję: jest `/api/cron/translate-catalogue` o `0 2 * * *`.
+- [x] Vercel → Settings → Cron Jobs po wdrożeniu na produkcję: jest `/api/cron/translate-catalogue` o `0 2 * * *`.
+      _Prod 2026-10-18: logi Vercela — przebiegi 2026-10-17 i 2026-10-18 o 02:00:08 UTC, status 200; praca 970 przetłumaczona przez przebieg 2026-10-17 (02:00:13 UTC)._
 
 ## company-knowledge — „Manual Wykończymy” w górnym pasku
 
@@ -991,6 +992,14 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
 - [ ] Zgłoszenie, które wcześniej straciło plik do Kosza, usunięte na zawsze: plik znika też z
       sekcji „Pliki".
+
+## EX-1078 — drop-scan-mode — zgłoszenia wydatków bez martwej kolumny, zachowanie bez zmian
+
+- [ ] Jako pracownik wyślij zgłoszenie wydatku ze zdjęciem paragonu: zgłoszenie pojawia się
+      u kierownika jako oczekujące, a „Nowy wydatek" otwiera się z kwotą odczytaną przez AI.
+- [ ] Zgłoszenie przyjęte z pominiętym paragonem → przywróć paragon: komunikat „Paragon
+      przywrócony", a paragon wraca jako osobne oczekujące zgłoszenie z tą samą notatką i
+      odczytem AI.
 
 # Zamknięte — indeks
 

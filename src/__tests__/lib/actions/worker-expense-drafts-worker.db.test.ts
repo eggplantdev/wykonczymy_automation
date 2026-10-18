@@ -86,7 +86,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   const readDraft = async (draftId: number) =>
     (
       await db.execute(sql`
-        SELECT status, note, investment_id, cash_register_id, scan_mode FROM worker_expense_drafts
+        SELECT status, note, investment_id, cash_register_id FROM worker_expense_drafts
         WHERE id = ${draftId}
       `)
     ).rows[0]
@@ -348,7 +348,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the AI read of his draft', () => {
-    it('is asked for once a draft is sent, paragon by paragon', async () => {
+    it('is asked for once a draft is sent', async () => {
       const result = await sendExpenseDraftAction({
         investmentId,
         cashRegisterId: registerId,
@@ -357,8 +357,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       })
 
       expect(result).toMatchObject({ success: true })
-      if (!result.success) return
-      expect(await readDraft(result.data.draftId)).toMatchObject({ scan_mode: 'one-per-photo' })
       expect(scheduled).toHaveLength(1)
     })
   })
