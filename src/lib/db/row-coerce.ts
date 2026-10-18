@@ -10,3 +10,5 @@ export const textOrNull = (v: unknown): string | null => (v == null ? null : Str
 
 export const isoOrNull = (v: unknown): string | null =>
   v == null ? null : v instanceof Date ? v.toISOString() : String(v)
+
+export const dateOrNull = (v: unknown): Date | null => (v == null ? null : new Date(v as string))

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DeleteForeverDialog } from '@/components/trash/delete-forever-dialog'
+import { TRASH_KINDS } from '@/components/trash/trash-kinds'
 import { deleteCashRegisterForeverAction } from '@/lib/actions/cash-register-trash'
 import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
 import { deleteWorkerForeverAction } from '@/lib/actions/worker-trash'
@@ -48,6 +49,7 @@ const renderDialog = (kind: TrashKindT, autoPurges = true) =>
         autoPurges,
         pairedRegisters: [],
       }}
+      deleteForever={TRASH_KINDS[kind].deleteForever!}
       open
       onClose={() => {}}
     />,

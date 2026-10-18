@@ -1,11 +1,11 @@
-import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
+import { ASSET_PREVIEW_LABELS, FILE_TRASH_NOTICE } from '@/lib/media/wording'
 import type { MediaRemovalLabelsT } from '@/hooks/use-media-removal'
 import type { PreviewLabelsT } from '@/types/media'
 
 export const LEAD_ASSET_REMOVAL_LABELS: MediaRemovalLabelsT = {
   confirmOne: 'Usunąć plik ze zgłoszenia?',
   confirmLast: 'Usunąć plik ze zgłoszenia?',
-  description: 'Plik zostanie usunięty bezpowrotnie.',
+  description: FILE_TRASH_NOTICE,
   success: 'Plik usunięty',
   error: 'Nie udało się usunąć pliku',
 }

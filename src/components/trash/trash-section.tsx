@@ -32,6 +32,9 @@ export function TrashSection({ title, rows }: { title: string; rows: TrashRowT[]
                   {row.pairedRegisters.join(', ')}
                 </span>
               )}
+              {row.restoreBlockedReason && (
+                <span className="text-muted-foreground text-sm">{row.restoreBlockedReason}</span>
+              )}
               {row.kind === 'investment' && <TrashedInvestmentLinks row={row} />}
             </div>
             <TrashedRowActions row={row} />

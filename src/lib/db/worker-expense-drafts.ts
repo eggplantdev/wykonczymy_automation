@@ -807,19 +807,6 @@ export async function listAllDraftTransferIds(db: DbExecutorT): Promise<number[]
   return res.rows.map((row) => Number(row.transfer_id))
 }
 
-/**
- * The draft's pages live in a raw table, so the Payload-relation scan of the media reclaim cannot see
- * them and would take a waiting receipt for an orphan.
- */
-export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): Promise<number[]> {
-  if (mediaIds.length === 0) return []
-  const res = await db.execute(sql`
-    SELECT DISTINCT media_id FROM worker_expense_draft_media
-    WHERE media_id IN (${sqlList(mediaIds)})
-  `)
-  return res.rows.map((row) => Number(row.media_id))
-}
-
 const DRAFT_TARGET_COLUMNS = {
   worker: sql`worker_id`,
   investment: sql`investment_id`,

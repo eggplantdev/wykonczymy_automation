@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { TRASH_KINDS } from '@/components/trash/trash-kinds'
+import type { DeleteForeverConfigT } from '@/components/trash/trash-kinds'
 import { isNameConfirmed } from '@/lib/constants/trash'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -11,12 +11,12 @@ import type { TrashRowT } from '@/types/trash'
 
 type PropsT = {
   row: TrashRowT
+  deleteForever: DeleteForeverConfigT
   open: boolean
   onClose: () => void
 }
 
-export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
-  const copy = TRASH_KINDS[row.kind]
+export function DeleteForeverDialog({ row, deleteForever, open, onClose }: PropsT) {
   const [typedName, setTypedName] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -27,9 +27,9 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
 
   const onConfirm = () => {
     startTransition(async () => {
-      const res = await settleAction(() => copy.deleteForever(row.id, typedName))
+      const res = await settleAction(() => deleteForever.action(row.id, typedName))
       if (!res.success) return toastMessage(res.error, 'error')
-      toastMessage(copy.deleted, 'success')
+      toastMessage(deleteForever.deleted, 'success')
       close()
     })
   }
@@ -42,9 +42,9 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
       description={[
-        copy.note?.(row),
-        copy.lost
-          ? `„${row.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`
+        deleteForever.note?.(row),
+        deleteForever.lost
+          ? `„${row.name}" zniknie bezpowrotnie, razem z: ${deleteForever.lost}.`
           : `„${row.name}" zniknie bezpowrotnie.`,
         'Wpisz nazwę, żeby potwierdzić.',
       ]
@@ -60,7 +60,7 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
         value={typedName}
         onChange={(event) => setTypedName(event.target.value)}
         onKeyDown={(event) => event.key === 'Enter' && nameMatches && !pending && onConfirm()}
-        aria-label={copy.nameLabel}
+        aria-label={deleteForever.nameLabel}
         autoFocus
       />
     </FormDialogShell>

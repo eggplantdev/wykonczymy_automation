@@ -962,6 +962,36 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Zmień kwotę robocizny na inwestycji: lista pokazuje nową kwotę, historia zmian kwoty ma wpis
       stara → nowa, bilans przesuwa się o różnicę.
 
+## 2026-10-18 — kosz-plikow — usunięte pliki trafiają do Kosza na 7 dni
+
+Zamiatacz kasuje dopiero po siedmiu dniach, więc boksy o kasowaniu wymagają cofnięcia daty usunięcia
+na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blokada.
+
+- [ ] Usunięcie pliku z galerii inwestycji, faktury z transakcji i pliku ze zgłoszenia pyta o
+      potwierdzenie zdaniem o Koszu i 7 dniach — nigdzie nie pada „bezpowrotnie".
+- [ ] Galeria inwestycji z kilkoma plikami znów ma „Usuń wszystkie"; przy jednym pliku go nie ma.
+- [ ] Usunięty plik pojawia się w Koszu w sekcji „Pliki": nazwa pliku, skąd zszedł (np.
+      „Inwestycja … · pliki", „Wydatek inwestycyjny z … · faktura") i „usunie się samo za 7 dni";
+      nie ma przy nim „Usuń na zawsze".
+- [ ] „Przywróć" przy pliku wraca go do galerii inwestycji / faktur transakcji / plików zgłoszenia,
+      a wiersz znika z sekcji „Pliki".
+- [ ] Plik usunięty z inwestycji, którą potem przeniesiono do Kosza: wiersz jest, „Przywróć" jest
+      wyłączone, pod wierszem „Najpierw przywróć inwestycję z Kosza."; po przywróceniu inwestycji
+      plik da się przywrócić.
+- [ ] Jako MANAGER: faktura usunięta z transakcji kasy głównej nie pokazuje się w sekcji „Pliki";
+      jako OWNER — pokazuje się.
+- [ ] Pliki inwestycji usuniętej na zawsze nie pojawiają się w sekcji „Pliki".
+- [ ] Plik w Koszu dłużej niż 7 dni: po wywołaniu `/api/cron/cleanup` znika z Kosza i z Bloba, a
+      odpowiedź niesie krok `media` z rozbiciem `{ recorded, healed, deleted, failed }`; drugie
+      wywołanie pod rząd kasuje zero.
+- [ ] Paragon w zgłoszeniu wydatku pracownika i zdjęcie w zgłoszeniu prac przeżywają przebieg crona
+      nietknięte.
+- [ ] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+- [ ] „Usuń na zawsze" przy inwestycji, szablonie i zgłoszeniu w Koszu wygląda i działa jak dotąd:
+      ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
+- [ ] Zgłoszenie, które wcześniej straciło plik do Kosza, usunięte na zawsze: plik znika też z
+      sekcji „Pliki".
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

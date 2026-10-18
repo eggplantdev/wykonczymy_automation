@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { CollectionBeforeDeleteHook, Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { sqlList } from '@/lib/db/sql-list'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
@@ -10,18 +11,6 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 // created actually matches what Payload writes into it — a shape a mocked `payload.update` cannot
 // see.
 
-// The reclaim is handed to `after`, so it runs once the response is out — a no-op `after` would
-// drop it silently and the reclaim assertions below would pass over a file nothing ever checked.
-const { scheduled } = vi.hoisted(() => ({ scheduled: [] as Promise<unknown>[] }))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return {
-    ...actual,
-    after: (fn: () => unknown) => {
-      scheduled.push(Promise.resolve(fn()))
-    },
-  }
-})
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -50,11 +39,19 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     return rows.map((row) => Number(row.media_id))
   }
 
-  const flushDeferred = () => Promise.all(scheduled.splice(0)).then(() => undefined)
-
   const mediaExists = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT id FROM media WHERE id = ${id}`)
     return rows.length > 0
+  }
+
+  const openDetachments = async () => {
+    const { rows } = await db.execute(sql`
+      SELECT media_id, from_collection, from_field, from_id FROM media_detachments
+      WHERE media_id IN (${sqlList(mediaIds)})
+        AND restored_at IS NULL
+      ORDER BY media_id
+    `)
+    return rows.map((row) => ({ ...row, media_id: Number(row.media_id) }))
   }
 
   beforeAll(async () => {
@@ -64,10 +61,8 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     actions = await import('@/lib/actions/investment-assets')
   })
 
-  // The media rows are rebuilt per test, not once: detaching a file deletes it for real here, so a
-  // shared fixture would leave the later tests attaching ids that no longer exist.
+  // A detach leaves an open trash entry behind, which the next test would read as its own.
   beforeEach(async () => {
-    scheduled.length = 0
     await purge()
 
     // Raw INSERT, not payload.create: an upload through Payload would push bytes at the Blob store
@@ -107,21 +102,37 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
 
     expect(result.success).toBe(true)
     expect(await attachedIds()).toEqual([mediaIds[1]])
-    await flushDeferred()
-    expect(await mediaExists(mediaIds[0])).toBe(false)
-    expect(await mediaExists(mediaIds[1])).toBe(true)
+    expect(await mediaExists(mediaIds[0])).toBe(true)
+    expect(await openDetachments()).toEqual([
+      {
+        media_id: mediaIds[0],
+        from_collection: 'investments',
+        from_field: 'assets',
+        from_id: investmentId,
+      },
+    ])
   })
 
-  it('clears the whole set and reclaims every file when all are removed', async () => {
+  it('takes a re-attached file back out of the trash', async () => {
+    await actions.addInvestmentAssetsAction(investmentId, mediaIds)
+    await actions.removeInvestmentAssetAction(investmentId, mediaIds[0])
+
+    await actions.addInvestmentAssetsAction(investmentId, [mediaIds[0]])
+
+    expect(await attachedIds()).toEqual([mediaIds[1], mediaIds[0]])
+    expect(await openDetachments()).toEqual([])
+  })
+
+  it('clears the whole set and moves every file to the trash when all are removed', async () => {
     await actions.addInvestmentAssetsAction(investmentId, mediaIds)
 
     const result = await actions.removeAllInvestmentAssetsAction(investmentId)
 
     expect(result.success).toBe(true)
     expect(await attachedIds()).toEqual([])
-    await flushDeferred()
-    expect(await mediaExists(mediaIds[0])).toBe(false)
-    expect(await mediaExists(mediaIds[1])).toBe(false)
+    expect(await mediaExists(mediaIds[0])).toBe(true)
+    expect(await mediaExists(mediaIds[1])).toBe(true)
+    expect((await openDetachments()).map((entry) => entry.media_id)).toEqual(mediaIds)
   })
 
   it('refuses to delete a media row an investment points at', async () => {

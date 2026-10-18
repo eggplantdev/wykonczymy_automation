@@ -1,5 +1,7 @@
 import 'server-only'
 import type { Payload } from 'payload'
+import { getDb } from '@/lib/db/get-db'
+import { selectOpenDetachedMediaIds } from '@/lib/db/media-detachments'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { uploadFieldIds } from '@/lib/media/upload-field'
 import type { DeleteForeverResultT } from '@/types/trash'
@@ -44,7 +46,11 @@ export async function eraseTrashedLead(
       return { ok: false, reason: 'not-trashed', message: LEAD_NOT_TRASHED_MESSAGE }
     }
 
-    const assetIds = uploadFieldIds(lead.assets)
+    const trashedAssetIds = await selectOpenDetachedMediaIds(await getDb(payload), {
+      collection: 'leads',
+      id: leadId,
+    })
+    const assetIds = [...uploadFieldIds(lead.assets), ...trashedAssetIds]
     await payload.update({
       collection: 'leads',
       id: leadId,

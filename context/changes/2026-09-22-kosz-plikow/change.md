@@ -1,20 +1,20 @@
 ---
 change_id: kosz-plikow
 title: Kosz plików — odroczone kasowanie z Bloba zamiast natychmiastowego
-status: planned
+status: in_review
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-18
 archived_at: null
-branch: null
-worktree: null
+branch: feat/kosz-plikow
+worktree: .claude/worktrees/kosz-plikow
 ---
 
 ## Notes
 
 Odroczone kasowanie plików z Bloba i kosz z przywracaniem (zamiast natychmiastowego
-`deleteUnreferencedMedia`); zamyka też EX-833.
+`deleteUnreferencedMedia`).
 
-Dziś każde odpięcie pliku (`setUploadField`) kończy się `deleteUnreferencedMedia`, czyli
+Dziś każde odpięcie pliku (`setUploadField`) kończy się `reclaimUnreferencedMedia`, czyli
 skasowaniem wiersza `media` i bajtów w Blobie, jeśli nikt inny ich nie trzyma. Blob nie ma
 undelete. Jedyna siatka bezpieczeństwa to nocny mirror na FTP (`blob-backup.yml`, 03:30 UTC,
 **nigdy nie kasuje**) — czyli bajty przeżywają, ale odzysk jest ręczny (runbook + człowiek),
@@ -43,8 +43,8 @@ a plik wgrany i skasowany tego samego dnia ginie naprawdę.
 - **Zapisujemy od razu „skąd", nie tylko „kiedy".** To ta sama klasa migracji, a różnica decyduje,
   czy przywracanie może być kiedykolwiek przyciskiem zamiast ścieżki przez panel.
 - **Dwie fazy, pierwsza samodzielnie użyteczna.** Faza 1: odroczone kasowanie + zamiatanie nocne +
-  odzysk z panelu Payloada (przypięcie pliku w polu „Zdjęcia i pliki" na inwestycji). Faza 2:
-  zapytanie o kosz, akcja przywracania, „Kosz (N)" w kontrolce galerii.
+  odzysk z panelu Payloada (przypięcie pliku w polu „Zdjęcia i pliki" na inwestycji). Potem:
+  sekcja „Pliki" na stronie Kosz z przywracaniem (patrz decyzje z 2026-10-18).
 - **Wszystkie pliki traktujemy po równo — jeden kosz, nie kosz per powierzchnia.** Rozstrzygnięcie
   właściciela: nie ma podziału „faktury tak, zdjęcia z budowy siak". Zapis odpięcia siedzi na szwie
   `setUploadField`, więc i tak obejmuje wszystkie pięć relacji (`transactions.invoice`,
@@ -52,7 +52,7 @@ a plik wgrany i skasowany tego samego dnia ginie naprawdę.
   `equipment-events.attachments`) — a skoro dane są jednorodne, to i okno łaski, zamiatanie
   i przywracanie są jedną regułą dla każdego pliku. Konsekwencja dla fazy 2: powierzchnia kosza
   musi być wspólna (jedna kontrolka/zapytanie parametryzowane relacją), a nie doklejana osobno do
-  galerii inwestycji i osobno do komórki faktury.
+  galerii inwestycji i osobno do komórki faktury. Od 2026-10-18 tą powierzchnią jest strona Kosz.
 - **Plik leży w koszu 7 dni.** Rozstrzygnięcie właściciela. Podłogą jest pełna doba, bo kopia na FTP
   powstaje raz dziennie o 03:30, a sprzątanie leci o 03:00 — przy krótszym terminie plik ginie pół
   godziny przed swoją jedyną kopią. Powyżej doby liczba jest funkcją tego, ile nieudanych nocy kopii
@@ -78,9 +78,29 @@ a plik wgrany i skasowany tego samego dnia ginie naprawdę.
   i rollback webhooka landingu dotyczą plików, które nigdy nie były do niczego przypięte — nie mają
   prowenancji do zapisania i nie ma dokąd ich przywracać.
 
-- **EX-833 zamyka się przy okazji.** Pętla licząca referencje (do 6N zapytań) wypada ze ścieżki
-  użytkownika do nocnego crona — `/api/cron/cleanup` jest wprost opisany jako miejsce na kolejne
-  zamiatania.
+- **Tak samo natychmiastowe zostają dwie ścieżki, które powstały po tym planie:** pracownik kasujący
+  własne zgłoszenie wydatku (`deleteExpenseDraftAction`) i „Usuń na zawsze" zgłoszenia z Kosza
+  (`erase-lead.ts`). W obu znika cały dokument, więc to ta sama reguła co przy wydatku.
+
+- **EX-833 zamknięty osobno (Done).** Liczenie referencji poszło do `after()` i jest zbiorcze
+  (`reclaimUnreferencedMedia`). Ta zmiana i tak wyjmuje je ze ścieżki użytkownika całkiem.
 - **Potwierdzenie przestaje straszyć.** `ConfirmDialog` mówi dziś „Plik zostanie usunięty
   bezpowrotnie." w liczbie pojedynczej i bez liczby plików. Przy koszu ma mówić prawdę
   („trafi do kosza na N dni") i nazywać liczbę.
+
+## Decyzje z rozmowy (2026-10-18) — przywracanie
+
+Od czasu planu powstała wspólna strona Kosz (`/kosz`, siedem rodzajów, 30 dni). Rozstrzygnięcia
+właściciela:
+
+- **Pliki przywraca się z sekcji „Pliki" na stronie Kosz** — nie przyciskiem „Kosz (N)" przy galerii,
+  komórce faktury i plikach zgłoszenia. Jedno miejsce, ta sama strona co reszta kosza.
+- **Pliki bez znanego źródła nie pokazują się w Koszu.** To pliki po inwestycji, pojeździe albo
+  sprzęcie usuniętym na zawsze — nie mają dokąd wrócić, a ich utratę zapowiada już potwierdzenie
+  („przypięcia zdjęć"). Po 7 dniach znikają same; kopia zostaje na FTP. To samo dotyczy pliku, którego
+  rodzic zniknął już po odpięciu.
+- **Plik w Koszu nie ma „Usuń na zawsze".** Znika sam po 7 dniach; ręczną furtką zostaje panel
+  Payloada (decyzja wyżej). Dzięki temu reguła „wpisz nazwę przy Usuń na zawsze" nie potrzebuje
+  wyjątku.
+- **Plik odpięty od inwestycji, która sama leży w Koszu, jest widoczny, ale nie do przywrócenia** —
+  wyszarzony z dopiskiem „najpierw przywróć inwestycję". Przywrócenie pliku nie przywraca inwestycji.
