@@ -54,7 +54,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysTreeData (DB)', () => {
     // Without the coalesce in the query every one of these is null and the caller's `.map` throws
     const data = await selectKosztorysTreeData(db, created.bare)
 
-    expect(data).not.toBeNull()
     expect(data!.sections).toEqual([])
     expect(data!.items).toEqual([])
     expect(data!.stages).toEqual([])
@@ -81,7 +80,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysTreeData (DB)', () => {
     // The editor shell compares `revision` by value to detect a stale tree.
     const data = await selectKosztorysTreeData(db, created.alpha)
 
-    expect(typeof data!.investment.updatedAt).toBe('string')
     expect(data!.investment.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/)
   })
 

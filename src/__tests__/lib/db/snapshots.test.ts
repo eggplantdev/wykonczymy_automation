@@ -106,12 +106,12 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     const freshEarly = await insertAt(investmentId, 'auto', 2, 8)
     const freshLate = await insertAt(investmentId, 'auto', 2, 19)
 
-    const day40Morning = await insertAt(investmentId, 'auto', 40, 2)
-    const day40Noon = await insertAt(investmentId, 'auto', 40, 10)
+    await insertAt(investmentId, 'auto', 40, 2)
+    await insertAt(investmentId, 'auto', 40, 10)
     const day40Evening = await insertAt(investmentId, 'auto', 40, 20)
     const day41 = await insertAt(investmentId, 'auto', 41, 12)
 
-    const sameWeekEarlier = await insertInWeek(29, 1, 5)
+    await insertInWeek(29, 1, 5)
     const sameWeekLater = await insertInWeek(29, 3, 15)
     const previousWeek = await insertInWeek(30, 3, 9)
 
@@ -119,10 +119,10 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     const manualInDailyBand = await insertAt(investmentId, 'manual', 40, 6)
     const manualInWeeklyBand = await insertAt(investmentId, 'manual', 200, 11)
 
-    const ancientAuto = await insertAt(investmentId, 'auto', 400, 9)
-    const ancientManual = await insertAt(investmentId, 'manual', 400, 9)
+    await insertAt(investmentId, 'auto', 400, 9)
+    await insertAt(investmentId, 'manual', 400, 9)
 
-    const otherDay40Morning = await insertAt(otherInvestmentId, 'auto', 40, 3)
+    await insertAt(otherInvestmentId, 'auto', 40, 3)
     const otherDay40Evening = await insertAt(otherInvestmentId, 'auto', 40, 21)
 
     const first = await gcSnapshots(db)
@@ -143,15 +143,9 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
         manualInWeeklyBand,
       ].sort((a, b) => a - b),
     )
-    expect(survivors).not.toContain(day40Morning)
-    expect(survivors).not.toContain(day40Noon)
-    expect(survivors).not.toContain(sameWeekEarlier)
-    expect(survivors).not.toContain(ancientAuto)
-    expect(survivors).not.toContain(ancientManual)
 
     const otherSurvivors = await survivorsOf(otherInvestmentId)
     expect(otherSurvivors).toEqual([otherDay40Evening])
-    expect(otherSurvivors).not.toContain(otherDay40Morning)
 
     // Asserted as survivor stability rather than `deleted === 0`, because the sweep covers the whole table — a neighbouring run's leftovers count.
     await gcSnapshots(db)
@@ -185,7 +179,7 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
       await insertAt(completedLongAgo, 'named', 450, 12)
       const recentDaily = await insertAt(completedRecently, 'daily', 400, 23)
       const undatedDaily = await insertAt(completedUndated, 'daily', 800, 23)
-      const recentAuto = await insertAt(completedRecently, 'auto', 400, 9)
+      await insertAt(completedRecently, 'auto', 400, 9)
 
       const result = await gcSnapshots(db)
       expect(result.investorExpired).toBeGreaterThanOrEqual(2)
@@ -195,7 +189,6 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
       )
       expect(await survivorsOf(completedLongAgo)).toEqual([])
       expect(await survivorsOf(completedRecently)).toEqual([recentDaily])
-      expect(await survivorsOf(completedRecently)).not.toContain(recentAuto)
       expect(await survivorsOf(completedUndated)).toEqual([undatedDaily])
     } finally {
       for (const id of [open, completedLongAgo, completedRecently, completedUndated]) {

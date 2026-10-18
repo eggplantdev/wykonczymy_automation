@@ -140,7 +140,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
   it('agrees with the TS formula across both planes and all four pricing branches', async () => {
     const [sqlRow, ts] = await Promise.all([sqlDueFor(created.clean), tsDue(created.clean)])
 
-    expect(sqlRow).toBeDefined()
     expect(sqlRow!.due).toBeCloseTo(ts.combined, CENT)
     expect(sqlRow!.hasUnconfirmedPlane).toBe(false)
     expect(ts.combined).toBeGreaterThan(0)
@@ -149,7 +148,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
   it('agrees with the TS formula when an etap carries work and no rozliczenie', async () => {
     const [sqlRow, ts] = await Promise.all([sqlDueFor(created.mixed), tsDue(created.mixed)])
 
-    expect(sqlRow).toBeDefined()
     expect(sqlRow!.due).toBeCloseTo(ts.combined, CENT)
     expect(sqlRow!.hasUnconfirmedPlane).toBe(true)
     expect(ts.hasUnconfirmedPlane).toBe(true)

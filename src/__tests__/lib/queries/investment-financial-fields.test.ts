@@ -35,7 +35,6 @@ describe('buildFinancialFields — rabat row', () => {
   it('emits a positive Rabat field when there is a rabat', () => {
     const fields = buildFinancialFields({ ...base, totalDiscount: 800 }, [])
     const discount = fields.find((f) => f.label === DISCOUNT_LABEL)
-    expect(discount).toBeDefined()
     expect(discount!.amount).toBe(800)
   })
 })
@@ -170,7 +169,6 @@ describe('buildMaterialsBreakdown', () => {
     const rows = buildMaterialsBreakdown(financials, dupNames, NOTHING_BILLED_NET)
     const ids = rows.map((r) => r.id)
     expect(ids).toEqual([7, 9])
-    expect(new Set(ids).size).toBe(ids.length)
   })
 
   // `netCategoryCosts` is a SUBSET of `categoryCosts`, so splitting it out must move value between

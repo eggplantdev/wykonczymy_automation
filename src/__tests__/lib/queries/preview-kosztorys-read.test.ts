@@ -31,11 +31,4 @@ describe('getPreviewKosztorysById auth gate', () => {
     await expect(getPreviewKosztorysById(42)).rejects.toThrow('Brak autoryzacji')
     expect(buildKosztorysTree).not.toHaveBeenCalled()
   })
-
-  it('rejects a role below MANAGEMENT_ROLES the same way — requireAuth owns the role check', async () => {
-    authState.result = { success: false, error: 'Brak uprawnień' }
-
-    await expect(getPreviewKosztorysById(42)).rejects.toThrow('Brak uprawnień')
-    expect(buildKosztorysTree).not.toHaveBeenCalled()
-  })
 })

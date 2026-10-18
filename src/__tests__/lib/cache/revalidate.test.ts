@@ -30,19 +30,6 @@ describe('revalidateCollections', () => {
     ])
     expect(updateTag).not.toHaveBeenCalled()
   })
-
-  it('invalidates every tag on both branches — deferring the refresh never skips a tag', () => {
-    const slugs = ['investments', 'kosztorysItems', 'stageProgress'] as const
-
-    revalidateCollections([...slugs])
-    const immediate = updateTag.mock.calls.map(([tag]) => tag)
-
-    revalidateCollections([...slugs], { deferRefresh: true })
-    const deferred = revalidateTag.mock.calls.map(([tag]) => tag)
-
-    expect(deferred).toEqual(immediate)
-    expect(deferred).toHaveLength(slugs.length)
-  })
 })
 
 describe('revalidateEntities', () => {

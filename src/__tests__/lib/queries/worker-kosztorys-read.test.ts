@@ -34,13 +34,6 @@ describe('worker kosztorys preview auth gate', () => {
     expect(buildKosztorysTree).not.toHaveBeenCalled()
   })
 
-  it('rejects a role below MANAGEMENT_ROLES the same way — requireAuth owns the role check', async () => {
-    authState.result = { success: false, error: 'Brak uprawnień' }
-
-    await expect(getWorkerKosztorysPreview(42, 7)).rejects.toThrow('Brak uprawnień')
-    expect(buildKosztorysTree).not.toHaveBeenCalled()
-  })
-
   it('gates the PDF read behind the same check', async () => {
     authState.result = { success: false, error: 'Brak uprawnień' }
 

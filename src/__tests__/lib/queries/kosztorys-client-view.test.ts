@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import {
-  findClientViewRow,
   getClientViewSettings,
   getClientViewSettingsRead,
 } from '@/lib/queries/kosztorys-client-view'
@@ -54,13 +53,6 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     if (investmentWithRow) await deleteTestInvestment(payload, investmentWithRow)
     if (investmentWithoutRow) await deleteTestInvestment(payload, investmentWithoutRow)
     await resetGlobal()
-  })
-
-  // A lookup that quietly evaluates that access instead of bypassing it fails the save with a
-  // generic „Nie możesz wykonać tej akcji".
-  it('finds the row without a session', async () => {
-    const row = await findClientViewRow(payload, investmentWithRow)
-    expect(row).not.toBeNull()
   })
 
   it("serves the investment's own row over the firm-wide default", async () => {

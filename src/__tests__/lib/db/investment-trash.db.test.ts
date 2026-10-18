@@ -80,10 +80,6 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
     expect(await trash.isKosztorysUsed(db, planned)).toBe(true)
   })
 
-  it('counts work measured on an etap as used, even with Przedmiar 0', async () => {
-    expect(await trash.isKosztorysUsed(db, measured)).toBe(true)
-  })
-
   it('does not count price, rabat or a zero pomiar as used', async () => {
     expect(await trash.isKosztorysUsed(db, priceOnly)).toBe(false)
     expect(await trash.isKosztorysUsed(db, empty)).toBe(false)

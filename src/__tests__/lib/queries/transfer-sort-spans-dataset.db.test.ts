@@ -24,14 +24,6 @@ describe.skipIf(!ENV_READY)('transfer sort spans the whole filtered set (DB)', (
     expect(everyDoc.length).toBeGreaterThan(PAGE_LIMIT)
   })
 
-  it('puts the global maximum amount on the first page', () => {
-    // Asserted before the index: an empty page would otherwise read as a TypeError on `undefined`
-    // instead of „the test DB was never imported".
-    expect(firstPage.length).toBeGreaterThan(0)
-    const globalMax = Math.max(...everyDoc.map((doc) => Number(doc.amount)))
-    expect(Number(firstPage[0].amount)).toBe(globalMax)
-  })
-
   it('fills the first page with the globally largest amounts', () => {
     // Compared as amounts, not ids: rows tied on amount may come back in either order, and the
     // claim under test is about the ORDER OF VALUES, not which of two equal rows won the tie.

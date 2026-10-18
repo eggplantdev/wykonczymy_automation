@@ -174,7 +174,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
       lines: [rozpiskaLine(itemIds[0], 1)],
     })
     await decide(rejected, 'rejected')
-    const pending = await insertWorkerReport(db, {
+    await insertWorkerReport(db, {
       investmentId,
       workerId,
       lines: [rozpiskaLine(itemIds[0], 1)],
@@ -185,10 +185,8 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
       { ...NO_REPORT_FILTERS, investmentIds: [investmentId] },
       { page: 1, limit: 100 },
     )
-    const order = ours.map((row) => row.id)
 
     expect(ours.find((row) => row.id === rejected)).toMatchObject({ status: 'rejected' })
-    expect(order.indexOf(pending)).toBeLessThan(order.indexOf(rejected))
     expect(ours.findLastIndex((row) => row.status === 'pending')).toBeLessThan(
       ours.findIndex((row) => row.status !== 'pending'),
     )

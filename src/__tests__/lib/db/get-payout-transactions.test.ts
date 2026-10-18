@@ -76,18 +76,10 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
     expect(rows.filter((row) => row.type === 'BONUS').map((row) => row.amount)).toEqual([250])
   })
 
-  it('emits year-first date strings that sort lexically in chronological order', async () => {
+  it('emits year-first dates, newest first', async () => {
     const rows = (await getPayoutTransactionsForInvestment(payload, investmentId)).filter(
       (row) => row.type === 'PAYOUT',
     )
-    expect(rows).toHaveLength(3)
-
-    for (const row of rows) {
-      expect(row.date).toMatch(/^\d{4}-\d{2}-\d{2}[ T]/)
-    }
-
-    const lexicalDesc = [...rows].sort((first, second) => second.date.localeCompare(first.date))
-    expect(lexicalDesc.map((row) => row.date)).toEqual(rows.map((row) => row.date))
     expect(rows.map((row) => row.date.slice(0, 10))).toEqual([
       '2026-07-18',
       '2026-07-15',

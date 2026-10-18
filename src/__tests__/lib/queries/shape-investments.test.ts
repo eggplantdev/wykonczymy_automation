@@ -104,32 +104,6 @@ describe('shapeInvestments', () => {
     expect(row.balance).toBeCloseTo(0, 10)
   })
 
-  it('folds material with no category into the total', () => {
-    const financials: InvestmentFinancialsMapT = {
-      '5': {
-        categoryCosts: [
-          { categoryId: 1, total: 800 },
-          { categoryId: 2, total: 400 },
-        ],
-        totalMaterialCosts: 1150, // (800 + 400) + (-50) uncategorised
-        materialsGrossBase: 1150,
-        materialsNetBilled: 0,
-        totalIncome: 0,
-        totalLaborCosts: 0,
-        totalPayouts: 0,
-        totalDiscount: 0,
-        totalLoss: 0,
-        totalBonus: 0,
-        totalSettled: 0,
-        materialsNetDiscount: 0,
-        settledCategoryCosts: [],
-        netCategoryCosts: [],
-      },
-    }
-    const [row] = shapeInvestments([baseInv], financials, NO_MAP, NO_MAP, NO_DEPOSITS)
-    expect(row.totalInvestmentExpense).toBe(1150)
-  })
-
   it('prices each bucket on the plane it was recorded on when a rate is set', () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {

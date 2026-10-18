@@ -98,7 +98,6 @@ describe.skipIf(!ENV_READY)('getPreviewHistoryByToken (DB)', () => {
     const listed = history!.entries.map(({ id }) => id)
 
     expect(listed).toEqual([ids.legacy, ids.daily2, ids.daily1, ids.autoLate])
-    expect(listed).not.toContain(ids.manual)
     const unnamedDays = history!.entries.filter(({ label }) => label === null).map(({ day }) => day)
     expect(new Set(unnamedDays).size).toBe(unnamedDays.length)
   })

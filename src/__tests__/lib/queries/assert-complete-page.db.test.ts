@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 
-// The leads afterChange hook calls revalidateTag, which throws outside a Next request
-// context.
-
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)

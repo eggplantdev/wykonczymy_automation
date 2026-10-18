@@ -69,7 +69,6 @@ describe.skipIf(!ENV_READY)('cash-register trash SQL (DB)', () => {
 
     expect(ids).not.toContain(live)
     expect(ids.indexOf(recent)).toBeLessThan(ids.indexOf(expired))
-    expect(ids).toContain(expired)
   })
 
   it('selects only the kasy past retention for the purge', async () => {

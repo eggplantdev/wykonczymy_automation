@@ -113,7 +113,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
       tsTotals(created.perItem),
     ])
 
-    expect(sqlRow).toBeDefined()
     expect(sqlRow!.doneNet).toBeCloseTo(ts.doneNet, CENT)
     expect(sqlRow!.laborCostsNetFromKosztorys).toBeCloseTo(ts.laborCostsNetFromKosztorys, CENT)
     expect(sqlRow!.discountNetFromKosztorys).toBeCloseTo(ts.discountNetFromKosztorys, CENT)
@@ -123,7 +122,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   it('agrees with the TS formula under an active global rabat', async () => {
     const [sqlRow, ts] = await Promise.all([sqlTotalsFor(created.global), tsTotals(created.global)])
 
-    expect(sqlRow).toBeDefined()
     expect(sqlRow!.doneNet).toBeCloseTo(ts.doneNet, CENT)
     expect(sqlRow!.laborCostsNetFromKosztorys).toBeCloseTo(ts.laborCostsNetFromKosztorys, CENT)
     expect(sqlRow!.discountNetFromKosztorys).toBeCloseTo(ts.discountNetFromKosztorys, CENT)
