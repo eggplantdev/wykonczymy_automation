@@ -2,8 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { getPreviewKosztorysByToken } from '@/lib/queries/preview-kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('getPreviewKosztorysByToken (DB)', () => {
   let payload: Payload
@@ -13,9 +12,7 @@ describe.skipIf(!ENV_READY)('getPreviewKosztorysByToken (DB)', () => {
   const token = `test-token-ex532-share-${process.pid}-${Date.now()}`
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     investmentId = await createTestInvestment(payload, 'EX-532 share token spec')
     await payload.create({

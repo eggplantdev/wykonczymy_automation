@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // The session is mocked rather than `requireAuth`, so the role gate under
 // test is the real one.
-vi.mock('server-only', () => ({}))
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))

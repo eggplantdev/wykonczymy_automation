@@ -6,8 +6,7 @@ import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { STREAMS, countUnreadLeads, markSeen } from '@/lib/db/notifications'
 import { getDb } from '@/lib/db/get-db'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const runTag = `test-notif-${Date.now()}`
 
@@ -35,9 +34,7 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markSeen (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     userId = await firstUserId(payload)
     // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the

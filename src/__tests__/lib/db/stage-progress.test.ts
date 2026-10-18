@@ -5,8 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { addStageProgress } from '@/lib/db/stage-progress'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('addStageProgress (DB)', () => {
   let payload: Payload
@@ -25,9 +24,7 @@ describe.skipIf(!ENV_READY)('addStageProgress (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'stage-progress-add-test')

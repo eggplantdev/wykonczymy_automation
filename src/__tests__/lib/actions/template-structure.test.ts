@@ -10,8 +10,8 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -32,8 +32,6 @@ const {
 } = await import('@/lib/actions/template-structure')
 const { clearTemplateAction, renumberTemplateOrderAction, writeTemplateLayoutAction } =
   await import('@/lib/actions/template-tree')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 // A szablon id is also some investment's id, so the regression this guards is a szablon write landing
 // in that investment's kosztorys.
@@ -87,9 +85,7 @@ describe.skipIf(!ENV_READY)('template structure actions (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     templateId = await createTestTemplate(payload, 'p3-structure')
     entryIds.push(

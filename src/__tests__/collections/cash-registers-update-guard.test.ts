@@ -8,11 +8,10 @@ import {
   CASH_REGISTER_TRASHED_MESSAGE,
 } from '@/lib/constants/cash-register-lock'
 import { OWNER_TRASHED_RESTORE_MESSAGE, WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Every assertion reads the row back: a refused update that still wrote something is the failure this
 // guards, and a rejected promise alone would not show it.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   let payload: Payload
@@ -56,9 +55,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 

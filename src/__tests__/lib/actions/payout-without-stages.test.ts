@@ -5,12 +5,12 @@ import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { sql } from '@payloadcms/db-postgres'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The wypłata form puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
 // They are warnings, not gates — and „not a gate" is only true if the write actually lands. So this
 // runs the REAL action against the REAL DB and asserts the PERSISTED transaction, not the action's
 // return value: a `{ success: true }` from a rolled-back transaction looks identical.
-vi.mock('server-only', () => ({}))
 // after() schedules the post-response sheet sync (live Google credentials); it also throws outside a
 // request scope. Not under test.
 vi.mock('next/server', async (importOriginal) => {
@@ -22,8 +22,6 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -33,9 +31,7 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
   const createdTransactions: number[] = []
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     // sort by id: parallel specs create and delete transient investments with the highest ids.

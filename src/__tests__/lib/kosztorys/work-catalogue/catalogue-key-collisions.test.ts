@@ -2,8 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { getDb } from '@/lib/db/get-db'
 import { listCatalogueItems } from '@/lib/db/work-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // `match_key` is UNIQUE, so the failure surfaces on the next
 // write in production, not here — uniqueness is a property of the data, only real rows can answer it.
@@ -11,9 +10,7 @@ describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
   let keyed: { key: string; matchKey: string; description: string }[]
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    const db = await getDb(await getPayload({ config }))
+    const db = await getDb(await bootTestPayload())
     keyed = (await listCatalogueItems(db)).map((item) => ({
       key: catalogueKey(item.description, item.unit),
       matchKey: item.matchKey,

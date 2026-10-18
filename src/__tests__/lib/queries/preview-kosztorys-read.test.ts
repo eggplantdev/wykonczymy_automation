@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('server-only', () => ({}))
-
 const authState = vi.hoisted(() => ({
   result: { success: true, user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' } } as
     | { success: true; user: { id: number; email: string; name: string; role: string } }

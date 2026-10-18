@@ -5,13 +5,13 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'EX-758 target invariant'
 
 type EventRowT = {
@@ -52,9 +52,7 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     // On entry as well as in teardown — a run that threw halfway leaves rows behind, and both the

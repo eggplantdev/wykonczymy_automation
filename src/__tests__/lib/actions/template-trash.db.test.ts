@@ -12,15 +12,13 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 import { trashDaysAgo } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const actions = await import('@/lib/actions/template-trash')
 const { purgeTemplateTrash } = await import('@/lib/kosztorys/templates/purge-trash')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('template trash actions (DB)', () => {
   let payload: Payload
@@ -42,9 +40,7 @@ describe.skipIf(!ENV_READY)('template trash actions (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     entryIds.push(await createTestCatalogueEntry(payload, 'template-trash Malowanie'))
   })

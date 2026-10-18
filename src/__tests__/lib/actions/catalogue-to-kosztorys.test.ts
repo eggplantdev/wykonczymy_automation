@@ -6,10 +6,10 @@ import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // N rows must get N DISTINCT display_orders (insertItems remaps RETURNING ids by (section_id, display_order)
 // and degrades to positional on a tie).
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('next/server', async (importOriginal) => {
@@ -35,8 +35,6 @@ vi.mock('@/lib/kosztorys/work-catalogue/place-catalogue-items', async (importOri
 const { insertCatalogueItemsAction, createSectionWithCatalogueItemsAction } =
   await import('@/lib/actions/catalogue-to-kosztorys')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -47,9 +45,7 @@ describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
   const ctx = { context: { skipRevalidation: true } }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     const investments = await payload.find({

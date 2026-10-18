@@ -8,14 +8,12 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { writeKosztorysLayoutAction } = await import('@/lib/actions/kosztorys')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('writeKosztorysLayoutAction — persisted layout (DB)', () => {
   let payload: Payload
@@ -27,9 +25,7 @@ describe.skipIf(!ENV_READY)('writeKosztorysLayoutAction — persisted layout (DB
   let foreignItemId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, `layout-test-${Date.now()}`)

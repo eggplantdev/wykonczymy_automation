@@ -6,10 +6,9 @@ import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // INVESTMENT_EXPENSE_NET is the one type whose billed figure (`net_amount`) differs from the cash that left the register (`amount`).
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const GROSS = 1230
 const NET = 1000
@@ -22,9 +21,7 @@ describe.skipIf(!ENV_READY)('sumRegisterBalance — INVESTMENT_EXPENSE_NET (DB)'
   let ownerId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     ;({ ownerId, registerId } = await createRegisterOwner(

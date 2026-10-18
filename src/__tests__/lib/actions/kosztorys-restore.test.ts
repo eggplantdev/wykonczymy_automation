@@ -5,12 +5,12 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const authState = vi.hoisted(() => ({
   userId: 0,
   next: null as null | { success: false; error: string },
 }))
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockImplementation(async () => {
     if (authState.next) {
@@ -29,17 +29,13 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 const { restoreSnapshotAction, saveSnapshotAction } =
   await import('@/lib/actions/kosztorys-snapshots')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, 'restore-snapshot-test')

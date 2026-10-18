@@ -8,8 +8,8 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 // after() throws outside a request scope, so it runs the task inline; the sheet sync it schedules
 // needs live Google credentials and is not under test.
 vi.mock('next/server', async (importOriginal) => {
@@ -23,8 +23,6 @@ vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { settlePayoutsAction } = await import('@/lib/actions/settle-payouts')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const ITEMS = [{ description: 'pozycja', plannedQty: 10, clientPrice: 100 }]
 
@@ -72,9 +70,7 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     const [users, registers] = await Promise.all([

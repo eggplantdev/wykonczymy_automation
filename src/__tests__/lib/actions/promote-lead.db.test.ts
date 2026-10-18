@@ -4,11 +4,11 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // a „copy" would pass every count assertion while quietly doubling the storage bill — so the ids
 // themselves are what this asserts.
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -16,7 +16,6 @@ vi.mock('next/server', async (importOriginal) => {
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'EX-802 promoted lead'
 const OTHER_NAME = 'EX-802 unrelated investment'
 const FILENAMES = ['ex-802-promote-a.jpg', 'ex-802-promote-b.pdf']
@@ -77,9 +76,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
 
   beforeAll(async () => {
     authState.role = 'ADMIN'
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     promoteLeadAction = (await import('@/lib/actions/promote-lead')).promoteLeadAction
     attachLeadAssetsAction = (await import('@/lib/actions/lead-assets')).attachLeadAssetsAction

@@ -1,11 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { RECEIPT_PHOTO_CASES } from '@/__tests__/fixtures/receipt-photos'
 import { sniffMime } from '@/lib/media/sniff-mime'
 
 // Calls the paid model, so it runs only from `pnpm test:receipts-ai`, never from `pnpm test`.
-vi.mock('server-only', () => ({}))
 
 const PHOTO_DIR = join(process.cwd(), 'dumps/receipt-eval')
 const IS_ENABLED = process.env.RECEIPT_EVAL === '1' && existsSync(PHOTO_DIR)

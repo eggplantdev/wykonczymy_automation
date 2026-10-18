@@ -3,12 +3,11 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { VehicleFormDataT } from '@/components/forms/vehicle-form/vehicle-schema'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'EX915D'
 
 describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
@@ -37,9 +36,7 @@ describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/fleet')
     await db.execute(sql`DELETE FROM vehicles WHERE upper(trim(registration)) LIKE ${`${PREFIX}%`}`)

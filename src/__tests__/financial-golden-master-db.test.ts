@@ -20,10 +20,10 @@ import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import { round2 } from '@/__tests__/helpers/money'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // It proves PRESERVATION, not correctness: a figure the app computes wrongly today is
 // frozen exactly as wrongly.
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const UPDATE = process.env.UPDATE_GOLDEN === '1'
 
 const FIXTURE_PATH = join(process.cwd(), 'src/__tests__/fixtures/financial-golden-master.json')
@@ -320,9 +320,7 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
 
   beforeAll(async () => {
     try {
-      const { getPayload } = await import('payload')
-      const config = (await import('@payload-config')).default
-      const payload = await getPayload({ config })
+      const payload = await bootTestPayload()
       const built = await buildSnapshot(payload)
       snapshot = built.snapshot
       names = built.names

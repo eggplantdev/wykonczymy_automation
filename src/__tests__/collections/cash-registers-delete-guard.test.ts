@@ -4,11 +4,10 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Both register FKs are ON DELETE SET NULL, so the delete this guards never errors on its own — it
 // succeeds and the transaction stops naming the kasa it moved money out of.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('cash-registers beforeDelete guard (DB)', () => {
   let payload: Payload
@@ -45,9 +44,7 @@ describe.skipIf(!ENV_READY)('cash-registers beforeDelete guard (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     ;({ registerId } = await createRegisterOwner(

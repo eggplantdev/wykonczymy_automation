@@ -7,12 +7,11 @@ import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Coverage is by BRANCH of subcontractorPrice — a mnożnik, a flat amount and unset, on BOTH planes,
 // because the two planes read disjoint column pairs and a copy that swapped them would still agree on
 // any fixture where the panes happen to price alike.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const CENT = 2
 
@@ -73,9 +72,7 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
     )
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     for (const key of ['mixed', 'clean', 'idle'] as const) {

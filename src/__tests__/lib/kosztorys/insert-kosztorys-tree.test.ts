@@ -6,8 +6,7 @@ import { insertKosztorysTree } from '@/lib/kosztorys/insert-kosztorys-tree'
 import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The columns added since a payload was captured are simply absent from its JSON, and an absent key
 // binds nothing at all — the INSERT loses a placeholder and dies on a syntax error, as it dies on
@@ -18,9 +17,7 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     investmentId = await createTestInvestment(payload, 'insert-tree-defaults-test')
   })

@@ -2,11 +2,11 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The refusal leg mocks the SESSION rather than `requireAuth`, so
 // the role gate under test is the real one.
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -15,7 +15,6 @@ const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME = 'ex-829-rzut.jpg'
 
 describe.skipIf(!ENV_READY)('setMediaKindAction (DB)', () => {
@@ -32,9 +31,7 @@ describe.skipIf(!ENV_READY)('setMediaKindAction (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     setMediaKindAction = (await import('@/lib/actions/media-kind')).setMediaKindAction
   })

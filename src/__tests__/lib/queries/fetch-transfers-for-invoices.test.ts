@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import type { RoleT } from '@/lib/auth/roles'
 
-vi.mock('server-only', () => ({}))
-
 const session = vi.hoisted(() => ({ user: { id: 25, role: 'EMPLOYEE' as RoleT } }))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async (allowedRoles: readonly RoleT[]) =>

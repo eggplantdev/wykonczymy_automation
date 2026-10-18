@@ -39,8 +39,7 @@ import type {
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly paths (DB)', () => {
   let payload: Payload | null = null
@@ -52,9 +51,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
 
   beforeAll(async () => {
     try {
-      const { getPayload } = await import('payload')
-      const config = (await import('@payload-config')).default
-      payload = await getPayload({ config })
+      payload = await bootTestPayload()
       // The listing's own set (`fetchReferenceData`): a trashed investment is never
       // rendered there, so a figure it disagrees on is not a mismatch anyone can see.
       const inv = await payload.find({

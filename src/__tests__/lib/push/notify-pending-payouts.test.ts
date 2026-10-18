@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { PushMessageT } from '@/lib/push/send-push'
 
-vi.mock('server-only', () => ({}))
-
 const { sendPushToUser, isPushConfigured, countPendingPayouts } = vi.hoisted(() => ({
   sendPushToUser: vi.fn(),
   isPushConfigured: vi.fn(),

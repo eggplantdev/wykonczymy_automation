@@ -8,8 +8,7 @@ import {
 } from '@/lib/db/kosztorys-catalogue-apply'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('applyCatalogueValues (DB)', () => {
   let payload: Payload
@@ -34,9 +33,7 @@ describe.skipIf(!ENV_READY)('applyCatalogueValues (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, `cat-apply-${Date.now()}`)
@@ -122,9 +119,7 @@ describe.skipIf(!ENV_READY)('listItemsForCatalogueApply (DB)', () => {
   let otherItemId = 0
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, `cat-list-${Date.now()}`)

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
@@ -9,12 +9,9 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
-
-vi.mock('server-only', () => ({}))
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const { serializeTemplate } = await import('@/lib/kosztorys/templates/serialize-template')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('serializeTemplate (DB)', () => {
   let payload: Payload
@@ -24,9 +21,7 @@ describe.skipIf(!ENV_READY)('serializeTemplate (DB)', () => {
   let sectionIds: number[] = []
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     templateId = await createTestTemplate(payload, 'p2-serialize')

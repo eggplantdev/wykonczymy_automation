@@ -9,8 +9,8 @@ import {
 } from '@/__tests__/helpers/investment'
 import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -18,7 +18,6 @@ vi.mock('next/server', async (importOriginal) => {
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'investment-ai-stage-action-db'
 
 describe.skipIf(!ENV_READY)('setInvestmentAiStageAction (DB)', () => {
@@ -36,9 +35,7 @@ describe.skipIf(!ENV_READY)('setInvestmentAiStageAction (DB)', () => {
 
   beforeAll(async () => {
     authState.role = 'ADMIN'
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     setStage = (await import('@/lib/actions/investments')).setInvestmentAiStageAction
     await purge()

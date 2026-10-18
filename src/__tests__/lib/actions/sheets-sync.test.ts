@@ -3,8 +3,6 @@ import type { Payload } from 'payload'
 import type { MaterialSyncPreviewT } from '@/lib/actions/sheets-sync'
 import { setGoogleCredentialEnv } from '@/__tests__/helpers/google-credentials'
 
-vi.mock('server-only', () => ({}))
-
 const valuesGetMock = vi.fn()
 const valuesAppendMock = vi.fn()
 const valuesUpdateMock = vi.fn()

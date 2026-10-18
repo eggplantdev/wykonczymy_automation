@@ -32,10 +32,8 @@ import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-draft-'
 
 describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
@@ -75,9 +73,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     )
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeMedia()
     await purgeFixtureUsers(db)

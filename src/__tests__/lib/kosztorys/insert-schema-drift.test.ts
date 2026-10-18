@@ -8,6 +8,7 @@ import {
   PROGRESS_INSERT_COLUMNS,
   STAGE_INSERT_COLUMNS,
 } from '@/lib/kosztorys/insert-kosztorys-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Nothing otherwise connects those column lists to the tables they write: add a column in a migration
 // and restore keeps working, silently dropping the new field on every snapshot it reinserts.
@@ -21,16 +22,12 @@ const INSERT_COLUMNS: Record<string, readonly string[]> = {
   kosztorys_stage_workers: STAGE_MEMBER_INSERT_COLUMNS,
 }
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('restore INSERT column lists vs live schema (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
   let payload: Payload
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
   })
 

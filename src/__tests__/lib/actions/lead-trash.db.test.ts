@@ -4,10 +4,9 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { fetchTrashedLeads } from '@/lib/db/lead-trash'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-vi.mock('server-only', () => ({}))
 
 const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
@@ -15,7 +14,6 @@ vi.mock('@/lib/auth/get-current-user-jwt', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'EX-970 lead'
 const FILE_PREFIX = 'ex-970-lead-trash-'
 const runTag = Date.now()
@@ -71,9 +69,7 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/lead-trash')
   }, 30000)

@@ -7,6 +7,7 @@ import { getSnapshot, listSnapshots } from '@/lib/db/snapshots'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
@@ -25,8 +26,6 @@ vi.mock('@/lib/kosztorys/serialize-kosztorys', async (importOriginal) => {
   }
 })
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('wholesale replacement vs a concurrent autosave (DB)', () => {
   let payload: Payload
   let investmentId: number
@@ -34,9 +33,7 @@ describe.skipIf(!ENV_READY)('wholesale replacement vs a concurrent autosave (DB)
   let takenBy: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     takenBy = await firstUserId(payload)
 

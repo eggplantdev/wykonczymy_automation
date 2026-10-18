@@ -11,8 +11,8 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 const scheduled = vi.hoisted(() => [] as (() => unknown)[])
@@ -23,7 +23,6 @@ vi.mock('next/server', async (importOriginal) => {
 
 const { createScannedReportAction } = await import('@/lib/actions/worker-report-scan')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-949-scan-'
 
 describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
@@ -70,9 +69,7 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     db.execute(sql`UPDATE users SET active = ${active} WHERE id = ${id}`)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeMedia()
     await purgeFixtureUsers(db)

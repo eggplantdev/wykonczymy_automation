@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { listTemplateNamesByCatalogueItem } from '@/lib/db/catalogue-usage'
@@ -17,12 +17,10 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The kosz exclusion can only be proved here — the local dump has no trashed inwestycje.
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'katalog-uzycia usage-db'
 
 describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
@@ -43,9 +41,7 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     const { selectUsedKosztorysItems } = await import('@/lib/db/catalogue-usage')
     await purge()
@@ -111,9 +107,7 @@ describe.skipIf(!ENV_READY)('listTemplateNamesByCatalogueItem (DB)', () => {
   let live: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     entryId = await createTestCatalogueEntry(payload, 'Szpachlowanie')

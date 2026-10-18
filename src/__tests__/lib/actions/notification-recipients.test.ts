@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { saveRecipientListAction } = await import('@/lib/actions/notification-recipients')
 const { readRecipientLists } = await import('@/lib/email/recipients')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const BASELINE = {
   fleetDigest: [{ email: 'flota@example.com' }],
@@ -25,9 +23,7 @@ describe.skipIf(!ENV_READY)('saveRecipientListAction (DB)', () => {
     payload.updateGlobal({ slug: 'notification-recipients', data: BASELINE })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     await resetGlobal()
   }, 30000)
 

@@ -4,11 +4,10 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { getPayoutTransactionsForInvestment } from '@/lib/db/get-payout-transactions'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The client DataTable re-sorts these rows lexically on the emitted `date` string, so that string MUST
 // be lexically == chronologically ordered or the „Wg daty" sort scrambles.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
   let payload: Payload
@@ -36,9 +35,7 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'get-payout-transactions-test')

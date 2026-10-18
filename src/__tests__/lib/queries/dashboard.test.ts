@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { SessionUserT } from '@/types/auth'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
-vi.mock('server-only', () => ({}))
-
 const mockUser: SessionUserT = { id: 1, email: 'admin@test.com', name: 'Admin', role: 'ADMIN' }
 
 const mockRequireAuth = vi.fn().mockResolvedValue({ success: true, user: mockUser })

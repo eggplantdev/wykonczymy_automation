@@ -10,8 +10,8 @@ import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 // The seeded wypłaty go through the transfers' afterChange sheet sync, which schedules on after() —
 // live Google credentials, and a throw outside a request scope. Not under test.
 vi.mock('next/server', async (importOriginal) => {
@@ -22,8 +22,6 @@ vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { bookOverpaymentBonusAction } = await import('@/lib/actions/book-overpayment-bonus')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const ITEMS = [{ description: 'pozycja', plannedQty: 10, clientPrice: 100 }]
 const OVERPAID_BY = 150
@@ -66,9 +64,7 @@ describe.skipIf(!ENV_READY)('bookOverpaymentBonusAction (DB)', () => {
     })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     const [userId, registers] = await Promise.all([

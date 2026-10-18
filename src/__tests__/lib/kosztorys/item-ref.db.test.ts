@@ -8,11 +8,11 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The number printed on a fill-in form must survive every wipe-and-reinsert that is the SAME
 // work (restore) and must never be reused by one that is new work (szablon, a new praca) — a reused
 // number would resolve an old paper onto someone else's pozycja.
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -22,7 +22,6 @@ const { serializeKosztorysAsPreset } = await import('@/lib/kosztorys/serialize-p
 const { restoreKosztorys } = await import('@/lib/kosztorys/restore-kosztorys')
 const { applyPreset } = await import('@/lib/kosztorys/apply-preset')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'item-ref-test-'
 
 describe.skipIf(!ENV_READY)('kosztorys item ref (DB)', () => {
@@ -40,9 +39,7 @@ describe.skipIf(!ENV_READY)('kosztorys item ref (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
 

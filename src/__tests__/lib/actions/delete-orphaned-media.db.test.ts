@@ -2,11 +2,11 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The ownership filter runs against the real `media` rows; only the reclaim is replaced, so the
 // spec reads which ids reached it without deleting fixture rows through the Blob plugin.
 
-vi.mock('server-only', () => ({}))
 const { getCurrentUserJwt, reclaimUnreferencedMedia } = vi.hoisted(() => ({
   getCurrentUserJwt: vi.fn(),
   reclaimUnreferencedMedia: vi.fn(),
@@ -15,7 +15,6 @@ vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-orphan-'
 
 describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
@@ -42,9 +41,7 @@ describe.skipIf(!ENV_READY)('deleteOrphanedMediaAction (DB)', () => {
   const reclaimedIds = () => reclaimUnreferencedMedia.mock.calls.at(-1)?.[1]
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     deleteOrphanedMediaAction = (await import('@/lib/actions/delete-orphaned-media'))
       .deleteOrphanedMediaAction

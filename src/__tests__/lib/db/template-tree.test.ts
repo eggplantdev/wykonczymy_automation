@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -9,12 +9,9 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
-
-vi.mock('server-only', () => ({}))
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const { selectTemplateTreeData } = await import('@/lib/db/template-tree')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('selectTemplateTreeData (DB)', () => {
   let payload: Payload
@@ -25,9 +22,7 @@ describe.skipIf(!ENV_READY)('selectTemplateTreeData (DB)', () => {
   let secondSection: { sectionId: number; itemIds: number[] }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     templateId = await createTestTemplate(payload, 'p2-tree')

@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import type { ActionResultT } from '@/types/action'
+import { bootTestPayload } from '@/__tests__/helpers/payload'
 
 type TrashActionsT = {
   trash: (id: number) => Promise<ActionResultT>
@@ -62,9 +63,7 @@ export function describeTrashContract(contract: TrashContractT) {
     db.execute(sql`DELETE FROM ${table} WHERE ${nameColumn} LIKE ${`${contract.prefix}%`}`)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await contract.loadActions()
     await purge()

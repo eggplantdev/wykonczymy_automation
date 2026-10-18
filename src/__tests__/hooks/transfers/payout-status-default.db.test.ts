@@ -5,13 +5,13 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'payout status default'
 const CONTEXT = { skipRevalidation: true, skipSheetSync: true }
 
@@ -56,9 +56,7 @@ describe.skipIf(!ENV_READY)('a wypłata is born pending and only the worker move
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)

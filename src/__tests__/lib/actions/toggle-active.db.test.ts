@@ -4,18 +4,17 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Real `payload.update`, because the update rewrites the sessions array from the merged doc — a
 // delete ordered before it would be undone, and only the persisted rows show that.
 
-vi.mock('server-only', () => ({}))
 const actor = vi.hoisted(() => ({ id: 1, role: 'OWNER', name: 'T', email: 't@t.pl' }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => actor),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const EMAIL = 'toggle-active-sessions@test.local'
 const PASSWORD = 'test-password-123'
 
@@ -32,9 +31,7 @@ describe.skipIf(!ENV_READY)('toggleUserActive — sessions (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     workerId = Number(
@@ -100,9 +97,7 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     const create = async (name: string, role: 'OWNER' | 'EMPLOYEE', email: string) =>

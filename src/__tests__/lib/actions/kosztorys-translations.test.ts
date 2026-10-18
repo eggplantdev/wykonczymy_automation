@@ -9,8 +9,8 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -21,8 +21,6 @@ vi.mock('@/lib/ai/translate', () => ({ translateTexts }))
 
 const { fillKosztorysTranslationsAction } = await import('@/lib/actions/kosztorys-translations')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('fillKosztorysTranslationsAction (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -31,9 +29,7 @@ describe.skipIf(!ENV_READY)('fillKosztorysTranslationsAction (DB)', () => {
   const SECTION = `Łazienka ${suffix} 2`
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     investmentId = await createTestInvestment(payload, `ai-fill-test-${suffix}`)
     authState.userId = await firstUserId(payload)

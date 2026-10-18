@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string, userId: 0 }))
@@ -21,8 +21,6 @@ const { ensureShareLinkAction, generateShareLinkAction, revokeShareLinkAction } 
   await import('@/lib/actions/kosztorys-share')
 const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-kosztorys')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
   let payload: Payload
   let investmentId: number
@@ -39,9 +37,7 @@ describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
   const persistedToken = async () => (await persistedTokens())[0] ?? null
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     investmentId = await createTestInvestment(payload, 'EX-532 share lifecycle spec')
   })

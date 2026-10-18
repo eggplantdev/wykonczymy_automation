@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -9,10 +9,8 @@ import {
   upsertPushSubscription,
 } from '@/lib/db/push-subscriptions'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PHONE = 'https://push.test.local/phone'
 const TABLET = 'https://push.test.local/tablet'
 
@@ -44,9 +42,7 @@ describe.skipIf(!ENV_READY)('push subscriptions (DB)', () => {
     (await selectLivePushSubscriptions(db, userId)).map((row) => row.endpoint).sort()
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     ownerId = await createWorker('push-owner@test.local')

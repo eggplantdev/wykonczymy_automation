@@ -4,12 +4,11 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // `assets` is investments' first relationship field, so this asserts the join table the migration
 // created actually matches what Payload writes into it — a shape a mocked `payload.update` cannot
 // see.
-
-vi.mock('server-only', () => ({}))
 
 // The reclaim is handed to `after`, so it runs once the response is out — a no-op `after` would
 // drop it silently and the reclaim assertions below would pass over a file nothing ever checked.
@@ -26,7 +25,6 @@ vi.mock('next/server', async (importOriginal) => {
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'EX-802 investment assets'
 const FILENAMES = ['ex-802-a.jpg', 'ex-802-b.jpg']
 const FILENAME_PREFIX = 'ex-802-%'
@@ -61,9 +59,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
 
   beforeAll(async () => {
     authState.role = 'ADMIN'
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/investment-assets')
   })

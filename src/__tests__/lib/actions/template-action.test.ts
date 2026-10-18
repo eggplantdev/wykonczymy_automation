@@ -10,14 +10,12 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { templateAction } = await import('@/lib/actions/template-action')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('templateAction (DB)', () => {
   let payload: Payload
@@ -44,9 +42,7 @@ describe.skipIf(!ENV_READY)('templateAction (DB)', () => {
     `)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     templateId = await createTestTemplate(payload, 'p2-gate')

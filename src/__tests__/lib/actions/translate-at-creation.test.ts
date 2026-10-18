@@ -9,8 +9,8 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -31,8 +31,6 @@ vi.mock('@/lib/ai/translate', () => ({ translateTexts }))
 const { addItemAction, updateSectionFieldAction } = await import('@/lib/actions/kosztorys')
 const { createCatalogueItemAction } = await import('@/lib/actions/work-catalogue')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 const answer = (texts: Record<string, { uk?: string; ru?: string }>) =>
   translateTexts.mockImplementation(
     async (asked: readonly string[]) =>
@@ -48,9 +46,7 @@ describe.skipIf(!ENV_READY)('AI translation at creation (DB)', () => {
   const sectionKeys: string[] = []
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     investmentId = await createTestInvestment(payload, `translate-create-${suffix}`)
     authState.userId = await firstUserId(payload)

@@ -14,10 +14,10 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PRESET_PREFIX = 'append-spec-'
 
 describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
@@ -88,9 +88,7 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     [...tree.sections].sort((a, b) => a.displayOrder - b.displayOrder)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
   })
 
   afterAll(async () => {

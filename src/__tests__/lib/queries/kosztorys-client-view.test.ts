@@ -9,8 +9,7 @@ import {
   toStoredClientViewSettings,
 } from '@/lib/kosztorys/client-view/settings'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const CODE_DEFAULTS = sanitizeClientViewSettings({})
 
@@ -37,9 +36,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     investmentWithRow = await createTestInvestment(payload, 'EX-695 client view spec (row)')
     investmentWithoutRow = await createTestInvestment(payload, 'EX-695 client view spec (fallback)')

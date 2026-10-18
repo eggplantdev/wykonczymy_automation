@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 
-vi.mock('server-only', () => ({}))
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))

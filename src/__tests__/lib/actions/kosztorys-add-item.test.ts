@@ -6,8 +6,8 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 // Pass-through unless a test arms it — the only way to fail the katalog write without racing the
@@ -27,8 +27,6 @@ vi.mock('@/lib/kosztorys/work-catalogue/write-catalogue-entry', async (importOri
 
 const { addItemAction } = await import('@/lib/actions/kosztorys')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 type DataT = AddItemInputT['data']
 
 describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
@@ -39,9 +37,7 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
   const createdSections: number[] = []
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     suffix = `TEST-${Date.now()}`
     investmentId = await createTestInvestment(payload, `add-item-test-${suffix}`)

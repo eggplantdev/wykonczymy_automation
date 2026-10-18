@@ -1,12 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { loadWarrantyRows } from '@/lib/equipment/sweep-io'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'EX-916 warranty'
 
 describe.skipIf(!ENV_READY)('warranty sweep skips a trashed item (DB)', () => {
@@ -15,9 +13,7 @@ describe.skipIf(!ENV_READY)('warranty sweep skips a trashed item (DB)', () => {
   let equipmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM equipment WHERE name = ${MARKER}`)

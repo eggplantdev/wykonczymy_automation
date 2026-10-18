@@ -6,8 +6,8 @@ import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -40,7 +40,6 @@ const { compareWithSheet } = await import('@/lib/actions/kosztorys-import')
 const { insertCatalogueItemsAction } = await import('@/lib/actions/catalogue-to-kosztorys')
 const { INVESTMENT_LOCKED_MESSAGE } = await import('@/lib/constants/investment-lock')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'investment-lock-test-'
 
 describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys write (DB)', () => {
@@ -52,9 +51,7 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
   let stageId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
 
@@ -173,9 +170,7 @@ describe.skipIf(!ENV_READY)('an active investment still writes (DB)', () => {
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     investmentId = await createTestInvestment(payload, `${FIXTURE_PREFIX}active-${Date.now()}`)
   })

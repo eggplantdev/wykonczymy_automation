@@ -5,10 +5,10 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const sheetState = vi.hoisted(() => ({ spreadsheetId: 'sheet-under-test' as string | undefined }))
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
@@ -40,17 +40,13 @@ vi.mock('@/lib/kosztorys/sheet-import/read-sheet', async (importOriginal) => ({
 const { applyKosztorysImport, previewKosztorysImport } =
   await import('@/lib/actions/kosztorys-import')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     const users = await payload.find({
       collection: 'users',

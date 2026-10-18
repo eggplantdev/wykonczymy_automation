@@ -1,15 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { countUnreadFleetDeadlines, countUnreadWarranties } from '@/lib/db/notifications'
 import { warsawToday } from '@/lib/utils/days'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Asserted as a difference against the shared test DB, whose dump carries badges of its own.
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'EX-915 badge'
 const REGISTRATION = 'EX915 BADGE'
 // No `notification_reads` row exists for it, so both counters read from the stream's epoch.
@@ -28,9 +26,7 @@ describe.skipIf(!ENV_READY)('nav badges skip a trashed row (DB)', () => {
   let equipmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM vehicles WHERE registration = ${REGISTRATION}`)

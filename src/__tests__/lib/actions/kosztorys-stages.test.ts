@@ -4,8 +4,8 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-postgres'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -18,8 +18,6 @@ const {
 } = await import('@/lib/actions/kosztorys')
 const { WORKER_TRASHED_MESSAGE } = await import('@/lib/constants/worker-lock')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -31,9 +29,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
   const ctx = { context: { skipRevalidation: true } }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     // Self-provisioned rather than borrowed: the oldest prod-dump investments are
     // `completed`, and a completed investment refuses every kosztorys write.

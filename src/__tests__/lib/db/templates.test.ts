@@ -19,14 +19,7 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
-async function bootPayload() {
-  const { getPayload } = await import('payload')
-  const config = (await import('@payload-config')).default
-  return getPayload({ config })
-}
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const trash = (db: Awaited<ReturnType<typeof getDb>>, id: number) =>
   db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${id}`)
@@ -43,7 +36,7 @@ describe.skipIf(!ENV_READY)('listTemplateSections (DB)', () => {
   let sectionB: number
 
   beforeAll(async () => {
-    payload = await bootPayload()
+    payload = await bootTestPayload()
     db = await getDb(payload)
     for (let i = 0; i < 3; i++) entries.push(await createTestCatalogueEntry(payload, `ex622-${i}`))
 
@@ -130,7 +123,7 @@ describe.skipIf(!ENV_READY)('renameTemplate / listTemplates (DB)', () => {
     )
 
   beforeAll(async () => {
-    payload = await bootPayload()
+    payload = await bootTestPayload()
     db = await getDb(payload)
   })
 
@@ -226,7 +219,7 @@ describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
   let trashedSection: number
 
   beforeAll(async () => {
-    payload = await bootPayload()
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     entries.push(await createTestCatalogueEntry(payload, 'trash-fixture-praca'))
@@ -278,7 +271,7 @@ describe.skipIf(!ENV_READY)('templateOwnersOfSections (DB)', () => {
   let template: number
 
   beforeAll(async () => {
-    payload = await bootPayload()
+    payload = await bootTestPayload()
     db = await getDb(payload)
     template = await createTestTemplate(payload, 'owners-fixture')
   })

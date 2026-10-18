@@ -11,12 +11,11 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { canonicalTree } from '@/__tests__/helpers/canonical-snapshot'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
 // cookies(), which has no request scope in node.
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const canonical = (snap: SnapshotPayloadT) => ({ ...canonicalTree(snap), settings: snap.settings })
 
@@ -26,9 +25,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'snapshot-roundtrip-test', {

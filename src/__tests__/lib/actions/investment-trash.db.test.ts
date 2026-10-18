@@ -10,10 +10,9 @@ import {
 } from '@/lib/constants/trash'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-vi.mock('server-only', () => ({}))
 
 const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
@@ -21,7 +20,6 @@ vi.mock('@/lib/auth/get-current-user-jwt', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'kosz-inwestycji trash-actions'
 
 describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
@@ -68,9 +66,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     `)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/investment-trash')
     await purge()

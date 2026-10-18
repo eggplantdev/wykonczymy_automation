@@ -9,8 +9,8 @@ import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/type
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 const authState = vi.hoisted(() => ({ role: 'OWNER' }))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async (roles: readonly RoleT[]) =>
@@ -22,7 +22,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
 
 const { findExpenseDuplicateGroups } = await import('@/lib/queries/expense-duplicate-groups')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const OCTOBER = { from: '2026-10-01', to: '2026-10-31' }
 const FILENAME_PREFIX = 'ex-1026-groups-'
 
@@ -61,9 +60,7 @@ describe.skipIf(!ENV_READY)('findExpenseDuplicateGroups (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await cleanup()
     await purgeFixtureUsers(db)

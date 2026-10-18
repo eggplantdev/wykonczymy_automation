@@ -18,8 +18,8 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { warsawToday } from '@/lib/utils/days'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 // after() schedules the sheet sync and the payout push (live credentials); it also throws outside a
 // request scope.
 vi.mock('next/server', async (importOriginal) => {
@@ -35,8 +35,6 @@ const {
   cancelTransferAction,
   updateTransferAction,
 } = await import('@/lib/actions/transfers')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 // Stable, not timestamped: the entry cleanup has to find what a crashed run left behind.
 const MARKER = 'EX-911 transfers-db'
@@ -132,9 +130,7 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await cleanUp()
 

@@ -5,8 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots, insertSnapshot } from '@/lib/db/snapshots'
 import type { KosztorysSnapshotPayloadT, SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const emptyPayload: KosztorysSnapshotPayloadT = {
   schemaVersion: 1,
@@ -31,9 +30,7 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
   let otherInvestmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     investmentId = await createTestInvestment(payload, 'gc-snapshots-test')
     otherInvestmentId = await createTestInvestment(payload, 'gc-snapshots-other')

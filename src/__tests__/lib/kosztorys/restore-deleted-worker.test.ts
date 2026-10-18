@@ -9,11 +9,10 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { restHolderId } from '@/lib/kosztorys/stage-split'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // serializeKosztorys reads through the editor's authed query path, which wants a request scope.
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', () => {
   let payload: Payload
@@ -23,9 +22,7 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
   let keptWorkerId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
@@ -123,9 +120,7 @@ describe.skipIf(!ENV_READY)('restore with a since-trashed etap assignee (DB)', (
   let trashedWorkerId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'restore-trashed-worker-test')

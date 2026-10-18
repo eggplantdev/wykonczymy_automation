@@ -16,12 +16,11 @@ import {
   deleteTestCatalogueEntries,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
 // cookies(), which has no request scope in node.
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const PRESET_PREFIX = 'preset-spec-'
 const ZEROED_JOB_FIGURES = { plannedQty: 0, discountType: null, discountValue: 0 }
@@ -114,9 +113,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
   })
 
   afterAll(async () => {

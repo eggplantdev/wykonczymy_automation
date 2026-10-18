@@ -6,14 +6,12 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { appendAt } from '@/__tests__/helpers/new-item-input'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { addItemAction, removeItemAction } = await import('@/lib/actions/kosztorys')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
   let payload: Payload
@@ -23,9 +21,7 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
   const ctx = { context: { skipRevalidation: true } }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     // Self-provisioned rather than borrowed: the oldest prod-dump investments are
     // `completed`, and a completed investment refuses every kosztorys write.

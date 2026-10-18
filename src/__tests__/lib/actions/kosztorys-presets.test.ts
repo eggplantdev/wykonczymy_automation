@@ -16,8 +16,8 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -40,8 +40,6 @@ vi.mock('@/lib/kosztorys/templates/serialize-template', async (importOriginal) =
 
 const { createEmptyPresetAction, reloadFromPresetAction, renamePresetAction, savePresetAction } =
   await import('@/lib/actions/kosztorys-presets')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
 const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
@@ -77,9 +75,7 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   let entryId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
 
@@ -355,9 +351,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     db.execute(sql`UPDATE templates SET trashed_at = now() WHERE id = ${id}`)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
 

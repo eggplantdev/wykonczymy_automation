@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
-vi.mock('server-only', () => ({}))
-
 const lockState = vi.hoisted(() => ({
   lockMessage: undefined as string | undefined,
   rowOwner: undefined as { investmentId: number; lockMessage: string | undefined } | undefined,

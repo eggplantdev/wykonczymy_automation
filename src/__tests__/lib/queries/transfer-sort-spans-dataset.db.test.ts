@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { findTransfersRaw, type RawTransferDocT } from '@/lib/queries/transfers'
+import { ENV_READY } from '@/__tests__/helpers/payload'
 
 // Sorting that only sees already-fetched rows makes „największe kwoty" mean „on this page".
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const PAGE_LIMIT = 20
 

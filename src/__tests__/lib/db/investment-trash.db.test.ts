@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
@@ -10,14 +10,12 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The /kosz label and the purge read one „realnie użyty" fragment; if it misjudged a szablon seed
 // as used, nothing would ever purge, and if it missed a Pomiar typed on an etap with Przedmiar 0,
 // the cron would delete measured work without the owner typing its name.
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'kosz-inwestycji trash-db'
 
 describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
@@ -33,9 +31,7 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
   const purge = () => db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     trash = await import('@/lib/db/investment-trash')
     await purge()

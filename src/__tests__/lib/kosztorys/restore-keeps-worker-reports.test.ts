@@ -9,10 +9,9 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('restore keeps worker reports (DB)', () => {
   let payload: Payload
@@ -22,9 +21,7 @@ describe.skipIf(!ENV_READY)('restore keeps worker reports (DB)', () => {
   let itemId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 

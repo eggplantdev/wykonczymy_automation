@@ -6,10 +6,10 @@ import { createTestInvestment } from '@/__tests__/helpers/investment'
 import type { InvestmentFormDataT } from '@/components/forms/investment-form/investment-schema'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The unit spec on `guardInvestmentStatusUnlock` hands the hook a `req.user` and so can never see
 // whether the real route supplies one.
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -17,7 +17,6 @@ const { updateInvestmentAction } = await import('@/lib/actions/investments')
 const { INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE } =
   await import('@/hooks/investments/guard-status-unlock')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'investment-unlock-test-'
 
 const formData = (name: string, status: InvestmentFormDataT['status']): InvestmentFormDataT => ({
@@ -54,9 +53,7 @@ describe.skipIf(!ENV_READY)('reopening a completed investment (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)

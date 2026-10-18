@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-
-vi.mock('server-only', () => ({}))
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string }))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -18,8 +17,6 @@ const { findClientViewRow } = await import('@/lib/queries/kosztorys-client-view'
 const { createTestInvestment, deleteTestInvestment } =
   await import('@/__tests__/helpers/investment')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 const SETTINGS = { hiddenColumns: ['discountValue'], hideEmptyRows: false, columnRanks: {} }
 
 describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
@@ -34,9 +31,7 @@ describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
     })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     await resetGlobal()
   })
 
@@ -66,9 +61,7 @@ describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     investmentId = await createTestInvestment(payload, 'client view manager spec')
     authState.role = 'MANAGER'
   })

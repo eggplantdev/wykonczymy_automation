@@ -4,11 +4,11 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 import { authState } from '@/__tests__/stubs/require-auth'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Adding an item and saying where it went is one write or none: an item whose first event failed
 // reads as „nie wiadomo gdzie" for the rest of its life.
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
@@ -16,7 +16,6 @@ vi.mock('next/server', async (importOriginal) => {
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'EX-758 create-in-one-transaction'
 const MISSING_HOLDER_ID = 2_000_000_000
 
@@ -63,9 +62,7 @@ describe.skipIf(!ENV_READY)(
     }
 
     beforeAll(async () => {
-      const { getPayload } = await import('payload')
-      const config = (await import('@payload-config')).default
-      payload = await getPayload({ config })
+      payload = await bootTestPayload()
       db = await getDb(payload)
       ;({ createEquipmentAction } = await import('@/lib/actions/equipment'))
 

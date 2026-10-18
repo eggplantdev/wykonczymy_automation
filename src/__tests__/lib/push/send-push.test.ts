@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { PushMessageT } from '@/lib/push/send-push'
 
-vi.mock('server-only', () => ({}))
-
 const keys = vi.hoisted(() => ({ publicKey: 'public-key' as string | undefined }))
 vi.mock('@/lib/env', () => ({
   FRONTEND_URL: 'https://app.test.local',

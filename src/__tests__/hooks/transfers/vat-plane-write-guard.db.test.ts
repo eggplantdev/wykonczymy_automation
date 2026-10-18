@@ -5,6 +5,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
 vi.mock('next/server', async (importOriginal) => {
@@ -12,7 +13,6 @@ vi.mock('next/server', async (importOriginal) => {
   return { ...actual, after: () => {} }
 })
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'vat-plane write guard'
 
 describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (DB)', () => {
@@ -60,9 +60,7 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)

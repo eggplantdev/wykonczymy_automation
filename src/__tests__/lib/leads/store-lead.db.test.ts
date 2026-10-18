@@ -4,8 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Unique per run so re-runs never collide on the compound unique index.
 const runTag = `test-${Date.now()}`
@@ -26,9 +25,7 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
   const createdIds: number[] = []
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the
     // default 10s hook budget is too tight (observed ~8.6–10s).
   }, 30000)

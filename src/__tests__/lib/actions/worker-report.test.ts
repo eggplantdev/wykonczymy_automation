@@ -7,8 +7,8 @@ import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 // Collected, not dropped: the extras' translation IS the after() callback.
@@ -26,8 +26,6 @@ vi.mock('@/lib/ai/translate', () => ({ translateToPolish }))
 
 const { sendWorkerReportAction } = await import('@/lib/actions/worker-report')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -39,9 +37,7 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   const storedReports = () => listWorkerReports(db, investmentId, workerId)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 

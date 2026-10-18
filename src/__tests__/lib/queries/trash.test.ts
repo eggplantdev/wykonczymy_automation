@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@payload-config', () => ({ default: {} }))
 
 import { shapeTrashRows } from '@/lib/queries/trash'

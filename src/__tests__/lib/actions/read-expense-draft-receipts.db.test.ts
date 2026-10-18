@@ -7,8 +7,8 @@ import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-ex
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 const { extractReceipt, extractReceipts } = vi.hoisted(() => ({
   extractReceipt: vi.fn(),
   extractReceipts: vi.fn(),
@@ -22,7 +22,6 @@ vi.mock('@/lib/media/blob-public-url', async (importOriginal) => ({
 
 const { readExpenseDraftReceipts } = await import('@/lib/actions/read-expense-draft-receipts')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-1001-read-'
 
 const reading = (overrides: Partial<ReceiptExtractionT> = {}): ReceiptExtractionT => ({
@@ -70,9 +69,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
       .ai_read
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     investmentId = await createTestInvestment(payload, 'worker-expense-read-db-test')

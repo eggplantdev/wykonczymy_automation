@@ -3,11 +3,10 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The FK is ON DELETE SET NULL, so the failure mode this guards has no error to notice: without the
 // hook the delete SUCCEEDS and Postgres quietly orphans every referencing transaction.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('investments beforeDelete guard (DB)', () => {
   let payload: Payload
@@ -20,9 +19,7 @@ describe.skipIf(!ENV_READY)('investments beforeDelete guard (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'delete-guard-investment')
@@ -56,9 +53,7 @@ describe.skipIf(!ENV_READY)('investments beforeDelete guard — cancelled rows (
   let transactionId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'delete-guard-cancelled')

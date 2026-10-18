@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
@@ -8,10 +8,7 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('cash-register trash SQL (DB)', () => {
   let payload: Payload
@@ -22,9 +19,7 @@ describe.skipIf(!ENV_READY)('cash-register trash SQL (DB)', () => {
   let live: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     sqlModule = await import('@/lib/db/cash-register-trash')
     await purgeFixtureUsers(db)

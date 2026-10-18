@@ -1,18 +1,15 @@
 import { describe, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { describeTrashContract } from '@/__tests__/helpers/trash-contract'
+import { ENV_READY } from '@/__tests__/helpers/payload'
 
 // The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-vi.mock('server-only', () => ({}))
 
 const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('equipment trash actions (DB)', () => {
   describeTrashContract({

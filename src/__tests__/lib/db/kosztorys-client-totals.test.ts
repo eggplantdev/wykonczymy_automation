@@ -7,11 +7,10 @@ import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Coverage is by BRANCH of applyDiscount, not by scenario count — every branch the SQL CASE spells
 // out has to be exercised, or the CASE is guarded only where it happens to agree.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const CENT = 2
 
@@ -77,9 +76,7 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     for (const key of ['perItem', 'global', 'bare'] as const) {

@@ -6,8 +6,8 @@ import { insertCatalogueItems, listCatalogueItems } from '@/lib/db/work-catalogu
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -15,8 +15,6 @@ const { translateTexts } = vi.hoisted(() => ({ translateTexts: vi.fn() }))
 vi.mock('@/lib/ai/translate', () => ({ translateTexts }))
 
 const { fillCatalogueTranslationsAction } = await import('@/lib/actions/work-catalogue')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('fillCatalogueTranslationsAction (DB)', () => {
   let payload: Payload
@@ -29,9 +27,7 @@ describe.skipIf(!ENV_READY)('fillCatalogueTranslationsAction (DB)', () => {
   const descriptions = [MISSING, STALE, FRESH, FAILED]
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
 

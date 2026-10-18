@@ -8,13 +8,13 @@ import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet
 import { row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const sheetState = vi.hoisted(() => ({
   spreadsheetId: 'sheet-under-test' as string | undefined,
   formulas: [] as (string | number)[][],
 }))
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('@/lib/google/sheet-lookup', async (importOriginal) => ({
@@ -46,8 +46,6 @@ vi.mock('@/lib/kosztorys/sheet-import/read-sheet', async (importOriginal) => ({
 
 const { applyKosztorysImport, compareWithSheet } = await import('@/lib/actions/kosztorys-import')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 // Białostocka's first praca sits at grid index 4 (sheet row 5); its Pomiar reading as a formula is
 // exactly the „przepisany z Przedmiaru" case the refresh must translate into „no measurement".
 const FIRST_ITEM_ROW = 4
@@ -58,9 +56,7 @@ describe.skipIf(!ENV_READY)('compareWithSheet — persisted state (DB)', () => {
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, 'kosztorys-refresh-measured-qty-test')

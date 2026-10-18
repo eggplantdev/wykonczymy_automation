@@ -4,8 +4,8 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string }))
@@ -19,8 +19,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
 
 const { generateWorkerLinkAction } = await import('@/lib/actions/kosztorys-worker-share')
 const { getWorkerReportPage } = await import('@/lib/queries/worker-report-page')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () => {
   let payload: Payload
@@ -50,9 +48,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { RoleT } from '@/lib/auth/roles'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({}) }))
 

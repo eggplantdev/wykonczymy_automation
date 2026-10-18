@@ -4,8 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { getDepositTransactionsForInvestment } from '@/lib/db/get-deposit-transactions'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('getDepositTransactionsForInvestment (DB)', () => {
   let payload: Payload
@@ -28,9 +27,7 @@ describe.skipIf(!ENV_READY)('getDepositTransactionsForInvestment (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     investmentId = await createTestInvestment(payload, 'get-deposit-transactions-test')

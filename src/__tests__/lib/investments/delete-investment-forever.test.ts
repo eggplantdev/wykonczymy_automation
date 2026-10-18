@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { deleteTrashedInvestment } from '@/lib/investments/delete-investment-forever'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
 describe('deleteTrashedInvestment', () => {

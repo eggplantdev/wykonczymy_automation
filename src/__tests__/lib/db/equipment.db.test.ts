@@ -8,14 +8,13 @@ import {
   loadEquipmentOverview,
 } from '@/lib/db/equipment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'EX-758 current state'
 
 describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
@@ -37,9 +36,7 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     (await loadEquipmentOverview(payload)).find((row) => row.id === equipmentId)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM equipment_events WHERE note = ${MARKER}`)

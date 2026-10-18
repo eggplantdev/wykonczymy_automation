@@ -19,11 +19,10 @@ import {
   trashDaysAgo,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Σ pairs of `due − paid` must BE „Pozostało do wypłaty", or the dialog's rows stop summing to the
 // column it is opened from.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const CENT = 2
 
@@ -97,9 +96,7 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
   })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     const users = await payload.find({

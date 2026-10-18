@@ -3,11 +3,10 @@ import type { Payload } from 'payload'
 import { sql, type MigrateUpArgs } from '@payloadcms/db-postgres'
 import { up, down } from '@/migrations/20261015_0_document_settings_column_map'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // It updates whole tables, so each case runs inside a transaction that is rolled back — the
 // other specs in this shared DB never see a half-converted table.
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const ROLLBACK = new Error('rollback')
 
@@ -44,9 +43,7 @@ describe.skipIf(!ENV_READY)('20261015_0_document_settings_column_map (DB)', () =
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     investmentId = await createTestInvestment(payload, 'EX-1033 column map migration spec')
   })
 

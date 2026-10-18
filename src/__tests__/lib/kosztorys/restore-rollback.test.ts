@@ -5,6 +5,7 @@ import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // restore rests on `getDb` finding the transaction-scoped Drizzle handle inside Payload internals
 // (`adapter.sessions[txId].db`). When that shape changes on a Payload upgrade, getDb does not throw:
@@ -12,16 +13,12 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 // mid-reinsert leaves the tree half-wiped with nothing to say so.
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
-
 describe.skipIf(!ENV_READY)('restore rollback on error (DB)', () => {
   let payload: Payload
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     investmentId = await createTestInvestment(payload, 'restore-rollback-test', {
       vatRate: 0.23,

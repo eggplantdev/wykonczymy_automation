@@ -3,23 +3,19 @@ import type { Payload } from 'payload'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { updateInvestmentCoeffsAction } = await import('@/lib/actions/kosztorys')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('mnożnik inwestycji — dolna granica (DB)', () => {
   let payload: Payload
   let investmentId: number
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     authState.userId = await firstUserId(payload)
     investmentId = await createTestInvestment(payload, `investment-coeffs-test-${Date.now()}`, {
       wToolsCoeff: 0.6,

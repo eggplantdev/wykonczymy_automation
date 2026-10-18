@@ -9,8 +9,7 @@ import {
   type DepositPlaneSumsT,
 } from '@/lib/kosztorys/deposit-planes'
 import { round2 } from '@/__tests__/helpers/money'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const roundSums = (sums: DepositPlaneSumsT): DepositPlaneSumsT => ({
   paidNet: round2(sums.paidNet),
@@ -25,9 +24,7 @@ describe.skipIf(!ENV_READY)('selectDepositPlaneSums (DB)', () => {
   let sqlSums: Map<number, DepositPlaneSumsT> = new Map()
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     const investments = await payload.find({
       collection: 'investments',
