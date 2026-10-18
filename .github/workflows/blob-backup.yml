@@ -30,8 +30,8 @@ name: Backup Vercel Blob
 
 on:
   schedule:
-    # daily 03:00 UTC, before /api/cron/cleanup (03:30) deletes expired files. Off the hourly
-    # db-backup window (04–22) to avoid FTP contention.
+    # Before /api/cron/cleanup (03:30) deletes expired files, and off the hourly db-backup window
+    # (04–22) to avoid FTP contention.
     - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:

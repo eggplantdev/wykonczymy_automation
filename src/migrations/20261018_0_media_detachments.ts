@@ -1,8 +1,5 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
-// Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// The file trash: one row per detach, `restored_at IS NULL` while the file lies in the trash. A NULL
-// source means the nightly sweep found the file orphaned and cannot say where it came from.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "media_detachments" (

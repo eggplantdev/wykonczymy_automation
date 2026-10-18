@@ -35,11 +35,13 @@ export const MEDIA_RELATIONS: readonly MediaRelationT[] = [
   { collection: 'leads', field: 'assets', label: 'zgłoszenia', relsTable: 'leads_rels' },
 ]
 
-// The workers' receipts and report photos sit outside Payload's relations; the media sweep must see them.
-export const RAW_MEDIA_HOLDER_TABLES = [
-  'worker_expense_draft_media',
-  'worker_report_media',
-] as const
+const RAW_MEDIA_HOLDER_TABLES = ['worker_expense_draft_media', 'worker_report_media'] as const
+
+// A table missing here reads as unattached, and the nightly sweep deletes its files.
+export const MEDIA_HOLDER_TABLES = [
+  ...MEDIA_RELATIONS.map(({ relsTable }) => relsTable),
+  ...RAW_MEDIA_HOLDER_TABLES,
+]
 
 export function mediaReferenceWhere(
   field: string,

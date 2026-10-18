@@ -67,8 +67,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     actions = await import('@/lib/actions/investment-assets')
   })
 
-  // The media rows are rebuilt per test, not once: a detach leaves an open trash entry behind, which
-  // the next test would read as its own.
+  // A detach leaves an open trash entry behind, which the next test would read as its own.
   beforeEach(async () => {
     await purge()
 

@@ -3,12 +3,12 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
+import { findReferencedMediaIds } from '@/lib/db/media-detachments'
 import {
   countPendingExpenseDrafts,
   decideExpenseDraft,
   decideExpenseParagons,
   deletePendingExpenseDraft,
-  findDraftHeldMedia,
   findExpenseDraftDecisions,
   mergeExpenseDrafts,
   rejectPendingParagons,
@@ -736,7 +736,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await deletePendingExpenseDraft(db, { draftId: restored, workerId })).toEqual([
         pages[4],
       ])
-      expect(await findDraftHeldMedia(db, [pages[4]])).toEqual([pages[4]])
+      expect(await findReferencedMediaIds(db, [pages[4]])).toEqual([pages[4]])
     })
   })
 

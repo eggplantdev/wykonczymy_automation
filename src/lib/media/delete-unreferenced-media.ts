@@ -1,10 +1,7 @@
 import { after } from 'next/server'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { findDraftHeldMedia } from '@/lib/db/worker-expense-drafts'
-import { findReportHeldMedia } from '@/lib/db/worker-reports'
-import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
-import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
+import { findReferencedMediaIds } from '@/lib/db/media-detachments'
 import { logError } from '@/lib/utils/log-error'
 
 /**
@@ -16,7 +13,7 @@ export async function deleteUnreferencedMedia(payload: Payload, mediaIds: number
 
   let referenced: Set<number>
   try {
-    referenced = await findReferencedMedia(payload, mediaIds)
+    referenced = new Set(await findReferencedMediaIds(await getDb(payload), mediaIds))
   } catch (err) {
     logError('[media] reference scan failed, deleting nothing', err)
     return
@@ -45,29 +42,4 @@ export async function reclaimUnreferencedMedia(
   } catch {
     await reclaim()
   }
-}
-
-async function findReferencedMedia(payload: Payload, mediaIds: number[]): Promise<Set<number>> {
-  const candidates = new Set(mediaIds)
-  const referenced = new Set<number>()
-
-  for (const { collection, field } of MEDIA_RELATIONS) {
-    const { docs } = await payload.find({
-      collection,
-      where: mediaReferenceWhere(field, mediaIds),
-      depth: 0,
-      pagination: false,
-    })
-    for (const doc of docs) {
-      for (const id of uploadFieldIds((doc as unknown as Record<string, UploadFieldT>)[field])) {
-        if (candidates.has(id)) referenced.add(id)
-      }
-    }
-  }
-
-  const db = await getDb(payload)
-  for (const id of await findDraftHeldMedia(db, mediaIds)) referenced.add(id)
-  for (const id of await findReportHeldMedia(db, mediaIds)) referenced.add(id)
-
-  return referenced
 }

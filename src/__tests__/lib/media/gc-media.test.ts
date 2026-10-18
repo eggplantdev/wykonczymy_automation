@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { getDb } from '@/lib/db/get-db'
 import { recordDetachments } from '@/lib/db/media-detachments'
 import { gcMedia } from '@/lib/media/gc-media'
+import { MEDIA_HOLDER_TABLES } from '@/lib/media/relating-collections'
 
 vi.mock('server-only', () => ({}))
 
@@ -14,17 +16,8 @@ describe.skipIf(!ENV_READY)('gcMedia (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
 
-  const purgeMedia = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
-
-  const createMedia = async (name: string) => {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, kind)
-      VALUES (${`${FILENAME_PREFIX}${name}`}, 'image/jpeg', 1024, 'zdjecie')
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const purgeMedia = () => purgeTestMedia(db, FILENAME_PREFIX)
+  const createMedia = (name: string) => insertTestMedia(db, `${FILENAME_PREFIX}${name}`)
 
   const firstId = async (table: 'investments' | 'worker_expense_drafts' | 'worker_reports') => {
     const { rows } = await db.execute(
@@ -116,7 +109,7 @@ describe.skipIf(!ENV_READY)('gcMedia (DB)', () => {
   it('deletes a file past the retention window and keeps a fresh one', async () => {
     const expired = await createMedia('expired.jpg')
     const fresh = await createMedia('fresh.jpg')
-    const source = { collection: 'transactions', field: 'invoice', id: 1 }
+    const source = { collection: 'transactions' as const, field: 'invoice', id: 1 }
     await recordDetachments(db, source, [expired, fresh])
     await ageEntry(expired, 10)
     await ageEntry(fresh, 2)
@@ -127,6 +120,20 @@ describe.skipIf(!ENV_READY)('gcMedia (DB)', () => {
     expect(await mediaExists(expired)).toBe(false)
     expect(await mediaExists(fresh)).toBe(true)
     expect(await openEntryOf(fresh)).toMatchObject({ from_collection: 'transactions' })
+  })
+
+  it('counts every table that links to a file as holding it', async () => {
+    const { rows } = await db.execute(sql`
+      SELECT DISTINCT tc.table_name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.constraint_column_usage ccu
+        ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
+      WHERE tc.constraint_type = 'FOREIGN KEY' AND ccu.table_name = 'media'
+    `)
+    const notHolders = ['media_detachments', 'payload_locked_documents_rels']
+    const linking = rows.map((row) => String(row.table_name)).filter((t) => !notHolders.includes(t))
+
+    expect(linking.sort()).toEqual([...MEDIA_HOLDER_TABLES].sort())
   })
 
   it('changes nothing on a second run', async () => {

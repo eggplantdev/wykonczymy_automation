@@ -87,6 +87,14 @@ const file = (id: number, parent: DetachedFileRowT['parent']): DetachedFileRowT 
   mediaId: 900 + id,
   filename: `plik-${id}.jpg`,
   detachedAt: new Date('2026-09-27T12:00:00Z'),
+  source:
+    parent.kind === 'transaction'
+      ? { collection: 'transactions', field: 'invoice', id: parent.id }
+      : {
+          collection: parent.kind === 'lead' ? 'leads' : 'investments',
+          field: 'assets',
+          id: parent.id,
+        },
   parent,
 })
 

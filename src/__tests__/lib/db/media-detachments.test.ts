@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { getDb } from '@/lib/db/get-db'
 import { closeDetachments, fetchDetachedFiles, recordDetachments } from '@/lib/db/media-detachments'
 
@@ -13,17 +14,8 @@ describe.skipIf(!ENV_READY)('media detachments (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
 
-  const purgeMedia = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
-
-  const createMedia = async (name: string) => {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, kind)
-      VALUES (${`${FILENAME_PREFIX}${name}`}, 'image/jpeg', 1024, 'zdjecie')
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const purgeMedia = () => purgeTestMedia(db, FILENAME_PREFIX)
+  const createMedia = (name: string) => insertTestMedia(db, `${FILENAME_PREFIX}${name}`)
 
   const entriesOf = async (mediaId: number) => {
     const { rows } = await db.execute(sql`
@@ -122,5 +114,22 @@ describe.skipIf(!ENV_READY)('media detachments (DB)', () => {
     ])
     const [entry] = await fetchDetachedFiles(db, listed[0].id)
     expect(entry?.mediaId).toBe(kept)
+  })
+
+  it('leaves out a file another record still holds', async () => {
+    const { rows } = await db.execute(sql`SELECT id FROM investments ORDER BY id LIMIT 2`)
+    const [source, holder] = rows.map((row) => Number(row.id))
+    const shared = await createMedia('still-held.jpg')
+    await recordDetachments(db, { collection: 'investments', field: 'assets', id: source }, [
+      shared,
+    ])
+    await db.execute(sql`
+      INSERT INTO investments_rels (parent_id, path, media_id, "order")
+      VALUES (${holder}, 'assets', ${shared}, 999)
+    `)
+
+    const files = await fetchDetachedFiles(db)
+
+    expect(files.map((row) => row.mediaId)).not.toContain(shared)
   })
 })

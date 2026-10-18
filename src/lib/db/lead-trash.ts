@@ -1,7 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { textOrNull } from '@/lib/db/row-coerce'
+import { dateOrNull, textOrNull } from '@/lib/db/row-coerce'
 import { sqlList } from '@/lib/db/sql-list'
 import type { Lead } from '@/payload-types'
 
@@ -29,7 +29,7 @@ export async function fetchTrashedLeads(db: DbExecutorT): Promise<TrashedLeadRow
     email: textOrNull(row.email),
     phone: textOrNull(row.phone),
     source: row.source as Lead['source'],
-    submittedAt: row.submitted_at ? new Date(row.submitted_at as string) : null,
+    submittedAt: dateOrNull(row.submitted_at),
     trashedAt: new Date(row.trashed_at as string),
   }))
 }

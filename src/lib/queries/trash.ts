@@ -18,7 +18,8 @@ import { fetchTrashedTemplates, type TrashedTemplateRowT } from '@/lib/db/templa
 import { fetchDetachedFiles, type DetachedFileRowT } from '@/lib/db/media-detachments'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
-import { fileRestoreBlockedReason, fileSourceLabel } from '@/lib/media/file-trash'
+import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
+import { canViewDetachedFile, fileRestoreBlockedReason } from '@/lib/media/file-trash'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { makeModel } from '@/lib/utils/make-model'
 import type { TrashRowT } from '@/types/trash'
@@ -108,10 +109,7 @@ export function shapeTrashRows(
         .join(' · '),
     })),
     ...files
-      .filter(
-        ({ parent }) =>
-          parent.kind !== 'transaction' || canViewRegister(viewerRole, parent.registerType),
-      )
+      .filter(({ parent }) => canViewDetachedFile(viewerRole, parent))
       .map((row) => ({
         ...base({ id: row.id, trashedAt: row.detachedAt }, FILE_TRASH_RETENTION_DAYS),
         kind: 'file' as const,
@@ -120,6 +118,12 @@ export function shapeTrashRows(
         restoreBlockedReason: fileRestoreBlockedReason(row.parent),
       })),
   ]
+}
+
+function fileSourceLabel(parent: DetachedFileRowT['parent']): string {
+  if (parent.kind === 'investment') return `Inwestycja ${parent.name} · pliki`
+  if (parent.kind === 'lead') return `Zgłoszenie ${leadDisplayName(parent)} · pliki`
+  return `${TRANSFER_TYPE_LABELS[parent.type]} z ${formatPLDate(parent.date)} · faktura`
 }
 
 // Uncached: the page is rare, and its „used" flag reads kosztorys tables no trash tag covers.

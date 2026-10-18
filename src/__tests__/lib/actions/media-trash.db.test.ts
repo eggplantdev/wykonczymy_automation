@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
+import { createTestInvestment } from '@/__tests__/helpers/investment'
+import { insertTestMedia } from '@/__tests__/helpers/media'
 import { getDb } from '@/lib/db/get-db'
 
 vi.mock('server-only', () => ({}))
@@ -54,19 +56,8 @@ describe.skipIf(!ENV_READY)('restoreDetachedFileAction (DB)', () => {
 
   beforeEach(async () => {
     await purge()
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, kind)
-      VALUES (${FILENAME}, 'image/jpeg', 1024, 'zdjecie')
-      RETURNING id
-    `)
-    mediaId = Number(rows[0].id)
-    const investment = await payload.create({
-      collection: 'investments',
-      data: { name: NAME, status: 'active', settlementMode: 'NET', assets: [] },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    investmentId = Number(investment.id)
+    mediaId = await insertTestMedia(db, FILENAME)
+    investmentId = await createTestInvestment(payload, NAME)
     await assets.addInvestmentAssetsAction(investmentId, [mediaId])
     await assets.removeInvestmentAssetAction(investmentId, mediaId)
   })

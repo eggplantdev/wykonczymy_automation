@@ -1,14 +1,32 @@
-import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
+import type { CollectionSlug } from 'payload'
 import type { TransferTypeT } from '@/lib/constants/transfers'
+import { MEDIA_HOLDER_TABLES } from '@/lib/media/relating-collections'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { DbExecutorT } from './get-db'
-import { textOrNull } from './row-coerce'
+import { dateOrNull, textOrNull } from './row-coerce'
 import { sqlList } from './sql-list'
 
-export type DetachmentSourceT = { collection: string; field: string; id: number }
+export type DetachmentSourceT = { collection: CollectionSlug; field: string; id: number }
 
-/** A file already in the trash takes the latest source and restarts its grace window. */
+const isReferenced = sql.join(
+  MEDIA_HOLDER_TABLES.map(
+    (table) => sql`EXISTS (SELECT 1 FROM ${sql.identifier(table)} h WHERE h.media_id = m.id)`,
+  ),
+  sql.raw(' OR '),
+)
+
+export async function findReferencedMediaIds(
+  db: DbExecutorT,
+  mediaIds: number[],
+): Promise<number[]> {
+  if (mediaIds.length === 0) return []
+  const { rows } = await db.execute(sql`
+    SELECT m.id FROM media m WHERE m.id IN (${sqlList(mediaIds)}) AND (${isReferenced})
+  `)
+  return rows.map((row) => Number(row.id))
+}
+
 export async function recordDetachments(
   db: DbExecutorT,
   source: DetachmentSourceT,
@@ -40,11 +58,57 @@ export async function closeDetachments(db: DbExecutorT, mediaIds: number[]): Pro
   `)
 }
 
+export async function recordUnreferencedMedia(db: DbExecutorT): Promise<number> {
+  const { rows } = await db.execute(sql`
+    INSERT INTO media_detachments (media_id)
+    SELECT m.id FROM media m WHERE NOT (${isReferenced})
+    ON CONFLICT (media_id) WHERE restored_at IS NULL DO NOTHING
+    RETURNING id
+  `)
+  return rows.length
+}
+
+export async function closeReferencedDetachments(db: DbExecutorT): Promise<number> {
+  const { rows } = await db.execute(sql`
+    UPDATE media_detachments d SET restored_at = now()
+    FROM media m
+    WHERE m.id = d.media_id AND d.restored_at IS NULL AND (${isReferenced})
+    RETURNING d.id
+  `)
+  return rows.length
+}
+
+export async function selectExpiredDetachedMediaIds(
+  db: DbExecutorT,
+  retentionDays: number,
+  limit: number,
+): Promise<number[]> {
+  const { rows } = await db.execute(sql`
+    SELECT media_id FROM media_detachments
+    WHERE restored_at IS NULL AND detached_at < now() - make_interval(days => ${retentionDays})
+    ORDER BY detached_at
+    LIMIT ${limit}
+  `)
+  return rows.map((row) => Number(row.media_id))
+}
+
+export async function selectOpenDetachedMediaIds(
+  db: DbExecutorT,
+  source: Omit<DetachmentSourceT, 'field'>,
+): Promise<number[]> {
+  const { rows } = await db.execute(sql`
+    SELECT media_id FROM media_detachments
+    WHERE restored_at IS NULL AND from_collection = ${source.collection} AND from_id = ${source.id}
+  `)
+  return rows.map((row) => Number(row.media_id))
+}
+
 export type DetachedFileRowT = {
   id: number
   mediaId: number
   filename: string
   detachedAt: Date
+  source: DetachmentSourceT
   parent:
     | { kind: 'investment'; id: number; name: string; trashedAt: Date | null }
     | {
@@ -64,15 +128,14 @@ export type DetachedFileRowT = {
       }
 }
 
-const dateOrNull = (value: unknown) => (value == null ? null : new Date(value as string))
-
-/** Open entries whose source still exists; one without a known source only waits for the sweep. */
+// A file still held elsewhere keeps its open entry until the sweep; listing it would offer to attach
+// it to a second record.
 export async function fetchDetachedFiles(
   db: DbExecutorT,
   detachmentId?: number,
 ): Promise<DetachedFileRowT[]> {
   const { rows } = await db.execute(sql`
-    SELECT d.id, d.media_id, m.filename, d.detached_at, d.from_collection, d.from_id,
+    SELECT d.id, d.media_id, m.filename, d.detached_at, d.from_collection, d.from_field, d.from_id,
       i.name AS investment_name, i.trashed_at AS investment_trashed_at,
       l.name AS lead_name, l.email AS lead_email, l.phone AS lead_phone,
       l.trashed_at AS lead_trashed_at,
@@ -86,6 +149,7 @@ export async function fetchDetachedFiles(
     LEFT JOIN cash_registers r ON r.id = t.source_register_id
     WHERE d.restored_at IS NULL
       AND (i.id IS NOT NULL OR l.id IS NOT NULL OR t.id IS NOT NULL)
+      AND NOT (${isReferenced})
       ${detachmentId === undefined ? sql`` : sql`AND d.id = ${detachmentId}`}
     ORDER BY d.detached_at DESC
   `)
@@ -94,6 +158,11 @@ export async function fetchDetachedFiles(
     mediaId: Number(row.media_id),
     filename: String(row.filename),
     detachedAt: new Date(row.detached_at as string),
+    source: {
+      collection: row.from_collection as CollectionSlug,
+      field: String(row.from_field),
+      id: Number(row.from_id),
+    },
     parent: parentOf(row),
   }))
 }
