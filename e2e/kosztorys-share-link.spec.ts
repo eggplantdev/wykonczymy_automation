@@ -2,24 +2,17 @@ import { test, expect } from '@playwright/test'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { waitForHydration } from './support/wait'
-import { editorCell } from './drivers/kosztorys-grid'
+import { GRID_VIEWPORT, editorCell } from './drivers/kosztorys-grid'
 import { anonymousVisit, mintShareToken } from './drivers/share-link'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type BandsSeed = {
-  investment: number
-  clientPrice: number
-  sections: { name: string; net: number; itemCount: number }[]
-}
+let seed: E2ESeedsT['shareLink']
 
-let seed: BandsSeed
-
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<BandsSeed>('seed:kosztorys-bands', 'BANDS_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('shareLink')
 })
 
 test('a generated share link renders the kosztorys for a visitor with no session', async ({

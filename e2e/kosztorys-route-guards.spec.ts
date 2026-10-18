@@ -4,7 +4,6 @@ import { openPanelView, readSummaryFigures } from './drivers/settlement'
 
 // What it cannot assert is the status code: the segment ships `(frontend)/loading.tsx`, so the shell
 // is flushed at 200 before the page body runs and `notFound()` has no headers left to change.
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 const MISSING_INVESTMENT_ID = 99_999_999
 

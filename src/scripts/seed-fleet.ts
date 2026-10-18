@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 
 const ctx = { context: { skipRevalidation: true, skipSheetSync: true } }
 
@@ -9,8 +8,7 @@ const COST_OIL = 900
 const PERFORMED_TECHNICAL = '2020-03-15'
 const PERFORMED_OIL = '2019-03-15'
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedFleet(payload: Payload) {
   const stamp = Date.now()
   const prefix = `E2E${stamp}`
 
@@ -57,11 +55,5 @@ async function main() {
     exempt: { id: exempt.id, registration: exempt.registration },
   }
 
-  console.log(`FLEET_SEED=${JSON.stringify(seed)}`)
-  process.exit(0)
+  return seed
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { waitForHydration } from './support/wait'
 import {
+  GRID_VIEWPORT,
   collapseSummaryPanel,
   expandSummaryPanel,
   gridRow,
@@ -19,23 +20,21 @@ import {
   pickDiscountMode,
 } from './drivers/settlement'
 
+test.use({ viewport: GRID_VIEWPORT })
+
 // The tests share one szablon: `mode: 'serial'` makes a failure there stop them rather than let them
 // fail on its absence and hide the real cause.
-test.use({ storageState: 'e2e/.auth/user.json' })
 test.describe.configure({ mode: 'serial' })
 
-type PresetSeedT = { source: number; reload: number }
-
-let seed: PresetSeedT
+let seed: E2ESeedsT['presets']
 
 // Szablon names are unique across the app and the test DB is never reset, so the name has to be this
 // run's own — otherwise the second run saves a duplicate of the first run's szablon and scenario 1 is testing
 // the refusal it means to reach only by accident.
 const presetName = `E2E Szablon ${Date.now()}`
 
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<PresetSeedT>('seed:kosztorys-presets', 'PRESET_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('presets')
 })
 
 // Both entries render their one-line explanation inside the item, so the accessible name carries it
@@ -53,8 +52,8 @@ const reloadDialog = (page: Page) =>
 // would be satisfied by the previous toast still on screen.
 async function expectToast(page: Page, text: string | RegExp): Promise<void> {
   const toast = page.getByText(text)
-  await expect(toast.first()).toBeVisible({ timeout: 20_000 })
-  await expect(toast).toHaveCount(0, { timeout: 20_000 })
+  await expect(toast.first()).toBeVisible()
+  await expect(toast).toHaveCount(0)
 }
 
 // „Dodaj" is the name of a button on EVERY row of this listing (the per-investment expense dialog),
@@ -175,7 +174,7 @@ test('„Wczytaj szablon…" zastępuje całą rozpiskę bez przeładowania, zer
   await reloadDialog(page).getByRole('button', { name: 'Wczytaj i zastąp', exact: true }).click()
   await expectToast(page, 'Wczytano: 2 sekcje · 3 prace')
 
-  await expect(gridRow(page, 'Praca szablonowa jeden')).toHaveCount(1, { timeout: 20_000 })
+  await expect(gridRow(page, 'Praca szablonowa jeden')).toHaveCount(1)
   await expect(gridRow(page, 'Praca do zastąpienia')).toHaveCount(0)
 
   await openEditor(page, seed.reload)
@@ -196,7 +195,7 @@ test('„Wczytaj szablon…" zastępuje całą rozpiskę bez przeładowania, zer
   await restorePoint.getByRole('button', { name: 'Przywróć' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Przywróć' }).click()
 
-  await expect(gridRow(page, 'Praca do zastąpienia')).toHaveCount(1, { timeout: 20_000 })
+  await expect(gridRow(page, 'Praca do zastąpienia')).toHaveCount(1)
   await expect(gridRow(page, 'Praca szablonowa jeden')).toHaveCount(0)
   // An etap quantity is typed by hand, i.e. an input — read the value, it has no text node.
   const restoredStage = await rowCell(page, 'Praca do zastąpienia', 'Etap 1')

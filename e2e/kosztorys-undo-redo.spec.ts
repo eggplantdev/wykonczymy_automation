@@ -1,18 +1,15 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { settleWrite } from './support/wait'
-import { commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
+import { GRID_VIEWPORT, commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type UndoSeedT = { cell: number; burst: number; boundary: number }
+let seed: E2ESeedsT['undo']
 
-let seed: UndoSeedT
-
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<UndoSeedT>('seed:kosztorys-undo', 'UNDO_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('undo')
 })
 
 const QTY_COLUMN = COLUMN_LABELS.plannedQty
@@ -27,7 +24,7 @@ async function typeQty(page: Page, row: string, value: string): Promise<void> {
 }
 
 async function expectQty(page: Page, row: string, value: string): Promise<void> {
-  await expect((await qtyCell(page, row)).locator('input')).toHaveValue(value, { timeout: 20_000 })
+  await expect((await qtyCell(page, row)).locator('input')).toHaveValue(value)
 }
 
 const optionsMenuItem = (page: Page, command: RegExp) =>

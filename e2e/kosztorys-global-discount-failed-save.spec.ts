@@ -1,17 +1,11 @@
 import { test, expect } from '@playwright/test'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { readSeed } from './support/seeds'
 import { discountModeSelect, openSettlementOptions, pickDiscountMode } from './drivers/settlement'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 let investment: number
 
-test.beforeAll(async ({ browser }) => {
-  investment = runSeedScript<{ investment: number }>(
-    'seed:kosztorys-bands',
-    'BANDS_SEED',
-  ).investment
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  investment = readSeed('discountFailedSave').investment
 })
 
 test('a failed rabat save restores the mode and leaves the block usable', async ({ page }) => {

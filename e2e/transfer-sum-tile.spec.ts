@@ -1,14 +1,14 @@
 import { test, expect, type Page } from '@playwright/test'
 import { parsePln } from './support/money'
 import { readColumn } from './support/table'
-import { createInvestmentExpense, EXPENSE_REGISTER } from './drivers/expenses'
+import { createInvestmentExpense } from './drivers/expenses'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 import { openTransferFilters } from './drivers/transfers'
 
 // The dashboard
 // is the surface used here because its `where` is `buildTransferFilters` alone — a register or
 // investment page additionally narrows by a field a CANCELLATION row does not carry, which would
 // hide the very row the regression turns on.
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 // Two decimal places, so `normalizeAmountSearch` degrades the range to an exact match and the
 // filtered set is this test's own rows plus, at worst, a dump row of the same value — which the

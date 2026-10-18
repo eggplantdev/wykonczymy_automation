@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 
 const ctx = { context: { skipRevalidation: true } }
 
@@ -23,10 +22,7 @@ const SHAPE: { section: string; items: { description: string; plannedQty: number
   },
 ]
 
-async function seedInvestment(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  name: string,
-): Promise<number> {
+async function seedInvestment(payload: Payload, name: string): Promise<number> {
   const investment = await payload.create({
     collection: 'investments',
     data: { name, status: 'active', vatRate: 0.23, settlementMode: 'NET' },
@@ -61,8 +57,7 @@ async function seedInvestment(
   return investment.id
 }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedKosztorysSort(payload: Payload) {
   // The test DB is never reset, so a stable name would collide across runs.
   const stamp = Date.now()
 
@@ -72,11 +67,5 @@ async function main() {
     search: await seedInvestment(payload, `E2E Sortowanie fraza ${stamp}`),
   }
 
-  console.log(`SORT_SEED=${JSON.stringify(seed)}`)
-  process.exit(0)
+  return seed
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

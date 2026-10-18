@@ -2,8 +2,6 @@ import { test, expect, type Locator, type Page } from '@playwright/test'
 import { pickComboOption } from './drivers/combo'
 import { waitForHydration } from './support/wait'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
-
 const stamp = Date.now()
 const EQUIPMENT = `Szlifierka E2E ${stamp}`
 const SERIAL = `SN-${stamp}`

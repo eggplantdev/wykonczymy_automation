@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { createInvestmentExpense, EXPENSE_REGISTER } from './drivers/expenses'
+import { createInvestmentExpense } from './drivers/expenses'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 import { readRegisterBalance, readRegisterBalanceStable } from './drivers/transfers'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 test('cancelling an expense reverts the balance and hides the row, gated by reason length', async ({
   page,

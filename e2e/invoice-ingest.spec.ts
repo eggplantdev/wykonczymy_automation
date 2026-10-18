@@ -7,13 +7,14 @@ import {
   type Route,
 } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
-import { refreshUntil, waitForHydration } from './support/wait'
-import { createInvestmentExpense, EXPENSE_REGISTER, openExpenseDialog } from './drivers/expenses'
+import { settleWrite, waitForHydration } from './support/wait'
+import { openExpenseDialog } from './drivers/expenses'
+import { readSeed } from './support/seeds'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 
 // • **Two of these tests write real bytes to Vercel Blob.**
 // • **The fixtures are fabricated, and must stay that way.** — every HEIC in this repo's dumps is a
 //   real client invoice.
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 const FIXTURE = (name: string) => fileURLToPath(new URL(`fixtures/${name}`, import.meta.url))
 
@@ -21,11 +22,10 @@ const FIXTURE = (name: string) => fileURLToPath(new URL(`fixtures/${name}`, impo
 const HEIC = FIXTURE('paragon.heic')
 const RECEIPTS = ['paragon-a.jpg', 'paragon-b.jpg', 'paragon-c.jpg'].map(FIXTURE)
 
-// A row on /kasa/[id] we own, so „Edytuj transakcję" is enabled and the faktura cell starts empty.
-async function seedOwnExpense(page: Page, tag: string): Promise<string> {
-  const description = `E2E-${tag}-${Date.now()}`
+// A seeded row we own, so „Edytuj transakcję" is enabled and the faktura cell starts empty.
+async function openSeededExpense(page: Page, tag: 'heic' | 'blocked' | 'cell'): Promise<string> {
+  const description = readSeed('invoiceIngest')[tag]
   await page.goto(`/kasa/${EXPENSE_REGISTER.id}`)
-  await createInvestmentExpense(page, '1.23', description)
   await expect(page.getByRole('cell', { name: description }).first()).toBeVisible()
   return description
 }
@@ -35,8 +35,8 @@ const rowOf = (page: Page, description: string) =>
 
 const filePicker = (scope: Locator) => scope.locator('div[role="button"]:has(input[type="file"])')
 
-const savedAs = (base: string) => new RegExp(`${base}-[0-9a-z]{6}\\.jpg`)
-const previewOf = (base: string) => new RegExp(`^Podgląd faktury: ${base}-[0-9a-z]{6}\\.jpg$`)
+const savedAs = (base: string) => new RegExp(`${base}-[0-9a-z]{12}\\.jpg`)
+const previewOf = (base: string) => new RegExp(`^Podgląd faktury: ${base}-[0-9a-z]{12}\\.jpg$`)
 
 // A selector aimed at the hidden input instead would keep passing after the control stopped opening it.
 async function pickThrough(
@@ -49,7 +49,7 @@ async function pickThrough(
 }
 
 test('HEIC z pickera edycji przelewu zapisuje się jako JPG', async ({ page }) => {
-  const description = await seedOwnExpense(page, 'heic')
+  const description = await openSeededExpense(page, 'heic')
 
   const edit = rowOf(page, description).getByRole('button', { name: 'Edytuj transakcję' })
   await waitForHydration(edit)
@@ -61,20 +61,19 @@ test('HEIC z pickera edycji przelewu zapisuje się jako JPG', async ({ page }) =
 
   const save = dialog.getByRole('button', { name: 'Zapisz' })
   await expect(save).toBeEnabled({ timeout: 60_000 })
-  await save.click()
+  await settleWrite(page, () => save.click())
   await expect(dialog).toBeHidden()
 
   // The picker still said „paragon.heic" — it shows what it was handed, not what
   // survived — so the only honest read of „it was converted" is the name the SAVED faktura carries.
-  await refreshUntil(page, () =>
-    expect(
-      rowOf(page, description).getByRole('button', { name: previewOf('paragon') }),
-    ).toBeVisible({ timeout: 5_000 }),
-  )
+  await page.reload()
+  await expect(
+    rowOf(page, description).getByRole('button', { name: previewOf('paragon') }),
+  ).toBeVisible()
 })
 
 test('nieczytelny HEIC nie wchodzi do formularza', async ({ page }) => {
-  const description = await seedOwnExpense(page, 'blocked')
+  const description = await openSeededExpense(page, 'blocked')
 
   const edit = rowOf(page, description).getByRole('button', { name: 'Edytuj transakcję' })
   await waitForHydration(edit)
@@ -106,7 +105,7 @@ test('nieczytelny HEIC nie wchodzi do formularza', async ({ page }) => {
 })
 
 test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz', async ({ page }) => {
-  const description = await seedOwnExpense(page, 'cell')
+  const description = await openSeededExpense(page, 'cell')
 
   const add = rowOf(page, description).getByRole('button', { name: 'Dodaj fakturę' })
   await waitForHydration(add)
@@ -118,7 +117,8 @@ test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz', async ({ pa
   await expect(page.getByText('Faktura dodana')).toBeVisible({ timeout: 60_000 })
 
   const preview = rowOf(page, description).getByRole('button', { name: previewOf('paragon-a') })
-  await refreshUntil(page, () => expect(preview).toBeVisible({ timeout: 5_000 }))
+  await page.reload()
+  await expect(preview).toBeVisible()
   await preview.click()
 
   // Filtered by a pattern, not by page 1's name: the filter is re-evaluated on every assertion, and

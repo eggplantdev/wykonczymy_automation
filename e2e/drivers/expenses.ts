@@ -1,10 +1,7 @@
 import { expect, type Page } from '@playwright/test'
 import { pickComboOption } from './combo'
 import { nudgeUntil, RETRY_STEP_MS, waitForHydration } from '../support/wait'
-
-export const EXPENSE_REGISTER = { id: 5, name: 'Kasa główna Bartek' }
-export const EXPENSE_INVESTMENT = 'Plac Hallera 6'
-export const EXPENSE_CATEGORY = 'Materiały budowlane'
+import { EXPENSE_CATEGORY, EXPENSE_INVESTMENT, EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 
 // „Typ wydatku" is a Radix Select, so it opens a listbox rather than accepting `selectOption`.
 export async function pickExpenseType(page: Page, label: string): Promise<void> {

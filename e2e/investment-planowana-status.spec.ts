@@ -1,19 +1,11 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
-import { refreshReferenceData } from './support/seeds'
 import { readListingCell } from './support/table'
 import { waitForHydration } from './support/wait'
-import { EXPENSE_INVESTMENT, openExpenseDialog } from './drivers/expenses'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
+import { openExpenseDialog } from './drivers/expenses'
+import { EXPENSE_INVESTMENT } from '@/scripts/e2e-dump-rows'
 
 const STATUS_COLUMN = 'Status'
-
-// Earlier specs seed investments straight into Postgres, which no cache tag hears about, so the
-// listing's counter can still be quoting a number from before them.
-test.beforeAll(async ({ browser }) => {
-  await refreshReferenceData(browser)
-})
 
 // Fresh on every run: the test DB is never reset, so a fixed name would make the second run assert
 // against the investment the first one already promoted.
@@ -27,8 +19,10 @@ async function readActiveCount(page: Page): Promise<number> {
   await page.goto('/inwestycje')
   await page.evaluate((key) => localStorage.setItem(key, '{"active":true}'), STATUS_FILTER_KEY)
   await page.reload()
+  // The server renders the default statuses, Planowana among them; the stored pick applies only
+  // after hydration, so a counter read before it would count the prospekt as active.
+  await expect(page.getByTitle('Filtr statusu')).toHaveText('Status (1)')
   const counter = page.getByText(/^Widoczne inwestycje \d+ \/ \d+$/)
-  await counter.waitFor()
   const shown = Number(/(\d+) \//.exec((await counter.textContent()) ?? '')?.[1])
   await page.evaluate((key) => localStorage.removeItem(key), STATUS_FILTER_KEY)
   return shown
@@ -46,10 +40,9 @@ async function investmentIsOffered(page: Page, name: string): Promise<boolean> {
   return count > 0
 }
 
-// Scoped to the open dialog and exact: the listing behind it carries a „Filtr statusu" button,
-// which a loose label match would fold in.
+// The status select has no label, so it is found as the form's first field.
 async function pickStatus(page: Page, dialog: Locator, label: string): Promise<void> {
-  await dialog.getByLabel('Status', { exact: true }).click()
+  await dialog.getByRole('combobox').first().click()
   await page.getByRole('option', { name: label, exact: true }).click()
 }
 
@@ -73,7 +66,8 @@ test('prospekt jest widoczny na liście, ale nie liczy się jako aktywny — dop
     INVESTMENT_STATUS_LABELS.planowana.pl,
   )
   expect(await readActiveCount(page), 'prospekt doliczony do aktywnych').toBe(activeBefore)
-  expect(await investmentIsOffered(page, PROSPECT), 'prospekt w pickerze wydatku').toBe(false)
+  // Owner ruling 2026-10-15: money is booked on planned work, so Planowana is offered for booking.
+  expect(await investmentIsOffered(page, PROSPECT), 'prospekt poza pickerem wydatku').toBe(true)
 
   // From the investment's own page rather than the listing row: the row is itself a link, so the
   // edit there would be a click inside a navigating element.

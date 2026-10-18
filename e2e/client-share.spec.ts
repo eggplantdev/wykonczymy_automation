@@ -1,36 +1,24 @@
 import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { bare } from './support/money'
 import { settleWrites, waitForHydration } from './support/wait'
-import { anonymousVisit, mintShareToken } from './drivers/share-link'
-import { columnHeaders, commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
+import { anonymousVisit } from './drivers/share-link'
+import {
+  GRID_VIEWPORT,
+  columnHeaders,
+  commitCellValue,
+  openEditor,
+  rowCell,
+} from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type ClientShareSeed = {
-  investment: number
-  investmentName: string
-  sectionName: string
-  workedRow: string
-  emptyRow: string
-  filledStage: string
-  emptyStage: string
-  cashDeposit: { amount: number; date: string }
-  transferDeposit: { amount: number; netAmount: number; date: string }
-  grossExpense: { description: string; amount: number }
-  netExpense: { description: string; amount: number; netAmount: number }
-  categoryName: string
-  settledExpense: { description: string; amount: number }
-  invoiceFilename: string
-}
+let seed: E2ESeedsT['clientShare']
 
-let seed: ClientShareSeed
-
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<ClientShareSeed>('seed:client-share', 'CLIENT_SHARE_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('clientShare')
 })
 
 const STAGE_SUM_COLUMN = COLUMN_LABELS.stageQtySum
@@ -83,9 +71,8 @@ test('unticking a column and showing empty pozycje reach the link without moving
   const dialog = await openClientViewSettings(page)
   await dialog.getByRole('checkbox', { name: UNIT_COLUMN }).uncheck()
   await saveSettings(page)
-  const token = await mintShareToken(page, seed.investment)
 
-  const hidden = await anonymousVisit(browser, baseURL, token)
+  const hidden = await anonymousVisit(browser, baseURL, seed.token)
   try {
     await expect(hidden.page.getByText(COLUMN_LABELS.description, { exact: true })).toBeVisible()
     await expect(hidden.page.getByText(UNIT_COLUMN, { exact: true })).toHaveCount(0)
@@ -106,7 +93,7 @@ test('unticking a column and showing empty pozycje reach the link without moving
   await reopened.getByRole('checkbox', { name: EMPTY_ROWS_CHECKBOX }).uncheck()
   await saveSettings(page)
 
-  const shown = await anonymousVisit(browser, baseURL, token)
+  const shown = await anonymousVisit(browser, baseURL, seed.token)
   try {
     await expect(shown.page.getByText(seed.emptyRow)).toBeVisible()
     // a pozycja empty on both axes adds zero to every total, so the money must read identically with
@@ -123,12 +110,10 @@ test('unticking a column and showing empty pozycje reach the link without moving
 })
 
 test('the investor sees their own wpłaty as plain text, on the tor each one was paid on', async ({
-  page,
   browser,
   baseURL,
 }) => {
-  const token = await mintShareToken(page, seed.investment)
-  const { page: visitor, close } = await anonymousVisit(browser, baseURL, token)
+  const { page: visitor, close } = await anonymousVisit(browser, baseURL, seed.token)
   try {
     await expect(visitor.getByText('Lista wpłat')).toBeVisible()
     await expect(visitor.getByRole('link', { name: 'Lista wpłat' })).toHaveCount(0)
@@ -147,12 +132,10 @@ test('the investor sees their own wpłaty as plain text, on the tor each one was
 })
 
 test('the investor gets one brutto wydatki list with its faktury, and never the company plane', async ({
-  page,
   browser,
   baseURL,
 }) => {
-  const token = await mintShareToken(page, seed.investment)
-  const { page: visitor, close } = await anonymousVisit(browser, baseURL, token)
+  const { page: visitor, close } = await anonymousVisit(browser, baseURL, seed.token)
   try {
     await visitor.getByRole('radio', { name: 'Materiały', exact: true }).click()
     // The section opens by default, so a blind click CLOSED it — and every assertion below then raced
@@ -201,9 +184,8 @@ test('inwestor zwija sekcję na swoim linku, choć jego własny schowek pustych 
   // the hider IS engaged while the fold happens.
   await dialog.getByRole('checkbox', { name: EMPTY_ROWS_CHECKBOX }).check()
   await saveSettings(page)
-  const token = await mintShareToken(page, seed.investment)
 
-  const { page: visitor, close } = await anonymousVisit(browser, baseURL, token)
+  const { page: visitor, close } = await anonymousVisit(browser, baseURL, seed.token)
   try {
     // Podsumowanie otwiera się domyślnie i leży NA siatce (nieprzezroczysta nakładka na całą jej
     // wysokość), więc dopóki inwestor go nie schowa, do belki sekcji nie da się kliknąć.
@@ -236,9 +218,7 @@ test('an etap reaches the investor link with its first entry, and not before', a
   browser,
   baseURL,
 }) => {
-  const token = await mintShareToken(page, seed.investment)
-
-  const before = await anonymousVisit(browser, baseURL, token)
+  const before = await anonymousVisit(browser, baseURL, seed.token)
   try {
     await expect(before.page.getByText(seed.workedRow)).toBeVisible()
     const headers = await columnHeaders(before.page)
@@ -256,7 +236,7 @@ test('an etap reaches the investor link with its first entry, and not before', a
     await commitCellValue(await rowCell(page, seed.workedRow, seed.emptyStage), '2')
   })
 
-  const after = await anonymousVisit(browser, baseURL, token)
+  const after = await anonymousVisit(browser, baseURL, seed.token)
   try {
     await expect(after.page.getByText(seed.workedRow)).toBeVisible()
     expect(stageHeaders(await columnHeaders(after.page), seed.emptyStage)).not.toEqual([])

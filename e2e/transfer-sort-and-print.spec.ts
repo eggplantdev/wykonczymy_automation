@@ -1,11 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 import { parsePln } from './support/money'
 import { readColumn } from './support/table'
-import { EXPENSE_REGISTER } from './drivers/expenses'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 
 // „Kasa główna Bartek" is the surface because it is the one that carries both halves — several
 // hundred transactions (many pages) and the „Drukuj" button, which the dashboard does not render.
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 const amounts = async (page: Page): Promise<number[]> =>
   (await readColumn(page, 'Kwota')).map((text) => {

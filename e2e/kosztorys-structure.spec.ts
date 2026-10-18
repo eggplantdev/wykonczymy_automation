@@ -1,31 +1,25 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
+import { clickAndSettle } from './support/wait'
 import {
+  GRID_VIEWPORT,
   collapseSummaryPanel,
+  gridRow,
   openEditor,
   pickKosztorysOption,
   rowCell,
+  sectionBand,
+  sectionBands,
 } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type StructureSeedT = {
-  items: number
-  sections: number
-  target: number
-  presetA: number
-  presetB: number
-  presetAppend: number
-  bare: number
-}
+let seed: E2ESeedsT['structure']
 
-let seed: StructureSeedT
-
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<StructureSeedT>('seed:kosztorys-structure', 'STRUCTURE_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('structure')
 })
 
 // Rows are told apart by what they CARRY, not by index: a band holds its name in an input (the
@@ -51,43 +45,19 @@ async function rozpiska(page: Page): Promise<string[]> {
   }, COLUMN_LABELS.description)
 }
 
-const band = (page: Page, name: string) =>
-  page
-    .locator('.dsg-row.kosztorys-section-header')
-    .filter({ has: page.locator(`input[value="${name}"]`) })
-
 const itemRow = (page: Page, text: string) =>
-  page
-    .locator('.dsg-row')
-    .filter({ hasText: text })
-    .filter({ has: page.locator('[title="Akcje wiersza"]') })
+  gridRow(page, text).filter({ has: page.locator('[title="Akcje wiersza"]') })
 
 async function openRowMenu(page: Page, text: string): Promise<void> {
   await itemRow(page, text).locator('[title="Akcje wiersza"]').click()
 }
 
 async function openSectionMenu(page: Page, name: string): Promise<void> {
-  await band(page, name).locator('[title="Akcje sekcji"]').click()
+  await sectionBand(page, name).locator('[title="Akcje sekcji"]').click()
 }
 
-const menuItem = (page: Page, name: string | RegExp) => page.getByRole('menuitem', { name })
-
-// The write is safe either way — it is the SCREEN that loses the race: the router applies each
-// action's reply as a re-render, and a command issued while the previous reply is still in flight is
-// painted over by it.
-function serverAction(page: Page): Promise<unknown> {
-  return page.waitForResponse(
-    (response) =>
-      response.request().method() === 'POST' &&
-      response.request().headers()['next-action'] !== undefined,
-  )
-}
-
-async function runCommand(page: Page, command: string | RegExp): Promise<void> {
-  const settled = serverAction(page)
-  await menuItem(page, command).click()
-  await settled
-}
+const menuItem = (page: Page, name: string | RegExp) =>
+  page.getByRole('menuitem', { name, exact: true })
 
 const newItemDialog = (page: Page) => page.getByRole('dialog').filter({ hasText: 'Nowa praca' })
 
@@ -102,15 +72,16 @@ async function fillNewItem(
   await page.keyboard.type('m²')
   await page.keyboard.press('Enter')
   await dialog.getByLabel('Cena j.m. (PLN)').fill('50')
-  if (catalogue) {
-    await dialog.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' }).click()
-  }
+  // The katalog box starts ticked: left as is, a plain insert files its opis in a katalog no run
+  // resets, and the next run's insert stops on the „jest już w katalogu" confirm.
+  await dialog.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' }).setChecked(catalogue)
 }
 
+// The write is safe either way — it is the SCREEN that loses the race: the router applies each
+// action's reply as a re-render, and a command issued while the previous reply is still in flight is
+// painted over by it.
 async function saveNewItem(page: Page): Promise<void> {
-  const saved = serverAction(page)
-  await newItemDialog(page).getByRole('button', { name: 'Dodaj', exact: true }).click()
-  await saved
+  await clickAndSettle(newItemDialog(page).getByRole('button', { name: 'Dodaj', exact: true }))
   await expect(newItemDialog(page)).toHaveCount(0)
 }
 
@@ -127,6 +98,7 @@ async function sortBy(page: Page, column: string, command: string | RegExp): Pro
     .first()
     .click()
   await menuItem(page, command).click()
+  await page.keyboard.press('Escape')
 }
 
 test('inserting and deleting prace through the row menu rewrites the order, and the order survives a reload', async ({
@@ -164,9 +136,7 @@ test('inserting and deleting prace through the row menu rewrites the order, and 
 
   await openRowMenu(page, 'Praca alfa trzy')
   await menuItem(page, 'Usuń pozycję').click()
-  const deleted = serverAction(page)
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click()
-  await deleted
+  await clickAndSettle(page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }))
 
   const afterDelete = [
     '# Sekcja alfa',
@@ -203,13 +173,13 @@ test('the section band menu freezes its insert under a sort, and a global sort d
   await page.keyboard.press('Escape')
 
   await sortBy(page, COLUMN_LABELS.description, /^Sortuj rosnąco$/)
-  await expect(page.locator('.dsg-row.kosztorys-section-header')).toHaveCount(0)
+  await expect(sectionBands(page)).toHaveCount(0)
   await expect
     .poll(() => rozpiska(page))
     .toEqual(['Robota środkowa', 'Robota wiodąca', 'Robota zamykająca'])
 })
 
-test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one on screen', async ({
+test('„Dodaj → Praca…" lands in the sekcja picked in the katalog window, not the one on screen', async ({
   page,
 }) => {
   await openEditor(page, seed.target)
@@ -217,8 +187,12 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   // Deliberately neither the first nor the last sekcja: a praca appended „somewhere" still passes
   // against a two-section rozpiska, and appending to the tail is the bug this guards against.
   await page.getByRole('button', { name: 'Dodaj' }).click()
-  await page.getByRole('menuitem', { name: 'Praca', exact: true }).click()
-  await menuItem(page, 'Sekcja docelowa').click()
+  await menuItem(page, 'Praca…').click()
+  const picker = page.getByRole('dialog').filter({ hasText: 'Dodaj nową pracę…' })
+  await picker.getByRole('combobox', { name: 'Wybierz lub wpisz sekcję…' }).click()
+  await page.keyboard.type('Sekcja docelowa')
+  await page.keyboard.press('Enter')
+  await picker.getByRole('button', { name: 'Dodaj nową pracę…' }).click()
   // The katalog is global and never reset, so the opis is this run's own — a second run would
   // otherwise collide with the first run's entry.
   const description = `Zadanie z katalogu ${Date.now()}`
@@ -240,7 +214,7 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
 
   await openSectionMenu(page, 'Sekcja docelowa')
-  await page.getByRole('menuitem', { name: 'Dodaj pracę', exact: true }).click()
+  await menuItem(page, 'Dodaj pracę').click()
   await fillNewItem(page, description, { catalogue: true })
   await newItemDialog(page).getByRole('button', { name: 'Dodaj', exact: true }).click()
   const collision = page.getByRole('alertdialog').filter({ hasText: 'jest już w katalogu' })
@@ -257,13 +231,13 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
   await openEditor(page, seed.bare)
 
   await page.getByRole('button', { name: 'Dodaj' }).click()
-  await runCommand(page, 'Sekcja')
+  await clickAndSettle(menuItem(page, 'Sekcja'))
   const bare = [`# ${DEFAULT_SECTION_NAME}`, '# Sekcja istniejąca', 'Praca istniejąca']
   await expect.poll(() => rozpiska(page)).toEqual(bare)
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(bare)
 
-  await band(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }).click()
+  await sectionBand(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }).click()
   await fillNewItem(page, 'Pierwsza praca sekcji')
   await saveNewItem(page)
   const filled = [
@@ -274,7 +248,7 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
   ]
   await expect.poll(() => rozpiska(page)).toEqual(filled)
   await expect(
-    band(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }),
+    sectionBand(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }),
   ).toHaveCount(0)
 
   await reloadEditor(page)
@@ -282,9 +256,7 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
 
   await openRowMenu(page, 'Pierwsza praca sekcji')
   await menuItem(page, 'Usuń pozycję').click()
-  const deleted = serverAction(page)
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click()
-  await deleted
+  await clickAndSettle(page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }))
   await expect.poll(() => rozpiska(page)).toEqual(bare)
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(bare)
@@ -305,7 +277,7 @@ async function savePreset(page: Page, investmentId: number, name: string): Promi
   const dialog = page.getByRole('dialog').filter({ hasText: 'Zapisz jako nowy szablon' })
   await dialog.getByPlaceholder('Nazwa szablonu').fill(name)
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  await expect(dialog).toHaveCount(0, { timeout: 20_000 })
+  await expect(dialog).toHaveCount(0)
 }
 
 async function openPreset(page: Page, name: string): Promise<void> {
@@ -337,9 +309,7 @@ test('„Sekcja z szablonu…" zbiera zaznaczenia z dwóch szablonów i dokleja 
   const confirm = presetDialog(page).getByRole('button', { name: 'Dodaj (2)' })
   await expect(confirm).toBeVisible()
 
-  const appended = serverAction(page)
-  await confirm.click()
-  await appended
+  await clickAndSettle(confirm)
 
   // Both sekcje at the TAIL, behind the rozpiska that was already there — and in the order the
   // picker lists szablony (newest first), which is what the append follows.

@@ -1,7 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
-import { refreshUntil, waitForHydration } from './support/wait'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
+import { settleWrite, waitForHydration } from './support/wait'
 
 const CARDS = {
   fleetDigest: { path: '/flota', title: 'Powiadomienia' },
@@ -21,14 +19,11 @@ function card(page: Page, title: string) {
     .last()
 }
 
-async function readList(page: Page, stream: StreamT, timeout?: number): Promise<string[]> {
+async function readList(page: Page, stream: StreamT): Promise<string[]> {
   const { path, title } = CARDS[stream]
-  // `timeout` bounds the navigation too, not just the wait: callers pass it because they run inside
-  // a retry loop, and a `goto` left on the 90 s `navigationTimeout` would blow that loop's budget on
-  // one attempt regardless of how short the wait below is.
-  await page.goto(path, { timeout })
+  await page.goto(path)
   const section = card(page, title)
-  await section.waitFor({ timeout })
+  await section.waitFor()
   return (await section.locator('li').allTextContents()).map((text) => text.trim())
 }
 
@@ -44,19 +39,14 @@ async function openEditor(page: Page, stream: StreamT) {
 }
 
 async function save(page: Page, dialog: Locator): Promise<void> {
-  await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await settleWrite(page, () => dialog.getByRole('button', { name: 'Zapisz', exact: true }).click())
   await expect(page.getByRole('dialog')).toHaveCount(0)
 }
 
 const uniqueAddress = (prefix: string) => `${prefix}-${Date.now()}@wykonczymy.test`
 
-// a render already in flight can refill that entry with pre-write rows and stamp it with its own
-// finish time — which is later than the expiry, so the entry looks fresh and a plain „navigate and
-// read" is served the old list indefinitely.
-const expectList = (page: Page, stream: StreamT, expected: string[]) =>
-  // `readList` is bounded so the retry actually retries: a read left on the default 45 s
-  // `actionTimeout` would burn `refreshUntil`'s whole 90 s budget on two attempts.
-  refreshUntil(page, async () => expect(await readList(page, stream, 5_000)).toEqual(expected))
+const expectList = async (page: Page, stream: StreamT, expected: string[]) =>
+  expect(await readList(page, stream)).toEqual(expected)
 
 test('adding and removing one recipient leaves the other three streams untouched', async ({
   page,

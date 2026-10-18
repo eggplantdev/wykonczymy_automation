@@ -1,27 +1,18 @@
 import { test, expect, type Page } from '@playwright/test'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatNet } from '@/lib/kosztorys/format'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { bare } from './support/money'
-import { expandSummaryPanel } from './drivers/kosztorys-grid'
+import { GRID_VIEWPORT, expandSummaryPanel } from './drivers/kosztorys-grid'
 import { openPanelView, readSummaryFigures } from './drivers/settlement'
 import { openTransferFilters } from './drivers/transfers'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type PanelSeed = {
-  investment: number
-  name: string
-  laborCostsNet: number
-  deposit: number
-  materials: number
-}
+let seed: E2ESeedsT['panelFilters']
 
-let seed: PanelSeed
-
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<PanelSeed>('seed:panel-filter-blind', 'PANEL_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('panelFilters')
 })
 
 const PANEL_FIGURES = [

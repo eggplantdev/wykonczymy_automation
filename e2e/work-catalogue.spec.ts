@@ -1,23 +1,25 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { type CatalogueSeedT, seedCatalogueInvestments } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { expectMoney } from './support/money'
 import { tableCell } from './support/table'
 import { settleWrite, waitForHydration } from './support/wait'
 import {
+  GRID_VIEWPORT,
   collapseSummaryPanel,
   commitCellValue,
   gridRow,
   openEditor,
   rowCell,
+  sectionBand,
 } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-let seed: CatalogueSeedT
+let seed: E2ESeedsT['catalogue']
 
-test.beforeAll(async ({ browser }) => {
-  seed = await seedCatalogueInvestments(browser)
+test.beforeAll(() => {
+  seed = readSeed('catalogue')
 })
 
 const SEEDED_PRICE = 100
@@ -28,7 +30,10 @@ const CATALOGUE_PRICE_COLUMN = 'Cena j.m.'
 
 async function openSaveDialog(page: Page, description: string): Promise<Locator> {
   await gridRow(page, description).getByRole('button', { name: 'Akcje wiersza' }).click()
-  await page.getByRole('menuitem', { name: 'Zapisz pozycję do katalogu prac' }).click()
+  // A pozycja already linked to the katalog offers „Aktualizuj…" in place of „Zapisz…".
+  await page
+    .getByRole('menuitem', { name: /^(Zapisz pozycję do|Aktualizuj pozycję w) katalogu prac$/ })
+    .click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toContainText('Zapisz do katalogu')
   return dialog
@@ -155,11 +160,7 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(page.getByText('Dodano do katalogu')).toBeVisible()
 
-  await page
-    .locator('.dsg-row.kosztorys-section-header')
-    .filter({ has: page.locator('input[value="Sekcja beta"]') })
-    .getByRole('button', { name: 'Akcje sekcji' })
-    .click()
+  await sectionBand(page, 'Sekcja beta').getByRole('button', { name: 'Akcje sekcji' }).click()
   await page.getByRole('menuitem', { name: 'Dodaj pracę do sekcji…' }).click()
 
   const picker = page.getByRole('dialog')

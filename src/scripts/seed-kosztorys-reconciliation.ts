@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 
 const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
@@ -10,10 +9,7 @@ const ctx = { context: { skipRevalidation: true } }
 
 type SeededInvestment = { investmentId: number; name: string }
 
-async function seedKosztorys(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  name: string,
-): Promise<SeededInvestment> {
+async function seedKosztorys(payload: Payload, name: string): Promise<SeededInvestment> {
   const investment = await payload.create({
     collection: 'investments',
     data: { name, status: 'active', vatRate: 0.23, settlementMode: 'NET' },
@@ -72,10 +68,7 @@ type TxnSeed = {
 
 // The transaction afterChange balance hook calls revalidateTag, which throws outside a Next request
 // context. disableTransaction lets the insert survive that throw.
-async function seedTransaction(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  txn: TxnSeed,
-): Promise<void> {
+async function seedTransaction(payload: Payload, txn: TxnSeed): Promise<void> {
   try {
     await payload.create({
       collection: 'transactions',
@@ -88,8 +81,7 @@ async function seedTransaction(
   }
 }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedKosztorysReconciliation(payload: Payload) {
   // A per-run suffix keeps names unique — the test DB is not reset between runs, so a stable name
   // would collide.
   const stamp = Date.now()
@@ -117,18 +109,10 @@ async function main() {
     description: 'E2E robocizna (zgodna)',
   })
 
-  console.log(
-    `RECON_SEED=${JSON.stringify({
-      mismatch: mismatch.investmentId,
-      match: match.investmentId,
-      matchName: match.name,
-      laborCostsNetFromKosztorys: LABOR_COSTS_NET,
-    })}`,
-  )
-  process.exit(0)
+  return {
+    mismatch: mismatch.investmentId,
+    match: match.investmentId,
+    matchName: match.name,
+    laborCostsNetFromKosztorys: LABOR_COSTS_NET,
+  }
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

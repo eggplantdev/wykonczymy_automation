@@ -1,11 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
+import { STORAGE_STATE } from './global-setup'
 import { settleWrite, waitForHydration } from './support/wait'
-import { collapseSummaryPanel, editorCell } from './drivers/kosztorys-grid'
+import { GRID_VIEWPORT, editorCell, openEditor } from './drivers/kosztorys-grid'
+import { LOCKED_INVESTMENT } from '@/scripts/e2e-dump-rows'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
-
-// No other spec books against it, and this one always hands it back active.
-const LOCKED_INVESTMENT = { id: 124, name: 'Agnieszka Zochowska ul. Człuchowska' }
+test.use({ viewport: GRID_VIEWPORT })
 
 async function setStatus(page: Page, status: string): Promise<void> {
   await page.goto(`/inwestycje/${LOCKED_INVESTMENT.id}`)
@@ -16,7 +15,7 @@ async function setStatus(page: Page, status: string): Promise<void> {
 
   const dialog = page.getByRole('dialog').filter({ hasText: 'Edytuj inwestycję' })
   await dialog.waitFor()
-  const select = dialog.getByLabel('Status')
+  const select = dialog.getByRole('combobox').first()
   if (((await select.textContent()) ?? '').includes(status)) {
     await page.keyboard.press('Escape')
     return
@@ -38,15 +37,10 @@ async function setStatus(page: Page, status: string): Promise<void> {
   await expect(dialog).toBeHidden()
 }
 
-async function openEditor(page: Page): Promise<void> {
-  await page.goto(`/inwestycje/${LOCKED_INVESTMENT.id}/kosztorys_v2`)
-  await collapseSummaryPanel(page)
-}
-
 const optionsMenu = (page: Page) => page.getByRole('button', { name: 'Opcje', exact: true })
 
 test.afterAll(async ({ browser }) => {
-  const page = await browser.newPage({ storageState: 'e2e/.auth/user.json' })
+  const page = await browser.newPage({ storageState: STORAGE_STATE })
   try {
     await setStatus(page, 'Aktywna')
   } finally {
@@ -75,12 +69,12 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   page,
 }) => {
   await setStatus(page, 'Aktywna')
-  await openEditor(page)
+  await openEditor(page, LOCKED_INVESTMENT.id)
   await expect(page.getByRole('button', { name: 'Dodaj' })).toBeVisible()
 
   await setStatus(page, 'Zakończona')
 
-  await openEditor(page)
+  await openEditor(page, LOCKED_INVESTMENT.id)
   await reloadUntilBanner(page, 'present')
   await expect(page.getByRole('button', { name: 'Dodaj' })).toHaveCount(0)
 
@@ -117,7 +111,7 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   await page.keyboard.press('Escape')
 
   await setStatus(page, 'Aktywna')
-  await openEditor(page)
+  await openEditor(page, LOCKED_INVESTMENT.id)
   await reloadUntilBanner(page, 'gone')
   await expect(page.getByRole('button', { name: 'Dodaj' })).toBeVisible()
   const reopened = await editorCell(page, 'Przedmiar ofertowy')

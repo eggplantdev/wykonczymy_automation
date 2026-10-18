@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
 
 // Register 5 exists in the standard dump.
@@ -26,10 +25,7 @@ type TxnSeed = {
 
 // afterChange calls revalidateTag, which throws outside a Next request context; disableTransaction
 // lets the insert survive it — balances are read-computed, so the lost revalidation is a no-op here.
-async function seedTransaction(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  txn: TxnSeed,
-): Promise<void> {
+async function seedTransaction(payload: Payload, txn: TxnSeed): Promise<void> {
   try {
     await payload.create({
       collection: 'transactions',
@@ -43,8 +39,7 @@ async function seedTransaction(
   }
 }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedPanelFilterBlind(payload: Payload) {
   // A per-run suffix keeps the name unique — the test DB is not reset between runs.
   const name = `E2E Panel filtry ${Date.now()}`
 
@@ -130,19 +125,11 @@ async function main() {
   if (written.totalDocs !== 4)
     throw new Error(`[panel-seed] seeded ${written.totalDocs} transactions, expected 4`)
 
-  console.log(
-    `PANEL_SEED=${JSON.stringify({
-      investment: investment.id,
-      name,
-      laborCostsNet: LABOR_COSTS_NET,
-      deposit: DEPOSIT,
-      materials: MATERIALS,
-    })}`,
-  )
-  process.exit(0)
+  return {
+    investment: investment.id,
+    name,
+    laborCostsNet: LABOR_COSTS_NET,
+    deposit: DEPOSIT,
+    materials: MATERIALS,
+  }
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

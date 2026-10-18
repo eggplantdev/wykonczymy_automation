@@ -3,23 +3,13 @@ import { pickComboOption } from './drivers/combo'
 import { parsePln, uniqueAmount } from './support/money'
 import { readListingFigure } from './support/table'
 import { waitForHydration } from './support/wait'
+import { CLEAN_INVESTMENT, LOSS_INVESTMENT } from '@/scripts/e2e-dump-rows'
 import {
   ensureSettlementMode,
   openPanelView,
   readInvestorBalance,
   readSummaryFigures,
 } from './drivers/settlement'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
-
-// Long-standing dump investments, chosen rather than seeded for the reason `kosztorys_v2` forces:
-// it resolves the investment off `fetchReferenceData`, whose cache no seed script can invalidate
-// from outside the server process, so a freshly created investment 404s there.
-//
-// The control needs a KOSZTORYS: with none, v2 reads 0 zł and the panel prints no settlement at all,
-// so „no strata step" would pass on a page that renders no steps whatsoever.
-const LOSS_INVESTMENT = { id: 137, name: 'testowe inwestycje' }
-const CLEAN_INVESTMENT = { id: 106, name: 'Sulmierzycka 6/29 - poprawki' }
 
 // the type is picked FIRST because switching it re-runs `resetConditionalFields`, which rewrites the investment field.
 async function bookLoss(page: Page, investmentName: string, amount: number): Promise<void> {
@@ -65,9 +55,7 @@ test('a booked strata raises the investor balance by the same kwota on the listi
   await bookLoss(page, LOSS_INVESTMENT.name, amount)
 
   await expect
-    .poll(() => readListingFigure(page, LOSS_INVESTMENT.name, 'Bilans netto v1'), {
-      timeout: 20_000,
-    })
+    .poll(() => readListingFigure(page, LOSS_INVESTMENT.name, 'Bilans netto v1'))
     .toBeCloseTo(listingBefore + amount, 2)
 
   await page.goto(`/inwestycje/${LOSS_INVESTMENT.id}?widok=v1`)
@@ -94,7 +82,7 @@ test('a strata deducts at face value on the brutto plane of the v2 settlement', 
   await bookLoss(page, LOSS_INVESTMENT.name, amount)
 
   await expect
-    .poll(async () => (await readSettlement(page, LOSS_INVESTMENT.id)).due, { timeout: 20_000 })
+    .poll(async () => (await readSettlement(page, LOSS_INVESTMENT.id)).due)
     .toBeCloseTo(before.due - amount, 2)
 
   // It renders negative (a subtracted step), hence the widening magnitude.

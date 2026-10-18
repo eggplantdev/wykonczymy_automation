@@ -1,17 +1,22 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
-import { columnIndex, openEditor, pickKosztorysOption } from './drivers/kosztorys-grid'
+import { type E2ESeedsT, readSeed } from './support/seeds'
+import { clickAndSettle, settleWrite } from './support/wait'
+import {
+  GRID_VIEWPORT,
+  columnIndex,
+  gridRow,
+  openEditor,
+  pickKosztorysOption,
+  sectionBands,
+} from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type SortSeedT = { bake: number; undo: number; search: number }
+let seed: E2ESeedsT['sort']
 
-let seed: SortSeedT
-
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<SortSeedT>('seed:kosztorys-sort', 'SORT_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('sort')
 })
 
 const SORT_COLUMN = COLUMN_LABELS.plannedQty
@@ -28,8 +33,6 @@ async function itemOrder(page: Page): Promise<string[]> {
     .map((text) => SEEDED.find((name) => text.includes(name)))
     .filter((name): name is string => name !== undefined)
 }
-
-const bands = (page: Page) => page.locator('.dsg-row.kosztorys-section-header')
 
 // dsg virtualises columns, so opening a column menu can scroll „Opis prac" off-screen; reads always
 // scroll back to the left edge first.
@@ -58,11 +61,7 @@ async function expectRowCommandsFrozen(
   frozen: boolean,
 ): Promise<void> {
   await scrollGridHome(page)
-  await page
-    .locator('.dsg-row')
-    .filter({ hasText: rowText })
-    .getByRole('button', { name: 'Akcje wiersza' })
-    .click()
+  await gridRow(page, rowText).getByRole('button', { name: 'Akcje wiersza' }).click()
   const entry = page.getByRole('menuitem', { name: 'Wstaw powyżej', exact: true })
   // `not.toHaveAttribute` is satisfied by an element that isn't there at all, so the live case has
   // to say the entry exists before it says it is live.
@@ -72,31 +71,24 @@ async function expectRowCommandsFrozen(
   await page.keyboard.press('Escape')
 }
 
+// Sort picks keep the menu open, so every command closes it before the next click.
 async function sortBy(page: Page, command: string | RegExp): Promise<void> {
   await openColumnMenu(page, SORT_COLUMN)
   await page.getByRole('menuitem', { name: command, exact: true }).click()
+  await page.keyboard.press('Escape')
 }
 
-// `next-action` marks a server action's POST; `networkidle` never settles in this app. Reloading
-// before the reply would race the write it's about to replace.
-function serverAction(page: Page): Promise<unknown> {
-  return page.waitForResponse(
-    (response) =>
-      response.request().method() === 'POST' &&
-      response.request().headers()['next-action'] !== undefined,
-  )
-}
-
+// Reloading before the reply would race the write it's about to replace.
 async function persistOrder(page: Page): Promise<void> {
   await openColumnMenu(page, SORT_COLUMN)
-  const settled = serverAction(page)
-  await page.getByRole('menuitem', { name: 'Zapisz kolejność', exact: true }).click()
-  await settled
+  await clickAndSettle(page.getByRole('menuitem', { name: 'Zapisz kolejność', exact: true }))
+  await page.keyboard.press('Escape')
 }
 
 async function clearSort(page: Page): Promise<void> {
   await openColumnMenu(page, SORT_COLUMN)
   await page.getByRole('menuitem', { name: 'Wyczyść sortowanie', exact: true }).click()
+  await page.keyboard.press('Escape')
 }
 
 test('„Zapisz kolejność" pod sortowaniem globalnym przeżywa wyczyszczenie sortowania i przeładowanie', async ({
@@ -104,7 +96,7 @@ test('„Zapisz kolejność" pod sortowaniem globalnym przeżywa wyczyszczenie s
 }) => {
   await openEditor(page, seed.bake)
   await expectOrder(page, SEEDED)
-  await expect(bands(page)).toHaveCount(2)
+  await expect(sectionBands(page)).toHaveCount(2)
 
   await sortBy(page, 'Sortuj rosnąco')
   await expectOrder(page, [
@@ -115,12 +107,12 @@ test('„Zapisz kolejność" pod sortowaniem globalnym przeżywa wyczyszczenie s
     'Alfa trzy',
     'Beta dwa',
   ])
-  await expect(bands(page)).toHaveCount(0)
+  await expect(sectionBands(page)).toHaveCount(0)
 
   await persistOrder(page)
 
   await clearSort(page)
-  await expect(bands(page)).toHaveCount(2)
+  await expect(sectionBands(page)).toHaveCount(2)
   await expectOrder(page, BAKED_ASC)
 
   await page.reload()
@@ -141,9 +133,7 @@ test('cofnięcie „Zapisania kolejności" wraca do poprzedniego display_order p
   await expectOrder(page, bakedDesc)
   await expectRowCommandsFrozen(page, 'Alfa jeden', false)
 
-  const settled = serverAction(page)
-  await pickKosztorysOption(page, /^Cofnij/)
-  await settled
+  await settleWrite(page, () => pickKosztorysOption(page, /^Cofnij/))
   await expectOrder(page, SEEDED)
 
   await page.reload()

@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 import { chromeLaunchOptions } from './e2e/chrome-launch'
+import { STORAGE_STATE } from './e2e/global-setup'
 
 const PORT = process.env.PORT ?? '3100'
 const BASE_URL = `http://127.0.0.1:${PORT}`
@@ -19,9 +20,8 @@ export default defineConfig({
   // parallelizes across files, which pits specs against each other on one cold server and one
   // shared local DB.
   workers: 1,
-  timeout: 300_000,
-  expect: { timeout: 45_000 },
-  // No global `storageState` here — that would break the unauthenticated login spec.
+  timeout: 120_000,
+  expect: { timeout: 20_000 },
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -30,8 +30,8 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     launchOptions: chromeLaunchOptions,
-    trace: 'retain-on-failure',
-    actionTimeout: 45_000,
+    trace: { mode: 'retain-on-failure', screenshots: false },
+    actionTimeout: 20_000,
     navigationTimeout: 90_000,
     // The suite runs a production build, where `/sw.js` registers — and Playwright's `page.route`
     // never sees a request a service worker answers.
@@ -40,12 +40,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      // react-datasheet-grid virtualises COLUMNS, so a
-      // kosztorys column past the right edge is not in the DOM at all.
+      // A spec that reads kosztorys columns opts into `GRID_VIEWPORT`.
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: chromeLaunchOptions,
-        viewport: { width: 3000, height: 1400 },
+        viewport: { width: 1600, height: 1000 },
+        // A spec that must start logged out overrides it with an empty state.
+        storageState: STORAGE_STATE,
       },
     },
   ],

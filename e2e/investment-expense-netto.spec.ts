@@ -3,16 +3,13 @@ import { bare } from './support/money'
 import { waitForHydration } from './support/wait'
 import {
   createInvestmentExpense,
-  EXPENSE_INVESTMENT,
-  EXPENSE_REGISTER,
   openInvestmentExpenseForm,
   pickExpenseType,
   submitExpenseForm,
 } from './drivers/expenses'
 import { openPanelView } from './drivers/settlement'
+import { EXPENSE_INVESTMENT, EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 import { readRegisterBalance, readRegisterBalanceStable } from './drivers/transfers'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 const GROSS = 1230.37
 const NET = 1000.3
@@ -57,5 +54,5 @@ test('a netto expense takes brutto out of the kasa and shows netto beneath it', 
   await investmentRow.click()
   await page.waitForURL(/\/inwestycje\/\d+/)
   await openPanelView(page, 'Materiały')
-  await expect(page.getByText(description).first()).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText(description).first()).toBeVisible()
 })
