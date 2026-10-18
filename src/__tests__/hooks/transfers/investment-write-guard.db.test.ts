@@ -1,15 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 const MARKER = 'EX-680 deposit invariant'
 
@@ -61,24 +58,12 @@ describe.skipIf(!ENV_READY)('company deposits never persist an investment (DB)',
 
     // This spec CREDITS the register, and a leftover row on the main kasa silently changes what
     // `pnpm test:parity`'s golden master guards.
-    const owner = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Deposit Invariant Owner',
-        role: 'EMPLOYEE',
-        email: 'deposit-invariant-owner@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    ownerId = await createTestUser(payload, {
+      name: 'Deposit Invariant Owner',
+      email: 'deposit-invariant-owner@test.local',
     })
-    ownerId = Number(owner.id)
 
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'deposit-invariant-register', owner: ownerId, type: 'AUXILIARY' },
-      context: { skipRevalidation: true },
-    })
-    registerId = Number(register.id)
+    registerId = await createTestRegister(payload, ownerId, 'deposit-invariant-register')
 
     investmentId = await createTestInvestment(payload, 'deposit-invariant-investment')
 

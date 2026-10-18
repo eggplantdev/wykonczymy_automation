@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -7,11 +7,6 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
 
 const MARKER = 'EX-748 invoice on locked'
 

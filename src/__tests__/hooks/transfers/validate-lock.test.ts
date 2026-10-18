@@ -1,35 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
+import {
+  lockedInvestmentExecute,
+  validateTransferArgs,
+  type ValidateTransferArgsOptionsT,
+} from '@/__tests__/helpers/transfer-hook-args'
 
 const LOCKED_ID = 99
 
-function hookArgs(
-  data: Record<string, unknown>,
-  opts: { operation?: 'create' | 'update'; originalDoc?: Record<string, unknown> } = {},
-) {
-  const { operation = 'create', originalDoc } = opts
-  return {
-    data,
-    operation,
-    originalDoc,
-    req: {
-      user: { id: 1 },
-      payload: {
-        db: {
-          drizzle: {
-            execute: async (query: { queryChunks?: unknown[] }) => {
-              const id = (query.queryChunks ?? []).find((chunk) => typeof chunk === 'number')
-              return { rows: [{ status: id === LOCKED_ID ? 'completed' : 'active' }] }
-            },
-          },
-        },
-      },
-    },
-    collection: undefined,
-    context: {},
-  } as unknown as Parameters<typeof validateTransfer>[0]
-}
+const hookArgs = (data: Record<string, unknown>, opts: ValidateTransferArgsOptionsT = {}) =>
+  validateTransferArgs(data, {
+    user: { id: 1 },
+    execute: lockedInvestmentExecute(LOCKED_ID),
+    ...opts,
+  })
 
 const expense = {
   amount: 100,

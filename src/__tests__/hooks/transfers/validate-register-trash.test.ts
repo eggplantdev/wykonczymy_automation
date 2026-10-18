@@ -1,58 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
+import {
+  readQuery,
+  validateTransferArgs,
+  type ValidateTransferArgsOptionsT,
+} from '@/__tests__/helpers/transfer-hook-args'
 
 const TRASHED_ID = 66
 const LIVE_ID = 1
 
-type ChunkT = { queryChunks?: unknown[]; value?: unknown }
-
-function readQuery(query: unknown): { text: string; params: number[] } {
-  const text: string[] = []
-  const params: number[] = []
-  const walk = (chunk: unknown) => {
-    if (typeof chunk === 'number') params.push(chunk)
-    else if (typeof chunk === 'object' && chunk !== null) {
-      const { queryChunks, value } = chunk as ChunkT
-      if (Array.isArray(queryChunks)) queryChunks.forEach(walk)
-      else if (Array.isArray(value)) text.push(value.join(''))
-    }
-  }
-  walk(query)
-  return { text: text.join(' '), params }
-}
-
-function hookArgs(
-  data: Record<string, unknown>,
-  opts: { operation?: 'create' | 'update'; originalDoc?: Record<string, unknown> } = {},
-) {
-  const { operation = 'create', originalDoc } = opts
-  return {
-    data,
-    operation,
-    originalDoc,
-    req: {
-      user: { id: 1 },
-      payload: {
-        db: {
-          drizzle: {
-            execute: async (query: unknown) => {
-              const { text, params } = readQuery(query)
-              if (!text.includes('cash_registers')) return { rows: [{ status: 'active' }] }
-              return {
-                rows: params.map((id) => ({
-                  trashed_at: id === TRASHED_ID ? '2026-09-30T10:00:00.000Z' : null,
-                })),
-              }
-            },
-          },
-        },
-      },
+const hookArgs = (data: Record<string, unknown>, opts: ValidateTransferArgsOptionsT = {}) =>
+  validateTransferArgs(data, {
+    user: { id: 1 },
+    execute: async (query) => {
+      const { text, params } = readQuery(query)
+      if (!text.includes('cash_registers')) return { rows: [{ status: 'active' }] }
+      return {
+        rows: params.map((id) => ({
+          trashed_at: id === TRASHED_ID ? '2026-09-30T10:00:00.000Z' : null,
+        })),
+      }
     },
-    collection: undefined,
-    context: {},
-  } as unknown as Parameters<typeof validateTransfer>[0]
-}
+    ...opts,
+  })
 
 const expense = {
   amount: 100,

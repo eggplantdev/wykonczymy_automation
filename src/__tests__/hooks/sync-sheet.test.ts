@@ -1,15 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-
-const hoisted = vi.hoisted(() => ({ pending: [] as Promise<unknown>[] }))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return {
-    ...actual,
-    after: (fn: () => unknown) => {
-      hoisted.pending.push(Promise.resolve(fn()))
-    },
-  }
-})
+import { flushAfter } from '@/__tests__/stubs/next-server'
 
 const mockSyncSingle = vi.fn()
 const mockRemoveFromSheet = vi.fn()
@@ -20,8 +10,6 @@ vi.mock('@/lib/actions/sheets-sync', () => ({
 
 const { syncSheetAfterChange, syncSheetAfterDelete } = await import('@/hooks/transfers/sync-sheet')
 
-const flush = () => Promise.all(hoisted.pending)
-
 const change = async (args: object) => {
   ;(syncSheetAfterChange as unknown as (a: object) => unknown)({
     collection: {},
@@ -29,7 +17,7 @@ const change = async (args: object) => {
     operation: 'update',
     ...args,
   })
-  await flush()
+  await flushAfter()
 }
 const del = async (args: object) => {
   ;(syncSheetAfterDelete as unknown as (a: object) => unknown)({
@@ -37,13 +25,12 @@ const del = async (args: object) => {
     req: {},
     ...args,
   })
-  await flush()
+  await flushAfter()
 }
 
 beforeEach(() => {
   mockSyncSingle.mockReset()
   mockRemoveFromSheet.mockReset()
-  hoisted.pending.length = 0
 })
 
 describe('syncSheetAfterChange', () => {

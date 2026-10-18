@@ -1,13 +1,11 @@
 import type { ReactNode } from 'react'
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SessionUserT } from '@/types/auth'
-
-vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 
 const hrefsFor = (role: RoleT) => {
   const user = { id: 1, role, name: 'T', email: 't@t.pl' } as SessionUserT

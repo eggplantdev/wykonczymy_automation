@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { APIError } from 'payload'
 import { guardDeleteOnLockedInvestment } from '@/hooks/transfers/guard-delete'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
+import { lockedInvestmentExecute } from '@/__tests__/helpers/transfer-hook-args'
 
 const LOCKED_ID = 99
 
@@ -11,14 +12,7 @@ function hookArgs(investment: unknown) {
     req: {
       payload: {
         findByID: async () => ({ id: 5, investment }),
-        db: {
-          drizzle: {
-            execute: async (query: { queryChunks?: unknown[] }) => {
-              const id = (query.queryChunks ?? []).find((chunk) => typeof chunk === 'number')
-              return { rows: [{ status: id === LOCKED_ID ? 'completed' : 'active' }] }
-            },
-          },
-        },
+        db: { drizzle: { execute: lockedInvestmentExecute(LOCKED_ID) } },
       },
     },
     collection: undefined,

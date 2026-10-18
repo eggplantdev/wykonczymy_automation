@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import type { Transaction } from '@/payload-types'
 import { sql } from '@payloadcms/db-postgres'
@@ -6,12 +6,7 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-// The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 const MARKER = 'vat-plane write guard'
 
@@ -80,12 +75,7 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
     })) as typeof admin
     adminId = Number(admin!.id)
 
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'vat-plane-guard-register', owner: adminId, type: 'AUXILIARY' },
-      context: { skipRevalidation: true },
-    })
-    registerId = Number(register.id)
+    registerId = await createTestRegister(payload, adminId, 'vat-plane-guard-register')
 
     investmentId = await createTestInvestment(payload, 'vat-plane-guard-investment')
 

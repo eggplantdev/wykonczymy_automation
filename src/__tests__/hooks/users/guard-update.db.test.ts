@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('users beforeChange — trashed account freeze (DB)', () => {
   let payload: Payload
@@ -19,20 +20,10 @@ describe.skipIf(!ENV_READY)('users beforeChange — trashed account freeze (DB)'
     payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    workerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Pracownik W Koszu',
-            role: 'EMPLOYEE',
-            email: 'users-update-guard@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+    workerId = await createTestUser(payload, {
+      name: 'Pracownik W Koszu',
+      email: 'users-update-guard@test.local',
+    })
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${workerId}`)
   })
 

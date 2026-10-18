@@ -1,30 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
+import {
+  validateTransferArgs,
+  type ValidateTransferArgsOptionsT,
+} from '@/__tests__/helpers/transfer-hook-args'
 
 const base = { amount: 100, date: '2026-02-19', paymentMethod: 'CASH' }
 
-function hookArgs(
-  data: Record<string, unknown>,
-  opts: { operation?: 'create' | 'update'; originalDoc?: Record<string, unknown> } = {},
-) {
-  const { operation = 'create', originalDoc } = opts
-  return {
-    data,
-    operation,
-    req: {
-      user: null,
-      payload: { db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } } },
-    },
-    originalDoc,
-    collection: undefined,
-    context: {},
-  } as unknown as Parameters<typeof validateTransfer>[0]
-}
-
 const investmentAfter = async (
   data: Record<string, unknown>,
-  opts?: { operation?: 'create' | 'update'; originalDoc?: Record<string, unknown> },
-) => ((await validateTransfer(hookArgs(data, opts))) as Record<string, unknown>).investment
+  opts?: ValidateTransferArgsOptionsT,
+) =>
+  ((await validateTransfer(validateTransferArgs(data, opts))) as Record<string, unknown>).investment
 
 describe('investment write guard — types that may never carry an investment', () => {
   const CLEARED = {

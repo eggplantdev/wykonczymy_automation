@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import type { Transaction } from '@/payload-types'
 import { sql } from '@payloadcms/db-postgres'
@@ -6,11 +6,8 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 const MARKER = 'payout status default'
 const CONTEXT = { skipRevalidation: true, skipSheetSync: true }
@@ -62,24 +59,12 @@ describe.skipIf(!ENV_READY)('a wypłata is born pending and only the worker move
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)
     await purgeFixtureUsers(db)
 
-    const worker = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Payout Default Worker',
-        role: 'EMPLOYEE',
-        email: 'payout-default-worker@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    workerId = await createTestUser(payload, {
+      name: 'Payout Default Worker',
+      email: 'payout-default-worker@test.local',
     })
-    workerId = Number(worker.id)
 
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'payout-default-register', owner: workerId, type: 'AUXILIARY' },
-      context: { skipRevalidation: true },
-    })
-    registerId = Number(register.id)
+    registerId = await createTestRegister(payload, workerId, 'payout-default-register')
 
     investmentId = await createTestInvestment(payload, 'payout-default-investment')
   })

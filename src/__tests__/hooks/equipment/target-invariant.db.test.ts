@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -6,11 +6,8 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
-
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 
 const MARKER = 'EX-758 target invariant'
 
@@ -62,17 +59,10 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     await db.execute(sql`DELETE FROM warehouses WHERE name = ${MARKER}`)
     await purgeFixtureUsers(db)
 
-    const holder = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Equipment Target Holder',
-        role: 'EMPLOYEE',
-        email: 'equipment-target-holder@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    holderId = await createTestUser(payload, {
+      name: 'Equipment Target Holder',
+      email: 'equipment-target-holder@test.local',
     })
-    holderId = Number(holder.id)
 
     const warehouse = await payload.create({
       collection: 'warehouses',
@@ -82,15 +72,7 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
     })
     warehouseId = Number(warehouse.id)
 
-    const equipment = await payload.create({
-      collection: 'equipment',
-      // Payload's generated create type models neither `defaultValue` nor the draft split, so
-      // omitting it makes the literal unassignable.
-      data: { name: MARKER, status: 'IN_USE' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    equipmentId = Number(equipment.id)
+    equipmentId = await createTestEquipment(payload, MARKER)
 
     investmentId = await createTestInvestment(payload, MARKER)
   })

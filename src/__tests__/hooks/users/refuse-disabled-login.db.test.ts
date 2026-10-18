@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { DISABLED_ACCOUNT_ERROR } from '@/lib/constants/worker-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
 
 // Payload writes the session row BEFORE `beforeLogin` runs and revokes it on a throw — the assertion
 // on `users_sessions` is what proves no usable session survives a refused login.
@@ -38,12 +39,11 @@ describe.skipIf(!ENV_READY)('users beforeLogin — disabled accounts (DB)', () =
     await purgeFixtureUsers(db)
 
     for (const kind of Object.keys(ids) as (keyof typeof ids)[]) {
-      const user = await payload.create({
-        collection: 'users',
-        data: { name: 'Konto Testowe', role: 'EMPLOYEE', email: emailOf(kind), password: PASSWORD },
-        context: { skipRevalidation: true },
+      ids[kind] = await createTestUser(payload, {
+        name: 'Konto Testowe',
+        email: emailOf(kind),
+        password: PASSWORD,
       })
-      ids[kind] = Number(user.id)
     }
     await db.execute(sql`UPDATE users SET active = false WHERE id = ${ids.inactive}`)
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${ids.trashed}`)

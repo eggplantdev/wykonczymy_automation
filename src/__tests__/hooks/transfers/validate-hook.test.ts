@@ -1,27 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
-
-function hookArgs(
-  data: Record<string, unknown>,
-  opts: {
-    operation?: 'create' | 'update'
-    userId?: number
-    originalDoc?: Record<string, unknown>
-  } = {},
-) {
-  const { operation = 'create', userId, originalDoc } = opts
-  return {
-    data,
-    operation,
-    req: {
-      user: userId ? { id: userId } : null,
-      payload: { db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } } },
-    },
-    originalDoc,
-    collection: undefined,
-    context: {},
-  } as unknown as Parameters<typeof validateTransfer>[0]
-}
+import { validateTransferArgs as hookArgs } from '@/__tests__/helpers/transfer-hook-args'
 
 const base = {
   amount: 100,
@@ -156,13 +135,13 @@ describe('validateTransfer — REGISTER_TRANSFER', () => {
 describe('validateTransfer — createdBy auto-set', () => {
   it('operation=create with user → createdBy is set', async () => {
     const data = { ...VALID_DATA.COMPANY_FUNDING }
-    const result = await validateTransfer(hookArgs(data, { operation: 'create', userId: 42 }))
+    const result = await validateTransfer(hookArgs(data, { operation: 'create', user: { id: 42 } }))
     expect(result.createdBy).toBe(42)
   })
 
   it('operation=update → createdBy NOT overwritten', async () => {
     const data = { ...VALID_DATA.COMPANY_FUNDING, createdBy: 10 }
-    const result = await validateTransfer(hookArgs(data, { operation: 'update', userId: 42 }))
+    const result = await validateTransfer(hookArgs(data, { operation: 'update', user: { id: 42 } }))
     expect(result.createdBy).toBe(10)
   })
 
