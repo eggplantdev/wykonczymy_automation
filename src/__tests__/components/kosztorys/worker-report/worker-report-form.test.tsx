@@ -11,8 +11,6 @@ import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 navigationState.pathname = '/z/inwestycja/jan/token'
 
-vi.mock('react-resize-detector', () => import('@/__tests__/stubs/react-resize-detector'))
-
 stubGridLayout()
 
 beforeEach(() => localStorage.clear())

@@ -10,20 +10,15 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 import { router } from '@/__tests__/stubs/next-navigation'
-
-const { readExpenseDraftAction, rejectExpenseDraftAction } = vi.hoisted(() => ({
-  readExpenseDraftAction: vi.fn(),
-  rejectExpenseDraftAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
+import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
+import {
   readExpenseDraftAction,
   rejectExpenseDraftAction,
-}))
-vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
-vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
-  findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
-}))
-vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
+} from '@/lib/actions/worker-expense-drafts'
+
+vi.mocked(findExpenseDraftDuplicates).mockImplementation(async () => ({ success: true, data: [] }))
+vi.mocked(ingestFiles).mockImplementation(ingestFilesStub)
 
 const draft: ExpenseDraftRowT = {
   id: 7,

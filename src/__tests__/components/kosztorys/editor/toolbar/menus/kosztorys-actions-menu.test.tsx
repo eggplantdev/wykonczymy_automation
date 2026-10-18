@@ -5,37 +5,39 @@ import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 const editorState = vi.hoisted(() => ({ isTemplate: false }))
 
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    investmentId: 1,
-    investmentName: 'Testowa',
-    tree: { sections: [] },
-    rows: [],
-    stages: [],
-    workers: [],
-    hasSheet: false,
-    readOnly: false,
-    canUndo: false,
-    canRedo: false,
-    undo: vi.fn(),
-    redo: vi.fn(),
-    fitRowsToContent: false,
-    toggleFitRowsToContent: vi.fn(),
-    onOpenVersions: vi.fn(),
-    openImport: vi.fn(),
-    catalogueComparison: null,
-    workCatalogue: [],
-    handleApplyCatalogueToItems: vi.fn(),
-    handleAcceptCatalogueName: vi.fn(),
-    engagedConditionIds: new Set<string>(),
-    toggleConditionExclusive: vi.fn(),
-    isTemplate: editorState.isTemplate,
-    noun: editorNoun(editorState.isTemplate),
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      investmentId: 1,
+      investmentName: 'Testowa',
+      tree: { sections: [] },
+      rows: [],
+      stages: [],
+      workers: [],
+      hasSheet: false,
+      readOnly: false,
+      canUndo: false,
+      canRedo: false,
+      undo: vi.fn(),
+      redo: vi.fn(),
+      fitRowsToContent: false,
+      toggleFitRowsToContent: vi.fn(),
+      onOpenVersions: vi.fn(),
+      openImport: vi.fn(),
+      catalogueComparison: null,
+      workCatalogue: [],
+      handleApplyCatalogueToItems: vi.fn(),
+      handleAcceptCatalogueName: vi.fn(),
+      engagedConditionIds: new Set<string>(),
+      toggleConditionExclusive: vi.fn(),
+      isTemplate: editorState.isTemplate,
+      noun: editorNoun(editorState.isTemplate),
+    }) as never,
+)
 
 function renderToolbar(isTemplate: boolean) {
   editorState.isTemplate = isTemplate

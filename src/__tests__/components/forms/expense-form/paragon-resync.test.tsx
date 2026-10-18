@@ -11,22 +11,14 @@ import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
 import { fetchExpenseDraftDecisions } from '@/lib/queries/expense-draft-decisions'
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
+import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
+import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
+import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 
-vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
-  rejectExpenseParagonsAction: vi.fn(),
-  restoreSkippedReceiptAction: vi.fn(),
-}))
-vi.mock('@/lib/queries/expense-draft-decisions', () => ({ fetchExpenseDraftDecisions: vi.fn() }))
-vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
-vi.mock('@/lib/media/submit-with-uploads', () => ({
-  submitWithUploadRows: async (
-    _count: number,
-    _files: unknown,
-    run: (rows: number[][]) => Promise<unknown>,
-  ) => run([]),
-}))
+vi.mocked(scanReceiptClient).mockResolvedValue(undefined as never)
+vi.mocked(ingestFiles).mockImplementation(ingestFilesStub)
+vi.mocked(submitWithUploadRows).mockImplementation(async (_count, _files, run) => run([] as never))
 
 const page = (id: number): ExpenseDraftMediaT => ({
   id,

@@ -4,21 +4,26 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { fetchCompanyKnowledge } from '@/lib/queries/company-knowledge'
+import {
+  createCompanyKnowledgeAction,
+  deleteCompanyKnowledgeAction,
+  updateCompanyKnowledgeAction,
+} from '@/lib/actions/company-knowledge'
 
-const state = vi.hoisted(() => ({
-  entries: [] as CompanyKnowledgeEntryT[],
+const state = { entries: [] as CompanyKnowledgeEntryT[] }
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
+vi.mocked(fetchCompanyKnowledge).mockImplementation(async () => ({
+  success: true,
+  data: state.entries,
 }))
-vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
-vi.mock('@/lib/queries/company-knowledge', () => ({
-  fetchCompanyKnowledge: vi.fn(async () => ({ success: true, data: state.entries })),
-}))
-const actions = vi.hoisted(() => ({
-  createCompanyKnowledgeAction: vi.fn(),
-  updateCompanyKnowledgeAction: vi.fn(),
-  deleteCompanyKnowledgeAction: vi.fn(),
-  reorderCompanyKnowledgeAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/company-knowledge', () => actions)
+const actions = {
+  createCompanyKnowledgeAction: vi.mocked(createCompanyKnowledgeAction),
+  updateCompanyKnowledgeAction: vi.mocked(updateCompanyKnowledgeAction),
+  deleteCompanyKnowledgeAction: vi.mocked(deleteCompanyKnowledgeAction),
+}
 
 const entry = (id: number, topic: string, content: string): CompanyKnowledgeEntryT => ({
   id,

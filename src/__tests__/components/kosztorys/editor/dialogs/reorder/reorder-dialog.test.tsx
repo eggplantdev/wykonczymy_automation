@@ -5,6 +5,7 @@ import { ReorderDialog } from '@/components/kosztorys/editor/dialogs/reorder/reo
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
 import { writeKosztorysLayoutAction } from '@/lib/actions/kosztorys'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 const SALON = 1
 const KUCHNIA = 2
@@ -14,35 +15,24 @@ const editor = vi.hoisted(() => ({
   onTreeReplaced: vi.fn(),
 }))
 
-vi.mock('@/lib/actions/kosztorys', () => ({
-  addItemAction: vi.fn(),
-  addSectionAction: vi.fn(),
-  clearKosztorysAction: vi.fn(),
-  insertSectionAction: vi.fn(),
-  removeItemAction: vi.fn(),
-  removeSectionAction: vi.fn(),
-  renumberKosztorysOrderAction: vi.fn(),
-  updateItemFieldAction: vi.fn(),
-  updateSectionFieldAction: vi.fn(),
-  writeKosztorysLayoutAction: vi.fn(),
-}))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    investmentId: 7,
-    noun: editorNoun(true),
-    sections: [
-      { sectionId: SALON, sectionName: 'Salon', sectionColor: null },
-      { sectionId: KUCHNIA, sectionName: 'Kuchnia', sectionColor: null },
-    ],
-    rows: [
-      { id: 10, sectionId: SALON, description: 'Gruntowanie', unit: 'm2' },
-      { id: 11, sectionId: SALON, description: 'Malowanie', unit: 'm2' },
-      { id: 12, sectionId: SALON, description: 'Listwy', unit: 'mb' },
-      { id: 20, sectionId: KUCHNIA, description: 'Glazura', unit: 'm2' },
-    ],
-    ...editor,
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      investmentId: 7,
+      noun: editorNoun(true),
+      sections: [
+        { sectionId: SALON, sectionName: 'Salon', sectionColor: null },
+        { sectionId: KUCHNIA, sectionName: 'Kuchnia', sectionColor: null },
+      ],
+      rows: [
+        { id: 10, sectionId: SALON, description: 'Gruntowanie', unit: 'm2' },
+        { id: 11, sectionId: SALON, description: 'Malowanie', unit: 'm2' },
+        { id: 12, sectionId: SALON, description: 'Listwy', unit: 'mb' },
+        { id: 20, sectionId: KUCHNIA, description: 'Glazura', unit: 'm2' },
+      ],
+      ...editor,
+    }) as never,
+)
 
 const writeLayout = vi.mocked(writeKosztorysLayoutAction)
 

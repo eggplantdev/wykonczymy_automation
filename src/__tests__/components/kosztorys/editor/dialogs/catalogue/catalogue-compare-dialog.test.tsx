@@ -8,6 +8,8 @@ import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
 import type { CatalogueComparisonT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 const setOpen = vi.fn()
 const toggleConditionExclusive = vi.fn()
@@ -16,21 +18,22 @@ let engagedConditionIds = new Set<string>()
 let catalogueComparison: CatalogueComparisonT | null = null
 let workCatalogue: WorkCatalogueItemT[] = []
 
-vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', () => ({
-  useKosztorysActions: () => ({ catalogueCompare: { open: true, setOpen } }),
-}))
+vi.mocked(useKosztorysActions).mockImplementation(
+  () => ({ catalogueCompare: { open: true, setOpen } }) as never,
+)
 
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    readOnly: false,
-    catalogueComparison,
-    workCatalogue,
-    handleAcceptCatalogueName,
-    engagedConditionIds,
-    toggleConditionExclusive,
-    noun: editorNoun(undefined),
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      readOnly: false,
+      catalogueComparison,
+      workCatalogue,
+      handleAcceptCatalogueName,
+      engagedConditionIds,
+      toggleConditionExclusive,
+      noun: editorNoun(undefined),
+    }) as never,
+)
 
 const COMPARISON: CatalogueComparisonT = {
   matching: 3,

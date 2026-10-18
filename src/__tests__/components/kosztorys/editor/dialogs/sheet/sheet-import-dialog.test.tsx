@@ -8,18 +8,16 @@ import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import type { FooterComparisonT } from '@/lib/kosztorys/sheet-import/footer-totals'
 import type { WorkerRefT } from '@/types/reference-data'
 import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { applyKosztorysImport } from '@/lib/actions/kosztorys-import'
 
-const applyKosztorysImport = vi.fn(async (..._args: unknown[]) => ({
-  success: true as const,
+vi.mocked(applyKosztorysImport).mockResolvedValue({
+  success: true,
   data: { sections: 2, items: 9, stages: 3 },
-}))
-
-vi.mock('@/lib/actions/kosztorys-import', () => ({
-  applyKosztorysImport: (...args: unknown[]) => applyKosztorysImport(...args),
-}))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ flushPendingSaves: async () => {} }),
-}))
+})
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () => ({ flushPendingSaves: async () => {} }) as never,
+)
 
 const onImported = vi.fn()
 
@@ -215,7 +213,7 @@ describe('SheetImportDialog — a request that never completed', () => {
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
 
   it('closes, says so and hands the editor a refetch', async () => {
-    applyKosztorysImport.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    vi.mocked(applyKosztorysImport).mockRejectedValueOnce(new TypeError('Failed to fetch'))
     const { user, openDialog } = renderDialog()
 
     await openDialog()

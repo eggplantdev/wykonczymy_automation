@@ -11,11 +11,10 @@ import { BLOCKED_PAIR_REASON, type SettleRowT } from '@/lib/kosztorys/worker-pay
 import { formatPLN } from '@/lib/utils/format-currency'
 import { bare } from '@/__tests__/helpers/money'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
-vi.mock('@/lib/actions/settle-payouts', () => ({ settlePayoutsAction: vi.fn() }))
-vi.mock('@/lib/actions/book-overpayment-bonus', () => ({ bookOverpaymentBonusAction: vi.fn() }))
-vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
-vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
 
 const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   investmentId: 1,

@@ -8,11 +8,13 @@ import type { InvestmentRowT } from '@/types/table-rows'
 import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
 import { bare } from '@/__tests__/helpers/money'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 navigationState.pathname = '/inwestycje'
 
 // OWNER, because Marża v2 is behind the admin/owner gate.
-vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
 
 const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => ({
   id: 1,

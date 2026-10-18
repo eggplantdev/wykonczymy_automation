@@ -54,9 +54,34 @@ vi.mock('next/navigation', async (importOriginal) => ({
   ...(await import('@/__tests__/stubs/next-navigation')),
 }))
 
+// Pass-through seams a spec steers with `vi.mocked(fn)` — a per-file `vi.mock` would move the spec
+// out of `dom-shared`.
+const { passThrough, resetSeams } = await vi.hoisted(() => import('@/__tests__/setup/seams'))
+
+vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', (importOriginal) =>
+  passThrough(importOriginal, 'useKosztorysEditorContext'),
+)
+vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', (importOriginal) =>
+  passThrough(importOriginal, 'useKosztorysActions'),
+)
+vi.mock('@/lib/media/submit-with-uploads', (importOriginal) =>
+  passThrough(importOriginal, 'submitWithUploads', 'submitWithUploadRows'),
+)
+vi.mock('@/lib/utils/scan-receipt-client', (importOriginal) =>
+  passThrough(importOriginal, 'scanReceiptClient'),
+)
+vi.mock('@/lib/media/ingest-files', (importOriginal) => passThrough(importOriginal, 'ingestFiles'))
+vi.mock('@/hooks/use-current-user', (importOriginal) =>
+  passThrough(importOriginal, 'useCurrentUser'),
+)
+
+// Only the grid specs (`stubGridLayout`) mount react-datasheet-grid, which measures through it.
+vi.mock('react-resize-detector', () => import('@/__tests__/stubs/react-resize-detector'))
+
 // `dom-shared` runs every file in one jsdom window; these run before the spec's own top-level setup.
 Object.assign(navigationState, { pathname: '/', searchParams: new URLSearchParams() })
 resetAuthState()
+resetSeams()
 for (const action of (globalThis as { serverActionStubs?: Mock[] }).serverActionStubs ?? []) {
   action.mockReset()
 }

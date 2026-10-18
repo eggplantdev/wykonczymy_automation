@@ -5,8 +5,9 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
 
 - **A `'use server'` module is stubbed, not imported** (`stubServerActions` in `vitest.config.ts`).
   Without the swap Next does in the browser, one statically-imported action drags Payload, the DB
-  client and a live Nodemailer socket into a jsdom spec. Every stubbed export **throws** when called:
-  assert the UI on the way to the action, or `vi.mock` the action explicitly.
+  client and a live Nodemailer socket into a jsdom spec. Every stubbed export is a `vi.fn` that
+  **throws** until steered and resets before each file: assert the UI on the way to the action, or
+  steer it with `vi.mocked(action).mockResolvedValue(…)` — a `vi.mock` would isolate the spec.
 - **Some modules are mocked for every spec by a setup file** — never re-mock them per spec; import
   the stub's state to drive or assert them:
   - node + DB (`setup/node.ts`): `@/lib/cache/revalidate` → `stubs/cache-revalidate` (only
@@ -21,7 +22,10 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   - dom (`setup/dom.ts`): `@/lib/utils/toast` (import `toastMessage` and assert it as the mock — one
     instance for every file of a worker);
     `next/navigation` → `stubs/next-navigation` (assert `router.push`, set `navigationState.pathname`
-    / `.searchParams`).
+    / `.searchParams`); `react-resize-detector` → `stubs/react-resize-detector`. Plus pass-through
+    seams steered the DB way: the kosztorys editor and actions contexts, `submit-with-uploads`,
+    `scan-receipt-client`, `ingest-files` (`stubs/ingest-files` is a ready implementation) and
+    `use-current-user` (`stubs/use-current-user`).
 - **`clearMocks` and `restoreMocks` are on** — no `vi.clearAllMocks()` / `vi.restoreAllMocks()` in a
   spec. `restoreMocks` restores every `vi.spyOn` before each test, so a spy created in `beforeAll` is
   gone by the first test: create it in `beforeEach`.
@@ -40,7 +44,8 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
   spec gets it from `setup/db.ts` and never re-mocks it — a per-file `vi.mock` would move it to the
   isolated `db` project; a node or dom spec declares the `vi.mock` itself. Never mock
   `@/lib/auth/require-auth` to pass a gate — a role the app refuses must fail the spec.
-  `@/hooks/use-current-user` takes `stubs/use-current-user`, which reads the same `authState`.
+  In dom, `vi.mocked(useCurrentUser).mockImplementation(stubs/use-current-user)` reads the same
+  `authState`.
 - **Never add a constant to `@/lib/utils/toast`** — the dom setup mocks it as `{ toastMessage }`
   alone, so any other export is `undefined` in every component spec. Notice wording and timing live in
   `lib/utils/notice.ts`.

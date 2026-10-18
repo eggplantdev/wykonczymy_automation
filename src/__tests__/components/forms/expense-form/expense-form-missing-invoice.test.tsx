@@ -12,19 +12,16 @@ import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
+import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
+import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 
-vi.mock('@/lib/actions/transfers', () => ({
-  createBulkTransferAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => import('@/__tests__/stubs/ingest-files'))
-vi.mock('@/lib/media/submit-with-uploads', () => ({
-  submitWithUploadRows: (
-    _rowCount: number,
-    _files: Map<number, File[]>,
-    submit: (rows: undefined) => Promise<unknown>,
-  ) => submit(undefined),
-}))
+vi.mocked(createBulkTransferAction).mockResolvedValue({ success: true })
+vi.mocked(scanReceiptClient).mockResolvedValue(undefined as never)
+vi.mocked(ingestFiles).mockImplementation(ingestFilesStub)
+vi.mocked(submitWithUploadRows).mockImplementation((_rowCount, _files, submit) =>
+  submit(undefined as never),
+)
 
 const row = (description: string) =>
   makeLineItem({ description, amount: '89.9', expenseCategory: '1', category: '1' })

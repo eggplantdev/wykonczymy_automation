@@ -7,18 +7,15 @@ import { GenerateOfferMenuItem } from '@/components/kosztorys/editor/actions/off
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 
-const readClientViewSettings = vi.hoisted(() => vi.fn())
 const editorContext = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
 const actionsContext = vi.hoisted(() => ({ clientView: null as unknown }))
 
-vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => editorContext.value,
-}))
-vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', () => ({
-  useKosztorysActions: () => ({ investor: actionsContext }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(() => editorContext.value as never)
+vi.mocked(useKosztorysActions).mockImplementation(() => ({ investor: actionsContext }) as never)
 
 function setRows(rows: KosztorysV2RowT[]) {
   editorContext.value = {
@@ -68,7 +65,7 @@ describe('GenerateOfferMenuItem', () => {
   it('nieudany odczyt ustawień zamyka okno i mówi o tym', async () => {
     const printWindow = { document: { title: '' }, close: vi.fn() }
     vi.spyOn(window, 'open').mockReturnValue(printWindow as unknown as Window)
-    readClientViewSettings.mockRejectedValue(new Error('offline'))
+    vi.mocked(readClientViewSettings).mockRejectedValue(new Error('offline'))
 
     await clickOffer()
     await vi.waitFor(() => expect(printWindow.close).toHaveBeenCalled())

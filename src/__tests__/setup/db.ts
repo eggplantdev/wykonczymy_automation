@@ -1,36 +1,11 @@
-import { beforeAll, vi, type Mock } from 'vitest'
+import { vi } from 'vitest'
 import { resetAuthState } from '@/__tests__/stubs/get-current-user-jwt'
 
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 // Pass-through seams a spec steers with `vi.mocked(fn)` to fail one write mid-transaction — a
 // per-file `vi.mock` would move the spec out of `db-shared`.
-const { seams, passThrough } = vi.hoisted(() => {
-  // On `globalThis`: this file and its factories re-run for every `db-shared` file, while a module
-  // cached by an earlier file keeps the seam it imported then — a fresh `vi.fn` per file would leave
-  // the spec steering a different instance than the code under test calls.
-  const registry = globalThis as {
-    dbSeams?: { modules: Map<string, Record<string, unknown>>; seams: Mock[] }
-  }
-  const { modules, seams } = (registry.dbSeams ??= { modules: new Map(), seams: [] as Mock[] })
-  const passThrough = async (
-    importOriginal: () => Promise<Record<string, unknown>>,
-    ...names: string[]
-  ) => {
-    const key = names.join()
-    if (!modules.has(key)) {
-      const actual = await importOriginal()
-      const wrapped = names.map((name) => {
-        const seam = vi.fn(actual[name] as (...args: unknown[]) => unknown)
-        seams.push(seam)
-        return [name, seam]
-      })
-      modules.set(key, { ...actual, ...Object.fromEntries(wrapped) })
-    }
-    return modules.get(key)!
-  }
-  return { seams, passThrough }
-})
+const { passThrough, resetSeams } = await vi.hoisted(() => import('@/__tests__/setup/seams'))
 
 vi.mock('@/lib/db/worker-reports', (importOriginal) => passThrough(importOriginal, 'settleReport'))
 vi.mock('@/lib/kosztorys/templates/serialize-template', (importOriginal) =>
@@ -80,7 +55,5 @@ vi.mock('@/lib/push/notify-pending-payouts', (importOriginal) =>
 
 // `db-shared` keeps one module instance for every file, so a role set by the previous file would
 // leak into the next one's actions.
-beforeAll(() => {
-  resetAuthState()
-  for (const seam of seams) seam.mockReset()
-})
+resetAuthState()
+resetSeams()

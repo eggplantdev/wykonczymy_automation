@@ -2,30 +2,32 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysSectionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-sections-menu'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 const editorState = vi.hoisted(() => ({
   storedCollapsedSectionIds: new Set<number>(),
   setCollapsedSectionIds: vi.fn(),
 }))
 
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    subtotals: [
-      { sectionId: 1, sectionName: 'Łazienka' },
-      { sectionId: 2, sectionName: 'Kuchnia' },
-    ],
-    collapsedSectionIds: editorState.storedCollapsedSectionIds,
-    storedCollapsedSectionIds: editorState.storedCollapsedSectionIds,
-    setCollapsedSectionIds: editorState.setCollapsedSectionIds,
-    foldableSectionIds: new Map(),
-    engagedConditionIds: new Set<string>(),
-    globalDiscount: { type: null, value: 0 },
-    crewAxis: 'both',
-    isTemplate: false,
-    search: '',
-    resetFilters: vi.fn(),
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      subtotals: [
+        { sectionId: 1, sectionName: 'Łazienka' },
+        { sectionId: 2, sectionName: 'Kuchnia' },
+      ],
+      collapsedSectionIds: editorState.storedCollapsedSectionIds,
+      storedCollapsedSectionIds: editorState.storedCollapsedSectionIds,
+      setCollapsedSectionIds: editorState.setCollapsedSectionIds,
+      foldableSectionIds: new Map(),
+      engagedConditionIds: new Set<string>(),
+      globalDiscount: { type: null, value: 0 },
+      crewAxis: 'both',
+      isTemplate: false,
+      search: '',
+      resetFilters: vi.fn(),
+    }) as never,
+)
 
 beforeEach(() => editorState.setCollapsedSectionIds.mockClear())
 

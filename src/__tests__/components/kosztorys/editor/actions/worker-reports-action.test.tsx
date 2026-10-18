@@ -2,15 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { listInvestmentReports, readInvestmentReport } from '@/lib/queries/worker-reports'
 
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ investmentId: 12, stages: [], workers: [] }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () => ({ investmentId: 12, stages: [], workers: [] }) as never,
+)
 
-vi.mock('@/lib/queries/worker-reports', () => ({
-  listInvestmentReports: vi.fn(async () => []),
-  readInvestmentReport: vi.fn(async () => undefined),
-}))
+vi.mocked(listInvestmentReports).mockImplementation(async () => [])
+vi.mocked(readInvestmentReport).mockImplementation(async () => undefined)
 
 afterEach(() => window.history.replaceState(null, '', '/'))
 

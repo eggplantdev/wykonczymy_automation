@@ -394,17 +394,17 @@ Compare against the research baseline (`research.md` §5: 175 s wall, 725.8 user
 
 #### Automated
 
-- [x] 3.1 Converted specs pass individually
-- [x] 3.2 dom + dom-shared pass
-- [x] 3.3 dom-shared collects ≥ 112 files
+- [x] 3.1 Converted specs pass individually — 81c340c1a
+- [x] 3.2 dom + dom-shared pass — 81c340c1a
+- [x] 3.3 dom-shared collects ≥ 112 files — 81c340c1a
 
 ### Phase 4: Top-module seams
 
 #### Automated
 
-- [ ] 4.1 Converted specs pass individually
-- [ ] 4.2 dom-shared collects ≥ 135 files
-- [ ] 4.3 `pnpm test:integration` passes
+- [x] 4.1 Converted specs pass individually
+- [x] 4.2 dom-shared collects ≥ 135 files
+- [x] 4.3 `pnpm test:integration` passes
 
 ### Phase 5: Typecheck alongside integration
 

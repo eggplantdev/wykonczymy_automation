@@ -11,38 +11,26 @@ import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
 import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
+import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 
-const fillKosztorysTranslationsAction = vi.hoisted(() => vi.fn())
-const cleanItemTextsAction = vi.hoisted(() => vi.fn())
 const onTreeReplaced = vi.hoisted(() => vi.fn())
 const flushPendingSaves = vi.hoisted(() => vi.fn(async () => {}))
 
-vi.mock('@/lib/actions/kosztorys-translations', () => ({ fillKosztorysTranslationsAction }))
-vi.mock('@/lib/actions/kosztorys', () => ({
-  addItemAction: vi.fn(),
-  addSectionAction: vi.fn(),
-  clearKosztorysAction: vi.fn(),
-  insertSectionAction: vi.fn(),
-  removeItemAction: vi.fn(),
-  removeSectionAction: vi.fn(),
-  renumberKosztorysOrderAction: vi.fn(),
-  updateItemFieldAction: vi.fn(),
-  updateSectionFieldAction: vi.fn(),
-  writeKosztorysLayoutAction: vi.fn(),
-  cleanItemTextsAction,
-}))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    investmentId: 7,
-    onTreeReplaced,
-    flushPendingSaves,
-    rows: [{ description: 'Montaż klimatyzacji', descriptionTranslations: {} }],
-    stages: [],
-    workers: [],
-    tree: { sections: [] },
-    isTemplate: true,
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      investmentId: 7,
+      onTreeReplaced,
+      flushPendingSaves,
+      rows: [{ description: 'Montaż klimatyzacji', descriptionTranslations: {} }],
+      stages: [],
+      workers: [],
+      tree: { sections: [] },
+      isTemplate: true,
+    }) as never,
+)
 
 function renderMenu() {
   render(
