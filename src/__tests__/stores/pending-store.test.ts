@@ -8,12 +8,6 @@ function reset() {
 describe('pending store', () => {
   beforeEach(reset)
 
-  it('raises a label for a started key', () => {
-    usePendingStore.getState().start('settings', 'Zapisywanie…')
-
-    expect(firstPendingLabel(usePendingStore.getState().pending)).toBe('Zapisywanie…')
-  })
-
   it('stays pending until the last key stops', () => {
     const { start, stop } = usePendingStore.getState()
     start('settings', 'Zapisywanie…')

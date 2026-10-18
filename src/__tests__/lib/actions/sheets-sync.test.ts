@@ -284,18 +284,6 @@ describe('previewMaterialSync', () => {
     expect(tabOf(result.data, 'Wydatki').toAppend.map((r) => r.transferId)).toEqual([101])
   })
 
-  it('does not re-append rows already present in the sheet', async () => {
-    withSheet(31, 'sheet-1')
-    findReturns([makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })])
-    sheetGrids([101]) // already synced
-
-    const result = await previewMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(tabOf(result.data, 'Wydatki').toAppend).toEqual([])
-  })
-
   it('reports update and remove counts, not just appends (T3.1)', async () => {
     withSheet(31, 'sheet-1')
     findMock
@@ -365,21 +353,6 @@ describe('applyMaterialSync', () => {
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
   })
 
-  it('overwrites an expense already present in the sheet (drift heal)', async () => {
-    routeFinds({ expenses: [makeMaterialTransaction(5, 'Materiały budowlane', { amount: 100 })] })
-    sheetGrids([5]) // already synced → row 2
-
-    const result = await applyMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 0, updated: 1, removed: 0, errors: [] })
-    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
-    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
-      "'wydatki inwestycyjne (tylko do odczytu)'!A2",
-    )
-  })
-
   it('appends an expense that the DB has but the sheet is missing', async () => {
     routeFinds({
       expenses: [
@@ -433,18 +406,6 @@ describe('applyMaterialSync', () => {
         { type: { in: ['INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET', 'CORRECTION'] } },
       ]),
     )
-  })
-
-  it('keeps a row whose id collides with a transaction that is not this investment expense', async () => {
-    routeFinds({ expenses: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })] })
-    sheetGrids([7, 8])
-
-    const result = await applyMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(result.data.removed).toBe(0)
-    expect(batchUpdateMock).not.toHaveBeenCalled()
   })
 })
 

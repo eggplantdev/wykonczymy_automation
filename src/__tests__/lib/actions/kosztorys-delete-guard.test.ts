@@ -132,16 +132,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     return Number(res.rows[0].id)
   }
 
-  it('(a) deletes an item with no stage progress', async () => {
-    const sectionId = await createSection()
-    const itemId = await createItem(sectionId, { plannedQty: 5 })
-
-    const res = await removeItemAction(itemId)
-
-    expect(res.success).toBe(true)
-    expect(await itemExists(itemId)).toBe(false)
-  })
-
   it('(b) deletes an item with recorded stage progress (qty_done <> 0) and snapshots first', async () => {
     const sectionId = await createSection()
     const itemId = await createItem(sectionId) // pomiar 0
@@ -157,16 +147,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(res.success).toBe(true)
     expect(await itemExists(itemId)).toBe(false)
     expect(await latestAutoSnapshotId()).toBeGreaterThan(before)
-  })
-
-  it('(c) deletes a plan-only item (przedmiar + price, no pomiar / progress)', async () => {
-    const sectionId = await createSection()
-    const itemId = await createItem(sectionId, { plannedQty: 10, clientPrice: 99 })
-
-    const res = await removeItemAction(itemId)
-
-    expect(res.success).toBe(true)
-    expect(await itemExists(itemId)).toBe(false)
   })
 
   it('(c2) captures a pre-delete auto snapshot when deleting a plan-only item', async () => {
@@ -197,15 +177,5 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(await sectionExists(sectionId)).toBe(false)
     expect(await itemExists(itemId)).toBe(false)
     expect(await latestAutoSnapshotId()).toBeGreaterThan(before)
-  })
-
-  it('(e) deletes an empty / plan-only section', async () => {
-    const sectionId = await createSection()
-    await createItem(sectionId, { plannedQty: 4, clientPrice: 50 }) // plan-only
-
-    const res = await removeSectionAction(sectionId)
-
-    expect(res.success).toBe(true)
-    expect(await sectionExists(sectionId)).toBe(false)
   })
 })

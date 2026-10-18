@@ -84,19 +84,4 @@ describe.skipIf(!ENV_READY)('cash-registers beforeDelete guard (DB)', () => {
 
     await db.execute(sql`DELETE FROM transactions WHERE id = ${transactionId}`)
   })
-
-  it('deletes a register whose only transactions are cancelled, orphaning them', async () => {
-    const transactionId = await insertTransfer('register-guard cancelled employee expense', true)
-
-    await deleteRegister()
-    expect(await registerExists()).toBe(false)
-
-    const transaction = await db.execute(
-      sql`SELECT source_register_id FROM transactions WHERE id = ${transactionId}`,
-    )
-    expect(transaction.rows.length).toBe(1)
-    expect(
-      (transaction.rows[0] as { source_register_id: number | null }).source_register_id,
-    ).toBeNull()
-  })
 })

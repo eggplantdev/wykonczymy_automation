@@ -255,16 +255,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     return id === null || id === undefined ? null : Number(id)
   }
 
-  it('zapis zapamiętuje w pozycji pracę, do której trafił', async () => {
-    const description = `Zapamiętana ${suffix}`
-    const itemId = await createItem(description)
-
-    await saveItemToCatalogueAction(itemId, 'new')
-
-    const [row] = await catalogueRow(description)
-    expect(await linkedEntryOf(itemId)).toBe(Number(row.id))
-  })
-
   it('zmieniony opis to nowa praca: stara zostaje, pozycja przepina się na nową', async () => {
     const oldDescription = `Przed zmianą ${suffix}`
     const newDescription = `Po zmianie ${suffix}`

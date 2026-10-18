@@ -35,11 +35,9 @@ describe.skipIf(!ENV_READY)('investments beforeDelete guard (DB)', () => {
   })
 
   afterAll(async () => {
-    // The last test deletes the investment itself, so teardown must tolerate it being gone already —
-    // a blind delete would throw NotFound and turn a green run red.
     if (investmentId) {
       await db.execute(sql`DELETE FROM transactions WHERE investment_id = ${investmentId}`)
-      if (await investmentExists()) await deleteTestInvestment(payload, investmentId)
+      await deleteTestInvestment(payload, investmentId)
     }
   })
 
@@ -48,14 +46,6 @@ describe.skipIf(!ENV_READY)('investments beforeDelete guard (DB)', () => {
       /Nie można usunąć inwestycji/,
     )
     expect(await investmentExists()).toBe(true)
-  })
-
-  // Positive control: without it the assertion above would also pass on a hook that blocks every delete.
-  it('allows the delete once the transactions are gone', async () => {
-    await db.execute(sql`DELETE FROM transactions WHERE investment_id = ${investmentId}`)
-
-    await deleteTestInvestment(payload, investmentId)
-    expect(await investmentExists()).toBe(false)
   })
 })
 

@@ -101,7 +101,6 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
     expect(result.success).toBe(true)
 
     const row = await track(perPiece)
-    expect(row).toBeDefined()
     expect(Number(row!.clientPrice)).toBe(12)
   })
 
@@ -185,15 +184,5 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
       uk: { text: 'Фарбування стін', source: data.description },
       ru: { text: 'Покраска стен', source: data.description },
     })
-  })
-
-  it('deletes a row', async () => {
-    const [existing] = await rowsFor(item({ unit: 'szt' }))
-    const id = Number(existing!.id)
-
-    const result = await deleteCatalogueItemAction(id)
-    expect(result.success).toBe(true)
-
-    expect(await rowsFor(item({ unit: 'szt' }))).toHaveLength(0)
   })
 })

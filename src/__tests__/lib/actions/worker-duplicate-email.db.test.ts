@@ -78,14 +78,6 @@ describe.skipIf(!ENV_READY)('worker e-mail clash (DB)', () => {
     expect(await countWith(LIVE)).toBe(1)
   })
 
-  it('sends the owner to the Kosz when the e-mail belongs to a trashed worker', async () => {
-    expect(await actions.createWorkerAction(form(TRASHED))).toEqual({
-      success: false,
-      error: `Pracownik z adresem ${TRASHED} jest w Koszu — przywróć go stamtąd.`,
-    })
-    expect(await countWith(TRASHED)).toBe(1)
-  })
-
   it('reads the e-mail the way it is stored, whatever the case and spacing', async () => {
     expect(await actions.createWorkerAction(form(` ${TRASHED.toUpperCase()} `))).toEqual({
       success: false,

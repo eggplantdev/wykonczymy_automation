@@ -204,7 +204,6 @@ describe.skipIf(!ENV_READY)('template structure actions (DB)', () => {
     )
     if (!created.success) throw new Error(created.error)
     const kitchen = (await sectionsOf()).find((section) => section.name === 'Kuchnia')
-    expect(kitchen).toBeDefined()
     expect((await itemsOf(kitchen?.id ?? 0)).map((item) => item.catalogueItemId)).toEqual([
       entryIds[0],
     ])

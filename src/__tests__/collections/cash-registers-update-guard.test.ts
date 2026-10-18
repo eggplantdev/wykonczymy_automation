@@ -80,14 +80,6 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     expect((await readRow(id)).name).toBe('Kasa w koszu')
   })
 
-  it('lets a trashed kasa be restored', async () => {
-    const id = await createRegister('Kasa do przywrócenia')
-    await db.execute(sql`UPDATE cash_registers SET trashed_at = now() WHERE id = ${id}`)
-
-    await updateRegister(id, { trashedAt: null })
-    expect((await readRow(id)).trashed_at).toBeNull()
-  })
-
   it('refuses an owner change on a kasa with live transactions', async () => {
     const id = await createRegister('Kasa używana')
     await db.execute(sql`

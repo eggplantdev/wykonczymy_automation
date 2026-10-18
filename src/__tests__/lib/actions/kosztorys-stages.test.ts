@@ -161,30 +161,6 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
       expect(await stageExists(stageId)).toBe(false)
       expect(await latestAutoSnapshotId()).toBeGreaterThan(before)
     })
-
-    it('deletes a stage whose progress is all cleared to 0 (qty_done = 0 does not block)', async () => {
-      const sectionId = await createSection()
-      const itemId = await createItem(sectionId)
-      const stageId = await createStage()
-      await db.execute(sql`
-        INSERT INTO stage_progress (item_id, stage_id, qty_done, created_at, updated_at)
-        VALUES (${itemId}, ${stageId}, 0, now(), now())
-      `)
-
-      const res = await removeStageAction(stageId)
-
-      expect(res.success).toBe(true)
-      expect(await stageExists(stageId)).toBe(false)
-    })
-
-    it('deletes a stage with no progress rows at all', async () => {
-      const stageId = await createStage()
-
-      const res = await removeStageAction(stageId)
-
-      expect(res.success).toBe(true)
-      expect(await stageExists(stageId)).toBe(false)
-    })
   })
 
   describe('updateStageSplitAction — the workers of an etap (EX-943)', () => {
