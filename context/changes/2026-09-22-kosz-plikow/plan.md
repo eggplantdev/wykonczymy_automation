@@ -236,8 +236,8 @@ przebieg wymusza re-import bazy testowej — doszła migracja) · `pnpm build`.
 - [x] Faza 2 — `/api/cron/cleanup` dokłada krok `media` jako ostatni (8ce527f1d)
 - [x] Faza 2 — zamiana godzin: `vercel.json` na `30 3`, `blob-backup.yml` na `0 3` (8ce527f1d)
 - [x] Faza 2 — `src/__tests__/lib/media/gc-media.test.ts` (nowy, DB-owy) (8ce527f1d)
-- [x] Faza 3 — `TrashKindT` + `TRASH_KINDS.file`; grupa usuwania opcjonalna; `restoreBlockedReason`
-- [x] Faza 3 — `fetchDetachedFiles` + wiersze plików w `shapeTrashRows` / `getTrashContents`
-- [x] Faza 3 — `src/lib/actions/media-trash.ts` (`restoreDetachedFileAction`)
-- [x] Faza 3 — testy: `shapeTrashRows`, `fetchDetachedFiles`, `trashed-row-actions` (`dom`)
+- [x] Faza 3 — `TrashKindT` + `TRASH_KINDS.file`; grupa usuwania opcjonalna; `restoreBlockedReason` (aaf244ebe)
+- [x] Faza 3 — `fetchDetachedFiles` + wiersze plików w `shapeTrashRows` / `getTrashContents` (aaf244ebe)
+- [x] Faza 3 — `src/lib/actions/media-trash.ts` (`restoreDetachedFileAction`) (aaf244ebe)
+- [x] Faza 3 — testy: `shapeTrashRows`, `fetchDetachedFiles`, `trashed-row-actions` (`dom`) (aaf244ebe)
 - [ ] Whole-tree Gate: typecheck · lint · test · test:integration · build
