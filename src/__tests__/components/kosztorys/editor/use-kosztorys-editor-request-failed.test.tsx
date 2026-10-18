@@ -5,7 +5,7 @@ import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { stackUndoRedo } from '@/__tests__/helpers/kosztorys-undo-redo'
-import { removeItemAction } from '@/lib/actions/kosztorys'
+import { removeItemAction, updateItemFieldAction } from '@/lib/actions/kosztorys'
 import { toastMessage } from '@/lib/utils/toast'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
@@ -95,5 +95,29 @@ describe('edytor kosztorysu — żądanie, które nie dotarło', () => {
       'error',
       5000,
     )
+  })
+})
+
+describe('edytor kosztorysu — zapis odrzucony przez serwer', () => {
+  it('puts the cell and the totals back on what the database holds', async () => {
+    vi.mocked(updateItemFieldAction).mockResolvedValue({ success: false, error: 'Zapis odrzucony' })
+    const { result } = renderEditor()
+    const savedTotal = result.current.currentPlannedNet
+
+    act(() => {
+      result.current.onChange(
+        result.current.rows.map((row) => (row.id === 1 ? { ...row, clientPrice: 400 } : row)),
+      )
+    })
+    expect(result.current.currentPlannedNet).toBe(450)
+
+    await act(async () => {
+      await result.current.flushPendingSaves()
+    })
+
+    expect(updateItemFieldAction).toHaveBeenCalledWith(1, { clientPrice: 400 })
+    expect(result.current.rows.find((row) => row.id === 1)?.clientPrice).toBe(100)
+    expect(result.current.currentPlannedNet).toBe(savedTotal)
+    expect(toastMessage).toHaveBeenCalledWith('Zapis odrzucony', 'error', 5000)
   })
 })
