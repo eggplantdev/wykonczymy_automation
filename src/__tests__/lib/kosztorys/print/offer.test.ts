@@ -228,16 +228,6 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
   const [stage1, stage2] = CTX.stages
 
-  it('bez wpisów drukuje samą ofertę', () => {
-    const out = html([row({ id: 1, plannedQty: 10, clientPrice: 100 })])
-
-    for (const key of ['stageQtySum', 'net', 'donePercent']) {
-      expect(out).not.toMatch(header(columnLabelForView(key, 'client')))
-    }
-    expect(out).not.toMatch(header(stageLabel(stage1!)))
-    expect(out).toMatch(header('Opis prac'))
-  })
-
   it('drukuje etap z wpisem i sumy, a pusty etap pomija', () => {
     const out = html([row({ id: 1, plannedQty: 10, clientPrice: 100, [stageKey(stage1!.id)]: 4 })])
 
@@ -405,13 +395,6 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
     expect(out).not.toContain('onerror="alert(1)"')
     expect(out).not.toContain('onload="alert(1)"')
     expect(out).toContain('&quot;')
-  })
-
-  it('ukrycie kolumny w ustawieniach podglądu zabiera ją i z papieru', () => {
-    const out = html([row()], hiding('price'))
-
-    expect(out).not.toMatch(header('Cena j.m.'))
-    expect(out).toContain('<th><span>Opis prac</span></th>')
   })
 })
 

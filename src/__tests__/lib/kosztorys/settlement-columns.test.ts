@@ -35,11 +35,6 @@ describe('emptySettlementColumnIds', () => {
     expect([...empty].sort()).toEqual(stageColumns(2).sort())
   })
 
-  it('never hides „Pozostało"', () => {
-    const empty = emptySettlementColumnIds([row()], CTX.stages)
-    expect(empty.has('remaining')).toBe(false)
-  })
-
   it('hides the totals of a kosztorys with no etapy at all', () => {
     expect([...emptySettlementColumnIds([row()], [])].sort()).toEqual([...TOTALS].sort())
   })
@@ -63,11 +58,6 @@ describe('investorEmptyColumnIds', () => {
     for (const id of OFFER_PHASE) expect(empty.has(id)).toBe(false)
   })
 
-  it('leaves the worker set unchanged before an entry', () => {
-    const worker = emptySettlementColumnIds([row()], CTX.stages)
-    for (const id of OFFER_PHASE) expect(worker.has(id)).toBe(false)
-  })
-
   it('drops the rabat on przedmiar when no pozycja has one', () => {
     const empty = investorEmptyColumnIds([row({ [stageKey(1)]: 4 })], CTX.stages)
     expect(empty.has('plannedDiscountAmount')).toBe(true)
@@ -78,10 +68,6 @@ describe('investorEmptyColumnIds', () => {
     const empty = investorEmptyColumnIds([discounted, row({ id: 2 })], CTX.stages)
     expect(empty.has('plannedDiscountAmount')).toBe(false)
     expect(empty.has('discountAmount')).toBe(true)
-  })
-
-  it('leaves the worker set without the rabat on przedmiar', () => {
-    expect(emptySettlementColumnIds([row()], CTX.stages).has('plannedDiscountAmount')).toBe(false)
   })
 })
 

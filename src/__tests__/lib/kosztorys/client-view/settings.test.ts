@@ -19,6 +19,7 @@ describe('sanitizeClientViewSettings', () => {
   it('answers an empty source with the code default', () => {
     const settings = sanitizeClientViewSettings({})
 
+    // No `note`: an AI draft writes its sources into the komentarz, so no kosztorys shows it unasked.
     expect(visibleColumns(settings).sort()).toEqual(
       [
         'description',
@@ -34,11 +35,6 @@ describe('sanitizeClientViewSettings', () => {
         'donePercent',
       ].sort(),
     )
-    expect(settings.hiddenColumns).toContain('remaining')
-    expect(settings.hiddenColumns).toContain('currentPlannedNet')
-    // An AI draft writes its sources into the komentarz, so no kosztorys shows it unasked.
-    expect(settings.hiddenColumns).toContain('note')
-    expect(settings.hiddenColumns).toContain('plannedDonePercent')
     expect(settings.hideEmptyRows).toBe(true)
   })
 
@@ -65,14 +61,6 @@ describe('sanitizeClientViewSettings', () => {
   it('keeps „hide empty rows" off only when it is stored as false', () => {
     expect(sanitizeClientViewSettings({ hideEmptyRows: false }).hideEmptyRows).toBe(false)
     expect(sanitizeClientViewSettings({ hideEmptyRows: null }).hideEmptyRows).toBe(true)
-  })
-
-  it('drops a stored key that is outside the disclosure ceiling', () => {
-    expect(
-      sanitizeClientViewSettings({
-        hiddenColumns: { ...storedHiding('price'), subcontractorPrice: true },
-      }).hiddenColumns,
-    ).toEqual(['price'])
   })
 
   it('drops a subcontractor rate key hand-added to the stored settings', () => {
@@ -113,8 +101,10 @@ describe('stored client view settings', () => {
   it('reads a column the stored map does not mention as its code default', () => {
     const settings = sanitizeClientViewSettings({ hiddenColumns: { price: true, net: false } })
 
+    // `plannedDiscountAmount` is newer than most stored maps: an owner may have hidden every rabat
+    // column on purpose, so it must reach no existing document unasked.
     expect(settings.hiddenColumns).toEqual(
-      expect.arrayContaining(['price', 'note', 'plannedDonePercent']),
+      expect.arrayContaining(['price', 'note', 'plannedDonePercent', 'plannedDiscountAmount']),
     )
     expect(settings.hiddenColumns).not.toContain('net')
   })

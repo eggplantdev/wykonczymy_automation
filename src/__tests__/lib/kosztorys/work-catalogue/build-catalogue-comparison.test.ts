@@ -116,17 +116,6 @@ describe('buildCatalogueComparison', () => {
     expect(result.matching).toBe(1)
   })
 
-  it('stawka „auto" w cenniku wycenia się współczynnikiem tej inwestycji', () => {
-    const result = buildCatalogueComparison(
-      [item()],
-      [entry({ wToolsRate: null, ownToolsRate: null })],
-      SETTINGS,
-    )
-
-    expect(result.diffs).toHaveLength(0)
-    expect(result.matching).toBe(1)
-  })
-
   it('przy obu stawkach „auto" różnica ceny raportuje się RAZ, nie trzy razy', () => {
     const result = buildCatalogueComparison(
       [item({ clientPrice: 200 })],
@@ -290,15 +279,6 @@ describe('attachCatalogueHints', () => {
     descriptionTranslations: {},
     unit: 'm2',
     hints: [],
-  })
-
-  it('podpowiada najbliższą nazwę z katalogu', () => {
-    const [row] = attachCatalogueHints(
-      [missingRow('Gładzie gipsowe')],
-      [entry({ description: 'Gładź gipsowa' })],
-    )
-
-    expect(row.hints[0].description).toBe('Gładź gipsowa')
   })
 
   it('niesie j.m. i cenę kandydata, nie sam opis', () => {

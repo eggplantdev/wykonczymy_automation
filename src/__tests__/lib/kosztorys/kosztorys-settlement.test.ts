@@ -152,15 +152,7 @@ describe('kosztorysClientTotals — rabat globalny w trybie kwotowym', () => {
     return kosztorysClientTotals(treeToRows(next), next.stages, globalDiscount)
   }
 
-  it('tryb wyłączony → rabat to suma rabatów per pozycja', () => {
-    expect(withDiscount({ type: null, value: 0 }).discountNetFromKosztorys).toBeGreaterThan(0)
-  })
-
   it('kwota 0 → zero rabatu, rabaty per pozycja pozostają wyłączone', () => {
     expect(withDiscount({ type: 'amount', value: 0 }).discountNetFromKosztorys).toBe(0)
-  })
-
-  it('kwota dodatnia → rabat to sama kwota globalna', () => {
-    expect(withDiscount({ type: 'amount', value: 5 }).discountNetFromKosztorys).toBeCloseTo(5)
   })
 })

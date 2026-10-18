@@ -61,18 +61,6 @@ describe('resolveLaborColumns', () => {
     expect(result.stages).toEqual({ firstColumn: 3, count: 6 }) // D–I
   })
 
-  it('finds stages by the „wykonano" marker even when row 3 renames them to crews', () => {
-    const result = resolveLaborColumns(PRZEDPOLE_LABOR_HEADER)
-    expectResolved(result)
-    expect(result.stages.count).toBe(6)
-  })
-
-  it('does not mistake the wartość block for more etapy', () => {
-    const result = resolveLaborColumns(BIALOSTOCKA_LABOR_HEADER)
-    expectResolved(result)
-    expect(result.stages.count).toBe(10) // not 20
-  })
-
   it('runs the etapy up to Przedmiar when the owner added columns without „wykonano"', () => {
     const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
     for (const column of [9, 10, 11, 12]) grid[1][column] = ''

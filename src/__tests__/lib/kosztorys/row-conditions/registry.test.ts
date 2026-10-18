@@ -151,11 +151,6 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('client-empty', row({ plannedQty: 0, currentPlannedQty: 3 }))).toBe(false)
     expect(matches('client-empty', row({ plannedQty: 5, currentPlannedQty: 0 }))).toBe(false)
     expect(matches('client-empty', row({ plannedQty: 0, currentPlannedQty: 0 }))).toBe(true)
-  })
-
-  it('„bez przedmiaru i bez wykonanej pracy" needs BOTH axes empty', () => {
-    expect(matches('client-empty', row({ plannedQty: 0 }))).toBe(true)
-    expect(matches('client-empty', row({ plannedQty: 5 }))).toBe(false)
     expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
   })
 

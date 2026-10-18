@@ -6,6 +6,7 @@ import { BIALOSTOCKA_ROWS, PRZEDPOLE_ROWS } from '@/__tests__/fixtures/kosztorys
 import { BIALOSTOCKA_LABOR_HEADER } from '@/__tests__/fixtures/kosztorys-sheet/header-blocks'
 import { col, row } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import { HEADER_BLOCK_ROWS } from '@/lib/kosztorys/sheet-import/columns'
+import { sectionColorForIndex } from '@/lib/kosztorys/section-colors'
 
 function parse(grid: (string | number)[][], formulas: (string | number)[][] = []) {
   const resolved = resolveLaborColumns(grid)
@@ -270,7 +271,8 @@ describe('parseLaborTab', () => {
 
   it('gives every section a colour by position, as the editor does', () => {
     const { sections } = parse(BIALOSTOCKA_ROWS)
-    expect(sections.every((section) => section.color !== null)).toBe(true)
-    expect(sections[0].color).not.toBe(sections[1].color)
+    expect(sections.map((section) => section.color)).toEqual(
+      sections.map((_, index) => sectionColorForIndex(index)),
+    )
   })
 })

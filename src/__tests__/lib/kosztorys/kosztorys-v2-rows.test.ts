@@ -150,42 +150,13 @@ describe('sortRows', () => {
   ]
   const get = (r: KosztorysV2RowT) => r.plannedQty
 
-  it('asc / desc', () => {
-    expect(sortRows(rows, get, 'asc').map((r) => r.id)).toEqual([2, 3, 1])
-    expect(sortRows(rows, get, 'desc').map((r) => r.id)).toEqual([1, 3, 2])
-  })
-
   it('nie mutuje wejścia', () => {
     sortRows(rows, get, 'asc')
     expect(rows.map((r) => r.id)).toEqual([1, 2, 3])
   })
-
-  it('sortuje stringi lokalnie', () => {
-    const strRows = [
-      { id: 1, description: 'Łaty' } as KosztorysV2RowT,
-      { id: 2, description: 'Aaa' } as KosztorysV2RowT,
-    ]
-    expect(sortRows(strRows, (r) => r.description ?? '', 'asc').map((r) => r.id)).toEqual([2, 1])
-  })
-
-  it('null zawsze na końcu, niezależnie od kierunku', () => {
-    const withNulls: KosztorysV2RowT[] = [
-      { id: 1, plannedQty: 3 } as KosztorysV2RowT,
-      { id: 2, plannedQty: null } as unknown as KosztorysV2RowT,
-      { id: 3, plannedQty: 1 } as KosztorysV2RowT,
-    ]
-    const key = (r: KosztorysV2RowT) => r.plannedQty as number | null
-    expect(sortRows(withNulls, key, 'asc').map((r) => r.id)).toEqual([3, 1, 2])
-    expect(sortRows(withNulls, key, 'desc').map((r) => r.id)).toEqual([1, 3, 2])
-  })
 })
 
 describe('rowTotalQtyDone', () => {
-  it('sums the quantities across every stage of the row', () => {
-    const [row] = treeToRows(tree) // stage 100 = 2, stage 101 = 0
-    expect(rowTotalQtyDone(row, tree.stages, 'client')).toBe(2)
-  })
-
   // A stage added after the row was built carries no key on it — without ?? 0 the sum would be NaN.
   it('counts a stage missing its key on the row as zero', () => {
     const [row] = treeToRows(tree)

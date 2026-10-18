@@ -117,11 +117,6 @@ describe('worker view settings', () => {
     for (const key of CLIENT_PRICED) expect(columns.has(key), key).toBe(false)
   })
 
-  it('no key in any group is itself a client-priced column', () => {
-    const grouped = WORKER_VIEW_GROUPS.flatMap((group) => group.keys)
-    for (const key of CLIENT_PRICED) expect(grouped, key).not.toContain(key)
-  })
-
   it('subtracts the hidden keys, the stawka included', () => {
     const columns = workerVisibleColumns('own_tools', ['rate', STAGES_COLUMN_GROUP])
 

@@ -89,7 +89,7 @@ describe('buildMeasuredQtyRefresh', () => {
     expect(refresh.refresh.rows).toEqual([])
   })
 
-  it('clears a stored figure the sheet itself no longer claims', () => {
+  it('replaces a stored figure the sheet no longer claims with the sheet’s own', () => {
     const tree = currentTree()
     tree.items[0].sheetMeasuredQty = 999
 

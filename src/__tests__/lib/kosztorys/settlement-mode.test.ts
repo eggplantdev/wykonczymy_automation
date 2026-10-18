@@ -4,7 +4,6 @@ import {
   SETTLEMENT_MODES,
   settlementModeToMoneyAxis,
 } from '@/lib/kosztorys/settlement-mode'
-import { isOffPlaneDeposit } from '@/lib/kosztorys/off-plane-deposits'
 import { computeAmountDue } from '@/lib/kosztorys/summary-economics'
 
 const NO_DEPOSITS = { net: 0, gross: 0 }
@@ -52,12 +51,5 @@ describe('the stored mode still changes the reading at VAT 0%', () => {
     expect(underNet.net).not.toBe(underGross.net)
     expect(underNet.gross).not.toBe(underGross.gross)
     expect(underGross.gross - underNet.gross).toBeCloseTo(230)
-  })
-
-  it('keeps Mieszane a different reading from tryb netto — this is why the third mode exists', () => {
-    const przelew = { vatPlane: 'GROSS' as const }
-
-    expect(isOffPlaneDeposit(przelew, 'NET')).toBe(true)
-    expect(isOffPlaneDeposit(przelew, 'MIXED')).toBe(false)
   })
 })

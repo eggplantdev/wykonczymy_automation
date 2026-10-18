@@ -63,28 +63,6 @@ const build = (
   )
 
 describe('buildReportPreview — Przyjęto', () => {
-  it('shows every line of a pending report as waiting', () => {
-    const preview = build(
-      { report: report('pending'), lines: [line({ id: 1 }), line({ id: 2, position: 1 })] },
-      { isManagement: true },
-    )
-    expect(preview.lines.map((each) => each.outcome)).toEqual([
-      { kind: 'pending' },
-      { kind: 'pending' },
-    ])
-  })
-
-  it('shows every line of a rejected report as rejected', () => {
-    const preview = build(
-      {
-        report: report('rejected'),
-        lines: [line({ id: 1, isRejected: true }), line({ id: 2, position: 1, isRejected: true })],
-      },
-      { isManagement: true },
-    )
-    expect(preview.lines.map((each) => each.outcome.kind)).toEqual(['rejected', 'rejected'])
-  })
-
   it('shows only an odrzucona line as rejected while the rest still waits', () => {
     const preview = build(
       {

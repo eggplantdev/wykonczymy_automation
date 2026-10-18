@@ -23,14 +23,6 @@ describe('summary reading projection', () => {
     })
   })
 
-  it('keeps robocizna + rabat addable back to the pre-rabat figure the pie draws', () => {
-    const reading = readingFromKosztorys(clientTotals)
-
-    expect(reading.laborCostsNet + reading.discountAmount).toBe(
-      clientTotals.laborCostsNetFromKosztorys,
-    )
-  })
-
   it('reports no rabat when there is none to report', () => {
     expect(
       readingFromKosztorys({

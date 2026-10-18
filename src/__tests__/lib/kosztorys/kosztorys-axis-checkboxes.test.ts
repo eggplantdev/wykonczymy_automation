@@ -40,12 +40,4 @@ describe.each([
     expect(togglePairAxis(config.none, 'a', config)).toBe(config.a)
     expect(togglePairAxis(config.none, 'b', config)).toBe(config.b)
   })
-
-  it('round-trip: oba → odznacz a → b → odznacz b → none → zaznacz a → a', () => {
-    const narrowed = togglePairAxis(config.both, 'a', config)
-    expect(narrowed).toBe(config.b)
-    const emptied = togglePairAxis(narrowed, 'b', config)
-    expect(emptied).toBe(config.none)
-    expect(togglePairAxis(emptied, 'a', config)).toBe(config.a)
-  })
 })

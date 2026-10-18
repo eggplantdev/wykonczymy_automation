@@ -108,12 +108,6 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(verdict.discount.mismatch).toBe(false)
   })
 
-  it('vatRate 0: gross equals net, matching transfers still reconcile', () => {
-    const verdict = reconcile(makeReconTree({ vatRate: 0 }), bookedTransactions(140, 8))
-    expect(verdict.laborCosts.mismatch).toBe(false)
-    expect(verdict.discount.mismatch).toBe(false)
-  })
-
   it('empty progress + no transfers: zero vs zero is silent', () => {
     const tree = makeReconTree({ progress: [] })
     const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)

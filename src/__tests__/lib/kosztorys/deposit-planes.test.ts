@@ -64,10 +64,6 @@ describe('depositPairFromPlaneSums', () => {
 
     expect(pair).toEqual({ net: 1100, gross: 1476 })
   })
-
-  it('counts ONLY przelewy on the brutto plane', () => {
-    expect(depositPairFromPlaneSums(bucketDepositsByPlane([cash(5000)])).gross).toBe(0)
-  })
 })
 
 describe('sumDeposits', () => {

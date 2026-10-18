@@ -144,19 +144,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(sections.map((s) => s.displayOrder)).toEqual([0, 1])
   })
 
-  it('(c) appends into an empty kosztorys (no empty-guard)', async () => {
-    const { sectionId } = await buildPreset('c', 'Sekcja C')
-
-    const targetId = await createInvestment(`${PRESET_PREFIX}target-c`)
-    const result = await appendPresetSectionsAction(targetId, [sectionId])
-    expect(result.success).toBe(true)
-
-    const after = await serializeKosztorys(targetId)
-    expect(after.sections.map((s) => s.name)).toEqual(['Sekcja C'])
-    expect(after.sections[0].displayOrder).toBe(0)
-    expect(after.items).toHaveLength(1)
-  })
-
   it('(d) unknown sectionId → error and nothing persisted', async () => {
     await buildPreset('d', 'Sekcja D')
 

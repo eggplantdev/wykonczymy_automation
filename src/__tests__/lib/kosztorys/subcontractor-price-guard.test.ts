@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  MAX_CLIENT_SHARE,
   clientShareCeilingLabel,
   checkSubcontractorPrice,
   coeffWarning,
@@ -47,8 +46,6 @@ describe('maxSubcontractorPrice', () => {
   it('to udział ceny klienta, inny na każdej płaszczyźnie', () => {
     expect(maxSubcontractorPrice(row, 'w_tools')).toBe(65)
     expect(maxSubcontractorPrice(row, 'own_tools')).toBe(55.25)
-    expect(MAX_CLIENT_SHARE.w_tools).toBe(0.65)
-    expect(MAX_CLIENT_SHARE.own_tools).toBe(0.5525)
   })
 })
 

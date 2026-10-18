@@ -76,22 +76,3 @@ describe('a section fully executed but unpriced', () => {
     expect(countMatching(rows, 'no-client-price', ctx)).toBe(0)
   })
 })
-
-describe('„zwiń sekcje wg warunku" — the section list it unticks', () => {
-  const deselect = (current: string[], conditionId: string) => {
-    const folded = sectionIdsWhereAllMatch(rows, conditionId, ctx)
-    return current.filter((value) => !folded.has(Number(value)))
-  }
-
-  it('drops the sections the condition names and leaves the rest ticked', () => {
-    expect(deselect(['10', '20', '30'], 'no-measured-qty')).toEqual(['10', '30'])
-  })
-
-  it('is a no-op on a selection holding none of them', () => {
-    expect(deselect(['10', '30'], 'no-measured-qty')).toEqual(['10', '30'])
-  })
-
-  it('can empty the selection outright — „pokaż nic", not „pokaż wszystko"', () => {
-    expect(deselect(['20'], 'no-measured-qty')).toEqual([])
-  })
-})

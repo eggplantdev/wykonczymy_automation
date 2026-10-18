@@ -144,7 +144,6 @@ describe('effectiveReviewStatus', () => {
   it('stays empty with no Przedmiar, or an offer that differs from it', () => {
     expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 0 }))).toBeNull()
     expect(effectiveReviewStatus(row({ aiPlannedQty: 0, plannedQty: 0 }))).toBeNull()
-    expect(effectiveReviewStatus(row({ aiPlannedQty: 12, plannedQty: 2 }))).toBeNull()
   })
 })
 

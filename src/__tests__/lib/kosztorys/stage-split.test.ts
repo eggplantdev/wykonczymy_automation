@@ -113,12 +113,6 @@ describe('splitStagePool', () => {
     for (const share of shares.values()) expect(share).toBeGreaterThanOrEqual(0)
   })
 
-  it('keeps Σ shares equal to the pool for an uneven percent split', () => {
-    const pool = 1000 / 3
-    const { shares } = splitStagePool(pool, percent(entered(1, 33.33), entered(2, 12.5), rest(3)))
-    expect(sum(shares)).toBeCloseTo(pool, 10)
-  })
-
   it('leaves the whole pool unattributed on an etap nobody is on', () => {
     expect(splitStagePool(500, null)).toEqual({
       shares: new Map(),

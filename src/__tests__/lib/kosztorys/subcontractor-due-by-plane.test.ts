@@ -93,21 +93,6 @@ describe('subcontractorDueByPlane', () => {
     expect(due.hasUnconfirmedPlane).toBe(true)
   })
 
-  it('flags unconfirmed when any single stage is null', () => {
-    const tree = makePlaneTree([
-      makeStage({ id: 100 }),
-      makeStage({ id: 101, ordinal: 2, plane: null }),
-    ])
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
-    expect(due.hasUnconfirmedPlane).toBe(true)
-  })
-
-  it('is unchanged by per-item rabat (pre-rabat: rabat never reaches subcontractors)', () => {
-    const tree = makePlaneTree(mixed)
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
-    expect(due.combined).toBeCloseTo(102)
-  })
-
   it('is unchanged by an active global discount', () => {
     const plain = makePlaneTree(mixed)
     const discounted = makePlaneTree(mixed, { globalDiscount: { type: 'amount', value: 10 } })

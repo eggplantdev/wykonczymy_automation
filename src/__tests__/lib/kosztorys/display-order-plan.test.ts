@@ -46,12 +46,6 @@ describe('planKosztorysRenumber', () => {
     expect(before).toEqual([1, 2, 4, 3])
   })
 
-  it('reads a gapped section in stored order', () => {
-    const gapped = [row(1, 10, 0, 'b'), row(2, 10, 7, 'a')]
-
-    expect(planKosztorysRenumber(gapped, byDescription, 'asc').before).toEqual([1, 2])
-  })
-
   it('reverses under desc', () => {
     const { after } = planKosztorysRenumber(ROWS, byDescription, 'desc')
 

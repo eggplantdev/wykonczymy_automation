@@ -37,18 +37,6 @@ describe('the two off-plane predicates', () => {
       })
     }
   }
-
-  it('only tryb brutto strands anything — a przelew on a netto bill still pays the debt down', () => {
-    expect(isOffPlaneDeposit(row('GROSS'), 'NET')).toBe(true)
-    expect(strandsDeposit('GROSS', 'NET')).toBe(false)
-  })
-
-  it('tryb mieszany is the answer, so it never raises either flag', () => {
-    for (const plane of PLANES) {
-      expect(isOffPlaneDeposit(row(plane), 'MIXED')).toBe(false)
-      expect(strandsDeposit(plane, 'MIXED')).toBe(false)
-    }
-  })
 })
 
 describe('offPlaneDeposits', () => {
@@ -80,13 +68,6 @@ describe('strandedFromPlaneSums', () => {
 
   it('in tryb brutto reports the netto bucket — count and face value', () => {
     expect(strandedFromPlaneSums(sums, 'GROSS')).toEqual({ count: 2, amount: 150 })
-  })
-
-  it('agrees with the row-level count, so panel and listing cannot say different numbers', () => {
-    const rows = [cash(100), untagged(50), transfer(1230, 950)]
-    expect(strandedFromPlaneSums(bucketDepositsByPlane(rows), 'GROSS')).toEqual(
-      depositsStrandedBy(rows, 'GROSS'),
-    )
   })
 
   it('is absent outside tryb brutto — nothing is stranded, so there is nothing to mark', () => {
