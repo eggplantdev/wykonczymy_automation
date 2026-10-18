@@ -219,7 +219,7 @@ Paths under `components/kosztorys/editor/` unless noted.
 - [x] · fixed · orphan comment · `lib/leads/store-lead.db.test.ts:4-5` revalidateTag comment removed
 - [x] · dismissed · `hooks/sync-sheet.test.ts:78` "not one of the six" · correct as written: it refers to the six synced types listed at :70
 - [x] · dismissed · `lib/leads/fetch-landing-asset.test.ts` SSRF host guard "never isolated" · the 'a different host' row (`https://evil…`) clears the protocol check and reaches the host check alone
-- [x] · skipped · gap · `lib/push/notify-pending-payouts.test.ts:14` mocks `PAYOUT_PUSH_PAUSED: false`; prod is `true` and nothing pins the pause · needs a new guard
+- [x] · dropped · gap · `lib/push/notify-pending-payouts.test.ts:14` mocks `PAYOUT_PUSH_PAUSED: false`; prod is `true` and nothing pins the pause · the pause is temporary (bf9e22696, until a phone test) — a guard would only have to be flipped with it
 - [x] · skipped · gap · `utils.test.ts:118-143` formatPLN weak assertions · needs a new guard
 - [x] · skipped · gap · `lib/leads/fetch-lead-errors.test.ts` `!res.ok` branch never isolated (the 500 fixture also carries an error body) · needs a new guard
 - [x] · dropped · gap · `hooks/sync-sheet.test.ts` previousDoc branch untested · sheet sync is deprecated and about to be retired — no new tests for it
@@ -252,6 +252,5 @@ Per-section dismissals above carry their reason. Kept after a candidate was rais
 ## Carried to phase 3
 
 - `it.each` / helper consolidation (candidates in `phase-1-dead-tests.md` → Phase-2 notes)
-- ~118 `vi.mock('server-only')` copies outside the root partition (`vitest.config.ts` aliases it)
 - `kosztorys-column-widths` spec move; `build-sheet-comparison` literal that needs a run
-- skipped gaps above: `PAYOUT_PUSH_PAUSED`, formatPLN, `MANAGEMENT_ROLES`, fetch-lead `!res.ok`, fetch-landing-asset env hoisting
+- skipped gaps above: formatPLN, `MANAGEMENT_ROLES`, fetch-lead `!res.ok`, fetch-landing-asset env hoisting
