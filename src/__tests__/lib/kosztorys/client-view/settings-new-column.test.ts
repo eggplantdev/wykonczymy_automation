@@ -17,10 +17,6 @@ describe('a column outside the legacy set', () => {
     expect(sanitizeClientViewSettings(stored).hiddenColumns).toContain(NEW_COLUMN)
   })
 
-  it('stays hidden on a legacy array, even one hiding nothing', () => {
-    expect(sanitizeClientViewSettings({ hiddenColumns: [] }).hiddenColumns).toContain(NEW_COLUMN)
-  })
-
   it('stores the owner showing it', () => {
     const defaults = sanitizeClientViewSettings({})
     const shown = defaults.hiddenColumns.filter((key) => key !== NEW_COLUMN)

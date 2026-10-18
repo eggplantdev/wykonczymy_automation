@@ -6,11 +6,14 @@ import {
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view/settings'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
+import { toHiddenColumnMap } from '@/lib/kosztorys/columns/document-column-visibility'
 
 const visibleColumns = (settings: ClientViewSettingsT) => {
   const hidden = new Set(settings.hiddenColumns)
   return [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !hidden.has(key))
 }
+
+const storedHiding = (...keys: string[]) => toHiddenColumnMap(keys, PREVIEW_VISIBLE_COLUMNS)
 
 describe('sanitizeClientViewSettings', () => {
   it('answers an empty source with the code default', () => {
@@ -44,7 +47,7 @@ describe('sanitizeClientViewSettings', () => {
   it.each([
     ['no source at all', null],
     ['a row with no hidden set', { hideEmptyRows: true }],
-    ['a hidden set that is not an array', { hiddenColumns: 'price' }],
+    ['a hidden set that is not a map', { hiddenColumns: 'price' }],
     ['a null hidden set', { hiddenColumns: null }],
   ])('falls back to the default hidden set on %s', (_label, source) => {
     expect(sanitizeClientViewSettings(source).hiddenColumns).toEqual(
@@ -54,28 +57,31 @@ describe('sanitizeClientViewSettings', () => {
 
   it('keeps an explicitly empty hidden set — that is a real choice, not a malformed one', () => {
     expect(
-      sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: true }).hiddenColumns,
-    ).toEqual(['plannedDiscountAmount'])
+      sanitizeClientViewSettings({ hiddenColumns: storedHiding(), hideEmptyRows: true })
+        .hiddenColumns,
+    ).toEqual([])
   })
 
   it('keeps „hide empty rows" off only when it is stored as false', () => {
-    expect(
-      sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: false }).hideEmptyRows,
-    ).toBe(false)
-    expect(
-      sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: null }).hideEmptyRows,
-    ).toBe(true)
+    expect(sanitizeClientViewSettings({ hideEmptyRows: false }).hideEmptyRows).toBe(false)
+    expect(sanitizeClientViewSettings({ hideEmptyRows: null }).hideEmptyRows).toBe(true)
   })
 
   it('drops a stored key that is outside the disclosure ceiling', () => {
     expect(
-      sanitizeClientViewSettings({ hiddenColumns: ['price', 'subcontractorPrice'] }).hiddenColumns,
+      sanitizeClientViewSettings({
+        hiddenColumns: { ...storedHiding('price'), subcontractorPrice: true },
+      }).hiddenColumns,
     ).toEqual(['price'])
   })
 
   it('drops a subcontractor rate key hand-added to the stored settings', () => {
     const settings = sanitizeClientViewSettings({
-      hiddenColumns: ['price', planePriceKey('price', 'w_tools'), 'priceCoeff__own_tools'],
+      hiddenColumns: {
+        ...storedHiding('price'),
+        [planePriceKey('price', 'w_tools')]: true,
+        priceCoeff__own_tools: true,
+      },
     })
 
     expect(settings.hiddenColumns).toEqual(['price'])
@@ -83,7 +89,8 @@ describe('sanitizeClientViewSettings', () => {
 
   it('never lets „Opis prac" be hidden', () => {
     expect(
-      sanitizeClientViewSettings({ hiddenColumns: ['description', 'unit'] }).hiddenColumns,
+      sanitizeClientViewSettings({ hiddenColumns: { ...storedHiding('unit'), description: true } })
+        .hiddenColumns,
     ).toEqual(['unit'])
   })
 
@@ -92,7 +99,7 @@ describe('sanitizeClientViewSettings', () => {
     ['a rank on the pinned column', { description: 9, price: 2 }],
     ['a rank that is not a finite number', { price: 2, unit: Number.NaN, net: 'x' }],
   ])('drops %s from the stored order', (_label, columnRanks) => {
-    expect(sanitizeClientViewSettings({ hiddenColumns: [], columnRanks }).columnRanks).toEqual({
+    expect(sanitizeClientViewSettings({ columnRanks }).columnRanks).toEqual({
       price: 2,
     })
   })
@@ -114,7 +121,7 @@ describe('stored client view settings', () => {
 
   it('stores one choice per offered column and reads back to the same settings', () => {
     const settings = sanitizeClientViewSettings({
-      hiddenColumns: ['price', 'note'],
+      hiddenColumns: storedHiding('price', 'note'),
       columnRanks: { net: 1 },
     })
     const stored = toStoredClientViewSettings(settings)

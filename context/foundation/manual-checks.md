@@ -951,6 +951,9 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Inwestycja z kilkoma wpłatami inwestora, w tym jedną anulowaną → kosztorys (rozliczenie)
       oraz panel podsumowania inwestycji: widać te same wpłaty co przed zmianą, bez anulowanej,
       najnowsze na górze; wpłaty innej inwestycji się nie pojawiają.
+- [ ] Kosztorys → ustawienia widoku dla inwestora oraz widoku pracownika: odznacz jedną kolumnę,
+      zaznacz inną ukrytą domyślnie, zapisz i odśwież stronę — wybór się utrzymuje; podgląd i PDF
+      pokazują dokładnie te kolumny (odczyt starego formatu usunięty, zachowanie bez zmian).
 
 # Zamknięte — indeks
 

@@ -23,6 +23,8 @@ const ROW_SETTINGS = {
   columnRanks: { net: -1 },
 }
 const GLOBAL_SETTINGS = { hiddenColumns: ['remaining'], hideEmptyRows: true, columnRanks: {} }
+const STORED_ROW = toStoredClientViewSettings(ROW_SETTINGS)
+const STORED_GLOBAL = toStoredClientViewSettings(GLOBAL_SETTINGS)
 
 describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   let payload: Payload
@@ -44,7 +46,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     investmentWithoutRow = await createTestInvestment(payload, 'EX-695 client view spec (fallback)')
     await payload.create({
       collection: 'kosztorys-client-view',
-      data: { investment: investmentWithRow, ...ROW_SETTINGS },
+      data: { investment: investmentWithRow, ...STORED_ROW },
     })
   })
 
@@ -62,7 +64,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   })
 
   it("serves the investment's own row over the firm-wide default", async () => {
-    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: STORED_GLOBAL })
 
     expect(await getClientViewSettings(investmentWithRow)).toEqual(ROW_SETTINGS)
   })
@@ -71,7 +73,9 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     await payload.update({
       collection: 'kosztorys-client-view',
       where: { investment: { equals: investmentWithRow } },
-      data: { hiddenColumns: ['remaining', 'aiPlannedQty', 'priceMode'] },
+      data: {
+        hiddenColumns: { ...STORED_GLOBAL.hiddenColumns, aiPlannedQty: true, priceMode: true },
+      },
     })
 
     const settings = await getClientViewSettings(investmentWithRow)
@@ -79,7 +83,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   })
 
   it('resolves a row with no hidden set to the code default, not to the global', async () => {
-    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: STORED_GLOBAL })
     await payload.update({
       collection: 'kosztorys-client-view',
       where: { investment: { equals: investmentWithRow } },
@@ -90,23 +94,8 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   })
 
   it('falls back to the firm-wide default for an investment with no row', async () => {
-    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: STORED_GLOBAL })
 
-    expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
-  })
-
-  it('reads back the stored column map from the row and from the global', async () => {
-    await payload.update({
-      collection: 'kosztorys-client-view',
-      where: { investment: { equals: investmentWithRow } },
-      data: toStoredClientViewSettings(ROW_SETTINGS),
-    })
-    await payload.updateGlobal({
-      slug: 'kosztorys-client-view-defaults',
-      data: toStoredClientViewSettings(GLOBAL_SETTINGS),
-    })
-
-    expect(await getClientViewSettings(investmentWithRow)).toEqual(ROW_SETTINGS)
     expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
   })
 
@@ -118,7 +107,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     })
     await payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
-      data: { ...GLOBAL_SETTINGS, columnRanks: { plannedQty: -1 } },
+      data: { ...STORED_GLOBAL, columnRanks: { plannedQty: -1 } },
     })
 
     const read = await getClientViewSettingsRead(investmentWithRow)

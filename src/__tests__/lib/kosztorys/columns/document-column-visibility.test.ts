@@ -6,24 +6,16 @@ import {
 
 const CEILING: ReadonlySet<string> = new Set(['description', 'price', 'note', 'net'])
 const DEFAULT_HIDDEN: ReadonlySet<string> = new Set(['note'])
-const LEGACY: ReadonlySet<string> = CEILING
 
 describe('resolveHiddenColumns', () => {
   it('reads a column the stored map does not mention as its code default', () => {
-    expect(resolveHiddenColumns({ price: false }, CEILING, DEFAULT_HIDDEN, LEGACY).sort()).toEqual([
-      'note',
-    ])
-    expect(resolveHiddenColumns({ note: false }, CEILING, DEFAULT_HIDDEN, LEGACY)).toEqual([])
+    expect(resolveHiddenColumns({ price: false }, CEILING, DEFAULT_HIDDEN).sort()).toEqual(['note'])
+    expect(resolveHiddenColumns({ note: false }, CEILING, DEFAULT_HIDDEN)).toEqual([])
   })
 
   it("keeps an owner's stored choice over the default, in both directions", () => {
     expect(
-      resolveHiddenColumns(
-        { price: true, note: false, net: false },
-        CEILING,
-        DEFAULT_HIDDEN,
-        LEGACY,
-      ),
+      resolveHiddenColumns({ price: true, note: false, net: false }, CEILING, DEFAULT_HIDDEN),
     ).toEqual(['price'])
   })
 
@@ -33,40 +25,19 @@ describe('resolveHiddenColumns', () => {
         { description: true, subcontractorPrice: true, note: false },
         CEILING,
         DEFAULT_HIDDEN,
-        LEGACY,
       ),
     ).toEqual([])
   })
 
   it('reads a non-boolean entry as the code default', () => {
-    expect(
-      resolveHiddenColumns({ note: 'yes', price: 1 }, CEILING, DEFAULT_HIDDEN, LEGACY),
-    ).toEqual(['note'])
-  })
-
-  it('still reads a legacy hidden array as it always did', () => {
-    expect(
-      resolveHiddenColumns(
-        ['price', 'description', 'subcontractorPrice', 7],
-        CEILING,
-        DEFAULT_HIDDEN,
-        LEGACY,
-      ),
-    ).toEqual(['price'])
-  })
-
-  it('reads a column the legacy array was not written against as its code default', () => {
-    const legacyWithoutNote: ReadonlySet<string> = new Set(['description', 'price', 'net'])
-
-    expect(resolveHiddenColumns(['price'], CEILING, DEFAULT_HIDDEN, legacyWithoutNote)).toEqual([
-      'price',
+    expect(resolveHiddenColumns({ note: 'yes', price: 1 }, CEILING, DEFAULT_HIDDEN)).toEqual([
       'note',
     ])
   })
 
-  it('reads anything that is neither a map nor an array as the code default', () => {
+  it('reads anything that is not a map as the code default', () => {
     for (const stored of [null, undefined, 'price', 3]) {
-      expect(resolveHiddenColumns(stored, CEILING, DEFAULT_HIDDEN, LEGACY)).toEqual(['note'])
+      expect(resolveHiddenColumns(stored, CEILING, DEFAULT_HIDDEN)).toEqual(['note'])
     }
   })
 })
@@ -76,6 +47,6 @@ describe('toHiddenColumnMap', () => {
     const map = toHiddenColumnMap(['price'], CEILING)
 
     expect(map).toEqual({ price: true, note: false, net: false })
-    expect(resolveHiddenColumns(map, CEILING, DEFAULT_HIDDEN, LEGACY)).toEqual(['price'])
+    expect(resolveHiddenColumns(map, CEILING, DEFAULT_HIDDEN)).toEqual(['price'])
   })
 })
