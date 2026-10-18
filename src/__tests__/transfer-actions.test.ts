@@ -74,15 +74,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const mockDbExecute = vi.fn()
-const queriedTables = (): string =>
-  mockDbExecute.mock.calls
-    .map(
-      ([query]) =>
-        (query as { queryChunks?: { value?: string[] }[] })?.queryChunks
-          ?.map((chunk) => chunk?.value?.join('') ?? '')
-          .join('') ?? '',
-    )
-    .join(' ')
 
 vi.mock('@/lib/db/get-db', () => ({
   getDb: vi.fn().mockResolvedValue({
@@ -187,13 +178,6 @@ beforeEach(() => {
 })
 
 describe('createTransferAction', () => {
-  it('valid INVESTOR_DEPOSIT → success', async () => {
-    const result = await createTransferAction(makeDepositData())
-
-    expect(result.success).toBe(true)
-    expect(mockCreate).toHaveBeenCalledOnce()
-  })
-
   // `success` alone cannot tell "the row landed as asked" from "the row landed wrong", since
   // payload.create is mocked and the hook that would clear a stray investment never runs here.
   it.each(['COMPANY_FUNDING', 'OTHER_DEPOSIT'])(
@@ -228,64 +212,25 @@ describe('createTransferAction', () => {
     )
   })
 
-  it('valid PAYOUT → success', async () => {
-    const result = await createTransferAction(
-      makeSingleTransferData({ type: 'PAYOUT', investment: undefined, worker: 1 }),
-    )
-
-    expect(result.success).toBe(true)
-  })
-
-  it('LABOR_COST → skips validateSourceRegister (no register lookup)', async () => {
-    await createTransferAction(
-      makeSingleTransferData({ type: 'LABOR_COST', sourceRegister: undefined }),
-    )
-
-    // Named on the statement rather than on „no DB call at all": the completed-investment gate
-    // queries too, and it is not what this test is about.
-    expect(queriedTables()).not.toContain('cash_registers')
-  })
-
-  it('missing amount → returns validation error', async () => {
-    const result = await createTransferAction(
-      makeSingleTransferData({ amount: undefined }) as never,
-    )
+  it.each([
+    ['no amount', { amount: undefined }],
+    ['an unknown type', { type: 'INVALID_TYPE' }],
+    ['no date', { date: '' }],
+  ])('refuses a transfer with %s', async (_label, overrides) => {
+    const result = await createTransferAction(makeSingleTransferData(overrides) as never)
 
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBeTruthy()
+    expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('invalid type → returns validation error', async () => {
-    const result = await createTransferAction(
-      makeSingleTransferData({ type: 'INVALID_TYPE' }) as never,
-    )
-
-    expect(result.success).toBe(false)
-  })
-
-  it('missing date → returns validation error', async () => {
-    const result = await createTransferAction(makeSingleTransferData({ date: '' }))
-
-    expect(result.success).toBe(false)
-  })
-
-  it('invoice page list → passes it straight to payload.create', async () => {
-    await createTransferAction(makeSingleTransferData(), [42, 43])
+  it.each([
+    ['its page list', [42, 43], [42, 43]],
+    ['no page list', undefined, undefined],
+  ])('passes %s straight to payload.create', async (_label, pages, invoice) => {
+    await createTransferAction(makeSingleTransferData(), pages)
 
     expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ invoice: [42, 43] }),
-      }),
-    )
-  })
-
-  it('no invoice → passes undefined as invoice', async () => {
-    await createTransferAction(makeSingleTransferData())
-
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ invoice: undefined }),
-      }),
+      expect.objectContaining({ data: expect.objectContaining({ invoice }) }),
     )
   })
 
@@ -356,17 +301,20 @@ describe('createTransferAction', () => {
 })
 
 describe('createBulkTransferAction', () => {
-  it('valid bulk with correct data per item → each create has correct item data', async () => {
-    const data = makeBulkTransferData(3)
-    const result = await createBulkTransferAction(data)
+  it('books each line with its own data in one transaction', async () => {
+    const result = await createBulkTransferAction(makeBulkTransferData(3))
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledTimes(3)
+    expect(mockBeginTransaction).toHaveBeenCalledOnce()
+    expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
+    expect(mockRollbackTransaction).not.toHaveBeenCalled()
 
     for (let i = 0; i < 3; i++) {
       expect(mockCreate.mock.calls[i][0]).toEqual(
         expect.objectContaining({
           collection: 'transactions',
+          req: { transactionID: TX_ID, context: { skipSheetSync: true } },
           data: expect.objectContaining({
             description: `Item ${i + 1}`,
             amount: 100,
@@ -382,22 +330,11 @@ describe('createBulkTransferAction', () => {
     }
   })
 
-  it('schema validation failure — empty lineItems → returns error', async () => {
-    const result = await createBulkTransferAction(
-      makeBulkTransferData(0, { lineItems: [] }) as never,
-    )
-
-    expect(result.success).toBe(false)
-    expect(mockCreate).not.toHaveBeenCalled()
-  })
-
-  it('schema validation failure — zero amount in lineItem → returns error', async () => {
-    const data = {
-      ...makeBulkTransferData(1),
-      lineItems: [{ description: 'Bad', amount: 0 }],
-    }
-
-    const result = await createBulkTransferAction(data as never)
+  it.each([
+    ['no line items', { lineItems: [] }],
+    ['a zero-amount line', { lineItems: [{ description: 'Bad', amount: 0 }] }],
+  ])('refuses a batch with %s', async (_label, overrides) => {
+    const result = await createBulkTransferAction(makeBulkTransferData(1, overrides) as never)
 
     expect(result.success).toBe(false)
     expect(mockCreate).not.toHaveBeenCalled()
@@ -412,25 +349,6 @@ describe('createBulkTransferAction', () => {
     if (!result.success) expect(result.error).toBe('Kasa nie istnieje')
     expect(mockCreate).not.toHaveBeenCalled()
     expect(mockBeginTransaction).not.toHaveBeenCalled()
-  })
-
-  it('large batch (40 items) → all 40 creates called sequentially with transaction', async () => {
-    mockCreate.mockResolvedValue({ id: 1 })
-
-    const result = await createBulkTransferAction(makeBulkTransferData(40))
-
-    expect(result.success).toBe(true)
-    expect(mockCreate).toHaveBeenCalledTimes(40)
-    expect(mockBeginTransaction).toHaveBeenCalledOnce()
-    expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
-    expect(mockRollbackTransaction).not.toHaveBeenCalled()
-
-    for (const call of mockCreate.mock.calls) {
-      expect(call[0]).toHaveProperty('req', {
-        transactionID: TX_ID,
-        context: { skipSheetSync: true },
-      })
-    }
   })
 
   it('each create gets its own row’s invoice pages, and a page-less row gets none', async () => {
@@ -475,32 +393,49 @@ describe('createBulkTransferAction', () => {
     expect(mockCreate.mock.calls[0][0].data).toEqual(expect.objectContaining({ otherCategory: 3 }))
   })
 
-  it('transaction rollback when create fails mid-batch', async () => {
-    mockCreate
-      .mockResolvedValueOnce({ id: 1 })
-      .mockRejectedValueOnce(new Error('Constraint violation'))
+  const writtenWorkers = () => mockCreate.mock.calls.map((call) => call[0].data.worker)
 
-    const result = await createBulkTransferAction(makeBulkTransferData(3))
+  it('OTHER writes each row its own worker, or none', async () => {
+    await createBulkTransferAction({
+      type: 'OTHER' as const,
+      date: '2026-10-08',
+      paymentMethod: 'CASH' as const,
+      sourceRegister: 1,
+      lineItems: [
+        { description: 'Wiertarka', amount: 300, category: 9, worker: 5 },
+        { description: 'Wkrętarka', amount: 200, category: 9 },
+      ],
+    })
 
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Constraint violation')
-    expect(mockRollbackTransaction).toHaveBeenCalledWith(TX_ID)
-    expect(mockCommitTransaction).not.toHaveBeenCalled()
+    expect(writtenWorkers()).toEqual([5, undefined])
+  })
+
+  it('PAYOUT writes the form-level worker into every row, ignoring a per-row one', async () => {
+    await createBulkTransferAction({
+      type: 'PAYOUT' as const,
+      date: '2026-10-08',
+      paymentMethod: 'CASH' as const,
+      sourceRegister: 1,
+      worker: 9,
+      lineItems: [
+        { description: 'Zaliczka', amount: 300, worker: 5 },
+        { description: 'Zaliczka', amount: 200 },
+      ],
+    })
+
+    expect(writtenWorkers()).toEqual([9, 9])
   })
 })
 
 describe('BONUS — only ADMIN / OWNER grant a premia', () => {
   const bonus = { type: 'BONUS' as const, sourceRegister: undefined, worker: 1 }
 
-  it('refuses a MANAGER on the single and the bulk path, writing nothing', async () => {
+  it('refuses a MANAGER on the bulk path, writing nothing', async () => {
     mockRequireAuth.mockResolvedValue({ success: true, user: managerUser })
 
-    const single = await createTransferAction(makeSingleTransferData(bonus))
-    const bulk = await createBulkTransferAction(makeBulkTransferData(1, bonus))
+    const result = await createBulkTransferAction(makeBulkTransferData(1, bonus))
 
-    for (const result of [single, bulk]) {
-      expect(result).toEqual({ success: false, error: BONUS_FORBIDDEN_MESSAGE })
-    }
+    expect(result).toEqual({ success: false, error: BONUS_FORBIDDEN_MESSAGE })
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
@@ -511,173 +446,6 @@ describe('BONUS — only ADMIN / OWNER grant a premia', () => {
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledOnce()
-  })
-})
-
-describe('cancelTransferAction', () => {
-  it('success → marks original cancelled + creates CANCELLATION audit row', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(true)
-
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        id: 10,
-        data: { cancelled: true },
-      }),
-    )
-
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        data: expect.objectContaining({
-          type: 'CANCELLATION',
-          amount: 500,
-          cancelledTransaction: 10,
-          createdBy: adminUser.id,
-        }),
-      }),
-    )
-  })
-
-  it('transfer not found → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(null)
-
-    const result = await cancelTransferAction(999, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Transakcja nie istnieje.')
-    expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockCreate).not.toHaveBeenCalled()
-  })
-
-  it('already cancelled → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ cancelled: true }))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Transakcja jest już anulowana.')
-    expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockCreate).not.toHaveBeenCalled()
-  })
-
-  it('permission: creator (MANAGER) can cancel own transfer', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(true)
-  })
-
-  it('permission: ADMIN can cancel any transfer', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: adminUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(true)
-  })
-
-  it('permission: OWNER can cancel any transfer', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: ownerUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(true)
-  })
-
-  it('permission: MANAGER who did not create → cannot cancel', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: otherManagerUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error).toBe('Nie masz uprawnień do anulowania tej transakcji.')
-    }
-    expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockCreate).not.toHaveBeenCalled()
-  })
-
-  it('CANCELLATION audit row has correct data → amount, date, cancelledTransaction reference', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ createdBy: adminUser.id, amount: 777, paymentMethod: 'CASH' }),
-    )
-
-    await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    // Warsaw's day, not UTC's: the two differ between 00:00 and 02:00 local time.
-    const today = warsawToday()
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        data: expect.objectContaining({
-          type: 'CANCELLATION',
-          amount: 777,
-          date: today,
-          description: `Anulowanie transakcji #10\n${VALID_CANCEL_REASON}`,
-          cancelledTransaction: 10,
-          createdBy: adminUser.id,
-        }),
-      }),
-    )
-    // The original's method is NOT copied: an anulowanie was never asked how it was paid, and a
-    // borrowed „Gotówka" would answer for it in the column and the filter.
-    expect(mockCreate.mock.calls[0][0].data).not.toHaveProperty('paymentMethod')
-  })
-
-  it('createdBy as object (populated relation) → extracts id correctly', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ createdBy: { id: managerUser.id, name: 'Manager' } }),
-    )
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(true)
-  })
-
-  it('payload.update failure → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
-    mockUpdate.mockRejectedValueOnce(new Error('Update failed'))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Update failed')
-    expect(mockCreate).not.toHaveBeenCalled()
-  })
-
-  it('payload.create failure (audit row) → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
-    mockUpdate.mockResolvedValueOnce({ id: 10 })
-    mockCreate.mockRejectedValueOnce(new Error('Audit row creation failed'))
-
-    const result = await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Audit row creation failed')
-  })
-
-  it('findByID called with correct collection and depth 0', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
-
-    await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
-
-    expect(mockFindByID).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        id: 10,
-        depth: 0,
-      }),
-    )
   })
 })
 
@@ -693,11 +461,96 @@ function makeUpdateData(overrides = {}) {
   }
 }
 
+describe.each([
+  [
+    'cancelTransferAction',
+    () => cancelTransferAction(10, { reason: VALID_CANCEL_REASON }),
+    'anulowania',
+  ],
+  ['updateTransferAction', () => updateTransferAction(10, makeUpdateData()), 'edycji'],
+])('%s — reading and authorizing the transfer', (_action, run, verb) => {
+  it.each([
+    ['its MANAGER creator', managerUser, managerUser.id],
+    [
+      'its MANAGER creator, createdBy populated',
+      managerUser,
+      { id: managerUser.id, name: 'Manager' },
+    ],
+    ['an ADMIN', adminUser, managerUser.id],
+    ['an OWNER', ownerUser, managerUser.id],
+  ])('lets %s through', async (_label, user, createdBy) => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy }))
+
+    expect((await run()).success).toBe(true)
+  })
+
+  it.each([
+    ['a missing transfer', adminUser, null, 'Transakcja nie istnieje.'],
+    [
+      'an anulowanie',
+      adminUser,
+      makeOriginalTransfer({ type: 'CANCELLATION', createdBy: adminUser.id }),
+      'Nie można edytować anulowania.',
+    ],
+    [
+      "another MANAGER's transfer",
+      otherManagerUser,
+      makeOriginalTransfer({ createdBy: managerUser.id }),
+      `Nie masz uprawnień do ${verb} tej transakcji.`,
+    ],
+  ])('refuses %s, writing nothing', async (_label, user, original, error) => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user })
+    mockFindByID.mockResolvedValueOnce(original)
+
+    expect(await run()).toEqual({ success: false, error })
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('reads the transfer at depth 0', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+
+    await run()
+
+    expect(mockFindByID).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: 'transactions', id: 10, depth: 0 }),
+    )
+  })
+
+  it('payload.update failure → returns error, writing nothing after it', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+    mockUpdate.mockRejectedValueOnce(new Error('Update failed'))
+
+    const result = await run()
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Update failed')
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+})
+
+describe('cancelTransferAction', () => {
+  it('the CANCELLATION row is booked by the canceller and borrows no payment method', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: managerUser.id, paymentMethod: 'CASH' }),
+    )
+
+    await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
+
+    const { data } = mockCreate.mock.calls[0][0]
+    expect(data).toEqual(expect.objectContaining({ type: 'CANCELLATION', createdBy: adminUser.id }))
+    // The original's method is NOT copied: an anulowanie was never asked how it was paid, and a
+    // borrowed „Gotówka" would answer for it in the column and the filter.
+    expect(data).not.toHaveProperty('paymentMethod')
+  })
+})
+
 describe('updateTransferAction', () => {
   it('success → updates transaction with editable fields + updatedBy', async () => {
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
 
-    const result = await updateTransferAction(10, makeUpdateData())
+    const result = await updateTransferAction(10, makeUpdateData({ investment: 3 }))
 
     expect(result.success).toBe(true)
     expect(mockUpdate).toHaveBeenCalledWith(
@@ -708,6 +561,7 @@ describe('updateTransferAction', () => {
           description: 'Updated description',
           date: '2026-03-01',
           paymentMethod: 'CASH',
+          investment: 3,
           updatedBy: adminUser.id,
         }),
       }),
@@ -734,35 +588,23 @@ describe('updateTransferAction', () => {
     },
   )
 
-  it('a legacy wpłata with no plane takes the one the edit names', async () => {
+  const editLegacyDeposit = (edit: object) => {
     mockFindByID.mockResolvedValueOnce(
       makeOriginalTransfer({ type: 'INVESTOR_DEPOSIT', vatPlane: null, createdBy: adminUser.id }),
     )
+    return updateTransferAction(10, makeUpdateData(edit))
+  }
 
-    const result = await updateTransferAction(
-      10,
-      makeUpdateData({ vatPlane: 'GROSS', netAmount: 400 }),
-    )
+  it.each([
+    ['the plane the edit names', 'GROSS', 400, 400],
+    ['gotówka with no netto', 'NET', undefined, null],
+  ])('a legacy wpłata with no plane takes %s', async (_label, vatPlane, netAmount, written) => {
+    const result = await editLegacyDeposit({ vatPlane, netAmount })
 
     expect(result.success).toBe(true)
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ vatPlane: 'GROSS', netAmount: 400 }),
-      }),
-    )
-  })
-
-  it('a legacy wpłata filled in as gotówka takes the plane with no netto', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ type: 'INVESTOR_DEPOSIT', vatPlane: null, createdBy: adminUser.id }),
-    )
-
-    const result = await updateTransferAction(10, makeUpdateData({ vatPlane: 'NET' }))
-
-    expect(result.success).toBe(true)
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ vatPlane: 'NET', netAmount: null }),
+        data: expect.objectContaining({ vatPlane, netAmount: written }),
       }),
     )
   })
@@ -771,128 +613,11 @@ describe('updateTransferAction', () => {
     ['no netto at all', undefined, 'Kwota netto jest wymagana'],
     ['a netto above the brutto', 900, 'Kwota netto nie może przekraczać kwoty brutto'],
   ])('refuses a brutto fill-in with %s', async (_label, netAmount, error) => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ type: 'INVESTOR_DEPOSIT', vatPlane: null, createdBy: adminUser.id }),
-    )
-
-    const result = await updateTransferAction(10, makeUpdateData({ vatPlane: 'GROSS', netAmount }))
+    const result = await editLegacyDeposit({ vatPlane: 'GROSS', netAmount })
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe(error)
     expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
-  it('cancelled transaction → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ cancelled: true }))
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Transakcja jest już anulowana.')
-    expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
-  it('CANCELLATION type → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ type: 'CANCELLATION', createdBy: adminUser.id }),
-    )
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Nie można edytować anulowania.')
-    expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
-  it('transaction not found → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(null)
-
-    const result = await updateTransferAction(999, makeUpdateData())
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Transakcja nie istnieje.')
-  })
-
-  it('permission: MANAGER can edit own transaction', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(true)
-  })
-
-  it('permission: MANAGER cannot edit another users transaction', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: otherManagerUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error).toBe('Nie masz uprawnień do edycji tej transakcji.')
-    }
-    expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
-  it('permission: ADMIN can edit any transaction', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: adminUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(true)
-  })
-
-  it('permission: OWNER can edit any transaction', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: ownerUser })
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(true)
-  })
-
-  it('createdBy as populated object → extracts id correctly', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ createdBy: { id: managerUser.id, name: 'Manager' } }),
-    )
-    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(true)
-  })
-
-  it('payload.update failure → returns error', async () => {
-    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
-    mockUpdate.mockRejectedValueOnce(new Error('Update failed'))
-
-    const result = await updateTransferAction(10, makeUpdateData())
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Update failed')
-  })
-
-  it('passes all edited fields to payload.update', async () => {
-    const original = makeOriginalTransfer({
-      createdBy: adminUser.id,
-      sourceRegister: 5,
-      investment: 2,
-      type: 'INVESTMENT_EXPENSE',
-    })
-    mockFindByID.mockResolvedValueOnce(original)
-
-    await updateTransferAction(10, makeUpdateData({ investment: 3 }))
-
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          investment: 3,
-          updatedBy: adminUser.id,
-        }),
-      }),
-    )
   })
 
   it('newly uploaded pages append to the ones already attached', async () => {
@@ -929,89 +654,47 @@ describe('updateTransferAction', () => {
     expect(mockSyncSingle).not.toHaveBeenCalled()
     expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ['OTHER sets the worker', 'OTHER', 3, 3],
+    ['OTHER clears the worker with null', 'OTHER', null, null],
+    ['PAYOUT drops the worker key', 'PAYOUT', 3, 'absent'],
+  ])('%s', async (_label, type, worker, written) => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type, createdBy: adminUser.id }))
+
+    await updateTransferAction(10, makeUpdateData({ worker }))
+
+    const { data } = mockUpdate.mock.calls[0][0]
+    expect('worker' in data ? data.worker : 'absent').toBe(written)
+  })
 })
 
 describe('addTransferInvoicesAction', () => {
-  it('appends the new page to the pages already attached', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [55, 56] })
+  // setUploadField is a read-modify-write, so every batch must land in ONE update.
+  it.each([
+    ['appends the new page to the pages already attached', [55, 56], [88], [55, 56, 88]],
+    ['a whole batch lands in pick order', [55], [88, 89, 90], [55, 88, 89, 90]],
+    ['reads ids out of populated media docs', [{ id: 55, filename: 'p1.jpg' }], [88], [55, 88]],
+    ['re-adding an attached page is a no-op rather than a duplicate', [88], [88], [88]],
+    [
+      'a batch mixing attached and new ids appends only the new ones',
+      [55, 56],
+      [56, 88],
+      [55, 56, 88],
+    ],
+    ['the same id twice in one batch attaches one page', [], [88, 88, 89], [88, 89]],
+    ['first page on an invoice-less transfer → one-page list', null, [88], [88]],
+  ])('%s', async (_label, attached, added, invoice) => {
+    mockFindByID.mockResolvedValueOnce({ invoice: attached })
 
-    const result = await addTransferInvoicesAction(10, [88])
+    const result = await addTransferInvoicesAction(10, added)
 
     expect(result.success).toBe(true)
+    expect(mockUpdate).toHaveBeenCalledOnce()
     expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        id: 10,
-        data: { invoice: [55, 56, 88] },
-      }),
+      expect.objectContaining({ collection: 'transactions', id: 10, data: { invoice } }),
     )
-  })
-
-  // setTransferInvoices is a read-modify-write, so a
-  // page-at-a-time caller would race and keep only the last one.
-  it('a whole batch lands in pick order in ONE update', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [55] })
-
-    await addTransferInvoicesAction(10, [88, 89, 90])
-
-    expect(mockUpdate).toHaveBeenCalledTimes(1)
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { invoice: [55, 88, 89, 90] } }),
-    )
-  })
-
-  it('appending keeps every existing page — nothing is deleted', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [55] })
-
-    await addTransferInvoicesAction(10, [88])
-
     expect(mockDelete).not.toHaveBeenCalledWith(expect.objectContaining({ collection: 'media' }))
-  })
-
-  it('reads ids out of populated media docs, not just raw ids', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [{ id: 55, filename: 'p1.jpg' }] })
-
-    await addTransferInvoicesAction(10, [88])
-
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { invoice: [55, 88] } }),
-    )
-  })
-
-  it('re-adding an attached page is a no-op rather than a duplicate', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [88] })
-
-    await addTransferInvoicesAction(10, [88])
-
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { invoice: [88] } }))
-  })
-
-  it('a batch mixing attached and new ids appends only the new ones', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [55, 56] })
-
-    await addTransferInvoicesAction(10, [56, 88])
-
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { invoice: [55, 56, 88] } }),
-    )
-  })
-
-  it('the same id twice in one batch attaches one page', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: [] })
-
-    await addTransferInvoicesAction(10, [88, 88, 89])
-
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { invoice: [88, 89] } }),
-    )
-  })
-
-  it('first page on an invoice-less transfer → one-page list', async () => {
-    mockFindByID.mockResolvedValueOnce({ invoice: null })
-
-    await addTransferInvoicesAction(10, [88])
-
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { invoice: [88] } }))
   })
 
   it('an empty batch touches nothing', async () => {
@@ -1126,39 +809,5 @@ describe('deleteOrphanedMediaAction', () => {
 
     expect(result.success).toBe(true)
     expect(mockDelete).toHaveBeenCalledTimes(2)
-  })
-})
-
-describe('updateTransferAction — worker', () => {
-  const writtenData = () => mockUpdate.mock.calls[0][0].data
-
-  it('OTHER: sets the worker', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }),
-    )
-
-    await updateTransferAction(10, makeUpdateData({ worker: 3 }))
-
-    expect(writtenData().worker).toBe(3)
-  })
-
-  it('OTHER: null clears the worker', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }),
-    )
-
-    await updateTransferAction(10, makeUpdateData({ worker: null }))
-
-    expect(writtenData()).toHaveProperty('worker', null)
-  })
-
-  it('PAYOUT: the worker key is dropped', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ type: 'PAYOUT', createdBy: adminUser.id }),
-    )
-
-    await updateTransferAction(10, makeUpdateData({ worker: 3 }))
-
-    expect(writtenData()).not.toHaveProperty('worker')
   })
 })

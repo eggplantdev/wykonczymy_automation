@@ -17,6 +17,7 @@ import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { warsawToday } from '@/lib/utils/days'
+import { authState } from '@/__tests__/stubs/require-auth'
 
 vi.mock('server-only', () => ({}))
 // after() schedules the sheet sync and the payout push (live credentials); it also throws outside a
@@ -25,13 +26,7 @@ vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return { ...actual, after: () => {} }
 })
-const authState = vi.hoisted(() => ({ userId: 0, role: 'OWNER' }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
-  })),
-}))
+vi.mock('@/lib/auth/require-auth', () => import('@/__tests__/stubs/require-auth'))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const {
@@ -314,67 +309,31 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
         worker_id, payment_method::text AS payment_method, payout_status::text AS payout_status
       FROM transactions WHERE description LIKE ${`${MARKER} step %`} ORDER BY id
     `)
-    const noRegister = { source_register_id: null, target_register_id: null }
-    const noPayout = { payment_method: null, payout_status: null }
+    const fromA = { source_register_id: registerA, target_register_id: null }
+    const row = (type: string, carried: Record<string, unknown> = {}) => ({
+      type,
+      source_register_id: null,
+      target_register_id: null,
+      investment_id: investmentId,
+      worker_id: null,
+      payment_method: null,
+      payout_status: null,
+      ...carried,
+    })
     expect(persisted.rows).toEqual([
-      {
-        type: 'INVESTOR_DEPOSIT',
-        source_register_id: registerA,
-        target_register_id: null,
-        investment_id: investmentId,
-        worker_id: null,
-        payment_method: 'CASH',
-        payout_status: null,
-      },
-      {
-        type: 'INVESTMENT_EXPENSE',
-        source_register_id: registerA,
-        target_register_id: null,
-        investment_id: investmentId,
-        worker_id: null,
-        ...noPayout,
-      },
-      {
-        type: 'CORRECTION',
-        source_register_id: registerA,
-        target_register_id: null,
-        investment_id: investmentId,
-        worker_id: null,
-        ...noPayout,
-      },
-      {
-        type: 'LABOR_COST',
-        ...noRegister,
-        investment_id: investmentId,
-        worker_id: null,
-        ...noPayout,
-      },
-      { type: 'RABAT', ...noRegister, investment_id: investmentId, worker_id: null, ...noPayout },
-      { type: 'LOSS', ...noRegister, investment_id: investmentId, worker_id: null, ...noPayout },
-      {
-        type: 'PAYOUT',
-        source_register_id: registerA,
-        target_register_id: null,
-        investment_id: investmentId,
-        worker_id: workerId,
-        payment_method: null,
-        payout_status: 'pending',
-      },
-      {
-        type: 'BONUS',
-        ...noRegister,
-        investment_id: investmentId,
-        worker_id: workerId,
-        ...noPayout,
-      },
-      {
-        type: 'REGISTER_TRANSFER',
+      row('INVESTOR_DEPOSIT', { ...fromA, payment_method: 'CASH' }),
+      row('INVESTMENT_EXPENSE', fromA),
+      row('CORRECTION', fromA),
+      row('LABOR_COST'),
+      row('RABAT'),
+      row('LOSS'),
+      row('PAYOUT', { ...fromA, worker_id: workerId, payout_status: 'pending' }),
+      row('BONUS', { worker_id: workerId }),
+      row('REGISTER_TRANSFER', {
         source_register_id: registerA,
         target_register_id: registerB,
         investment_id: null,
-        worker_id: null,
-        ...noPayout,
-      },
+      }),
     ])
   })
 

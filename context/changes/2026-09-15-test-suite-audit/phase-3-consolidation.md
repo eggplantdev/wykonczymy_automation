@@ -8,8 +8,8 @@ Rule per change: every assertion keeps its discriminating power — a consolidat
 the same mutation the old case failed on. One-line boilerplate (`vi.mock('server-only')`, `ENV_READY`)
 is not worth the churn and stays.
 
-Out of scope: `transfer-actions.test.ts`, `bulk-transaction.test.ts`, `lib/actions/transfers.db.test.ts`
-— rewritten by the `transfer-actions-db-spec` change.
+The transfer specs waited for the `transfer-actions-db-spec` change to land; their section below also
+carries the phase-2 drops the new DB spec made redundant.
 
 ## Findings
 
@@ -78,6 +78,31 @@ Out of scope: `transfer-actions.test.ts`, `bulk-transaction.test.ts`, `lib/actio
 - [x] · fixed · dedup · `serialize-restore-roundtrip` + `serialize-apply-preset` near-copies of a canonicalizer → `helpers/canonical-snapshot.ts`; roundtrip adopts `firstUserId` + local `restore()`; preset zero checks → `toMatchObject(ZEROED_JOB_FIGURES)` · −82 (−129 / +47 helper)
 - [x] · dismissed · it.each · `columns/column-totals` · every case asserts a different figure
 - [x] · dropped · it.each · `templates/serialize-template` fixture loop · same length after prettier
+
+### transfer specs (−523 net)
+
+Mutation-checked in `lib/actions/transfers.ts`: CANCELLATION-type refusal, PAYOUT worker drop on edit, bulk
+form-level worker, refusal permission verb, depth 0, legacy wpłata `netAmount ?? null`, CANCELLATION
+`createdBy` — each broken guard fails a merged case.
+
+- [x] · dropped · R-db · `transfer-actions` valid INVESTOR_DEPOSIT / PAYOUT → success · −17 / `transfers.db.test.ts:208` ledger steps 1, 7
+- [x] · dropped · R-db · `transfer-actions` LABOR_COST skips `validateSourceRegister` + `queriedTables` · −19 / `transfers.db.test.ts:208` step 4
+- [x] · dropped · R-db · `transfer-actions` rollback mid-batch · −12 / `transfers.db.test.ts:429`
+- [x] · dropped · R-db · `bulk-transaction.test.ts` deleted; rollback → `transfers.db.test.ts:429`, its two worker-per-row cases moved to `transfer-actions` · −131
+- [x] · dropped · R-db · `transfer-actions` cancel success · −27 / `transfers.db.test.ts:498`
+- [x] · dropped · R-db · `transfer-actions` cancel / update on a cancelled row · −20 / `transfers.db.test.ts:551` (shared `fetchAndAuthorize`)
+- [x] · dropped · R-db · `transfer-actions` cancel audit-row create failure · −10 / `transfers.db.test.ts:487`
+- [x] · dropped · R-db · `transfer-actions` BONUS MANAGER refusal, single path · `transfers.db.test.ts:381`; bulk half stays
+- [x] · fixed · trim · `transfer-actions` CANCELLATION audit row asserts only `createdBy` = canceller (now ≠ creator) and no `paymentMethod` · −12
+- [x] · fixed · merge · `transfer-actions` update „passes all edited fields" folded into update success · −20
+- [x] · fixed · describe.each · `transfer-actions` cancel + update permission matrices → one table over both actions (4 allow, 3 refuse with no-write assert, depth 0, update failure) · −150
+- [x] · fixed · it.each · `transfer-actions` create validation refusals, invoice pass-through, bulk validation refusals · −35
+- [x] · fixed · merge · `transfer-actions` bulk per-item data + 40-item batch → one 3-line case checking `req` / `skipSheetSync` per line · −20
+- [x] · fixed · it.each + helper · `transfer-actions` legacy wpłata fill-ins (`editLegacyDeposit`), update worker cases, 7 invoice-append cases · −100
+- [x] · fixed · stub adoption · `transfers.db` hand-rolled auth mock → `stubs/require-auth` · −6
+- [x] · fixed · helper · `transfers.db` per-type column case → `row(type, carried)` · −41
+- [x] · dismissed · `transfer-actions` „manager can transfer from any register", „does not sync the sheet directly" · kept by `phase-1-dead-tests.md:31-32`, no DB case covers them
+- [x] · dismissed · `transfer-actions` invoice actions, `deleteOrphanedMediaAction`, permission rows · sole guards of `setUploadField` / `appendUploadIds` / `canMutateTransfer` / `canBookTransferType`
 
 ### Cross-cutting boilerplate (≈−550 net)
 
