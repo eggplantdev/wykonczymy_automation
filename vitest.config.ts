@@ -45,19 +45,18 @@ function stubServerActions(): Plugin {
 }
 
 // A spec that mocks a module would leak that mock into every later file sharing the module cache.
-const dbSpecs = globSync('src/__tests__/**/*.db.test.ts')
+const dbSpecs = globSync('src/__tests__/**/*.db.test.ts', { cwd: __dirname })
 const mocksModules = (file: string) =>
-  /\bvi\.(mock|doMock|spyOn)\(/.test(readFileSync(file, 'utf8'))
+  /\bvi\.(mock|doMock|spyOn)\(/.test(readFileSync(path.join(__dirname, file), 'utf8'))
 const dbSpecsThatMock = dbSpecs.filter(mocksModules)
 const dbSpecsMockFree = dbSpecs.filter((file) => !mocksModules(file))
 
+const baseTest = { globals: true, css: false, clearMocks: true, restoreMocks: true }
+
 const nodeTest = {
-  globals: true,
-  css: false,
+  ...baseTest,
   testTimeout: 15_000,
   unstubEnvs: true,
-  clearMocks: true,
-  restoreMocks: true,
   setupFiles: ['./src/__tests__/setup/node.ts'],
 }
 
@@ -107,14 +106,11 @@ export default defineConfig({
         css: postcss,
         plugins: [stubServerActions()],
         test: {
+          ...baseTest,
           name: 'dom',
-          globals: true,
           include: ['src/__tests__/**/*.test.tsx'],
           environment: 'jsdom',
           setupFiles: ['./src/__tests__/setup/dom.ts'],
-          clearMocks: true,
-          restoreMocks: true,
-          css: false,
           testTimeout: 20_000,
         },
       },
