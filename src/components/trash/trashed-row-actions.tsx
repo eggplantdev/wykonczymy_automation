@@ -30,17 +30,21 @@ export function TrashedRowActions({ row }: { row: TrashRowT }) {
         label={`Przywróć „${row.name}"`}
         text="Przywróć"
         showLabel
-        disabled={pending}
+        disabled={pending || Boolean(row.restoreBlockedReason)}
         onClick={onRestore}
       />
-      <DeleteButton
-        label={`Usuń „${row.name}" na zawsze`}
-        text="Usuń na zawsze"
-        showLabel
-        disabled={pending}
-        onClick={() => setDeleting(true)}
-      />
-      <DeleteForeverDialog row={row} open={deleting} onClose={() => setDeleting(false)} />
+      {kind.deleteForever && (
+        <>
+          <DeleteButton
+            label={`Usuń „${row.name}" na zawsze`}
+            text="Usuń na zawsze"
+            showLabel
+            disabled={pending}
+            onClick={() => setDeleting(true)}
+          />
+          <DeleteForeverDialog row={row} open={deleting} onClose={() => setDeleting(false)} />
+        </>
+      )}
     </div>
   )
 }

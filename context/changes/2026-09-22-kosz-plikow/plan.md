@@ -231,13 +231,13 @@ przebieg wymusza re-import bazy testowej — doszła migracja) · `pnpm build`.
 - [x] Faza 1 — `transfer-actions.test.ts` przenosi asercję z `mockDelete` na zapis odpięcia (2dddc0c35)
 - [x] Faza 1 — `invoice-cell.test.tsx` + `investment-assets-control.test.tsx` na nowe zdanie (2dddc0c35)
 - [x] Faza 1 — „Usuń wszystkie" z powrotem w galerii inwestycji (EX-862) + odwrócony spec (2dddc0c35)
-- [x] Faza 2 — `MEDIA_RELATIONS` dostaje `relsTable`, obok `RAW_MEDIA_HOLDER_TABLES`
-- [x] Faza 2 — `src/lib/media/gc-media.ts` (zapisz sieroty → zalecz → skasuj szeregowo)
-- [x] Faza 2 — `/api/cron/cleanup` dokłada krok `media` jako ostatni
-- [x] Faza 2 — zamiana godzin: `vercel.json` na `30 3`, `blob-backup.yml` na `0 3`
-- [x] Faza 2 — `src/__tests__/lib/media/gc-media.test.ts` (nowy, DB-owy)
-- [ ] Faza 3 — `TrashKindT` + `TRASH_KINDS.file`; grupa usuwania opcjonalna; `restoreBlockedReason`
-- [ ] Faza 3 — `fetchDetachedFiles` + wiersze plików w `shapeTrashRows` / `getTrashContents`
-- [ ] Faza 3 — `src/lib/actions/media-trash.ts` (`restoreDetachedFileAction`)
-- [ ] Faza 3 — testy: `shapeTrashRows`, `fetchDetachedFiles`, `trashed-row-actions` (`dom`)
+- [x] Faza 2 — `MEDIA_RELATIONS` dostaje `relsTable`, obok `RAW_MEDIA_HOLDER_TABLES` (8ce527f1d)
+- [x] Faza 2 — `src/lib/media/gc-media.ts` (zapisz sieroty → zalecz → skasuj szeregowo) (8ce527f1d)
+- [x] Faza 2 — `/api/cron/cleanup` dokłada krok `media` jako ostatni (8ce527f1d)
+- [x] Faza 2 — zamiana godzin: `vercel.json` na `30 3`, `blob-backup.yml` na `0 3` (8ce527f1d)
+- [x] Faza 2 — `src/__tests__/lib/media/gc-media.test.ts` (nowy, DB-owy) (8ce527f1d)
+- [x] Faza 3 — `TrashKindT` + `TRASH_KINDS.file`; grupa usuwania opcjonalna; `restoreBlockedReason`
+- [x] Faza 3 — `fetchDetachedFiles` + wiersze plików w `shapeTrashRows` / `getTrashContents`
+- [x] Faza 3 — `src/lib/actions/media-trash.ts` (`restoreDetachedFileAction`)
+- [x] Faza 3 — testy: `shapeTrashRows`, `fetchDetachedFiles`, `trashed-row-actions` (`dom`)
 - [ ] Whole-tree Gate: typecheck · lint · test · test:integration · build

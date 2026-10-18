@@ -1,0 +1,93 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+
+vi.mock('server-only', () => ({}))
+vi.mock('@/lib/auth/require-auth', () => ({
+  requireAuth: vi.fn().mockImplementation(async () => ({
+    success: true,
+    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
+  })),
+}))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+
+const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+const NAME = 'kosz-plikow restore'
+const FILENAME = 'kosz-plikow-restore.jpg'
+
+describe.skipIf(!ENV_READY)('restoreDetachedFileAction (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let investmentId: number
+  let mediaId: number
+  let assets: typeof import('@/lib/actions/investment-assets')
+  let restoreDetachedFileAction: typeof import('@/lib/actions/media-trash').restoreDetachedFileAction
+
+  const purge = async () => {
+    await db.execute(sql`DELETE FROM investments WHERE name = ${NAME}`)
+    await db.execute(sql`DELETE FROM media WHERE filename = ${FILENAME}`)
+  }
+
+  const attachedIds = async () => {
+    const { rows } = await db.execute(sql`
+      SELECT media_id FROM investments_rels WHERE parent_id = ${investmentId} AND path = 'assets'
+    `)
+    return rows.map((row) => Number(row.media_id))
+  }
+
+  const openDetachmentId = async () => {
+    const { rows } = await db.execute(sql`
+      SELECT id FROM media_detachments WHERE media_id = ${mediaId} AND restored_at IS NULL
+    `)
+    return rows[0] ? Number(rows[0].id) : undefined
+  }
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+    assets = await import('@/lib/actions/investment-assets')
+    ;({ restoreDetachedFileAction } = await import('@/lib/actions/media-trash'))
+  })
+
+  beforeEach(async () => {
+    await purge()
+    const { rows } = await db.execute(sql`
+      INSERT INTO media (filename, mime_type, filesize, kind)
+      VALUES (${FILENAME}, 'image/jpeg', 1024, 'zdjecie')
+      RETURNING id
+    `)
+    mediaId = Number(rows[0].id)
+    const investment = await payload.create({
+      collection: 'investments',
+      data: { name: NAME, status: 'active', settlementMode: 'NET', assets: [] },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    investmentId = Number(investment.id)
+    await assets.addInvestmentAssetsAction(investmentId, [mediaId])
+    await assets.removeInvestmentAssetAction(investmentId, mediaId)
+  })
+
+  afterAll(purge)
+
+  it('puts the file back into the gallery it left and takes it out of the trash', async () => {
+    const result = await restoreDetachedFileAction((await openDetachmentId()) as number)
+
+    expect(result.success).toBe(true)
+    expect(await attachedIds()).toEqual([mediaId])
+    expect(await openDetachmentId()).toBeUndefined()
+  })
+
+  it('refuses while the investment itself lies in the trash', async () => {
+    await db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${investmentId}`)
+
+    const result = await restoreDetachedFileAction((await openDetachmentId()) as number)
+
+    expect(result).toEqual({ success: false, error: 'Najpierw przywróć inwestycję z Kosza.' })
+    expect(await attachedIds()).toEqual([])
+    expect(await openDetachmentId()).toBeDefined()
+  })
+})

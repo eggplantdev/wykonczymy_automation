@@ -4,7 +4,7 @@ import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { canManageAccount, canViewRegister, MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
-import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
+import { ENTITY_TRASH_RETENTION_DAYS, FILE_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
 import {
   fetchTrashedCashRegisters,
@@ -15,8 +15,10 @@ import { fetchTrashedVehicles, type TrashedVehicleRowT } from '@/lib/db/vehicle-
 import { fetchTrashedEquipment, type TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
 import { fetchTrashedLeads, type TrashedLeadRowT } from '@/lib/db/lead-trash'
 import { fetchTrashedTemplates, type TrashedTemplateRowT } from '@/lib/db/template-trash'
+import { fetchDetachedFiles, type DetachedFileRowT } from '@/lib/db/media-detachments'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
+import { fileRestoreBlockedReason, fileSourceLabel } from '@/lib/media/file-trash'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { makeModel } from '@/lib/utils/make-model'
 import type { TrashRowT } from '@/types/trash'
@@ -31,22 +33,32 @@ type TrashListsT = {
   vehicles: TrashedVehicleRowT[]
   equipment: TrashedEquipmentRowT[]
   leads: TrashedLeadRowT[]
+  files: DetachedFileRowT[]
 }
 
 export function shapeTrashRows(
-  { investments, templates, cashRegisters, workers, vehicles, equipment, leads }: TrashListsT,
+  {
+    investments,
+    templates,
+    cashRegisters,
+    workers,
+    vehicles,
+    equipment,
+    leads,
+    files,
+  }: TrashListsT,
   { viewerRole, now }: { viewerRole: RoleT; now: number },
 ): TrashRowT[] {
-  const daysLeft = (trashedAt: Date) =>
-    Math.max(
-      0,
-      Math.ceil((trashedAt.getTime() + ENTITY_TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
-    )
+  const daysLeft = (trashedAt: Date, retentionDays: number) =>
+    Math.max(0, Math.ceil((trashedAt.getTime() + retentionDays * DAY_MS - now) / DAY_MS))
 
-  const base = (row: { id: number; trashedAt: Date }) => ({
+  const base = (
+    row: { id: number; trashedAt: Date },
+    retentionDays = ENTITY_TRASH_RETENTION_DAYS,
+  ) => ({
     id: row.id,
     trashedAt: row.trashedAt,
-    daysLeft: daysLeft(row.trashedAt),
+    daysLeft: daysLeft(row.trashedAt, retentionDays),
     autoPurges: true,
     hasSheet: false,
     pairedRegisters: [] as string[],
@@ -95,6 +107,18 @@ export function shapeTrashRows(
         .filter(Boolean)
         .join(' · '),
     })),
+    ...files
+      .filter(
+        ({ parent }) =>
+          parent.kind !== 'transaction' || canViewRegister(viewerRole, parent.registerType),
+      )
+      .map((row) => ({
+        ...base({ id: row.id, trashedAt: row.detachedAt }, FILE_TRASH_RETENTION_DAYS),
+        kind: 'file' as const,
+        name: row.filename,
+        detail: fileSourceLabel(row.parent),
+        restoreBlockedReason: fileRestoreBlockedReason(row.parent),
+      })),
   ]
 }
 
@@ -105,19 +129,20 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
 
   const payload = await getPayload({ config })
   const db = await getDb(payload)
-  const [investments, templates, cashRegisters, workers, vehicles, equipment, leads] =
+  const [investments, templates, cashRegisters, workers, vehicles, equipment, leads, files] =
     await Promise.all([
-    fetchTrashedInvestments(db),
-    fetchTrashedTemplates(db),
-    fetchTrashedCashRegisters(db),
-    fetchTrashedWorkers(db),
-    fetchTrashedVehicles(db),
-    fetchTrashedEquipment(db),
-    fetchTrashedLeads(db),
-  ])
+      fetchTrashedInvestments(db),
+      fetchTrashedTemplates(db),
+      fetchTrashedCashRegisters(db),
+      fetchTrashedWorkers(db),
+      fetchTrashedVehicles(db),
+      fetchTrashedEquipment(db),
+      fetchTrashedLeads(db),
+      fetchDetachedFiles(db),
+    ])
 
   return shapeTrashRows(
-    { investments, templates, cashRegisters, workers, vehicles, equipment, leads },
+    { investments, templates, cashRegisters, workers, vehicles, equipment, leads, files },
     { viewerRole: session.user.role, now: Date.now() },
   )
 }

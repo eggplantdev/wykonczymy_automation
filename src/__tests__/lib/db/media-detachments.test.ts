@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { closeDetachments, recordDetachments } from '@/lib/db/media-detachments'
+import { closeDetachments, fetchDetachedFiles, recordDetachments } from '@/lib/db/media-detachments'
 
 vi.mock('server-only', () => ({}))
 
@@ -94,5 +94,33 @@ describe.skipIf(!ENV_READY)('media detachments (DB)', () => {
     expect(entries).toHaveLength(2)
     expect(entries[0].restored_at).toEqual(firstClosed.restored_at)
     expect(entries.every((entry) => entry.restored_at !== null)).toBe(true)
+  })
+
+  it('lists only the files whose source still exists, naming the investment they left', async () => {
+    const { rows } = await db.execute(sql`SELECT id, name FROM investments ORDER BY id LIMIT 1`)
+    const investment = { id: Number(rows[0].id), name: String(rows[0].name) }
+    const kept = await createMedia('kept.jpg')
+    const sourceless = await createMedia('sourceless.jpg')
+    const parentGone = await createMedia('parent-gone.jpg')
+    await recordDetachments(db, { collection: 'investments', field: 'assets', id: investment.id }, [
+      kept,
+    ])
+    await db.execute(sql`INSERT INTO media_detachments (media_id) VALUES (${sourceless})`)
+    await recordDetachments(db, { collection: 'investments', field: 'assets', id: -1 }, [
+      parentGone,
+    ])
+
+    const files = await fetchDetachedFiles(db)
+    const listed = files.filter((row) => [kept, sourceless, parentGone].includes(row.mediaId))
+
+    expect(listed).toEqual([
+      expect.objectContaining({
+        mediaId: kept,
+        filename: `${FILENAME_PREFIX}kept.jpg`,
+        parent: expect.objectContaining({ kind: 'investment', ...investment }),
+      }),
+    ])
+    const [entry] = await fetchDetachedFiles(db, listed[0].id)
+    expect(entry?.mediaId).toBe(kept)
   })
 })

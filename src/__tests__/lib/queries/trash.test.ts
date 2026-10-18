@@ -10,6 +10,7 @@ import type { TrashedWorkerRowT } from '@/lib/db/worker-trash'
 import type { TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
 import type { TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
 import type { TrashedLeadRowT } from '@/lib/db/lead-trash'
+import type { DetachedFileRowT } from '@/lib/db/media-detachments'
 import type { RoleT } from '@/lib/auth/roles'
 
 const NOW = new Date('2026-09-30T12:00:00Z').getTime()
@@ -48,6 +49,7 @@ const NO_ROWS = {
   vehicles: [],
   equipment: [],
   leads: [],
+  files: [],
 }
 
 const vehicle = (id: number, flags: Partial<TrashedVehicleRowT> = {}): TrashedVehicleRowT => ({
@@ -78,6 +80,29 @@ const lead = (id: number, flags: Partial<TrashedLeadRowT> = {}): TrashedLeadRowT
   submittedAt: new Date('2026-09-01T10:00:00Z'),
   trashedAt: TRASHED_AT,
   ...flags,
+})
+
+const file = (id: number, parent: DetachedFileRowT['parent']): DetachedFileRowT => ({
+  id,
+  mediaId: 900 + id,
+  filename: `plik-${id}.jpg`,
+  detachedAt: new Date('2026-09-27T12:00:00Z'),
+  parent,
+})
+
+const investmentParent = (trashedAt: Date | null = null): DetachedFileRowT['parent'] => ({
+  kind: 'investment',
+  id: 6,
+  name: 'Mareks',
+  trashedAt,
+})
+
+const invoiceParent = (registerType: 'MAIN' | 'AUXILIARY' | null): DetachedFileRowT['parent'] => ({
+  kind: 'transaction',
+  id: 3899,
+  type: 'INVESTMENT_EXPENSE',
+  date: new Date('2026-09-12T10:00:00Z'),
+  registerType,
 })
 
 describe('shapeTrashRows', () => {
@@ -224,6 +249,50 @@ describe('shapeTrashRows', () => {
       { kind: 'lead', name: 'Jan Kowalski', detail: 'Facebook · 01.09.2026', daysLeft: 20 },
       { kind: 'lead', name: 'jan@example.com', detail: 'Landing · 01.09.2026', daysLeft: 20 },
       { kind: 'lead', name: 'Zgłoszenie #52', detail: 'Facebook', daysLeft: 20 },
+    ])
+  })
+
+  it('counts a file down from its own seven-day retention and says where it came from', () => {
+    const [row] = shapeTrashRows(
+      { ...NO_ROWS, files: [file(60, investmentParent())] },
+      { viewerRole: 'MANAGER', now: NOW },
+    )
+
+    expect(row).toEqual({
+      kind: 'file',
+      id: 60,
+      name: 'plik-60.jpg',
+      trashedAt: new Date('2026-09-27T12:00:00Z'),
+      daysLeft: 4,
+      autoPurges: true,
+      hasSheet: false,
+      pairedRegisters: [],
+      detail: 'Inwestycja Mareks · pliki',
+    })
+  })
+
+  it('blocks restoring a file whose investment lies in the trash', () => {
+    const [row] = shapeTrashRows(
+      { ...NO_ROWS, files: [file(61, investmentParent(TRASHED_AT))] },
+      { viewerRole: 'OWNER', now: NOW },
+    )
+
+    expect(row.restoreBlockedReason).toBe('Najpierw przywróć inwestycję z Kosza.')
+  })
+
+  it('hides an invoice from a kasa the viewer cannot see', () => {
+    const files = [file(62, invoiceParent('MAIN')), file(63, invoiceParent('AUXILIARY'))]
+
+    expect(
+      shapeTrashRows({ ...NO_ROWS, files }, { viewerRole: 'MANAGER', now: NOW }).map((r) => r.id),
+    ).toEqual([63])
+    expect(
+      shapeTrashRows({ ...NO_ROWS, files }, { viewerRole: 'OWNER', now: NOW }).map(
+        ({ id, detail }) => ({ id, detail }),
+      ),
+    ).toEqual([
+      { id: 62, detail: 'Wydatek inwestycyjny z 12.09.2026 · faktura' },
+      { id: 63, detail: 'Wydatek inwestycyjny z 12.09.2026 · faktura' },
     ])
   })
 })

@@ -16,7 +16,7 @@ type PropsT = {
 }
 
 export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
-  const copy = TRASH_KINDS[row.kind]
+  const { note, deleteForever } = TRASH_KINDS[row.kind]
   const [typedName, setTypedName] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -25,11 +25,13 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
     onClose()
   }
 
+  if (!deleteForever) return null
+
   const onConfirm = () => {
     startTransition(async () => {
-      const res = await settleAction(() => copy.deleteForever(row.id, typedName))
+      const res = await settleAction(() => deleteForever.action(row.id, typedName))
       if (!res.success) return toastMessage(res.error, 'error')
-      toastMessage(copy.deleted, 'success')
+      toastMessage(deleteForever.deleted, 'success')
       close()
     })
   }
@@ -42,9 +44,9 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
       description={[
-        copy.note?.(row),
-        copy.lost
-          ? `„${row.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`
+        note?.(row),
+        deleteForever.lost
+          ? `„${row.name}" zniknie bezpowrotnie, razem z: ${deleteForever.lost}.`
           : `„${row.name}" zniknie bezpowrotnie.`,
         'Wpisz nazwę, żeby potwierdzić.',
       ]
@@ -60,7 +62,7 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
         value={typedName}
         onChange={(event) => setTypedName(event.target.value)}
         onKeyDown={(event) => event.key === 'Enter' && nameMatches && !pending && onConfirm()}
-        aria-label={copy.nameLabel}
+        aria-label={deleteForever.nameLabel}
         autoFocus
       />
     </FormDialogShell>
