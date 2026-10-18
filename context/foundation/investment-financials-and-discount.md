@@ -70,13 +70,15 @@ flowchart TD
     T[type + amount + investment_id<br/>+ optional source_register / expense_category]
     T --> CASH{has source_register?}
     CASH -->|yes| LEDGER1["LEDGER 1 — Cash registers (real money)"]
-    CASH -->|no = LABOR_COST / RABAT / LOSS| SKIP1["does NOT move cash"]
+    CASH -->|no = LABOR_COST / RABAT / LOSS / BONUS| SKIP1["does NOT move cash"]
 
     T --> ROUTE{type}
     ROUTE -->|INVESTMENT_EXPENSE / CORRECTION| MAT[materiały]
+    ROUTE -->|INVESTMENT_EXPENSE_NET<br/>on its net amount| MAT
     ROUTE -->|INVESTOR_DEPOSIT<br/>COMPANY_FUNDING<br/>OTHER_DEPOSIT| INC[wpłaty / income]
     ROUTE -->|LABOR_COST| ROB[robocizna]
     ROUTE -->|PAYOUT| PAY[wypłaty]
+    ROUTE -->|BONUS| BON[premia — pair „Pozostało do wypłaty" only]
 ```
 
 - `materiały` = `Σ INVESTMENT_EXPENSE + Σ CORRECTION`, **excluding rows flagged `settled`**
@@ -91,14 +93,16 @@ flowchart TD
 
 ## The two displayed numbers (current formulas)
 
-`deriveFinancials` (`investment-financials.ts:34`) is the single funnel — every `total_*`
+`deriveFinancials` (`investment-financials.ts:63`) is the single funnel — every `total_*`
 aggregate flows from there into the two formulas:
 
-- **Bilans inwestora** (`calculate-balance.ts:6-8`):
-  `wpłaty − (materiały + robocizna) + rabat` — client-facing balance.
-- **Marża** (`calculate-margin.ts:13-14`):
-  `robocizna − wypłaty − rabat − strata − settled`. **Plain materiały are absent on purpose**
-  (see below).
+- **Bilans inwestora** (`calculate-balance.ts:4-12`):
+  `wpłaty − (materiały + robocizna) + rabat + materialsNetDiscount + strata` — client-facing balance.
+- **Marża v1** (`calculate-margin.ts:5-11`):
+  `robocizna − wypłaty − rabat − strata − settled − materialsNetDiscount`. **Plain materiały are
+  absent on purpose** (see below).
+- Owner, 2026-09-29: marża's definition is not decided. Tests pin its inputs, not the figure
+  (`lib/actions/transfers.db.test.ts` asserts bilans and every bucket, never marża).
 
 ### Why plain materiały are absent from marża
 

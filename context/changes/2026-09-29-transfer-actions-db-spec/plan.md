@@ -385,12 +385,12 @@ One investment and about 25 action calls: a few seconds in the unlocked single-f
 
 #### Automated
 
-- [x] 2.1 both atomicity tests red before the fix, green after
-- [x] 2.2 transfers.db.test.ts passes against the test DB
-- [x] 2.3 transfer-actions.test.ts passes
+- [x] 2.1 both atomicity tests red before the fix, green after — 64b3e9b
+- [x] 2.2 transfers.db.test.ts passes against the test DB — 64b3e9b
+- [x] 2.3 transfer-actions.test.ts passes — 64b3e9b
 
 ### Phase 3: Docs
 
 #### Automated
 
-- [ ] 3.1 none — docs only
+- [x] 3.1 none — docs only
