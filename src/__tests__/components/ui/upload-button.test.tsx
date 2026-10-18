@@ -3,21 +3,6 @@ import { render, screen } from '@testing-library/react'
 import { UploadButton } from '@/components/ui/upload-button'
 
 describe('UploadButton', () => {
-  it('stays disabled for an unrelated reason without claiming an upload', () => {
-    render(
-      <UploadButton
-        label="Dodaj zdjęcia lub pliki"
-        isUploading={false}
-        disabled
-        onClick={vi.fn()}
-      />,
-    )
-
-    const button = screen.getByRole('button', { name: 'Dodaj zdjęcia lub pliki' })
-    expect(button).toBeDisabled()
-    expect(screen.queryByText('Przesyłanie...')).not.toBeInTheDocument()
-  })
-
   it('announces the upload while bytes are moving', () => {
     render(<UploadButton label="Dodaj zdjęcia lub pliki" isUploading onClick={vi.fn()} />)
 

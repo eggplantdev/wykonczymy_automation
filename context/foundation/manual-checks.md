@@ -946,6 +946,12 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] „Transfer między kasami” z tą samą kasą źródłową i docelową: zapis jest odrzucony z
       komunikatem jak dotąd.
 
+## 2026-10-18 — test-suite-audit faza 1 — zapytanie o wpłaty inwestora uproszczone, zachowanie bez zmian
+
+- [ ] Inwestycja z kilkoma wpłatami inwestora, w tym jedną anulowaną → kosztorys (rozliczenie)
+      oraz panel podsumowania inwestycji: widać te same wpłaty co przed zmianą, bez anulowanej,
+      najnowsze na górze; wpłaty innej inwestycji się nie pojawiają.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

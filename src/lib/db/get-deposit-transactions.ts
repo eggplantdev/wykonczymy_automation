@@ -1,7 +1,6 @@
 import { sql } from '@payloadcms/db-postgres'
-import type { Payload, Where } from 'payload'
+import type { Payload } from 'payload'
 import { perfStart } from '@/lib/perf'
-import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
 import type { VatPlaneT } from '@/lib/constants/transfers'
 import type { DepositTransactionRowT } from '@/types/transfers'
@@ -11,26 +10,21 @@ import type { DepositTransactionRowT } from '@/types/transfers'
  * is the company financing its own investment, not a client payment, so it must never land in the
  * client wpłaty surface.
  */
-export const getDepositTransactions = async (
+export const getDepositTransactionsForInvestment = async (
   payload: Payload,
-  where: Where,
+  investmentId: number,
 ): Promise<DepositTransactionRowT[]> => {
-  if (isNoResultsSentinel(where)) return []
-
   const elapsed = perfStart()
   const db = await getDb(payload)
-  const conditions = buildSqlConditions(where)
 
-  const result = await db.execute(
-    sql.raw(`
+  const result = await db.execute(sql`
     SELECT id, date, amount, net_amount, vat_plane
     FROM transactions
     WHERE cancelled IS NOT TRUE
       AND type = 'INVESTOR_DEPOSIT'
-      ${conditions}
+      AND investment_id = ${investmentId}
     ORDER BY date DESC, id DESC
-  `),
-  )
+  `)
 
   const rows = result.rows.map((row) => ({
     id: Number(row.id),
@@ -41,12 +35,8 @@ export const getDepositTransactions = async (
     netAmount: row.net_amount == null ? null : Number(row.net_amount),
     vatPlane: row.vat_plane == null ? null : (row.vat_plane as VatPlaneT),
   }))
-  console.log(`[PERF] query.getDepositTransactions ${elapsed()}ms (${rows.length} rows)`)
+  console.log(
+    `[PERF] query.getDepositTransactionsForInvestment ${elapsed()}ms (${rows.length} rows)`,
+  )
   return rows
 }
-
-export const getDepositTransactionsForInvestment = async (
-  payload: Payload,
-  investmentId: number,
-): Promise<DepositTransactionRowT[]> =>
-  getDepositTransactions(payload, { investment: { equals: investmentId } })

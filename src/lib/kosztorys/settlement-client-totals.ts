@@ -41,7 +41,3 @@ export function clientTotalsFromSubtotals(
     globalDiscountNet,
   }
 }
-
-export function sumSectionSubtotalsNet(subtotals: SectionSubtotalT[]): number {
-  return subtotals.reduce((sum, s) => sum + s.net + s.discount, 0)
-}
