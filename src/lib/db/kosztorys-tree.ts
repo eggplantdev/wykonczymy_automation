@@ -152,11 +152,10 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   discountValue: num(row.discount_value),
   clientPrice: num(row.client_price),
   // `numOrNull`, not `num`: NULL is „auto", and folding it to 0 would price the praca at zero
-  // złotych instead of at the investment's współczynnik (EX-766).
+  // złotych instead of at the investment's współczynnik.
   wToolsOverrideValue: numOrNull(row.w_tools_override_value),
   ownToolsOverrideValue: numOrNull(row.own_tools_override_value),
-  // Absent means „no mnożnik here", while `0` is a mnożnik someone chose — a stawka of zero złotych
-  // (EX-865).
+  // Absent means „no mnożnik here", while `0` is a mnożnik someone chose — a stawka of zero złotych.
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: textOrNull(row.note),

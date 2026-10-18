@@ -16,7 +16,7 @@ type PropsT = {
   disabled?: boolean
 }
 
-// Never disabled at VAT 0% (EX-590): the mode is not inert there — Mieszane still splits the panel and
+// Never disabled at VAT 0%: the mode is not inert there — Mieszane still splits the panel and
 // doubles the grid's money columns, and the materiały netto rate is VAT-independent.
 export function SettlementModeSelect({ value, onChange, vatRate, disabled = false }: PropsT) {
   return (

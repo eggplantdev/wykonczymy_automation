@@ -51,7 +51,7 @@ export async function nextDisplayOrder(
 
 // Runs on a caller-owned transaction
 // handle: the shift and the create it opens room for must commit together, or a double-fired insert
-// at the same index interleaves and lands two rows on one display_order (EX-464).
+// at the same index interleaves and lands two rows on one display_order.
 export async function shiftDisplayOrderFrom(
   db: DbExecutorT,
   scope: OrderScopeT,
@@ -79,7 +79,7 @@ export const insertSectionSchema = z.object({
 })
 
 // Where a row sits, read UNDER the lock on its whole owner block: `shiftDisplayOrderFrom` and
-// `renumberDisplayOrder` acquire in ascending id order too, so no pair of them can form a cycle (EX-632).
+// `renumberDisplayOrder` acquire in ascending id order too, so no pair of them can form a cycle.
 async function lockedPositionOf(
   db: DbExecutorT,
   scope: OrderScopeT,

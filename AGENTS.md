@@ -8,7 +8,7 @@ Business management dashboard for cash registers, transfers, investments and emp
 Payload CMS. **Polish UI, English code.**
 
 **Scale: ~40 accounts and growing (2026-10-07)** — a handful of management accounts plus every worker
-(EMPLOYEE), who report work and hours from their phones on site (EX-947, EX-985). Size risk to dozens
+(EMPLOYEE), who report work and hours from their phones on site. Size risk to dozens
 of concurrent phone users, not to "five users" and not to enterprise traffic.
 
 ## Hard Stops
@@ -32,7 +32,7 @@ of concurrent phone users, not to "five users" and not to enterprise traffic.
 
 ## Naming a financial figure
 
-Consult the glossary `@context/domain/02-glossary.md` (EX-548) before naming a figure. In short:
+Consult the glossary `@context/domain/02-glossary.md` before naming a figure. In short:
 
 1. Polish identifiers only for sheet proper nouns with no clean English equivalent (`kosztorys`,
    `przedmiar`, `pomiar`). `etapy` / `robocizna` are `stage` / `laborCosts` in code.
@@ -64,7 +64,7 @@ Load-bearing facts (verified across all 435 item rows, 2026-07-16):
 
 - `N` **Przedmiar** is typed by hand — the offered scope. `S` = `N × cena − rabat` = **the offer**.
 - `O` **Pomiar z natury** is a formula, `=SUM(D:M)` over the ten stage columns — **pomiar IS the stage
-  sum**, and `T` = `O × cena − rabat` is what has been executed (EX-494).
+  sum**, and `T` = `O × cena − rabat` is what has been executed.
 - The footer keeps `wartość netto` (`T456`) and `R netto - suma prac wykonannych` (`T463`) as separate
   rows — read them before assuming which figure a UI "total" should be.
 
@@ -80,15 +80,15 @@ robocizna / korekty connect, and the v1/v2 source rules: `context/foundation/inv
 - `CORRECTION` must be negative (`getAmountError`); moves only the balance.
 - `RABAT` — no source register, positive, investment required. Lowers marża **and** raises bilans; grosses
   by VAT on the brutto plane.
-- `LOSS` (strata) — no source register, positive, investment required (EX-675). Hits both figures like
+- `LOSS` (strata) — no source register, positive, investment required. Hits both figures like
   `RABAT` but deducts at face value on netto and brutto alike.
-- `BONUS` (premia) — no source register, positive, investment **and** worker required (EX-979); only
+- `BONUS` (premia) — no source register, positive, investment **and** worker required; only
   ADMIN/OWNER book it (`canBookTransferType`, since a MANAGER passes `protectedAction`). Raises that
   pair's „Pozostało do wypłaty", lowers marża **v2 only**, never reaches the investor or the sheet.
 - Cancellation marks the original `cancelled: true` and links a new `CANCELLATION` row to it.
-- `COMPANY_FUNDING` is gated to ADMIN/OWNER client-side only — an accepted owner ruling (EX-557). Don't re-raise it.
+- `COMPANY_FUNDING` is gated to ADMIN/OWNER client-side only — an accepted owner ruling. Don't re-raise it.
 - Register balances are computed on read, never stored; transfer hooks only revalidate tags.
-- `LABOR_COST` / `RABAT` are bookable again **temporarily** (EX-649; EX-712 removes them). No kosztorys
+- `LABOR_COST` / `RABAT` are bookable again **temporarily** — slated for removal. No kosztorys
   means robocizna and rabat are 0 zł on v2 — no fallback to transfers; the gap with v1 is the to-do list,
   not a defect.
 
@@ -104,15 +104,15 @@ data it is as an argument. Forms use TanStack Form via `useAppForm()`; optimisti
 
 - Financial calculations use raw SQL through Payload's Drizzle instance (`getDb`), not the Payload ORM.
 - Cache via `unstable_cache`, always through `cached()` (`lib/cache/cached.ts`), which keys on the
-  deployment (EX-1063) — no `-vN` key bumps. A `RUN-AFTER-DEPLOY` data migration still needs a Vercel
+  deployment — no `-vN` key bumps. A `RUN-AFTER-DEPLOY` data migration still needs a Vercel
   Data Cache purge right after it runs. `cacheComponents` / `'use cache'` are off (Vercel bug).
 - **Server actions** expire with `updateTag()`; **Payload hooks, Route Handlers and crons** with
   `revalidateTag()` (`updateTag` throws there). Never import `lib/cache/revalidate.ts` from a Payload hook.
 - **`revalidateTag` always takes `EXPIRE_NOW`** (`lib/cache/tags.ts`) as its second argument — a named
   profile serves the stale value once. Sole exception: `revalidateCollections(…, { deferRefresh: true })`
-  passes `EXPIRE_NEXT`, because `expire: 0` in a Server Action also re-renders the calling route (EX-597).
+  passes `EXPIRE_NEXT`, because `expire: 0` in a Server Action also re-renders the calling route.
 - **A cache entry that changes for ONE row is tagged with `entityTag`**, expired via `protectedAction`'s
-  `opts.entityTags` — a collection slug is bumped by every write to that collection anywhere (EX-849).
+  `opts.entityTags` — a collection slug is bumped by every write to that collection anywhere.
   Keep a slug only where some writer genuinely can't name the row. **Count every writer** of the row
   when adding an entity tag; one missed writer is a permanently stale read.
 
@@ -122,15 +122,15 @@ JWT via Payload's `payload-token` cookie (90 days, slid forward at most daily by
 Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.ts`, access functions in
 `src/access`.
 
-- **Session check (EX-918, temporary per EX-1020):** `getCurrentUserJwt` checks the token's `sid` and the
+- **Session check (temporary per EX-1020):** `getCurrentUserJwt` checks the token's `sid` and the
   account's `active` / `trashed_at` / `role`, cached per `sid` under the `users` tag — every write to
   `users` expires it. Payload's logout runs no hook, so `logoutAction` expires it by hand; a raw-SQL
   write to `users` waits for the 1 h backstop.
 - Nobody deactivates, trashes or deletes their own account or the last live OWNER/ADMIN; a MANAGER acts
   only on EMPLOYEE accounts (`canManageAccount`).
-- **An EMPLOYEE may read only his own `/pracownicy/[id]`** (`canViewWorkerPage`, EX-985), transfers
+- **An EMPLOYEE may read only his own `/pracownicy/[id]`** (`canViewWorkerPage`), transfers
   scoped server-side; `/kasa/[id]` is management-only.
-- **Own e-mail/password goes through `changeOwnCredentialsAction`** (EX-989, every role, current password
+- **Own e-mail/password goes through `changeOwnCredentialsAction`** (every role, current password
   checked by `payload.login`). REST update on `users` is closed to EMPLOYEE entirely; `unlock` is
   management-only.
 - **Every „Usuń na zawsze" in `/kosz` requires the typed name, checked server-side for every kind** — no
@@ -144,7 +144,7 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
 - **Parallel-route slots:** shell chrome that needs route params gets a `@slot` under `(frontend)/`
   whose `page.tsx` only re-exports a component from `src/components/nav/`, plus a `default.tsx`.
   Mirror `@investmentCrumb`, the only instance.
-- **`loading.tsx` is the only instant part of a navigation (EX-877)** — with PPR off, a prefetch carries
+- **`loading.tsx` is the only instant part of a navigation** — with PPR off, a prefetch carries
   layouts + `loading.tsx` only. A list route's `loading.tsx` renders `TitledPageLoading` with its title
   from `PAGE_TITLES` (`lib/constants/sections.ts`), the same constant the nav and heading read. `[id]`
   routes use `DetailPageLoading`; editor routes the bare `PageLoading`. `(frontend)/loading.tsx` stays
@@ -197,16 +197,16 @@ action → DB → revalidation. Harness traps: `src/__tests__/AGENTS.md`.
 - **Vercel is on a PAID plan** — Hobby limits (2 daily crons, 2K Blob ops) don't apply; a new scheduled
   job is a new `vercel.json` entry.
 - React Compiler is on — no hand-written `useMemo` / `useCallback`.
-- **The app speaks the viewer's account language (EX-996)** via `AppLanguageProvider`, falling back to
+- **The app speaks the viewer's account language** via `AppLanguageProvider`, falling back to
   Polish. Make a shared component translatable in place (`useTranslation(ns)` or a translator defaulting
   to `POLISH_<ns>`). **Never translate through the `lib/constants/transfers.ts` label maps** — sheet sync
   and the Payload graph read them as Polish; add a translator parameter beside them.
-- **Phone scope is narrow (EX-785):** at 390px only navigation, adding and showing transactions, the
-  worker report page `(share)/z/[investment]/[name]/[token]` (EX-947), an EMPLOYEE's own
-  `/pracownicy/[id]` (EX-985) and the „Manual Wykończymy" dialog (EX-1032) must work. The kosztorys editor
+- **Phone scope is narrow:** at 390px only navigation, adding and showing transactions, the
+  worker report page `(share)/z/[investment]/[name]/[token]`, an EMPLOYEE's own
+  `/pracownicy/[id]` and the „Manual Wykończymy" dialog must work. The kosztorys editor
   is desktop-only. No app-wide touch-target floor.
 - **Breakpoints are overridden** in `src/styles/globals.css`: `sm`=768, `md`=1024, `lg`=1280. `sm:` is the
-  single mobile→desktop break; both an upstream `sm:` and `md:` become `sm:` here (EX-624). Never add a
+  single mobile→desktop break; both an upstream `sm:` and `md:` become `sm:` here. Never add a
   640 breakpoint.
 - A `console.error` that must become a Sentry capture gets a `// TODO(EX-958) SENTRY-REQUIRED:` marker.
 

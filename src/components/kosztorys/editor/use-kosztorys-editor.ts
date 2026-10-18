@@ -248,7 +248,7 @@ export function useKosztorysEditor({
   const sectionsRef = useRef(sections)
   // eslint-disable-next-line react-hooks/refs
   sectionsRef.current = sections
-  // A ref, not state: opening the dialog must not re-render the grid (EX-496).
+  // A ref, not state: opening the dialog must not re-render the grid.
   const newItemDialogRef = useRef<
     ((placement: NewItemPlacementT, description?: string) => void) | null
   >(null)
@@ -520,7 +520,7 @@ export function useKosztorysEditor({
     onInsertSection: editorOnly(handleInsertSection),
     onSetSectionColor: editorOnly(handleSetSectionColor),
     onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
-    // A szablon cell edit already writes the katalog (EX-1017); its row's own columns are a stale
+    // A szablon cell edit already writes the katalog; its row's own columns are a stale
     // copy, so pushing them would revert the cennik.
     canSaveItemToCatalogue: editorOnly(!isTemplate),
     globalDiscountActive,
@@ -552,7 +552,7 @@ export function useKosztorysEditor({
   const columns = seams ? seams.transformColumns(grid.columns) : grid.columns
   // A sort must not outlive its column: a money-axis or view toggle can drop the sorted column and its
   // SortHeader — the only control that clears the sort — freezing the rows in an unexplained order with
-  // the row actions disabled (EX-486).
+  // the row actions disabled.
   const renderedFieldIds = new Set(
     columns.map((c) => c.id).filter((id): id is string => id != null),
   )
@@ -744,7 +744,7 @@ export function useKosztorysEditor({
     dropHeight(String(row.id))
     setRows((rs) => applyRemoveItem(rs, row.id))
     // Flush first, then drop every stack command touching the deleted row — undoing one would write
-    // against a dead id, and `setStageProgressAction` (an absolute upsert) could recreate an orphan (EX-526 #2).
+    // against a dead id, and `setStageProgressAction` (an absolute upsert) could recreate an orphan.
     flushUndoBuffer()
     pruneByIds([row.id])
     const res = await settleAction(() => actions.removeItem(row.id))

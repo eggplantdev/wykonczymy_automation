@@ -47,7 +47,7 @@ test('kafelek „Suma wybranych transakcji" równa się sumie wierszy, które li
 
   const row = page.getByRole('row').filter({ hasText: cancelled })
   await row.getByRole('button', { name: 'Anuluj transakcję' }).first().click()
-  await page.getByLabel('Powód anulowania (wymagany)').fill('EX-627 — kafelek vs. wiersze')
+  await page.getByLabel('Powód anulowania (wymagany)').fill('kafelek vs. wiersze')
   await page.getByRole('button', { name: 'Tak, anuluj' }).click()
   await expect(page.getByText('Anulowanie transakcji')).toBeHidden()
 

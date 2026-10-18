@@ -3,7 +3,7 @@ import { waitForHydration } from './support/wait'
 
 test.use({ storageState: 'e2e/.auth/user.json' })
 
-// EX-909. A browser Back restores the router's cached `/szablony`, so the create has to refresh that
+// A browser Back restores the router's cached `/szablony`, so the create has to refresh that
 // entry itself; a reload would refetch and hide a stale list, so there is none.
 test('„Nowy szablon" → Wstecz: lista pokazuje nowy szablon bez przeładowania', async ({ page }) => {
   const name = `E2E Nowy szablon ${Date.now()}`

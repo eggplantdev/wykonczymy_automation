@@ -4,7 +4,7 @@ import { toastMessage } from '@/lib/utils/toast'
 
 /**
  * No `router.refresh()` on success — `updateTag` already re-renders and streams back the fresh
- * `tree`, so refreshing too would double-render per click (EX-597).
+ * `tree`, so refreshing too would double-render per click.
  */
 export async function optimisticSettingSave(
   persist: () => Promise<ActionResultT>,

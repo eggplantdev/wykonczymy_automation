@@ -53,7 +53,7 @@ export const KosztorysStages: CollectionConfig = {
       ],
     },
     // Hides the investment from a worker whose every etap on it is completed and refuses his
-    // reports; locks nothing (EX-1034).
+    // reports; locks nothing.
     {
       name: 'completed',
       type: 'checkbox',

@@ -17,7 +17,7 @@ import {
 // Single cached read backing every preset picker. Argument-free — one global entry, correct for a
 // cross-investment library. Invalidated through the `presets` tag by every szablon lifecycle action
 // and by `templateAction`'s tail on a szablon edit. Deliberately not tagged with the kosztorys
-// tables: those move on every investment's edit anywhere (EX-849).
+// tables: those move on every investment's edit anywhere.
 export const getPresets = cached(
   async (): Promise<TemplateMetaT[]> => {
     const payload = await getPayload({ config })

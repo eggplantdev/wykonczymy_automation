@@ -48,7 +48,7 @@ async function pickThrough(
   await chooser.setFiles(files)
 }
 
-test('HEIC z pickera edycji przelewu zapisuje się jako JPG (EX-732)', async ({ page }) => {
+test('HEIC z pickera edycji przelewu zapisuje się jako JPG', async ({ page }) => {
   const description = await seedOwnExpense(page, 'heic')
 
   const edit = rowOf(page, description).getByRole('button', { name: 'Edytuj transakcję' })
@@ -73,7 +73,7 @@ test('HEIC z pickera edycji przelewu zapisuje się jako JPG (EX-732)', async ({ 
   )
 })
 
-test('nieczytelny HEIC nie wchodzi do formularza (EX-460)', async ({ page }) => {
+test('nieczytelny HEIC nie wchodzi do formularza', async ({ page }) => {
   const description = await seedOwnExpense(page, 'blocked')
 
   const edit = rowOf(page, description).getByRole('button', { name: 'Edytuj transakcję' })
@@ -105,7 +105,7 @@ test('nieczytelny HEIC nie wchodzi do formularza (EX-460)', async ({ page }) => 
   ).toBeVisible()
 })
 
-test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz (EX-663)', async ({ page }) => {
+test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz', async ({ page }) => {
   const description = await seedOwnExpense(page, 'cell')
 
   const add = rowOf(page, description).getByRole('button', { name: 'Dodaj fakturę' })
@@ -152,9 +152,7 @@ async function openExpenseDialogOnRegister(page: Page): Promise<void> {
   await openExpenseDialog(page)
 }
 
-test('„Kilka wydatków" daje jeden wiersz na zdjęcie, każdy ze swoim odczytem (EX-444)', async ({
-  page,
-}) => {
+test('„Kilka wydatków" daje jeden wiersz na zdjęcie, każdy ze swoim odczytem', async ({ page }) => {
   await stubExtractReceipt(page, (filenames) => {
     const letter = (filenames.find((name) => name.startsWith('paragon-')) ?? '?').charAt(8)
     return {
@@ -194,9 +192,7 @@ test('„Kilka wydatków" daje jeden wiersz na zdjęcie, każdy ze swoim odczyte
   await expect(page.getByRole('button', { name: 'Podgląd faktury: paragon-c.jpg' })).toBeVisible()
 })
 
-test('„Jeden wydatek" skleja zdjęcia w jedną wielostronicową fakturę (EX-661)', async ({
-  page,
-}) => {
+test('„Jeden wydatek" skleja zdjęcia w jedną wielostronicową fakturę', async ({ page }) => {
   await stubExtractReceipt(page, () => ({
     description: 'Faktura zbiorcza',
     amount: 99.5,

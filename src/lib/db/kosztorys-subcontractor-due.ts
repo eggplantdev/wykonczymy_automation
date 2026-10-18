@@ -17,7 +17,7 @@ export const subcontractorLinesCte = sql`
       ks.plane,
       sp.qty_done,
       -- NO coalesce on the stawka: NULL is the signal, and folding it to 0 would price every auto
-      -- praca at zero złotych (EX-766).
+      -- praca at zero złotych.
       CASE ks.plane
         WHEN 'w_tools' THEN
           CASE

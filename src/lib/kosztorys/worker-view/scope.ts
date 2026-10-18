@@ -29,7 +29,7 @@ export function resolveWorkerScope(stages: KosztorysStageT[], workerId: number):
 export type ReportScopeRefusalT = WorkerScopeBlockReasonT | 'stages-completed'
 
 // The view keeps zakończone etapy — his settlement stays readable — but a report names no etap, so
-// he may report only while at least one of his etapy here is still open (EX-1034).
+// he may report only while at least one of his etapy here is still open.
 export const hasOpenStage = (ownStages: KosztorysStageT[]): boolean =>
   ownStages.some((stage) => !stage.completed)
 

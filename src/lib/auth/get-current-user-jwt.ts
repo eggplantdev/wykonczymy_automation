@@ -23,7 +23,7 @@ async function getSecretKey(): Promise<Uint8Array> {
   return cachedSecretKey
 }
 
-// Tagged with the collection, not `entityTag('user', id)`, against the EX-849 rule: every write to
+// Tagged with the collection, not `entityTag('user', id)`: every write to
 // `users` already expires it, so a writer that locks an account out cannot forget to.
 const SESSION_ALIVE_REVALIDATE_SECONDS = 3600
 

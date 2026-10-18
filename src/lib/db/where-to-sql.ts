@@ -88,6 +88,6 @@ function escapeValue(val: unknown): string {
   if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`
   if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE'
   // Never degrade to the NULL keyword: `col != NULL` is NULL for every row, so the filter would
-  // silently match nothing instead of failing (EX-574).
+  // silently match nothing instead of failing.
   throw new Error(`where-to-sql: unsupported value type "${typeof val}"`)
 }

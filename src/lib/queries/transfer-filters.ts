@@ -276,7 +276,7 @@ export function withDateRange(where: Where, { from, to }: ClosedDateRangeT): Whe
 /**
  * The `type` condition must survive: a CANCELLATION row copies its original's amount and carries
  * `cancelled = false`, so the default `not_in: ['CANCELLATION']` is the only thing keeping it out
- * of the sum (EX-574).
+ * of the sum.
  */
 export function stripCancelledFilters(where: Where): Where {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

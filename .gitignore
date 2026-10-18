@@ -92,7 +92,7 @@ dump.sql
 # Temp manual-test assets (HEIC + oversize) — not for commit
 tmp-heic-test/
 
-# Personal learning notes — temporary, not for commit (see Linear EX-474)
+# Personal learning notes — temporary, not for commit
 tmp-lessons/
 
 # Root-only scratch file. Anchored: an unanchored `test.js` would ignore any file of that name at

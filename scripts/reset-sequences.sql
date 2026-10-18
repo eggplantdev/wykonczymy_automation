@@ -9,7 +9,7 @@
 -- is_called=false → nextval = 1.
 --
 -- NEVER point this at DB_POSTGRES_URL_PROD — prod sequences are authoritative and a human owns any
--- prod-side reset (Linear EX-446).
+-- prod-side reset.
 DO $$
 DECLARE
   rec RECORD;
