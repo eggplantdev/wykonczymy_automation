@@ -9,6 +9,8 @@ import {
 } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/transfer-fixtures'
 
 describe.skipIf(!ENV_READY)('cash-register trash SQL (DB)', () => {
   let payload: Payload
@@ -24,33 +26,13 @@ describe.skipIf(!ENV_READY)('cash-register trash SQL (DB)', () => {
     sqlModule = await import('@/lib/db/cash-register-trash')
     await purgeFixtureUsers(db)
 
-    const ownerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Kosz Kas SQL',
-            role: 'EMPLOYEE',
-            email: 'kosz-kas-sql@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-    const createRegister = async (name: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'cash-registers',
-            data: { name, type: 'AUXILIARY', owner: ownerId },
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
-    expired = await createRegister('Kasa przeterminowana')
-    recent = await createRegister('Kasa świeża')
-    live = await createRegister('Kasa żywa')
+    const ownerId = await createTestUser(payload, {
+      name: 'Kosz Kas SQL',
+      email: 'kosz-kas-sql@test.local',
+    })
+    expired = await createTestRegister(payload, ownerId, 'Kasa przeterminowana')
+    recent = await createTestRegister(payload, ownerId, 'Kasa świeża')
+    live = await createTestRegister(payload, ownerId, 'Kasa żywa')
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'cash_registers')
   })

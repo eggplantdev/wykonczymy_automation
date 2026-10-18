@@ -18,6 +18,8 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser } from '@/__tests__/helpers/user'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
 const FILENAME_PREFIX = 'worker-reports-db-test-'
 
@@ -36,15 +38,6 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
   let workerId: number
   let otherWorkerId: number
   let itemIds: number[]
-
-  async function createWorker(email: string) {
-    const user = await payload.create({
-      collection: 'users',
-      data: { name: email, role: 'EMPLOYEE', email, password: 'test-password-123' },
-      context: { skipRevalidation: true },
-    })
-    return Number(user.id)
-  }
 
   const rozpiskaLine = (itemId: number, reportedQty: number) => ({
     kind: 'rozpiska' as const,
@@ -68,8 +61,8 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
 
     investmentId = await createTestInvestment(payload, 'worker-reports-db-test')
     otherInvestmentId = await createTestInvestment(payload, 'worker-reports-db-test-other')
-    workerId = await createWorker('worker-reports-a@test.local')
-    otherWorkerId = await createWorker('worker-reports-b@test.local')
+    workerId = await createTestUser(payload, { email: 'worker-reports-a@test.local' })
+    otherWorkerId = await createTestUser(payload, { email: 'worker-reports-b@test.local' })
     ;({ itemIds } = await createKosztorysTree(payload, investmentId, {
       sections: [
         { name: 'Salon', items: [{ description: 'Malowanie' }, { description: 'Gładź' }] },
@@ -81,7 +74,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     for (const id of [investmentId, otherInvestmentId]) {
       if (id) await deleteTestInvestment(payload, id).catch(() => {})
     }
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     await purgeFixtureUsers(db)
   })
 
@@ -336,15 +329,8 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     const MANAGER = { id: -1, isManagement: true }
     const workerViewer = () => ({ id: workerId, isManagement: false })
 
-    // Raw INSERT: an upload through Payload would push bytes at the Blob store for a fixture nothing opens.
-    async function insertMedia(name: string, uploadedBy: number): Promise<number> {
-      const { rows } = await db.execute(sql`
-        INSERT INTO media (filename, mime_type, filesize, created_by_id)
-        VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-        RETURNING id
-      `)
-      return Number(rows[0].id)
-    }
+    const insertMedia = (name: string, uploadedBy: number) =>
+      insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
     it('returns null for another worker and for a missing id, the same answer for both', async () => {
       const othersReport = await insertWorkerReport(db, {
