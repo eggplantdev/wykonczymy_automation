@@ -10,6 +10,7 @@ import {
 } from '@/scripts/e2e-dump-rows'
 import { seedClientShare } from '@/scripts/seed-client-share'
 import { seedE2eUser } from '@/scripts/seed-e2e-user'
+import { seedE2eWorkers } from '@/scripts/seed-e2e-workers'
 import { seedFleet } from '@/scripts/seed-fleet'
 import { seedInvoiceIngest } from '@/scripts/seed-invoice-ingest'
 import { seedKosztorysBands } from '@/scripts/seed-kosztorys-bands'
@@ -59,6 +60,7 @@ async function seedSuite(payload: Payload) {
     undo: await seedKosztorysUndo(payload),
     versions: await seedKosztorysReconciliation(payload),
     catalogue: await seedWorkCatalogue(payload),
+    workers: await seedE2eWorkers(payload),
   }
 }
 
