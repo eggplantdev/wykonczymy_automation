@@ -5,7 +5,7 @@ import { collapseSummaryPanel, editorCell } from './drivers/kosztorys-grid'
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 // No other spec books against it, and this one always hands it back active.
-const LOCKED_INVESTMENT = { id: 124, name: 'Agnieszka żochowska ul. Człuchowska' }
+const LOCKED_INVESTMENT = { id: 124, name: 'Agnieszka Zochowska ul. Człuchowska' }
 
 async function setStatus(page: Page, status: string): Promise<void> {
   await page.goto(`/inwestycje/${LOCKED_INVESTMENT.id}`)

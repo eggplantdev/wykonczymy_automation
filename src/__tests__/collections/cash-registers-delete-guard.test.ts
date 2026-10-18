@@ -26,7 +26,7 @@ describe.skipIf(!ENV_READY)('cash-registers beforeDelete guard (DB)', () => {
     const inserted = await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id, cancelled)
       VALUES (${description}, 250, now(),
-        'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${registerId}, ${cancelled})
+        'OTHER'::enum_transactions_type, 'CASH', ${registerId}, ${cancelled})
       RETURNING id
     `)
     const id = Number((inserted.rows[0] as { id: number }).id)

@@ -85,10 +85,10 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
   await expect(overwrite).toContainText('Po zapisie')
   await expectMoney(overwrite, SEEDED_PRICE, 'stara cena z katalogu')
   await expectMoney(overwrite, RAISED_PRICE, 'nowa cena z rozpiski')
-  await overwrite.getByRole('button', { name: 'Nadpisz…' }).click()
+  await overwrite.getByRole('button', { name: 'Aktualizuj…' }).click()
 
   const confirm = page.getByRole('alertdialog')
-  await expect(confirm).toContainText(`Nadpisać „${seed.save.item}"`)
+  await expect(confirm).toContainText(`Zaktualizować „${seed.save.item}" w katalogu?`)
   await expectMoney(confirm, SEEDED_PRICE, 'kwota „przed" w potwierdzeniu')
   await expectMoney(confirm, RAISED_PRICE, 'kwota „po" w potwierdzeniu')
 
@@ -102,9 +102,12 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
 
   await openEditor(page, seed.save.id)
   const again = await openSaveDialog(page, seed.save.item)
-  await again.getByRole('button', { name: 'Nadpisz…' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Nadpisz', exact: true }).click()
-  await expect(page.getByText('Nadpisano pozycję katalogu')).toBeVisible()
+  await again.getByRole('button', { name: 'Aktualizuj…' }).click()
+  await page
+    .getByRole('alertdialog')
+    .getByRole('button', { name: 'Aktualizuj', exact: true })
+    .click()
+  await expect(page.getByText('Zaktualizowano pozycję katalogu')).toBeVisible()
 
   await findInCatalogue(page, seed.save.item)
   await expectMoney(

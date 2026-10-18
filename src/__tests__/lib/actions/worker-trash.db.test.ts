@@ -75,7 +75,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
   const useRegister = (registerId: number) =>
     db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
-      VALUES (${MARKER}, 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${registerId})
+      VALUES (${MARKER}, 50, now(), 'OTHER'::enum_transactions_type, 'CASH', ${registerId})
     `)
 
   beforeAll(async () => {
@@ -135,7 +135,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
     const worker = await createWorker()
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, worker_id)
-      VALUES (${MARKER}, 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${worker.id})
+      VALUES (${MARKER}, 50, now(), 'PAYOUT'::enum_transactions_type, 'CASH', ${worker.id})
     `)
 
     expect((await actions.trashWorkerAction(worker.id)).success).toBe(false)

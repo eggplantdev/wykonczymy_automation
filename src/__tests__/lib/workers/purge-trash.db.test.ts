@@ -70,7 +70,7 @@ describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
     // Only raw SQL gets past the write gate — the shape a purge must still refuse to orphan.
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, worker_id)
-      VALUES (${MARKER}, 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${pinned.worker})
+      VALUES (${MARKER}, 50, now(), 'PAYOUT'::enum_transactions_type, 'CASH', ${pinned.worker})
     `)
   })
 

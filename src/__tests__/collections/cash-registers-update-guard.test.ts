@@ -93,7 +93,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
       VALUES ('owner-lock live expense', 50, now(),
-        'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${id})
+        'OTHER'::enum_transactions_type, 'CASH', ${id})
     `)
 
     await expect(updateRegister(id, { owner: otherOwnerId })).rejects.toThrow(
@@ -107,7 +107,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
       VALUES ('owner-lock rename expense', 50, now(),
-        'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${id})
+        'OTHER'::enum_transactions_type, 'CASH', ${id})
     `)
 
     await updateRegister(id, { name: 'Nowa nazwa', owner: ownerId })

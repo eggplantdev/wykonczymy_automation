@@ -54,7 +54,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
   const insertTransaction = async (registerId: number, cancelled: boolean) => {
     const { rows } = await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id, cancelled)
-      VALUES ('kosz-kas trash-actions', 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH',
+      VALUES ('kosz-kas trash-actions', 50, now(), 'OTHER'::enum_transactions_type, 'CASH',
         ${registerId}, ${cancelled})
       RETURNING id
     `)
