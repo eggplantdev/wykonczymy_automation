@@ -10,8 +10,7 @@ import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 // literal unassignable.
 type InvestmentOverridesT = Partial<Omit<Investment, 'id' | 'name' | 'createdAt' | 'updatedAt'>>
 
-// `skipRevalidation` matters: the specs run outside a request scope, where Payload's revalidation
-// hooks throw.
+// `skipRevalidation` keeps fixture writes out of the `revalidateTag` calls a spec asserts.
 export async function createTestInvestment(
   payload: Payload,
   name: string,
@@ -45,6 +44,7 @@ type TrashableTableT =
   | 'equipment'
   | 'leads'
   | 'templates'
+  | 'users'
 
 // Backdates the trash marker in SQL — retention is measured against `now()`, which no Payload write
 // can move.

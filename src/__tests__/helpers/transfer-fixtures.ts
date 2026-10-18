@@ -1,29 +1,40 @@
 import type { Payload } from 'payload'
+import type { RoleT } from '@/lib/auth/roles'
+import type { CashRegister } from '@/payload-types'
+import { createTestUser } from '@/__tests__/helpers/user'
+
+type RegisterOverridesT = Partial<
+  Omit<CashRegister, 'id' | 'name' | 'owner' | 'createdAt' | 'updatedAt'>
+>
 
 export async function createRegisterOwner(
   payload: Payload,
-  options: { name: string; email: string; registerName: string },
+  options: { name: string; email: string; registerName: string; role?: RoleT },
   ctx: { context: Record<string, unknown> },
 ): Promise<{ ownerId: number; registerId: number }> {
-  const owner = await payload.create({
-    collection: 'users',
-    data: {
-      name: options.name,
-      role: 'EMPLOYEE',
-      email: options.email,
-      password: 'test-password-123',
-    },
-    ...ctx,
+  const ownerId = await createTestUser(payload, {
+    name: options.name,
+    email: options.email,
+    role: options.role,
   })
-  const ownerId = Number(owner.id)
+  const registerId = await createTestRegister(payload, ownerId, options.registerName, {}, ctx)
+  return { ownerId, registerId }
+}
 
+export async function createTestRegister(
+  payload: Payload,
+  ownerId: number,
+  name: string,
+  overrides: RegisterOverridesT = {},
+  ctx: { context: Record<string, unknown> } = { context: { skipRevalidation: true } },
+): Promise<number> {
   const register = await payload.create({
     collection: 'cash-registers',
-    data: { name: options.registerName, owner: ownerId, type: 'AUXILIARY' },
+    data: { name, owner: ownerId, type: 'AUXILIARY', ...overrides },
+    overrideAccess: true,
     ...ctx,
   })
-
-  return { ownerId, registerId: Number(register.id) }
+  return Number(register.id)
 }
 
 /** An existing scan rather than a fresh upload: creating one would push bytes to the Blob store. */

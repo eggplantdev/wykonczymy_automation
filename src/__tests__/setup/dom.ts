@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 
 // Radix and cmdk gate on them — without the stubs a popover mounts and
@@ -38,3 +39,12 @@ if (!Element.prototype.hasPointerCapture) {
   Element.prototype.setPointerCapture = () => {}
   Element.prototype.releasePointerCapture = () => {}
 }
+
+// A spec asserting a toast imports `toastMessage` and reads it as the mock.
+vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+
+// The App Router hooks throw outside a mounted Next app.
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  ...(await import('@/__tests__/stubs/next-navigation')),
+}))

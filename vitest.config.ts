@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vitest/config'
+import { globSync, readFileSync } from 'fs'
 import path from 'path'
 
 const alias = {
@@ -15,6 +16,11 @@ const alias = {
   // `unstable_cache` wants a request scope and `updateTag` a server action,
   // neither of which exists in node.
   'next/cache': path.resolve(__dirname, './src/__tests__/stubs/next-cache.ts'),
+}
+
+const unitAlias = {
+  ...alias,
+  '@payload-config': path.resolve(__dirname, './src/__tests__/stubs/payload-config.ts'),
 }
 
 // A project does not inherit the root config's `css`, and the app's own postcss.config.mjs holds a
@@ -38,22 +44,66 @@ function stubServerActions(): Plugin {
   }
 }
 
+// A spec that mocks a module would leak that mock into every later file sharing the module cache.
+const dbSpecs = globSync('src/__tests__/**/*.db.test.ts')
+const mocksModules = (file: string) =>
+  /\bvi\.(mock|doMock|spyOn)\(/.test(readFileSync(file, 'utf8'))
+const dbSpecsThatMock = dbSpecs.filter(mocksModules)
+const dbSpecsMockFree = dbSpecs.filter((file) => !mocksModules(file))
+
+const nodeTest = {
+  globals: true,
+  css: false,
+  testTimeout: 15_000,
+  unstubEnvs: true,
+  clearMocks: true,
+  restoreMocks: true,
+  setupFiles: ['./src/__tests__/setup/node.ts'],
+}
+
+const dbTest = {
+  ...nodeTest,
+  // A cold Payload boot in a DB spec's beforeAll runs ~9-10s, past the 10s default.
+  hookTimeout: 30_000,
+}
+
 export default defineConfig({
   test: {
     projects: [
       {
+        resolve: { alias: unitAlias },
+        css: postcss,
+        test: {
+          ...nodeTest,
+          name: 'node',
+          include: ['src/__tests__/**/*.test.ts'],
+          exclude: ['src/__tests__/**/*.db.test.ts'],
+        },
+      },
+      // Own projects so the unit run never collects them: each one loads the Payload/Drizzle graph
+      // only to skip without a DB env. `pnpm test:integration` and `pnpm test:parity` select both.
+      {
         resolve: { alias },
         css: postcss,
         test: {
-          name: 'node',
-          globals: true,
-          include: ['src/__tests__/**/*.test.ts'],
-          css: false,
-          testTimeout: 15_000,
+          ...dbTest,
+          name: 'db',
+          include: dbSpecsThatMock,
+        },
+      },
+      // One Payload boot for the whole project instead of one per file: ~12s against ~10s per file.
+      {
+        resolve: { alias },
+        css: postcss,
+        test: {
+          ...dbTest,
+          name: 'db-shared',
+          include: dbSpecsMockFree,
+          isolate: false,
         },
       },
       {
-        resolve: { alias },
+        resolve: { alias: unitAlias },
         css: postcss,
         plugins: [stubServerActions()],
         test: {
@@ -62,6 +112,8 @@ export default defineConfig({
           include: ['src/__tests__/**/*.test.tsx'],
           environment: 'jsdom',
           setupFiles: ['./src/__tests__/setup/dom.ts'],
+          clearMocks: true,
+          restoreMocks: true,
           css: false,
           testTimeout: 20_000,
         },
