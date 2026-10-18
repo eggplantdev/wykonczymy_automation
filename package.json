@@ -13,7 +13,7 @@
     "format:fix": "prettier --write --ignore-path .gitignore  .",
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
-    "knip": "DB_POSTGRES_URL_TEST=postgres://x:x@localhost:5435/x npx --yes knip",
+    "knip": "DB_POSTGRES_URL_TEST=postgres://x:x@localhost:5435/x npx --yes knip@6.41.0",
     "payload": "payload",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",

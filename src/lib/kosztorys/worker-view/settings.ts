@@ -64,15 +64,11 @@ export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT
 export function toStoredWorkerViewSettings(
   settings: WorkerViewSettingsT,
 ): Omit<WorkerViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
-  const sanitized = sanitizeWorkerViewSettings(settings)
-  // The in-memory list is the owner's answer for every column; `sanitized` reads a list as no stored
-  // choices and would put every column back on its code default.
-  const hidden = Array.isArray(settings.hiddenColumns)
-    ? settings.hiddenColumns
-    : sanitized.hiddenColumns
   return {
-    ...sanitized,
-    hiddenColumns: toHiddenColumnMap(hidden, WORKER_VIEW_KEYS),
+    ...sanitizeWorkerViewSettings(settings),
+    // The in-memory list is the owner's answer for every column; sanitizing reads a list as no stored
+    // choices and would put every column back on its code default.
+    hiddenColumns: toHiddenColumnMap(settings.hiddenColumns, WORKER_VIEW_KEYS),
   }
 }
 

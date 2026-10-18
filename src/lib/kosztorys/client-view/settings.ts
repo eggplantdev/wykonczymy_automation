@@ -44,9 +44,8 @@ const DEFAULT_SETTINGS: ClientViewSettingsT = {
   columnRanks: {},
 }
 
-// a missing row, or a `hiddenColumns` that is not a choices map, falls back to the
-// default hidden set — reading it as „hide nothing" would serve the whole allowlist, discount figures
-// included, off a column any owner can hand-edit in /admin.
+// A missing row, or a `hiddenColumns` that is not a choices map, falls back to the default hidden
+// set — reading it as „hide nothing" would serve the whole allowlist, discount figures included.
 export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT {
   if (typeof source !== 'object' || source === null) return DEFAULT_SETTINGS
   const { hiddenColumns, hideEmptyRows, columnRanks } = source as {
@@ -68,15 +67,11 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
 export function toStoredClientViewSettings(
   settings: ClientViewSettingsT,
 ): Omit<ClientViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
-  const sanitized = sanitizeClientViewSettings(settings)
-  // The in-memory list is the owner's answer for every column; `sanitized` reads a list as no stored
-  // choices and would put every column back on its code default.
-  const hidden = Array.isArray(settings.hiddenColumns)
-    ? settings.hiddenColumns
-    : sanitized.hiddenColumns
   return {
-    ...sanitized,
-    hiddenColumns: toHiddenColumnMap(hidden, PREVIEW_VISIBLE_COLUMNS),
+    ...sanitizeClientViewSettings(settings),
+    // The in-memory list is the owner's answer for every column; sanitizing reads a list as no stored
+    // choices and would put every column back on its code default.
+    hiddenColumns: toHiddenColumnMap(settings.hiddenColumns, PREVIEW_VISIBLE_COLUMNS),
   }
 }
 

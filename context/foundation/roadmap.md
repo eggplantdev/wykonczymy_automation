@@ -22,10 +22,11 @@ top_blocker: none
 >
 > The source sheet is readable again: the service account
 > `kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com` was granted Viewer on
-> `KOSZTORYS_TEMPLATE_SHEET_ID` (2026-07-15), so the read-only inspector works:
+> the template sheet (2026-07-15), so the read-only inspector works:
 >
 > ```bash
-> MAX_ROWS=464 TABS=kosztorys_robocizny node --env-file=.env scripts/inspect-sheet.mjs
+> SHEET_ID=15AoSJfaHcGwuDCukzu5hKitWE-oPw0xrD_8xtBM2Q8I MAX_ROWS=464 TABS=kosztorys_robocizny \
+>   node --env-file=.env scripts/inspect-sheet.mjs
 > ```
 >
 > **Verified against the live sheet 2026-07-15** (formulas, not screenshots) — supersedes the

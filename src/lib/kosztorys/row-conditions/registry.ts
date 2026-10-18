@@ -22,7 +22,8 @@ const qtyDone = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   ctx.qtyDoneByRowId?.get(row.id) ?? rowTotalQtyDone(row, ctx.stages, 'client')
 
 // Both przedmiary count (EX-921): a pozycja added after the offer has ofertowy 0 and a priced
-// aktualizacja, and the client's document still shows that figure.
+// aktualizacja, and the client's document still shows that figure. So unlike „bez przedmiaru", an
+// offer Przedmiar alone already makes a row non-empty here.
 const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   !(row.plannedQty > 0) && !(resolvedCurrentPlannedQty(row) > 0) && !(qtyDone(row, ctx) > 0)
 
@@ -204,7 +205,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'measured',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
   },
-  // Its own group: ticks in „Przedmiar" and „Wykonana praca" AND together, so only this pair reaches their union.
+  // Its own group: ticks in „Przedmiar" and „Wykonana praca" AND together.
   {
     id: 'empty-both-axes',
     label: 'bez przedmiaru i bez wykonanej pracy',

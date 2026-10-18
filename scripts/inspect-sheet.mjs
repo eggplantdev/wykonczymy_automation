@@ -11,7 +11,7 @@ const auth = new google.auth.JWT({
 })
 const sheets = google.sheets({ version: 'v4', auth })
 
-const spreadsheetId = process.env.SHEET_ID || process.env.KOSZTORYS_TEMPLATE_SHEET_ID
+const spreadsheetId = process.env.SHEET_ID
 if (!spreadsheetId) throw new Error('SHEET_ID not set')
 const MAX_ROWS = Number(process.env.MAX_ROWS || 400)
 const tabFilter = (process.env.TABS || '')

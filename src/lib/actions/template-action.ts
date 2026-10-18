@@ -43,7 +43,6 @@ export function templateAction<TData = undefined>(
           code: 'NOT_FOUND',
         } as ActionResultT<TData>
       }
-      // Trashing can land between this check and the handler's write; that write is harmless because restore returns the szablon whole.
       if (gate.isTrashed) {
         return { success: false, error: TEMPLATE_TRASHED_MESSAGE } as ActionResultT<TData>
       }

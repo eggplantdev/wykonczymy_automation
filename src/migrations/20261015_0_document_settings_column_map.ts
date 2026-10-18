@@ -8,7 +8,8 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 // chosen" and serves the code default, which shows `price` and the other default-visible columns an
 // owner may have hidden. The new code reads both shapes, so until this runs every link is served
 // exactly as today. For the same reason, rolling the deploy back past EX-1033 means running `down`
-// first.
+// first. The code from 280980002 on reads only the map, so `down` also needs the code rolled back
+// past it.
 const CLIENT_KEYS = [
   'note',
   'plannedQty',

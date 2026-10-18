@@ -16,11 +16,11 @@ zero kontaktu z Sheets dla nowych robót.
 > Read-only sheet inspector: `scripts/inspect-sheet.mjs` (dumps formuły + wartości,
 > pełne wiersze, litery kolumn AA+). Run:
 > `SHEET_ID=<id> node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/dump.txt`
-> (needs `GOOGLE_SERVICE_ACCOUNT_JSON`; defaults to `KOSZTORYS_TEMPLATE_SHEET_ID`).
+> (needs `GOOGLE_SERVICE_ACCOUNT_JSON` and `SHEET_ID`).
 >
 > **Dostęp (2026-07-15):** service account
 > `kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com` ma **Viewera** na
-> `KOSZTORYS_TEMPLATE_SHEET_ID`. Wcześniej inspector zwracał `403 PERMISSION_DENIED` —
+> arkuszu szablonu `15AoSJfaHcGwuDCukzu5hKitWE-oPw0xrD_8xtBM2Q8I`. Wcześniej inspector zwracał `403 PERMISSION_DENIED` —
 > jeśli znowu zwróci, arkusz stracił udostępnienie (nadaj Viewera w UI, SA nie zrobi tego samo).
 > **Nie zgaduj ze screenshotów — odpal inspector.** Ten plik był już raz źle „poprawiony"
 > na podstawie przyciętego obrazka.
