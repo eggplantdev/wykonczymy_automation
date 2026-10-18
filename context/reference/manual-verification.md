@@ -111,7 +111,7 @@ service, production — is returned as a blocker naming the missing isolation.
   event's `clipboardData` for Ctrl/Cmd+C) and read the captured value.
 - **A hydration error seen in the MCP browser is not a finding yet.** Re-load the page in a clean
   headless Chrome (`chromium.launch({ channel: 'chrome' })`, console errors captured) and file only
-  with the full React diff in hand. EX-1037 was filed without one and never reproduced in eight
+  with the full React diff in hand. One such finding was filed without one and never reproduced in eight
   clean variants — the MCP tab had been switching roles in place.
 - **Test layers:** unit / DOM specs under `src/__tests__/` (mirrored path), e2e under `e2e/` against
   5435 — AGENTS.md → Testing.

@@ -51,7 +51,7 @@ są **martwe** — nie ma ich ani w `serverSchema`, ani w żadnym pliku `src/`.
 ### Co dokąd wysyła
 
 Do **klienta** wychodzą dwie ścieżki. Pierwsza to prośba o opinię Google (`requestReviewAction` →
-`sendReviewRequestEmail`, EX-973): wysyła ją ręcznie kierownik z zakończonej inwestycji, więc
+`sendReviewRequestEmail`): wysyła ją ręcznie kierownik z zakończonej inwestycji, więc
 jedyną bramką jest `EMAIL_HOST` — na localhoście i preview pada na DNS jak każda inna poczta.
 Druga to `sendAutoReply` („Dziękujemy za kontakt") na `lead.email`,
 wołana z `captureLead` z domyślnym `autoReply: 'send'`. Jedyni wołający z tym domyślnym to dwa
@@ -59,7 +59,7 @@ webhooki — `/api/webhooks/facebook-leads` i `/api/webhooks/wpforms`. To ruch *
 trafia tam, gdzie wskazuje `callback_url` u Mety i w WPForms, czyli na produkcję.
 
 **`runLeadReconcileSweep` autorespondera NIE wysyła** — przekazuje jawnie `autoReply: 'skip'`
-(`src/lib/leads/reconcile-sweep.ts`, uzasadnienie EX-660: „Backfill is silent to the CUSTOMER, never
+(`src/lib/leads/reconcile-sweep.ts`, uzasadnienie w kodzie: „Backfill is silent to the CUSTOMER, never
 to sales"). Sweep ma dziś jednego wołającego — cron `/api/cron/leads-reconcile`; ręczny przycisk
 „Pobierz z Facebooka" wraz z akcją `reconcileLeads` został usunięty (nie miał wyzwalacza: pusta
 tabela wygląda tak samo jak brak zgłoszeń, a cron i tak alarmuje, gdy coś odzyskał). Do sprzedaży
@@ -105,7 +105,7 @@ z produkcji. A bez klucza w środowisku deweloperskim nie da się rozwijać skan
 (`POST /api/extract-receipt`). Odwrotnie niż przy arkuszach, gdzie szkoda była nieodwracalna,
 nielimitowana i niewidoczna.
 
-Od EX-1001 płatny odczyt leci też **bez kliknięcia**: wysłanie wydatku przez pracownika, dodanie
+Płatny odczyt leci też **bez kliknięcia**: wysłanie wydatku przez pracownika, dodanie
 lub usunięcie zdjęcia i zmiana trybu odpalają w `after()` odczyt zdjęć zgłoszenia — z każdego
 środowiska, w którym ktoś wyśle zgłoszenie. Świadomie bez bramki, z tego samego powodu.
 

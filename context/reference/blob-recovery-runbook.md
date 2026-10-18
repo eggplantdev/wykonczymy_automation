@@ -44,7 +44,7 @@ transactions.id  →  transactions_rels.media_id  →  media.id  →  media.file
    (DB dump)          (DB dump, path='invoice')     (DB dump)     (DB dump)            (Blob)            (snapshot)
 ```
 
-One invoice can span several pages (EX-659), so the link is a **join table row per page**, ordered
+One invoice can span several pages, so the link is a **join table row per page**, ordered
 by `transactions_rels.order` — not a column on the transaction.
 
 - Everything left of "Blob" is a **column in the DB dump** you already back up hourly.
@@ -77,7 +77,7 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
 ### `media` table (source of truth for the mapping)
 
 - **940 rows, 940 distinct `filename`, 0 duplicates, 0 null** → one blob file per media row.
-  A transaction, however, maps to **1:N** media rows since EX-659 — one per invoice page.
+  A transaction, however, maps to **1:N** media rows since multi-page invoices — one per invoice page.
   The reverse never holds: a media row belongs to exactly one transfer, because deleting and reclaiming
   work per row. So a worker's photo holding N paragony is uploaded N times, once per expense row;
   sharing one media row would be a model change.
@@ -90,7 +90,7 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
   appears nowhere in the DB.** → **No URL rewrite is ever needed on restore**, same store or new.
 - Join keys that matter: **`filename`** and **`sizes_thumbnail_filename`**. `url` /
   `sizes_thumbnail_url` are filename-derived and travel unchanged.
-- **Since 2026-10-07 (EX-1012 / EX-1014) app uploads carry no thumbnail.** `/api/media-upload` and
+- **Since 2026-10-07 app uploads carry no thumbnail.** `/api/media-upload` and
   `/api/media-register` insert the row with raw SQL (`insertMediaRow`), so `sizes_thumbnail_*`,
   `width` and `height` stay `NULL` and no `-400x300` blob exists. Only Payload-made rows have one:
   everything older, the landing import (`fetchLandingAsset`) and REST `POST /api/media`. A new
@@ -157,7 +157,7 @@ the correct name. The wrongly-named copies stay on FTP — mirror-only never del
   `deleteUnreferencedMedia` runs only on a write that drops a reference. A sweep cron would delete
   those 104 old invoices from a store with no undelete, so it waits on an owner decision.
   One known source is the reclaim itself: it is best-effort per id, so one `payload.delete` that throws
-  is logged as `[media] delete unreferenced media failed` and its row and blob stay. The EX-1014
+  is logged as `[media] delete unreferenced media failed` and its row and blob stay. The
   harness hit this 4 times in ~16 runs of „add 10 photos → Usuń wszystkie" back to back. Ids from
   consecutive runs were exactly 10 apart, so no extra row was created: one attached photo survived
   its reclaim. The reclaim ran in `after()` while the next run was already uploading to the same
@@ -413,7 +413,7 @@ production since then has a `media` row locally but **404s** — its bytes were 
 The wrapper refuses `--allow-prod` outright, so a command named `refresh-preview` cannot write to
 production no matter what the caller types or a stale `.env.local` holds.
 
-### One-off: the HEIC → JPEG backfill on production (EX-394)
+### One-off: the HEIC → JPEG backfill on production
 
 `src/scripts/backfill-heic-media.ts` rewrites every `media` row whose `mime_type` is `image/heic`
 into a JPEG. It is a **mutating** run against the production store, so it belongs here rather than

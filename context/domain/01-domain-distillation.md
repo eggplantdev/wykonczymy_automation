@@ -8,8 +8,8 @@ method: m4l5-1 (DDD domain distillation)
 # Destylacja domeny — Wykończymy
 
 Regeneracja od zera (bramka 3 changeu `kosztorys-terminology`). Poprzednia wersja opisywała kod
-sprzed rozbicia `settlement.ts` na pięć plików (EX-650), sprzed usunięcia `zaliczki.ts` (EX-536)
-i sprzed EX-675, który odwrócił jej tezę o stracie. Każde twierdzenie poniżej ma kotwicę
+sprzed rozbicia `settlement.ts` na pięć plików, sprzed usunięcia `zaliczki.ts`
+i sprzed odwrócenia jej tezy o stracie. Każde twierdzenie poniżej ma kotwicę
 `plik:linia` sprawdzoną przy `938e0564`.
 
 ---
@@ -77,10 +77,10 @@ Ich zderzenie jest świadome i nazwane: `buildKosztorysReconciliation`
 
 ### Terminy usunięte z mapy
 
-- **Zaliczka** — `src/lib/kosztorys/zaliczki.ts` nie istnieje (EX-536). Tag cache
+- **Zaliczka** — `src/lib/kosztorys/zaliczki.ts` nie istnieje. Tag cache
   `kosztorysStage` opisywany przez poprzednią destylację razem z nim jest martwy.
 - **`wplatyNet` / `materialyNet`** — zero trafień w drzewie; hybrydy już wycięte.
-- **`measured_qty`** — dropnięte przez EX-489; został `sheetMeasuredQty`
+- **`measured_qty`** — dropnięte; został `sheetMeasuredQty`
   (`kosztorys-items.ts:40`, `readOnly`) jako pole importu z arkusza, nie źródło pomiaru.
 
 ---
@@ -92,7 +92,7 @@ Ich zderzenie jest świadome i nazwane: `buildKosztorysReconciliation`
 | Kosztorys (rozpiska + etapy)      | **Core**    | Tu żyje przewaga: własny model wyceny, etapów i płaszczyzn narzędziowych. |
 | Rozliczenie klienta (settlement)  | **Core**    | Pięć plików `settlement-*` — reguły, których arkusz nie umie wyrazić.     |
 | Rekoncyliacja kosztorys↔transfery | **Core**    | Instrument weryfikacyjny właściciela; nie ma go w żadnym gotowcu.         |
-| Rozliczenie podwykonawców         | **Core**    | Per-etap, per-płaszczyzna, per-osoba (EX-613).                            |
+| Rozliczenie podwykonawców         | **Core**    | Per-etap, per-płaszczyzna, per-osoba.                                     |
 | Transfery i kasy                  | **Support** | Zwykła księga gotówki; wartość w integracji, nie w modelu.                |
 | Sync z Google Sheets              | **Support** | ACL do cudzego systemu; kandydat na osobny slice łuku l5.                 |
 | Inwestycje / leady / pracownicy   | **Support** | CRUD nad Payloadem.                                                       |
@@ -114,7 +114,7 @@ Niezmienniki dziś **liczone** (nie egzekwowane zapisem):
    domyślka po cichu przywróciłaby odczyt ślepy na płaszczyznę (`settlement-rows.ts:15-17`).
 2. **„Pozostało" kotwiczy do przedmiaru**, nie do etapów: `rowRemainingForView`
    (`settlement-rows.ts:67`) = wartość przedmiaru − wartość wykonana. Suma w stopce i „Razem"
-   pomija wiersze ponad przedmiar (`isRemainingOverrun`, EX-885) — wiersz zostaje ujemny i czerwony.
+   pomija wiersze ponad przedmiar (`isRemainingOverrun`) — wiersz zostaje ujemny i czerwony.
 3. **Przekroczenie przedmiaru** jest liczone przy pomiarze klienckim, nigdy przy aktywnym widoku —
    przedmiar nie ma płaszczyzny (`settlement-rows.ts:116` + docblock).
 
@@ -127,7 +127,7 @@ marża  = robocizna − wypłaty − rabat − strata − rozliczone − materia
 
 `src/lib/kosztorys/calculate-balance.ts`, `calculate-margin.ts`.
 
-Od EX-649 obok tej marży stoi druga — nie zamiast niej. Powyższa zostaje żywa na v1
+Obok tej marży stoi druga — nie zamiast niej. Powyższa zostaje żywa na v1
 i w kolumnie „Marża":
 
 ```
@@ -140,7 +140,7 @@ materiału wliczonego w robociznę; marża rzeczywista wycenia ekipę z kosztory
 zwraca `null` (a nie zero), gdy któryś etap ma wykonaną pracę bez rozliczenia.
 
 **Poprzednia destylacja twierdziła, że strata nigdy nie dotyka bilansu — to już nieprawda.**
-EX-675 wprowadził stratę do obu formuł: obniża marżę i **podnosi** bilans (klient przestaje być
+Strata weszła do obu formuł: obniża marżę i **podnosi** bilans (klient przestaje być
 winien to, co firma wzięła na siebie), po wartości nominalnej, nigdy nie poszerzając bazy VAT
 (AGENTS.md, „Transfer Business Logic").
 
@@ -176,7 +176,7 @@ nigdy rozsmarowanym po przypisanych (`subcontractor-due.ts:16-19`).
 `buildKosztorysReconciliation` (`reconciliation.ts:114`) porównuje netto do netto:
 `sumaPracNet` ↔ `laborCostsNetFromTransactions` oraz `rabatClientNet` ↔ `investmentRabat`.
 
-**Wyciszenie jest per INWESTYCJA, nie per figura** (`reconciliation.ts:132`): odkąd EX-555 wyłączył
+**Wyciszenie jest per INWESTYCJA, nie per figura** (`reconciliation.ts:132`): odkąd wyłączono
 księgowanie `LABOR_COST`/`RABAT`, każda nowa inwestycja krzyczałaby bez końca — alarm, który dzwoni
 na wszystkim, nie weryfikuje niczego. Reguła per-figura wyciszyłaby „robocizna zaksięgowana, rabat
 nie", czyli dokładnie tę lukę, którą `showRabat` wypycha na ekran.
@@ -190,17 +190,17 @@ wprowadzenia, nie defekt.
 
 ## KROK 4 — Rozjazdy MODEL vs KOD
 
-| #   | Rozjazd                                                                                 | Status przy `938e0564`                                         |
-| --- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| 1   | Nazwa „Pomiar z natury" sugeruje pomiar w terenie; to formuła `=SUM(D:M)`               | **Żywy.** Rozstrzyga slice „niezmienniki", nie ten.            |
-| 2   | Polskie identyfikatory dla figur generycznych (`saldo`, `sumaPrac`, `wydatki`)          | **Zamknięty.** EX-548 przemianował je; guard trzyma 21 rdzeni. |
-| 3   | `wplatyNet` / `materialyNet` — hybrydy polsko-angielskie                                | **Zamknięty.** Zero trafień.                                   |
-| 4   | Zaliczki jako osobny moduł                                                              | **Zamknięty.** `zaliczki.ts` usunięty (EX-536).                |
-| 5   | „Strata nigdy nie dotyka bilansu"                                                       | **Odwrócony.** EX-675 — dotyka obu figur.                      |
-| 6   | `settlement.ts` jako jeden god-module                                                   | **Zamknięty.** Pięć plików `settlement-*` (EX-650).            |
-| 7   | `googleSheetId` `required: true, unique: true` — kosztorys nie może istnieć bez arkusza | **Żywy.** `src/collections/sheets.ts:44-50`.                   |
-| 8   | Postęp etapu zapisywany poza agregatem pozycji                                          | **Żywy.** Cel slice'a „agregat".                               |
-| 9   | `materialsNetDiscount` nieobecny w mapie domeny                                         | **Zamknięty tą regeneracją.**                                  |
+| #   | Rozjazd                                                                                 | Status przy `938e0564`                                |
+| --- | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 1   | Nazwa „Pomiar z natury" sugeruje pomiar w terenie; to formuła `=SUM(D:M)`               | **Żywy.** Rozstrzyga slice „niezmienniki", nie ten.   |
+| 2   | Polskie identyfikatory dla figur generycznych (`saldo`, `sumaPrac`, `wydatki`)          | **Zamknięty.** Przemianowane; guard trzyma 21 rdzeni. |
+| 3   | `wplatyNet` / `materialyNet` — hybrydy polsko-angielskie                                | **Zamknięty.** Zero trafień.                          |
+| 4   | Zaliczki jako osobny moduł                                                              | **Zamknięty.** `zaliczki.ts` usunięty.                |
+| 5   | „Strata nigdy nie dotyka bilansu"                                                       | **Odwrócony.** Dotyka obu figur.                      |
+| 6   | `settlement.ts` jako jeden god-module                                                   | **Zamknięty.** Pięć plików `settlement-*`.            |
+| 7   | `googleSheetId` `required: true, unique: true` — kosztorys nie może istnieć bez arkusza | **Żywy.** `src/collections/sheets.ts:44-50`.          |
+| 8   | Postęp etapu zapisywany poza agregatem pozycji                                          | **Żywy.** Cel slice'a „agregat".                      |
+| 9   | `materialsNetDiscount` nieobecny w mapie domeny                                         | **Zamknięty tą regeneracją.**                         |
 
 ---
 
@@ -210,17 +210,17 @@ wprowadzenia, nie defekt.
    „pomiar = Σ etapów" jest liczony przy odczycie, a nie chroniony przy zapisie. → slice „agregat".
 2. **`googleSheetId` wymagany i unikalny** (`sheets.ts:44-50`) — model mówi „kosztorys istnieje sam
    z siebie", schemat mówi „tylko jako cień arkusza". → slice „ACL".
-3. **Terminologia** — ten slice (EX-548).
+3. **Terminologia** — ten slice.
 
 ### Świadome NIE-cele (nie proponować jako defekty)
 
-- **Ujemne saldo rejestru dozwolone** — decyzja klienta (git `76dd757`, EX-410 canceled).
-- **Nie ma podłogi „≥1 pozycja"** — decyzja właściciela (2026-08-31, EX-751 canceled): kosztorys
+- **Ujemne saldo rejestru dozwolone** — decyzja klienta (git `76dd757`, issue anulowane).
+- **Nie ma podłogi „≥1 pozycja"** — decyzja właściciela (2026-08-31, issue anulowane): kosztorys
   wolno opróżnić do zera. Podłoga stała wcześniej wyłącznie w UI i broniła stanu osiągalnego dwiema
   innymi drogami („Wyczyść kosztorys", „Usuń sekcję") oraz w pełni obsłużonego (`EmptyState`
   z menu „Dodaj" i importem z arkusza). Zdjęta razem z `REMOVE_BLOCK_LAST_ITEM` i całym
   `ItemRemovalPlanT`; nie proponować jej z powrotem jako niezmiennika agregatu.
-- ~~**Kosztorys v2 rozłączony od marży**~~ — nieaktualne od EX-555 (robocizna i rabat na liście czytane z kosztorysu) i EX-649 (marża rzeczywista i prognoza w panelu oraz na liście).
+- ~~**Kosztorys v2 rozłączony od marży**~~ — nieaktualne (robocizna i rabat na liście czytane z kosztorysu; marża rzeczywista i prognoza w panelu oraz na liście).
 - **Polskie stringi UI i transkrybowane nagłówki arkusza** — poprawne z polityki.
 - **`'RABAT'` w enumie i `'planowana'` w statusie inwestycji** — wartości zamrożone migracjami.
 
@@ -232,5 +232,5 @@ Rdzeń domeny przesunął się od „kosztorys jako import arkusza" do „koszto
 pieniądza, świadomie porównywana z transakcjami". Trzy rzeczy, które ta regeneracja zmienia
 w obrazie z lipca: strata **dotyka** bilansu, `settlement.ts` już nie istnieje jako jeden plik,
 a `materialsNetDiscount` jest pełnoprawnym modyfikatorem obu figur inwestycji. Dług językowy
-(EX-548) jest spłacony, a guard `local/no-domain-drift` pilnuje 21 rdzeni na `'error'` — kolejny
+jest spłacony, a guard `local/no-domain-drift` pilnuje 21 rdzeni na `'error'` — kolejny
 dług jest już architektoniczny: niezmienniki, agregat, ACL.

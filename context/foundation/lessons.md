@@ -26,7 +26,7 @@
 - Transaction fixtures are deleted with raw SQL, never `payload.delete` — its hook removes the
   invoice media and their Blob files. The FKs into `transactions` are SET NULL, so `purgeFixtureUsers`
   misses CANCELLATION and `amount_edits` rows: delete them explicitly, keyed by a description marker
-  that the cancel reason carries into the CANCELLATION row (EX-911).
+  that the cancel reason carries into the CANCELLATION row.
 
 ## A new Payload collection's migration has a fixed checklist
 
@@ -138,7 +138,7 @@
   directions against `information_schema`.
 - The undo of a destructive replace is a snapshot taken **inside** the transaction, before the wipe:
   pass the transaction's `req` to `captureAutoSnapshot` / `serializeKosztorys` — without it the tree is
-  read on another connection, outside the locks (EX-718). Import and `replaceTreeWithSnapshot` pass
+  read on another connection, outside the locks. Import and `replaceTreeWithSnapshot` pass
   it; the version restore, catalogue insert and worker-report accept still don't (EX-1080).
 
 ## Snapshot payloads: bump the schema version on the rationale, type the tolerance
@@ -164,7 +164,7 @@
 ## Any DB adapter or driver change re-verifies the pool identity
 
 - Under `@vercel/postgres-adapter`, parallel Payload writes on Neon lost rows (the `VercelPool` was not
-  `instanceof` the `pg.Pool` Drizzle checks). Fixed by `@payloadcms/db-postgres` (EX-855). Re-verify
+  `instanceof` the `pg.Pool` Drizzle checks). Fixed by `@payloadcms/db-postgres`. Re-verify
   `instanceof` against the pg copy Drizzle imports on any adapter/driver bump; probes in
   `~/.local/share/wykonczymy-ex855/`.
 
@@ -173,13 +173,13 @@
 ## A server action that invalidates anything renders the route — that render IS the refresh
 
 - Any `revalidateTag`/`updateTag` sets `x-action-revalidated`; a profile only moves the render to a
-  follow-up GET (EX-597). To write without re-rendering, leave the action path (route handler) and own every
+  follow-up GET. To write without re-rendering, leave the action path (route handler) and own every
   affected figure on the client — one refactor, not two.
-- No `router.refresh()` after a revalidating action (EX-908 removed 16): refetch only after a write
+- No `router.refresh()` after a revalidating action (16 were removed): refetch only after a write
   that rendered nothing — route handler, upload API, or an action that threw.
 - A latch waiting for „the next tree" arms from the token the action **started** from
   (`useRestoreRemount`'s `since`): in 3/24 runs the render had already landed.
-- No expiry inside `after()` (EX-909): it skips the render but leaves the client router cache stale.
+- No expiry inside `after()`: it skips the render but leaves the client router cache stale.
   When the page renders the result itself, return the state from the action instead of
   push + refresh + revalidate.
 
@@ -243,7 +243,7 @@
 - A closure as a default parameter (`write = () => …` in the params) makes the compiler skip the whole
   hook; it surfaced only as a now-unused `react-hooks/refs` directive. Take the optional and fall back
   with `??` in the body (`patchStageField`).
-- Restoring memoization is not automatically a win: context value churn (EX-496) cost more than the
+- Restoring memoization is not automatically a win: context value churn cost more than the
   re-renders it saved.
 
 ## Small rendering traps worth remembering
@@ -373,7 +373,7 @@
 - A listener on `document` shares the node React hydrates on: only
   `nativeEvent.stopImmediatePropagation()` outruns it, and only because React registered first.
   react-datasheet-grid's own keydown listener sits on `document`, so a bare `stopPropagation` in a
-  cell input does not keep a key from the grid (EX-1081).
+  cell input does not keep a key from the grid.
 - A removed focused element fires no blur: a blur-settled draft owes three exits — commit, cancel,
   unmount. Read current logic from a latest-ref; make teardown idempotent with a ref.
 - Global drag listeners use `{ capture: true }`; OS file drags fire no `dragend`; guard leave with
@@ -484,8 +484,7 @@
 
 ## Identity and meaning over time
 
-- An id whose meaning changes over time needs a guard in every reader; give each thing its own id
-  (EX-893).
+- An id whose meaning changes over time needs a guard in every reader; give each thing its own id.
 - A marker appended to a name that feeds an identity key is part of the key: every writer strips it
   via one shared module; a suffix keeps marked rows beside their twins. Assert the persisted key.
   Retiring the marker is the same change in reverse — dropping the strip early re-created the
@@ -496,7 +495,7 @@
   prose that describes it.
 - Resolve an LLM-supplied name to an id by exact match or leave it blank — never fuzzy.
 - Investment status is a label, not a gate: bookability is `isBookableInvestment` /
-  `isOfferedForBooking` (EX-1066), the tuple lives in `investment-status.ts`. Payout bucketing puts
+  `isOfferedForBooking`, the tuple lives in `investment-status.ts`. Payout bucketing puts
   only „Zakończona" under „zakończone"; a debt on an „Odrzucona" investment would count as active, but
   that is unreachable — an Odrzucona investment has no executed work, so no debt (owner, 2026-10-15).
 
@@ -538,7 +537,7 @@
 
 ## A finding names a mechanism; measure it before planning
 
-- Put a number on it — rows, window, call sites, frequency — before the plan. Three EX-521 findings
+- Put a number on it — rows, window, call sites, frequency — before the plan. Three earlier perf findings
   collapsed on the numbers (+1 ms under a burst; a self-healing 10-minute interval; 47 call sites).
   A finding without a magnitude is a question. Watch for whole-sheet figures quoted for per-owner
   scopes.
@@ -598,7 +597,7 @@
   and no spec. A shared editor doesn't need shared tables: inject the action set (`EditorActionsT`).
 - Two tables sharing one id number space: every id-keyed thing (localStorage, cache tags, actions)
   gets a kind prefix or its own action — the number alone doesn't say what it points to.
-- Evidence: EX-893 put szablony in `investments` (status `szablon`); EX-1075 moved them out, guards
+- Evidence: szablony were first put in `investments` (status `szablon`), later moved out; guards
   in the action gate, listings, counters and the golden master went with it. Moved with an additive
   copy migration first and a `RUN-AFTER-DEPLOY` drop after the deploy.
 
