@@ -10,7 +10,8 @@ export async function pickExpenseType(page: Page, label: string): Promise<void> 
 }
 
 export async function openExpenseDialog(page: Page): Promise<void> {
-  const trigger = page.getByRole('button', { name: /Wydatek/ }).first()
+  // Below `lg` the „Wydatek" label is hidden, so a name-based locator finds nothing on a phone.
+  const trigger = page.locator('header button:has(svg.lucide-rocket)')
   await trigger.waitFor()
   await waitForHydration(trigger)
   const title = page.getByText('Nowy wydatek').first()
