@@ -19,7 +19,7 @@ import {
 type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
 
 const INVESTMENT = Number(process.env.INVESTMENT)
-// A szablon is a `templates` row: its id is not the id of the investment it was before EX-1075.
+// A szablon is a `templates` row: its id is not the id of the investment it used to be.
 const PRESET_ID = Number(process.env.PRESET_ID)
 if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
 const DRY = process.env.DRY === '1'
