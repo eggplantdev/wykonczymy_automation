@@ -27,15 +27,17 @@ const RAISED_PRICE = 150
 
 const PRICE_COLUMN = COLUMN_LABELS.price
 const CATALOGUE_PRICE_COLUMN = 'Cena j.m.'
+const SAVE_TITLE = 'Zapisz do katalogu'
+const UPDATE_TITLE = 'Aktualizuj pozycję w katalogu prac'
 
-async function openSaveDialog(page: Page, description: string): Promise<Locator> {
+async function openSaveDialog(page: Page, description: string, title: string): Promise<Locator> {
   await openRowMenu(page, description)
   // A pozycja already linked to the katalog offers „Aktualizuj…" in place of „Zapisz…".
   await page
     .getByRole('menuitem', { name: /^(Zapisz pozycję do|Aktualizuj pozycję w) katalogu prac$/ })
     .click()
   const dialog = page.getByRole('dialog')
-  await expect(dialog).toContainText('Zapisz do katalogu')
+  await expect(dialog).toContainText(title)
   return dialog
 }
 
@@ -64,7 +66,7 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
 
   await openEditor(page, seed.save.id)
 
-  const dialog = await openSaveDialog(page, seed.save.item)
+  const dialog = await openSaveDialog(page, seed.save.item, SAVE_TITLE)
   await expect(dialog).toContainText('Do zapisania')
   await expect(dialog).not.toContainText('W katalogu')
   await expectMoney(dialog, SEEDED_PRICE, 'cena z podglądu serwera')
@@ -85,7 +87,7 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
   await page.reload()
   await collapseSummaryPanel(page)
 
-  const overwrite = await openSaveDialog(page, seed.save.item)
+  const overwrite = await openSaveDialog(page, seed.save.item, UPDATE_TITLE)
   await expect(overwrite).toContainText('W katalogu')
   await expect(overwrite).toContainText('Po zapisie')
   await expectMoney(overwrite, SEEDED_PRICE, 'stara cena z katalogu')
@@ -106,7 +108,7 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
   )
 
   await openEditor(page, seed.save.id)
-  const again = await openSaveDialog(page, seed.save.item)
+  const again = await openSaveDialog(page, seed.save.item, UPDATE_TITLE)
   await again.getByRole('button', { name: 'Aktualizuj…' }).click()
   await page
     .getByRole('alertdialog')
@@ -156,7 +158,7 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
   await openEditor(page, seed.insert.id)
 
   // only the save action invalidates the katalog cache that the picker below reads from.
-  const dialog = await openSaveDialog(page, seed.insert.item)
+  const dialog = await openSaveDialog(page, seed.insert.item, SAVE_TITLE)
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(page.getByText('Dodano do katalogu')).toBeVisible()
 
