@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignoreIssues": {
-    "src/components/ui/**": ["exports", "types"]
-  }
+  "payload": false,
+  "entry": [
+    "src/payload.config.ts!",
+    "src/scripts/**/*.{ts,mjs}!",
+    "scripts/**/*.{ts,mjs,js}!",
+    "src/migrations/*.ts!",
+    "eslint-rules/**/*.{js,mjs,ts}",
+    "context/changes/**/*.{ts,mjs}!"
+  ]
 }
