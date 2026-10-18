@@ -1001,6 +1001,24 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       przywrócony", a paragon wraca jako osobne oczekujące zgłoszenie z tą samą notatką i
       odczytem AI.
 
+## EX-1080 — restore-lock-first — „Przywróć wersję" zapisuje stan sprzed przywrócenia
+
+- [ ] Kosztorys z zapisaną wersją → zmień opis pozycji → „Wersje" → przywróć tę wersję: rozpiska
+      wraca do stanu wersji (łącznie z VAT i współczynnikami), a na liście wersji pojawia się nowa
+      automatyczna wersja z opisem sprzed przywrócenia; przywrócenie jej oddaje zmieniony opis.
+
+## EX-1079 — worker-account-scope — „Edytuj pracownika" trzyma zasady kont
+
+- [ ] Jako Manager otwórz stronę Właściciela w „Pracownicy": brak przycisku „Edytuj pracownika".
+- [ ] Jako Manager na stronie pracownika → „Edytuj pracownika": lista „Rola" ma tylko „Pracownik";
+      zmiana e-maila i zapis działa.
+- [ ] Jako Manager na własnej stronie → „Edytuj pracownika": „Rola" pokazuje tylko „Manager", zmiana
+      e-maila zapisuje się; odznaczenie „Aktywny" kończy się komunikatem „Nie można wyłączyć…
+      własnego konta", konto zostaje aktywne.
+- [ ] Jako Manager „Pracownicy" → „Dodaj": lista „Rola" ma tylko „Pracownik".
+- [ ] Jako Właściciel „Edytuj pracownika" u pracownika zalogowanego na telefonie → odznacz „Aktywny"
+      i zapisz: telefon przy następnym kliknięciu zostaje wylogowany.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

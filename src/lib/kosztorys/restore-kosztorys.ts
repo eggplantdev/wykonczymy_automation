@@ -16,8 +16,8 @@ export async function restoreKosztorys(
   { clearGlobalDiscount = false }: { clearGlobalDiscount?: boolean } = {},
 ): Promise<InsertKosztorysTreeResultT> {
   const db = await getDb(payload, req)
-  // Also taken by `replaceTreeWithSnapshot` before its pre-wipe snapshot; re-taking is free, and
-  // this is the entry point „Przywróć wersję" reaches without it.
+  // Also taken by `replaceTreeWithSnapshot` before its pre-wipe snapshot; re-taking is free and keeps
+  // a direct caller from wiping unlocked.
   await lockInvestmentForReplace(db, investmentId)
 
   // Raw SQL rather than `payload.delete({ where })`: the bulk delete collects each failure into `result.errors` INSTEAD OF THROWING, so a row
