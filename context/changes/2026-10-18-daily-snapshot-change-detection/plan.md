@@ -142,6 +142,6 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Unit spec passes
-- [x] 1.2 DB spec passes against 5435
-- [x] 1.3 History reader spec still passes
+- [x] 1.1 Unit spec passes — b20c4cb8
+- [x] 1.2 DB spec passes against 5435 — b20c4cb8
+- [x] 1.3 History reader spec still passes — b20c4cb8
