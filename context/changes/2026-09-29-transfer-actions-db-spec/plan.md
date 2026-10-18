@@ -377,17 +377,17 @@ One investment and about 25 action calls: a few seconds in the unlocked single-f
 
 #### Automated
 
-- [x] 1.1 transfers.db.test.ts passes against the test DB
-- [x] 1.2 spec is picked up by integration discovery
-- [x] 1.3 break-verify: a flipped literal goes red
+- [x] 1.1 transfers.db.test.ts passes against the test DB — de5e508
+- [x] 1.2 spec is picked up by integration discovery — de5e508
+- [x] 1.3 break-verify: a flipped literal goes red — de5e508
 
 ### Phase 2: Atomic cancel + update (test-first)
 
 #### Automated
 
-- [ ] 2.1 both atomicity tests red before the fix, green after
-- [ ] 2.2 transfers.db.test.ts passes against the test DB
-- [ ] 2.3 transfer-actions.test.ts passes
+- [x] 2.1 both atomicity tests red before the fix, green after
+- [x] 2.2 transfers.db.test.ts passes against the test DB
+- [x] 2.3 transfer-actions.test.ts passes
 
 ### Phase 3: Docs
 

@@ -16,6 +16,7 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
+import { warsawToday } from '@/lib/utils/days'
 
 vi.mock('server-only', () => ({}))
 // after() schedules the sheet sync and the payout push (live credentials); it also throws outside a
@@ -33,7 +34,12 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const { createTransferAction, createBulkTransferAction } = await import('@/lib/actions/transfers')
+const {
+  createTransferAction,
+  createBulkTransferAction,
+  cancelTransferAction,
+  updateTransferAction,
+} = await import('@/lib/actions/transfers')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -69,6 +75,8 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
   // W's „Pozostało" before any booking: the stage due comes from the kosztorys' own rates, which this
   // spec does not pin — only how each booking moves it.
   let due = 0
+  // The ledger test leaves this as the state every cancel / edit below moves from.
+  let expected: FiguresT
   const ctx = { context: { skipRevalidation: true } }
   const today = new Date().toISOString().slice(0, 10)
 
@@ -200,7 +208,7 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
   it('moves each register, bucket, bilans and „Pozostało" by exactly the booked amount', async () => {
     expect(due).toBeGreaterThan(1_000)
 
-    let expected: FiguresT = {
+    expected = {
       registerA: 0,
       registerB: 0,
       income: 0,
@@ -435,5 +443,143 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     expect(await rowsDescribed(description)).toEqual([])
     // unchanged from the batch above
     expect(await sumRegisterBalance(payload, registerC)).toBe(-400)
+  })
+
+  const stepId = async (step: number) =>
+    Number(
+      (
+        await db.execute(
+          sql`SELECT id FROM transactions WHERE description = ${`${MARKER} step ${step}`}`,
+        )
+      ).rows[0].id,
+    )
+
+  const isCancelled = async (id: number) =>
+    (await db.execute(sql`SELECT cancelled FROM transactions WHERE id = ${id}`)).rows[0].cancelled
+
+  const cancellationsOf = async (id: number) =>
+    (
+      await db.execute(sql`
+        SELECT amount::float8 AS amount, source_register_id, target_register_id, investment_id,
+          worker_id, date::date::text AS date, description
+        FROM transactions WHERE type = 'CANCELLATION' AND cancelled_transaction_id = ${id}
+      `)
+    ).rows
+
+  const amountEditsOf = async (id: number) =>
+    (
+      await db.execute(sql`
+        SELECT previous_amount::float8 AS previous, new_amount::float8 AS next
+        FROM amount_edits WHERE transaction_id = ${id}
+      `)
+    ).rows
+
+  const reason = (step: number) => `${MARKER} cancel step ${step}`
+
+  function failCreateWhen(matches: (args: Parameters<Payload['create']>[0]) => boolean) {
+    const create = payload.create.bind(payload)
+    vi.spyOn(payload, 'create').mockImplementation(((args: Parameters<Payload['create']>[0]) => {
+      if (matches(args)) throw new Error('audit write failed')
+      return create(args)
+    }) as Payload['create'])
+  }
+
+  it('leaves the transfer live when its CANCELLATION row fails to write', async () => {
+    const id = await stepId(5)
+    failCreateWhen((args) => (args.data as { type?: string }).type === 'CANCELLATION')
+
+    expect((await cancelTransferAction(id, { reason: reason(5) })).success).toBe(false)
+
+    expect(await isCancelled(id)).toBe(false)
+    expect(await cancellationsOf(id)).toEqual([])
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('cancels a rabat: bilans drops by it, one CANCELLATION row mirrors it', async () => {
+    const id = await stepId(5)
+
+    expect(await cancelTransferAction(id, { reason: reason(5) })).toEqual({ success: true })
+
+    expect(await isCancelled(id)).toBe(true)
+    expect(await cancellationsOf(id)).toEqual([
+      {
+        amount: 400,
+        source_register_id: null,
+        target_register_id: null,
+        investment_id: null,
+        worker_id: null,
+        date: warsawToday(),
+        description: `Anulowanie transakcji #${id}\n${reason(5)}`,
+      },
+    ])
+    // bilans 2 750 − 400
+    expected = { ...expected, discount: 0, balance: 2_350 }
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('cancels a materials expense: the kasa gets it back, materiały and bilans follow', async () => {
+    expect(await cancelTransferAction(await stepId(2), { reason: reason(2) })).toEqual({
+      success: true,
+    })
+
+    // A 5 700 + 3 000; materiały 2 800 − 3 000; bilans 10 000 − (−200 + 5 000) + 150
+    expected = { ...expected, registerA: 8_700, materials: -200, balance: 5_350 }
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('cancels a negative korekta, storing a negative CANCELLATION', async () => {
+    const id = await stepId(3)
+
+    expect(await cancelTransferAction(id, { reason: reason(3) })).toEqual({ success: true })
+
+    expect((await cancellationsOf(id)).map((row) => row.amount)).toEqual([-200])
+    // A 8 700 − 200; materiały −200 + 200; bilans 10 000 − 5 000 + 150
+    expected = { ...expected, registerA: 8_500, materials: 0, balance: 5_150 }
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('cancels a premia: only „Pozostało" moves', async () => {
+    expect(await cancelTransferAction(await stepId(8), { reason: reason(8) })).toEqual({
+      success: true,
+    })
+
+    // Pozostało due − 700 − 300
+    expected = { ...expected, bonus: 0, remaining: due - 1_000 }
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('refuses to cancel a transfer twice', async () => {
+    const id = await stepId(5)
+
+    expect(await cancelTransferAction(id, { reason: reason(5) })).toEqual({
+      success: false,
+      error: 'Transakcja jest już anulowana.',
+    })
+    expect(await cancellationsOf(id)).toHaveLength(1)
+  })
+
+  const editLabor = async (amount: number) =>
+    updateTransferAction(await stepId(4), {
+      description: `${MARKER} step 4`,
+      date: today,
+      amount,
+    })
+
+  it('keeps the old robocizna when its amount-edit row fails to write', async () => {
+    failCreateWhen((args) => args.collection === 'amount-edits')
+
+    expect((await editLabor(6_000)).success).toBe(false)
+
+    expect(await amountEditsOf(await stepId(4))).toEqual([])
+    expect(await figures()).toEqual(expected)
+  })
+
+  it('re-prices robocizna: bilans moves by the difference, one amount edit is logged', async () => {
+    expect(await editLabor(6_000)).toEqual({ success: true })
+
+    expect(await amountEditsOf(await stepId(4))).toEqual([{ previous: 5_000, next: 6_000 }])
+    // bilans 5 150 − (6 000 − 5 000)
+    expected = { ...expected, labor: 6_000, balance: 4_150 }
+    expect(await figures()).toEqual(expected)
   })
 })

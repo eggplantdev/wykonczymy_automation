@@ -284,25 +284,33 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       if ('error' in result) return { success: false, error: result.error }
       const { original } = result
 
-      await payload.update({
-        collection: 'transactions',
-        id: transferId,
-        data: { cancelled: true },
-      })
-      console.log(`[PERF]   update cancelled ${step()}ms`)
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          await payload.update({
+            collection: 'transactions',
+            id: transferId,
+            req,
+            data: { cancelled: true },
+          })
+          console.log(`[PERF]   update cancelled ${step()}ms`)
 
-      await payload.create({
-        collection: 'transactions',
-        data: {
-          type: 'CANCELLATION',
-          amount: original.amount,
-          date: warsawToday(),
-          description: `Anulowanie transakcji #${transferId}\n${parsed.data.reason}`,
-          cancelledTransaction: transferId,
-          createdBy: user.id,
+          await payload.create({
+            collection: 'transactions',
+            req,
+            data: {
+              type: 'CANCELLATION',
+              amount: original.amount,
+              date: warsawToday(),
+              description: `Anulowanie transakcji #${transferId}\n${parsed.data.reason}`,
+              cancelledTransaction: transferId,
+              createdBy: user.id,
+            },
+          })
+          console.log(`[PERF]   create CANCELLATION ${step()}ms`)
         },
-      })
-      console.log(`[PERF]   create CANCELLATION ${step()}ms`)
+        {},
+      )
 
       // The kosztorys sheet row is removed by the collection afterChange hook, which
       // fires on the `cancelled: true` update above — no action-level
@@ -345,36 +353,44 @@ export async function updateTransferAction(
         if (netErr) return { success: false, error: netErr }
       }
 
-      await payload.update({
-        collection: 'transactions',
-        id: transferId,
-        data: {
-          ...fields,
-          ...documentIdentity(parsed.data),
-          ...(newAmount !== undefined && { amount: newAmount }),
-          ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
-          // Only an OTHER names its worker by choice — a PAYOUT/BONUS worker IS the booking.
-          ...(worker !== undefined && hasOptionalWorker(original.type) && { worker }),
-          // Newly picked files are extra pages of the same invoice, so they append — an edit that
-          // replaced the list would strand the pages the user never touched.
-          ...(invoiceMediaIds?.length && {
-            invoice: [...uploadFieldIds(original.invoice), ...invoiceMediaIds],
-          }),
-          updatedBy: user.id,
-        },
-      })
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          await payload.update({
+            collection: 'transactions',
+            id: transferId,
+            req,
+            data: {
+              ...fields,
+              ...documentIdentity(parsed.data),
+              ...(newAmount !== undefined && { amount: newAmount }),
+              ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
+              // Only an OTHER names its worker by choice — a PAYOUT/BONUS worker IS the booking.
+              ...(worker !== undefined && hasOptionalWorker(original.type) && { worker }),
+              // Newly picked files are extra pages of the same invoice, so they append — an edit that
+              // replaced the list would strand the pages the user never touched.
+              ...(invoiceMediaIds?.length && {
+                invoice: [...uploadFieldIds(original.invoice), ...invoiceMediaIds],
+              }),
+              updatedBy: user.id,
+            },
+          })
 
-      if (amountChanged) {
-        await payload.create({
-          collection: 'amount-edits',
-          data: {
-            transaction: transferId,
-            previousAmount: original.amount,
-            newAmount,
-            editedBy: user.id,
-          },
-        })
-      }
+          if (amountChanged) {
+            await payload.create({
+              collection: 'amount-edits',
+              req,
+              data: {
+                transaction: transferId,
+                previousAmount: original.amount,
+                newAmount,
+                editedBy: user.id,
+              },
+            })
+          }
+        },
+        {},
+      )
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
       return { success: true }
