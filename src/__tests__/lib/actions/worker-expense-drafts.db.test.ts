@@ -147,7 +147,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     })
   })
 
-  // An immediate expiry re-renders the dashboard inside the booking's response (EX-850).
+  // An immediate expiry re-renders the dashboard inside the booking's response.
   it('accepting expires the kasa, investment and transfers tags deferred, never immediately', async () => {
     const draftId = await createDraft('deferred')
     vi.clearAllMocks()

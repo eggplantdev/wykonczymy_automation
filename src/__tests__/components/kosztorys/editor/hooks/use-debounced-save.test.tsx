@@ -6,7 +6,7 @@ import { toastMessage } from '@/lib/utils/toast'
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
-describe('useDebouncedSave — a request that never completed (EX-940)', () => {
+describe('useDebouncedSave — a request that never completed', () => {
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
   afterEach(() => vi.restoreAllMocks())
 

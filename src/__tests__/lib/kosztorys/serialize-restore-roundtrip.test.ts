@@ -212,7 +212,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(Number(live.rows[0].global_discount_value)).toBe(300)
   })
 
-  it('restores a pre-EX-921 snapshot (no Aktualizacja) as following Przedmiar ofertowy', async () => {
+  it('restores a snapshot without Aktualizacja as following Przedmiar ofertowy', async () => {
     const current = await serializeKosztorys(investmentId)
     expect(current.items.some((item) => item.currentPlannedQty === 13.5)).toBe(true)
     const legacy = {
@@ -226,7 +226,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(after.items.map((item) => item.currentPlannedQty)).toEqual(after.items.map(() => null))
   })
 
-  it('restores a pre-EX-943 snapshot (one workerId per etap) as a one-person split', async () => {
+  it('restores a snapshot with one workerId per etap as a one-person split', async () => {
     const current = await serializeKosztorys(investmentId)
     const assigned = current.stages.find((stage) => stage.split)!
     const workerId = restHolderId(assigned.split)!
@@ -248,7 +248,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
 
   // Runs last: it leaves the tree without
   // assignments, and the identity test above is the one that depends on the fixture's.
-  it('restores a pre-EX-613 snapshot (stages with no worker at all) as unassigned', async () => {
+  it('restores a snapshot with stages that have no worker at all as unassigned', async () => {
     const current = await serializeKosztorys(investmentId)
     const legacy = {
       ...current,

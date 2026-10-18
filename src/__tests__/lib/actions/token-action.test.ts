@@ -161,7 +161,7 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it('refuses a worker whose every etap here is zakończony (EX-1034)', async () => {
+  it('refuses a worker whose every etap here is zakończony', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`
       UPDATE kosztorys_stages SET completed = true

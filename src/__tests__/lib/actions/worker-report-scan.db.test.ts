@@ -203,7 +203,7 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     }
   })
 
-  it('refuses a worker whose every etap is zakończony, and stores nothing (EX-1034)', async () => {
+  it('refuses a worker whose every etap is zakończony, and stores nothing', async () => {
     const before = (await listWorkerReports(db, investmentId, workerId)).length
     await db.execute(
       sql`UPDATE kosztorys_stages SET completed = true WHERE investment_id = ${investmentId}`,

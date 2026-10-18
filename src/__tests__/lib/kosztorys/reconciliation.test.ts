@@ -125,7 +125,7 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
   })
 })
 
-describe('nothing booked on the transactions plane silences BOTH verdicts (EX-555)', () => {
+describe('nothing booked on the transactions plane silences BOTH verdicts', () => {
   it('a populated kosztorys with no LABOR_COST and no RABAT stays silent', () => {
     const tree = makeReconTree()
     const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)
@@ -146,7 +146,7 @@ describe('nothing booked on the transactions plane silences BOTH verdicts (EX-55
   })
 })
 
-describe('reconciliation compares netto ↔ netto — the ledger plane carries no VAT (EX-535)', () => {
+describe('reconciliation compares netto ↔ netto — the ledger plane carries no VAT', () => {
   it('rabat 100 reconciles against a netto RABAT of 100, and robocizna net-to-net is silent', () => {
     const verdict = buildKosztorysReconciliation({
       laborCostsNetFromKosztorys: 5000,

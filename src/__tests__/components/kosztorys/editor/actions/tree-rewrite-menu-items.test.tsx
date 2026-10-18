@@ -77,7 +77,7 @@ describe.each([
 ])('$label', ({ label, other, action, data }) => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('runs only after the pending cell saves have settled (EX-1002)', async () => {
+  it('runs only after the pending cell saves have settled', async () => {
     const flush = Promise.withResolvers<void>()
     flushPendingSaves.mockReturnValueOnce(flush.promise)
     action.mockResolvedValue({ success: true, data })

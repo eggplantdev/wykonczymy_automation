@@ -24,7 +24,7 @@ const classesOf = (id: string, columnColors?: Record<string, 'blue'>) => {
   return { cell: String(col.cellClassName ?? ''), header: String(col.headerClassName ?? '') }
 }
 
-describe('withColumnColor — etap zakończony (EX-1034)', () => {
+describe('withColumnColor — etap zakończony', () => {
   it.each(columnsOf(DONE))('tints %s of a zakończony etap teal, cell and header', (id) => {
     const { cell, header } = classesOf(id)
 

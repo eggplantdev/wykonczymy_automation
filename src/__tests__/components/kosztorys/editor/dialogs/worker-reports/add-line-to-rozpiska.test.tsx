@@ -44,7 +44,7 @@ const extraLine = {
 } as ReportLineT
 const entry = { id: 5 } as WorkCatalogueItemT
 
-describe('AddLineToRozpiska — praca spoza rozpiski (EX-1055)', () => {
+describe('AddLineToRozpiska — praca spoza rozpiski', () => {
   it('remembers on the server a pozycja the sekcja already holds', async () => {
     const onChange = vi.fn()
     render(

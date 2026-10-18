@@ -65,7 +65,7 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
       discount_value: '0',
       client_price: '0',
       // NULL, not '0': „auto" is what a praca carrying no stawka means, and 0 zł is a kwota someone
-      // chose (EX-766).
+      // chose.
       w_tools_override_value: null,
       own_tools_override_value: null,
       description_translations: {},

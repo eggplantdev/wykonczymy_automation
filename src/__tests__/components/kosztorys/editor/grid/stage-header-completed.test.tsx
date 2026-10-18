@@ -29,7 +29,7 @@ const completedRow = () => screen.getByRole('menuitemcheckbox', { name: 'Etap za
 
 beforeEach(() => vi.clearAllMocks())
 
-describe('Nagłówek etapu — etap zakończony (EX-1034)', () => {
+describe('Nagłówek etapu — etap zakończony', () => {
   it('zaznacza „Etap zakończony" tylko na etapie zakończonym', async () => {
     const user = renderEditorHeader(true)
     await openMenu(user)

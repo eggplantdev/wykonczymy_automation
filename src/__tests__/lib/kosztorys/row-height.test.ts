@@ -60,7 +60,7 @@ describe('resolveRowHeight', () => {
   })
 })
 
-describe("resolveRowHeight · the recheck flag's floor (EX-1057)", () => {
+describe("resolveRowHeight · the recheck flag's floor", () => {
   it('grows an untouched row to the floor', () => {
     expect(resolveRowHeight({ isSectionBand: false, minLines: 2 })).toBe(heightForLines(2))
   })

@@ -611,7 +611,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(await qtyDone(itemIds[1], ownStageId)).toBe(0.1)
   })
 
-  describe('a decision on every line (EX-1049)', () => {
+  describe('a decision on every line', () => {
     const twoLines = () =>
       sendReport([
         { itemId: itemIds[0], qty: 2 },
@@ -747,7 +747,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     })
   })
 
-  describe('a praca spoza rozpiski added to the rozpiska before the save (EX-1055)', () => {
+  describe('a praca spoza rozpiski added to the rozpiska before the save', () => {
     const sendExtra = () => sendReport([{ itemId: null, qty: 3, opis: 'Montaż domofonu' }])
     const lineOf = async (reportId: number) =>
       (await readWorkerReport(db, investmentId, reportId))?.lines[0]

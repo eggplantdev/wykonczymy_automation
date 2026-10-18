@@ -125,7 +125,7 @@ describe('KosztorysWorkersMenu', () => {
     )
   })
 
-  it('says when all of a worker’s etapy are zakończone and withholds only the form (EX-1034)', async () => {
+  it('says when all of a worker’s etapy are zakończone and withholds only the form', async () => {
     stages = STAGES.map((stage) =>
       stage.id === 1 || stage.id === 3 ? { ...stage, completed: true } : stage,
     )

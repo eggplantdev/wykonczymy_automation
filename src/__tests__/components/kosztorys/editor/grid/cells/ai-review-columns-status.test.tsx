@@ -31,7 +31,7 @@ describe('Status — the menu offers only what a pick can change', () => {
   })
 })
 
-describe("Status — a later round's recheck flag (EX-1057)", () => {
+describe("Status — a later round's recheck flag", () => {
   function renderCell(
     rowData: KosztorysV2RowT,
     setRowData: (row: KosztorysV2RowT) => void,

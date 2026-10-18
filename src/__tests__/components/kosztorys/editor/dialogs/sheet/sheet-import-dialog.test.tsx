@@ -214,7 +214,7 @@ describe('SheetImportDialog — one wykonawca for every imported etap', () => {
   })
 })
 
-describe('SheetImportDialog — a request that never completed (EX-940)', () => {
+describe('SheetImportDialog — a request that never completed', () => {
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
   afterEach(() => vi.restoreAllMocks())
 

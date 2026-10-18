@@ -54,7 +54,7 @@ describe('resolveWorkerScope', () => {
   })
 })
 
-describe('reportScopeRefusal (EX-1034)', () => {
+describe('reportScopeRefusal', () => {
   const refusalFor = (stages: KosztorysStageT[]) =>
     reportScopeRefusal(resolveWorkerScope(stages, 5))
 

@@ -17,7 +17,7 @@ import { fakePayload, lastSql, resetFakePayload } from '@/__tests__/helpers/fake
 
 /**
  * Assert the EMITTED SQL, never the intermediate Where: a Where-shape assertion stays green
- * when the translator silently drops an operator (EX-574).
+ * when the translator silently drops an operator.
  */
 
 beforeEach(resetFakePayload)

@@ -54,7 +54,7 @@ describe.skipIf(!ENV_READY)('wstawianie prac z katalogu (DB)', () => {
 
     const investments = await payload.find({
       collection: 'investments',
-      // A zakończona inwestycja refuses every write (EX-748), and the lowest ids in the fixture DB
+      // A zakończona inwestycja refuses every write, and the lowest ids in the fixture DB
       // are exactly that — so the arbitrary pick has to skip them or the whole spec writes nothing.
       where: { status: { not_equals: LOCKED_INVESTMENT_STATUS } },
       limit: 1,

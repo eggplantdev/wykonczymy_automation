@@ -75,7 +75,7 @@ describe('applyReviewRules — scope', () => {
   })
 })
 
-describe("applyReviewRules — a later round's recheck flag (EX-1057)", () => {
+describe("applyReviewRules — a later round's recheck flag", () => {
   const flagged = row({
     aiPlannedQty: 10,
     plannedQty: 3,

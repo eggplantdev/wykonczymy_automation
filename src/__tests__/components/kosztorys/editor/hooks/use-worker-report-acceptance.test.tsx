@@ -149,7 +149,7 @@ describe('useWorkerReportAcceptance', () => {
     expect(args.pruneByIds).toHaveBeenCalledWith([10])
   })
 
-  it('keeps the editor revision and the grid when the save only odrzuca lines (EX-1052)', async () => {
+  it('keeps the editor revision and the grid when the save only odrzuca lines', async () => {
     const { result, args } = renderAcceptance()
     vi.mocked(acceptWorkerReportAction).mockResolvedValueOnce({
       success: true,

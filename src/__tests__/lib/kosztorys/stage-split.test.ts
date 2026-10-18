@@ -91,7 +91,7 @@ describe('splitStagePool', () => {
     for (const share of shares.values()) expect(share).toBeGreaterThanOrEqual(0)
   })
 
-  // EX-956: each share rounds on its own when displayed, so unrounded shares could add up to a
+  // Each share rounds on its own when displayed, so unrounded shares could add up to a
   // grosz more than the etap — 1145,69 + 429,68 + 1862,04 = 3437,41 against 3437,40.
   it('makes the displayed shares add up to the displayed etap value', () => {
     const pool = 3437.4

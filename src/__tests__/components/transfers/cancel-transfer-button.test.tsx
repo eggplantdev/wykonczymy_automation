@@ -13,7 +13,7 @@ vi.mock('@/lib/utils/toast', () => ({
   toastMessage: (...args: unknown[]) => toastMessage(...args),
 }))
 
-describe('CancelTransferButton — a request that never completed (EX-940)', () => {
+describe('CancelTransferButton — a request that never completed', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})

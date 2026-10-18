@@ -78,7 +78,7 @@ describe('cron leads-reconcile route', () => {
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.leads, { expire: 0 })
     expect(notifyReconcileRecovery).toHaveBeenCalledTimes(1)
     // The leads themselves, not just a count — a recovered lead is stamped `skipped`,
-    // so this mail is the only place sales ever sees it (EX-660).
+    // so this mail is the only place sales ever sees it.
     expect(notifyReconcileRecovery).toHaveBeenCalledWith(expect.anything(), {
       recovered,
       scanned: 30,

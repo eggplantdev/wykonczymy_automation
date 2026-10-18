@@ -25,7 +25,7 @@ vi.mock('@/lib/actions/kosztorys-snapshots', () => ({
   restoreSnapshotAction,
 }))
 
-describe('KosztorysVersionsDrawer — a restore whose request never completed (EX-940)', () => {
+describe('KosztorysVersionsDrawer — a restore whose request never completed', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})

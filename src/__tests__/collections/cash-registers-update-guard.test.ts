@@ -127,7 +127,7 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
     expect(Number((await readRow(id)).owner_id)).toBe(otherOwnerId)
   })
 
-  describe('an owner in the kosz (EX-918)', () => {
+  describe('an owner in the kosz', () => {
     async function withOtherOwnerTrashed(run: () => Promise<void>) {
       await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${otherOwnerId}`)
       try {

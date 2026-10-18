@@ -111,7 +111,7 @@ describe('useInvestorActions — „Udostępnij"', () => {
     expect(writeText).not.toHaveBeenCalled()
   })
 
-  it('says the connection dropped when the mint request never arrived (EX-940)', async () => {
+  it('says the connection dropped when the mint request never arrived', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     ensureShareLinkAction.mockRejectedValue(new TypeError('Failed to fetch'))
 

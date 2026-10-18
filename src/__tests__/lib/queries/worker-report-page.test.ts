@@ -128,7 +128,7 @@ describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {
     expect(await getPreviewKosztorysByToken(workerToken)).toBeNull()
   })
 
-  it('refuses the link once all his etapy are zakończone, while the podgląd still shows them (EX-1034)', async () => {
+  it('refuses the link once all his etapy are zakończone, while the podgląd still shows them', async () => {
     const setCompleted = (completed: boolean) =>
       db.execute(sql`
         UPDATE kosztorys_stages SET completed = ${completed}

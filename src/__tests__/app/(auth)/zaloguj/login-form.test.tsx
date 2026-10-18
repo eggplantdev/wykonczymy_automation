@@ -13,7 +13,7 @@ vi.mock('@/lib/actions/auth', () => ({
   loginAction: (...args: unknown[]) => loginAction(...args),
 }))
 
-describe('LoginForm — a request that never completed (EX-940)', () => {
+describe('LoginForm — a request that never completed', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})

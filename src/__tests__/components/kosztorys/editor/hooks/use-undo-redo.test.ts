@@ -108,7 +108,7 @@ describe('createUndoRedoStack', () => {
     expect(stack.redo()).toBeUndefined()
   })
 
-  describe('pruneByIds (EX-526 #2 — stale command after row delete)', () => {
+  describe('pruneByIds (stale command after row delete)', () => {
     it('drops commands touching a deleted id from both stacks', () => {
       const stack = createUndoRedoStack()
       const edit1 = scopedCmd('edit row 1', [1])

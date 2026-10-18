@@ -159,7 +159,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
   })
 
-  describe('updateStageSplitAction — the workers of an etap (EX-943)', () => {
+  describe('updateStageSplitAction — the workers of an etap', () => {
     async function splitOf(stageId: number) {
       const mode = await db.execute(
         sql`SELECT split_mode FROM kosztorys_stages WHERE id = ${stageId}`,
@@ -253,7 +253,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
   })
 
-  describe('updateStageAction — etap zakończony (EX-1034)', () => {
+  describe('updateStageAction — etap zakończony', () => {
     async function completedOf(stageId: number): Promise<unknown> {
       const res = await db.execute(
         sql`SELECT completed FROM kosztorys_stages WHERE id = ${stageId}`,
@@ -273,7 +273,7 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
   })
 
-  describe('a worker in the kosz (EX-918)', () => {
+  describe('a worker in the kosz', () => {
     async function withTrashedOther(run: () => Promise<void>) {
       await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${otherUserId}`)
       try {

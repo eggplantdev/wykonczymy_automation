@@ -6,7 +6,7 @@ import { sql } from '@payloadcms/db-postgres'
 import { authState } from '@/__tests__/stubs/require-auth'
 import { firstUserId } from '@/__tests__/helpers/first-user-id'
 
-// EX-613 puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
+// The wypłata form puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
 // They are warnings, not gates — and „not a gate" is only true if the write actually lands. So this
 // runs the REAL action against the REAL DB and asserts the PERSISTED transaction, not the action's
 // return value: a `{ success: true }` from a rolled-back transaction looks identical.
@@ -42,7 +42,7 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
     const [investments, userId, registers] = await Promise.all([
       payload.find({
         collection: 'investments',
-        // A zakończona inwestycja refuses every write (EX-748), and the lowest ids in the fixture DB
+        // A zakończona inwestycja refuses every write, and the lowest ids in the fixture DB
         // are exactly that — so the arbitrary pick has to skip them or the whole spec writes nothing.
         where: { status: { not_equals: LOCKED_INVESTMENT_STATUS } },
         limit: 1,

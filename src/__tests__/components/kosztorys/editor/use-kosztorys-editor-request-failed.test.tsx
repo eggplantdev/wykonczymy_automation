@@ -76,7 +76,7 @@ const rowIds = (result: { current: ReturnType<typeof useKosztorysEditor> }) =>
 
 const offline = () => Promise.reject(new TypeError('Failed to fetch'))
 
-describe('edytor kosztorysu — żądanie, które nie dotarło (EX-940)', () => {
+describe('edytor kosztorysu — żądanie, które nie dotarło', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})

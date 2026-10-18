@@ -19,7 +19,7 @@ function deferred<T>() {
 }
 
 describe('createSaveLanes', () => {
-  it('serializes same-key writes: an inverse enqueued during an in-flight forward runs after it (EX-526 #1)', async () => {
+  it('serializes same-key writes: an inverse enqueued during an in-flight forward runs after it', async () => {
     const lanes = createSaveLanes()
     const order: string[] = []
     const forwardGate = deferred<void>()
@@ -63,14 +63,14 @@ describe('createSaveLanes', () => {
     expect(order).toEqual(['B', 'A'])
   })
 
-  it('routes a logical failure (!success) to onError (EX-526 #3)', async () => {
+  it('routes a logical failure (!success) to onError', async () => {
     const lanes = createSaveLanes()
     const onError = vi.fn()
     await lanes.enqueue('item:1:name', async () => fail('rejected by server'), onError)
     expect(onError).toHaveBeenCalledWith('rejected by server', undefined)
   })
 
-  it('routes a rejected action to onError as a coded Polish failure and never rejects the lane (EX-940)', async () => {
+  it('routes a rejected action to onError as a coded Polish failure and never rejects the lane', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const lanes = createSaveLanes()
     const onError = vi.fn()

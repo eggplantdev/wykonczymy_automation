@@ -97,7 +97,7 @@ describe('InvestmentAssetsControl', () => {
     expect(within(dialog).queryByRole('button', { name: /fakturę/ })).not.toBeInTheDocument()
   })
 
-  // Blob has no undelete, so wiping the whole gallery in one click waits for the file trash (EX-862).
+  // Blob has no undelete, so wiping the whole gallery in one click waits for the file trash.
   it('offers no bulk removal, even with several files', async () => {
     const user = userEvent.setup()
     renderGallery([PHOTO, SECOND_PHOTO])

@@ -199,7 +199,7 @@ describe('zgłoszenie z kartki — ostrzeżenia', () => {
   })
 })
 
-describe('odrzucenie pozycja po pozycji (EX-1049)', () => {
+describe('odrzucenie pozycja po pozycji', () => {
   it('„Odrzuć” unticks the line, and a second click sends it back to waiting', async () => {
     const onChange = renderRozpiska([rozpiska({ id: 1 }), rozpiska({ id: 2 })], vi.fn(), {
       1: { isTicked: true },
