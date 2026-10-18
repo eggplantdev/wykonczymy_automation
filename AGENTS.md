@@ -203,8 +203,8 @@ action → DB → revalidation. Harness traps: `src/__tests__/AGENTS.md`.
   and the Payload graph read them as Polish; add a translator parameter beside them.
 - **Phone scope is narrow (EX-785):** at 390px only navigation, adding and showing transactions, the
   worker report page `(share)/z/[investment]/[name]/[token]` (EX-947), an EMPLOYEE's own
-  `/pracownicy/[id]` (EX-985) and the „Manual Wykończymy" dialog (EX-1032) must work. The kosztorys editor
-  is desktop-only. No app-wide touch-target floor.
+  `/pracownicy/[id]` (EX-985), the „Manual Wykończymy" dialog (EX-1032) and the kosztorys editor must
+  work. No app-wide touch-target floor.
 - **Breakpoints are overridden** in `src/styles/globals.css`: `sm`=768, `md`=1024, `lg`=1280. `sm:` is the
   single mobile→desktop break; both an upstream `sm:` and `md:` become `sm:` here (EX-624). Never add a
   640 breakpoint.
