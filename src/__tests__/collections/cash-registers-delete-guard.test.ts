@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 
 // Both register FKs are ON DELETE SET NULL, so the delete this guards never errors on its own — it
 // succeeds and the transaction stops naming the kasa it moved money out of.
@@ -49,24 +50,15 @@ describe.skipIf(!ENV_READY)('cash-registers beforeDelete guard (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-
-    const owner = await payload.create({
-      collection: 'users',
-      data: {
+    ;({ registerId } = await createRegisterOwner(
+      payload,
+      {
         name: 'Właściciel Kasy',
-        role: 'EMPLOYEE',
         email: 'registers-delete-guard@test.local',
-        password: 'test-password-123',
+        registerName: 'Kasa do usunięcia',
       },
-      context: { skipRevalidation: true },
-    })
-
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'Kasa do usunięcia', type: 'AUXILIARY', owner: Number(owner.id) },
-      context: { skipRevalidation: true },
-    })
-    registerId = Number(register.id)
+      { context: { skipRevalidation: true } },
+    ))
   })
 
   afterAll(async () => {

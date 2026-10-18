@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 
 // INVESTMENT_EXPENSE_NET is the one type whose billed figure (`net_amount`) differs from the cash that left the register (`amount`).
 
@@ -26,25 +27,15 @@ describe.skipIf(!ENV_READY)('sumRegisterBalance — INVESTMENT_EXPENSE_NET (DB)'
     payload = await getPayload({ config })
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-
-    const owner = await payload.create({
-      collection: 'users',
-      data: {
+    ;({ ownerId, registerId } = await createRegisterOwner(
+      payload,
+      {
         name: 'Net Expense Owner',
-        role: 'EMPLOYEE',
         email: 'net-expense-owner@test.local',
-        password: 'test-password-123',
+        registerName: 'net-expense-register',
       },
-      context: { skipRevalidation: true },
-    })
-    ownerId = Number(owner.id)
-
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'net-expense-register', owner: ownerId, type: 'AUXILIARY' },
-      context: { skipRevalidation: true },
-    })
-    registerId = Number(register.id)
+      { context: { skipRevalidation: true } },
+    ))
 
     investmentId = await createTestInvestment(payload, 'net-expense-investment')
 

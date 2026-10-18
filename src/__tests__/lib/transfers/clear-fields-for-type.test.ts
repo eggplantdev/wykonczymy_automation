@@ -6,43 +6,38 @@ import {
 } from '@/lib/transfers/clear-fields-for-type'
 
 describe('investmentForType', () => {
-  it('empties the investment for a type that never shows one', () => {
-    expect(investmentForType('OTHER', '105', '105')).toBe('')
-  })
-
-  it('empties it for the company-level deposits too', () => {
-    expect(investmentForType('OTHER_DEPOSIT', '105', '105')).toBe('')
-    expect(investmentForType('COMPANY_FUNDING', '105', '105')).toBe('')
-  })
-
-  it('keeps the pick when the new type carries an investment', () => {
-    expect(investmentForType('PAYOUT', '105', '')).toBe('105')
-  })
-
-  it('refills from the URL when the new type shows the field and nothing is picked', () => {
-    expect(investmentForType('INVESTMENT_EXPENSE', '', '105')).toBe('105')
-  })
-
-  it('leaves it empty off an investment page', () => {
-    expect(investmentForType('INVESTMENT_EXPENSE', '', '')).toBe('')
+  it.each([
+    ['empties the investment for a type that never shows one', 'OTHER', '105', '105', ''],
+    ['empties it for a company-level deposit', 'OTHER_DEPOSIT', '105', '105', ''],
+    ['empties it for company funding', 'COMPANY_FUNDING', '105', '105', ''],
+    ['keeps the pick when the new type carries an investment', 'PAYOUT', '105', '', '105'],
+    [
+      'refills from the URL when the new type shows the field and nothing is picked',
+      'INVESTMENT_EXPENSE',
+      '',
+      '105',
+      '105',
+    ],
+    ['leaves it empty off an investment page', 'INVESTMENT_EXPENSE', '', '', ''],
+  ])('%s', (_case, type, picked, fromUrl, expected) => {
+    expect(investmentForType(type, picked, fromUrl)).toBe(expected)
   })
 })
 
 describe('sourceRegisterForType', () => {
-  it('empties the kasa for a type that is not a cash movement', () => {
-    expect(sourceRegisterForType('LABOR_COST', '5', '5')).toBe('')
-  })
-
-  it('keeps the pick when the new type carries a kasa', () => {
-    expect(sourceRegisterForType('INVESTMENT_EXPENSE', '5', '9')).toBe('5')
-  })
-
-  it("refills from the user's default once the field is empty again", () => {
-    expect(sourceRegisterForType('INVESTMENT_EXPENSE', '', '9')).toBe('9')
-  })
-
-  it('stays empty when the user has no default kasa', () => {
-    expect(sourceRegisterForType('INVESTMENT_EXPENSE', '', '')).toBe('')
+  it.each([
+    ['empties the kasa for a type that is not a cash movement', 'LABOR_COST', '5', '5', ''],
+    ['keeps the pick when the new type carries a kasa', 'INVESTMENT_EXPENSE', '5', '9', '5'],
+    [
+      "refills from the user's default once the field is empty again",
+      'INVESTMENT_EXPENSE',
+      '',
+      '9',
+      '9',
+    ],
+    ['stays empty when the user has no default kasa', 'INVESTMENT_EXPENSE', '', '', ''],
+  ])('%s', (_case, type, picked, userDefault, expected) => {
+    expect(sourceRegisterForType(type, picked, userDefault)).toBe(expected)
   })
 })
 

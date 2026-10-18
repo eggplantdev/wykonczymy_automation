@@ -27,23 +27,16 @@ describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
   let payload: Payload
   let investmentId: number
 
-  const countShares = async () => {
+  const persistedTokens = async () => {
     const shares = await payload.find({
       collection: 'kosztorys-shares',
       where: { investment: { equals: investmentId } },
       depth: 0,
     })
-    return shares.totalDocs
+    return shares.docs.map((share) => share.token)
   }
-
-  const persistedToken = async () => {
-    const shares = await payload.find({
-      collection: 'kosztorys-shares',
-      where: { investment: { equals: investmentId } },
-      depth: 0,
-    })
-    return shares.docs[0]?.token ?? null
-  }
+  const countShares = async () => (await persistedTokens()).length
+  const persistedToken = async () => (await persistedTokens())[0] ?? null
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')

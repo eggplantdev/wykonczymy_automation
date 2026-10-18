@@ -18,6 +18,9 @@ vi.mock('payload', () => ({
 }))
 vi.mock('@payload-config', () => ({ default: {} }))
 
+const { requireAuth } = await import('@/lib/auth/require-auth')
+const { MANAGEMENT_ROLES } = await import('@/lib/auth/roles')
+
 const { getWorkerKosztorysPreview } = await import('@/lib/queries/worker-kosztorys')
 const { getWorkerKosztorysPrintData } =
   await import('@/lib/queries/worker-kosztorys-print-endpoint')
@@ -32,6 +35,7 @@ describe('worker kosztorys preview auth gate', () => {
 
     await expect(getWorkerKosztorysPreview(42, 7)).rejects.toThrow('Brak autoryzacji')
     expect(buildKosztorysTree).not.toHaveBeenCalled()
+    expect(requireAuth).toHaveBeenCalledWith(MANAGEMENT_ROLES)
   })
 
   it('gates the PDF read behind the same check', async () => {

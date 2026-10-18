@@ -8,6 +8,7 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
 
 vi.mock('server-only', () => ({}))
 
@@ -63,29 +64,16 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, pinned, PAST_RETENTION_DAYS, 'cash_registers')
-    const trashedOwnerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Kosz Kas Purge Właściciel w koszu',
-            role: 'EMPLOYEE',
-            email: 'kosz-kas-purge-trashed-owner@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
+    const { ownerId: trashedOwnerId, registerId } = await createRegisterOwner(
+      payload,
+      {
+        name: 'Kosz Kas Purge Właściciel w koszu',
+        email: 'kosz-kas-purge-trashed-owner@test.local',
+        registerName: 'Kasa pracownika w koszu',
+      },
+      { context: { skipRevalidation: true } },
     )
-    withTrashedOwner = Number(
-      (
-        await payload.create({
-          collection: 'cash-registers',
-          data: { name: 'Kasa pracownika w koszu', type: 'AUXILIARY', owner: trashedOwnerId },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+    withTrashedOwner = registerId
     await trashDaysAgo(db, withTrashedOwner, PAST_RETENTION_DAYS, 'cash_registers')
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${trashedOwnerId}`)
     // Only raw SQL gets past the write gate — the shape a purge must still refuse to orphan.

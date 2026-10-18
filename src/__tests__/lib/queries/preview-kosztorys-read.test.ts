@@ -18,6 +18,9 @@ vi.mock('payload', () => ({
 }))
 vi.mock('@payload-config', () => ({ default: {} }))
 
+const { requireAuth } = await import('@/lib/auth/require-auth')
+const { MANAGEMENT_ROLES } = await import('@/lib/auth/roles')
+
 const { getPreviewKosztorysById } = await import('@/lib/queries/preview-kosztorys')
 
 describe('getPreviewKosztorysById auth gate', () => {
@@ -30,5 +33,6 @@ describe('getPreviewKosztorysById auth gate', () => {
 
     await expect(getPreviewKosztorysById(42)).rejects.toThrow('Brak autoryzacji')
     expect(buildKosztorysTree).not.toHaveBeenCalled()
+    expect(requireAuth).toHaveBeenCalledWith(MANAGEMENT_ROLES)
   })
 })
