@@ -99,41 +99,17 @@ describe('buildUrlWithParams', () => {
 })
 
 describe('formatPLN', () => {
-  it('formats integer amounts', () => {
-    const result = formatPLN(1000)
-    expect(result).toContain('1')
-    expect(result).toContain('000')
-    expect(result).toContain('zł')
-  })
-
-  it('formats decimal amounts', () => {
-    const result = formatPLN(1234.56)
-    expect(result).toContain('1')
-    expect(result).toContain('234')
-    expect(result).toContain('56')
-    expect(result).toContain('zł')
-  })
-
-  it('formats zero', () => {
-    const result = formatPLN(0)
-    expect(result).toContain('0')
-    expect(result).toContain('zł')
-  })
-
-  it('formats negative amounts', () => {
-    const result = formatPLN(-500)
-    expect(result).toContain('500')
-    expect(result).toContain('zł')
-  })
-
-  it('prints a settled-to-zero figure without a minus', () => {
-    expect(formatPLN(-0)).not.toContain('-')
-    expect(formatPLN(-7e-12)).not.toContain('-')
-    expect(formatPLN(-0.004)).not.toContain('-')
-  })
-
-  it('still keeps the minus on a real debt', () => {
-    expect(formatPLN(-0.01)).toContain('-')
+  it.each([
+    [1000, '1000,00\u00a0zł'],
+    [12345.67, '12\u00a0345,67\u00a0zł'],
+    [0, '0,00\u00a0zł'],
+    [-500, '-500,00\u00a0zł'],
+    [-0.01, '-0,01\u00a0zł'],
+    [-0, '0,00\u00a0zł'],
+    [-7e-12, '0,00\u00a0zł'],
+    [-0.004, '0,00\u00a0zł'],
+  ])('%s → %j', (amount, expected) => {
+    expect(formatPLN(amount)).toBe(expected)
   })
 })
 

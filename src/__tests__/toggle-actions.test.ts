@@ -36,26 +36,14 @@ beforeEach(() => {
 })
 
 describe('toggleUserActive', () => {
-  it('active=true → updates user with active: true', async () => {
-    const result = await toggleUserActive(1, true)
+  it.each([true, false])('active=%s → updates user with that flag', async (active) => {
+    const result = await toggleUserActive(1, active)
 
     expect(result).toEqual({ success: true })
     expect(mockUpdate).toHaveBeenCalledWith({
       collection: 'users',
       id: 1,
-      data: { active: true },
-      overrideAccess: true,
-    })
-  })
-
-  it('active=false → updates user with active: false', async () => {
-    const result = await toggleUserActive(1, false)
-
-    expect(result).toEqual({ success: true })
-    expect(mockUpdate).toHaveBeenCalledWith({
-      collection: 'users',
-      id: 1,
-      data: { active: false },
+      data: { active },
       overrideAccess: true,
     })
   })
@@ -88,26 +76,14 @@ describe('toggleUserActive', () => {
 })
 
 describe('toggleCashRegisterActive', () => {
-  it('active=true → updates cash register with active: true', async () => {
-    const result = await toggleCashRegisterActive(5, true)
+  it.each([true, false])('active=%s → updates cash register with that flag', async (active) => {
+    const result = await toggleCashRegisterActive(5, active)
 
     expect(result).toEqual({ success: true })
     expect(mockUpdate).toHaveBeenCalledWith({
       collection: 'cash-registers',
       id: 5,
-      data: { active: true },
-      overrideAccess: true,
-    })
-  })
-
-  it('active=false → updates cash register with active: false', async () => {
-    const result = await toggleCashRegisterActive(5, false)
-
-    expect(result).toEqual({ success: true })
-    expect(mockUpdate).toHaveBeenCalledWith({
-      collection: 'cash-registers',
-      id: 5,
-      data: { active: false },
+      data: { active },
       overrideAccess: true,
     })
   })

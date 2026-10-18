@@ -115,92 +115,27 @@ describe('createTransferSchema — valid payloads', () => {
 })
 
 describe('createTransferSchema — missing required fields', () => {
-  it('LABOR_COST without investment → error on investment', () => {
-    const { investment, ...rest } = VALID_SERVER_PAYLOADS.LABOR_COST
+  it.each([
+    ['LABOR_COST', 'investment'],
+    ['LOSS', 'investment'],
+    ['BONUS', 'investment'],
+    ['BONUS', 'worker'],
+    ['OTHER', 'otherCategory'],
+    ['OTHER', 'sourceRegister'],
+    ['INVESTOR_DEPOSIT', 'sourceRegister'],
+    ['INVESTOR_DEPOSIT', 'investment'],
+    ['COMPANY_FUNDING', 'sourceRegister'],
+    ['OTHER_DEPOSIT', 'sourceRegister'],
+    ['INVESTMENT_EXPENSE', 'sourceRegister'],
+    ['INVESTMENT_EXPENSE', 'investment'],
+    ['REGISTER_TRANSFER', 'targetRegister'],
+    ['REGISTER_TRANSFER', 'sourceRegister'],
+    ['PAYOUT', 'sourceRegister'],
+  ])('%s without %s → error on that field', (type, field) => {
+    const { [field]: _omitted, ...rest } = VALID_SERVER_PAYLOADS[type]
     const result = createTransferSchema.safeParse(rest)
     expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('LOSS without investment → error on investment', () => {
-    const { investment, ...rest } = VALID_SERVER_PAYLOADS.LOSS
-    void investment
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('BONUS without investment → error on investment', () => {
-    const { investment, ...rest } = VALID_SERVER_PAYLOADS.BONUS
-    void investment
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('BONUS without worker → error on worker', () => {
-    const { worker, ...rest } = VALID_SERVER_PAYLOADS.BONUS
-    void worker
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('worker')
-  })
-
-  it('OTHER without category → error on otherCategory', () => {
-    const { otherCategory, ...rest } = VALID_SERVER_PAYLOADS.OTHER
-    void otherCategory
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('otherCategory')
-  })
-
-  it('INVESTOR_DEPOSIT without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('INVESTOR_DEPOSIT without investment → error on investment', () => {
-    const { investment, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('COMPANY_FUNDING without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.COMPANY_FUNDING
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('OTHER_DEPOSIT without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.OTHER_DEPOSIT
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('INVESTMENT_EXPENSE without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.INVESTMENT_EXPENSE
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('INVESTMENT_EXPENSE without investment → error on investment', () => {
-    const { investment, ...rest } = VALID_SERVER_PAYLOADS.INVESTMENT_EXPENSE
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('REGISTER_TRANSFER without targetRegister → error on targetRegister', () => {
-    const { targetRegister, ...rest } = VALID_SERVER_PAYLOADS.REGISTER_TRANSFER
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('targetRegister')
+    expect(errorPaths(result)).toContain(field)
   })
 
   it('REGISTER_TRANSFER with targetRegister === sourceRegister → error on targetRegister', () => {
@@ -211,27 +146,6 @@ describe('createTransferSchema — missing required fields', () => {
     })
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('targetRegister')
-  })
-
-  it('REGISTER_TRANSFER without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.REGISTER_TRANSFER
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('PAYOUT without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.PAYOUT
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('OTHER without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.OTHER
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
   })
 })
 
@@ -302,28 +216,16 @@ describe('updateTransferSchema — the plane rides along, gated elsewhere', () =
 })
 
 describe('createTransferSchema — amount edge cases', () => {
-  it('amount = 0 → fails', () => {
+  it.each([
+    [0, false],
+    [-1, false],
+    [0.01, true],
+  ])('amount = %s → success %s', (amount, isValid) => {
     const result = createTransferSchema.safeParse({
       ...VALID_SERVER_PAYLOADS.COMPANY_FUNDING,
-      amount: 0,
+      amount,
     })
-    expect(result.success).toBe(false)
-  })
-
-  it('amount = -1 → fails', () => {
-    const result = createTransferSchema.safeParse({
-      ...VALID_SERVER_PAYLOADS.COMPANY_FUNDING,
-      amount: -1,
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('amount = 0.01 → passes', () => {
-    const result = createTransferSchema.safeParse({
-      ...VALID_SERVER_PAYLOADS.COMPANY_FUNDING,
-      amount: 0.01,
-    })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(isValid)
   })
 })
 
@@ -480,93 +382,25 @@ describe('transferFormSchema — a non-investor deposit paid by przelew', () => 
 })
 
 describe('transferFormSchema — missing required fields', () => {
-  it('LOSS without investment → error on investment', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.LOSS)
-    payload.investment = ''
-    const result = transferFormSchema.safeParse(payload)
+  it.each([
+    ['LOSS', { investment: '' }, 'investment'],
+    ['INVESTOR_DEPOSIT', { sourceRegister: '' }, 'sourceRegister'],
+    ['INVESTOR_DEPOSIT', { investment: '' }, 'investment'],
+    ['REGISTER_TRANSFER', { targetRegister: '' }, 'targetRegister'],
+    ['REGISTER_TRANSFER', { targetRegister: '1', sourceRegister: '1' }, 'targetRegister'],
+    ['PAYOUT', { sourceRegister: '' }, 'sourceRegister'],
+    ['OTHER', { otherCategory: '' }, 'otherCategory'],
+    ['COMPANY_FUNDING', { amount: '' }, 'amount'],
+    ['COMPANY_FUNDING', { amount: '0' }, 'amount'],
+    ['COMPANY_FUNDING', { amount: '-5' }, 'amount'],
+    ['COMPANY_FUNDING', { date: '' }, 'date'],
+  ])('%s with %o → error on %s', (type, patch, field) => {
+    const result = transferFormSchema.safeParse({
+      ...toClientPayload(VALID_SERVER_PAYLOADS[type]),
+      ...patch,
+    })
     expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('INVESTOR_DEPOSIT without sourceRegister → error on sourceRegister', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT)
-    payload.sourceRegister = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('INVESTOR_DEPOSIT without investment → error on investment', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT)
-    payload.investment = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('REGISTER_TRANSFER without targetRegister → error on targetRegister', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.REGISTER_TRANSFER)
-    payload.targetRegister = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('targetRegister')
-  })
-
-  it('REGISTER_TRANSFER with targetRegister === sourceRegister → error', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.REGISTER_TRANSFER)
-    payload.targetRegister = '1'
-    payload.sourceRegister = '1'
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('targetRegister')
-  })
-
-  it('PAYOUT without sourceRegister → error on sourceRegister', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.PAYOUT)
-    payload.sourceRegister = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('OTHER without otherCategory → error on otherCategory', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.OTHER)
-    payload.otherCategory = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('otherCategory')
-  })
-
-  it('amount empty → error on amount', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
-    payload.amount = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('amount')
-  })
-
-  it('amount = "0" → error on amount', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
-    payload.amount = '0'
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('amount')
-  })
-
-  it('amount = "-5" → error on amount', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
-    payload.amount = '-5'
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('amount')
-  })
-
-  it('date empty → error on date', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
-    payload.date = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('date')
+    expect(errorPaths(result)).toContain(field)
   })
 })
 

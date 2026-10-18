@@ -153,38 +153,15 @@ describe('submitOptimistically raises the global pill', () => {
     expect(pending().get('transfer')).toBe('Zapisywanie…')
   })
 
-  it('releases the key on success', async () => {
-    store().submitOptimistically(
-      'transfer',
-      files,
-      vi.fn(() => Promise.resolve({ success: true } as ActionResultT)),
-      'OK',
-      vi.fn(),
-    )
-
-    await vi.waitFor(() => expect(pending().size).toBe(0))
-  })
-
-  it('releases the key when the action returns a failure', async () => {
-    store().submitOptimistically(
-      'transfer',
-      files,
-      vi.fn(() => Promise.resolve({ success: false, error: 'nie' } as ActionResultT)),
-      'OK',
-      vi.fn(),
-    )
-
-    await vi.waitFor(() => expect(pending().size).toBe(0))
-  })
-
-  it('releases the key when the action rejects', async () => {
-    store().submitOptimistically(
-      'transfer',
-      files,
-      vi.fn(() => Promise.reject(new Error('boom'))),
-      'OK',
-      vi.fn(),
-    )
+  it.each([
+    ['on success', () => Promise.resolve({ success: true } as ActionResultT)],
+    [
+      'when the action returns a failure',
+      () => Promise.resolve({ success: false, error: 'nie' } as ActionResultT),
+    ],
+    ['when the action rejects', () => Promise.reject(new Error('boom'))],
+  ])('releases the key %s', async (_case, action) => {
+    store().submitOptimistically('transfer', files, vi.fn(action), 'OK', vi.fn())
 
     await vi.waitFor(() => expect(pending().size).toBe(0))
   })

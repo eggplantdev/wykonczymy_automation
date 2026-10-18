@@ -19,60 +19,86 @@ describe('buildTransferFilters — role scoping', () => {
 })
 
 describe('buildTransferFilters — search params', () => {
-  it('type param adds type filter', () => {
-    const where = buildTransferFilters({ type: 'INVESTOR_DEPOSIT' }, managerCtx)
-    expect(where.type).toEqual({ in: ['INVESTOR_DEPOSIT'] })
-  })
-
-  it('type param supports comma-separated multi-select', () => {
-    const where = buildTransferFilters({ type: 'PAYOUT,OTHER' }, managerCtx)
-    expect(where.type).toEqual({ in: ['PAYOUT', 'OTHER'] })
-  })
-
-  it('type param ignores invalid values', () => {
-    const where = buildTransferFilters({ type: 'PAYOUT,GARBAGE' }, managerCtx)
-    expect(where.type).toEqual({ in: ['PAYOUT'] })
-  })
-
-  it('sourceRegister param adds OR filter for source and target', () => {
-    const where = buildTransferFilters({ sourceRegister: '3' }, managerCtx)
-    expect(where.or).toEqual([{ sourceRegister: { in: [3] } }, { targetRegister: { in: [3] } }])
-  })
-
-  it('sourceRegister param supports multi-select', () => {
-    const where = buildTransferFilters({ sourceRegister: '3,5' }, managerCtx)
-    expect(where.or).toEqual([
-      { sourceRegister: { in: [3, 5] } },
-      { targetRegister: { in: [3, 5] } },
-    ])
-  })
-
-  it('investment param adds numeric filter', () => {
-    const where = buildTransferFilters({ investment: '10' }, managerCtx)
-    expect(where.investment).toEqual({ in: [10] })
-  })
-
-  it('createdBy param adds numeric filter', () => {
-    const where = buildTransferFilters({ createdBy: '7' }, managerCtx)
-    expect(where.createdBy).toEqual({ in: [7] })
-  })
-
-  it('date range — from only', () => {
-    const where = buildTransferFilters({ from: '2024-01-01' }, managerCtx)
-    expect(where.date).toEqual({ greater_than_equal: '2024-01-01' })
-  })
-
-  it('date range — to only', () => {
-    const where = buildTransferFilters({ to: '2024-12-31' }, managerCtx)
-    expect(where.date).toEqual({ less_than_equal: '2024-12-31' })
-  })
-
-  it('date range — both from and to', () => {
-    const where = buildTransferFilters({ from: '2024-01-01', to: '2024-12-31' }, managerCtx)
-    expect(where.date).toEqual({
-      greater_than_equal: '2024-01-01',
-      less_than_equal: '2024-12-31',
-    })
+  it.each<[string, Record<string, string>, string, unknown]>([
+    [
+      'type param adds type filter',
+      { type: 'INVESTOR_DEPOSIT' },
+      'type',
+      { in: ['INVESTOR_DEPOSIT'] },
+    ],
+    [
+      'type param supports multi-select',
+      { type: 'PAYOUT,OTHER' },
+      'type',
+      { in: ['PAYOUT', 'OTHER'] },
+    ],
+    ['type param ignores invalid values', { type: 'PAYOUT,GARBAGE' }, 'type', { in: ['PAYOUT'] }],
+    [
+      'sourceRegister matches source or target',
+      { sourceRegister: '3' },
+      'or',
+      [{ sourceRegister: { in: [3] } }, { targetRegister: { in: [3] } }],
+    ],
+    [
+      'sourceRegister supports multi-select',
+      { sourceRegister: '3,5' },
+      'or',
+      [{ sourceRegister: { in: [3, 5] } }, { targetRegister: { in: [3, 5] } }],
+    ],
+    ['investment param adds numeric filter', { investment: '10' }, 'investment', { in: [10] }],
+    ['createdBy param adds numeric filter', { createdBy: '7' }, 'createdBy', { in: [7] }],
+    [
+      'date range — from only',
+      { from: '2024-01-01' },
+      'date',
+      { greater_than_equal: '2024-01-01' },
+    ],
+    ['date range — to only', { to: '2024-12-31' }, 'date', { less_than_equal: '2024-12-31' }],
+    [
+      'date range — both from and to',
+      { from: '2024-01-01', to: '2024-12-31' },
+      'date',
+      { greater_than_equal: '2024-01-01', less_than_equal: '2024-12-31' },
+    ],
+    [
+      'paymentMethod param adds filter',
+      { paymentMethod: 'CASH' },
+      'paymentMethod',
+      { in: ['CASH'] },
+    ],
+    [
+      'paymentMethod with an invalid value → no results',
+      { paymentMethod: 'INVALID' },
+      'id',
+      { equals: -1 },
+    ],
+    [
+      'otherCategory param adds numeric filter',
+      { otherCategory: '3' },
+      'otherCategory',
+      { in: [3] },
+    ],
+    [
+      'otherCategory supports multi-select',
+      { otherCategory: '3,5' },
+      'otherCategory',
+      { in: [3, 5] },
+    ],
+    [
+      'a single worker id from the subcontractor summary link',
+      { worker: '5' },
+      'worker',
+      { in: [5] },
+    ],
+    ['worker param supports multi-select', { worker: '3,7' }, 'worker', { in: [3, 7] }],
+    [
+      'drops only the unusable worker ids from a mixed list',
+      { worker: '3,1e999,7' },
+      'worker',
+      { in: [3, 7] },
+    ],
+  ])('%s', (_title, params, key, expected) => {
+    expect(buildTransferFilters(params, managerCtx)[key]).toEqual(expected)
   })
 
   it('ignores array params', () => {
@@ -103,36 +129,6 @@ describe('buildTransferFilters — search params', () => {
     expect(where.date).toEqual({ greater_than_equal: '2024-06-01' })
   })
 
-  it('paymentMethod param adds filter', () => {
-    const where = buildTransferFilters({ paymentMethod: 'CASH' }, managerCtx)
-    expect(where.paymentMethod).toEqual({ in: ['CASH'] })
-  })
-
-  it('paymentMethod param with invalid value returns no results', () => {
-    const where = buildTransferFilters({ paymentMethod: 'INVALID' }, managerCtx)
-    expect(where.id).toEqual({ equals: -1 })
-  })
-
-  it('otherCategory param adds numeric filter', () => {
-    const where = buildTransferFilters({ otherCategory: '3' }, managerCtx)
-    expect(where.otherCategory).toEqual({ in: [3] })
-  })
-
-  it('otherCategory param supports multi-select', () => {
-    const where = buildTransferFilters({ otherCategory: '3,5' }, managerCtx)
-    expect(where.otherCategory).toEqual({ in: [3, 5] })
-  })
-
-  it('single worker id from the subcontractor summary link still narrows to that worker', () => {
-    const where = buildTransferFilters({ worker: '5' }, managerCtx)
-    expect(where.worker).toEqual({ in: [5] })
-  })
-
-  it('worker param supports multi-select', () => {
-    const where = buildTransferFilters({ worker: '3,7' }, managerCtx)
-    expect(where.worker).toEqual({ in: [3, 7] })
-  })
-
   // `1e999` parses to Infinity, which is truthy, so a non-integer id must die in the parser or it
   // reaches raw SQL as a bare `worker_id IN (infinity)` identifier and 500s the page.
   it.each(['1e999', '-1e999', '1.5', 'NaN', 'Infinity'])(
@@ -144,11 +140,6 @@ describe('buildTransferFilters — search params', () => {
     },
   )
 
-  it('drops only the unusable ids when the list mixes good and bad', () => {
-    const where = buildTransferFilters({ worker: '3,1e999,7' }, managerCtx)
-    expect(where.worker).toEqual({ in: [3, 7] })
-  })
-
   it('worker param with no usable id → no results', () => {
     const where = buildTransferFilters({ worker: 'abc' }, managerCtx)
     expect(where.worker).toBeUndefined()
@@ -156,73 +147,42 @@ describe('buildTransferFilters — search params', () => {
   })
 })
 
-describe('buildTransferFilters — amount search: prefix mode (no separator)', () => {
-  it('"18" → textual prefix matching everything that starts with 18', () => {
-    const where = buildTransferFilters({ amount: '18' }, managerCtx)
-    expect(where.amount).toEqual({ like: '18' })
-  })
-
-  it('"18000" → prefix, so it never matches a stored 18 (18,00)', () => {
-    const where = buildTransferFilters({ amount: '18000' }, managerCtx)
-    expect(where.amount).toEqual({ like: '18000' })
-  })
-})
-
-describe('buildTransferFilters — amount search: range mode (separator present)', () => {
-  it('"18,00" → [18, 18.01): finds a clean 18, excludes 18949 / 18000,99', () => {
-    const where = buildTransferFilters({ amount: '18,00' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 18, less_than: 18.01 })
-  })
-
-  it('"18.00" (dot) behaves identically to the comma form', () => {
-    const where = buildTransferFilters({ amount: '18.00' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 18, less_than: 18.01 })
-  })
-
-  it('"18,1" → [18.1, 18.2): 18 with a fraction starting 1 (18.10–18.19)', () => {
-    const where = buildTransferFilters({ amount: '18,1' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 18.1, less_than: 18.2 })
-  })
-
-  it('"18,11" → [18.11, 18.12): pins to 18,11 (2-decimal max ⇒ de facto exact)', () => {
-    const where = buildTransferFilters({ amount: '18,11' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 18.11, less_than: 18.12 })
-  })
-
-  it('"181,6" → [181.6, 181.7): matches 181,6 and 181,69', () => {
-    const where = buildTransferFilters({ amount: '181,6' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 181.6, less_than: 181.7 })
-  })
-
-  it('"181,69" → [181.69, 181.7): pins to 181,69', () => {
-    const where = buildTransferFilters({ amount: '181,69' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 181.69, less_than: 181.7 })
-  })
-
-  it('"72,4" → [72.4, 72.5)', () => {
-    const where = buildTransferFilters({ amount: '72,4' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 72.4, less_than: 72.5 })
-  })
-
-  it('"72,40" → [72.4, 72.41): the trailing zero narrows, not widens', () => {
-    const where = buildTransferFilters({ amount: '72,40' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 72.4, less_than: 72.41 })
-  })
-
-  it('trailing separator with no fraction ("18,") pins the integer → [18, 19)', () => {
-    const where = buildTransferFilters({ amount: '18,' }, managerCtx)
-    expect(where.amount).toEqual({ greater_than_equal: 18, less_than: 19 })
-  })
-})
-
-describe('buildTransferFilters — amount search: rejected input', () => {
-  it('ignores non-numeric input', () => {
-    const where = buildTransferFilters({ amount: 'abc' }, managerCtx)
-    expect(where.amount).toBeUndefined()
-  })
-
-  it('ignores a leading separator with no integer part', () => {
-    const where = buildTransferFilters({ amount: ',5' }, managerCtx)
-    expect(where.amount).toBeUndefined()
+describe('buildTransferFilters — amount search', () => {
+  it.each<[string, string, unknown]>([
+    ['no separator → textual prefix of everything starting with 18', '18', { like: '18' }],
+    ['"18000" → prefix, so it never matches a stored 18 (18,00)', '18000', { like: '18000' }],
+    [
+      '"18,00" → [18, 18.01): a clean 18, not 18949 / 18000,99',
+      '18,00',
+      { greater_than_equal: 18, less_than: 18.01 },
+    ],
+    [
+      '"18.00" (dot) behaves like the comma form',
+      '18.00',
+      { greater_than_equal: 18, less_than: 18.01 },
+    ],
+    ['"18,1" → [18.1, 18.2): 18.10–18.19', '18,1', { greater_than_equal: 18.1, less_than: 18.2 }],
+    [
+      '"18,11" → [18.11, 18.12): de facto exact',
+      '18,11',
+      { greater_than_equal: 18.11, less_than: 18.12 },
+    ],
+    [
+      '"181,6" → [181.6, 181.7): 181,6 and 181,69',
+      '181,6',
+      { greater_than_equal: 181.6, less_than: 181.7 },
+    ],
+    ['"181,69" → [181.69, 181.7)', '181,69', { greater_than_equal: 181.69, less_than: 181.7 }],
+    ['"72,4" → [72.4, 72.5)', '72,4', { greater_than_equal: 72.4, less_than: 72.5 }],
+    [
+      '"72,40" → [72.4, 72.41): a trailing zero narrows',
+      '72,40',
+      { greater_than_equal: 72.4, less_than: 72.41 },
+    ],
+    ['"18," pins the integer → [18, 19)', '18,', { greater_than_equal: 18, less_than: 19 }],
+    ['ignores non-numeric input', 'abc', undefined],
+    ['ignores a leading separator with no integer part', ',5', undefined],
+  ])('%s', (_title, amount, expected) => {
+    expect(buildTransferFilters({ amount }, managerCtx).amount).toEqual(expected)
   })
 })

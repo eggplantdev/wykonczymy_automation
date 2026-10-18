@@ -64,71 +64,23 @@ describe('validateTransfer — all types valid', () => {
 })
 
 describe('validateTransfer — missing required fields', () => {
-  it('INVESTOR_DEPOSIT without sourceRegister → throws', async () => {
-    const { sourceRegister, ...data } = VALID_DATA.INVESTOR_DEPOSIT
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
-  })
-
-  it('INVESTOR_DEPOSIT without investment → throws', async () => {
-    const { investment, ...data } = VALID_DATA.INVESTOR_DEPOSIT
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
-  })
-
-  it('COMPANY_FUNDING without sourceRegister → throws', async () => {
-    const { sourceRegister, ...data } = VALID_DATA.COMPANY_FUNDING
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
-  })
-
-  it('OTHER_DEPOSIT without sourceRegister → throws', async () => {
-    const { sourceRegister, ...data } = VALID_DATA.OTHER_DEPOSIT
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
-  })
-
-  it('INVESTMENT_EXPENSE without sourceRegister → throws', async () => {
-    const { sourceRegister, ...data } = VALID_DATA.INVESTMENT_EXPENSE
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
-  })
-
-  it('INVESTMENT_EXPENSE without investment → throws', async () => {
-    const { investment, ...data } = VALID_DATA.INVESTMENT_EXPENSE
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
-  })
-
-  it('LABOR_COST without investment → throws', async () => {
-    const { investment, ...data } = VALID_DATA.LABOR_COST
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
-  })
-
-  it('BONUS without investment → throws', async () => {
-    const { investment, ...data } = VALID_DATA.BONUS
-    void investment
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
-  })
-
-  it('BONUS without worker → throws', async () => {
-    const { worker, ...data } = VALID_DATA.BONUS
-    void worker
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ww]orker is required/)
-  })
-
-  it('REGISTER_TRANSFER without sourceRegister → throws', async () => {
-    const { sourceRegister, ...data } = VALID_DATA.REGISTER_TRANSFER
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
-  })
-
-  it('REGISTER_TRANSFER without targetRegister → throws', async () => {
-    const { targetRegister, ...data } = VALID_DATA.REGISTER_TRANSFER
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Tt]arget register/)
-  })
-
-  it('OTHER without sourceRegister → throws', async () => {
-    const { sourceRegister, ...data } = VALID_DATA.OTHER
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
-  })
-
-  it('OTHER without otherCategory → throws', async () => {
-    const { otherCategory, ...data } = VALID_DATA.OTHER
-    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ategory/)
+  it.each([
+    ['INVESTOR_DEPOSIT', 'sourceRegister', /[Cc]ash register/],
+    ['INVESTOR_DEPOSIT', 'investment', /[Ii]nvestment/],
+    ['COMPANY_FUNDING', 'sourceRegister', /[Cc]ash register/],
+    ['OTHER_DEPOSIT', 'sourceRegister', /[Cc]ash register/],
+    ['INVESTMENT_EXPENSE', 'sourceRegister', /[Cc]ash register/],
+    ['INVESTMENT_EXPENSE', 'investment', /[Ii]nvestment/],
+    ['LABOR_COST', 'investment', /[Ii]nvestment/],
+    ['BONUS', 'investment', /[Ii]nvestment/],
+    ['BONUS', 'worker', /[Ww]orker is required/],
+    ['REGISTER_TRANSFER', 'sourceRegister', /[Cc]ash register/],
+    ['REGISTER_TRANSFER', 'targetRegister', /[Tt]arget register/],
+    ['OTHER', 'sourceRegister', /[Cc]ash register/],
+    ['OTHER', 'otherCategory', /[Cc]ategory/],
+  ])('%s without %s → throws', async (type, field, message) => {
+    const { [field]: _omitted, ...data } = VALID_DATA[type]
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(message)
   })
 })
 

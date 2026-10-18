@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Payload } from 'payload'
 import { LANDING_FIXTURE_HOST } from '@/__tests__/fixtures/landing-submission'
+import { fetchLandingAsset, MAX_ASSET_BYTES } from '@/lib/leads/fetch-landing-asset'
 
 process.env.LANDING_BLOB_HOST = LANDING_FIXTURE_HOST
-
-import { fetchLandingAsset, MAX_ASSET_BYTES } from '@/lib/leads/fetch-landing-asset'
 
 type CreateArgsT = { file?: { name: string; mimetype: string; size: number } }
 const create = vi.fn(async (_args: CreateArgsT) => ({ id: 42 }))

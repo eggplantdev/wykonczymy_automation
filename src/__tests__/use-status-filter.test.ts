@@ -18,92 +18,78 @@ const idsFor = (selected: InvestmentStatusT[]) =>
     .sort()
 
 describe('filterByStatuses', () => {
-  it('default (planowana + quote + active) → hides completed and rejected', () => {
-    expect(idsFor(['planowana', 'quote', 'active'])).toEqual([1, 2, 4])
-  })
-
-  it('planowana only → only prospects', () => {
-    expect(idsFor(['planowana'])).toEqual([1])
-  })
-
-  it('active only → only active', () => {
-    expect(idsFor(['active'])).toEqual([2])
-  })
-
-  it('completed only → only completed', () => {
-    expect(idsFor(['completed'])).toEqual([3])
-  })
-
-  it('quote only → only quotes', () => {
-    expect(idsFor(['quote'])).toEqual([4])
-  })
-
-  it('rejected only → only rejected', () => {
-    expect(idsFor(['rejected'])).toEqual([5])
-  })
-
-  it('none selected → every row, nothing narrows', () => {
-    expect(idsFor([])).toEqual([1, 2, 3, 4, 5])
+  it.each<[InvestmentStatusT[], number[]]>([
+    [
+      ['planowana', 'quote', 'active'],
+      [1, 2, 4],
+    ],
+    [['planowana'], [1]],
+    [['active'], [2]],
+    [['completed'], [3]],
+    [['quote'], [4]],
+    [['rejected'], [5]],
+    [[], [1, 2, 3, 4, 5]],
+  ])('%j → rows %j (none selected narrows nothing)', (selected, ids) => {
+    expect(idsFor(selected)).toEqual(ids)
   })
 })
 
+const selected = (map: Record<string, boolean>) => [...selectionFrom(map)].sort()
+
 describe('selectionFrom — the persisted map', () => {
-  it('falls back to the defaults when nobody has picked yet', () => {
-    expect([...selectionFrom({})].sort()).toEqual(['active', 'planowana', 'quote'])
-  })
-
-  it('honours an explicit all-false as the empty selection', () => {
-    expect([
-      ...selectionFrom({ active: false, completed: false, planowana: false, quote: false }),
-    ]).toEqual([])
-  })
-
-  it('reads back what was picked', () => {
-    expect(
-      [...selectionFrom({ active: false, completed: true, planowana: true, quote: false })].sort(),
-    ).toEqual(['completed', 'planowana'])
-  })
-
-  // localStorage is client-writable, so a hand-edited value must not filter the listing away.
-  it('degrades a value that answers nothing to the defaults', () => {
-    expect([...selectionFrom({ nonsense: true } as Record<string, boolean>)].sort()).toEqual([
-      'active',
-      'planowana',
-      'quote',
-    ])
+  it.each<[string, Record<string, boolean>, string[]]>([
+    ['falls back to the defaults when nobody has picked yet', {}, ['active', 'planowana', 'quote']],
+    [
+      'honours an explicit all-false as the empty selection',
+      { active: false, completed: false, planowana: false, quote: false },
+      [],
+    ],
+    [
+      'reads back what was picked',
+      { active: false, completed: true, planowana: true, quote: false },
+      ['completed', 'planowana'],
+    ],
+    // localStorage is client-writable, so a hand-edited value must not filter the listing away.
+    [
+      'degrades a value that answers nothing to the defaults',
+      { nonsense: true },
+      ['active', 'planowana', 'quote'],
+    ],
+  ])('%s', (_title, map, expected) => {
+    expect(selected(map)).toEqual(expected)
   })
 })
 
 // Every map saved before `quote` existed lacks its key; read as „odznaczone" it would hide Wyceny
 // for good from anyone who ever touched the filter.
 describe('selectionFrom — a map saved before quote existed', () => {
-  it('shows quotes to whoever shows planowane', () => {
-    expect([...selectionFrom({ planowana: true, active: true, completed: false })].sort()).toEqual([
-      'active',
-      'planowana',
-      'quote',
-    ])
-  })
-
-  it('hides quotes from whoever hid planowane', () => {
-    expect([...selectionFrom({ planowana: false, active: true, completed: false })]).toEqual([
-      'active',
-    ])
-  })
-
-  it('keeps an explicit all-false empty', () => {
-    expect([...selectionFrom({ planowana: false, active: false, completed: false })]).toEqual([])
-  })
-
-  it('hides rejected from a map saved before it existed', () => {
-    expect(selectionFrom({ planowana: true, active: true, completed: true }).has('rejected')).toBe(
-      false,
-    )
-  })
-
-  it('lets a saved quote flag override planowana', () => {
-    expect([
-      ...selectionFrom({ planowana: true, quote: false, active: false, completed: false }),
-    ]).toEqual(['planowana'])
+  it.each<[string, Record<string, boolean>, string[]]>([
+    [
+      'shows quotes to whoever shows planowane',
+      { planowana: true, active: true, completed: false },
+      ['active', 'planowana', 'quote'],
+    ],
+    [
+      'hides quotes from whoever hid planowane',
+      { planowana: false, active: true, completed: false },
+      ['active'],
+    ],
+    [
+      'keeps an explicit all-false empty',
+      { planowana: false, active: false, completed: false },
+      [],
+    ],
+    [
+      'hides rejected from a map saved before it existed',
+      { planowana: true, active: true, completed: true },
+      ['active', 'completed', 'planowana', 'quote'],
+    ],
+    [
+      'lets a saved quote flag override planowana',
+      { planowana: true, quote: false, active: false, completed: false },
+      ['planowana'],
+    ],
+  ])('%s', (_title, map, expected) => {
+    expect(selected(map)).toEqual(expected)
   })
 })
