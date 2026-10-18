@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 const { generateObject } = vi.hoisted(() => ({ generateObject: vi.fn() }))
 
@@ -21,8 +21,6 @@ type CallT = { model: { __model: string }; prompt: string }
 // The prompt carries the batch as JSON after the instructions — the mock reads it back to answer per id.
 const inputOf = (call: CallT) =>
   JSON.parse(call.prompt.slice(call.prompt.indexOf('[{'))) as { id: number; text: string }[]
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('translateTexts', () => {
   it('maps each answer back to its Polish text by batch id', async () => {

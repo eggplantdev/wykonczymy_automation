@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 const { generateObject } = vi.hoisted(() => ({ generateObject: vi.fn() }))
 
@@ -26,8 +26,6 @@ const OK = {
   documentDate: '',
 }
 const PAGES = [{ bytes: new Uint8Array([1, 2, 3]), mediaType: 'image/png', filename: 'r.png' }]
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('extractReceipt runtime fallback', () => {
   it('retries with FALLBACK_MODEL when the primary throws, returning the fallback result', async () => {

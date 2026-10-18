@@ -22,7 +22,6 @@ function receiptFile(name = 'receipt-x.png') {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   extractReceiptSpy.mockResolvedValue({
     description: 'Castorama',
     amount: 12.5,
