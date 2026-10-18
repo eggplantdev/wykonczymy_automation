@@ -621,3 +621,15 @@
 - Evidence: the 2026-10 suite audit (`context/archive/2026-09-15-test-suite-audit/`). The review
   gate restored two cases phase 2 had dropped, because each was the only proof that a hook calls its
   helper or that an early return fires.
+
+## Test-suite speed: import is the cost, CPU-seconds are the measure
+
+- In this repo ~90 % of unit wall-clock was module import repeated per file, not test bodies. The
+  lever is a shared module graph (`*-shared` projects), not faster tests; `--pool=threads` and
+  trimming slow tests bought nothing.
+- Other agents' dev and E2E servers load this laptop outside the test lock — compare user CPU-s
+  (`/usr/bin/time -p`) against a baseline taken the same way, never wall time alone.
+- A cache keyed on a file pre-push rewrites (the dump) never hits; key on what the cache is built
+  from, plus an age limit for the inputs the key misses.
+- Evidence: test-suite-speed / unit-suite-speed (`context/archive/2026-10-18-*-suite-speed/`) —
+  `pnpm test` 175 s → ~50 s, integration 70 s → 36 s, parity 32 s → 5 s.

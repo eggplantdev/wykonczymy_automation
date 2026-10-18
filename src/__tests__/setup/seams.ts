@@ -14,6 +14,7 @@ export async function passThrough(
   importOriginal: () => Promise<Record<string, unknown>>,
   ...names: string[]
 ) {
+  // Keyed on the export names alone: two modules seaming the same names would share one entry.
   const key = names.join()
   if (!modules.has(key)) {
     const actual = await importOriginal()

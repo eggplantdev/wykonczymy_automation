@@ -11,7 +11,8 @@ worktree: null
 
 ## Notes
 
-Levers 4 and 9 from `2026-10-18-test-suite-speed/research.md`.
+Levers 4 and 9 from the test-suite-speed research (`context/archive/2026-10-18-test-suite-speed/`):
+skip the unchanged build, reset the test DB per cold run.
 
 - `scripts/e2e-build.sh` fingerprints every file the build reads (tracked + untracked, minus `e2e/`,
   `src/__tests__/`, `context/`, `*.md`, `scripts/`, `.husky/`, Playwright configs; plus `.env`,
