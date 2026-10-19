@@ -1446,6 +1446,12 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] „Edytuj inwestycję” i tabela inwestycji: najechanie na status („Aktywna” ze strzałką) pokazuje
       rączkę; w trakcie zapisu zmiany statusu kursor jest zablokowany.
 
+## 2026-10-19 — szerszy dialog „Szczegóły" leada
+
+- [ ] Leady → „Szczegóły" przy zgłoszeniu z długą wiadomością: okno jest szerokie, etykiety w wąskiej
+      kolumnie po lewej, wiadomość zajmuje resztę szerokości; podziały linii z formularza zostają.
+- [ ] To samo zgłoszenie z załącznikami: miniatury są ostre, nie rozmyte.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

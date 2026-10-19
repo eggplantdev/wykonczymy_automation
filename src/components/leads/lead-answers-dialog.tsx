@@ -22,16 +22,16 @@ export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswe
           Szczegóły
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-dialog-lg">
         <DialogHeader
           title={name || 'Zgłoszenie'}
           description={formName || 'Odpowiedzi z formularza'}
         />
         <dl className="divide-border divide-y text-sm">
           {answers.map((answer, index) => (
-            <div key={index} className="grid grid-cols-[1fr_1.5fr] gap-3 py-2">
+            <div key={index} className="grid gap-1 py-2 sm:grid-cols-[12rem_1fr] sm:gap-4">
               <dt className="text-muted-foreground break-words">{answer.label}</dt>
-              <dd className="text-foreground break-words">{answer.value}</dd>
+              <dd className="text-foreground break-words whitespace-pre-line">{answer.value}</dd>
             </div>
           ))}
         </dl>
@@ -42,7 +42,7 @@ export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswe
             <MediaStrip
               files={assets}
               labels={ASSET_PREVIEW_LABELS}
-              sizes="(max-width: 767.98px) 31vw, (max-width: 1023.98px) 110px, 75px"
+              sizes="(max-width: 767.98px) 31vw, (max-width: 1023.98px) 215px, 140px"
             />
           </section>
         )}
