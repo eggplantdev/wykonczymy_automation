@@ -31,7 +31,7 @@ import {
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
-import { syncBulkExpensesToSheet } from './sheets-sync'
+import { syncBulkExpensesToSheet } from '@/lib/google/transfer-sheet-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'

@@ -76,7 +76,7 @@ class MissingTabError extends Error {}
 
 // The client is a parameter because the WRITE path must read with the same account it writes
 // with: two accounts holding the sheet is now the norm, but requiring both for one write would
-// make a sheet shared with only the Editor fail its own sync — silently, behind sheets-sync's catch.
+// make a sheet shared with only the Editor fail its own sync — silently, behind transfer-sheet-sync's catch.
 async function readGrid(
   spreadsheetId: string,
   cfg: SheetTabConfigT,

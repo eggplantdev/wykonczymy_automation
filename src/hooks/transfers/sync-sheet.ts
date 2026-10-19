@@ -3,9 +3,9 @@ import { after } from 'next/server'
 import { EXPENSES_TAB_TYPES, SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
 import { resolveId } from '@/lib/utils/resolve-id'
 
-// sheets-sync is a 'use server' module (it pulls in `server-only` + the Payload
-// config), so it's imported LAZILY inside after() — a static import here would poison
-// the transactions collection's import graph for client/test contexts that load it.
+// transfer-sheet-sync pulls in the Payload config, so it's imported LAZILY inside after() — a static
+// import here would poison the transactions collection's import graph for client/test contexts that
+// load it.
 
 const SHEET_SYNCED_TYPES: string[] = [...EXPENSES_TAB_TYPES, ...SHEET_TRANSFER_TAB_TYPES]
 
@@ -19,7 +19,7 @@ export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousD
 
   after(async () => {
     const { removeTransferFromSheet, syncSingleTransferToSheet } =
-      await import('@/lib/actions/sheets-sync')
+      await import('@/lib/google/transfer-sheet-sync')
     if (prevInvestmentId !== undefined && prevInvestmentId !== investmentId) {
       await removeTransferFromSheet({ transferId, investmentId: prevInvestmentId, type: doc.type })
     }
@@ -33,7 +33,7 @@ export const syncSheetAfterDelete: CollectionAfterDeleteHook = ({ doc }) => {
   if (!SHEET_SYNCED_TYPES.includes(doc.type) || investmentId === undefined) return doc
   const transferId = doc.id as number
   after(async () => {
-    const { removeTransferFromSheet } = await import('@/lib/actions/sheets-sync')
+    const { removeTransferFromSheet } = await import('@/lib/google/transfer-sheet-sync')
     await removeTransferFromSheet({ transferId, investmentId, type: doc.type })
   })
   return doc

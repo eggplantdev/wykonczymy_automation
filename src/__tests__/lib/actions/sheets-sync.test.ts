@@ -79,12 +79,9 @@ vi.mock('payload', async (importOriginal) => {
 
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
-const {
-  previewMaterialSync,
-  applyMaterialSync,
-  syncSingleTransferToSheet,
-  removeTransferFromSheet,
-} = await import('@/lib/actions/sheets-sync')
+const { previewMaterialSync, applyMaterialSync } = await import('@/lib/actions/sheets-sync')
+const { syncSingleTransferToSheet, removeTransferFromSheet } =
+  await import('@/lib/google/transfer-sheet-sync')
 
 function setEnv() {
   setGoogleCredentialEnv()

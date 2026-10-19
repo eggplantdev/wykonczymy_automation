@@ -44,7 +44,7 @@ vi.mock('@/lib/media/blob-public-url', (importOriginal) =>
 vi.mock('@/lib/media/delete-unreferenced-media', (importOriginal) =>
   passThrough(importOriginal, 'reclaimUnreferencedMedia'),
 )
-vi.mock('@/lib/actions/sheets-sync', (importOriginal) =>
+vi.mock('@/lib/google/transfer-sheet-sync', (importOriginal) =>
   passThrough(importOriginal, 'syncBulkExpensesToSheet'),
 )
 vi.mock('@/lib/push/notify-pending-payouts', (importOriginal) =>
