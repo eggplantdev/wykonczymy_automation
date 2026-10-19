@@ -1346,6 +1346,18 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       kolor badge'a tego etapu na liście inwestycji); „Uzupełnianie informacji” ma zwykły szary obrys.
 - [ ] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
       kolorowy obrys, zwykła grubość tekstu, długa wartość ucina się wielokropkiem.
+- [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
+      przełącza aktywność konta i nie otwiera strony pracownika.
+- [ ] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
+- [ ] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
+      jest nieklikalny.
+- [ ] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
+- [ ] Typ przelewu w tabeli i na kartach przelewów: obrys i kropka w kolorze typu, nazwa ucina się
+      wielokropkiem; rozliczony przelew ma kolor rozliczenia.
+- [ ] Raport pracy: nazwa sekcji obok kolorowego paska ma tło i tekst w kolorze tej sekcji, czytelne
+      w jasnym i ciemnym motywie.
+- [ ] Filtr statusów linii (zaakceptowane / odrzucone / oczekujące) w zgłoszeniu wydatku: kliknięcie
+      chowa i pokazuje linie, ukryty status jest przekreślony.
 
 ## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
 
