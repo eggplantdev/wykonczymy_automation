@@ -39,6 +39,12 @@ const col = createColumnHelper<TransferRowT>()
 // follow the link into a 404.
 const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
+const registerLink = (name: string, id: number | null, isTrashed: boolean) => (
+  <OptionalLink href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}>
+    {name}
+  </OptionalLink>
+)
+
 const buildColumns = (
   translator: TranslatorT<'transfers'>,
   uncoloredAmounts: boolean,
@@ -155,15 +161,8 @@ const buildColumns = (
       header: t('colSourceRegister'),
       meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
       cell: (info) => {
-        const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
-        const name = info.getValue()
-        return (
-          <OptionalLink
-            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
-          >
-            {name}
-          </OptionalLink>
-        )
+        const { sourceRegisterId, sourceRegisterTrashed } = info.row.original
+        return registerLink(info.getValue(), sourceRegisterId, sourceRegisterTrashed)
       },
     }),
     col.accessor('targetRegisterName', {
@@ -171,15 +170,8 @@ const buildColumns = (
       header: t('colTargetRegister'),
       meta: { printValue: (row) => row.targetRegisterName },
       cell: (info) => {
-        const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
-        const name = info.getValue()
-        return (
-          <OptionalLink
-            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
-          >
-            {name}
-          </OptionalLink>
-        )
+        const { targetRegisterId, targetRegisterTrashed } = info.row.original
+        return registerLink(info.getValue(), targetRegisterId, targetRegisterTrashed)
       },
     }),
 

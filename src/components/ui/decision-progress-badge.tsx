@@ -6,11 +6,17 @@ import { cn } from '@/lib/utils/cn'
 
 export type DecisionStatusT = 'accepted' | 'rejected' | 'pending'
 
+export const DECISION_TONE = {
+  accepted: 'positive',
+  rejected: 'negative',
+  pending: 'pending',
+} as const satisfies Record<DecisionStatusT, BadgeToneT>
+
 const PARTS = [
-  { key: 'accepted', label: 'decisionAccepted', tone: 'positive' },
-  { key: 'rejected', label: 'decisionRejected', tone: 'negative' },
-  { key: 'pending', label: 'decisionPending', tone: 'pending' },
-] as const satisfies readonly { key: DecisionStatusT; label: string; tone: BadgeToneT }[]
+  { key: 'accepted', label: 'decisionAccepted' },
+  { key: 'rejected', label: 'decisionRejected' },
+  { key: 'pending', label: 'decisionPending' },
+] as const satisfies readonly { key: DecisionStatusT; label: string }[]
 
 type DecisionProgressBadgePropsT = Record<DecisionStatusT, number> & {
   hidden?: ReadonlySet<DecisionStatusT>
@@ -25,7 +31,8 @@ export function DecisionProgressBadge({
   const { t } = useTranslation('common')
   return (
     <span className="flex flex-wrap gap-1">
-      {PARTS.filter(({ key }) => counts[key] > 0).map(({ key, label, tone }) => {
+      {PARTS.filter(({ key }) => counts[key] > 0).map(({ key, label }) => {
+        const tone = DECISION_TONE[key]
         const text = `${t(label)} ${counts[key]}`
         return onToggle ? (
           <BadgeButton
