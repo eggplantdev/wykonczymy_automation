@@ -23,3 +23,6 @@ export function composeOrderSms({ kind, quantity, address, contact }: OrderSmsT)
   lines.push('', 'Będę wdzięczny za potwierdzenie.', '', 'Dzięki,', 'Zespół Wykończymy')
   return lines.join('\n')
 }
+
+export const orderSmsHref = (phone: string, message: string) =>
+  `sms:${phone.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(message)}`

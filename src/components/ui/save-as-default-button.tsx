@@ -44,7 +44,7 @@ export function SaveAsDefaultButton({
       type="button"
       variant="ghost"
       size="xs"
-      className="text-muted-foreground justify-self-start"
+      className="text-muted-foreground self-start justify-self-start"
       disabled={isDefault || isPending}
       onClick={handleSave}
     >

@@ -1583,8 +1583,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       formularz”). Cena w dialogu zamówienia od razu się zmienia. Jako MANAGER zębatki nie ma.
       `/inwestycje` i sidebar nie mają już ustawień zamówień.
 - [ ] Strona inwestycji → „Kontener” → kontener × 2 → „Dalej”: formularz pokazuje „2 × kontener”,
-      3000 zł, „Materiały budowlane” / „kontener”. Zapisz — bez pytania o brak faktury → otwiera się
-      SMS z adresem bez kraju oraz kontaktem wybranym w pierwszym kroku.
+      3000 zł, „Materiały budowlane” / „kontener”. Zapisz — bez pytania o brak faktury → dialog się
+      zamyka, otwiera się SMS z adresem bez kraju oraz dostawcą i kontaktem z pierwszego kroku.
 - [ ] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
       „Kwota”, a przełączenie big bag / kontener wraca do ceny z ustawień. Przełącznik, pola, „Dalej”
       i zębatka mają jedną wysokość.
@@ -1595,9 +1595,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       budowy” → strona inwestycji po odświeżeniu pokazuje ją jako „Kierownik budowy”.
 - [ ] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o
       brak faktury.
-- [ ] W kroku SMS „Zapisz jako domyślnego dostawcę” przy innym dostawcy → następne zamówienie wybiera
-      go od razu.
-- [ ] Z telefonu (IP w sieci LAN): „Wyślij SMS” otwiera Wiadomości z domyślnym dostawcą i treścią.
+- [ ] W pierwszym kroku „Dostawca” → inny → „Zapisz jako domyślnego dostawcę” → następne zamówienie
+      wybiera go od razu. Bez dostawców: krok mówi „Lista dostawców jest pusta”, SMS bez odbiorcy.
+- [ ] Z telefonu (IP w sieci LAN): „Zapisz” wydatku sam otwiera Wiadomości z dostawcą i treścią.
 - [ ] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
 - [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
       miejscu”.
@@ -1606,6 +1606,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
 - [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
       widoczny, ale nieklikalny.
+- [ ] Zwykły formularz wydatku → wybierz inną kasę → „Zapisz jako domyślną kasę” → przycisk zmienia
+      się na „Kasa domyślna”, wyrównany do lewej jak wcześniej; następny wydatek ma tę kasę.
 - [ ] Jako EMPLOYEE na własnym `/pracownicy/[id]`, jeśli widać wiersz zamówienia: bez przycisku.
 - [ ] Druk tabeli transakcji: kolumna „Zamówienie” drukuje „Czeka” / „Dostarczone”.
 - [ ] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
@@ -1643,6 +1645,11 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       „Wypłata do potwierdzenia” z kwotą, a na ikonie aplikacji licznik rośnie o 1.
 - [ ] Stuknięcie w to powiadomienie otwiera stronę pracownika z wypłatą do potwierdzenia; po
       potwierdzeniu licznik na ikonie znika.
+
+## 2026-10-19 — transfers-worker-column-width — szersza kolumna „Pracownik”
+
+- [ ] Lista transakcji (desktop), widok tabeli: imię i nazwisko w kolumnie „Pracownik” mieści się w
+      jednej linii, tak jak w „Dodane przez”.
 
 # Zamknięte — indeks
 

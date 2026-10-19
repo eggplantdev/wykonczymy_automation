@@ -64,7 +64,7 @@ function SelectButtonTrigger({
       >
         {children}
         <SelectPrimitive.Icon asChild>
-          <ChevronDownIcon />
+          <ChevronDownIcon className="text-muted-foreground" />
         </SelectPrimitive.Icon>
       </Button>
     </SelectPrimitive.Trigger>

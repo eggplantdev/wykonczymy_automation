@@ -13,6 +13,9 @@ import {
 import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { cn } from '@/lib/utils/cn'
 
+// Radix Select refuses an empty-string item value.
+export const SELECT_NONE = 'none'
+
 export type SelectOptionT = {
   value: string
   label: ReactNode
@@ -35,6 +38,7 @@ const VARIANT: Record<
 }
 
 type PropsT = {
+  id?: string
   value: string
   onValueChange: (value: string) => void
   options: SelectOptionT[]
@@ -46,6 +50,7 @@ type PropsT = {
 }
 
 export function SimpleSelect({
+  id,
   value,
   onValueChange,
   options,
@@ -68,11 +73,16 @@ export function SimpleSelect({
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       {preset.buttonTrigger ? (
-        <SelectButtonTrigger aria-invalid={invalid} className={cn(preset.className, className)}>
+        <SelectButtonTrigger
+          id={id}
+          aria-invalid={invalid}
+          className={cn(preset.className, className)}
+        >
           <SelectValue placeholder={placeholder}>{selectedValue}</SelectValue>
         </SelectButtonTrigger>
       ) : (
         <SelectTrigger
+          id={id}
           size={preset.size}
           aria-invalid={invalid}
           className={cn(preset.className, className)}

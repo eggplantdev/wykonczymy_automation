@@ -5,9 +5,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { OrderDialog } from '@/components/orders/order-dialog'
 import { expenseReferenceData } from '@/__tests__/helpers/expense-form'
 import { setInvestmentSiteManagerAction } from '@/lib/actions/investments'
+import { setDefaultSupplierAction } from '@/lib/actions/order-settings'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { navigateTo } from '@/lib/utils/navigate-to'
 import type { RoleT } from '@/lib/auth/roles'
 import type { OrderSettingsT } from '@/types/order-settings'
 
@@ -15,6 +17,7 @@ vi.mocked(createBulkTransferAction).mockResolvedValue({ success: true })
 vi.mocked(submitWithUploadRows).mockImplementation((_rowCount, _files, submit) =>
   submit(undefined as never),
 )
+vi.mocked(navigateTo).mockImplementation(() => {})
 
 const SITE_MANAGER_ID = 20
 
@@ -60,7 +63,12 @@ const INVESTMENT = {
 }
 
 function dialogFor(
-  overrides: { settings?: OrderSettingsT; siteManagerId?: number; role?: RoleT } = {},
+  overrides: {
+    settings?: OrderSettingsT
+    siteManagerId?: number
+    role?: RoleT
+    onOpenChange?: (open: boolean) => void
+  } = {},
 ) {
   return (
     <OrderDialog
@@ -68,7 +76,7 @@ function dialogFor(
       referenceData={{ ...referenceData, currentUserRole: overrides.role ?? 'OWNER' }}
       orderSettings={overrides.settings ?? SETTINGS}
       open
-      onOpenChange={vi.fn()}
+      onOpenChange={overrides.onOpenChange ?? vi.fn()}
     />
   )
 }
@@ -85,11 +93,14 @@ async function pickTwoBigBags(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Dalej' }))
 }
 
-async function bookAndReachSms(user: ReturnType<typeof userEvent.setup>) {
+async function bookAndOpenSms(user: ReturnType<typeof userEvent.setup>) {
   await pickTwoBigBags(user)
   await user.click(await screen.findByRole('button', { name: 'Zapisz' }))
-  return screen.findByRole('link', { name: 'Wyślij SMS' })
+  await waitFor(() => expect(navigateTo).toHaveBeenCalledOnce())
+  return vi.mocked(navigateTo).mock.calls[0][0]
 }
+
+const smsBody = (href: string) => decodeURIComponent(href.split('body=')[1])
 
 describe('OrderDialog', () => {
   it('recomputes the amount from the quantity and the kind', async () => {
@@ -155,18 +166,40 @@ describe('OrderDialog', () => {
     expect(screen.getByDisplayValue('1600')).toBeInTheDocument()
   })
 
-  it('books with the order flag and opens the SMS to the default supplier', async () => {
-    const user = renderDialog({ siteManagerId: SITE_MANAGER_ID })
+  it('books with the order flag, opens the SMS to the default supplier and closes', async () => {
+    const onOpenChange = vi.fn()
+    const user = renderDialog({ siteManagerId: SITE_MANAGER_ID, onOpenChange })
 
-    const send = await bookAndReachSms(user)
+    const href = await bookAndOpenSms(user)
 
     expect(vi.mocked(createBulkTransferAction).mock.calls[0][3]).toEqual({ order: true })
-    const href = send.getAttribute('href') ?? ''
     expect(href.startsWith('sms:601000002?&body=')).toBe(true)
-    const body = decodeURIComponent(href.split('body=')[1])
-    expect(body).toContain('2 × big bag')
-    expect(body).toContain('Adres: ul. Polna 3, 00-001 Warszawa')
-    expect(body).toContain('Kontakt na miejscu: Jan Kowalski, 601 234 567')
+    expect(smsBody(href)).toContain('2 × big bag')
+    expect(smsBody(href)).toContain('Adres: ul. Polna 3, 00-001 Warszawa')
+    expect(smsBody(href)).toContain('Kontakt na miejscu: Jan Kowalski, 601 234 567')
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('sends the SMS to the supplier picked in the first step', async () => {
+    const user = renderDialog()
+
+    await user.click(screen.getByRole('combobox', { name: 'Dostawca' }))
+    await user.click(await screen.findByRole('option', { name: 'Alfa Kontenery · 601 000 001' }))
+    const href = await bookAndOpenSms(user)
+
+    expect(href.startsWith('sms:601000001?&body=')).toBe(true)
+  })
+
+  it('saves the picked supplier as the default', async () => {
+    vi.mocked(setDefaultSupplierAction).mockResolvedValue({ success: true })
+    const user = renderDialog()
+
+    await user.click(screen.getByRole('combobox', { name: 'Dostawca' }))
+    await user.click(await screen.findByRole('option', { name: 'Alfa Kontenery · 601 000 001' }))
+    await user.click(screen.getByRole('button', { name: 'Zapisz jako domyślnego dostawcę' }))
+
+    expect(setDefaultSupplierAction).toHaveBeenCalledWith('supplier-alfa')
+    expect(await screen.findByRole('button', { name: 'Dostawca domyślny' })).toBeDisabled()
   })
 
   it('keeps only digits and a plus of a free-text supplier number', async () => {
@@ -179,9 +212,7 @@ describe('OrderDialog', () => {
       siteManagerId: SITE_MANAGER_ID,
     })
 
-    const send = await bookAndReachSms(user)
-
-    expect(send.getAttribute('href')).toMatch(/^sms:\+48601000003\?&body=/)
+    expect(await bookAndOpenSms(user)).toMatch(/^sms:\+48601000003\?&body=/)
   })
 
   it('leaves the recipient empty when there are no suppliers', async () => {
@@ -190,31 +221,28 @@ describe('OrderDialog', () => {
       siteManagerId: SITE_MANAGER_ID,
     })
 
-    const send = await bookAndReachSms(user)
-
-    expect(send.getAttribute('href')).toMatch(/^sms:\?&body=/)
     expect(
-      screen.getByText('Lista dostawców jest pusta — wpisz numer w telefonie.'),
+      screen.getByText('Lista dostawców jest pusta — numer wpiszesz w telefonie.'),
     ).toBeInTheDocument()
+    expect(await bookAndOpenSms(user)).toMatch(/^sms:\?&body=/)
   })
 
   it('puts the contact picked in the first step into the SMS', async () => {
     const user = renderDialog({ siteManagerId: SITE_MANAGER_ID })
 
-    expect(screen.getByRole('combobox')).toHaveTextContent('Jan Kowalski · 601 234 567')
-    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('combobox', { name: 'Kontakt na miejscu' }))
     await user.click(await screen.findByRole('option', { name: 'Anna Nowak · 602 345 678' }))
-    const send = await bookAndReachSms(user)
 
-    const body = decodeURIComponent(send.getAttribute('href') ?? '')
-    expect(body).toContain('Kontakt na miejscu: Anna Nowak, 602 345 678')
+    expect(smsBody(await bookAndOpenSms(user))).toContain(
+      'Kontakt na miejscu: Anna Nowak, 602 345 678',
+    )
   })
 
   it('sets the picked contact as the site manager', async () => {
     vi.mocked(setInvestmentSiteManagerAction).mockResolvedValue({ success: true })
     const user = renderDialog()
 
-    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('combobox', { name: 'Kontakt na miejscu' }))
     await user.click(await screen.findByRole('option', { name: 'Jan Kowalski · 601 234 567' }))
     await user.click(screen.getByRole('button', { name: 'Ustaw jako kierownika budowy' }))
 
@@ -225,13 +253,7 @@ describe('OrderDialog', () => {
   it('drops the contact line when the investment has no site manager', async () => {
     const user = renderDialog()
 
-    const send = await bookAndReachSms(user)
-
-    await waitFor(() =>
-      expect(decodeURIComponent(send.getAttribute('href') ?? '')).not.toContain(
-        'Kontakt na miejscu',
-      ),
-    )
+    expect(smsBody(await bookAndOpenSms(user))).not.toContain('Kontakt na miejscu')
   })
 
   it('opens the order settings from the gear for an owner only', async () => {

@@ -3,9 +3,8 @@ import type { Payload } from 'payload'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const { saveOrderSettingsAction, setDefaultSupplierAction } = await import(
-  '@/lib/actions/order-settings'
-)
+const { saveOrderSettingsAction, setDefaultSupplierAction } =
+  await import('@/lib/actions/order-settings')
 const { readOrderSettings } = await import('@/lib/orders/read-order-settings')
 
 const ALFA = { id: 'supplier-alfa', name: 'Alfa Kontenery', phone: '601 000 001' }
@@ -95,6 +94,17 @@ describe.skipIf(!ENV_READY)('order settings actions (DB)', () => {
     const result = await saveOrderSettingsAction({
       suppliers: [ALFA],
       bigBagPrice: 0,
+      containerPrice: 1500,
+    })
+
+    expect(result.success).toBe(false)
+    expect(await readOrderSettings(payload)).toEqual(BASELINE)
+  })
+
+  it('refuses a price with three decimals and writes nothing', async () => {
+    const result = await saveOrderSettingsAction({
+      suppliers: [ALFA],
+      bigBagPrice: 800.125,
       containerPrice: 1500,
     })
 

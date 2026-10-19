@@ -1,12 +1,8 @@
 import { Input } from '@/components/ui/input'
+import { sanitizeNumericInput } from '@/lib/utils/sanitize-numeric-input'
 import { FormControlPropsT } from '../types/form-types'
 import FormBase from './form-base'
 import { useFieldContext } from '../hooks/form-context'
-
-function sanitizeNumericInput(raw: string): string {
-  const cleaned = raw.replace(/\s/g, '').replace(',', '.')
-  return cleaned
-}
 
 export function FormInput(props: FormControlPropsT) {
   const field = useFieldContext<string>()
