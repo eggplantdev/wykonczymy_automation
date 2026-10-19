@@ -1346,6 +1346,11 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       kolor badge'a tego etapu na liście inwestycji); „Uzupełnianie informacji” ma zwykły szary obrys.
 - [ ] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
       kolorowy obrys, zwykła grubość tekstu, długa wartość ucina się wielokropkiem.
+- [ ] Anuluj odrzuconą wypłatę pracownika: na jego stronie znika z kart „Odrzucone wypłaty”, a w
+      „Liście wydatków / zaliczek” jest (przekreślona, wyszarzona) bez żadnego przełącznika; to samo
+      widzi menedżer na tej stronie. Suma przy filtrze nie dolicza anulowanych.
+- [ ] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
+      potwierdzona / odrzucona) i zawęża listę do wypłat w tym stanie; pracownik bez wypłat go nie ma.
 - [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
       przełącza aktywność konta i nie otwiera strony pracownika.
 - [ ] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
