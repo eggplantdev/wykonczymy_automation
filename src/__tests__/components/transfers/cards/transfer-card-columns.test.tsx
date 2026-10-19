@@ -53,6 +53,7 @@ const ROW: TransferRowT = {
   payoutStatus: null,
   payoutDecidedAt: null,
   payoutRejectionReason: null,
+  orderStatus: null,
 }
 
 beforeEach(() => {

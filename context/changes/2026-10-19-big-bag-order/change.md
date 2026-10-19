@@ -1,7 +1,7 @@
 ---
 change_id: big-bag-order
 title: Order a big bag or container from an investment, with a ready SMS to the supplier
-status: implementing
+status: implemented
 created: 2026-10-19
 updated: 2026-10-19
 archived_at: null

@@ -737,5 +737,5 @@ See each phase's Manual Verification. They roll into `context/foundation/manual-
 
 #### Automated
 
-- [x] 5.1 Order status flip DB spec passes
-- [x] 5.2 Order status badge DOM spec passes
+- [x] 5.1 Order status flip DB spec passes — 1f4bad969
+- [x] 5.2 Order status badge DOM spec passes — 1f4bad969
