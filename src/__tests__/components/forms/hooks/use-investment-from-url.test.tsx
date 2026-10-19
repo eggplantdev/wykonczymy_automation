@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { renderHook } from '@testing-library/react'
 import { usePathname } from 'next/navigation'
 import { useInvestmentFromUrl } from '@/components/forms/hooks/use-investment-from-url'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
@@ -18,7 +19,7 @@ const INVESTMENTS = [
 
 const seedFor = (pathname: string) => {
   vi.mocked(usePathname).mockReturnValue(pathname)
-  return useInvestmentFromUrl(INVESTMENTS)
+  return renderHook(() => useInvestmentFromUrl(INVESTMENTS)).result.current
 }
 
 describe('useInvestmentFromUrl', () => {
