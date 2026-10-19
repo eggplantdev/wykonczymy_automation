@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useTransition } from 'react'
+import { useLayoutEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { EditorActionsContext } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import type { EditorActionsT } from '@/components/kosztorys/editor/actions/editor-actions'
@@ -34,8 +34,9 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   // Live stack revision for the interval closure (which captures values at setup time, so it can't
   // read the render-fresh `undoRedo.revision`).
   const revisionRef = useRef(undoRedo.revision)
-  // eslint-disable-next-line react-hooks/refs
-  revisionRef.current = undoRedo.revision
+  useLayoutEffect(() => {
+    revisionRef.current = undoRedo.revision
+  })
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef, actions.autoSnapshot)
 
   const [hasCatalogueEdits, setHasCatalogueEdits] = useState(false)
