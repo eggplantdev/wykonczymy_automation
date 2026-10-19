@@ -18,7 +18,6 @@ const payout = (overrides: Partial<PayoutToConfirmT>): PayoutToConfirmT => ({
   investmentName: 'Mieszkanie Mokotów',
   status: 'pending',
   rejectionReason: null,
-  cancelled: false,
   ...overrides,
 })
 
@@ -36,7 +35,6 @@ describe('Wypłaty do potwierdzenia', () => {
             status: 'rejected',
             rejectionReason: 'Brak 100 zł',
           }),
-          payout({ id: 3, description: 'anulowana', cancelled: true }),
         ]}
       />,
     )
@@ -46,10 +44,7 @@ describe('Wypłaty do potwierdzenia', () => {
 
     expect(rowOf('odrzucona').getByRole('button', { name: 'Potwierdzam' })).toBeInTheDocument()
     expect(rowOf('odrzucona').queryByRole('button', { name: 'Odrzuć' })).toBeNull()
-    expect(rowOf('odrzucona').getByText('Twój powód: Brak 100 zł')).toBeInTheDocument()
-
-    expect(rowOf('anulowana').queryAllByRole('button')).toHaveLength(0)
-    expect(rowOf('anulowana').getByText('Anulowana')).toBeInTheDocument()
+    expect(rowOf('odrzucona').getByText('Powód odrzucenia: Brak 100 zł')).toBeInTheDocument()
   })
 
   it('renders nothing when nothing waits', () => {

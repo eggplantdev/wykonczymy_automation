@@ -15,7 +15,7 @@ export function DepositDialog({ referenceData }: DepositDialogPropsT) {
     <FormDialog
       formId="deposit"
       trigger={
-        <Button variant="badgeActive" size="sm">
+        <Button variant="greenOutline" size="sm">
           <Plus />
           <span className="hidden lg:block">Wpłata</span>
         </Button>

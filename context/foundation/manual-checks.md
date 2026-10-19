@@ -1133,7 +1133,8 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Paragon w zgłoszeniu wydatku pracownika i zdjęcie w zgłoszeniu prac przeżywają przebieg crona
       nietknięte.
       _Staging 2026-10-18 (pass 10): needs human: wymaga przebiegu crona /api/cron/cleanup (niszczący, poza zakresem agenta)._
-- [ ] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+- [x] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+      _Staging 2026-10-19 (pass 11, 74197b427): tx 5966 z FV (media 2795) skasowana przez REST DELETE (200) → po kilku sekundach brak wiersza media, plik w Blobie 404. OK._
       _Staging 2026-10-18 (pass 10): NIE ZGADZA SIĘ: tx 5957 i 5958 (Inny wydatek z FV, kasa główna) skasowane przez REST DELETE /api/transactions/:id (200, wiersz transakcji znika, brak w kasie) — rekord media (2788/2789) ZOSTAJE w bazie (i plik w Blobie) po usunięciu transakcji; dotyczy też FV bez wcześniejszego Kosza (5958). Przyczyna z kodu: deleteInvoiceMediaAfterDelete → deleteUnreferencedMedia skanuje referencje przez getDb(payload) bez req, czyli poza transakcją Payloada, w której delete jeszcze się nie zatwierdził → wiersz transactions_rels nadal widoczny → media uznane za „użyte”, nic nie kasuje (cichy return, bez błędu). Finding opisany w ### Findings. Osierocone media posprzątałem przez DELETE /api/media._
 - [ ] „Usuń na zawsze" przy inwestycji, szablonie i zgłoszeniu w Koszu wygląda i działa jak dotąd:
       ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
@@ -1262,11 +1263,7 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 
 ### Findings — 2026-10-18 (pass 10)
 
-- [ ] 🟡 **Skasowanie transakcji z fakturą nie kasuje faktury od razu** — `src/hooks/transfers/delete-invoice-media.ts`:
-      skan referencji biegł przed commitem delete, więc własny wiersz `transactions_rels` trzymał fakturę
-      i nic się nie kasowało (tx 5957, 5958). **W toku:** poprawka w drzewie (hook woła
-      `reclaimUnreferencedMedia`, skan po commicie przez `after()`) + `delete-invoice-media.db.test.ts`
-      (czerwony przed poprawką); czeka na zielony przebieg testów, commit i ponowne sprawdzenie na stagingu.
+- [x] 🟡 **Skasowanie transakcji z fakturą nie kasuje faktury od razu** — `src/hooks/transfers/delete-invoice-media.ts`: fixed (380b54550), re-checked on staging 2026-10-19.
       **Test disposition:** TDD · integration.
 - [x] 🔵 **„Sekcja z szablonu…” dodaje w kolejności listy** — dropped: kod tak działa od początku; box poprawiony.
 - [x] 🔵 **Ostrzeżenie o pominiętej pracy to licznik** — dropped: zamierzone (`catalogued-preset-items.ts`); box poprawiony.
@@ -1281,11 +1278,11 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 
 ## EX-1097 — unknown-route-nav — z 404 da się wyjść linkiem z menu
 
-- [ ] Wpisz nieistniejący adres (np. `/szablony-kosztorysow`): widać „Nie znaleziono” w ramce aplikacji
+- [x] Wpisz nieistniejący adres (np. `/szablony-kosztorysow`): widać „Nie znaleziono” w ramce aplikacji
       (menu, górny pasek).
-- [ ] Na tej stronie kliknij w menu „Szablony kosztorysów”: otwiera się lista szablonów, bez „Application error”.
-- [ ] To samo z adresu pod istniejącą sekcją (np. `/kasy/zzz`) → klik „Flota”: otwiera się Flota.
-- [ ] Nieistniejąca inwestycja (`/inwestycje/99999999`) dalej pokazuje „Nie znaleziono” i link z menu działa.
+- [x] Na tej stronie kliknij w menu „Szablony kosztorysów”: otwiera się lista szablonów, bez „Application error”.
+- [x] To samo z adresu pod istniejącą sekcją (np. `/kasy/zzz`) → klik „Flota”: otwiera się Flota.
+- [x] Nieistniejąca inwestycja (`/inwestycje/99999999`) dalej pokazuje „Nie znaleziono” i link z menu działa.
 
 ## 2026-10-18 — e2e-run-speed — E2E bez zbędnego buildu, na świeżej bazie
 
@@ -1322,8 +1319,8 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
 - [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
       synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
-- [ ] Jako ADMIN inwestycja → Podsumowanie → Podwykonawcy → „Rozlicz wypłaty”: kwota „Pozostało”,
-      która zaokrągla się do zera, pokazuje „0,00 zł” bez czerwonego koloru.
+- [ ] Jako ADMIN na `/pracownicy` kliknij kwotę wypłat przy pracowniku („Rozlicz wypłaty”): kwota
+      „Pozostało”, która zaokrągla się do zera, pokazuje „0,00 zł” bez czerwonego koloru.
 
 ## 2026-10-19 — app-audit-refactor faza 3 — sortowanie, duplikaty, etykiety kas, druk, odczyt AI
 
@@ -1463,6 +1460,100 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Leady → „Szczegóły" przy zgłoszeniu z długą wiadomością: okno jest szerokie, etykiety w wąskiej
       kolumnie po lewej, wiadomość zajmuje resztę szerokości; podziały linii z formularza zostają.
 - [ ] To samo zgłoszenie z załącznikami: miniatury są ostre, nie rozmyte.
+
+## 2026-10-19 — payout-cards — wypłaty pracownika jako karty, wspólny badge
+
+- [ ] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja
+      „Wypłaty do potwierdzenia” jest zwijana, domyślnie rozwinięta i stoi pod przyciskami szybkich
+      akcji. Karta ma u góry nazwę inwestycji po lewej i datę po prawej, w drugim wierszu kwotę po
+      lewej i status po prawej (bez pustej przerwy pod nagłówkiem), niżej opis, na dole
+      „Potwierdzam” i czerwone „Odrzuć” równej szerokości.
+- [ ] Jako pracownik odrzuć wypłatę z powodem: znika z „Wypłat do potwierdzenia” i pojawia się w
+      osobnej sekcji „Odrzucone wypłaty” z opisem o wyjaśnieniu z kierownikiem i twoim powodem; ma
+      tylko „Potwierdzam”, które dalej działa.
+- [ ] Jako pracownik na telefonie (390 px): karty wypłat zajmują całą szerokość, przyciski są łatwe
+      do trafienia, nic nie wychodzi poza ekran.
+- [ ] Badge'e wyglądają jak dotąd (refaktor na wspólny komponent): status wypłaty w tabeli transakcji,
+      „Od pracownika” w kolumnie typu, status inwestycji (odrzucona — teraz czerwona zamiast różowej),
+      rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
+      postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
+- [ ] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
+      są teraz morskie, a nie szmaragdowe; tekst czytelny w jasnym i ciemnym motywie.
+- [ ] Strona inwestycji → select etapu AI: obrys i kolor tekstu dalej zmieniają się z etapem (jak
+      kolor badge'a tego etapu na liście inwestycji); „Uzupełnianie informacji” ma zwykły szary obrys.
+- [ ] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
+      kolorowy obrys, zwykła grubość tekstu, długa wartość ucina się wielokropkiem.
+- [ ] Anuluj odrzuconą wypłatę pracownika: na jego stronie znika z kart „Odrzucone wypłaty”, a w
+      „Liście wydatków / zaliczek” jest (przekreślona, wyszarzona) bez żadnego przełącznika; to samo
+      widzi menedżer na tej stronie. Suma przy filtrze nie dolicza anulowanych.
+- [ ] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
+      potwierdzona / odrzucona) i zawęża listę do wypłat w tym stanie; pracownik bez wypłat go nie ma.
+- [ ] Karty przelewów (telefon, lista wypłat pracownika): status wypłaty stoi w tej samej linii co
+      badge „Wypłata”, przy prawej krawędzi; nagłówek karty to dalej numer i data.
+- [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
+      przełącza aktywność konta i nie otwiera strony pracownika.
+- [ ] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
+- [ ] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
+      jest nieklikalny.
+- [ ] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
+- [ ] Typ przelewu w tabeli i na kartach przelewów: obrys i kropka w kolorze typu, nazwa ucina się
+      wielokropkiem; rozliczony przelew ma kolor rozliczenia.
+- [ ] Raport pracy: nazwa sekcji obok kolorowego paska ma tło i tekst w kolorze tej sekcji, czytelne
+      w jasnym i ciemnym motywie.
+- [ ] Filtr statusów linii (zaakceptowane / odrzucone / oczekujące) w zgłoszeniu wydatku: kliknięcie
+      chowa i pokazuje linie, ukryty status jest przekreślony.
+
+## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
+
+- [ ] Jako OWNER na „Transakcje”, gdy pracownik odrzucił wypłatę: sekcja „Wypłaty odrzucone przez
+      pracowników” jest zwijana, pod tytułem ma „Takie wypłaty trzeba wyjaśnić z pracownikiem lub
+      anulować.”, tabela zaczyna się kolumną „Anuluj”, a nagłówki i komórki są wyrównane do lewej.
+- [ ] W tej tabeli ID, pracownik, inwestycja i kasa to linki: ID otwiera transakcję na liście
+      inwestycji (wypłata bez inwestycji — na „Transakcje”); kasa przeniesiona do Kosza nie jest linkiem.
+- [ ] „Anuluj” w tej tabeli pyta o powód i anuluje wypłatę: wiersz znika, licznik przy „Transakcje” w
+      menu spada o jeden. Przy zakończonej inwestycji przycisk jest wyszarzony z podpowiedzią.
+- [ ] W menu nie ma pozycji „Wypłaty”, a adres `/wyplaty` pokazuje „Nie znaleziono”. Na „Transakcje”
+      filtr statusu potwierdzenia zawęża listę do wypłat o wybranym statusie.
+
+## 2026-10-19 — cancel-rejected-payout — odrzuconą wypłatę anuluje każdy z zarządu
+
+- [ ] Jako MANAGER: wypłata zaksięgowana przez innego kierownika albo właściciela i odrzucona przez
+      pracownika → „Anuluj” na pulpicie anuluje ją bez „Nie masz uprawnień do anulowania tej
+      transakcji.”, a saldo kasy wraca o tę kwotę.
+- [ ] Jako MANAGER na „Transakcje”: przy cudzej wypłacie oczekującej lub przyjętej i przy cudzym
+      wydatku nie ma „Anuluj”; przy swoich transakcjach i przy cudzej robociźnie jest.
+- [ ] Jako MANAGER przy cudzej odrzuconej wypłacie edycja dalej jest niedostępna.
+
+## 2026-10-19 — payout-card-buttons — przyciski karty wypłaty i warianty kolorów
+
+- [ ] Pracownik, `/pracownicy/[id]` z wypłatą oczekującą: „Potwierdzam” jest zielony obramowany z
+      ptaszkiem, „Odrzuć” czerwony obramowany z koszem; po najechaniu oba wypełniają się kolorem.
+- [ ] Odrzucona wypłata na karcie pracownika pokazuje „Powód odrzucenia: …” (uk/ru: przetłumaczone).
+- [ ] Na telefonie (390 px) „Dodaj wydatek” / „Zgłoś pracę” są niższe niż dotąd, a dłuższa etykieta
+      uk/ru dalej się zawija, bez wychodzenia poza wiersz.
+- [ ] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
+      (obramowane w swoim kolorze).
+
+## 2026-10-19 — cards-hide-table-controls — „Kolumny” i „Szukaj duplikatów” tylko w widoku tabeli
+
+- [ ] Transakcje → widok kart: nie ma przycisków „Kolumny” ani „Szukaj duplikatów”; po powrocie do
+      widoku tabeli oba są na miejscu.
+- [ ] Ukryj w tabeli kolumnę „Kasa źródłowa”, przełącz na karty: karty dalej pokazują „Kasa źródłowa: …”.
+- [ ] Strona pracownika w widoku kart: brak etykiety „Pracownik”, jak dotąd.
+
+## 2026-10-19 — slice-review-gate — właściciel kasy, kolory kwot, odrzucone wypłaty
+
+- [ ] Jako MANAGER „Dodaj kasę” z innym managerem jako właścicielem: komunikat „Brak uprawnień”, kasa
+      nie pojawia się na `/kasy`. Z pracownikiem jako właścicielem kasa powstaje.
+- [ ] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
+      właścicielem jesteś ty. Ustawienie innego managera kończy się „Brak uprawnień”.
+- [ ] Jako OWNER „Dodaj kasę” i edycja kasy z dowolnym właścicielem działają jak dotąd.
+- [ ] `/transakcje` w tabeli i na kartach: kwoty mają te same kolory co dotąd (wydatek, wpływ,
+      wypłata), anulowane są szare.
+- [ ] Kosztorys → nagłówek sekcji: kropka ma kolor paska sekcji.
+- [ ] Pulpit → odrzucone wypłaty: przy wypłacie z zablokowanej inwestycji „Anuluj transakcję” jest
+      wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
+- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.
 
 # Zamknięte — indeks
 

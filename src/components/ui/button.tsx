@@ -10,6 +10,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        defaultOutline:
+          'border border-primary text-primary hover:bg-primary hover:text-primary-foreground',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
@@ -18,16 +20,23 @@ const buttonVariants = cva(
         outlineDestructive:
           'border border-input bg-background shadow-sm text-destructive hover:bg-destructive/10 hover:text-destructive',
         destructive: 'bg-destructive text-white hover:bg-destructive/90',
+        destructiveOutline:
+          'border border-destructive text-destructive hover:bg-destructive hover:text-white',
         link: 'text-primary underline-offset-4 hover:underline',
-        badgeActive:
-          'border border-chart-green text-chart-green hover:bg-chart-green hover:text-white',
-        badgePending: 'border border-amber-500 text-amber-500 opacity-50',
-        badgeInactive: 'bg-muted text-muted-foreground hover:bg-muted-foreground/20',
         activeFilter: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
-        red: 'border border-chart-red text-chart-red hover:bg-chart-red hover:text-white',
-        blue: 'border border-chart-blue text-chart-blue hover:bg-chart-blue hover:text-white',
-        teal: 'border border-chart-teal text-chart-teal hover:bg-chart-teal hover:text-white',
-        turquoise:
+        green: 'bg-chart-green text-white hover:bg-chart-green/90',
+        greenOutline:
+          'border border-chart-green text-chart-green hover:bg-chart-green hover:text-white',
+        red: 'bg-chart-red text-white hover:bg-chart-red/90',
+        redOutline: 'border border-chart-red text-chart-red hover:bg-chart-red hover:text-white',
+        blue: 'bg-chart-blue text-white hover:bg-chart-blue/90',
+        blueOutline:
+          'border border-chart-blue text-chart-blue hover:bg-chart-blue hover:text-white',
+        teal: 'bg-chart-teal text-white hover:bg-chart-teal/90',
+        tealOutline:
+          'border border-chart-teal text-chart-teal hover:bg-chart-teal hover:text-white',
+        turquoise: 'bg-chart-turquoise text-white hover:bg-chart-turquoise/90',
+        turquoiseOutline:
           'border border-chart-turquoise text-chart-turquoise hover:bg-chart-turquoise hover:text-white',
         ai: 'gradient-border neon-glow-duo hover:neon-glow-duo-hit transition-shadow disabled:opacity-100',
       },
@@ -37,7 +46,6 @@ const buttonVariants = cva(
         xs: 'h-7 rounded-md gap-1 px-2 text-xs',
         lg: "h-10 rounded-md px-6 [&_svg:not([class*='size-'])]:size-5",
         icon: 'size-9',
-        badge: 'rounded-full px-2 py-0.5 text-xs',
       },
       align: {
         center: 'justify-center',

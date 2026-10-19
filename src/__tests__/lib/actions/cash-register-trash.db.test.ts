@@ -124,7 +124,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
 
     expect(await actions.trashCashRegisterAction(live)).toEqual({
       success: false,
-      error: 'Kasa nie istnieje.',
+      error: 'Brak uprawnień',
     })
     expect((await actions.restoreCashRegisterAction(trashed)).success).toBe(false)
     expect((await actions.deleteCashRegisterForeverAction(trashed, 'Główna w koszu')).success).toBe(

@@ -2,12 +2,6 @@ import { groupInOrder, regroupByKeys } from '@/lib/utils/group-in-order'
 
 export type ColumnRanksT = Record<string, number>
 
-export type ColumnToggleItemT = {
-  id: string
-  label: string
-  visible: boolean
-}
-
 // Sparse by design: a key with no entry ranks at its position in the assembled list, so a column
 // added later lands where the code declares it instead of at the end.
 function effectiveRank(key: string, assembleIndex: number, ranks: ColumnRanksT): number {

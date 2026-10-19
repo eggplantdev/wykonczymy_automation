@@ -8,8 +8,8 @@ import {
   groupColumns,
   orderColumns,
   type ColumnRanksT,
-  type ColumnToggleItemT,
 } from '@/lib/table/column-order'
+import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import {
   CREW_PLANE_ONLY_COLUMNS,

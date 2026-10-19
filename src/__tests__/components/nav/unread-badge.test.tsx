@@ -51,8 +51,8 @@ describe('UnreadBadge', () => {
     expect(screen.getByText('4')).toBeInTheDocument()
   })
 
-  it('keeps the rejected-payouts count on its own page', async () => {
-    renderBadge('rejectedPayouts', '/wyplaty', '/wyplaty')
+  it('keeps the rejected-payouts count on „Transakcje", where its queue is pinned', async () => {
+    renderBadge('rejectedPayouts', '/', '/')
 
     expect(screen.getByText('5')).toBeInTheDocument()
   })

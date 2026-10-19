@@ -5,61 +5,30 @@ import { flexRender, type Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import { billsNetAmount, transferTextClass } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { transferPaymentMethodText } from '@/lib/transfers/transfer-text'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
+import { CardChip } from '@/components/transfers/cards/card-chip'
 import { RowActionLabels } from '@/components/ui/row-actions/row-action-labels'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferRowT } from '@/types/transfers'
 
 type PropsT = {
   row: Row<TransferRowT>
-  // TanStack's rows are mutable and keep their identity when a column is toggled, so a memoized card
-  // would never see the change; a fresh list here is what makes it re-read the row.
-  visibleColumnIds: string[]
   uncoloredAmounts?: boolean
   className?: string
 }
 
-function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
-  const cell = row.getVisibleCells().find((candidate) => candidate.column.id === columnId)
-  return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
-}
-
 const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
 
-const CHIP_BORDER = {
-  register: 'border-chart-blue',
-  worker: 'border-chart-yellow',
-  category: 'border-chart-purple',
-  paymentMethod: 'border-chart-teal',
-  createdBy: 'border-border',
-} as const
-
-type ChipKindT = keyof typeof CHIP_BORDER
-
-function Chip({ kind, label, children }: { kind: ChipKindT; label: string; children: ReactNode }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs',
-        CHIP_BORDER[kind],
-      )}
-    >
-      <span className="text-muted-foreground shrink-0">{label}:</span>
-      <span className="truncate">{children}</span>
-    </span>
-  )
-}
-
-export function TransferCard({
-  row,
-  visibleColumnIds,
-  uncoloredAmounts = false,
-  className,
-}: PropsT) {
-  const hasColumn = (columnId: string) => visibleColumnIds.includes(columnId)
+export function TransferCard({ row, uncoloredAmounts = false, className }: PropsT) {
+  const cells = new Map(row.getAllCells().map((cell) => [cell.column.id, cell]))
+  const hasColumn = (columnId: string) => cells.has(columnId)
+  const renderCell = (columnId: string): ReactNode => {
+    const cell = cells.get(columnId)
+    return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
+  }
   const translator = useTranslation('transfers')
   const transfer = row.original
   const isMuted = transfer.cancelled || transfer.type === 'CANCELLATION'
@@ -83,15 +52,18 @@ export function TransferCard({
         <span className="text-muted-foreground ml-auto">{formatPLDate(transfer.date)}</span>
       </header>
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex items-center justify-between gap-1.5">
         <TransferTypeBadge transfer={transfer} translator={translator} />
-        {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell(row, 'payoutStatus')}
+        {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell('payoutStatus')}
       </div>
 
       <div className="flex items-baseline gap-2">
         <span
-          className={cn('text-lg font-semibold', transfer.cancelled && 'line-through')}
-          style={isMuted || uncoloredAmounts ? undefined : { color: transferColorVar(transfer) }}
+          className={cn(
+            'text-lg font-semibold',
+            transfer.cancelled && 'line-through',
+            !isMuted && !uncoloredAmounts && transferTextClass(transfer),
+          )}
         >
           {formatPLN(transfer.amount)}
         </span>
@@ -103,9 +75,7 @@ export function TransferCard({
       </div>
 
       {hasColumn('investment') && isNamed(transfer.investmentName) && (
-        <div className="text-muted-foreground truncate text-sm">
-          {renderCell(row, 'investment')}
-        </div>
+        <div className="text-muted-foreground truncate text-sm">{renderCell('investment')}</div>
       )}
 
       {hasColumn('description') && transfer.description && (
@@ -114,45 +84,45 @@ export function TransferCard({
 
       <div className="flex flex-wrap gap-1">
         {hasColumn('sourceRegister') && isNamed(transfer.sourceRegisterName) && (
-          <Chip kind="register" label={t('colSourceRegister')}>
-            {renderCell(row, 'sourceRegister')}
-          </Chip>
+          <CardChip kind="register" label={t('colSourceRegister')}>
+            {renderCell('sourceRegister')}
+          </CardChip>
         )}
         {hasColumn('targetRegister') && isNamed(transfer.targetRegisterName) && (
-          <Chip kind="register" label={t('colTargetRegister')}>
-            {renderCell(row, 'targetRegister')}
-          </Chip>
+          <CardChip kind="register" label={t('colTargetRegister')}>
+            {renderCell('targetRegister')}
+          </CardChip>
         )}
         {hasColumn('worker') && isNamed(transfer.workerName) && (
-          <Chip kind="worker" label={t('colWorker')}>
-            {renderCell(row, 'worker')}
-          </Chip>
+          <CardChip kind="worker" label={t('colWorker')}>
+            {renderCell('worker')}
+          </CardChip>
         )}
         {hasColumn(categoryColumn) && category && isNamed(category) && (
-          <Chip
+          <CardChip
             kind="category"
             label={t(hasExpenseCategory ? 'colExpenseCategory' : 'colOtherCategory')}
           >
             {category}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn('paymentMethod') && transfer.paymentMethod && (
-          <Chip kind="paymentMethod" label={t('colPaymentMethod')}>
+          <CardChip kind="paymentMethod" label={t('colPaymentMethod')}>
             {transferPaymentMethodText(transfer, translator)}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn('createdBy') && transfer.createdByName && isNamed(transfer.createdByName) && (
-          <Chip kind="createdBy" label={t('colCreatedBy')}>
+          <CardChip kind="createdBy" label={t('colCreatedBy')}>
             {transfer.createdByName}
-          </Chip>
+          </CardChip>
         )}
       </div>
 
       <RowActionLabels value>
         <footer className="flex flex-wrap items-center gap-1.5">
-          {renderCell(row, 'invoice')}
-          {renderCell(row, 'invoiceNote')}
-          <div className="ml-auto">{renderCell(row, 'actions')}</div>
+          {renderCell('invoice')}
+          {renderCell('invoiceNote')}
+          <div className="ml-auto">{renderCell('actions')}</div>
         </footer>
       </RowActionLabels>
     </article>

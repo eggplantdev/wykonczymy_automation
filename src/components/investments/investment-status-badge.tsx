@@ -1,21 +1,16 @@
-import { BADGE_BASE } from '@/components/ui/badge'
-import { cn } from '@/lib/utils/cn'
+import { Badge, type BadgeToneT } from '@/components/ui/badge'
 import { INVESTMENT_STATUS_LABELS, type InvestmentStatusT } from '@/lib/constants/investment-status'
 
-const STATUS_CLASSNAMES: Record<InvestmentStatusT, string> = {
-  planowana: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-  quote: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-  active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
-  completed: 'bg-muted text-muted-foreground',
-  rejected: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
+const STATUS_TONES: Record<InvestmentStatusT, BadgeToneT> = {
+  planowana: 'sky',
+  quote: 'pending',
+  active: 'positive',
+  completed: 'muted',
+  rejected: 'negative',
 }
 
 // Optional lookup: a row whose status left the enum (the szablony, until their migration drops
 // them) renders its raw value instead of taking the page down.
 export function InvestmentStatusBadge({ status }: { status: InvestmentStatusT }) {
-  return (
-    <span className={cn(BADGE_BASE, STATUS_CLASSNAMES[status])}>
-      {INVESTMENT_STATUS_LABELS[status]?.pl ?? status}
-    </span>
-  )
+  return <Badge tone={STATUS_TONES[status]}>{INVESTMENT_STATUS_LABELS[status]?.pl ?? status}</Badge>
 }

@@ -57,6 +57,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             workers: toOptions(referenceDataBase.workers),
             transferTypes: TRANSFER_TYPES,
             showPaymentMethodFilter: false,
+            showPayoutStatusFilter: true,
             showWorkerDraftsFilter: true,
           },
         }}

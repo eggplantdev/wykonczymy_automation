@@ -1,19 +1,14 @@
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
-import { cn } from '@/lib/utils/cn'
+import { Badge, type BadgeToneT } from '@/components/ui/badge'
 import { EQUIPMENT_STATUS_LABELS, type EquipmentStatusT } from '@/lib/equipment/equipment-status'
 
-const STATUS_CLASSNAMES: Record<EquipmentStatusT, string> = {
-  IN_USE: BADGE_TONE.positive,
-  RETIRED: BADGE_TONE.muted,
-  SOLD: BADGE_TONE.muted,
-  LOST: BADGE_TONE.muted,
-  STOLEN: BADGE_TONE.muted,
+const STATUS_TONES: Record<EquipmentStatusT, BadgeToneT> = {
+  IN_USE: 'positive',
+  RETIRED: 'muted',
+  SOLD: 'muted',
+  LOST: 'muted',
+  STOLEN: 'muted',
 }
 
 export function EquipmentStatusBadge({ status }: { status: EquipmentStatusT }) {
-  return (
-    <span className={cn(BADGE_BASE, STATUS_CLASSNAMES[status])}>
-      {EQUIPMENT_STATUS_LABELS[status].pl}
-    </span>
-  )
+  return <Badge tone={STATUS_TONES[status]}>{EQUIPMENT_STATUS_LABELS[status].pl}</Badge>
 }

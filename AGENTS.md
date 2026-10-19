@@ -167,9 +167,8 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
 - **A hook's home follows its consumer count, counted in directories:** one form → `forms/<form>/`;
   two or more forms → `forms/hooks/` (domain-aware ones too); a non-form surface → `src/hooks/`.
   Promote when a second directory reaches for it, not a third file in the same one.
-- **`src/components/ui/` is domain-agnostic and imports no feature directory** — not lint-enforced, so
-  an upward import is how you spot a misplaced file. A component that knows it filters a list goes in
-  `filters/`.
+- **`src/components/ui/` is domain-agnostic and imports no feature directory** (`eslint.config.mjs`
+  enforces it). A component that knows it filters a list goes in `filters/`.
 - **`src/components/tables/`** — per-domain column defs, the `column-meta.ts` augmentation, and the
   generic data-table engine in `tables/data-table/` (not `ui/`: its toolbar knows it's a data table).
 - **The datasheet-grid seam runs one way:** `ui/datasheet-grid/` holds presentational cell primitives;

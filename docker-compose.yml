@@ -1,5 +1,5 @@
-# `container_name` below is a global Docker name that Compose never namespaces, so from a git worktree
-# Compose would collide on the name.
+# Pinned, not derived from the directory: `container_name` below is a global Docker name that
+# Compose never namespaces, so from a git worktree a basename-derived project collides on it.
 name: wykonczymy
 
 services:

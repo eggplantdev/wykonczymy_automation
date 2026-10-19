@@ -1,3 +1,4 @@
+-- A sequence lagging MAX(id) hands out a used id, which Payload reports as "ValidationError: id".
 -- NEVER point this at DB_POSTGRES_URL_PROD — prod sequences are authoritative.
 DO $$
 DECLARE

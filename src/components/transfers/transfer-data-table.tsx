@@ -104,25 +104,21 @@ export function TransferDataTable({
         getRowClassName={transferRowClassName}
         renderRows={
           view === 'list'
-            ? (rows, visibleColumnIds) => (
-                <TransferCardList
-                  rows={rows}
-                  visibleColumnIds={visibleColumnIds}
-                  uncoloredAmounts={uncoloredAmounts}
-                />
-              )
+            ? (rows) => <TransferCardList rows={rows} uncoloredAmounts={uncoloredAmounts} />
             : undefined
         }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
             className="mt-8"
             title={title}
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            columns={
+              view === 'table' && <ColumnToggle table={table} columnVisibility={cv} {...order} />
+            }
             actions={
               <>
                 <TransferViewSwitch view={view} onChange={setView} className="max-sm:col-span-2" />
                 {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
-                {duplicateFinder && (
+                {duplicateFinder && view === 'table' && (
                   <DuplicateFinderDialog
                     findGroups={(range) => findExpenseDuplicateGroups(config.query.where, range)}
                   />

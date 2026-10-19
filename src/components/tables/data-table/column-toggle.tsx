@@ -8,7 +8,8 @@ import {
   type TableTextSizeT,
 } from '@/components/tables/data-table/table-text-size'
 import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
-import { type ColumnRanksT, type ColumnToggleItemT } from '@/lib/table/column-order'
+import { type ColumnRanksT } from '@/lib/table/column-order'
+import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import { columnLabel } from '@/lib/table/column-label'
 import { useTranslation } from '@/hooks/use-translation'
 

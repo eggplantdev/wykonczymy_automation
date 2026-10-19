@@ -23,3 +23,7 @@ export function investmentTransfersHref(
     ? `/inwestycje/${investmentId}?${params.join('&')}`
     : `/inwestycje/${investmentId}`
 }
+
+export function transferHref(id: number, investmentId: number | null): string {
+  return investmentId === null ? `/?id=${id}` : investmentTransfersHref(investmentId, { id })
+}

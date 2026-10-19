@@ -4,6 +4,8 @@ import {
   isAdminOrOwnerRole,
   canTrashAccount,
   canViewWorkerPage,
+  canCancelTransfer,
+  canMutateTransfer,
 } from '@/lib/auth/roles'
 import type { RoleT } from '@/lib/auth/roles'
 
@@ -52,5 +54,35 @@ describe('canViewWorkerPage', () => {
   it('lets an EMPLOYEE open only his own page', () => {
     expect(canViewWorkerPage({ id: 25, role: 'EMPLOYEE' }, 25)).toBe(true)
     expect(canViewWorkerPage({ id: 25, role: 'EMPLOYEE' }, 26)).toBe(false)
+  })
+})
+
+describe('canCancelTransfer', () => {
+  const otherManagersPayout = {
+    role: 'MANAGER' as const,
+    userId: 7,
+    transferType: 'PAYOUT',
+    createdById: 8,
+  }
+
+  it('lets a MANAGER cancel a wypłata the worker rejected, whoever booked it', () => {
+    expect(canCancelTransfer({ ...otherManagersPayout, payoutStatus: 'rejected' })).toBe(true)
+  })
+
+  it.each(['pending', 'accepted', null] as const)(
+    'keeps a %s wypłata cancellable only by its author',
+    (payoutStatus) => {
+      expect(canCancelTransfer({ ...otherManagersPayout, payoutStatus })).toBe(false)
+    },
+  )
+
+  it('never lets an EMPLOYEE cancel a rejected wypłata he did not book', () => {
+    expect(
+      canCancelTransfer({ ...otherManagersPayout, role: 'EMPLOYEE', payoutStatus: 'rejected' }),
+    ).toBe(false)
+  })
+
+  it('leaves editing a rejected wypłata with its author', () => {
+    expect(canMutateTransfer(otherManagersPayout)).toBe(false)
   })
 })
