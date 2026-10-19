@@ -1,10 +1,10 @@
 ---
 change_id: big-bag-order
 title: Order a big bag or container from an investment, with a ready SMS to the supplier
-status: implemented
+status: archived
 created: 2026-10-19
 updated: 2026-10-19
-archived_at: null
+archived_at: 2026-10-19T14:53:55Z
 branch: big-bag-order
 worktree: .claude/worktrees/big-bag-order
 ---
@@ -74,3 +74,20 @@ the company absorbs the cost. Making the order itself go through the app books t
 - **Locked investment:** no order button (investment page and „Akcje”).
 - **Settings card** (suppliers + both prices) on `/inwestycje`, edited by ADMIN/OWNER — provisional;
   the owner may move it after seeing it.
+
+### Decisions (implementation, 2026-10-19)
+
+- **Order status is stamped by the flow, not the type** — the first transfer status set by the creating
+  surface. The bulk create action's order flag stamps `awaiting` only on investment expenses; switching
+  the form to another type before saving books a row with no order status (accepted).
+- **Owner ruling (2026-10-19): investment and type stay editable in order mode.** The SMS address comes
+  from the investment the dialog opened on, so a switched investment books on one and the SMS names the
+  other — accepted, no lock.
+- **Status flip** is `payload.update` + `skipSheetSync`, both directions; on a locked investment the
+  transfer lock gate refuses it and the badge is read-only.
+- **Site manager** is set by its own inline select and action, never through `investmentSchema` (the
+  whole-record form would overwrite it with a stale copy).
+- **Accepted races (~40 accounts):** two simultaneous status flips end on one of two valid statuses;
+  „Zapisz jako domyślnego dostawcę” can overwrite a concurrent settings save (one OWNER edits them).
+- **No E2E yet** for pick → book → SMS → status flip — carried by EX-1117 (`e2e-backlog`); unit, DOM and
+  the `order-status` DB spec cover the parts.
