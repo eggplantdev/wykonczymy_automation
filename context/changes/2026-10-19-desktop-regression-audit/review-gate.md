@@ -19,6 +19,14 @@
 - **Known noise:** `[ERROR] … status of 400` on page load = `vercel.live` toolbar preflight.
 - **State created on the preview DB:**
   - Worker expense draft by EMPLOYEE 77 on „QA EX-855 Inwestycja” (210), note „QA audyt desktop 19.10”, blank PNG.
+  - Payout #5967 by MANAGER 76 to EMPLOYEE 77, 7 zł, „QA EX-855 Inwestycja” / „QA EX-855 Kasa”, note
+    „QA audyt desktop 19.10 wypłata” — rejected by 77, then confirmed from „Odrzucone wypłaty”.
+  - Payout #5968 by OWNER 75 to EMPLOYEE 77, 5 zł, same investment/kasa, note „QA audyt desktop 19.10
+    wypłata właściciela” — rejected by 77, cancelled by MANAGER 76 (kasa 48: 864,91 → 869,91 zł).
+  - #5970 / #5971 by MANAGER 76, „Inny wydatek” 2 zł (big bag, worker 77) and 3 zł („inne”), same
+    investment/kasa, notes „QA audyt desktop 19.10 big bag” / „… inne”.
+  - Kosztorys v2 of 210: section 2597 „Nowa sekcja” (0 poz.) added by MANAGER 76 for the rename
+    check, then deleted through „Usuń sekcję” — 12 sections, none else touched (checked by query).
 - **Share tokens:**
   - Worker report link (EMPLOYEE 77 × investment 210):
     `/z/QA-EX-855-Inwestycja/Staging-QA-Pracownik/qBkjwA318v67MBD8pmffU2p-aFye8mtW`
@@ -29,27 +37,56 @@ Values: `pending` / `ok` / `finding #n` / `blocked` / `n/a`.
 
 | #   | Route                           | EMPLOYEE | MANAGER | OWNER   | ADMIN |
 | --- | ------------------------------- | -------- | ------- | ------- | ----- |
-| 1   | `/inwestycje/[id]/kosztorys`    | pending  | pending | pending | n/a   |
-| 2   | `/inwestycje/[id]/kosztorys_v2` | pending  | pending | pending | n/a   |
-| 3   | `/inwestycje/[id]`              | pending  | pending | pending | n/a   |
-| 4   | `/` (transakcje)                | pending  | pending | pending | n/a   |
-| 5   | `/pracownicy/[id]`              | pending  | pending | pending | n/a   |
-| 6   | `/kasa/[id]`                    | pending  | pending | pending | —     |
-| 7   | `/kasy`                         | pending  | pending | pending | —     |
-| 8   | `/inwestycje`                   | pending  | pending | pending | —     |
-| 9   | `/zgloszenia-wydatkow`          | pending  | pending | pending | —     |
-| 10  | `/zgloszenia-prac`              | pending  | pending | pending | —     |
-| 11  | `/pracownicy`                   | pending  | pending | pending | n/a   |
-| 12  | `/kosztorysy`                   | pending  | pending | pending | —     |
-| 13  | `/katalog-prac`                 | pending  | pending | pending | —     |
-| 14  | `/szablony`, `/szablony/[id]`   | pending  | pending | pending | —     |
-| 15  | `/zgloszenia` (leads)           | pending  | pending | pending | n/a   |
-| 16  | `/flota`, `/flota/[id]`         | pending  | pending | pending | —     |
-| 17  | `/sprzet`, `/sprzet/[id]`       | pending  | pending | pending | —     |
-| 18  | `/kosz`                         | pending  | pending | pending | n/a   |
-| 19  | `/warianty-badge`               | pending  | —       | pending | —     |
-| 20  | `[...catchAll]`                 | pending  | —       | pending | —     |
+| 1   | `/inwestycje/[id]/kosztorys`    | ok       | pending | pending | n/a   |
+| 2   | `/inwestycje/[id]/kosztorys_v2` | ok       | ok      | pending | n/a   |
+| 3   | `/inwestycje/[id]`              | ok       | pending | pending | n/a   |
+| 4   | `/` (transakcje)                | ok       | ok      | pending | n/a   |
+| 5   | `/pracownicy/[id]`              | ok       | pending | pending | n/a   |
+| 6   | `/kasa/[id]`                    | ok       | pending | pending | —     |
+| 7   | `/kasy`                         | ok       | pending | pending | —     |
+| 8   | `/inwestycje`                   | ok       | pending | pending | —     |
+| 9   | `/zgloszenia-wydatkow`          | ok       | pending | pending | —     |
+| 10  | `/zgloszenia-prac`              | ok       | pending | pending | —     |
+| 11  | `/pracownicy`                   | ok       | pending | pending | n/a   |
+| 12  | `/kosztorysy`                   | ok       | pending | pending | —     |
+| 13  | `/katalog-prac`                 | ok       | pending | pending | —     |
+| 14  | `/szablony`, `/szablony/[id]`   | ok       | pending | pending | —     |
+| 15  | `/zgloszenia` (leads)           | ok       | pending | pending | n/a   |
+| 16  | `/flota`, `/flota/[id]`         | ok       | pending | pending | —     |
+| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | pending | pending | —     |
+| 18  | `/kosz`                         | ok       | pending | pending | n/a   |
+| 19  | `/warianty-badge`               | ok       | —       | pending | —     |
+| 20  | `[...catchAll]`                 | ok       | —       | pending | —     |
 | L   | logged-out + share routes       | pending  |         |         |       |
+
+EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
+- Every management route (rows 1–4, 6–18, plus `/szablony/1`, `/flota/1`, `/sprzet/1`) redirects to
+  `/pracownicy/77`; `/kasa/1` and own `/kasa/50` too (registry L1317, L1459). Another worker's page and
+  an unknown URL show „Nie znaleziono” inside the shell. `/warianty-badge` does not open (L1564).
+- Empty sidebar nav is intended (`navigation.tsx` gated on `isManagementRole` since 2026-02).
+- Row 5 OK so far: „Wydatek” send, „Potwierdzenie” filter (1 / 4 / 1, L1497), report-history „Status”
+  filter, pagination, card view without „Pracownik” (L1550), `uk` switch: all copy translated, dates
+  `dd.MM.yyyy, HH:mm` (L1372).
+- Payouts (#5967, #5968): cards, green/red outlined buttons filling on hover, reject with reason →
+  „Odrzucone wypłaty” with „Powód odrzucenia: …” and only „Potwierdzam”, which still confirms
+  (L1474, L1479, L1537, L1539; uk/ru strings checked in the dictionaries).
+
+MANAGER notes (1280, staging `9d7572296`):
+- „Edytuj”/„Anuluj” on `/`: active on own rows (#5967); on others' accepted payouts and expenses „Edytuj”
+  is disabled and „Anuluj” absent — `canMutateTransfer` ownership rule, not a defect (L1531; the
+  others'-pending and others'-robocizna halves confirmed in `canCancelTransfer`/`canMutateTransfer`, no
+  such row on staging at check time).
+- Others' rejected payout #5968: only „Anuluj” in „Odrzucone wypłaty”, no edit; cancel needs a reason
+  and returns the amount to the kasa (L1528, L1533).
+- Row 4 also: sort/pagination keep the URL, column menu, card/table toggle, edit dialog validates
+  „NIP sprzedawcy” and saves, second-row selects per type, „Brak faktury” confirm on an investment
+  expense without a file (L1596), Admin button in the sidebar, `/wyplaty` → 404.
+- Row 2 (210, 1280 + 1024): summary tabs without „Marża” (`financials` gate, same at `c713fa2bf`);
+  section nets and every other summary table visible — see L1413 doubt below. Pie legends in %, cost
+  pie tooltip in %, section pie tooltip in zł (same at baseline) (L1300). Action menus and dialogs
+  open (L1409); „Rozlicz wypłaty” validates under the field (half of L1450); section dot matches the
+  band (L1561). Section band rename: double-click opens it, Enter saves, Escape restores (L937 partial —
+  the „Sekcja” column variant is hidden in this view). Add + delete section persist (part of L1345).
 
 ## Findings
 
@@ -59,6 +96,12 @@ Values: `pending` / `ok` / `finding #n` / `blocked` / `n/a`.
 - [x] · layout · dismissed · `/pracownicy/77` · EMPLOYEE · 1280 · „Zgłoszone wydatki” table is 1283 px in a
       958 px `overflow-x:auto` box — „Decyzja”, „Transakcje” and actions need a sideways scroll — column
       min-widths are deliberate (`50796e2ec`); in-container scroll is the data-table pattern.
+- [x] · layout · fixed · `/inwestycje/210` · MANAGER · 1280 · „Etap AI” and „Kierownik budowy” select
+      arrows are foreground-black, not the „Notatki” gray (L1620) — `37706f5eb` muted `SelectTrigger`'s
+      chevron but missed `SelectButtonTrigger` (`src/components/ui/select.tsx`); same class added there.
+- [ ] · doubtful · open · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
+      MANAGER editor shows no amounts, but it shows section nets and all summary tables; only „Marża”
+      is hidden — identical at `c713fa2bf`. Likely stale box wording — ask the user at stage close.
 
 ## Manual checks
 
