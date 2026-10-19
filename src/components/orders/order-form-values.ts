@@ -10,22 +10,21 @@ import { orderLine } from '@/lib/orders/order-line'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { warsawToday } from '@/lib/utils/days'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import type { OrderSettingsT } from '@/types/order-settings'
 import type { ReferenceDataT } from '@/types/reference-data'
 
 type OrderFormInputT = {
   kind: OrderItemT
   quantity: number
+  unitPrice: number
   investmentId: number
-  prices: Pick<OrderSettingsT, 'bigBagPrice' | 'containerPrice'>
   referenceData: ReferenceDataT
 }
 
 export function orderFormValues({
   kind,
   quantity,
+  unitPrice,
   investmentId,
-  prices,
   referenceData,
 }: OrderFormInputT): BulkExpenseFormValuesT {
   const item = ORDER_ITEMS[kind]
@@ -41,7 +40,7 @@ export function orderFormValues({
     lineItems: [
       makeLineItem({
         description: orderLine(kind, quantity),
-        amount: String(roundToCents(quantity * prices[item.priceKey])),
+        amount: String(roundToCents(quantity * unitPrice)),
         expenseCategory: resolveExpenseCategoryId(
           DEFAULT_EXPENSE_CATEGORY_NAME,
           referenceData.expenseCategories,

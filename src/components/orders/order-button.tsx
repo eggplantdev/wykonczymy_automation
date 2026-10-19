@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Truck } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { OrderDialog, type OrderInvestmentT } from '@/components/orders/order-dialog'
-import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
 import type { OrderSettingsT } from '@/types/order-settings'
 import type { ReferenceDataT } from '@/types/reference-data'
 
@@ -19,12 +18,7 @@ export function OrderButton(props: OrderButtonPropsT) {
 
   return (
     <>
-      <RowActionButton
-        icon={Truck}
-        label={ORDER_ACTION_LABEL}
-        showLabel
-        onClick={() => setOpen(true)}
-      />
+      <RowActionButton icon={Truck} label="Kontener" showLabel onClick={() => setOpen(true)} />
       <OrderDialog {...props} open={open} onOpenChange={setOpen} />
     </>
   )

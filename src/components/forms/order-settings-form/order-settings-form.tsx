@@ -24,7 +24,7 @@ type PropsT = {
 }
 
 export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT) {
-  const { form, reset } = useManagedForm<OrderSettingsFormValuesT, OrderSettingsDataT>({
+  const { form } = useManagedForm<OrderSettingsFormValuesT, OrderSettingsDataT>({
     formId,
     useFormStore: useOrderSettingsFormStore,
     schema: orderSettingsFormSchema,
@@ -50,15 +50,30 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
   })
 
   return (
-    <FormShell form={form} onReset={reset}>
+    <FormShell form={form}>
       <FieldGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex items-end gap-2">
           <form.AppField name="bigBagPrice">
-            {(field) => <field.Input label="Cena big bag (zł)" type="number" showError />}
+            {(field) => (
+              <field.Input
+                label="Cena big bag (zł)"
+                type="number"
+                showError
+                fieldClassName="min-w-0 flex-1"
+              />
+            )}
           </form.AppField>
           <form.AppField name="containerPrice">
-            {(field) => <field.Input label="Cena kontenera (zł)" type="number" showError />}
+            {(field) => (
+              <field.Input
+                label="Cena kontenera (zł)"
+                type="number"
+                showError
+                fieldClassName="min-w-0 flex-1"
+              />
+            )}
           </form.AppField>
+          <div aria-hidden className="size-9 shrink-0" />
         </div>
         <form.Field name="suppliers" mode="array">
           {(suppliersField: ArrayFieldT<OrderSettingsFormValuesT['suppliers'][number]>) => (
@@ -104,7 +119,7 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
           )}
         </form.Field>
       </FieldGroup>
-      <FormFooter label="Zapisz" submittingLabel="Zapisywanie..." className="mt-6" />
+      <FormFooter label="Zapisz" submittingLabel="Zapisywanie..." align="end" className="mt-6" />
     </FormShell>
   )
 }

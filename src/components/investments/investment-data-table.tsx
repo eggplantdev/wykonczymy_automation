@@ -30,8 +30,7 @@ import type { ReferenceDataT } from '@/types/reference-data'
 
 const getStatus = (row: InvestmentRowT) => row.status
 const getAiProgress = (row: InvestmentRowT) => row.aiProgress
-const getSearchableText = (row: InvestmentRowT) =>
-  `${row.name} ${row.address} ${row.contactPerson}`
+const getSearchableText = (row: InvestmentRowT) => `${row.name} ${row.address} ${row.contactPerson}`
 
 const AI_PROGRESS_OPTIONS = AI_PROGRESS_STEPS.map((step) => ({
   value: step,
@@ -157,6 +156,7 @@ export function InvestmentDataTable({
         <OrderDialog
           investment={{
             id: orderTarget.id,
+            name: orderTarget.name,
             street: orderTarget.address,
             postalCode: orderTarget.postalCode,
             city: orderTarget.city,

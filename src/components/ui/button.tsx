@@ -46,6 +46,7 @@ const buttonVariants = cva(
         xs: 'h-7 rounded-md gap-1 px-2 text-xs',
         lg: "h-10 rounded-md px-6 [&_svg:not([class*='size-'])]:size-5",
         icon: 'size-9',
+        iconLg: "size-9 [&_svg:not([class*='size-'])]:size-5",
       },
       align: {
         center: 'justify-center',

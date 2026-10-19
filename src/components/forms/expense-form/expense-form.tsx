@@ -237,7 +237,9 @@ export function ExpenseForm({
       const files = positionalFiles(value.lineItems, getFiles())
 
       const missingInvoice =
-        isInvestmentExpense(value.type) && missingInvoiceConfirm(value.lineItems, files)
+        !orderValues &&
+        isInvestmentExpense(value.type) &&
+        missingInvoiceConfirm(value.lineItems, files)
       if (missingInvoice && !(await ask(missingInvoice))) return false
 
       const data = toBulkData(value, value.lineItems)

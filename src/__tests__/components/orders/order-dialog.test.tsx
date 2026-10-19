@@ -4,11 +4,16 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { OrderDialog } from '@/components/orders/order-dialog'
 import { expenseReferenceData } from '@/__tests__/helpers/expense-form'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { setInvestmentSiteManagerAction } from '@/lib/actions/investments'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { OrderSettingsT } from '@/types/order-settings'
 
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
 vi.mocked(createBulkTransferAction).mockResolvedValue({ success: true })
 vi.mocked(submitWithUploadRows).mockImplementation((_rowCount, _files, submit) =>
   submit(undefined as never),
@@ -25,7 +30,14 @@ const referenceData = {
   currentUserId: 1,
   workers: [
     { id: 1, name: 'Szef', role: 'OWNER', email: '', defaultCashRegisterId: 7 },
-    { id: SITE_MANAGER_ID, name: 'Jan Kowalski', role: 'EMPLOYEE', email: '', phone: '601 234 567' },
+    {
+      id: SITE_MANAGER_ID,
+      name: 'Jan Kowalski',
+      role: 'EMPLOYEE',
+      email: '',
+      phone: '601 234 567',
+    },
+    { id: 21, name: 'Anna Nowak', role: 'EMPLOYEE', email: '', phone: '602 345 678' },
   ],
   expenseCategories: [{ id: 5, name: 'Materiały budowlane' }],
   otherCategories: [{ id: 9, name: 'Big bag' }],
@@ -43,6 +55,7 @@ const SETTINGS: OrderSettingsT = {
 
 const INVESTMENT = {
   id: 3,
+  name: 'Polna 3',
   street: 'ul. Polna 3',
   postalCode: '00-001',
   city: 'Warszawa',
@@ -72,7 +85,6 @@ async function pickTwoBigBags(user: ReturnType<typeof userEvent.setup>) {
 async function bookAndReachSms(user: ReturnType<typeof userEvent.setup>) {
   await pickTwoBigBags(user)
   await user.click(await screen.findByRole('button', { name: 'Zapisz' }))
-  await user.click(await screen.findByRole('button', { name: 'Zapisz bez faktury' }))
   return screen.findByRole('link', { name: 'Wyślij SMS' })
 }
 
@@ -86,6 +98,26 @@ describe('OrderDialog', () => {
 
     await user.click(screen.getByRole('radio', { name: 'kontener' }))
     expect(screen.getByText(/^Kwota:/)).toHaveTextContent(amount(3, 1500))
+  })
+
+  it('books the amount from a price edited for this order', async () => {
+    const user = renderDialog()
+
+    await user.clear(screen.getByLabelText('Cena za sztukę (zł)'))
+    await user.type(screen.getByLabelText('Cena za sztukę (zł)'), '750,5')
+    await pickTwoBigBags(user)
+
+    expect(await screen.findByDisplayValue('1501')).toBeInTheDocument()
+  })
+
+  it('resets the price to the setting when the kind changes', async () => {
+    const user = renderDialog()
+
+    await user.clear(screen.getByLabelText('Cena za sztukę (zł)'))
+    await user.type(screen.getByLabelText('Cena za sztukę (zł)'), '650')
+    await user.click(screen.getByRole('radio', { name: 'kontener' }))
+
+    expect(screen.getByLabelText('Cena za sztukę (zł)')).toHaveValue('1500')
   })
 
   it('prefills the expense form with the order line and its amount', async () => {
@@ -135,19 +167,58 @@ describe('OrderDialog', () => {
     const send = await bookAndReachSms(user)
 
     expect(send.getAttribute('href')).toMatch(/^sms:\?&body=/)
-    expect(screen.getByText('Lista dostawców jest pusta — wpisz numer w telefonie.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Lista dostawców jest pusta — wpisz numer w telefonie.'),
+    ).toBeInTheDocument()
   })
 
-  it('warns and drops the contact line when the investment has no site manager', async () => {
+  it('puts the contact picked in the first step into the SMS', async () => {
+    const user = renderDialog({ siteManagerId: SITE_MANAGER_ID })
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('Jan Kowalski · 601 234 567')
+    await user.click(screen.getByRole('combobox'))
+    await user.click(await screen.findByRole('option', { name: 'Anna Nowak · 602 345 678' }))
+    const send = await bookAndReachSms(user)
+
+    const body = decodeURIComponent(send.getAttribute('href') ?? '')
+    expect(body).toContain('Kontakt na miejscu: Anna Nowak, 602 345 678')
+  })
+
+  it('sets the picked contact as the site manager', async () => {
+    vi.mocked(setInvestmentSiteManagerAction).mockResolvedValue({ success: true })
+    const user = renderDialog()
+
+    await user.click(screen.getByRole('combobox'))
+    await user.click(await screen.findByRole('option', { name: 'Jan Kowalski · 601 234 567' }))
+    await user.click(screen.getByRole('button', { name: 'Ustaw jako kierownika budowy' }))
+
+    expect(setInvestmentSiteManagerAction).toHaveBeenCalledWith(INVESTMENT.id, SITE_MANAGER_ID)
+    expect(await screen.findByRole('button', { name: 'Kierownik budowy' })).toBeDisabled()
+  })
+
+  it('drops the contact line when the investment has no site manager', async () => {
     const user = renderDialog()
 
     const send = await bookAndReachSms(user)
 
-    expect(
-      screen.getByText('Inwestycja nie ma kierownika budowy — ustaw go na stronie inwestycji.'),
-    ).toBeInTheDocument()
     await waitFor(() =>
-      expect(decodeURIComponent(send.getAttribute('href') ?? '')).not.toContain('Kontakt na miejscu'),
+      expect(decodeURIComponent(send.getAttribute('href') ?? '')).not.toContain(
+        'Kontakt na miejscu',
+      ),
     )
+  })
+
+  it('opens the order settings from the gear for an owner only', async () => {
+    const user = renderDialog()
+
+    await user.click(screen.getByRole('button', { name: 'Ustawienia zamówień' }))
+    expect(await screen.findByRole('dialog', { name: 'Ustawienia zamówień' })).toBeInTheDocument()
+  })
+
+  it('hides the gear from a manager', () => {
+    authState.role = 'MANAGER'
+    renderDialog()
+
+    expect(screen.queryByRole('button', { name: 'Ustawienia zamówień' })).not.toBeInTheDocument()
   })
 })

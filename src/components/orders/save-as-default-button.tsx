@@ -3,32 +3,39 @@
 import { useState, useTransition } from 'react'
 import { Check, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { setDefaultSupplierAction } from '@/lib/actions/order-settings'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import type { ActionResultT } from '@/types/action'
 
-type DefaultSupplierButtonPropsT = {
+type SaveAsDefaultButtonPropsT = {
   selectedId: string
-  defaultSupplierId: string | undefined
+  defaultId: string | undefined
+  onSave: (selectedId: string) => Promise<ActionResultT>
+  labels: { isDefault: string; save: string; saved: string }
 }
 
-export function DefaultSupplierButton({ selectedId, defaultSupplierId }: DefaultSupplierButtonPropsT) {
-  // Owned locally after the seed: the refreshed settings arrive with the action's own render, and
+export function SaveAsDefaultButton({
+  selectedId,
+  defaultId,
+  onSave,
+  labels,
+}: SaveAsDefaultButtonPropsT) {
+  // Owned locally after the seed: the refreshed data arrives with the action's own render, and
   // until then the button would offer to save what it just saved.
-  const [savedId, setSavedId] = useState(defaultSupplierId)
+  const [savedId, setSavedId] = useState(defaultId)
   const [isPending, startTransition] = useTransition()
 
   const isDefault = savedId === selectedId
 
   function handleSave() {
     startTransition(async () => {
-      const result = await settleAction(() => setDefaultSupplierAction(selectedId))
+      const result = await settleAction(() => onSave(selectedId))
       if (!result.success) {
         toastMessage(result.error, 'error', 4000)
         return
       }
       setSavedId(selectedId)
-      toastMessage('Domyślny dostawca zapisany')
+      toastMessage(labels.saved)
     })
   }
 
@@ -37,12 +44,12 @@ export function DefaultSupplierButton({ selectedId, defaultSupplierId }: Default
       type="button"
       variant="ghost"
       size="xs"
-      className="text-muted-foreground self-start"
+      className="text-muted-foreground justify-self-start"
       disabled={isDefault || isPending}
       onClick={handleSave}
     >
       {isDefault ? <Check /> : <Star />}
-      {isDefault ? 'Dostawca domyślny' : 'Zapisz jako domyślnego dostawcę'}
+      {isDefault ? labels.isDefault : labels.save}
     </Button>
   )
 }

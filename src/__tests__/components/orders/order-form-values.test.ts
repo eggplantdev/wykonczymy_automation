@@ -15,15 +15,13 @@ const referenceData = {
   ],
 }
 
-const PRICES = { bigBagPrice: 800, containerPrice: 1500 }
-
 describe('orderFormValues', () => {
   it('prefills an investment expense with the order line, amount and categories', () => {
     const values = orderFormValues({
       kind: 'bigBag',
       quantity: 3,
+      unitPrice: 800,
       investmentId: 42,
-      prices: PRICES,
       referenceData,
     })
 
@@ -37,12 +35,12 @@ describe('orderFormValues', () => {
     })
   })
 
-  it('prices a container from its own setting', () => {
+  it('picks the container sub-category', () => {
     const values = orderFormValues({
       kind: 'container',
       quantity: 2,
+      unitPrice: 1500,
       investmentId: 42,
-      prices: PRICES,
       referenceData,
     })
 
@@ -57,8 +55,8 @@ describe('orderFormValues', () => {
     const values = orderFormValues({
       kind: 'bigBag',
       quantity: 3,
+      unitPrice: 799.99,
       investmentId: 42,
-      prices: { ...PRICES, bigBagPrice: 799.99 },
       referenceData,
     })
 
