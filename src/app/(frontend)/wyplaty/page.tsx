@@ -1,6 +1,6 @@
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { parsePagination } from '@/lib/utils/pagination'
-import { parseTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { buildPayoutFilters } from '@/lib/queries/transfer-filters'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
@@ -13,7 +13,7 @@ export default async function PayoutsPage({ searchParams }: PagePropsT) {
   const user = await requireManagementPage()
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
-  const sort = parseTransferSort(sp)
+  const sort = transferSort.parse(sp)
 
   const where = buildPayoutFilters(sp, { id: user.id })
   const refData = await fetchReferenceData()

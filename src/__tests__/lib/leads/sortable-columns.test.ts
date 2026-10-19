@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { parseLeadSort, validLeadSort } from '@/lib/queries/lead-sort'
-import { DEFAULT_LEAD_SORT } from '@/lib/leads/sortable-columns'
+import { DEFAULT_LEAD_SORT, leadSort } from '@/lib/leads/sortable-columns'
 
 // A value off the whitelist would reach `payload.find` and, worse, mint its own `unstable_cache`
 // entry — so every rejection path has to land on the default rather than throw or pass through.
-describe('parseLeadSort', () => {
+describe('leadSort.parse', () => {
   it('passes a whitelisted column through, ascending and descending', () => {
-    expect(parseLeadSort({ sort: 'submittedAt' })).toBe('submittedAt')
-    expect(parseLeadSort({ sort: '-submittedAt' })).toBe('-submittedAt')
+    expect(leadSort.parse({ sort: 'submittedAt' })).toBe('submittedAt')
+    expect(leadSort.parse({ sort: '-submittedAt' })).toBe('-submittedAt')
   })
 
   it.each([
@@ -18,20 +17,20 @@ describe('parseLeadSort', () => {
     ['array value', { sort: ['name', 'email'] }],
     ['bare minus', { sort: '-' }],
   ])('falls back to the default for %s', (_label, searchParams) => {
-    expect(parseLeadSort(searchParams)).toBe(DEFAULT_LEAD_SORT)
+    expect(leadSort.parse(searchParams)).toBe(DEFAULT_LEAD_SORT)
   })
 })
 
-describe('validLeadSort', () => {
+describe('leadSort.valid', () => {
   it('keeps a whitelisted key verbatim, sign included', () => {
-    expect(validLeadSort('name')).toBe('name')
-    expect(validLeadSort('-contactStatus')).toBe('-contactStatus')
+    expect(leadSort.valid('name')).toBe('name')
+    expect(leadSort.valid('-contactStatus')).toBe('-contactStatus')
   })
 
   it.each(['answers', 'details', 'rawData', '-', '', undefined])(
     'refuses %p so the caller falls back to its own default',
     (param) => {
-      expect(validLeadSort(param)).toBeUndefined()
+      expect(leadSort.valid(param)).toBeUndefined()
     },
   )
 })

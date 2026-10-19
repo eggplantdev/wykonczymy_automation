@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { parseTransferSort, validTransferSort } from '@/lib/queries/transfer-sort'
-import { DEFAULT_TRANSFER_SORT } from '@/lib/transfers/sortable-columns'
+import { DEFAULT_TRANSFER_SORT, transferSort } from '@/lib/transfers/sortable-columns'
 
 // A value off the whitelist would reach `payload.find` and, worse, mint its own `unstable_cache`
 // entry — so every rejection path has to land on the default rather than throw or pass through.
-describe('parseTransferSort', () => {
+describe('transferSort.parse', () => {
   it('passes a whitelisted column through, ascending and descending', () => {
-    expect(parseTransferSort({ sort: 'amount' })).toBe('amount')
-    expect(parseTransferSort({ sort: '-amount' })).toBe('-amount')
+    expect(transferSort.parse({ sort: 'amount' })).toBe('amount')
+    expect(transferSort.parse({ sort: '-amount' })).toBe('-amount')
   })
 
   it.each([
@@ -18,20 +17,20 @@ describe('parseTransferSort', () => {
     ['array value', { sort: ['amount', 'date'] }],
     ['bare minus', { sort: '-' }],
   ])('falls back to the default for %s', (_label, searchParams) => {
-    expect(parseTransferSort(searchParams)).toBe(DEFAULT_TRANSFER_SORT)
+    expect(transferSort.parse(searchParams)).toBe(DEFAULT_TRANSFER_SORT)
   })
 })
 
-describe('validTransferSort', () => {
+describe('transferSort.valid', () => {
   it('keeps a whitelisted key verbatim, sign included', () => {
-    expect(validTransferSort('amount')).toBe('amount')
-    expect(validTransferSort('-date')).toBe('-date')
+    expect(transferSort.valid('amount')).toBe('amount')
+    expect(transferSort.valid('-date')).toBe('-date')
   })
 
   it.each(['investment', 'investment.name', 'netAmount', 'settled', '-', '', undefined])(
     'refuses %p so the caller falls back to its own default',
     (param) => {
-      expect(validTransferSort(param)).toBeUndefined()
+      expect(transferSort.valid(param)).toBeUndefined()
     },
   )
 })

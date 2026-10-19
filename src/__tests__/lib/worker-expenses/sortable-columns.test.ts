@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { parseExpenseDraftSort, validExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
+import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
 
-describe('parseExpenseDraftSort', () => {
+describe('expenseDraftSort.parse', () => {
   it('passes a whitelisted column through, ascending and descending', () => {
-    expect(parseExpenseDraftSort({ sort: 'sentAt' })).toBe('sentAt')
-    expect(parseExpenseDraftSort({ sort: '-decidedAt' })).toBe('-decidedAt')
+    expect(expenseDraftSort.parse({ sort: 'sentAt' })).toBe('sentAt')
+    expect(expenseDraftSort.parse({ sort: '-decidedAt' })).toBe('-decidedAt')
   })
 
   it.each([
@@ -14,16 +14,16 @@ describe('parseExpenseDraftSort', () => {
     ['array value', { sort: ['sentAt', 'status'] }],
     ['bare minus', { sort: '-' }],
   ])('keeps the queue order for %s', (_label, searchParams) => {
-    expect(parseExpenseDraftSort(searchParams)).toBeUndefined()
+    expect(expenseDraftSort.parse(searchParams)).toBeUndefined()
   })
 })
 
-describe('validExpenseDraftSort', () => {
+describe('expenseDraftSort.valid', () => {
   it('keeps a whitelisted key verbatim, sign included', () => {
-    expect(validExpenseDraftSort('-workerName')).toBe('-workerName')
+    expect(expenseDraftSort.valid('-workerName')).toBe('-workerName')
   })
 
   it.each(['id', '-', '', undefined])('refuses %p', (param) => {
-    expect(validExpenseDraftSort(param)).toBeUndefined()
+    expect(expenseDraftSort.valid(param)).toBeUndefined()
   })
 })

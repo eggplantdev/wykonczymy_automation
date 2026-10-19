@@ -7,7 +7,7 @@ import { sortParamColumnId } from '@/lib/table/sort-param'
 import type { QueueFiltersT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 import {
-  isServerSortableDraftColumn,
+  expenseDraftSort,
   type ServerSortableDraftColumnT,
 } from '@/lib/worker-expenses/sortable-columns'
 import type { ReferenceItemT } from '@/types/reference-data'
@@ -343,7 +343,7 @@ const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
 function draftHistoryOrderBy(sort: string | undefined): SqlT {
   if (!sort) return HISTORY_ORDER
   const column = sortParamColumnId(sort)
-  if (!isServerSortableDraftColumn(column)) return HISTORY_ORDER
+  if (!expenseDraftSort.isSortable(column)) return HISTORY_ORDER
   const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
   return sql`${SORT_EXPRESSIONS[column]} ${direction} NULLS LAST, d.sent_at DESC, ${PARAGON_ORDER}`
 }

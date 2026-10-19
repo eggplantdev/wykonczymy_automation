@@ -1,5 +1,5 @@
 import { parsePagination } from '@/lib/utils/pagination'
-import { parseTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { dashboardFilterOptions } from '@/lib/queries/dashboard'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -19,7 +19,7 @@ type ManagerDashboardPropsT = {
 
 export async function ManagerDashboard({ searchParams, user }: ManagerDashboardPropsT) {
   const { page, limit } = parsePagination(searchParams)
-  const sort = parseTransferSort(searchParams)
+  const sort = transferSort.parse(searchParams)
 
   const referenceDataBase = await fetchReferenceData()
   const filters = dashboardFilterOptions(referenceDataBase, user.role)

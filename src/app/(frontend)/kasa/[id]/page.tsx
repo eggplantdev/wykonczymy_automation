@@ -4,7 +4,7 @@ import config from '@payload-config'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { canViewRegister } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
-import { parseTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { fetchReferenceData, findWorkerRef } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
@@ -28,7 +28,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
-  const sort = parseTransferSort(sp)
+  const sort = transferSort.parse(sp)
 
   const registerId = Number(id)
   // Passing it through would collide (both

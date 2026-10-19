@@ -1,15 +1,12 @@
-export const SERVER_SORTABLE_REPORT_COLUMNS = [
+import { serverSort } from '@/lib/table/server-sort'
+
+/** No default: an absent sort keeps the queue order — pending first — which no single column expresses. */
+export const workerReportSort = serverSort([
   'investmentName',
   'workerName',
   'sentAt',
   'lineCount',
   'status',
-] as const
+])
 
-export type ServerSortableReportColumnT = (typeof SERVER_SORTABLE_REPORT_COLUMNS)[number]
-
-export function isServerSortableReportColumn(
-  columnId: string,
-): columnId is ServerSortableReportColumnT {
-  return (SERVER_SORTABLE_REPORT_COLUMNS as readonly string[]).includes(columnId)
-}
+export type ServerSortableReportColumnT = (typeof workerReportSort.columns)[number]

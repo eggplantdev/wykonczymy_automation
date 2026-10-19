@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { parseWorkerReportSort, validWorkerReportSort } from '@/lib/queries/worker-report-sort'
+import { workerReportSort } from '@/lib/kosztorys/worker-report/sortable-columns'
 
-describe('parseWorkerReportSort', () => {
+describe('workerReportSort.parse', () => {
   it('passes a whitelisted column through, ascending and descending', () => {
-    expect(parseWorkerReportSort({ sort: 'sentAt' })).toBe('sentAt')
-    expect(parseWorkerReportSort({ sort: '-status' })).toBe('-status')
+    expect(workerReportSort.parse({ sort: 'sentAt' })).toBe('sentAt')
+    expect(workerReportSort.parse({ sort: '-status' })).toBe('-status')
   })
 
   it.each([
@@ -14,16 +14,16 @@ describe('parseWorkerReportSort', () => {
     ['array value', { sort: ['sentAt', 'status'] }],
     ['bare minus', { sort: '-' }],
   ])('keeps the queue order for %s', (_label, searchParams) => {
-    expect(parseWorkerReportSort(searchParams)).toBeUndefined()
+    expect(workerReportSort.parse(searchParams)).toBeUndefined()
   })
 })
 
-describe('validWorkerReportSort', () => {
+describe('workerReportSort.valid', () => {
   it('keeps a whitelisted key verbatim, sign included', () => {
-    expect(validWorkerReportSort('-investmentName')).toBe('-investmentName')
+    expect(workerReportSort.valid('-investmentName')).toBe('-investmentName')
   })
 
   it.each(['id', '-', '', undefined])('refuses %p', (param) => {
-    expect(validWorkerReportSort(param)).toBeUndefined()
+    expect(workerReportSort.valid(param)).toBeUndefined()
   })
 })

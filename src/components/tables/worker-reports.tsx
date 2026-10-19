@@ -6,7 +6,7 @@ import { OptionalLink } from '@/components/ui/optional-link'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
 import { useTranslation } from '@/hooks/use-translation'
 import type { ReportListRowT } from '@/lib/db/worker-reports'
-import { isServerSortableReportColumn } from '@/lib/kosztorys/worker-report/sortable-columns'
+import { workerReportSort } from '@/lib/kosztorys/worker-report/sortable-columns'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 
 const col = createColumnHelper<ReportListRowT>()
@@ -24,7 +24,7 @@ export function useWorkerReportColumns({
 }: OptionsT) {
   const { t, locale } = useTranslation('workerReports')
   const { t: tDrafts } = useTranslation('expenseDrafts')
-  const sortable = (id: string) => isManagerView && isServerSortableReportColumn(id)
+  const sortable = (id: string) => isManagerView && workerReportSort.isSortable(id)
 
   return [
     col.accessor('investmentName', {

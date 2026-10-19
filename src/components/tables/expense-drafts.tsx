@@ -15,7 +15,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
-import { isServerSortableDraftColumn } from '@/lib/worker-expenses/sortable-columns'
+import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
 
 const col = createColumnHelper<ExpenseDraftRowT>()
 
@@ -61,7 +61,7 @@ export function useExpenseDraftColumns({
 }: OptionsT) {
   const { t } = useTranslation('expenseDrafts')
   const sortable = (id: string) =>
-    isManagerView && !isPendingQueue && isServerSortableDraftColumn(id)
+    isManagerView && !isPendingQueue && expenseDraftSort.isSortable(id)
   const actionsColumn = actions
     ? [
         col.display({

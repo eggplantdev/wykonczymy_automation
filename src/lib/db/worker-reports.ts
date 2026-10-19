@@ -8,7 +8,7 @@ import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
 import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { REPORT_STATUSES, type ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 import {
-  isServerSortableReportColumn,
+  workerReportSort,
   type ServerSortableReportColumnT,
 } from '@/lib/kosztorys/worker-report/sortable-columns'
 import type { ReportLineKindT, ReportSourceT } from '@/lib/kosztorys/worker-report/types'
@@ -410,7 +410,7 @@ const SORT_EXPRESSIONS: Record<ServerSortableReportColumnT, SqlT> = {
 function reportsOrderBy(sort: string | undefined): SqlT {
   if (!sort) return QUEUE_ORDER
   const column = sortParamColumnId(sort)
-  if (!isServerSortableReportColumn(column)) return QUEUE_ORDER
+  if (!workerReportSort.isSortable(column)) return QUEUE_ORDER
   const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
   return sql`${SORT_EXPRESSIONS[column]} ${direction}, r.sent_at DESC, r.id DESC`
 }

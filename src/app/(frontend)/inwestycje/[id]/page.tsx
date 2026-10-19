@@ -5,7 +5,7 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
-import { parseTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import {
   fetchInvestmentDetails,
   fetchReferenceData,
@@ -43,7 +43,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
-  const sort = parseTransferSort(sp)
+  const sort = transferSort.parse(sp)
 
   const investmentId = parseInvestmentId(id)
   const urlFilters = buildTransferFilters(sp, { id: user.id })
