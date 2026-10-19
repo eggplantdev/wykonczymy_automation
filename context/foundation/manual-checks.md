@@ -1416,6 +1416,31 @@ Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez 
 - [ ] Jako MANAGER ten sam edytor nie pokazuje kwot.
 - [ ] Jako ADMIN na 390 px edytor się wyświetla, przewija i przyjmuje edycję komórki.
 
+## 2026-10-19 — app-audit-refactor — preview brancha vs staging (luki z listy ryzyk)
+
+Porównanie: preview brancha `app-audit-refactor-wt` obok wdrożonego stagingu, ta sama baza preview. Boksy
+faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma.
+
+- [ ] Duży kosztorys (~1000 pozycji), ta sama inwestycja na obu: seria wpisów w Przedmiar, Pomiar i etap —
+      czas od klawisza do odmalowania nie gorszy niż na stagingu (pomiar w przeglądarce, nie na oko).
+- [ ] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
+      cofnięcie przywraca dokładnie stan sprzed wklejenia.
+- [ ] Edytor otwarty w dwóch kartach: usuń pozycję w jednej, edytuj ją w drugiej — komunikat, że pozycji nie ma,
+      bez błędu serwera.
+- [ ] Jako OWNER spróbuj dezaktywować własne konto i ostatniego OWNER-a — odmowa; logowanie kontem
+      nieaktywnym — odrzucone.
+- [ ] Inwestycja: oznacz jako zakończoną (pojawia się data zakończenia), odblokuj status; inwestycja w Koszu nie
+      daje się edytować.
+- [ ] Usunięcie pliku, który jest fakturą transakcji — odmowa.
+- [ ] Jako ADMIN na `/zgloszenia-wydatkow`: otwórz ponownie odrzucone zgłoszenie — wraca do decyzji, licznik
+      w menu zmienia się bez odświeżania.
+- [ ] Listy z sortowaniem (Transakcje, Leady, Zgłoszenia): posortuj, przejdź na stronę 2 — sortowanie zostaje
+      w adresie i w kolejności.
+- [ ] Tabele z fazy 7 i pole „Kasa” w formularzu przelewu: w zakładce sieci nie ma powtarzających się w kółko
+      zapytań, strona nie miga sama z siebie.
+- [ ] Edycja przelewu i „Rozlicz wypłaty”: błąd walidacji pokazuje się pod polem, udany zapis zamyka okno.
+- [ ] Po najbliższym przebiegu crona czyszczenia wersji kosztorysu: w logach Vercela przebieg bez błędu.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
