@@ -1644,6 +1644,11 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Stuknięcie w to powiadomienie otwiera stronę pracownika z wypłatą do potwierdzenia; po
       potwierdzeniu licznik na ikonie znika.
 
+## 2026-10-19 — transfers-worker-column-width — szersza kolumna „Pracownik”
+
+- [ ] Lista transakcji (desktop), widok tabeli: imię i nazwisko w kolumnie „Pracownik” mieści się w
+      jednej linii, tak jak w „Dodane przez”.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

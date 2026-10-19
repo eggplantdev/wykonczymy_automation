@@ -178,7 +178,7 @@ const buildColumns = (
     col.accessor('workerName', {
       id: 'worker',
       header: t('colWorker'),
-      meta: { printValue: (row) => row.workerName },
+      meta: { minWidth: 'min-w-40', printValue: (row) => row.workerName },
       cell: (info) => relationLink(info.getValue(), '/pracownicy', info.row.original.workerId),
     }),
     col.accessor('payoutStatus', {
