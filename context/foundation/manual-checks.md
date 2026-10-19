@@ -1583,8 +1583,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       formularz”). Cena w dialogu zamówienia od razu się zmienia. Jako MANAGER zębatki nie ma.
       `/inwestycje` i sidebar nie mają już ustawień zamówień.
 - [ ] Strona inwestycji → „Kontener” → kontener × 2 → „Dalej”: formularz pokazuje „2 × kontener”,
-      3000 zł, „Materiały budowlane” / „kontener”. Zapisz — bez pytania o brak faktury → otwiera się
-      SMS z adresem bez kraju oraz kontaktem wybranym w pierwszym kroku.
+      3000 zł, „Materiały budowlane” / „kontener”. Zapisz — bez pytania o brak faktury → dialog się
+      zamyka, otwiera się SMS z adresem bez kraju oraz dostawcą i kontaktem z pierwszego kroku.
 - [ ] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
       „Kwota”, a przełączenie big bag / kontener wraca do ceny z ustawień. Przełącznik, pola, „Dalej”
       i zębatka mają jedną wysokość.
@@ -1595,9 +1595,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       budowy” → strona inwestycji po odświeżeniu pokazuje ją jako „Kierownik budowy”.
 - [ ] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o
       brak faktury.
-- [ ] W kroku SMS „Zapisz jako domyślnego dostawcę” przy innym dostawcy → następne zamówienie wybiera
-      go od razu.
-- [ ] Z telefonu (IP w sieci LAN): „Wyślij SMS” otwiera Wiadomości z domyślnym dostawcą i treścią.
+- [ ] W pierwszym kroku „Dostawca” → inny → „Zapisz jako domyślnego dostawcę” → następne zamówienie
+      wybiera go od razu. Bez dostawców: krok mówi „Lista dostawców jest pusta”, SMS bez odbiorcy.
+- [ ] Z telefonu (IP w sieci LAN): „Zapisz” wydatku sam otwiera Wiadomości z dostawcą i treścią.
 - [ ] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
 - [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
       miejscu”.

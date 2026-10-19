@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 import { OrderPickStep, type OrderPickT } from '@/components/orders/order-pick-step'
-import { OrderSmsStep } from '@/components/orders/order-sms-step'
 import { orderFormValues } from '@/components/orders/order-form-values'
 import { OrderSettingsButton } from '@/components/orders/order-settings-button'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
+import { composeOrderSms, orderSmsHref } from '@/lib/orders/compose-order-sms'
+import { navigateTo } from '@/lib/utils/navigate-to'
 import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
 import type { SiteAddressT } from '@/lib/investments/format-address'
 import type { OrderSettingsT } from '@/types/order-settings'
@@ -27,13 +28,12 @@ type OrderDialogPropsT = {
 const STEP_TITLES = {
   pick: ORDER_ACTION_LABEL,
   form: 'Wydatek za zamówienie',
-  sms: 'SMS do dostawcy',
 } as const
 
 export function OrderDialog({ open, onOpenChange, ...flow }: OrderDialogPropsT) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-dialog-sm sm:has-data-[step=sms]:max-w-dialog sm:has-data-[step=form]:max-w-dialog-lg">
+      <DialogContent className="sm:max-w-dialog-sm sm:has-data-[step=form]:max-w-dialog-lg">
         <OrderFlow {...flow} onClose={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
@@ -45,10 +45,9 @@ type OrderFlowPropsT = Omit<OrderDialogPropsT, 'open' | 'onOpenChange'> & { onCl
 function OrderFlow({ investment, referenceData, orderSettings, onClose }: OrderFlowPropsT) {
   const [pick, setPick] = useState<OrderPickT>()
   const [formValues, setFormValues] = useState<BulkExpenseFormValuesT>()
-  const [isBooked, setIsBooked] = useState(false)
   const canEditSettings = isAdminOrOwnerRole(referenceData.currentUserRole)
 
-  const step = isBooked ? 'sms' : formValues ? 'form' : 'pick'
+  const step = formValues ? 'form' : 'pick'
 
   function handlePick(next: OrderPickT) {
     setPick(next)
@@ -61,17 +60,26 @@ function OrderFlow({ investment, referenceData, orderSettings, onClose }: OrderF
     )
   }
 
+  function handleBooked() {
+    if (pick) {
+      navigateTo(
+        orderSmsHref(pick.supplierPhone, composeOrderSms({ ...pick, address: investment })),
+      )
+    }
+    onClose()
+  }
+
   return (
     <div data-step={step}>
       <DialogHeader title={STEP_TITLES[step]} description={investment.name} />
       <div className="mt-6 pr-1">
         {step === 'pick' && (
           <OrderPickStep
-            prices={orderSettings}
+            orderSettings={orderSettings}
             investmentId={investment.id}
             workers={referenceData.workers}
             siteManagerId={investment.siteManagerId}
-            settings={canEditSettings && <OrderSettingsButton settings={orderSettings} />}
+            settingsButton={canEditSettings && <OrderSettingsButton settings={orderSettings} />}
             onNext={handlePick}
           />
         )}
@@ -80,15 +88,7 @@ function OrderFlow({ investment, referenceData, orderSettings, onClose }: OrderF
             formId="order"
             referenceData={referenceData}
             orderValues={formValues}
-            onSubmitSuccess={() => setIsBooked(true)}
-          />
-        )}
-        {step === 'sms' && pick && (
-          <OrderSmsStep
-            pick={pick}
-            address={investment}
-            orderSettings={orderSettings}
-            onClose={onClose}
+            onSubmitSuccess={handleBooked}
           />
         )}
       </div>

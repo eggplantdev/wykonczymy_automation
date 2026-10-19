@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
+import { isOrderPrice } from '@/lib/orders/order-price'
 import { randomId } from '@/lib/utils/random-id'
 
 const PRICE_ERROR = 'Cena musi być większa niż 0'
+const PRICE_FORMAT_ERROR = 'Cena musi być większa niż 0, najwyżej 2 miejsca po przecinku'
 
 const supplierShape = {
   name: z.string().trim().min(1, 'Nazwa jest wymagana'),
@@ -17,7 +19,7 @@ export const orderSettingsSchema = z.object({
 
 export type OrderSettingsDataT = z.infer<typeof orderSettingsSchema>
 
-const priceField = z.string().refine((value) => value !== '' && Number(value) > 0, PRICE_ERROR)
+const priceField = z.string().refine(isOrderPrice, PRICE_FORMAT_ERROR)
 
 export const orderSettingsFormSchema = z.object({
   suppliers: z.array(z.object({ id: z.string(), ...supplierShape })),

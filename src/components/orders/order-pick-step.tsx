@@ -9,7 +9,9 @@ import { SimpleSelect } from '@/components/ui/simple-select'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SaveAsDefaultButton } from '@/components/orders/save-as-default-button'
 import { setInvestmentSiteManagerAction } from '@/lib/actions/investments'
+import { setDefaultSupplierAction } from '@/lib/actions/order-settings'
 import { ORDER_ITEMS, ORDER_ITEM_KINDS, type OrderItemT } from '@/lib/constants/orders'
+import { isOrderPrice } from '@/lib/orders/order-price'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import { roundToCents } from '@/lib/utils/round-to-cents'
@@ -22,26 +24,31 @@ export type OrderPickT = {
   quantity: number
   unitPrice: number
   contact: OrderContactT | undefined
+  supplierPhone: string
 }
 
 type OrderPickStepPropsT = {
-  prices: Pick<OrderSettingsT, 'bigBagPrice' | 'containerPrice'>
+  orderSettings: OrderSettingsT
   investmentId: number
   workers: WorkerRefT[]
   siteManagerId: number | undefined
-  settings?: React.ReactNode
+  settingsButton?: React.ReactNode
   onNext: (pick: OrderPickT) => void
 }
 
 // Radix Select refuses an empty-string item value.
 const NONE = 'none'
 
-const PRICE_PATTERN = /^\d+(\.\d{1,2})?$/
-
 const SITE_MANAGER_LABELS = {
   isDefault: 'Kierownik budowy',
   save: 'Ustaw jako kierownika budowy',
   saved: 'Kierownik budowy zapisany',
+}
+
+const SUPPLIER_LABELS = {
+  isDefault: 'Dostawca domyślny',
+  save: 'Zapisz jako domyślnego dostawcę',
+  saved: 'Domyślny dostawca zapisany',
 }
 
 const KIND_OPTIONS = ORDER_ITEM_KINDS.map((kind) => ({
@@ -50,25 +57,27 @@ const KIND_OPTIONS = ORDER_ITEM_KINDS.map((kind) => ({
 }))
 
 export function OrderPickStep({
-  prices,
+  orderSettings,
   investmentId,
   workers,
   siteManagerId,
-  settings,
+  settingsButton,
   onNext,
 }: OrderPickStepPropsT) {
+  const { suppliers, defaultSupplierId } = orderSettings
   const contacts = workers.filter(
     (worker): worker is WorkerRefT & { phone: string } => isActiveRef(worker) && !!worker.phone,
   )
 
   const [kind, setKind] = useState<OrderItemT>('bigBag')
   const [quantityText, setQuantityText] = useState('1')
-  const defaultPrice = String(prices[ORDER_ITEMS[kind].priceKey])
+  const defaultPrice = String(orderSettings[ORDER_ITEMS[kind].priceKey])
   const [priceText, setPriceText] = useState(defaultPrice)
   const [shownDefaultPrice, setShownDefaultPrice] = useState(defaultPrice)
   const [contactId, setContactId] = useState(() =>
     contacts.some((worker) => worker.id === siteManagerId) ? String(siteManagerId) : NONE,
   )
+  const [supplierId, setSupplierId] = useState(defaultSupplierId)
 
   // A price saved from the gear replaces the field; re-keying the step instead would close the
   // settings dialog and drop the rest of the pick.
@@ -80,13 +89,18 @@ export function OrderPickStep({
   const quantity = Number(quantityText)
   const unitPrice = Number(priceText)
   const isQuantityValid = Number.isInteger(quantity) && quantity >= 1
-  const isPriceValid = PRICE_PATTERN.test(priceText) && unitPrice > 0
+  const isPriceValid = isOrderPrice(priceText)
   const contactWorker = contacts.find((worker) => String(worker.id) === contactId)
   const contact = contactWorker && { name: contactWorker.name, phone: contactWorker.phone }
+  // Resolved on every render: the gear can delete the picked supplier while this step is open.
+  const supplier =
+    suppliers.find((candidate) => candidate.id === supplierId) ??
+    suppliers.find((candidate) => candidate.id === defaultSupplierId) ??
+    suppliers[0]
 
   function handleKindChange(next: OrderItemT) {
     setKind(next)
-    setPriceText(String(prices[ORDER_ITEMS[next].priceKey]))
+    setPriceText(String(orderSettings[ORDER_ITEMS[next].priceKey]))
   }
 
   return (
@@ -120,6 +134,31 @@ export function OrderPickStep({
             }
           />
         </div>
+      </div>
+      <div className="grid gap-2">
+        <Label>Dostawca</Label>
+        {supplier ? (
+          <>
+            <SimpleSelect
+              value={supplier.id}
+              onValueChange={setSupplierId}
+              options={suppliers.map((candidate) => ({
+                value: candidate.id,
+                label: `${candidate.name} · ${candidate.phone}`,
+              }))}
+            />
+            <SaveAsDefaultButton
+              selectedId={supplier.id}
+              defaultId={defaultSupplierId}
+              onSave={setDefaultSupplierAction}
+              labels={SUPPLIER_LABELS}
+            />
+          </>
+        ) : (
+          <Description tone="error" withIcon={false}>
+            Lista dostawców jest pusta — numer wpiszesz w telefonie.
+          </Description>
+        )}
       </div>
       <div className="grid gap-2">
         <Label>Kontakt na miejscu</Label>
@@ -160,11 +199,13 @@ export function OrderPickStep({
       <div className="flex items-center justify-between gap-2">
         <Button
           disabled={!isQuantityValid || !isPriceValid}
-          onClick={() => onNext({ kind, quantity, unitPrice, contact })}
+          onClick={() =>
+            onNext({ kind, quantity, unitPrice, contact, supplierPhone: supplier?.phone ?? '' })
+          }
         >
           Dalej
         </Button>
-        {settings}
+        {settingsButton}
       </div>
     </div>
   )

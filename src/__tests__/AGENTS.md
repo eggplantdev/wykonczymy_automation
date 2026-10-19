@@ -24,8 +24,8 @@ Rules for specs under `src/__tests__/`. Layering, placement and skill routing li
     `next/navigation` → `stubs/next-navigation` (assert `router.push`, set `navigationState.pathname`
     / `.searchParams`); `react-resize-detector` → `stubs/react-resize-detector`. Plus pass-through
     seams steered the DB way: the kosztorys editor and actions contexts, `submit-with-uploads`,
-    `scan-receipt-client`, `ingest-files` (`stubs/ingest-files` is a ready implementation) and
-    `use-current-user` (`stubs/use-current-user`).
+    `scan-receipt-client`, `ingest-files` (`stubs/ingest-files` is a ready implementation),
+    `use-current-user` (`stubs/use-current-user`) and `navigate-to` (jsdom can't leave the page).
 - **`clearMocks` and `restoreMocks` are on** — no `vi.clearAllMocks()` / `vi.restoreAllMocks()` in a
   spec. `restoreMocks` restores every `vi.spyOn` before each test, so a spy created in `beforeAll` is
   gone by the first test: create it in `beforeEach`.
