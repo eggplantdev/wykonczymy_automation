@@ -6,7 +6,7 @@ created: 2026-10-19
 updated: 2026-10-19
 archived_at: null
 branch: app-audit-refactor
-worktree: null
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/app-audit-refactor-wt
 ---
 
 ## Notes

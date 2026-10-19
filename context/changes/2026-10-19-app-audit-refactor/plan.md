@@ -312,6 +312,18 @@ Drop `export` from in-file-only symbols. Gate every deletion on `pnpm typecheck`
 **Intent**: Move each next to its only consumer; merge the overlapping `date.ts` / `date-range.ts` /
 `days.ts` where they duplicate.
 
+#### 6. Deprecated APIs carried over from Phase 1
+
+**File**: `src/lib/utils/print-window.ts`, `src/components/transfers/print-transfers-button.tsx`,
+`src/lib/ai/{openrouter,translate,worker-report-scan}.ts`
+
+**Intent**: `writeAndPrint` builds the print page without `document.write`, and the transfers
+printout goes through it instead of its own write-close-print copy. The three `generateObject`
+calls become `generateText` with `Output.object` (AI SDK 6+ migration).
+
+**Contract**: every printout (transfers, offer, worker sheet, protocol, contract) looks and prints
+as before; receipt, paper-report and translation reads return the same shapes.
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -327,6 +339,9 @@ Drop `export` from in-file-only symbols. Gate every deletion on `pnpm typecheck`
 - ADMIN: create an equipment item / vehicle / worker with a name a trashed one already has — same
   refusal or acceptance as before
 - MANAGER: register type labels on `/kasy` and on the dashboard tiles read the same as each other
+- ADMIN: print transfers, an offer and a contract — logo and layout as before, the window closes
+  after printing
+- ADMIN: scan a receipt and a paper worker report, translate a kosztorys description — same result
 
 **Implementation Note**: When this phase's automated verification passes, commit and continue.
 
@@ -673,6 +688,7 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 - [ ] 3.1 Touched `lib` specs pass
 - [ ] 3.2 `pnpm generate:types` leaves `payload-types.ts` unchanged
 - [ ] 3.3 `pnpm knip` reports nothing new
+- [ ] 3.4 No `document.write` / `generateObject` left in `src/`; print and AI specs pass
 
 ### Phase 4: actions / db / queries boundary
 
