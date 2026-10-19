@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { OptionalLink } from '@/components/ui/optional-link'
+import { BalanceCell } from '@/components/ui/balance-cell'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
@@ -194,11 +195,7 @@ const COLUMNS = [
     header: 'Pozostało',
     meta: { align: 'right' },
     cell: (info) => (
-      <span
-        className={cn('whitespace-nowrap', roundToCents(info.getValue()) < 0 && 'text-destructive')}
-      >
-        {formatPLN(info.getValue())}
-      </span>
+      <BalanceCell value={info.getValue()} className="font-normal whitespace-nowrap" />
     ),
   }),
   col.display({

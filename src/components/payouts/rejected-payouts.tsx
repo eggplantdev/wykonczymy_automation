@@ -1,53 +1,35 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { Ban } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { OptionalLink } from '@/components/ui/optional-link'
-import { useTranslation } from '@/hooks/use-translation'
 import type { RejectedPayoutT } from '@/lib/db/payout-confirmation'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
-import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
+import { transferHref } from '@/lib/utils/investment-transfers-href'
 
 const col = createColumnHelper<RejectedPayoutT>()
 
 export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
-  const transfersTranslator = useTranslation('transfers')
-
   if (payouts.length === 0) return null
 
   const columns = [
     col.display({
       id: 'actions',
       header: 'Anuluj',
-      cell: ({ row: { original: payout } }) =>
-        payout.investmentLockMessage ? (
-          <RowActionButton
-            icon={Ban}
-            label="Anuluj transakcję"
-            text="Anuluj"
-            tone="destructive"
-            tooltip={payout.investmentLockMessage}
-            disabled
-          />
-        ) : (
-          <CancelTransferButton transactionId={payout.id} />
-        ),
+      cell: ({ row: { original: payout } }) => (
+        <CancelTransferButton
+          transactionId={payout.id}
+          disabledReason={payout.investmentLockMessage}
+        />
+      ),
     }),
     col.accessor('id', {
-      header: transfersTranslator.t('colId'),
+      header: 'ID',
       cell: ({ row: { original: payout } }) => (
-        <OptionalLink
-          href={
-            payout.investmentId === null
-              ? `/?id=${payout.id}`
-              : investmentTransfersHref(payout.investmentId, { id: payout.id })
-          }
-        >
+        <OptionalLink href={transferHref(payout.id, payout.investmentId)}>
           #{payout.id}
         </OptionalLink>
       ),
