@@ -1325,6 +1325,22 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako ADMIN na `/wyplaty` → „Rozlicz”: kwota „Pozostało”, która zaokrągla się do zera, pokazuje
       „0,00 zł” bez czerwonego koloru.
 
+## 2026-10-19 — payout-cards — wypłaty pracownika jako karty, wspólny badge
+
+- [ ] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja
+      „Wypłaty do potwierdzenia” jest zwijana, domyślnie rozwinięta i stoi pod przyciskami szybkich
+      akcji. Karta ma u góry po lewej datę i nazwę inwestycji, po prawej status, niżej kwotę i opis,
+      na dole „Potwierdzam” i czerwone „Odrzuć” równej szerokości.
+- [ ] Jako pracownik odrzuć wypłatę z powodem: znika z „Wypłat do potwierdzenia” i pojawia się w
+      osobnej sekcji „Odrzucone wypłaty” z opisem o wyjaśnieniu z kierownikiem i twoim powodem; ma
+      tylko „Potwierdzam”, które dalej działa.
+- [ ] Jako pracownik na telefonie (390 px): karty wypłat zajmują całą szerokość, przyciski są łatwe
+      do trafienia, nic nie wychodzi poza ekran.
+- [ ] Badge'e wyglądają jak dotąd (refaktor na wspólny komponent): status wypłaty w tabeli transakcji,
+      „Od pracownika” w kolumnie typu, status inwestycji (odrzucona — teraz czerwona zamiast różowej),
+      rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
+      postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
