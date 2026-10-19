@@ -1,4 +1,4 @@
-import { generateObject } from 'ai'
+import { generateText, Output } from 'ai'
 import type { z } from 'zod'
 import { sanitizeReceiptExtraction } from './extract-receipt-sanitize'
 import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
@@ -67,7 +67,7 @@ async function readWithModel<SchemaT extends z.ZodType>(
   if (pages.length === 0) throw new Error('Brak pliku do odczytania')
 
   async function callModel(model: string) {
-    const result = await generateObject({
+    const result = await generateText({
       model: openrouter(model, {
         plugins: receiptPdfPlugins(pages.map((page) => page.mediaType)),
       }),
@@ -75,7 +75,7 @@ async function readWithModel<SchemaT extends z.ZodType>(
         RECEIPT_TIMEOUT_MS + RECEIPT_TIMEOUT_PER_PAGE_MS * (pages.length - 1),
         'receipt extraction',
       ),
-      schema,
+      output: Output.object({ schema }),
       messages: [
         {
           role: 'user',
@@ -94,7 +94,7 @@ async function readWithModel<SchemaT extends z.ZodType>(
         },
       ],
     })
-    return result.object as z.infer<SchemaT>
+    return result.output as z.infer<SchemaT>
   }
 
   try {
@@ -106,7 +106,7 @@ async function readWithModel<SchemaT extends z.ZodType>(
   }
 }
 
-// TODO(EX-958) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
+// TODO(EX-958) SENTRY-REQUIRED: an unreadable result is a silent AI failure — the model call
 // succeeded, so nothing throws.
 function logUnreadable(pages: ReceiptPageT[]) {
   const mediaTypes = pages.map((page) => page.mediaType).join(',')

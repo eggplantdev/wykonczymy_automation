@@ -1,4 +1,4 @@
-import { generateObject } from 'ai'
+import { generateText, Output } from 'ai'
 import { z } from 'zod'
 import type { TranslationTextsT } from '@/lib/i18n/description-translations'
 import { LANGUAGES, TRANSLATION_LANGUAGES, type TranslationLanguageT } from '@/lib/i18n/languages'
@@ -49,14 +49,14 @@ async function generate<SchemaT extends z.ZodType>(
   schema: SchemaT,
   prompt: string,
 ) {
-  const call = async (candidate: string) => {
-    const result = await generateObject({
+  const call = async (candidate: string): Promise<z.infer<SchemaT>> => {
+    const result = await generateText({
       model: openrouter(candidate),
       abortSignal: timeoutSignal(TRANSLATION_TIMEOUT_MS, 'translation'),
-      schema,
+      output: Output.object({ schema }),
       prompt,
     })
-    return result.object
+    return result.output as z.infer<SchemaT>
   }
   return model ? call(model) : withModelFallback(`translate ${label}`, TRANSLATION_MODEL, call)
 }
