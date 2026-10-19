@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { BrandLogo } from '@/components/ui/brand-logo'
-import { RoleBadge } from '@/components/ui/badge'
+import { RoleBadge } from '@/components/users/role-badge'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { UiScaleSwitch } from '@/components/nav/ui-scale-switch'

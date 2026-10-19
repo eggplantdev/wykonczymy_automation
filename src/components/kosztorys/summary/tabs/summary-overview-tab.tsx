@@ -27,6 +27,7 @@ import { SlicePie } from '@/components/ui/slice-pie'
 import type { DepositTransactionRowT } from '@/types/transfers'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import { costTotalsPieSlices } from '@/lib/kosztorys/chart-slices'
+import { formatPercent } from '@/lib/kosztorys/format'
 
 type PropsT = {
   investmentId: number
@@ -112,6 +113,7 @@ export function SummaryOverviewTab({
         </div>
         {showPie && (
           <SlicePie
+            formatShare={formatPercent}
             slices={costTotalsPieSlices(
               laborCostsNetPreDiscount(laborCostsNet, discountAmount),
               materialsPair.net,

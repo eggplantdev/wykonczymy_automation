@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { CashRegisterForm } from '@/components/forms/cash-register-form/cash-register-form'
 import { createCashRegisterAction } from '@/lib/actions/cash-registers'
 import type { CashRegisterFormValuesT } from '@/components/forms/cash-register-form/cash-register-schema'

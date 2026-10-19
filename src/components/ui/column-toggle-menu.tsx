@@ -19,15 +19,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { type ColumnRanksT } from '@/lib/table/column-order'
+import { type ColumnRanksT, type ColumnToggleItemT } from '@/lib/table/column-order'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
-
-export type ColumnToggleItemT = {
-  id: string
-  label: string
-  visible: boolean
-}
 
 type ColumnOrderT = {
   description: string

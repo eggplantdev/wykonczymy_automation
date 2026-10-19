@@ -5,17 +5,18 @@ import { Cell, Pie, PieChart } from 'recharts'
 import { AlertIcon } from '@/components/ui/alert-icon'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { PieSliceLegend, type PieSliceT } from '@/components/ui/pie-legend'
-import { formatPercent } from '@/lib/kosztorys/format'
 
 export function SlicePie({
   caption,
   action,
   slices,
+  formatShare,
   formatValue,
 }: {
   caption?: string
   action?: ReactNode
   slices: PieSliceT[]
+  formatShare: (fraction: number | null) => string
   formatValue?: (value: number) => string
 }) {
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
@@ -58,7 +59,7 @@ export function SlicePie({
                   valueFormatter={(v) =>
                     formatValue
                       ? formatValue(Number(v))
-                      : formatPercent(total > 0 ? Number(v) / total : null)
+                      : formatShare(total > 0 ? Number(v) / total : null)
                   }
                 />
               }
@@ -66,7 +67,7 @@ export function SlicePie({
           </PieChart>
         </ChartContainer>
       )}
-      <PieSliceLegend slices={slices} formatValue={formatValue} />
+      <PieSliceLegend slices={slices} formatShare={formatShare} formatValue={formatValue} />
     </figure>
   )
 }

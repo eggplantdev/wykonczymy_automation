@@ -1,7 +1,7 @@
 'use client'
 
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { updateWorkerAction } from '@/lib/actions/workers'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'

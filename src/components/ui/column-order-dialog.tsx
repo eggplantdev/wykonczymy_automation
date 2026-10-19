@@ -10,8 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
 } from '@/components/ui/dialog'
-import type { ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import { rankForMove, type ColumnRanksT } from '@/lib/table/column-order'
+import { rankForMove, type ColumnRanksT, type ColumnToggleItemT } from '@/lib/table/column-order'
 import { sameItems } from '@/lib/utils/same-items'
 import { useDraft } from '@/hooks/use-draft'
 import { cn } from '@/lib/utils/cn'

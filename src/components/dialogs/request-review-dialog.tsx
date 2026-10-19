@@ -1,6 +1,6 @@
 'use client'
 
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { RequestReviewForm } from '@/components/forms/request-review-form/request-review-form'
 import type { ReviewRequestInvestmentT } from '@/types/reference-data'
 

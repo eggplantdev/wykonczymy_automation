@@ -8,7 +8,7 @@ import {
 } from '@/lib/kosztorys/chart-slices'
 import { SlicePie } from '@/components/ui/slice-pie'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
-import { formatNet } from '@/lib/kosztorys/format'
+import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 
 const BASES: OptionT<SectionPieBaseT>[] = [
   { value: 'planned', label: 'Przedmiar' },
@@ -20,6 +20,7 @@ export function SectionSharePie({ subtotals }: { subtotals: SectionSliceInputT[]
 
   return (
     <SlicePie
+      formatShare={formatPercent}
       caption="Udział sekcji w kosztach robocizny"
       action={
         <ToggleGroup
