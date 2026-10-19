@@ -1,6 +1,5 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -13,14 +12,13 @@ import { sumKnown } from '@/lib/utils/sum-known'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import type { FleetRowT } from '@/lib/fleet/types'
 
+const getSearchableText = (row: FleetRowT) =>
+  `${row.registration} ${row.make} ${row.model} ${row.vin}`
+
 export function FleetDataTable({ data }: { data: FleetRowT[] }) {
-  const getSearchableText = useCallback(
-    (row: FleetRowT) => `${row.registration} ${row.make} ${row.model} ${row.vin}`,
-    [],
-  )
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(data, getSearchableText)
 
-  const columns = useMemo(() => getFleetColumns(), [])
+  const columns = getFleetColumns()
 
   return (
     <DataTable

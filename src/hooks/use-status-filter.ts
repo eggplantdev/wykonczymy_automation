@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
 import { INVESTMENT_STATUSES, type InvestmentStatusT } from '@/lib/constants/investment-status'
 
@@ -54,7 +53,7 @@ export function useStatusFilter<TItem>(
 ) {
   const store = storeFor(storageKey)
   const persisted = useJsonMap<boolean>(store)
-  const selectedStatuses = useMemo(() => selectionFrom(persisted), [persisted])
+  const selectedStatuses = selectionFrom(persisted)
 
   const toggleStatus = (status: InvestmentStatusT) => {
     store.update((prev) => {
@@ -72,10 +71,7 @@ export function useStatusFilter<TItem>(
     store.update(() => Object.fromEntries(INVESTMENT_STATUSES.map((status) => [status, false])))
   }
 
-  const filteredData = useMemo(
-    () => filterByStatuses(data, selectedStatuses, getStatus),
-    [data, selectedStatuses, getStatus],
-  )
+  const filteredData = filterByStatuses(data, selectedStatuses, getStatus)
 
   return { filteredData, selectedStatuses, toggleStatus, clearStatuses } as const
 }

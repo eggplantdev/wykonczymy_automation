@@ -1382,6 +1382,21 @@ Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
 - [ ] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
 - [ ] Nowy pracownik dodany przez „Dodaj pracownika” ma język polski.
 
+## 2026-10-19 — app-audit-refactor faza 7 — bez ręcznych memo w tabelach i hookach
+
+Refaktor bez zmiany zachowania.
+
+- [ ] Jako ADMIN w tabelach „Katalog prac”, „Sprzęt”, „Flota”, „Pracownicy”, „Inwestycje” i „Kasy”: wyszukiwanie
+      i filtry zawężają listę jak wcześniej, pisanie w polu wyszukiwania nie zacina się (zwłaszcza w „Katalogu prac”).
+- [ ] Jako ADMIN przełącz aktywność pracownika i kasy: przełącznik zmienia się od razu, bez mignięcia, a
+      ustawione filtry zostają.
+- [ ] Jako ADMIN ustaw filtr statusu w „Inwestycjach” i warunki w „Katalogu prac”, zwiń pasek boczny i odśwież
+      stronę: filtry i zwinięty pasek zostają.
+- [ ] Formularz przelewu → pole „Kasa”: „tylko aktywne” przełącza listę, wybrana nieaktywna kasa dalej widoczna;
+      błąd walidacji pod polem pokazuje się jak wcześniej.
+- [ ] Arkusze → „Kosztorysy” i „Inwestycje bez arkusza” wyświetlają się i wyszukują; kosztorys → „Porównaj z
+      katalogiem prac” pokazuje podpowiedzi „może chodzi o…”, import z arkusza otwiera podgląd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

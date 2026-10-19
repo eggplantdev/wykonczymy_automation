@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useState } from 'react'
 import { foldText } from '@/lib/utils/fold-text'
 
 export function foldHaystacks<TItem>(
@@ -30,12 +30,8 @@ export function useSearchFilter<TItem>(
   // and the field itself stutters.
   const deferredTerm = useDeferredValue(searchTerm)
 
-  const haystacks = useMemo(() => foldHaystacks(data, getSearchableText), [data, getSearchableText])
-
-  const filteredData = useMemo(
-    () => filterBySearch(data, haystacks, deferredTerm),
-    [data, haystacks, deferredTerm],
-  )
+  const haystacks = foldHaystacks(data, getSearchableText)
+  const filteredData = filterBySearch(data, haystacks, deferredTerm)
 
   return { filteredData, searchTerm, setSearchTerm } as const
 }

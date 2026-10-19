@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
 
 // createJsonMapStore binds its key at module scope, so a per-key store has to be cached rather than
@@ -29,10 +28,7 @@ export function useEngagedIds(storageKey: string): {
 
   // Ids nobody recognises are carried through untouched rather than pruned here: deleting one would
   // drop a filter the user set under a condition that is only temporarily gone.
-  const engagedIds = useMemo(
-    () => new Set(Object.keys(engaged).filter((id) => engaged[id])),
-    [engaged],
-  )
+  const engagedIds = new Set(Object.keys(engaged).filter((id) => engaged[id]))
 
   function toggle(id: string) {
     store.update((prev) => {

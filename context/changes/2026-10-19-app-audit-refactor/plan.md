@@ -715,9 +715,9 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [ ] 7.1 `pnpm check:compiler` passes for every stripped file
-- [ ] 7.2 Specs for the 23 files pass
-- [ ] 7.3 Remaining memos outside the editor pair are all ledgered skips
+- [x] 7.1 `pnpm check:compiler` passes for every stripped file (SHA7)
+- [x] 7.2 Specs for the 23 files pass (SHA7)
+- [x] 7.3 Remaining memos outside the editor pair are all ledgered skips (SHA7)
 
 ### Phase 8: Kosztorys editor split
 

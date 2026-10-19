@@ -34,7 +34,7 @@ Out of scope: `src/migrations/` (frozen history), `src/payload-types.ts` (genera
 | `src/access`                                                                                                                        |     2 |   [ ]   |    [ ]     | —             |
 | `src/collections`                                                                                                                   |    27 |   [ ]   |    [ ]     | —             |
 | `src/globals`                                                                                                                       |     3 |   [ ]   |    [ ]     | —             |
-| `src/hooks`                                                                                                                         |    52 |   [ ]   |    [ ]     | —             |
+| `src/hooks`                                                                                                                         |    52 |   [x]   |    [x]     | —             |
 | `src/stores`                                                                                                                        |     7 |   [ ]   |    [ ]     | —             |
 | `src/types`                                                                                                                         |    14 |   [ ]   |    [ ]     | —             |
 | `src/scripts`                                                                                                                       |    38 |   [ ]   |    [ ]     | —             |
@@ -52,17 +52,17 @@ Out of scope: `src/migrations/` (frozen history), `src/payload-types.ts` (genera
 | `src/components/transfers`                                                                                                          |    15 |   [x]   |    [ ]     |               |
 | `src/components/worker-expenses`                                                                                                    |    13 |   [x]   |    [x]     |               |
 | `src/components/worker-reports`                                                                                                     |    12 |   [x]   |    [x]     |               |
-| `src/components/fleet`                                                                                                              |    11 |   [x]   |    [ ]     |               |
-| `src/components/work-catalogue`                                                                                                     |     9 |   [x]   |    [ ]     |               |
-| `src/components/equipment`                                                                                                          |     7 |   [x]   |    [ ]     |               |
+| `src/components/fleet`                                                                                                              |    11 |   [x]   |    [x]     |               |
+| `src/components/work-catalogue`                                                                                                     |     9 |   [x]   |    [x]     |               |
+| `src/components/equipment`                                                                                                          |     7 |   [x]   |    [x]     |               |
 | `src/components/trash`                                                                                                              |     7 |   [x]   |    [ ]     |               |
 | `src/components/leads`                                                                                                              |     6 |   [x]   |    [x]     |               |
 | `src/components/media`                                                                                                              |     6 |   [x]   |    [ ]     |               |
-| `src/components/users`                                                                                                              |     6 |   [x]   |    [ ]     |               |
+| `src/components/users`                                                                                                              |     6 |   [x]   |    [x]     |               |
 | `src/components/dashboard`                                                                                                          |     5 |   [x]   |    [x]     |               |
 | `src/components/payouts`                                                                                                            |     5 |   [x]   |    [ ]     |               |
 | `src/components/pwa`                                                                                                                |     5 |   [x]   |    [ ]     |               |
-| `src/components/sheets`                                                                                                             |     5 |   [x]   |    [ ]     |               |
+| `src/components/sheets`                                                                                                             |     5 |   [x]   |    [x]     |               |
 | `src/components/company-knowledge`                                                                                                  |     4 |   [x]   |    [ ]     |               |
 | `src/components/presets`                                                                                                            |     3 |   [x]   |    [ ]     |               |
 | `src/components/{auth,cash-registers,i18n,notification-recipients,telmak-check}`                                                    |     5 |   [x]   |    [x]     |               |

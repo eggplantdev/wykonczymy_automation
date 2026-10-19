@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -24,10 +23,7 @@ const getSearchableText = (row: KosztorysRowT) => `${row.name} ${row.sheetName}`
 
 export function KosztorysDataTable({ data, availableInvestments }: PropsT) {
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(data, getSearchableText)
-  const columns = useMemo(
-    () => getKosztorysColumns({ availableInvestments }),
-    [availableInvestments],
-  )
+  const columns = getKosztorysColumns({ availableInvestments })
 
   return (
     <DataTable

@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
@@ -53,10 +52,10 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
     setShowOnlyActive,
   } = useActiveFilter(optimisticData, isCashRegisterActive)
 
-  const ownerOptions = useMemo(() => {
-    const uniqueOwners = [...new Set(optimisticData.map((r) => r.ownerName))].filter(Boolean).sort()
-    return uniqueOwners.map((name) => ({ value: name, label: name }))
-  }, [optimisticData])
+  const ownerOptions = [...new Set(optimisticData.map((r) => r.ownerName))]
+    .filter(Boolean)
+    .sort()
+    .map((name) => ({ value: name, label: name }))
 
   const {
     filteredData: typeFiltered,
@@ -74,10 +73,7 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
     getCashRegisterSearchText,
   )
 
-  const columns = useMemo(
-    () => getCashRegisterColumns(handleToggle, (row) => canManageRegister(currentUser, row)),
-    [currentUser, handleToggle],
-  )
+  const columns = getCashRegisterColumns(handleToggle, (row) => canManageRegister(currentUser, row))
 
   return (
     <>

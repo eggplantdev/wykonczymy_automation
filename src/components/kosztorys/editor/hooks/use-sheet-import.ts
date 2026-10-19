@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { previewKosztorysImport, type ImportPreviewT } from '@/lib/queries/kosztorys-import-preview'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
@@ -16,7 +16,7 @@ export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
   const [error, setError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
-  const readPreview = useCallback(() => {
+  function readPreview() {
     setLoaded(false)
     setPreview(null)
     setError(null)
@@ -30,12 +30,12 @@ export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
         setError('Nie udało się odczytać arkusza Google.')
       })
       .finally(() => setLoaded(true))
-  }, [investmentId])
+  }
 
-  const openImport = useCallback(() => {
+  function openImport() {
     setOpen(true)
     readPreview()
-  }, [readPreview])
+  }
 
   const onImported: OnTreeReplacedT = (opts) => {
     setPreview(null)

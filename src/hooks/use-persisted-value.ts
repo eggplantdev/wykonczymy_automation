@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 
 // Own subscription (not a `storage` event) because that event doesn't fire in the same tab.
 const listeners = new Set<() => void>()
@@ -37,13 +37,12 @@ export function usePersistedEnum<T extends string>(
   validValues: readonly T[],
   fallback: T,
 ): [T, (next: T) => void] {
-  const getSnapshot = useCallback(
+  const value = useSyncExternalStore(
+    subscribe,
     () => readEnum(storageKey, validValues, fallback),
-    [storageKey, validValues, fallback],
+    () => fallback,
   )
-  const value = useSyncExternalStore(subscribe, getSnapshot, () => fallback)
-  const setValue = useCallback((next: T) => writeStored(storageKey, next), [storageKey])
-  return [value, setValue]
+  return [value, (next: T) => writeStored(storageKey, next)]
 }
 
 function readNumber(
@@ -67,16 +66,12 @@ export function usePersistedNumber(
   fallback: number,
   isValid: (value: number) => boolean,
 ): [number, (next: number) => void] {
-  const getSnapshot = useCallback(
+  const value = useSyncExternalStore(
+    subscribe,
     () => readNumber(storageKey, fallback, isValid),
-    [storageKey, fallback, isValid],
+    () => fallback,
   )
-  const value = useSyncExternalStore(subscribe, getSnapshot, () => fallback)
-  const setValue = useCallback(
-    (next: number) => writeStored(storageKey, String(next)),
-    [storageKey],
-  )
-  return [value, setValue]
+  return [value, (next: number) => writeStored(storageKey, String(next))]
 }
 
 export function usePersistedFlag(

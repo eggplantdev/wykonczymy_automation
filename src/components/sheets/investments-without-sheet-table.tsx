@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
@@ -18,7 +17,7 @@ const getSearchableText = (row: InvestmentWithoutSheetRowT) => row.name
 
 export function InvestmentsWithoutSheetTable({ data }: PropsT) {
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(data, getSearchableText)
-  const columns = useMemo(() => getInvestmentWithoutSheetColumns(), [])
+  const columns = getInvestmentWithoutSheetColumns()
 
   return (
     <DataTable

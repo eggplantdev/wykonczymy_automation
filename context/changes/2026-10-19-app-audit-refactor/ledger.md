@@ -239,3 +239,21 @@ are left for after the merge — editing them here only buys a conflict.
 - [x] · dropped · `UI` · `ui/signed-money-display.tsx` default „Saldo” label · borderline, no defect
 - [x] · dismissed · `DEAD` · `equipment/where-filter-options.ts` `WHERE_UNKNOWN` · a spec imports it
 - [x] · dismissed · `TEST` · `account-credentials-schema.ts` static schema · it is `buildSchemas(POLISH_ACCOUNT).form`, the same builder the form calls
+
+## Phase 7 — memo guard and removal (2026-10-19)
+
+Cycles after the phase: 25.
+
+- [x] · fixed · `MEMO` · stripped from 20 of the 23 files: `src/hooks/{use-persisted-value,use-client-multi-filter,
+      use-active-filter,use-engaged-ids,create-json-map-store,use-search-filter,use-status-filter,use-optimistic-toggle}.ts`,
+      `ui/field.tsx`, `sheets/{investments-without-sheet-table,kosztorys-data-table}.tsx`, `{equipment,fleet,users,
+      investments,work-catalogue,cash-registers}/*-table.tsx`, `forms/form-fields/cash-register-field.tsx`,
+      `editor/hooks/use-sheet-import.ts`, `editor/dialogs/catalogue/catalogue-compare-dialog.tsx` · `pnpm check:compiler` ok on each
+- [x] · fixed · `TEST` · new specs `hooks/{use-persisted-value,use-client-multi-filter,use-engaged-ids,use-optimistic-toggle}.test.tsx`
+      (filtered rows, persisted values, optimistic revert) written before the strip
+- [x] · skipped · `MEMO` · `use-element-height.ts`, `editor/hooks/use-wrap-column-widths.ts`, `editor/hooks/use-inline-rename.ts` ·
+      the callback is a callback ref or an effect dependency; vitest runs without the compiler, and stripping
+      `use-inline-rename`'s `close` broke its unmount-commit spec — React keeps `useCallback` as the escape hatch for effect deps
+- [x] · dismissed · `TEST` · no spec for the table/field memos (`columns`, options, `getSearchableText`) · stable
+      values with no observable effect of their own; the existing table specs and the hook specs cover the rows they feed
+
