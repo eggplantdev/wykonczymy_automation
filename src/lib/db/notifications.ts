@@ -31,12 +31,6 @@ export const unreadLeadsSql = (userId: number): SqlT => sql`
       )
   `
 
-export const countUnreadLeads = async (payload: Payload, userId: number): Promise<number> => {
-  const db = await getDb(payload)
-  const result = await db.execute(unreadLeadsSql(userId))
-  return Number(result.rows[0].count)
-}
-
 /**
  * `GREATEST(…, created_at)` covers the case that date alone cannot: a policy *entered* today that
  * expires in five days slid into the window before it existed, so its window-entry instant is older
@@ -69,16 +63,6 @@ export const unreadFleetDeadlinesSql = (userId: number, today: string): SqlT => 
           ) > read_cursor.seen_at
   `
 
-export const countUnreadFleetDeadlines = async (
-  payload: Payload,
-  userId: number,
-  today: string,
-): Promise<number> => {
-  const db = await getDb(payload)
-  const result = await db.execute(unreadFleetDeadlinesSql(userId, today))
-  return Number(result.rows[0].count)
-}
-
 export const unreadWarrantiesSql = (userId: number, today: string): SqlT => sql`
     WITH read_cursor AS (
       SELECT COALESCE(
@@ -96,16 +80,6 @@ export const unreadWarrantiesSql = (userId: number, today: string): SqlT => sql`
       AND e.warranty_until <= ${today}::date + interval '30 days'
       AND GREATEST(e.warranty_until - interval '30 days', e.created_at) > read_cursor.seen_at
   `
-
-export const countUnreadWarranties = async (
-  payload: Payload,
-  userId: number,
-  today: string,
-): Promise<number> => {
-  const db = await getDb(payload)
-  const result = await db.execute(unreadWarrantiesSql(userId, today))
-  return Number(result.rows[0].count)
-}
 
 export const markSeen = async (
   payload: Payload,

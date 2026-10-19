@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { countPendingExpenseDrafts } from '@/__tests__/helpers/stream-counts'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
 import { findReferencedMediaIds } from '@/lib/db/media-detachments'
 import {
-  countPendingExpenseDrafts,
   decideExpenseDraft,
   decideExpenseParagons,
   deletePendingExpenseDraft,

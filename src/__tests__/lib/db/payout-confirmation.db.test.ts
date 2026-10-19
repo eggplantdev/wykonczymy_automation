@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { countRejectedPayouts } from '@/__tests__/helpers/stream-counts'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
   acceptPayout,
   countPendingPayouts,
-  countRejectedPayouts,
   listPayoutsToConfirm,
   listRejectedPayouts,
   rejectPayout,

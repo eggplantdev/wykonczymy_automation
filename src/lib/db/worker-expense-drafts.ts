@@ -27,7 +27,7 @@ import { inList, sqlList, type SqlT } from './sql-list'
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
 
 // Read off the transaction, not the draft: the manager may book it to another investment.
-export type ExpenseDraftTransferT = {
+type ExpenseDraftTransferT = {
   id: number
   amount: number
   investmentId: number | null
@@ -321,11 +321,6 @@ export const PENDING_EXPENSE_DRAFTS_COUNT = sql`
   FROM worker_expense_drafts d LEFT JOIN investments i ON i.id = d.investment_id
   WHERE ${PENDING_DRAFT}
 `
-
-export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(PENDING_EXPENSE_DRAFTS_COUNT)
-  return Number(res.rows[0]?.total ?? 0)
-}
 
 export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT> & { duplicatesOnly?: boolean }
 

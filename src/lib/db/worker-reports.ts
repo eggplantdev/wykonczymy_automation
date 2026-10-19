@@ -475,11 +475,6 @@ export const PENDING_REPORTS_COUNT = sql`
   WHERE r.status = 'pending' AND ${DECIDABLE_INVESTMENT}
 `
 
-export async function countPendingReports(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(PENDING_REPORTS_COUNT)
-  return Number(res.rows[0]?.total ?? 0)
-}
-
 export async function countPendingForInvestment(
   db: DbExecutorT,
   investmentId: number,

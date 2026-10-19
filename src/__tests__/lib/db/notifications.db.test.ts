@@ -1,14 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-postgres'
-import { getDb } from '@/lib/db/get-db'
 import {
-  STREAMS,
   countUnreadFleetDeadlines,
   countUnreadLeads,
   countUnreadWarranties,
-  markSeen,
-} from '@/lib/db/notifications'
+} from '@/__tests__/helpers/stream-counts'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { STREAMS, markSeen } from '@/lib/db/notifications'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { warsawToday } from '@/lib/utils/days'
 import { firstUserId } from '@/__tests__/helpers/user'
