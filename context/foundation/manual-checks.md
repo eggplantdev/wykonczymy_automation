@@ -1427,8 +1427,14 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       klawiszy na kolumnę, czas do drugiej klatki. Mediana Przedmiar 48,8–49,0 ms na obu, Etap 1 48,7–49,1 ms
       preview / 48,8–62,2 ms staging; p90 65–83 ms na obu. Pomiar z natury to suma etapów, więc wpis w etap
       sprawdza też jego przeliczenie. Wartości przywrócone._
-- [ ] `/katalog-prac` i listy (sprzęt, flota, inwestycje, użytkownicy): szybkie wpisywanie w wyszukiwarkę —
+- [x] `/katalog-prac` i listy (sprzęt, flota, inwestycje, użytkownicy): szybkie wpisywanie w wyszukiwarkę —
       znaki pojawiają się bez opóźnienia, tak samo jak na stagingu.
+      _Zweryfikowano 2026-10-19 (aa1da3b6d): 27 klawiszy na przebieg, czas do drugiej klatki, staging/preview
+      na przemian. Mediany: sprzęt 32,0–32,4 / 32,4, flota 32,1–32,3 / 32,6–37,4, inwestycje 32,6–32,9 /
+      32,5–32,9, pracownicy 31,8–32,2 / 32,3–32,7 ms (staging / preview). Katalog: przy kolejności S→P
+      preview wychodził ~4 ms wolniej; przy odwróconej kolejności różnica znika (preview 39–64, staging
+      37–58 ms, p90 preview niższy w 3 z 4 par) — efekt kolejności, ścieżka katalogu poza importami bez
+      zmian._
 - [ ] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
       cofnięcie przywraca dokładnie stan sprzed wklejenia.
 - [ ] Edytor otwarty w dwóch kartach: usuń pozycję w jednej, edytuj ją w drugiej — komunikat, że pozycji nie ma,
