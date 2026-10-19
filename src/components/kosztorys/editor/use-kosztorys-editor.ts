@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import type { Column } from 'react-datasheet-grid'
 import { useDebouncedSave } from '@/components/kosztorys/editor/hooks/use-debounced-save'
 import { useStaleTreeRecovery } from '@/components/kosztorys/editor/hooks/use-stale-tree-recovery'
@@ -137,7 +138,7 @@ export function useKosztorysEditor({
   const editorRows = useEditorRows(tree, seams?.initialRowPatch)
   const { rows, rowsRef, patchRows, revertOne } = editorRows
   const documentSettings = worker?.settings ?? clientView
-  const aiDraft = hasAiDraft(rows)
+  const aiDraft = useMemo(() => hasAiDraft(rows), [rows])
   const {
     view,
     setView,
@@ -325,84 +326,126 @@ export function useKosztorysEditor({
 
   const editorOnly = <T>(handler: T): T | undefined => (readOnly ? undefined : handler)
 
-  const subcontractorDue = subcontractorDueByPlane(rows, stages)
+  // Hand-memoized below: the compiler merges these row scans into one scope spanning the hook calls and
+  // drops its cache, so every render — several per keystroke — would rescan ~1000 pozycji.
+  const subcontractorDue = useMemo(() => subcontractorDueByPlane(rows, stages), [rows, stages])
 
-  const marginForecastByPlane = preview ? undefined : forecastByPlane(rows)
+  const marginForecastByPlane = useMemo(
+    () => (preview ? undefined : forecastByPlane(rows)),
+    [preview, rows],
+  )
 
   // Grouped here, never inside `matches`: a counter calls `matches` once per pozycja, so grouping there
   // would rebuild every group ~1000 times on a large kosztorys.
-  const divergentPriceIds = preview ? new Set<number>() : divergentPriceRowIds(rows)
+  const divergentPriceIds = useMemo(
+    () => (preview ? new Set<number>() : divergentPriceRowIds(rows)),
+    [preview, rows],
+  )
 
   // The coefficients come from a ROW, not from `tree`:
   // the owner changes them mid-session and the settings hook patches them onto the rows,
   // while `tree` still carries what the server last served.
-  const catalogueComparison =
-    preview || !workCatalogue || rows.length === 0
-      ? null
-      : buildCatalogueComparison(rows, workCatalogue, {
-          wToolsCoeff: rows[0].globalWToolsCoeff,
-          ownToolsCoeff: rows[0].globalOwnToolsCoeff,
-          linkedRowsAreCatalogue: isTemplate,
-        })
+  const catalogueComparison = useMemo(
+    () =>
+      preview || !workCatalogue || rows.length === 0
+        ? null
+        : buildCatalogueComparison(rows, workCatalogue, {
+            wToolsCoeff: rows[0].globalWToolsCoeff,
+            ownToolsCoeff: rows[0].globalOwnToolsCoeff,
+            linkedRowsAreCatalogue: isTemplate,
+          }),
+    [preview, rows, workCatalogue, isTemplate],
+  )
 
-  const catalogueRowIds = catalogueComparison
-    ? {
-        divergent: new Set(catalogueComparison.diffs.map((diff) => diff.itemId)),
-        missing: new Set(catalogueComparison.missing.map((row) => row.itemId)),
-      }
-    : undefined
+  const catalogueRowIds = useMemo(
+    () =>
+      catalogueComparison
+        ? {
+            divergent: new Set(catalogueComparison.diffs.map((diff) => diff.itemId)),
+            missing: new Set(catalogueComparison.missing.map((row) => row.itemId)),
+          }
+        : undefined,
+    [catalogueComparison],
+  )
 
-  const qtyDoneByRowId = qtyDoneByRow(rows, stages)
-  const conditionCtx: RowConditionCtxT = {
-    stages,
-    hasSettledMaterial,
-    divergentPriceRowIds: divergentPriceIds,
-    qtyDoneByRowId,
-    catalogueRowIds,
-    hasAiDraft: aiDraft,
-    aiColumnsShown: aiReview,
-  }
+  const qtyDoneByRowId = useMemo(() => qtyDoneByRow(rows, stages), [rows, stages])
+  const conditionCtx = useMemo<RowConditionCtxT>(
+    () => ({
+      stages,
+      hasSettledMaterial,
+      divergentPriceRowIds: divergentPriceIds,
+      qtyDoneByRowId,
+      catalogueRowIds,
+      hasAiDraft: aiDraft,
+      aiColumnsShown: aiReview,
+    }),
+    [
+      stages,
+      hasSettledMaterial,
+      divergentPriceIds,
+      qtyDoneByRowId,
+      catalogueRowIds,
+      aiDraft,
+      aiReview,
+    ],
+  )
 
   // Counted over the whole dataset: once a filter is on, a count of what survives it is a count of
   // itself and can never reach zero to say the problem is gone.
-  const rowConditionCounts = ROW_CONDITIONS.map(
-    (condition) =>
-      [condition.id, preview ? 0 : countMatching(rows, condition.id, conditionCtx)] as const,
+  const rowConditionCounts = useMemo(
+    () =>
+      ROW_CONDITIONS.map(
+        (condition) =>
+          [condition.id, preview ? 0 : countMatching(rows, condition.id, conditionCtx)] as const,
+      ),
+    [preview, rows, conditionCtx],
   )
-  const clientEmptyRowIds = preview
-    ? rowIdsMatching(rows, clientConditionIds(documentSettings?.hideEmptyRows), conditionCtx)
-    : NO_ROW_IDS
+  const clientEmptyRowIds = useMemo(
+    () =>
+      preview
+        ? rowIdsMatching(rows, clientConditionIds(documentSettings?.hideEmptyRows), conditionCtx)
+        : NO_ROW_IDS,
+    [preview, documentSettings?.hideEmptyRows, rows, conditionCtx],
+  )
   // Over the view's own etapy: a subcontractor view already drops plane-less etapy, so counting the raw
   // list would offer a filter that can only empty the stage block.
-  const viewStages = stagesForView(stages, view)
-  const stageConditionCounts = STAGE_CONDITIONS.map(
-    (condition) =>
-      [
-        condition.id,
-        preview ? 0 : countMatchingStages(viewStages, condition.id, subcontractorDue),
-      ] as const,
+  const stageConditionCounts = useMemo(() => {
+    const viewStages = stagesForView(stages, view)
+    return STAGE_CONDITIONS.map(
+      (condition) =>
+        [
+          condition.id,
+          preview ? 0 : countMatchingStages(viewStages, condition.id, subcontractorDue),
+        ] as const,
+    )
+  }, [preview, stages, view, subcontractorDue])
+  const conditionCounts = useMemo(
+    () => new Map([...rowConditionCounts, ...stageConditionCounts]),
+    [rowConditionCounts, stageConditionCounts],
   )
-  const conditionCounts = new Map([...rowConditionCounts, ...stageConditionCounts])
 
-  const engagedStageConditionIds = preview
-    ? new Set<string>()
-    : engagedStageProblemIds(engagedConditionIds)
+  const engagedStageConditionIds = useMemo(
+    () => (preview ? new Set<string>() : engagedStageProblemIds(engagedConditionIds)),
+    [preview, engagedConditionIds],
+  )
 
-  const revealedByConditions = columnsRevealedBy(preview ? [] : engagedConditionIds)
-  const revealedColumnIds = aiReview
-    ? new Set([...revealedByConditions, ...AI_REVIEW_COLUMN_IDS])
-    : revealedByConditions
+  const revealedColumnIds = useMemo(() => {
+    const revealed = columnsRevealedBy(preview ? [] : engagedConditionIds)
+    return aiReview ? new Set([...revealed, ...AI_REVIEW_COLUMN_IDS]) : revealed
+  }, [preview, engagedConditionIds, aiReview])
 
   const divergenceFilterEngaged = !preview && engagedConditionIds.has(MEASURE_DIVERGED_CONDITION_ID)
 
-  const documentHiddenColumns = !preview
-    ? undefined
-    : worker
-      ? workerDataHiddenColumns(rows, stages, worker.settings.hidePlannedOnceExecuted)
-      : new Set([
-          ...(clientView?.hiddenColumns ?? []),
-          ...investorEmptyColumnIds(rows, stages, filledStageIds),
-        ])
+  const documentHiddenColumns = useMemo(() => {
+    if (!preview) return undefined
+    if (worker) {
+      return workerDataHiddenColumns(rows, stages, worker.settings.hidePlannedOnceExecuted)
+    }
+    return new Set([
+      ...(clientView?.hiddenColumns ?? []),
+      ...investorEmptyColumnIds(rows, stages, filledStageIds),
+    ])
+  }, [preview, worker, clientView, rows, stages, filledStageIds])
 
   const onAddItem = editorOnly(handleAddItem)
   const gridDictionary = useTranslation('grid')
@@ -472,63 +515,95 @@ export function useKosztorysEditor({
   )
   if (reconcileSort(sort, renderedFieldIds) !== sort) setSort(null)
 
-  const documentRows = preview ? applyRowConditions(rows, engagedConditionIds, conditionCtx) : rows
+  const documentRows = useMemo(
+    () => (preview ? applyRowConditions(rows, engagedConditionIds, conditionCtx) : rows),
+    [preview, rows, engagedConditionIds, conditionCtx],
+  )
 
-  const subtotals = sectionSubtotalsForView(documentRows, stages, view)
-  const foldableSectionIds = preview
-    ? new Map<string, Set<number>>()
-    : new Map(
-        ROW_CONDITIONS.filter(liftsToSections).map((condition) => [
-          condition.id,
-          sectionIdsWhereAllMatch(rows, condition.id, conditionCtx),
-        ]),
-      )
+  const subtotals = useMemo(
+    () => sectionSubtotalsForView(documentRows, stages, view),
+    [documentRows, stages, view],
+  )
+  const foldableSectionIds = useMemo(
+    () =>
+      preview
+        ? new Map<string, Set<number>>()
+        : new Map(
+            ROW_CONDITIONS.filter(liftsToSections).map((condition) => [
+              condition.id,
+              sectionIdsWhereAllMatch(rows, condition.id, conditionCtx),
+            ]),
+          ),
+    [preview, rows, conditionCtx],
+  )
 
-  const latchedConditions = engagedLatchingIds(engagedConditionIds)
+  const latchedConditions = useMemo(
+    () => engagedLatchingIds(engagedConditionIds),
+    [engagedConditionIds],
+  )
   const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
     latchedConditions,
     latchedConditions.size > 0,
   )
-  const viewRows = buildViewRows({
-    rows,
-    search,
-    engagedConditionIds,
-    sort,
-    view,
-    ...conditionCtx,
-    latchedRowIds: latch?.ids,
-  })
-  if (latch) for (const row of viewRows) latch.ids.add(row.id)
-  const ordinalByRowId = baseOrdinals(documentRows)
+  const viewRows = useMemo(() => {
+    const next = buildViewRows({
+      rows,
+      search,
+      engagedConditionIds,
+      sort,
+      view,
+      ...conditionCtx,
+      latchedRowIds: latch?.ids,
+    })
+    if (latch) for (const row of next) latch.ids.add(row.id)
+    return next
+  }, [rows, search, engagedConditionIds, sort, view, conditionCtx, latch])
+  const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
   // Recognised ids only: a persisted id from a since-removed condition narrows nothing and shows no
   // chip, so counting it would hide every itemless band with no way for the owner to get them back.
   const showItemless =
     !preview &&
     search.trim() === '' &&
     !ROW_CONDITIONS.some((condition) => engagedConditionIds.has(condition.id))
-  const totalNet = subtotals.reduce((s, x) => s + x.net, 0)
+  const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
   // Rounded, not raw: each rabat is a percent of a gross, so
   // summing hundreds surfaces error around the 11th digit and this is typed into the kwota field as text.
-  const perItemDiscountTotal = roundToCents(subtotals.reduce((s, x) => s + x.discount, 0))
-  const itemsWithDiscountCount = rows.filter((r) => r.discountValue > 0).length
-  const stageTotals = stageAxisForView(rows, stages, view).net
-  const columnTotals = columnTotalsForRows(
-    rows,
-    stages,
-    view,
-    tree.vatRate,
-    worker?.executedQtyByItem,
+  const perItemDiscountTotal = useMemo(
+    () => roundToCents(subtotals.reduce((s, x) => s + x.discount, 0)),
+    [subtotals],
   )
-  const sectionColumnTotals = new Map(
-    [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
-      sectionId,
-      columnTotalsForRows(rowsOfSection, stages, view, tree.vatRate, worker?.executedQtyByItem),
-    ]),
+  const itemsWithDiscountCount = useMemo(
+    () => rows.filter((r) => r.discountValue > 0).length,
+    [rows],
   )
-  const progressSubtotals = sectionSubtotalsForView(rows, stages, 'client')
+  const stageTotals = useMemo(() => stageAxisForView(rows, stages, view).net, [rows, stages, view])
+  const columnTotals = useMemo(
+    () => columnTotalsForRows(rows, stages, view, tree.vatRate, worker?.executedQtyByItem),
+    [rows, stages, view, tree.vatRate, worker?.executedQtyByItem],
+  )
+  const sectionColumnTotals = useMemo(
+    () =>
+      new Map(
+        [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
+          sectionId,
+          columnTotalsForRows(rowsOfSection, stages, view, tree.vatRate, worker?.executedQtyByItem),
+        ]),
+      ),
+    [rows, stages, view, tree.vatRate, worker?.executedQtyByItem],
+  )
+  const progressSubtotals = useMemo(
+    () => sectionSubtotalsForView(rows, stages, 'client'),
+    [rows, stages],
+  )
   const { doneNet, laborCostsNetFromKosztorys, discountNetFromKosztorys, globalDiscountNet } =
-    clientTotalsFromSubtotals(progressSubtotals, globalDiscount)
-  const currentPlannedNet = progressSubtotals.reduce((s, x) => s + x.currentPlannedNet, 0)
+    useMemo(
+      () => clientTotalsFromSubtotals(progressSubtotals, globalDiscount),
+      [progressSubtotals, globalDiscount],
+    )
+  const currentPlannedNet = useMemo(
+    () => progressSubtotals.reduce((s, x) => s + x.currentPlannedNet, 0),
+    [progressSubtotals],
+  )
 
   const laborCostsNet = doneNet - globalDiscountNet
 
