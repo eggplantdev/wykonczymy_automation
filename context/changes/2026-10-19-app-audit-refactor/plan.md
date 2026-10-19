@@ -661,10 +661,10 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [ ] 2.1 Register-toggle DB spec passes and failed before the fix
-- [ ] 2.2 `toggle-active.test.ts` passes
-- [ ] 2.3 `BalanceCell` spec passes (or finding dismissed)
-- [ ] 2.4 Cycle count below the Phase 1 baseline
+- [x] 2.1 Register-toggle DB spec passes and failed before the fix — 05cb76595
+- [x] 2.2 `toggle-active.test.ts` passes — 05cb76595
+- [x] 2.3 `BalanceCell` spec passes (or finding dismissed) — 134b6123d
+- [x] 2.4 Cycle count below the Phase 1 baseline — d0f94af0f
 
 ### Phase 3: `lib/*` mechanical cleanups
 

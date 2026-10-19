@@ -71,3 +71,24 @@ Cycles after the phase: 45 (−1).
 - [x] · fixed · `CYCLE` · `src/components/ui/column-order-dialog.tsx:13` ↔
       `src/components/ui/column-toggle-menu.tsx:14` · `ColumnToggleItemT` moved to
       `src/lib/table/column-order.ts` beside `ColumnRanksT`
+
+## Phase 2 — Access fixes (2026-10-19)
+
+Cycles after the phase: 42 (−3).
+
+- [x] · fixed · `ACCESS` · `src/lib/actions/toggle-active.ts:86` · `toggleCashRegisterActive` refuses
+      every non-ADMIN/OWNER actor before the write (owner decision); `toggle-active.db.test.ts` failed
+      first. `/kasy` renders the status badge read-only to MANAGER (`ActiveToggleBadge` without
+      `onToggle`)
+- [x] · fixed · `ACCESS` · `src/app/(frontend)/kasa/[id]/page.tsx:25` · `requireAuth` +
+      `notFound()` replaced by `requireManagementPage`, so an EMPLOYEE lands on his own page; the
+      `canViewRegister` 404 for MANAGER on a MAIN register stays
+- [x] · fixed · `ACCESS` · `src/lib/actions/sheets-sync.ts` · `removeTransferFromSheet`,
+      `syncSingleTransferToSheet`, `syncBulkExpensesToSheet` moved with the tab specs to
+      `src/lib/google/transfer-sheet-sync.ts`, so they are no longer unauthenticated action endpoints;
+      `sheets-sync.ts` exports only the wrapped actions
+- [x] · fixed · `BUG` · `src/components/ui/balance-cell.tsx:11` · sign colour tested the raw amount, so
+      a −0.004 residue printed „0,00 zł" in red; now tests `roundToCents(value)`. DOM spec failed
+      first. Not `signedMoneyColor`: it paints positives green, which `BalanceCell` never did
+- [x] · fixed · `BUG` · `src/components/forms/settle-payouts-form/settle-payouts-table.tsx:197` ·
+      the „Pozostało" column had the same raw-sign test; rounded the same way
