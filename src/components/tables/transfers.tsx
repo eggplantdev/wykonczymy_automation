@@ -10,6 +10,7 @@ import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
+import { OrderStatusBadge } from '@/components/orders/order-status-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import {
   canCancelTransfer,
@@ -25,6 +26,7 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import {
   transferAmountText,
   transferPaymentMethodText,
+  transferOrderStatusText,
   transferPayoutStatusText,
   transferTypeText,
   transferVatPlaneText,
@@ -37,7 +39,11 @@ const col = createColumnHelper<TransferRowT>()
 // follow the link into a 404.
 const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
-const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: boolean) => {
+const buildColumns = (
+  translator: TranslatorT<'transfers'>,
+  uncoloredAmounts: boolean,
+  canFlipOrder: (row: TransferRowT) => boolean,
+) => {
   const { t } = translator
   return [
     col.accessor('id', {
@@ -235,6 +241,25 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       meta: { minWidth: 'min-w-56', printValue: (row) => row.payoutRejectionReason ?? '' },
       cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
     }),
+    col.accessor('orderStatus', {
+      id: 'orderStatus',
+      header: t('colOrderStatus'),
+      meta: { printValue: (row) => transferOrderStatusText(row, translator) },
+      cell: (info) => {
+        const row = info.row.original
+        return (
+          row.orderStatus && (
+            <OrderStatusBadge
+              transferId={row.id}
+              status={row.orderStatus}
+              cancelled={row.cancelled}
+              canFlip={canFlipOrder(row)}
+              translator={translator}
+            />
+          )
+        )
+      },
+    }),
     col.accessor('createdByName', {
       id: 'createdBy',
       header: t('colCreatedBy'),
@@ -276,6 +301,10 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   const lockedInvestmentIds = new Set(
     referenceData?.investments.filter((i) => !isBookableInvestment(i)).map((i) => i.id) ?? [],
   )
+  const isOnLockedInvestment = (row: TransferRowT) =>
+    row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
+  const canFlipOrder = (row: TransferRowT) =>
+    currentUserRole !== undefined && isManagementRole(currentUserRole) && !isOnLockedInvestment(row)
 
   const actionsColumn = col.display({
     id: 'actions',
@@ -286,7 +315,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
       if (row.cancelled || isCancellationType(row.type)) return null
 
       // Courtesy, not a gate — the collection hook refuses either write regardless.
-      const lockedInvestment = row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
+      const lockedInvestment = isOnLockedInvestment(row)
 
       const actor =
         currentUserRole && currentUserId !== undefined
@@ -321,7 +350,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
   // database has nothing to order by and the click would silently sort one page.
   const columns: ColumnDef<TransferRowT, unknown>[] = [
-    ...buildColumns(translator, uncoloredAmounts),
+    ...buildColumns(translator, uncoloredAmounts, canFlipOrder),
     actionsColumn,
   ]
     .map((column) =>

@@ -729,13 +729,13 @@ See each phase's Manual Verification. They roll into `context/foundation/manual-
 
 #### Automated
 
-- [x] 4.1 Order helpers unit specs pass
-- [x] 4.2 Order flag DB spec passes
-- [x] 4.3 Order dialog DOM spec passes
+- [x] 4.1 Order helpers unit specs pass — c15241b4a
+- [x] 4.2 Order flag DB spec passes — c15241b4a
+- [x] 4.3 Order dialog DOM spec passes — c15241b4a
 
 ### Phase 5: Order status — display and flip
 
 #### Automated
 
-- [ ] 5.1 Order status flip DB spec passes
-- [ ] 5.2 Order status badge DOM spec passes
+- [x] 5.1 Order status flip DB spec passes
+- [x] 5.2 Order status badge DOM spec passes
