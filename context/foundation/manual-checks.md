@@ -1416,6 +1416,14 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
 - [ ] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.
 
+## 2026-10-19 — investment-notes-save — zapis notatki nie czyści adresu inwestycji
+
+- [ ] Inwestycja z wpisanym kodem pocztowym, miastem i krajem → „Edytuj notatkę”, zmień tekst,
+      „Zapisz”: notatka się zmienia, a po odświeżeniu „Edytuj inwestycję” wciąż pokazuje kod
+      pocztowy, miasto i kraj.
+- [ ] Ta sama zmiana notatki z zakładki inwestycji w podsumowaniu kosztorysu: zapis działa, adres
+      zostaje.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

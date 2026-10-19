@@ -175,8 +175,8 @@ export async function setInvestmentStatusAction(id: number, status: InvestmentSt
 
 const aiStageSchema = z.enum(INVESTMENT_AI_STAGES).nullable()
 
-// the edit form and the notes save send the whole
-// record, and a stage riding along would be overwritten from a stale copy.
+// the edit form sends the whole record, and a stage riding along would be overwritten from a stale
+// copy.
 export async function setInvestmentAiStageAction(id: number, aiStage: InvestmentAiStageT | null) {
   return protectedAction(
     'setInvestmentAiStageAction',
@@ -185,6 +185,25 @@ export async function setInvestmentAiStageAction(id: number, aiStage: Investment
       if (!parsed.success) return parsed
 
       await payload.update({ collection: 'investments', id, data: { aiStage: parsed.data }, user })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}
+
+const notesSchema = z.string()
+
+// Through `updateInvestmentAction` a note would carry the rest of the record, and `investmentSchema`
+// blanks every field the caller leaves out.
+export async function setInvestmentNotesAction(id: number, notes: string) {
+  return protectedAction(
+    'setInvestmentNotesAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(notesSchema, notes)
+      if (!parsed.success) return parsed
+
+      await payload.update({ collection: 'investments', id, data: { notes: parsed.data }, user })
 
       return { success: true }
     },
