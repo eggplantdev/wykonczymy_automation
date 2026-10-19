@@ -608,9 +608,9 @@ Not run: the full suite, E2E and the build. The user asks for those explicitly.
 
 #### Automated
 
-- [ ] 1.1 `pnpm db:migrate:test` exits 0
-- [ ] 1.2 :3010 answers 200 on `/zaloguj`
-- [ ] 1.3 Registry triage recorded in the ledger (every open box assigned to a cell or marked out)
+- [x] 1.1 `pnpm db:migrate:test` exits 0 — retargeted to staging: `pnpm db:migrate:preview` exit 0
+- [x] 1.2 :3010 answers 200 on `/zaloguj` — retargeted: staging answers, QA logins work
+- [x] 1.3 Registry triage recorded in the ledger (every open box assigned to a cell or marked out)
 
 ### Phase 2: Stage A — EMPLOYEE + MANAGER
 
