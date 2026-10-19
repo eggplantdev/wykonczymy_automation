@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
@@ -53,6 +53,7 @@ const ROW: TransferRowT = {
   payoutStatus: null,
   payoutDecidedAt: null,
   payoutRejectionReason: null,
+  orderStatus: null,
 }
 
 beforeEach(() => {
@@ -61,7 +62,7 @@ beforeEach(() => {
 })
 
 describe('TransferCard column visibility', () => {
-  it('drops a label whose column the viewer hid once the stored choice lands after hydration', async () => {
+  it('shows a label whose column the viewer hid in the table view', async () => {
     localStorage.setItem('table-columns:transfers', JSON.stringify({ sourceRegister: false }))
 
     render(
@@ -69,13 +70,31 @@ describe('TransferCard column visibility', () => {
         <TransferDataTable
           data={[ROW]}
           paginationMeta={{ currentPage: 1, totalPages: 1, totalDocs: 1, limit: 100 }}
-          config={CONFIG}
+          config={{ ...CONFIG, duplicateFinder: true }}
         />
       </CurrentUserProvider>,
     )
 
-    await waitFor(() => expect(screen.getByText('Kasa docelowa:')).toBeInTheDocument())
-    await waitFor(() => expect(screen.queryByText('Kasa źródłowa:')).not.toBeInTheDocument())
+    expect(await screen.findByText('Kasa źródłowa:')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Kolumny/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Szukaj duplikatów/ })).not.toBeInTheDocument()
+  })
+
+  it('keeps the column and duplicate controls in the table view', async () => {
+    localStorage.setItem('transfers:view', 'table')
+
+    render(
+      <CurrentUserProvider user={{ id: 1, email: 'jan@test.invalid', name: 'Jan', role: 'OWNER' }}>
+        <TransferDataTable
+          data={[ROW]}
+          paginationMeta={{ currentPage: 1, totalPages: 1, totalDocs: 1, limit: 100 }}
+          config={{ ...CONFIG, duplicateFinder: true }}
+        />
+      </CurrentUserProvider>,
+    )
+
+    expect(await screen.findByRole('button', { name: /Kolumny/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Szukaj duplikatów/ })).toBeInTheDocument()
   })
 })
 

@@ -124,7 +124,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
 
     expect(await actions.trashCashRegisterAction(live)).toEqual({
       success: false,
-      error: 'Kasa nie istnieje.',
+      error: 'Brak uprawnień',
     })
     expect((await actions.restoreCashRegisterAction(trashed)).success).toBe(false)
     expect((await actions.deleteCashRegisterForeverAction(trashed, 'Główna w koszu')).success).toBe(
@@ -133,6 +133,39 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
 
     expect(await trashedAt(live)).toBeNull()
     expect(await trashedAt(trashed)).not.toBeNull()
+  })
+
+  it("refuses a MANAGER every action on another manager's kasa, and allows them on his own", async () => {
+    const managerId = await createTestUser(payload, {
+      name: 'Kosz Kas Manager',
+      email: 'kosz-kas-manager@test.local',
+      role: 'MANAGER',
+    })
+    const otherManagerId = await createTestUser(payload, {
+      name: 'Kosz Kas Inny Manager',
+      email: 'kosz-kas-other-manager@test.local',
+      role: 'MANAGER',
+    })
+    const othersLive = await createTestRegister(payload, otherManagerId, 'Cudza żywa')
+    const othersTrashed = await createTestRegister(payload, otherManagerId, 'Cudza w koszu')
+    const own = await createTestRegister(payload, managerId, 'Własna managera')
+    await actions.trashCashRegisterAction(othersTrashed)
+    Object.assign(authState, { userId: managerId, role: 'MANAGER' })
+
+    try {
+      expect((await actions.trashCashRegisterAction(othersLive)).success).toBe(false)
+      expect((await actions.restoreCashRegisterAction(othersTrashed)).success).toBe(false)
+      expect(
+        (await actions.deleteCashRegisterForeverAction(othersTrashed, 'Cudza w koszu')).success,
+      ).toBe(false)
+      expect(await trashedAt(othersLive)).toBeNull()
+      expect(await trashedAt(othersTrashed)).not.toBeNull()
+
+      expect(await actions.trashCashRegisterAction(own)).toEqual({ success: true })
+      expect(await trashedAt(own)).not.toBeNull()
+    } finally {
+      authState.userId = 1
+    }
   })
 
   it('refuses an EMPLOYEE every action', async () => {

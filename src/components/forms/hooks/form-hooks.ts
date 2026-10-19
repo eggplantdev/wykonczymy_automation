@@ -1,10 +1,6 @@
 import type { ReactNode } from 'react'
-import { createFormHook, createFormHookContexts } from '@tanstack/react-form'
-
-const { fieldContext, formContext, useFieldContext, useFormContext } = createFormHookContexts()
-
-import { useStore } from '@tanstack/react-form'
-
+import { createFormHook, useStore } from '@tanstack/react-form'
+import { fieldContext, formContext } from './form-context'
 import { FormCheckbox } from '../form-components/form-checkbox'
 import { FormCombobox } from '../form-components/form-combobox'
 import { FormCreatableCombobox } from '../form-components/form-creatable-combobox'
@@ -48,6 +44,6 @@ const { useAppForm, withForm } = createFormHook({
   formContext,
 })
 
-export { useFieldContext, useFormContext, useStore }
+export { useStore }
 
 export { useAppForm, withForm }

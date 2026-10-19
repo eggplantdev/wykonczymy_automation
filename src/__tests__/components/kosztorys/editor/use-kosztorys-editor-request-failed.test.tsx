@@ -5,28 +5,33 @@ import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { stackUndoRedo } from '@/__tests__/helpers/kosztorys-undo-redo'
-import { removeItemAction, updateItemFieldAction } from '@/lib/actions/kosztorys'
+import { removeItemAction, updateItemFieldAction } from '@/lib/actions/kosztorys-items'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/actions/kosztorys', () => ({
-  clearKosztorysAction: vi.fn(),
-  writeKosztorysLayoutAction: vi.fn(),
+vi.mock('@/lib/actions/kosztorys-items', () => ({
   addItemAction: vi.fn(),
-  addSectionAction: vi.fn(),
-  insertItemAction: vi.fn(),
-  insertSectionAction: vi.fn(),
   removeItemAction: vi.fn(),
-  removeSectionAction: vi.fn(),
   renumberKosztorysOrderAction: vi.fn(),
-  setStageProgressAction: vi.fn(),
   updateItemFieldAction: vi.fn(),
+  applyPercentDiscountToAllItemsAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/kosztorys-sections', () => ({
+  writeKosztorysLayoutAction: vi.fn(),
+  addSectionAction: vi.fn(),
+  insertSectionAction: vi.fn(),
+  removeSectionAction: vi.fn(),
   updateSectionFieldAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/kosztorys-settings', () => ({
+  clearKosztorysAction: vi.fn(),
   updateInvestmentCoeffsAction: vi.fn(),
   updateInvestmentGlobalDiscountAction: vi.fn(),
   updateInvestmentMaterialsNetRateAction: vi.fn(),
   updateInvestmentSettlementModeAction: vi.fn(),
   updateInvestmentVatAction: vi.fn(),
-  applyPercentDiscountToAllItemsAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/kosztorys-stages', () => ({
+  setStageProgressAction: vi.fn(),
 }))
 
 // The row-level handlers reach the grid only through the column opts, never the hook's return.

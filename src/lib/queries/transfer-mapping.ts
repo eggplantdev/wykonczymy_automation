@@ -2,6 +2,7 @@ import { getRelationName } from '@/lib/utils/get-relation-name'
 import { resolveId } from '@/lib/utils/resolve-id'
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
 import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { OrderStatusT } from '@/lib/constants/orders'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
 import { resolveInvoiceFiles } from '@/lib/media/invoice-field'
@@ -68,6 +69,7 @@ export type TransferDocT = {
   payoutStatus?: PayoutStatusT | null
   payoutDecidedAt?: string | null
   payoutRejectionReason?: string | null
+  orderStatus?: OrderStatusT | null
 }
 
 export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): TransferRowT {
@@ -98,6 +100,7 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
     payoutStatus: doc.payoutStatus ?? null,
     payoutDecidedAt: doc.payoutDecidedAt ?? null,
     payoutRejectionReason: doc.payoutRejectionReason ?? null,
+    orderStatus: doc.orderStatus ?? null,
     sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
     targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
     sourceRegisterTrashed: isTrashed(lookups.trashedCashRegisterIds, doc.sourceRegister),

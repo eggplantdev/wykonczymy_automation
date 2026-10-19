@@ -4,3 +4,4 @@ import { vi } from 'vitest'
 export const revalidateCollections = vi.fn()
 export const revalidateEntities = vi.fn()
 export const revalidateNotificationRecipients = vi.fn()
+export const revalidateOrderSettings = vi.fn()

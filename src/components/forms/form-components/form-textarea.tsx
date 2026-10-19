@@ -1,7 +1,7 @@
 import { Textarea } from '@/components/ui/textarea'
 import FormBase from './form-base'
 import { FormControlPropsT } from '../types/form-types'
-import { useFieldContext } from '../hooks/form-hooks'
+import { useFieldContext } from '../hooks/form-context'
 
 export function FormTextarea(props: FormControlPropsT & { rows?: number }) {
   const field = useFieldContext<string>()

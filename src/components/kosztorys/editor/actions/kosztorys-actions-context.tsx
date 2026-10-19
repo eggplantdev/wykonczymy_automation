@@ -8,19 +8,19 @@ import {
 import {
   useSavePresetAction,
   type SavePresetActionT,
-} from '@/components/kosztorys/editor/actions/save-preset-action'
+} from '@/components/kosztorys/editor/actions/use-save-preset-action'
 import {
   useSheetCompareAction,
   type SheetCompareActionT,
-} from '@/components/kosztorys/editor/actions/sheet-compare-action'
+} from '@/components/kosztorys/editor/actions/use-sheet-compare-action'
 import {
   useInvestorActions,
   type InvestorActionsT,
-} from '@/components/kosztorys/editor/actions/investor-actions'
+} from '@/components/kosztorys/editor/actions/use-investor-actions'
 import {
   useWorkerActions,
   type WorkerActionsT,
-} from '@/components/kosztorys/editor/actions/worker-actions'
+} from '@/components/kosztorys/editor/actions/use-worker-actions'
 import {
   useWorkerReportsAction,
   type WorkerReportsActionT,
@@ -28,9 +28,9 @@ import {
 import {
   useScanReportAction,
   type ScanReportActionT,
-} from '@/components/kosztorys/editor/actions/scan-report-action'
-import { useCleanItemTextsAction } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
-import { useFillTranslationsAction } from '@/components/kosztorys/editor/actions/fill-translations-action'
+} from '@/components/kosztorys/editor/actions/use-scan-report-action'
+import { useCleanItemTextsAction } from '@/components/kosztorys/editor/actions/use-clean-item-texts-action'
+import { useFillTranslationsAction } from '@/components/kosztorys/editor/actions/use-fill-translations-action'
 import type { TreeRewriteActionT } from '@/components/kosztorys/editor/actions/use-tree-rewrite-action'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { ScanReportDialog } from '@/components/worker-reports/scan-report-dialog'

@@ -6,6 +6,11 @@ import {
 } from '@/components/forms/cash-register-form/cash-register-schema'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import type { SessionUserT } from '@/types/auth'
+import {
+  FORBIDDEN_MESSAGE,
+  canHandRegisterTo,
+  findManageableRegister,
+} from '@/lib/cash-registers/register-scope'
 import { validateAction, protectedAction } from './run-action'
 
 /**
@@ -34,6 +39,10 @@ export async function createCashRegisterAction(data: CashRegisterFormDataT) {
       const parsed = validateAction(cashRegisterSchema, data)
       if (!parsed.success) return parsed
 
+      if (!(await canHandRegisterTo(payload, user, {}, parsed.data.owner))) {
+        return { success: false, error: FORBIDDEN_MESSAGE }
+      }
+
       await payload.create({
         collection: 'cash-registers',
         data: withinManagerScope(user, parsed.data, 'create'),
@@ -51,6 +60,12 @@ export async function updateCashRegisterAction(id: number, data: CashRegisterFor
     async ({ payload, user }) => {
       const parsed = validateAction(cashRegisterSchema, data)
       if (!parsed.success) return parsed
+
+      const found = await findManageableRegister(payload, user, id)
+      if (!('register' in found)) return found
+      if (!(await canHandRegisterTo(payload, user, found.register, parsed.data.owner))) {
+        return { success: false, error: FORBIDDEN_MESSAGE }
+      }
 
       await payload.update({
         collection: 'cash-registers',

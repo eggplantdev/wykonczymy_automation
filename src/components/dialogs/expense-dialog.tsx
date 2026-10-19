@@ -2,7 +2,7 @@
 
 import { Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 
@@ -16,7 +16,7 @@ export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
       formId="expense"
       className="sm:max-w-dialog-lg"
       trigger={
-        <Button variant="red" size="sm" aria-label="Wydatek">
+        <Button variant="redOutline" size="sm" aria-label="Wydatek">
           <Rocket />
           <span className="hidden lg:block">Wydatek </span>
         </Button>

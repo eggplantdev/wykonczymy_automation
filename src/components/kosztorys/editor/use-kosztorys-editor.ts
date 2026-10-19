@@ -1,24 +1,24 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import type { Column } from 'react-datasheet-grid'
 import { useDebouncedSave } from '@/components/kosztorys/editor/hooks/use-debounced-save'
 import { useStaleTreeRecovery } from '@/components/kosztorys/editor/hooks/use-stale-tree-recovery'
 import { useExternalChangeReload } from '@/components/kosztorys/editor/hooks/use-external-change-reload'
 import { useWorkerReportAcceptance } from '@/components/kosztorys/editor/hooks/use-worker-report-acceptance'
+import { useEditorRows } from '@/components/kosztorys/editor/hooks/use-editor-rows'
+import { useUndoBursts } from '@/components/kosztorys/editor/hooks/use-undo-bursts'
+import { useSectionCrud } from '@/components/kosztorys/editor/hooks/use-section-crud'
+import { useItemOps } from '@/components/kosztorys/editor/hooks/use-item-ops'
+import { useCatalogueOps } from '@/components/kosztorys/editor/hooks/use-catalogue-ops'
+import { useGridChangePipeline } from '@/components/kosztorys/editor/hooks/use-grid-change-pipeline'
 import {
-  coalesceFieldChanges,
-  coalesceStageChanges,
-  foldRetractions,
   undoAvailability,
   type FieldChangeT,
-  type GridBurstT,
   type StageChangeT,
 } from '@/lib/kosztorys/undo-coalesce'
-import { planGridChanges } from '@/lib/kosztorys/grid-change-plan'
-import { itemFieldLane, stageLane } from '@/lib/kosztorys/save-lanes'
 import { buildReversalPatches, planReversalWrites } from '@/lib/kosztorys/undo-reversal'
-import type { UndoCommandT, UndoRedoApiT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
+import type { UndoRedoApiT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-widths'
@@ -39,17 +39,7 @@ import { useMoneyAxis } from '@/components/kosztorys/editor/hooks/use-money-axis
 import { effectiveMoneyAxis } from '@/lib/kosztorys/money-axis'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
-import { treeToRows } from '@/lib/kosztorys/v2-rows'
-import {
-  applyAddItem,
-  applyInsertItem,
-  applyRemoveItem,
-  applyRestoreItem,
-  applyKosztorysOrder,
-  catalogueSlicePlacement,
-  groupBySection,
-  revertField,
-} from '@/lib/kosztorys/row-ops'
+import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
@@ -59,7 +49,6 @@ import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { buildViewRows } from '@/lib/kosztorys/row-view'
-import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import {
   applyRowConditions,
   clientConditionIds,
@@ -78,45 +67,19 @@ import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { hasPlannedDiscount, investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { baseOrdinals } from '@/lib/kosztorys/section-band-rows'
-import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
-import { planKosztorysRenumber } from '@/lib/kosztorys/display-order-plan'
+import { reconcileSort } from '@/lib/kosztorys/columns/sort-value'
 import type { InvestmentLockT } from '@/lib/constants/investment-lock'
-import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
-import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
-import {
-  insertSection,
-  orderRowsBySections,
-  patchSection,
-  removeSection,
-  restoreSection,
-  treeToSections,
-} from '@/lib/kosztorys/section-list'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import { sectionFooterRowId, sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import { settleAction } from '@/lib/utils/settle-action'
-import { setStageProgressAction } from '@/lib/actions/kosztorys'
+import { setStageProgressAction } from '@/lib/actions/kosztorys-stages'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
-import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosztorys'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
-import { applyReviewRules, hasAiDraft } from '@/lib/kosztorys/review-status'
-import type {
-  ItemPatchT,
-  KosztorysItemT,
-  KosztorysTreeT,
-  KosztorysV2RowT,
-  NewItemPlacementT,
-  SectionMetaT,
-} from '@/lib/kosztorys/types'
-import type {
-  CatalogueNameT,
-  SeedConflictFieldT,
-  WorkCatalogueItemT,
-} from '@/lib/kosztorys/work-catalogue/types'
+import { hasAiDraft } from '@/lib/kosztorys/review-status'
+import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
-import { mergeTranslations } from '@/lib/i18n/description-translations'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -143,9 +106,6 @@ export type PreviewSeamsT = {
   initialRowPatch: (rows: KosztorysV2RowT[]) => KosztorysV2RowT[]
   onPreviewChange: (stageChanges: StageChangeT[]) => void
 }
-
-// Longer than the debounced save (500ms) so a burst is captured only once its writes are scheduled.
-const UNDO_COALESCE_MS = 700
 
 const NO_ROW_IDS: ReadonlySet<number> = new Set()
 
@@ -175,10 +135,8 @@ export function useKosztorysEditor({
   const { save, runNow, drain, drainAll } = useDebouncedSave(500, recoverStaleTree)
   const { push, undo, redo, canUndo, canRedo, pruneByIds, amendTop } = undoRedo
   const [gridRef, gridHeight, gridNode] = useElementHeight()
-  const [rows, setRows] = useState<KosztorysV2RowT[]>(() =>
-    seams ? seams.initialRowPatch(treeToRows(tree)) : treeToRows(tree),
-  )
-  const [sections, setSections] = useState<SectionMetaT[]>(() => treeToSections(tree))
+  const editorRows = useEditorRows(tree, seams?.initialRowPatch)
+  const { rows, rowsRef, patchRows, revertOne } = editorRows
   const documentSettings = worker?.settings ?? clientView
   const aiDraft = useMemo(() => hasAiDraft(rows), [rows])
   const {
@@ -240,18 +198,6 @@ export function useKosztorysEditor({
   const [layer, setLayer] = useLayer()
   const [storedCrewAxis, setCrewAxis] = useCrewAxis()
   const crewAxis = effectiveCrewAxis(view, storedCrewAxis)
-  const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
-  const rowsRef = useRef(rows)
-
-  // eslint-disable-next-line react-hooks/refs
-  rowsRef.current = rows
-  const sectionsRef = useRef(sections)
-  // eslint-disable-next-line react-hooks/refs
-  sectionsRef.current = sections
-  // A ref, not state: opening the dialog must not re-render the grid.
-  const newItemDialogRef = useRef<
-    ((placement: NewItemPlacementT, description?: string) => void) | null
-  >(null)
 
   const { stages, adoptStage, handleAddStage, stageOps } = useKosztorysStageOps({
     investmentId,
@@ -268,96 +214,37 @@ export function useKosztorysEditor({
   })
   const { isStageOff, toggleStage, setStagesHidden } = useHiddenStages(investmentId, stages)
 
-  const pendingFields = useRef<FieldChangeT[]>([])
-  const pendingStages = useRef<StageChangeT[]>([])
-  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [hasPendingBurst, setHasPendingBurst] = useState(false)
-
-  const lastGridCommand = useRef<{ command: UndoCommandT; burst: GridBurstT } | null>(null)
-
-  function gridCommand({ fields, stages }: GridBurstT): UndoCommandT | null {
-    if (fields.length === 0 && stages.length === 0) return null
-    return {
-      label: 'Edycja',
-      undo: () => runGridReversal(fields, stages, 'undo'),
-      redo: () => runGridReversal(fields, stages, 'redo'),
-      touchedIds: [...new Set([...fields.map((c) => c.id), ...stages.map((c) => c.id)])],
-    }
-  }
-
-  function flushUndoBuffer() {
-    if (flushTimer.current) {
-      clearTimeout(flushTimer.current)
-      flushTimer.current = null
-    }
-    let burst: GridBurstT = {
-      fields: coalesceFieldChanges(pendingFields.current),
-      stages: coalesceStageChanges(pendingStages.current),
-    }
-    pendingFields.current = []
-    pendingStages.current = []
-    setHasPendingBurst(false)
-
-    const previous = lastGridCommand.current
-    if (previous) {
-      const folded = foldRetractions(previous.burst, burst)
-      if (folded.retracted) {
-        const trimmed = gridCommand(folded.previous)
-        if (amendTop(previous.command, trimmed)) {
-          lastGridCommand.current = trimmed ? { command: trimmed, burst: folded.previous } : null
-          burst = folded.next
-        }
-      }
-    }
-
-    const command = gridCommand(burst)
-    if (!command) return
-    push(command)
-    lastGridCommand.current = { command, burst }
-  }
-
-  function clearBurstIfEmpty() {
-    if (pendingFields.current.length > 0 || pendingStages.current.length > 0) return
-    if (flushTimer.current) {
-      clearTimeout(flushTimer.current)
-      flushTimer.current = null
-    }
-    setHasPendingBurst(false)
-  }
-
-  function dropPendingField(id: number, field: keyof ItemPatchT) {
-    pendingFields.current = pendingFields.current.filter((c) => !(c.id === id && c.field === field))
-    clearBurstIfEmpty()
-  }
-
-  function dropPendingStage(id: number, stageId: number) {
-    pendingStages.current = pendingStages.current.filter(
-      (c) => !(c.id === id && c.stageId === stageId),
-    )
-    clearBurstIfEmpty()
-  }
-
-  useEffect(() => {
-    return () => {
-      if (flushTimer.current) clearTimeout(flushTimer.current)
-    }
-  }, [])
-
-  // Flush any buffering grid edit first, so a burst typed just before keeps its LIFO place on the stack.
-  function pushCommand(cmd: Parameters<typeof push>[0]) {
-    flushUndoBuffer()
-    push(cmd)
-  }
-
-  function pushReversible<T>(
-    label: string,
-    apply: (state: T) => void,
-    before: T,
-    after: T,
-    touchedIds?: number[],
+  async function runGridReversal(
+    fields: FieldChangeT[],
+    stages: StageChangeT[],
+    dir: 'undo' | 'redo',
   ) {
-    pushCommand({ label, undo: () => apply(before), redo: () => apply(after), touchedIds })
+    const patchById = buildReversalPatches(fields, stages, dir)
+
+    patchRows(
+      (r) => patchById.has(r.id),
+      (r) => ({ ...r, ...patchById.get(r.id) }) as KosztorysV2RowT,
+    )
+    await Promise.all(
+      planReversalWrites(fields, stages, dir).map((w) =>
+        w.kind === 'field'
+          ? runNow(
+              w.lane,
+              () => actions.updateItemField(w.id, { [w.field]: w.value } as ItemPatchT),
+              () => revertOne(w.id, w.field as keyof KosztorysV2RowT, w.restore, w.value),
+            )
+          : runNow(
+              w.lane,
+              () => setStageProgressAction(w.id, w.stageId, w.value),
+              () =>
+                revertOne(w.id, stageKey(w.stageId) as keyof KosztorysV2RowT, w.restore, w.value),
+            ),
+      ),
+    )
   }
+
+  const undoBursts = useUndoBursts({ push, amendTop, reverse: runGridReversal })
+  const { hasPendingBurst, flushUndoBuffer, pushCommand, pushReversible } = undoBursts
 
   const {
     globalDiscount,
@@ -372,8 +259,75 @@ export function useKosztorysEditor({
     handleApplyPercentDiscount,
   } = useKosztorysSettings({ investmentId, tree, rowsRef, patchRows, pushReversible })
 
+  const sectionCrud = useSectionCrud({
+    investmentId,
+    tree,
+    stages,
+    globalDiscount,
+    sort,
+    editorRows,
+    actions,
+    save,
+    runNow,
+    reportFailure,
+    recoverStaleTree,
+    flushUndoBuffer,
+    pruneByIds,
+    pushReversible,
+    dropHeight,
+    unfoldSection,
+  })
+  const {
+    sections,
+    handleInsertSection,
+    handleAddSection,
+    handleAppendedSections,
+    handleAppendedCatalogueItems,
+    handleRemoveSection,
+    handleSetSectionColor,
+    handleRenameSection,
+  } = sectionCrud
+  const {
+    newItemDialogRef,
+    handleAddItem,
+    handleInsertItem,
+    placeNewItem,
+    handleRemoveItem,
+    handlePersistKosztorysOrder,
+  } = useItemOps({
+    investmentId,
+    stages,
+    sort,
+    view,
+    editorRows,
+    sectionCrud,
+    actions,
+    reportFailure,
+    flushUndoBuffer,
+    pushCommand,
+    pruneByIds,
+    dropHeight,
+    unfoldSection,
+  })
+  const { handleApplyCatalogueToItems, handleAcceptCatalogueName } = useCatalogueOps({
+    investmentId,
+    editorRows,
+    actions,
+  })
+  const { onChange } = useGridChangePipeline({
+    preview,
+    aiDraft,
+    onPreviewChange: seams?.onPreviewChange,
+    editorRows,
+    actions,
+    save,
+    undoBursts,
+  })
+
   const editorOnly = <T>(handler: T): T | undefined => (readOnly ? undefined : handler)
 
+  // Hand-memoized below: the compiler merges these row scans into one scope spanning the hook calls and
+  // drops its cache, so every render — several per keystroke — would rescan ~1000 pozycji.
   const subcontractorDue = useMemo(() => subcontractorDueByPlane(rows, stages), [rows, stages])
 
   const marginForecastByPlane = useMemo(
@@ -391,14 +345,17 @@ export function useKosztorysEditor({
   // The coefficients come from a ROW, not from `tree`:
   // the owner changes them mid-session and the settings hook patches them onto the rows,
   // while `tree` still carries what the server last served.
-  const catalogueComparison = useMemo(() => {
-    if (preview || !workCatalogue || rows.length === 0) return null
-    return buildCatalogueComparison(rows, workCatalogue, {
-      wToolsCoeff: rows[0].globalWToolsCoeff,
-      ownToolsCoeff: rows[0].globalOwnToolsCoeff,
-      linkedRowsAreCatalogue: isTemplate,
-    })
-  }, [preview, rows, workCatalogue, isTemplate])
+  const catalogueComparison = useMemo(
+    () =>
+      preview || !workCatalogue || rows.length === 0
+        ? null
+        : buildCatalogueComparison(rows, workCatalogue, {
+            wToolsCoeff: rows[0].globalWToolsCoeff,
+            ownToolsCoeff: rows[0].globalOwnToolsCoeff,
+            linkedRowsAreCatalogue: isTemplate,
+          }),
+    [preview, rows, workCatalogue, isTemplate],
+  )
 
   const catalogueRowIds = useMemo(
     () =>
@@ -567,15 +524,18 @@ export function useKosztorysEditor({
     () => sectionSubtotalsForView(documentRows, stages, view),
     [documentRows, stages, view],
   )
-  const foldableSectionIds = useMemo(() => {
-    if (preview) return new Map<string, Set<number>>()
-    return new Map(
-      ROW_CONDITIONS.filter(liftsToSections).map((condition) => [
-        condition.id,
-        sectionIdsWhereAllMatch(rows, condition.id, conditionCtx),
-      ]),
-    )
-  }, [preview, rows, conditionCtx])
+  const foldableSectionIds = useMemo(
+    () =>
+      preview
+        ? new Map<string, Set<number>>()
+        : new Map(
+            ROW_CONDITIONS.filter(liftsToSections).map((condition) => [
+              condition.id,
+              sectionIdsWhereAllMatch(rows, condition.id, conditionCtx),
+            ]),
+          ),
+    [preview, rows, conditionCtx],
+  )
 
   const latchedConditions = useMemo(
     () => engagedLatchingIds(engagedConditionIds),
@@ -647,207 +607,6 @@ export function useKosztorysEditor({
 
   const laborCostsNet = doneNet - globalDiscountNet
 
-  function revertOne(
-    id: number,
-    field: keyof KosztorysV2RowT,
-    prevVal: unknown,
-    attempted: unknown,
-  ) {
-    setRows((rs) => revertField(rs, id, field, prevVal, attempted))
-    const snap = prevById.current.get(id)
-    if (snap && snap[field] === attempted) {
-      prevById.current.set(id, { ...snap, [field]: prevVal } as KosztorysV2RowT)
-    }
-  }
-
-  async function runGridReversal(
-    fields: FieldChangeT[],
-    stages: StageChangeT[],
-    dir: 'undo' | 'redo',
-  ) {
-    const patchById = buildReversalPatches(fields, stages, dir)
-
-    patchRows(
-      (r) => patchById.has(r.id),
-      (r) => ({ ...r, ...patchById.get(r.id) }) as KosztorysV2RowT,
-    )
-    await Promise.all(
-      planReversalWrites(fields, stages, dir).map((w) =>
-        w.kind === 'field'
-          ? runNow(
-              w.lane,
-              () => actions.updateItemField(w.id, { [w.field]: w.value } as ItemPatchT),
-              () => revertOne(w.id, w.field as keyof KosztorysV2RowT, w.restore, w.value),
-            )
-          : runNow(
-              w.lane,
-              () => setStageProgressAction(w.id, w.stageId, w.value),
-              () =>
-                revertOne(w.id, stageKey(w.stageId) as keyof KosztorysV2RowT, w.restore, w.value),
-            ),
-      ),
-    )
-  }
-
-  // Latest-value write alongside the state, so a second section gesture before the next render reads
-  // the list the first one produced.
-  function commitSections(next: SectionMetaT[]) {
-    sectionsRef.current = next
-    setSections(next)
-  }
-
-  function sectionMeta(sectionId: number) {
-    return sectionsRef.current.find((section) => section.sectionId === sectionId)
-  }
-
-  function handleAddItem(sectionId: number, description?: string) {
-    newItemDialogRef.current?.({ kind: 'end', sectionId }, description)
-  }
-
-  function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
-    if (!orderCommandsEnabled(sort)) return
-    newItemDialogRef.current?.({ kind: 'next-to', anchorItemId: anchorRow.id, dir })
-  }
-
-  function placeNewItem(item: KosztorysItemT, placement: NewItemPlacementT) {
-    const meta = sectionMeta(item.sectionId)
-    const [row] = rowsFromSections([
-      {
-        id: item.sectionId,
-        name: meta?.sectionName ?? DEFAULT_SECTION_NAME,
-        displayOrder: 0,
-        color: meta?.sectionColor ?? null,
-        items: [item],
-      },
-    ])
-    if (placement.kind === 'next-to') {
-      setRows((rs) => applyInsertItem(rs, placement.anchorItemId, row, placement.dir))
-    } else {
-      // Asked of the updater's rows, not rowsRef:
-      // a delete of the section's last pozycja can land while the dialog is open.
-      const order = sectionsRef.current
-      setRows((rs) => {
-        const next = applyAddItem(rs, row)
-        return rs.some((r) => r.sectionId === item.sectionId)
-          ? next
-          : orderRowsBySections(next, order)
-      })
-    }
-    unfoldSection(item.sectionId)
-  }
-
-  async function handleRemoveItem(row: KosztorysV2RowT) {
-    const rowsAtRemoval = rowsRef.current
-    const removedAt = rowsAtRemoval.findIndex((r) => r.id === row.id)
-    const afterId = removedAt > 0 ? rowsAtRemoval[removedAt - 1].id : null
-    prevById.current.delete(row.id)
-    dropHeight(String(row.id))
-    setRows((rs) => applyRemoveItem(rs, row.id))
-    // Flush first, then drop every stack command touching the deleted row — undoing one would write
-    // against a dead id, and `setStageProgressAction` (an absolute upsert) could recreate an orphan.
-    flushUndoBuffer()
-    pruneByIds([row.id])
-    const res = await settleAction(() => actions.removeItem(row.id))
-    if (!res.success) {
-      prevById.current.set(row.id, row)
-      setRows((rs) => applyRestoreItem(rs, row, afterId))
-      reportFailure(res.error, res.code)
-    }
-  }
-
-  async function runKosztorysRenumber(next: number[], revertTo: number[]) {
-    setRows((rs) => applyKosztorysOrder(rs, next))
-    const res = await settleAction(() => actions.renumberOrder(investmentId, next))
-    if (!res.success) {
-      setRows((rs) => applyKosztorysOrder(rs, revertTo))
-      reportFailure(res.error, res.code)
-    }
-  }
-
-  function handlePersistKosztorysOrder() {
-    if (!sort) return
-    const { before, after } = planKosztorysRenumber(
-      rowsRef.current,
-      sortValueGetter(sort.field, view, stages),
-      sort.dir,
-    )
-    if (after.length === 0) return
-    void runKosztorysRenumber(after, before)
-    pushCommand({
-      label: 'Zapisanie kolejności',
-      undo: () => void runKosztorysRenumber(before, after),
-      redo: () => void runKosztorysRenumber(after, before),
-      touchedIds: after,
-    })
-  }
-
-  function newSectionMeta(sectionId: number): SectionMetaT {
-    return { sectionId, sectionName: DEFAULT_SECTION_NAME, sectionColor: null }
-  }
-
-  async function handleInsertSection(anchorSectionId: number, dir: 'above' | 'below') {
-    if (!orderCommandsEnabled(sort)) return
-    const res = await settleAction(() => actions.insertSection(anchorSectionId, dir))
-    if (!res.success) return reportFailure(res.error, res.code)
-    const meta = newSectionMeta(res.data.section.id)
-    commitSections(insertSection(sectionsRef.current, meta, anchorSectionId, dir))
-  }
-
-  async function handleAddSection(): Promise<number | undefined> {
-    const res = await settleAction(() => actions.addSection(investmentId))
-    if (!res.success) {
-      reportFailure(res.error, res.code)
-      return undefined
-    }
-    const meta = newSectionMeta(res.data.section.id)
-    commitSections(insertSection(sectionsRef.current, meta, null))
-    return meta.sectionId
-  }
-
-  function rowsFromSections(treeSections: KosztorysTreeT['sections']) {
-    const built = treeToRows({
-      sections: treeSections,
-      stages,
-      progress: [],
-      globalCoeffs: tree.globalCoeffs,
-      vatRate: tree.vatRate,
-      settlementMode: tree.settlementMode,
-      materialsNetRate: tree.materialsNetRate,
-      globalDiscount,
-      revision: tree.revision,
-    })
-    for (const row of built) prevById.current.set(row.id, row)
-    return built
-  }
-
-  function handleAppendedSections(slice: KosztorysTreeT['sections']) {
-    const appended = rowsFromSections(slice)
-    commitSections([...sectionsRef.current, ...treeToSections({ sections: slice })])
-    setRows((rs) => [...rs, ...appended])
-  }
-
-  function handleAppendedCatalogueItems(
-    slice: KosztorysTreeT['sections'][number],
-    createdSection: boolean,
-  ) {
-    const placement = catalogueSlicePlacement(
-      new Set(sectionsRef.current.map((section) => section.sectionId)),
-      slice.id,
-      createdSection,
-    )
-    if (placement === 'reseed') return recoverStaleTree()
-    const appended = rowsFromSections([slice])
-    if (placement === 'prepend') {
-      const [meta] = treeToSections({ sections: [slice] })
-      commitSections(insertSection(sectionsRef.current, meta, null))
-      setRows((rs) => [...appended, ...rs])
-    } else {
-      const order = sectionsRef.current
-      setRows((rs) => orderRowsBySections(appended.reduce(applyAddItem, rs), order))
-    }
-    unfoldSection(slice.id)
-  }
-
   const { adoptRevision } = useExternalChangeReload({
     investmentId,
     revision: tree.revision,
@@ -871,197 +630,6 @@ export function useKosztorysEditor({
     adoptRevision,
     reportFailure,
   })
-
-  async function handleRemoveSection(sectionId: number) {
-    const removed = rowsRef.current
-      .filter((r) => r.sectionId === sectionId)
-      .map((r) => prevById.current.get(r.id) ?? r)
-    const meta = sectionMeta(sectionId)
-    const { next, index } = removeSection(sectionsRef.current, sectionId)
-    commitSections(next)
-    setRows((rs) => rs.filter((r) => r.sectionId !== sectionId))
-    dropHeight(
-      ...removed.map((r) => String(r.id)),
-      String(sectionHeaderRowId(sectionId)),
-      String(sectionFooterRowId(sectionId)),
-    )
-    for (const [id, r] of prevById.current) {
-      if (r.sectionId === sectionId) prevById.current.delete(id)
-    }
-    flushUndoBuffer()
-    pruneByIds([sectionHeaderRowId(sectionId), ...removed.map((r) => r.id)])
-    // collapsedSectionIds is left alone: an id whose section left the list folds nothing, and it keeps
-    // the fold state if the server rejects and the section comes back.
-    const res = await settleAction(() => actions.removeSection(sectionId))
-    if (!res.success) {
-      for (const r of removed) prevById.current.set(r.id, r)
-      const restored = meta ? restoreSection(sectionsRef.current, meta, index) : sectionsRef.current
-      commitSections(restored)
-      setRows((rs) => orderRowsBySections([...rs, ...removed], restored))
-      reportFailure(res.error, res.code)
-    }
-  }
-
-  const SECTION_ROW_FIELDS = { sectionName: 'name', sectionColor: 'color' } as const
-  type SectionRowFieldT = keyof typeof SECTION_ROW_FIELDS
-
-  function applySectionField<K extends SectionRowFieldT>(
-    sectionId: number,
-    rowKey: K,
-    value: SectionMetaT[K],
-    { immediate = false }: { immediate?: boolean } = {},
-  ) {
-    commitSections(patchSection(sectionsRef.current, sectionId, { [rowKey]: value }))
-    patchRows(
-      (r) => r.sectionId === sectionId,
-      (r) => ({ ...r, [rowKey]: value }),
-    )
-    const persist = immediate ? runNow : save
-    persist(`section-field:${sectionId}:${rowKey}`, () =>
-      actions.updateSectionField(sectionId, { [SECTION_ROW_FIELDS[rowKey]]: value }),
-    )
-  }
-
-  function handleSetSectionField<K extends SectionRowFieldT>(
-    sectionId: number,
-    rowKey: K,
-    value: SectionMetaT[K],
-    undoLabel: string,
-  ) {
-    const before = sectionMeta(sectionId)?.[rowKey]
-    if (before === undefined || before === value) return
-    applySectionField(sectionId, rowKey, value)
-    pushReversible(
-      undoLabel,
-      (v: SectionMetaT[K]) => applySectionField(sectionId, rowKey, v, { immediate: true }),
-      before,
-      value,
-      [sectionHeaderRowId(sectionId)],
-    )
-  }
-
-  function handleSetSectionColor(sectionId: number, color: SectionColorKeyT | null) {
-    handleSetSectionField(sectionId, 'sectionColor', color, 'Zmiana koloru sekcji')
-  }
-
-  function handleRenameSection(sectionId: number, name: string) {
-    handleSetSectionField(sectionId, 'sectionName', name, 'Zmiana nazwy sekcji')
-  }
-
-  async function handleApplyCatalogueToItems(
-    selections: { itemId: number; fields: SeedConflictFieldT[] }[],
-  ): Promise<boolean> {
-    const res = await settleAction(() => applyCatalogueToKosztorysAction(investmentId, selections))
-    if (!res.success) {
-      toastMessage(res.error, 'warning', 4000)
-      return false
-    }
-    const patchById = new Map(res.data.map(({ itemId, ...values }) => [itemId, values] as const))
-    patchRows(
-      (r) => patchById.has(r.id),
-      (r) => ({ ...r, ...patchById.get(r.id) }),
-    )
-    return true
-  }
-
-  /**
-   * Both or neither — the klucz is the pair, so writing the nazwa alone moves the praca from one
-   * „brak w katalogu" to another and the gesture looks like it did nothing.
-   */
-  async function handleAcceptCatalogueName(itemId: number, name: CatalogueNameT): Promise<boolean> {
-    const before = rowsRef.current.find((r) => r.id === itemId)
-    const patch = {
-      ...name,
-      descriptionTranslations: mergeTranslations(
-        before?.descriptionTranslations,
-        name.descriptionTranslations,
-        name.description,
-      ),
-    }
-    patchRows(
-      (r) => r.id === itemId,
-      (r) => ({ ...r, ...patch }),
-    )
-    const res = await settleAction(() => actions.updateItemField(itemId, patch))
-    if (!res.success) {
-      if (before)
-        patchRows(
-          (r) => r.id === itemId,
-          (r) => ({
-            ...r,
-            description: before.description,
-            unit: before.unit,
-            descriptionTranslations: before.descriptionTranslations,
-          }),
-        )
-      toastMessage(res.error, 'warning', 4000)
-      return false
-    }
-    return true
-  }
-
-  function patchRows(
-    match: (row: KosztorysV2RowT) => boolean,
-    patch: (row: KosztorysV2RowT) => KosztorysV2RowT,
-  ) {
-    setRows((rs) => rs.map((r) => (match(r) ? patch(r) : r)))
-    for (const [id, r] of prevById.current) {
-      if (match(r)) prevById.current.set(id, patch(r))
-    }
-  }
-
-  function applyPreviewChanges(
-    next: KosztorysV2RowT[],
-    onPreviewChange: PreviewSeamsT['onPreviewChange'],
-  ) {
-    const { stageChanges, changedById } = planGridChanges(next, prevById.current)
-    onPreviewChange(stageChanges)
-    for (const row of next) if (prevById.current.has(row.id)) prevById.current.set(row.id, row)
-    if (changedById.size > 0) setRows((master) => master.map((r) => changedById.get(r.id) ?? r))
-  }
-
-  function onChange(gridRows: KosztorysV2RowT[]) {
-    if (preview) {
-      if (seams) applyPreviewChanges(gridRows, seams.onPreviewChange)
-      return
-    }
-    const next = applyReviewRules(gridRows, prevById.current, aiDraft)
-    const { fieldChanges, stageChanges, changedById } = planGridChanges(next, prevById.current)
-    for (const c of fieldChanges) {
-      const key = c.field as keyof KosztorysV2RowT
-      save(
-        itemFieldLane(c.id, c.field),
-        () => actions.updateItemField(c.id, { [c.field]: c.after } as ItemPatchT),
-        () => {
-          revertOne(c.id, key, c.before, c.after)
-          dropPendingField(c.id, c.field)
-        },
-      )
-    }
-    for (const c of stageChanges) {
-      const key = stageKey(c.stageId) as keyof KosztorysV2RowT
-      save(
-        stageLane(c.id, c.stageId),
-        () => setStageProgressAction(c.id, c.stageId, c.after),
-        () => {
-          revertOne(c.id, key, c.before, c.after)
-          dropPendingStage(c.id, c.stageId)
-        },
-      )
-    }
-    for (const row of next) if (prevById.current.has(row.id)) prevById.current.set(row.id, row)
-    if (fieldChanges.length > 0 || stageChanges.length > 0) {
-      pendingFields.current.push(...fieldChanges)
-      pendingStages.current.push(...stageChanges)
-      setHasPendingBurst(true)
-      if (flushTimer.current) clearTimeout(flushTimer.current)
-      flushTimer.current = setTimeout(flushUndoBuffer, UNDO_COALESCE_MS)
-    }
-    if (changedById.size > 0) {
-      // Merge by id so filter/sort don't lose hidden rows.
-      setRows((master) => master.map((r) => changedById.get(r.id) ?? r))
-    }
-  }
 
   async function flushPendingSaves() {
     flushUndoBuffer()

@@ -1,7 +1,7 @@
 'use client'
 
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { updateInvestmentAction } from '@/lib/actions/investments'
 import { useReviewPromptStore } from '@/stores/review-prompt-store'

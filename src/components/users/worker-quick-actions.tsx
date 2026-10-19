@@ -6,7 +6,7 @@ import type { WorkerInvestmentLinkT } from '@/components/users/worker-investment
 import type { CashRegisterRefT } from '@/types/reference-data'
 
 // Wraps instead of overflowing: a uk/ru label is wider than half a 390px row.
-const ACTION_CLASS = 'h-auto min-h-14 whitespace-normal text-base'
+const ACTION_CLASS = 'h-auto min-h-11 whitespace-normal'
 
 type PropsT = {
   investmentLinks: WorkerInvestmentLinkT[]

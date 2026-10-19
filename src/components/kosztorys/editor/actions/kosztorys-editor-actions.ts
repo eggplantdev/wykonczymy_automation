@@ -10,24 +10,26 @@ import {
 } from '@/lib/actions/catalogue-to-kosztorys'
 import {
   addItemAction,
-  addSectionAction,
-  clearKosztorysAction,
-  insertSectionAction,
   removeItemAction,
-  removeSectionAction,
   renumberKosztorysOrderAction,
   updateItemFieldAction,
+} from '@/lib/actions/kosztorys-items'
+import {
+  addSectionAction,
+  insertSectionAction,
+  removeSectionAction,
   updateSectionFieldAction,
   writeKosztorysLayoutAction,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-sections'
+import { clearKosztorysAction } from '@/lib/actions/kosztorys-settings'
 import {
-  listSnapshotsAction,
   restoreSnapshotAction,
   saveSnapshotAction,
   snapshotAction,
 } from '@/lib/actions/kosztorys-snapshots'
 import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 import { readKosztorysRevision } from '@/lib/queries/kosztorys-revision'
+import { fetchKosztorysSnapshots } from '@/lib/queries/snapshot-list'
 
 export const kosztorysEditorActions: EditorActionsT = {
   isTemplate: false,
@@ -45,7 +47,7 @@ export const kosztorysEditorActions: EditorActionsT = {
   clear: clearKosztorysAction,
   autoSnapshot: snapshotAction,
   saveSnapshot: saveSnapshotAction,
-  listSnapshots: listSnapshotsAction,
+  listSnapshots: fetchKosztorysSnapshots,
   restoreSnapshot: restoreSnapshotAction,
   fillTranslations: fillKosztorysTranslationsAction,
   readRevision: readKosztorysRevision,

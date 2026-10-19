@@ -1,7 +1,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
-import { isServerSortableColumn } from '@/lib/transfers/sortable-columns'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { OptionalLink } from '@/components/ui/optional-link'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
@@ -10,9 +10,15 @@ import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
+import { OrderStatusBadge } from '@/components/orders/order-status-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
-import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
-import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import {
+  canCancelTransfer,
+  canMutateTransfer,
+  isManagementRole,
+  type RoleT,
+} from '@/lib/auth/roles'
+import { isCancellationType, billsNetAmount, transferTextClass } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
@@ -20,6 +26,7 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import {
   transferAmountText,
   transferPaymentMethodText,
+  transferOrderStatusText,
   transferPayoutStatusText,
   transferTypeText,
   transferVatPlaneText,
@@ -32,7 +39,19 @@ const col = createColumnHelper<TransferRowT>()
 // follow the link into a 404.
 const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
-const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: boolean) => {
+const relationLink = (name: string, href: string, id: number | null, isTrashed = false) => (
+  <OptionalLink
+    href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `${href}/${id}` : undefined}
+  >
+    {name}
+  </OptionalLink>
+)
+
+const buildColumns = (
+  translator: TranslatorT<'transfers'>,
+  uncoloredAmounts: boolean,
+  canFlipOrder: (row: TransferRowT) => boolean,
+) => {
   const { t } = translator
   return [
     col.accessor('id', {
@@ -59,12 +78,10 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
         const showsNet = billsNetAmount(type) && netAmount !== null
         return (
           <span
-            className="flex flex-col font-medium"
-            style={
-              isMuted || uncoloredAmounts
-                ? undefined
-                : { color: transferColorVar(info.row.original) }
-            }
+            className={cn(
+              'flex flex-col font-medium',
+              !isMuted && !uncoloredAmounts && transferTextClass(info.row.original),
+            )}
           >
             {formatPLN(info.getValue())}
             {showsNet && (
@@ -86,15 +103,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       id: 'investment',
       header: t('colInvestment'),
       meta: { minWidth: 'min-w-56', printValue: (row) => row.investmentName },
-      cell: (info) => {
-        const id = info.row.original.investmentId
-        const name = info.getValue()
-        return (
-          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/inwestycje/${id}` : undefined}>
-            {name}
-          </OptionalLink>
-        )
-      },
+      cell: (info) => relationLink(info.getValue(), '/inwestycje', info.row.original.investmentId),
     }),
     col.accessor('type', {
       id: 'type',
@@ -103,9 +112,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       cell: (info) => (
         <span className="flex flex-wrap items-center gap-1">
           <TransferTypeBadge transfer={info.row.original} translator={translator} />
-          {info.row.original.fromWorkerDraft && (
-            <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('fromWorker')}</span>
-          )}
+          {info.row.original.fromWorkerDraft && <Badge tone="muted">{t('fromWorker')}</Badge>}
         </span>
       ),
     }),
@@ -148,15 +155,8 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       header: t('colSourceRegister'),
       meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
       cell: (info) => {
-        const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
-        const name = info.getValue()
-        return (
-          <OptionalLink
-            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
-          >
-            {name}
-          </OptionalLink>
-        )
+        const { sourceRegisterId, sourceRegisterTrashed } = info.row.original
+        return relationLink(info.getValue(), '/kasa', sourceRegisterId, sourceRegisterTrashed)
       },
     }),
     col.accessor('targetRegisterName', {
@@ -164,15 +164,8 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       header: t('colTargetRegister'),
       meta: { printValue: (row) => row.targetRegisterName },
       cell: (info) => {
-        const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
-        const name = info.getValue()
-        return (
-          <OptionalLink
-            href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}
-          >
-            {name}
-          </OptionalLink>
-        )
+        const { targetRegisterId, targetRegisterTrashed } = info.row.original
+        return relationLink(info.getValue(), '/kasa', targetRegisterId, targetRegisterTrashed)
       },
     }),
 
@@ -186,15 +179,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       id: 'worker',
       header: t('colWorker'),
       meta: { printValue: (row) => row.workerName },
-      cell: (info) => {
-        const id = info.row.original.workerId
-        const name = info.getValue()
-        return (
-          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/pracownicy/${id}` : undefined}>
-            {name}
-          </OptionalLink>
-        )
-      },
+      cell: (info) => relationLink(info.getValue(), '/pracownicy', info.row.original.workerId),
     }),
     col.accessor('payoutStatus', {
       id: 'payoutStatus',
@@ -233,6 +218,25 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       header: t('colPayoutRejectionReason'),
       meta: { minWidth: 'min-w-56', printValue: (row) => row.payoutRejectionReason ?? '' },
       cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
+    }),
+    col.accessor('orderStatus', {
+      id: 'orderStatus',
+      header: t('colOrderStatus'),
+      meta: { printValue: (row) => transferOrderStatusText(row, translator) },
+      cell: (info) => {
+        const row = info.row.original
+        return (
+          row.orderStatus && (
+            <OrderStatusBadge
+              transferId={row.id}
+              status={row.orderStatus}
+              cancelled={row.cancelled}
+              canFlip={canFlipOrder(row)}
+              translator={translator}
+            />
+          )
+        )
+      },
     }),
     col.accessor('createdByName', {
       id: 'createdBy',
@@ -275,6 +279,10 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   const lockedInvestmentIds = new Set(
     referenceData?.investments.filter((i) => !isBookableInvestment(i)).map((i) => i.id) ?? [],
   )
+  const isOnLockedInvestment = (row: TransferRowT) =>
+    row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
+  const canFlipOrder = (row: TransferRowT) =>
+    currentUserRole !== undefined && isManagementRole(currentUserRole) && !isOnLockedInvestment(row)
 
   const actionsColumn = col.display({
     id: 'actions',
@@ -285,17 +293,20 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
       if (row.cancelled || isCancellationType(row.type)) return null
 
       // Courtesy, not a gate — the collection hook refuses either write regardless.
-      const lockedInvestment = row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
+      const lockedInvestment = isOnLockedInvestment(row)
 
-      const canEdit =
-        !!currentUserRole &&
-        currentUserId !== undefined &&
-        canMutateTransfer({
-          role: currentUserRole,
-          userId: currentUserId,
-          transferType: row.type,
-          createdById: row.createdById,
-        })
+      const actor =
+        currentUserRole && currentUserId !== undefined
+          ? {
+              role: currentUserRole,
+              userId: currentUserId,
+              transferType: row.type,
+              createdById: row.createdById,
+            }
+          : undefined
+      const canEdit = actor !== undefined && canMutateTransfer(actor)
+      const canCancel =
+        actor !== undefined && canCancelTransfer({ ...actor, payoutStatus: row.payoutStatus })
 
       return (
         <div className="flex items-center justify-end gap-1">
@@ -307,7 +318,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
               disabledReason={lockedInvestment ? INVESTMENT_LOCKED_MESSAGE : undefined}
             />
           )}
-          {!lockedInvestment && <CancelTransferButton transactionId={row.id} />}
+          {!lockedInvestment && canCancel && <CancelTransferButton transactionId={row.id} />}
         </div>
       )
     },
@@ -317,11 +328,11 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
   // database has nothing to order by and the click would silently sort one page.
   const columns: ColumnDef<TransferRowT, unknown>[] = [
-    ...buildColumns(translator, uncoloredAmounts),
+    ...buildColumns(translator, uncoloredAmounts, canFlipOrder),
     actionsColumn,
   ]
     .map((column) =>
-      isServerSortableColumn(column.id!)
+      transferSort.isSortable(column.id!)
         ? (column as ColumnDef<TransferRowT, unknown>)
         : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
     )

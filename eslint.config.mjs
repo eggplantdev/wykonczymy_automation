@@ -100,7 +100,7 @@ export default ts.config(
     },
   },
   {
-    files: ['src/hooks/**/*.{ts,tsx}'],
+    files: ['src/collections/hooks/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -111,6 +111,24 @@ export default ts.config(
               name: '@/lib/cache/revalidate',
               message:
                 "Hooks run in Route Handler context — use revalidateTag(tag, EXPIRE_NOW), not updateTag/revalidateCollection from lib/cache/revalidate.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [NO_RAW_UNSTABLE_CACHE],
+          patterns: [
+            {
+              regex: '^@/(components/(?!ui/)|stores/|lib/(?!(utils|i18n|table|env)/))',
+              message:
+                'components/ui is domain-agnostic: pass domain data, formatters and store state in as props, or move the component to its feature directory.',
             },
           ],
         },
@@ -143,11 +161,14 @@ export default ts.config(
       '.next-qa/',
       'test.js',
       '.claude/',
+      '.worktrees/',
+      '.playwright-mcp/',
       'scripts/inspect-sheet.mjs',
       'scripts/blob-mirror.mjs',
       'scripts/blob-snapshot.mjs',
       'scripts/blob-restore.mjs',
       'scripts/share-sheets-with-reader.mjs',
+      'scripts/check-compiler-coverage.mjs',
       'scripts/perf/',
       'scripts/ai-kosztorys/',
       'context/**',

@@ -45,6 +45,7 @@ import { TemplateItems } from '@/collections/template-items'
 import { KosztorysClientViewDefaults } from '@/globals/kosztorys-client-view-defaults'
 import { KosztorysWorkerViewSettings } from '@/globals/kosztorys-worker-view-settings'
 import { NotificationRecipients } from '@/globals/notification-recipients'
+import { OrderSettings } from '@/globals/order-settings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -119,7 +120,12 @@ export default buildConfig({
     Warehouses,
     Media,
   ],
-  globals: [KosztorysClientViewDefaults, KosztorysWorkerViewSettings, NotificationRecipients],
+  globals: [
+    KosztorysClientViewDefaults,
+    KosztorysWorkerViewSettings,
+    NotificationRecipients,
+    OrderSettings,
+  ],
   plugins: [
     vercelBlobStorage({
       collections: { media: true },

@@ -1,6 +1,7 @@
 import type { InvestmentBillingT } from '@/types/reference-data'
 
 export type AddressT = { street: string; postalCode: string; city: string; country: string }
+export type SiteAddressT = Omit<AddressT, 'country'>
 
 const joinFilled = (parts: string[], separator: string) =>
   parts

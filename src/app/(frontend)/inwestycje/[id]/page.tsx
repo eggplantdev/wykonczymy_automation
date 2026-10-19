@@ -5,7 +5,7 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
-import { parseTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import {
   fetchInvestmentDetails,
   fetchReferenceData,
@@ -27,11 +27,14 @@ import { buildInvestmentInfoFields } from '@/components/investments/investment-i
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
 import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
+import { InvestmentSiteManagerSelect } from '@/components/investments/investment-site-manager-select'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { ContractDialog } from '@/components/investments/contract-dialog'
-import { investmentLockOf } from '@/lib/constants/investment-lock'
+import { investmentLockOf, isOfferedForBooking } from '@/lib/constants/investment-lock'
+import { fetchOrderSettings } from '@/lib/queries/order-settings'
+import { OrderButton } from '@/components/orders/order-button'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
-import { SheetButton } from '@/components/dialogs/sheet-button'
+import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -43,7 +46,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
-  const sort = parseTransferSort(sp)
+  const sort = transferSort.parse(sp)
 
   const investmentId = parseInvestmentId(id)
   const urlFilters = buildTransferFilters(sp, { id: user.id })
@@ -53,7 +56,11 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
-  const [refData, detailsById] = await Promise.all([fetchReferenceData(), fetchInvestmentDetails()])
+  const [refData, detailsById, orderSettings] = await Promise.all([
+    fetchReferenceData(),
+    fetchInvestmentDetails(),
+    fetchOrderSettings(),
+  ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const found = findInvestmentRef(refData, investmentId)
@@ -75,21 +82,54 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
           <RequestReviewButton investment={investment} showLabel />
         )}
-        {(!trashed || investment.hasSheet) && (
-          <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} size="sm" />
-        )}
+        {investment.hasSheet && <SheetButton investmentId={investmentId} hasSheet size="sm" />}
         <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
+        {!trashed && isOfferedForBooking(investment) && (
+          <OrderButton
+            investment={{
+              id: investmentId,
+              name: investment.name,
+              street: investment.address,
+              postalCode: investment.postalCode,
+              city: investment.city,
+              siteManagerId: investment.siteManagerId,
+            }}
+            referenceData={{ ...refData, currentUserId: user.id, currentUserRole: user.role }}
+            orderSettings={orderSettings}
+          />
+        )}
       </div>
-      {!trashed && <InvestmentStatusInlineSelect investment={investment} />}
-      <InfoList
-        items={buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed })}
-      />
-      <InvestmentNotes investment={investment} readOnly={trashed} />
-      <InvestmentAiNotes aiNotes={investment.aiNotes} />
-
-      <Suspense fallback={null}>
-        <InvestmentAssetsSection investmentId={investmentId} />
-      </Suspense>
+      <div className="grid gap-2">
+        <InfoList
+          items={[
+            ...buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed }),
+            ...(trashed
+              ? []
+              : [
+                  {
+                    label: 'Kierownik budowy',
+                    value: (
+                      <InvestmentSiteManagerSelect
+                        investmentId={investmentId}
+                        siteManagerId={investment.siteManagerId}
+                        workers={refData.workers}
+                      />
+                    ),
+                  },
+                ]),
+          ]}
+        />
+        {!trashed && (
+          <div className="flex min-h-7 items-center">
+            <InvestmentStatusInlineSelect investment={investment} />
+          </div>
+        )}
+        <InvestmentNotes investment={investment} readOnly={trashed} />
+        <InvestmentAiNotes aiNotes={investment.aiNotes} />
+        <Suspense fallback={null}>
+          <InvestmentAssetsSection investmentId={investmentId} />
+        </Suspense>
+      </div>
 
       {/* The two readings render different trees, so a toggle living inside them moves under the
           cursor on every switch. */}

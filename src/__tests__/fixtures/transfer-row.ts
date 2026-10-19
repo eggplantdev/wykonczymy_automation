@@ -38,6 +38,7 @@ export function transferRow(overrides: Partial<TransferRowT> = {}): TransferRowT
     payoutStatus: null,
     payoutDecidedAt: null,
     payoutRejectionReason: null,
+    orderStatus: null,
     ...overrides,
   }
 }

@@ -2,9 +2,10 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/hooks/use-translation'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
 import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
 import { ExpenseDraftDuplicateHints } from '@/components/worker-expenses/expense-draft-duplicate-hints'
@@ -12,7 +13,8 @@ import {
   ExpenseDraftDuplicateStatus,
   type DuplicateHintsStateT,
 } from '@/components/worker-expenses/expense-draft-duplicate-status'
-import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
+import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
+import type { ExpenseFormPrefillT } from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import {
   readExpenseDraftAction,
@@ -22,7 +24,6 @@ import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicates'
 import { OPEN_DRAFT_PARAM } from '@/lib/constants/worker-expense-drafts'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
-import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { ExpenseDraftMediaT, ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { settleAction } from '@/lib/utils/settle-action'
 import { stripSearchParam } from '@/lib/utils/strip-search-param'
@@ -57,6 +58,7 @@ async function downloadPages(media: ExpenseDraftMediaT[]): Promise<File[]> {
 
 export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
   const router = useRouter()
+  const { t } = useTranslation('expenseDrafts')
   const openDialog = useOptimisticFormStore((s) => s.openDialog)
   const closeDialog = useOptimisticFormStore((s) => s.closeDialog)
   const [loadingId, setLoadingId] = useState<number | undefined>()
@@ -156,12 +158,12 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
   async function readOnOpen(draft: ExpenseDraftRowT, files: File[]) {
     const pendingKey = `${DRAFT_READ_PENDING_KEY}-${draft.id}`
     readsInFlight.current.add(draft.id)
-    usePendingStore.getState().start(pendingKey, 'Odczytywanie paragonów…')
+    usePendingStore.getState().start(pendingKey, t('readingReceipts'))
     try {
       const result = await settleAction(() => readExpenseDraftAction(draft.id))
       const aiRead = result.success ? result.data.aiRead : undefined
       if (!result.success) toastMessage(result.error, 'warning')
-      else if (!aiRead) toastMessage('Nie odczytano zdjęć zgłoszenia', 'warning')
+      else if (!aiRead) toastMessage(t('readFailedToast'), 'warning')
       setAccepting((prev) =>
         prev?.draft.id === draft.id
           ? {
@@ -190,7 +192,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       toastMessage(result.error, 'error')
       return
     }
-    toastMessage(duplicateOf ? 'Zgłoszenie odrzucone jako duplikat' : 'Zgłoszenie odrzucone')
+    toastMessage(t(duplicateOf ? 'rejectedDuplicateToast' : 'rejectedToast'))
     closeDialog()
     setAccepting(undefined)
     stripSearchParam(OPEN_DRAFT_PARAM)
@@ -207,7 +209,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
           formId={formIdOf(accepting.draft.id)}
           trigger={null}
           showKeepOpen={false}
-          title={`Zgłoszenie wydatków · ${accepting.draft.workerName}`}
+          title={t('reviewTitle', { name: accepting.draft.workerName })}
           description={accepting.draft.note ?? undefined}
           className="sm:max-w-dialog-2xl"
           onClose={() => {
@@ -239,9 +241,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
               aboveLineItems={
                 <>
                   {!accepting.hasPages && accepting.prefill.aiReadRows.length === 0 && (
-                    <p className="text-destructive text-sm">
-                      Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.
-                    </p>
+                    <p className="text-destructive text-sm">{t('pagesDownloadFailed')}</p>
                   )}
                   <ExpenseDraftDuplicateStatus state={accepting.duplicates} />
                 </>
@@ -277,7 +277,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
                   className="ml-auto"
                   onClick={() => setRejecting(accepting.draft)}
                 >
-                  Odrzuć
+                  {t('reject')}
                 </Button>
               }
             />
@@ -287,12 +287,11 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
 
       <ConfirmDialog
         open={rejecting !== undefined}
-        title="Odrzucić zgłoszenie?"
+        title={t('rejectTitle')}
         description={
-          rejecting &&
-          `${rejecting.workerName} · ${rejecting.investmentName ?? pl.expenseDrafts.noInvestment}`
+          rejecting && `${rejecting.workerName} · ${rejecting.investmentName ?? t('noInvestment')}`
         }
-        confirmLabel="Odrzuć"
+        confirmLabel={t('reject')}
         onConfirm={() => rejecting && handleReject(rejecting.id)}
         onCancel={() => setRejecting(undefined)}
       />

@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES, isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { STREAMS, markSeen } from '@/lib/db/notifications'
 import { fetchLeadsPage, LEADS_DEFAULT_LIMIT } from '@/lib/queries/leads'
-import { parseLeadSort } from '@/lib/queries/lead-sort'
+import { leadSort } from '@/lib/leads/sortable-columns'
 import { parsePagination } from '@/lib/utils/pagination'
 import { fetchRecipientLists } from '@/lib/queries/notification-recipients'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -22,7 +22,7 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
 
   const sp = await searchParams
   const { page, limit } = parsePagination(sp, LEADS_DEFAULT_LIMIT)
-  const sort = parseLeadSort(sp)
+  const sort = leadSort.parse(sp)
   const search = typeof sp.search === 'string' ? sp.search : ''
   const noFiles = sp.noFiles === '1'
 

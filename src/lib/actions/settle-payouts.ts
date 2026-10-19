@@ -24,7 +24,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { ActionResultT } from '@/types/action'
 import { protectedAction, validateAction } from './run-action'
-import { syncBulkExpensesToSheet } from './sheets-sync'
+import { syncBulkExpensesToSheet } from '@/lib/google/transfer-sheet-sync'
 import { validateSourceRegister } from './validate-source-register'
 
 export type SettlePayoutsResultT = ActionResultT & { stale?: true }

@@ -4,6 +4,8 @@ export default function useCheckFormErrors(form: AnyFormApi) {
   const formErrors = useStore(form.store, (s) => s.errors)
   const fieldMeta = useStore(form.store, (s) => s.fieldMeta)
 
+  if (process.env.NODE_ENV !== 'development') return
+
   if (formErrors.length > 0) {
     console.group('🚫 Form Validation Errors')
     console.table(formErrors[0])

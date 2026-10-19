@@ -4,7 +4,7 @@ import { daysLabel } from '@/lib/utils/deadline-label'
 import { OVERDUE } from '@/lib/fleet/thresholds'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { cn } from '@/lib/utils/cn'
-import type { FleetDeadlineT } from '@/types/fleet'
+import type { FleetDeadlineT } from '@/lib/fleet/types'
 
 type DeadlineCellPropsT = {
   deadline: FleetDeadlineT

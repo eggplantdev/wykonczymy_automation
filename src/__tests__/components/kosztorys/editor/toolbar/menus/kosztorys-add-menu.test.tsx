@@ -21,7 +21,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     handleAddStage,
   }),
 }))
-vi.mock('@/components/kosztorys/editor/actions/catalogue-picker-host', () => ({
+vi.mock('@/components/kosztorys/editor/actions/catalogue-picker', () => ({
   useCataloguePicker: () => vi.fn(),
 }))
 

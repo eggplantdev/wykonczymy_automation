@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 export function useClientMultiFilter<TItem>(
   data: TItem[],
@@ -7,11 +7,9 @@ export function useClientMultiFilter<TItem>(
 ) {
   const [values, setValues] = useState<string[]>(initialValues)
 
-  const filteredData = useMemo(() => {
-    if (values.length === 0) return data
-    const filterSet = new Set(values)
-    return data.filter((item) => filterSet.has(accessor(item)))
-  }, [data, values, accessor])
+  const filterSet = new Set(values)
+  const filteredData =
+    values.length === 0 ? data : data.filter((item) => filterSet.has(accessor(item)))
 
   return { filteredData, values, setValues } as const
 }

@@ -16,7 +16,7 @@ import { createTranslator } from '@/lib/i18n/translations'
 import { ROLE_KEYS } from '@/lib/i18n/role-keys'
 import { fetchUserLanguage } from '@/lib/queries/user-language'
 import { parsePagination } from '@/lib/utils/pagination'
-import { parseTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
@@ -59,7 +59,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   if (!canViewWorkerPage(currentUser, Number(id))) notFound()
   const sp = await searchParams
   const { page, limit } = parsePagination(sp, 10)
-  const sort = parseTransferSort(sp)
+  const sort = transferSort.parse(sp)
 
   const userId = Number(id)
   const isOwnPage = currentUser.id === userId
@@ -160,7 +160,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         </div>
       )}
       <InfoList items={infoFields} />
-      {isOwnPage && <PayoutsToConfirm payouts={payoutsToConfirm} />}
       {isOwnPage && (
         <WorkerQuickActions
           investmentLinks={investmentLinks}
@@ -170,6 +169,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           locale={locale}
         />
       )}
+      {isOwnPage && <PayoutsToConfirm payouts={payoutsToConfirm} />}
       <OwnedRegistersSection
         registers={registers}
         balances={balances}
@@ -209,6 +209,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
                 transferTypes: offeredIfChoice(transferTypes),
                 otherCategories: toOptions(refData.otherCategories),
                 showCancelledFilter: false,
+                showPayoutStatusFilter: transferTypes.includes('PAYOUT'),
                 showSearchFilters: false,
               },
               invoiceDownload: isManager,

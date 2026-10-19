@@ -1,10 +1,12 @@
 import type { CollectionConfig, CollectionBeforeValidateHook } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { refuseDeleteWhen } from '@/hooks/prevent-delete'
-import { guardCashRegisterUpdate } from '@/hooks/cash-registers/guard-update'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import { refuseDeleteWhen } from '@/collections/hooks/prevent-delete'
+import { guardCashRegisterUpdate } from '@/collections/hooks/cash-registers/guard-update'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
+import { REGISTER_TYPES, REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {
   if (isManager({ req })) return { ...data, type: 'AUXILIARY' }
@@ -55,12 +57,7 @@ export const CashRegisters: CollectionConfig = {
       required: true,
       defaultValue: 'AUXILIARY',
       label: { en: 'Type', pl: 'Typ' },
-      options: [
-        { label: { en: 'Main', pl: 'Główna' }, value: 'MAIN' },
-        { label: { en: 'Auxiliary', pl: 'Pomocnicza' }, value: 'AUXILIARY' },
-        { label: { en: 'Virtual', pl: 'Wirtualna' }, value: 'VIRTUAL' },
-        { label: { en: 'Worker', pl: 'Pracownicza' }, value: 'WORKER' },
-      ],
+      options: REGISTER_TYPES.map((value) => ({ label: REGISTER_TYPE_LABELS[value], value })),
       admin: {
         condition: (_, __, { user }) => !!user?.role && isAdminOrOwnerRole(user.role),
       },
@@ -75,14 +72,6 @@ export const CashRegisters: CollectionConfig = {
         update: isAdminOrOwnerField,
       },
     },
-    // Closed to access-checked writes: a REST PATCH would skip the use check, the default clearing and
-    // the MAIN hiding that the trash actions (overrideAccess) run.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
   ],
 }

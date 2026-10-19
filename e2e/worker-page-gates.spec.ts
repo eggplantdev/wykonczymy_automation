@@ -55,10 +55,13 @@ test.describe('logged in as an EMPLOYEE', () => {
     await expect(page.getByRole('heading', { name: E2E_WORKERS.other.name })).toHaveCount(0)
   })
 
-  test('his own kasa page renders the 404 — /kasa is management-only', async ({ page }) => {
+  test('his own kasa page sends him to his worker page — /kasa is management-only', async ({
+    page,
+  }) => {
     await page.goto(`/kasa/${workers.self.registerId}`)
 
-    await expectNotFound(page)
+    await page.waitForURL(`/pracownicy/${workers.self.id}`)
+    await expect(page.getByRole('heading', { name: E2E_WORKERS.self.name })).toBeVisible()
     await expect(page.getByRole('heading', { name: workers.self.registerName })).toHaveCount(0)
   })
 })

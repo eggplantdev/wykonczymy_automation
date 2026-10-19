@@ -13,7 +13,7 @@ import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
 import { ingestFiles } from '@/lib/media/ingest-files'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
-import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
+import { scanReceiptClient } from '@/components/forms/expense-form/scan-receipt-client'
 
 vi.mocked(createBulkTransferAction).mockResolvedValue({ success: true })
 vi.mocked(rejectExpenseParagonsAction).mockResolvedValue({ success: true, data: [] })

@@ -1,6 +1,7 @@
 import type { TranslationFillResultT } from '@/lib/actions/kosztorys-translations'
 import type { SavePresetInputT } from '@/lib/actions/kosztorys-presets'
-import type { RestoreResultT, SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import type { RestoreResultT } from '@/lib/actions/kosztorys-snapshots'
+import type { SnapshotListItemT } from '@/lib/queries/snapshot-list'
 import type { AddItemInputT } from '@/lib/kosztorys/add-item-schema'
 import type { AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import type { CreatedSectionT } from '@/lib/kosztorys/create-section'

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 
-const { generateObject } = vi.hoisted(() => ({ generateObject: vi.fn() }))
+const { generateText } = vi.hoisted(() => ({ generateText: vi.fn() }))
 
-vi.mock('ai', () => ({ generateObject }))
+vi.mock('ai', () => ({ generateText, Output: { object: (spec: unknown) => spec } }))
 vi.mock('@openrouter/ai-sdk-provider', () => ({
   createOpenRouter: () => (model: string) => ({ __model: model }),
 }))
@@ -24,15 +24,15 @@ const inputOf = (call: CallT) =>
 
 describe('translateTexts', () => {
   it('maps each answer back to its Polish text by batch id', async () => {
-    generateObject.mockImplementation(async (call: CallT) => ({
-      object: {
+    generateText.mockImplementation(async (call: CallT) => ({
+      output: {
         items: inputOf(call).map(({ id, text }) => ({ id, uk: `uk:${text}`, ru: `ru:${text}` })),
       },
     }))
 
     const result = await translateTexts(['Malowanie ścian', ' Malowanie ścian ', 'Gruntowanie'])
 
-    expect(generateObject).toHaveBeenCalledTimes(1)
+    expect(generateText).toHaveBeenCalledTimes(1)
     expect(result).toEqual(
       new Map([
         ['Malowanie ścian', { uk: 'uk:Malowanie ścian', ru: 'ru:Malowanie ścian' }],
@@ -42,8 +42,8 @@ describe('translateTexts', () => {
   })
 
   it('drops an invented id, a skipped id and a blank language instead of guessing', async () => {
-    generateObject.mockResolvedValue({
-      object: {
+    generateText.mockResolvedValue({
+      output: {
         items: [
           { id: 0, uk: 'Фарбування', ru: '  ' },
           { id: 7, uk: 'вигадка', ru: 'выдумка' },
@@ -57,14 +57,14 @@ describe('translateTexts', () => {
   })
 
   it('falls back to FALLBACK_MODEL when the primary throws', async () => {
-    generateObject.mockImplementation(async (call: CallT) => {
+    generateText.mockImplementation(async (call: CallT) => {
       if (call.model.__model === TRANSLATION_MODEL) throw new Error('model not found')
-      return { object: { items: [{ id: 0, uk: 'Фарбування', ru: 'Покраска' }] } }
+      return { output: { items: [{ id: 0, uk: 'Фарбування', ru: 'Покраска' }] } }
     })
 
     const result = await translateTexts(['Malowanie'])
 
-    expect(generateObject.mock.calls.map(([call]) => call.model.__model)).toEqual([
+    expect(generateText.mock.calls.map(([call]) => call.model.__model)).toEqual([
       TRANSLATION_MODEL,
       FALLBACK_MODEL,
     ])
@@ -73,10 +73,10 @@ describe('translateTexts', () => {
 
   it('leaves only the failed batch out when one batch fails on both models', async () => {
     const texts = Array.from({ length: TRANSLATION_BATCH_SIZE + 1 }, (_, i) => `Praca ${i}`)
-    generateObject.mockImplementation(async (call: CallT) => {
+    generateText.mockImplementation(async (call: CallT) => {
       const input = inputOf(call)
       if (input.length === TRANSLATION_BATCH_SIZE) throw new Error('provider down')
-      return { object: { items: input.map(({ id }) => ({ id, uk: 'uk', ru: 'ru' })) } }
+      return { output: { items: input.map(({ id }) => ({ id, uk: 'uk', ru: 'ru' })) } }
     })
 
     const result = await translateTexts(texts)
@@ -87,8 +87,8 @@ describe('translateTexts', () => {
 
 describe('translateToPolish', () => {
   it('returns the detected language and Polish, and null Polish for a Polish text', async () => {
-    generateObject.mockResolvedValue({
-      object: {
+    generateText.mockResolvedValue({
+      output: {
         items: [
           { id: 0, language: 'uk', polish: 'Montaż listew' },
           { id: 1, language: 'pl', polish: 'ignored' },
@@ -108,12 +108,12 @@ describe('translateToPolish', () => {
   })
 
   it('calls only the given model when one is passed — a manager retry skips the chain', async () => {
-    generateObject.mockRejectedValue(new Error('provider down'))
+    generateText.mockRejectedValue(new Error('provider down'))
 
     const result = await translateToPolish(['Монтаж'], { model: FALLBACK_MODEL })
 
     expect(result.size).toBe(0)
-    expect(generateObject).toHaveBeenCalledTimes(1)
-    expect(generateObject.mock.calls[0]?.[0].model.__model).toBe(FALLBACK_MODEL)
+    expect(generateText).toHaveBeenCalledTimes(1)
+    expect(generateText.mock.calls[0]?.[0].model.__model).toBe(FALLBACK_MODEL)
   })
 })

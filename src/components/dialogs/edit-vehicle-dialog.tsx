@@ -1,7 +1,7 @@
 'use client'
 
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { VehicleForm } from '@/components/forms/vehicle-form/vehicle-form'
 import { updateVehicleAction } from '@/lib/actions/fleet'
 import type { VehicleRecordT } from '@/lib/fleet/types'

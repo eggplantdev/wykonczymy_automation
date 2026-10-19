@@ -9,7 +9,7 @@ import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import type { KosztorysItem } from '@/payload-types'
 
-const { updateItemFieldAction } = await import('@/lib/actions/kosztorys')
+const { updateItemFieldAction } = await import('@/lib/actions/kosztorys-items')
 
 type ItemRowT = {
   w_tools_override_value: string | null

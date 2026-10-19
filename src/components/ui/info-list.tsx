@@ -6,6 +6,8 @@ type InfoListPropsT = {
   className?: string
 }
 
+const ROW = 'flex min-h-7 items-center'
+
 export function InfoList({ items, layout = 'inline', className }: InfoListPropsT) {
   const stacked = layout === 'stacked'
 
@@ -19,8 +21,8 @@ export function InfoList({ items, layout = 'inline', className }: InfoListPropsT
     >
       {items.map((item) => (
         <div key={item.label} className={stacked ? 'space-y-1' : 'contents'}>
-          <dt className="text-muted-foreground font-medium">{item.label}</dt>
-          <dd className="text-foreground">{item.value || '—'}</dd>
+          <dt className={cn('text-muted-foreground font-medium', !stacked && ROW)}>{item.label}</dt>
+          <dd className={cn('text-foreground', !stacked && ROW)}>{item.value || '—'}</dd>
         </div>
       ))}
     </dl>

@@ -8,7 +8,7 @@ import { parseLaborTab } from './parse-labor-tab'
 import type { ImportGridsT } from './read-sheet'
 import { resolveLaborColumns } from './resolve-columns'
 
-export type MeasuredQtyRefreshT = {
+type MeasuredQtyRefreshT = {
   rows: SheetMeasuredQtyRowT[]
   unmatched: number
 }

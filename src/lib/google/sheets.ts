@@ -74,9 +74,8 @@ function resolveHeaders(cfg: SheetTabConfigT, grid: unknown[][]): HeaderMapT {
 
 class MissingTabError extends Error {}
 
-// The client is a parameter because the WRITE path must read with the same account it writes
-// with: two accounts holding the sheet is now the norm, but requiring both for one write would
-// make a sheet shared with only the Editor fail its own sync — silently, behind sheets-sync's catch.
+// The WRITE path must read with the account it writes with: a sheet shared with only the Editor
+// would otherwise fail its own sync.
 async function readGrid(
   spreadsheetId: string,
   cfg: SheetTabConfigT,

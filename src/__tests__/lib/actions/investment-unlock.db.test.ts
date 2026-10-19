@@ -13,7 +13,7 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const { updateInvestmentAction } = await import('@/lib/actions/investments')
 const { INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE } =
-  await import('@/hooks/investments/guard-status-unlock')
+  await import('@/collections/hooks/investments/guard-status-unlock')
 
 const FIXTURE_PREFIX = 'investment-unlock-test-'
 

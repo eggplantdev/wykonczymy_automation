@@ -1,17 +1,13 @@
-export const SERVER_SORTABLE_DRAFT_COLUMNS = [
+import { serverSort } from '@/lib/table/server-sort'
+
+export const DEFAULT_EXPENSE_DRAFT_SORT = '-sentAt'
+
+export const expenseDraftSort = serverSort([
   'workerName',
   'investmentName',
   'sentAt',
   'status',
   'decidedAt',
-] as const
+])
 
-export type ServerSortableDraftColumnT = (typeof SERVER_SORTABLE_DRAFT_COLUMNS)[number]
-
-export const DEFAULT_EXPENSE_DRAFT_SORT = '-sentAt'
-
-export function isServerSortableDraftColumn(
-  columnId: string,
-): columnId is ServerSortableDraftColumnT {
-  return (SERVER_SORTABLE_DRAFT_COLUMNS as readonly string[]).includes(columnId)
-}
+export type ServerSortableDraftColumnT = (typeof expenseDraftSort.columns)[number]

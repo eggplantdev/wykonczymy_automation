@@ -1,7 +1,7 @@
 import type { DepositFormApiT } from '@/components/forms/deposit-form/deposit-form-api'
 import { useEffect, useRef } from 'react'
 import type { VatPlaneT } from '@/lib/constants/transfers'
-import { netSuggestion } from '@/lib/utils/net-suggestion'
+import { netSuggestion } from '@/components/forms/deposit-form/net-suggestion'
 
 type PlaneAmountFieldPropsT = {
   form: DepositFormApiT

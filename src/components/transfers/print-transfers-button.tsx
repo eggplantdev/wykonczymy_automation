@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
+import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -67,9 +67,7 @@ export function PrintTransfersButton({ fetchRows, table, title }: PrintTransfers
         return
       }
 
-      printWindow.document.write(buildTransfersPrintHtml(rows, columns, title, locale))
-      printWindow.document.close()
-      printThenClose(printWindow)
+      writeAndPrint(printWindow, buildTransfersPrintHtml(rows, columns, title, locale))
     })
   }
 

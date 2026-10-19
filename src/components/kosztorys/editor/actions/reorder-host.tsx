@@ -1,9 +1,8 @@
 'use client'
 
-import { createContext, use, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { ReorderOpenContext } from '@/components/kosztorys/editor/actions/reorder-open'
 import { ReorderDialog } from '@/components/kosztorys/editor/dialogs/reorder/reorder-dialog'
-
-const ReorderOpenContext = createContext<((open: boolean) => void) | null>(null)
 
 export function ReorderHost({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
@@ -14,10 +13,4 @@ export function ReorderHost({ children }: { children: ReactNode }) {
       {open && <ReorderDialog onClose={() => setOpen(false)} />}
     </ReorderOpenContext>
   )
-}
-
-export function useOpenReorder() {
-  const setOpen = use(ReorderOpenContext)
-  if (!setOpen) throw new Error('useOpenReorder must be used within ReorderHost')
-  return () => setOpen(true)
 }

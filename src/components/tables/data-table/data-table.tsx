@@ -64,7 +64,7 @@ type DataTablePropsT<TData> = {
   toolbar?: (ctx: DataTableToolbarContextT<TData>) => React.ReactNode
   aboveToolbar?: React.ReactNode
   belowToolbar?: React.ReactNode
-  renderRows?: (rows: Row<TData>[], visibleColumnIds: string[]) => React.ReactNode
+  renderRows?: (rows: Row<TData>[]) => React.ReactNode
   defaultTextSize?: TableTextSizeT
   className?: string
 }
@@ -133,7 +133,7 @@ export function DataTable<TData>({
   const rankedColumnIds = leafColumnIds(columns.filter((column) => column.enableHiding !== false))
 
   const table = useReactTable({
-    data: data as TData[],
+    data,
     columns,
     state: {
       sorting,
@@ -205,7 +205,7 @@ export function DataTable<TData>({
       })}
       {belowToolbar}
       {renderRows ? (
-        renderRows(rows, visibleColumnIdList)
+        renderRows(rows)
       ) : (
         <div className="border-border overflow-x-auto rounded-lg border">
           {enableVirtualization ? (

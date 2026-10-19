@@ -2,29 +2,18 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { BalanceCell } from '@/components/ui/balance-cell'
-import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { Badge, BadgeButton } from '@/components/ui/badge'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashCashRegisterAction } from '@/lib/actions/cash-register-trash'
-import type { CashRegisterTypeT } from '@/types/reference-data'
+import { REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
 import type { CashRegisterRowT } from '@/types/table-rows'
-
-export const REGISTER_TYPE_LABELS: Record<CashRegisterTypeT, string> = {
-  MAIN: 'Główne',
-  AUXILIARY: 'Pomocnicze',
-  VIRTUAL: 'Wirtualne',
-  WORKER: 'Pracownicze',
-}
-
-export const REGISTER_TYPE_BORDER_COLORS: Record<CashRegisterTypeT, string> = {
-  MAIN: 'border-chart-blue',
-  AUXILIARY: 'border-chart-teal',
-  VIRTUAL: 'border-chart-purple',
-  WORKER: 'border-chart-orange',
-}
 
 const col = createColumnHelper<CashRegisterRowT>()
 
-export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean) => void) {
+export function getCashRegisterColumns(
+  onToggle: (id: number, newActive: boolean) => void,
+  canManage: (row: CashRegisterRowT) => boolean,
+) {
   return [
     col.accessor('name', {
       id: 'name',
@@ -51,30 +40,34 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
       header: 'Status',
       meta: { align: 'right' },
       enableSorting: true,
-      cell: (info) => (
-        <ActiveToggleBadge
-          id={info.row.original.id}
-          isActive={info.getValue()}
-          onToggle={onToggle}
-          activeLabel="Aktywna"
-          inactiveLabel="Nieaktywna"
-        />
-      ),
+      cell: (info) => {
+        const isActive = info.getValue()
+        const tone = isActive ? 'positive' : 'muted'
+        const label = isActive ? 'Aktywna' : 'Nieaktywna'
+        return canManage(info.row.original) ? (
+          <BadgeButton tone={tone} onClick={() => onToggle(info.row.original.id, !isActive)}>
+            {label}
+          </BadgeButton>
+        ) : (
+          <Badge tone={tone}>{label}</Badge>
+        )
+      },
     }),
     col.display({
       id: 'actions',
       header: 'Akcje',
       meta: { align: 'right' },
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          <TrashRowButton
-            label="Usuń kasę"
-            description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
-            trash={() => trashCashRegisterAction(info.row.original.id)}
-            trashed="Kasa przeniesiona do kosza."
-          />
-        </div>
-      ),
+      cell: (info) =>
+        canManage(info.row.original) && (
+          <div className="flex items-center justify-end gap-1">
+            <TrashRowButton
+              label="Usuń kasę"
+              description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
+              trash={() => trashCashRegisterAction(info.row.original.id)}
+              trashed="Kasa przeniesiona do kosza."
+            />
+          </div>
+        ),
     }),
   ]
 }

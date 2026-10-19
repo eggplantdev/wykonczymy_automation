@@ -40,6 +40,7 @@ export const investmentEntityOpts = (investmentId: number) => ({
 })
 
 export const NOTIFICATION_RECIPIENTS_TAG = 'global:notification-recipients'
+export const ORDER_SETTINGS_TAG = 'global:order-settings'
 
 // Settings may be copied rather than changed, but `restoreKosztorys` rewrites the investment row
 // regardless, so `investments` goes with the four tree tags.

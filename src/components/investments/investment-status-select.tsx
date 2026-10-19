@@ -26,7 +26,7 @@ export function InvestmentStatusSelect({ value, onValueChange, disabled }: Props
       onValueChange={(next) => isInvestmentStatus(next) && onValueChange(next)}
       disabled={disabled}
     >
-      <SelectTrigger className="w-fit border-0 bg-transparent px-0 shadow-none data-[size=default]:h-auto">
+      <SelectTrigger className="w-fit cursor-pointer border-0 bg-transparent px-0 shadow-none data-[size=default]:h-auto">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

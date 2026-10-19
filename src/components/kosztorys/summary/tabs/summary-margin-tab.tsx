@@ -5,8 +5,8 @@ import {
   useMarginFigure,
   useMarginPlane,
 } from '@/components/kosztorys/summary/hooks/use-margin-reading'
-import { MarginActualTable } from '@/components/kosztorys/summary/tabs/margin-actual-table'
-import { MarginForecastTable } from '@/components/kosztorys/summary/tabs/margin-forecast-table'
+import { MarginActualTable } from '@/components/kosztorys/summary/tables/margin-actual-table'
+import { MarginForecastTable } from '@/components/kosztorys/summary/tables/margin-forecast-table'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'

@@ -11,14 +11,15 @@ import { getLeadColumns } from '@/components/tables/leads'
 import { SelectedIdsContext } from '@/components/tables/data-table/select-column'
 import { TrashLeadsButton } from '@/components/leads/trash-leads-button'
 import type { InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
-import { validLeadSort } from '@/lib/queries/lead-sort'
+import { leadSort } from '@/lib/leads/sortable-columns'
 import { toggleLeadContactStatus } from '@/lib/actions/toggle-lead-contact-status'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
 const LEADS_BASE_URL = '/zgloszenia'
 const SEARCH_DEBOUNCE_MS = 300
@@ -45,7 +46,7 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
   const noFiles = useToggleSearchParam(LEADS_BASE_URL, 'noFiles')
   // The same whitelist the page used, so a hand-edited `?sort=` it refused cannot leave the header
   // arrow claiming an order the rows were never fetched in.
-  const sorting = sortParamToSortingState(validLeadSort(searchParams.get('sort') ?? undefined))
+  const sorting = sortParamToSortingState(leadSort.valid(searchParams.get('sort') ?? undefined))
 
   // Pruned to the rows on screen whenever `data` changes, so a selection never reaches rows the user
   // did not see when ticking
@@ -58,12 +59,7 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
   const updateSelection = (update: (ids: ReadonlySet<number>) => ReadonlySet<number>) =>
     setSelection((prev) => ({ ...prev, ids: update(prev.ids) }))
 
-  const toggleSelect = (id: number) =>
-    updateSelection((ids) => {
-      const next = new Set(ids)
-      if (!next.delete(id)) next.add(id)
-      return next
-    })
+  const toggleSelect = (id: number) => updateSelection((ids) => toggleInSet(ids, id))
 
   const togglePage = (pageIds: number[]) =>
     updateSelection((ids) => (pageIds.every((id) => ids.has(id)) ? NO_SELECTION : new Set(pageIds)))

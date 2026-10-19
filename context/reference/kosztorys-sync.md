@@ -125,6 +125,7 @@ src/lib/google/sheet-access.ts       ← link/verify an existing sheet
 src/lib/google/sheet-lookup.ts       ← getInvestmentSheetId (kosztoryses → sheetId)
 src/lib/google/drive.ts / auth.ts    ← Drive copy + service-account JWT
 src/hooks/transfers/sync-sheet.ts    ← collection-hook sync trigger
+src/lib/google/transfer-sheet-sync.ts ← one transfer's row pushed to / removed from its tabs
 src/lib/actions/sheets-sync.ts       ← preview / apply (server re-derive)
 src/lib/actions/sheets.ts            ← unlinked add / link-to-investment / unlink / delete
 src/app/(frontend)/kosztorysy/page.tsx                  ← listing page

@@ -3,7 +3,7 @@
 import { ArrowDownUp } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { MenuItemBody } from '@/components/ui/menu-item-body'
-import { useOpenReorder } from '@/components/kosztorys/editor/actions/reorder-host'
+import { useOpenReorder } from '@/components/kosztorys/editor/actions/reorder-open'
 
 export function ReorderMenuItem({ compact = false }: { compact?: boolean }) {
   const openReorder = useOpenReorder()

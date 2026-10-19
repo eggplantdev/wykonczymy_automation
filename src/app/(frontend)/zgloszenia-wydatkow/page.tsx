@@ -5,7 +5,7 @@ import {
 } from '@/lib/queries/worker-expense-drafts'
 import { parseQueueFilters } from '@/lib/queries/queue-filters'
 import { isExpenseDraftStatus, OPEN_DRAFT_PARAM } from '@/lib/constants/worker-expense-drafts'
-import { parseExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
+import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseIdParam } from '@/lib/utils/parse-id-param'
@@ -22,7 +22,7 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
     fetchExpenseDraftsPage(
       { ...parseQueueFilters(sp, isExpenseDraftStatus), duplicatesOnly: sp.duplicates === '1' },
       parsePagination(sp),
-      parseExpenseDraftSort(sp),
+      expenseDraftSort.parse(sp),
     ),
     fetchPendingExpenseDrafts(),
     fetchReferenceData(),

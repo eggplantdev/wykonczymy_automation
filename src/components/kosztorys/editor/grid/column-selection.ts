@@ -2,7 +2,6 @@ import { Column } from 'react-datasheet-grid'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { appendTrailingGap, withResize } from '@/components/kosztorys/editor/grid/column-sizing'
 import { withColumnColor } from '@/components/kosztorys/editor/grid/column-color'
-import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { stageGroupOfKey, stageIdOfKey } from '@/lib/kosztorys/stage-keys'
 import {
   baseRanksFromKeys,
@@ -10,6 +9,7 @@ import {
   orderColumns,
   type ColumnRanksT,
 } from '@/lib/table/column-order'
+import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import {
   CREW_PLANE_ONLY_COLUMNS,

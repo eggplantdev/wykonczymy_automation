@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // `net` is the section's executed value after rabat, in the active price view
-export type SectionHeaderFigureT = { itemCount: number; net: number }
+type SectionHeaderFigureT = { itemCount: number; net: number }
 
 export type SectionHeaderContextT = {
   figures: Map<number, SectionHeaderFigureT>
@@ -50,9 +50,7 @@ export function sectionHeaderSlot(
 }
 
 function SectionDot() {
-  return (
-    <span className="size-2.5 shrink-0 rounded-full bg-(--section-rail,var(--color-muted-foreground))" />
-  )
+  return <span className="bg-section-rail size-2.5 shrink-0 rounded-full" />
 }
 
 export function SectionHeaderCell({

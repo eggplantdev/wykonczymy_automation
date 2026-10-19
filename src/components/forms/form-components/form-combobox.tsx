@@ -3,7 +3,7 @@
 import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-select'
 import FormBase from './form-base'
 import { FormControlPropsT } from '../types/form-types'
-import { useFieldContext } from '../hooks/form-hooks'
+import { useFieldContext } from '../hooks/form-context'
 
 type FormComboboxPropsT = FormControlPropsT & {
   items: SearchSelectItemT[]

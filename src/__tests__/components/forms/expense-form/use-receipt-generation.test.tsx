@@ -4,11 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useReceiptGeneration } from '@/components/forms/expense-form/use-receipt-generation'
 import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-expense-form'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
-import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
+import { scanReceiptClient } from '@/components/forms/expense-form/scan-receipt-client'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { usePendingStore } from '@/stores/pending-store'
 
-vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
+vi.mock('@/components/forms/expense-form/scan-receipt-client', () => ({
+  scanReceiptClient: vi.fn(),
+}))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
 // `mapWithConcurrency` propagates, so anything torn down outside the `finally` is skipped.

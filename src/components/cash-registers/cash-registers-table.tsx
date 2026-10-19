@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
@@ -8,16 +7,19 @@ import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
-import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/components/tables/cash-registers'
-import { RegisterBalanceChart } from '@/components/dashboard/register-balance-chart'
+import { getCashRegisterColumns } from '@/components/tables/cash-registers'
+import { REGISTER_TYPES, REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
+import { RegisterBalanceChart } from '@/components/cash-registers/register-balance-chart'
 import { AddCashRegisterDialog } from '@/components/dialogs/add-cash-register-dialog'
 import { useActiveFilter } from '@/hooks/use-active-filter'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { canManageRegister } from '@/lib/auth/roles'
 import type { CashRegisterRowT } from '@/types/table-rows'
-import type { CashRegisterTypeT, WorkerRefT } from '@/types/reference-data'
+import type { WorkerRefT } from '@/types/reference-data'
 
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
 const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
@@ -31,12 +33,13 @@ type CashRegistersTablePropsT = {
   className?: string
 }
 
-const TYPE_OPTIONS = (Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]).map((value) => ({
+const TYPE_OPTIONS = REGISTER_TYPES.map((value) => ({
   value,
   label: REGISTER_TYPE_LABELS[value],
 }))
 
 export function CashRegistersTable({ data, workers, className }: CashRegistersTablePropsT) {
+  const currentUser = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
     getActiveUpdate,
@@ -49,10 +52,10 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
     setShowOnlyActive,
   } = useActiveFilter(optimisticData, isCashRegisterActive)
 
-  const ownerOptions = useMemo(() => {
-    const uniqueOwners = [...new Set(optimisticData.map((r) => r.ownerName))].filter(Boolean).sort()
-    return uniqueOwners.map((name) => ({ value: name, label: name }))
-  }, [optimisticData])
+  const ownerOptions = [...new Set(optimisticData.map((r) => r.ownerName))]
+    .filter(Boolean)
+    .sort()
+    .map((name) => ({ value: name, label: name }))
 
   const {
     filteredData: typeFiltered,
@@ -70,7 +73,7 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
     getCashRegisterSearchText,
   )
 
-  const columns = useMemo(() => getCashRegisterColumns(handleToggle), [handleToggle])
+  const columns = getCashRegisterColumns(handleToggle, (row) => canManageRegister(currentUser, row))
 
   return (
     <>

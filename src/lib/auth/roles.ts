@@ -1,3 +1,5 @@
+import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+
 export const ROLES = ['ADMIN', 'OWNER', 'MANAGER', 'EMPLOYEE'] as const
 export type RoleT = (typeof ROLES)[number]
 
@@ -48,6 +50,18 @@ type AccountT = { id: number; role: RoleT }
 export const canTrashAccount = (actor: AccountT, target: AccountT): boolean =>
   actor.id !== target.id && canManageAccount(actor.role, target.role)
 
+export type RegisterScopeT = {
+  type: string | null | undefined
+  ownerId?: number
+  ownerRole?: RoleT
+}
+
+export const canManageRegister = (actor: AccountT, register: RegisterScopeT): boolean =>
+  isAdminOrOwnerRole(actor.role) ||
+  (canViewRegister(actor.role, register.type) &&
+    (register.ownerId === actor.id ||
+      (register.ownerRole !== undefined && canManageAccount(actor.role, register.ownerRole))))
+
 type CanMutateTransferArgsT = {
   role: RoleT
   userId: number
@@ -66,3 +80,11 @@ export const canMutateTransfer = ({
   if (transferType === 'LABOR_COST' && isManagementRole(role)) return true
   return false
 }
+
+type CanCancelTransferArgsT = CanMutateTransferArgsT & {
+  payoutStatus: PayoutStatusT | null | undefined
+}
+
+// A rejected wypłata sits in every manager's queue, so whoever picks it up may cancel it.
+export const canCancelTransfer = ({ payoutStatus, ...args }: CanCancelTransferArgsT): boolean =>
+  canMutateTransfer(args) || (payoutStatus === 'rejected' && isManagementRole(args.role))

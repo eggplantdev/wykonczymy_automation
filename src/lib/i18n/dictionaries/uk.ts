@@ -1,6 +1,6 @@
-import type { TranslationsT } from '@/lib/i18n/translations'
+import type { pl } from '@/lib/i18n/dictionaries/pl'
 
-export const uk: TranslationsT = {
+export const uk: typeof pl = {
   common: {
     decisionAccepted: 'Прийнято',
     decisionRejected: 'Відхилено',
@@ -108,10 +108,13 @@ export const uk: TranslationsT = {
     installIosStep3: 'Торкніться «На початковий екран», потім «Додати».',
     payoutsTitle: 'Виплати для підтвердження',
     payoutsHint: 'Підтвердіть, що отримали ці гроші, — або відхиліть і напишіть, чого бракує.',
+    rejectedPayoutsTitle: 'Відхилені виплати',
+    rejectedPayoutsHint:
+      'Ці виплати чекають на з’ясування з керівником. Ви все ще можете їх підтвердити або дочекатися, поки керівник їх скасує.',
     payoutNoInvestment: 'Без інвестиції',
     payoutConfirm: 'Підтверджую',
     payoutReject: 'Відхилити',
-    payoutYourReason: 'Ваша причина: {{reason}}',
+    payoutRejectionReason: 'Причина відхилення: {{reason}}',
     payoutAcceptTitle: 'Підтверджуєте отримання виплати?',
     payoutAcceptDescription: 'Ви підтверджуєте, що отримали {{amount}}.',
     payoutAccepted: 'Виплату підтверджено',
@@ -199,6 +202,28 @@ export const uk: TranslationsT = {
       few: "Об'єднано {{count}} заявки",
       many: "Об'єднано {{count}} заявок",
       other: "Об'єднано {{count}} заявки",
+    },
+    readingReceipts: 'Зчитування чеків…',
+    readFailedToast: 'Не вдалося зчитати фото заявки',
+    rejectedToast: 'Заявку відхилено',
+    rejectedDuplicateToast: 'Заявку відхилено як дублікат',
+    reviewTitle: 'Заявка на витрати · {{name}}',
+    pagesDownloadFailed: 'Не вдалося завантажити фото — заявку можна лише відхилити.',
+    reject: 'Відхилити',
+    rejectTitle: 'Відхилити заявку?',
+    resyncFailedToast: 'Не вдалося оновити чеки — відкрийте заявку ще раз',
+    completeItem: 'Заповніть позицію',
+    receiptsAcceptedToast: {
+      one: 'Прийнято {{count}} чек',
+      few: 'Прийнято {{count}} чеки',
+      many: 'Прийнято {{count}} чеків',
+      other: 'Прийнято {{count}} чека',
+    },
+    receiptsRejectedToast: {
+      one: 'Відхилено {{count}} чек',
+      few: 'Відхилено {{count}} чеки',
+      many: 'Відхилено {{count}} чеків',
+      other: 'Відхилено {{count}} чека',
     },
   },
   workerReports: {
@@ -399,6 +424,10 @@ export const uk: TranslationsT = {
     payoutStatus_accepted: 'Підтверджено',
     payoutStatus_rejected: 'Відхилено',
     payoutCancelled: 'Скасовано',
+    colOrderStatus: 'Замовлення',
+    orderStatus_awaiting: 'Очікує',
+    orderStatus_delivered: 'Доставлено',
+    orderStatusToggle: 'Змінити статус замовлення',
     filterPayoutStatus: 'Підтвердження',
     filterType: 'Тип',
     filterRegister: 'Каса',
@@ -414,7 +443,6 @@ export const uk: TranslationsT = {
     showCancelled: 'Показати скасовані',
     searchAmount: 'Пошук за сумою',
     searchId: 'Пошук за id',
-    clearFilters: 'Очистити фільтри',
     filteredSum: 'Сума вибраних транзакцій',
     filteredSumTip:
       'Сума не враховує скасовані транзакції, але враховує скасування, що їх відміняють, — тому не збігається зі списком нижче.',
@@ -438,6 +466,9 @@ export const uk: TranslationsT = {
     invoiceShort: 'Фактура',
     viewTable: 'Таблиця',
     viewCards: 'Картки',
+    waitForFilesToast: 'Зачекайте на обробку файлів.',
+    waitForReceiptsToast: 'Зачекайте на зчитування чеків.',
+    addedToast: 'Транзакції додано',
   },
   filters: {
     search: 'Пошук...',
@@ -448,6 +479,8 @@ export const uk: TranslationsT = {
     from: 'Від',
     to: 'До',
     clearDates: 'Очистити дати',
+    clearFilters: 'Очистити фільтри',
+    notFound: 'Нічого не знайдено.',
     month_1: 'Січень',
     month_2: 'Лютий',
     month_3: 'Березень',
@@ -571,6 +604,7 @@ export const uk: TranslationsT = {
     ingestFailed: 'Не вдалося обробити файл — спробуйте ще раз.',
     convertFailed: 'Не вдалося конвертувати «{{name}}» — збережіть як JPG і спробуйте ще раз.',
     zoomOut: 'Зменшити',
+    originalLoadFailed: 'Не вдалося завантажити оригінал — показано зменшену версію.',
     zoomIn: 'Збільшити',
     fitToWindow: 'Припасувати до вікна',
   },

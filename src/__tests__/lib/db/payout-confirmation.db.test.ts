@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { countRejectedPayouts } from '@/__tests__/helpers/stream-counts'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
   acceptPayout,
   countPendingPayouts,
-  countRejectedPayouts,
   listPayoutsToConfirm,
   listRejectedPayouts,
   rejectPayout,
@@ -43,13 +43,11 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     return Number(created.id)
   }
 
-  // Raw rather than through the action: the CANCELLATION row's age is what the window reads.
-  async function cancel(transactionId: number, daysAgo: number): Promise<void> {
+  async function cancel(transactionId: number): Promise<void> {
     await db.execute(sql`UPDATE transactions SET cancelled = true WHERE id = ${transactionId}`)
     await db.execute(sql`
-      INSERT INTO transactions (description, amount, date, type, cancelled_transaction_id, created_at)
-      VALUES (${`${MARKER} anulowanie`}, 800, now(), 'CANCELLATION', ${transactionId},
-              now() - make_interval(days => ${daysAgo}))
+      INSERT INTO transactions (description, amount, date, type, cancelled_transaction_id)
+      VALUES (${`${MARKER} anulowanie`}, 800, now(), 'CANCELLATION', ${transactionId})
     `)
   }
 
@@ -123,7 +121,7 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
 
   it('changes nothing on a cancelled wypłata', async () => {
     const id = await bookPayout('cancelled')
-    await cancel(id, 0)
+    await cancel(id)
 
     expect(await acceptPayout(db, { transactionId: id, workerId: worker.ownerId })).toBe(false)
     expect(
@@ -157,20 +155,24 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     expect(await stored(id)).toMatchObject({ status: 'accepted', reason: null })
   })
 
-  it('lists what he still owes an answer, and a recent cancellation, but not an old one', async () => {
+  it('lists what he still owes an answer, but no cancelled wypłata', async () => {
     const pending = await bookPayout('to confirm')
-    const recentlyCancelled = await bookPayout('cancelled yesterday')
-    await cancel(recentlyCancelled, 1)
-    const longCancelled = await bookPayout('cancelled long ago')
-    await cancel(longCancelled, 15)
+    const rejected = await bookPayout('rejected')
+    await rejectPayout(db, {
+      transactionId: rejected,
+      workerId: worker.ownerId,
+      reason: 'Brak 50 zł',
+    })
+    const cancelled = await bookPayout('cancelled')
+    await cancel(cancelled)
     const accepted = await bookPayout('already accepted')
     await acceptPayout(db, { transactionId: accepted, workerId: worker.ownerId })
     const strangers = await bookPayout('someone else', stranger.ownerId)
 
     const listed = (await listPayoutsToConfirm(db, worker.ownerId)).map((row) => row.id)
 
-    expect(listed).toEqual(expect.arrayContaining([pending, recentlyCancelled]))
-    expect(listed).not.toContain(longCancelled)
+    expect(listed).toEqual(expect.arrayContaining([pending, rejected]))
+    expect(listed).not.toContain(cancelled)
     expect(listed).not.toContain(accepted)
     expect(listed).not.toContain(strangers)
   })
@@ -181,7 +183,7 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     const before = await countRejectedPayouts(db)
     expect((await listRejectedPayouts(db)).map((row) => row.id)).toContain(id)
 
-    await cancel(id, 0)
+    await cancel(id)
 
     expect(await countRejectedPayouts(db)).toBe(before - 1)
     expect((await listRejectedPayouts(db)).map((row) => row.id)).not.toContain(id)
@@ -191,7 +193,7 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     await cleanUp()
     await bookPayout('badge one')
     await bookPayout('badge two')
-    await cancel(await bookPayout('badge cancelled'), 0)
+    await cancel(await bookPayout('badge cancelled'))
     await acceptPayout(db, {
       transactionId: await bookPayout('badge accepted'),
       workerId: worker.ownerId,

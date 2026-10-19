@@ -12,7 +12,7 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // A reused number would resolve an old paper onto someone else's pozycja.
 
-const { addItemAction } = await import('@/lib/actions/kosztorys')
+const { addItemAction } = await import('@/lib/actions/kosztorys-items')
 const { serializeKosztorys } = await import('@/lib/kosztorys/serialize-kosztorys')
 const { serializeKosztorysAsPreset } = await import('@/lib/kosztorys/serialize-preset')
 const { restoreKosztorys } = await import('@/lib/kosztorys/restore-kosztorys')

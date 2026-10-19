@@ -13,9 +13,9 @@ type UserRegisterStatsPropsT = {
 }
 
 export function UserRegisterStats({ cashRegisters, showAllRegisters }: UserRegisterStatsPropsT) {
-  const { name } = useCurrentUser()
+  const { id } = useCurrentUser()
   const userEntries: StatEntryT[] = cashRegisters
-    .filter((cr) => cr.ownerName === name)
+    .filter((cr) => cr.ownerId === id)
     .map((cr) => ({
       label: cr.name,
       value: formatPLN(cr.balance),

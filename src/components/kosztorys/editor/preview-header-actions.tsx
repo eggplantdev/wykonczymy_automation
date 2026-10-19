@@ -12,7 +12,33 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { HistoryDialog } from '@/components/kosztorys/editor/history/history-dialog'
+import { BrandLogo } from '@/components/ui/brand-logo'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
+
+type PreviewHeaderActionsPropsT = {
+  history?: InvestorHistoryT
+  hasRows: boolean
+  emptyRowCount: number
+  showAllRows: boolean
+  onShowAllRowsChange: (showAll: boolean) => void
+}
+
+export function PreviewHeader({
+  investmentName,
+  workerName,
+  ...actions
+}: { investmentName: string; workerName?: string } & PreviewHeaderActionsPropsT) {
+  return (
+    <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
+      <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
+      <div className="min-w-0 flex-1">
+        <h1 className="text-base font-medium max-sm:line-clamp-2 sm:truncate">{investmentName}</h1>
+        {workerName && <p className="truncate text-sm font-medium">{workerName}</p>}
+      </div>
+      <PreviewHeaderActions {...actions} />
+    </header>
+  )
+}
 
 // Item and dialog are siblings, never nested — a dialog inside the menu unmounts with it.
 export function PreviewHeaderActions({
@@ -21,13 +47,7 @@ export function PreviewHeaderActions({
   emptyRowCount,
   showAllRows,
   onShowAllRowsChange,
-}: {
-  history?: InvestorHistoryT
-  hasRows: boolean
-  emptyRowCount: number
-  showAllRows: boolean
-  onShowAllRowsChange: (showAll: boolean) => void
-}) {
+}: PreviewHeaderActionsPropsT) {
   const [historyOpen, setHistoryOpen] = useState(false)
 
   return (

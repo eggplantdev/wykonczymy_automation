@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { CollapsibleSection, OPEN_STATES } from '@/components/ui/collapsible-section'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
-import { updateInvestmentAction } from '@/lib/actions/investments'
+import { setInvestmentNotesAction } from '@/lib/actions/investments'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
@@ -32,21 +32,7 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
 
   function save() {
     startSaving(async () => {
-      // The update action writes the whole record, so the note rides on the rest as this page last
-      // rendered it — an edit saved elsewhere since then is written back over.
-      const result = await settleAction(() =>
-        updateInvestmentAction(investment.id, {
-          name: investment.name,
-          address: investment.address,
-          phone: investment.phone,
-          email: investment.email,
-          contactPerson: investment.contactPerson,
-          notes: draft,
-          reviewRequested: investment.reviewRequested,
-          status: investment.status,
-          presetId: '',
-        }),
-      )
+      const result = await settleAction(() => setInvestmentNotesAction(investment.id, draft ?? ''))
       if (!result.success) {
         toastMessage(result.error, 'error')
         return
@@ -60,7 +46,7 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
     <CollapsibleSection
       title="Notatki"
       storageKey={NOTES_STORAGE_KEY}
-      size="sm"
+      size="compact"
       withSeparator={false}
       className="text-sm"
       action={

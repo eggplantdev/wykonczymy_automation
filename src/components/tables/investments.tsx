@@ -21,8 +21,11 @@ import { offPlaneDepositSentence } from '@/lib/kosztorys/off-plane-deposit-copy'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
-import { isLockedStatus } from '@/lib/constants/investment-lock'
-import { SheetButton } from '@/components/dialogs/sheet-button'
+import { isLockedStatus, isOfferedForBooking } from '@/lib/constants/investment-lock'
+import { Truck } from 'lucide-react'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
+import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
+import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
@@ -81,9 +84,10 @@ const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
 type InvestmentColumnOptionsT = {
   userRole: RoleT
   onSettle: (investment: InvestmentRowT) => void
+  onOrder: (investment: InvestmentRowT) => void
 }
 
-export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOptionsT) {
+export function getInvestmentColumns({ userRole, onSettle, onOrder }: InvestmentColumnOptionsT) {
   const isAdminOrOwner = isAdminOrOwnerRole(userRole)
   return [
     col.accessor('name', {
@@ -307,6 +311,13 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       meta: { align: 'right' },
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
+          {isOfferedForBooking(info.row.original) && (
+            <RowActionButton
+              icon={Truck}
+              label={ORDER_ACTION_LABEL}
+              onClick={() => onOrder(info.row.original)}
+            />
+          )}
           {isLockedStatus(info.row.original.status) && (
             <RequestReviewButton investment={info.row.original} />
           )}

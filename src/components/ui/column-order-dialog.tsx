@@ -10,12 +10,17 @@ import {
   DialogFooter,
   DialogHeader,
 } from '@/components/ui/dialog'
-import type { ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { rankForMove, type ColumnRanksT } from '@/lib/table/column-order'
 import { sameItems } from '@/lib/utils/same-items'
 import { useDraft } from '@/hooks/use-draft'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
+
+export type ColumnToggleItemT = {
+  id: string
+  label: string
+  visible: boolean
+}
 
 type PropsT = {
   open: boolean

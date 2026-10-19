@@ -1,8 +1,5 @@
-# Pinned, not derived from the directory basename: `container_name` below is a global Docker name that
-# Compose never namespaces, so from a git worktree (basename `wykonczymy-<slice>`) Compose would look
-# for the container under a different project, fail to find it, try to create it, and collide on the
-# name — which is what broke `scripts/test-integration.sh` in the pre-push hook. Pinning it also keeps
-# every worktree on the SAME volumes instead of silently provisioning empty ones.
+# Pinned, not derived from the directory: `container_name` below is a global Docker name that
+# Compose never namespaces, so from a git worktree a basename-derived project collides on it.
 name: wykonczymy
 
 services:

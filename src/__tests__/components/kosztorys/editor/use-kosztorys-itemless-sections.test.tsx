@@ -9,29 +9,35 @@ import { stackUndoRedo } from '@/__tests__/helpers/kosztorys-undo-redo'
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import {
   addSectionAction,
-  removeItemAction,
   removeSectionAction,
   updateSectionFieldAction,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-sections'
+import { removeItemAction } from '@/lib/actions/kosztorys-items'
 
-vi.mock('@/lib/actions/kosztorys', () => ({
+vi.mock('@/lib/actions/kosztorys-items', () => ({
   addItemAction: vi.fn(),
-  clearKosztorysAction: vi.fn(),
+  removeItemAction: vi.fn(async () => ({ success: true })),
+  renumberKosztorysOrderAction: vi.fn(),
+  updateItemFieldAction: vi.fn(async () => ({ success: true })),
+  applyPercentDiscountToAllItemsAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/kosztorys-sections', () => ({
   writeKosztorysLayoutAction: vi.fn(),
   addSectionAction: vi.fn(),
   insertSectionAction: vi.fn(),
-  removeItemAction: vi.fn(async () => ({ success: true })),
   removeSectionAction: vi.fn(async () => ({ success: true })),
-  renumberKosztorysOrderAction: vi.fn(),
-  setStageProgressAction: vi.fn(),
-  updateItemFieldAction: vi.fn(async () => ({ success: true })),
   updateSectionFieldAction: vi.fn(async () => ({ success: true })),
+}))
+vi.mock('@/lib/actions/kosztorys-settings', () => ({
+  clearKosztorysAction: vi.fn(),
   updateInvestmentCoeffsAction: vi.fn(),
   updateInvestmentGlobalDiscountAction: vi.fn(),
   updateInvestmentMaterialsNetRateAction: vi.fn(),
   updateInvestmentSettlementModeAction: vi.fn(),
   updateInvestmentVatAction: vi.fn(),
-  applyPercentDiscountToAllItemsAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/kosztorys-stages', () => ({
+  setStageProgressAction: vi.fn(),
 }))
 
 // The row-level handlers reach the grid only through the column opts, never the hook's return.

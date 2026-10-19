@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils/cn'
 
 export type OptionT<T extends string> = { value: T; label: string; icon?: ReactNode }
 
-type SizeT = 'default' | 'lg'
+type SizeT = 'default' | 'md' | 'lg'
 
 type PropsT<T extends string> = {
   options: OptionT<T>[]
@@ -21,11 +21,13 @@ type PropsT<T extends string> = {
 
 const ROOT_SIZE: Record<SizeT, string> = {
   default: 'h-8',
+  md: 'h-9',
   lg: 'h-11',
 }
 
 const ITEM_SIZE: Record<SizeT, string> = {
   default: 'px-3 text-xs',
+  md: 'px-4 text-sm',
   lg: 'px-5 text-sm',
 }
 

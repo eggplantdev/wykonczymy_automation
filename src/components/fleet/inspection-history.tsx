@@ -13,8 +13,7 @@ import { INSPECTION_TYPE_LABELS, INSPECTION_TYPES } from '@/lib/fleet/inspection
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { formatKm, formatKmOrDash } from '@/lib/utils/format-distance'
-import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
-import type { VehicleDetailT } from '@/types/fleet'
+import type { InspectionHistoryEntryT, VehicleDetailT } from '@/lib/fleet/types'
 
 const EMPTY = '—'
 

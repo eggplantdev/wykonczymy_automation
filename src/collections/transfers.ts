@@ -14,11 +14,12 @@ import {
   type TransferTypeT,
 } from '@/lib/constants/transfers'
 import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
-import { validateTransfer } from '@/hooks/transfers/validate'
-import { guardDeleteOnLockedInvestment } from '@/hooks/transfers/guard-delete'
-import { recalcAfterChange, recalcAfterDelete } from '@/hooks/transfers/recalculate-balances'
-import { syncSheetAfterChange, syncSheetAfterDelete } from '@/hooks/transfers/sync-sheet'
-import { deleteInvoiceMediaAfterDelete } from '@/hooks/transfers/delete-invoice-media'
+import type { OrderStatusT } from '@/lib/constants/orders'
+import { validateTransfer } from '@/collections/hooks/transfers/validate'
+import { guardDeleteOnLockedInvestment } from '@/collections/hooks/transfers/guard-delete'
+import { recalcAfterChange, recalcAfterDelete } from '@/collections/hooks/transfers/recalculate-balances'
+import { syncSheetAfterChange, syncSheetAfterDelete } from '@/collections/hooks/transfers/sync-sheet'
+import { deleteInvoiceMediaAfterDelete } from '@/collections/hooks/transfers/delete-invoice-media'
 
 const TRANSFER_TYPES = [
   { label: { en: 'Investor Deposit', pl: 'Wpłata od inwestora' }, value: 'INVESTOR_DEPOSIT' },
@@ -314,6 +315,17 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Rejection reason', pl: 'Powód odrzucenia' },
       access: { update: () => false },
       admin: { readOnly: true, condition: (data) => carriesPayoutStatus(typeOf(data)) },
+    },
+    {
+      name: 'orderStatus',
+      type: 'select',
+      options: [
+        { label: { en: 'Awaiting delivery', pl: 'Czeka' }, value: 'awaiting' },
+        { label: { en: 'Delivered', pl: 'Dostarczone' }, value: 'delivered' },
+      ] satisfies { label: { en: string; pl: string }; value: OrderStatusT }[],
+      label: { en: 'Order status', pl: 'Status zamówienia' },
+      access: { create: () => false, update: () => false },
+      admin: { readOnly: true, condition: (data) => data?.orderStatus != null },
     },
     {
       name: 'createdBy',

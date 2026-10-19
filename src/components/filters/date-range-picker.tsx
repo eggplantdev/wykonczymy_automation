@@ -7,8 +7,7 @@ import { ControlGrid } from '@/components/ui/control-grid'
 import { FilterSelect } from '@/components/filters/filter-select'
 import { Loader } from '@/components/ui/loader/loader'
 import { useTranslation } from '@/hooks/use-translation'
-import { getMonthDateRange } from '@/lib/utils/date'
-import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
+import { ALL_TIME, getMonthDateRange, type DateRangeT } from '@/lib/utils/date-range'
 
 const YEARS_OFFERED = 5
 const MONTH_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const

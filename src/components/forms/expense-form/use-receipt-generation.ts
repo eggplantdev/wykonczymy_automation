@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
+import { scanReceiptClient } from '@/components/forms/expense-form/scan-receipt-client'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
 import { logError } from '@/lib/utils/log-error'

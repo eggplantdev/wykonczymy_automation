@@ -5,7 +5,7 @@ import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 type PropsT = {
   entry: CompanyKnowledgeEntryT

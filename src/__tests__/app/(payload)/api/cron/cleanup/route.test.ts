@@ -3,27 +3,28 @@ import { NextRequest } from 'next/server'
 
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
-vi.mock('@/lib/db/snapshots', () => ({ gcSnapshots: vi.fn() }))
+vi.mock('@/lib/kosztorys/snapshot-gc', () => ({
+  gcSnapshots: vi.fn(),
+  gcTemplateSnapshots: vi.fn(),
+}))
 vi.mock('@/lib/investments/purge-trash', () => ({ purgeTrash: vi.fn() }))
 vi.mock('@/lib/cash-registers/purge-trash', () => ({ purgeCashRegisterTrash: vi.fn() }))
 vi.mock('@/lib/workers/purge-trash', () => ({ purgeWorkerTrash: vi.fn() }))
 vi.mock('@/lib/fleet/purge-trash', () => ({ purgeVehicleTrash: vi.fn() }))
 vi.mock('@/lib/equipment/purge-trash', () => ({ purgeEquipmentTrash: vi.fn() }))
 vi.mock('@/lib/leads/purge-trash', () => ({ purgeLeadTrash: vi.fn() }))
-vi.mock('@/lib/db/template-snapshots', () => ({ gcTemplateSnapshots: vi.fn() }))
 vi.mock('@/lib/kosztorys/templates/purge-trash', () => ({ purgeTemplateTrash: vi.fn() }))
 vi.mock('@/lib/media/gc-media', () => ({ gcMedia: vi.fn() }))
 
 import { GET } from '@/app/(payload)/api/cron/cleanup/route'
 import { getPayload } from 'payload'
-import { gcSnapshots } from '@/lib/db/snapshots'
+import { gcSnapshots, gcTemplateSnapshots } from '@/lib/kosztorys/snapshot-gc'
 import { purgeTrash } from '@/lib/investments/purge-trash'
 import { purgeCashRegisterTrash } from '@/lib/cash-registers/purge-trash'
 import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 import { purgeVehicleTrash } from '@/lib/fleet/purge-trash'
 import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
 import { purgeLeadTrash } from '@/lib/leads/purge-trash'
-import { gcTemplateSnapshots } from '@/lib/db/template-snapshots'
 import { purgeTemplateTrash } from '@/lib/kosztorys/templates/purge-trash'
 import { gcMedia } from '@/lib/media/gc-media'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'

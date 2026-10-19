@@ -3,7 +3,8 @@
 import { Mail } from 'lucide-react'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { Description } from '@/components/ui/description'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { SettingsCard } from '@/components/ui/settings-card'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { RecipientListForm } from '@/components/forms/recipient-list-form/recipient-list-form'
 import { saveRecipientListAction } from '@/lib/actions/notification-recipients'
 import type { RecipientListT } from '@/lib/email/recipients'
@@ -24,11 +25,11 @@ export function RecipientListCard({
   canEdit,
 }: RecipientListCardPropsT) {
   return (
-    <section className="border-border rounded-md border p-4">
-      <div className="flex items-center gap-2">
-        <Mail className="text-muted-foreground size-4 shrink-0" />
-        <h2 className="flex-1 text-sm font-semibold">{title}</h2>
-        {canEdit && (
+    <SettingsCard
+      icon={Mail}
+      title={title}
+      action={
+        canEdit && (
           <FormDialog
             formId={`recipients-${list}`}
             title={title}
@@ -45,8 +46,9 @@ export function RecipientListCard({
               />
             )}
           </FormDialog>
-        )}
-      </div>
+        )
+      }
+    >
       {description && (
         <Description size="xs" className="mt-2">
           {description}
@@ -63,6 +65,6 @@ export function RecipientListCard({
           ))}
         </ul>
       )}
-    </section>
+    </SettingsCard>
   )
 }

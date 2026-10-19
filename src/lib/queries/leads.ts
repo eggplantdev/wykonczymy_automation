@@ -11,7 +11,7 @@ import { leadRawDataSchema, leadFormQuestionsSchema } from '@/lib/leads/lead-sch
 import { buildPaginationMeta, type PaginationMetaT } from '@/lib/utils/pagination'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { uploadFieldIds } from '@/lib/media/upload-field'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 import type { MediaFileT } from '@/types/media'
 
 export const LEADS_DEFAULT_LIMIT = 50

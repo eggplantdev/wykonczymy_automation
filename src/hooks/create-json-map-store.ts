@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 
 // getSnapshot returns the raw string so server and first client render agree on the empty snapshot →
 // no hydration mismatch, and useSyncExternalStore's string equality skips redundant re-renders.
@@ -79,5 +79,5 @@ export function createJsonMapStore<V>(storageKey: string): JsonMapStoreT<V> {
 
 export function useJsonMap<V>(store: JsonMapStoreT<V>): Record<string, V> {
   const json = useSyncExternalStore(store.subscribe, store.getSnapshot, () => EMPTY_MAP_SNAPSHOT)
-  return useMemo(() => parseJsonMap<V>(json), [json])
+  return parseJsonMap<V>(json)
 }

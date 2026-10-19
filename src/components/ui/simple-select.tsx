@@ -21,7 +21,7 @@ export type SelectOptionT = {
   tone?: string
   className?: string
 }
-export type SelectVariantT = 'default' | 'soft' | 'pill' | 'toolbar' | 'toolbarSm'
+type SelectVariantT = 'default' | 'soft' | 'pill' | 'toolbar' | 'toolbarSm'
 
 const VARIANT: Record<
   SelectVariantT,

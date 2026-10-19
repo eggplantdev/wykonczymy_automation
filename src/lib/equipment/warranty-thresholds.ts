@@ -5,7 +5,7 @@ export { isMoreUrgent }
 
 export const EXPIRED = ZERO_BUCKET
 
-export const WARRANTY_BUCKETS = [EXPIRED, 7, 30] as const
+const WARRANTY_BUCKETS = [EXPIRED, 7, 30] as const
 
 export type WarrantyBucketT = (typeof WARRANTY_BUCKETS)[number]
 

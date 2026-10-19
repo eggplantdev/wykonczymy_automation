@@ -1,6 +1,5 @@
 'use server'
 
-import type { Payload } from 'payload'
 import {
   addEquipmentSchema,
   equipmentSchema,
@@ -11,29 +10,9 @@ import {
   equipmentTransferSchema,
   type EquipmentTransferDataT,
 } from '@/components/forms/equipment-transfer-form/equipment-transfer-schema'
+import { uniqueClash } from '@/lib/trash/unique-holder'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { protectedAction, validateAction } from './run-action'
-
-async function serialClash(payload: Payload, serial: string | null, ownId?: number) {
-  if (!serial) return undefined
-  const { docs } = await payload.find({
-    collection: 'equipment',
-    where: {
-      and: [
-        { serialNumber: { equals: serial } },
-        ...(ownId === undefined ? [] : [{ id: { not_equals: ownId } }]),
-      ],
-    },
-    limit: 1,
-    depth: 0,
-    overrideAccess: true,
-  })
-  const holder = docs[0]
-  if (!holder) return undefined
-  return holder.trashedAt
-    ? `Sprzęt o numerze seryjnym ${serial} jest w Koszu — przywróć go stamtąd.`
-    : `Sprzęt o numerze seryjnym ${serial} już istnieje.`
-}
 
 export async function createEquipmentAction(data: AddEquipmentDataT) {
   return protectedAction(
@@ -44,7 +23,12 @@ export async function createEquipmentAction(data: AddEquipmentDataT) {
 
       const { occurredAt, holder, warehouse, serviceProvider, investment, ...item } = parsed.data
 
-      const clash = await serialClash(payload, item.serialNumber)
+      const clash = await uniqueClash(payload, {
+        collection: 'equipment',
+        field: 'serialNumber',
+        value: item.serialNumber,
+        subject: `Sprzęt o numerze seryjnym ${item.serialNumber}`,
+      })
       if (clash) return { success: false, error: clash }
 
       // an item whose first
@@ -83,7 +67,13 @@ export async function updateEquipmentAction(id: number, data: EquipmentFormDataT
       const parsed = validateAction(equipmentSchema, data)
       if (!parsed.success) return parsed
 
-      const clash = await serialClash(payload, parsed.data.serialNumber, id)
+      const clash = await uniqueClash(payload, {
+        collection: 'equipment',
+        field: 'serialNumber',
+        value: parsed.data.serialNumber,
+        ownId: id,
+        subject: `Sprzęt o numerze seryjnym ${parsed.data.serialNumber}`,
+      })
       if (clash) return { success: false, error: clash }
 
       await payload.update({ collection: 'equipment', id, data: parsed.data })

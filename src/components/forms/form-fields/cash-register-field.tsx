@@ -1,5 +1,5 @@
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
 import { EmptyFieldMessage } from './empty-field-message'
 import { useFieldValue } from '@/components/forms/hooks/use-field-value'
@@ -30,18 +30,12 @@ export function CashRegisterField<TName extends string>({
 
   const selectedId = useFieldValue(form, name)
 
-  const filteredRegisters = useMemo(
-    () => activeOrSelected(cashRegisters, activeOnly, selectedId),
-    [cashRegisters, activeOnly, selectedId],
-  )
+  const filteredRegisters = activeOrSelected(cashRegisters, activeOnly, selectedId)
 
   const emptyMessage = cashRegisters.length === 0 ? 'Brak kas' : 'Brak aktywnych kas'
   const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
 
-  const comboboxItems = useMemo(
-    () => filteredRegisters.map((cr) => ({ value: String(cr.id), label: cr.name })),
-    [filteredRegisters],
-  )
+  const comboboxItems = filteredRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))
 
   return (
     <form.AppField name={name} listeners={listeners}>

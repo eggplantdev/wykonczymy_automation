@@ -5,8 +5,8 @@ import { ROLE_LABELS } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/button'
 import type { UserRowT } from '@/types/table-rows'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { RoleBadge } from '@/components/ui/badge'
-import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { RoleBadge } from '@/components/users/role-badge'
+import { BadgeButton } from '@/components/ui/badge'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
@@ -110,13 +110,17 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       id: 'active',
       header: 'Status',
       meta: { align: 'right' },
-      cell: (info) => (
-        <ActiveToggleBadge
-          id={info.row.original.id}
-          isActive={info.getValue()}
-          onToggle={onToggle}
-        />
-      ),
+      cell: (info) => {
+        const isActive = info.getValue()
+        return (
+          <BadgeButton
+            tone={isActive ? 'positive' : 'muted'}
+            onClick={() => onToggle(info.row.original.id, !isActive)}
+          >
+            {isActive ? 'Aktywny' : 'Nieaktywny'}
+          </BadgeButton>
+        )
+      },
     }),
     col.accessor(
       (row) =>

@@ -13,6 +13,7 @@ import { getDb } from '@/lib/db/get-db'
 import { fetchRemovalSubject } from '@/lib/db/account-removal'
 import { accountChangeRefusal, revokeAccountAccess } from '@/lib/workers/account-removal'
 import type { SessionUserT } from '@/types/auth'
+import { findManageableRegister } from '@/lib/cash-registers/register-scope'
 
 type ToggleConfigT = {
   collection: 'users' | 'cash-registers'
@@ -83,5 +84,9 @@ export async function toggleCashRegisterActive(id: number, active: boolean) {
     cacheTag: 'cashRegisters',
     data: (active) => ({ active }),
     overrideAccess: true,
+    refusal: async (payload, actor, id) => {
+      const found = await findManageableRegister(payload, actor, id)
+      return 'register' in found ? undefined : found.error
+    },
   })
 }

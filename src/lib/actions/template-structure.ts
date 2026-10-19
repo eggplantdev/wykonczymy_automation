@@ -4,7 +4,7 @@ import { after } from 'next/server'
 import { templateAction } from '@/lib/actions/template-action'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
 import { validateAction } from '@/lib/actions/run-action'
-import { SECTION_NOT_FOUND } from '@/lib/constants/not-found'
+import { ITEM_NOT_FOUND, SECTION_NOT_FOUND } from '@/lib/constants/not-found'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import {
   deleteTemplateItem,
@@ -31,17 +31,13 @@ import {
   type InsertDirectionT,
 } from '@/lib/kosztorys/display-order'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { resolveNewItemSlot } from '@/lib/kosztorys/new-item-slot'
 import { addedItemResult, prepareNewItemRow } from '@/lib/kosztorys/new-item-row'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { sectionPatchSchema, type SectionPatchT } from '@/lib/kosztorys/section-patch-schema'
 import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
-import type {
-  ItemPatchT,
-  KosztorysItemT,
-  KosztorysSectionT,
-  NewItemPlacementT,
-} from '@/lib/kosztorys/types'
+import type { ItemPatchT, KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
 import {
   catalogueUpdateFor,
   pickCataloguePatch,
@@ -63,8 +59,6 @@ import {
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import type { ActionResultT } from '@/types/action'
 
-const ITEM_MISSING = 'Pozycja nie istnieje.'
-
 // A przedmiar, rabat or uwaga typed into a szablon has nowhere to live — the row carries only its
 // link — so that half of the patch is dropped rather than refused, like the grid never offering it.
 export async function updateTemplateItemFieldAction(itemId: number, patch: ItemPatchT) {
@@ -82,7 +76,7 @@ export async function updateTemplateItemFieldAction(itemId: number, patch: ItemP
         async (req): Promise<ActionResultT> => {
           const txDb = await getDb(payload, req)
           const entry = await findTemplateItemCatalogueEntry(txDb, itemId)
-          if (!entry) return { success: false, error: ITEM_MISSING, code: 'NOT_FOUND' }
+          if (!entry) return { success: false, error: ITEM_NOT_FOUND, code: 'NOT_FOUND' }
           const update = catalogueUpdateFor(entry, cataloguePatch)
           if ('error' in update) return { success: false, error: update.error }
           // Before the write: a returned refusal still commits the transaction.
@@ -200,21 +194,6 @@ export async function removeTemplateItemAction(itemId: number): Promise<ActionRe
   )
 }
 
-async function resolveNewTemplateItemSlot(
-  db: DbExecutorT,
-  placement: NewItemPlacementT,
-): Promise<{ sectionId: number; displayOrder: number } | { error: string }> {
-  if (placement.kind === 'end') {
-    const owner = await templateSectionAndNextItemOrder(db, placement.sectionId)
-    if (!owner) return { error: SECTION_NOT_FOUND }
-    return { sectionId: placement.sectionId, displayOrder: owner.nextDisplayOrder }
-  }
-  const slot = await resolveInsertSlot(db, 'template-items', placement.anchorItemId, placement.dir)
-  if (!slot) return { error: ITEM_MISSING }
-  await shiftDisplayOrderFrom(db, 'template-items', slot.ownerId, slot.at)
-  return { sectionId: slot.ownerId, displayOrder: slot.at }
-}
-
 // „Nowa praca" in a szablon always goes through the katalog: the row it creates is only a link, so
 // a praca with no katalog entry would have no content at all.
 export async function addTemplateItemAction(
@@ -246,7 +225,12 @@ export async function addTemplateItemAction(
           const resolved = await resolveCatalogueWrite(txDb, row.matchKey, catalogue.mode)
           if ('error' in resolved) return { success: false, error: resolved.error }
 
-          const slot = await resolveNewTemplateItemSlot(txDb, placement)
+          const slot = await resolveNewItemSlot(
+            txDb,
+            'template-items',
+            placement,
+            templateSectionAndNextItemOrder,
+          )
           if ('error' in slot) return { success: false, error: slot.error }
 
           const catalogueItemId = await applyCatalogueWrite(payload, req, {

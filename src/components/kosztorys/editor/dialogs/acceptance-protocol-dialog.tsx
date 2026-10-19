@@ -35,7 +35,7 @@ import type {
   AcceptanceProtocolFormT,
 } from '@/lib/kosztorys/acceptance-protocol/types'
 import type { MaterialsT } from '@/lib/kosztorys/summary-economics'
-import { EditInvestmentPrefill } from '@/components/dialogs/edit-investment-prefill'
+import { EditInvestmentPrefill } from '@/components/investments/edit-investment-prefill'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { warsawToday } from '@/lib/utils/days'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'

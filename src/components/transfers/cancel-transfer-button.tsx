@@ -16,9 +16,13 @@ import { toastMessage } from '@/lib/utils/toast'
 
 type CancelTransferButtonPropsT = {
   transactionId: number
+  disabledReason?: string
 }
 
-export function CancelTransferButton({ transactionId }: CancelTransferButtonPropsT) {
+export function CancelTransferButton({
+  transactionId,
+  disabledReason,
+}: CancelTransferButtonPropsT) {
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
   const [isPending, setIsPending] = useState(false)
@@ -45,6 +49,19 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
     } else {
       toastMessage(result.error, 'error')
     }
+  }
+
+  if (disabledReason) {
+    return (
+      <RowActionButton
+        icon={Ban}
+        label="Anuluj transakcję"
+        text="Anuluj"
+        tone="destructive"
+        tooltip={disabledReason}
+        disabled
+      />
+    )
   }
 
   return (

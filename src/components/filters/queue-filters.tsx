@@ -7,6 +7,7 @@ import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
+import { useTranslation } from '@/hooks/use-translation'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 const FILTER_KEYS = ['status', 'investment', 'worker'] as const
@@ -25,6 +26,7 @@ type PropsT = {
 }
 
 export function QueueFilters({ baseUrl, statusOptions, investments, workers, toggleMenu }: PropsT) {
+  const { t } = useTranslation('filters')
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)
 
@@ -80,7 +82,7 @@ export function QueueFilters({ baseUrl, statusOptions, investments, workers, tog
           }
           disabled={!hasFilters}
         >
-          Wyczyść filtry
+          {t('clearFilters')}
         </ClearButton>
       </ControlGrid>
       <DateFilters baseUrl={baseUrl} />

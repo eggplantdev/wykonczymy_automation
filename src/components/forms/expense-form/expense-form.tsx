@@ -39,7 +39,9 @@ import {
 } from '@/lib/transfers/clear-fields-for-type'
 import {
   makeLineItem,
+  sumLineItemAmounts,
   type BulkExpenseFormValuesT,
+  type ExpenseFormPrefillT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { positionalFiles } from '@/components/forms/expense-form/row-file-positions'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
@@ -66,26 +68,14 @@ import { RegisterBalanceSummary } from '../form-components/register-balance-summ
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment, isOfferedForBooking } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
-import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
+import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
-import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
-import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
+import { useTranslation } from '@/hooks/use-translation'
 
 type FormValuesT = BulkExpenseFormValuesT
 
 export type ParagonRowT = { itemId: string; position: number; status: DecisionStatusT }
-
-export type ExpenseFormPrefillT = {
-  values: FormValuesT
-  files: Map<number, File[]>
-  expenseDraftId: number
-  receipts: Map<string, DraftReceiptT[]>
-  aiReadRows: ExpenseDraftReadRowT[]
-  pagesByMediaId: Map<number, File>
-  rejectedReceipts?: RejectedReceiptT[]
-  acceptedReadRows?: number[]
-}
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -93,6 +83,7 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
+  orderValues?: FormValuesT
   isPrefillReading?: boolean
   isSaveBlocked?: boolean
   secondaryAction?: React.ReactNode
@@ -116,6 +107,7 @@ export function ExpenseForm({
   keepOpen,
   formId = FORM_ID,
   prefill,
+  orderValues,
   isPrefillReading = false,
   isSaveBlocked = false,
   secondaryAction,
@@ -124,7 +116,11 @@ export function ExpenseForm({
   wrapLineItem,
   onDecided,
 }: TransferFormPropsT) {
+  const { t } = useTranslation('transfers')
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
+  // The store holds ONE draft: a prefilled form writing it would wipe the half-typed
+  // „Nowy wydatek" waiting there.
+  const isDraftBacked = !prefill && !orderValues
   const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<DecisionStatusT>>(
     () => new Set(['accepted', 'rejected']),
   )
@@ -136,7 +132,7 @@ export function ExpenseForm({
 
   const storedFormId = useExpenseFormStore((s) => s.formId)
   const draft = useExpenseFormStore((s) => s.formData)
-  const storedValues = storedFormId === formId ? draft : null
+  const storedValues = isDraftBacked && storedFormId === formId ? draft : null
   const updateFormData = useExpenseFormStore((s) => s.updateFormData)
   const resetFormData = useExpenseFormStore((s) => s.resetFormData)
 
@@ -172,16 +168,20 @@ export function ExpenseForm({
   )
 
   function handleReset() {
-    // Not plain `blankValues`: that snapshot is frozen at first render, so a default kasa pinned
-    // from inside this dialog would be undone by „Wyczyść".
-    form.reset({ ...blankValues, sourceRegister: getDefaultCashRegister(referenceData) })
-    // Set apart from the reset above: reset adopts whatever it is given as the new defaults, and the
-    // next render would swap the stale row back in.
-    form.setFieldValue('lineItems', [makeLineItem({ expenseCategory: defaultExpenseCategory })], {
-      dontUpdateMeta: true,
-      dontRunListeners: true,
-    })
-    if (!prefill) resetFormData()
+    if (orderValues) {
+      form.reset(orderValues)
+    } else {
+      // That snapshot is frozen at first render, so a default kasa pinned from inside this dialog
+      // would be undone by „Wyczyść".
+      form.reset({ ...blankValues, sourceRegister: getDefaultCashRegister(referenceData) })
+      // Set apart from the reset above: reset adopts whatever it is given as the new defaults, and
+      // the next render would swap the stale row back in.
+      form.setFieldValue('lineItems', [makeLineItem({ expenseCategory: defaultExpenseCategory })], {
+        dontUpdateMeta: true,
+        dontRunListeners: true,
+      })
+    }
+    if (isDraftBacked) resetFormData()
     resetRegisterBalance()
     resetInvoiceFiles()
     resetGeneration()
@@ -204,15 +204,16 @@ export function ExpenseForm({
     lineItems: [makeLineItem({ expenseCategory: defaultExpenseCategory })],
   }))
 
-  const initialValues = prefill
-    ? prefill.values
-    : storedValues
+  const initialValues =
+    prefill?.values ??
+    orderValues ??
+    (storedValues
       ? {
           ...storedValues,
           investment: storedValues.investment || investmentFromUrl,
           type: restorableType(storedValues.type),
         }
-      : blankValues
+      : blankValues)
 
   const form = useAppForm({
     defaultValues: initialValues,
@@ -220,21 +221,15 @@ export function ExpenseForm({
       onSubmit: bulkExpenseFormSchema,
     },
     listeners: {
-      // The store holds ONE draft: a prefilled form writing it would wipe the half-typed
-      // „Nowy wydatek" waiting there.
       onChange: ({ formApi }) => {
-        if (!prefill) updateFormData(formId, formApi.state.values as FormValuesT)
+        if (isDraftBacked) updateFormData(formId, formApi.state.values as FormValuesT)
       },
       onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
       // Backstop to the disabled submit button (a keyboard Enter can bypass it).
       if (isIngesting || isGenerating) {
-        toastMessage(
-          isIngesting ? 'Poczekaj na przetworzenie plików.' : 'Poczekaj na odczytanie paragonów.',
-          'warning',
-          4000,
-        )
+        toastMessage(t(isIngesting ? 'waitForFilesToast' : 'waitForReceiptsToast'), 'warning', 4000)
         return false
       }
       if (isSaveBlocked || isParagonMode) return false
@@ -242,7 +237,9 @@ export function ExpenseForm({
       const files = positionalFiles(value.lineItems, getFiles())
 
       const missingInvoice =
-        isInvestmentExpense(value.type) && missingInvoiceConfirm(value.lineItems, files)
+        !orderValues &&
+        isInvestmentExpense(value.type) &&
+        missingInvoiceConfirm(value.lineItems, files)
       if (missingInvoice && !(await ask(missingInvoice))) return false
 
       const data = toBulkData(value, value.lineItems)
@@ -260,12 +257,13 @@ export function ExpenseForm({
                   expenseDraftId: prefill.expenseDraftId,
                   ...receiptDecision(draftReceipts.receipts, value.lineItems, duplicateOfByItemId),
                 },
+                orderValues && { order: true },
               ),
             draftMediaIdOf,
           ),
         // No stored draft backs this form, so an optimistic close would lose it on a failed save.
-        awaitBeforeClose: !!prefill,
-        successMessage: 'Transakcje dodane',
+        awaitBeforeClose: !isDraftBacked,
+        successMessage: t('addedToast'),
         files,
         onSubmitSuccess,
         onReset: () => {
@@ -297,8 +295,6 @@ export function ExpenseForm({
     renameFile: prefill ? () => {} : renameFile,
   })
 
-  const handleGenerate = generateFromReceipts
-
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
@@ -320,9 +316,7 @@ export function ExpenseForm({
     onDecided,
   })
 
-  const sumAmounts = (items: typeof lineItems) =>
-    items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-  const total = sumAmounts(
+  const total = sumLineItemAmounts(
     lineItems.filter((item) => !isParagonMode || draftReceipts.pendingIds.has(item.id)),
   )
 
@@ -383,11 +377,11 @@ export function ExpenseForm({
               >
                 {(field) => (
                   <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
-                    {TRANSACTION_TRANSFER_TYPES.filter((t) =>
-                      canBookTransferType(referenceData.currentUserRole, t),
-                    ).map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {TRANSFER_TYPE_LABELS[t]}
+                    {TRANSACTION_TRANSFER_TYPES.filter((type) =>
+                      canBookTransferType(referenceData.currentUserRole, type),
+                    ).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {TRANSFER_TYPE_LABELS[type]}
                       </SelectItem>
                     ))}
                   </field.Select>
@@ -461,7 +455,7 @@ export function ExpenseForm({
               onRemoveFile={removeFileAt}
               onRegisterFiles={registerFiles}
               getRowFiles={getRowFiles}
-              onGenerate={handleGenerate}
+              onGenerate={generateFromReceipts}
               onGenerateRow={regenerateRow}
               isGenerating={isGenerating || isPrefillReading}
               generatingIds={generatingIds}

@@ -5,9 +5,7 @@ import { FOOTER_ROWS, type FooterRowKeyT } from './columns'
 import type { ParsedItemT, ParsedLaborTabT } from './parse-labor-tab'
 import type { ResolvedLaborColumnsT } from './resolve-columns'
 
-export type { FooterRowKeyT }
-
-export type AppTotalKeyT = FooterRowKeyT | 'measuredNet'
+type AppTotalKeyT = FooterRowKeyT | 'measuredNet'
 
 export type FooterComparisonT = {
   key: FooterRowKeyT

@@ -67,7 +67,7 @@ export const workCatalogueItemBaseSchema = z.object({
   workNote: z.string().catch(''),
 })
 
-export type RatePlaneValuesT = Pick<
+type RatePlaneValuesT = Pick<
   z.infer<typeof workCatalogueItemBaseSchema>,
   | 'wToolsSource'
   | 'wToolsRate'

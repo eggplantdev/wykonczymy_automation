@@ -9,7 +9,7 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const { addItemAction, removeItemAction } = await import('@/lib/actions/kosztorys')
+const { addItemAction, removeItemAction } = await import('@/lib/actions/kosztorys-items')
 
 describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
   let payload: Payload

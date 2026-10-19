@@ -1,8 +1,9 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { createWorkerAction } from '@/lib/actions/workers'
 import type { WorkerFormValuesT } from '@/components/forms/worker-form/worker-schema'
@@ -12,11 +13,12 @@ import type { ReferenceItemT } from '@/types/reference-data'
 const EMPTY_DEFAULTS: WorkerFormValuesT = {
   name: '',
   email: '',
+  phone: '',
   role: 'EMPLOYEE',
   active: true,
   canAddExpensesWithoutInvestment: false,
   defaultCashRegister: '',
-  language: 'pl',
+  language: DEFAULT_LANGUAGE,
 }
 
 type AddWorkerDialogPropsT = {

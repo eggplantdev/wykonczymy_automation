@@ -1,7 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 export async function listCompanyKnowledge(db: DbExecutorT): Promise<CompanyKnowledgeEntryT[]> {
   const result = await db.execute(sql`

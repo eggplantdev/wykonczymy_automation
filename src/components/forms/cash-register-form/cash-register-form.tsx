@@ -6,17 +6,15 @@ import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { EntityComboboxField } from '@/components/forms/form-fields'
-import { REGISTER_TYPE_LABELS } from '@/components/tables/cash-registers'
+import { REGISTER_TYPES, REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { CASH_REGISTER_OWNER_LOCKED_MESSAGE } from '@/lib/constants/cash-register-lock'
 import { cashRegisterFormSchema, type CashRegisterFormValuesT } from './cash-register-schema'
 import { useCashRegisterFormStore } from '@/stores/form-stores'
 import type { CashRegisterFormDataT } from './cash-register-schema'
-import type { CashRegisterTypeT, WorkerRefT } from '@/types/reference-data'
+import type { WorkerRefT } from '@/types/reference-data'
 import type { ActionResultT } from '@/types/action'
-
-const TYPES = Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]
 
 type CashRegisterFormPropsT = {
   formId: string
@@ -87,7 +85,7 @@ export function CashRegisterForm({
             <form.AppField name="type">
               {(field) => (
                 <field.Select label="Typ" showError>
-                  {TYPES.map((type) => (
+                  {REGISTER_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {REGISTER_TYPE_LABELS[type]}
                     </SelectItem>

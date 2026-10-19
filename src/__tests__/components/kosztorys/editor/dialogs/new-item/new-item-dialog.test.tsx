@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NewItemDialog } from '@/components/kosztorys/editor/dialogs/new-item/new-item-dialog'
-import { addItemAction, type AddItemInputT } from '@/lib/actions/kosztorys'
+import { addItemAction, type AddItemInputT } from '@/lib/actions/kosztorys-items'
 import type { KosztorysItemT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'

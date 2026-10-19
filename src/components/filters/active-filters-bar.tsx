@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { FilterChip } from '@/components/filters/filter-chip'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 export type ActiveFiltersBarChipT = {
   id: string
@@ -24,6 +25,7 @@ export function ActiveFiltersBar<ChipT extends ActiveFiltersBarChipT>({
   onClearAll,
   className,
 }: ActiveFiltersBarPropsT<ChipT>) {
+  const { t } = useTranslation('filters')
   if (chips.length === 0) return null
 
   return (
@@ -44,7 +46,7 @@ export function ActiveFiltersBar<ChipT extends ActiveFiltersBarChipT>({
           onClick={onClearAll}
           className="text-muted-foreground h-6 shrink-0 px-2 text-xs"
         >
-          Wyczyść filtry
+          {t('clearFilters')}
         </Button>
       )}
     </div>

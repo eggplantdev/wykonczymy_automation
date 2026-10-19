@@ -1,6 +1,6 @@
-import type { TranslationsT } from '@/lib/i18n/translations'
+import type { pl } from '@/lib/i18n/dictionaries/pl'
 
-export const ru: TranslationsT = {
+export const ru: typeof pl = {
   common: {
     decisionAccepted: 'Принято',
     decisionRejected: 'Отклонено',
@@ -107,10 +107,13 @@ export const ru: TranslationsT = {
     payoutsTitle: 'Выплаты для подтверждения',
     payoutsHint:
       'Подтвердите, что получили эти деньги, — или отклоните и напишите, чего не хватает.',
+    rejectedPayoutsTitle: 'Отклонённые выплаты',
+    rejectedPayoutsHint:
+      'Эти выплаты ждут выяснения с руководителем. Вы всё ещё можете их подтвердить или дождаться, пока руководитель их отменит.',
     payoutNoInvestment: 'Без инвестиции',
     payoutConfirm: 'Подтверждаю',
     payoutReject: 'Отклонить',
-    payoutYourReason: 'Ваша причина: {{reason}}',
+    payoutRejectionReason: 'Причина отклонения: {{reason}}',
     payoutAcceptTitle: 'Подтверждаете получение выплаты?',
     payoutAcceptDescription: 'Вы подтверждаете, что получили {{amount}}.',
     payoutAccepted: 'Выплата подтверждена',
@@ -198,6 +201,28 @@ export const ru: TranslationsT = {
       few: 'Объединено {{count}} заявки',
       many: 'Объединено {{count}} заявок',
       other: 'Объединено {{count}} заявки',
+    },
+    readingReceipts: 'Считывание чеков…',
+    readFailedToast: 'Не удалось считать фото заявки',
+    rejectedToast: 'Заявка отклонена',
+    rejectedDuplicateToast: 'Заявка отклонена как дубликат',
+    reviewTitle: 'Заявка на расходы · {{name}}',
+    pagesDownloadFailed: 'Не удалось загрузить фото — заявку можно только отклонить.',
+    reject: 'Отклонить',
+    rejectTitle: 'Отклонить заявку?',
+    resyncFailedToast: 'Не удалось обновить чеки — откройте заявку снова',
+    completeItem: 'Заполните позицию',
+    receiptsAcceptedToast: {
+      one: 'Принят {{count}} чек',
+      few: 'Принято {{count}} чека',
+      many: 'Принято {{count}} чеков',
+      other: 'Принято {{count}} чека',
+    },
+    receiptsRejectedToast: {
+      one: 'Отклонён {{count}} чек',
+      few: 'Отклонено {{count}} чека',
+      many: 'Отклонено {{count}} чеков',
+      other: 'Отклонено {{count}} чека',
     },
   },
   workerReports: {
@@ -399,6 +424,10 @@ export const ru: TranslationsT = {
     payoutStatus_accepted: 'Подтверждена',
     payoutStatus_rejected: 'Отклонена',
     payoutCancelled: 'Отменена',
+    colOrderStatus: 'Заказ',
+    orderStatus_awaiting: 'Ожидает',
+    orderStatus_delivered: 'Доставлено',
+    orderStatusToggle: 'Изменить статус заказа',
     filterPayoutStatus: 'Подтверждение',
     filterType: 'Тип',
     filterRegister: 'Касса',
@@ -414,7 +443,6 @@ export const ru: TranslationsT = {
     showCancelled: 'Показать отменённые',
     searchAmount: 'Поиск по сумме',
     searchId: 'Поиск по id',
-    clearFilters: 'Сбросить фильтры',
     filteredSum: 'Сумма выбранных транзакций',
     filteredSumTip:
       'Сумма не учитывает отменённые транзакции, но учитывает отмены, которые их аннулируют, — поэтому не совпадает со списком ниже.',
@@ -438,6 +466,9 @@ export const ru: TranslationsT = {
     invoiceShort: 'Фактура',
     viewTable: 'Таблица',
     viewCards: 'Карточки',
+    waitForFilesToast: 'Дождитесь обработки файлов.',
+    waitForReceiptsToast: 'Дождитесь считывания чеков.',
+    addedToast: 'Транзакции добавлены',
   },
   filters: {
     search: 'Поиск...',
@@ -448,6 +479,8 @@ export const ru: TranslationsT = {
     from: 'С',
     to: 'По',
     clearDates: 'Сбросить даты',
+    clearFilters: 'Сбросить фильтры',
+    notFound: 'Ничего не найдено.',
     month_1: 'Январь',
     month_2: 'Февраль',
     month_3: 'Март',
@@ -571,6 +604,7 @@ export const ru: TranslationsT = {
     ingestFailed: 'Не удалось обработать файл — попробуйте ещё раз.',
     convertFailed: 'Не удалось конвертировать «{{name}}» — сохраните как JPG и попробуйте ещё раз.',
     zoomOut: 'Уменьшить',
+    originalLoadFailed: 'Не удалось загрузить оригинал — показана уменьшенная версия.',
     zoomIn: 'Увеличить',
     fitToWindow: 'Вписать в окно',
   },

@@ -80,6 +80,7 @@ export function TransferFilters({
 }: TransferFiltersPropsT) {
   const searchParams = useSearchParams()
   const { t } = useTranslation('transfers')
+  const { t: tFilters } = useTranslation('filters')
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)
 
@@ -290,7 +291,7 @@ export function TransferFilters({
         )}
 
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
-          {t('clearFilters')}
+          {tFilters('clearFilters')}
         </ClearButton>
       </ControlGrid>
       <DateFilters baseUrl={baseUrl} />

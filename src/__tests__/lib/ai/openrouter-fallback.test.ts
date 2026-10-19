@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 
-const { generateObject } = vi.hoisted(() => ({ generateObject: vi.fn() }))
+const { generateText } = vi.hoisted(() => ({ generateText: vi.fn() }))
 
-vi.mock('ai', () => ({ generateObject }))
+vi.mock('ai', () => ({ generateText, Output: { object: (spec: unknown) => spec } }))
 
 vi.mock('@openrouter/ai-sdk-provider', () => ({
   createOpenRouter: () => (model: string) => ({ __model: model }),
@@ -29,33 +29,33 @@ const PAGES = [{ bytes: new Uint8Array([1, 2, 3]), mediaType: 'image/png', filen
 
 describe('extractReceipt runtime fallback', () => {
   it('retries with FALLBACK_MODEL when the primary throws, returning the fallback result', async () => {
-    generateObject.mockImplementation(async ({ model }: { model: { __model: string } }) => {
+    generateText.mockImplementation(async ({ model }: { model: { __model: string } }) => {
       if (model.__model === RECEIPT_MODEL) throw new Error('model not found')
-      return { object: OK }
+      return { output: OK }
     })
 
     const result = await extractReceipt(PAGES, [])
 
     expect(result).toEqual(OK)
-    expect(generateObject).toHaveBeenCalledTimes(2)
-    expect(generateObject.mock.calls[0]?.[0].model.__model).toBe(RECEIPT_MODEL)
-    expect(generateObject.mock.calls[1]?.[0].model.__model).toBe(FALLBACK_MODEL)
+    expect(generateText).toHaveBeenCalledTimes(2)
+    expect(generateText.mock.calls[0]?.[0].model.__model).toBe(RECEIPT_MODEL)
+    expect(generateText.mock.calls[1]?.[0].model.__model).toBe(FALLBACK_MODEL)
   })
 
   it('does not call the fallback when the primary succeeds', async () => {
-    generateObject.mockResolvedValue({ object: OK })
+    generateText.mockResolvedValue({ output: OK })
 
     const result = await extractReceipt(PAGES, [])
 
     expect(result).toEqual(OK)
-    expect(generateObject).toHaveBeenCalledTimes(1)
+    expect(generateText).toHaveBeenCalledTimes(1)
   })
 
   it('throws when both the primary and the fallback fail', async () => {
-    generateObject.mockRejectedValue(new Error('provider down'))
+    generateText.mockRejectedValue(new Error('provider down'))
 
     await expect(extractReceipt(PAGES, [])).rejects.toThrow()
-    expect(generateObject).toHaveBeenCalledTimes(2)
+    expect(generateText).toHaveBeenCalledTimes(2)
   })
 
   // a hung vision request must abort, otherwise the batch
@@ -63,7 +63,7 @@ describe('extractReceipt runtime fallback', () => {
   it('aborts a hung request via the per-attempt timeout instead of hanging forever', async () => {
     vi.useFakeTimers()
     try {
-      generateObject.mockImplementation(
+      generateText.mockImplementation(
         ({ abortSignal }: { abortSignal: AbortSignal }) =>
           new Promise((_, reject) => {
             abortSignal.addEventListener('abort', () =>
@@ -78,13 +78,13 @@ describe('extractReceipt runtime fallback', () => {
 
       await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS - 1)
       expect(settled).toBe(false) // still pending: only the timeout, not a synchronous throw, ends it
-      expect(generateObject.mock.calls[0]?.[0].abortSignal).toBeInstanceOf(AbortSignal)
+      expect(generateText.mock.calls[0]?.[0].abortSignal).toBeInstanceOf(AbortSignal)
 
       await vi.advanceTimersByTimeAsync(2) // primary times out → fallback fires
       await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS) // fallback times out → reject
 
       await expect(p).rejects.toThrow()
-      expect(generateObject).toHaveBeenCalledTimes(2)
+      expect(generateText).toHaveBeenCalledTimes(2)
     } finally {
       vi.useRealTimers()
     }
@@ -93,7 +93,7 @@ describe('extractReceipt runtime fallback', () => {
   it('grows the timeout budget with each extra page', async () => {
     vi.useFakeTimers()
     try {
-      generateObject.mockImplementation(
+      generateText.mockImplementation(
         ({ abortSignal }: { abortSignal: AbortSignal }) =>
           new Promise((_, reject) => {
             abortSignal.addEventListener('abort', () =>
@@ -106,10 +106,10 @@ describe('extractReceipt runtime fallback', () => {
       p.catch(() => {})
 
       await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS + 1)
-      expect(generateObject).toHaveBeenCalledTimes(1) // still on the primary — no fallback yet
+      expect(generateText).toHaveBeenCalledTimes(1) // still on the primary — no fallback yet
 
       await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_PER_PAGE_MS * 2)
-      expect(generateObject).toHaveBeenCalledTimes(2)
+      expect(generateText).toHaveBeenCalledTimes(2)
 
       await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS + RECEIPT_TIMEOUT_PER_PAGE_MS * 2 + 1)
       await expect(p).rejects.toThrow()

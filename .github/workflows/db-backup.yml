@@ -1,42 +1,7 @@
-# ============================================================================
-# Daily Neon Postgres → FTP Backup (validated)
-# ============================================================================
-# What it does:
-#   1. Dumps the database with a disposable Postgres container
-#   2. Validates the dump for real (not just file size):
-#        - size floor      : catches an empty/aborted dump
-#        - row floor        : transactions >= MIN_TX  (catches wrong/empty DB)
-#        - freshness        : newest date within FRESH_DAYS (catches frozen DB)
-#        - no-shrink        : key-table counts must not drop more than
-#                             SHRINK_TOLERANCE_PCT vs the previous backup pulled
-#                             from FTP (catches mass data loss)
-#        - no-rewind        : key-table id sequences must not go backwards vs the
-#                             previous backup (catches a downgrade to an older
-#                             branch/restore, however small)
-#      A manual run with accept_shrink=true uploads despite either, to reset the
-#      baseline after a deliberate large delete or a prod restore.
-#   3. Uploads to the remote server via FTPS
-#   4. Removes backups older than RETENTION_DAYS from the remote dir
-#
-# History: the old version validated ONLY file size, so it stayed green for
-# weeks while dumping the WRONG, frozen database. The row/freshness/no-shrink
-# checks exist specifically to make that failure mode loud. Logic proven first
-# in scripts/db-backup.sh.
-#
-# Secrets required (repo → Settings → Secrets):
-#   POSTGRES_URL  : Neon connection string for the DB that is source-of-truth
-#   FTP_HOST / FTP_USER / FTP_PASS
-#
-# Manual runs (workflow_dispatch) default to the test/ dir so they never touch
-# real backups; the nightly schedule writes to the prod dir.
-# ============================================================================
-
 name: Backup Neon DB
 
 on:
   schedule:
-    # hourly 04:00–22:00 UTC = 06:00–00:00 Warsaw (CEST). Cron is fixed UTC with
-    # no DST, so in winter (CET) this shifts to 05:00–23:00 Warsaw — adjust if it matters.
     - cron: '0 4-22 * * *'
   workflow_dispatch:
     inputs:
@@ -55,13 +20,11 @@ jobs:
     timeout-minutes: 10
 
     env:
-      # Scheduled runs have no inputs -> fall back to the real backup dir.
-      # Manual runs default to test/ (input default above).
       REMOTE_DIR: ${{ github.event.inputs.target_dir || '/db_backups/' }}
       RETENTION_DAYS: '30'
       SIZE_FLOOR: '1024' # bytes (gzipped)
-      MIN_TX: '2000' # transactions floor — sanity check, not exact count (real prod 2342 @ 2026-06; headroom below current so legit transfer deletes don't false-alarm)
-      FRESH_DAYS: '3' # newest date in dump must be within this
+      MIN_TX: '2000' # headroom below current so legit transfer deletes don't false-alarm
+      FRESH_DAYS: '3'
       KEY_TABLES: 'transactions investments cash_registers users'
       # A failed run uploads nothing, so the baseline never advances: with zero tolerance one
       # legitimate delete (a migration, „Usuń na zawsze") fails every run from then on.
@@ -72,7 +35,6 @@ jobs:
       - name: Install LFTP
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      # ---- 1. dump -------------------------------------------------------
       - name: Create backup with Docker
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
@@ -85,7 +47,6 @@ jobs:
           echo "BACKUP_FILE=$FILENAME" >> "$GITHUB_ENV"
           echo "✅ Backup created: $FILENAME"
 
-      # ---- 2. validate: size, row floor, freshness -----------------------
       - name: Validate backup
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
@@ -110,9 +71,8 @@ jobs:
             echo "❌ transactions=$TX below floor $MIN_TX — wrong/empty DB?"; exit 1
           fi
 
-          # Freshness off the last ACTUAL insert (created_at), queried live.
-          # NOT a date-grep of the dump: the business `date` column can be
-          # future-dated and would spoof a date-grep into always passing.
+          # the business `date` column can be future-dated and would spoof a date-grep into always
+          # passing.
           MAX_CREATED=$(docker run --rm postgres:17-alpine \
             psql "$POSTGRES_URL" -tAc "SELECT max(created_at)::date FROM transactions" | tr -d '[:space:]')
           echo "📅 latest created_at: ${MAX_CREATED:-none}"
@@ -123,7 +83,6 @@ jobs:
           fi
           echo "✅ size / rows / freshness OK"
 
-      # ---- 3. no-shrink vs the previous backup on FTP --------------------
       - name: Compare against previous backup
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -132,10 +91,8 @@ jobs:
         run: |
           LFTP_OPTS="set ftp:ssl-auth TLS; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set xfer:clobber on;"
 
-          # Newest existing backup in REMOTE_DIR (filenames are timestamped, so
-          # lexical sort == chronological). Empty if the dir is new/empty.
-          # lftp just lists; the shell does the sort|tail (lftp's own pipe/
-          # redirect parsing is unreliable). cd to a missing dir -> empty list.
+          # lftp just lists; the shell does the sort|tail (lftp's own pipe/redirect parsing is
+          # unreliable).
           PREV_NAME=$(lftp -c "
             $LFTP_OPTS
             open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
@@ -193,7 +150,6 @@ jobs:
           fi
           echo "✅ no-shrink / no-rewind OK"
 
-      # ---- 4. upload + retention ----------------------------------------
       - name: Upload via FTPS and prune old backups
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -202,7 +158,6 @@ jobs:
         run: |
           LFTP_OPTS="set ftp:ssl-auth TLS; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no;"
 
-          # --- upload ---
           lftp -c "
             $LFTP_OPTS
             open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
@@ -212,7 +167,6 @@ jobs:
           "
           echo "✅ Uploaded $BACKUP_FILE to $REMOTE_DIR"
 
-          # --- prune backups older than RETENTION_DAYS ---
           CUTOFF=$(date -d "${RETENTION_DAYS} days ago" +%Y%m%d)
           FILE_LIST=$(lftp -c "
             $LFTP_OPTS

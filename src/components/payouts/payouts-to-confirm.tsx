@@ -1,7 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
+import { cn } from '@/lib/utils/cn'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
 import { RejectPayoutDialog } from '@/components/payouts/reject-payout-dialog'
@@ -39,60 +43,94 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
     void syncAppBadge()
   }
 
-  return (
-    <section className="flex flex-col gap-3 rounded-lg border border-amber-300 p-4 dark:border-amber-800">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold">{t('payoutsTitle')}</h2>
-        <p className="text-muted-foreground text-sm">{t('payoutsHint')}</p>
-      </div>
-      <ul className="flex flex-col divide-y">
-        {payouts.map((payout) => (
-          <li key={payout.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 flex-col">
-                <span className="text-lg font-semibold tabular-nums">
-                  {formatPLN(payout.amount)}
-                </span>
-                <span className="text-muted-foreground text-sm">
-                  {formatPLDate(payout.date)} · {payout.investmentName ?? t('payoutNoInvestment')}
-                </span>
-              </div>
-              <PayoutStatusBadge
-                status={payout.status}
-                cancelled={payout.cancelled}
-                translator={transfersTranslator}
-              />
+  const pending = payouts.filter((payout) => payout.status === 'pending')
+  const rejected = payouts.filter((payout) => payout.status === 'rejected')
+
+  const renderList = (items: PayoutToConfirmT[]) => (
+    <ul className={CARD_LIST_CLASS}>
+      {items.map((payout) => (
+        <li key={payout.id} className={cn('flex flex-col gap-3 p-4', CARD_SHELL_CLASS)}>
+          <header className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="min-w-0 truncate text-sm font-medium">
+                {payout.investmentName ?? t('payoutNoInvestment')}
+              </span>
+              <span className="text-muted-foreground ml-auto shrink-0 text-xs">
+                {formatPLDate(payout.date)}
+              </span>
             </div>
-            {payout.description && <p className="text-sm break-words">{payout.description}</p>}
-            {payout.status === 'rejected' && payout.rejectionReason && (
-              <p className="text-muted-foreground text-sm whitespace-pre-line">
-                {t('payoutYourReason', { reason: payout.rejectionReason })}
-              </p>
-            )}
-            {!payout.cancelled && (
-              <div className="grid auto-cols-fr grid-flow-col gap-2 sm:flex">
-                <Button
-                  className="h-11"
-                  disabled={pendingId === payout.id}
-                  onClick={() => setOpenDialog({ kind: 'accept', payout })}
-                >
-                  {t('payoutConfirm')}
-                </Button>
-                {payout.status === 'pending' && (
-                  <Button
-                    variant="outline"
-                    className="h-11"
-                    disabled={pendingId === payout.id}
-                    onClick={() => setOpenDialog({ kind: 'reject', payout })}
-                  >
-                    {t('payoutReject')}
-                  </Button>
-                )}
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold tabular-nums">{formatPLN(payout.amount)}</span>
+              <div className="ml-auto shrink-0">
+                <PayoutStatusBadge
+                  status={payout.status}
+                  cancelled={false}
+                  translator={transfersTranslator}
+                />
               </div>
+            </div>
+          </header>
+          {payout.description && (
+            <p className="line-clamp-3 text-sm break-words whitespace-pre-line">
+              {payout.description}
+            </p>
+          )}
+          {payout.status === 'rejected' && payout.rejectionReason && (
+            <p className="text-muted-foreground text-sm whitespace-pre-line">
+              {t('payoutRejectionReason', { reason: payout.rejectionReason })}
+            </p>
+          )}
+          <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
+            <Button
+              variant="greenOutline"
+              className="h-11"
+              disabled={pendingId === payout.id}
+              onClick={() => setOpenDialog({ kind: 'accept', payout })}
+            >
+              <Check />
+              {t('payoutConfirm')}
+            </Button>
+            {payout.status === 'pending' && (
+              <Button
+                variant="redOutline"
+                className="h-11"
+                disabled={pendingId === payout.id}
+                onClick={() => setOpenDialog({ kind: 'reject', payout })}
+              >
+                <Trash2 />
+                {t('payoutReject')}
+              </Button>
             )}
-          </li>
-        ))}
-      </ul>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+
+  return (
+    <>
+      {pending.length > 0 && (
+        <CollapsibleSection
+          title={t('payoutsTitle')}
+          hint={t('payoutsHint')}
+          storageKey="worker:payouts"
+          withSeparator={false}
+          className="sm:max-w-lg"
+        >
+          {renderList(pending)}
+        </CollapsibleSection>
+      )}
+      {rejected.length > 0 && (
+        <CollapsibleSection
+          title={t('rejectedPayoutsTitle')}
+          hint={t('rejectedPayoutsHint')}
+          storageKey="worker:payouts-rejected"
+          withSeparator={false}
+          className="sm:max-w-lg"
+        >
+          {renderList(rejected)}
+        </CollapsibleSection>
+      )}
       {openDialog?.kind === 'accept' && (
         <ConfirmDialog
           open
@@ -113,6 +151,6 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
           onClose={close}
         />
       )}
-    </section>
+    </>
   )
 }

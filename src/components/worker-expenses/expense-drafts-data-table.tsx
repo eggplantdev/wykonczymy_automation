@@ -19,8 +19,7 @@ import {
   EXPENSE_DRAFT_STATUSES,
 } from '@/lib/constants/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { validExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
-import { DEFAULT_EXPENSE_DRAFT_SORT } from '@/lib/worker-expenses/sortable-columns'
+import { DEFAULT_EXPENSE_DRAFT_SORT, expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { ReferenceDataT, ReferenceItemT } from '@/types/reference-data'
@@ -47,7 +46,7 @@ export function ExpenseDraftsDataTable({
   const { t } = useTranslation('expenseDrafts')
   const { openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
   const sort =
-    validExpenseDraftSort(searchParams.get('sort') ?? undefined) ?? DEFAULT_EXPENSE_DRAFT_SORT
+    expenseDraftSort.valid(searchParams.get('sort') ?? undefined) ?? DEFAULT_EXPENSE_DRAFT_SORT
   const columns = useExpenseDraftColumns({
     isManagerView: true,
     actions: (draft) => {

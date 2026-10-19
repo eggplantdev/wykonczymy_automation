@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ContentLoading } from '@/components/ui/loader/page-loading'
-import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 type PropsT = {
   open: boolean

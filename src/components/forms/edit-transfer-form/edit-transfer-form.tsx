@@ -8,7 +8,7 @@ import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
-import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
+import { useFilePickIngest } from '@/hooks/use-file-pick-ingest'
 import { useSubmitConfirm } from '@/components/forms/hooks/use-submit-confirm'
 import { MISSING_TRANSFER_INVOICE_CONFIRM } from '@/lib/transfers/missing-invoice-confirm'
 import {
@@ -42,7 +42,7 @@ import {
 import { ExpenseCategoryField } from '@/components/forms/edit-transfer-form/expense-category-field'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
-import { FormClearButton } from '../form-components/form-clear-button'
+import { FormShell } from '../form-components/form-shell'
 
 type EditTransferFormPropsT = {
   row: TransferRowT
@@ -141,14 +141,8 @@ export function EditTransferForm({
   const currentPaymentMethod = useStore(form.store, (s) => s.values.paymentMethod)
 
   return (
-    <form.AppForm>
-      <FormClearButton onReset={handleReset} />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
+    <>
+      <FormShell form={form} onReset={handleReset}>
         <FieldGroup>
           <DescriptionField form={form} />
 
@@ -257,10 +251,10 @@ export function EditTransferForm({
           disabled={isIngesting}
           awaitingAnswer={missingInvoiceDialog.open}
         />
-      </form>
+      </FormShell>
 
       <ConfirmDialog {...removalConfirm} />
       <ConfirmDialog {...missingInvoiceDialog} />
-    </form.AppForm>
+    </>
   )
 }

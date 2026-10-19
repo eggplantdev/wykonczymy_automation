@@ -12,13 +12,13 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 import type { MediaFileT } from '@/types/media'
 
-export type ReportFormItemT = {
+type ReportFormItemT = {
   id: number
   description: string
   unit: string
 }
 
-export type ReportFormSectionT = {
+type ReportFormSectionT = {
   id: number
   name: string
   color: SectionColorKeyT | null
@@ -63,7 +63,7 @@ export type ReportLineT = {
   scannedRef: string | undefined
 }
 
-export type ReportTargetT = {
+type ReportTargetT = {
   stageId: number | undefined
   ordinal: number
   label: string | undefined

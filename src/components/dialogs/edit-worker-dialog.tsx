@@ -1,7 +1,7 @@
 'use client'
 
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { updateWorkerAction } from '@/lib/actions/workers'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
@@ -31,6 +31,7 @@ export function EditWorkerDialog({ worker, cashRegisters, roles }: EditWorkerDia
           defaultValues={{
             name: worker.name,
             email: worker.email,
+            phone: worker.phone ?? '',
             role: worker.role,
             active: worker.active ?? true,
             canAddExpensesWithoutInvestment: worker.canAddExpensesWithoutInvestment,

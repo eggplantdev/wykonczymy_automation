@@ -60,6 +60,13 @@ export function transferPayoutStatusText(
   return payoutStatus ? payoutStatusLabel(payoutStatus, cancelled, translator) : '—'
 }
 
+export function transferOrderStatusText(
+  { orderStatus }: TransferRowT,
+  { t }: TransfersTranslatorT = POLISH_TRANSFERS,
+): string {
+  return orderStatus ? t(`orderStatus_${orderStatus}`) : ''
+}
+
 export function payoutStatusLabel(
   status: PayoutStatusT,
   cancelled: boolean,

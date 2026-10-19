@@ -2,7 +2,7 @@
 
 import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { InternalTransferForm } from '@/components/forms/internal-transfer-form/internal-transfer-form'
 
@@ -15,7 +15,7 @@ export function InternalTransferDialog({ referenceData }: InternalTransferDialog
     <FormDialog
       formId="internal-transfer"
       trigger={
-        <Button variant="turquoise" size="sm">
+        <Button variant="turquoiseOutline" size="sm">
           <span className="hidden lg:block">Kasa</span>
           <ArrowLeftRight />
           <span className="hidden lg:block">Kasa</span>

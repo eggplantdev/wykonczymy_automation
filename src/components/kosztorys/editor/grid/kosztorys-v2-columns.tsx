@@ -41,7 +41,6 @@ import { translationColumn } from '@/components/kosztorys/editor/grid/cells/tran
 import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 import { longTextColumn } from '@/components/ui/datasheet-grid/long-text-cell'
-import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
@@ -50,6 +49,7 @@ import {
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
 import { type ColumnRanksT } from '@/lib/table/column-order'
+import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'

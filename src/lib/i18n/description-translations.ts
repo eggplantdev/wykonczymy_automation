@@ -5,7 +5,7 @@ import {
   type TranslationLanguageT,
 } from '@/lib/i18n/languages'
 
-export type DescriptionTranslationT = { text: string; source: string }
+type DescriptionTranslationT = { text: string; source: string }
 
 export type DescriptionTranslationsT = Partial<
   Record<TranslationLanguageT, DescriptionTranslationT>

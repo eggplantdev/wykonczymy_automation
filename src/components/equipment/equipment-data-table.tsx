@@ -1,6 +1,5 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
 import { CircleDot, MapPin } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -38,6 +37,9 @@ const STATUS_OPTIONS = EQUIPMENT_STATUSES.map((status) => ({
 
 const statusFilterValue = (row: EquipmentRowT) => row.status
 
+const getSearchableText = (row: EquipmentRowT) =>
+  `${row.name} ${row.make} ${row.model} ${row.serialNumber}`
+
 export function EquipmentDataTable({
   data,
   today,
@@ -45,10 +47,6 @@ export function EquipmentDataTable({
   warehouses,
   investments,
 }: EquipmentDataTablePropsT) {
-  const getSearchableText = useCallback(
-    (row: EquipmentRowT) => `${row.name} ${row.make} ${row.model} ${row.serialNumber}`,
-    [],
-  )
   const {
     filteredData: searched,
     searchTerm,
@@ -69,12 +67,9 @@ export function EquipmentDataTable({
 
   // From `data`, never from `filteredData`: options built off the filtered set vanish as soon as the
   // last matching row is hidden, and the filter can then no longer be undone.
-  const placeOptions = useMemo(() => whereFilterOptions(data), [data])
+  const placeOptions = whereFilterOptions(data)
 
-  const columns = useMemo(
-    () => getEquipmentColumns({ today, workers, warehouses, investments }),
-    [today, workers, warehouses, investments],
-  )
+  const columns = getEquipmentColumns({ today, workers, warehouses, investments })
 
   return (
     <DataTable

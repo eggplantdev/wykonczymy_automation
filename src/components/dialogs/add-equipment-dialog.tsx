@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { AddEquipmentForm } from '@/components/forms/equipment-form/add-equipment-form'
 import { createEquipmentAction } from '@/lib/actions/equipment'
 import { warsawToday } from '@/lib/utils/days'
@@ -16,11 +16,7 @@ type AddEquipmentDialogPropsT = {
   investments: InvestmentRefT[]
 }
 
-export function AddEquipmentDialog({
-  workers,
-  warehouses,
-  investments,
-}: AddEquipmentDialogPropsT) {
+export function AddEquipmentDialog({ workers, warehouses, investments }: AddEquipmentDialogPropsT) {
   const defaultValues: AddEquipmentFormValuesT = {
     name: '',
     serialNumber: '',

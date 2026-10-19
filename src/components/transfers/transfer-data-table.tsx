@@ -22,7 +22,7 @@ import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoic
 import { findExpenseDuplicateGroups } from '@/lib/queries/expense-duplicate-groups'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
-import { validTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useTranslation } from '@/hooks/use-translation'
 import { TransferCardList } from '@/components/transfers/cards/transfer-card-list'
@@ -64,7 +64,7 @@ export function TransferDataTable({
   // The same whitelist the server used, so a hand-edited `?sort=` the page refused cannot leave the
   // header arrow — or the printout, which reads this state — pointing somewhere else.
   const { updateParam } = useUrlFilterParams(baseUrl)
-  const sorting = sortParamToSortingState(validTransferSort(searchParams.get('sort') ?? undefined))
+  const sorting = sortParamToSortingState(transferSort.valid(searchParams.get('sort') ?? undefined))
 
   const [view, setView] = usePersistedEnum(TRANSFER_VIEW_STORAGE_KEY, TRANSFER_VIEWS, 'table')
 
@@ -104,25 +104,21 @@ export function TransferDataTable({
         getRowClassName={transferRowClassName}
         renderRows={
           view === 'list'
-            ? (rows, visibleColumnIds) => (
-                <TransferCardList
-                  rows={rows}
-                  visibleColumnIds={visibleColumnIds}
-                  uncoloredAmounts={uncoloredAmounts}
-                />
-              )
+            ? (rows) => <TransferCardList rows={rows} uncoloredAmounts={uncoloredAmounts} />
             : undefined
         }
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
             className="mt-8"
             title={title}
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            columns={
+              view === 'table' && <ColumnToggle table={table} columnVisibility={cv} {...order} />
+            }
             actions={
               <>
                 <TransferViewSwitch view={view} onChange={setView} className="max-sm:col-span-2" />
                 {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
-                {duplicateFinder && (
+                {duplicateFinder && view === 'table' && (
                   <DuplicateFinderDialog
                     findGroups={(range) => findExpenseDuplicateGroups(config.query.where, range)}
                   />

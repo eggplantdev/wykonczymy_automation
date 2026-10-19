@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-item-from-kosztorys-dialog'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
@@ -43,14 +43,13 @@ export function CatalogueCompareDialog() {
   // The „może chodzi o…" guesses, dice-matched against every entry in the cennik: O(pozycje ×
   // katalog), 10.7 s at 400 probes.
   const withHints = useDeferredValue(open)
-  const report = useMemo(() => {
-    if (!catalogueComparison) return null
-    if (!withHints) return catalogueComparison
-    return {
-      ...catalogueComparison,
-      missing: attachCatalogueHints(catalogueComparison.missing, workCatalogue ?? []),
-    }
-  }, [withHints, catalogueComparison, workCatalogue])
+  const report =
+    catalogueComparison && withHints
+      ? {
+          ...catalogueComparison,
+          missing: attachCatalogueHints(catalogueComparison.missing, workCatalogue ?? []),
+        }
+      : (catalogueComparison ?? null)
 
   // Engaging, never toggling: the shared helper drops a condition that is
   // already on, so on a second visit „Pokaż w rozpisce" would UNDO the narrowing it promises.

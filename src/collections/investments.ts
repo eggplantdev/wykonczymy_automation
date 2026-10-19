@@ -1,11 +1,11 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { refuseDeleteWhen } from '@/hooks/prevent-delete'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import { refuseDeleteWhen } from '@/collections/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
-import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
-import { guardTrashedInvestment } from '@/hooks/investments/guard-trashed-investment'
-import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
+import { guardInvestmentStatusUnlock } from '@/collections/hooks/investments/guard-status-unlock'
+import { guardTrashedInvestment } from '@/collections/hooks/investments/guard-trashed-investment'
+import { stampCompletedAt } from '@/collections/hooks/investments/stamp-completed-at'
 import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import {
   INVESTMENT_AI_STAGES,
@@ -20,6 +20,7 @@ import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
   SETTLEMENT_MODE_DEFAULT,
 } from '@/lib/kosztorys/settlement-mode'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 const STATUS_OPTIONS = INVESTMENT_STATUSES.map((value) => ({
   label: INVESTMENT_STATUS_LABELS[value],
@@ -100,6 +101,15 @@ export const Investments: CollectionConfig = {
       name: 'contactPerson',
       type: 'text',
       label: { en: 'Contact Person', pl: 'Osoba kontaktowa' },
+    },
+    // Written only by `setInvestmentSiteManagerAction`, so the whole-record investment form can't
+    // overwrite it with a stale copy.
+    {
+      name: 'siteManager',
+      type: 'relationship',
+      relationTo: 'users',
+      label: { en: 'Site manager', pl: 'Kierownik budowy' },
+      access: { create: () => false, update: () => false },
     },
     {
       name: 'billing',
@@ -226,15 +236,7 @@ export const Investments: CollectionConfig = {
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
-    // Written only by the trash actions (overrideAccess) — closed to REST, which would skip their
-    // checks.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
     // Set by the stampCompletedAt hook only; the investor's change history expires a year after it.
     {
       name: 'completedAt',

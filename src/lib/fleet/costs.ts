@@ -5,13 +5,13 @@ import { ALL_TIME, isWithinRange, type DateRangeT } from '@/lib/utils/date-range
 import { groupInOrder } from '@/lib/utils/group-in-order'
 import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
 
-export type TypeCostT = {
+type TypeCostT = {
   type: InspectionTypeT
   count: number
   total: number | null
 }
 
-export type CostEntryT = {
+type CostEntryT = {
   id: number
   type: InspectionTypeT
   performedAt: string

@@ -15,14 +15,14 @@ import {
   INSPECTION_TYPES,
   type InspectionTypeT,
 } from '@/lib/fleet/inspection-types'
-import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
+import { useFilePickIngest } from '@/hooks/use-file-pick-ingest'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { formatKm } from '@/lib/utils/format-distance'
 import { useInspectionFormStore } from '@/stores/form-stores'
 import { inspectionFormSchema, type InspectionFormValuesT } from './inspection-schema'
 import type { InspectionFormDataT } from './inspection-schema'
 import type { ActionResultT } from '@/types/action'
-import type { FleetRowT } from '@/types/fleet'
+import type { FleetRowT } from '@/lib/fleet/types'
 
 type InspectionFormPropsT = {
   formId: string

@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
-import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
+import { Badge } from '@/components/ui/badge'
+import { DECISION_TONE, type DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { cn } from '@/lib/utils/cn'
 
-const STATUS: Record<DecisionStatusT, { label: string; tone: string }> = {
-  pending: { label: 'Do sprawdzenia', tone: BADGE_TONE.pending },
-  accepted: { label: 'Przyjęty', tone: BADGE_TONE.positive },
-  rejected: { label: 'Odrzucony', tone: BADGE_TONE.negative },
+const STATUS_LABEL: Record<DecisionStatusT, string> = {
+  pending: 'Do sprawdzenia',
+  accepted: 'Przyjęty',
+  rejected: 'Odrzucony',
 }
 
 type CollapsibleLineItemPropsT = {
@@ -52,9 +52,9 @@ export function CollapsibleLineItem({
           >
             {title}
           </span>
-          <span className={cn(BADGE_BASE, STATUS[status].tone, 'shrink-0')}>
-            {STATUS[status].label}
-          </span>
+          <Badge tone={DECISION_TONE[status]} className="shrink-0">
+            {STATUS_LABEL[status]}
+          </Badge>
         </Collapsible.Trigger>
         {action}
       </div>

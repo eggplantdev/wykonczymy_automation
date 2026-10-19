@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { MediaStrip } from '@/components/media/media-strip'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
@@ -17,8 +17,10 @@ import {
 } from './lead-asset-labels'
 import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 import { EMPTY_INVESTMENT_FORM_VALUES } from '@/components/forms/investment-form/empty-form-values'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
+import { PICK_LABEL } from '@/components/leads/lead-assets-dialog'
 
 function buildNotes(lead: LeadRowT): string {
   return [
@@ -30,8 +32,6 @@ function buildNotes(lead: LeadRowT): string {
     .map(([label, value]) => `${label}: ${value}`)
     .join('\n')
 }
-
-const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
 export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(
@@ -55,11 +55,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   const chosenIds = visibleFiles.map((file) => file.id).filter((id) => selectedIds.has(id))
 
   function togglePicked(mediaId: number) {
-    setSelectedIds((current) => {
-      const next = new Set(current)
-      if (!next.delete(mediaId)) next.add(mediaId)
-      return next
-    })
+    setSelectedIds((current) => toggleInSet(current, mediaId))
   }
 
   const defaults: InvestmentFormValuesT = {

@@ -5,7 +5,7 @@ import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
-import { SheetButton } from '@/components/dialogs/sheet-button'
+import { SheetButton } from '@/components/investments/sheet-button'
 import { SheetIframeView } from '@/components/sheets/iframe-view'
 import { SyncButton } from '@/components/sheets/sync-button'
 

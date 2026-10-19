@@ -7,20 +7,26 @@ import {
   createBulkExpenseSchema,
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
-import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
+import {
+  BONUS_FORBIDDEN_MESSAGE,
+  canBookTransferType,
+  canCancelTransfer,
+  canMutateTransfer,
+} from '@/lib/auth/roles'
 import {
   canBeSettled,
   canFillVatPlane,
   carriesPayoutStatus,
   hasOptionalWorker,
+  isInvestmentExpense,
   isLaborCost,
   needsSourceRegister,
 } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { decideExpenseParagons, type ParagonRefusalT } from '@/lib/db/worker-expense-drafts'
+import { decideExpenseParagons } from './expense-draft-flows'
 import { skippedReceiptSchema, type SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
-import { paragonRefusalFailure } from '@/lib/worker-expenses/paragon-refusal'
+import { paragonRefusalFailure, type ParagonRefusalT } from '@/lib/worker-expenses/paragon-refusal'
 import {
   cancelTransferSchema,
   createTransferSchema,
@@ -31,7 +37,7 @@ import {
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
-import { syncBulkExpensesToSheet } from './sheets-sync'
+import { syncBulkExpensesToSheet } from '@/lib/google/transfer-sheet-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'
@@ -130,6 +136,7 @@ export async function createBulkTransferAction(
     receiptReadRows: number[][]
     skippedReceipts: SkippedReceiptT[]
   },
+  flags?: { order?: boolean },
 ) {
   const lineCount = data.lineItems.length
 
@@ -166,6 +173,8 @@ export async function createBulkTransferAction(
         parsed.data.investment,
       )
       if (lockMessage) return { success: false, error: lockMessage }
+      const orderStatus =
+        flags?.order && isInvestmentExpense(parsed.data.type) ? ('awaiting' as const) : undefined
 
       // skipSheetSync: the per-row afterChange hook must NOT sync each created
       // row one-by-one — this action batches them all in a single sheet write below.
@@ -197,6 +206,7 @@ export async function createBulkTransferAction(
                 ...documentIdentity(item),
                 settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
                 createdBy: user.id,
+                orderStatus,
               },
             })
             ids.push(created.id)
@@ -249,6 +259,7 @@ async function fetchAndAuthorize(
   transferId: number,
   errorVerb: string,
   req: PayloadRequest,
+  authorize: typeof canCancelTransfer,
 ): Promise<AuthErrorT | AuthSuccessT> {
   const db = await getDb(payload, req)
   // Locked before the read: two cancels, or an edit racing a cancel, would otherwise both pass the
@@ -268,11 +279,12 @@ async function fetchAndAuthorize(
   if (lockMessage) return { error: lockMessage }
 
   const creatorId = resolveId(original.createdBy)
-  const allowed = canMutateTransfer({
+  const allowed = authorize({
     role: user.role,
     userId: user.id,
     transferType: original.type,
     createdById: creatorId,
+    payoutStatus: original.payoutStatus,
   })
   if (!allowed) {
     return { error: `Nie masz uprawnień do ${errorVerb} tej transakcji.` }
@@ -296,7 +308,14 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       return withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
-          const result = await fetchAndAuthorize(payload, user, transferId, 'anulowania', req)
+          const result = await fetchAndAuthorize(
+            payload,
+            user,
+            transferId,
+            'anulowania',
+            req,
+            canCancelTransfer,
+          )
           console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
           if ('error' in result) return { success: false, error: result.error }
 
@@ -347,7 +366,14 @@ export async function updateTransferAction(
       const outcome = await withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
-          const result = await fetchAndAuthorize(payload, user, transferId, 'edycji', req)
+          const result = await fetchAndAuthorize(
+            payload,
+            user,
+            transferId,
+            'edycji',
+            req,
+            canMutateTransfer,
+          )
           console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
           if ('error' in result) return { success: false, error: result.error }
           const { original } = result

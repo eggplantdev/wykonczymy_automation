@@ -1,6 +1,5 @@
 'use server'
 
-import type { Payload } from 'payload'
 import { z } from 'zod'
 import {
   vehicleSchema,
@@ -17,30 +16,11 @@ import {
   type PerformedInspectionTypeT,
 } from '@/lib/fleet/inspection-types'
 import { toInspectionEvent } from '@/lib/fleet/map-inspection'
+import { uniqueClash } from '@/lib/trash/unique-holder'
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 import { validateAction, protectedAction } from './run-action'
 
 const flagsSchema = z.array(z.enum(PERFORMED_INSPECTION_TYPES))
-
-async function registrationClash(payload: Payload, plate: string, ownId?: number) {
-  const { docs } = await payload.find({
-    collection: 'vehicles',
-    where: {
-      and: [
-        { registration: { equals: plate } },
-        ...(ownId === undefined ? [] : [{ id: { not_equals: ownId } }]),
-      ],
-    },
-    limit: 1,
-    depth: 0,
-    overrideAccess: true,
-  })
-  const holder = docs[0]
-  if (!holder) return undefined
-  return holder.trashedAt
-    ? `Pojazd o rejestracji ${plate} jest w Koszu — przywróć go stamtąd.`
-    : `Pojazd o rejestracji ${plate} już istnieje.`
-}
 
 export async function createVehicleAction(data: VehicleFormDataT) {
   return protectedAction(
@@ -49,7 +29,12 @@ export async function createVehicleAction(data: VehicleFormDataT) {
       const parsed = validateAction(vehicleSchema, data)
       if (!parsed.success) return parsed
 
-      const clash = await registrationClash(payload, parsed.data.registration)
+      const clash = await uniqueClash(payload, {
+        collection: 'vehicles',
+        field: 'registration',
+        value: parsed.data.registration,
+        subject: `Pojazd o rejestracji ${parsed.data.registration}`,
+      })
       if (clash) return { success: false, error: clash }
 
       await payload.create({ collection: 'vehicles', data: parsed.data })
@@ -67,7 +52,13 @@ export async function updateVehicleAction(id: number, data: VehicleFormDataT) {
       const parsed = validateAction(vehicleSchema, data)
       if (!parsed.success) return parsed
 
-      const clash = await registrationClash(payload, parsed.data.registration, id)
+      const clash = await uniqueClash(payload, {
+        collection: 'vehicles',
+        field: 'registration',
+        value: parsed.data.registration,
+        ownId: id,
+        subject: `Pojazd o rejestracji ${parsed.data.registration}`,
+      })
       if (clash) return { success: false, error: clash }
 
       await payload.update({ collection: 'vehicles', id, data: parsed.data })

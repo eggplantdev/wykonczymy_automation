@@ -23,6 +23,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { amountOf, isValidAmount, type RowValueT } from './row-value'
 import { SettlePayoutsTable } from './settle-payouts-table'
+import { FormShell } from '../form-components/form-shell'
 
 type FormValuesT = {
   date: string
@@ -189,85 +190,78 @@ export function SettlePayoutsForm({
   const bonusNames = bonusRow && pairNames(bonusRow)
 
   return (
-    <form.AppForm>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <div className="min-w-0 flex-1">
-              <SourceRegisterField
-                form={form}
-                cashRegisters={cashRegisters}
-                registerBalance={registerBalance}
-                isRegisterBalanceLoading={isRegisterBalanceLoading}
-                fetchRegisterBalance={fetchRegisterBalance}
-              />
-              {registerBalance !== null && !isRegisterBalanceLoading && total > 0 && (
-                <SignedMoneyDisplay amount={registerBalance - total} label="Saldo po wypłacie" />
-              )}
-            </div>
-            <form.AppField name="pool">
-              {(field) => (
-                <field.Input
-                  label="Do rozdysponowania"
-                  placeholder="0.00"
-                  type="number"
-                  fieldClassName="sm:w-44"
-                />
-              )}
-            </form.AppField>
-            <DateField form={form} fieldClassName="sm:w-40" />
+    <FormShell form={form}>
+      <FieldGroup>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <div className="min-w-0 flex-1">
+            <SourceRegisterField
+              form={form}
+              cashRegisters={cashRegisters}
+              registerBalance={registerBalance}
+              isRegisterBalanceLoading={isRegisterBalanceLoading}
+              fetchRegisterBalance={fetchRegisterBalance}
+            />
+            {registerBalance !== null && !isRegisterBalanceLoading && total > 0 && (
+              <SignedMoneyDisplay amount={registerBalance - total} label="Saldo po wypłacie" />
+            )}
           </div>
-          <DescriptionField form={form} placeholder="Opis wypłaty" />
-        </FieldGroup>
+          <form.AppField name="pool">
+            {(field) => (
+              <field.Input
+                label="Do rozdysponowania"
+                placeholder="0.00"
+                type="number"
+                fieldClassName="sm:w-44"
+              />
+            )}
+          </form.AppField>
+          <DateField form={form} fieldClassName="sm:w-40" />
+        </div>
+        <DescriptionField form={form} placeholder="Opis wypłaty" />
+      </FieldGroup>
 
-        {rows.length === 0 ? (
-          <p className="text-muted-foreground mt-6 text-sm">Brak wypłat do rozliczenia.</p>
-        ) : (
-          <SettlePayoutsTable
-            className="mt-6"
-            rows={rows}
-            values={rowValues}
-            total={total}
-            poolLeft={poolLeft}
-            labelHeader={labelHeader}
-            labelHref={labelHref}
-            onTick={(index, ticked) => form.setFieldValue(`rows[${index}].ticked`, ticked)}
-            onAmount={(index, amount) => form.setFieldValue(`rows[${index}].amount`, amount)}
-            onBonus={canGrantBonus ? (index) => setBonusRow(rows[index]) : undefined}
-            isBooking={isBooking}
-          />
-        )}
-
-        <ConfirmDialog
-          open={bonusRow !== undefined}
-          variant="neutral"
-          title={
-            bonusRow &&
-            bonusNames &&
-            `Zaksięgować premię ${formatPLN(-bonusRow.remaining)} dla ${bonusNames.worker} na ${bonusNames.investment}?`
-          }
-          description="Wyrówna nadpłatę; inwestor jej nie widzi."
-          confirmLabel="Zaksięguj premię"
-          onConfirm={() => bonusRow && bookBonus(bonusRow)}
-          onCancel={() => setBonusRow(undefined)}
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground mt-6 text-sm">Brak wypłat do rozliczenia.</p>
+      ) : (
+        <SettlePayoutsTable
+          className="mt-6"
+          rows={rows}
+          values={rowValues}
+          total={total}
+          poolLeft={poolLeft}
+          labelHeader={labelHeader}
+          labelHref={labelHref}
+          onTick={(index, ticked) => form.setFieldValue(`rows[${index}].ticked`, ticked)}
+          onAmount={(index, amount) => form.setFieldValue(`rows[${index}].amount`, amount)}
+          onBonus={canGrantBonus ? (index) => setBonusRow(rows[index]) : undefined}
+          isBooking={isBooking}
         />
+      )}
 
-        <footer className="mt-6 flex items-center gap-4">
-          <Button type="submit" disabled={!canSubmit || isSubmitting || isBooking}>
-            {isSubmitting ? 'Zapisuję…' : 'Wypłać'}
-          </Button>
-          {overPool && (
-            <p className="text-destructive text-sm">
-              Przekroczono kwotę do rozdysponowania o {formatPLN(-poolLeft)}
-            </p>
-          )}
-        </footer>
-      </form>
-    </form.AppForm>
+      <ConfirmDialog
+        open={bonusRow !== undefined}
+        variant="neutral"
+        title={
+          bonusRow &&
+          bonusNames &&
+          `Zaksięgować premię ${formatPLN(-bonusRow.remaining)} dla ${bonusNames.worker} na ${bonusNames.investment}?`
+        }
+        description="Wyrówna nadpłatę; inwestor jej nie widzi."
+        confirmLabel="Zaksięguj premię"
+        onConfirm={() => bonusRow && bookBonus(bonusRow)}
+        onCancel={() => setBonusRow(undefined)}
+      />
+
+      <footer className="mt-6 flex items-center gap-4">
+        <Button type="submit" disabled={!canSubmit || isSubmitting || isBooking}>
+          {isSubmitting ? 'Zapisuję…' : 'Wypłać'}
+        </Button>
+        {overPool && (
+          <p className="text-destructive text-sm">
+            Przekroczono kwotę do rozdysponowania o {formatPLN(-poolLeft)}
+          </p>
+        )}
+      </footer>
+    </FormShell>
   )
 }

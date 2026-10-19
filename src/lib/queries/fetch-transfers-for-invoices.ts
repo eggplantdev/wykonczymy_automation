@@ -4,7 +4,7 @@ import type { Where } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { fetchAllTransferRows } from '@/lib/queries/fetch-transfer-rows'
-import { validTransferSort } from '@/lib/queries/transfer-sort'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { withDateRange } from '@/lib/queries/transfer-filters'
 import { isClosedRange, type ClosedDateRangeT } from '@/lib/utils/date-range'
 import type { TransferRowT } from '@/types/transfers'
@@ -45,7 +45,7 @@ export async function fetchFilteredTransfers(
     }
     const rows = await fetchAllTransferRows(scopedWhere, {
       skipMedia,
-      sort: validTransferSort(sort),
+      sort: transferSort.valid(sort),
     })
 
     console.log(`[PERF] fetchFilteredTransfers ${elapsed()}ms (${rows.length} rows)`)

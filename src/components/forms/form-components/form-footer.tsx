@@ -1,15 +1,17 @@
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useFormContext } from '../hooks/form-hooks'
+import { useFormContext } from '../hooks/form-context'
 import { useFormStatus } from '../hooks/use-form-status'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { Loader } from '@/components/ui/loader/loader'
 import { useTranslation } from '@/hooks/use-translation'
+import { cn } from '@/lib/utils/cn'
 
 type FormFooterPropsT = {
   label?: string
   submittingLabel?: string
   className?: string
+  align?: 'start' | 'end'
   disabled?: boolean
   // The form counts as submitting while its question is open, and the full-screen loader would cover
   // the question.
@@ -22,6 +24,7 @@ export default function FormFooter({
   label,
   submittingLabel,
   className,
+  align = 'start',
   disabled = false,
   awaitingAnswer = false,
   onCancel,
@@ -38,7 +41,7 @@ export default function FormFooter({
   return (
     <>
       <footer className={className}>
-        <div className="flex items-center gap-4">
+        <div className={cn('flex items-center gap-4', align === 'end' && 'justify-end')}>
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               {t('cancel')}

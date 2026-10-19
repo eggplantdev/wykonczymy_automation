@@ -9,7 +9,7 @@ import {
   CATALOGUE_DIVERGENCE_CONDITION_ID,
   CATALOGUE_MISSING_CONDITION_ID,
 } from '@/lib/kosztorys/row-conditions/registry'
-import { updateItemFieldAction } from '@/lib/actions/kosztorys'
+import { updateItemFieldAction } from '@/lib/actions/kosztorys-items'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 vi.mocked(updateItemFieldAction).mockResolvedValue({ success: true })

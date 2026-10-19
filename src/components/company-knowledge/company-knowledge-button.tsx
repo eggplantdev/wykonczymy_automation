@@ -9,7 +9,7 @@ import { isManagementRole } from '@/lib/auth/roles'
 import { fetchCompanyKnowledge } from '@/lib/queries/company-knowledge'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 // `onOpen` lets the mobile menu close first: its drawer stacks above every dialog.
 export function CompanyKnowledgeButton({
