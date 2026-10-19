@@ -715,15 +715,15 @@ See each phase's Manual Verification. They roll into `context/foundation/manual-
 
 #### Automated
 
-- [x] 2.1 Site manager action DB spec passes
-- [x] 2.2 Worker phone round-trip DB spec passes
+- [x] 2.1 Site manager action DB spec passes — 7755b8563
+- [x] 2.2 Worker phone round-trip DB spec passes — 7755b8563
 
 ### Phase 3: Order settings — suppliers, default, prices
 
 #### Automated
 
-- [ ] 3.1 Order settings actions DB spec passes
-- [ ] 3.2 Order settings form DOM spec passes
+- [x] 3.1 Order settings actions DB spec passes
+- [x] 3.2 Order settings form DOM spec passes
 
 ### Phase 4: Order flow
 

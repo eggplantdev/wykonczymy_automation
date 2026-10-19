@@ -1,5 +1,5 @@
 import { revalidateTag, updateTag } from 'next/cache'
-import { CACHE_TAGS, EXPIRE_NEXT, NOTIFICATION_RECIPIENTS_TAG } from './tags'
+import { CACHE_TAGS, EXPIRE_NEXT, NOTIFICATION_RECIPIENTS_TAG, ORDER_SETTINGS_TAG } from './tags'
 
 type ExpireOptsT = { deferRefresh?: boolean }
 
@@ -8,6 +8,10 @@ type ExpireOptsT = { deferRefresh?: boolean }
  */
 export function revalidateNotificationRecipients() {
   updateTag(NOTIFICATION_RECIPIENTS_TAG)
+}
+
+export function revalidateOrderSettings() {
+  updateTag(ORDER_SETTINGS_TAG)
 }
 
 function expire(tag: string, deferRefresh: boolean) {
