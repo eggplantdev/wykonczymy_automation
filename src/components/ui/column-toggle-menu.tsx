@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
+import { ColumnOrderDialog, type ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import {
   Command,
   CommandEmpty,
@@ -19,7 +19,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { type ColumnRanksT, type ColumnToggleItemT } from '@/lib/table/column-order'
+import { type ColumnRanksT } from '@/lib/table/column-order'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 

@@ -48,7 +48,8 @@ import {
   stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
-import { type ColumnRanksT, type ColumnToggleItemT } from '@/lib/table/column-order'
+import { type ColumnRanksT } from '@/lib/table/column-order'
+import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
