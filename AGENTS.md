@@ -162,6 +162,7 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
   („przeanalizuj kolejne inwestycje”), rounds, Powody zmiany, experiments, analysis. Read its
   `README.md` in full first; cases, experiments and log entries go there, never under `context/`,
   and you may commit there. Tooling: `scripts/ai-kosztorys/`, run from this repo's root.
+- Payload collection hooks live in `src/collections/hooks/`; `src/hooks/` holds React hooks only.
 - Per-feature schemas/hooks live under `src/components/forms/<form>/`; `src/types` is cross-feature only.
 - **A hook's home follows its consumer count, counted in directories:** one form → `forms/<form>/`;
   two or more forms → `forms/hooks/` (domain-aware ones too); a non-form surface → `src/hooks/`.

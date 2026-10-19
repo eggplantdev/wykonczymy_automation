@@ -5,7 +5,7 @@ import {
   unlessInvestmentLocked,
   updateUnlessInvestmentLocked,
 } from '@/access/investment-lock'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
 
 export const Sheets: CollectionConfig = {
   slug: 'kosztoryses',

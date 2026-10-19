@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { CollectionAfterDeleteHook } from 'payload'
-import { deleteInvoiceMediaAfterDelete } from '@/hooks/transfers/delete-invoice-media'
+import { deleteInvoiceMediaAfterDelete } from '@/collections/hooks/transfers/delete-invoice-media'
 import { flushAfter } from '@/__tests__/stubs/next-server'
 
 const mockDelete = vi.fn()

@@ -1352,6 +1352,12 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako ADMIN w edytorze kosztorysu: podgląd importu z arkusza i podgląd synchronizacji materiałów
       pokazują to samo co dotąd.
 
+## 2026-10-19 — app-audit-refactor faza 5 — reguły kolekcji w nowym miejscu
+
+- [ ] Jako ADMIN dodaj, edytuj i anuluj transakcję — salda kas zmieniają się bez odświeżania.
+- [ ] Jako ADMIN usuń wydatek z fakturą — faktura znika z listy plików.
+- [ ] Jako ADMIN spróbuj usunąć kasę, która ma transakcje — odmowa jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

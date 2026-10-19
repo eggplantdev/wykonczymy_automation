@@ -1,7 +1,7 @@
 import { APIError } from 'payload'
 import type { CollectionBeforeDeleteHook, CollectionSlug } from 'payload'
 import { describe, expect, it, vi } from 'vitest'
-import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
+import { preventReferencedMediaDelete } from '@/collections/hooks/media/prevent-referenced-delete'
 import { MEDIA_RELATIONS, RAW_MEDIA_HOLDERS } from '@/lib/media/relating-collections'
 
 const rawHolders = vi.hoisted(() => new Map<string, number>())

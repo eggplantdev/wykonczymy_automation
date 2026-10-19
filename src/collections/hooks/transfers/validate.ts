@@ -21,7 +21,7 @@ import { investmentLockMessage } from '@/lib/db/investment-gate'
 import { trashedRegisterMessage } from '@/lib/db/cash-register-gate'
 import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
-import { isInvoiceOnlyPatch } from '@/hooks/transfers/invoice-only-patch'
+import { isInvoiceOnlyPatch } from '@/collections/hooks/transfers/invoice-only-patch'
 
 type TransferData = Partial<Transaction>
 

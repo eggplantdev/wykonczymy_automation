@@ -1,11 +1,11 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { refuseDeleteWhen } from '@/hooks/prevent-delete'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import { refuseDeleteWhen } from '@/collections/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
-import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
-import { guardTrashedInvestment } from '@/hooks/investments/guard-trashed-investment'
-import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
+import { guardInvestmentStatusUnlock } from '@/collections/hooks/investments/guard-status-unlock'
+import { guardTrashedInvestment } from '@/collections/hooks/investments/guard-trashed-investment'
+import { stampCompletedAt } from '@/collections/hooks/investments/stamp-completed-at'
 import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import {
   INVESTMENT_AI_STAGES,

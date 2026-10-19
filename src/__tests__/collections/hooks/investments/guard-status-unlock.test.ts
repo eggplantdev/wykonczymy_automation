@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   guardInvestmentStatusUnlock,
   INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE,
-} from '@/hooks/investments/guard-status-unlock'
+} from '@/collections/hooks/investments/guard-status-unlock'
 import type { RoleT } from '@/lib/auth/roles'
 
 function hookArgs(data: Record<string, unknown>, role: RoleT, previousStatus = 'completed') {

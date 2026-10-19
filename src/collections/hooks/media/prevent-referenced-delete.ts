@@ -1,4 +1,4 @@
-import { makePreventDelete } from '@/hooks/prevent-delete'
+import { makePreventDelete } from '@/collections/hooks/prevent-delete'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { countMediaHolders } from '@/lib/db/media-detachments'
 import {

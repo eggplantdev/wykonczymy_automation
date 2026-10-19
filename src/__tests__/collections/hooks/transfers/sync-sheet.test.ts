@@ -8,7 +8,7 @@ vi.mock('@/lib/google/transfer-sheet-sync', () => ({
   removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),
 }))
 
-const { syncSheetAfterChange, syncSheetAfterDelete } = await import('@/hooks/transfers/sync-sheet')
+const { syncSheetAfterChange, syncSheetAfterDelete } = await import('@/collections/hooks/transfers/sync-sheet')
 
 const change = async (args: object) => {
   ;(syncSheetAfterChange as unknown as (a: object) => unknown)({

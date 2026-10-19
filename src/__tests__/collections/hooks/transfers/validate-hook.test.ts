@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateTransfer } from '@/hooks/transfers/validate'
+import { validateTransfer } from '@/collections/hooks/transfers/validate'
 import { validateTransferArgs as hookArgs } from '@/__tests__/helpers/transfer-hook-args'
 
 const base = {

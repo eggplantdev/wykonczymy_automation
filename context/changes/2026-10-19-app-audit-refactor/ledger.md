@@ -172,3 +172,15 @@ Cycles after the phase: 42 (±0).
       replaced by `ITEM_NOT_FOUND`
 - [x] · dropped · `DUP` · section insert in `kosztorys-sections.ts` vs `template-structure.ts` · the
       two differ only in the create call; a helper's parameters would be its whole body
+
+## Phase 5 — Payload hooks out of `src/hooks` (2026-10-19)
+
+Cycles after the phase: 42.
+
+- [x] · fixed · `LAYER` · `src/hooks/{cash-registers,equipment,investments,media,transfers,users}`,
+      `src/hooks/{prevent-delete,reset-bookkeeping,revalidate-collection}.ts` · moved to
+      `src/collections/hooks/`, specs to `src/__tests__/collections/hooks/`; `src/hooks` is React hooks only
+- [x] · fixed · `GUARD` · `eslint.config.mjs:103` · the „hooks ↛ `lib/cache/revalidate`" rule follows the
+      move (probe import fails lint)
+- [x] · dismissed · `LAYER` · `src/hooks/create-json-map-store.ts` · a client store factory for React
+      hooks, not a Payload hook — stays

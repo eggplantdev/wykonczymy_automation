@@ -701,8 +701,8 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [ ] 5.1 A `lib/cache/revalidate` import in a moved hook fails lint
-- [ ] 5.2 Hook DB specs pass under `pnpm test:integration`
+- [x] 5.1 A `lib/cache/revalidate` import in a moved hook fails lint (SHA5)
+- [x] 5.2 Hook DB specs pass under `pnpm test:integration` (SHA5)
 
 ### Phase 6: `components/*` cleanups
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateTransfer } from '@/hooks/transfers/validate'
+import { validateTransfer } from '@/collections/hooks/transfers/validate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 import {
   lockedInvestmentExecute,

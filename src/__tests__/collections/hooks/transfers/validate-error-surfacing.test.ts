@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { APIError } from 'payload'
-import { validateTransfer } from '@/hooks/transfers/validate'
+import { validateTransfer } from '@/collections/hooks/transfers/validate'
 import { validateTransferArgs } from '@/__tests__/helpers/transfer-hook-args'
 
 describe('validateTransfer — a rejected write states its reason', () => {

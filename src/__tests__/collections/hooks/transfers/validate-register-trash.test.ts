@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateTransfer } from '@/hooks/transfers/validate'
+import { validateTransfer } from '@/collections/hooks/transfers/validate'
 import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 import {
   readQuery,

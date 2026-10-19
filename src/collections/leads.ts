@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
 import { trashedAtField } from '@/collections/fields/trashed-at'
 
 const SOURCE_OPTIONS = [

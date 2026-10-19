@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { APIError } from 'payload'
-import { guardDeleteOnLockedInvestment } from '@/hooks/transfers/guard-delete'
+import { guardDeleteOnLockedInvestment } from '@/collections/hooks/transfers/guard-delete'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 import { lockedInvestmentExecute } from '@/__tests__/helpers/transfer-hook-args'
 

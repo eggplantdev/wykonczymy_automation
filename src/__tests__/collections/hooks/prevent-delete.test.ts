@@ -1,7 +1,7 @@
 import { APIError } from 'payload'
 import type { CollectionBeforeDeleteHook, Where } from 'payload'
 import { describe, expect, it } from 'vitest'
-import { makePreventDelete } from '@/hooks/prevent-delete'
+import { makePreventDelete } from '@/collections/hooks/prevent-delete'
 
 // Asserts the error is publicly renderable, not merely that a throw happened — a plain `Error`
 // passes „did it throw" and still reaches the admin toast as „Something went wrong.".

@@ -100,7 +100,7 @@ export default ts.config(
     },
   },
   {
-    files: ['src/hooks/**/*.{ts,tsx}'],
+    files: ['src/collections/hooks/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',

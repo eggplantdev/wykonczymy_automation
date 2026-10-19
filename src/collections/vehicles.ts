@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
 import { VEHICLE_STATUS_LABELS, VEHICLE_STATUSES } from '@/lib/fleet/vehicle-status'
 import { trashedAtField } from '@/collections/fields/trashed-at'
 
