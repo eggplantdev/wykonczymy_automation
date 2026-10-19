@@ -1133,7 +1133,8 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Paragon w zgłoszeniu wydatku pracownika i zdjęcie w zgłoszeniu prac przeżywają przebieg crona
       nietknięte.
       _Staging 2026-10-18 (pass 10): needs human: wymaga przebiegu crona /api/cron/cleanup (niszczący, poza zakresem agenta)._
-- [ ] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+- [x] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+      _Staging 2026-10-19 (pass 11, 74197b427): tx 5966 z FV (media 2795) skasowana przez REST DELETE (200) → po kilku sekundach brak wiersza media, plik w Blobie 404. OK._
       _Staging 2026-10-18 (pass 10): NIE ZGADZA SIĘ: tx 5957 i 5958 (Inny wydatek z FV, kasa główna) skasowane przez REST DELETE /api/transactions/:id (200, wiersz transakcji znika, brak w kasie) — rekord media (2788/2789) ZOSTAJE w bazie (i plik w Blobie) po usunięciu transakcji; dotyczy też FV bez wcześniejszego Kosza (5958). Przyczyna z kodu: deleteInvoiceMediaAfterDelete → deleteUnreferencedMedia skanuje referencje przez getDb(payload) bez req, czyli poza transakcją Payloada, w której delete jeszcze się nie zatwierdził → wiersz transactions_rels nadal widoczny → media uznane za „użyte”, nic nie kasuje (cichy return, bez błędu). Finding opisany w ### Findings. Osierocone media posprzątałem przez DELETE /api/media._
 - [ ] „Usuń na zawsze" przy inwestycji, szablonie i zgłoszeniu w Koszu wygląda i działa jak dotąd:
       ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
@@ -1262,11 +1263,7 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 
 ### Findings — 2026-10-18 (pass 10)
 
-- [ ] 🟡 **Skasowanie transakcji z fakturą nie kasuje faktury od razu** — `src/hooks/transfers/delete-invoice-media.ts`:
-      skan referencji biegł przed commitem delete, więc własny wiersz `transactions_rels` trzymał fakturę
-      i nic się nie kasowało (tx 5957, 5958). **W toku:** poprawka w drzewie (hook woła
-      `reclaimUnreferencedMedia`, skan po commicie przez `after()`) + `delete-invoice-media.db.test.ts`
-      (czerwony przed poprawką); czeka na zielony przebieg testów, commit i ponowne sprawdzenie na stagingu.
+- [x] 🟡 **Skasowanie transakcji z fakturą nie kasuje faktury od razu** — `src/hooks/transfers/delete-invoice-media.ts`: fixed (380b54550), re-checked on staging 2026-10-19.
       **Test disposition:** TDD · integration.
 - [x] 🔵 **„Sekcja z szablonu…” dodaje w kolejności listy** — dropped: kod tak działa od początku; box poprawiony.
 - [x] 🔵 **Ostrzeżenie o pominiętej pracy to licznik** — dropped: zamierzone (`catalogued-preset-items.ts`); box poprawiony.
@@ -1281,11 +1278,11 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 
 ## EX-1097 — unknown-route-nav — z 404 da się wyjść linkiem z menu
 
-- [ ] Wpisz nieistniejący adres (np. `/szablony-kosztorysow`): widać „Nie znaleziono” w ramce aplikacji
+- [x] Wpisz nieistniejący adres (np. `/szablony-kosztorysow`): widać „Nie znaleziono” w ramce aplikacji
       (menu, górny pasek).
-- [ ] Na tej stronie kliknij w menu „Szablony kosztorysów”: otwiera się lista szablonów, bez „Application error”.
-- [ ] To samo z adresu pod istniejącą sekcją (np. `/kasy/zzz`) → klik „Flota”: otwiera się Flota.
-- [ ] Nieistniejąca inwestycja (`/inwestycje/99999999`) dalej pokazuje „Nie znaleziono” i link z menu działa.
+- [x] Na tej stronie kliknij w menu „Szablony kosztorysów”: otwiera się lista szablonów, bez „Application error”.
+- [x] To samo z adresu pod istniejącą sekcją (np. `/kasy/zzz`) → klik „Flota”: otwiera się Flota.
+- [x] Nieistniejąca inwestycja (`/inwestycje/99999999`) dalej pokazuje „Nie znaleziono” i link z menu działa.
 
 ## 2026-10-18 — e2e-run-speed — E2E bez zbędnego buildu, na świeżej bazie
 
