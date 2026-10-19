@@ -98,3 +98,50 @@ Cycles after the phase: 42 (−3).
       first. Not `signedMoneyColor`: it paints positives green, which `BalanceCell` never did
 - [x] · fixed · `BUG` · `src/components/forms/settle-payouts-form/settle-payouts-table.tsx:197` ·
       the „Pozostało" column had the same raw-sign test; rounded the same way
+
+## Phase 3 — `lib/*` mechanical cleanups (2026-10-19)
+
+Cycles after the phase: 42 (±0). knip: unused exports 36 → 30, unused exported types 42 → 0.
+
+- [x] · fixed · `DUP` · `src/lib/queries/{transfer,lead,expense-draft,worker-report}-sort.ts` · four
+      copies of the sort-param guard; one `serverSort(columns, defaultSort?)` factory in
+      `src/lib/table/server-sort.ts`, each list's columns in its `sortable-columns.ts`
+- [x] · fixed · `DUP` · seven collections · the `trashedAt` field written out seven times; now
+      `trashedAtField()` (`src/collections/fields/trashed-at.ts`)
+- [x] · fixed · `DUP` · `serialClash`, `registrationClash`, `emailClash`, `findEmailHolder` · one
+      trashed-aware `uniqueClash` / `findUniqueHolder` (`src/lib/trash/unique-holder.ts`); messages
+      unchanged
+- [x] · fixed · `DUP` · `src/components/tables/cash-registers.tsx` · register-type labels and border
+      colours moved to `src/lib/cash-registers/register-types.ts`; collection, form, table and chart
+      read it. The admin-only „Główna” becomes „Główne” like everywhere else
+- [x] · dismissed · `DUP` · `src/collections/transfers.ts:23` · options not built from
+      `lib/constants/transfers.ts`: that list is in another order (the union order in
+      `payload-types.ts` would change) and leaves out BLIK/CARD, which the DB enum keeps
+- [x] · fixed · `DEAD` · `countUnreadLeads`, `countUnreadFleetDeadlines`, `countUnreadWarranties`,
+      `countRejectedPayouts`, `countPendingExpenseDrafts`, `countPendingReports` · only specs called
+      them; moved to `src/__tests__/helpers/stream-counts.ts`, where they stay the oracle
+      `shell-badge-counts.db.test.ts` pins the merged statement to (drop them and a badge wired to the
+      wrong column goes unnoticed)
+- [x] · fixed · `DEAD` · 48 symbols (knip) · `export` dropped from constants and types used only in
+      their own file
+- [x] · dismissed · `DEAD` · `src/components/ui/*` shadcn re-exports, `src/__tests__/stubs/*`,
+      `src/components/tables/column-meta.ts` · vendored component surface, module stubs and a module
+      augmentation — knip can't see their consumers
+- [x] · fixed · `LAYER` · `src/types/{fleet,leads,company-knowledge}.ts` · single-feature types moved to
+      `src/lib/<feature>/types.ts` (fleet merged into the existing one)
+- [x] · fixed · `LAYER` · `src/lib/utils/{scan-receipt-client,read-worker-report-client,net-suggestion}.ts`
+      · each beside its one consumer (expense form, scan dialog, deposit form); specs follow
+- [x] · fixed · `LAYER` · `src/lib/utils/category-costs.ts`, `src/lib/utils/date.ts` ·
+      `costForCategory` inlined into its only caller; `getMonthDateRange` joined `date-range.ts`
+- [x] · dismissed · `LAYER` · `src/lib/utils/default-cash-register.ts`,
+      `src/lib/schemas/transfer-validation.ts`, `src/types/notifications.ts` · three or more consumers
+      across directories — already in the right home. `date-range.ts` and `days.ts` don't overlap
+      (filter ranges vs Warsaw-day maths)
+- [x] · fixed · `DUP` · `src/components/transfers/print-transfers-button.tsx:70` · own
+      write-close-print copy replaced by `writeAndPrint`
+- [x] · skipped · `DEAD` · `src/lib/utils/print-window.ts:28` · `document.write` stays: the print window
+      is a synchronously opened `about:blank` in quirks mode, and only a written `<!doctype html>`
+      switches it to standards mode — a DOM import leaves it in quirks and can shift the printout,
+      and a blob navigation can't start before the async fetch. Deprecated, not removed by browsers
+- [x] · fixed · `DEAD` · `src/lib/ai/{openrouter,translate,worker-report-scan}.ts` · `generateObject`
+      → `generateText` with `Output.object`

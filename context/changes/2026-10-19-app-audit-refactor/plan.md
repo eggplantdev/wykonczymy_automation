@@ -685,9 +685,9 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [ ] 3.1 Touched `lib` specs pass
-- [ ] 3.2 `pnpm generate:types` leaves `payload-types.ts` unchanged
-- [ ] 3.3 `pnpm knip` reports nothing new
+- [x] 3.1 Touched `lib` specs pass (4f38b3556)
+- [x] 3.2 `pnpm generate:types` leaves `payload-types.ts` unchanged (4f38b3556)
+- [x] 3.3 `pnpm knip` reports nothing new (4f38b3556)
 - [ ] 3.4 No `document.write` / `generateObject` left in `src/`; print and AI specs pass
 
 ### Phase 4: actions / db / queries boundary
