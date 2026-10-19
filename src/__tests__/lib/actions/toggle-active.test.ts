@@ -6,7 +6,10 @@ import type { Payload } from 'payload'
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const mockUpdate = vi.fn()
-const mockPayload = { update: mockUpdate } as unknown as Payload
+const mockFindByID = vi
+  .fn()
+  .mockResolvedValue({ id: 1, type: 'AUXILIARY', owner: { id: 2, role: 'EMPLOYEE' } })
+const mockPayload = { update: mockUpdate, findByID: mockFindByID } as unknown as Payload
 
 vi.mock('payload', async (importOriginal) => {
   const actual = await importOriginal<typeof import('payload')>()

@@ -2,7 +2,7 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { canManageAccount, canViewRegister, MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
+import { canManageAccount, canManageRegister, MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import { ENTITY_TRASH_RETENTION_DAYS, FILE_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
@@ -48,7 +48,7 @@ export function shapeTrashRows(
     leads,
     files,
   }: TrashListsT,
-  { viewerRole, now }: { viewerRole: RoleT; now: number },
+  { viewerId, viewerRole, now }: { viewerId: number; viewerRole: RoleT; now: number },
 ): TrashRowT[] {
   const daysLeft = (trashedAt: Date, retentionDays: number) =>
     Math.max(0, Math.ceil((trashedAt.getTime() + retentionDays * DAY_MS - now) / DAY_MS))
@@ -75,7 +75,7 @@ export function shapeTrashRows(
     })),
     ...templates.map((row) => ({ ...base(row), kind: 'template' as const, name: row.name })),
     ...cashRegisters
-      .filter((row) => canViewRegister(viewerRole, row.type))
+      .filter((row) => canManageRegister({ id: viewerId, role: viewerRole }, row))
       .map((row) => ({ ...base(row), kind: 'cash-register' as const, name: row.name })),
     ...workers
       .filter((row) => canManageAccount(viewerRole, row.role))
@@ -147,6 +147,6 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
 
   return shapeTrashRows(
     { investments, templates, cashRegisters, workers, vehicles, equipment, leads, files },
-    { viewerRole: session.user.role, now: Date.now() },
+    { viewerId: session.user.id, viewerRole: session.user.role, now: Date.now() },
   )
 }

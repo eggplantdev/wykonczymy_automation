@@ -55,6 +55,8 @@ export type CashRegisterRowT = {
   id: number
   name: string
   ownerName: string
+  ownerId?: number
+  ownerRole?: RoleT
   balance: number
   type: CashRegisterTypeT
   active: boolean

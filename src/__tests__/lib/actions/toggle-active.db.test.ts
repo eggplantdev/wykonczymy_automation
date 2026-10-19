@@ -136,25 +136,51 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
 describe.skipIf(!ENV_READY)('toggleCashRegisterActive — who may toggle (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
-  let registerId: number
+  let managerId: number
+  const registers: Record<'employee' | 'employeeMain' | 'ownManager' | 'otherManager', number> = {
+    employee: 0,
+    employeeMain: 0,
+    ownManager: 0,
+    otherManager: 0,
+  }
 
-  const isActive = async () => {
+  const isActive = async (registerId: number) => {
     const { rows } = await db.execute(
       sql`SELECT active FROM cash_registers WHERE id = ${registerId}`,
     )
     return rows[0]?.active !== false
   }
 
+  const toggleAs = async (role: 'MANAGER' | 'OWNER', registerId: number) => {
+    Object.assign(authState, { userId: managerId, role })
+    const { toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
+    return toggleCashRegisterActive(registerId, false)
+  }
+
   beforeAll(async () => {
     payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    const ownerId = await createTestUser(payload, {
-      name: 'Właściciel Kasy',
-      email: 'toggle-register-owner@test.local',
-      password: PASSWORD,
+    const employeeId = await createTestUser(payload, {
+      name: 'Pracownik Kasy',
+      email: 'toggle-register-employee@test.local',
     })
-    registerId = await createTestRegister(payload, ownerId, 'Kasa Przełącznika')
+    managerId = await createTestUser(payload, {
+      name: 'Manager Kasy',
+      email: 'toggle-register-manager@test.local',
+      role: 'MANAGER',
+    })
+    const otherManagerId = await createTestUser(payload, {
+      name: 'Inny Manager',
+      email: 'toggle-register-other-manager@test.local',
+      role: 'MANAGER',
+    })
+    registers.employee = await createTestRegister(payload, employeeId, 'Kasa Pracownika')
+    registers.employeeMain = await createTestRegister(payload, employeeId, 'Kasa Główna Testowa', {
+      type: 'MAIN',
+    })
+    registers.ownManager = await createTestRegister(payload, managerId, 'Kasa Managera')
+    registers.otherManager = await createTestRegister(payload, otherManagerId, 'Kasa Innego')
   })
 
   afterAll(async () => {
@@ -162,21 +188,28 @@ describe.skipIf(!ENV_READY)('toggleCashRegisterActive — who may toggle (DB)', 
     await purgeFixtureUsers(db)
   })
 
-  it('refuses a MANAGER, and the register stays active', async () => {
-    Object.assign(authState, { userId: 1, role: 'MANAGER' })
-    const { toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
-
-    const result = await toggleCashRegisterActive(registerId, false)
-
-    expect(result.success).toBe(false)
-    expect(await isActive()).toBe(true)
+  it("lets a MANAGER deactivate an EMPLOYEE's register", async () => {
+    expect(await toggleAs('MANAGER', registers.employee)).toEqual({ success: true })
+    expect(await isActive(registers.employee)).toBe(false)
   })
 
-  it('lets an OWNER deactivate it', async () => {
-    Object.assign(authState, { userId: 1, role: 'OWNER' })
-    const { toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
+  it('lets a MANAGER deactivate his own register', async () => {
+    expect(await toggleAs('MANAGER', registers.ownManager)).toEqual({ success: true })
+    expect(await isActive(registers.ownManager)).toBe(false)
+  })
 
-    expect(await toggleCashRegisterActive(registerId, false)).toEqual({ success: true })
-    expect(await isActive()).toBe(false)
+  it("refuses a MANAGER on another manager's register, and it stays active", async () => {
+    expect((await toggleAs('MANAGER', registers.otherManager)).success).toBe(false)
+    expect(await isActive(registers.otherManager)).toBe(true)
+  })
+
+  it('refuses a MANAGER on a MAIN register, and it stays active', async () => {
+    expect((await toggleAs('MANAGER', registers.employeeMain)).success).toBe(false)
+    expect(await isActive(registers.employeeMain)).toBe(true)
+  })
+
+  it("lets an OWNER deactivate another manager's register", async () => {
+    expect(await toggleAs('OWNER', registers.otherManager)).toEqual({ success: true })
+    expect(await isActive(registers.otherManager)).toBe(false)
   })
 })

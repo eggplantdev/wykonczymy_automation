@@ -17,7 +17,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { canManageRegister } from '@/lib/auth/roles'
 import type { CashRegisterRowT } from '@/types/table-rows'
 import type { CashRegisterTypeT, WorkerRefT } from '@/types/reference-data'
 
@@ -39,7 +39,7 @@ const TYPE_OPTIONS = (Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]).
 }))
 
 export function CashRegistersTable({ data, workers, className }: CashRegistersTablePropsT) {
-  const canToggleActive = isAdminOrOwnerRole(useCurrentUser().role)
+  const currentUser = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
     getActiveUpdate,
@@ -74,8 +74,8 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
   )
 
   const columns = useMemo(
-    () => getCashRegisterColumns(canToggleActive ? handleToggle : undefined),
-    [canToggleActive, handleToggle],
+    () => getCashRegisterColumns(handleToggle, (row) => canManageRegister(currentUser, row)),
+    [currentUser, handleToggle],
   )
 
   return (

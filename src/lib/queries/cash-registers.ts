@@ -10,11 +10,13 @@ export function shapeCashRegisters(
   workers: WorkerRefT[],
   balances: RegisterBalanceMapT,
 ): CashRegisterRowT[] {
-  const workersMap = new Map(workers.map((w) => [w.id, w.name]))
+  const workersMap = new Map(workers.map((w) => [w.id, w]))
   return cashRegisters.map((cr) => ({
     id: cr.id,
     name: cr.name,
-    ownerName: cr.ownerId ? (workersMap.get(cr.ownerId) ?? '—') : '—',
+    ownerName: cr.ownerId ? (workersMap.get(cr.ownerId)?.name ?? '—') : '—',
+    ownerId: cr.ownerId,
+    ownerRole: cr.ownerId ? workersMap.get(cr.ownerId)?.role : undefined,
     balance: balances[String(cr.id)] ?? 0,
     type: (cr.type as CashRegisterTypeT) ?? 'AUXILIARY',
     active: cr.active ?? true,

@@ -23,10 +23,15 @@ const investment = (id: number, flags: Partial<TrashedInvestmentRowT>): TrashedI
   ...flags,
 })
 
-const kasa = (id: number, type: TrashedCashRegisterRowT['type']): TrashedCashRegisterRowT => ({
+const kasa = (
+  id: number,
+  type: TrashedCashRegisterRowT['type'],
+  owner: Pick<TrashedCashRegisterRowT, 'ownerId' | 'ownerRole'> = {},
+): TrashedCashRegisterRowT => ({
   id,
   name: `Kasa ${id}`,
   type,
+  ...owner,
   trashedAt: TRASHED_AT,
 })
 
@@ -118,7 +123,7 @@ describe('shapeTrashRows', () => {
         investments: [investment(1, {}), investment(2, { isKosztorysUsed: true })],
         templates: [{ id: 3, name: 'Szablon 3', trashedAt: TRASHED_AT }],
       },
-      { viewerRole: 'OWNER', now: NOW },
+      { viewerId: 1, viewerRole: 'OWNER', now: NOW },
     )
 
     expect(rows.map(({ kind, id, autoPurges }) => ({ kind, id, autoPurges }))).toEqual([
@@ -132,6 +137,7 @@ describe('shapeTrashRows', () => {
     const [row] = shapeTrashRows(
       { ...NO_ROWS, cashRegisters: [kasa(10, 'AUXILIARY')] },
       {
+        viewerId: 1,
         viewerRole: 'OWNER',
         now: NOW,
       },
@@ -150,24 +156,43 @@ describe('shapeTrashRows', () => {
   })
 
   it('drops a MAIN kasa for a MANAGER, and keeps it for an owner', () => {
-    const kasy = [kasa(10, 'MAIN'), kasa(11, 'AUXILIARY')]
+    const kasy = [kasa(10, 'MAIN'), kasa(11, 'AUXILIARY', { ownerId: 2, ownerRole: 'EMPLOYEE' })]
 
     expect(
-      shapeTrashRows({ ...NO_ROWS, cashRegisters: kasy }, { viewerRole: 'MANAGER', now: NOW }).map(
-        (r) => r.id,
-      ),
+      shapeTrashRows(
+        { ...NO_ROWS, cashRegisters: kasy },
+        { viewerId: 1, viewerRole: 'MANAGER', now: NOW },
+      ).map((r) => r.id),
     ).toEqual([11])
     expect(
-      shapeTrashRows({ ...NO_ROWS, cashRegisters: kasy }, { viewerRole: 'OWNER', now: NOW }).map(
-        (r) => r.id,
-      ),
+      shapeTrashRows(
+        { ...NO_ROWS, cashRegisters: kasy },
+        { viewerId: 1, viewerRole: 'OWNER', now: NOW },
+      ).map((r) => r.id),
     ).toEqual([10, 11])
+  })
+
+  it("keeps a MANAGER's own and an EMPLOYEE's kasa for him, and drops another manager's", () => {
+    const kasy = [
+      kasa(12, 'AUXILIARY', { ownerId: 1, ownerRole: 'MANAGER' }),
+      kasa(13, 'WORKER', { ownerId: 2, ownerRole: 'EMPLOYEE' }),
+      kasa(14, 'AUXILIARY', { ownerId: 3, ownerRole: 'MANAGER' }),
+      kasa(15, 'AUXILIARY', { ownerId: 4, ownerRole: 'OWNER' }),
+    ]
+
+    expect(
+      shapeTrashRows(
+        { ...NO_ROWS, cashRegisters: kasy },
+        { viewerId: 1, viewerRole: 'MANAGER', now: NOW },
+      ).map((r) => r.id),
+    ).toEqual([12, 13])
   })
 
   it('maps a worker to a row that names his kasy', () => {
     const [row] = shapeTrashRows(
       { ...NO_ROWS, workers: [worker(20, 'EMPLOYEE', ['Kasa Jana'])] },
       {
+        viewerId: 1,
         viewerRole: 'OWNER',
         now: NOW,
       },
@@ -189,17 +214,21 @@ describe('shapeTrashRows', () => {
     const workers = [worker(20, 'EMPLOYEE'), worker(21, 'OWNER'), worker(22, 'MANAGER')]
 
     expect(
-      shapeTrashRows({ ...NO_ROWS, workers }, { viewerRole: 'MANAGER', now: NOW }).map((r) => r.id),
+      shapeTrashRows({ ...NO_ROWS, workers }, { viewerId: 1, viewerRole: 'MANAGER', now: NOW }).map(
+        (r) => r.id,
+      ),
     ).toEqual([20])
     expect(
-      shapeTrashRows({ ...NO_ROWS, workers }, { viewerRole: 'OWNER', now: NOW }).map((r) => r.id),
+      shapeTrashRows({ ...NO_ROWS, workers }, { viewerId: 1, viewerRole: 'OWNER', now: NOW }).map(
+        (r) => r.id,
+      ),
     ).toEqual([20, 21, 22])
   })
 
   it('maps a car to a row named by its plate, with make and model beneath', () => {
     const [row] = shapeTrashRows(
       { ...NO_ROWS, vehicles: [vehicle(30)] },
-      { viewerRole: 'MANAGER', now: NOW },
+      { viewerId: 1, viewerRole: 'MANAGER', now: NOW },
     )
 
     expect(row).toEqual({
@@ -225,7 +254,7 @@ describe('shapeTrashRows', () => {
           item(42, { make: '', model: '', serialNumber: '' }),
         ],
       },
-      { viewerRole: 'MANAGER', now: NOW },
+      { viewerId: 1, viewerRole: 'MANAGER', now: NOW },
     )
 
     expect(rows.map(({ kind, name, detail }) => ({ kind, name, detail }))).toEqual([
@@ -245,7 +274,7 @@ describe('shapeTrashRows', () => {
           lead(52, { name: null, email: null, phone: null, submittedAt: null }),
         ],
       },
-      { viewerRole: 'MANAGER', now: NOW },
+      { viewerId: 1, viewerRole: 'MANAGER', now: NOW },
     )
 
     expect(
@@ -260,7 +289,7 @@ describe('shapeTrashRows', () => {
   it('counts a file down from its own seven-day retention and says where it came from', () => {
     const [row] = shapeTrashRows(
       { ...NO_ROWS, files: [file(60, investmentParent())] },
-      { viewerRole: 'MANAGER', now: NOW },
+      { viewerId: 1, viewerRole: 'MANAGER', now: NOW },
     )
 
     expect(row).toEqual({
@@ -279,7 +308,7 @@ describe('shapeTrashRows', () => {
   it('blocks restoring a file whose investment lies in the trash', () => {
     const [row] = shapeTrashRows(
       { ...NO_ROWS, files: [file(61, investmentParent(TRASHED_AT))] },
-      { viewerRole: 'OWNER', now: NOW },
+      { viewerId: 1, viewerRole: 'OWNER', now: NOW },
     )
 
     expect(row.restoreBlockedReason).toBe('Najpierw przywróć inwestycję z Kosza.')
@@ -289,10 +318,12 @@ describe('shapeTrashRows', () => {
     const files = [file(62, invoiceParent('MAIN')), file(63, invoiceParent('AUXILIARY'))]
 
     expect(
-      shapeTrashRows({ ...NO_ROWS, files }, { viewerRole: 'MANAGER', now: NOW }).map((r) => r.id),
+      shapeTrashRows({ ...NO_ROWS, files }, { viewerId: 1, viewerRole: 'MANAGER', now: NOW }).map(
+        (r) => r.id,
+      ),
     ).toEqual([63])
     expect(
-      shapeTrashRows({ ...NO_ROWS, files }, { viewerRole: 'OWNER', now: NOW }).map(
+      shapeTrashRows({ ...NO_ROWS, files }, { viewerId: 1, viewerRole: 'OWNER', now: NOW }).map(
         ({ id, detail }) => ({ id, detail }),
       ),
     ).toEqual([

@@ -24,7 +24,10 @@ export const REGISTER_TYPE_BORDER_COLORS: Record<CashRegisterTypeT, string> = {
 
 const col = createColumnHelper<CashRegisterRowT>()
 
-export function getCashRegisterColumns(onToggle?: (id: number, newActive: boolean) => void) {
+export function getCashRegisterColumns(
+  onToggle: (id: number, newActive: boolean) => void,
+  canManage: (row: CashRegisterRowT) => boolean,
+) {
   return [
     col.accessor('name', {
       id: 'name',
@@ -55,7 +58,7 @@ export function getCashRegisterColumns(onToggle?: (id: number, newActive: boolea
         <ActiveToggleBadge
           id={info.row.original.id}
           isActive={info.getValue()}
-          onToggle={onToggle}
+          onToggle={canManage(info.row.original) ? onToggle : undefined}
           activeLabel="Aktywna"
           inactiveLabel="Nieaktywna"
         />
@@ -65,16 +68,17 @@ export function getCashRegisterColumns(onToggle?: (id: number, newActive: boolea
       id: 'actions',
       header: 'Akcje',
       meta: { align: 'right' },
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          <TrashRowButton
-            label="Usuń kasę"
-            description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
-            trash={() => trashCashRegisterAction(info.row.original.id)}
-            trashed="Kasa przeniesiona do kosza."
-          />
-        </div>
-      ),
+      cell: (info) =>
+        canManage(info.row.original) && (
+          <div className="flex items-center justify-end gap-1">
+            <TrashRowButton
+              label="Usuń kasę"
+              description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
+              trash={() => trashCashRegisterAction(info.row.original.id)}
+              trashed="Kasa przeniesiona do kosza."
+            />
+          </div>
+        ),
     }),
   ]
 }

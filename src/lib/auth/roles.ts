@@ -48,6 +48,18 @@ type AccountT = { id: number; role: RoleT }
 export const canTrashAccount = (actor: AccountT, target: AccountT): boolean =>
   actor.id !== target.id && canManageAccount(actor.role, target.role)
 
+export type RegisterScopeT = {
+  type: string | null | undefined
+  ownerId?: number
+  ownerRole?: RoleT
+}
+
+export const canManageRegister = (actor: AccountT, register: RegisterScopeT): boolean =>
+  isAdminOrOwnerRole(actor.role) ||
+  (canViewRegister(actor.role, register.type) &&
+    (register.ownerId === actor.id ||
+      (register.ownerRole !== undefined && canManageAccount(actor.role, register.ownerRole))))
+
 type CanMutateTransferArgsT = {
   role: RoleT
   userId: number
