@@ -17,12 +17,12 @@ import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 
-type OptionT = { value: string; label: string; count?: number }
+export type FilterOptionT = { value: string; label: string; count?: number }
 
 type FilterMultiSelectPropsT = {
   values?: string[]
   onValuesChange?: (values: string[]) => void
-  options?: OptionT[]
+  options?: FilterOptionT[]
   /** Ticked, unclickable, and outside the selection entirely — never written to the param, counted, or
    * touched by the bulk row. */
   lockedValues?: string[]

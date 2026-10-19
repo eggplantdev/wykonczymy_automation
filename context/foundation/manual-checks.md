@@ -1322,8 +1322,8 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
 - [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
       synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
-- [ ] Jako ADMIN na `/wyplaty` → „Rozlicz”: kwota „Pozostało”, która zaokrągla się do zera, pokazuje
-      „0,00 zł” bez czerwonego koloru.
+- [ ] Jako ADMIN inwestycja → Podsumowanie → Podwykonawcy → „Rozlicz wypłaty”: kwota „Pozostało”,
+      która zaokrągla się do zera, pokazuje „0,00 zł” bez czerwonego koloru.
 
 ## 2026-10-19 — app-audit-refactor faza 3 — sortowanie, duplikaty, etykiety kas, druk, odczyt AI
 
@@ -1357,6 +1357,30 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako ADMIN dodaj, edytuj i anuluj transakcję — salda kas zmieniają się bez odświeżania.
 - [ ] Jako ADMIN usuń wydatek z fakturą — faktura znika z listy plików.
 - [ ] Jako ADMIN spróbuj usunąć kasę, która ma transakcje — odmowa jak dotąd.
+
+## 2026-10-19 — app-audit-refactor faza 6 — porządki w komponentach
+
+Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
+
+- [ ] Jako EMPLOYEE na telefonie (390 px) → „Zgłoszenia wydatków”: filtry „Status” i „Inwestycja” zawężają
+      listę i wracają na stronę 1; zmiana „na stronę” też wraca na 1; po wysłaniu nowego zgłoszenia lista
+      pokazuje stronę 1 z tym zgłoszeniem.
+- [ ] Jako EMPLOYEE na swojej stronie pracownika → historia raportów: te same filtry i paginacja działają jak
+      wcześniej.
+- [ ] Jako ADMIN dodaj przelew z pozycjami ze zeskanowanej faktury (przycisk skanu i przeciągnięcie pliku na
+      oba tryby): pozycje powstają, suma pod listą się zgadza, wybór kategorii/pracownika w wierszu działa.
+- [ ] Jako ADMIN w trybie paragonów: suma zaznaczonych pozycji w stopce zgadza się z zaznaczeniem.
+- [ ] Jako ADMIN edytuj przelew i wyczyść formularz przyciskiem resetu; „Rozlicz wypłaty” zapisuje się jak
+      wcześniej (oba formularze mają teraz wspólną obudowę).
+- [ ] Na koncie z językiem ukraińskim/rosyjskim → „Zgłoszenia wydatków”: daty wysłania i decyzji w formacie
+      tego języka (wcześniej zawsze polskim).
+- [ ] Przełącznik lista/karty przelewów i skala UI działają jak wcześniej.
+- [ ] Bez logowania: logowanie i „Nie pamiętam hasła” działają.
+- [ ] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
+      `/kasa` → wykres salda kasy rysuje się.
+- [ ] Leady → zaznaczanie zdjęć w „Zdjęcia” i przy przenoszeniu do inwestycji, zaznaczanie wierszy listy leadów.
+- [ ] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
+- [ ] Nowy pracownik dodany przez „Dodaj pracownika” ma język polski.
 
 # Zamknięte — indeks
 

@@ -21,8 +21,9 @@ import {
 import { toastMessage } from '@/lib/utils/toast'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'
 import type { LeadRowT } from '@/lib/leads/types'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
-const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
+export const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
 export type InvestmentOptionT = { id: number; name: string; active?: boolean }
 
@@ -84,11 +85,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
   const allPicked = waiting.length > 0 && chosenIds.length === waiting.length
 
   function togglePicked(mediaId: number) {
-    setSelectedIds((current) => {
-      const next = new Set(current)
-      if (!next.delete(mediaId)) next.add(mediaId)
-      return next
-    })
+    setSelectedIds((current) => toggleInSet(current, mediaId))
   }
 
   function toggleAll() {

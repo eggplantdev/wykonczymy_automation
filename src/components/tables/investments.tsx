@@ -22,7 +22,7 @@ import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialo
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
-import { SheetButton } from '@/components/dialogs/sheet-button'
+import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { AiProgressBadge } from '@/components/investments/ai-progress-badge'

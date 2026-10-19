@@ -59,7 +59,7 @@ export function useExpenseDraftColumns({
   actions,
   selection,
 }: OptionsT) {
-  const { t } = useTranslation('expenseDrafts')
+  const { t, locale } = useTranslation('expenseDrafts')
   const sortable = (id: string) =>
     isManagerView && !isPendingQueue && expenseDraftSort.isSortable(id)
   const actionsColumn = actions
@@ -133,7 +133,7 @@ export function useExpenseDraftColumns({
       header: t('sentAt'),
       enableSorting: sortable('sentAt'),
       meta: { minWidth: 'min-w-40' },
-      cell: (info) => formatPLDateTime(info.getValue()),
+      cell: (info) => formatPLDateTime(info.getValue(), locale),
     }),
     col.display({
       id: 'media',
@@ -185,7 +185,7 @@ export function useExpenseDraftColumns({
             meta: { minWidth: 'min-w-56' },
             cell: ({ row: { original: draft } }) =>
               draft.decidedAt
-                ? [formatPLDateTime(draft.decidedAt), draft.decidedByName]
+                ? [formatPLDateTime(draft.decidedAt, locale), draft.decidedByName]
                     .filter(Boolean)
                     .join(' · ')
                 : '—',

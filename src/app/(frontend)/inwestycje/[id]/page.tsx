@@ -31,7 +31,7 @@ import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialo
 import { ContractDialog } from '@/components/investments/contract-dialog'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
-import { SheetButton } from '@/components/dialogs/sheet-button'
+import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import type { DynamicPagePropsT } from '@/types/page'
 

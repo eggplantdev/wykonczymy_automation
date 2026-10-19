@@ -38,34 +38,34 @@ Out of scope: `src/migrations/` (frozen history), `src/payload-types.ts` (genera
 | `src/stores`                                                                                                                        |     7 |   [ ]   |    [ ]     | —             |
 | `src/types`                                                                                                                         |    14 |   [ ]   |    [ ]     | —             |
 | `src/scripts`                                                                                                                       |    38 |   [ ]   |    [ ]     | —             |
-| `src/components/ui`                                                                                                                 |   113 |   [ ]   |    [ ]     |               |
-| `src/components/tables`                                                                                                             |    29 |   [ ]   |    [ ]     |               |
-| `src/components/forms`                                                                                                              |    99 |   [ ]   |    [ ]     |               |
-| `src/components/dialogs`                                                                                                            |    27 |   [ ]   |    [ ]     |               |
-| `src/components/filters`                                                                                                            |    13 |   [ ]   |    [ ]     |               |
-| `src/components/nav`                                                                                                                |    16 |   [ ]   |    [ ]     |               |
+| `src/components/ui`                                                                                                                 |   113 |   [x]   |    [x]     |               |
+| `src/components/tables`                                                                                                             |    29 |   [x]   |    [x]     |               |
+| `src/components/forms`                                                                                                              |    99 |   [x]   |    [x]     |               |
+| `src/components/dialogs`                                                                                                            |    27 |   [x]   |    [x]     |               |
+| `src/components/filters`                                                                                                            |    13 |   [x]   |    [x]     |               |
+| `src/components/nav`                                                                                                                |    16 |   [x]   |    [x]     |               |
 | `src/components/kosztorys/editor`                                                                                                   |   187 |   [ ]   |    [ ]     |               |
-| `src/components/kosztorys/summary`                                                                                                  |    47 |   [ ]   |    [ ]     |               |
-| `src/components/kosztorys/worker-report`                                                                                            |    19 |   [ ]   |    [ ]     |               |
-| `src/components/kosztorys` (top-level files)                                                                                        |     3 |   [ ]   |    [ ]     |               |
-| `src/components/investments`                                                                                                        |    22 |   [ ]   |    [ ]     |               |
-| `src/components/transfers`                                                                                                          |    15 |   [ ]   |    [ ]     |               |
-| `src/components/worker-expenses`                                                                                                    |    13 |   [ ]   |    [ ]     |               |
-| `src/components/worker-reports`                                                                                                     |    12 |   [ ]   |    [ ]     |               |
-| `src/components/fleet`                                                                                                              |    11 |   [ ]   |    [ ]     |               |
-| `src/components/work-catalogue`                                                                                                     |     9 |   [ ]   |    [ ]     |               |
-| `src/components/equipment`                                                                                                          |     7 |   [ ]   |    [ ]     |               |
-| `src/components/trash`                                                                                                              |     7 |   [ ]   |    [ ]     |               |
-| `src/components/leads`                                                                                                              |     6 |   [ ]   |    [ ]     |               |
-| `src/components/media`                                                                                                              |     6 |   [ ]   |    [ ]     |               |
-| `src/components/users`                                                                                                              |     6 |   [ ]   |    [ ]     |               |
-| `src/components/dashboard`                                                                                                          |     5 |   [ ]   |    [ ]     |               |
-| `src/components/payouts`                                                                                                            |     5 |   [ ]   |    [ ]     |               |
-| `src/components/pwa`                                                                                                                |     5 |   [ ]   |    [ ]     |               |
-| `src/components/sheets`                                                                                                             |     5 |   [ ]   |    [ ]     |               |
-| `src/components/company-knowledge`                                                                                                  |     4 |   [ ]   |    [ ]     |               |
-| `src/components/presets`                                                                                                            |     3 |   [ ]   |    [ ]     |               |
-| `src/components/{auth,cash-registers,i18n,notification-recipients,telmak-check}`                                                    |     5 |   [ ]   |    [ ]     |               |
+| `src/components/kosztorys/summary`                                                                                                  |    47 |   [x]   |    [x]     |               |
+| `src/components/kosztorys/worker-report`                                                                                            |    19 |   [x]   |    [x]     |               |
+| `src/components/kosztorys` (top-level files)                                                                                        |     3 |   [x]   |    [x]     |               |
+| `src/components/investments`                                                                                                        |    22 |   [x]   |    [x]     |               |
+| `src/components/transfers`                                                                                                          |    15 |   [x]   |    [ ]     |               |
+| `src/components/worker-expenses`                                                                                                    |    13 |   [x]   |    [x]     |               |
+| `src/components/worker-reports`                                                                                                     |    12 |   [x]   |    [x]     |               |
+| `src/components/fleet`                                                                                                              |    11 |   [x]   |    [ ]     |               |
+| `src/components/work-catalogue`                                                                                                     |     9 |   [x]   |    [ ]     |               |
+| `src/components/equipment`                                                                                                          |     7 |   [x]   |    [ ]     |               |
+| `src/components/trash`                                                                                                              |     7 |   [x]   |    [ ]     |               |
+| `src/components/leads`                                                                                                              |     6 |   [x]   |    [x]     |               |
+| `src/components/media`                                                                                                              |     6 |   [x]   |    [ ]     |               |
+| `src/components/users`                                                                                                              |     6 |   [x]   |    [ ]     |               |
+| `src/components/dashboard`                                                                                                          |     5 |   [x]   |    [x]     |               |
+| `src/components/payouts`                                                                                                            |     5 |   [x]   |    [ ]     |               |
+| `src/components/pwa`                                                                                                                |     5 |   [x]   |    [ ]     |               |
+| `src/components/sheets`                                                                                                             |     5 |   [x]   |    [ ]     |               |
+| `src/components/company-knowledge`                                                                                                  |     4 |   [x]   |    [ ]     |               |
+| `src/components/presets`                                                                                                            |     3 |   [x]   |    [ ]     |               |
+| `src/components/{auth,cash-registers,i18n,notification-recipients,telmak-check}`                                                    |     5 |   [x]   |    [x]     |               |
 | `src/lib/actions`                                                                                                                   |    68 |   [ ]   |    [ ]     | —             |
 | `src/lib/queries`                                                                                                                   |    73 |   [ ]   |    [ ]     | —             |
 | `src/lib/db`                                                                                                                        |    74 |   [ ]   |    [ ]     | —             |

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { CellProps, Column } from 'react-datasheet-grid'
-import { DERIVED_TONE } from '@/components/kosztorys/derived-tone'
+import { DERIVED_TONE } from '@/components/kosztorys/tones'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'

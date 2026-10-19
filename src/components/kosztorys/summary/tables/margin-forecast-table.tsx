@@ -3,7 +3,7 @@
 import { faceValue } from '@/lib/kosztorys/summary-economics'
 import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
-import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tabs/margin-table-cols'
+import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tables/margin-table-cols'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Description } from '@/components/ui/description'
 import { PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'

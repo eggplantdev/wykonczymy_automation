@@ -19,6 +19,7 @@ import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { leadSort } from '@/lib/leads/sortable-columns'
 import { toggleLeadContactStatus } from '@/lib/actions/toggle-lead-contact-status'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
 const LEADS_BASE_URL = '/zgloszenia'
 const SEARCH_DEBOUNCE_MS = 300
@@ -58,12 +59,7 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
   const updateSelection = (update: (ids: ReadonlySet<number>) => ReadonlySet<number>) =>
     setSelection((prev) => ({ ...prev, ids: update(prev.ids) }))
 
-  const toggleSelect = (id: number) =>
-    updateSelection((ids) => {
-      const next = new Set(ids)
-      if (!next.delete(id)) next.add(id)
-      return next
-    })
+  const toggleSelect = (id: number) => updateSelection((ids) => toggleInSet(ids, id))
 
   const togglePage = (pageIds: number[]) =>
     updateSelection((ids) => (pageIds.every((id) => ids.has(id)) ? NO_SELECTION : new Set(pageIds)))

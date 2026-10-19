@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SheetSetupDialog } from './sheet-setup-dialog'
+import { SheetSetupDialog } from '@/components/dialogs/sheet-setup-dialog'
 
 type PropsT = {
   investmentId: number

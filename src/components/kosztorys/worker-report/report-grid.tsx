@@ -56,10 +56,6 @@ function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, numbe
 
 const SHOWN = ['shown', 'hidden'] as const
 
-function keepMenuOpen(event: Event) {
-  event.preventDefault()
-}
-
 // Mount it only once the draft has loaded — the grid
 // seeds from it once.
 export function ReportGrid({
@@ -132,7 +128,6 @@ export function ReportGrid({
                     <DropdownMenuCheckboxRow
                       checked={controls.showAllRows}
                       onCheckedChange={controls.onShowAllRows}
-                      onSelect={keepMenuOpen}
                       label={
                         controls.hiddenRowCount > 0
                           ? `${t('allWorks')} (+${controls.hiddenRowCount})`
@@ -144,19 +139,16 @@ export function ReportGrid({
                         <DropdownMenuCheckboxRow
                           checked={controls.reportedOnly}
                           onCheckedChange={controls.onReportedOnly}
-                          onSelect={keepMenuOpen}
                           label={`${t('reportedOnly')} (${Object.keys(qtyByItem).length})`}
                         />
                         <DropdownMenuCheckboxRow
                           checked={showDoneSum}
                           onCheckedChange={setShowDoneSum}
-                          onSelect={keepMenuOpen}
                           label={t('showDoneSum')}
                         />
                         <DropdownMenuCheckboxRow
                           checked={showProgress}
                           onCheckedChange={setShowProgress}
-                          onSelect={keepMenuOpen}
                           label={t('showProgress')}
                         />
                       </>

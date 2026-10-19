@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ScanReportDialog } from '@/components/worker-reports/scan-report-dialog'
 
 const picked = vi.hoisted(() => ({ files: [] as File[] }))
-vi.mock('@/components/forms/hooks/use-file-pick-ingest', () => ({
+vi.mock('@/hooks/use-file-pick-ingest', () => ({
   useFilePickIngest: () => ({
     files: picked.files,
     isIngesting: false,

@@ -184,3 +184,58 @@ Cycles after the phase: 42.
       move (probe import fails lint)
 - [x] · dismissed · `LAYER` · `src/hooks/create-json-map-store.ts` · a client store factory for React
       hooks, not a Payload hook — stays
+
+## Phase 6 — `components/*` cleanups (2026-10-19)
+
+Cycles after the phase: 25 (42 after Phase 5). Every `components/*` directory audited except
+`kosztorys/editor` (Phase 8). Files the `app-audit-refactor` branch changed in its Badge/payout commits
+are left for after the merge — editing them here only buys a conflict.
+
+- [x] · fixed · `DUP` · `worker-expenses/worker-expense-drafts-table.tsx`, `worker-reports/worker-report-history-table.tsx`
+      · client pagination → `src/hooks/use-client-pagination.ts` + `ui/pagination/client-pagination.tsx`;
+      status/investment filters → `src/hooks/use-status-investment-filters.tsx`
+- [x] · fixed · `CYCLE` · `forms/hooks/form-hooks.ts` ↔ `forms/form-components/*` · contexts in `forms/hooks/form-context.ts`
+- [x] · fixed · `CYCLE` · `ExpenseFormPrefillT` · moved from `expense-form.tsx` to `bulk-expense-form.ts`
+- [x] · fixed · `CYCLE` · `lib/i18n/dictionaries/{uk,ru}.ts` · `import type { pl }`
+- [x] · fixed · `SIZE` · `forms/expense-form/line-items-field.tsx` 615 → 466 · `row-select.tsx`, `use-receipt-scan.ts`
+- [x] · fixed · `DUP` · `edit-transfer-form.tsx`, `settle-payouts-form.tsx` · hand-rolled form shell → `FormShell`
+- [x] · fixed · `BUG` · `forms/hooks/use-check-form-errors.ts` · console output gated to development
+- [x] · fixed · `DEAD` · `RateFieldNameT`, `RatePlaneValuesT`, `TargetFieldNameT` exports; `PaginationEllipsis`;
+      `data as TData[]` cast in `data-table.tsx`; commented-out Roundcube link in `nav/sidebar.tsx`
+- [x] · fixed · `DUP` · `deposit-form.tsx` double import; `materials-transactions-table.tsx` double import;
+      `handleGenerate` alias in `expense-form.tsx`
+- [x] · fixed · `DUP` · `report-grid.tsx` `keepMenuOpen` · `DropdownMenuCheckboxItem` already keeps the menu open
+- [x] · fixed · `DUP` · Set toggles in `leads/{lead-assets-dialog,promote-lead-dialog,leads-data-table}.tsx` → `toggleInSet`;
+      `PICK_LABEL` shared from `lead-assets-dialog.tsx`
+- [x] · fixed · `DUP` · line-item amount sums in `expense-form.tsx` / `paragon-footer.tsx` → `sumLineItemAmounts`
+- [x] · fixed · `BUG` · `tables/expense-drafts.tsx` dates · viewer locale passed, as in `tables/worker-reports.tsx`
+- [x] · fixed · `BUG` · `dialogs/add-worker-dialog.tsx` · `DEFAULT_LANGUAGE` instead of `'pl'`
+- [x] · fixed · `LAYER` · moves: `investments/contract-form.tsx` → `forms/contract-form/`;
+      `summary/tabs/margin-*` → `summary/tables/`; `dialogs/{sheet-button,edit-investment-prefill}.tsx` →
+      `investments/`; `dashboard/register-balance-chart.tsx` → `cash-registers/`;
+      `forms/hooks/use-file-pick-ingest.ts` → `src/hooks/` (non-form consumers); `derived-tone` + `flagged-tone` → `kosztorys/tones.ts`
+- [x] · fixed · `TOOL` · `scripts/check-compiler-coverage.mjs` + `pnpm check:compiler` (Phase 7 guard), eslint-ignored like its sibling node scripts
+- [x] · skipped · `DUP` · `tables/transfers.tsx` register link cells · file changed on `app-audit-refactor`; after the merge
+- [x] · skipped · `LAYER` · `ui/decision-progress-badge.tsx` out of `ui/`, and its tone map shared with
+      `collapsible-line-item.tsx` · both changed on `app-audit-refactor` (Badge commit); after the merge
+- [x] · skipped · `LAYER` · `settle-payouts-table.tsx` → `tables/` · changed on `app-audit-refactor`; after the merge
+- [x] · skipped · `I18N` · hard-coded Polish in `filters/{active-filters-bar,queue-filters}.tsx`, `ui/search-select.tsx`,
+      `media/zoomable-preview-image.tsx:97`, `worker-expenses/use-expense-draft-acceptance.tsx` · needs keys in
+      `pl/uk/ru.ts`, all three changed on `app-audit-refactor`; after the merge
+- [x] · skipped · `DUP` · `filters/filter-select.tsx` vs `ui/search-select.tsx` · triggers and check placement differ;
+      sharing the body is a visible-markup refactor that deserves its own review
+- [x] · skipped · `DUP` · submit pipeline in `use-paragon-decisions.ts` vs `expense-form.tsx` · the confirm and
+      receipt-decision arguments differ; behaviour-sensitive booking path
+- [x] · skipped · `SIZE` · `filters/filter-multi-select.tsx` (356 lines) · under the size bar; split is its own refactor
+- [x] · skipped · `BEHAV` · `dashboard/user-register-stats.tsx:18` matches registers by owner name; `ownerId` exists ·
+      changes what a user sees — surfaced to the owner, not applied
+- [x] · skipped · `COPY` · `summary/blocks/subcontractor-summary.tsx:74` „Lista wpłat” over a payouts table · wording
+      is the owner's call — surfaced
+- [x] · dropped · `DUP` · investment-form address grid (site vs billing) · typed field names; a prefix parameter drops TanStack's name checks
+- [x] · dropped · `DUP` · `add-sheet-dialog` / `sheet-setup-dialog` service-account hint · markup differs; the shared part is a 3-line fetch
+- [x] · dropped · `DUP` · local `InvestmentOptionT` `{ id; name }` in sheets dialogs · a two-field structural type
+- [x] · dropped · `DUP` · `transfer-filters.tsx` eight `FilterMultiSelect` blocks · a config array's entries would be the blocks' props
+- [x] · dropped · `DEAD` · unused shadcn kit exports in `ui/{popover,alert-dialog,field,command,select,dialog,calendar,dropdown-menu}.tsx` · vendored kit
+- [x] · dropped · `UI` · `ui/signed-money-display.tsx` default „Saldo” label · borderline, no defect
+- [x] · dismissed · `DEAD` · `equipment/where-filter-options.ts` `WHERE_UNKNOWN` · a spec imports it
+- [x] · dismissed · `TEST` · `account-credentials-schema.ts` static schema · it is `buildSchemas(POLISH_ACCOUNT).form`, the same builder the form calls
