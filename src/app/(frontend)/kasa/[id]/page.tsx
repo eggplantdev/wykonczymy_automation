@@ -1,8 +1,8 @@
-import { redirect, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { canViewRegister, isManagementRole, ROLES } from '@/lib/auth/roles'
+import { requireManagementPage } from '@/lib/auth/require-management-page'
+import { canViewRegister } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData, findWorkerRef } from '@/lib/queries/reference-data'
@@ -23,10 +23,7 @@ import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function CashRegisterDetailPage({ params, searchParams }: DynamicPagePropsT) {
   const step = perfStart()
-  const session = await requireAuth(ROLES)
-  if (!session.success) redirect('/zaloguj')
-  const { user } = session
-  if (!isManagementRole(user.role)) notFound()
+  const user = await requireManagementPage()
 
   const { id } = await params
   const sp = await searchParams
