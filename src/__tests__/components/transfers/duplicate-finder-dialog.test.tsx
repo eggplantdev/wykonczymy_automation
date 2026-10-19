@@ -6,12 +6,7 @@ import { DuplicateFinderDialog } from '@/components/transfers/duplicate-finder-d
 import type { CandidateT, DuplicateGroupsT } from '@/lib/expense-duplicates/types'
 import type { DateRangeT } from '@/lib/utils/date-range'
 import type { ActionResultT } from '@/types/action'
-
-const url = vi.hoisted(() => ({ params: new URLSearchParams() }))
-vi.mock('next/navigation', () => ({
-  useSearchParams: () => url.params,
-  useRouter: () => ({ push: vi.fn() }),
-}))
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 type FindGroupsT = (range: DateRangeT) => Promise<ActionResultT<DuplicateGroupsT<CandidateT>>>
 
@@ -68,12 +63,12 @@ async function analyse(findGroups: FindGroupsT) {
 }
 
 beforeEach(() => {
-  url.params = new URLSearchParams()
+  navigationState.searchParams = new URLSearchParams()
 })
 
 describe('DuplicateFinderDialog', () => {
   it('asks for the table’s range, shows strong groups open and weak ones folded under „Słabe”', async () => {
-    url.params = new URLSearchParams({ from: '2026-10-01', to: '2026-10-31' })
+    navigationState.searchParams = new URLSearchParams({ from: '2026-10-01', to: '2026-10-31' })
     const findGroups = vi.fn<FindGroupsT>(async () => ({ success: true, data: GROUPS }))
     const { user, dialog } = await analyse(findGroups)
 

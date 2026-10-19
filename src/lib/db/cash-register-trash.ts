@@ -11,7 +11,7 @@ export type TrashedCashRegisterRowT = {
 }
 
 // A kasa whose owner is in the trash went there WITH him: it is listed, restored and purged as part of
-// the worker, never on its own (EX-918).
+// the worker, never on its own.
 const OWNER_LIVE = sql`NOT EXISTS (
   SELECT 1 FROM users u WHERE u.id = cash_registers.owner_id AND u.trashed_at IS NOT NULL
 )`

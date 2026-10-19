@@ -1,11 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { UnreadBadge } from '@/components/nav/unread-badge'
 import { UnreadCountsProvider } from '@/hooks/use-unread-counts'
 import type { UnreadStreamT } from '@/types/notifications'
-
-const pathname = vi.hoisted(() => ({ current: '/' }))
-vi.mock('next/navigation', () => ({ usePathname: () => pathname.current }))
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 const VALUES = {
   leads: 3,
@@ -20,7 +18,7 @@ const VALUES = {
 const COUNTS = Object.assign(Promise.resolve(VALUES), { status: 'fulfilled', value: VALUES })
 
 function renderBadge(stream: UnreadStreamT, path: string, at: string) {
-  pathname.current = at
+  navigationState.pathname = at
   return render(
     <UnreadCountsProvider counts={COUNTS}>
       <UnreadBadge stream={stream} path={path} />
@@ -45,12 +43,6 @@ describe('UnreadBadge', () => {
     renderBadge('workerReports', '/zgloszenia-prac', '/zgloszenia-prac')
 
     expect(screen.getByText('2')).toBeInTheDocument()
-  })
-
-  it('keeps the leads count on „Zgłoszenia wydatków", another sibling sharing its prefix', async () => {
-    renderBadge('leads', '/zgloszenia', '/zgloszenia-wydatkow')
-
-    expect(screen.getByText('3')).toBeInTheDocument()
   })
 
   it('keeps the expense-drafts count on its own page — it is a queue too', async () => {

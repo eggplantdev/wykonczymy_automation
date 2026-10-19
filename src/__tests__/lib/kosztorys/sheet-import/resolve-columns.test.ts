@@ -22,6 +22,12 @@ function expectResolved(
   if (!result.ok) expect.fail(`expected a resolved header, got: ${result.problems.join(' | ')}`)
 }
 
+function expectRefused(
+  result: ResolvedLaborColumnsT | LaborColumnsFailureT,
+): asserts result is LaborColumnsFailureT {
+  if (result.ok) expect.fail('expected the header to be refused')
+}
+
 function expectRatesResolved(
   result: ResolvedRatesT | ResolveFailureT,
 ): asserts result is ResolvedRatesT {
@@ -29,7 +35,7 @@ function expectRatesResolved(
 }
 
 describe('resolveLaborColumns', () => {
-  it('resolves the wide 10-etap layout', () => {
+  it('resolves the wide 10-etap layout, every optional column included', () => {
     const result = resolveLaborColumns(BIALOSTOCKA_LABOR_HEADER)
     expectResolved(result)
 
@@ -37,12 +43,14 @@ describe('resolveLaborColumns', () => {
       section: 0, // A
       description: 2, // C
       plannedQty: 13, // N — Przedmiar
+      measuredQty: 14, // O — Pomiar z natury
       unit: 15, // P
       clientPrice: 16, // Q
       discount: 17, // R — rabat
       netValue: 18, // S — Wartość netto
     })
     expect(result.stages).toEqual({ firstColumn: 3, count: 10 }) // D–M
+    expect(result.missingFields).toEqual([])
   })
 
   it('resolves a narrow layout where Przedmiar sits four columns earlier', () => {
@@ -59,18 +67,6 @@ describe('resolveLaborColumns', () => {
       netValue: 14, // O
     })
     expect(result.stages).toEqual({ firstColumn: 3, count: 6 }) // D–I
-  })
-
-  it('finds stages by the „wykonano" marker even when row 3 renames them to crews', () => {
-    const result = resolveLaborColumns(PRZEDPOLE_LABOR_HEADER)
-    expectResolved(result)
-    expect(result.stages.count).toBe(6)
-  })
-
-  it('does not mistake the wartość block for more etapy', () => {
-    const result = resolveLaborColumns(BIALOSTOCKA_LABOR_HEADER)
-    expectResolved(result)
-    expect(result.stages.count).toBe(10) // not 20
   })
 
   it('runs the etapy up to Przedmiar when the owner added columns without „wykonano"', () => {
@@ -111,51 +107,22 @@ describe('resolveLaborColumns', () => {
     expect(result.columns.netValue).toBe(19)
   })
 
-  it('reports nothing unresolved when every optional column is there', () => {
-    const result = resolveLaborColumns(BIALOSTOCKA_LABOR_HEADER)
-    expectResolved(result)
+  // Refusing here would reject a sheet that imported fine before the column was ever looked for.
+  it.each([
+    ['with no', 'absent', 14, ''],
+    ['whose second', 'ambiguous', 20, null],
+  ] as const)(
+    'imports a sheet %s „Pomiar z natury" column rather than refusing it',
+    (_case, reason, column, label) => {
+      const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
+      for (const row of [0, 2]) grid[row][column] = label ?? grid[row][14]
 
-    expect(result.missingFields).toEqual([])
-  })
-
-  it('finds „Pomiar z natury" beside Przedmiar', () => {
-    const result = resolveLaborColumns(BIALOSTOCKA_LABOR_HEADER)
-    expectResolved(result)
-
-    expect(result.columns.measuredQty).toBe(14)
-  })
-
-  it('imports a sheet with no „Pomiar z natury" column rather than refusing it', () => {
-    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
-    grid[0][14] = ''
-    grid[2][14] = ''
-
-    const result = resolveLaborColumns(grid)
-    expectResolved(result)
-    expect(result.columns.measuredQty).toBeUndefined()
-    expect(result.missingFields).toContainEqual({
-      field: 'measuredQty',
-      required: false,
-      reason: 'absent',
-    })
-  })
-
-  it('imports a sheet whose „Pomiar z natury" matches twice rather than refusing it', () => {
-    // An optional column the resolver cannot pin down is dropped, not escalated: refusing here would
-    // reject a sheet that imported fine before the column was ever looked for.
-    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
-    grid[0][20] = grid[0][14]
-    grid[2][20] = grid[2][14]
-
-    const result = resolveLaborColumns(grid)
-    expectResolved(result)
-    expect(result.columns.measuredQty).toBeUndefined()
-    expect(result.missingFields).toContainEqual({
-      field: 'measuredQty',
-      required: false,
-      reason: 'ambiguous',
-    })
-  })
+      const result = resolveLaborColumns(grid)
+      expectResolved(result)
+      expect(result.columns.measuredQty).toBeUndefined()
+      expect(result.missingFields).toContainEqual({ field: 'measuredQty', required: false, reason })
+    },
+  )
 
   it('treats a missing rabat column as fine — some sheets genuinely have none', () => {
     const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
@@ -166,34 +133,39 @@ describe('resolveLaborColumns', () => {
     expect(result.columns.discount).toBeUndefined()
   })
 
-  it('fails by naming the missing column rather than throwing', () => {
+  it.each([
+    [
+      'by naming the missing column rather than throwing',
+      'Cena j.m.',
+      (grid: (string | number)[][]) => {
+        grid[0][16] = ''
+        grid[2][16] = ''
+      },
+    ],
+    [
+      'when a required column matches twice, instead of picking the leftmost',
+      'Przedmiar',
+      (grid: (string | number)[][]) => {
+        grid[0][19] = 'Przedmiar'
+      },
+    ],
+    [
+      'when no row carries the „wykonano" marker',
+      'wykonano',
+      (grid: (string | number)[][]) => {
+        grid[1] = grid[1].map((cell) => (cell === 'wykonano' ? '' : cell))
+      },
+    ],
+  ])('fails %s', (_case, named, mutate) => {
     const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
-    grid[0][16] = '' // „Cena j.m." on row 1
-    grid[2][16] = '' // „cena j.m." on row 3
+    mutate(grid)
 
     const result = resolveLaborColumns(grid)
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.problems.join(' ')).toContain('Cena j.m.')
-  })
-
-  it('fails when a required column matches twice, instead of picking the leftmost', () => {
-    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
-    grid[0][19] = 'Przedmiar' // a second one at T
-
-    const result = resolveLaborColumns(grid)
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.problems.join(' ')).toContain('Przedmiar')
+    expectRefused(result)
+    expect(result.problems.join(' ')).toContain(named)
   })
 
   describe('the two sides of a failed match', () => {
-    function expectRefused(
-      result: ResolvedLaborColumnsT | LaborColumnsFailureT,
-    ): asserts result is LaborColumnsFailureT {
-      if (result.ok) expect.fail('expected the header to be refused')
-    }
-
     it('names the required field it could not place', () => {
       const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
@@ -256,24 +228,13 @@ describe('resolveLaborColumns', () => {
     })
   })
 
-  it('fails when no row carries the „wykonano" marker', () => {
-    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
-    grid[1] = grid[1].map((cell) => (cell === 'wykonano' ? '' : cell))
-
-    const result = resolveLaborColumns(grid)
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.problems.join(' ')).toContain('wykonano')
-  })
-
   // Opis is read off the column left of the first etap; with none there, a pass would import every
   // row with no opis at all.
   it('fails when the etapy start in column A, leaving no column for the opis', () => {
     const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => row.slice(3))
 
     const result = resolveLaborColumns(grid)
-    expect(result.ok).toBe(false)
-    if (result.ok) return
+    expectRefused(result)
     expect(result.problems).toContain('Brak kolumny z opisem pracy przed kolumnami etapów.')
   })
 })

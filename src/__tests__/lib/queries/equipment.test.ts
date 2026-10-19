@@ -1,17 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { RoleT } from '@/lib/auth/roles'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-vi.mock('server-only', () => ({}))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: async () => ({}) }))
-
-const session = vi.hoisted(() => ({ user: { id: 25, role: 'EMPLOYEE' as RoleT } }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { ...session.user, email: 'w@example.test', name: 'Pracownik' },
-  })),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const loadEquipmentAtLocation = vi.fn(async () => [])
 vi.mock('@/lib/db/equipment', () => ({
@@ -26,7 +17,8 @@ const { fetchEquipmentAtLocation } = await import('@/lib/queries/equipment')
 describe('fetchEquipmentAtLocation', () => {
   beforeEach(() => {
     loadEquipmentAtLocation.mockClear()
-    session.user = { id: 25, role: 'EMPLOYEE' }
+    authState.userId = 25
+    authState.role = 'EMPLOYEE'
   })
 
   it('lets an EMPLOYEE read the equipment he holds', async () => {
@@ -45,7 +37,8 @@ describe('fetchEquipmentAtLocation', () => {
   })
 
   it('lets management read any holder and any warehouse', async () => {
-    session.user = { id: 1, role: 'MANAGER' }
+    authState.userId = 1
+    authState.role = 'MANAGER'
 
     await fetchEquipmentAtLocation({ kind: 'holder', id: 7 })
     await fetchEquipmentAtLocation({ kind: 'warehouse', id: 3 })

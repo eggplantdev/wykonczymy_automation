@@ -54,8 +54,7 @@ export async function readExpenseDraftReceipts(
     const storeId = blobStoreId ?? blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)
     if (!storeId) throw new Error('BLOB_READ_WRITE_TOKEN names no Blob store')
 
-    // Paragon by paragon whatever `scan_mode` says: one total asked over many documents came back
-    // wrong.
+    // Paragon by paragon: one total asked over many documents came back wrong.
     const rows = (
       await mapWithConcurrency(draft.pages, PAGE_READ_CONCURRENCY, async (page) => {
         try {

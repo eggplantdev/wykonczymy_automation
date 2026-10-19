@@ -7,7 +7,7 @@ import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
 
 export const TRANSLATION_MODEL = 'google/gemini-3.1-flash-lite'
-export const TRANSLATION_TIMEOUT_MS = 30_000
+const TRANSLATION_TIMEOUT_MS = 30_000
 
 // Sized so a 1000-row kosztorys stays inside the 300 s function ceiling.
 export const TRANSLATION_BATCH_SIZE = 40

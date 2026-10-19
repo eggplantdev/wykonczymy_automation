@@ -229,8 +229,12 @@ export function ExpenseForm({
     },
     onSubmit: async ({ value }) => {
       // Backstop to the disabled submit button (a keyboard Enter can bypass it).
-      if (isIngesting) {
-        toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
+      if (isIngesting || isGenerating) {
+        toastMessage(
+          isIngesting ? 'Poczekaj na przetworzenie plików.' : 'Poczekaj na odczytanie paragonów.',
+          'warning',
+          4000,
+        )
         return false
       }
       if (isSaveBlocked || isParagonMode) return false
@@ -501,7 +505,7 @@ export function ExpenseForm({
         <div className="mt-6">
           <FormFooter
             label="Zapisz"
-            disabled={isIngesting || isPrefillReading || isSaveBlocked}
+            disabled={isIngesting || isGenerating || isPrefillReading || isSaveBlocked}
             awaitingAnswer={missingInvoiceDialog.open}
             secondaryAction={secondaryAction}
           />

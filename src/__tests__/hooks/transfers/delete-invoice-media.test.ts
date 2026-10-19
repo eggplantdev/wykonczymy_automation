@@ -3,9 +3,8 @@ import type { CollectionAfterDeleteHook } from 'payload'
 import { deleteInvoiceMediaAfterDelete } from '@/hooks/transfers/delete-invoice-media'
 
 const mockDelete = vi.fn()
-// The reference scan asks once per relation for the whole batch and reads the held ids off the
-// matched docs, so a reference is staged as a doc carrying that id — not as a count.
-const mockFind = vi.fn()
+// The reference scan is one SQL statement returning the ids still referenced somewhere.
+const mockExecute = vi.fn()
 
 function runHook(invoice: unknown) {
   const args = {
@@ -13,8 +12,7 @@ function runHook(invoice: unknown) {
     req: {
       payload: {
         delete: mockDelete,
-        find: mockFind,
-        db: { drizzle: { execute: async () => ({ rows: [] }) } },
+        db: { drizzle: { execute: mockExecute } },
       },
     },
   } as unknown as Parameters<CollectionAfterDeleteHook>[0]
@@ -22,9 +20,8 @@ function runHook(invoice: unknown) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   mockDelete.mockResolvedValue({})
-  mockFind.mockResolvedValue({ docs: [] })
+  mockExecute.mockResolvedValue({ rows: [] })
 })
 
 describe('deleteInvoiceMediaAfterDelete', () => {
@@ -55,7 +52,7 @@ describe('deleteInvoiceMediaAfterDelete', () => {
   })
 
   it('keeps a page another expense still references', async () => {
-    mockFind.mockResolvedValueOnce({ docs: [{ invoice: [55] }] })
+    mockExecute.mockResolvedValueOnce({ rows: [{ id: 55 }] })
 
     await runHook([55, 56])
 

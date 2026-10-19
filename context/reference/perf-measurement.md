@@ -1,6 +1,6 @@
 # Measuring page cost (SQL round trips, payload size)
 
-The kit in `scripts/perf/` is how EX-1019 got its before/after numbers
+The kit in `scripts/perf/` is how the cache/perf work got its before/after numbers
 (`context/archive/2026-10-15-roundtrip-audit/audit.md`). Use it whenever a change claims to make a page
 cheaper: measure before, change, measure after, and keep both tables.
 
@@ -52,11 +52,11 @@ All output goes to `dumps/perf/` (gitignored).
 `PERF_SQL_STACK=<sql fragment>` (set when starting) records the caller stack of every statement
 containing that fragment, which is how you find who issues a statement you don't recognise.
 
-## Traps EX-1019 hit
+## Traps hit so far
 
 - The root layout renders **twice** per request (the page, then the root not-found fallback). A query
-  there without React `cache()` runs twice. Detail in `context/foundation/lessons.md` (EX-1019 entry).
+  there without React `cache()` runs twice. Detail in `context/foundation/lessons.md`.
 - Warm numbers flatter a page whose cache a common write evicts. Measure the first load after a typical
-  mutation too (the EX-849 shape: a collection-slug tag bumped by writes that touch nothing on that page).
+  mutation too (the shape of a collection-slug tag bumped by writes that touch nothing on that page).
 - Removing work from a cache key or tag is a stale-data question first, a speed question second. The
   owner's bar: real gain, low risk, no stale-data risk.

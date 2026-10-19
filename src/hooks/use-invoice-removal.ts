@@ -1,6 +1,7 @@
 'use client'
 
 import { useMediaRemoval, type MediaRemovalLabelsT } from '@/hooks/use-media-removal'
+import { FILE_TRASH_NOTICE } from '@/lib/media/wording'
 import {
   removeAllTransferInvoicesAction,
   removeTransferInvoiceAction,
@@ -11,7 +12,7 @@ const INVOICE_REMOVAL_LABELS: MediaRemovalLabelsT = {
   confirmOne: 'Czy na pewno chcesz usunąć tę stronę?',
   confirmLast: 'Czy na pewno chcesz usunąć fakturę?',
   confirmAll: 'Czy na pewno chcesz usunąć całą fakturę?',
-  description: 'Operacji nie da się cofnąć — plik znika bezpowrotnie.',
+  description: FILE_TRASH_NOTICE,
   error: 'Nie udało się usunąć faktury',
 }
 

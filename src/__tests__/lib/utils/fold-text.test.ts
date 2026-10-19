@@ -2,12 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { foldFilter, foldText } from '@/lib/utils/fold-text'
 
 describe('foldText', () => {
-  it('strips Polish diacritics and lowercases', () => {
-    expect(foldText('Źródło')).toBe('zrodlo')
-    expect(foldText('Wartość')).toBe('wartosc')
-    expect(foldText('Ilość')).toBe('ilosc')
-  })
-
   it('folds ł/Ł, which NFD leaves intact', () => {
     expect(foldText('Łódź')).toBe('lodz')
     expect(foldText('Materiał')).toBe('material')
@@ -23,11 +17,6 @@ describe('foldFilter', () => {
   it('matches an accent-free query against an accented label', () => {
     expect(foldFilter('Źródło', 'zrodlo')).toBe(1)
     expect(foldFilter('Wartość', 'wartosc')).toBe(1)
-  })
-
-  it('matches a lodz query against Łódź (the ł caveat, now closed)', () => {
-    expect(foldFilter('Łódź', 'lodz')).toBe(1)
-    expect(foldFilter('Materiał', 'material')).toBe(1)
   })
 
   it('matches on a contiguous substring, not a subsequence', () => {

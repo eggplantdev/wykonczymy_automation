@@ -1,15 +1,12 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { readSeed } from './support/seeds'
 import { pickComboOption } from './drivers/combo'
 import { uniqueAmount } from './support/money'
 import { settleWrite, waitForHydration } from './support/wait'
-import { EXPENSE_REGISTER } from './drivers/expenses'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 import { ensureSettlementMode, openPanelView } from './drivers/settlement'
 
-// headless Chrome composites in software — 4.2 Mpx of kosztorys per action is what makes this spec's
-// clicks time out on a loaded machine.
-test.use({ storageState: 'e2e/.auth/user.json', viewport: { width: 1600, height: 1000 } })
 // Each test here is two full route loads, a combo-heavy form, a confirm and a read-back — three
 // times the work the 120 s default was sized for, and it does not fit whenever the machine is busy.
 test.describe.configure({ timeout: 360_000 })
@@ -18,17 +15,11 @@ type InvestmentT = { id: number; name: string }
 let GROSS_INVESTMENT: InvestmentT
 let NET_INVESTMENT: InvestmentT
 
-test.beforeAll(async ({ browser }) => {
-  const seedOne = (): InvestmentT => {
-    const seed = runSeedScript<{ investment: number; investmentName: string }>(
-      'seed:kosztorys-bands',
-      'BANDS_SEED',
-    )
-    return { id: seed.investment, name: seed.investmentName }
-  }
-  GROSS_INVESTMENT = seedOne()
-  NET_INVESTMENT = seedOne()
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  const gross = readSeed('depositGross')
+  const net = readSeed('depositNet')
+  GROSS_INVESTMENT = { id: gross.investment, name: gross.investmentName }
+  NET_INVESTMENT = { id: net.investment, name: net.investmentName }
 })
 
 async function openSummary(page: Page, investmentId: number): Promise<void> {

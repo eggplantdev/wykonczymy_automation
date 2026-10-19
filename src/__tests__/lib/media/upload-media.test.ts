@@ -14,7 +14,6 @@ const photo = (size: number, name = 'paragon.jpg') =>
 const fetchMock = vi.fn()
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.stubGlobal('fetch', fetchMock)
   fetchMock.mockResolvedValue(Response.json({ id: 42 }))
 })

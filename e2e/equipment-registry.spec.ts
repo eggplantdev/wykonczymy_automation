@@ -2,8 +2,6 @@ import { test, expect, type Locator, type Page } from '@playwright/test'
 import { pickComboOption } from './drivers/combo'
 import { waitForHydration } from './support/wait'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
-
 const stamp = Date.now()
 const EQUIPMENT = `Szlifierka E2E ${stamp}`
 const SERIAL = `SN-${stamp}`
@@ -138,7 +136,11 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   await expect(await equipmentCell(page, EQUIPMENT, 'Miejsce')).toHaveText('—')
 
   await page.goto('/pracownicy')
-  await page.locator('table tbody tr').filter({ hasText: worker }).first().click()
+  await page
+    .locator('table tbody tr')
+    .filter({ has: page.getByRole('cell', { name: worker, exact: true }) })
+    .first()
+    .click()
   await page.waitForURL(/\/pracownicy\/\d+/)
   const held = page
     .locator('div')

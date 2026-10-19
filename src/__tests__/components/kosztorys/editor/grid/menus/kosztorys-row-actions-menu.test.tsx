@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysRowActionsMenu } from '@/components/kosztorys/editor/grid/menus/kosztorys-row-actions-menu'
@@ -27,8 +27,6 @@ async function openRowMenu(sortActive: boolean) {
   await user.click(screen.getByRole('button', { name: 'Akcje wiersza' }))
   return user
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 const POSITIONAL = ['Wstaw powyżej', 'Wstaw poniżej']
 

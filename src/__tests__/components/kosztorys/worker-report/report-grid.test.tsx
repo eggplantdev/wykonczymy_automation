@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ReportGrid } from '@/components/kosztorys/worker-report/report-grid'
 import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 import type { ReportDraftT } from '@/components/kosztorys/worker-report/types'
@@ -9,32 +9,12 @@ import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-da
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
 import { workerAudience } from '@/__tests__/helpers/worker-audience'
+import { stubGridLayout } from '@/__tests__/helpers/grid-layout'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-  usePathname: () => '/z/inwestycja/jan/token',
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/z/inwestycja/jan/token'
 
-// dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0.
-vi.mock('react-resize-detector', () => ({
-  useResizeDetector: () => ({ width: 1600, height: 800 }),
-}))
-
-beforeAll(() => {
-  const rect = { x: 0, y: 0, top: 0, left: 0, right: 1600, bottom: 800, width: 1600, height: 800 }
-  HTMLElement.prototype.getBoundingClientRect = () => ({ ...rect, toJSON: () => rect })
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get: () => 1600,
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get: () => 800,
-  })
-})
-
-afterEach(cleanup)
+stubGridLayout()
 
 const STAGES = [stage(7, 1, 'Etap 1')]
 

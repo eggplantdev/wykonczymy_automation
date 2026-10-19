@@ -1,9 +1,8 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
+import { seedTransaction } from '@/scripts/seed-transaction'
 
-// Register 5 exists in the standard dump.
-const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
 const QTY_DONE = 5
 const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE
@@ -15,36 +14,7 @@ const MATERIALS = 300
 
 const ctx = { context: { skipRevalidation: true, skipSheetSync: true } }
 
-type TxnSeed = {
-  type: 'LABOR_COST' | 'RABAT' | 'INVESTOR_DEPOSIT' | 'INVESTMENT_EXPENSE'
-  amount: number
-  investment: number
-  description: string
-  sourceRegister?: number
-  expenseCategory?: number
-}
-
-// afterChange calls revalidateTag, which throws outside a Next request context; disableTransaction
-// lets the insert survive it — balances are read-computed, so the lost revalidation is a no-op here.
-async function seedTransaction(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  txn: TxnSeed,
-): Promise<void> {
-  try {
-    await payload.create({
-      collection: 'transactions',
-      disableTransaction: true,
-      data: { ...txn, paymentMethod: 'TRANSFER', date: new Date().toISOString() },
-      ...ctx,
-    })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    if (!message.includes('static generation store')) throw error
-  }
-}
-
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedPanelFilterBlind(payload: Payload) {
   // A per-run suffix keeps the name unique — the test DB is not reset between runs.
   const name = `E2E Panel filtry ${Date.now()}`
 
@@ -110,14 +80,14 @@ async function main() {
     type: 'INVESTOR_DEPOSIT',
     amount: DEPOSIT,
     investment: investment.id,
-    sourceRegister: SOURCE_REGISTER_ID,
+    sourceRegister: EXPENSE_REGISTER.id,
     description: 'E2E wpłata inwestora',
   })
   await seedTransaction(payload, {
     type: 'INVESTMENT_EXPENSE',
     amount: MATERIALS,
     investment: investment.id,
-    sourceRegister: SOURCE_REGISTER_ID,
+    sourceRegister: EXPENSE_REGISTER.id,
     expenseCategory,
     description: 'E2E materiały',
   })
@@ -130,19 +100,11 @@ async function main() {
   if (written.totalDocs !== 4)
     throw new Error(`[panel-seed] seeded ${written.totalDocs} transactions, expected 4`)
 
-  console.log(
-    `PANEL_SEED=${JSON.stringify({
-      investment: investment.id,
-      name,
-      laborCostsNet: LABOR_COSTS_NET,
-      deposit: DEPOSIT,
-      materials: MATERIALS,
-    })}`,
-  )
-  process.exit(0)
+  return {
+    investment: investment.id,
+    name,
+    laborCostsNet: LABOR_COSTS_NET,
+    deposit: DEPOSIT,
+    materials: MATERIALS,
+  }
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

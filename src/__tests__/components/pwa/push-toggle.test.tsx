@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { toastMessage } from '@/lib/utils/toast'
 
 const keys = vi.hoisted(() => ({ publicKey: 'AQIDBA' as string | undefined }))
 vi.mock('@/lib/env', () => ({
@@ -21,11 +22,6 @@ vi.mock('@/lib/pwa/install-state', () => ({
   readPlatform: () => platform.current,
 }))
 
-const toastMessage = vi.fn()
-vi.mock('@/lib/utils/toast', () => ({
-  toastMessage: (...args: unknown[]) => toastMessage(...args),
-}))
-
 const { PushToggle } = await import('@/components/pwa/push-toggle')
 const { usePushSubscriptionStore } = await import('@/stores/push-subscription-store')
 
@@ -40,7 +36,7 @@ beforeEach(() => {
   usePushSubscriptionStore.setState({ subscribed: false })
   subscribeThisDevice.mockReset().mockResolvedValue({ success: true })
   unsubscribeThisDevice.mockReset().mockResolvedValue(undefined)
-  toastMessage.mockReset()
+  vi.mocked(toastMessage).mockReset()
 })
 
 afterEach(() => {

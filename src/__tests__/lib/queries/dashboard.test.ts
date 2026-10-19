@@ -1,15 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { SessionUserT } from '@/types/auth'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-vi.mock('server-only', () => ({}))
-
-const mockUser: SessionUserT = { id: 1, email: 'admin@test.com', name: 'Admin', role: 'ADMIN' }
-
-const mockRequireAuth = vi.fn().mockResolvedValue({ success: true, user: mockUser })
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
-}))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const mockRefData: ReferenceDataBaseT = {
   cashRegisters: [
@@ -115,7 +108,8 @@ const { dashboardFilterOptions } = await import('@/lib/queries/dashboard')
 const { fetchVisibleRegisters } = await import('@/lib/queries/cash-registers')
 
 beforeEach(() => {
-  mockRequireAuth.mockResolvedValue({ success: true, user: mockUser })
+  authState.userId = 1
+  authState.role = 'ADMIN'
 })
 
 describe('fetchVisibleRegisters', () => {
@@ -126,10 +120,8 @@ describe('fetchVisibleRegisters', () => {
   })
 
   it('manager cannot see MAIN registers', async () => {
-    mockRequireAuth.mockResolvedValue({
-      success: true,
-      user: { ...mockUser, id: 2, role: 'MANAGER' },
-    })
+    authState.userId = 2
+    authState.role = 'MANAGER'
     const data = await fetchVisibleRegisters()
     expect(data.registers.every((cr) => cr.type !== 'MAIN')).toBe(true)
     expect(data.isAdminOrOwner).toBe(false)

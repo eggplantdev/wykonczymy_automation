@@ -1,13 +1,16 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { PAST_RETENTION_DAYS, WITHIN_RETENTION_DAYS } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import {
+  PAST_RETENTION_DAYS,
+  WITHIN_RETENTION_DAYS,
+  trashDaysAgo,
+} from '@/__tests__/helpers/investment'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'kosz-pracownikow purge'
 
 describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
@@ -23,33 +26,12 @@ describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
   }
 
   const trashedPair = async (slug: string, days: number) => {
-    const worker = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: slug,
-            role: 'EMPLOYEE',
-            email: `${slug}@test.local`,
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
+    const { ownerId: worker, registerId: register } = await createRegisterOwner(
+      payload,
+      { name: slug, email: `${slug}@test.local`, registerName: `Kasa ${slug}` },
+      { context: { skipRevalidation: true } },
     )
-    const register = Number(
-      (
-        await payload.create({
-          collection: 'cash-registers',
-          data: { name: `Kasa ${slug}`, type: 'AUXILIARY', owner: worker },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-    await db.execute(sql`
-      WITH stamp AS (SELECT now() - make_interval(days => ${days}) AS at)
-      UPDATE users SET trashed_at = (SELECT at FROM stamp) WHERE id = ${worker}
-    `)
+    await trashDaysAgo(db, worker, days, 'users')
     await db.execute(sql`
       UPDATE cash_registers SET trashed_at = (SELECT trashed_at FROM users WHERE id = ${worker})
       WHERE id = ${register}
@@ -58,9 +40,7 @@ describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
@@ -70,7 +50,7 @@ describe.skipIf(!ENV_READY)('purgeWorkerTrash (DB)', () => {
     // Only raw SQL gets past the write gate — the shape a purge must still refuse to orphan.
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, worker_id)
-      VALUES (${MARKER}, 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${pinned.worker})
+      VALUES (${MARKER}, 50, now(), 'PAYOUT'::enum_transactions_type, 'CASH', ${pinned.worker})
     `)
   })
 

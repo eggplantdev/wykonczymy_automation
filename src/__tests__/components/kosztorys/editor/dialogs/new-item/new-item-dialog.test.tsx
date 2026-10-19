@@ -8,20 +8,6 @@ import type { KosztorysItemT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/actions/kosztorys', () => ({
-  addSectionAction: vi.fn(),
-  clearKosztorysAction: vi.fn(),
-  insertSectionAction: vi.fn(),
-  removeItemAction: vi.fn(),
-  removeSectionAction: vi.fn(),
-  renumberKosztorysOrderAction: vi.fn(),
-  updateItemFieldAction: vi.fn(),
-  updateSectionFieldAction: vi.fn(),
-  writeKosztorysLayoutAction: vi.fn(),
-  addItemAction: vi.fn(),
-}))
-
 const SECTION = 'Łazienka 1'
 const COMBOBOX = 'Wybierz lub wpisz nową…'
 const WORK_NOTE = /Komentarz do pracy/
@@ -85,7 +71,6 @@ function renderDialog(placement: NewItemPlacementT = { kind: 'end', sectionId: 3
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   action.mockImplementation(async (input) => ({ success: true, data: { item: savedItem(input) } }))
 })
 

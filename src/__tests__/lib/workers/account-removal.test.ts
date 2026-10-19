@@ -6,7 +6,7 @@ const subject = (
   role: 'ADMIN' | 'OWNER' | 'MANAGER' | 'EMPLOYEE',
   otherLiveOfRole: number,
   isTrashed = false,
-) => ({ role, otherLiveOfRole, isTrashed })
+) => ({ role, otherLiveOfRole, isTrashed, isActive: true })
 
 describe('removalRefusal', () => {
   it('refuses removing your own account, even with other owners left', () => {

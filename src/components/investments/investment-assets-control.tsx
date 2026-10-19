@@ -23,10 +23,8 @@ type InvestmentAssetsControlPropsT = {
 export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAssetsControlPropsT) {
   const [uploadOpen, setUploadOpen] = useState(false)
   const { isUploading, uploadFiles } = useInvestmentAssetsUpload(investmentId)
-  const { visibleFiles, handleRemove, isRemoving, removalConfirm } = useInvestmentAssetsRemoval(
-    investmentId,
-    assets,
-  )
+  const { visibleFiles, handleRemove, handleRemoveAll, isRemoving, removalConfirm } =
+    useInvestmentAssetsRemoval(investmentId, assets)
   const planMarker = usePlanMarker(visibleFiles)
 
   // `setUploadField` is a read-modify-write, so an upload and a removal that overlap write back each
@@ -52,6 +50,7 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
             className="text-foreground h-8 w-fit gap-1.5 text-xs"
             onAdd={isBusy ? undefined : openUpload}
             onRemove={isBusy ? undefined : handleRemove}
+            onRemoveAll={!isBusy && visibleFiles.length > 1 ? handleRemoveAll : undefined}
             planMarker={planMarker}
           />
         ) : (

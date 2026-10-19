@@ -11,13 +11,13 @@ worktree: null
 
 ## Notes
 
-Linear: **EX-863** (menu „Filtry" / „Problemy" na `/katalog-prac`) + **EX-873** (raport użycia). Jeden
+Menu „Filtry" / „Problemy" na `/katalog-prac` + raport użycia. Jeden
 change od 2026-09-29 — oba zmieniają tę samą tabelę katalogu, a „nieużywana" jest naturalnie jednym
 z jej filtrów.
 
-### EX-863 — ustalenia z analizy 2026-09-29
+### Filtry i Problemy — ustalenia z analizy 2026-09-29
 
-- Źródło stawki ma od EX-865 **trzy** wartości (kwota / mnożnik / auto), nie dwie — filtr per widok ma
+- Źródło stawki ma **trzy** wartości (kwota / mnożnik / auto), nie dwie — filtr per widok ma
   trzy wiersze.
 - „Ujemna stawka" odpada: formularz katalogu odrzuca ujemną kwotę i ujemny mnożnik
   (`work-catalogue-item-schema.ts`), lokalnie 0 takich prac.
@@ -29,7 +29,7 @@ z jej filtrów.
   `FilterTriggerButton`, `FilterChip`; `problemsMenuModel` / `filtersMenuModel` do sparametryzowania
   listą warunków.
 
-### EX-873 — raport użycia
+### Raport użycia
 
 Raport użycia prac z katalogu, liczony na klik na stronie katalogu prac. Źródło: tylko kosztorysy w aplikacji (bez starych arkuszy). „Użyta" = pozycja ma Przedmiar > 0 **lub** ilość w etapach > 0 (decyzja właściciela 2026-09-28). Pomiar z natury z arkusza się NIE liczy. Sama obecność w rozpisce też nie — kosztorys zawiera cały cennik z zerami. Lokalnie: 642 użyte pozycje z 5929. Dopasowanie po kluczu katalogu (opis + j.m., ta sama funkcja co „Porównaj z katalogiem"), bez dopasowania rozmytego; osobna podpowiedź „występuje z inną j.m." (22 opisy lokalnie). Kolumna: liczba kosztorysów (inwestycji, nie pozycji); sortowanie rosnąco, żeby zera były na górze. Wykluczone inwestycje o statusie „szablon". Szablony (presety) poza zakresem v1. Pomiar 2026-09-28 na lokalnej kopii prod: 18 kosztorysów, 135/561 prac katalogu z ≥1 realnym użyciem, 68% użytych pozycji pasuje dokładnie.
 
@@ -47,7 +47,7 @@ Punkty otwarte (rozstrzygnięte niżej):
 
 ### Decyzje 2026-09-29 (przed `/10x-plan`)
 
-- **Zakres EX-863:** „Problemy" = bez ceny j.m.; stawka 0 z narzędziami; stawka 0 bez narzędzi.
+- **Zakres menu Filtry / Problemy:** „Problemy" = bez ceny j.m.; stawka 0 z narzędziami; stawka 0 bez narzędzi.
   „Filtry" = źródło stawki (kwota / mnożnik / auto) per widok; ponad sufit / w granicy per widok —
   sufit per płaszczyzna (65 % z narzędziami, 55,25 % bez narzędzi), ten sam co czerwona komórka.
   „W granicy" wyklucza „auto" i prace bez ceny j.m. (plan, 2026-09-29).

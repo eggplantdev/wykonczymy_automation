@@ -5,16 +5,13 @@ import config from '@payload-config'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES, canManageAccount } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
 import { toActionFailure } from '@/lib/actions/action-failure'
 import { logError } from '@/lib/utils/log-error'
 import { getDb } from '@/lib/db/get-db'
-import { deleteUserSessions } from '@/lib/db/user-sessions'
-import { deletePushSubscriptions } from '@/lib/db/push-subscriptions'
 import { fetchRemovalSubject } from '@/lib/db/account-removal'
-import { MANAGER_SCOPE_MESSAGE } from '@/lib/constants/worker-lock'
-import { removalRefusal } from '@/lib/workers/account-removal'
+import { accountChangeRefusal, revokeAccountAccess } from '@/lib/workers/account-removal'
 import type { SessionUserT } from '@/types/auth'
 
 type ToggleConfigT = {
@@ -68,15 +65,14 @@ export async function toggleUserActive(id: number, active: boolean) {
     refusal: async (payload, actor, id, active) => {
       const subject = await fetchRemovalSubject(await getDb(payload), id)
       if (!subject) return undefined
-      if (!canManageAccount(actor.role, subject.role)) return MANAGER_SCOPE_MESSAGE
-      return active ? undefined : removalRefusal(subject, { isSelf: actor.id === id })
+      return accountChangeRefusal(subject, {
+        actorRole: actor.role,
+        isSelf: actor.id === id,
+        next: { role: subject.role, active },
+      })
     },
-    // After the update, which would otherwise write the sessions back.
     afterUpdate: async (payload, id, active) => {
-      if (active) return
-      const db = await getDb(payload)
-      await deleteUserSessions(db, id)
-      await deletePushSubscriptions(db, id)
+      if (!active) await revokeAccountAccess(await getDb(payload), id)
     },
   })
 }

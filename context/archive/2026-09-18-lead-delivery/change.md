@@ -99,7 +99,8 @@ did; the decisions below are that agreement.
   qualified by hand anyway, and choosing which assets are worth carrying over is the same pass as
   saying what they are. A MIME-based guess at intake would be noise until a human looked regardless.
   `kind` is therefore not an intake field.
-  > **Superseded (EX-829, 2026-09-22):** `kind` is set not at promotion but by the upload-time
+
+  > **Superseded (2026-09-22):** `kind` is set not at promotion but by the upload-time
   > plan marker (`useMediaUpload`) or „Oznacz jako rzut" in the gallery (`setMediaKindAction`,
   > `src/lib/actions/media-kind.ts`); the app writes only `projekt`. "Not an intake field" still holds.
 
@@ -158,7 +159,7 @@ did; the decisions below are that agreement.
   - **Why the 4.5 MB number is not survivable by shrinking the limit:** `processUploadFile` skips
     compression for anything that is not an image, so a 4 MB ceiling rejects precisely the
     multi-page scans and designer decks this change calls the substance of an enquiry, while photos
-    — which compress to ~128 KB — would never have noticed. EX-457's own manual checks put a 47 MB
+    — which compress to ~128 KB — would never have noticed. The original manual checks put a 47 MB
     JPEG and a 45 MB HEIC through that guard and both passed; only PDFs have ever tripped it.
   - Ceilings move to the storage layer, where they refuse an upload before it exists: 15 assets,
     8 MB each, `allowedContentTypes` images + PDF, all enforced in `onBeforeGenerateToken`.

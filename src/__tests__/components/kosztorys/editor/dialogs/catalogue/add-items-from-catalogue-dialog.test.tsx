@@ -1,19 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AddItemsFromCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/add-items-from-catalogue-dialog'
+import {
+  createSectionWithCatalogueItemsAction,
+  insertCatalogueItemsAction,
+} from '@/lib/actions/catalogue-to-kosztorys'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
-
-const insertCatalogueItemsAction = vi.fn()
-const createSectionWithCatalogueItemsAction = vi.fn()
-
-vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
-  insertCatalogueItemsAction: (...args: unknown[]) => insertCatalogueItemsAction(...args),
-  createSectionWithCatalogueItemsAction: (...args: unknown[]) =>
-    createSectionWithCatalogueItemsAction(...args),
-}))
 
 const CATALOGUE: WorkCatalogueItemT[] = [
   {
@@ -33,16 +28,12 @@ const CATALOGUE: WorkCatalogueItemT[] = [
 ]
 
 // DataTable's row reaches for the app router, which jsdom has no mount for.
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 // The list is virtualized, and the virtualizer sizes its window from `offsetHeight` — which jsdom,
 // laying nothing out, reports as 0, so no row would render at all. With every element 400 tall the
 // window holds one row plus the overscan.
-beforeAll(() => {
+beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400)
-})
-afterAll(() => {
-  vi.restoreAllMocks()
 })
 
 const section = (sectionId: number, sectionName: string): SectionSubtotalT => ({
@@ -90,9 +81,8 @@ async function openSectionPicker(user: ReturnType<typeof userEvent.setup>) {
 
 describe('AddItemsFromCatalogueDialog — „Dodaj do:"', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    insertCatalogueItemsAction.mockResolvedValue({ success: true, data: SLICE })
-    createSectionWithCatalogueItemsAction.mockResolvedValue({
+    vi.mocked(insertCatalogueItemsAction).mockResolvedValue({ success: true, data: SLICE })
+    vi.mocked(createSectionWithCatalogueItemsAction).mockResolvedValue({
       success: true,
       data: { ...SLICE, createdSection: true },
     })

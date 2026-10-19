@@ -8,10 +8,6 @@ import {
 } from '@/components/kosztorys/editor/dialogs/worker-reports/review-lines-table'
 import type { LineDraftT } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-}))
-
 const ORIGINAL = 'Монтаж плінтусів'
 
 const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
@@ -199,7 +195,7 @@ describe('zgłoszenie z kartki — ostrzeżenia', () => {
   })
 })
 
-describe('odrzucenie pozycja po pozycji (EX-1049)', () => {
+describe('odrzucenie pozycja po pozycji', () => {
   it('„Odrzuć” unticks the line, and a second click sends it back to waiting', async () => {
     const onChange = renderRozpiska([rozpiska({ id: 1 }), rozpiska({ id: 2 })], vi.fn(), {
       1: { isTicked: true },

@@ -5,6 +5,7 @@ import {
   updateUnlessInvestmentLocked,
 } from '@/access/investment-lock'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { lockedInvestmentExecute } from '@/__tests__/helpers/transfer-hook-args'
 
 // This gate is `/admin`'s only lock, since the action wrapper never sees panel writes.
 const LOCKED_ID = 99
@@ -17,14 +18,7 @@ const req = (item?: { investment: unknown }) =>
         if (!item) throw new Error('NotFound')
         return item
       },
-      db: {
-        drizzle: {
-          execute: async (query: { queryChunks?: unknown[] }) => {
-            const id = (query.queryChunks ?? []).find((chunk) => typeof chunk === 'number')
-            return { rows: [{ status: id === LOCKED_ID ? 'completed' : 'active' }] }
-          },
-        },
-      },
+      db: { drizzle: { execute: lockedInvestmentExecute(LOCKED_ID) } },
     },
   }) as never
 

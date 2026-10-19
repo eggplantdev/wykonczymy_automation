@@ -46,9 +46,6 @@ export const formatPercent = (fraction: number | null) => {
 // match against the 29 it had just committed — leaving „Zapisz" armed forever.
 export const ratePercent = (rate: number) => Math.round(rate * 10000) / 100
 
-export const ratePercentText = (rate: number | null) =>
-  ratePercent(rate ?? 0).toLocaleString('pl-PL')
-
 export const planeViewSuffix = (plane: ToolPlaneT) =>
   ` w widoku ${PLANE_LABELS[plane].toLowerCase()}`
 

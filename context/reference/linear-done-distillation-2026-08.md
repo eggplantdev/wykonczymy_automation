@@ -3,7 +3,7 @@
 Trwała wiedza z sześciu ostatnich zamkniętych zadań, spisana zanim issues zostaną usunięte.
 Pominięte wszystko, co odtwarza się z kodu, historii gita lub `context/archive/`.
 
-## Flota — jedna reguła, dwie powierzchnie (EX-745)
+## Flota — jedna reguła, dwie powierzchnie
 
 Mail o wymianie oleju i badge w UI liczyły termin **z dwóch różnych reguł**: digest z `oilTarget`
 (preferuje ręcznie wpisany `nextDueOdometer`), badge ze sztywnego `OIL_CHANGE_INTERVAL_KM`.
@@ -18,18 +18,18 @@ co ten defekt przepuściło.
 Trzy defekty jednego kontraktu edycji (`CellEditPolicyT` + `useCellDraft`); warto czytać razem,
 bo pokazują trzy różne miejsca, w których draft może zgubić rozstrzygnięcie.
 
-- **Odmontowanie w trakcie edycji nie rozstrzygało draftu (EX-735).** `useCellDraft` rozstrzygał
+- **Odmontowanie w trakcie edycji nie rozstrzygało draftu.** `useCellDraft` rozstrzygał
   wyłącznie na `onBlur`/Escape, a wirtualizacja react-datasheet-grid, zmiana filtra i odświeżenie
   potrafią odmontować komórkę w środku pisania — zostawał **ostatni przyjęty prefiks odrzuconej
   wartości, bez toastu**. To jedyne miejsce w tym hooku, gdzie `useEffect` jest uzasadniony.
-- **Rabat procentowy > 100% (EX-736).** `discountPolicy` jako jedyna z trzech polityk nie używała
+- **Rabat procentowy > 100%.** `discountPolicy` jako jedyna z trzech polityk nie używała
   slotu `guard`, więc ujemna wartość netto wiersza wchodziła w sumy sekcji i stopki. Próg zmienia
   to, **co użytkownik może zrobić** → decyzja właściciela, nie automatyczna poprawka z bramki review.
-- **Cmd+Z przywracał odrzuconą liczbę (EX-737).** Okno koalescencji undo (700 ms) skleja serię
+- **Cmd+Z przywracał odrzuconą liczbę.** Okno koalescencji undo (700 ms) skleja serię
   klawiszy; klawisze commitują się w locie, więc na stos trafia **prefiks, który polityka odrzuciła,
   a `cellSettle` zaraz potem wycofał**. Poprawka należy do koalescencji, nie do komórki.
 
-## Upload stron faktury — sprzątanie sierot (EX-734)
+## Upload stron faktury — sprzątanie sierot
 
 Identyczne ~13 linii (upload stron → mutacja → `discardOrphanedUploads` przy porażce) w trzech
 miejscach; **dwie kopie sprzątały tylko gdy akcja zwróciła `success: false`, nie gdy rzuciła** —
@@ -39,7 +39,7 @@ Jeden dom: `src/lib/invoices/submit-with-invoice-pages.ts`.
 Przy okazji ujawnione: `use-form-submit` na ścieżce `keepOpen` robił gołe `await` bez `catch`, więc
 **rzucający zapis kończył się całkowitą ciszą** — dotyczyło każdego formularza z „nie zamykaj".
 
-## `form: any` w wrapperach form-fields (EX-733)
+## `form: any` w wrapperach form-fields
 
 Issue myliło się co do rozmiaru naprawy: wrapper nie używa całego API TanStack Form, tylko `AppField`
 (czasem `store`), więc wystarczył typ strukturalny `FormWithFieldT<TName>` w `form-hooks.ts` zamiast

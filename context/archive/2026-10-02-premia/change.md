@@ -7,7 +7,6 @@ updated: 2026-10-03
 archived_at: 2026-10-03T05:53:03Z
 branch: premia
 worktree: null
-linear: EX-979
 ---
 
 ## Goal

@@ -1,11 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { KosztorysGlobalSettings } from '@/components/kosztorys/editor/toolbar/kosztorys-global-settings'
 import { toastMessage } from '@/lib/utils/toast'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const onGlobalCoeffChange = vi.fn()
 
@@ -29,8 +27,6 @@ const retype = async (
   await user.type(input, next)
   await user.tab()
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Mnożnik ceny — próg ostrzega, nie odmawia', () => {
   it('zapisuje mnożnik powyżej progu i ostrzega raz', async () => {

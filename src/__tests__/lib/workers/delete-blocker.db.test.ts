@@ -1,0 +1,237 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+
+describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workerId: number
+  let investmentId: number
+
+  async function workerExists(): Promise<boolean> {
+    const result = await db.execute(sql`SELECT 1 FROM users WHERE id = ${workerId}`)
+    return result.rows.length > 0
+  }
+
+  async function payoutWorkerId(): Promise<number | null> {
+    const result = await db.execute(
+      sql`SELECT worker_id FROM transactions WHERE description = 'delete-guard payout'`,
+    )
+    const value = result.rows[0]?.worker_id
+    return value === null || value === undefined ? null : Number(value)
+  }
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    await purgeFixtureUsers(db)
+    await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
+
+    investmentId = await createTestInvestment(payload, 'users-delete-guard-investment')
+
+    workerId = await createTestUser(payload, {
+      name: 'Pracownik Do Usunięcia',
+      email: 'users-delete-guard@test.local',
+    })
+
+    await db.execute(sql`
+      INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, worker_id, cancelled)
+      VALUES ('delete-guard payout', 500, now(),
+        'PAYOUT'::enum_transactions_type, 'CASH', ${investmentId}, ${workerId}, false)
+    `)
+  })
+
+  afterAll(async () => {
+    if (workerId) await db.execute(sql`DELETE FROM amount_edits WHERE edited_by_id = ${workerId}`)
+    await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
+    if (investmentId) await deleteTestInvestment(payload, investmentId)
+    await purgeFixtureUsers(db)
+  })
+
+  it('refuses to delete a worker who still has transactions, keeping the payout attributed', async () => {
+    await expect(
+      payload.delete({
+        collection: 'users',
+        id: workerId,
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/Nie można usunąć pracownika/)
+
+    expect(await workerExists()).toBe(true)
+    expect(await payoutWorkerId()).toBe(workerId)
+  })
+
+  it('refuses to delete a worker whose only reference is an amount edit', async () => {
+    await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
+    await db.execute(sql`
+      INSERT INTO amount_edits (previous_amount, new_amount, edited_by_id)
+      VALUES (100, 200, ${workerId})
+    `)
+
+    await expect(
+      payload.delete({
+        collection: 'users',
+        id: workerId,
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/zmiany kwot/)
+
+    expect(await workerExists()).toBe(true)
+  })
+
+  // The membership table's FK is ON DELETE CASCADE, so without the probe the delete would silently
+  // take the worker's share out of the etap's split.
+  it('refuses to delete a worker who is only a member of an etap split', async () => {
+    await db.execute(sql`DELETE FROM amount_edits WHERE edited_by_id = ${workerId}`)
+    const stage = await payload.create({
+      collection: 'kosztorys-stages',
+      data: { investment: investmentId, ordinal: 1, splitMode: 'percent' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    await db.execute(sql`
+      INSERT INTO kosztorys_stage_workers (stage_id, worker_id, value, takes_rest)
+      VALUES (${stage.id}, ${workerId}, 25, false)
+    `)
+
+    await expect(
+      payload.delete({
+        collection: 'users',
+        id: workerId,
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/etapy kosztorysu: 1/)
+
+    expect(await workerExists()).toBe(true)
+  })
+
+  // `worker_reports.worker_id` is ON DELETE CASCADE, so without the probe the delete would take
+  // every report he sent with it.
+  it('refuses to delete a worker whose only reference is a work report', async () => {
+    await db.execute(sql`DELETE FROM kosztorys_stage_workers WHERE worker_id = ${workerId}`)
+    await db.execute(sql`
+      INSERT INTO worker_reports (investment_id, worker_id) VALUES (${investmentId}, ${workerId})
+    `)
+
+    await expect(
+      payload.delete({
+        collection: 'users',
+        id: workerId,
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/zgłoszenia prac: 1/)
+
+    expect(await workerExists()).toBe(true)
+    const reports = await db.execute(
+      sql`SELECT 1 FROM worker_reports WHERE worker_id = ${workerId}`,
+    )
+    expect(reports.rows).toHaveLength(1)
+  })
+
+  // Positive control: without it the assertions above would also pass on a hook that blocks every delete.
+  it('allows the delete once nothing references the worker', async () => {
+    await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
+    await db.execute(sql`DELETE FROM amount_edits WHERE edited_by_id = ${workerId}`)
+    await db.execute(sql`DELETE FROM kosztorys_stage_workers WHERE worker_id = ${workerId}`)
+    await db.execute(sql`DELETE FROM worker_reports WHERE worker_id = ${workerId}`)
+
+    await payload.delete({
+      collection: 'users',
+      id: workerId,
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    expect(await workerExists()).toBe(false)
+  })
+})
+
+// A worker whose only transaction is cancelled is deletable — but only because this fixture holds no
+// kasa: `cash_registers.owner_id` is NOT NULL, so a real employee stays blocked by that probe.
+describe.skipIf(!ENV_READY)('users beforeDelete guard — cancelled rows (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workerId: number
+  let transactionId: number
+  // Hoisted: once its author is deleted the row's `created_by_id` is NULL, so `purgeFixtureUsers`
+  // has no fixture reference left to find it by — teardown must know the id.
+  let authoredId: number | undefined
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    await purgeFixtureUsers(db)
+
+    workerId = await createTestUser(payload, {
+      name: 'Pracownik Anulowanej Wypłaty',
+      email: 'users-delete-guard-cancelled@test.local',
+    })
+
+    const inserted = await db.execute(sql`
+      INSERT INTO transactions (description, amount, date, type, payment_method, worker_id, cancelled)
+      VALUES ('delete-guard cancelled payout', 500, now(),
+        'PAYOUT'::enum_transactions_type, 'CASH', ${workerId}, true)
+      RETURNING id
+    `)
+    transactionId = Number((inserted.rows[0] as { id: number }).id)
+  })
+
+  afterAll(async () => {
+    if (transactionId) await db.execute(sql`DELETE FROM transactions WHERE id = ${transactionId}`)
+    if (authoredId) await db.execute(sql`DELETE FROM transactions WHERE id = ${authoredId}`)
+    await purgeFixtureUsers(db)
+  })
+
+  it('deletes a worker whose only reference is authorship of a cancelled row', async () => {
+    const authorId = await createTestUser(payload, {
+      name: 'Autor Anulowanej Transakcji',
+      email: 'users-delete-guard-author@test.local',
+    })
+
+    const inserted = await db.execute(sql`
+      INSERT INTO transactions (description, amount, date, type, payment_method, created_by_id, cancelled)
+      VALUES ('delete-guard cancelled authored', 300, now(),
+        'OTHER'::enum_transactions_type, 'CASH', ${authorId}, true)
+      RETURNING id
+    `)
+    authoredId = Number((inserted.rows[0] as { id: number }).id)
+
+    await payload.delete({
+      collection: 'users',
+      id: authorId,
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+
+    const row = await db.execute(
+      sql`SELECT created_by_id FROM transactions WHERE id = ${authoredId}`,
+    )
+    expect(row.rows.length).toBe(1)
+    expect((row.rows[0] as { created_by_id: number | null }).created_by_id).toBeNull()
+  })
+
+  it('deletes a worker whose only transactions are cancelled, orphaning them', async () => {
+    await payload.delete({
+      collection: 'users',
+      id: workerId,
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+
+    const worker = await db.execute(sql`SELECT 1 FROM users WHERE id = ${workerId}`)
+    expect(worker.rows.length).toBe(0)
+
+    const transaction = await db.execute(
+      sql`SELECT worker_id FROM transactions WHERE id = ${transactionId}`,
+    )
+    expect(transaction.rows.length).toBe(1)
+    expect((transaction.rows[0] as { worker_id: number | null }).worker_id).toBeNull()
+  })
+})

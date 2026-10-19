@@ -11,8 +11,6 @@ worktree: null
 
 ## Notes
 
-Linear: **EX-613**
-
 Assign a worker to a stage so we know who is owed what on an investment. Before this, the code stated
 the gap outright (`src/lib/kosztorys/subcontractor-summary.ts`): subcontractor due was
 investment-level, payouts were per worker, and nothing linked executed work to a person.

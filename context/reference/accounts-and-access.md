@@ -6,9 +6,13 @@ Roles.
 
 ## Lockout
 
-- A trashed or inactive account is refused at login (EX-918), and trashing or deactivating it deletes
+- A trashed or inactive account is refused at login, and trashing or deactivating it deletes
   its session rows (`src/lib/db/user-sessions.ts`). A demotion logs the account out on its next request.
 - „Aktywny" answers to the same rules as the trash — switching it off locks an account out as surely.
+- Demoting the last live OWNER/ADMIN through „Rola" is not refused — only deactivating, trashing and
+  deleting are.
+- A MANAGER may switch any kasa's „Aktywna" from the `/kasy` list, even though the kasa form hides
+  that field from him.
 - A worker goes to `/kosz` together with his kasy and comes back with them.
 - A trashed worker keeps his e-mail (the unique index counts trashed rows), so a new account can't take
   it until „Usuń na zawsze"; `createWorkerAction` says so and points to the Kosz.
@@ -23,5 +27,5 @@ Roles.
 ## Language
 
 - A manager on Українська sees the translated shared components (transfers table, filters, uploads,
-  menu) on management screens too (EX-996). „Podgląd pracownika" stays Polish on purpose — the manager
+  menu) on management screens too. „Podgląd pracownika" stays Polish on purpose — the manager
   can't know which language the worker chose on his phone.

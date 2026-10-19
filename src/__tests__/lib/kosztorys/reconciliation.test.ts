@@ -108,12 +108,6 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(verdict.discount.mismatch).toBe(false)
   })
 
-  it('vatRate 0: gross equals net, matching transfers still reconcile', () => {
-    const verdict = reconcile(makeReconTree({ vatRate: 0 }), bookedTransactions(140, 8))
-    expect(verdict.laborCosts.mismatch).toBe(false)
-    expect(verdict.discount.mismatch).toBe(false)
-  })
-
   it('empty progress + no transfers: zero vs zero is silent', () => {
     const tree = makeReconTree({ progress: [] })
     const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)
@@ -131,7 +125,7 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
   })
 })
 
-describe('nothing booked on the transactions plane silences BOTH verdicts (EX-555)', () => {
+describe('nothing booked on the transactions plane silences BOTH verdicts', () => {
   it('a populated kosztorys with no LABOR_COST and no RABAT stays silent', () => {
     const tree = makeReconTree()
     const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)
@@ -152,28 +146,7 @@ describe('nothing booked on the transactions plane silences BOTH verdicts (EX-55
   })
 })
 
-describe('robocizna compares the PRE-rabat suma prac (EX-535 regression)', () => {
-  it('pre-rabat basis is silent; the old post-rabat basis would scream', () => {
-    const tree = makeReconTree()
-    const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)
-    expect(laborCostsNetFromKosztorys).toBeCloseTo(140)
-    expect(discountNetFromKosztorys).toBeCloseTo(8)
-
-    const silent = buildKosztorysReconciliation({
-      laborCostsNetFromKosztorys,
-      discountNetFromKosztorys,
-      laborCostsNetFromTransactions: laborCostsNetFromKosztorys,
-      discountNetFromTransactions: discountNetFromKosztorys,
-    })
-    expect(silent.laborCosts.mismatch).toBe(false)
-
-    const postDiscountNet = laborCostsNetFromKosztorys - discountNetFromKosztorys
-    expect(postDiscountNet).toBeCloseTo(132)
-    expect(postDiscountNet).not.toBeCloseTo(laborCostsNetFromKosztorys)
-  })
-})
-
-describe('reconciliation compares netto ↔ netto — the ledger plane carries no VAT (EX-535)', () => {
+describe('reconciliation compares netto ↔ netto — the ledger plane carries no VAT', () => {
   it('rabat 100 reconciles against a netto RABAT of 100, and robocizna net-to-net is silent', () => {
     const verdict = buildKosztorysReconciliation({
       laborCostsNetFromKosztorys: 5000,

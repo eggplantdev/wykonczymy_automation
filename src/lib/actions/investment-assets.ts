@@ -12,6 +12,8 @@ import type { ActionResultT } from '@/types/action'
 /**
  * Takes the whole batch because `setUploadField` is a read-modify-write — one call per file would
  * race, and every file but the last would be lost.
+ * `protectedAction`, not `investmentAction`: a „Zakończona" investment still takes documentation —
+ * the lock guards money, not files.
  */
 export async function addInvestmentAssetsAction(
   investmentId: number,

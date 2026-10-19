@@ -1,27 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
+import { cancelTransferAction } from '@/lib/actions/transfers'
+import { toastMessage } from '@/lib/utils/toast'
 
-const cancelTransferAction = vi.fn()
-vi.mock('@/lib/actions/transfers', () => ({
-  cancelTransferAction: (...args: unknown[]) => cancelTransferAction(...args),
-}))
-
-const toastMessage = vi.fn()
-vi.mock('@/lib/utils/toast', () => ({
-  toastMessage: (...args: unknown[]) => toastMessage(...args),
-}))
-
-describe('CancelTransferButton — a request that never completed (EX-940)', () => {
+describe('CancelTransferButton — a request that never completed', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
-  afterEach(() => vi.restoreAllMocks())
 
   it('reports it in Polish and leaves the dialog usable', async () => {
-    cancelTransferAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(cancelTransferAction).mockRejectedValue(new TypeError('Failed to fetch'))
     const user = userEvent.setup()
     render(<CancelTransferButton transactionId={12} />)
 

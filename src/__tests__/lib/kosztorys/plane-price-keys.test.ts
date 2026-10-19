@@ -62,6 +62,7 @@ describe('enumerations', () => {
 
   it('a plane enumeration names only that plane', () => {
     for (const plane of TOOL_PLANES) {
+      expect(planePriceKeysFor(plane)).toHaveLength(PLANE_PRICE_BASE_KEYS.length)
       for (const key of planePriceKeysFor(plane)) expect(planeOfPriceKey(key)).toBe(plane)
     }
   })

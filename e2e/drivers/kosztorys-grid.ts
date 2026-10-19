@@ -1,6 +1,10 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 import { nudgeUntil, RETRY_STEP_MS, waitForHydration } from '../support/wait'
 
+// react-datasheet-grid virtualises COLUMNS, so at the 1600 px default a kosztorys column past the
+// right edge is not in the DOM at all.
+export const GRID_VIEWPORT = { width: 4500, height: 1400 }
+
 // It opens to full height OVER the grid, so while it is open every click meant for a cell lands on
 // the panel instead.
 export async function collapseSummaryPanel(page: Page): Promise<Locator> {
@@ -111,6 +115,26 @@ export async function columnIndex(page: Page, header: string): Promise<number> {
 
 export const gridRow = (page: Page, text: string) =>
   page.locator('.dsg-row').filter({ hasText: text })
+
+export const sectionBands = (page: Page) => page.locator('.dsg-row.kosztorys-section-header')
+
+// By the rename input's value, not by text: the band's name lives in that input and nowhere else,
+// so a `hasText` filter matches no band at all.
+export const sectionBand = (page: Page, name: string) =>
+  sectionBands(page).filter({ has: page.locator(`input[value="${name}"]`) })
+
+const rowActions = (page: Page) => page.getByRole('button', { name: 'Akcje wiersza' })
+
+export async function openRowMenu(page: Page, text: string): Promise<void> {
+  await gridRow(page, text)
+    .filter({ has: rowActions(page) })
+    .getByRole('button', { name: 'Akcje wiersza' })
+    .click()
+}
+
+export async function openSectionMenu(page: Page, name: string): Promise<void> {
+  await sectionBand(page, name).getByRole('button', { name: 'Akcje sekcji' }).click()
+}
 
 export async function rowCell(page: Page, rowText: string, header: string): Promise<Locator> {
   return gridRow(page, rowText)

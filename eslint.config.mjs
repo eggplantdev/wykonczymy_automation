@@ -149,6 +149,7 @@ export default ts.config(
       'scripts/blob-restore.mjs',
       'scripts/share-sheets-with-reader.mjs',
       'scripts/perf/',
+      'scripts/ai-kosztorys/',
       'context/**',
     ],
   },

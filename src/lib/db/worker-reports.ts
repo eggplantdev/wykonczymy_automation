@@ -615,22 +615,3 @@ export async function countReportsByWorker(
   `)
   return Number(rows[0]?.total ?? 0)
 }
-
-/**
- * Its photos live in a raw table, so the Payload-relation scan of
- * the media reclaim cannot see them and would take a scanned page for an orphan.
- */
-export async function findReportHeldMedia(db: DbExecutorT, mediaIds: number[]): Promise<number[]> {
-  if (mediaIds.length === 0) return []
-  const res = await db.execute(sql`
-    SELECT DISTINCT media_id FROM worker_report_media WHERE media_id IN (${sqlList(mediaIds)})
-  `)
-  return res.rows.map((row) => Number(row.media_id))
-}
-
-export async function countReportsHoldingMedia(db: DbExecutorT, mediaId: number): Promise<number> {
-  const res = await db.execute(sql`
-    SELECT count(*)::int AS total FROM worker_report_media WHERE media_id = ${mediaId}
-  `)
-  return Number(res.rows[0]?.total ?? 0)
-}

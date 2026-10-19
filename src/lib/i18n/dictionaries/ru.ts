@@ -552,6 +552,7 @@ export const ru: TranslationsT = {
     previewLoadFailed: 'Не удалось загрузить просмотр.',
     previousPage: 'Предыдущая страница',
     nextPage: 'Следующая страница',
+    moreActions: 'Больше действий',
     dropOrClick: 'Перетащите или нажмите',
     unsupportedFormat: 'Неподдерживаемый формат файла. Разрешено: {{allowed}}',
     mimeImages: 'изображения',

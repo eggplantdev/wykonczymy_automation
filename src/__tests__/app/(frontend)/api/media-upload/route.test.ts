@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 
-vi.mock('server-only', () => ({}))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))
 
 const mockGetUser = vi.fn()
@@ -43,7 +41,6 @@ function request(file: File | null, kind?: string) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_test'
   mockGetUser.mockResolvedValue({ id: 7, role: 'EMPLOYEE' })
   mockPut.mockResolvedValue({ url: 'https://store.public.blob.vercel-storage.com/paragon.jpg' })

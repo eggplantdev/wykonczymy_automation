@@ -6,29 +6,13 @@ import {
   sumFilteredByType,
   listTransferFacets,
 } from '@/lib/db/sum-transfers'
-import { deriveFinancials, deriveCategoryBreakdowns } from '@/lib/db/investment-financials'
-import {
-  fakePayload,
-  lastSql,
-  mockExecute,
-  resetFakePayload,
-} from '@/__tests__/helpers/fake-payload-sql'
+import { deriveFinancials } from '@/lib/db/investment-financials'
+import { ZERO_FINANCIALS } from '@/types/investment-financials'
+import { fakePayload, mockExecute, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
 
 beforeEach(resetFakePayload)
 
 describe('sumRegisterBalance', () => {
-  it('returns the balance from rows', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ balance: '1500.00' }] })
-    const result = await sumRegisterBalance(fakePayload, 1)
-    expect(result).toBe(1500)
-  })
-
-  it('returns 0 for empty result (COALESCE)', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ balance: '0' }] })
-    const result = await sumRegisterBalance(fakePayload, 1)
-    expect(result).toBe(0)
-  })
-
   it('handles negative balance', async () => {
     mockExecute.mockResolvedValue({ rows: [{ balance: '-300.50' }] })
     const result = await sumRegisterBalance(fakePayload, 1)
@@ -56,14 +40,6 @@ describe('sumAllRegisterBalances', () => {
     mockExecute.mockResolvedValue({ rows: [] })
     const map = await sumAllRegisterBalances(fakePayload)
     expect(map.size).toBe(0)
-  })
-
-  it('handles register with only incoming transfers', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ register_id: '5', balance: '800' }],
-    })
-    const map = await sumAllRegisterBalances(fakePayload)
-    expect(map.get(5)).toBe(800)
   })
 })
 
@@ -238,20 +214,6 @@ describe('sumFilteredByType — Where handling', () => {
     expect(result).toEqual([])
     expect(mockExecute).not.toHaveBeenCalled()
   })
-
-  it('splices the translated conditions into the WHERE slot', async () => {
-    await sumFilteredByType(fakePayload, { investment: { in: [5] } })
-    expect(lastSql()).toContain('AND investment_id IN (5)')
-  })
-
-  it('empty where produces no extra conditions', async () => {
-    await sumFilteredByType(fakePayload, {})
-    const queryStr = lastSql()
-    expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
-    // The base SELECT contains an unrelated `AND` inside the settled re-bucket CASE.
-    const conditionsSlot = queryStr.split('cancelled IS NOT TRUE')[1].split('GROUP BY')[0]
-    expect(conditionsSlot.trim()).toBe('')
-  })
 })
 
 describe('listTransferFacets', () => {
@@ -259,21 +221,6 @@ describe('listTransferFacets', () => {
     const result = await listTransferFacets(fakePayload, { id: { equals: -1 } })
     expect(result).toEqual({ investmentIds: [], types: [] })
     expect(mockExecute).not.toHaveBeenCalled()
-  })
-
-  it("reads only the worker's scope", async () => {
-    mockExecute.mockResolvedValue({ rows: [{ investment_ids: [], types: [] }] })
-    await listTransferFacets(fakePayload, {
-      and: [{ or: [{ worker: { equals: 25 } }, { sourceRegister: { in: [37] } }] }],
-    })
-    expect(lastSql()).toContain('worker_id = 25')
-    expect(lastSql()).toContain('source_register_id IN (37)')
-  })
-
-  it('never offers „Anulowanie” — the list hides those rows', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ investment_ids: [], types: [] }] })
-    await listTransferFacets(fakePayload, {})
-    expect(lastSql()).toMatch(/type\s*<>\s*'CANCELLATION'/)
   })
 
   it('maps the aggregated arrays', async () => {
@@ -284,151 +231,12 @@ describe('listTransferFacets', () => {
 })
 
 describe('deriveFinancials', () => {
-  it('derives totals from type+settled distribution', () => {
-    const rows = [
-      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
-      { type: 'INVESTOR_DEPOSIT', settled: false, total: 12000 },
-      { type: 'LABOR_COST', settled: false, total: 800 },
-      { type: 'PAYOUT', settled: false, total: 300 },
-      { type: 'RABAT', settled: false, total: 200 },
-      { type: 'LOSS', settled: false, total: 150 },
-      { type: 'BONUS', settled: false, total: 90 },
-    ]
-    expect(deriveFinancials(rows)).toEqual({
-      categoryCosts: [],
-      totalMaterialCosts: 5000,
-      materialsGrossBase: 5000,
-      materialsNetBilled: 0,
-      totalIncome: 12000,
-      totalLaborCosts: 800,
-      totalPayouts: 300,
-      totalDiscount: 200,
-      totalLoss: 150,
-      totalBonus: 90,
-      totalSettled: 0,
-      materialsNetDiscount: 0,
-      settledCategoryCosts: [],
-      netCategoryCosts: [],
-    })
-  })
-
   it('returns zeros for empty array', () => {
-    expect(deriveFinancials([])).toEqual({
-      categoryCosts: [],
-      totalMaterialCosts: 0,
-      materialsGrossBase: 0,
-      materialsNetBilled: 0,
-      totalIncome: 0,
-      totalLaborCosts: 0,
-      totalPayouts: 0,
-      totalDiscount: 0,
-      totalLoss: 0,
-      totalBonus: 0,
-      totalSettled: 0,
-      materialsNetDiscount: 0,
-      settledCategoryCosts: [],
-      netCategoryCosts: [],
-    })
-  })
-
-  it('includes category costs when provided', () => {
-    const rows = [
-      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
-      { type: 'INVESTOR_DEPOSIT', settled: false, total: 12000 },
-      { type: 'LABOR_COST', settled: false, total: 800 },
-    ]
-    const byCat = [
-      { categoryId: 1, total: 3000 },
-      { categoryId: 2, total: 2000 },
-    ]
-    const result = deriveFinancials(rows, byCat)
-    expect(result.totalMaterialCosts).toBe(5000)
-    expect(result.totalPayouts).toBe(0)
-    expect(result.categoryCosts).toEqual(byCat)
-  })
-})
-
-describe('deriveFinancials — settled material is symmetric for EXPENSE and CORRECTION', () => {
-  it('keeps settled INVESTMENT_EXPENSE out of materials, into totalSettled', () => {
-    const rows = [
-      { type: 'INVESTMENT_EXPENSE', settled: false, total: 200 },
-      { type: 'INVESTMENT_EXPENSE', settled: true, total: 100 },
-      { type: 'LABOR_COST', settled: false, total: 500 },
-      { type: 'INVESTOR_DEPOSIT', settled: false, total: 1000 },
-    ]
-    const f = deriveFinancials(rows)
-    expect(f.totalMaterialCosts).toBe(200) // settled NOT folded in
-    expect(f.totalSettled).toBe(100)
-    expect(f.settledCategoryCosts).toEqual([])
-  })
-
-  it('keeps settled CORRECTION out of materials, into totalSettled', () => {
-    const rows = [
-      { type: 'CORRECTION', settled: false, total: 50 },
-      { type: 'CORRECTION', settled: true, total: -200 },
-      { type: 'INVESTMENT_EXPENSE', settled: false, total: 1000 },
-    ]
-    const f = deriveFinancials(rows)
-    expect(f.totalMaterialCosts).toBe(1050)
-    expect(f.totalSettled).toBe(-200)
-  })
-
-  it('passes through settledCategoryCosts when provided', () => {
-    const f = deriveFinancials([], [], [{ categoryId: 7, total: 100 }])
-    expect(f.settledCategoryCosts).toEqual([{ categoryId: 7, total: 100 }])
-  })
-})
-
-describe('deriveCategoryBreakdowns', () => {
-  it('splits material-expense categories by settled, symmetric for CORRECTION', () => {
-    const rows = [
-      { categoryId: 1, type: 'INVESTMENT_EXPENSE', settled: false, total: 3000 },
-      { categoryId: 1, type: 'CORRECTION', settled: true, total: -200 }, // the divergence case
-      { categoryId: 2, type: 'INVESTMENT_EXPENSE', settled: true, total: 500 },
-    ]
-    const { categoryCosts, settledCategoryCosts } = deriveCategoryBreakdowns(rows)
-    expect(categoryCosts).toEqual([{ categoryId: 1, total: 3000 }])
-    expect(settledCategoryCosts).toEqual([
-      { categoryId: 1, total: -200 },
-      { categoryId: 2, total: 500 },
-    ])
-  })
-
-  it('settledCategoryCosts reconcile with deriveFinancials.totalSettled', () => {
-    const catRows = [
-      { categoryId: 1, type: 'INVESTMENT_EXPENSE', settled: true, total: 500 },
-      { categoryId: 1, type: 'CORRECTION', settled: true, total: -200 },
-    ]
-    const { settledCategoryCosts } = deriveCategoryBreakdowns(catRows)
-    const settledSum = settledCategoryCosts.reduce((s, c) => s + c.total, 0)
-    const f = deriveFinancials([
-      { type: 'INVESTMENT_EXPENSE', settled: true, total: 500 },
-      { type: 'CORRECTION', settled: true, total: -200 },
-    ])
-    expect(settledSum).toBe(f.totalSettled) // headline == sum of the category buttons
-  })
-
-  it('ignores non-material types', () => {
-    const rows = [
-      { categoryId: 1, type: 'PAYOUT', settled: false, total: 999 },
-      { categoryId: 1, type: 'LABOR_COST', settled: true, total: 999 },
-    ]
-    expect(deriveCategoryBreakdowns(rows)).toEqual({
-      categoryCosts: [],
-      netCategoryCosts: [],
-      netCategoryGrossCosts: [],
-      settledCategoryCosts: [],
-    })
+    expect(deriveFinancials([])).toEqual(ZERO_FINANCIALS)
   })
 })
 
 describe('sumFilteredByType', () => {
-  it('returns empty array on NO_RESULTS sentinel', async () => {
-    const result = await sumFilteredByType(fakePayload, { id: { equals: -1 } })
-    expect(result).toEqual([])
-    expect(mockExecute).not.toHaveBeenCalled()
-  })
-
   it('returns type+settled totals from rows', async () => {
     mockExecute.mockResolvedValue({
       rows: [

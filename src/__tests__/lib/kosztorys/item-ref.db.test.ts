@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -6,19 +6,11 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { appendAt } from '@/__tests__/helpers/new-item-input'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { firstUserId } from '@/__tests__/helpers/user'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-// EX-949: the number printed on a fill-in form must survive every wipe-and-reinsert that is the SAME
-// work (restore) and must never be reused by one that is new work (szablon, a new praca) — a reused
-// number would resolve an old paper onto someone else's pozycja.
-vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+// A reused number would resolve an old paper onto someone else's pozycja.
 
 const { addItemAction } = await import('@/lib/actions/kosztorys')
 const { serializeKosztorys } = await import('@/lib/kosztorys/serialize-kosztorys')
@@ -26,7 +18,6 @@ const { serializeKosztorysAsPreset } = await import('@/lib/kosztorys/serialize-p
 const { restoreKosztorys } = await import('@/lib/kosztorys/restore-kosztorys')
 const { applyPreset } = await import('@/lib/kosztorys/apply-preset')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FIXTURE_PREFIX = 'item-ref-test-'
 
 describe.skipIf(!ENV_READY)('kosztorys item ref (DB)', () => {
@@ -44,12 +35,9 @@ describe.skipIf(!ENV_READY)('kosztorys item ref (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0, sort: 'id' })
-    authState.userId = Number(users.docs[0]!.id)
+    authState.userId = await firstUserId(payload)
 
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${FIXTURE_PREFIX}%`}`)
     sourceId = await createTestInvestment(payload, `${FIXTURE_PREFIX}source-${Date.now()}`)

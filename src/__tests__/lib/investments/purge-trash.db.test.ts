@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -9,13 +9,11 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // the assertion is on which rows survive — a count in the result would read the same over a purge
 // that deleted the wrong investment.
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'kosz-inwestycji purge'
 
 describe.skipIf(!ENV_READY)('purgeTrash (DB)', () => {
@@ -33,9 +31,7 @@ describe.skipIf(!ENV_READY)('purgeTrash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purge()
 

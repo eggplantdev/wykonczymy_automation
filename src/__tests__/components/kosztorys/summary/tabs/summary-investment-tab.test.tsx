@@ -1,16 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summary-investment-tab'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 import type { MediaFileT } from '@/types/media'
-
-vi.mock('@/lib/actions/investment-assets', () => ({
-  addInvestmentAssetsAction: vi.fn(),
-  removeInvestmentAssetAction: vi.fn(),
-  removeAllInvestmentAssetsAction: vi.fn(),
-}))
 
 const PHOTO: MediaFileT = {
   id: 1,

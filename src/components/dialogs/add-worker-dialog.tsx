@@ -6,6 +6,7 @@ import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { createWorkerAction } from '@/lib/actions/workers'
 import type { WorkerFormValuesT } from '@/components/forms/worker-form/worker-schema'
+import type { RoleT } from '@/lib/auth/roles'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 const EMPTY_DEFAULTS: WorkerFormValuesT = {
@@ -20,9 +21,10 @@ const EMPTY_DEFAULTS: WorkerFormValuesT = {
 
 type AddWorkerDialogPropsT = {
   cashRegisters: ReferenceItemT[]
+  roles: RoleT[]
 }
 
-export function AddWorkerDialog({ cashRegisters }: AddWorkerDialogPropsT) {
+export function AddWorkerDialog({ cashRegisters, roles }: AddWorkerDialogPropsT) {
   return (
     <FormDialog
       formId="add-worker"
@@ -45,6 +47,7 @@ export function AddWorkerDialog({ cashRegisters }: AddWorkerDialogPropsT) {
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
           cashRegisters={cashRegisters}
+          roles={roles}
         />
       )}
     </FormDialog>

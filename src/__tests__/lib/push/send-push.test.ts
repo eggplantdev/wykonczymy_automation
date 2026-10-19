@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { PushMessageT } from '@/lib/push/send-push'
-
-vi.mock('server-only', () => ({}))
 
 const keys = vi.hoisted(() => ({ publicKey: 'public-key' as string | undefined }))
 vi.mock('@/lib/env', () => ({
@@ -52,11 +50,6 @@ beforeEach(() => {
   selectLivePushSubscriptions.mockReset().mockResolvedValue([device(PHONE), device(TABLET)])
   deletePushSubscriptionByEndpoint.mockReset().mockResolvedValue(undefined)
   selectUserLanguage.mockReset().mockResolvedValue(null)
-})
-
-afterEach(() => {
-  vi.unstubAllEnvs()
-  vi.restoreAllMocks()
 })
 
 describe('sendPushToUser', () => {

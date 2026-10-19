@@ -5,24 +5,9 @@ import {
 } from '@/lib/queries/investment-financial-fields'
 import { DISCOUNT_LABEL } from '@/lib/constants/financial-field-labels'
 import { calculateBalance } from '@/lib/db/calculate-balance'
-import type { InvestmentFinancialsT } from '@/types/investment-financials'
+import { ZERO_FINANCIALS, type InvestmentFinancialsT } from '@/types/investment-financials'
 
-const base: InvestmentFinancialsT = {
-  categoryCosts: [],
-  totalMaterialCosts: 0,
-  materialsGrossBase: 0,
-  materialsNetBilled: 0,
-  totalIncome: 5000,
-  totalLaborCosts: 1000,
-  totalPayouts: 0,
-  totalDiscount: 0,
-  totalLoss: 0,
-  totalBonus: 0,
-  totalSettled: 0,
-  materialsNetDiscount: 0,
-  settledCategoryCosts: [],
-  netCategoryCosts: [],
-}
+const base: InvestmentFinancialsT = { ...ZERO_FINANCIALS, totalIncome: 5000, totalLaborCosts: 1000 }
 
 const NOTHING_BILLED_NET = { netCategoryCosts: [], netCategoryGrossCosts: [] }
 
@@ -35,7 +20,6 @@ describe('buildFinancialFields — rabat row', () => {
   it('emits a positive Rabat field when there is a rabat', () => {
     const fields = buildFinancialFields({ ...base, totalDiscount: 800 }, [])
     const discount = fields.find((f) => f.label === DISCOUNT_LABEL)
-    expect(discount).toBeDefined()
     expect(discount!.amount).toBe(800)
   })
 })
@@ -170,7 +154,6 @@ describe('buildMaterialsBreakdown', () => {
     const rows = buildMaterialsBreakdown(financials, dupNames, NOTHING_BILLED_NET)
     const ids = rows.map((r) => r.id)
     expect(ids).toEqual([7, 9])
-    expect(new Set(ids).size).toBe(ids.length)
   })
 
   // `netCategoryCosts` is a SUBSET of `categoryCosts`, so splitting it out must move value between

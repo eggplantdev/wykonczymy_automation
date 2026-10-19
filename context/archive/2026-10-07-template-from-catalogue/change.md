@@ -16,8 +16,6 @@ Ustalenia wstępne z rozmowy z ownerem 2026-10-07 — kształtowanie, nic nie za
 poniżej (pkt 2–4) jest potwierdzony, nie wstępny.
 Dane z `prod-snap` (dump prod 2026-10-07 08:36 UTC).
 
-Linear: **EX-1017**.
-
 ### Problem
 
 Szablon (inwestycja ze statusem `szablon`) trzyma własną, pełną kopię prac: opisy, ceny, mnożniki,
@@ -42,7 +40,7 @@ dostaje 450.
 5. **Zmiana lub usunięcie wpisu katalogu, który jest w szablonach → ostrzeżenie.**
 6. **Kosztorys jest niezależny:** kopia w chwili założenia. Zmiany w katalogu nigdy same do niego
    nie płyną.
-7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Przed EX-1017 żadna go nie pamiętała —
+7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Przed tą zmianą żadna go nie pamiętała —
    wszystko dopasowywało się po opisie + j.m. Link nie dotyczy tłumaczeń w zgłoszeniu pracy:
    zgłoszenie wskazuje pozycję kosztorysu i czyta tłumaczenia z jej własnej kopii (research:
    wcześniejsze „id już identyfikuje tłumaczenia przy zgłaszaniu" było nieprawdą) — i tak zostaje.
@@ -172,7 +170,7 @@ model dociągnie późniejsze poprawki kierownika.
 
 **Porządki — decyzje ownera 2026-10-08, zastosowane na prodzie tego dnia**
 (`sync/cleanup-2026-10-08.ts`; przed zapisem ręczny snapshot szablonu „Przed porządkami katalogu
-prac (EX-1017)"):
+prac"):
 
 - 10 zmian nazw kierownika weszło do katalogu jako zmiana nazwy istniejącego wpisu, bez nowych
   wpisów. Przy okazji poprawione popsute tłumaczenia tych prac (zdublowany koniec, literówka, „старой"
@@ -209,7 +207,7 @@ Kolejność ma znaczenie: kolumna jest addytywna, więc migracja idzie **przed**
 
 ### Widok szablonu: kolumna „Komentarz do pracy"
 
-Prośba ownera 2026-10-08: widok szablonu ma pokazywać kolumnę „Komentarz do pracy" (EX-1006).
+Prośba ownera 2026-10-08: widok szablonu ma pokazywać kolumnę „Komentarz do pracy".
 Już pokazuje — stoi na zamkniętej liście kolumn szablonu (`WORKSHOP_VISIBLE_COLUMNS`) od
 2026-10-07; owner potwierdził tego samego dnia. Nic do zrobienia.
 

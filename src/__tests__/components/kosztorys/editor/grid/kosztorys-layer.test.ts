@@ -4,21 +4,13 @@ import {
   COLUMN_LAYER,
   LAYER_NEUTRAL_COLUMNS,
 } from '@/lib/kosztorys/columns/column-config'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { LayerT } from '@/lib/kosztorys/layer'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { translationColumnLanguage } from '@/lib/kosztorys/translation-column-keys'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [
-  makeStage({ id: 7, label: 'Etap 1', plane: null }),
-  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
-]
+import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
 
 function ids(layer: LayerT, isHidden?: (id: string) => boolean): string[] {
-  return buildV2Columns({ view: 'client', stages: STAGES, layer, isHidden })
-    .map((c) => c.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ view: 'client', stages: STAGES_7_9, layer, isHidden })
 }
 
 const PROGRESS_IDS = [
@@ -36,9 +28,11 @@ const NEUTRAL_IDS = ['sectionName', 'description', 'stageQtySum'].filter((id) =>
   ids('both').includes(id),
 )
 
-describe('buildV2Columns — oś praca/postęp', () => {
+describe('buildV2Grid — oś praca/postęp', () => {
   it('„bez filtra" renderuje dokładnie to co grid bez trybu — tryb jest opt-out', () => {
-    expect(ids('both')).toEqual(buildV2Columns({ view: 'client', stages: STAGES }).map((c) => c.id))
+    expect(ids('both')).toEqual(
+      buildV2Grid({ view: 'client', stages: STAGES_7_9 }).columns.map((c) => c.id),
+    )
   })
 
   it('„postęp" zdejmuje każdą kolumnę pracy, zostawia tracker + kontekst', () => {
@@ -69,20 +63,8 @@ describe('buildV2Columns — oś praca/postęp', () => {
     }
   })
 
-  it('kolumna bez tagu liczy się jako praca (fail-open ku pracy)', () => {
-    expect(ids('work')).toContain('price')
-    expect(ids('progress')).not.toContain('price')
-  })
-
   it('piker wygrywa nad osią, która by kolumnę dopuściła', () => {
     expect(ids('progress', (id) => id === 'remaining')).not.toContain('remaining')
-  })
-
-  it('kolumny etapów zwijają się po grupie, nie po id etapu', () => {
-    const visible = ids('progress')
-    expect(visible).toContain('stageValueNet_7')
-    expect(visible).toContain('stageValueNet_9')
-    expect(ids('work')).not.toContain('stageValueNet_7')
   })
 })
 

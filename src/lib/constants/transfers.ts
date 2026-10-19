@@ -243,7 +243,7 @@ export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
   'COMPANY_FUNDING',
 ]
 
-// TEMPORARY — EX-712 removes both entries again once the rozjazd between the two is zero everywhere.
+// TEMPORARY — remove LABOR_COST and RABAT once the robocizna v1/v2 rozjazd is zero everywhere.
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'OTHER', // Inny wydatek
   'CORRECTION', // Korekta

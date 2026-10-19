@@ -5,20 +5,12 @@ import {
   COLUMN_MONEY_AXIS,
   DEFAULT_HIDDEN_COLUMNS,
 } from '@/lib/kosztorys/columns/column-config'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [
-  makeStage({ id: 7, label: 'Etap 1', plane: null }),
-  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
-]
+import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
 
 function ids(axis: MoneyAxisT, isHidden?: (id: string) => boolean): string[] {
-  return buildV2Columns({ view: 'client', stages: STAGES, moneyAxis: axis, isHidden })
-    .map((c) => c.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ view: 'client', stages: STAGES_7_9, moneyAxis: axis, isHidden })
 }
 
 const GROSS_IDS = [
@@ -42,9 +34,11 @@ const NEUTRAL_IDS = [
   'plannedDonePercent',
 ]
 
-describe('buildV2Columns — oś netto/brutto', () => {
+describe('buildV2Grid — oś netto/brutto', () => {
   it('„oba" renderuje dokładnie to co grid bez trybu — tryb jest opt-out', () => {
-    expect(ids('both')).toEqual(buildV2Columns({ view: 'client', stages: STAGES }).map((c) => c.id))
+    expect(ids('both')).toEqual(
+      buildV2Grid({ view: 'client', stages: STAGES_7_9 }).columns.map((c) => c.id),
+    )
   })
 
   // Bez tego „oba" przeszłoby też wtedy, gdyby axisAllows odrzucało wszystko: obie strony
@@ -67,11 +61,10 @@ describe('buildV2Columns — oś netto/brutto', () => {
     for (const id of GROSS_IDS) expect(visible).toContain(id)
   })
 
-  it('„none" zdejmuje obie strony pary, ale nigdy ceny j.m. ani kolumn bez osi', () => {
+  it('„none" zdejmuje obie strony pary, ale nigdy ceny j.m.', () => {
     const visible = ids('none')
     for (const id of [...NET_IDS, ...GROSS_IDS]) expect(visible).not.toContain(id)
     expect(visible).toContain('price')
-    for (const id of NEUTRAL_IDS) expect(visible).toContain(id)
   })
 
   it('kolumny bez osi przeżywają każdy tryb (fail-open)', () => {

@@ -50,4 +50,9 @@ describe('fetchLead', () => {
     mockFetch({ error: { message: 'rate limited', code: 613 } })
     await expect(fetchLead(LEAD.id)).rejects.toThrow(/876704198733519/)
   })
+
+  it('throws on a non-2xx status even without an error body', async () => {
+    mockFetch({}, false)
+    await expect(fetchLead(LEAD.id)).rejects.toThrow(/status 500/)
+  })
 })

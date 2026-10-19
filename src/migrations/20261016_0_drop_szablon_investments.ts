@@ -3,7 +3,7 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 // RUN-AFTER-DEPLOY
 //
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// Second half of EX-1075: 20261015_2 copied the szablony into `templates`; this deletes the old
+// Second half: 20261015_2 copied the szablony into `templates`; this deletes the old
 // `investments` rows once the deploy that reads `templates` is live — the previous code still lists
 // and opens them.
 //

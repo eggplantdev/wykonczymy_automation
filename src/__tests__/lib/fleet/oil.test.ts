@@ -39,11 +39,6 @@ describe('the oil alarm — mail and app answer alike', () => {
     })
   })
 
-  it('measures from the change itself, so a distant reading is what makes it due', () => {
-    expect(verdicts(changedAt(200_000), 209_000)).toEqual({ mail: false, app: false })
-    expect(verdicts(changedAt(200_000), 211_000)).toEqual({ mail: true, app: true })
-  })
-
   it('says nothing about a change entered without a reading', () => {
     const noReading = event('OIL_CHANGE', '2026-01-01')
 

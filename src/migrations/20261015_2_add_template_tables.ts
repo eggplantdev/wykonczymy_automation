@@ -2,7 +2,7 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // A szablon gets its own tables instead of an `investments` row with `status = 'szablon'` whose
-// prace sit in `kosztorys_items` carrying a dead copy of the katalog entry (EX-1075). A szablon praca
+// prace sit in `kosztorys_items` carrying a dead copy of the katalog entry. A szablon praca
 // is a katalog FK + section + order, so the schema cannot hold a copy or an unlinked praca.
 //
 // Purely ADDITIVE: the szablon investments stay, so the code live when this runs keeps working; a

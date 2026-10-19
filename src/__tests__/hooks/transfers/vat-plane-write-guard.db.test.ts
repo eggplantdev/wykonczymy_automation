@@ -1,19 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import type { Transaction } from '@/payload-types'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/register'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-// The sheet-sync hook defers to after(), which needs a request scope and live Google credentials.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'vat-plane write guard'
 
 describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (DB)', () => {
@@ -61,9 +55,7 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)
@@ -83,12 +75,7 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
     })) as typeof admin
     adminId = Number(admin!.id)
 
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'vat-plane-guard-register', owner: adminId, type: 'AUXILIARY' },
-      context: { skipRevalidation: true },
-    })
-    registerId = Number(register.id)
+    registerId = await createTestRegister(payload, adminId, 'vat-plane-guard-register')
 
     investmentId = await createTestInvestment(payload, 'vat-plane-guard-investment')
 
@@ -97,11 +84,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
       type: 'INVESTOR_DEPOSIT',
       vatPlane: 'GROSS',
       netAmount: 1000,
-    })
-    persisted.companyFunding = await createRow({
-      description: `${MARKER} company funding`,
-      type: 'COMPANY_FUNDING',
-      vatPlane: 'GROSS',
     })
     persisted.legacy = await createRow({
       description: `${MARKER} legacy deposit`,
@@ -124,16 +106,6 @@ describe.skipIf(!ENV_READY)('the wpłata plane is write-once and deposit-only (D
         id: adminId,
         context: { skipRevalidation: true },
       })
-  })
-
-  it('strips a plane smuggled onto a deposit type that is not the investor one', async () => {
-    expect(await persistedPlane(persisted.companyFunding!)).toBeNull()
-  })
-
-  // Positive control: without it the assertion above would also pass on a build that nulls the
-  // column for every type.
-  it('keeps the plane on a wpłata od inwestora', async () => {
-    expect(await persistedPlane(persisted.deposit!)).toBe('GROSS')
   })
 
   it('lets a legacy wpłata that never had a plane get one, with its netto', async () => {

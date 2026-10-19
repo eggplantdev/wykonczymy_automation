@@ -6,8 +6,6 @@ import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const DESCRIPTION = 'Przenieść „WX 1000A" do kosza?'
 
 const renderButton = (trash: () => Promise<ActionResultT>) =>

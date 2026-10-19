@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-494/EX-489 follow-up: „Pomiar z natury" is the sheet's O = SUM(D:M), so it is always the stage
+// „Pomiar z natury" is the sheet's O = SUM(D:M), so it is always the stage
 // sum — never a typed input. The `measured_qty` column is therefore redundant (== Σ stages) and
 // carries stale values from when it WAS typed, so it's dropped outright. No backfill: kosztorys data
 // is throwaway until dogfooding lands on `main` (AGENTS.md → Databases And Live Data).

@@ -19,50 +19,25 @@ const tree: KosztorysTreeT = makeTree({
       color: null,
       items: [
         {
+          ...baseItem,
           id: 1,
-          sectionId: 10,
-          displayOrder: 0,
           description: 'A',
-          descriptionTranslations: {},
-          unit: 'm2',
           plannedQty: 10,
-          sheetMeasuredQty: null,
           discountType: 'percent',
           discountValue: 10,
           clientPrice: 100,
           wToolsOverrideValue: null,
           ownToolsOverrideValue: null,
-          wToolsOverrideCoeff: null,
-          ownToolsOverrideCoeff: null,
-          note: null,
-          catalogueItemId: null,
-          currentPlannedQty: null,
-          aiPlannedQty: null,
-          changeReason: null,
-          reviewStatus: null,
         },
         {
+          ...baseItem,
           id: 2,
-          sectionId: 10,
           displayOrder: 1,
           description: 'B',
-          descriptionTranslations: {},
-          unit: 'm2',
           plannedQty: 2,
-          sheetMeasuredQty: null,
-          discountType: null,
-          discountValue: 0,
           clientPrice: 50,
           wToolsOverrideValue: null,
           ownToolsOverrideValue: null,
-          wToolsOverrideCoeff: null,
-          ownToolsOverrideCoeff: null,
-          note: null,
-          catalogueItemId: null,
-          currentPlannedQty: null,
-          aiPlannedQty: null,
-          changeReason: null,
-          reviewStatus: null,
         },
       ],
     },
@@ -78,7 +53,7 @@ const rows = treeToRows(tree)
 const idsSortedBy = (field: string) =>
   sortRows(rows, sortValueGetter(field, 'client', tree.stages), 'desc').map((r) => r.id)
 
-describe('sortValueGetter — computed money/percent columns actually sort (EX-487)', () => {
+describe('sortValueGetter — computed money/percent columns actually sort', () => {
   it.each([
     ['net', [2, 1]], // executed value: B 400 > A 90
     ['gross', [2, 1]], // net × VAT — same order as net
@@ -100,7 +75,7 @@ describe('sortValueGetter — computed money/percent columns actually sort (EX-4
   })
 })
 
-describe('reconcileSort — a sort whose column has left the grid is dropped (EX-486)', () => {
+describe('reconcileSort — a sort whose column has left the grid is dropped', () => {
   const rendered = new Set(['net', 'remaining', 'plannedQty'])
 
   it('keeps a sort whose field still renders', () => {
@@ -303,7 +278,7 @@ describe('sortValueGetter — an empty cell is an absence, not a key', () => {
 
 // `planeTree` orders rows 1 and 3 oppositely at the client price and at a crew's stawka, and splits
 // the pomiar across both crews' etapy, so a sort still reading the active view cannot pass.
-describe('sortValueGetter — przedmiar figures sort by the client reading in every view (EX-894)', () => {
+describe('sortValueGetter — przedmiar figures sort by the client reading in every view', () => {
   const clientPinned = ['plannedNet', 'plannedGross', 'donePercent', 'remaining', 'remainingGross']
 
   it.each(['w_tools', 'own_tools'] as const)(

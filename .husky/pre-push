@@ -20,7 +20,7 @@ if [ -n "$push_to_prod" ]; then
   fi
   # --diff-filter=A: only ADDED migrations are pending applies. A rename/edit or a
   # deletion (e.g. removing a smoke-test migration) is never something prod needs.
-  added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$')
+  added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$' || true)
   if [ -n "$added" ]; then
     # A migration that rewrites what the OLD code reads must run once the new deploy is live —
     # migrating first serves the old code a shape it misreads. A data rewrite says so with a
@@ -54,35 +54,7 @@ if [ -n "$push_to_prod" ]; then
   fi
 fi
 
-# Each leg announces itself and names itself on the way out. Four legs run below and three of
-# them are vitest, whose PERF stdout runs to tens of thousands of lines — without a named
-# verdict the terminal (and an agent reading it) sees a truncated wall and cannot tell WHICH
-# leg failed, which turns a one-line fix into a diagnosis. `--silent` on the plain unit leg
-# keeps that wall out of the way; the DB legs stay verbose because their output is the evidence.
-leg() {
-  echo "── pre-push: $1 ──────────────────────────────"
-  shift
-  "$@" || { echo "✗ pre-push FAILED at: $*" >&2; exit 1; }
-}
-
-leg "typecheck" pnpm run typecheck
-# Wrapped by hand: this leg calls vitest directly rather than `pnpm test`, so it would
-# otherwise be the one heavy run that escapes the machine-wide lock. The three legs below
-# go through package.json scripts, which are wrapped there; a nested call inherits this hold.
-leg "unit tests" bash scripts/with-test-lock.sh pnpm vitest run --silent
-
-# DB-backed integration specs (restore/snapshot wipe-and-reinsert, delete guards, leads) against
-# the ISOLATED 5435 test DB. The plain `vitest run` above skips every one of them for lack of a DB
-# env (they gate on `describe.skipIf(!ENV_READY)`), so without this leg the destructive restore path
-# never runs before a push. The script ups db-test, keeps its schema current (re-imports the prod
-# dump only when migrations changed), and runs the specs serially. See scripts/test-integration.sh.
-leg "DB integration specs" pnpm test:integration
-
-# DB-backed listing-vs-detail parity sweep over every real investment, against the SAME isolated
-# 5435 test DB (prod-dump content) that test:integration just brought up and kept schema-current —
-# not the dev DB. Overrides DB_POSTGRES_URL to the test URL; fails the push if that DB is unreachable
-# (a skipped parity check is false confidence).
-leg "DB parity + golden master" pnpm test:parity
+bash scripts/with-test-lock.sh bash scripts/pre-push-tests.sh || exit 1
 
 echo "Dumping production DB from Neon..."
 if pnpm db:dump && [ -s dumps/dump-latest.sql ]; then

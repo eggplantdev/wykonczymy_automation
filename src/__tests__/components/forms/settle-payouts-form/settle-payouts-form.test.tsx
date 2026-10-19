@@ -10,18 +10,11 @@ import { toastMessage } from '@/lib/utils/toast'
 import { BLOCKED_PAIR_REASON, type SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { bare } from '@/__tests__/helpers/money'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/actions/settle-payouts', () => ({ settlePayoutsAction: vi.fn() }))
-vi.mock('@/lib/actions/book-overpayment-bonus', () => ({ bookOverpaymentBonusAction: vi.fn() }))
-vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
-const viewer = vi.hoisted(() => ({ role: 'OWNER' }))
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: viewer.role }),
-}))
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
 
 const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   investmentId: 1,
@@ -95,7 +88,7 @@ const staleRefusal = () =>
   })
 
 beforeEach(() => {
-  viewer.role = 'OWNER'
+  authState.role = 'OWNER'
   vi.mocked(settlePayoutsAction).mockReset()
   vi.mocked(bookOverpaymentBonusAction).mockReset()
   // Pending by default: a saldo re-read resolving after a test ends lands outside act().
@@ -264,6 +257,12 @@ describe('SettlePayoutsForm', () => {
   describe('Wyrównaj premią', () => {
     const bonusButton = (label: string) =>
       rowOf(label).queryByRole('button', { name: 'Wyrównaj premią' })
+    const bookBonus = async (user: ReturnType<typeof userEvent.setup>) => {
+      await user.click(bonusButton('Brzozowa')!)
+      const confirm = await screen.findByRole('alertdialog')
+      await user.click(within(confirm).getByRole('button', { name: 'Zaksięguj premię' }))
+      return confirm
+    }
 
     it('offers the premia only on an unticked nadpłata row', async () => {
       const user = userEvent.setup()
@@ -278,7 +277,7 @@ describe('SettlePayoutsForm', () => {
     })
 
     it('is not offered to a MANAGER, who may not grant a premia', () => {
-      viewer.role = 'MANAGER'
+      authState.role = 'MANAGER'
       renderForm()
       expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
     })
@@ -336,12 +335,7 @@ describe('SettlePayoutsForm', () => {
       )
       await retype(user, 'Akacjowa', '750')
 
-      await user.click(bonusButton('Brzozowa')!)
-      await user.click(
-        within(await screen.findByRole('alertdialog')).getByRole('button', {
-          name: 'Zaksięguj premię',
-        }),
-      )
+      await bookBonus(user)
 
       await waitFor(() => expect(bonusButton('Brzozowa')).not.toBeInTheDocument())
       expect(amount('Akacjowa')).toHaveValue('600')
@@ -356,12 +350,7 @@ describe('SettlePayoutsForm', () => {
       })
       const { reloadRows } = renderForm()
 
-      await user.click(bonusButton('Brzozowa')!)
-      await user.click(
-        within(await screen.findByRole('alertdialog')).getByRole('button', {
-          name: 'Zaksięguj premię',
-        }),
-      )
+      await bookBonus(user)
 
       await waitFor(() => expect(reloadRows).toHaveBeenCalledOnce())
       expect(toastMessage).toHaveBeenCalledWith('Kwoty zmieniły się', 'warning', 5000)

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 
 import {
   DropdownMenu,
@@ -10,55 +10,39 @@ import {
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
+import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
+import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 
-const toastMessage = vi.hoisted(() => vi.fn())
-const fillKosztorysTranslationsAction = vi.hoisted(() => vi.fn())
-const cleanItemTextsAction = vi.hoisted(() => vi.fn())
 const onTreeReplaced = vi.hoisted(() => vi.fn())
 const flushPendingSaves = vi.hoisted(() => vi.fn(async () => {}))
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
-vi.mock('@/lib/actions/kosztorys-translations', () => ({ fillKosztorysTranslationsAction }))
-vi.mock('@/lib/actions/kosztorys', () => ({
-  addItemAction: vi.fn(),
-  addSectionAction: vi.fn(),
-  clearKosztorysAction: vi.fn(),
-  insertSectionAction: vi.fn(),
-  removeItemAction: vi.fn(),
-  removeSectionAction: vi.fn(),
-  renumberKosztorysOrderAction: vi.fn(),
-  updateItemFieldAction: vi.fn(),
-  updateSectionFieldAction: vi.fn(),
-  writeKosztorysLayoutAction: vi.fn(),
-  cleanItemTextsAction,
-}))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    investmentId: 7,
-    onTreeReplaced,
-    flushPendingSaves,
-    rows: [{ description: 'Montaż klimatyzacji', descriptionTranslations: {} }],
-    stages: [],
-    workers: [],
-    tree: { sections: [] },
-    isTemplate: true,
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      investmentId: 7,
+      onTreeReplaced,
+      flushPendingSaves,
+      rows: [{ description: 'Montaż klimatyzacji', descriptionTranslations: {} }],
+      stages: [],
+      workers: [],
+      tree: { sections: [] },
+      isTemplate: true,
+    }) as never,
+)
 
 function renderMenu() {
   render(
-    <CurrentUserProvider user={{ id: 1, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }}>
-      <KosztorysActionsProvider>
-        <DropdownMenu>
-          <DropdownMenuTrigger>Opcje</DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <CleanItemTextsMenuItem />
-            <FillTranslationsMenuItem />
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </KosztorysActionsProvider>
-    </CurrentUserProvider>,
+    <KosztorysActionsProvider>
+      <DropdownMenu>
+        <DropdownMenuTrigger>Opcje</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <CleanItemTextsMenuItem />
+          <FillTranslationsMenuItem />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </KosztorysActionsProvider>,
   )
 }
 
@@ -68,19 +52,17 @@ describe.each([
   {
     label: /Uzupełnij tłumaczenia/,
     other: /Popraw literówki/,
-    action: fillKosztorysTranslationsAction,
+    action: vi.mocked(fillKosztorysTranslationsAction) as Mock,
     data: { items: 0, sections: 0, failed: 0 },
   },
   {
     label: /Popraw literówki/,
     other: /Uzupełnij tłumaczenia/,
-    action: cleanItemTextsAction,
+    action: vi.mocked(cleanItemTextsAction) as Mock,
     data: 0,
   },
 ])('$label', ({ label, other, action, data }) => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('runs only after the pending cell saves have settled (EX-1002)', async () => {
+  it('runs only after the pending cell saves have settled', async () => {
     const flush = Promise.withResolvers<void>()
     flushPendingSaves.mockReturnValueOnce(flush.promise)
     action.mockResolvedValue({ success: true, data })
@@ -97,8 +79,8 @@ describe.each([
   })
 
   it('stays disabled across a menu close and reopen while the run is in flight', async () => {
-    let finish: (value: unknown) => void = () => {}
-    action.mockReturnValue(new Promise((resolve) => (finish = resolve)))
+    const run = Promise.withResolvers()
+    action.mockReturnValue(run.promise)
     renderMenu()
 
     await openMenu()
@@ -108,7 +90,7 @@ describe.each([
     expect(screen.getByRole('menuitem', { name: label })).toHaveAttribute('data-disabled')
     await userEvent.click(screen.getByRole('menuitem', { name: label }))
 
-    finish({ success: true, data })
+    run.resolve({ success: true, data })
     await vi.waitFor(() =>
       expect(screen.getByRole('menuitem', { name: label })).not.toHaveAttribute('data-disabled'),
     )
@@ -116,8 +98,8 @@ describe.each([
   })
 
   it('locks the other tree rewrite while it runs', async () => {
-    let finish: (value: unknown) => void = () => {}
-    action.mockReturnValue(new Promise((resolve) => (finish = resolve)))
+    const run = Promise.withResolvers()
+    action.mockReturnValue(run.promise)
     renderMenu()
 
     await openMenu()
@@ -126,7 +108,7 @@ describe.each([
 
     expect(screen.getByRole('menuitem', { name: other })).toHaveAttribute('data-disabled')
 
-    finish({ success: true, data })
+    run.resolve({ success: true, data })
     await vi.waitFor(() =>
       expect(screen.getByRole('menuitem', { name: other })).not.toHaveAttribute('data-disabled'),
     )

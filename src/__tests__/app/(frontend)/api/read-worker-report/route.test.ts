@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('server-only', () => ({}))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))
 
 const mockGetUser = vi.fn()
@@ -39,7 +37,6 @@ function request(file: File = new File(['x'], 'k.jpg', { type: 'image/jpeg' })) 
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   mockGetUser.mockResolvedValue({ id: 1, role: 'MANAGER' })
   mockReadTarget.mockResolvedValue({ investmentId: 6, workerId: 9, language: 'uk' })
   mockReadPage.mockResolvedValue(SCANNED)

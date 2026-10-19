@@ -1,11 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
 
 const onCommit = vi.fn()
-
-beforeEach(() => vi.clearAllMocks())
 
 type HookT = { current: ReturnType<typeof useInlineRename> }
 

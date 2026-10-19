@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 export const OtherCategories: CollectionConfig = {

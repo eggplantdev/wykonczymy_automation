@@ -38,36 +38,14 @@ const CLIENT_DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set(
   [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !DEFAULT_VISIBLE_COLUMNS.has(key)),
 )
 
-// The ceiling as it stood while the hidden ARRAY was the stored shape — frozen, never extended.
-const LEGACY_CLIENT_COLUMNS: ReadonlySet<string> = new Set([
-  'note',
-  'plannedQty',
-  'currentPlannedQty',
-  'stageQtySum',
-  'unit',
-  'price',
-  'discountType',
-  'discountValue',
-  'discountAmount',
-  'plannedNet',
-  'currentPlannedNet',
-  'net',
-  'remaining',
-  'stages',
-  'stageValueNet',
-  'donePercent',
-  'plannedDonePercent',
-])
-
 const DEFAULT_SETTINGS: ClientViewSettingsT = {
   hiddenColumns: [...CLIENT_DEFAULT_HIDDEN_COLUMNS],
   hideEmptyRows: true,
   columnRanks: {},
 }
 
-// a missing row, or a `hiddenColumns` that is neither choices nor the legacy list, falls back to the
-// default hidden set — reading it as „hide nothing" would serve the whole allowlist, discount figures
-// included, off a column any owner can hand-edit in /admin.
+// A missing row, or a `hiddenColumns` that is not a choices map, falls back to the default hidden
+// set — reading it as „hide nothing" would serve the whole allowlist, discount figures included.
 export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT {
   if (typeof source !== 'object' || source === null) return DEFAULT_SETTINGS
   const { hiddenColumns, hideEmptyRows, columnRanks } = source as {
@@ -80,7 +58,6 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
       hiddenColumns,
       PREVIEW_VISIBLE_COLUMNS,
       CLIENT_DEFAULT_HIDDEN_COLUMNS,
-      LEGACY_CLIENT_COLUMNS,
     ),
     hideEmptyRows: hideEmptyRows !== false,
     columnRanks: sanitizeDocumentRanks(columnRanks, PREVIEW_VISIBLE_COLUMNS),
@@ -90,15 +67,11 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
 export function toStoredClientViewSettings(
   settings: ClientViewSettingsT,
 ): Omit<ClientViewSettingsT, 'hiddenColumns'> & { hiddenColumns: HiddenColumnMapT } {
-  const sanitized = sanitizeClientViewSettings(settings)
-  // The in-memory list is the owner's answer for every column; `sanitized` would read it as the
-  // legacy stored array and put a column added since back on its code default.
-  const hidden = Array.isArray(settings.hiddenColumns)
-    ? settings.hiddenColumns
-    : sanitized.hiddenColumns
   return {
-    ...sanitized,
-    hiddenColumns: toHiddenColumnMap(hidden, PREVIEW_VISIBLE_COLUMNS),
+    ...sanitizeClientViewSettings(settings),
+    // The in-memory list is the owner's answer for every column; sanitizing reads a list as no stored
+    // choices and would put every column back on its code default.
+    hiddenColumns: toHiddenColumnMap(settings.hiddenColumns, PREVIEW_VISIBLE_COLUMNS),
   }
 }
 

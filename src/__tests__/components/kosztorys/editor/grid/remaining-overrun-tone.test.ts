@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
@@ -65,7 +65,7 @@ const row = (id: number) => rows.find((candidate) => candidate.id === id) as Kos
 
 type ToneDataT = { tone: (r: KosztorysV2RowT) => string }
 
-const ownerColumns = buildV2Columns({ view: 'client', stages: tree.stages })
+const ownerColumns = buildV2Grid({ view: 'client', stages: tree.stages }).columns
 
 const toneOf = (columns: typeof ownerColumns, columnId: string) => {
   const column = columns.find((candidate) => candidate.id === columnId)
@@ -73,16 +73,16 @@ const toneOf = (columns: typeof ownerColumns, columnId: string) => {
 }
 
 describe('„Pozostało" overrun tone', () => {
-  it.each([
-    ['remaining', ownerColumns],
-    ['remainingGross', ownerColumns],
-  ] as const)('%s is red only past the przedmiar', (columnId, columns) => {
-    const tone = toneOf(columns, columnId)
+  it.each(['remaining', 'remainingGross'] as const)(
+    '%s is red only past the przedmiar',
+    (columnId) => {
+      const tone = toneOf(ownerColumns, columnId)
 
-    expect(tone(row(OVERRUN))).toBe('danger')
-    expect(tone(row(OWED))).toBe('muted')
-    expect(tone(row(FLOAT_NOISE))).toBe('muted')
-  })
+      expect(tone(row(OVERRUN))).toBe('danger')
+      expect(tone(row(OWED))).toBe('muted')
+      expect(tone(row(FLOAT_NOISE))).toBe('muted')
+    },
+  )
 
   it.each(['remaining', 'remainingGross'] as const)(
     '%s reads the Aktualizacja przedmiaru, not the ofertowy',

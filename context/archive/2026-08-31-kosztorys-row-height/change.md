@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-EX-699. The first thing the owner and workers asked for after launch: „Opis prac" is clipped to one
+The first thing the owner and workers asked for after launch: „Opis prac" is clipped to one
 line and can't be read in full. The client in the offer preview must see whole work names too — today
 only by clicking cell by cell.
 

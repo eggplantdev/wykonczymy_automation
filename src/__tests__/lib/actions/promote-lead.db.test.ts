@@ -1,30 +1,19 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { createTestInvestment } from '@/__tests__/helpers/investment'
 
 // a „copy" would pass every count assertion while quietly doubling the storage bill — so the ids
 // themselves are what this asserts.
 
-vi.mock('server-only', () => ({}))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'EX-802 promoted lead'
 const OTHER_NAME = 'EX-802 unrelated investment'
 const FILENAMES = ['ex-802-promote-a.jpg', 'ex-802-promote-b.pdf']
-const FILENAME_PREFIX = 'ex-802-promote-%'
+const FILENAME_PREFIX = 'ex-802-promote-'
 
 const FORM_DATA = {
   name: NAME,
@@ -50,7 +39,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
   const purge = async () => {
     await db.execute(sql`DELETE FROM leads WHERE name = ${NAME}`)
     await db.execute(sql`DELETE FROM investments WHERE name IN (${NAME}, ${OTHER_NAME})`)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${FILENAME_PREFIX}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
   }
 
   const investmentAssetIds = async (investmentId: number) => {
@@ -62,27 +51,18 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
     return rows.map((row) => Number(row.media_id))
   }
 
-  const createOtherInvestment = async () => {
-    const other = await payload.create({
-      collection: 'investments',
-      data: { name: OTHER_NAME, status: 'active', settlementMode: SETTLEMENT_MODE_DEFAULT },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    return Number(other.id)
-  }
+  const createOtherInvestment = () => createTestInvestment(payload, OTHER_NAME)
 
   const livingMediaIds = async () => {
     const { rows } = await db.execute(sql`
-      SELECT id FROM media WHERE filename LIKE ${FILENAME_PREFIX} ORDER BY id
+      SELECT id FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`} ORDER BY id
     `)
     return rows.map((row) => Number(row.id))
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    authState.role = 'ADMIN'
+    payload = await bootTestPayload()
     db = await getDb(payload)
     promoteLeadAction = (await import('@/lib/actions/promote-lead')).promoteLeadAction
     attachLeadAssetsAction = (await import('@/lib/actions/lead-assets')).attachLeadAssetsAction
@@ -91,16 +71,8 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
   beforeEach(async () => {
     await purge()
 
-    // Raw INSERT rather than an upload: a fixture nobody opens should not push bytes at Blob.
     mediaIds = []
-    for (const filename of FILENAMES) {
-      const { rows } = await db.execute(sql`
-        INSERT INTO media (filename, mime_type, filesize, kind)
-        VALUES (${filename}, 'image/jpeg', 1024, 'zdjecie')
-        RETURNING id
-      `)
-      mediaIds.push(Number(rows[0].id))
-    }
+    for (const filename of FILENAMES) mediaIds.push(await insertTestMedia(db, filename))
 
     const lead = await payload.create({
       collection: 'leads',

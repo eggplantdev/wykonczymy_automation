@@ -1,6 +1,6 @@
 ---
 change_id: worker-expenses
-title: Pracownik wpisuje wydatki inwestycyjne opłacone z własnej kasy (EX-971)
+title: Pracownik wpisuje wydatki inwestycyjne opłacone z własnej kasy
 status: archived
 created: 2026-10-05
 updated: 2026-10-05
@@ -11,8 +11,8 @@ worktree: null
 
 ## Notes
 
-EX-971 — pracownik sam wpisuje wydatek inwestycyjny (zakup materiału na budowę) opłacony ze swojej
-kasy, zamiast przekazywać paragon managerowi do przepisania. **Stoi na EX-985**
+Pracownik sam wpisuje wydatek inwestycyjny (zakup materiału na budowę) opłacony ze swojej
+kasy, zamiast przekazywać paragon managerowi do przepisania. **Stoi na koncie pracownika**
 (`2026-10-05-worker-account`): formularz żyje na stronie pracownika, której jeszcze nie ma.
 
 ### Stan wyjściowy (2026-10-05, lokalna kopia bazy)
@@ -29,9 +29,9 @@ kasy, zamiast przekazywać paragon managerowi do przepisania. **Stoi na EX-985**
 
 ### Kierunek (właściciel, 2026-10-05)
 
-- Wejście: zalogowane konto pracownika (strona z EX-985), nie link z tokenem.
+- Wejście: zalogowane konto pracownika (strona konta pracownika), nie link z tokenem.
 - Osobny przycisk „Dodaj wydatek" — tylko wydatek inwestycyjny, kasa do wyboru tylko spośród jego kas.
-- Wydatek trafia jako **szkic**; manager uzupełnia i akceptuje — flow jak zgłoszenia prac (EX-947).
+- Wydatek trafia jako **szkic**; manager uzupełnia i akceptuje — flow jak zgłoszenia prac.
 
 ### Decyzje (właściciel, 2026-10-05)
 

@@ -11,4 +11,4 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-pdf-tr
 
 ## Notes
 
-PDF pracownika w jego języku (uk/ru) — nagłówki kolumn, opisy prac, nazwy sekcji i rozliczenie ze słowników; ostatni kawałek tłumaczeń widoku pracownika (EX-966), przed EX-949 (kartka → AI), który przebudowuje ten PDF
+PDF pracownika w jego języku (uk/ru) — nagłówki kolumn, opisy prac, nazwy sekcji i rozliczenie ze słowników; ostatni kawałek tłumaczeń widoku pracownika, przed `worker-report-scan` (kartka → AI), który przebudowuje ten PDF

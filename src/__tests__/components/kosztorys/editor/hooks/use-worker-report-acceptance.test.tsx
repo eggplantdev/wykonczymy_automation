@@ -1,15 +1,11 @@
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useWorkerReportAcceptance } from '@/components/kosztorys/editor/hooks/use-worker-report-acceptance'
 import { acceptWorkerReportAction } from '@/lib/actions/accept-worker-report'
 import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-
-vi.mock('@/lib/actions/accept-worker-report', () => ({
-  acceptWorkerReportAction: vi.fn(),
-}))
 
 const NEW_STAGE = { id: 30, ordinal: 3 } as KosztorysStageT
 
@@ -48,8 +44,6 @@ function renderAcceptance() {
   const { result } = renderHook(() => useWorkerReportAcceptance(args))
   return { result, args, calls }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('useWorkerReportAcceptance', () => {
   it('quiets the touched cells before the call, and adopts the new etap before writing into it', async () => {
@@ -149,7 +143,7 @@ describe('useWorkerReportAcceptance', () => {
     expect(args.pruneByIds).toHaveBeenCalledWith([10])
   })
 
-  it('keeps the editor revision and the grid when the save only odrzuca lines (EX-1052)', async () => {
+  it('keeps the editor revision and the grid when the save only odrzuca lines', async () => {
     const { result, args } = renderAcceptance()
     vi.mocked(acceptWorkerReportAction).mockResolvedValueOnce({
       success: true,

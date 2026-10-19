@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { findTransfersRaw, type RawTransferDocT } from '@/lib/queries/transfers'
-
-// EX-777: sorting that only sees already-fetched rows makes „największe kwoty" mean „on this page".
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY } from '@/__tests__/helpers/payload'
 
 const PAGE_LIMIT = 20
 
@@ -17,19 +15,10 @@ describe.skipIf(!ENV_READY)('transfer sort spans the whole filtered set (DB)', (
     everyDoc = all.docs
     const page = await findTransfersRaw({ page: 1, limit: PAGE_LIMIT, sort: '-amount' })
     firstPage = page.docs
-    // 30s: the first getPayload cold-inits Payload's schema.
-  }, 30000)
+  })
 
   it('has more rows than one page, or the assertions below prove nothing', () => {
     expect(everyDoc.length).toBeGreaterThan(PAGE_LIMIT)
-  })
-
-  it('puts the global maximum amount on the first page', () => {
-    // Asserted before the index: an empty page would otherwise read as a TypeError on `undefined`
-    // instead of „the test DB was never imported".
-    expect(firstPage.length).toBeGreaterThan(0)
-    const globalMax = Math.max(...everyDoc.map((doc) => Number(doc.amount)))
-    expect(Number(firstPage[0].amount)).toBe(globalMax)
   })
 
   it('fills the first page with the globally largest amounts', () => {

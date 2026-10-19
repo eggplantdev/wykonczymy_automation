@@ -1,19 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { findExistingMediaId } from '@/__tests__/helpers/media'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'EX-748 invoice on locked'
 
 describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
@@ -27,9 +22,7 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
   const ctx = { context: { skipRevalidation: true, skipSheetSync: true } }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)

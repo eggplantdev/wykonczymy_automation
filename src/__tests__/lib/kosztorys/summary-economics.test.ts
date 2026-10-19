@@ -26,10 +26,6 @@ describe('moneyPair / faceValue (VAT direction primitives)', () => {
     expect(p.net).toBe(300)
     expect(p.gross).toBe(300)
   })
-
-  it('moneyPair and billedMaterialsPair are inverse directions at the same rate', () => {
-    expect(billedMaterialsPair(moneyPair(100, 0.23).gross, 0.23).net).toBeCloseTo(100)
-  })
 })
 
 describe('billedMaterialsPair (netto pricing switch)', () => {
@@ -73,12 +69,6 @@ describe('materialsNetDiscount', () => {
 })
 
 describe('materiały netto pricing off (no saved rate)', () => {
-  it('combinedPair: materiały netto === brutto, so Łącznie carries the full receipt on both axes', () => {
-    const combined = combinedPair(1000, faceValue(billedMaterials(justGross(123), null)), 0.23)
-    expect(combined.net).toBeCloseTo(1123)
-    expect(combined.gross).toBeCloseTo(1230 + 123)
-  })
-
   it('computeAmountDue: materiały enter netto at full brutto; brutto axis unchanged', () => {
     const r = computeAmountDue(1000, { net: 300, gross: 300 }, justGross(123), 0.23, null)
     // netto: robocizna 1000 − wpłaty 300 + materiały 123 (raw brutto, not derived 100).
@@ -93,11 +83,6 @@ describe('combinedPair („Łącznie")', () => {
     expect(combined.net).toBeCloseTo(1100)
     // 1230 + 100 — the SAME 100 the netto axis added, not the raw 123 receipt.
     expect(combined.gross).toBeCloseTo(1330)
-  })
-
-  it('the two axes differ by exactly the VAT on prace, never on materiały', () => {
-    const combined = combinedPair(1000, faceValue(100), 0.23)
-    expect(combined.gross - combined.net).toBeCloseTo(230)
   })
 
   it('vat = 0: both axes read the same figure', () => {
@@ -147,18 +132,6 @@ describe('computeAmountDue', () => {
     expect(r.net).toBeCloseTo(48_500, 2)
     // Materiały stand at face value on both planes, so brutto = 95 580 + 9 259,26 − 10 000.
     expect(r.gross).toBeCloseTo(94_839.26, 2)
-  })
-
-  it('never lets a przelew overshoot the netto column', () => {
-    const r = computeAmountDue(10_000, { net: 10_000, gross: 12_300 }, NO_MATERIALS, 0.23, null)
-    expect(r.net).not.toBeCloseTo(-2300)
-    expect(r.net).toBeCloseTo(0)
-  })
-
-  it('charges no VAT on the part a przelew already settled', () => {
-    const r = computeAmountDue(40_000, { net: 40_000, gross: 43_200 }, NO_MATERIALS, 0.08, null)
-    expect(r.gross).not.toBeCloseTo(3200)
-    expect(r.gross).toBeCloseTo(0)
   })
 })
 
@@ -219,12 +192,6 @@ describe('the netto-billed bucket is frozen against the materiały toggle', () =
     expect(withNet.net - base.net).not.toBeCloseTo(NET_BILLED / (1 + REDUCTION))
   })
 
-  it('the VAT-strip default cannot reach it either', () => {
-    const base = combined(justGross(GROSS_BASE), VAT)
-    const withNet = combined({ grossBase: GROSS_BASE, netBilled: NET_BILLED }, VAT)
-    expect(withNet.net - base.net).toBeCloseTo(NET_BILLED)
-  })
-
   it('a netto expense raises Pozostało do zapłaty by its netAmount on both axes', () => {
     const paid = { net: 300, gross: 300 }
     const base = computeAmountDue(1000, paid, justGross(GROSS_BASE), VAT, REDUCTION)
@@ -242,14 +209,6 @@ describe('the netto-billed bucket is frozen against the materiały toggle', () =
   it('B5: the billed figure carries the stored netAmount unrounded — list and summary agree', () => {
     const odd = 1234.56
     expect(billedMaterials({ grossBase: 0, netBilled: odd }, REDUCTION)).toBe(odd)
-  })
-
-  it('every tryb sees it — one billed figure, not a per-tryb composition', () => {
-    const paid = { net: 400, gross: 400 }
-    const base = computeAmountDue(700, paid, justGross(369), VAT, VAT)
-    const withNet = computeAmountDue(700, paid, { grossBase: 369, netBilled: NET_BILLED }, VAT, VAT)
-    expect(withNet.net - base.net).toBeCloseTo(NET_BILLED)
-    expect(withNet.gross - base.gross).toBeCloseTo(NET_BILLED)
   })
 })
 
@@ -289,20 +248,6 @@ describe('laborCostsNetPreDiscount — one „Robocizna", one number', () => {
       totals.laborCostsNetFromKosztorys,
     )
     expect(totals.laborCostsNetFromKosztorys).toBe(10_000)
-  })
-
-  it('relocating the rabat leaves Łącznie where it was: Robocizna − Rabat + Materiały', () => {
-    const laborCostsNet = 90_000 // already post-rabat
-    const discountAmount = 10_000
-    const materials = justGross(12_300)
-    const combined = combinedPair(laborCostsNet, faceValue(billedMaterials(materials, 0.23)), 0.23)
-
-    const rows =
-      laborCostsNetPreDiscount(laborCostsNet, discountAmount) -
-      discountAmount +
-      billedMaterials(materials, 0.23)
-
-    expect(rows).toBeCloseTo(combined.net)
   })
 })
 

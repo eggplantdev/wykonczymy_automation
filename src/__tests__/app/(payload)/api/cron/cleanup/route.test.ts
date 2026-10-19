@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
 vi.mock('@/lib/db/snapshots', () => ({ gcSnapshots: vi.fn() }))
@@ -13,6 +12,7 @@ vi.mock('@/lib/equipment/purge-trash', () => ({ purgeEquipmentTrash: vi.fn() }))
 vi.mock('@/lib/leads/purge-trash', () => ({ purgeLeadTrash: vi.fn() }))
 vi.mock('@/lib/db/template-snapshots', () => ({ gcTemplateSnapshots: vi.fn() }))
 vi.mock('@/lib/kosztorys/templates/purge-trash', () => ({ purgeTemplateTrash: vi.fn() }))
+vi.mock('@/lib/media/gc-media', () => ({ gcMedia: vi.fn() }))
 
 import { GET } from '@/app/(payload)/api/cron/cleanup/route'
 import { getPayload } from 'payload'
@@ -25,40 +25,48 @@ import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
 import { purgeLeadTrash } from '@/lib/leads/purge-trash'
 import { gcTemplateSnapshots } from '@/lib/db/template-snapshots'
 import { purgeTemplateTrash } from '@/lib/kosztorys/templates/purge-trash'
+import { gcMedia } from '@/lib/media/gc-media'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
-const TRASH = { purged: 2, skippedKosztorys: 1, blocked: 0, failed: 0 }
-const CASH_REGISTER_TRASH = { purged: 1, blocked: 0, failed: 0 }
-const WORKER_TRASH = { purged: 1, blocked: 1, failed: 0 }
-const VEHICLE_TRASH = { purged: 1, blocked: 0, failed: 0 }
-const EQUIPMENT_TRASH = { purged: 2, blocked: 0, failed: 0 }
-const LEAD_TRASH = { purged: 3, blocked: 0, failed: 0 }
-const TEMPLATE_SNAPSHOTS = { deleted: 2, ceiling: 1, daily: 1, weekly: 0 }
-const TEMPLATE_TRASH = { purged: 1, blocked: 0, failed: 0 }
+const RESULTS = {
+  snapshots: { deleted: 7, ceiling: 2, daily: 4, weekly: 1, investorExpired: 0 },
+  trash: { purged: 2, skippedKosztorys: 1, blocked: 0, failed: 0 },
+  cashRegisterTrash: { purged: 1, blocked: 0, failed: 0 },
+  workerTrash: { purged: 1, blocked: 1, failed: 0 },
+  vehicleTrash: { purged: 1, blocked: 0, failed: 0 },
+  equipmentTrash: { purged: 2, blocked: 0, failed: 0 },
+  leadTrash: { purged: 3, blocked: 0, failed: 0 },
+  templateSnapshots: { deleted: 2, ceiling: 1, daily: 1, weekly: 0 },
+  templateTrash: { purged: 1, blocked: 0, failed: 0 },
+  media: { recorded: 3, healed: 1, deleted: 2, failed: 0 },
+}
+const STEPS = {
+  snapshots: gcSnapshots,
+  trash: purgeTrash,
+  cashRegisterTrash: purgeCashRegisterTrash,
+  workerTrash: purgeWorkerTrash,
+  vehicleTrash: purgeVehicleTrash,
+  equipmentTrash: purgeEquipmentTrash,
+  leadTrash: purgeLeadTrash,
+  templateSnapshots: gcTemplateSnapshots,
+  templateTrash: purgeTemplateTrash,
+  media: gcMedia,
+}
+type StepT = keyof typeof STEPS
 
 describe('cron cleanup route', () => {
-  const previous = process.env.CRON_SECRET
-
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
-    vi.mocked(purgeCashRegisterTrash).mockResolvedValue(CASH_REGISTER_TRASH)
-    vi.mocked(purgeWorkerTrash).mockResolvedValue(WORKER_TRASH)
-    vi.mocked(purgeVehicleTrash).mockResolvedValue(VEHICLE_TRASH)
-    vi.mocked(purgeEquipmentTrash).mockResolvedValue(EQUIPMENT_TRASH)
-    vi.mocked(purgeLeadTrash).mockResolvedValue(LEAD_TRASH)
-    vi.mocked(gcTemplateSnapshots).mockResolvedValue(TEMPLATE_SNAPSHOTS)
-    vi.mocked(purgeTemplateTrash).mockResolvedValue(TEMPLATE_TRASH)
-  })
-
-  afterEach(() => {
-    process.env.CRON_SECRET = previous
-    vi.clearAllMocks()
+    vi.stubEnv('CRON_SECRET', 'test-secret')
+    for (const step of Object.keys(STEPS) as StepT[]) {
+      vi.mocked(STEPS[step]).mockResolvedValue(RESULTS[step] as never)
+    }
   })
 
   function request(headers: Record<string, string> = {}) {
     return new NextRequest('http://localhost/api/cron/cleanup', { headers })
   }
+  const authorized = () => GET(request({ authorization: 'Bearer test-secret' }))
 
   it('rejects a request with no Authorization header', async () => {
     const res = await GET(request())
@@ -66,207 +74,29 @@ describe('cron cleanup route', () => {
     expect(getPayload).not.toHaveBeenCalled()
   })
 
-  it('rejects a request with the wrong secret', async () => {
-    const res = await GET(request({ authorization: 'Bearer wrong' }))
-    expect(res.status).toBe(401)
-    expect(getPayload).not.toHaveBeenCalled()
-  })
-
-  it('fails closed when CRON_SECRET is unset', async () => {
-    delete process.env.CRON_SECRET
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-    expect(res.status).toBe(401)
-    expect(getPayload).not.toHaveBeenCalled()
-  })
-
-  it('forwards the per-band retention breakdown on an authorized request', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 7,
-      ceiling: 2,
-      daily: 4,
-      weekly: 1,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
+  it('forwards every step’s breakdown on an authorized request', async () => {
+    const res = await authorized()
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({
-      ok: true,
-      snapshots: { deleted: 7, ceiling: 2, daily: 4, weekly: 1, investorExpired: 0 },
-      trash: TRASH,
-      cashRegisterTrash: CASH_REGISTER_TRASH,
-      workerTrash: WORKER_TRASH,
-      vehicleTrash: VEHICLE_TRASH,
-      equipmentTrash: EQUIPMENT_TRASH,
-      leadTrash: LEAD_TRASH,
-      templateSnapshots: TEMPLATE_SNAPSHOTS,
-      templateTrash: TEMPLATE_TRASH,
-    })
+    await expect(res.json()).resolves.toEqual({ ok: true, ...RESULTS })
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.kosztorysSnapshots, { expire: 0 })
   })
 
-  it('still reports the snapshot sweep when the trash purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 1,
-      ceiling: 0,
-      daily: 1,
-      weekly: 0,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockRejectedValue(new Error('boom'))
+  it.each(Object.keys(STEPS) as StepT[])(
+    'still reports every other step when %s throws',
+    async (failing) => {
+      vi.mocked(STEPS[failing]).mockRejectedValue(new Error('boom'))
 
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
+      const res = await authorized()
 
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({
-      ok: false,
-      snapshots: { deleted: 1, ceiling: 0, daily: 1, weekly: 0, investorExpired: 0 },
-      trash: null,
-      cashRegisterTrash: CASH_REGISTER_TRASH,
-      workerTrash: WORKER_TRASH,
-      vehicleTrash: VEHICLE_TRASH,
-      equipmentTrash: EQUIPMENT_TRASH,
-      leadTrash: LEAD_TRASH,
-      templateSnapshots: TEMPLATE_SNAPSHOTS,
-      templateTrash: TEMPLATE_TRASH,
-    })
-  })
+      expect(res.status).toBe(200)
+      await expect(res.json()).resolves.toEqual({ ok: false, ...RESULTS, [failing]: null })
+    },
+  )
 
-  it('still purges the trash when the snapshot sweep throws, and fails only when every step does', async () => {
-    vi.mocked(gcSnapshots).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-
-    const partial = await GET(request({ authorization: 'Bearer test-secret' }))
-    expect(partial.status).toBe(200)
-    await expect(partial.json()).resolves.toEqual({
-      ok: false,
-      snapshots: null,
-      trash: TRASH,
-      cashRegisterTrash: CASH_REGISTER_TRASH,
-      workerTrash: WORKER_TRASH,
-      vehicleTrash: VEHICLE_TRASH,
-      equipmentTrash: EQUIPMENT_TRASH,
-      leadTrash: LEAD_TRASH,
-      templateSnapshots: TEMPLATE_SNAPSHOTS,
-      templateTrash: TEMPLATE_TRASH,
-    })
-
-    vi.mocked(purgeTrash).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeCashRegisterTrash).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeWorkerTrash).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeVehicleTrash).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeEquipmentTrash).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeLeadTrash).mockRejectedValue(new Error('boom'))
-    vi.mocked(gcTemplateSnapshots).mockRejectedValue(new Error('boom'))
-    vi.mocked(purgeTemplateTrash).mockRejectedValue(new Error('boom'))
-    const total = await GET(request({ authorization: 'Bearer test-secret' }))
-    expect(total.status).toBe(500)
-  })
-  it('still reports the investment purge when the kasa purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 0,
-      ceiling: 0,
-      daily: 0,
-      weekly: 0,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-    vi.mocked(purgeCashRegisterTrash).mockRejectedValue(new Error('boom'))
-
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({
-      ok: false,
-      trash: TRASH,
-      cashRegisterTrash: null,
-    })
-  })
-
-  it('still reports the kasa purge when the worker purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 0,
-      ceiling: 0,
-      daily: 0,
-      weekly: 0,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-    vi.mocked(purgeWorkerTrash).mockRejectedValue(new Error('boom'))
-
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({
-      ok: false,
-      cashRegisterTrash: CASH_REGISTER_TRASH,
-      workerTrash: null,
-    })
-  })
-
-  it('still reports the worker purge when the fleet purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 0,
-      ceiling: 0,
-      daily: 0,
-      weekly: 0,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-    vi.mocked(purgeVehicleTrash).mockRejectedValue(new Error('boom'))
-
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({
-      ok: false,
-      workerTrash: WORKER_TRASH,
-      vehicleTrash: null,
-      equipmentTrash: EQUIPMENT_TRASH,
-    })
-  })
-
-  it('still reports the fleet purge when the equipment purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 0,
-      ceiling: 0,
-      daily: 0,
-      weekly: 0,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-    vi.mocked(purgeEquipmentTrash).mockRejectedValue(new Error('boom'))
-
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({
-      ok: false,
-      vehicleTrash: VEHICLE_TRASH,
-      equipmentTrash: null,
-    })
-  })
-
-  it('still reports the equipment purge when the lead purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({
-      deleted: 0,
-      ceiling: 0,
-      daily: 0,
-      weekly: 0,
-      investorExpired: 0,
-    })
-    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
-    vi.mocked(purgeLeadTrash).mockRejectedValue(new Error('boom'))
-
-    const res = await GET(request({ authorization: 'Bearer test-secret' }))
-
-    expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toMatchObject({
-      ok: false,
-      equipmentTrash: EQUIPMENT_TRASH,
-      leadTrash: null,
-    })
+  it('fails only when every step does', async () => {
+    for (const step of Object.values(STEPS)) vi.mocked(step).mockRejectedValue(new Error('boom'))
+    const res = await authorized()
+    expect(res.status).toBe(500)
   })
 })

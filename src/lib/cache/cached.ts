@@ -9,5 +9,18 @@ import { serverEnv } from '@/lib/env/server'
 // dev-server restart — the pid, not a timestamp, so every module instance in one process agrees.
 const DEPLOY_ID = serverEnv.VERCEL_DEPLOYMENT_ID ?? `local-${process.pid}`
 
-export const cached: typeof unstable_cache = (fn, keyParts = [], options) =>
-  unstable_cache(fn, [...keyParts, DEPLOY_ID], options)
+// Without it, a render that read rows before a write but stored them after the tag expired serves
+// those pre-write rows as fresh until the next write. A write landing during the epoch's own save
+// still slips through — a window of milliseconds, accepted.
+const tagEpoch = (tags: string[]) =>
+  unstable_cache(async () => Date.now(), ['epoch', ...[...tags].sort(), DEPLOY_ID], { tags })
+
+export const cached: typeof unstable_cache = (fn, keyParts = [], options) => {
+  if (!options?.tags?.length) return unstable_cache(fn, [...keyParts, DEPLOY_ID], options)
+  const readEpoch = tagEpoch(options.tags)
+  const read = async (...args: Parameters<typeof fn>) => {
+    const epoch = String(await readEpoch())
+    return unstable_cache(fn, [...keyParts, DEPLOY_ID, epoch], options)(...args)
+  }
+  return read as typeof fn
+}

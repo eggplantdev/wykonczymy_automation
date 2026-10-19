@@ -1,103 +1,72 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-postgres'
-import { getDb } from '@/lib/db/get-db'
-import { listDailyEligibleInvestmentIds } from '@/lib/db/snapshots'
-import { captureDailySnapshot } from '@/lib/kosztorys/capture-daily-snapshots'
-import {
-  createTestInvestment,
-  deleteTestInvestment,
-  trashDaysAgo,
-} from '@/__tests__/helpers/investment'
-import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { describe, it, expect } from 'vitest'
+import { sameDailyState } from '@/lib/kosztorys/capture-daily-snapshots'
+import { serializeTree } from '@/lib/kosztorys/serialize-tree'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
+import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
 
-vi.mock('server-only', () => ({}))
+const liveTree = (overrides: Partial<KosztorysItemT> = {}, rest: Partial<KosztorysTreeT> = {}) =>
+  tree(
+    [item(1, 'Płytki', 10, 100, overrides)],
+    [{ ...stage(7, 1, 'Płytki'), split: oneWorkerSplit(42) }],
+    [{ itemId: 1, stageId: 7, qtyDone: 3 }],
+    { globalDiscount: { type: 'amount', value: 250 }, ...rest },
+  )
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+// What jsonb hands back: no `undefined` keys.
+const stored = (live: KosztorysTreeT): StoredSnapshotPayloadT =>
+  JSON.parse(JSON.stringify(serializeTree(live)))
 
-describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
-  let payload: Payload
-  let db: Awaited<ReturnType<typeof getDb>>
-  const created: number[] = []
-
-  const day = (iso: string) => new Date(iso)
-  const DAY_1 = day('2026-01-14T22:59:59.999Z')
-  const DAY_2 = day('2026-01-15T22:59:59.999Z')
-  const DAY_3 = day('2026-01-16T22:59:59.999Z')
-
-  beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
-    db = await getDb(payload)
-  })
-
-  afterAll(async () => {
-    for (const id of created) await deleteTestInvestment(payload, id)
-  })
-
-  async function investment(name: string, overrides = {}) {
-    const id = await createTestInvestment(payload, name, overrides)
-    created.push(id)
-    return id
+function withoutDeployAddedKeys(payload: StoredSnapshotPayloadT): StoredSnapshotPayloadT {
+  return {
+    ...payload,
+    items: payload.items.map(
+      ({
+        aiRecheck: _aiRecheck,
+        aiNewInformation: _aiNewInformation,
+        catalogueItemId: _catalogueItemId,
+        currentPlannedQty: _currentPlannedQty,
+        aiPlannedQty: _aiPlannedQty,
+        reviewStatus: _reviewStatus,
+        changeReason: _changeReason,
+        ...rest
+      }) => rest,
+    ),
+    stages: payload.stages.map(({ split: _split, completed: _completed, ...rest }) => ({
+      ...rest,
+      workerId: 42,
+    })),
   }
+}
 
-  async function dailyRows(investmentId: number) {
-    const res = await db.execute(sql`
-      SELECT taken_at, payload FROM kosztorys_snapshots
-      WHERE investment_id = ${investmentId} AND kind = 'daily' ORDER BY taken_at
-    `)
-    return res.rows
-  }
-
-  it('stores the first day, skips an unchanged one, and stores again after an edit', async () => {
-    const investmentId = await investment('daily-capture-flow')
-    const tree = await createKosztorysTree(payload, investmentId, {
-      sections: [
-        { name: 'Łazienka', items: [{ description: 'Płytki', plannedQty: 10, clientPrice: 100 }] },
-      ],
-    })
-    await db.execute(sql`
-      UPDATE investments SET global_discount_type = 'amount', global_discount_value = 250
-      WHERE id = ${investmentId}
-    `)
-
-    expect(await captureDailySnapshot(db, investmentId, DAY_1)).toBe('stored')
-    expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('unchanged')
-
-    const setQty = (plannedQty: number) =>
-      payload.update({
-        collection: 'kosztorys-items',
-        id: tree.itemIds[0],
-        data: { plannedQty },
-        context: { skipRevalidation: true },
-      })
-
-    await setQty(12)
-    expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('stored')
-    await setQty(14)
-    expect(await captureDailySnapshot(db, investmentId, DAY_2)).toBe('unchanged')
-    expect(await captureDailySnapshot(db, investmentId, DAY_3)).toBe('stored')
-
-    const rows = await dailyRows(investmentId)
-    expect(rows.map((row) => new Date(row.taken_at as string).toISOString())).toEqual([
-      DAY_1.toISOString(),
-      DAY_2.toISOString(),
-      DAY_3.toISOString(),
-    ])
-    expect(rows[0].payload).toMatchObject({ globalDiscount: { type: 'amount', value: 250 } })
+describe('sameDailyState', () => {
+  it('treats an unchanged tree as the same day', () => {
+    const live = liveTree()
+    expect(sameDailyState(stored(live), serializeTree(live), live)).toBe(true)
   })
 
-  it('offers only open, untrashed, non-rejected investments to the night run', async () => {
-    const active = await investment('daily-eligible-active')
-    const planned = await investment('daily-eligible-planned', { status: 'planowana' })
-    const completed = await investment('daily-eligible-completed', { status: 'completed' })
-    const rejected = await investment('daily-eligible-rejected', { status: 'rejected' })
-    const trashed = await investment('daily-eligible-trashed')
-    await trashDaysAgo(db, trashed, 1)
+  it('does not count keys a deploy added at their default as a change', () => {
+    const live = liveTree()
+    const previous = withoutDeployAddedKeys(stored(live))
+    expect(sameDailyState(previous, serializeTree(live), live)).toBe(true)
+  })
 
-    const eligible = await listDailyEligibleInvestmentIds(db)
-    expect(eligible).toEqual(expect.arrayContaining([active, planned]))
-    for (const id of [completed, rejected, trashed]) expect(eligible).not.toContain(id)
+  it('counts a key the previous row lacked once it holds a real value', () => {
+    const before = withoutDeployAddedKeys(stored(liveTree()))
+    const live = liveTree({ catalogueItemId: 5 })
+    expect(sameDailyState(before, serializeTree(live), live)).toBe(false)
+  })
+
+  it('counts an edited Przedmiar as a change', () => {
+    const previous = stored(liveTree())
+    const live = liveTree({ plannedQty: 12 })
+    expect(sameDailyState(previous, serializeTree(live), live)).toBe(false)
+  })
+
+  it('counts a changed rabat as a change', () => {
+    const previous = stored(liveTree())
+    const live = liveTree({}, { globalDiscount: { type: 'amount', value: 300 } })
+    expect(sameDailyState(previous, serializeTree(live), live)).toBe(false)
   })
 })

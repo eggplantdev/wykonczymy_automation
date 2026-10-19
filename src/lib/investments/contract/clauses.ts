@@ -1,7 +1,7 @@
 import { CONTRACTOR } from '@/lib/investments/contract/constants'
 import type { ContractSectionT } from '@/lib/investments/contract/types'
 
-// Transcribed from context/reference/umowa/umowa-wykonczeniowa.pdf, typos fixed only.
+// Transcribed from the owner's PDF (gitignored, so this file is the only copy in the repo), typos fixed only.
 export const CONTRACT_SECTIONS: ContractSectionT[] = [
   {
     title: '§ 1. PRZEDMIOT UMOWY',

@@ -12,8 +12,8 @@ import type { StoredSnapshotPayloadT } from './snapshot-format'
 type OptionsT = {
   investmentId: number
   // `manual`, not `auto`, is what makes a wholesale replacement genuinely undoable: an auto snapshot
-  // is thinned to one per day/week as it ages.
-  label: string
+  // is thinned to one per day/week as it ages. `null` takes an `auto` one — „Przywróć wersję".
+  label: string | null
   takenBy: number
   tree: StoredSnapshotPayloadT
   // The reload path alone passes this: a preset's przedmiar is all zeroes, so a surviving amount
@@ -57,7 +57,7 @@ async function attemptReplacement(
       const current = await serializeKosztorys(investmentId, req)
       await insertSnapshot(db, {
         investmentId,
-        kind: 'manual',
+        kind: label === null ? 'auto' : 'manual',
         label,
         takenBy,
         payload: current,

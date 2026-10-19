@@ -27,7 +27,7 @@ describe('buildReversalPatches', () => {
 
 describe('planReversalWrites', () => {
   // The lane keys must match the ones the forward autosave used for the same cell, or an undo can
-  // overtake the save it is undoing (EX-526 #1).
+  // overtake the save it is undoing.
   it('pairs each write with its cell lane', () => {
     const writes = planReversalWrites(FIELDS, STAGES, 'undo')
 

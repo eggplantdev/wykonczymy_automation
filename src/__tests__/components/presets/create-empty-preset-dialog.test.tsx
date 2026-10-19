@@ -5,15 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { CreateEmptyPresetDialog } from '@/components/presets/create-empty-preset-dialog'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
-
-const push = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push }),
-}))
-vi.mock('@/lib/actions/kosztorys-presets', () => ({
-  createEmptyPresetAction: vi.fn(),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+import { router } from '@/__tests__/stubs/next-navigation'
 
 describe('CreateEmptyPresetDialog', () => {
   it('refuses to submit a szablon with no name', async () => {
@@ -50,7 +42,7 @@ describe('CreateEmptyPresetDialog', () => {
     await user.type(await screen.findByLabelText('Nazwa szablonu'), 'Kuchnia')
     await user.click(screen.getByRole('button', { name: 'Załóż' }))
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/szablony/42'))
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith('/szablony/42'))
     expect(screen.queryByLabelText('Nazwa szablonu')).not.toBeInTheDocument()
   })
 })

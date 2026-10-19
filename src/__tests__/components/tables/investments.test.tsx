@@ -7,17 +7,14 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
 import { bare } from '@/__tests__/helpers/money'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-  usePathname: () => '/inwestycje',
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/inwestycje'
 
 // OWNER, because Marża v2 is behind the admin/owner gate.
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: 'OWNER' }),
-}))
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
 
 const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => ({
   id: 1,

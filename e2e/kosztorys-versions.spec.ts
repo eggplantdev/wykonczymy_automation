@@ -1,19 +1,20 @@
 import { test, expect, type Page } from '@playwright/test'
-import { type ReconSeedT, seedReconInvestments } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import {
+  GRID_VIEWPORT,
   LOAD_VERSION_ITEM,
   openEditor,
   pickKosztorysOption as pickOption,
   versionsDrawer,
 } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-let seed: ReconSeedT
+let seed: E2ESeedsT['versions']
 
 // The seed makes two investments and the tests take one each, so neither inherits the other's versions.
-test.beforeAll(async ({ browser }) => {
-  seed = await seedReconInvestments(browser)
+test.beforeAll(() => {
+  seed = readSeed('versions')
 })
 
 const CLEAR_ITEM = /Usuwa całą rozpiskę/

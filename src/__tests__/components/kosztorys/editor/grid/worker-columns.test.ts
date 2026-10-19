@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import {
-  buildV2Columns,
-  buildV2Grid,
-} from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
@@ -12,6 +9,7 @@ import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds } from '@/__tests__/helpers/grid-columns'
 
 const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', split: oneWorkerSplit(3) })]
 
@@ -28,9 +26,7 @@ function workerOpts(
 }
 
 function workerIds(extra: Partial<BuildV2ColumnsOptsT> = {}, hidden: string[] = []): string[] {
-  return buildV2Columns({ ...workerOpts('w_tools', hidden), ...extra })
-    .map((column) => column.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ ...workerOpts('w_tools', hidden), ...extra })
 }
 
 describe('worker columns', () => {
@@ -117,16 +113,16 @@ describe('worker columns', () => {
 
   it("follows the owner's stored order, the stawka under its plane-agnostic key", () => {
     const ids = (ranks: ColumnRanksT) =>
-      buildV2Columns(workerOpts('w_tools', [], ranks)).map((column) => column.id)
+      buildV2Grid(workerOpts('w_tools', [], ranks)).columns.map((column) => column.id)
     const visible = ids({ net: -2, rate: -1 })
 
     expect(visible.slice(0, 3)).toEqual(['description', 'net', planePriceKey('price', 'w_tools')])
   })
 
   it('keeps „Opis prac" first whatever rank it is given', () => {
-    const visible = buildV2Columns(workerOpts('w_tools', [], { description: 99, net: -1 })).map(
-      (column) => column.id,
-    )
+    const visible = buildV2Grid(
+      workerOpts('w_tools', [], { description: 99, net: -1 }),
+    ).columns.map((column) => column.id)
 
     expect(visible.slice(0, 2)).toEqual(['description', 'net'])
   })
@@ -136,7 +132,7 @@ describe('worker columns', () => {
   })
 
   it('resolves the stawka to the own-tools plane for an own-tools worker', () => {
-    const visible = buildV2Columns(workerOpts('own_tools')).map((column) => column.id)
+    const visible = buildV2Grid(workerOpts('own_tools')).columns.map((column) => column.id)
 
     expect(visible).toContain(planePriceKey('price', 'own_tools'))
     expect(visible).not.toContain(planePriceKey('price', 'w_tools'))
@@ -189,15 +185,16 @@ describe('worker columns the data takes off', () => {
 
 describe('the pair: worker list + price plane', () => {
   it('throws unless view is the worker plane', () => {
-    expect(() => buildV2Columns({ ...workerOpts('w_tools'), view: 'client' })).toThrow(
+    expect(() => buildV2Grid({ ...workerOpts('w_tools'), view: 'client' }).columns).toThrow(
       /workerSurface requires view='w_tools'/,
     )
-    expect(() => buildV2Columns({ ...workerOpts('w_tools'), view: 'own_tools' })).toThrow()
+    expect(() => buildV2Grid({ ...workerOpts('w_tools'), view: 'own_tools' }).columns).toThrow()
   })
 
   it('refuses both audiences at once', () => {
-    expect(() =>
-      buildV2Columns({ ...workerOpts('w_tools'), previewVisible: true, view: 'w_tools' }),
+    expect(
+      () =>
+        buildV2Grid({ ...workerOpts('w_tools'), previewVisible: true, view: 'w_tools' }).columns,
     ).toThrow()
   })
 })

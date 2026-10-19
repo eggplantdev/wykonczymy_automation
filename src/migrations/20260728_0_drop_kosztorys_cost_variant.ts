@@ -2,7 +2,7 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // The per-item cost-variant tier never had a consumer (its only reader was deleted in 6bd7c745).
-// The concept it was meant to carry shipped on kosztorys_stages.plane instead (EX-565), at the
+// The concept it was meant to carry shipped on kosztorys_stages.plane instead, at the
 // etap grain the owner confirmed.
 // No backfill: kosztorys data is throwaway until dogfooding lands on `main`. Neither column
 // carries an index, constraint or pg enum (both plain varchar, 20260708_2), and kosztorys_items

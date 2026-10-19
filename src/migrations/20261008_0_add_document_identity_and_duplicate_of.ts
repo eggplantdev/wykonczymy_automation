@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-1025: a paragon management refused as a duplicate keeps what it duplicates, `{source, id}`.
+// A paragon management refused as a duplicate keeps what it duplicates, `{source, id}`.
 // NULL is an ordinary refusal. Not a foreign key: the mark must outlive the expense it points at.
 //
 // The document identity on a transakcja feeds the duplicate check. `document_date` is ISO

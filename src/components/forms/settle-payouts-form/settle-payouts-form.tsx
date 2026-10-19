@@ -197,7 +197,7 @@ export function SettlePayoutsForm({
         }}
       >
         <FieldGroup>
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <div className="min-w-0 flex-1">
               <SourceRegisterField
                 form={form}
@@ -216,11 +216,11 @@ export function SettlePayoutsForm({
                   label="Do rozdysponowania"
                   placeholder="0.00"
                   type="number"
-                  fieldClassName="w-44"
+                  fieldClassName="sm:w-44"
                 />
               )}
             </form.AppField>
-            <DateField form={form} fieldClassName="w-40" />
+            <DateField form={form} fieldClassName="sm:w-40" />
           </div>
           <DescriptionField form={form} placeholder="Opis wypłaty" />
         </FieldGroup>

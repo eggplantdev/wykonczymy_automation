@@ -21,7 +21,7 @@ import {
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { cn } from '@/lib/utils/cn'
 
-export const BAND_LABEL_CELL_CLASS = 'kosztorys-band-label-cell'
+const BAND_LABEL_CELL_CLASS = 'kosztorys-band-label-cell'
 export const STRIPE_COLUMN_CLASS = 'kosztorys-stripe-column'
 const TOTALS_CELL_CLASS = 'kosztorys-totals-cell'
 

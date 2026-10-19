@@ -15,15 +15,15 @@ worktree: ../wykonczymy-worktrees/pomiar-bez-etapu
 > the difference). It stays as the folder id — nothing in this change creates such a stage.
 
 The sheet import loses work the owner ticked in „Pomiar z natury" but never broke down into stages.
-In the app's model pomiar IS the stage sum (EX-494/EX-489), so that work has nowhere to land.
+In the app's model pomiar IS the stage sum, so that work has nowhere to land.
 
 Evidence gathered 2026-08-13 (formulas read via `scripts/inspect-sheet.mjs`):
 
-| Sheet                                    | Pomiar as formula `=SUM(D:M)` | Pomiar > Σstages      | Pomiar < Σstages    |
-| ---------------------------------------- | ----------------------------- | --------------------- | ------------------- |
-| canonical (16 July, blank offer)         | 435 / 435                     | 0                     | 0                   |
-| „wypełniony kosztorys do testów"         | 0 / 253                       | 27 items (+18 782 zł) | 3 items (−4 279 zł) |
-| investment 31 (11 listopada Gabinety)    | 0 / 245                       | 32 items (+41 377 zł) | 0                   |
+| Sheet                                 | Pomiar as formula `=SUM(D:M)` | Pomiar > Σstages      | Pomiar < Σstages    |
+| ------------------------------------- | ----------------------------- | --------------------- | ------------------- |
+| canonical (16 July, blank offer)      | 435 / 435                     | 0                     | 0                   |
+| „wypełniony kosztorys do testów"      | 0 / 253                       | 27 items (+18 782 zł) | 3 items (−4 279 zł) |
+| investment 31 (11 listopada Gabinety) | 0 / 245                       | 32 items (+41 377 zł) | 0                   |
 
 > **Superseded (2026-08-20):** the survey measured only one formula shape, which is why it came out
 > binary; see domain notes § „Zawężone 2026-08-20" and `context/reference/kosztorys-sheet/formula-anomalies.md`.
@@ -40,7 +40,7 @@ Pomiar 95, stages 25 + 30 = 55, i.e. 38 000 zł vs 22 000 zł; the sheet's own b
 
 - **A read-only reference number per item.** The import stores the hand-typed Pomiar. It feeds no
   labor, margin or crew settlement — its only job is comparison. The model is unchanged: the stage sum
-  stays the only truth about work done. The "two truths" objection (EX-494) doesn't apply: the stored
+  stays the only truth about work done. The "two truths" objection doesn't apply: the stored
   number computes nothing, so it doesn't compete for that role.
 - **Discrepancy computed live**, not stored — the list shrinks as the owner enters stage quantities
   ("this list should be dynamic so it doesn't shout about a discrepancy that's gone").
@@ -56,7 +56,7 @@ Pomiar 95, stages 25 + 30 = 55, i.e. 38 000 zł vs 22 000 zł; the sheet's own b
 
 ### Rejected
 
-- **A synthetic „Pomiar bez etapu" stage** for the difference — reasons in domain notes (EX-686).
+- **A synthetic „Pomiar bez etapu" stage** for the difference — reasons in domain notes.
 - Restoring „Pomiar z natury" as a **computing** field — brings back the two-truths problem the model
   cut on purpose.
 - Gluing the difference onto the last non-empty stage — silent, wrong attribution (a crew settled for

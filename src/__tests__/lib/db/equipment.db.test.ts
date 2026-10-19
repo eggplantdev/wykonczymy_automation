@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -7,15 +7,10 @@ import {
   loadEquipmentById,
   loadEquipmentOverview,
 } from '@/lib/db/equipment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 
-vi.mock('server-only', () => ({}))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = 'EX-758 current state'
 
 describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
@@ -37,9 +32,7 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     (await loadEquipmentOverview(payload)).find((row) => row.id === equipmentId)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     await db.execute(sql`DELETE FROM equipment_events WHERE note = ${MARKER}`)
@@ -47,17 +40,10 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     await db.execute(sql`DELETE FROM warehouses WHERE name = ${MARKER}`)
     await purgeFixtureUsers(db)
 
-    const holder = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Equipment Current Holder',
-        role: 'EMPLOYEE',
-        email: 'equipment-current-holder@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    holderId = await createTestUser(payload, {
+      name: 'Equipment Current Holder',
+      email: 'equipment-current-holder@test.local',
     })
-    holderId = Number(holder.id)
 
     const warehouse = await payload.create({
       collection: 'warehouses',
@@ -67,13 +53,7 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     })
     warehouseId = Number(warehouse.id)
 
-    const equipment = await payload.create({
-      collection: 'equipment',
-      data: { name: MARKER, status: 'IN_USE' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    equipmentId = Number(equipment.id)
+    equipmentId = await createTestEquipment(payload, MARKER)
 
     // Written in the order that would trap a `created_at` reading: the handover to the person
     // HAPPENED later but is ENTERED first, so the warehouse row is the newest row in the table.
@@ -127,16 +107,11 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
   })
 
   it('leaves a retired item off the list of who is holding equipment', async () => {
-    const sold = await payload.create({
-      collection: 'equipment',
-      data: { name: `${MARKER} sprzedany`, status: 'SOLD' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
+    const soldId = await createTestEquipment(payload, `${MARKER} sprzedany`, { status: 'SOLD' })
     await payload.create({
       collection: 'equipment-events',
       data: {
-        equipment: Number(sold.id),
+        equipment: soldId,
         note: MARKER,
         occurredAt: '2026-08-20T00:00:00.000Z',
         holder: holderId,
@@ -146,9 +121,9 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     } as Parameters<Payload['create']>[0])
 
     const held = await loadEquipmentAtLocation(payload, { kind: 'holder', id: holderId })
-    await db.execute(sql`DELETE FROM equipment WHERE id = ${Number(sold.id)}`)
+    await db.execute(sql`DELETE FROM equipment WHERE id = ${soldId}`)
 
-    expect(held.map((row) => row.id)).not.toContain(Number(sold.id))
+    expect(held.map((row) => row.id)).not.toContain(soldId)
   })
 
   // The column carries a unique index and Postgres treats two empty strings as a collision, so
@@ -187,16 +162,9 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
   })
 
   it('returns an item that has never moved with no location at all', async () => {
-    const fresh = await payload.create({
-      collection: 'equipment',
-      data: { name: `${MARKER} nietknięty`, status: 'IN_USE' },
-      overrideAccess: true,
-      context: { skipRevalidation: true },
-    })
-    const row = (await loadEquipmentOverview(payload)).find(
-      (candidate) => candidate.id === Number(fresh.id),
-    )
-    await db.execute(sql`DELETE FROM equipment WHERE id = ${Number(fresh.id)}`)
+    const freshId = await createTestEquipment(payload, `${MARKER} nietknięty`)
+    const row = (await loadEquipmentOverview(payload)).find((candidate) => candidate.id === freshId)
+    await db.execute(sql`DELETE FROM equipment WHERE id = ${freshId}`)
 
     expect(row?.location).toEqual({ kind: 'unknown' })
     expect(row?.locatedAt).toBeNull()

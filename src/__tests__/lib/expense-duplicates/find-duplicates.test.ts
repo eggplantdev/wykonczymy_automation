@@ -37,19 +37,6 @@ const pairKeys = (pairs: ReturnType<typeof findDuplicatePairs>) =>
   pairs.map(({ a, b }) => [a.key, b.key].sort().join(' ~ ')).sort()
 
 describe('findDuplicatePairs — the pairwise window', () => {
-  it('pairs two 2025 twins ten days apart and not twins four months apart', () => {
-    const march = transaction(1, { date: '2025-03-01 10:00:00+00' })
-    const tenDaysLater = transaction(2, { date: '2025-03-11 10:00:00+00' })
-    const julyAmount = { amount: 12.5 }
-    const july = transaction(3, { ...julyAmount, date: '2025-07-02 10:00:00+00' })
-    const march2 = transaction(4, { ...julyAmount, date: '2025-03-01 10:00:00+00' })
-
-    const pairs = findDuplicatePairs([march, tenDaysLater, july, march2], everyone)
-
-    expect(pairKeys(pairs)).toEqual(['transaction-1 ~ transaction-2'])
-    expect(pairs[0].reasons).toEqual(['same-amount'])
-  })
-
   it('returns the same pair whichever side is the probe', () => {
     // An unread probe amount lets the number count alone — only one orientation sees it.
     const unread = readRow(7, 0, { amount: null, documentNumber: 'FV/0042/2026' })

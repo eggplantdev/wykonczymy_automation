@@ -25,7 +25,7 @@ Open points for the plan:
 - Widths: `useWrapColumnWidths` finds header cells by a per-id class — every column needs one,
   assigned centrally (the `gridColumns` map in `kosztorys-editor-body.tsx`).
 - Clip cue: `globals.css` hand-writes one selector pair per id; with all columns measured it has to
-  become generic (e.g. a per-cell class instead of row × cell intersection) — mind EX-496 render
+  become generic (e.g. a per-cell class instead of row × cell intersection) — mind the render
   churn and the `rowHeights` dependency.
 - Edits to a measured text (opis, komentarz) don't reset dsg's row-height cache in „fit all rows"
   mode — decide whether that belongs here.

@@ -10,7 +10,7 @@ import {
 } from '@/lib/fleet/thresholds'
 import type { InspectionEventT } from '@/lib/fleet/types'
 
-export const OVERDUE_RENAG_DAYS = 7
+const OVERDUE_RENAG_DAYS = 7
 
 export type NotifyDecisionT = {
   bucket: DeadlineBucketT | null

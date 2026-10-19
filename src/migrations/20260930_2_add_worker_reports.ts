@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// Worker work reports (EX-947). Purely ADDITIVE: two raw tables plus the report-link collection.
+// Worker work reports. Purely ADDITIVE: two raw tables plus the report-link collection.
 //
 // The report tables are raw, not collections: nothing reads them through Payload. Their FKs into
 // the kosztorys tree are `ON DELETE SET NULL` because a report must OUTLIVE a restore, which wipes

@@ -1,21 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockResolvedValue({
-    success: true,
-    user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
-  }),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 // Names no section will ever carry, so no seeded entry is touched.
 const ROOM_KEY = 'ex965 łazienka # wanna'
 const HASH_KEY = 'ex965 łazienka \\# wanna'
@@ -38,9 +26,8 @@ describe.skipIf(!ENV_READY)('saveSectionTranslationsAction (DB)', () => {
     )
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    db = await getDb(await getPayload({ config }))
+    authState.role = 'ADMIN'
+    db = await getDb(await bootTestPayload())
     ;({ saveSectionTranslationsAction: save } = await import('@/lib/actions/section-translations'))
     await purge()
   })

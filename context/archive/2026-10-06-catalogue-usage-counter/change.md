@@ -14,7 +14,7 @@ worktree: null
 Katalog prac: licznik użyć (przedmiar/etapy) + podział „używane, a brak w katalogu” na powtarzające
 się / jednorazowe, z ustaleniami z dumpu 2026-10-06.
 
-Linear: **EX-1010**. Rozszerzenie raportu EX-873 („Policz użycia", `context/archive/2026-09-28-catalogue-filters-and-usage/`),
+Rozszerzenie raportu „Policz użycia" (`context/archive/2026-09-28-catalogue-filters-and-usage/`),
 nie nowa funkcja obok.
 
 ### Pomiar — `dumps/dump-latest.sql` (2026-10-06 13:40), bez szablonów i kosza
@@ -26,7 +26,7 @@ nie nowa funkcja obok.
 ### Decyzja: „jest w kosztorysie" odpada
 
 Każdy kosztorys dostaje cały cennik z szablonu, więc obecność to 54–56 / 61 dla większości prac —
-mierzy szablon, nie wybór. Liczy się tylko „użyta" (Przedmiar > 0 lub etapy > 0, jak w EX-873).
+mierzy szablon, nie wybór. Liczy się tylko „użyta" (Przedmiar > 0 lub etapy > 0, jak w tamtym raporcie).
 Do rozważenia: rozbicie „użyta" na Przedmiar (oferta) i etapy (wykonanie), opcjonalnie Σ ilości.
 
 ### Dopasowanie do katalogu — import z arkusza vs aplikacja
@@ -68,7 +68,7 @@ brak podpowiedzi).
 Praca spoza katalogu rozpoznana jako prawdopodobnie ta sama co wpis katalogu (grupa A: inna pisownia
 lub j.m.) ma być pokazana **bezpośrednio przy tym wpisie** — para obok siebie, nie na dwóch
 osobnych listach, żeby porównanie było jednym spojrzeniem. Do sprawdzenia przy planie: czy istniejący
-Problem „możliwe duplikaty" (EX-863, pary wewnątrz katalogu) pokazuje pary obok siebie — jeśli nie,
+Problem „możliwe duplikaty" (pary wewnątrz katalogu) pokazuje pary obok siebie — jeśli nie,
 ta sama zasada.
 
 ### Odświeżenie pomiaru

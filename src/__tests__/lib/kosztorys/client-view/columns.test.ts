@@ -11,6 +11,7 @@ describe('the client-view column groups', () => {
 
   it('offers each allowlisted column exactly once', () => {
     expect(grouped).toHaveLength(PREVIEW_VISIBLE_COLUMNS.size)
+    expect(new Set(grouped)).toEqual(new Set(PREVIEW_VISIBLE_COLUMNS))
   })
 
   it('names every row from the same source as the grid header', () => {

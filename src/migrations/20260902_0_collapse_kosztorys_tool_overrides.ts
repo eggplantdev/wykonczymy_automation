@@ -2,7 +2,7 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 //
-// EX-766: the per-praca subcontractor stawka was a PAIR — `*_override_type` ('amount' | NULL) beside
+// The per-praca subcontractor stawka was a PAIR — `*_override_type` ('amount' | NULL) beside
 // a NOT NULL DEFAULT 0 `*_override_value`. Two columns for one answer let the table hold a state no
 // single write can produce ({type: NULL, value: 500}), and forced every reader to remember which
 // column decides. It collapses to one nullable number: NULL = „auto" (derive from the investment's

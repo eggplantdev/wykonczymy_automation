@@ -96,6 +96,11 @@ import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
+import { pinnedWidth } from '@/components/kosztorys/editor/grid/column-sizing'
+
+// Fits a 375px screen beside the ordinal gutter, so a description wraps on screen instead of
+// running past its edge.
+const PHONE_PREVIEW_DESCRIPTION_WIDTH = 280
 
 type PropsT = KosztorysEditorDataT & {
   preview?: boolean
@@ -303,9 +308,15 @@ export function KosztorysEditorBody({
     [sectionColumnTotals, columns],
   )
 
+  const fitsDescriptionToPhone = preview && !report && !isWide
   const gridColumns = useMemo(
     () =>
       columns
+        .map((column) =>
+          fitsDescriptionToPhone && column.id === 'description'
+            ? { ...column, ...pinnedWidth(PHONE_PREVIEW_DESCRIPTION_WIDTH) }
+            : column,
+        )
         .map((column) => (pastVersion ? withHistoryChanges(column, pastVersion.diff) : column))
         .map((column) =>
           column.id
@@ -326,7 +337,16 @@ export function KosztorysEditorBody({
             { totals: columnTotals, totalLabel, sectionHeader, sectionFooter },
           ),
         ),
-    [columns, pastVersion, preview, columnTotals, totalLabel, sectionHeader, sectionFooter],
+    [
+      columns,
+      fitsDescriptionToPhone,
+      pastVersion,
+      preview,
+      columnTotals,
+      totalLabel,
+      sectionHeader,
+      sectionFooter,
+    ],
   )
   const engagedFilters = engagedConditionsOfKind(engagedConditionIds, 'filter')
   const engagedClientHiders = engagedConditionsOfKind(engagedConditionIds, 'client')
@@ -517,8 +537,10 @@ export function KosztorysEditorBody({
                 ) : preview ? (
                   <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
                     <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
-                    <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
-                      <h1 className="truncate text-base font-medium">{investmentName}</h1>
+                    <div className="min-w-0 flex-1">
+                      <h1 className="text-base font-medium max-sm:line-clamp-2 sm:truncate">
+                        {investmentName}
+                      </h1>
                       {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
                     </div>
                     <PreviewHeaderActions

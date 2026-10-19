@@ -1,8 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { Leads } from '@/collections/leads'
 import { ERASED_LEAD_FIELDS } from '@/lib/leads/erase-lead'
-
-vi.mock('server-only', () => ({}))
 
 // Anything else on a lead is erased — a new field fails here until someone decides which.
 const KEPT_FIELDS = [

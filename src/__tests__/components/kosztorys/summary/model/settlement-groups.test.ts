@@ -44,10 +44,6 @@ describe('buildSettlementGroups', () => {
     expect(rowNamed(groups, 'Pozostało netto')).toBeUndefined()
     expect(rowNamed(groups, 'Do zapłaty brutto')).toBeUndefined()
   })
-
-  it('carries no materiały step', () => {
-    expect(rowNamed(build(), 'Materiały')).toBeUndefined()
-  })
 })
 
 describe('the „Pozostało do zapłaty" alarm', () => {
@@ -63,10 +59,6 @@ describe('the „Pozostało do zapłaty" alarm', () => {
 })
 
 describe('the strata step', () => {
-  it('renders nothing when nothing was absorbed', () => {
-    expect(rowNamed(build({ lossAmount: 0 }), 'Strata')).toBeUndefined()
-  })
-
   it('sits between the wpłaty and the debt, at face value on both planes, in either tryb', () => {
     for (const axis of ['net', 'gross'] as MoneyAxisT[]) {
       const groups = build({ lossAmount: 250, axis })

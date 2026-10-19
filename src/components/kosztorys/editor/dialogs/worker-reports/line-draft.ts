@@ -37,7 +37,7 @@ export type ItemFiguresT = {
 }
 
 // Every digit the figure has: a rounded one would be sent back as a change nobody made.
-export const qtyInputText = (qty: number) => decimalText(round6(qty))
+const qtyInputText = (qty: number) => decimalText(round6(qty))
 
 export function lineGroup(line: Pick<ReportLineT, 'kind'>, draft: LineDraftT): LineGroupT {
   if (draft.matchedItemIds.length > 0) return 'rozpiska'
@@ -66,7 +66,7 @@ export const UNDO_CATALOGUE_SWAP: Partial<LineDraftT> = {
   itemId: undefined,
 }
 
-export function acceptedQty(draft: LineDraftT): number {
+function acceptedQty(draft: LineDraftT): number {
   if (!draft.isTicked) return 0
   const parsed = parseReportQty(draft.qty)
   return parsed.kind === 'value' ? parsed.value : 0
@@ -120,7 +120,7 @@ export function lineItemId(
 
 // A pozycja deleted and re-added by hand (or by a restore) comes back under a new id; the same opis
 // and j.m. is the one match safe enough to preselect.
-export function exactItemMatch(
+function exactItemMatch(
   line: Pick<ReportLineT, 'description' | 'unit'>,
   rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit'>[],
 ): number | undefined {

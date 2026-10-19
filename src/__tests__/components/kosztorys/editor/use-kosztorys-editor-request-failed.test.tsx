@@ -1,11 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { stackUndoRedo } from '@/__tests__/helpers/kosztorys-undo-redo'
-import { removeItemAction } from '@/lib/actions/kosztorys'
+import { removeItemAction, updateItemFieldAction } from '@/lib/actions/kosztorys'
 import { toastMessage } from '@/lib/utils/toast'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
@@ -28,7 +28,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   updateInvestmentVatAction: vi.fn(),
   applyPercentDiscountToAllItemsAction: vi.fn(),
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 // The row-level handlers reach the grid only through the column opts, never the hook's return.
 const grid = vi.hoisted(() => ({ opts: undefined as BuildV2ColumnsOptsT | undefined }))
@@ -76,12 +75,10 @@ const rowIds = (result: { current: ReturnType<typeof useKosztorysEditor> }) =>
 
 const offline = () => Promise.reject(new TypeError('Failed to fetch'))
 
-describe('edytor kosztorysu — żądanie, które nie dotarło (EX-940)', () => {
+describe('edytor kosztorysu — żądanie, które nie dotarło', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
-  afterEach(() => vi.restoreAllMocks())
 
   it('brings a removed pozycja back', async () => {
     vi.mocked(removeItemAction).mockImplementation(offline)
@@ -98,5 +95,29 @@ describe('edytor kosztorysu — żądanie, które nie dotarło (EX-940)', () => 
       'error',
       5000,
     )
+  })
+})
+
+describe('edytor kosztorysu — zapis odrzucony przez serwer', () => {
+  it('puts the cell and the totals back on what the database holds', async () => {
+    vi.mocked(updateItemFieldAction).mockResolvedValue({ success: false, error: 'Zapis odrzucony' })
+    const { result } = renderEditor()
+    const savedTotal = result.current.currentPlannedNet
+
+    act(() => {
+      result.current.onChange(
+        result.current.rows.map((row) => (row.id === 1 ? { ...row, clientPrice: 400 } : row)),
+      )
+    })
+    expect(result.current.currentPlannedNet).toBe(450)
+
+    await act(async () => {
+      await result.current.flushPendingSaves()
+    })
+
+    expect(updateItemFieldAction).toHaveBeenCalledWith(1, { clientPrice: 400 })
+    expect(result.current.rows.find((row) => row.id === 1)?.clientPrice).toBe(100)
+    expect(result.current.currentPlannedNet).toBe(savedTotal)
+    expect(toastMessage).toHaveBeenCalledWith('Zapis odrzucony', 'error', 5000)
   })
 })

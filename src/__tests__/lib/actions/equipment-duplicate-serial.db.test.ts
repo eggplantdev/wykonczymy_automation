@@ -1,24 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { EquipmentFormDataT } from '@/components/forms/equipment-form/equipment-schema'
+import { firstUserId } from '@/__tests__/helpers/user'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('server-only', () => ({}))
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: authState.userId, role: 'OWNER', name: 'T', email: 't@t.pl' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'EX-916 numer'
 
 describe.skipIf(!ENV_READY)('equipment serial clash (DB)', () => {
@@ -64,17 +53,12 @@ describe.skipIf(!ENV_READY)('equipment serial clash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/equipment')
     await purge()
 
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the event to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
 
     warehouseId = Number(
       (
@@ -86,21 +70,8 @@ describe.skipIf(!ENV_READY)('equipment serial clash (DB)', () => {
         })
       ).id,
     )
-    const create = async (suffix: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'equipment',
-            data: {
-              name: `${PREFIX} ${suffix}`,
-              serialNumber: `${PREFIX}-${suffix}`,
-              status: 'IN_USE',
-            },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
+    const create = (suffix: string) =>
+      createTestEquipment(payload, `${PREFIX} ${suffix}`, { serialNumber: `${PREFIX}-${suffix}` })
     liveId = await create('LIVE')
     const trashedId = await create('KOSZ')
     await db.execute(sql`UPDATE equipment SET trashed_at = now() WHERE id = ${trashedId}`)

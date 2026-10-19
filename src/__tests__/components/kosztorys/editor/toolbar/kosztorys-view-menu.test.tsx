@@ -2,35 +2,37 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztorys-view-menu'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 // The workbench keeps the menu down to its column list, so the text-size block is the only other
 // radio group on screen.
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    view: 'client',
-    moneyAxis: 'net',
-    setMoneyAxis: vi.fn(),
-    layer: 'both',
-    setLayer: vi.fn(),
-    crewAxis: 'none',
-    setCrewAxis: vi.fn(),
-    columnToggleItems: [{ id: 'unit', label: 'J.m.', visible: true }],
-    revealedColumnIds: new Set<string>(),
-    toggleColumn: vi.fn(),
-    setAllColumns: vi.fn(),
-    columnRanks: {},
-    columnBaseRanks: {},
-    setColumnRank: vi.fn(),
-    resetColumnOrder: vi.fn(),
-    offerAvailable: false,
-    offer: false,
-    setOffer: vi.fn(),
-    isTemplate: true,
-    stages: [],
-    isStageOff: () => false,
-    engagedStageConditionIds: new Set<string>(),
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      view: 'client',
+      moneyAxis: 'net',
+      setMoneyAxis: vi.fn(),
+      layer: 'both',
+      setLayer: vi.fn(),
+      crewAxis: 'none',
+      setCrewAxis: vi.fn(),
+      columnToggleItems: [{ id: 'unit', label: 'J.m.', visible: true }],
+      revealedColumnIds: new Set<string>(),
+      toggleColumn: vi.fn(),
+      setAllColumns: vi.fn(),
+      columnRanks: {},
+      columnBaseRanks: {},
+      setColumnRank: vi.fn(),
+      resetColumnOrder: vi.fn(),
+      offerAvailable: false,
+      offer: false,
+      setOffer: vi.fn(),
+      isTemplate: true,
+      stages: [],
+      isStageOff: () => false,
+      engagedStageConditionIds: new Set<string>(),
+    }) as never,
+)
 
 const openMenu = async () => {
   render(<KosztorysViewMenu />)

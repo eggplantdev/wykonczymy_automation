@@ -1,12 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
 import { ReportPreviewTable } from '@/components/worker-reports/report-preview-table'
 import type { ReportPreviewLineT } from '@/lib/kosztorys/worker-report/types'
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-}))
 
 const line = (patch: Partial<ReportPreviewLineT>): ReportPreviewLineT => ({
   id: 1,

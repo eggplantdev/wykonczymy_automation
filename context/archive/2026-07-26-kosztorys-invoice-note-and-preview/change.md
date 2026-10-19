@@ -2,7 +2,6 @@
 change_id: kosztorys-invoice-note-and-preview
 title: Notatka column and per-row invoice preview in the kosztorys Wydatki list
 status: archived
-linear: EX-585
 created: 2026-07-26
 updated: 2026-07-26
 archived_at: 2026-07-26T13:19:30Z
@@ -12,7 +11,7 @@ worktree: .claude/worktrees/ex-569-invoice-note
 
 ## Notes
 
-Extends EX-569's Wydatki list (`materials-transactions-table.tsx`) with a „Notatka" column and a
+Extends the client-invoices slice's Wydatki list (`materials-transactions-table.tsx`) with a „Notatka" column and a
 per-row invoice preview — the two things the bulk-ZIP slice deliberately left out.
 
 ### Why
@@ -32,7 +31,7 @@ uses to match a row to a paper faktura, and the virtualized row can't carry the 
 
 ### Owner rulings (2026-07-26)
 
-- **Reverses EX-569's "bulk ZIP only, no per-row preview".** That decision was scoped to avoid
+- **Reverses the earlier "bulk ZIP only, no per-row preview".** That decision was scoped to avoid
   pulling in `InvoiceCell`, which also owns upload + delete; the preview button is the read-only pair.
 - **Client exposure needs no new gate.** The note is per-pozycja supplier prices in text — but the
   attached PDF _is_ the supplier invoice, so the ZIP and the preview already leak strictly more.

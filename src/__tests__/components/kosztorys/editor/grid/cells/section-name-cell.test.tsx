@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   SectionNameCell,
@@ -30,8 +30,6 @@ const tree = (props: CellPropsT = {}) => (
 function renderCell(props: CellPropsT = {}) {
   return { ...render(tree(props)), user: userEvent.setup() }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('Sekcja — zmiana nazwy w komórce', () => {
   it('zapisuje nazwę na wyjściu z komórki, dla całej sekcji a nie dla wiersza', async () => {

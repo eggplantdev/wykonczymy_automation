@@ -9,28 +9,16 @@ import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicat
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
-
-const replace = vi.hoisted(() => vi.fn())
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-  useRouter: () => ({ refresh: vi.fn(), replace }),
-}))
-const { readExpenseDraftAction, rejectExpenseDraftAction } = vi.hoisted(() => ({
-  readExpenseDraftAction: vi.fn(),
-  rejectExpenseDraftAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/worker-expense-drafts', () => ({
+import { router } from '@/__tests__/stubs/next-navigation'
+import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
+import {
   readExpenseDraftAction,
   rejectExpenseDraftAction,
-}))
-vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
-vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
-  findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+} from '@/lib/actions/worker-expense-drafts'
+
+vi.mocked(findExpenseDraftDuplicates).mockImplementation(async () => ({ success: true, data: [] }))
+vi.mocked(ingestFiles).mockImplementation(ingestFilesStub)
 
 const draft: ExpenseDraftRowT = {
   id: 7,
@@ -59,7 +47,6 @@ const referenceData = {
 } as unknown as ReturnType<typeof referenceDataFor>
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response(new Blob(['jpg'], { type: 'image/jpeg' }))),
@@ -70,8 +57,8 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
   it('ponowne otwarcie w trakcie odczytu nie zleca drugiego', async () => {
-    let land: (value: unknown) => void = () => {}
-    readExpenseDraftAction.mockReturnValue(new Promise((resolve) => (land = resolve)))
+    const readCall = Promise.withResolvers<Awaited<ReturnType<typeof readExpenseDraftAction>>>()
+    vi.mocked(readExpenseDraftAction).mockReturnValue(readCall.promise)
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
     const user = userEvent.setup()
 
@@ -80,14 +67,14 @@ describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
     act(() => useOptimisticFormStore.getState().closeDialog())
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
     await screen.findByRole('textbox', { name: 'Opis' })
-    await act(async () => land({ success: true, data: { aiRead: read } }))
+    await act(async () => readCall.resolve({ success: true, data: { aiRead: read } }))
 
     expect(await screen.findByDisplayValue('Klej do płytek')).toBeEnabled()
     expect(readExpenseDraftAction).toHaveBeenCalledTimes(1)
   })
 
   it('nieudany odczyt mówi, dlaczego, i odblokowuje pusty wiersz', async () => {
-    readExpenseDraftAction.mockResolvedValue({ success: false, error: 'Brak uprawnień' })
+    vi.mocked(readExpenseDraftAction).mockResolvedValue({ success: false, error: 'Brak uprawnień' })
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Zweryfikuj' }))
@@ -106,7 +93,7 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
   })
 
   it('otwiera dialog bez zapisu i bez odczytu, a zgłoszenie da się odrzucić', async () => {
-    rejectExpenseDraftAction.mockResolvedValue({ success: true, data: undefined })
+    vi.mocked(rejectExpenseDraftAction).mockResolvedValue({ success: true })
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
     const user = userEvent.setup()
 
@@ -252,7 +239,7 @@ describe('zgłoszenie bez inwestycji', () => {
 
 describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
   beforeEach(() => {
-    readExpenseDraftAction.mockResolvedValue({ success: true, data: { aiRead: read } })
+    vi.mocked(readExpenseDraftAction).mockResolvedValue({ success: true, data: { aiRead: read } })
     window.history.replaceState(null, '', '/zgloszenia-wydatkow?zgloszenie=7&status=pending')
   })
 
@@ -267,7 +254,7 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
     )
 
     expect(await screen.findByDisplayValue('Klej do płytek')).toBeInTheDocument()
-    expect(replace).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
     expect(window.location.search).toBe('?zgloszenie=7&status=pending')
 
     rerender(
@@ -289,7 +276,7 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
 
     expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie zostało już rozpatrzone.', 'warning')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(replace).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
     expect(window.location.search).toBe('?status=pending')
   })
 })

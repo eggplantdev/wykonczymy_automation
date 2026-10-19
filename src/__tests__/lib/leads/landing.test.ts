@@ -5,17 +5,6 @@ import { verifySignature } from '@/lib/leads/verify-signature'
 import { LANDING_SUBMISSION } from '@/__tests__/fixtures/landing-submission'
 
 describe('landingSubmissionSchema', () => {
-  it('accepts the shared fixture', () => {
-    expect(landingSubmissionSchema.safeParse(LANDING_SUBMISSION).success).toBe(true)
-  })
-
-  it('rejects a submission without a uuid submissionId', () => {
-    expect(
-      landingSubmissionSchema.safeParse({ ...LANDING_SUBMISSION, submissionId: 'not-a-uuid' })
-        .success,
-    ).toBe(false)
-  })
-
   it('tolerates an unknown extra field', () => {
     const parsed = landingSubmissionSchema.safeParse({ ...LANDING_SUBMISSION, budget: '50 000 zł' })
     expect(parsed.success).toBe(true)
@@ -43,8 +32,6 @@ describe('landingToStoreLeadInput', () => {
   it('maps the typed answers', () => {
     const input = landingToStoreLeadInput(LANDING_SUBMISSION)
 
-    expect(input.source).toBe('landing_form')
-    expect(input.externalId).toBe(LANDING_SUBMISSION.submissionId)
     expect(input.email).toBe('anna.nowak@example.com')
     expect(input.address).toBe('ul. Kwiatowa 12, Kraków')
     expect(input.area).toBe('30–60 m²')

@@ -205,7 +205,7 @@ export function buildImportPlan(
         // than having it blanked by an import that never had an opinion.
         note: current?.note ?? null,
         // The sheet has one przedmiar, the offer — it refreshes plannedQty above and never the
-        // Aktualizacja, so a hand-edited scope survives a re-import (EX-921).
+        // Aktualizacja, so a hand-edited scope survives a re-import.
         currentPlannedQty: current?.currentPlannedQty ?? null,
         ...aiDraftOf(current),
         changeReason: current?.changeReason ?? null,

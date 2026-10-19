@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-945: an etap's workers live in `kosztorys_stage_workers` since EX-943 (20260930_1); this column
+// An etap's workers live in `kosztorys_stage_workers` since 20260930_1; this column
 // was kept only for the code deployed before it. Destructive — production runs this after the push.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`

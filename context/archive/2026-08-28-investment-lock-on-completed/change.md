@@ -1,7 +1,6 @@
 ---
 change_id: investment-lock-on-completed
 title: A completed investment is locked — read-only for every role
-linear: EX-748
 status: archived
 created: 2026-08-28
 updated: 2026-09-03
@@ -23,7 +22,7 @@ behind a confirmation dialog. There is no separate "Unlock" action — unlocking
 Why the door stays: an irreversible lock turns one misclick on a 400-item kosztorys into a permanent
 freeze whose only repair is hand-written SQL on production Neon.
 
-Where the gate sits per write plane (Payload vs raw SQL): `context/foundation/lessons.md` → EX-748.
+Where the gate sits per write plane (Payload vs raw SQL): `context/foundation/lessons.md` → „Choose the gate's layer by enumerating the plane's write paths".
 The editor's lock is a separate `locked` flag (`readOnly = preview || locked`), not `preview` —
 `preview` is the client's document and swaps the layout, drops columns, filters and the toolbar.
 

@@ -18,7 +18,7 @@ const CATALOGUE_COLUMNS = sql`id, description, description_translations, categor
 
 const toRate = (value: unknown): number | null => (value == null ? null : Number(value))
 
-export function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItemT {
+function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItemT {
   return {
     id: Number(row.id),
     description: row.description as string,

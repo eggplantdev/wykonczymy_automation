@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// How an investment is settled (EX-588). Stored as an enum to match the collection's `select` field
+// How an investment is settled. Stored as an enum to match the collection's `select` field
 // (Payload maps selects to pg enums, never varchar). NOT NULL DEFAULT 'NET' is the whole backfill:
 // every existing investment reads netto until the owner says otherwise, so no row can land in a null
 // state the panel would have to interpret.

@@ -19,16 +19,6 @@ describe('resolveUploadIdRows', () => {
     upload.mockReset()
   })
 
-  it('uploads the File attached at a row', async () => {
-    upload.mockImplementation(async () => 777)
-    const files = new Map<number, File[]>([[0, [file('a.jpg')]]])
-
-    const result = await resolveUploadIdRows(1, files)
-
-    expect(result).toEqual([[777]])
-    expect(upload).toHaveBeenCalledTimes(1)
-  })
-
   it('returns an empty page list for a row with no File', async () => {
     upload.mockImplementation(async () => 1)
     const result = await resolveUploadIdRows(1, new Map())

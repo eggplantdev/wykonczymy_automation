@@ -10,19 +10,12 @@ import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
+import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-}))
-vi.mock('@/lib/actions/transfers', () => ({
-  createBulkTransferAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-// Image compression never settles under jsdom, so a picked file would never reach a row.
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
+vi.mocked(createBulkTransferAction).mockImplementation(async () => ({ success: true }))
+vi.mocked(scanReceiptClient).mockResolvedValue(undefined as never)
+vi.mocked(ingestFiles).mockImplementation(ingestFilesStub)
 
 const halfTypedExpense = expenseValues({
   sourceRegister: '',
@@ -31,7 +24,6 @@ const halfTypedExpense = expenseValues({
 })
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useExpenseFormStore.getState().updateFormData('expense', halfTypedExpense)
   useOptimisticFormStore.setState({ keepOpen: false })
 })

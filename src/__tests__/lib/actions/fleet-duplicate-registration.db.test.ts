@@ -1,19 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import type { VehicleFormDataT } from '@/components/forms/vehicle-form/vehicle-schema'
+import { createTestVehicle } from '@/__tests__/helpers/fleet-db'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'EX915D'
 
 describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
@@ -42,26 +34,13 @@ describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/fleet')
     await db.execute(sql`DELETE FROM vehicles WHERE upper(trim(registration)) LIKE ${`${PREFIX}%`}`)
 
-    const create = async (registration: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'vehicles',
-            data: { registration, make: 'Ford', model: 'Transit', status: 'ACTIVE' },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
-    liveId = await create(`${PREFIX}LIVE`)
-    const trashedId = await create(`${PREFIX}KOSZ`)
+    liveId = await createTestVehicle(payload, `${PREFIX}LIVE`)
+    const trashedId = await createTestVehicle(payload, `${PREFIX}KOSZ`)
     await db.execute(sql`UPDATE vehicles SET trashed_at = now() WHERE id = ${trashedId}`)
   })
 

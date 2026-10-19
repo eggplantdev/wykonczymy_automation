@@ -1,18 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { FleetDataTable } from '@/components/fleet/fleet-data-table'
 import { byInspectionType } from '@/lib/fleet/inspection-types'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { FleetRowT } from '@/types/fleet'
 import { bare } from '@/__tests__/helpers/money'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => '/flota',
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/flota'
 
 const EMPTY_DEADLINES = byInspectionType(() => ({
   nextDueAt: null,

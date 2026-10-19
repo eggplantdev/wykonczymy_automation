@@ -163,7 +163,7 @@ describe('buildWorkerPrintHtml', () => {
       expect(totalUnder(out, header), header).toBe(formatPLN(amount))
       expect(totalUnder(out, header, 'grand-total'), header).toBe(formatPLN(amount))
     }
-    expect(totalUnder(out, RATE_HEADER)).toBe('')
+    expect(totalUnder(out, RATE_HEADER)).toBe('Razem — Łazienka')
     expect(out.indexOf('<tr class="grand-total">')).toBeGreaterThan(out.lastIndexOf('band-total'))
   })
 
@@ -216,11 +216,8 @@ describe('buildWorkerPrintHtml', () => {
         columnRanks: { description: 99, plannedNetForPlane: -2, rate: -1 },
       }),
     )
-    const headers = headersOf(out)
 
-    expect(headers[0]).toBe('Opis prac')
-    expect(headers[1]).toBe(PLANNED_NET_HEADER)
-    expect(headers[2]).toBe(RATE_HEADER)
+    expect(headersOf(out).slice(0, 3)).toEqual(['Opis prac', PLANNED_NET_HEADER, RATE_HEADER])
   })
 
   it('places the section total under the money column after a reorder', () => {

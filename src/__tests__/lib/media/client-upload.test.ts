@@ -10,7 +10,6 @@ const pdf = (name = 'faktura.pdf') => new File(['%PDF-1.7'], name, { type: 'appl
 const fetchMock = vi.fn()
 
 beforeEach(() => {
-  vi.clearAllMocks()
   vi.stubGlobal('fetch', fetchMock)
   blobUpload.mockResolvedValue({ url: 'https://store.public.blob.vercel-storage.com/x.pdf' })
   fetchMock.mockResolvedValue(Response.json({ id: 42 }))

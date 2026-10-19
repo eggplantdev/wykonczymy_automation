@@ -1,39 +1,19 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { WorkerReportForm } from '@/components/kosztorys/worker-report/worker-report-form'
 import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
 import { workerAudience } from '@/__tests__/helpers/worker-audience'
+import { stubGridLayout } from '@/__tests__/helpers/grid-layout'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-const { search } = vi.hoisted(() => ({ search: { current: '' } }))
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-  usePathname: () => '/z/inwestycja/jan/token',
-  useSearchParams: () => new URLSearchParams(search.current),
-}))
+navigationState.pathname = '/z/inwestycja/jan/token'
 
-// dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0.
-vi.mock('react-resize-detector', () => ({
-  useResizeDetector: () => ({ width: 1600, height: 800 }),
-}))
-
-beforeAll(() => {
-  const rect = { x: 0, y: 0, top: 0, left: 0, right: 1600, bottom: 800, width: 1600, height: 800 }
-  HTMLElement.prototype.getBoundingClientRect = () => ({ ...rect, toJSON: () => rect })
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get: () => 1600,
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get: () => 800,
-  })
-})
+stubGridLayout()
 
 beforeEach(() => localStorage.clear())
-afterEach(cleanup)
 
 const STAGES = [stage(7, 1, 'Płytki')]
 
@@ -87,25 +67,25 @@ describe('the footer switches „Zgłaszam pracę” and „Inwestycja”', () =
   })
 
   it('opens on „Inwestycja” when „Moje inwestycje” links him there', async () => {
-    search.current = 'view=summary'
+    navigationState.searchParams = new URLSearchParams('view=summary')
     try {
       renderForm('token')
 
       expect(await screen.findByText('Twoje rozliczenie')).toBeInTheDocument()
       expect(screen.getByRole('radio', { name: 'Inwestycja' })).toBeChecked()
     } finally {
-      search.current = ''
+      navigationState.searchParams = new URLSearchParams('')
     }
   })
 
   it('a link to „Inwestycja” on a kosztorys with no works still opens where he can send', async () => {
-    search.current = 'view=summary'
+    navigationState.searchParams = new URLSearchParams('view=summary')
     try {
       renderForm('token', { ...DOCUMENT, tree: tree([], STAGES, []) })
 
       expect(await screen.findByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
     } finally {
-      search.current = ''
+      navigationState.searchParams = new URLSearchParams('')
     }
   })
 })

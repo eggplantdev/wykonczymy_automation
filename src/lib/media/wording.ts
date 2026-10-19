@@ -1,9 +1,12 @@
+import { FILE_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { POLISH_MEDIA, type TranslatorT } from '@/lib/i18n/translations'
 import type { ArchiveCopyT, PreviewLabelsT } from '@/types/media'
 
 export const INVOICE_ARCHIVE_COPY: ArchiveCopyT = { prefix: 'faktury', kind: 'invoice' }
 
 export const FILE_ARCHIVE_COPY: ArchiveCopyT = { prefix: 'pliki', kind: 'file' }
+
+export const FILE_TRASH_NOTICE = `Usunięte pliki trafią do Kosza na ${FILE_TRASH_RETENTION_DAYS} dni — do tego czasu można je przywrócić.`
 
 export function buildPreviewLabels(
   archive: ArchiveCopyT,

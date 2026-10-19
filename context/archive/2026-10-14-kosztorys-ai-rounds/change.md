@@ -11,8 +11,6 @@ worktree: null
 
 ## Notes
 
-Linear: EX-1057
-
 Spec: `context/changes/2026-10-01-ai-kosztorys-generation-tests/change.md` § „Later rounds”. This
 change is the app part: the two pozycja fields, the editor's Status column, and the loader's round mode.
 #190 round 2 is the pilot.

@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 
 const ITEMS_PER_SECTION = 2
 const CLIENT_PRICE = 100
@@ -8,8 +7,7 @@ const SECTION_NET = CLIENT_PRICE * QTY_DONE * ITEMS_PER_SECTION
 
 const ctx = { context: { skipRevalidation: true } }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedKosztorysBands(payload: Payload) {
   // The test DB is not reset between runs, so a stable name would collide.
   const stamp = Date.now()
 
@@ -58,18 +56,10 @@ async function main() {
     }
   }
 
-  console.log(
-    `BANDS_SEED=${JSON.stringify({
-      investment: investment.id,
-      investmentName: investment.name,
-      clientPrice: CLIENT_PRICE,
-      sections: names.map((name) => ({ name, net: SECTION_NET, itemCount: ITEMS_PER_SECTION })),
-    })}`,
-  )
-  process.exit(0)
+  return {
+    investment: investment.id,
+    investmentName: investment.name,
+    clientPrice: CLIENT_PRICE,
+    sections: names.map((name) => ({ name, net: SECTION_NET, itemCount: ITEMS_PER_SECTION })),
+  }
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

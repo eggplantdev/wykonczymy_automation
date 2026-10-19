@@ -8,7 +8,7 @@ import { liveVersion } from '@/lib/kosztorys/history/snapshot-to-tree'
 import type { HistoryVersionT } from '@/lib/kosztorys/history/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
-export const SECTION_ID = 10
+const SECTION_ID = 10
 
 export function item(
   id: number,

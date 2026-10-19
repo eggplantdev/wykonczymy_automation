@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -7,13 +7,12 @@ import {
   trashDaysAgo,
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestEquipment } from '@/__tests__/helpers/fleet-db'
 
 // The purge is the one delete nobody confirms, so the assertion is on which items survive — a count
 // in the result would read the same over a purge that deleted the wrong one.
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'EX-916 purge'
 
 describe.skipIf(!ENV_READY)('purgeEquipmentTrash (DB)', () => {
@@ -29,23 +28,11 @@ describe.skipIf(!ENV_READY)('purgeEquipmentTrash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await db.execute(sql`DELETE FROM equipment WHERE name LIKE ${`${PREFIX}%`}`)
 
-    const createItem = async (suffix: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'equipment',
-            data: { name: `${PREFIX} ${suffix}`, status: 'IN_USE' },
-            overrideAccess: true,
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
+    const createItem = (suffix: string) => createTestEquipment(payload, `${PREFIX} ${suffix}`)
     expired = await createItem('po terminie')
     recent = await createItem('w okresie')
     live = await createItem('żywy')

@@ -5,11 +5,12 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 const editorContext = vi.hoisted(() => ({ rows: [] as KosztorysV2RowT[] }))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ doneNet: 0, currentPlannedNet: 0, rows: editorContext.rows }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () => ({ doneNet: 0, currentPlannedNet: 0, rows: editorContext.rows }) as never,
+)
 
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 1, label: 'Tynki', plane: null }),

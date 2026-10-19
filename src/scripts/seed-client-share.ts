@@ -1,10 +1,8 @@
 // the spec writes client-view settings and share tokens onto whatever it is pointed at — on a shared
 // investment that leaks into the next spec.
-//
-// Emits one machine-readable line the spec parses: CLIENT_SHARE_SEED={…}
+import { randomBytes } from 'node:crypto'
 import path from 'node:path'
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 
 const CLIENT_PRICE = 100
 const PLANNED_QTY = 10
@@ -12,8 +10,7 @@ const QTY_DONE = 3
 
 const ctx = { context: { skipRevalidation: true, skipSheetSync: true } }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedClientShare(payload: Payload) {
   const stamp = Date.now()
 
   const [register] = (await payload.find({ collection: 'cash-registers', limit: 1 })).docs
@@ -37,12 +34,24 @@ async function main() {
   const emptyStage = 'Etap 2'
   const stage = await payload.create({
     collection: 'kosztorys-stages',
-    data: { splitMode: 'percent', investment: investment.id, ordinal: 1, label: filledStage },
+    data: {
+      splitMode: 'percent',
+      plane: 'w_tools',
+      investment: investment.id,
+      ordinal: 1,
+      label: filledStage,
+    },
     ...ctx,
   })
   await payload.create({
     collection: 'kosztorys-stages',
-    data: { splitMode: 'percent', investment: investment.id, ordinal: 2, label: emptyStage },
+    data: {
+      splitMode: 'percent',
+      plane: 'w_tools',
+      investment: investment.id,
+      ordinal: 2,
+      label: emptyStage,
+    },
     ...ctx,
   })
   const section = await payload.create({
@@ -164,28 +173,28 @@ async function main() {
     ...ctx,
   })
 
-  console.log(
-    `CLIENT_SHARE_SEED=${JSON.stringify({
-      investment: investment.id,
-      investmentName: investment.name,
-      sectionName: section.name,
-      workedRow,
-      emptyRow,
-      filledStage,
-      emptyStage,
-      cashDeposit,
-      transferDeposit,
-      grossExpense,
-      netExpense,
-      categoryName: category.name,
-      settledExpense,
-      invoiceFilename: invoicePage.filename,
-    })}`,
-  )
-  process.exit(0)
-}
+  // Seeded, not minted through „Udostępnij": minting is `kosztorys-share-link.spec.ts`'s subject.
+  const share = await payload.create({
+    collection: 'kosztorys-shares',
+    data: { investment: investment.id, token: randomBytes(24).toString('base64url') },
+    ...ctx,
+  })
 
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+  return {
+    investment: investment.id,
+    token: share.token,
+    investmentName: investment.name,
+    sectionName: section.name,
+    workedRow,
+    emptyRow,
+    filledStage,
+    emptyStage,
+    cashDeposit,
+    transferDeposit,
+    grossExpense,
+    netExpense,
+    categoryName: category.name,
+    settledExpense,
+    invoiceFilename: invoicePage.filename,
+  }
+}

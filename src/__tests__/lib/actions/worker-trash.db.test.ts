@@ -1,27 +1,17 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createTestRegister } from '@/__tests__/helpers/register'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { trashDaysAgo } from '@/__tests__/helpers/investment'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // Every refusal is asserted on the rows, not the result: the pair is one transaction that commits a
 // returned refusal, so a refusal decided after the first write would still leave a kasa trashed.
 
-vi.mock('server-only', () => ({}))
-
-const { session } = vi.hoisted(() => ({ session: { id: 1, role: 'OWNER' } }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => ({
-    id: session.id,
-    role: session.role,
-    name: 'T',
-    email: 't@t.pl',
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PASSWORD = 'test-password-123'
 const MARKER = 'kosz-pracownikow actions'
 
@@ -34,28 +24,10 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
   const createWorker = async (role: 'EMPLOYEE' | 'OWNER' = 'EMPLOYEE') => {
     fixture += 1
     const email = `kosz-pracownikow-${fixture}@test.local`
-    const id = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: { name: `Pracownik ${fixture}`, role, email, password: PASSWORD },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-    return { id, email, name: `Pracownik ${fixture}` }
+    const name = `Pracownik ${fixture}`
+    const id = await createTestUser(payload, { name, email, role, password: PASSWORD })
+    return { id, email, name }
   }
-
-  const createRegister = async (ownerId: number, name: string) =>
-    Number(
-      (
-        await payload.create({
-          collection: 'cash-registers',
-          data: { name, type: 'AUXILIARY', owner: ownerId },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
 
   const userTrashedAt = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT trashed_at FROM users WHERE id = ${id}`)
@@ -75,21 +47,19 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
   const useRegister = (registerId: number) =>
     db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
-      VALUES (${MARKER}, 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${registerId})
+      VALUES (${MARKER}, 50, now(), 'OTHER'::enum_transactions_type, 'CASH', ${registerId})
     `)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/worker-trash')
     await purgeFixtureUsers(db)
   })
 
   beforeEach(() => {
-    session.id = 1
-    session.role = 'OWNER'
+    authState.userId = 1
+    authState.role = 'OWNER'
   })
 
   afterAll(async () => {
@@ -99,7 +69,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('trashes an unused worker and his empty kasa under one instant, and ends his sessions and pushes', async () => {
     const worker = await createWorker()
-    const registerId = await createRegister(worker.id, 'Kasa pracownika')
+    const registerId = await createTestRegister(payload, worker.id, 'Kasa pracownika')
     await payload.login({ collection: 'users', data: { email: worker.email, password: PASSWORD } })
     const { upsertPushSubscription } = await import('@/lib/db/push-subscriptions')
     await upsertPushSubscription(db, worker.id, {
@@ -135,7 +105,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
     const worker = await createWorker()
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, worker_id)
-      VALUES (${MARKER}, 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${worker.id})
+      VALUES (${MARKER}, 50, now(), 'PAYOUT'::enum_transactions_type, 'CASH', ${worker.id})
     `)
 
     expect((await actions.trashWorkerAction(worker.id)).success).toBe(false)
@@ -144,8 +114,8 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('refuses the whole pair when one of his kasy is used, trashing nothing', async () => {
     const worker = await createWorker()
-    const empty = await createRegister(worker.id, 'Kasa pusta')
-    const used = await createRegister(worker.id, 'Kasa używana')
+    const empty = await createTestRegister(payload, worker.id, 'Kasa pusta')
+    const used = await createTestRegister(payload, worker.id, 'Kasa używana')
     await useRegister(used)
 
     const result = await actions.trashWorkerAction(worker.id)
@@ -158,7 +128,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('refuses trashing your own account', async () => {
     const worker = await createWorker()
-    session.id = worker.id
+    authState.userId = worker.id
 
     expect(await actions.trashWorkerAction(worker.id)).toEqual({
       success: false,
@@ -169,7 +139,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('answers a MANAGER about an OWNER as missing', async () => {
     const owner = await createWorker('OWNER')
-    session.role = 'MANAGER'
+    authState.role = 'MANAGER'
 
     const result = await actions.trashWorkerAction(owner.id)
 
@@ -179,11 +149,9 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('restores the worker with the kasy that went with him, not one trashed on its own', async () => {
     const worker = await createWorker()
-    const withHim = await createRegister(worker.id, 'Kasa razem')
-    const alone = await createRegister(worker.id, 'Kasa osobno')
-    await db.execute(
-      sql`UPDATE cash_registers SET trashed_at = now() - interval '1 day' WHERE id = ${alone}`,
-    )
+    const withHim = await createTestRegister(payload, worker.id, 'Kasa razem')
+    const alone = await createTestRegister(payload, worker.id, 'Kasa osobno')
+    await trashDaysAgo(db, alone, 1, 'cash_registers')
 
     expect((await actions.trashWorkerAction(worker.id)).success).toBe(true)
     expect(await actions.restoreWorkerAction(worker.id)).toEqual({ success: true })
@@ -195,7 +163,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
   it('deletes forever only on the right name, kasy first and then the worker', async () => {
     const worker = await createWorker()
-    const registerId = await createRegister(worker.id, 'Kasa do usunięcia')
+    const registerId = await createTestRegister(payload, worker.id, 'Kasa do usunięcia')
     await actions.trashWorkerAction(worker.id)
 
     expect((await actions.deleteWorkerForeverAction(worker.id, 'Ktoś inny')).success).toBe(false)

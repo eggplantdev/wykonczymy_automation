@@ -1,12 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 
-// The leads afterChange hook calls revalidateTag, which throws outside a Next request
-// context.
-
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const runTag = `assert-complete-${Date.now()}`
 const ROWS = 3
@@ -16,9 +12,7 @@ describe.skipIf(!ENV_READY)('assertCompletePage against Payload find (DB)', () =
   const createdIds: number[] = []
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
 
     for (let index = 0; index < ROWS; index++) {
       const lead = await payload.create({
@@ -38,7 +32,7 @@ describe.skipIf(!ENV_READY)('assertCompletePage against Payload find (DB)', () =
       })
       createdIds.push(lead.id)
     }
-  }, 30000)
+  })
 
   afterAll(async () => {
     for (const id of createdIds) {

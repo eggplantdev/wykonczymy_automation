@@ -22,10 +22,11 @@ top_blocker: none
 >
 > The source sheet is readable again: the service account
 > `kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com` was granted Viewer on
-> `KOSZTORYS_TEMPLATE_SHEET_ID` (2026-07-15), so the read-only inspector works:
+> the template sheet (2026-07-15), so the read-only inspector works:
 >
 > ```bash
-> MAX_ROWS=464 TABS=kosztorys_robocizny node --env-file=.env scripts/inspect-sheet.mjs
+> SHEET_ID=15AoSJfaHcGwuDCukzu5hKitWE-oPw0xrD_8xtBM2Q8I MAX_ROWS=464 TABS=kosztorys_robocizny \
+>   node --env-file=.env scripts/inspect-sheet.mjs
 > ```
 >
 > **Verified against the live sheet 2026-07-15** (formulas, not screenshots) — supersedes the
@@ -38,7 +39,7 @@ top_blocker: none
 > - **`S` "wartość przedmiaru" is a header with no formula and no values in any of the 464 rows**
 >   (this map originally skipped `R` → `T` and missed it entirely — corrected 2026-07-15). Likely
 >   never wired because on a fresh sheet `O` equals `N` in practice, so `S` would duplicate `T` until
->   stage quantities are entered. **Corrected 2026-07-16 (EX-494):** `O` is not `=N` — it is
+>   stage quantities are entered. **Corrected 2026-07-16:** `O` is not `=N` — it is
 >   `=SUM(D:M)`, the ten stage-quantity columns, so **pomiar IS the stage sum** (see AGENTS.md, which
 >   supersedes the 2026-07-15 reading below). Our przedmiar/pomiar are independent, so the column is
 >   meaningful here: **built as
@@ -97,7 +98,7 @@ top_blocker: none
 > pre-insertion numbers for undo — the **change-id `kosztorys-undo` is the stable key**, not the number.
 
 > **Inserted client-share slice as S-11 (2026-07-18, owner).** A live, read-only client-facing
-> view of a kosztorys behind a token link (`kosztorys-client-share`, EX-532) was judged big enough
+> view of a kosztorys behind a token link (`kosztorys-client-share`) was judged big enough
 > to be its own slice, placed first in band 2 (import/export). It never leaks the subcontractor cost
 > view — the client price path pins the `calc.ts` `view` argument to `'client'` so subcontractor
 > prices are never computed. Inserting it cascaded the band-2+ tail by one: export S-11→S-12,
@@ -107,7 +108,7 @@ top_blocker: none
 > **Split S-08 + inserted RBAC slice (2026-07-10, owner).** The old S-08 `kosztorys-column-locking`
 > conflated two unrelated concerns; the owner split them. (1) The easy edit-safety guard stays at
 > **S-08**, redefined as **`kosztorys-delete-guard`** — originally hard-block deleting a _populated_ row /
-> section / stage / column, **reversed by EX-477 (2026-07-17) to confirm-then-snapshot** (see S-08 below).
+> section / stage / column, **reversed (2026-07-17) to confirm-then-snapshot** (see S-08 below).
 > (2) The hard, security-shaped concern — **role-based column AND row visibility** (hide subcontractor
 > cost/margin price views, and whole sections/items, from MANAGER; OWNER/ADMIN only) — becomes a new
 > **S-10 `kosztorys-column-rbac`**, placed last in the editor band, before import/export. Inserting it
@@ -165,27 +166,27 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 
 Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** → **client share / import S-13, S-15** → **testing S-16** (done 2026-09-22) → **cutover S-19** (done 2026-08-25). Every numbered slice is `done`; the arc is closed. S-10, S-14, S-17 and S-18 are missing on purpose — `kosztorys-column-rbac` (2026-08-18), `kosztorys-export` (2026-08-15), `financial-core-smoke` (2026-08-25) and `kosztorys-hardening` (2026-08-25) were cut whole and their numbers kept as tombstones; see [Cut & folded slices](#cut--folded-slices).
 
-| ID   | Change ID                       | Outcome (user can …)                                                                    | Prerequisites      | PRD refs                      | Status | Plan-ready |
-| ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | ------ | ---------- |
-| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                           | —                  | FR-011                        | done   | —          |
-| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone)  | —                  | — (owner request)             | done   | —          |
-| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                               | —                  | FR-001, FR-002, FR-007, US-01 | done   | —          |
-| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                          | S-01               | FR-003                        | done   | —          |
-| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | done   | —          |
-| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                     | S-01, S-02         | — (POC)                       | done   | —          |
-| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                        | S-01               | — (POC)                       | done   | yes        |
-| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                      | S-01               | — (owner request)             | done   | yes        |
-| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                    | S-01               | — (owner request)             | done   | yes        |
-| S-08 | kosztorys-delete-guard          | confirm-then-snapshot when deleting a populated row / section / stage / column (EX-477) | S-01               | — (owner request)             | done   | yes        |
-| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434, since cut)        | S-01               | (owner request)               | done   | yes        |
-| S-11 | kosztorys-bridge                | read kosztorys figures joined into the investment financial plane (read-only)           | S-01, S-03         | — (owner request)             | done   | —          |
-| S-12 | robocizna-from-kosztorys        | see investment robocizna + rabat derived from the kosztorys, not manual transfers       | S-11               | — (owner request)             | done   | —          |
-| S-13 | kosztorys-client-share          | share a live, read-only client view of a kosztorys via a token link (EX-532)            | S-01, S-02, S-04   | — (owner request)             | done   | —          |
-| S-15 | kosztorys-importer              | import an existing sheet kosztorys into the app                                         | S-01 (full parity) | FR-010, FR-016                | done   | —          |
-| S-16 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                             | F-01, S-01…S-15    | FR-013                        | done   | —          |
-| S-19 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                        | S-16               | FR-009, FR-014, FR-016, US-01 | done   | —          |
+| ID   | Change ID                       | Outcome (user can …)                                                                   | Prerequisites      | PRD refs                      | Status | Plan-ready |
+| ---- | ------------------------------- | -------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | ------ | ---------- |
+| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                          | —                  | FR-011                        | done   | —          |
+| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone) | —                  | — (owner request)             | done   | —          |
+| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                              | —                  | FR-001, FR-002, FR-007, US-01 | done   | —          |
+| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                         | S-01               | FR-003                        | done   | —          |
+| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                          | S-01               | FR-004                        | done   | —          |
+| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                    | S-01, S-02         | — (POC)                       | done   | —          |
+| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                       | S-01               | — (POC)                       | done   | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | done   | yes        |
+| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | done   | yes        |
+| S-08 | kosztorys-delete-guard          | confirm-then-snapshot when deleting a populated row / section / stage / column         | S-01               | — (owner request)             | done   | yes        |
+| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out, since cut)                | S-01               | (owner request)               | done   | yes        |
+| S-11 | kosztorys-bridge                | read kosztorys figures joined into the investment financial plane (read-only)          | S-01, S-03         | — (owner request)             | done   | —          |
+| S-12 | robocizna-from-kosztorys        | see investment robocizna + rabat derived from the kosztorys, not manual transfers      | S-11               | — (owner request)             | done   | —          |
+| S-13 | kosztorys-client-share          | share a live, read-only client view of a kosztorys via a token link                    | S-01, S-02, S-04   | — (owner request)             | done   | —          |
+| S-15 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | done   | —          |
+| S-16 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                            | F-01, S-01…S-15    | FR-013                        | done   | —          |
+| S-19 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                       | S-16               | FR-009, FR-014, FR-016, US-01 | done   | —          |
 
-**Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (2026-07-09), then the autocomplete carved back out as `kosztorys-item-autocomplete` — now CUT (2026-07-28, superseded by EX-503 section-append). See [Cut & folded slices](#cut--folded-slices).
+**Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (2026-07-09), then the autocomplete carved back out as `kosztorys-item-autocomplete` — now CUT (2026-07-28, superseded by section-append). See [Cut & folded slices](#cut--folded-slices).
 
 ## Bands
 
@@ -207,11 +208,10 @@ Inserting it cascaded the tail by two: client-share S-11→S-13, export S-12→S
 e2e S-14→S-16, smoke S-15→S-17, hardening S-16→S-18, cutover S-17→S-19. Change-ids are the stable
 key (pure relabel).
 
-**Band 2 reopened 2026-08-18 (EX-649, `marza-prognoza-rzeczywista`).** `S-11`/`S-12` joined the
+**Band 2 reopened 2026-08-18 (`marza-prognoza-rzeczywista`).** `S-11`/`S-12` joined the
 kosztorys to the financial plane; this change adds the figure that plane was missing — a marża that
 prices the crew from the kosztorys instead of from wypłaty, plus a przedmiar-based prognoza. It rides
-on the same seam, so it is band-2 work rather than a new slice: no roadmap row, tracked in Linear as
-EX-649. What it changes structurally is that `marginV2` stands **beside** `calculateMargin`; nothing
+on the same seam, so it is band-2 work rather than a new slice: no roadmap row, tracked in Linear. What it changes structurally is that `marginV2` stands **beside** `calculateMargin`; nothing
 in bands 1–5 is redirected by it.
 
 Within band 1, `S-01` (north star) heads the track; `S-02`–`S-09` all build on it and run in parallel (`S-04` also needs `S-02`). `F-01` (harness) is independent and can run any time; it unblocks the band-4 test slices. `O-02` (RWD) is likewise standalone — no dependency on any slice, ship any time.
@@ -290,7 +290,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Totals need a price to compute — S-01 carries a single per-item price (snapshotted from catalogue/typed value); the three price models arrive in S-02. Confirm a single model is acceptable for the first slice. — Owner: user. Block: no.
 - **Folded from POC (settled, not open):** unified item list (materials = `INVESTMENT_EXPENSE`, no separate table); **hard-delete**; reorder via ▲▼ arrows with a `display_order` layer (DnD later would need sparse keys); **przedmiar + pomiar = two independent columns**, value computed from pomiar; **two-mode discount** (`discount_type ∈ {percent, amount}` + `discount_value`); values **computed, not stored** (only inputs persist). The Unknowns above are largely answered by these — carry the POC's shape.
 - **Risk:** Introduces the additive kosztorys tables (sections, items) and the "worth = qty × snapshotted price, totals derived" rule. Additive-only — must not touch transfers/balance/marża write paths (FR-015). Risk: inline-edit + live totals at 1000+ rows is the hard UX/perf problem; the spreadsheet parity bar is high.
-- **Status:** done (EX-395). Implemented on `kosztorys-sections-items` (change.md `implemented`, 2026-07-08) and shipped; every later editor slice builds on it.
+- **Status:** done. Implemented on `kosztorys-sections-items` (change.md `implemented`, 2026-07-08) and shipped; every later editor slice builds on it.
 
 ### S-02: Three price models + pricing-view toggle
 
@@ -321,7 +321,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:** —
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
 - **Shipped adjacent, not part of this slice:** the stage **value** axis (the sheet's `V–AE`) — a computed `kwota netto` + `kwota brutto` column per stage, brutto hidden by default. `2026-07-15-kosztorys-stage-values` (archive deleted 2026-09-29; git history), 2026-07-15. It reverses S-03's plan's "no brutto column" exclusion; S-03's own scope is unchanged. Distinct from open question 12(b), which is a total **along** the stage axis and stays open.
-- **Status:** done (EX-398). `change.md` `impl_reviewed`; the stage-value axis shipped adjacent (see above).
+- **Status:** done. `change.md` `impl_reviewed`; the stage-value axis shipped adjacent (see above).
 
 ### S-04: Subcontractor pricing (markup coefficient + override)
 
@@ -367,11 +367,11 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **Auto-snapshot cost:** serialising a 1000+ row tree on every cascade delete — is it cheap enough inline, or does it need to be deferred?
   - **Access:** who can restore (MANAGEMENT_ROLES) and does a restore itself get snapshotted (so a mistaken restore is also recoverable)?
 - **Risk:** Additive `kosztorys_snapshots` table + a restore path — the restore is the only dangerous write (it deletes the live tree). Guardrail: restore must be transactional and additive-only to the kosztorys tables — it must not touch transfers / balances / marża (FR-015). Risk: an under-captured payload restores a _partial_ tree; a snapshot is only trustworthy if its payload is complete. **Owner note: snapshots should be the easy slice** — keep restore dead-simple (wipe + rewrite), resist scope creep into diffing or partial restore.
-- **Status:** done (EX-418 closed 2026-07-17). Implemented on `main` (change.md `implemented`, 2026-07-10). Deferred E2E → EX-428 (`e2e-backlog`); `CRON_SECRET` deploy gate → EX-429; both orthogonal to slice completion.
+- **Status:** done (closed 2026-07-17). Implemented on `main` (change.md `implemented`, 2026-07-10). Deferred E2E (`e2e-backlog`); `CRON_SECRET` deploy gate; both orthogonal to slice completion.
 
 ### S-07: Fast undo / redo (in-session)
 
-- **Status:** done (EX-403 + EX-526 hardening, 2026-07-18). Re-integrated onto staging; manual checks (S-07 Faza 4) signed off. Archived → `2026-07-18-kosztorys-undo` (archive deleted 2026-09-29; git history). Deferred DB-integration E2E → EX-525 (`e2e-backlog`); owed `hasPendingBurst` unit delivered by EX-521 (`undoAvailability`, 2026-08-17) — the `renderHook` premise was refuted, the logic was extracted instead.
+- **Status:** done (hardening included, 2026-07-18). Re-integrated onto staging; manual checks (S-07 Faza 4) signed off. Archived → `2026-07-18-kosztorys-undo` (archive deleted 2026-09-29; git history). Deferred DB-integration E2E (`e2e-backlog`); owed `hasPendingBurst` unit delivered by the perf pass (`undoAvailability`, 2026-08-17) — the `renderHook` premise was refuted, the logic was extracted instead.
 - **Outcome:** the editor supports **undo/redo** of recent actions — cell edit, stage-progress edit, reorder, and single-row add/delete — via a toolbar button **and Cmd+Z / Cmd+Shift+Z**, so the spreadsheet-parity bar includes instantly reversing a fat-finger without reaching for a snapshot. In-session (the stack lives in the browser tab, gone on reload); durable recovery is S-06's job.
 - **Change ID:** kosztorys-undo
 - **PRD refs:** — (owner request)
@@ -383,7 +383,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Scope (owner leans B = also undo single-row add/delete), but ship-and-test order:** snapshots (S-06) ship **first**; then evaluate whether "restore a version" already covers the delete case in practice. If yes, S-07 can land at the simpler **cell-edit + reorder** scope and defer single-row delete-undo; if not, build the full identity-map version. Cell edits + stage progress + reorder are in scope either way (cheap, ids stable).
 - **Problems to solve at plan time (the hard ones — flag loudly):**
   - **The cascade cases — section-delete / stage-delete.** These FK-cascade a whole subtree (all items + `stage_progress` of that stage/section). Undoing one means recreating the entire deleted set with fresh ids and re-pointing children — genuinely hard. **Decision from the design discussion: undo does NOT reconstruct a cascade delete — it is handed to S-06's auto-snapshot** (taken right before the delete). Plan must define what a cascade delete does to the undo stack (drop those commands / mark unrecoverable-by-undo) and how the UI signals "use restore for that."
-  - **Column delete** (stage-as-column work; confirm-gated per S-08/EX-477): deleting a populated stage column is the same cascade class — same pre-delete snapshot hand-off.
+  - **Column delete** (stage-as-column work; confirm-gated per S-08): deleting a populated stage column is the same cascade class — same pre-delete snapshot hand-off.
   - **The one discipline:** nothing in the stack may cache a raw DB id — always the `uid`, resolved through the map at execution time. A single raw-id command dangles on recreate and reintroduces stack-clearing.
   - **Redo invalidation:** a fresh edit clears the redo stack (standard). Confirm interaction with the debounced saver (an undo must reconcile with / cancel any in-flight save for the same field, not race it).
   - **Stack depth cap** (~N) so memory stays bounded on a long session.
@@ -393,33 +393,33 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ### S-08: Confirm-gated delete for populated rows / sections / stages / columns
 
-> **Policy reversed by EX-477 (2026-07-17, owner).** The original "hard-block a populated delete,
+> **Policy reversed (2026-07-17, owner).** The original "hard-block a populated delete,
 > clear the values first" rule was **too rigid** — the owner wants to delete a whole populated
 > section/item/stage in one move. New rule: a populated delete is **allowed behind a confirmation
 > dialog**, and every destructive delete that can take child data with it (item, section, stage/column)
 > takes an **auto snapshot right before deleting** (`captureAutoSnapshot`), so it is recoverable via
 > S-06 restore. The server actions no longer reject a populated delete; the client owns the confirm.
 > The empty-sheet floor (a kosztorys keeps ≥1 item) survived as the one remaining hard block, and was
-> itself removed on 2026-08-31 (owner: a kosztorys may be emptied to zero, EX-751 canceled) — there is
+> itself removed on 2026-08-31 (owner: a kosztorys may be emptied to zero) — there is
 > no hard block left, and every item delete confirms, populated or not.
 > Change doc: `2026-07-17-kosztorys-delete-confirm` (archive deleted 2026-09-29; git history).
 
 - **Outcome:** deleting a kosztorys row (item), a section, a stage, or a stage-column that **holds recorded work** goes through a **confirm dialog**, then deletes after taking a pre-delete auto snapshot. No delete is hard-blocked anymore — the last remaining item included (floor removed 2026-08-31).
-- **Change ID:** kosztorys-delete-guard (superseded by `kosztorys-delete-confirm` — EX-477)
+- **Change ID:** kosztorys-delete-guard (superseded by `kosztorys-delete-confirm`)
 - **PRD refs:** — (owner request, 2026-07-10; policy reversed 2026-07-17)
 - **Prerequisites:** S-01
 - **Parallel with:** the other editor + export slices (S-02–S-07, S-09)
 - **Blockers:** —
 - **Scope:** the confirm-and-snapshot flow covers an **item** (`RowActionsMenu`), a **section** (`SectionSummary`, cascades its items + `stage_progress`), and a **stage/column** (`StageHeader`, cascades its `stage_progress`). "Populated" = the row/subtree holds recorded `stage_progress` — that is the only work a delete destroys and the only case that pops the confirm; a plan-only row deletes without a prompt.
-- **Split note:** carved out of the old `kosztorys-column-locking` slice (2026-07-10); the role-based visibility half moved to **S-10 `kosztorys-column-rbac`**, since cut (2026-08-18) — see [Cut & folded slices](#cut--folded-slices). The hard-block half then reversed to confirm-gated (EX-477).
+- **Split note:** carved out of the old `kosztorys-column-locking` slice (2026-07-10); the role-based visibility half moved to **S-10 `kosztorys-column-rbac`**, since cut (2026-08-18) — see [Cut & folded slices](#cut--folded-slices). The hard-block half then reversed to confirm-gated.
 - **Risk:** the snapshot must be taken **inside the server action, before** the cascade delete — a client-only snapshot races autosave and misses the pre-delete state. The confirm is client-side UX; recoverability is the server's job.
-- **Status:** done (EX-477)
+- **Status:** done
 
 ### S-09: Kosztorys presets (templates)
 
 - **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, and (b) save an existing kosztorys back as a preset. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
-- **Shipped 2026-07-11 (EX-414, Done).** The autocomplete-over-preset-prace part (FR-006, item (c)) was **carved out** at plan time (owner, 2026-07-11) into a separate deferred slice → **EX-434** (`kosztorys-item-autocomplete`, **CUT 2026-07-28** — superseded by EX-503 section-append); S-09 shipped presets-only. Review gate filed EX-438/439/440/441 (tech-debt) and EX-442 (owed E2E, `e2e-backlog`).
-- **EX-1017 (2026-10-08):** a szablon no longer carries its own prices — it is a list of katalog prac entries, read live from the katalog (opis, j.m., ceny, stawki, tłumaczenia). A kosztorys seeded from it is still a copy that no katalog edit reaches. Detail: `context/reference/kosztorys-editor-domain-notes.md` § „Szablon = lista prac z katalogu".
+- **Shipped 2026-07-11 (Done).** The autocomplete-over-preset-prace part (FR-006, item (c)) was **carved out** at plan time (owner, 2026-07-11) into a separate deferred slice (`kosztorys-item-autocomplete`, **CUT 2026-07-28** — superseded by section-append); S-09 shipped presets-only. Review gate filed four tech-debt issues and an owed E2E (`e2e-backlog`).
+- **2026-10-08:** a szablon no longer carries its own prices — it is a list of katalog prac entries, read live from the katalog (opis, j.m., ceny, stawki, tłumaczenia). A kosztorys seeded from it is still a copy that no katalog edit reaches. Detail: `context/reference/kosztorys-editor-domain-notes.md` § „Szablon = lista prac z katalogu".
 - **Change ID:** kosztorys-preset
 - **PRD refs:** owner request (2026-07-09; not in the original PRD). FR-006 (autocomplete) was folded in here on 2026-07-09, then **carved back out** on 2026-07-11 (owner) as its own slice, which was **cut 2026-07-28** — see [Cut & folded slices](#cut--folded-slices). S-09 no longer ships autocomplete, and nothing else will.
 - **Prerequisites:** S-01
@@ -437,7 +437,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **Outcome:** the kosztorys and the investment financial plane (materiały / zaliczki / transfers) are joined **live, on read** — the editor's Podsumowanie shows a Robocizna / Materiały / Łącznie split with materiały summed from the investment's transactions, plus „Wpłaty" and „Do zapłaty". Also lands the 6 plannable parity rows from `kosztorys-parity-gaps` (folder folded into `2026-07-18-kosztorys-bridge` (archive deleted 2026-09-29; git history)).
 - **Change ID:** kosztorys-bridge
-- **Linear:** EX-530
+- **Linear:** —
 - **PRD refs:** — (owner request, 2026-07-18). Closes the [Open Roadmap Questions](#open-roadmap-questions) 12(a) Robocizna/Materiały/Łącznie split.
 - **Prerequisites:** S-01, S-03 (executed Σetapów is the figure being joined)
 - **Parallel with:** the editor slices (S-02–S-09)
@@ -455,13 +455,13 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** an investment's **robocizna** and **rabat** come from the kosztorys („Suma prac wykonanych" — executed Σetapów, client view, pre-rabat; and the unified global-or-Σper-item rabat) instead of hand-entered `LABOR_COST` / `RABAT` transfers. Those transfers were temporary workarounds — the two "no source register" billing figures that only ever existed to carry a number, never cash.
 - **First increment is the reconciliation instrument, not the flip.** The Podsumowanie compares the transaction figures (Σ `LABOR_COST`, Σ `RABAT`) against the kosztorys figures at 1-grosz tolerance and **screams on mismatch** (bold red figure + `!` + tooltip), forcing the Rabat row visible when either side is non-zero. Read-only — this is the instrument that proves population is correct _before_ any per-investment source flip.
 - **Change ID:** robocizna-from-kosztorys
-- **Linear:** EX-535 (sub-work: EX-541 recon scream / price view, EX-542 Suspense streaming)
+- **Linear:** — (sub-work: recon scream / price view, Suspense streaming)
 - **PRD refs:** — (owner vision, 2026-07-19)
 - **Prerequisites:** S-11 (the read-side join it builds on)
 - **Parallel with:** the editor slices (S-02–S-09)
 - **Blockers — two open, both the same trap on different figures.** Each gates this slice's **archive** (not its implementation). Both were answered by the owner 2026-07-21 and banked in `context/reference/kosztorys-editor-domain-notes.md` (sekcja VAT / rekoncyliacja).
-  - **EX-536 (Q1) — zaliczka netto czy brutto?** Owner ruled **both**; the **entry axis is now shipped** — each deposit stores a `vatPlane` flag (NET/GROSS/null, **null⇒netto** per the 2026-07-23 flip), surfaced in the tryb-mieszany reconciliation where the gotówka target is **derived from the netto wpłaty**, not typed. **This is presentation-only** (it does not yet feed bilans/marża — the ledger plane is untouched). What remains open for _this_ slice's archive: whether the reconciliation figure should feed the P&L at all, on which axis.
-  - **Q2 — is the rabat transaction entered netto or brutto?** Rabat was settled as a reduction of prace, so it has a netto/brutto dimension. If the owner thinks "rabat off the gross" and types gross, Σ rabat is brutto while the kosztorys rabat is netto — and the scream false-fires by exactly the VAT (1000 netto vs 1230). **The kosztorys side is settled (EX-933, 2026-09-29):** the rabat kwotowy is typed on either axis and always stored netto, so that side of the netto ↔ netto comparison holds. The `RABAT` transaction's axis stays open while EX-649 keeps it bookable.
+  - **Q1 — zaliczka netto czy brutto?** Owner ruled **both**; the **entry axis is now shipped** — each deposit stores a `vatPlane` flag (NET/GROSS/null, **null⇒netto** per the 2026-07-23 flip), surfaced in the tryb-mieszany reconciliation where the gotówka target is **derived from the netto wpłaty**, not typed. **This is presentation-only** (it does not yet feed bilans/marża — the ledger plane is untouched). What remains open for _this_ slice's archive: whether the reconciliation figure should feed the P&L at all, on which axis.
+  - **Q2 — is the rabat transaction entered netto or brutto?** Rabat was settled as a reduction of prace, so it has a netto/brutto dimension. If the owner thinks "rabat off the gross" and types gross, Σ rabat is brutto while the kosztorys rabat is netto — and the scream false-fires by exactly the VAT (1000 netto vs 1230). **The kosztorys side is settled (2026-09-29):** the rabat kwotowy is typed on either axis and always stored netto, so that side of the netto ↔ netto comparison holds. The `RABAT` transaction's axis stays open while it stays bookable.
 - **Not a write-back, and does not cross FR-015** (a _write_ firewall). Marża and bilans are already computed on read; only the _source_ of two of their inputs changes. No new transactions, no mutation of the kosztorys. wypłaty / strata / materiały stay transactions — they are real cash with a source register.
 - **Why the symmetry matters:** one rabat figure (the kosztorys one) feeds the one `totalRabat` term, which dissolves the pre/post-rabat double-count.
 - **VAT axis — the working model, NOT yet settled.** As implemented, reconciliation compares **netto ↔ netto**: the ledger plane is treated as carrying no VAT (robocizna, rabat, materiały, korekta, wpłaty all nominal, never grossed up), VAT being a **prace-only** concept on the client-price plane. So the kosztorys side is never grossed before comparison — grossing it false-fires the scream by the entire VAT amount. **But this rests on an unverified premise: that the owner actually types those transactions netto.** Nobody has confirmed it, and Q1 / Q2 above are exactly that question asked of zaliczka and rabat. If either turns out to be entered gross, this axis is wrong for that figure and the comparison must gross the kosztorys side (or de-gross the transaction) for it. Treat „netto ↔ netto" as the current assumption to be validated during population, not as the decided answer. Background: `context/reference/kosztorys-editor-domain-notes.md` („VAT dotyczy wyłącznie prac").
@@ -475,14 +475,14 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **Fixed-price job with no kosztorys** — does that case still need a manual robocizna/rabat override, or is „no kosztorys → 0" acceptable?
   - Retiring the `LABOR_COST` type itself is otherwise safe: it has no source register (the recalc hook only busts caches, never moves a balance) and the cancellation path is type-agnostic. What it is _not_ is optional — it's the positive base of both marża and bilans, so the number still has to arrive, just from elsewhere.
 - **Status:** done
-- **Shipped beyond the entry-axis (zaliczka-v2 batch, → staging 2026-07-24).** The EX-536 presentation layer grew past the deposit flag into a full **tabbed Podsumowanie** on branch `konradantonik/ex-536-zaliczka-v2`: a netto / brutto / **Mieszane** money axis, materiały **brutto→netto** reduction (owner-set % control), per-plane deposit + per-category wydatki breakdown tables, and the „Postęp prac" bar moved into the Robocizna tab. **Still presentation-only** — same caveat as the entry-axis: it does not feed bilans/marża, so it does not unblock this slice's archive. Change folders: `kosztorys-zaliczka-v2` + `kosztorys-tryb-mieszany` (both `implemented`).
-- **Planned follow-ons:** **EX-564** (`kosztorys-percent-rabat-bulk-apply`) — percent global rabat becomes a one-shot „Zastosuj" that writes per-item rabaty; **implemented + review-gate passed, in review** pending manual verification (2026-07-24). **EX-565** (`etap-tool-plane`) — per-etap z/bez-narzędzi plane + one view-independent podwykonawcy settlement (Todo, docs-only, no impl commits). Both are Podsumowanie/kosztorys work tracked in Linear.
+- **Shipped beyond the entry-axis (zaliczka-v2 batch, → staging 2026-07-24).** The zaliczka presentation layer grew past the deposit flag into a full **tabbed Podsumowanie** on branch `konradantonik/ex-536-zaliczka-v2`: a netto / brutto / **Mieszane** money axis, materiały **brutto→netto** reduction (owner-set % control), per-plane deposit + per-category wydatki breakdown tables, and the „Postęp prac" bar moved into the Robocizna tab. **Still presentation-only** — same caveat as the entry-axis: it does not feed bilans/marża, so it does not unblock this slice's archive. Change folders: `kosztorys-zaliczka-v2` + `kosztorys-tryb-mieszany` (both `implemented`).
+- **Planned follow-ons:** **`kosztorys-percent-rabat-bulk-apply`** — percent global rabat becomes a one-shot „Zastosuj" that writes per-item rabaty; **implemented + review-gate passed, in review** pending manual verification (2026-07-24). **`etap-tool-plane`** — per-etap z/bez-narzędzi plane + one view-independent podwykonawcy settlement (Todo, docs-only, no impl commits). Both are Podsumowanie/kosztorys work tracked in Linear.
 
 ### S-13: Client share view (live, read-only, token link)
 
 - **Outcome:** the owner can share a **live, read-only client-facing view** of a kosztorys via a token link. The client reopens the URL over the life of the job and sees current per-etap progress (not a frozen offer). WYSIWYG on the active columns + totals; the subcontractor cost view (z narzędziami / bez narzędzi) is **never** shown.
 - **Change ID:** kosztorys-client-share
-- **Linear:** EX-532
+- **Linear:** —
 - **PRD refs:** — (owner request, 2026-07-18)
 - **Prerequisites:** S-01, S-02 (pricing view), S-04 (subcontractor derivation — the thing being kept out)
 - **Parallel with:** the editor slices (S-02–S-09) and the other band-3 slice (S-15)
@@ -491,7 +491,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Scope:** a `kosztorys-shares` table keyed on `investment` holding the token (generate/rotate/revoke = OWNER/ADMIN) → one projection core behind two entrances, `getClientKosztorysByToken(token)` (unauthenticated) and `getClientKosztorysPreview(investmentId)` (authed) — unlike `getKosztorysTree`, which self-guards → an **always-available** „Podgląd dla klienta" linked directly from the kosztorys, independent of share state (owner, 2026-07-20) → public `(share)` route `/k/[token]`, `noindex`, bare layout → a read-only render reusing the editor's presentation primitives with client-safe data.
 - **Out of scope (separate slices):** Google Sheet export, PDF export (may be dropped — a live link beats a static file).
 - **Risk:** a live public URL that leaks the subcontractor cost view defeats the purpose. Guardrail: assert at the projection boundary that `view` is pinned to `'client'` and the DTO carries no subcontractor fields — verified by a test inspecting the client payload, not the DOM. Design doc: `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history).
-- **Status:** done — implemented 2026-07-20 across 4 phases (`fe143fbe`, `88fcf326`, `218383c4`, `ec12f15f`) on branch `konradantonik/ex-532-kosztorys-client-share`. Local migration `20260720_0_add_kosztorys_shares` applied; automated checks green (typecheck, lint, `pnpm build` compiling `/k/[token]`, 1087 unit tests incl. the leak-boundary and share-lifecycle specs). Slice review gate ran 2026-07-20 (ledger `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history)): 7/7 read-only checks + `/simplify`; the critical finding (public `/k/<token>` 307ing to login — Next renamed `middleware.ts`→`proxy.ts`) was caught and fixed, all findings closed. Two follow-ups filed: EX-549 (hiddenInExport editor control) and EX-550 (`e2e-backlog`: cookie-less `/k/<token>` reachability guard). The manual browser checks in `manual-checks.md` (8/8) were ticked 2026-07-24, clearing the archive blocker; `kosztorys-client-share` archived → `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history). Remaining: the prod migration when the code ships. Earlier context — resumed 2026-07-20 (owner: domain rework "mostly settled"; the editor stays under active development and that is accepted as controlled). Plan revised and approved, no code yet. Two corrections applied on resume: the token lives in its own `kosztorys-shares` table, not on `kosztoryses` (that slug is the v1 Google-Sheet link row, whose `googleSheetId` is required — a sheet-less v2 kosztorys could never have been shared); and the design's "v2 is disconnected from the app's financials" premise is stale (EX-541 added a read-only recon bridge — a comparison surface, never a data feed, and the client payload carries no reconciliation at all). The no-second-render concern still resolves via a single column-config + `clientVisible` flag + read-only reuse of the editor grid. **Superseded 2026-07-20 by change `kosztorys-client-view-reuse` (commits `4af855c0`, `d270ff22`):** the bespoke `ClientKosztorysView`/`ClientKosztorysFooter` render is torn out and replaced by a read-only reuse of the real admin `KosztorysEditorBody` mounted in a new `clientView` mode (`view:'client'` + `readOnly` + `clientVisible` column filter + hidden chrome). **Leak posture reversed (owner decision):** the field-stripping `toClientView`/`ClientKosztorysViewT` DTO is **retired** — the client now ships the full tree, kept safe by the pinned client view + read-only render + hidden chrome, not by projecting the payload. This makes the "Core safety principle"/"Risk" DTO-projection bullets above obsolete for the shipped implementation. **EX-549 cancelled 2026-08-15, column dropped 2026-08-18:** the retired `toClientView` was the only reader of `hiddenInExport`, and hiding rows for the client shipped as a rule instead (EX-695's „ukryj puste pozycje" filter), so the per-row flag never got a consumer. Dropped as dead schema — migration `20260818_0_drop_kosztorys_hidden_in_export`. **Extended 2026-08-15 by EX-695 (`client-preview-settings`):** what the client sees is no longer a constant — a per-investment row plus a firm-wide default decide which of the allowlisted columns are hidden and whether pozycje with neither przedmiar nor executed work are dropped. `PREVIEW_VISIBLE_COLUMNS` stays the ceiling (stored keys only subtract); the settings are read beside the cached preview payload, so no cache tag is involved. Browser-level guard deferred to EX-696 (`e2e-backlog`).
+- **Status:** done — implemented 2026-07-20 across 4 phases (`fe143fbe`, `88fcf326`, `218383c4`, `ec12f15f`) on branch `konradantonik/ex-532-kosztorys-client-share`. Local migration `20260720_0_add_kosztorys_shares` applied; automated checks green (typecheck, lint, `pnpm build` compiling `/k/[token]`, 1087 unit tests incl. the leak-boundary and share-lifecycle specs). Slice review gate ran 2026-07-20 (ledger `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history)): 7/7 read-only checks + `/simplify`; the critical finding (public `/k/<token>` 307ing to login — Next renamed `middleware.ts`→`proxy.ts`) was caught and fixed, all findings closed. Two follow-ups filed: a hiddenInExport editor control and an `e2e-backlog` issue (cookie-less `/k/<token>` reachability guard). The manual browser checks in `manual-checks.md` (8/8) were ticked 2026-07-24, clearing the archive blocker; `kosztorys-client-share` archived → `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history). Remaining: the prod migration when the code ships. Earlier context — resumed 2026-07-20 (owner: domain rework "mostly settled"; the editor stays under active development and that is accepted as controlled). Plan revised and approved, no code yet. Two corrections applied on resume: the token lives in its own `kosztorys-shares` table, not on `kosztoryses` (that slug is the v1 Google-Sheet link row, whose `googleSheetId` is required — a sheet-less v2 kosztorys could never have been shared); and the design's "v2 is disconnected from the app's financials" premise is stale (a read-only recon bridge was added — a comparison surface, never a data feed, and the client payload carries no reconciliation at all). The no-second-render concern still resolves via a single column-config + `clientVisible` flag + read-only reuse of the editor grid. **Superseded 2026-07-20 by change `kosztorys-client-view-reuse` (commits `4af855c0`, `d270ff22`):** the bespoke `ClientKosztorysView`/`ClientKosztorysFooter` render is torn out and replaced by a read-only reuse of the real admin `KosztorysEditorBody` mounted in a new `clientView` mode (`view:'client'` + `readOnly` + `clientVisible` column filter + hidden chrome). **Leak posture reversed (owner decision):** the field-stripping `toClientView`/`ClientKosztorysViewT` DTO is **retired** — the client now ships the full tree, kept safe by the pinned client view + read-only render + hidden chrome, not by projecting the payload. This makes the "Core safety principle"/"Risk" DTO-projection bullets above obsolete for the shipped implementation. **The hiddenInExport control was cancelled 2026-08-15, column dropped 2026-08-18:** the retired `toClientView` was the only reader of `hiddenInExport`, and hiding rows for the client shipped as a rule instead (the „ukryj puste pozycje" filter), so the per-row flag never got a consumer. Dropped as dead schema — migration `20260818_0_drop_kosztorys_hidden_in_export`. **Extended 2026-08-15 by `client-preview-settings`:** what the client sees is no longer a constant — a per-investment row plus a firm-wide default decide which of the allowlisted columns are hidden and whether pozycje with neither przedmiar nor executed work are dropped. `PREVIEW_VISIBLE_COLUMNS` stays the ceiling (stored keys only subtract); the settings are read beside the cached preview payload, so no cache tag is involved. Browser-level guard deferred (`e2e-backlog`).
 
 ### S-15: Importer for existing sheet kosztorysy
 
@@ -504,7 +504,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - ~~Importer trigger (PRD Q8).~~ **Resolved (2026-08-11):** a button in the editor's "Opcje" menu, invoked per investment on demand — not a one-shot migration.
 - **Risk:** Reads sheets, writes only new tables (additive). Guardrail: live sheet data must survive untouched until safely imported (FR-016). **Note (2026-07-10):** no longer depends on the cutover (S-19) — moved ahead of it into the import/export band per the reorder; import now happens before, not after, new investments go sheet-less.
-- **Status:** done (EX-417) — shaped 2026-08-11, archived 2026-08-14 → `context/archive/2026-08-11-kosztorys-importer/`. Column resolution is by header label, validated across all 45 real sheets; 2 need an owner header fix. **Follow-up shipped 2026-08-13**, `context/archive/2026-08-13-sheet-live-compare/`: „Porównaj z arkuszem Google" — one live read that reports both sides' totals, the prace only one side holds, the stale stawki, and the classes of formula our reading has to refuse — **and refreshes the stored Pomiar z natury on the way**, since „keep the stale copy" is not an answer anyone would pick once the sheet has just been read. The separate „Zaciągnij pomiary z arkusza" action was folded into it and deleted, as was the per-row „Etapy są prawdą" escape hatch, both on the owner's ruling. The „Rozjazd" column became **„Pozostało do rozliczenia"** — the same subtraction, reframed from a defect to a balance line (since renamed again: today's label is „Rozjazd między arkuszem Google a apką", `column-config.ts`). E2E deferred to EX-687 (`e2e-backlog`).
+- **Status:** done — shaped 2026-08-11, archived 2026-08-14 → `context/archive/2026-08-11-kosztorys-importer/`. Column resolution is by header label, validated across all 45 real sheets; 2 need an owner header fix. **Follow-up shipped 2026-08-13**, `context/archive/2026-08-13-sheet-live-compare/`: „Porównaj z arkuszem Google" — one live read that reports both sides' totals, the prace only one side holds, the stale stawki, and the classes of formula our reading has to refuse — **and refreshes the stored Pomiar z natury on the way**, since „keep the stale copy" is not an answer anyone would pick once the sheet has just been read. The separate „Zaciągnij pomiary z arkusza" action was folded into it and deleted, as was the per-row „Etapy są prawdą" escape hatch, both on the owner's ruling. The „Rozjazd" column became **„Pozostało do rozliczenia"** — the same subtraction, reframed from a defect to a balance line (since renamed again: today's label is „Rozjazd między arkuszem Google a apką", `column-config.ts`). E2E deferred (`e2e-backlog`).
 
 ### S-16: Editor E2E coverage (release gate)
 
@@ -516,7 +516,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** This is the quality gate that lets the owner touch the editor only once it is verified. Deliberately deferred to band 4: the editor will churn heavily through bands 1–3 while the direction settles, so standing specs up earlier only chases moving targets. Risk: once here, if coverage lags the slices it locks, the cutover gate (S-19) slips — write the specs close behind the settled editor.
-- **Status:** done (EX-405, closed 2026-09-22 on the owner's ruling) — the last slice in the arc. The 2026-09-15 `e2e-backlog-audit` worked the whole backlog and closed 71 issues (`context/archive/2026-09-15-e2e-backlog-audit/audit.md`); the six it left open — EX-715, EX-689, EX-442, EX-472, EX-525 and EX-731, handed forward when S-17 was cut — were all written by 2026-09-16. `e2e/` now holds 32 specs.
+- **Status:** done (closed 2026-09-22 on the owner's ruling) — the last slice in the arc. The 2026-09-15 `e2e-backlog-audit` worked the whole backlog and closed 71 issues (`context/archive/2026-09-15-e2e-backlog-audit/audit.md`); the six it left open, handed forward when S-17 was cut — were all written by 2026-09-16. `e2e/` now holds 32 specs.
   **The gate closing does not mean specs stop.** New browser-level risks keep earning specs, but as ordinary `e2e-backlog` issues rather than as this slice's debt — the one thing S-16 itself never got, the failed-autosave rollback spec, moved out to **EX-854** on the same ruling. It never gated S-19 either: the cutover was reached 2026-08-25 without it.
 
 ### S-19: New investments get no Google Sheet (cutover gate)
@@ -544,26 +544,26 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   that **a MANAGER sees everything**; the only surface withheld from them is the Marża tab, already
   gated server-side by `isAdminOrOwnerRole` on the investment page and the v2 Podsumowanie. The
   separate client-facing need — hide sensitive columns from the person receiving the offer — shipped
-  as **S-13's per-investment client-view settings** (EX-695). So the slice's two candidate readers
+  as **S-13's per-investment client-view settings**. So the slice's two candidate readers
   both have an answer, and neither is "split the payload per role".
 - **Why the row half dies: it never had a source.** It was extrapolated from the column half by
   symmetry, not requested. The POC question it cites, **P10**
   (`context/reference/kosztorys-editor-domain-notes.md`), asks only _which columns/cells to hide from
   a MANAGER_, hypothesising subcontractor prices — it says nothing about rows or sections. Hiding
   _rows_ from the client, the one live version of that need, shipped as a **rule** („ukryj puste
-  pozycje", EX-695) rather than a per-row flag.
+  pozycje") rather than a per-row flag.
 - **Dead schema removed with the cut.** `kosztorys_items.hidden_in_export` — the per-row flag this
   slice would have consumed — was written on every insert and read by nothing; dropped 2026-08-18
   (change `2026-08-18-drop-hidden-in-export`, migration
-  `20260818_0_drop_kosztorys_hidden_in_export`). EX-549, which owned that deletion, was cancelled.
-- **Its one test obligation resolved with it (EX-603).** This slice's Risk line demanded that
+  `20260818_0_drop_kosztorys_hidden_in_export`). The issue that owned that deletion was cancelled.
+- **Its one test obligation resolved with it.** This slice's Risk line demanded that
   redaction be asserted at the **server boundary**, by a test reading a MANAGER's payload rather than
   the DOM. That assertion was **loosened to the UI plane** (owner, 2026-08-18): the bundle gate
   withholds `financials`, but every term of `marża = robocizna − wypłaty − rabat − strata` still
   reaches a MANAGER as its own prop, because `laborCostsNetFromTransactions` feeds the reconciliation
   scream a MANAGER is meant to see. What remains is extraction from the serialized payload, not a
   leak in the UI, and that is accepted. The guard now asserts no `financials` bundle and no „Marża"
-  tab — already covered by `allowedSummaryViews`. See EX-603.
+  tab — already covered by `allowedSummaryViews`.
 - **Outcome (dropped):** subcontractor cost/margin columns and restricted rows are withheld from a
   MANAGER server-side.
 - **Change ID:** kosztorys-column-rbac. **PRD refs:** — (POC follow-on P10, now resolved).
@@ -578,8 +578,8 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
 #### kosztorys-export — CUT (S-14 tombstone)
 
 - **CUT entirely (2026-08-15, owner).** No kosztorys export in any format. Two decisions on the
-  same day: **CSV** (the slice as scoped, EX-400) and then **PDF + live-formula sheet**
-  (EX-666, the un-scoped remainder that had been parked since the POC). S-14's number stays a
+  same day: **CSV** (the slice as scoped) and then **PDF + live-formula sheet**
+  (the un-scoped remainder that had been parked since the POC). S-14's number stays a
   tombstone — the table jumps S-13 → S-15 — rather than renumbering the done/archived tail.
 - **Why:** the **client view** (S-13 `kosztorys-client-share`) does both client-facing jobs the
   export existed for — presenting the offer at signing, and the live progress preview during the
@@ -587,11 +587,11 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   _current_ math on our surface, so nothing needs re-sending when a figure moves, and the app's
   SQL-computed figures never have to be translated into spreadsheet formulas. Secondary: the
   export contract (what to export, how to flatten sekcja → pozycja → etap) was never decided, and
-  EX-672 deleted the transfers CSV/print layer, so there was no infrastructure left to reuse.
+  the transfers CSV/print layer had been deleted, so there was no infrastructure left to reuse.
 - **Carried forward, not lost — the column-strip requirement.** In the old sheets a hidden column
   was only _hidden_: anyone could unhide it in Excel and read purchase prices / marża /
   subcontractor prices. Any future export must make such a column **physically absent** from the
-  file, with no formula referencing it. Recorded on EX-666 for whoever revives an export. The
+  file, with no formula referencing it. Recorded for whoever revives an export. The
   client view satisfies the same requirement its own way — the view is pinned to `view:'client'`
   and rendered read-only.
 - **Partly reversed (2026-09-23, `wydruk-oferty`) — the offer print only.** „Wygeneruj ofertę w PDF"
@@ -603,7 +603,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   columns by intersecting its own list with `PREVIEW_VISIBLE_COLUMNS` and then subtracting the
   owner's hidden set, so a purchase-price or subcontractor column cannot reach the paper even if
   someone writes it straight into the offer's column list — there is a spec that fails when they do.
-- **Nie ma długu E2E na wydruku oferty (2026-09-23, właściciel).** Dług spisany jako **EX-867**
+- **Nie ma długu E2E na wydruku oferty (2026-09-23, właściciel).** Dług spisany jako
   („E2E wydruku oferty") został **anulowany** tego samego dnia: wydruk otwiera okno przeglądarki i
   woła natywny dialog druku, więc spec Playwrighta przypinałby albo `about:blank`, albo atrapę
   `window.print` — czyli nie to, co ma ochronę. Co jest testowalne — lista kolumn ograniczona
@@ -618,7 +618,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
 
 - **CUT entirely (2026-08-25, owner).** The slice was overtaken by the specs other slices wrote on
   the way past it: what it still owns is **one** spec, which is not a slice. S-17's number stays a
-  tombstone — the table jumps S-16 → S-19 — rather than renumbering the tail again. Linear EX-396
+  tombstone — the table jumps S-16 → S-19 — rather than renumbering the tail again. The Linear issue was
   cancelled with the same rationale.
 - **Already covered, incidentally.** Sign-in without a human: `global-setup.ts` + `storageState`,
   plus `auth.spec.ts`. Transfer → register balance: `transfer-create.spec.ts` — and it already
@@ -632,10 +632,10 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   moves the investment's own figures (materiały / bilans v1 on `/inwestycje/[id]`) without a manual
   refresh. The layer below is covered — `pnpm test:parity` for the SQL, unit specs for marża — so
   the only thing that can fail there is the browser leg, i.e. the cache tag: a figure read off the
-  wrong tag renders as a zero, not as an error. Filed as **EX-731** (`e2e-backlog`).
+  wrong tag renders as a zero, not as an error. Filed as an `e2e-backlog` issue.
 - **Outcome (dropped):** a dedicated smoke slice gates the financial core.
 - **Change ID:** financial-core-smoke. **PRD refs:** FR-012, FR-011, FR-015, US-02 — covered by the
-  specs listed above plus EX-731, not by a slice.
+  specs listed above plus the carried-forward e2e leg, not by a slice.
 - **Was:** S-17 (also S-02/S-12/S-13/S-14/S-15 under earlier numberings).
 
 #### kosztorys-hardening — CUT (S-18 tombstone)
@@ -644,7 +644,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   verification: three of its four bullets were already done or overruled by the ~750 kosztorys
   commits between its writing (2026-07-08) and today, and what remained was one E2E spec plus one
   manual spot-check. S-18's number stays a tombstone — the table jumps S-16 → S-19 — rather than
-  renumbering the tail a fifth time. Linear EX-406 cancelled with the same rationale.
+  renumbering the tail a fifth time. The Linear issue was cancelled with the same rationale.
 - **Access rules — already enforced, and the wider question was overruled.** Every kosztorys
   collection (`kosztorys-items` / `-sections` / `-stages` / `-shares` / `-client-view`) gates on
   `isAdminOrOwnerOrManager`, so EMPLOYEE has none. The broader role-based hiding this bullet
@@ -654,9 +654,9 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   default target of `perf-seed-kosztorys.ts` — a tool, not a hardcode. Per-browser `localStorage`
   became a deliberate layer of **reading preferences** (`editor/hooks/use-hidden-columns`,
   `-column-widths`, `-column-order`, `-money-axis`, `-layer`), each storing the deviation rather
-  than a snapshot of today's defaults, and hardened against a hand-edited store by EX-591.
+  than a snapshot of today's defaults, and hardened against a hand-edited store.
   Removing it would be a regression, not hardening.
-- **Perf at 1000+ rows is the question EX-521 already answered on numbers.** The one path filed at
+- **Perf at 1000+ rows is the question the perf pass already answered on numbers.** The one path filed at
   that scale — the whole-owner `FOR UPDATE` in `display-order.ts` — locks a **section**, not the
   sheet, and benchmarked at +1 ms under a continuous ▲▼ burst. `lessons.md` names this exact
   distortion: a whole-sheet 1000+ figure quoted for a per-owner scope. The grid is virtualized to
@@ -666,7 +666,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   non-trivial (`revertField` / `revertOne`, per-field debounce lanes, rollback on a refused
   renumber) and unit-covered at `src/__tests__/lib/kosztorys/kosztorys-v2-rows.test.ts:552`. What
   no test exercises is the browser plane: a rejected save must leave the grid reading what the DB
-  holds, not the optimistic value behind a toast. Was recorded on **EX-405** (S-16
+  holds, not the optimistic value behind a toast. Was recorded on S-16 (
   `editor-e2e-coverage`); when that gate closed 2026-09-22 the spec still did not exist, so it moved
   to its own issue **EX-854** (`e2e-backlog`) rather than closing with the gate.
 - **Outcome (dropped):** a dedicated hardening pass gates the cutover.
@@ -703,7 +703,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   "seed-then-tweak" as the primary flow (seed on empty only), per-item suggestions barely get
   exercised. Model A (preset-sourced, snapshot-into-item) still stands; open question — duplicate
   prace across presets (show each vs dedupe by opis) — moves to that slice.
-- **CUT (2026-07-28, owner) — superseded by EX-503 `kosztorys-section-append`.** „Dodaj sekcję
+- **CUT (2026-07-28, owner) — superseded by `kosztorys-section-append`.** „Dodaj sekcję
   z szablonu" (shipped 2026-07-24) reads the same `kosztorys_presets` storage at **section**
   granularity, which covers the job FR-006 was for: composing a kosztorys out of existing prace
   without retyping. What per-item autocomplete would have added on top is finer granularity at the
@@ -734,12 +734,12 @@ slice's Unknowns.
 
 6. ~~**Catalogue seeding.**~~ **Resolved (2026-07-09):** dissolved by folding the catalogue into S-09 with Model A — autocomplete sources from preset prace, so building presets _is_ seeding. No standalone catalogue to seed.
 7. ~~**Importer trigger (FR-010).**~~ **Resolved (2026-08-11):** a "Pobierz z arkusza Google…" item in the editor's "Opcje" menu, run per investment with a preview → confirm step. Not a migration, so it stays useful after the first pass.
-8. ~~**Settings-home UX.**~~ **Resolved (2026-07-15):** a **second row in the editor toolbar** — neither anticipated option (detail-inwestycji / a "Podsumowanie" panel). The global multipliers + VAT rate are always visible there; the Sekcje panel keeps only the per-section overrides. EX-478.
+8. ~~**Settings-home UX.**~~ **Resolved (2026-07-15):** a **second row in the editor toolbar** — neither anticipated option (detail-inwestycji / a "Podsumowanie" panel). The global multipliers + VAT rate are always visible there; the Sekcje panel keeps only the per-section overrides.
 9. ~~**Preset scope (S-09).**~~ **Resolved (2026-07-11):** named library (`kosztorys_presets` table), picked by name at seed-time.
 10. ~~**Preset save-as + retroactivity (S-09).**~~ **Resolved (2026-07-11):** save-as offers both new + overwrite; spawned kosztorysy stay frozen (snapshot).
-11. ~~**Duplicate prace across presets (`kosztorys-item-autocomplete`).**~~ **Dissolved (2026-07-28):** the autocomplete slice was CUT (superseded by EX-503 section-append), and the section picker already answers it its own way — each occurrence is listed, labelled by source szablon. Nothing left to decide.
+11. ~~**Duplicate prace across presets (`kosztorys-item-autocomplete`).**~~ **Dissolved (2026-07-28):** the autocomplete slice was CUT (superseded by section-append), and the section picker already answers it its own way — each occurrence is listed, labelled by source szablon. Nothing left to decide.
 12. **`Podsumowanie` parity + per-etap total (2026-07-15).** Two separate gaps, surfaced by inspecting the live sheet:
-    - ~~**(a) `Podsumowanie` tab has no slice.**~~ **Resolved — closed by the owner 2026-09-16.** All three parts shipped, none of them as a slice: per-section totals in the section-summary panel, the Robocizna/Materiały/Łącznie split in **S-11** (`kosztorys-bridge`), and the „% udziału” pie in `kosztorys-summary-charts` (EX-529, mounted in the Podsumowanie footer; components at `src/components/kosztorys/summary/charts/`, change folder deleted without archiving). The owner has seen the pies and signed off. Nothing here needs a slice number.
+    - ~~**(a) `Podsumowanie` tab has no slice.**~~ **Resolved — closed by the owner 2026-09-16.** All three parts shipped, none of them as a slice: per-section totals in the section-summary panel, the Robocizna/Materiały/Łącznie split in **S-11** (`kosztorys-bridge`), and the „% udziału” pie in `kosztorys-summary-charts` (mounted in the Podsumowanie footer; components at `src/components/kosztorys/summary/charts/`, change folder deleted without archiving). The owner has seen the pies and signed off. Nothing here needs a slice number.
     - **(b) Per-etap total does not exist in the sheet.** New work, no parity to copy: decide whether "suma etapu" is an invoice figure (client price) or a payout figure (subcontractor price, under the active price view), and whether it's global or per-section. That answer decides whether it's a cheap `Σ V` readout or a distinct figure. — Owner: user. **(b) is the only half still open** — it blocks its own slice; (a) closed 2026-09-16.
 
 ## Parked
@@ -762,19 +762,19 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 > (archive step didn't write back). Recorded from Linear + the change/archive folders.
 
 - **F-01: E2E test harness** — Shipped; harness lives in `e2e/`. Archived 2026-10-05 → `context/archive/2026-07-08-e2e-harness/`. `global-setup.ts` + auth fixture + five specs against the isolated 5435 `db-test` container. Unblocks band 4. Lesson: —.
-- **S-01: Kosztorys sections + items (north star)** — EX-395 Done. Archived 2026-07-24 → `2026-07-08-kosztorys-sections-items` (archive deleted 2026-09-29; git history). Absorbed S-04's coefficient/override derivation. Lesson: —.
-- **S-03: Stage progress (etapy)** — EX-398 Done. Archived 2026-07-24 → `2026-07-09-kosztorys-stages` (archive deleted 2026-09-29; git history). The stage **value** axis shipped adjacent as `kosztorys-stage-values` (2026-07-15). Lesson: —.
-- **S-06: Snapshots (point-in-time version history)** — EX-418 Done, archived 2026-07-10 → `2026-07-10-kosztorys-snapshots` (archive deleted 2026-09-29; git history). Deferred E2E → EX-428 (`e2e-backlog`); `CRON_SECRET` deploy gate → EX-429. Lesson: a snapshot is only trustworthy if its payload is complete — EX-432 caught serialize silently truncating at 5000 items, which would have made restore permanently lossy.
-- **S-07: Fast undo / redo (in-session)** — EX-403 + EX-526 hardening, archived 2026-07-18 → `2026-07-18-kosztorys-undo` (archive deleted 2026-09-29; git history). Deferred DB-integration E2E → EX-525 (`e2e-backlog`); owed `hasPendingBurst` unit delivered by EX-521 (2026-08-17). Lesson: with per-field optimistic autosave, undo is an inverse **server** write, not a local rewind — it must reconcile with the in-flight save rather than race it.
-- **S-08: Confirm-gated delete (populated rows / sections / stages / columns)** — EX-477 Done. Archived 2026-07-24 → `2026-07-17-kosztorys-delete-confirm` (archive deleted 2026-09-29; git history) (superseded `kosztorys-delete-guard`, also archived → `2026-07-10-kosztorys-delete-guard` (archive deleted 2026-09-29; git history)). Reversed the original hard-block policy to confirm-then-auto-snapshot. Lesson: the pre-delete snapshot must be taken **inside the server action** — a client-side one races autosave and captures the wrong state.
-- **S-13: Client share view (live, read-only, token link)** — EX-532 Done. Archived 2026-07-24 → `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history). Bespoke render superseded 2026-07-20 by `kosztorys-client-view-reuse` (already archived → `2026-07-20-kosztorys-client-view-reuse` (archive deleted 2026-09-29; git history)), which reuses the admin `KosztorysEditorBody` read-only instead of a separate client component tree. The 8 share-link-lifecycle manual checks (generate/rotate/revoke, no-subcontractor-leak, read-only, live-not-snapshot, preview parity, MANAGER-blocked) were run and ticked 2026-07-24. Lesson: —.
-- **S-11: Read-only bridge to the financial plane** — EX-530 Done. Archived 2026-07-24 → `2026-07-18-kosztorys-bridge` (archive deleted 2026-09-29; git history). Phases 4–5 (zaliczka etap-tagging on deposits + its R+M netting) shipped then were retired (EX-536 domain resolution); phases 1–3 (Podsumowanie split, etap axis, komentarz column) stand. EX-531 (E2E for the retired tagging flow) closed Canceled rather than authored — it would have tested deleted code. EX-544 (recon-parity E2E, still valid) remains open in the e2e-backlog. Lesson: a deferred E2E can go stale if the feature under test gets retired before the test is written — check the feature still exists before authoring a backlog E2E.
+- **S-01: Kosztorys sections + items (north star)** — Done. Archived 2026-07-24 → `2026-07-08-kosztorys-sections-items` (archive deleted 2026-09-29; git history). Absorbed S-04's coefficient/override derivation. Lesson: —.
+- **S-03: Stage progress (etapy)** — Done. Archived 2026-07-24 → `2026-07-09-kosztorys-stages` (archive deleted 2026-09-29; git history). The stage **value** axis shipped adjacent as `kosztorys-stage-values` (2026-07-15). Lesson: —.
+- **S-06: Snapshots (point-in-time version history)** — Done, archived 2026-07-10 → `2026-07-10-kosztorys-snapshots` (archive deleted 2026-09-29; git history). Deferred E2E (`e2e-backlog`); `CRON_SECRET` deploy gate. Lesson: a snapshot is only trustworthy if its payload is complete — a review caught serialize silently truncating at 5000 items, which would have made restore permanently lossy.
+- **S-07: Fast undo / redo (in-session)** — hardening included, archived 2026-07-18 → `2026-07-18-kosztorys-undo` (archive deleted 2026-09-29; git history). Deferred DB-integration E2E (`e2e-backlog`); owed `hasPendingBurst` unit delivered by the perf pass (2026-08-17). Lesson: with per-field optimistic autosave, undo is an inverse **server** write, not a local rewind — it must reconcile with the in-flight save rather than race it.
+- **S-08: Confirm-gated delete (populated rows / sections / stages / columns)** — Done. Archived 2026-07-24 → `2026-07-17-kosztorys-delete-confirm` (archive deleted 2026-09-29; git history) (superseded `kosztorys-delete-guard`, also archived → `2026-07-10-kosztorys-delete-guard` (archive deleted 2026-09-29; git history)). Reversed the original hard-block policy to confirm-then-auto-snapshot. Lesson: the pre-delete snapshot must be taken **inside the server action** — a client-side one races autosave and captures the wrong state.
+- **S-13: Client share view (live, read-only, token link)** — Done. Archived 2026-07-24 → `2026-07-20-kosztorys-client-share` (archive deleted 2026-09-29; git history). Bespoke render superseded 2026-07-20 by `kosztorys-client-view-reuse` (already archived → `2026-07-20-kosztorys-client-view-reuse` (archive deleted 2026-09-29; git history)), which reuses the admin `KosztorysEditorBody` read-only instead of a separate client component tree. The 8 share-link-lifecycle manual checks (generate/rotate/revoke, no-subcontractor-leak, read-only, live-not-snapshot, preview parity, MANAGER-blocked) were run and ticked 2026-07-24. Lesson: —.
+- **S-11: Read-only bridge to the financial plane** — Done. Archived 2026-07-24 → `2026-07-18-kosztorys-bridge` (archive deleted 2026-09-29; git history). Phases 4–5 (zaliczka etap-tagging on deposits + its R+M netting) shipped then were retired (domain resolution); phases 1–3 (Podsumowanie split, etap axis, komentarz column) stand. The E2E for the retired tagging flow closed Canceled rather than authored — it would have tested deleted code. The recon-parity E2E (still valid) remains open in the e2e-backlog. Lesson: a deferred E2E can go stale if the feature under test gets retired before the test is written — check the feature still exists before authoring a backlog E2E.
 
-- **S-09: Kosztorys presets (templates)** — Archived 2026-07-11 → `2026-07-11-kosztorys-preset` (archive deleted 2026-09-29; git history). Named `kosztorys_presets` library (seed-new-from-preset + save-as-preset new/overwrite), reusing the S-06 serialize/apply engine; UI renamed preset→szablon, two save-as buttons merged into one. Lesson: a seed that runs after the parent row commits must be non-fatal — flipping the whole action to failure skips revalidation and invites a duplicate-creating retry. Browser E2E deferred → EX-442.
+- **S-09: Kosztorys presets (templates)** — Archived 2026-07-11 → `2026-07-11-kosztorys-preset` (archive deleted 2026-09-29; git history). Named `kosztorys_presets` library (seed-new-from-preset + save-as-preset new/overwrite), reusing the S-06 serialize/apply engine; UI renamed preset→szablon, two save-as buttons merged into one. Lesson: a seed that runs after the parent row commits must be non-fatal — flipping the whole action to failure skips revalidation and invites a duplicate-creating retry. Browser E2E deferred.
 
 - **S-02: Three price models + pricing-view toggle** (was S-03) — Archived 2026-07-09 → `2026-07-09-kosztorys-price-models` (archive deleted 2026-09-29; git history). Core (three views + toggle + coefficient/override derivation) shipped in S-01; this change closed the residual polish (per-kosztorys view persistence, "Klient" relabel, pricing-model explainer tooltip). Lesson: —.
 - **S-04: Subcontractor pricing (markup coefficient + override)** (was S-11) — Absorbed by S-01 (`kosztorys-sections-items`), which ported the POC's final `calc.ts` derivation verbatim; marked done here (no separate change folder). Lesson: —.
 - **S-05: VAT per investment (netto entry, brutto computed)** — Archived 2026-07-10 → `2026-07-10-kosztorys-vat` (archive deleted 2026-09-29; git history). Lesson: a migration is "verified" only when the running app reads the new column — `payload migrate` "Done." is necessary, not sufficient.
 - **S-12: Robocizna + rabat derived from the kosztorys** — Archived 2026-07-26 → `2026-07-19-robocizna-from-kosztorys` (archive deleted 2026-09-29; git history). Lesson: —.
-- **S-15: Importer for existing sheet kosztorysy** — EX-417 Done. Archived 2026-08-14 → `context/archive/2026-08-11-kosztorys-importer/`. Follow-up „Porównaj z arkuszem Google" archived alongside → `context/archive/2026-08-13-sheet-live-compare/` and `context/archive/2026-08-13-pomiar-bez-etapu/`. Deferred E2E → EX-671 + EX-687 (`e2e-backlog`); comparison blind to a global rabat → EX-691; 12 manual checks left unticked in `manual-checks.md`. Lesson: column resolution must key on the **header label**, never an offset — across 45 real sheets „Przedmiar" lives in six different columns and stage headers get renamed to crew names.
-- **O-02: RWD — make the app usable on a phone** — EX-785 Done. Archived 2026-09-17 → `2026-09-16-rwd-mobile` (archive deleted 2026-09-29; git history). Phases 1–3 shipped (overflow root-caused, mobile drawer, shell switch `lg`→`sm`, dialog-as-sheet, collision-aware popover, the two named flows walked at 390px); two follow-ups shipped alongside — EX-787 (`ui/` stops importing upward) and EX-789 (v2 editor toolbar collapsed on mobile). Phase 4 („the rest") was never scoped and has no ticket; the z-index retokenization (plan item 1.4) was written up as EX-786 and then **Canceled** — no user-visible defect, so it is dropped, not queued. Only EX-788 (E2E for the phone flows, `e2e-backlog`) stays open. Lesson: a `grid grid-cols-1` wrapper re-creates the `min-width: auto` overflow the flex shell already fixed with `min-w-0` — the guard has to be repeated per layout mode, it does not inherit.
+- **S-15: Importer for existing sheet kosztorysy** — Done. Archived 2026-08-14 → `context/archive/2026-08-11-kosztorys-importer/`. Follow-up „Porównaj z arkuszem Google" archived alongside → `context/archive/2026-08-13-sheet-live-compare/` and `context/archive/2026-08-13-pomiar-bez-etapu/`. Deferred E2E (`e2e-backlog`); comparison blind to a global rabat; 12 manual checks left unticked in `manual-checks.md`. Lesson: column resolution must key on the **header label**, never an offset — across 45 real sheets „Przedmiar" lives in six different columns and stage headers get renamed to crew names.
+- **O-02: RWD — make the app usable on a phone** — Done. Archived 2026-09-17 → `2026-09-16-rwd-mobile` (archive deleted 2026-09-29; git history). Phases 1–3 shipped (overflow root-caused, mobile drawer, shell switch `lg`→`sm`, dialog-as-sheet, collision-aware popover, the two named flows walked at 390px); two follow-ups shipped alongside — `ui/` stops importing upward, and v2 editor toolbar collapsed on mobile. Phase 4 („the rest") was never scoped and has no ticket; the z-index retokenization (plan item 1.4) was written up and then **Canceled** — no user-visible defect, so it is dropped, not queued. Only EX-788 (E2E for the phone flows, `e2e-backlog`) stays open. Lesson: a `grid grid-cols-1` wrapper re-creates the `min-width: auto` overflow the flex shell already fixed with `min-w-0` — the guard has to be repeated per layout mode, it does not inherit.

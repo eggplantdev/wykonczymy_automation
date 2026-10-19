@@ -43,17 +43,6 @@ export async function refreshData(page: Page): Promise<void> {
   await expect(page.getByText('Dane odświeżone')).toBeVisible({ timeout: 10_000 })
 }
 
-/**
- * `check` must carry its own short timeout — `toPass` cannot abort a call already in flight, so an
- * inner assertion left on the 45 s default would spend the whole budget on one attempt.
- */
-export async function refreshUntil(page: Page, check: () => Promise<void>): Promise<void> {
-  await expect(async () => {
-    await refreshData(page)
-    await check()
-  }).toPass({ timeout: 90_000, intervals: [500, 2_000, 5_000] })
-}
-
 // The wait is registered BEFORE `write` runs, which is what lets it cover a
 // debounced autosave that has not been sent yet.
 function isServerAction(request: Request): boolean {

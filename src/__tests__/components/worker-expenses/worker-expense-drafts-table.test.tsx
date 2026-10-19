@@ -4,13 +4,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { WorkerExpenseDraftsTable } from '@/components/worker-expenses/worker-expense-drafts-table'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import { navigationState, router } from '@/__tests__/stubs/next-navigation'
 
-const { replace, push } = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }))
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/pracownicy/2',
-  useRouter: () => ({ refresh: vi.fn(), replace, push }),
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/pracownicy/2'
+
 vi.mock('@/components/worker-expenses/delete-expense-draft-button', () => ({
   DeleteExpenseDraftButton: ({ draftId }: { draftId: number }) => <span>Usuń {draftId}</span>,
 }))
@@ -84,8 +81,8 @@ describe('WorkerExpenseDraftsTable', () => {
 
     await user.click(screen.getByRole('button', { name: /3$/ }))
     expect(shownIds()).toEqual([21, 22, 23, 24, 25])
-    expect(replace).not.toHaveBeenCalled()
-    expect(push).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
+    expect(router.push).not.toHaveBeenCalled()
   })
 
   it('shows no page switch while everything fits on one page', () => {
@@ -126,8 +123,8 @@ describe('WorkerExpenseDraftsTable', () => {
     await user.click(screen.getByRole('option', { name: 'Inwestycja 27' }))
     await user.keyboard('{Escape}')
     expect(shownIds()).toEqual([27])
-    expect(replace).not.toHaveBeenCalled()
-    expect(push).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
+    expect(router.push).not.toHaveBeenCalled()
   })
 
   it('shows as many rows as „Pokaż” says, back on page 1', async () => {
@@ -139,7 +136,7 @@ describe('WorkerExpenseDraftsTable', () => {
     await user.click(screen.getByRole('option', { name: '20' }))
 
     expect(shownIds()).toEqual(drafts.slice(0, 20).map((row) => row.id))
-    expect(push).not.toHaveBeenCalled()
+    expect(router.push).not.toHaveBeenCalled()
   })
 
   it('opens page 1 when a newly sent draft arrives, where it is listed', async () => {

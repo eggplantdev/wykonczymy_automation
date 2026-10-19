@@ -25,7 +25,7 @@ export const workerReportShare = ({ investmentId, workerId }: WorkerShareKeyT): 
   owner: { investment: investmentId, worker: workerId },
 })
 
-export async function findShare(payload: Payload, row: ShareRowT) {
+async function findShare(payload: Payload, row: ShareRowT) {
   const where = Object.fromEntries(
     Object.entries(row.owner).map(([field, id]) => [field, { equals: id }]),
   )

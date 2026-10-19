@@ -4,7 +4,7 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 // A szablon becomes an investment with status `szablon`, its kosztorys tree being the szablon's
 // content — instead of a jsonb row in `kosztorys_presets` edited on ONE shared workshop investment
 // that a pointer (`investments.template_preset_id`) switched between szablony. Every bug of that
-// design came from the workshop id changing meaning over time (EX-893).
+// design came from the workshop id changing meaning over time.
 //
 // Purely ADDITIVE: the workshop, `kosztorys_presets` and both `template_preset_id` columns stay, so
 // the code still live when this runs keeps working; 20260929_2 drops them once the new deploy is live.

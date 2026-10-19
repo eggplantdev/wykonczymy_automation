@@ -3,12 +3,12 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
+import { findReferencedMediaIds } from '@/lib/db/media-detachments'
 import {
   countPendingExpenseDrafts,
   decideExpenseDraft,
   decideExpenseParagons,
   deletePendingExpenseDraft,
-  findDraftHeldMedia,
   findExpenseDraftDecisions,
   mergeExpenseDrafts,
   rejectPendingParagons,
@@ -29,13 +29,12 @@ import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { workerUseBlocker } from '@/lib/workers/delete-blocker'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-draft-'
 
 describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
@@ -49,18 +48,8 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
   const ctx = { context: { skipRevalidation: true } }
 
-  const purgeMedia = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
-
-  // Raw INSERT: an upload through Payload would push bytes at the Blob store for a fixture nothing opens.
-  async function insertMedia(name: string, uploadedBy: number): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string, uploadedBy: number) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
   const mediaExists = async (id: number) =>
     (await db.execute(sql`SELECT 1 FROM media WHERE id = ${id}`)).rows.length > 0
@@ -75,11 +64,9 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     )
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
-    await purgeMedia()
+    await purgeTestMedia(db, FILENAME_PREFIX)
     await purgeFixtureUsers(db)
 
     investmentId = await createTestInvestment(payload, 'worker-expense-drafts-db-test')
@@ -101,7 +88,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     await db.execute(
       sql`DELETE FROM worker_expense_drafts WHERE worker_id IN (${workerId}, ${otherWorkerId})`,
     )
-    await purgeMedia()
+    await purgeTestMedia(db, FILENAME_PREFIX)
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})
     if (otherInvestmentId) await deleteTestInvestment(payload, otherInvestmentId).catch(() => {})
     await purgeFixtureUsers(db)
@@ -116,12 +103,17 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       mediaIds,
     })
 
+  const draftFixture = async (...args: Parameters<typeof draftOf>): Promise<number> => {
+    const draftId = await draftOf(...args)
+    if (draftId === null) throw new Error('draft fixture refused')
+    return draftId
+  }
+
   const reject = (draftId: number) =>
     decideExpenseDraft(db, { draftId, decidedBy: workerId, status: 'rejected', transferIds: [] })
 
   async function rejectedDraftOf(name: string, onInvestment = investmentId): Promise<number> {
-    const draftId = await draftOf([await insertMedia(name, workerId)], onInvestment)
-    if (draftId === null) throw new Error('draft fixture refused')
+    const draftId = await draftFixture([await insertMedia(name, workerId)], onInvestment)
     await reject(draftId)
     return draftId
   }
@@ -171,9 +163,8 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
   }
 
   it('marks every transaction an accepted draft was booked as', async () => {
-    const accepted = await draftOf([await insertMedia('listed-accepted', workerId)])
-    const rejected = await draftOf([await insertMedia('listed-rejected', workerId)])
-    if (accepted === null || rejected === null) throw new Error('draft fixture refused')
+    const accepted = await draftFixture([await insertMedia('listed-accepted', workerId)])
+    const rejected = await draftFixture([await insertMedia('listed-rejected', workerId)])
     const [first, second, unrelated] = await unlinkedTransferIds(3)
 
     await decideExpenseDraft(db, {
@@ -192,8 +183,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
   })
 
   it('stores the read rows each transakcja was booked from', async () => {
-    const draftId = await draftOf([await insertMedia('read-rows', workerId)])
-    if (draftId === null) throw new Error('draft fixture refused')
+    const draftId = await draftFixture([await insertMedia('read-rows', workerId)])
     await db.execute(sql`
       UPDATE worker_expense_drafts
       SET ai_read = ${JSON.stringify({ rows: [{ mediaIds: [] }, { mediaIds: [] }] })}::jsonb
@@ -218,8 +208,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
   it('a pending draft blocks the delete until a manager decides it', async () => {
     const pendingLabel = /zgłoszenia wydatków do rozpatrzenia/
-    const draftId = await draftOf([await insertMedia('blocks', workerId)], otherInvestmentId)
-    if (draftId === null) throw new Error('draft fixture refused')
+    await draftFixture([await insertMedia('blocks', workerId)], otherInvestmentId)
 
     expect(await workerUseBlocker(payload, workerId)).toMatch(pendingLabel)
     expect(await investmentDeleteBlocker(payload, otherInvestmentId)).toMatch(pendingLabel)
@@ -294,16 +283,13 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       )
 
     async function pendingDraftOn(name: string, onInvestment: number): Promise<number> {
-      const draftId = await draftOf([await insertMedia(name, workerId)], onInvestment)
-      if (draftId === null) throw new Error('draft fixture refused')
-      return draftId
+      return draftFixture([await insertMedia(name, workerId)], onInvestment)
     }
 
     async function multiPageDraft(name: string, pageCount: number) {
       const pages: number[] = []
       for (let i = 0; i < pageCount; i++) pages.push(await insertMedia(`${name}-${i}`, workerId))
-      const draftId = await draftOf(pages, historyInvestmentId)
-      if (draftId === null) throw new Error('draft fixture refused')
+      const draftId = await draftFixture(pages, historyInvestmentId)
       return { draftId, pages }
     }
 
@@ -584,10 +570,16 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         mediaIds: (row.media_ids as number[]).map(Number),
       }))
 
+    const restoreFixture = async (receiptId: number): Promise<number> => {
+      const restored = await restoreSkippedReceipt(db, receiptId)
+      if (restored === null) throw new Error('restore refused')
+      return restored
+    }
+
     const draftRow = async (draftId: number) =>
       (
         await db.execute(sql`
-          SELECT worker_id, investment_id, cash_register_id, note, scan_mode, status,
+          SELECT worker_id, investment_id, cash_register_id, note, status,
             sent_at = ${SENT_AT}::timestamptz AS has_parent_sent_at, ai_read,
             ARRAY(SELECT media_id FROM worker_expense_draft_media
               WHERE draft_id = d.id ORDER BY position) AS pages,
@@ -655,15 +647,13 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
     it('becomes a pending zgłoszenie of its own, carrying its read, and leaves the parent as booked', async () => {
       const [single] = await skippedOf(parentId)
-      const restored = await restoreSkippedReceipt(db, single.id)
-      if (restored === null) throw new Error('restore refused')
+      const restored = await restoreFixture(single.id)
 
       expect(await draftRow(restored)).toEqual({
         worker_id: workerId,
         investment_id: restoreInvestmentId,
         cash_register_id: registerId,
         note: 'z budowy',
-        scan_mode: 'one-per-photo',
         status: 'pending',
         has_parent_sent_at: true,
         ai_read: { rows: [{ mediaIds: [pages[1]], amount: 20, description: 'farba' }] },
@@ -684,8 +674,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     it('carries the read of its own paragon when the photo holds another', async () => {
       const second = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[1])
       if (!second) throw new Error('second paragon fixture missing')
-      const restored = await restoreSkippedReceipt(db, second.id)
-      if (restored === null) throw new Error('restore refused')
+      const restored = await restoreFixture(second.id)
 
       expect(await draftRow(restored)).toMatchObject({
         ai_read: { rows: [{ mediaIds: [pages[1]], amount: 5, description: 'parking' }] },
@@ -696,8 +685,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     it('matches its read row as a set and keeps the parent’s page order', async () => {
       const pair = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds.length === 2)
       if (!pair) throw new Error('pair fixture missing')
-      const restored = await restoreSkippedReceipt(db, pair.id)
-      if (restored === null) throw new Error('restore refused')
+      const restored = await restoreFixture(pair.id)
 
       expect(await draftRow(restored)).toMatchObject({
         ai_read: { rows: [{ mediaIds: [pages[2], pages[3]], amount: 30 }] },
@@ -729,14 +717,13 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         await setTrashedRegister(false)
       }
 
-      const restored = await restoreSkippedReceipt(db, unread.id)
-      if (restored === null) throw new Error('restore refused')
+      const restored = await restoreFixture(unread.id)
       expect((await draftRow(restored)).ai_read).toEqual({ rows: [{ mediaIds: [pages[4]] }] })
 
       expect(await deletePendingExpenseDraft(db, { draftId: restored, workerId })).toEqual([
         pages[4],
       ])
-      expect(await findDraftHeldMedia(db, [pages[4]])).toEqual([pages[4]])
+      expect(await findReferencedMediaIds(db, [pages[4]])).toEqual([pages[4]])
     })
   })
 
@@ -771,8 +758,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     it('an acceptance keeps the mark on the paragon skipped as a duplicate, which the worker sees as refused', async () => {
       const pages: number[] = []
       for (let i = 0; i < 3; i++) pages.push(await insertMedia(`dup-accept-${i}`, workerId))
-      const draftId = await draftOf(pages, duplicateInvestmentId)
-      if (draftId === null) throw new Error('draft fixture refused')
+      const draftId = await draftFixture(pages, duplicateInvestmentId)
       const [transferId] = await unlinkedTransferIds(1)
       const duplicateOf = { source: 'transaction' as const, id: 424242 }
 
@@ -812,11 +798,10 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     })
 
     it('a refusal as a duplicate marks the zgłoszenie, reads „odrzucone” to the worker, and a restore clears it', async () => {
-      const draftId = await draftOf(
+      const draftId = await draftFixture(
         [await insertMedia('dup-reject', workerId)],
         duplicateInvestmentId,
       )
-      if (draftId === null) throw new Error('draft fixture refused')
       const duplicateOf = { source: 'draft' as const, id: 434343 }
 
       await decideExpenseDraft(db, {
@@ -851,8 +836,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     async function readDraft(name: string, rowCount: number, onInvestment = investmentId) {
       const pages: number[] = []
       for (let i = 0; i < rowCount; i++) pages.push(await insertMedia(`${name}-${i}`, workerId))
-      const draftId = await draftOf(pages, onInvestment)
-      if (draftId === null) throw new Error('draft fixture refused')
+      const draftId = await draftFixture(pages, onInvestment)
       const rows = pages.map((id) => ({ mediaIds: [id] }))
       await db.execute(sql`
         UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify({ rows })}::jsonb
@@ -1036,14 +1020,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
             return partial.draftId
           },
         ],
-        [
-          'unread',
-          async () => {
-            const draftId = await draftOf([await insertMedia('merge-refused-unread', workerId)])
-            if (draftId === null) throw new Error('draft fixture refused')
-            return draftId
-          },
-        ],
+        ['unread', async () => draftFixture([await insertMedia('merge-refused-unread', workerId)])],
       ] as const)('refuses a merge as %s', async (refusal, otherDraft) => {
         const { draftId } = await readDraft(`merge-refused-${refusal}-base`, 1)
         const otherId = await otherDraft()
@@ -1057,9 +1034,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
   // „Bez inwestycji": an inner join or an investment-only trash predicate would hide it silently.
   describe('a draft without an investment', () => {
     async function noInvestmentDraft(name: string): Promise<number> {
-      const draftId = await draftOf([await insertMedia(name, workerId)], null)
-      if (draftId === null) throw new Error('draft fixture refused')
-      return draftId
+      return draftFixture([await insertMedia(name, workerId)], null)
     }
 
     it('is stored with no investment and listed to its worker as such', async () => {

@@ -1,7 +1,7 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
+import { EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
+import { seedTransaction } from '@/scripts/seed-transaction'
 
-const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
 const QTY_DONE = 5
 const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE
@@ -10,10 +10,7 @@ const ctx = { context: { skipRevalidation: true } }
 
 type SeededInvestment = { investmentId: number; name: string }
 
-async function seedKosztorys(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  name: string,
-): Promise<SeededInvestment> {
+async function seedKosztorys(payload: Payload, name: string): Promise<SeededInvestment> {
   const investment = await payload.create({
     collection: 'investments',
     data: { name, status: 'active', vatRate: 0.23, settlementMode: 'NET' },
@@ -62,34 +59,7 @@ async function seedKosztorys(
   return { investmentId: investment.id, name }
 }
 
-type TxnSeed = {
-  type: 'LABOR_COST' | 'RABAT'
-  amount: number
-  investment: number
-  description: string
-  sourceRegister?: number
-}
-
-// The transaction afterChange balance hook calls revalidateTag, which throws outside a Next request
-// context. disableTransaction lets the insert survive that throw.
-async function seedTransaction(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  txn: TxnSeed,
-): Promise<void> {
-  try {
-    await payload.create({
-      collection: 'transactions',
-      disableTransaction: true,
-      data: { ...txn, paymentMethod: 'TRANSFER', date: new Date().toISOString() },
-    })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    if (!message.includes('static generation store')) throw error
-  }
-}
-
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedKosztorysReconciliation(payload: Payload) {
   // A per-run suffix keeps names unique — the test DB is not reset between runs, so a stable name
   // would collide.
   const stamp = Date.now()
@@ -105,7 +75,7 @@ async function main() {
     type: 'RABAT',
     amount: 30,
     investment: mismatch.investmentId,
-    sourceRegister: SOURCE_REGISTER_ID,
+    sourceRegister: EXPENSE_REGISTER.id,
     description: 'E2E rabat (niezgodny)',
   })
 
@@ -117,18 +87,10 @@ async function main() {
     description: 'E2E robocizna (zgodna)',
   })
 
-  console.log(
-    `RECON_SEED=${JSON.stringify({
-      mismatch: mismatch.investmentId,
-      match: match.investmentId,
-      matchName: match.name,
-      laborCostsNetFromKosztorys: LABOR_COSTS_NET,
-    })}`,
-  )
-  process.exit(0)
+  return {
+    mismatch: mismatch.investmentId,
+    match: match.investmentId,
+    matchName: match.name,
+    laborCostsNetFromKosztorys: LABOR_COSTS_NET,
+  }
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

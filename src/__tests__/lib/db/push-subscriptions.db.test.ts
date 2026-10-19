@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -8,11 +8,9 @@ import {
   selectLivePushSubscriptions,
   upsertPushSubscription,
 } from '@/lib/db/push-subscriptions'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PHONE = 'https://push.test.local/phone'
 const TABLET = 'https://push.test.local/tablet'
 
@@ -29,28 +27,15 @@ describe.skipIf(!ENV_READY)('push subscriptions (DB)', () => {
   let ownerId: number
   let otherId: number
 
-  const createWorker = async (email: string) =>
-    Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: { name: email, role: 'EMPLOYEE', email, password: 'test-password-123' },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-
   const endpointsOf = async (userId: number) =>
     (await selectLivePushSubscriptions(db, userId)).map((row) => row.endpoint).sort()
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
-    ownerId = await createWorker('push-owner@test.local')
-    otherId = await createWorker('push-other@test.local')
+    ownerId = await createTestUser(payload, { email: 'push-owner@test.local' })
+    otherId = await createTestUser(payload, { email: 'push-other@test.local' })
   })
 
   beforeEach(async () => {

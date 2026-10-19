@@ -12,8 +12,6 @@ import type {
 } from '@/components/forms/inspection-form/inspection-schema'
 import type { ActionResultT } from '@/types/action'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const VEHICLE = {
   id: 7,
   registration: 'WX 1234A',
@@ -84,7 +82,6 @@ async function pickNextDue(user: UserT, isoDate: string): Promise<void> {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useInspectionFormStore.getState().resetFormData()
   useOptimisticFormStore.setState({ keepOpen: true })
 })

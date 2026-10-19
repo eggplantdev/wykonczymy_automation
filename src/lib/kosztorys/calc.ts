@@ -211,7 +211,7 @@ function doneFraction(totalQtyDone: number, plannedQty: number): number | null {
   return totalQtyDone / plannedQty
 }
 
-export function globalDiscountAmount(totalNet: number, discount: GlobalDiscountT): number {
+export function globalDiscountAmount(discount: GlobalDiscountT): number {
   if (discount.type === 'amount') return discount.value
   return 0
 }

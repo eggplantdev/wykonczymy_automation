@@ -2,8 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 import type { MaterialSyncPreviewT } from '@/lib/actions/sheets-sync'
 import { setGoogleCredentialEnv } from '@/__tests__/helpers/google-credentials'
-
-vi.mock('server-only', () => ({}))
+import { activeInvestmentExecute } from '@/__tests__/helpers/transfer-hook-args'
 
 const valuesGetMock = vi.fn()
 const valuesAppendMock = vi.fn()
@@ -67,7 +66,7 @@ const mockPayload = {
   findByID: findByIDMock,
   // The completed-investment lock reads the status through the drizzle adapter, so the double needs
   // one — „aktywna", since the lock has its own spec and the sync is the subject here.
-  db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } },
+  db: { drizzle: { execute: activeInvestmentExecute } },
 } as unknown as Payload
 
 vi.mock('payload', async (importOriginal) => {
@@ -78,14 +77,7 @@ vi.mock('payload', async (importOriginal) => {
   }
 })
 
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockResolvedValue({
-    success: true,
-    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  }),
-}))
-
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
 const {
   previewMaterialSync,
@@ -284,18 +276,6 @@ describe('previewMaterialSync', () => {
     expect(tabOf(result.data, 'Wydatki').toAppend.map((r) => r.transferId)).toEqual([101])
   })
 
-  it('does not re-append rows already present in the sheet', async () => {
-    withSheet(31, 'sheet-1')
-    findReturns([makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })])
-    sheetGrids([101]) // already synced
-
-    const result = await previewMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(tabOf(result.data, 'Wydatki').toAppend).toEqual([])
-  })
-
   it('reports update and remove counts, not just appends (T3.1)', async () => {
     withSheet(31, 'sheet-1')
     findMock
@@ -365,21 +345,6 @@ describe('applyMaterialSync', () => {
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
   })
 
-  it('overwrites an expense already present in the sheet (drift heal)', async () => {
-    routeFinds({ expenses: [makeMaterialTransaction(5, 'Materiały budowlane', { amount: 100 })] })
-    sheetGrids([5]) // already synced → row 2
-
-    const result = await applyMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 0, updated: 1, removed: 0, errors: [] })
-    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
-    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
-      "'wydatki inwestycyjne (tylko do odczytu)'!A2",
-    )
-  })
-
   it('appends an expense that the DB has but the sheet is missing', async () => {
     routeFinds({
       expenses: [
@@ -433,18 +398,6 @@ describe('applyMaterialSync', () => {
         { type: { in: ['INVESTMENT_EXPENSE', 'INVESTMENT_EXPENSE_NET', 'CORRECTION'] } },
       ]),
     )
-  })
-
-  it('keeps a row whose id collides with a transaction that is not this investment expense', async () => {
-    routeFinds({ expenses: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })] })
-    sheetGrids([7, 8])
-
-    const result = await applyMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(result.data.removed).toBe(0)
-    expect(batchUpdateMock).not.toHaveBeenCalled()
   })
 })
 

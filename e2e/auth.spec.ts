@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test'
 import { login } from './support/auth'
 import { waitForHydration } from './support/wait'
 
+test.use({ storageState: { cookies: [], origins: [] } })
+
 test('login sets the session, dashboard renders, logout clears it', async ({ page }) => {
   await login(page)
 

@@ -28,7 +28,6 @@ import {
 } from '@/lib/kosztorys/reorder-layout'
 import {
   applyCatalogueWrite,
-  DUPLICATE_ERROR,
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import {

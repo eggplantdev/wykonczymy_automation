@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
+import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds } from '@/__tests__/helpers/grid-columns'
 
 const BARE: KosztorysStageT = makeStage({ id: 7, label: 'Etap 1', plane: null })
 const NO_WORKER: KosztorysStageT = makeStage({ id: 9, ordinal: 2, label: 'Etap 2' })
@@ -17,9 +18,7 @@ const FINE: KosztorysStageT = makeStage({
 const STAGES = [BARE, NO_WORKER, FINE]
 
 const columnIds = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>
-  buildV2Columns({ view: 'client', stages: STAGES, ...opts })
-    .map((column) => column.id)
-    .filter((id): id is string => id != null)
+  gridColumnIds({ view: 'client', stages: STAGES, ...opts })
 
 const stagesOnAxis = (ids: string[], keyFor: (stageId: number) => string): number[] =>
   STAGES.map((stage) => stage.id).filter((id) => ids.includes(keyFor(id)))
@@ -100,7 +99,8 @@ describe('column reveal', () => {
   })
 
   it('never widens a client preview', () => {
-    const ids = columnIds({ previewVisible: true, revealedColumnIds: new Set(['priceMode']) })
-    expect(ids).not.toContain('priceMode')
+    const rate = planePriceKey('price', 'own_tools')
+    const ids = columnIds({ previewVisible: true, revealedColumnIds: new Set([rate]) })
+    expect(ids).not.toContain(rate)
   })
 })

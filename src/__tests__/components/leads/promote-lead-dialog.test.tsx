@@ -3,17 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
+import { promoteLeadAction } from '@/lib/actions/promote-lead'
+import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { LeadRowT } from '@/types/leads'
 
-vi.mock('@/lib/actions/promote-lead', () => ({
-  promoteLeadAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/actions/lead-assets', () => ({
-  attachLeadAssetsAction: vi.fn(async () => ({ success: true })),
-  removeLeadAssetAction: vi.fn(async () => ({ success: true })),
-}))
+vi.mocked(promoteLeadAction).mockResolvedValue({ success: true })
+vi.mocked(attachLeadAssetsAction).mockResolvedValue({ success: true })
+vi.mocked(removeLeadAssetAction).mockResolvedValue({ success: true })
 
 const ASSETS = [
   {
@@ -65,7 +62,8 @@ describe('PromoteLeadDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Dodaj' }))
 
     expect(await screen.findByLabelText('Nazwa')).toHaveValue(`${LEAD.name} ${LEAD.address}`)
-    expect(screen.getByLabelText('Adres')).toHaveValue(LEAD.address)
+    await user.click(screen.getByRole('button', { name: 'Adres inwestycji' }))
+    expect(screen.getByLabelText('Ulica i numer')).toHaveValue(LEAD.address)
     expect(screen.getByLabelText('Telefon')).toHaveValue(LEAD.phone)
     expect(screen.getByLabelText('Email')).toHaveValue(LEAD.email)
     expect(screen.getByLabelText('Osoba kontaktowa')).toHaveValue(LEAD.name)
@@ -89,7 +87,7 @@ describe('PromoteLeadDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'Dodaj' }))
 
-    expect(await screen.findByLabelText('Status')).toHaveTextContent('Wycena')
+    expect(await screen.findByRole('combobox')).toHaveTextContent('Wycena')
   })
 
   it('lets a file be held back from the inwestycja without deleting it', async () => {

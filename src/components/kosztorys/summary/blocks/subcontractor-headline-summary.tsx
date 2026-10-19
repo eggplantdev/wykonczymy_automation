@@ -16,7 +16,7 @@ import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due
 const UNCONFIRMED_PLANE_HINT =
   'Niektóre etapy nie mają potwierdzonego rozliczenia — nie wchodzą do żadnej z kwot, więc suma jest niższa niż faktycznie wykonana praca.'
 
-// One „Kwota" column throughout, no netto/brutto axis (EX-558: subcontractors are paid without VAT).
+// No netto/brutto axis: subcontractors are paid without VAT.
 export function SubcontractorHeadlineSummary({
   summary,
   due,

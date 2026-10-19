@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// Several workers per etap (EX-943). Purely ADDITIVE: `kosztorys_stages.worker_id` stays so the old
+// Several workers per etap. Purely ADDITIVE: `kosztorys_stages.worker_id` stays so the old
 // code keeps running until the deploy is live, and is dropped by a later migration in a later push.
 //
 // A raw table, not a Payload collection: nothing reads it through Payload, and a collection would

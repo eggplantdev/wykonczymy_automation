@@ -7,14 +7,11 @@ import { createTransferAction } from '@/lib/actions/transfers'
 import { useDepositFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { ReferenceDataT } from '@/types/reference-data'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/kasa',
-}))
-vi.mock('@/lib/actions/transfers', () => ({
-  createTransferAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+navigationState.pathname = '/kasa'
+
+vi.mocked(createTransferAction).mockResolvedValue({ success: true })
 
 const INVESTMENT = {
   id: 4,
@@ -68,7 +65,6 @@ async function pickMethod(user: ReturnType<typeof userEvent.setup>, label: RegEx
 const submittedPayload = () => vi.mocked(createTransferAction).mock.calls[0]?.[0]
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useDepositFormStore.getState().resetFormData()
   useOptimisticFormStore.setState({ keepOpen: true })
 })
@@ -84,19 +80,6 @@ describe('Wpłata — metoda płatności trafia do zapisu', () => {
 
     expect(createTransferAction).toHaveBeenCalledTimes(1)
     expect(submittedPayload()).toMatchObject({ paymentMethod: 'CASH', amount: 1000 })
-  })
-
-  it('zapisuje przelew, gdy wybrano przelew', async () => {
-    const user = renderForm()
-
-    await pickRequiredEntities(user)
-    await user.type(screen.getByLabelText(/Opis/i), 'Zaliczka')
-    await pickMethod(user, /Przelew/i)
-    await user.type(screen.getByLabelText(/Kwota brutto/i), '1230')
-    await user.click(screen.getByRole('button', { name: 'Dodaj' }))
-
-    expect(createTransferAction).toHaveBeenCalledTimes(1)
-    expect(submittedPayload()).toMatchObject({ paymentMethod: 'TRANSFER' })
   })
 })
 

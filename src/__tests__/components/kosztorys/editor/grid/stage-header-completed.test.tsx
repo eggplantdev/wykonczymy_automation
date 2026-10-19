@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
@@ -27,9 +27,7 @@ const openMenu = async (user: ReturnType<typeof userEvent.setup>) =>
 
 const completedRow = () => screen.getByRole('menuitemcheckbox', { name: 'Etap zakończony' })
 
-beforeEach(() => vi.clearAllMocks())
-
-describe('Nagłówek etapu — etap zakończony (EX-1034)', () => {
+describe('Nagłówek etapu — etap zakończony', () => {
   it('zaznacza „Etap zakończony" tylko na etapie zakończonym', async () => {
     const user = renderEditorHeader(true)
     await openMenu(user)

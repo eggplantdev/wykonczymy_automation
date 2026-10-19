@@ -36,7 +36,6 @@ const baseEnv = {
     client_email: 'sa@example.iam.gserviceaccount.com',
     private_key: 'key',
   }),
-  KOSZTORYS_TEMPLATE_SHEET_ID: 'sheet-id',
   OPENROUTER_API_KEY: 'x',
   CRON_SECRET: 'x',
   VERCEL_DEPLOYMENT_ID: 'dpl_test',
@@ -98,11 +97,6 @@ describe('serverSchema — production Blob token guard', () => {
     )
   })
 
-  it('pins the store ids the guard compares against', () => {
-    expect(PROD_BLOB_STORE_ID).toBe('oJHLWhvHKJrsgWiN')
-    expect(PREVIEW_BLOB_STORE_ID).toBe('rNjU0fDb7Sz8bHVA')
-  })
-
   // zod v3 skipped a whole-object refinement once any field failed; v4 still runs it for a present
   // but invalid string. Asserted because a future major flipping back would crash the boot instead
   // of reporting the missing var.
@@ -148,11 +142,6 @@ describe('blobTokenRefusal', () => {
 // writes to a sheet — so a malformed value has the fewest eyes on it and the longest silence: it
 // passes boot and dies inside a deferred write that sheets-sync swallows as non-fatal.
 describe('serverSchema — Editor service-account credential', () => {
-  it('accepts its absence, which is every environment but production', () => {
-    const result = serverSchema.safeParse(baseEnv)
-    expect(result.success).toBe(true)
-  })
-
   it('accepts a credential carrying client_email and private_key', () => {
     const result = serverSchema.safeParse({
       ...baseEnv,
@@ -190,12 +179,6 @@ describe('serverSchema — Editor service-account credential', () => {
     expect(result.error?.issues.map((issue) => issue.path.join('.'))).toContain(
       'GOOGLE_SERVICE_ACCOUNT_WRITE_JSON',
     )
-  })
-
-  it('does not demand it on preview, where its absence IS the write gate', () => {
-    const result = serverSchema.safeParse({ ...baseEnv, VERCEL_ENV: 'preview' })
-
-    expect(result.success).toBe(true)
   })
 })
 

@@ -1,13 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { deleteMediaRow, insertMediaRow, isMediaFilenameReferenced } from '@/lib/db/media'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { purgeTestMedia } from '@/__tests__/helpers/media'
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-1012-media-'
 
 describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
@@ -15,34 +14,22 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
   let uploaderId: number
 
-  const purgeMedia = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
-
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
-    await purgeMedia()
+    await purgeTestMedia(db, FILENAME_PREFIX)
     await purgeFixtureUsers(db)
 
-    const uploader = await payload.create({
-      collection: 'users',
-      data: {
-        name: 'Fast Upload Worker',
-        role: 'EMPLOYEE',
-        email: 'fast-upload-worker@test.local',
-        password: 'test-password-123',
-      },
-      context: { skipRevalidation: true },
+    uploaderId = await createTestUser(payload, {
+      name: 'Fast Upload Worker',
+      email: 'fast-upload-worker@test.local',
     })
-    uploaderId = Number(uploader.id)
   })
 
   afterAll(async () => {
     if (!db) return
-    await purgeMedia()
+    await purgeTestMedia(db, FILENAME_PREFIX)
     await purgeFixtureUsers(db)
   })
 

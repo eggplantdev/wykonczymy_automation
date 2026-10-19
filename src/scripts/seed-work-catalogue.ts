@@ -1,7 +1,6 @@
 // Every opis carries the run's timestamp —
 // the katalog is global and never reset, so a stable opis would hit overwrite instead of create.
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
 
 const ctx = { context: { skipRevalidation: true, skipSheetSync: true } }
 
@@ -19,7 +18,7 @@ type SeededInvestmentT = {
 }
 
 async function seedInvestment(
-  payload: Awaited<ReturnType<typeof getPayload>>,
+  payload: Payload,
   name: string,
   suffix: string,
 ): Promise<SeededInvestmentT> {
@@ -79,8 +78,7 @@ async function seedInvestment(
   return { id: investment.id, item: items[0].description, beta: items[2].description }
 }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedWorkCatalogue(payload: Payload) {
   const stamp = Date.now()
 
   const seed = {
@@ -88,11 +86,5 @@ async function main() {
     insert: await seedInvestment(payload, `E2E Katalog wstaw ${stamp}`, `W${stamp}`),
   }
 
-  console.log(`CATALOGUE_SEED=${JSON.stringify(seed)}`)
-  process.exit(0)
+  return seed
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

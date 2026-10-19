@@ -1,27 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LoginForm } from '@/app/(auth)/zaloguj/login-form'
+import { loginAction } from '@/lib/actions/auth'
 
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-}))
-
-const loginAction = vi.fn()
-vi.mock('@/lib/actions/auth', () => ({
-  loginAction: (...args: unknown[]) => loginAction(...args),
-}))
-
-describe('LoginForm — a request that never completed (EX-940)', () => {
+describe('LoginForm — a request that never completed', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
-  afterEach(() => vi.restoreAllMocks())
 
   it('shows the Polish message and hands the button back', async () => {
-    loginAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(loginAction).mockRejectedValue(new TypeError('Failed to fetch'))
     const user = userEvent.setup()
     render(<LoginForm />)
 

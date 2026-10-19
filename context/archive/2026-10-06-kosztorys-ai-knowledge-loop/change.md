@@ -101,8 +101,7 @@ Design agreed 2026-10-06 — still brainstorming; a spike validates it before `/
   pracę)”, „Powód zmiany (co AI zrobiło źle)”, „Komentarz do pracy (wiedza firmowa — niewidoczna dla
   klienta)”.
 - **Final name: „Komentarz do pracy”** — company knowledge, never shown to the client. It replaces
-  „Notatka do pracy” everywhere (column, dialog, /katalog-prac). Whether the crew sees it is open:
-  EX-1011.
+  „Notatka do pracy” everywhere (column, dialog, /katalog-prac). Whether the crew sees it is open.
 - „Nowa praca” dialog: „Dodaj pracę do katalogu prac” is **ticked by default**, and while it is ticked a
   „Komentarz do pracy” field sits right under „Opis pracy”; it is written to the katalog entry in the same
   save. A blank field never erases an existing comment on „Nadpisz w katalogu”. On „Tylko do kosztorysu”

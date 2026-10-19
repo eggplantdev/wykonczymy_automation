@@ -192,7 +192,7 @@ export function resolveItemRates(
 
 // `formulas` is the same grid fetched with the formula render, which is the only way to tell a
 // hand-typed rate from a computed one.
-export function readRateRows(
+function readRateRows(
   grid: unknown[][],
   formulas: unknown[][],
   resolved: ResolvedRatesT,

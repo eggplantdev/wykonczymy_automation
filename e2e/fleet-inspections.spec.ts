@@ -1,14 +1,12 @@
 import { test, expect, type Page } from '@playwright/test'
-import { type FleetSeedT, seedFleet } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { tableCell } from './support/table'
 import { waitForHydration } from './support/wait'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+let seed: E2ESeedsT['fleet']
 
-let seed: FleetSeedT
-
-test.beforeAll(async ({ browser }) => {
-  seed = await seedFleet(browser)
+test.beforeAll(() => {
+  seed = readSeed('fleet')
 })
 
 const TECHNICAL_COLUMN = 'Przegląd techniczny'

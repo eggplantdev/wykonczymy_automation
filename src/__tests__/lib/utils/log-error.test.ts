@@ -1,9 +1,7 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { logError } from '@/lib/utils/log-error'
 
 describe('logError', () => {
-  afterEach(() => vi.restoreAllMocks())
-
   it('logs the label and an Error message (not the raw Error)', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     logError('[label]', new Error('boom'))

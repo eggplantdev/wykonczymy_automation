@@ -11,5 +11,5 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/redundant-rou
 
 ## Notes
 
-Linear: **EX-908** (z analizy EX-895). Do zrobienia przed EX-909 — ten sam mechanizm renderów, a pomiar
-tutaj ustala metodę, którą EX-909 powtarza.
+Do zrobienia przed zmianą `szablony-plain-revalidation` — ten sam mechanizm renderów, a pomiar
+tutaj ustala metodę, którą ta zmiana powtarza.

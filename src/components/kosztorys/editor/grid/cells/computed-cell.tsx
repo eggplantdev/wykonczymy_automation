@@ -5,7 +5,7 @@ import { HintTooltip } from '@/components/ui/tooltip'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-export const fmtOrDash = (value: number | null) => (value == null ? '—' : fmt(value))
+const fmtOrDash = (value: number | null) => (value == null ? '—' : fmt(value))
 
 type ComputedCellToneT = 'muted' | 'danger'
 

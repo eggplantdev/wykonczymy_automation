@@ -1,16 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { useExpenseDraftColumns } from '@/components/tables/expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { bare } from '@/__tests__/helpers/money'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/zgloszenia-wydatkow',
-  useRouter: () => ({ refresh: vi.fn() }),
-}))
+navigationState.pathname = '/zgloszenia-wydatkow'
 
 const accepted: ExpenseDraftRowT = {
   id: 7,

@@ -8,9 +8,8 @@ type OpenCataloguePickerT = (sectionId?: number) => void
 
 const CataloguePickerContext = createContext<OpenCataloguePickerT | null>(null)
 
-// `children` is a prop, not JSX built inside: opening the picker changes only this component's
-// state, and React skips a subtree whose element identity is unchanged. That is what keeps the grid
-// out of the re-render (EX-496).
+// `children` is a prop, not JSX built inside — that is what keeps the grid out of the re-render when
+// the picker opens.
 export function CataloguePickerHost({ children }: { children: ReactNode }) {
   const {
     investmentId,

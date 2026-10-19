@@ -1,29 +1,28 @@
 import { pathToFileURL } from 'node:url'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import { assertLocalDb } from '@/scripts/assert-local-db'
-import { E2E_EMAIL, E2E_PASSWORD } from '@/scripts/e2e-user-credentials'
+import { E2E_OWNER } from '@/scripts/e2e-user-credentials'
 
-export async function seedE2eUser(): Promise<void> {
+export async function seedE2eUser(payload: Payload): Promise<number> {
   assertLocalDb('seed-e2e-user')
-  const payload = await getPayload({ config })
 
   const existing = await payload.find({
     collection: 'users',
-    where: { email: { equals: E2E_EMAIL } },
+    where: { email: { equals: E2E_OWNER.email } },
     limit: 1,
   })
 
-  if (existing.docs.length > 0) {
-    console.log(`[seed-e2e-user] user already exists: ${E2E_EMAIL}`)
-    return
+  const [found] = existing.docs
+  if (found) {
+    console.log(`[seed-e2e-user] user already exists: ${E2E_OWNER.email}`)
+    return found.id
   }
 
-  await payload.create({
+  const created = await payload.create({
     collection: 'users',
     data: {
-      email: E2E_EMAIL,
-      password: E2E_PASSWORD,
+      ...E2E_OWNER,
       name: 'E2E User',
       role: 'OWNER',
     },
@@ -31,11 +30,13 @@ export async function seedE2eUser(): Promise<void> {
     // context (Local API script / global-setup).
     context: { skipRevalidation: true },
   })
-  console.log(`[seed-e2e-user] created OWNER: ${E2E_EMAIL}`)
+  console.log(`[seed-e2e-user] created OWNER: ${E2E_OWNER.email}`)
+  return created.id
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  seedE2eUser()
+  getPayload({ config })
+    .then(seedE2eUser)
     .then(() => process.exit(0))
     .catch((err) => {
       console.error('[seed-e2e-user]', err)

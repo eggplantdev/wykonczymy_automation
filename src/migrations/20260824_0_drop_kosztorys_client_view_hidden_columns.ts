@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-722, the deferred half of 20260819_0: that migration added `mode` + `variants` and deliberately
+// The deferred half of 20260819_0: that migration added `mode` + `variants` and deliberately
 // left the pair it replaces standing, because `kosztorys_client_view` is read by the unauthenticated
 // `/k/:token` entry and one migration doing ADD and DROP at once has no safe deploy order — one side
 // always spends the transition window selecting a column that isn't there (Postgres 42703), on the

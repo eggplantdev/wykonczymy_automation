@@ -2,28 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AddSheetDialog } from '@/components/dialogs/add-sheet-dialog'
+import { addUnlinkedSheetAction } from '@/lib/actions/sheets'
+import { getServiceAccountEmailAction } from '@/lib/actions/investments'
+import { toastMessage } from '@/lib/utils/toast'
 
-const addUnlinkedSheetAction = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/actions/sheets', () => ({
-  addUnlinkedSheetAction,
-}))
-vi.mock('@/lib/actions/investments', () => ({
-  getServiceAccountEmailAction: () => Promise.resolve('reader@example.test'),
-}))
-
-const toastMessage = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/utils/toast', () => ({
-  toastMessage,
-}))
+vi.mocked(getServiceAccountEmailAction).mockResolvedValue('reader@example.test')
 
 describe('AddSheetDialog', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   it('reports a request that never reached the server with an error toast', async () => {
-    addUnlinkedSheetAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(addUnlinkedSheetAction).mockRejectedValue(new TypeError('Failed to fetch'))
     const user = userEvent.setup()
 
     render(<AddSheetDialog trigger={<button>Otwórz</button>} />)

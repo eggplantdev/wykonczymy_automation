@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import type { PreviewFileT } from '@/types/media'
-import type { RoleT } from '@/lib/auth/roles'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 const removeTransferInvoiceAction = vi.fn()
 vi.mock('@/lib/actions/transfers', () => ({
@@ -15,10 +15,7 @@ vi.mock('@/hooks/use-invoice-upload', () => ({
   useInvoiceUpload: () => ({ isUploading: false, uploadFiles: vi.fn() }),
 }))
 
-const currentUser = vi.hoisted(() => ({ role: 'OWNER' as RoleT }))
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 1, role: currentUser.role }),
-}))
+vi.mock('@/hooks/use-current-user', () => import('@/__tests__/stubs/use-current-user'))
 
 const PAGE_ONE: PreviewFileT = {
   id: 11,
@@ -35,13 +32,12 @@ const PAGE_TWO: PreviewFileT = {
 
 describe('InvoiceCell', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    currentUser.role = 'OWNER'
+    authState.role = 'OWNER'
   })
 
   it('shows an EMPLOYEE the preview without any way to add or remove a faktura', async () => {
     const user = userEvent.setup()
-    currentUser.role = 'EMPLOYEE'
+    authState.role = 'EMPLOYEE'
     render(<InvoiceCell transactionId={3} invoices={[PAGE_ONE]} />)
 
     expect(screen.queryByRole('button', { name: /Dodaj fakturę/ })).not.toBeInTheDocument()
@@ -64,7 +60,7 @@ describe('InvoiceCell', () => {
     expect(within(dialog).getByRole('button', { name: 'Dodaj stronę' })).toBeInTheDocument()
   })
 
-  it('asks before removing a page and warns the file is gone for good', async () => {
+  it('asks before removing a page and says it goes to the trash', async () => {
     const user = userEvent.setup()
     removeTransferInvoiceAction.mockResolvedValue({ success: true })
     render(<InvoiceCell transactionId={3} invoices={[PAGE_ONE, PAGE_TWO]} />)
@@ -75,7 +71,7 @@ describe('InvoiceCell', () => {
     )
 
     expect(screen.getByText('Czy na pewno chcesz usunąć tę stronę?')).toBeInTheDocument()
-    expect(screen.getByText(/bezpowrotnie/)).toBeInTheDocument()
+    expect(screen.getByText(/trafią do Kosza na 7 dni/)).toBeInTheDocument()
     expect(removeTransferInvoiceAction).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Usuń' }))

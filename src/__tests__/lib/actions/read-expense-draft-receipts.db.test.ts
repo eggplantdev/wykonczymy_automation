@@ -4,26 +4,15 @@ import { sql } from '@payloadcms/db-postgres'
 import { UNREADABLE_RECEIPT, type ReceiptExtractionT } from '@/lib/ai/receipt-extraction-schema'
 import { getDb } from '@/lib/db/get-db'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import type { ScanModeT } from '@/lib/constants/receipt-scan'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { extractReceipt, extractReceipts } from '@/lib/ai/openrouter'
+import { fetchMediaBytes } from '@/lib/media/blob-public-url'
+import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-receipts'
 
-vi.mock('server-only', () => ({}))
-const { extractReceipt, extractReceipts } = vi.hoisted(() => ({
-  extractReceipt: vi.fn(),
-  extractReceipts: vi.fn(),
-}))
-vi.mock('@/lib/ai/openrouter', () => ({ extractReceipt, extractReceipts }))
-const { fetchMediaBytes } = vi.hoisted(() => ({ fetchMediaBytes: vi.fn() }))
-vi.mock('@/lib/media/blob-public-url', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/media/blob-public-url')>()),
-  fetchMediaBytes,
-}))
-
-const { readExpenseDraftReceipts } = await import('@/lib/actions/read-expense-draft-receipts')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-1001-read-'
 
 const reading = (overrides: Partial<ReceiptExtractionT> = {}): ReceiptExtractionT => ({
@@ -45,15 +34,15 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   let workerId: number
   let registerId: number
 
-  async function createDraft(name: string, pageCount: number, scanMode: ScanModeT) {
+  async function createDraft(name: string, pageCount: number) {
     const mediaIds: number[] = []
     for (let page = 0; page < pageCount; page++) {
-      const { rows } = await db.execute(sql`
-        INSERT INTO media (filename, mime_type, filesize, created_by_id)
-        VALUES (${`${FILENAME_PREFIX}${name}-${page}.jpg`}, 'image/jpeg', 1024, ${workerId})
-        RETURNING id
-      `)
-      mediaIds.push(Number(rows[0].id))
+      mediaIds.push(
+        await insertTestMedia(db, `${FILENAME_PREFIX}${name}-${page}.jpg`, {
+          kind: null,
+          createdById: workerId,
+        }),
+      )
     }
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId,
@@ -63,10 +52,6 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
       mediaIds,
     })
     if (draftId === null) throw new Error('draft fixture refused')
-    // Drafts sent before EX-1048 still carry the worker's „Jeden wydatek”.
-    await db.execute(
-      sql`UPDATE worker_expense_drafts SET scan_mode = ${scanMode} WHERE id = ${draftId}`,
-    )
     return { draftId, mediaIds }
   }
 
@@ -75,9 +60,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
       .ai_read
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
     investmentId = await createTestInvestment(payload, 'worker-expense-read-db-test')
@@ -90,9 +73,9 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
 
   beforeEach(() => {
     vi.stubEnv('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_testStore_secret')
-    extractReceipt.mockReset().mockResolvedValue(reading())
-    extractReceipts.mockReset().mockResolvedValue([reading()])
-    fetchMediaBytes
+    vi.mocked(extractReceipt).mockReset().mockResolvedValue(reading())
+    vi.mocked(extractReceipts).mockReset().mockResolvedValue([reading()])
+    vi.mocked(fetchMediaBytes)
       .mockReset()
       .mockImplementation(
         async (_store: string, media: { filename: string; mimeType: string }) => ({
@@ -106,19 +89,19 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   afterAll(async () => {
     vi.unstubAllEnvs()
     await db.execute(sql`DELETE FROM worker_expense_drafts WHERE worker_id = ${workerId}`)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})
     await purgeFixtureUsers(db)
   })
 
-  it('reads a multi-photo „Jeden wydatek” photo by photo', async () => {
-    const { draftId, mediaIds } = await createDraft('one-invoice', 2, 'one-invoice')
+  it('reads a multi-photo draft photo by photo, keeping the whole reading', async () => {
+    const { draftId, mediaIds } = await createDraft('multi-photo', 2)
 
     await readExpenseDraftReceipts(db, draftId)
 
     expect(extractReceipt).not.toHaveBeenCalled()
     expect(extractReceipts).toHaveBeenCalledTimes(2)
-    expect(extractReceipts.mock.calls.map(([pages]) => pages.length)).toEqual([1, 1])
+    expect(vi.mocked(extractReceipts).mock.calls.map(([pages]) => pages.length)).toEqual([1, 1])
     const row = {
       description: 'Leroy Merlin 11.07.2026',
       amount: 123,
@@ -135,8 +118,8 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('„Kilka wydatków” stores a row per paragon on each photo; an unreadable or unfetched photo keeps the sentinel', async () => {
-    const { draftId, mediaIds } = await createDraft('per-photo', 3, 'one-per-photo')
-    extractReceipts.mockImplementation(async (pages: { filename: string }[]) =>
+    const { draftId, mediaIds } = await createDraft('per-photo', 3)
+    vi.mocked(extractReceipts).mockImplementation(async (pages: { filename: string }[]) =>
       pages[0].filename.endsWith('-1.jpg')
         ? []
         : [
@@ -144,7 +127,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
             reading({ description: 'Parking', amount: 5, netAmount: null, invoiceNote: '' }),
           ],
     )
-    fetchMediaBytes.mockImplementationOnce(async () => {
+    vi.mocked(fetchMediaBytes).mockImplementationOnce(async () => {
       throw new Error('Blob 404')
     })
 
@@ -166,37 +149,10 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  it('reads a one-photo „Jeden wydatek” paragon by paragon', async () => {
-    const { draftId, mediaIds } = await createDraft('one-photo-invoice', 1, 'one-invoice')
-    extractReceipts.mockResolvedValue([
-      reading({ description: 'Castorama', netAmount: null, invoiceNote: '' }),
-      reading({ description: 'Parking', amount: 5, netAmount: null, invoiceNote: '' }),
-    ])
-
-    await readExpenseDraftReceipts(db, draftId)
-
-    expect(extractReceipt).not.toHaveBeenCalled()
-    expect(await readOf(draftId)).toEqual({
-      rows: [
-        { mediaIds, description: 'Castorama', amount: 123, filename: 'castorama.jpg' },
-        { mediaIds, description: 'Parking', amount: 5, filename: 'parking.jpg' },
-      ],
-    })
-  })
-
-  it('reads a „Jeden wydatek” over 8 photos photo by photo', async () => {
-    const { draftId } = await createDraft('over-cap', 9, 'one-invoice')
-
-    await readExpenseDraftReceipts(db, draftId)
-
-    expect(extractReceipts).toHaveBeenCalledTimes(9)
-    expect(((await readOf(draftId)) as { rows: unknown[] }).rows).toHaveLength(9)
-  })
-
   // Stored, or every „Zobacz" would pay the model again for the same answer.
   it('stores a draft the AI could not read at all', async () => {
-    const { draftId, mediaIds } = await createDraft('all-unreadable', 2, 'one-per-photo')
-    extractReceipts.mockResolvedValue([])
+    const { draftId, mediaIds } = await createDraft('all-unreadable', 2)
+    vi.mocked(extractReceipts).mockResolvedValue([])
 
     await readExpenseDraftReceipts(db, draftId)
 
@@ -209,17 +165,17 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('returns a stored read without asking the AI again', async () => {
-    const { draftId } = await createDraft('already-read', 2, 'one-per-photo')
+    const { draftId } = await createDraft('already-read', 2)
     const stored = await readExpenseDraftReceipts(db, draftId)
-    extractReceipts.mockClear()
+    vi.mocked(extractReceipts).mockClear()
 
     expect(await readExpenseDraftReceipts(db, draftId)).toEqual(stored)
     expect(extractReceipts).not.toHaveBeenCalled()
   })
 
   it('stores the sentinel per photo when no photo reached the AI', async () => {
-    const { draftId, mediaIds } = await createDraft('all-unfetched', 2, 'one-per-photo')
-    fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))
+    const { draftId, mediaIds } = await createDraft('all-unfetched', 2)
+    vi.mocked(fetchMediaBytes).mockRejectedValue(new Error('Blob 404'))
 
     await readExpenseDraftReceipts(db, draftId)
 
@@ -234,9 +190,9 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   // A skipped paragon and a duplicate hint name their row by its position in the stored read, so a
   // second read („Zobacz" while the send-time one runs) must not swap it for a different one.
   it('the first read stored wins an overlapping one, and both callers get it', async () => {
-    const { draftId, mediaIds } = await createDraft('overlap', 1, 'one-per-photo')
+    const { draftId, mediaIds } = await createDraft('overlap', 1)
     const first = { rows: [{ mediaIds, description: 'Castorama', amount: 10 }] }
-    extractReceipts.mockImplementation(async () => {
+    vi.mocked(extractReceipts).mockImplementation(async () => {
       await db.execute(sql`
         UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify(first)}::jsonb WHERE id = ${draftId}
       `)
@@ -250,8 +206,8 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
   })
 
   it('a draft decided while the AI reads is left as the record it became', async () => {
-    const { draftId } = await createDraft('decided', 1, 'one-per-photo')
-    extractReceipts.mockImplementation(async () => {
+    const { draftId } = await createDraft('decided', 1)
+    vi.mocked(extractReceipts).mockImplementation(async () => {
       await decideExpenseDraft(db, {
         draftId,
         decidedBy: workerId,

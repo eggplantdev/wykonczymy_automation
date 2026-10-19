@@ -7,14 +7,12 @@ import { useDepositFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 import type { RoleT } from '@/lib/auth/roles'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { createTransferAction } from '@/lib/actions/transfers'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/kasa',
-}))
-vi.mock('@/lib/actions/transfers', () => ({
-  createTransferAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+navigationState.pathname = '/kasa'
+
+vi.mocked(createTransferAction).mockResolvedValue({ success: true })
 
 async function openTypeMenu(currentUserRole: RoleT) {
   render(
@@ -29,7 +27,6 @@ async function openTypeMenu(currentUserRole: RoleT) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useDepositFormStore.getState().resetFormData()
   useOptimisticFormStore.setState({ keepOpen: true })
 })

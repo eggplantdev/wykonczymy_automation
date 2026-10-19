@@ -66,7 +66,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
-  vi.restoreAllMocks()
 })
 
 describe('subscribeThisDevice', () => {

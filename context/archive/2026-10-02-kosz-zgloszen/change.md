@@ -11,4 +11,4 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/kosz-zgloszen
 
 ## Notes
 
-EX-970: trash leads (bulk Do kosza on /zgloszenia for A/O/M), /kosz section with restore + Usuń na zawsze (typed name), forever/purge = erase contents with erasedAt flag, keep (source, externalId) so the FB reconcile cron doesn't resurrect; lead deletion must never touch the investment or its files.
+trash leads (bulk Do kosza on /zgloszenia for A/O/M), /kosz section with restore + Usuń na zawsze (typed name), forever/purge = erase contents with erasedAt flag, keep (source, externalId) so the FB reconcile cron doesn't resurrect; lead deletion must never touch the investment or its files.

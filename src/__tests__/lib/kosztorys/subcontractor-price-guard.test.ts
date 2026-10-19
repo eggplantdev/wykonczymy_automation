@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import {
-  MAX_CLIENT_SHARE,
   clientShareCeilingLabel,
   checkSubcontractorPrice,
   coeffWarning,
@@ -12,27 +12,13 @@ import type { ViewPricingT } from '@/lib/kosztorys/types'
 // Client price 100 makes every threshold readable at a glance: próg 65 zł z narzędziami, 55,25 zł
 // bez narzędzi, and the w_tools coefficient price meets its own exactly.
 const row: ViewPricingT = {
+  ...baseItem,
   id: 1,
-  sectionId: 10,
-  displayOrder: 0,
   description: 'Malowanie',
-  descriptionTranslations: {},
-  unit: 'm2',
   plannedQty: 10,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
   globalOwnToolsCoeff: 0.55,
@@ -47,8 +33,6 @@ describe('maxSubcontractorPrice', () => {
   it('to udział ceny klienta, inny na każdej płaszczyźnie', () => {
     expect(maxSubcontractorPrice(row, 'w_tools')).toBe(65)
     expect(maxSubcontractorPrice(row, 'own_tools')).toBe(55.25)
-    expect(MAX_CLIENT_SHARE.w_tools).toBe(0.65)
-    expect(MAX_CLIENT_SHARE.own_tools).toBe(0.5525)
   })
 })
 

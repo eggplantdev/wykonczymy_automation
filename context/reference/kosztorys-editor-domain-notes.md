@@ -16,11 +16,11 @@ zero kontaktu z Sheets dla nowych robót.
 > Read-only sheet inspector: `scripts/inspect-sheet.mjs` (dumps formuły + wartości,
 > pełne wiersze, litery kolumn AA+). Run:
 > `SHEET_ID=<id> node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/dump.txt`
-> (needs `GOOGLE_SERVICE_ACCOUNT_JSON`; defaults to `KOSZTORYS_TEMPLATE_SHEET_ID`).
+> (needs `GOOGLE_SERVICE_ACCOUNT_JSON` and `SHEET_ID`).
 >
 > **Dostęp (2026-07-15):** service account
 > `kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com` ma **Viewera** na
-> `KOSZTORYS_TEMPLATE_SHEET_ID`. Wcześniej inspector zwracał `403 PERMISSION_DENIED` —
+> arkuszu szablonu `15AoSJfaHcGwuDCukzu5hKitWE-oPw0xrD_8xtBM2Q8I`. Wcześniej inspector zwracał `403 PERMISSION_DENIED` —
 > jeśli znowu zwróci, arkusz stracił udostępnienie (nadaj Viewera w UI, SA nie zrobi tego samo).
 > **Nie zgaduj ze screenshotów — odpal inspector.** Ten plik był już raz źle „poprawiony"
 > na podstawie przyciętego obrazka.
@@ -87,7 +87,7 @@ AF    pozostało do rozliczenia / bilans
   inne ceny (cennik z narzędziami N, bez narzędzi P). Ceny podwykonawcy NIE są
   stałym % klienta (raz 65%, raz 58%) → niezależne.
 
-### Nagłówki się rozjeżdżają między arkuszami — rozpoznawanie po nazwie nie wystarcza (EX-690)
+### Nagłówki się rozjeżdżają między arkuszami — rozpoznawanie po nazwie nie wystarcza
 
 Nie każdy klient nazywa kolumny tak samo. Żupnicza 18/73 (inwestycja 84) rozbija wartość netto na
 dwie kolumny — „Wartość netto przedmiar" (`S`) i „Wartość netto pomiar z natury" (`T`) — więc żadna
@@ -127,7 +127,7 @@ AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etap�
 
 Appka jest z tym 1:1 w `V` (`stageValueForView`). **Nie** w `AF`: skoro `O` = Σ etapów, arkuszowe
 `AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForExecutedQty`) celowo
-kotwiczy do zakresu, nie do `T` — od EX-921 do **Aktualizacji przedmiaru**, nie do `S` (oferty);
+kotwiczy do zakresu, nie do `T` — od 2026-10-07 do **Aktualizacji przedmiaru**, nie do `S` (oferty);
 patrz „Oferta i wykonanie" niżej. Potwierdza P9.
 
 ### BRAK sumy per etap — zweryfikowane
@@ -244,7 +244,7 @@ powierzchnia malowania = Σ ścian − ściany pomieszczeń mokrych (łazienki/W
 
 ## Panel plan-vs-actual (F) — PEŁNY, z marżą planowaną
 
-> **Nieaktualne od EX-649 (2026-08-18).** Ten szkic zastąpiła zakładka „Marża" w podsumowaniu
+> **Nieaktualne od 2026-08-18.** Ten szkic zastąpiła zakładka „Marża" w podsumowaniu
 > kosztorysu. Zrealizowane inaczej niż tu opisano: „marża planowana" to **prognoza** liczona z
 > **przedmiaru** (nie z pomiaru) po pełnej cenie, jako scenariusz „z narzędziami / bez narzędzi";
 > „marża rzeczywista" wycenia ekipę z kosztorysu (należne za wykonane etapy), a nie z wypłat, i
@@ -267,7 +267,7 @@ Czysto na odczyt, per inwestycja. Niezależny od P5 (linkage LABOR_COST).
 - **Wariant kosztu PER ETAP** (z narzędziami | bez) — w jednej inwestycji mogą
   występować oba (jedna ekipa z narzędziami, druga bez), a ta sama praca może mieć
   etapy 1–2 zrobione z narzędziami, a 3–4 bez. Wybór siedzi więc na etapie i to on
-  mówi, która cena podwykonawcy jest kosztem danej ilości (EX-565, patrz sekcja
+  mówi, która cena podwykonawcy jest kosztem danej ilości (patrz sekcja
   „Wariant «z narzędziami / bez narzędzi»").
 
 ## Edytor — zapis i edycja (D)
@@ -293,7 +293,7 @@ liczone na żywo: wartość wiersza, sumy sekcji/całości, V, marża, brutto
 - **bez przycisku „Zapisz"** — feel arkusza + skala (1000+ wierszy: zapisujemy
   tylko zmienione pole, nie cały arkusz).
 
-**A settings save that throws reverts like `{success:false}`** (owner, 2026-09-15, EX-597): revert
+**A settings save that throws reverts like `{success:false}`** (owner, 2026-09-15): revert
 and toast, never keep-and-reload. Accepted tradeoff: if the connection drops after the request reached
 the server, the write may persist while the screen shows the reverted value — a narrower risk than
 two different failure behaviours.
@@ -301,14 +301,14 @@ two different failure behaviours.
 ## Druk / eksport (G) — CIĘTE (2026-08-15)
 
 > **Cała ta sekcja jest nieaktualna.** Eksport kosztorysu wycięty w całości:
-> CSV (EX-400) oraz PDF + żywy arkusz z formułami (EX-666). Obie role, które
+> CSV oraz PDF + żywy arkusz z formułami. Obie role, które
 > wydruk miał pełnić — oferta przy podpisaniu i podgląd postępu dla klienta —
 > przejmuje **widok klienta** (S-13, link tokenowy + „Podgląd dla klienta").
 > Poniższe zostaje jako zapis intencji ownera z POC: reguły „co klient widzi"
 > przenoszą się na widok klienta, mechanizm (`buildPrintHtml`, PDF, plik) nie.
 > Flaga `hidden_in_export` nigdy nie dostała czytelnika — kolumna skasowana 2026-08-18,
-> EX-549 anulowane; ukrywanie pozycji przed klientem weszło jako reguła („ukryj puste pozycje",
-> EX-695), nie jako flaga per wiersz.
+> pomysł anulowany; ukrywanie pozycji przed klientem weszło jako reguła („ukryj puste pozycje"),
+> nie jako flaga per wiersz.
 
 Wydruk = **oferta dla klienta** (tylko ceny klienta: netto / VAT / brutto; bez
 cen podwykonawcy, marży, postępu, „pozostało"). Mechanizm: `buildPrintHtml` +
@@ -326,7 +326,7 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 (rozliczenie) → P13. Drugi tryb wydruku „raport postępu" (wewnętrzny, z etapami)
 — do rozważenia.
 
-## Co widzi klient — ustawienie, nie stała (EX-695, 2026-08-15; jeden zestaw od 2026-09-28)
+## Co widzi klient — ustawienie, nie stała (2026-08-15; jeden zestaw od 2026-09-28)
 
 Zestaw kolumn widoku klienta przestał być stałą w kodzie. Rozstrzygnięcie idzie w kolejności:
 własny wiersz inwestycji (`kosztorys-client-view`) → globalne domyślne firmy
@@ -375,18 +375,18 @@ Reguły, które trzymają to razem:
 - **„Udostępnij" kopiuje link już przy kliknięciu** — tworzy go tylko wtedy, gdy inwestycja żadnego
   nie ma, i nigdy nie podmienia istniejącego (to odcięłoby inwestora, który go trzyma). Okno
   udostępniania nie ma już kroku ustawień; prowadzi do nich przycisk „Ustawienia podglądu…".
-- **Kolejność kolumn ustawia właściciel, „Opis prac" zawsze pierwszy** (EX-884, 2026-09-28). Zapisana
+- **Kolejność kolumn ustawia właściciel, „Opis prac" zawsze pierwszy** (2026-09-28). Zapisana
   razem z zestawem, na „Zapisz", osobno dla każdej oferty i raz dla pracowników; obowiązuje podgląd,
   link i PDF. Kolejność przechowywana jest jako rangi względem listy dokumentu w kodzie, więc wpięcie
   nowej kolumny w środek tej listy przesuwa miejsce kolumn bez rangi — nowa kolumna ląduje tam, gdzie
-  stoi w kodzie, a nie na końcu. Oferta zapisana przed EX-884 ma własny wiersz bez kolejności, a wiersz
+  stoi w kodzie, a nie na końcu. Oferta zapisana przed tą zmianą ma własny wiersz bez kolejności, a wiersz
   inwestycji wygrywa w całości — więc pokazuje kolejność wbudowaną, nie kolejność firmy, dopóki
   właściciel nie kliknie „Przywróć domyślną kolejność".
 - **Na dokumencie inwestora nie ma żadnej kwoty brutto** (właściciel, 2026-09-28). Oferta jest netto,
   więc kolumny brutto nie da się nawet zaznaczyć w ustawieniach, a znacznik brutto zapisany wcześniej
   odpada przy sanityzacji.
 
-**Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
+**Podgląd nie zna trybu rozliczenia** (rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
 jako bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
 nią); oś kwot jest preferencją czytania, a preferencja jednego czytelnika nie może decydować, co widzi
 drugi. Odwrotnie niż `globalDiscountActive`, który do gałęzi podglądu wrócił właśnie dlatego, że jest
@@ -396,13 +396,13 @@ Ustawienia czytane są **obok** cache'owanego payloadu podglądu (jeden indeksow
 zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firmy nie unieważnia drzewa
 żadnej inwestycji.
 
-**„Pobierz faktury" on the investor link is intended** (owner, EX-569, 2026-07-25). Supplier invoices
+**„Pobierz faktury" on the investor link is intended** (owner, 2026-07-25). Supplier invoices
 — names, prices, hence the margin — in the client's hands is the point of the feature, not an
 oversight. Caveat: Blob URLs are public, unguessable and permanent (`read: () => true` on media), so
 revoking the share token does not revoke an invoice URL already obtained; closing that means a proxy
 or signed URLs, a separate decision.
 
-## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
+## Widok pracownika — link imienny i PDF, tylko odczyt (2026-09-28)
 
 Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link
 `/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]` albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF
@@ -412,18 +412,18 @@ inwestora: oddaje żywy link albo wydaje nowy i kopiuje go do schowka — u prac
 tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysyłki zgłoszeń.
 
 - **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
-  etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi (EX-943). Na takim
+  etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi. Na takim
   etapie ilości i kwoty w wierszach są **całego etapu**; jego część stoi w podsumowaniu w kolumnie
   „Twój udział", a współpracowników dokument nie wymienia z imienia ani kwoty. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
   menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
   pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
   także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
-  wyłączenie, a pracownik odpięty od wszystkich etapów zostaje w menu, dopóki ma żywy link (EX-888).
+  wyłączenie, a pracownik odpięty od wszystkich etapów zostaje w menu, dopóki ma żywy link.
   Token przeżywa blokadę, więc bez tego stary link po jej zdjęciu znów pokazałby ceny.
   Automatycznego odwołania przy odpięciu ostatniego etapu świadomie nie ma: ponowne przypięcie
   wymagałoby wtedy nowego linku. Kto ma żywy link, menu czyta przy każdym otwarciu, a nie z propsów
-  edytora. Dzięki temu po odwołaniu dane są świeże i nie ma przeciągania przez kontekst (EX-496).
-- **Etap „zakończony" (EX-1034)** — przełącznik w menu etapu, MANAGER i wyżej. To status, nie
+  edytora. Dzięki temu po odwołaniu dane są świeże i nie ma przeciągania przez kontekst.
+- **Etap „zakończony"** — przełącznik w menu etapu, MANAGER i wyżej. To status, nie
   blokada: ilości dalej się edytuje, a przyjęcie zgłoszenia do zakończonego etapu przechodzi bez
   ograniczeń. Reguła działa **per pracownik**: inwestycja znika z jego list (strona pracownika,
   wybór inwestycji przy FV, skanowanie), dopiero gdy wszystkie jego etapy na niej są zakończone;
@@ -447,7 +447,7 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   widoku inwestora jej nie ma, bo byłaby kopią. Tylko netto — wypłaty podwykonawców są bez VAT.
 - **„Pozostało" liczy pracę wszystkich etapów**, nie tylko jego: pozycja dokończona przez inną ekipę
   pokazuje 0, bo to lista „co jeszcze do zrobienia", nie „co jeszcze zrobię ja". Suma w stopce
-  pomija wiersze na minusie, jak u właściciela (EX-885).
+  pomija wiersze na minusie, jak u właściciela.
 - **Puste pozycje** — ta sama dwuosiowa reguła co u inwestora, z osią „wykonane" = jego etapy, więc
   ukrycie nie rusza żadnej sumy podsumowania.
 - **Kolumny rozliczenia pojawiają się po pierwszym wpisie w JEGO etapach** (właściciel, 2026-09-29 —
@@ -471,11 +471,11 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
   wykonana" pojawiają się dopiero po pierwszym wpisie.
 
-### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
+### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)
 
-- **Jeden link (EX-966).** „Zgłoszenie prac" (`/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]`) jest jedynym
+- **Jeden link.** „Zgłoszenie prac" (`/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]`) jest jedynym
   widokiem pracownika. Oba człony nazwy to ozdoba — rozwiązuje sam token, a pusta nazwa daje `-`.
-  Osobna rozpiska `/p/…` z EX-875 została usunięta bez przekierowania, a linki
+  Osobna rozpiska `/p/…` z widoku pracownika została usunięta bez przekierowania, a linki
   `/zgloszenie-prac/…` przestały działać 2026-10-05 (właściciel: bez przekierowania, wysyła linki
   ponownie z menu „Pracownicy" — token się nie zmienia). Oba stare adresy dają tę samą stronę
   „link nieaktywny" co nieznany token, nie logowanie — pracownik nie ma konta. Kto nie może mieć
@@ -501,7 +501,7 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.
 - **Przyjęcie DODAJE** do ilości etapu — pracownik zgłasza do tego samego etapu wiele razy. Przed
   przyjęciem zapisuje się automatyczna wersja, więc da się je cofnąć z „Wczytaj".
-- **Każda pozycja dostaje decyzję: „Przyjmij” albo „Odrzuć” (EX-1049, 2026-10-13).** Odrzuca się
+- **Każda pozycja dostaje decyzję: „Przyjmij” albo „Odrzuć” (2026-10-13).** Odrzuca się
   tylko pozycja po pozycji — nie ma „Odrzuć zgłoszenie” ani zbiorczego odrzucenia; zbiorczo tylko
   „Przyjmij” (zaznacz wszystkie, z pominięciem odrzuconych). Zgłoszenie stoi „Do sprawdzenia · X z N”,
   dopóki choć jedna pozycja czeka; potem „Przyjęte” (jeśli cokolwiek przyjęto) albo „Odrzucone”.
@@ -517,15 +517,15 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   „Wyczyść kosztorys"): linia, której pozycja zniknęła, przychodzi jako „do przypisania ręcznie".
   Szkic takie linie po prostu gubi, z komunikatem.
 - **Przyjęta praca spoza rozpiski** staje się pozycją z „Przedmiarem ofertowym" 0 i „Aktualizacją
-  przedmiaru" równą przyjętej ilości (EX-921) — praca nie była w ofercie, ale jest w zakresie, więc
+  przedmiaru" równą przyjętej ilości — praca nie była w ofercie, ale jest w zakresie, więc
   postęp liczy się względem niej i oferty nie trzeba „uzupełniać".
 
-### Tłumaczenia dla pracownika — ukraiński i rosyjski (EX-948, 2026-10-01)
+### Tłumaczenia dla pracownika — ukraiński i rosyjski (2026-10-01)
 
 ~90% ekipy to Ukraińcy, więc polski jest wyjątkiem, nie domyślnym przypadkiem. Ta zmiana tłumaczy
 **link „Zgłoszenie prac"** w całości: obie siatki, „Prace spoza rozpiski", wysyłkę, historię
 wysłanych i strony z komunikatami. Rozpiska `/p`, PDF pracownika i „Podgląd pracownika" przyjdą
-w kolejnych częściach EX-946, na tym samym rusztowaniu.
+w kolejnych częściach, na tym samym rusztowaniu.
 
 - **Język pracownika jest opcjonalny** (Polski / Українська / Русский); pusty = polski, kierownik
   nie musi go wypełniać. Na stronie jest przełącznik języka — wybór pamięta przeglądarka, osobno dla
@@ -542,7 +542,7 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   gdy opis się zmieni, rozpiska pokazuje je w „Problemach" jako „z nieaktualnym tłumaczeniem",
   a powrót do starego opisu sam gasi ostrzeżenie. Ostrzega się tylko kierownika — pracownik widzi
   nieaktualne tłumaczenie takie, jakie jest. Katalog ma w „Problemach" „bez tłumaczenia" i „z
-  nieaktualnym tłumaczeniem", osobno dla każdego języka. Uzupełnianie przez AI doszło z EX-992
+  nieaktualnym tłumaczeniem", osobno dla każdego języka. Uzupełnianie przez AI doszło później
   (niżej).
 - **„Popraw literówki" utrzymuje aktualne tłumaczenie aktualnym** — literówka nie zmienia sensu.
   Tłumaczenie, które już było nieaktualne, zostaje nieaktualne.
@@ -551,7 +551,7 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
 - **Oba języki to jedna mapa na wierszu — świadomie zaakceptowany wyścig.** Równoczesna edycja UA
   i RU tej samej pozycji to „ostatni zapis wygrywa" dla całej mapy, a „Cofnij" skleja obie zmiany
   w jeden krok.
-- **Prace spoza rozpiski wpisane po ukraińsku** — od EX-992 kierownik widzi je po polsku,
+- **Prace spoza rozpiski wpisane po ukraińsku** — od tłumaczeń AI kierownik widzi je po polsku,
   z oryginałem obok (niżej).
 - **Uzupełnianie hurtem to skrypt do powtarzania, nie jednorazowa migracja**
   (`src/scripts/fill-description-translations.ts`, opis uruchomienia w nagłówku). Liczy braki sam,
@@ -560,7 +560,7 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   i pozycje otwartych inwestycji (z szablonami). Bez `--apply` niczego nie zapisuje; na produkcji
   uruchamia go człowiek. Zapisuje z pominięciem cache — katalog i rozpiski pokazują nowe teksty po
   pierwszej edycji katalogu albo komórki rozpiski.
-- **Nazwy sekcji to jedna wspólna lista, nie pole na wierszu** (EX-965, 2026-10-02). „Kuchnia"
+- **Nazwy sekcji to jedna wspólna lista, nie pole na wierszu** (2026-10-02). „Kuchnia"
   w każdej rozpisce to ta sama kuchnia, więc tłumaczenie wpisuje się raz — klucz to nazwa po
   ujednoliceniu (wielkość liter, spacje). **Samodzielna liczba w nazwie jest zmienną**: „Łazienka 1"
   i „Łazienka 2" dzielą jeden wpis, a każda sekcja dostaje z powrotem swoją liczbę. Kierownik wpisuje
@@ -576,12 +576,12 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   z migracją; każdą nową nazwę uzupełnia się w tym oknie, bez wdrożenia.
 - **Brak tłumaczenia nazwy = polska nazwa, bez wpisu w „Problemach"** — nazw jest kilkadziesiąt
   i powtarzają się, więc brak widać od razu na linku, a ostrzeżenie w każdej rozpisce byłoby szumem.
-  Zakres na razie to link „Zgłoszenie prac"; `/p`, „Podgląd pracownika" i PDF (EX-966) użyją tej
+  Zakres na razie to link „Zgłoszenie prac"; `/p`, „Podgląd pracownika" i PDF użyją tej
   samej funkcji renderującej (`renderSectionName`).
 
-### Tłumaczenia AI — uzupełnianie UA/RU i prace spoza rozpiski po polsku (EX-992, 2026-10-05)
+### Tłumaczenia AI — uzupełnianie UA/RU i prace spoza rozpiski po polsku (2026-10-05)
 
-Odwraca „aplikacja nie woła AI" z EX-948. Tłumaczy aplikacja, przez istniejący OpenRouter
+Odwraca „aplikacja nie woła AI" z tłumaczeń dla pracownika. Tłumaczy aplikacja, przez istniejący OpenRouter
 (`src/lib/ai/translate.ts`). **Bez kroku zatwierdzania** — tłumaczenie AI jest ostateczne, błędy
 właściciel poprawia ręcznie.
 
@@ -597,6 +597,10 @@ właściciel poprawia ręcznie.
   woła AI**: siatka zapisuje każdą komórkę osobno, więc odpowiedź AI przychodząca po kilku sekundach
   ścigałaby się z następną edycją, a opis poprawiany po kawałku kosztowałby wywołanie na każdy krok.
   Tłumaczenie robi się nieaktualne, trafia do „Problemów" i naprawia je przycisk hurtowy.
+- **Co noc (02:00 UTC) katalog dotłumacza się sam** — cron `/api/cron/translate-catalogue` robi to,
+  co „Uzupełnij tłumaczenia (AI)" w Katalogu prac, więc obejmuje też szablony (ich opisy to wpisy
+  katalogu); rozpiski inwestycji dalej tylko przyciskiem. Tłumaczenie przy zapisie odrzucone —
+  dialogi czekałyby 2–3 s.
 - **Nieudane AI nigdy nie blokuje zapisu ani wysyłki** — wiersz zapisuje się bez tłumaczenia i wychodzi
   jako brakujący. AI działa przed otwarciem transakcji zapisu; żadna transakcja nie czeka na model.
 - **Spóźniona odpowiedź przegrywa.** Zapis tłumaczenia jest warunkowy: trafia tylko wtedy, gdy wiersz
@@ -659,7 +663,7 @@ protokół jest dokumentem na papier, nie bytem w bazie.
 - **Sekcje w pełni edytowalne:** dodawanie, zmiana nazwy, zmiana kolejności
   (`display_order`); nagłówek + suma sekcji (liczona). Dowolna liczba pozycji
   w sekcji (bez limitu).
-- **Dwa wejścia, nie trzy** (arkusz właściciela; EX-494, 2026-07-16). Właściciel wpisuje
+- **Dwa wejścia, nie trzy** (arkusz właściciela; 2026-07-16). Właściciel wpisuje
   **Przedmiar** (oferowany zakres) i **etapy** (faktycznie wykonana ilość). „Pomiar z natury"
   **nie jest wpisywany** — w arkuszu to formuła `O = SUM(D:M)`, czyli **suma etapów**; nasz
   edytor pokazuje ją jako kolumnę read-only. Wcześniej mieliśmy tu czwarte, niezależne pole
@@ -672,9 +676,9 @@ protokół jest dokumentem na papier, nie bytem w bazie.
   - **„Pozostało netto (względem przedmiaru)"** = `S − T`; pusty Przedmiar to oferta zerowa, więc
     wiersz czyta −wykonane. Wiersz poniżej −0,005 zł (praca ponad przedmiar) jest **na czerwono**,
     a stopka sekcji i „Razem" sumują **tylko wiersze nie ponad przedmiar** — suma mówi „ile oferty
-    zostało do zrobienia" (EX-885, odwraca EX-686, gdzie nadwyżka pomniejszała sumę). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
+    zostało do zrobienia" (odwraca wcześniejszą zasadę, gdzie nadwyżka pomniejszała sumę). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
     etapów od Pomiaru z natury z arkusza, a nie od Przedmiaru.
-  - **Aktualizacja przedmiaru (EX-921, 2026-10-07)** — druga ilość obok Przedmiaru ofertowego: każda
+  - **Aktualizacja przedmiaru (2026-10-07)** — druga ilość obok Przedmiaru ofertowego: każda
     zmiana zakresu po ofercie, w górę i w dół. Pusta (`null`) = idzie za ofertowym; ręcznie wpisana
     przeżywa zmianę ofertowego i ponowny import z arkusza; 0 = pozycja poza zakresem. **Postęp
     kotwiczy do niej**: „% wykonania", „Pozostało", przekroczenie, ukończenie sekcji, licznik postępu
@@ -683,10 +687,10 @@ protokół jest dokumentem na papier, nie bytem w bazie.
     aktualizację, a Przedmiar ofertowy tylko wtedy, gdy kierownik go zaznaczy (2026-10-09). Arkusz właściciela tej kolumny nie ma — **bez parytetu z arkuszem**, import
     wypełnia tylko ofertowy. Poniższe „Przedmiar" w regułach postępu czytaj jako aktualizację.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
-    It stays next to the summary's „Postęp prac" on purpose (EX-703, owner re-confirmed 2026-08-17):
+    It stays next to the summary's „Postęp prac" on purpose (owner re-confirmed 2026-08-17):
     the summary is value-weighted over the whole kosztorys, the column is quantity-weighted per row,
     so only the column says which position lags.
-  - **„% wykonania (względem przedmiaru ofertowego)"** (2026-10-09, uwaga właściciela po EX-921) =
+  - **„% wykonania (względem przedmiaru ofertowego)"** (2026-10-09, uwaga właściciela po Aktualizacji przedmiaru) =
     `Σ etapów / Przedmiar ofertowy` — „ile procent oferty zrobione", obok kolumny liczonej od
     aktualizacji. Różnią się tylko dzielnikiem. Pozycja spoza oferty (ofertowy 0, np. przyjęta ze
     zgłoszenia) ma „—", nie 0% ani ∞. **Ponad 100% nie świeci na czerwono**: przekroczenie oferty jest
@@ -758,7 +762,7 @@ protokół jest dokumentem na papier, nie bytem w bazie.
 - **Default ceny = cienka podpowiedź, ODŁOŻONA.** Ceny wpisywane ręcznie.
   Podpowiadarka przyjdzie z szablonami.
 - **Import cennika podwykonawcy z arkusza: pusta stawka = 0, nie default** (Białostocka 5,
-  blueprint EX-554). Zakładki `zakres pracy z/bez narzędzi` mają stawkę per pozycja albo jako
+  blueprint „Należne podwykonawcy jest PRZED rabatem"). Zakładki `zakres pracy z/bez narzędzi` mają stawkę per pozycja albo jako
   formułę (`P×0,65`, a bez narzędzi `R−R×0,15`), albo **pustą — a pusta w arkuszu znaczy 0**: `suma wykonanej
 pracy` (`SUM(W:AF)`) nie dolicza takiego wiersza. Arkusz **nie zna pojęcia „dziedzicz
   domyślny współczynnik"** — każda stawka jest jawna. Wniosek dla seeda: importuj **każdą
@@ -767,7 +771,7 @@ pracy` (`SUM(W:AF)`) nie dolicza takiego wiersza. Arkusz **nie zna pojęcia „d
   (dawało +~9 000 na `suma wykonanej pracy`, plan „bez narzędzi": 65 638 zamiast ~57 114 ≈
   56 431 z arkusza). Pusta stawka → `{ type: 'amount', value: 0 }`.
 - **Import: o rodzaju override'u decyduje FORMUŁA komórki, nie jej liczba** (zweryfikowane na
-  Białostockiej 2026-08-17, EX-554). W arkuszu stawka jest albo policzona (`=P×0,65`), albo
+  Białostockiej 2026-08-17). W arkuszu stawka jest albo policzona (`=P×0,65`), albo
   **wpisana z palca** — i to drugie jest w cenniku `z narzędziami` **większością** (229 z 336
   wierszy, `bez narzędzi` 63). Odczyt `UNFORMATTED_VALUE` zwraca w obu wypadkach samą liczbę, więc
   dzielenie jej przez cenę klienta wiązało każdą ręczną stawkę z „Cena j.m." ilorazem typu
@@ -787,7 +791,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
   Dopiero to pozwala wierszom zgodnym z tą narzutką wejść jako **`null` = „auto"** zamiast zamarzać
   kwotą stałą — kolumna „Źródło ceny wykonawcy" pokazuje wtedy „kwota stała" wyłącznie na prawdziwych
   wyjątkach, a globalna zmiana narzutki działa jak w arkuszu. To **jedyny** przypadek, w którym `null` jest bezpieczny mimo reguły
-  z EX-554 wyżej: znaczy dokładnie tę samą liczbę, bo globalny mnożnik został właśnie ustawiony na
+  z „Należne podwykonawcy jest PRZED rabatem" wyżej: znaczy dokładnie tę samą liczbę, bo globalny mnożnik został właśnie ustawiony na
   arkuszowy. Cennik bez ani jednej formuły śledzącej cenę → mnożniki inwestycji zostają nietknięte.
   VAT nie ma w arkuszu odpowiednika i zawsze przechodzi z inwestycji.
   **Pułapka (znaleziona na żywym imporcie):** `replaceTreeWithSnapshot` domyślnie **nadpisuje**
@@ -819,7 +823,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
   pytanie o arkusz, „para niemożliwa" to pytanie o NASZ odczyt arkusza — każde chce innego akapitu
   pod tabelką, a per wiersz byłoby tym samym zdaniem powtórzonym w kółko.
 - **Import zastępuje w całości i NIC nie przenosi ze starego drzewa — także tego, czego arkusz nie
-  ma** (właściciel, 2026-08-24; zamyka EX-717 jako „nie robimy"). Dla pracy, którą import rozpoznał
+  ma** (właściciel, 2026-08-24; uznane za „nie robimy"). Dla pracy, którą import rozpoznał
   jako tę samą, przepada etykieta etapu, plan „z narzędziami / bez narzędzi", podział etapu na pracowników
   i wpisane w aplikacji wykonanie — arkusz żadnego z nich nie zna, więc nie są zastępowane, tylko
   znikają. To **nie jest** przeoczenie do naprawienia: „zastąp" znaczy zastąp, a przenoszenie
@@ -849,7 +853,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     liczone. Oś netto/brutto istnieje TYLKO tu i obejmuje wszystkie 3 warianty ceny
     (klient + oba podwykonawcy) po stawce inwestycji — spójne z P8 (2026-07-15).
     - **DOPRECYZOWANIE — rozliczenie z podwykonawcą idzie BEZ VAT** (właściciel, 2026-07-21,
-      EX-558). Ekipa nie wystawia faktury VAT, więc na jej stronie netto = brutto. Powyższe „3
+      2026-07-21). Ekipa nie wystawia faktury VAT, więc na jej stronie netto = brutto. Powyższe „3
       warianty ceny na osi netto/brutto" mówi tylko o tym, że **silnik** potrafi wyliczyć brutto
       dla każdego cennika — nie o tym, że taka oś ma sens w rozliczeniu z ekipą. Skutek dla UI:
       blok „Podsumowanie podwykonawców" **nie ma** przełącznika netto/brutto, tylko jedną kolumnę
@@ -860,9 +864,9 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     korekty (`CORRECTION`), wpłaty, wypłaty — wszystkie renderują się w **wartości nominalnej,
     bez doliczania VAT**. „Wpłaty to pieniądze już wpłacone przez inwestora — nie ma czego
     gruntować"; korekta i wydatki tak samo.
-    - **WYJĄTEK — zaliczka (deposit) (właściciel, 2026-07-21, EX-536): obie osie, netto I brutto.**
+    - **WYJĄTEK — zaliczka (deposit) (właściciel, 2026-07-21): obie osie, netto I brutto.**
       Odpowiedź na „zaliczka netto czy brutto" = **obie**. To rewiduje regułę „wpłaty face value"
-      **tylko dla zaliczki/deposit**. **Mechanika — ROZSTRZYGNIĘTA (EX-536):** każda wpłata niesie
+      **tylko dla zaliczki/deposit**. **Mechanika — ROZSTRZYGNIĘTA:** każda wpłata niesie
       przechowywany, trójstanowy znacznik `vatPlane` (`NET` / `GROSS` / `null`), wybierany per wpłata
       przy tworzeniu (create-only, immutable), a nie wyliczany jedna z drugiej. `null` w rozliczeniu
       mieszanym traktowane jest jako **netto** (właściciel, 2026-07-23, odwrócone z wcześniejszego
@@ -881,7 +885,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     (kolumna R) to procent, a procent nie ma osi; podstawą jest orzeczenie właściciela.
     To **odróżnia rabat** od materiałów / korekty / wpłat (te są nominalne). Bez tego brutto-
     kaskada się nie spina: „Suma prac" brutto − rabat nominalny ≠ „Robocizna" brutto.
-  - **Rabat kwotowy wpisuje się na dowolnej osi (2026-09-29, EX-933).** Gruntowanie to reguła
+  - **Rabat kwotowy wpisuje się na dowolnej osi (2026-09-29).** Gruntowanie to reguła
     liczenia, nie reguła wpisu. Przy rozliczeniu brutto właściciel umawia się na „5000 zł mniej"
     brutto — pole przyjmowało tylko netto, więc 5000 stawało się −5400,00 w Podsumowaniu (inw. 112,
     VAT 8%). Rabat globalny ma teraz dwa pola, netto i brutto, jedno „Zapisz"; drugie przelicza się
@@ -941,7 +945,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
       breakdown po brutto (zrywa styk z Podsumowaniem i bilansem) oraz stałe Netto / Brutto / Różnica
       przy fakturze netto (odwraca ustalenie z `zamrozone-brutto-wydatku-netto` i musiałoby objąć też
       widok managera).
-  - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu", EX-535):** porównanie idzie
+  - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu"):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
     rozjazd o VAT (rabat 100 netto mylnie porównywany z „102 brutto") — sygnalizacja świeci
@@ -953,20 +957,20 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     inwestycji**. Skutek: nie ma już `Σ RABAT` do rekoncyliacji — rabat inwestycji =
     rabat kosztorysowy wprost. To rozpuszcza pytanie o oś transakcji `RABAT` — bez ręcznej
     transakcji nie ma osi wpisu do rozstrzygnięcia (oś wpisu rabatu kosztorysowego rozstrzyga
-    EX-933, wyżej). (EX-536 / zaliczka pozostaje osobno.) Do zbudowania w widoku
-    inwestycji — należy do EX-535.
+    „Rabat kwotowy wpisuje się na dowolnej osi", wyżej). (zaliczka pozostaje osobno.) Do zbudowania w widoku
+    inwestycji — należy do rekoncyliacji.
 
 - **Rabat dwutrybowy:** `discount_type` ∈ {procent, kwota} + `discount_value`.
   - procent: `wartość = ilość × cena × (1 − %)`
   - kwota: `wartość = ilość × cena − kwota`
 
-### Rabat globalny — kontrakt sterowania (EX-605, 2026-07-27)
+### Rabat globalny — kontrakt sterowania (2026-07-27)
 
 O zastąpieniu rabatów per pozycja decyduje **tryb, nie kwota**: „Kwotowy" wyłącza rabaty
 per pozycja przy **każdej** wartości, łącznie z 0 zł. Stąd wybór trybu **od razu zapisuje** —
 czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik nie robił.
 
-- **Kwota wpisuje się w netto albo w brutto, zapisuje się netto** — patrz sekcja VAT wyżej (EX-933).
+- **Kwota wpisuje się w netto albo w brutto, zapisuje się netto** — patrz sekcja VAT wyżej.
 - **Kwota startowa = suma rabatów per pozycja** przy aktywnym widoku, więc przełączenie
   na „Kwotowy" nie rusza żadnej liczby na ekranie: użytkownik najpierw wybiera mechanizm,
   potem zmienia liczbę. (0 zł też by działało, ale czytałoby się jak „skasuj rabaty".)
@@ -978,7 +982,7 @@ czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik
 - **Oba tryby zatwierdza się przyciskiem „Zapisz"** (lub Enterem). Nic nie zapisuje się na
   wyjściu z pola: rabat to ustalenie handlowe, więc samo opuszczenie pola nie może go zmienić.
 - **„%" pozostaje destrukcyjne i niecofalne** — jednorazowo nadpisuje rabat każdej pozycji,
-  Ctrl+Z tego nie cofa (decyzja właściciela, podtrzymana 2026-07-27 przy EX-606). Zamiast
+  Ctrl+Z tego nie cofa (decyzja właściciela, podtrzymana 2026-07-27). Zamiast
   cofania: **okno potwierdzenia** przed zapisem, mówiące co ginie i gdzie jest droga powrotna.
   Droga powrotna istnieje i jest starsza od tej decyzji — `applyPercentRabatToAllItemsAction`
   robi automatyczny zapis wersji kosztorysu przed każdym nadpisaniem, tak samo jak usunięcie
@@ -986,11 +990,11 @@ czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik
   z listy wersji.
 - **Rabat globalny nie podróżuje przez przywrócenie wersji ani przez preset** — to ustalenie per
   inwestycja. Przywrócenie starej wersji zostawia bieżący rabat kwotowy nietknięty (wiersze migawki
-  mają swoje własne rabaty per pozycja). Od 2026-09-28 (EX-881) migawka **zapisuje** rabat globalny
+  mają swoje własne rabaty per pozycja). Od 2026-09-28 migawka **zapisuje** rabat globalny
   (`globalDiscount` w payloadzie), ale wyłącznie do wyświetlenia w historii inwestora — przywracanie
   go ignoruje, tak jak przedtem.
 
-### Historia zmian dla inwestora (2026-09-28, EX-881)
+### Historia zmian dla inwestora (2026-09-28)
 
 Inwestor na swoim linku (`/k/[token]`) i właściciel w „Podgląd dla inwestora" widzą ten sam ekran:
 „Opcje" → „Zobacz historię zmian" z listą dni, w których kosztorys się zmienił, i widok wybranego
@@ -1010,6 +1014,10 @@ względem bieżącej wersji — to samo porównanie, które pokazuje widok dnia.
 Historia sprzed wdrożenia to najnowszy `auto` z każdego dnia, który przetrwał przerzedzanie.
 **Stare reguły dla starych wierszy:** przeszłe `manual` nie stają się kamieniami milowymi, a przeszłe
 `auto` dalej przerzedzają się i wygasają pasmami.
+**„Różni się" znaczy: tak, jak czyta to historia.** Nocny cron porównuje oba wiersze po przepuszczeniu
+przez czytnik historii (z wartościami domyślnymi kolumn), więc klucz dodany przez wdrożenie, z wartością
+domyślną, nie jest zmianą. Surowe porównanie zapisywało pełną kopię każdej otwartej inwestycji po każdym
+takim wdrożeniu (39% wierszy `daily` na zrzucie z 16.10.2026).
 
 **Dlaczego jedna wersja z końca dnia**, a nie wersje 10-minutowe ani lista wybrana przez właściciela:
 wersje co 10 min pokazują stany w połowie edycji, a lista układana przez właściciela pozwalałaby mu
@@ -1053,7 +1061,7 @@ Wyjątek pilnowany osobno: wyczyszczenie „Rabat wart." zdejmuje też **typ** r
 „Bez rabatu", bo rabat 0 zł i rabat 0% to w stopce ta sama informacja, a zostawiony typ udawałby
 udzieloną zniżkę.
 
-### Sufit rabatu per pozycja — 0–100%, twardo (EX-736, 2026-08-25)
+### Sufit rabatu per pozycja — 0–100%, twardo (2026-08-25)
 
 Rabat procentowy w pozycji **nie może przekroczyć 100%** (właściciel, 2026-08-25). 100% przechodzi —
 to praca oddana gratis, normalna decyzja handlowa. Powyżej wartość netto wiersza schodzi na minus i ta
@@ -1085,12 +1093,12 @@ w dół, zniżka przecenialaby wstecz ekipę, która się na nią nie pisała.
 - **Jedyna twarda odmowa to stawka ujemna.** Tej nikt nigdy nie chciał — wraca do stanu sprzed
   edycji i wklejenie jej nie przechodzi. To ona, nie sufit, została w „Problemach" jako
   „z ujemną stawką wykonawcy".
-- **Sufit sądzi kwotę stałą, nie mnożnik** (EX-820, 2026-09-22). Na wierszu ze źródłem „auto"
+- **Sufit sądzi kwotę stałą, nie mnożnik** (2026-09-22). Na wierszu ze źródłem „auto"
   strażnik milczy: stawka jest tam iloczynem globalnego mnożnika, więc czerwień na każdej pozycji
   byłaby jednym werdyktem powtórzonym tysiąc razy. Mnożnik odpowiada za siebie sam, raz, w swoim
   polu w ustawieniach — `coeffWarning` czerwieni je powyżej 0,65 **i przy 0** (zero daje ekipie 0 zł
   na każdej pozycji „auto").
-- **Sufit to gest czytania, nie alarm** (EX-820). Przeszedł z „Problemów" do „Filtrów" jako para
+- **Sufit to gest czytania, nie alarm**. Przeszedł z „Problemów" do „Filtrów" jako para
   dopełniających się wierszy na płaszczyznę — „z kwotą stałą powyżej sufitu" i „bez kwoty stałej
   powyżej sufitu". Katalog prac już sygnalizuje udział przy ratyfikacji stawki, a lista problemów
   ma pokazywać to, co jest zepsute; kwota ratyfikowana w katalogu zepsuta nie jest.
@@ -1101,7 +1109,7 @@ w dół, zniżka przecenialaby wstecz ekipę, która się na nią nie pisała.
   powyżej 0,65 i tylko ostrzega — ostatnia powierzchnia, która trzymała się starej odpowiedzi,
   zrównała się z resztą.
 
-### Zasięg filtrów na stronie inwestycji (EX-600, 2026-07-28)
+### Zasięg filtrów na stronie inwestycji (2026-07-28)
 
 Panel podsumowania na `/inwestycje/<id>` pokazuje obok siebie liczby z dwóch źródeł, a filtry z
 adresu (data, typ, kasa, …) sięgają tylko do jednego z nich:
@@ -1146,7 +1154,7 @@ padły wprost od właściciela, nie są domysłem implementacji:
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
 
-### Szablon = lista prac z katalogu; pozycja pamięta swój wpis (EX-1017, 2026-10-08)
+### Szablon = lista prac z katalogu; pozycja pamięta swój wpis (2026-10-08)
 
 **Odwraca decyzję z 2026-10-01 niżej** — zostaje ona jako zapis powodów, na które ten model odpowiada.
 Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w szablonie (big bag 450 vs
@@ -1156,7 +1164,7 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
   z usuniętym wpisem przywraca się bez 23503, usunięcie z katalogu nie pisze w zamknięte inwestycje.
   Odczyt: najpierw zapamiętany wpis, potem klucz opis + j.m. (`resolveCatalogueEntry`) — jedna reguła
   dla porównania, „już w kosztorysie", zamiany w zgłoszeniu, licznika użycia i „Komentarza do pracy".
-- **Szablon czyta katalog na żywo** — od EX-1075 z konstrukcji, nie z nakładki: praca szablonu to
+- **Szablon czyta katalog na żywo** — od 2026-10-15 z konstrukcji, nie z nakładki: praca szablonu to
   tylko odwołanie do wpisu katalogu (patrz „Szablon ma własne tabele" niżej). Opis, j.m., Cena j.m.,
   stawki, tłumaczenia, komentarz do pracy. Edycja tych pól w szablonie zapisuje się w katalogu,
   a więc we wszystkich szablonach z tą pracą. Przemianowanie, które trafiłoby w cudzy klucz, jest
@@ -1173,9 +1181,9 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
   pracę także ze szablonów (również w koszu). Kosztorysy zachowują kopię.
 - Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
 - Istniejące pozycje dostały link jednorazowo, po opisie + j.m. (skrypt jednorazowy, usunięty
-  w EX-1075 — żyje w historii git); wiersz szablonu tylko przy zgodności we wszystkich polach katalogu.
+  przy tabelach szablonu — żyje w historii git); wiersz szablonu tylko przy zgodności we wszystkich polach katalogu.
 
-### Szablon ma własne tabele (EX-1075, 2026-10-15)
+### Szablon ma własne tabele (2026-10-15)
 
 Szablon przestał być wierszem `investments` o statusie „szablon". Ma własne kolekcje: `templates` →
 `template-sections` → `template-items`, a praca szablonu to **tylko** odwołanie do katalogu + sekcja +
@@ -1195,11 +1203,11 @@ pilnowała nakładka i strażniki statusu.
 - Wiersze `investments` o statusie „szablon" z poprzedniego modelu zostały skopiowane migracją
   addytywną; ich usunięcie to osobna, destrukcyjna migracja po wdrożeniu.
 
-### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01) — ODWRÓCONE przez EX-1017
+### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01) — ODWRÓCONE 2026-10-08
 
 Link `kosztorys_items` → `work_catalogue_items` (nullable FK) był proponowany **dwa razy** i dwa razy
 odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko w `3baa7e09`) oraz
-`kosztorys-item-catalogue-link` (2026-10-01, decyzja przy EX-948). Pomiar na kopii prod (dump
+`kosztorys-item-catalogue-link` (2026-10-01, decyzja przy tłumaczeniach pracownika). Pomiar na kopii prod (dump
 2026-09-30) mówi, że link naprawiłby niewiele:
 
 - **Parowanie psuje tekst legacy, a id go nie naprawi.** 514 z 529 niesparowanych używanych pozycji
@@ -1213,7 +1221,7 @@ odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko
   zachowany link dałby pewny rozjazd ceny względem złej pracy, a „Aktualizuj kosztorys" wpisałby
   ceny starej pracy w przemianowany wiersz (dziś `STALE_CATALOGUE_ERROR` to blokuje).
 - **Link to druga reguła na stałe** („link, inaczej tekst"), bo import arkusza odtwarza drzewo bez id.
-  Do tego: snapshot z usuniętym wpisem katalogu nie dałby się przywrócić (FK 23503, jak EX-641 —
+  Do tego: snapshot z usuniętym wpisem katalogu nie dałby się przywrócić (FK 23503, jak snapshot z etapem usuniętego pracownika —
   potrzebny bliźniak `liveWorkerIds`), a `ON DELETE SET NULL` pisałby w zamknięte inwestycje.
 - **Jedyny przypadek, który link wygrywa:** przemianowanie wpisu przez „Edytuj" w katalogu rozparowuje
   jego pozycje wszędzie naraz. Jeśli zacznie gryźć — poprawka tekstowa, bez drugiej reguły: przy
@@ -1221,9 +1229,9 @@ odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko
 - **Kiedy wrócić do tematu:** dopiero po EX-780 i zamknięciu inwestycji z arkusza — wtedy większość
   wierszy rodzi się z katalogu/szablonu i fallback tekstowy się kurczy.
 
-Tłumaczenia (EX-948) kluczują po polskim tekście i linku nie potrzebują.
+Tłumaczenia kluczują po polskim tekście i linku nie potrzebują.
 
-### „Nowa praca" — formularz zamiast pustego wiersza (EX-951, 2026-09-30)
+### „Nowa praca" — formularz zamiast pustego wiersza (2026-09-30)
 
 Każde wejście, które dodaje pracę ręcznie — „Wstaw powyżej/poniżej" w menu wiersza, „Dodaj pracę" na
 pasku sekcji i w jej menu, „Dodaj → Praca → [sekcja]" w pasku narzędzi — otwiera formularz: opis,
@@ -1256,7 +1264,7 @@ PLN • netto+brutto z `vat_rate` per pozycja • hard-delete • reorder strza�
 (bez drag) • etapy zmienne (w szablonie 10) • współistnienie z zakładką „Arkusz" •
 bez `work_catalogue`.
 
-## Wariant „z narzędziami / bez narzędzi" — ROZSTRZYGNIĘTE, wdrożone (EX-565)
+## Wariant „z narzędziami / bez narzędzi" — ROZSTRZYGNIĘTE, wdrożone
 
 **Problem (właściciel, 2026-07-21).** Cena podwykonawcy „z narzędziami" i „bez narzędzi" to **NIE
 dwie równoległe ceny tej samej pracy**. Dana praca jest wykonana **albo** z narzędziami **albo** bez
@@ -1303,12 +1311,12 @@ pracownik (patrz notatka „Wypłaty = ręczny rejestr…"), nie z arkusza. Wari
 **sumę kosztu**; przypięcie „kto zrobił który etap" do konkretnej ekipy (dla rozliczenia per pracownik)
 to dalsza, opcjonalna warstwa — nie mieszać jej do tej zmiany.
 
-**Ta warstwa jest już wdrożona (EX-613).** Przypisanie siedzi na **etapie** (nullowalne, obok
-`plane`), nie na transakcji — bo most transakcja→etap raz już istniał i został wyrwany (EX-536,
+**Ta warstwa jest już wdrożona.** Przypisanie siedzi na **etapie** (nullowalne, obok
+`plane`), nie na transakcji — bo most transakcja→etap raz już istniał i został wyrwany (2026-07-21,
 migracja `20260721_0`), a domknięcie go kosztowało dwie poprawki na spójność tagów, gdy wiersz
 nadrzędny się przesuwał. Przypisanie na etapie tego problemu nie ma.
 
-**Kilku pracowników na etap (EX-943).** Etap ma **podział**: listę osób (`kosztorys_stage_workers`)
+**Kilku pracowników na etap.** Etap ma **podział**: listę osób (`kosztorys_stage_workers`)
 i tryb — procentowo albo kwotowo — jeden na etap. Każda osoba poza jedną ma wpisaną wartość, a jedna
 bierze **resztę**. Dzielona pula to wykonana praca etapu na jego rozliczeniu, przed rabatem
 (pomiar × stawka podwykonawcy) — ta sama liczba, która wcześniej szła w całości do jednej osoby.
@@ -1330,30 +1338,30 @@ Istniejące przypisania przeszły migracją jako podział jednoosobowy (ta osoba
 
 Dwie konsekwencje, które łatwo przeoczyć:
 
-- **Warstwa rozliczenia jest świadoma etapów, warstwa wyceny nie** (granica z EX-489). Figura per
+- **Warstwa rozliczenia jest świadoma etapów, warstwa wyceny nie** (granica: pomiar = Σ etapów). Figura per
   pracownik to sprawa rozliczenia — nic z niej nie schodzi do wyceny pozycji.
 - **Dwie nullowalne osie na jednym etapie = dwa niezależne braki**, które potrafią wystąpić naraz.
   Dominuje `plane`: etap bez wariantu nikomu nic nie zarabia, więc „brak osoby" jest na nim
   twierdzeniem o zerze — i dlatego etap bez wariantu nie przyjmuje przypisania. Odwrotnie niż przy
   `plane`, brak osoby **nigdy** nie blokuje wpisywania ilości.
 
-**Co wdrożono (EX-565).** Wariant siedzi na **etapie** (`kosztorys_stages.plane`) — dokładnie ten
+**Co wdrożono.** Wariant siedzi na **etapie** (`kosztorys_stages.plane`) — dokładnie ten
 grain, który właściciel potwierdził. Rozliczenie podwykonawcy liczy się po wariancie etapu, więc
 „koszt = Σ po etapach" jest już policzalne z danych. Etap bez wybranego wariantu nie należy do
 żadnego rachunku podwykonawcy i nie wchodzi do żadnej z dwóch sum.
 
 Globalny przełącznik z/bez **zostaje** jako widok wyceny (widełki-hipoteza, patrz wyżej) — nie jest
 już drugim miejscem zapisu wariantu. Wariantu **nie ma** ani na pracy, ani na sekcji — kolumny, które kiedyś miały go tam nieść, były
-martwe od pierwszego dnia i zostały usunięte (EX-575, migracja `20260728_0`). Kaskada
+martwe od pierwszego dnia i zostały usunięte (migracja `20260728_0`). Kaskada
 sekcja → (sekcja × etap) → praca nigdy nie powstała i nie jest planowana.
 
 Otwarte pod wdrożonym modelem: **skąd import zna wariant** — arkusz ma obie zakładki („zakres pracy
 z/bez narzędzi") dla **wszystkich** prac, bez znacznika per etap; potrzebna reguła od właściciela.
-Powiązane: EX-554 („Podsumowanie podwykonawców").
+Powiązane: „Podsumowanie podwykonawców".
 
-**Widok podwykonawcy to rachunek jednej ekipy, nie ta sama rozpiska po innej cenie (EX-570, 2026-07-25).**
+**Widok podwykonawcy to rachunek jednej ekipy, nie ta sama rozpiska po innej cenie (2026-07-25).**
 W „Z narzędziami" / „Bez narzędzi" **„Pomiar z natury" liczy tylko etapy tego wariantu** — a że pomiar
-JEST sumą etapów (EX-494), poprawia się od razu wszystko, co z niego wynika: wartość wiersza, sumy
+JEST sumą etapów, poprawia się od razu wszystko, co z niego wynika: wartość wiersza, sumy
 sekcji, stopki per etap, „Razem". Kolumny drugiego wariantu **znikają**, nie są wygaszane: wersję
 „nie dotyczy" zbudowano i odrzucono — ściana martwych komórek, w której kolumny ilości dalej pokazywały
 liczby, jakby się liczyły.
@@ -1367,7 +1375,7 @@ się w widoku klienta, który pokazuje wszystkie etapy, więc zwężenie kolumn 
 sumują się** do całości pracy wykonanej — brakującą kwotę zgłasza tylko plakietka ostrzeżenia. Lepsza
 brakująca kwota niż kwota dopisana ekipie, której nikt nie wskazał.
 
-### Stawka wykonawcy ma trzy źródła: „auto", „kwota stała" i „własny mnożnik" (EX-865, 2026-09-23)
+### Stawka wykonawcy ma trzy źródła: „auto", „kwota stała" i „własny mnożnik" (2026-09-23)
 
 „Źródło ceny wykonawcy" odpowiada na jedno pytanie: czy ta pozycja idzie za mnożnikiem inwestycji,
 niesie własną kwotę, czy ma własną krotność ceny klienta.
@@ -1396,20 +1404,20 @@ się w ogóle: dokument klienta nie pokazuje, skąd firma bierze stawkę ekipy.
 Mnożnik wiersza wpisuje się **dziesiętnie (`0,55`), nie procentowo** — tak jak globalny mnożnik
 inwestycji o jeden pasek narzędzi obok. Ta sama decyzja w dwóch notacjach to wklejenie pomylone o 100×.
 
-**Trzecie źródło było wycięte przez trzy tygodnie i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
-przywrócenie 2026-09-23/EX-865). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek
+**Trzecie źródło było wycięte przez trzy tygodnie i wróciło** (właściciel: cięcie 2026-09-01,
+przywrócenie 2026-09-23). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek
 bazie — a kosztem był **wspólny slot na wartość**, w którym „200" znaczyło raz 200 zł, a raz ×200.
 Wróciło, bo braku nie da się obejść: zamrożona kwota odpada od ceny inwestora w chwili, w której ta
 cena drgnie, a jedyną alternatywą było ręczne przepisywanie stawek po każdej zmianie cennika.
 
-Powrót **nie jest cofnięciem EX-766** — powód cięcia adresuje inna rzecz niż liczba kolumn. Slot
+Powrót **nie jest cofnięciem cięcia** — powód cięcia adresuje inna rzecz niż liczba kolumn. Slot
 jest teraz rozdzielony: mnożnik ma **własną kolumnę** (`*_override_coeff`) obok kwoty
 (`*_override_value`), więc „200" nigdy nie znaczy dwóch rzeczy, a atomowość pary pilnuje **ścieżka
-zapisu**, nie liczba kolumn — to był prawdziwy zarzut z EX-766 (dwa nieuporządkowane zapisy nad
+zapisu**, nie liczba kolumn — to był prawdziwy zarzut wobec cięcia (dwa nieuporządkowane zapisy nad
 jednym pojęciem), i odpowiada na niego `normalizeOverridePatch`, a nie skasowanie trybu.
 
 **Komórka „Mnożnik" nie jest pusta poza swoim źródłem** (właściciel, 2026-09-23, `cc7baeed` —
-odwrócenie kontraktu z planu EX-865). Przy „auto" pokazuje **mnożnik inwestycji**, wyszarzony
+odwrócenie kontraktu z planu przywrócenia). Przy „auto" pokazuje **mnożnik inwestycji**, wyszarzony
 kursywą: wiersz JEST liczony mnożnikiem, tylko nie swoim, a pusta komórka kazałaby zgadywać. Przy
 „kwocie stałej" — kreskę „nie dotyczy": zamrożona kwota nie idzie za ceną j.m., więc wypisanie
 krotności, w której akurat siedzi, obiecywałoby związek zrywany pierwszą zmianą ceny; pusta komórka
@@ -1424,7 +1432,7 @@ Katalog prac zna te same trzy źródła: cennikowy wpis niesie parę kolumn `w_t
 rozpiski **przelicza się od ceny j.m., na którą trafi** — nie zamraża kwoty z katalogu.
 
 **Sama kolumna „Źródło ceny wykonawcy" ZOSTAJE — wycięcie rozważano i odrzucono dwa razy**
-(właściciel, 2026-09-01 przy cięciu trzeciego trybu, i ponownie 2026-09-02 przy EX-766). Argument za
+(właściciel, 2026-09-01 przy cięciu trzeciego trybu, i ponownie 2026-09-02). Argument za
 wycięciem jest za każdym razem ten sam i za każdym razem przegrywa: skoro wpisanie liczby ustawia
 kwotę stałą, a Delete wraca na auto, kolumna „tylko duplikuje Delete". Przegrywa, bo **„auto" nie
 jest stanem, który widać — to brak wartości**, więc pusta komórka, która magicznie znaczy „idzie za
@@ -1437,7 +1445,7 @@ w którym właściciel pracuje i regułę zna — nie precedens do rozciągnięc
 awansowałoby ten lokalny wyjątek do jedynego mechanizmu wszędzie, czyli odwróciłoby decyzję, a nie
 rozszerzyło ją.
 
-### Pozycja z materiałem w cenie j.m. dostaje stawkę podwykonawcy kwotą stałą (EX-649, 2026-08-17)
+### Pozycja z materiałem w cenie j.m. dostaje stawkę podwykonawcy kwotą stałą (2026-08-17)
 
 Konwencja właściciela, nie reguła w kodzie: gdy materiał jest wliczony w cenę jednostkową pozycji,
 stawkę podwykonawcy wpisuje się **ręcznie, kwotą stałą** — po to, żeby ekipa nie brała procentu od
@@ -1445,7 +1453,7 @@ materiału. Taka pozycja zostawiona na domyślnym współczynniku (0,65 / 0,5525
 i zaburza obie marże. Kosztorys nie wie, które pozycje niosą materiał, więc tego nie da się wymusić
 automatem — stąd konwencja i ewentualne podpowiedzenie w edytorze.
 
-### Należne podwykonawcy jest PRZED rabatem (EX-554, 2026-07-21)
+### Należne podwykonawcy jest PRZED rabatem (2026-07-21)
 
 Rabat to ustępstwo handlowe wobec klienta, wchłaniane przez marżę firmy — **ekipie należy się jej
 cena niezależnie od tego, ile właściciel odpuścił klientowi**. Stąd „Suma wykonanej pracy" w
@@ -1468,7 +1476,7 @@ w jednym punkcie wyceny — `netForQtyForView` odejmuje rabat wyłącznie przy `
 podsumowania sekcji), zeruje je jednym ruchem. Cztery kolumny rabatowe w ogóle się nie składają w
 widokach Z/Bez narzędzi, bo pokazywałyby zera.
 
-### Ręcznie wpisany „Pomiar z natury" w arkuszu klienta — liczba odniesienia, nie druga prawda (EX-686, 2026-08-13)
+### Ręcznie wpisany „Pomiar z natury" w arkuszu klienta — liczba odniesienia, nie druga prawda (2026-08-13)
 
 W arkuszu kanonicznym „Pomiar z natury" to formuła `=SUM(D:M)`, więc pomiar JEST sumą etapów i import
 niczego nie gubi. W arkuszach klientów bywa **wpisany ręcznie** — wtedy niesie pracę, której właściciel
@@ -1486,8 +1494,8 @@ która ten defekt w ogóle wykryła — stawała się tautologią, bo obie stopk
 liczy** — nie wchodzi do robocizny, marży, rozliczeń z ekipami ani żadnej sumy; służy wyłącznie
 porównaniu. Rozjazd jest wyliczany na żywo (`measureDiscrepancy`), więc lista kurczy się sama w miarę
 wpisywania ilości w etapy — nikt nic nie kasuje, żeby ostrzeżenie zniknęło. Nazwa świadomie nawiązuje
-do skasowanego `measured_qty` (EX-494), bo to **ta sama liczba** z arkusza; różni ją to, że jest
-martwa. To **nie jest** cofnięcie EX-494 — suma etapów pozostaje jedyną prawdą o pracy wykonanej.
+do skasowanego `measured_qty`, bo to **ta sama liczba** z arkusza; różni ją to, że jest
+martwa. To **nie jest** cofnięcie reguły „pomiar = Σ etapów" — suma etapów pozostaje jedyną prawdą o pracy wykonanej.
 
 Pusta komórka musi dać `null`, nie `0`: dla liczby odniesienia `0` znaczy „arkusz twierdzi, że nic nie
 zrobiono", a to jest twierdzenie, którego pusta komórka nie stawia.
@@ -1505,7 +1513,7 @@ w ~20 inwestycjach — patrz `context/reference/kosztorys-sheet/formula-anomalie
 sekcja o `=N#` wyżej. Rozkład, na którym oparto pierwotną ankietę (435/435, 0/245, 0/253), mierzył
 wyłącznie jeden kształt formuły i dlatego wyszedł binarny.
 
-## Filtry edytora — gramatyka „ptaszek znaczy widoczne" (2026-08-14, EX-665)
+## Filtry edytora — gramatyka „ptaszek znaczy widoczne" (2026-08-14)
 
 **Skąd to się wzięło:** „Zwiń puste sekcje" chowało sekcje po jednej liczbie —
 `roundToCents(section.net) === 0`. Ta liczba zeruje się z dwóch niezależnych powodów: nic nie
@@ -1533,7 +1541,7 @@ w jednym rejestrze (`ROW_CONDITIONS`), a menu „Filtry" renderuje się z niego 
 - **Liczniki liczą się po całym kosztorysie, nigdy po ocalałych** — licznik ocalałych byłby liczbą
   samego siebie. To ta sama zasada, co przy sumach: `SUM` w arkuszu liczy ukryte wiersze.
 - **Zwinięcie sekcji tłumi szukanie i zawężający filtr — nie ustawienie widoku klienta**
-  (uzupełnione 2026-08-18, EX-713). Pierwotnie tłumiło **tylko** szukanie, choć notatka twierdziła
+  (uzupełnione 2026-08-18). Pierwotnie tłumiło **tylko** szukanie, choć notatka twierdziła
   inaczej; rozbieżność była niewidoczna, dopóki pasek chipów nie postawił obu stanów obok siebie.
   Zrównanie musiało jednak minąć „ukryj puste pozycje" z widoku klienta: to ustawienie jest domyślnie
   włączone i nie jest gestem czytelnika, więc liczone jako zawężenie rozwijało klientowi wszystkie
@@ -1548,7 +1556,7 @@ Numery pozycji liczą się po **pełnym, nieposortowanym** zbiorze — dziura w 
 że coś jest schowane. Numeracja przeliczana per widok czyniłaby filtr niewidocznym (1…N tak czy
 inaczej).
 
-**Grupa „Problemy" — sześć defektów pod jednym trójkątem (2026-08-17, EX-706).** Diagnostyki
+**Grupa „Problemy" — sześć defektów pod jednym trójkątem (2026-08-17).** Diagnostyki
 przestały być luźnymi przyciskami w pasku i zebrały się w jedną listę, a nad nią stoi czerwony
 trójkąt zapalany **danymi, nie kliknięciem** — „czy coś jest nie tak z tym kosztorysem" ma jedną
 odpowiedź w jednym miejscu, zanim ktokolwiek cokolwiek otworzy. Wiersz pojawia się tylko przy
@@ -1568,7 +1576,7 @@ w złą stronę:
   ukryte, do włączenia w pikerze), więc odsłonięcie obu odpowiadałoby na pytanie o jedną ekipę
   liczbami drugiej. Do podglądu inwestora żadna z nich nie ma wstępu — trzyma je wyłącznie allowlista
   `PREVIEW_VISIBLE_COLUMNS`, bo przypięcie płaszczyzny ceny już ich nie dotyczy.
-  **Pyta o stawkę UJEMNĄ, nie o sufit** (EX-820, 2026-09-22): sufit wyprowadził się stąd do
+  **Pyta o stawkę UJEMNĄ, nie o sufit** (2026-09-22): sufit wyprowadził się stąd do
   „Filtrów", bo kwota ratyfikowana w katalogu prac nie jest defektem, a jeden klawisz w mnożniku
   wrzucał całą rozpiskę na listę problemów. Tam para wierszy na płaszczyznę jest **dopełniająca**
   („z kwotą stałą powyżej sufitu" / „bez…"), bo filtry ukrywają trafienia i muszą dać się złożyć
@@ -1591,7 +1599,7 @@ w złą stronę:
   repaired in subcontractor-only columns, so there is no one right view. Same for „z pomiarem do
   rozpisania" and both stage problems.
 
-**Pasek aktywnych filtrów — co go kształtuje (2026-08-18, EX-713/EX-714).** Pasek nazywa każde
+**Pasek aktywnych filtrów — co go kształtuje (2026-08-18).** Pasek nazywa każde
 źródło, które właśnie skraca siatkę, i każde zdejmuje się jednym kliknięciem. Dwie decyzje warto
 znać, zanim ktoś je odkręci:
 
@@ -1616,12 +1624,12 @@ sortowanie „w całym kosztorysie" zdejmuje pasy (i razem z nimi zwinięcia —
 nie miałaby czym się rozwinąć). Sortowanie „w sekcjach" zostawia wiersze na miejscu, więc pasy,
 sumy i zwinięcia zostają.
 
-**„Zapisz kolejność" saves the result (`display_order`), never the sort rule** (EX-688). A stored rule
+**„Zapisz kolejność" saves the result (`display_order`), never the sort rule**. A stored rule
 stays live and overrides positions, so a move in „Ustaw kolejność…" would vanish on reload — two sources of truth for
 one order. It lives in the column header, not the section menu, because one section can't be sorted
 in isolation.
 
-## Katalog prac: Filtry, Problemy i kolumny użycia (2026-09-29, EX-863 / EX-873)
+## Katalog prac: Filtry, Problemy i kolumny użycia (2026-09-29)
 
 `/katalog-prac` dostał te same dwa menu co edytor i tę samą semantykę: w „Filtrach" zaznaczone =
 widoczne, a włączony filtr chowa swoje trafienia; „Problemy" są wyłączne i włączony problem
@@ -1649,8 +1657,7 @@ pozycji: praca powtórzona w pięciu łazienkach jednego mieszkania to dalej jed
   razem z cennikiem, który strona pokazuje, więc praca dodana przed chwilą nigdy nie dostaje
   przestarzałego „0". Grupy „Kosztorysy" i „Szablony" w „Filtrach" są więc zapamiętywane jak każdy inny filtr.
 - **Tylko kosztorysy w aplikacji.** Stare arkusze Google się nie liczą (zostaną wycofane), więc
-  praca używana tylko tam ma w kolumnie 0. Nagłówek kolumny mówi to w podpowiedzi. Dokładniejszy
-  licznik (stare arkusze, inne nazwy) to EX-1010.
+  praca używana tylko tam ma w kolumnie 0. Nagłówek kolumny mówi to w podpowiedzi.
 - **Obok kolumna „Szablony"** pokazuje, w ilu żywych szablonach stoi praca. Liczone po dowiązaniu do
   katalogu, a każdy szablon raz, niezależnie od liczby sekcji.
 - **Podpowiedzi nigdy się nie liczą.** Lista „Używane, a brak w katalogu" pokazuje przy każdej
@@ -1807,11 +1814,11 @@ this section is the original phrasing/context for those questions.
   rozliczeniowa z klientem — wskaźnik „jak idzie robota". Formuła: wartość
   pozycji − Σ wartości wykonanych etapów. W aplikacji: kolumna wyliczana
   (informacyjna, postępowa). Rozważyć nazwę „pozostało do wykonania".
-  Od EX-921 „wartość pozycji" to wartość **Aktualizacji przedmiaru**, nie oferty.
+  Od 2026-10-07 „wartość pozycji" to wartość **Aktualizacji przedmiaru**, nie oferty.
 
 ### Robocizna ↔ rozliczenia
 
-- **POTWIERDZONE (właściciel, 2026-07-21, EX-551): robocizna = cena klienta za
+- **POTWIERDZONE (właściciel, 2026-07-21): robocizna = cena klienta za
   prace, PO RABACIE.** Model marży spinający kosztorys z inwestycją:
   - **robocizna** = Σ ceny klienta wykonanych prac, **po rabacie** (widok „Klient").
   - **wypłaty** = cena podwykonawcy = cena klienta × współczynnik (domyślnie `0,65`
@@ -1827,12 +1834,11 @@ this section is the original phrasing/context for those questions.
   - **kwota do zapłaty podwykonawcy** = należne − Σ zrealizowanych `PAYOUT` —
     każda realna wypłata spłaca to, co ekipie należne z kosztorysu.
 
-  To domyka otwarty wcześniej wybór „należne vs wypłacone" z EX-551: nie jest to
+  To domyka otwarty wcześniej wybór „należne vs wypłacone" z 2026-07-21: nie jest to
   albo/albo — cena podwykonawcy definiuje należne, `PAYOUT` je spłaca.
 
   **DO ZBUDOWANIA (właściciel, 2026-07-21):** figury „kwota do zapłaty
   podwykonawcy" jeszcze nie ma — trzeba ją dodać do **`Podsumowania`** edytora.
-  Linear: EX-554.
 
 - **Kosztorys = dokument dla klienta; docelowo wchłania całe koszty inwestycji**
   (właściciel, 2026-07-15). „To kosztorys finalnie trafia do klienta. Tam mamy
@@ -1843,10 +1849,10 @@ this section is the original phrasing/context for those questions.
   **Oderwany jest edytor v2 — nie V1**, gdzie lustro `INVESTMENT_EXPENSE` (PRD
   FR-014, `prd.md:30`) już te koszty wnosi.
 
-  > **Nieaktualne od EX-555 i EX-649.** Akapit niżej opisywał stan, w którym kosztorys
+  > **Nieaktualne.** Akapit niżej opisywał stan, w którym kosztorys
   > nie wchodził do żadnej marży. Dziś robocizna i rabat na liście inwestycji czytane są
-  > **z kosztorysu** (EX-555), a obok starej marży stoi marża rzeczywista liczona z
-  > kosztorysu razem z prognozą z przedmiaru (EX-649). Stara marża transferowa została
+  > **z kosztorysu**, a obok starej marży stoi marża rzeczywista liczona z
+  > kosztorysu razem z prognozą z przedmiaru. Stara marża transferowa została
   > nietknięta i dalej jest tym, co widać na v1 — dwie figury obok siebie,
   > nie zamiana jednej na drugą.
 
@@ -1876,22 +1882,22 @@ this section is the original phrasing/context for those questions.
   **ROZSTRZYGNIĘTE (owner, 2026-08-18): żadnych — MANAGER widzi wszystko.**
   Jedyne, czego nie widzi, to zakładka Marża, i to już działa (gate po roli na
   stronie inwestycji i w Podsumowaniu v2). Ukrywanie kolumn dotyczy **klienta**,
-  nie roli — weszło jako per-inwestycyjne ustawienia widoku klienta (EX-695).
+  nie roli — weszło jako per-inwestycyjne ustawienia widoku klienta.
   Slice S-10 `kosztorys-column-rbac` wycięty w całości; pytanie o wiersze nigdy
   nie było tu zadane — dopisano je przez symetrię do kolumn.
 
 ### Plan-vs-actual
 
 - **P11.** ~~Domyślny wariant kosztu podwykonawcy (z narzędziami vs bez) — jako
-  default sekcji, od którego dziedziczą pozycje?~~ **ROZSTRZYGNIĘTE (EX-565):**
+  default sekcji, od którego dziedziczą pozycje?~~ **ROZSTRZYGNIĘTE:**
   wariant siedzi na **etapie**; defaultu sekcji ani dziedziczenia na pozycji nie ma.
 
 ### Druk / eksport — eksport cięty (2026-08-15), pytania przechodzą na widok klienta
 
 - **P12.** ~~Które pozycje mają być **domyślnie ukryte** w eksporcie dla klienta?~~
   Bezprzedmiotowe w tej formie — nie ma eksportu. Wraca tylko wtedy, gdy widok
-  klienta dostanie ukrywanie pozycji (EX-549, sparkowane, czeka na decyzję ownera).
-- **P13. [ROZSTRZYGNIĘTE — EX-921, 2026-10-07]** ~~Klient widzi ilość z przedmiaru czy z pomiaru?~~
+  klienta dostanie ukrywanie pozycji (sparkowane, czeka na decyzję ownera).
+- **P13. [ROZSTRZYGNIĘTE — 2026-10-07]** ~~Klient widzi ilość z przedmiaru czy z pomiaru?~~
   „Oferta to oferta": przed pierwszym wpisem w etapach dokument inwestora jest czystą ofertą (bez
   Aktualizacji przedmiaru i bez „Pozostało"); po pierwszym wpisie domyślnie widzi Przedmiar
   ofertowy **i** Aktualizację przedmiaru, a wartość aktualizacji może zaznaczyć właściciel.
@@ -1942,15 +1948,15 @@ warunku jest migracją cudzych danych bez migracji.** Gdyby para „powyżej suf
 `overpriced-*`, zapisany ptaszek „pokaż tylko zepsute" stałby się „ukryj zepsute" — dokładne
 odwrócenie. Nowy warunek dostaje **nowe id**, stare zostają porzucone.
 
-Ten sam klucz jest kluczowany po `investmentId`; szablon ma własny prefiks (`szablon-filters:<id>`,
-EX-1075 — id szablonu i kosztorysu dzielą przestrzeń liczb), więc ptaszki każdego szablonu żyją osobno. Do 2026-09-29 wszystkie szablony dzieliły jeden warsztat
+Ten sam klucz jest kluczowany po `investmentId`; szablon ma własny prefiks (`szablon-filters:<id>`;
+id szablonu i kosztorysu dzielą przestrzeń liczb), więc ptaszki każdego szablonu żyją osobno. Do 2026-09-29 wszystkie szablony dzieliły jeden warsztat
 i ptaszek z A był wciąż włączony po otwarciu B.
 
 **Bramka bywa ergonomią, nie niezmiennikiem — sprawdź, czy trwały stan już ją omija.** Bramka
 płaszczyzny w `offeredFilterConditions` wyglądała na ochronę spójności; nie była. Zaangażowany filtr
 obcej płaszczyzny przeżywa zmianę widoku i przeładowanie, więc stan „filtr drugiej płaszczyzny tnie
 siatkę" był osiągalny zawsze — bramka utrudniała wejście w niego o jedno kliknięcie. Jej prawdziwym
-zadaniem (EX-714) była **długość listy**. Kasując taką bramkę, trzeba przejąć jej prawdziwe zadanie
+zadaniem była **długość listy**. Kasując taką bramkę, trzeba przejąć jej prawdziwe zadanie
 (tu: próg licznika), a nie to, na które wygląda.
 
 **„Lista kolumn jest zamknięta" nie znaczy „widok nic nie robi".** `WORKSHOP_VISIBLE_COLUMNS` mrozi
@@ -1978,7 +1984,10 @@ samego szablonu trzyma to, co w nim wpisano, więc zamknięta lista kolumn szabl
 (`WORKSHOP_VISIBLE_COLUMNS`) nie jest kosmetyką: pole, którego nie da się wpisać, nie zniknie
 potem po cichu przy użyciu szablonu.
 
-## Szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)
+## Szablon jest inwestycją o statusie `szablon` (2026-09-29)
+
+> **Nieaktualne od 2026-10-16** — szablon ma własne tabele, zob. „Szablon ma własne tabele
+> (2026-10-15)". Aktualny został tylko ostatni akapit (kosztorysy z szablonu to zamrożone kopie).
 
 Treść szablonu to **drzewo kosztorysu jego własnej inwestycji** — ta sama tabela sekcji i prac, te
 same akcje, te same „Wersje". Nie ma już biblioteki jsonb (`kosztorys_presets`), wspólnego warsztatu
@@ -1988,7 +1997,7 @@ localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat t
 
 - **Status jest nieodwołalny w obie strony.** Szablon rodzi się wyłącznie przez `createTemplate`,
   a `guardTemplateStatus` odmawia nadania albo zdjęcia `szablon` przy edycji.
-- **Szablon trafia do kosza (EX-914)**, tą samą drogą co inwestycja. Znika wtedy z listy szablonów
+- **Szablon trafia do kosza**, tą samą drogą co inwestycja. Znika wtedy z listy szablonów
   i z każdego wyboru szablonu, a jego nazwa **zostaje zajęta** — próba jej użycia mówi, że szablon
   jest w koszu. „Usuń na zawsze" zawsze wymaga wpisania nazwy, bo szablon nigdy nie ma Przedmiaru,
   więc test „kosztorys w użyciu" by go nie złapał. Po 30 dniach usuwa go sprzątanie, a kaskada
@@ -2006,7 +2015,7 @@ localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat t
 
 **Wdrożenie na produkcję (29.09): najpierw deploy, potem jeden `payload migrate`.** Migracja
 `20260929_1_szablon_as_investment` jest addytywna, a `20260929_2_drop_kosztorys_presets` destrukcyjna.
-Między nimi stoi jeszcze `20260929_0` (EX-886, też destrukcyjna). `payload migrate` puszcza wszystko,
+Między nimi stoi jeszcze `20260929_0` (też destrukcyjna). `payload migrate` puszcza wszystko,
 co czeka, więc „1 przed pushem, 2 po deployu” było niewykonalne. Poszedł więc deploy, a po nim jeden
 przebieg wszystkich trzech. Stary kod nie mógł zobaczyć migracji `_2`, bo czyta `template_preset_id`
 w każdym `payload.find` na inwestycjach (42703). Nowy kod bez `_1` psuje tylko szablony, i to na te
@@ -2018,11 +2027,11 @@ usunięcie otwartego szablonu zeruje wskaźnik, i tak właśnie było na prodzie
 istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
 w szablonie.
 
-## Destylat: jedna wartość na kolumnę liczoną (EX-894, 2026-09-29)
+## Destylat: jedna wartość na kolumnę liczoną (2026-09-29)
 
 **Kolumna liczona ma jedną funkcję wartości — `column-values.ts` — i czytają ją wszyscy:** komórka,
 klucz sortowania, sumy kolumn, sumy sekcji i oba wydruki. Dryf komórka↔sortowanie zdarzył się dwa
-razy (EX-487, EX-894), za każdym razem, bo liczba była składana osobno w kilku miejscach. Test
+razy, za każdym razem, bo liczba była składana osobno w kilku miejscach. Test
 zgodności iteruje kolumny, które siatka **faktycznie składa**, a nie ręczną listę — lista sama by
 dryfowała, a nowa kolumna liczona jest objęta testem od dnia dodania.
 
@@ -2068,7 +2077,7 @@ prace nie mają wpisanych wartości. W kodzie to `itemless`.
 pracach (`history/diff-versions.ts`), więc sekcja bez prac nie daje wiersza różnicy. Zostaje tak,
 dopóki właściciel nie poprosi.
 
-## Wypłaty per para inwestycja × pracownik (EX-919, 2026-09-29)
+## Wypłaty per para inwestycja × pracownik (2026-09-29)
 
 „Pozostało do wypłaty" na liście pracowników i dialog „Rozlicz wypłaty" liczą na **parze
 inwestycja × pracownik**: wykonane na jego etapach po jego stawce − jego wypłaty na tej inwestycji.
@@ -2087,7 +2096,7 @@ Ten sam wzór co blok Podwykonawcy, tylko rozcięty na pary. Pełne zasady liczb
   „w tym zaliczka X zł". Słowo zostaje mimo znaczenia „wpłata inwestora" w słowniku — kontekst
   wypłaty dla pracownika je rozstrzyga. Wiersz już nadpłacony startuje odznaczony i pusty.
 
-## Status przeglądu szkicu AI: zapisany ≠ widoczny (EX-1006, 2026-10-07)
+## Status przeglądu szkicu AI: zapisany ≠ widoczny (2026-10-07)
 
 Status w kolumnie „Status" to `effectiveReviewStatus`, nie surowe `review_status`. Gdy nikt nic nie
 wybrał, równe Przedmiar i AI przedmiar czytają się jako „Zaakceptowana", a Przedmiar przy AI
@@ -2105,14 +2114,14 @@ AI przedmiaru" włącza się z widokiem i ukrywa ją, zanim da się wpisać Prze
 przeciwieństwie do „Problemów", nie przytrzymują wiersza. Przed dodaniem pracy trzeba odznaczyć ten
 filtr.
 
-## Komentarz AI: osobno od Komentarza (EX-1030, 2026-10-08)
+## Komentarz AI: osobno od Komentarza (2026-10-08)
 
 „Komentarz AI" (`ai_missing_data`, `ai_assumptions`) pisze tylko loader szkicu, nigdy do zwykłego
 Komentarza — ten może zobaczyć inwestor. To nie jest piąty Status: pozycja bez danych czeka na dane,
 nie na werdykt. Agent wolno zakładać, ale każde założenie trafia do „Co / ile założono"; pytanie bez
 odpowiedzi nie jest zapisywane, więc pusta komórka znaczy „nic do zgłoszenia".
 
-**Kolejne rundy (EX-1057): flaga „Do ponownego sprawdzenia" opada tylko po stronie klienta.** Regułę
+**Kolejne rundy: flaga „Do ponownego sprawdzenia" opada tylko po stronie klienta.** Regułę
 „wybór Statusu zdejmuje flagę" można by dać serwerowi, ale cofnięcie (undo) wpisuje z powrotem
 poprzedni Status, więc ta sama reguła odpaliłaby się drugi raz i ścigała z osobnym zapisem flagi —
 undo mogłoby zostawić flagę opuszczoną. Dlatego Status, flaga i Przedmiar to osobne zapisy w jednej

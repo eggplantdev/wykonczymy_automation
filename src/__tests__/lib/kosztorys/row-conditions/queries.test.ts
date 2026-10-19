@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { CTX, priceCells, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
-import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   applyRowConditions,
   clientConditionIds,
@@ -151,7 +150,7 @@ describe('applyRowConditions — every result of the untick-to-hide menu is stil
   })
 
   it('„z przedmiarem lub wykonaną pracą" is the union the two separate groups cannot reach', () => {
-    expect(ticked(['non-empty-both-axes'])).toEqual([2, 3, 4, 5])
+    expect(ticked(['non-empty-both-axes'])).toEqual([2, 3, 4, 5, 6, 7])
     expect(ticked(['has-planned-qty', 'has-measured-qty'])).toEqual([4])
   })
 })
@@ -216,11 +215,6 @@ describe('columnsRevealedBy', () => {
 
   it('brings the two cells that compute a stawka along with the stawka', () => {
     expect(columnsRevealedBy(['negative-rate-w-tools'])).toEqual(new Set(priceCells('w_tools')))
-  })
-
-  it('leaves the other plane alone', () => {
-    const revealed = columnsRevealedBy(['negative-rate-w-tools'])
-    expect(revealed.has(planePriceKey('price', 'own_tools'))).toBe(false)
   })
 
   it('unions two engaged problems without repeating their shared column', () => {

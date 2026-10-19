@@ -1,31 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { row as fixtureRow } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
-function row(overrides: Partial<KosztorysV2RowT> = {}): KosztorysV2RowT {
-  return {
-    id: 1,
-    sectionId: 10,
-    displayOrder: 0,
+const row = (overrides: Partial<KosztorysV2RowT> = {}) =>
+  fixtureRow({
     description: 'Dwukrotne gruntowanie ścian, sufitów i podłóg',
-    unit: 'm2',
-    plannedQty: 95,
-    sheetMeasuredQty: null,
-    discountType: null,
-    discountValue: 0,
     clientPrice: 10,
-    wToolsOverrideValue: null,
-    ownToolsOverrideValue: null,
-    note: null,
     sectionName: 'Łazienka 1',
-    sectionColor: null,
-    vatRate: 0.08,
-    globalDiscountActive: false,
-    globalWToolsCoeff: 0.65,
-    globalOwnToolsCoeff: 0.5,
     ...overrides,
-  } as KosztorysV2RowT
-}
+  })
 
 describe('divergentPriceRowIds', () => {
   it('returns EVERY pozycja of a diverging group, not only the odd one out', () => {

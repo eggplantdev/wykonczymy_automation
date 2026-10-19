@@ -1,0 +1,174 @@
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { sqlList } from '@/lib/db/sql-list'
+import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { firstUserId } from '@/__tests__/helpers/user'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+
+const { bookOverpaymentBonusAction } = await import('@/lib/actions/book-overpayment-bonus')
+
+const ITEMS = [{ description: 'pozycja', plannedQty: 10, clientPrice: 100 }]
+const OVERPAID_BY = 150
+
+describe.skipIf(!ENV_READY)('bookOverpaymentBonusAction (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  const marker = `overpayment-bonus-${Date.now()}`
+  let workerId = 0
+  let registerId = 0
+  // locked: overpaid, then zakończona.
+  const created = { overpaid: 0, payable: 0, locked: 0 }
+  const investmentIds = () => Object.values(created).filter(Boolean)
+
+  const remainingOf = (investmentId: number) => pairRemaining(db, investmentId, workerId)
+
+  async function bonuses() {
+    const res = await db.execute(sql`
+      SELECT investment_id, worker_id, amount::float8 AS amount, source_register_id
+      FROM transactions
+      WHERE type = 'BONUS' AND investment_id IN (${sqlList(investmentIds())})
+    `)
+    return res.rows
+  }
+
+  const payout = (investmentId: number, amount: number) =>
+    payload.create({
+      collection: 'transactions',
+      overrideAccess: true,
+      data: {
+        type: 'PAYOUT',
+        amount,
+        date: new Date().toISOString().slice(0, 10),
+        sourceRegister: registerId,
+        investment: investmentId,
+        worker: workerId,
+        description: marker,
+        createdBy: workerId,
+      },
+    })
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+
+    const [userId, registers] = await Promise.all([
+      firstUserId(payload),
+      payload.find({
+        collection: 'cash-registers',
+        limit: 1,
+        sort: 'id',
+        depth: 0,
+        overrideAccess: true,
+      }),
+    ])
+    if (!registers.docs[0]) throw new Error('missing DB fixtures')
+    workerId = userId
+    registerId = Number(registers.docs[0].id)
+    authState.userId = workerId
+
+    for (const key of Object.keys(created) as (keyof typeof created)[]) {
+      created[key] = await createTestInvestment(payload, `${marker}-${key}`)
+      await createKosztorysTree(payload, created[key], {
+        sections: [{ name: 'Sekcja', items: ITEMS }],
+        stages: [{ label: 'Etap 1', plane: 'w_tools', worker: workerId }],
+        progress: [{ item: 0, stage: 0, qtyDone: 4 }],
+      })
+      const due = await remainingOf(created[key])
+      await payout(created[key], key === 'payable' ? due / 2 : due + OVERPAID_BY)
+    }
+    await db.execute(
+      sql`UPDATE investments SET status = ${LOCKED_INVESTMENT_STATUS} WHERE id = ${created.locked}`,
+    )
+  })
+
+  afterEach(async () => {
+    authState.role = 'OWNER'
+    await db.execute(sql`
+      DELETE FROM transactions
+      WHERE type = 'BONUS' AND investment_id IN (${sqlList(investmentIds())})
+    `)
+  })
+
+  afterAll(async () => {
+    await db.execute(sql`DELETE FROM transactions WHERE description = ${marker}`)
+    for (const id of investmentIds()) {
+      await db.execute(sql`UPDATE investments SET status = 'active' WHERE id = ${id}`)
+      await deleteTestInvestment(payload, id).catch(() => {})
+    }
+  })
+
+  it('books exactly the nadpłata as a premia on the pair, with no kasa, and settles it to zero', async () => {
+    expect(await remainingOf(created.overpaid)).toBe(-OVERPAID_BY)
+
+    const result = await bookOverpaymentBonusAction({
+      investmentId: created.overpaid,
+      workerId,
+      expectedRemaining: -OVERPAID_BY,
+    })
+    expect(result).toMatchObject({ success: true })
+
+    expect(await bonuses()).toEqual([
+      {
+        investment_id: created.overpaid,
+        worker_id: workerId,
+        amount: OVERPAID_BY,
+        source_register_id: null,
+      },
+    ])
+    expect(await remainingOf(created.overpaid)).toBe(0)
+  })
+
+  it('refuses a MANAGER, booking nothing', async () => {
+    authState.role = 'MANAGER'
+
+    const result = await bookOverpaymentBonusAction({
+      investmentId: created.overpaid,
+      workerId,
+      expectedRemaining: -OVERPAID_BY,
+    })
+    expect(result).toEqual({ success: false, error: BONUS_FORBIDDEN_MESSAGE })
+    expect(await bonuses()).toEqual([])
+  })
+
+  it('refuses as stale when the nadpłata moved since the dialog read it', async () => {
+    const result = await bookOverpaymentBonusAction({
+      investmentId: created.overpaid,
+      workerId,
+      expectedRemaining: -(OVERPAID_BY - 50),
+    })
+    expect(result).toMatchObject({ success: false, stale: true })
+    expect(await bonuses()).toEqual([])
+  })
+
+  it('refuses a pair that is not overpaid, even with its figure right', async () => {
+    const remaining = await remainingOf(created.payable)
+    expect(remaining).toBeGreaterThan(0)
+
+    const result = await bookOverpaymentBonusAction({
+      investmentId: created.payable,
+      workerId,
+      expectedRemaining: -remaining,
+    })
+    expect(result).toMatchObject({ success: false, stale: true })
+    expect(await bonuses()).toEqual([])
+  })
+
+  it('refuses a zakończona inwestycja, naming it', async () => {
+    const result = await bookOverpaymentBonusAction({
+      investmentId: created.locked,
+      workerId,
+      expectedRemaining: -OVERPAID_BY,
+    })
+    expect(result).toMatchObject({ success: false })
+    expect(result).not.toHaveProperty('stale')
+    if (!result.success) expect(result.error).toContain(`${marker}-locked`)
+    expect(await bonuses()).toEqual([])
+  })
+})

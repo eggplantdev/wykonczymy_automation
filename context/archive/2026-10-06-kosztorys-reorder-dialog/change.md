@@ -7,7 +7,6 @@ updated: 2026-10-06
 archived_at: 2026-10-06T09:04:20Z
 branch: staging
 worktree: null
-linear: EX-999
 ---
 
 ## Notes
@@ -18,7 +17,7 @@ auto-wersją. Spike już w drzewie (niezacommitowany).
 
 Powód: szablon ma ~400 prac, a dziś pracę przesuwa się tylko ▲▼ o jeden wiersz z menu ⋯, wyłącznie
 w obrębie sekcji. Przeniesienia między sekcjami nie było wcale. Pokrewne: EX-857
-(`2026-09-23-kosztorys-bulk-actions` — zaznaczanie w siatce, inna powierzchnia).
+(zaznaczanie w siatce, inna powierzchnia).
 
 Dialog szerszy (`sm:max-w-7xl`) — prośba właściciela.
 

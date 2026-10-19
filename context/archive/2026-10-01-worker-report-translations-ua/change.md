@@ -11,10 +11,10 @@ worktree: .claude/worktrees/ex-948-translations
 
 ## Notes
 
-EX-948 (slice 2 of EX-946): Ukrainian translations of the work catalogue, worker language setting, UI strings on the worker report surface
+Slice 2 of 3: Ukrainian translations of the work catalogue, worker language setting, UI strings on the worker report surface
 
-Linear: **EX-948** under umbrella **EX-946**. Slice 1 (EX-947) is archived at
-`context/archive/2026-09-30-worker-work-reports/`; slice 3 is **EX-949** (kartka → AI).
+Slice 1 is archived at
+`context/archive/2026-09-30-worker-work-reports/`; slice 3 is `worker-report-scan` (kartka → AI).
 
 ### Scope as agreed in slice 1 (`change.md` § The arc, point 2)
 
@@ -69,7 +69,7 @@ Linear: **EX-948** under umbrella **EX-946**. Slice 1 (EX-947) is archived at
   switcher. On the two links, the switcher overrides the stored language.
 - **„Podgląd pracownika" opens in the worker's language and shows the switcher (user, 2026-10-01).**
   It is the manager's way of checking exactly what the worker sees.
-- **This slice lands before EX-949 (user, 2026-10-01).** Slice 3 then reshapes a worker PDF that is
+- **This slice lands before `worker-report-scan` (user, 2026-10-01).** Slice 3 then reshapes a worker PDF that is
   already translated, and builds on the dictionary instead of translating the layout afterwards.
 - **The logged-in app is out of scope (user, 2026-10-01).** Worker accounts aren't in use yet. The
   i18n core lives in `src/lib/i18n/` and isn't tied to the share pages, so the app shell can be

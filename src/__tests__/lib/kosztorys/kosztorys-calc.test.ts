@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import {
   globalDiscountAmount,
   subcontractorPrice,
@@ -18,27 +19,11 @@ import {
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 
 const item: ViewPricingT = {
+  ...baseItem,
   id: 1,
-  sectionId: 10,
-  displayOrder: 0,
   description: 'Malowanie',
-  descriptionTranslations: {},
-  unit: 'm2',
   plannedQty: 10,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 20,
-  wToolsOverrideValue: 12,
-  ownToolsOverrideValue: 10,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
   globalOwnToolsCoeff: 0.55,
@@ -342,88 +327,35 @@ describe('rowPlannedNetPreDiscountForView', () => {
 
 describe('rowPlannedDiscountForView — rabat w złotych na przedmiarze', () => {
   const planned12 = { ...item, plannedQty: 12 }
+  const percent = { discountType: 'percent' as const, discountValue: 10 }
+  const amount = { discountType: 'amount' as const, discountValue: 30 }
 
-  it('rabat procentowy = przedmiar × cena − wartość przedmiaru', () => {
-    const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
-    expect(rowPlannedDiscountForView(discounted, 'client')).toBe(24) // 240 − 216
-  })
-
-  it('rabat kwotowy', () => {
-    const discounted = { ...planned12, discountType: 'amount' as const, discountValue: 30 }
-    expect(rowPlannedDiscountForView(discounted, 'client')).toBe(30)
-  })
-
-  it('bez rabatu → 0', () => {
-    expect(rowPlannedDiscountForView(planned12, 'client')).toBe(0)
-  })
-
-  it('przedmiar 0 → 0, nawet przy rabacie kwotowym', () => {
-    const empty = { ...item, plannedQty: 0, discountType: 'amount' as const, discountValue: 30 }
-    expect(rowPlannedDiscountForView(empty, 'client')).toBe(0)
-  })
-
-  it('rabat globalny → 0', () => {
-    const global = {
-      ...planned12,
-      discountType: 'percent' as const,
-      discountValue: 10,
-      globalDiscountActive: true,
-    }
-    expect(rowPlannedDiscountForView(global, 'client')).toBe(0)
-  })
-
-  it('plany podwykonawcy → 0', () => {
-    const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
-    expect(rowPlannedDiscountForView(discounted, 'w_tools')).toBe(0)
-    expect(rowPlannedDiscountForView(discounted, 'own_tools')).toBe(0)
+  it.each<[string, Partial<ViewPricingT>, PriceViewT, number]>([
+    ['rabat procentowy = przedmiar × cena − wartość przedmiaru', percent, 'client', 24],
+    ['rabat kwotowy', amount, 'client', 30],
+    ['bez rabatu → 0', {}, 'client', 0],
+    ['przedmiar 0 → 0, nawet przy rabacie kwotowym', { ...amount, plannedQty: 0 }, 'client', 0],
+    ['rabat globalny → 0', { ...percent, globalDiscountActive: true }, 'client', 0],
+    ['plany podwykonawcy → 0', percent, 'w_tools', 0],
+    ['plany podwykonawcy → 0', percent, 'own_tools', 0],
+  ])('%s (%s → %s)', (_, overrides, view, expected) => {
+    expect(rowPlannedDiscountForView({ ...planned12, ...overrides }, view)).toBe(expected)
   })
 })
 
 describe('netForQtyForView — zerowa ilość nie niesie wartości ani rabatu', () => {
-  it('rabat kwotowy przy zerowej ilości → 0, nie ujemna', () => {
-    const discounted = { ...item, discountType: 'amount' as const, discountValue: 500 }
-    expect(netForQtyForView(discounted, 0, 'client')).toBe(0)
-  })
-
-  it('rabat procentowy przy zerowej ilości → 0', () => {
-    const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
-    expect(netForQtyForView(discounted, 0, 'client')).toBe(0)
+  it.each([
+    { discountType: 'amount' as const, discountValue: 500 },
+    { discountType: 'percent' as const, discountValue: 10 },
+  ])('rabat $discountType przy zerowej ilości → 0, nie ujemna', (discount) => {
+    expect(netForQtyForView({ ...item, ...discount }, 0, 'client')).toBe(0)
   })
 })
 
-const gross = (row: ViewPricingT, view: PriceViewT, vatRate: number) =>
-  netForQtyForView(row, TOTAL_QTY, view) * (1 + vatRate)
-
-describe('brutto = netto × (1 + vatRate)', () => {
-  it('plain row, 8%', () => {
-    expect(gross(item, 'client', 0.08)).toBeCloseTo(216, 10)
-  })
-
-  it('post-discount net (VAT on the discounted amount)', () => {
-    const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
-    // net = 200 − 10% = 180 → brutto 180 × 1.08 = 194.4
-    expect(gross(discounted, 'client', 0.08)).toBeCloseTo(194.4, 10)
-  })
-
-  it('consistent across price views (VAT on the active net)', () => {
-    // w_tools net = 10 × 12 = 120 → 129.6; own_tools net = 10 × 10 = 100 → 108
-    expect(gross(item, 'w_tools', 0.08)).toBeCloseTo(129.6, 10)
-    expect(gross(item, 'own_tools', 0.08)).toBeCloseTo(108, 10)
-  })
-
-  it('23% rate', () => {
-    expect(gross(item, 'client', 0.23)).toBeCloseTo(246, 10)
-  })
-
-  it('wartość przedmiaru brutto = wartość przedmiaru netto × (1 + VAT), rabat w kwocie', () => {
-    const discounted = {
-      ...item,
-      plannedQty: 12,
-      discountType: 'percent' as const,
-      discountValue: 10,
-    }
-    // planned net = 12 × 20 − 10% = 216 → brutto 216 × 1.08 = 233.28
-    expect(rowPlannedNetForView(discounted, 'client') * 1.08).toBeCloseTo(233.28, 10)
+describe('netto per widok ceny', () => {
+  it('liczy wykonanie z ceny aktywnego widoku', () => {
+    expect(netForQtyForView(item, TOTAL_QTY, 'w_tools')).toBe(120)
+    expect(netForQtyForView(item, TOTAL_QTY, 'own_tools')).toBe(100)
   })
 })
 
@@ -448,21 +380,16 @@ describe('rabat globalny — nadpisuje rabat per pozycja', () => {
 
 describe('globalDiscountAmount / do zapłaty', () => {
   it('kwota jest płaska', () => {
-    expect(globalDiscountAmount(1000, { type: 'amount', value: 250 })).toBe(250)
+    expect(globalDiscountAmount({ type: 'amount', value: 250 })).toBe(250)
   })
 
   it('brak rabatu / zero → 0', () => {
-    expect(globalDiscountAmount(1000, { type: null, value: 0 })).toBe(0)
-    expect(globalDiscountAmount(1000, { type: 'amount', value: 0 })).toBe(0)
+    expect(globalDiscountAmount({ type: null, value: 0 })).toBe(0)
+    expect(globalDiscountAmount({ type: 'amount', value: 0 })).toBe(0)
   })
 
   it('legacy procent → 0 (rabat globalny jest już tylko kwotowy)', () => {
-    expect(globalDiscountAmount(1000, { type: 'percent' as never, value: 10 })).toBe(0)
-  })
-
-  it('do zapłaty = suma − rabat', () => {
-    const totalNet = 1000
-    expect(totalNet - globalDiscountAmount(totalNet, { type: 'amount', value: 250 })).toBe(750)
+    expect(globalDiscountAmount({ type: 'percent' as never, value: 10 })).toBe(0)
   })
 })
 

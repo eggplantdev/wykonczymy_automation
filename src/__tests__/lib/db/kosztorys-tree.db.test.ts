@@ -4,8 +4,7 @@ import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('selectKosztorysTreeData (DB)', () => {
   let payload: Payload
@@ -30,9 +29,7 @@ describe.skipIf(!ENV_READY)('selectKosztorysTreeData (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
 
     for (const key of ['alpha', 'beta', 'bare'] as const) {
@@ -54,7 +51,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysTreeData (DB)', () => {
     // Without the coalesce in the query every one of these is null and the caller's `.map` throws
     const data = await selectKosztorysTreeData(db, created.bare)
 
-    expect(data).not.toBeNull()
     expect(data!.sections).toEqual([])
     expect(data!.items).toEqual([])
     expect(data!.stages).toEqual([])
@@ -81,7 +77,6 @@ describe.skipIf(!ENV_READY)('selectKosztorysTreeData (DB)', () => {
     // The editor shell compares `revision` by value to detect a stale tree.
     const data = await selectKosztorysTreeData(db, created.alpha)
 
-    expect(typeof data!.investment.updatedAt).toBe('string')
     expect(data!.investment.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/)
   })
 

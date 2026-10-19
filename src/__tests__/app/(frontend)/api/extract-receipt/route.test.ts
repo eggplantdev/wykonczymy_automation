@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('server-only', () => ({}))
-
 const mockGetUser = vi.fn()
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({
   getCurrentUserJwt: () => mockGetUser(),
@@ -27,7 +25,6 @@ function request(files: File[], otherCategoryNames?: string) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   mockGetUser.mockResolvedValue({ id: 1, role: 'MANAGER' })
   mockScanReceipt.mockResolvedValue({ amount: 100 })
 })
@@ -38,7 +35,7 @@ describe('POST /api/extract-receipt', () => {
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ data: { amount: 100 } })
-    expect(mockScanReceipt).toHaveBeenCalledWith(expect.arrayContaining([]), ['Paliwo'])
+    expect(mockScanReceipt).toHaveBeenCalledWith(expect.any(Array), ['Paliwo'])
     expect(mockScanReceipt.mock.calls[0][0]).toHaveLength(2)
   })
 

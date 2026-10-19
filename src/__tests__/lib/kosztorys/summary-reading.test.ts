@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  financialsOnReading,
-  readingFromKosztorys,
-  readingFromTransactions,
-} from '@/lib/kosztorys/summary-reading'
+import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
 import type { KosztorysClientTotalsT } from '@/lib/kosztorys/settlement-client-totals'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
@@ -20,23 +16,11 @@ const clientTotals = {
 } as KosztorysClientTotalsT
 
 describe('summary reading projection', () => {
-  it('lands both readings on the same POST-rabat axis', () => {
-    expect(readingFromTransactions(financials)).toEqual({
-      laborCostsNet: 92_000,
-      discountAmount: 8_000,
-    })
+  it('lands the reading on the POST-rabat axis', () => {
     expect(readingFromKosztorys(clientTotals)).toEqual({
       laborCostsNet: 85_000,
       discountAmount: 5_000,
     })
-  })
-
-  it('keeps robocizna + rabat addable back to the pre-rabat figure the pie draws', () => {
-    const v1 = readingFromTransactions(financials)
-    const v2 = readingFromKosztorys(clientTotals)
-
-    expect(v1.laborCostsNet + v1.discountAmount).toBe(financials.totalLaborCosts)
-    expect(v2.laborCostsNet + v2.discountAmount).toBe(clientTotals.laborCostsNetFromKosztorys)
   })
 
   it('reports no rabat when there is none to report', () => {
@@ -83,9 +67,5 @@ describe('financialsOnReading', () => {
     } = financials
 
     expect(untouched).toEqual(originalUntouched)
-  })
-
-  it('is a no-op on the transactions reading', () => {
-    expect(financialsOnReading(financials, readingFromTransactions(financials))).toEqual(financials)
   })
 })

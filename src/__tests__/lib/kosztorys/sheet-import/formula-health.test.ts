@@ -30,14 +30,6 @@ describe('scanFormulaHealth', () => {
     expect(scan({}).totalRows).toBe(3)
   })
 
-  it('counts a Pomiar copied straight from Przedmiar without listing the rows', () => {
-    const health = scan({ 4: { O: '=N5' } })
-
-    expect(health.measuredCopiedFromPlanned).toBe(1)
-    expect(health.samples.plannedReadFromStage).toEqual([])
-    expect(health.samples.errorValue).toEqual([])
-  })
-
   it('leaves the sheet’s own Σ etapów alone', () => {
     expect(scan({ 4: { O: '=SUM(D5:M5)' } }).measuredCopiedFromPlanned).toBe(0)
   })

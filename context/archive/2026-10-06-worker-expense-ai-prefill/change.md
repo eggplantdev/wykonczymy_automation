@@ -1,6 +1,6 @@
 ---
 change_id: worker-expense-ai-prefill
-title: AI reads a worker's expense photos on send; manager gets a prefilled wydatek + a re-read button (EX-1001)
+title: AI reads a worker's expense photos on send; manager gets a prefilled wydatek + a re-read button
 status: archived
 created: 2026-10-06
 updated: 2026-10-09
@@ -11,11 +11,11 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-expens
 
 ## Notes
 
-Linear: **EX-1001**, follow-up to **EX-971** (`context/archive/2026-10-05-worker-expenses/`).
+Follow-up to `context/archive/2026-10-05-worker-expenses/`.
 
 ### The gap
 
-EX-971's owner decision says the manager's „Nowy wydatek" dialog opens filled with „tym, co AI
+The owner decision in `worker-expenses` says the manager's „Nowy wydatek" dialog opens filled with „tym, co AI
 odczyta z paragonu". It never did: `PendingExpenseDrafts.handleOpen` prefills inwestycja, kasa and
 the photos only, and „Wygeneruj z paragonów" (`line-items-field.tsx`) opens a file picker for NEW
 photos — nothing reads photos already on a row. (The empty-pick branch in `scanReceipts` that

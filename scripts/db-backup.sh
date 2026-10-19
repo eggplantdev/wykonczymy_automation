@@ -10,6 +10,7 @@ MIN_TX="${MIN_TX:-1000}"
 FRESH_DAYS="${FRESH_DAYS:-3}"
 SIZE_FLOOR="${SIZE_FLOOR:-1024}"          # bytes, gzipped
 KEY_TABLES="${KEY_TABLES:-transactions investments cash_registers users}"
+SHRINK_TOLERANCE_PCT="${SHRINK_TOLERANCE_PCT:-5}"
 
 mkdir -p "$OUT_DIR"
 ts="$(date +%Y%m%d-%H%M%S)"
@@ -22,6 +23,9 @@ count_rows() { # <file> <table>
     f && $0=="\\." {f=0}
     f {n++}
     END {print n+0}'
+}
+seq_value() { # <file> <table>
+  gzip -dc "$1" | sed -nE "s/^SELECT pg_catalog\.setval\('public\.$2_id_seq', ([0-9]+),.*/\1/p" | head -1
 }
 fail() { echo "❌ $*" >&2; exit 1; }
 
@@ -57,9 +61,14 @@ else
     new_c=$(count_rows "$NEW" "$t"); old_c=$(count_rows "$prev" "$t")
     delta=$(( new_c - old_c ))
     printf '   %-18s prev=%-6s new=%-6s Δ=%+d\n' "$t" "$old_c" "$new_c" "$delta"
-    (( new_c < old_c )) && { echo "   ↳ ❌ $t shrank ($old_c → $new_c)"; drift=1; }
+    (( (old_c - new_c) * 100 > old_c * SHRINK_TOLERANCE_PCT )) && \
+      { echo "   ↳ ❌ $t shrank more than ${SHRINK_TOLERANCE_PCT}% ($old_c → $new_c)"; drift=1; }
+    new_s=$(seq_value "$NEW" "$t"); old_s=$(seq_value "$prev" "$t")
+    (( ${new_s:-0} < ${old_s:-0} )) && \
+      { echo "   ↳ ❌ $t id sequence went back ($old_s → $new_s) — older DB?"; drift=1; }
   done
-  (( drift == 0 )) || fail "a key table shrank vs previous dump — investigate before trusting this backup"
+  # Kept, a rejected dump would be the next run's baseline and pass the same loss on the retry.
+  (( drift == 0 )) || { rm -f "$NEW"; fail "no-shrink / no-rewind failed vs previous dump — investigate before trusting this backup"; }
 fi
 
 echo "✅ backup validated: $NEW"

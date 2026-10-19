@@ -4,10 +4,12 @@ import userEvent from '@testing-library/user-event'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { WorkerReportsButton } from '@/components/kosztorys/editor/toolbar/worker-reports-button'
 import type { WorkerReportSummaryT } from '@/lib/kosztorys/worker-report/types'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { listInvestmentReports, readInvestmentReport } from '@/lib/queries/worker-reports'
 
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ investmentId: 12, stages: [], workers: [] }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () => ({ investmentId: 12, stages: [], workers: [] }) as never,
+)
 
 const PENDING: WorkerReportSummaryT = {
   id: 5,
@@ -26,10 +28,8 @@ const PENDING: WorkerReportSummaryT = {
   acceptedLineCount: 0,
   rejectedLineCount: 0,
 }
-vi.mock('@/lib/queries/worker-reports', () => ({
-  listInvestmentReports: vi.fn(async () => [PENDING]),
-  readInvestmentReport: vi.fn(async () => undefined),
-}))
+vi.mocked(listInvestmentReports).mockImplementation(async () => [PENDING])
+vi.mocked(readInvestmentReport).mockImplementation(async () => undefined)
 
 function renderButton(pendingCount: number) {
   return render(

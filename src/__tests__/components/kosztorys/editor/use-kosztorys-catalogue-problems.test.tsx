@@ -9,27 +9,10 @@ import {
   CATALOGUE_DIVERGENCE_CONDITION_ID,
   CATALOGUE_MISSING_CONDITION_ID,
 } from '@/lib/kosztorys/row-conditions/registry'
+import { updateItemFieldAction } from '@/lib/actions/kosztorys'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-vi.mock('@/lib/actions/kosztorys', () => ({
-  addItemAction: vi.fn(),
-  clearKosztorysAction: vi.fn(),
-  writeKosztorysLayoutAction: vi.fn(),
-  addSectionAction: vi.fn(),
-  insertSectionAction: vi.fn(),
-  removeItemAction: vi.fn(),
-  removeSectionAction: vi.fn(),
-  renumberKosztorysOrderAction: vi.fn(),
-  setStageProgressAction: vi.fn(),
-  updateItemFieldAction: vi.fn(async () => ({ success: true })),
-  updateSectionFieldAction: vi.fn(),
-  updateInvestmentCoeffsAction: vi.fn(),
-  updateInvestmentGlobalDiscountAction: vi.fn(),
-  updateInvestmentMaterialsNetRateAction: vi.fn(),
-  updateInvestmentSettlementModeAction: vi.fn(),
-  updateInvestmentVatAction: vi.fn(),
-  applyPercentDiscountToAllItemsAction: vi.fn(),
-}))
+vi.mocked(updateItemFieldAction).mockResolvedValue({ success: true })
 
 const TREE = makeTree({
   sections: [

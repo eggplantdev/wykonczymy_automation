@@ -1,6 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
-
-vi.mock('server-only', () => ({}))
+import { describe, it, expect } from 'vitest'
 
 import { shapeCashRegisters } from '@/lib/queries/cash-registers'
 import type { CashRegisterRefT, WorkerRefT } from '@/types/reference-data'

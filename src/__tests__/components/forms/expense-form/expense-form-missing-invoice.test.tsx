@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -10,25 +10,18 @@ import {
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense-form'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
+import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
+import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
+import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
+import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
-}))
-vi.mock('@/lib/actions/transfers', () => ({
-  createBulkTransferAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/lib/utils/scan-receipt-client', () => ({ scanReceiptClient: vi.fn() }))
-vi.mock('@/lib/media/ingest-files', () => ({
-  ingestFiles: async (picked: File[]) => ({ processed: picked, blocked: [] }),
-}))
-vi.mock('@/lib/media/submit-with-uploads', () => ({
-  submitWithUploadRows: (
-    _rowCount: number,
-    _files: Map<number, File[]>,
-    submit: (rows: undefined) => Promise<unknown>,
-  ) => submit(undefined),
-}))
+vi.mocked(createBulkTransferAction).mockResolvedValue({ success: true })
+vi.mocked(scanReceiptClient).mockResolvedValue(undefined as never)
+vi.mocked(ingestFiles).mockImplementation(ingestFilesStub)
+vi.mocked(submitWithUploadRows).mockImplementation((_rowCount, _files, submit) =>
+  submit(undefined as never),
+)
 
 const row = (description: string) =>
   makeLineItem({ description, amount: '89.9', expenseCategory: '1', category: '1' })
@@ -54,7 +47,6 @@ function renderForm(values: BulkExpenseFormValuesT, files: Map<number, File[]>) 
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useOptimisticFormStore.setState({ keepOpen: false })
 })
 
@@ -113,6 +105,46 @@ describe('Wydatek inwestycyjny bez faktury', () => {
 
     await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
     expect(screen.queryByRole('alertdialog')).toBeNull()
+  })
+})
+
+describe('Odczyt paragonu w toku', () => {
+  it('blokuje „Zapisz", dopóki skan nie wypełni pozycji, a potem zapisuje odczytane dane', async () => {
+    let finishScan: (data: ReceiptFillResultT) => void = () => {}
+    vi.mocked(scanReceiptClient).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishScan = resolve
+      }),
+    )
+    renderForm(
+      expenseValues({ lineItems: [row('Klej do płytek'), row('Silikon')] }),
+      new Map([[0, [receipt()]]]),
+    )
+    const user = userEvent.setup()
+
+    await user.click(await screen.findByRole('button', { name: 'Odczytaj ponownie' }))
+    const save = screen.getByRole('button', { name: 'Zapisz' })
+    await waitFor(() => expect(save).toBeDisabled())
+    fireEvent.submit(save.closest('form')!)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+
+    await act(async () => {
+      finishScan({
+        description: 'Klej Atlas',
+        amount: 120,
+        netAmount: 97.56,
+        invoiceNote: '',
+      } as ReceiptFillResultT)
+    })
+    await waitFor(() => expect(save).toBeEnabled())
+    await user.click(save)
+    await user.click(await screen.findByRole('button', { name: 'Zapisz bez faktury' }))
+
+    await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(createBulkTransferAction).mock.calls[0][0].lineItems[0]).toMatchObject({
+      description: 'Klej Atlas',
+      amount: 120,
+    })
   })
 })
 

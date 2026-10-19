@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { CollectionSlug, Payload } from 'payload'
+import type { Payload } from 'payload'
+import { findReferencedMediaIds } from '@/lib/db/media-detachments'
 import {
   deleteUnreferencedMedia,
   reclaimUnreferencedMedia,
 } from '@/lib/media/delete-unreferenced-media'
-import { MEDIA_RELATIONS } from '@/lib/media/relating-collections'
 
 const scheduled: (() => unknown)[] = []
 let outsideRequestScope = false
@@ -15,24 +15,13 @@ vi.mock('next/server', () => ({
     scheduled.push(callback)
   },
 }))
+vi.mock('@/lib/db/media-detachments', () => ({ findReferencedMediaIds: vi.fn() }))
 
-const PAYLOAD_DEFAULT_PAGE = 10
-
-type ReferencedByT = Partial<Record<CollectionSlug, number[]>>
-
-function fakePayload(referencedBy: ReferencedByT) {
+function fakePayload(referenced: number[]) {
+  vi.mocked(findReferencedMediaIds).mockResolvedValue(referenced)
   const deleted: number[] = []
   const payload = {
     db: { drizzle: { execute: async () => ({ rows: [] }) } },
-    find: vi.fn(async ({ collection, where, pagination }) => {
-      const field = Object.keys(where)[0]
-      const asked: number[] = where[field].in
-      const held = referencedBy[collection as CollectionSlug] ?? []
-      const matched = asked.filter((id) => held.includes(id)).map((id) => ({ [field]: [id] }))
-      // Payload pages at 10 unless told otherwise, and this mock says so out loud: a scan that
-      // drops `pagination: false` reads back a short answer and deletes live files.
-      return { docs: pagination === false ? matched : matched.slice(0, PAYLOAD_DEFAULT_PAGE) }
-    }),
     delete: vi.fn(async ({ id }: { id: number }) => {
       deleted.push(id)
     }),
@@ -41,67 +30,27 @@ function fakePayload(referencedBy: ReferencedByT) {
 }
 
 describe('deleteUnreferencedMedia', () => {
-  it('deletes a media row nothing points at', async () => {
-    const { payload, deleted } = fakePayload({})
-    await deleteUnreferencedMedia(payload, [7])
-    expect(deleted).toEqual([7])
-  })
-
-  it('spares a page still attached to a transaction', async () => {
-    const { payload, deleted } = fakePayload({ transactions: [7] })
-    await deleteUnreferencedMedia(payload, [7])
-    expect(deleted).toEqual([])
-  })
-
-  it('spares an attachment still held by a vehicle inspection', async () => {
-    const { payload, deleted } = fakePayload({ 'vehicle-inspections': [7] })
-    await deleteUnreferencedMedia(payload, [7])
-    expect(deleted).toEqual([])
-  })
-
-  it('spares an attachment still held by an equipment event', async () => {
-    const { payload, deleted } = fakePayload({ 'equipment-events': [7] })
-    await deleteUnreferencedMedia(payload, [7])
-    expect(deleted).toEqual([])
-  })
-
-  it('checks every registered relation before deleting', async () => {
-    const { payload } = fakePayload({})
-    await deleteUnreferencedMedia(payload, [7])
-    expect(vi.mocked(payload.find).mock.calls.map(([args]) => args.collection)).toEqual(
-      MEDIA_RELATIONS.map(({ collection }) => collection),
-    )
-  })
-
-  it('asks each relation once for a whole batch', async () => {
-    const { payload, deleted } = fakePayload({ transactions: [2] })
+  it('deletes only the files nothing else holds', async () => {
+    const { payload, deleted } = fakePayload([2])
     await deleteUnreferencedMedia(payload, [1, 2, 3])
-    expect(payload.find).toHaveBeenCalledTimes(MEDIA_RELATIONS.length)
     expect(deleted).toEqual([1, 3])
   })
 
-  it('spares every attached file in a batch larger than one page', async () => {
-    const attached = Array.from({ length: PAYLOAD_DEFAULT_PAGE + 2 }, (_unused, index) => index + 1)
-    const { payload, deleted } = fakePayload({ transactions: attached })
-    await deleteUnreferencedMedia(payload, attached)
-    expect(deleted).toEqual([])
-  })
-
   it('leaks rather than throws when a delete fails', async () => {
-    const { payload } = fakePayload({})
+    const { payload } = fakePayload([])
     vi.mocked(payload.delete).mockRejectedValueOnce(new Error('blob down'))
     await expect(deleteUnreferencedMedia(payload, [7])).resolves.toBeUndefined()
   })
 
   it('deletes nothing when the reference scan fails', async () => {
-    const { payload, deleted } = fakePayload({})
-    vi.mocked(payload.find).mockRejectedValueOnce(new Error('db down'))
+    const { payload, deleted } = fakePayload([])
+    vi.mocked(findReferencedMediaIds).mockRejectedValueOnce(new Error('db down'))
     await expect(deleteUnreferencedMedia(payload, [1, 2])).resolves.toBeUndefined()
     expect(deleted).toEqual([])
   })
 
   it('never has two deletes in flight at once', async () => {
-    const { payload, deleted } = fakePayload({})
+    const { payload, deleted } = fakePayload([])
     let inFlight = 0
     let maxInFlight = 0
     vi.mocked(payload.delete).mockImplementation((async ({ id }: { id: number }) => {
@@ -126,7 +75,7 @@ describe('reclaimUnreferencedMedia', () => {
   })
 
   it('returns before anything is deleted, and deletes once the response is out', async () => {
-    const { payload, deleted } = fakePayload({})
+    const { payload, deleted } = fakePayload([])
 
     await reclaimUnreferencedMedia(payload, [7])
     expect(deleted).toEqual([])
@@ -137,7 +86,7 @@ describe('reclaimUnreferencedMedia', () => {
 
   it('runs inline when there is no request scope to defer into', async () => {
     outsideRequestScope = true
-    const { payload, deleted } = fakePayload({})
+    const { payload, deleted } = fakePayload([])
 
     await reclaimUnreferencedMedia(payload, [7])
 

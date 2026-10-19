@@ -1,18 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { countUnreadLeads } from '@/lib/db/notifications'
 import { fetchLeadsPage } from '@/lib/queries/leads'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia } from '@/__tests__/helpers/media'
 
 // Counts are asserted as a difference — the shared test DB carries leads of its own.
 
-vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: async () => ({ success: true, user: { id: 1, role: 'OWNER' } }),
-}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const MARKER = `EX-970 hidden ${Date.now()}`
 // No `notification_reads` row exists for it, so the badge reads from the stream's epoch.
 const NEVER_LOOKED = -1
@@ -42,11 +38,9 @@ describe.skipIf(!ENV_READY)('what /zgloszenia lists (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
-  }, 30000)
+  })
 
   afterAll(async () => {
     for (const id of ids) await db.execute(sql`DELETE FROM leads WHERE id = ${id}`)
@@ -71,13 +65,7 @@ describe.skipIf(!ENV_READY)('what /zgloszenia lists (DB)', () => {
   })
   it('„Bez plików" keeps the lead with no files and drops the one with a file', async () => {
     const marker = `${MARKER} files`
-    // Raw INSERT rather than an upload: a fixture nobody opens should not push bytes at Blob.
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, kind)
-      VALUES (${`ex-970-no-files-${Date.now()}.jpg`}, 'image/jpeg', 1024, 'zdjecie')
-      RETURNING id
-    `)
-    const mediaId = Number(rows[0].id)
+    const mediaId = await insertTestMedia(db, `ex-970-no-files-${Date.now()}.jpg`)
     mediaIds.push(mediaId)
     const emptyId = await createLead(`${marker} empty`)
     await createLead(`${marker} with file`, [mediaId])

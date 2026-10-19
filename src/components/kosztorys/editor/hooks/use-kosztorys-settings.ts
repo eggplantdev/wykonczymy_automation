@@ -51,8 +51,8 @@ export function useKosztorysSettings({
   const globalDiscountRef = useRef(globalDiscount)
 
   globalDiscountRef.current = globalDiscount
-  // Not useTransition (EX-597): the optimistic patch and its rollback run inside the save, so React
-  // kept the transition pending forever — block disabled, page re-rendering ~36×/s until reload.
+  // Not useTransition: the optimistic patch and its rollback run inside the save, so React
+  // kept the transition pending forever.
   const [savesInFlight, setSavesInFlight] = useState(0)
   const isSavingSettings = savesInFlight > 0
   const { stageInvestorImpact, investorImpactConfirm } = useInvestorImpactConfirm()

@@ -2,14 +2,14 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 //
-// EX-865: a subcontractor stawka gets a THIRD source — „własny mnożnik", a per-praca coefficient
+// A subcontractor stawka gets a THIRD source — „własny mnożnik", a per-praca coefficient
 // against the client price, so raising „Cena j.m." raises the crew's rate with it. That is the one
 // thing a frozen kwota cannot do, and the reason the owner asked for it back.
 //
-// This is NOT the reverse of EX-766 (20260902_0). That one collapsed a discriminator column whose
+// This is NOT the reverse of 20260902_0. That one collapsed a discriminator column whose
 // only live value was 'amount' — a one-member union. Here the companion column carries a NUMBER, so
 // it is the value AND the discriminator at once: non-null means „this praca's rate is a multiplier",
-// and there is no state where the pair disagrees about which kind it is. What EX-766 actually paid
+// and there is no state where the pair disagrees about which kind it is. What 20260902_0 actually paid
 // for was the WRITE PATH — the grid saves one field per action call, so two columns over one concept
 // persisted as two unordered writes. That is fixed above this migration, in `updateItemFieldAction`,
 // which expands a write touching either column into a write of both.

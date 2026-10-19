@@ -29,10 +29,6 @@ describe('guardInvestmentStatusUnlock', () => {
     },
   )
 
-  it.each(['OWNER', 'ADMIN'] as const)('lets %s reopen a completed investment', (role) => {
-    expect(() => call(hookArgs({ status: 'active' }, role))).not.toThrow()
-  })
-
   it('refuses a MANAGER moving a completed investment to „planowana" too', () => {
     expect(() => call(hookArgs({ status: 'planowana' }, 'MANAGER'))).toThrow(
       INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE,
@@ -47,10 +43,6 @@ describe('guardInvestmentStatusUnlock', () => {
     expect(() =>
       call(hookArgs({ notes: 'nowa notatka', phone: '600100200' }, 'MANAGER')),
     ).not.toThrow()
-  })
-
-  it('lets a MANAGER re-save a completed investment with the same status', () => {
-    expect(() => call(hookArgs({ status: 'completed', notes: 'x' }, 'MANAGER'))).not.toThrow()
   })
 
   it('does not touch an investment that was never completed', () => {

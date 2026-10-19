@@ -1,19 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildV2Columns,
-  buildV2Grid,
-} from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { ALL_TRANSLATION_COLUMN_KEYS } from '@/lib/kosztorys/translation-column-keys'
 import type { MeasureDiscrepancyT } from '@/lib/kosztorys/settlement-rows'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [
-  makeStage({ id: 7, label: 'Etap 1', plane: null }),
-  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
-]
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
 
 const DIVERGED = {
   id: 1,
@@ -29,9 +21,7 @@ const DIVERGED = {
 } as unknown as KosztorysV2RowT
 
 const ids = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>
-  buildV2Columns({ view: 'client', stages: STAGES, ...opts })
-    .map((column) => column.id)
-    .filter((id): id is string => id != null)
+  gridColumnIds({ view: 'client', stages: STAGES_7_9, ...opts })
 
 describe('the „Rozjazd między arkuszem Google a apką" column', () => {
   it('is absent while the diagnostic is not engaged', () => {
@@ -48,7 +38,7 @@ describe('the „Rozjazd między arkuszem Google a apką" column', () => {
   it('never appears in the column picker', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
-      stages: STAGES,
+      stages: STAGES_7_9,
       divergenceFilterEngaged: true,
     })
     expect(columnToggleItems.map((item) => item.id)).not.toContain('divergence')
@@ -76,11 +66,11 @@ describe('the „Rozjazd między arkuszem Google a apką" column', () => {
   })
 
   it('carries both figures for the cell to render', () => {
-    const column = buildV2Columns({
+    const column = buildV2Grid({
       view: 'client',
-      stages: STAGES,
+      stages: STAGES_7_9,
       divergenceFilterEngaged: true,
-    }).find((candidate) => candidate.id === 'divergence')
+    }).columns.find((candidate) => candidate.id === 'divergence')
     const { divergenceFor } = column?.columnData as {
       divergenceFor: (r: KosztorysV2RowT) => MeasureDiscrepancyT | null
     }

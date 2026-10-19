@@ -1,7 +1,6 @@
 ---
 change_id: strata-obniza-bilans
 title: A loss lowers the client's debt like a discount, while staying a separate reporting figure
-linear: EX-675
 status: archived
 created: 2026-08-12
 updated: 2026-08-13

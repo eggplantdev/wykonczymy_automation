@@ -16,7 +16,6 @@ vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
   createSectionWithCatalogueItemsAction: vi.fn(),
   insertCatalogueItemsAction,
 }))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: 7,
@@ -44,7 +43,7 @@ const extraLine = {
 } as ReportLineT
 const entry = { id: 5 } as WorkCatalogueItemT
 
-describe('AddLineToRozpiska — praca spoza rozpiski (EX-1055)', () => {
+describe('AddLineToRozpiska — praca spoza rozpiski', () => {
   it('remembers on the server a pozycja the sekcja already holds', async () => {
     const onChange = vi.fn()
     render(

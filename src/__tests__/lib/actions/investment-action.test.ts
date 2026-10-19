@@ -1,21 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
-vi.mock('server-only', () => ({}))
-
 const lockState = vi.hoisted(() => ({
   lockMessage: undefined as string | undefined,
   rowOwner: undefined as { investmentId: number; lockMessage: string | undefined } | undefined,
 }))
 
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-vi.mock('@payload-config', () => ({ default: {} }))
+vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
   getPayload: vi.fn(async () => ({})),

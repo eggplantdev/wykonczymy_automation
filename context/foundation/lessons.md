@@ -23,6 +23,10 @@
   dev server booted before the migration keeps erroring until restarted.
 - Restore and migrate are one operation: `pnpm db:import:test && pnpm db:migrate:test`. Shared-DB
   fixtures clean up on **entry** (`purgeFixtureUsers`), because a crashed run never reaches teardown.
+- Transaction fixtures are deleted with raw SQL, never `payload.delete` — its hook removes the
+  invoice media and their Blob files. The FKs into `transactions` are SET NULL, so `purgeFixtureUsers`
+  misses CANCELLATION and `amount_edits` rows: delete them explicitly, keyed by a description marker
+  that the cancel reason carries into the CANCELLATION row.
 
 ## A new Payload collection's migration has a fixed checklist
 
@@ -119,7 +123,7 @@
   Two such tables today (drafts, worker reports), each with a hand-added probe — build a registry at
   the third.
 - A stored match key (`match_key`) is a backfill obligation: every writer computes it the same way,
-  and a drift spec with a real floor (`catalogue-key-collisions.test.ts`) asserts it. Prefer linking
+  and a drift spec with a real floor (`catalogue-key-collisions.db.test.ts`) asserts it. Prefer linking
   by id (`catalogueItemId`) — a stale key then bites only unlinked rows.
 - One concept stored in two columns is written by independent patches — atomicity follows the write
   path (`normalizeOverridePatch`), and a migration fixes legacy pairs with `CASE WHEN`.
@@ -130,12 +134,14 @@
   external referrers tolerate it: `worker_report_lines` (`SET NULL`), `kosztorys_items.ref` (global
   sequence + Damm digit, carried by `insertItems` as `ref ?? DEFAULT`). A new referrer reopens it.
 - A field added to a tree entity is not done until the raw INSERT column list knows it
-  (`insert-kosztorys-tree.ts`, e.g. `STAGE_INSERT_COLUMNS`); `insert-schema-drift.test.ts` checks both
+  (`insert-kosztorys-tree.ts`, e.g. `STAGE_INSERT_COLUMNS`); `insert-schema-drift.db.test.ts` checks both
   directions against `information_schema`.
-- The undo of a destructive replace is a snapshot taken **inside** the transaction, before the wipe:
-  pass the transaction's `req` to `captureAutoSnapshot` / `serializeKosztorys` — without it the tree is
-  read on another connection, outside the locks (EX-718). Import and `replaceTreeWithSnapshot` pass
-  it; the version restore, catalogue insert and worker-report accept still don't (EX-1080).
+- The undo of a destructive replace is a snapshot taken in the wiping transaction: lock the
+  investment, then read, snapshot and wipe at `repeatable read`, retried on `40001`. Passing `req` alone
+  is not enough — at READ COMMITTED an autosave (a plain UPDATE, which never waits on the investment
+  lock) committing between the snapshot read and the wipe is deleted and missing from the snapshot.
+  Every tree wipe (import, preset reload, „Przywróć wersję") goes through `replaceTreeWithSnapshot`;
+  a new wipe that takes its own snapshot reopens that loss.
 
 ## Snapshot payloads: bump the schema version on the rationale, type the tolerance
 
@@ -160,7 +166,7 @@
 ## Any DB adapter or driver change re-verifies the pool identity
 
 - Under `@vercel/postgres-adapter`, parallel Payload writes on Neon lost rows (the `VercelPool` was not
-  `instanceof` the `pg.Pool` Drizzle checks). Fixed by `@payloadcms/db-postgres` (EX-855). Re-verify
+  `instanceof` the `pg.Pool` Drizzle checks). Fixed by `@payloadcms/db-postgres`. Re-verify
   `instanceof` against the pg copy Drizzle imports on any adapter/driver bump; probes in
   `~/.local/share/wykonczymy-ex855/`.
 
@@ -169,13 +175,13 @@
 ## A server action that invalidates anything renders the route — that render IS the refresh
 
 - Any `revalidateTag`/`updateTag` sets `x-action-revalidated`; a profile only moves the render to a
-  follow-up GET (EX-597). To write without re-rendering, leave the action path (route handler) and own every
+  follow-up GET. To write without re-rendering, leave the action path (route handler) and own every
   affected figure on the client — one refactor, not two.
-- No `router.refresh()` after a revalidating action (EX-908 removed 16): refetch only after a write
+- No `router.refresh()` after a revalidating action (16 were removed): refetch only after a write
   that rendered nothing — route handler, upload API, or an action that threw.
 - A latch waiting for „the next tree" arms from the token the action **started** from
   (`useRestoreRemount`'s `since`): in 3/24 runs the render had already landed.
-- No expiry inside `after()` (EX-909): it skips the render but leaves the client router cache stale.
+- No expiry inside `after()`: it skips the render but leaves the client router cache stale.
   When the page renders the result itself, return the state from the action instead of
   push + refresh + revalidate.
 
@@ -239,7 +245,7 @@
 - A closure as a default parameter (`write = () => …` in the params) makes the compiler skip the whole
   hook; it surfaced only as a now-unused `react-hooks/refs` directive. Take the optional and fall back
   with `??` in the body (`patchStageField`).
-- Restoring memoization is not automatically a win: context value churn (EX-496) cost more than the
+- Restoring memoization is not automatically a win: context value churn cost more than the
   re-renders it saved.
 
 ## Small rendering traps worth remembering
@@ -314,6 +320,8 @@
 - Start the server with `pnpm test:e2e:warm:server`, iterate with `pnpm test:e2e:warm`. Never a
   hand-pasted `next start` — without `DB_POSTGRES_URL_TEST` the specs mutate the 5433 dev DB. Never
   re-run the full build per hypothesis, never `pkill` by pattern.
+- A cold `pnpm test:e2e` rebuilds `.next-e2e` only when a file the build reads changed
+  (`scripts/e2e-build.sh`); editing a spec alone reuses the build.
 - Helpers: waits in `e2e/support/wait.ts`, UI drivers in `e2e/drivers/*` (cmdk:
   `pickComboOption`). Playwright can't import the Payload graph — seed via a subprocess; wait for
   hydration (`waitForHydration`); `workers: 1`; seeds pass `context: { skipRevalidation: true }`.
@@ -325,7 +333,9 @@
   in-flight action. Wait on the `next-action` response (`settleWrite`), and count writes
   (`settleWrites(page, count)`) — waiting by shape matches the wrong one. Confirm by label plus
   reload, or by a DB query.
-- Prefetch re-poisons the router cache after a write: assert after `refreshData` / `refreshUntil`.
+- A render in flight during a write stores pre-write rows stamped as fresh; `cached()` keys on a tag
+  epoch so the next reader misses that entry. Assert after one `settleWrite` + reload — a retry
+  around „Odśwież dane" hides a regression of that guard.
 - In a dsg QA pass use the app's own controls and role selectors; don't instrument a defect the code
   cannot produce.
 
@@ -369,7 +379,7 @@
 - A listener on `document` shares the node React hydrates on: only
   `nativeEvent.stopImmediatePropagation()` outruns it, and only because React registered first.
   react-datasheet-grid's own keydown listener sits on `document`, so a bare `stopPropagation` in a
-  cell input does not keep a key from the grid (EX-1081).
+  cell input does not keep a key from the grid.
 - A removed focused element fires no blur: a blur-settled draft owes three exits — commit, cancel,
   unmount. Read current logic from a latest-ref; make teardown idempotent with a ref.
 - Global drag listeners use `{ capture: true }`; OS file drags fire no `dragend`; guard leave with
@@ -480,8 +490,7 @@
 
 ## Identity and meaning over time
 
-- An id whose meaning changes over time needs a guard in every reader; give each thing its own id
-  (EX-893).
+- An id whose meaning changes over time needs a guard in every reader; give each thing its own id.
 - A marker appended to a name that feeds an identity key is part of the key: every writer strips it
   via one shared module; a suffix keeps marked rows beside their twins. Assert the persisted key.
   Retiring the marker is the same change in reverse — dropping the strip early re-created the
@@ -492,7 +501,7 @@
   prose that describes it.
 - Resolve an LLM-supplied name to an id by exact match or leave it blank — never fuzzy.
 - Investment status is a label, not a gate: bookability is `isBookableInvestment` /
-  `isOfferedForBooking` (EX-1066), the tuple lives in `investment-status.ts`. Payout bucketing puts
+  `isOfferedForBooking`, the tuple lives in `investment-status.ts`. Payout bucketing puts
   only „Zakończona" under „zakończone"; a debt on an „Odrzucona" investment would count as active, but
   that is unreachable — an Odrzucona investment has no executed work, so no debt (owner, 2026-10-15).
 
@@ -534,7 +543,7 @@
 
 ## A finding names a mechanism; measure it before planning
 
-- Put a number on it — rows, window, call sites, frequency — before the plan. Three EX-521 findings
+- Put a number on it — rows, window, call sites, frequency — before the plan. Three earlier perf findings
   collapsed on the numbers (+1 ms under a burst; a self-healing 10-minute interval; 47 call sites).
   A finding without a magnitude is a question. Watch for whole-sheet figures quoted for per-owner
   scopes.
@@ -594,6 +603,33 @@
   and no spec. A shared editor doesn't need shared tables: inject the action set (`EditorActionsT`).
 - Two tables sharing one id number space: every id-keyed thing (localStorage, cache tags, actions)
   gets a kind prefix or its own action — the number alone doesn't say what it points to.
-- Evidence: EX-893 put szablony in `investments` (status `szablon`); EX-1075 moved them out, guards
+- Evidence: szablony were first put in `investments` (status `szablon`), later moved out; guards
   in the action gate, listings, counters and the golden master went with it. Moved with an additive
   copy migration first and a `RUN-AFTER-DEPLOY` drop after the deploy.
+
+## Delete a test only after naming the bug it would stop catching
+
+- Before removing a spec as dead or redundant, answer "which production bug becomes undetectable if
+  this goes?". "None, because <the other guard>" passes; anything else keeps it. A case that looks
+  like a twin is often the only guard of one branch (the matrix that can't tell netto from brutto,
+  the positive control that also tears down the fixture rows).
+- A negative-only browser assertion (`not.toContainText`, `toHaveCount(0)`) passes on any typo or
+  label rename — pair it with a positive control proving the element it looks for can appear.
+- `it.each` is not the lever for test bulk: a skeleton sweep over the whole suite found 52 LOC of
+  identical shapes. The wins were hand-merged clusters and a shared stub replacing copied mock
+  scaffolding.
+- Evidence: the 2026-10 suite audit (`context/archive/2026-09-15-test-suite-audit/`). The review
+  gate restored two cases phase 2 had dropped, because each was the only proof that a hook calls its
+  helper or that an early return fires.
+
+## Test-suite speed: import is the cost, CPU-seconds are the measure
+
+- In this repo ~90 % of unit wall-clock was module import repeated per file, not test bodies. The
+  lever is a shared module graph (`*-shared` projects), not faster tests; `--pool=threads` and
+  trimming slow tests bought nothing.
+- Other agents' dev and E2E servers load this laptop outside the test lock — compare user CPU-s
+  (`/usr/bin/time -p`) against a baseline taken the same way, never wall time alone.
+- A cache keyed on a file pre-push rewrites (the dump) never hits; key on what the cache is built
+  from, plus an age limit for the inputs the key misses.
+- Evidence: test-suite-speed / unit-suite-speed (`context/archive/2026-10-18-*-suite-speed/`) —
+  `pnpm test` 175 s → ~50 s, integration 70 s → 36 s, parity 32 s → 5 s.

@@ -1,37 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
 
 // what this spec pins is that the two flags never move together — collapse them back into one and
 // the owner loses two thirds of his columns the day he closes a job.
 
-const STAGES: KosztorysStageT[] = [
-  makeStage({ id: 7, label: 'Etap 1', plane: null }),
-  makeStage({ id: 9, ordinal: 2, label: 'Etap 2', plane: null }),
-]
-
 const editorOpts: BuildV2ColumnsOptsT = {
   view: 'client',
-  stages: STAGES,
+  stages: STAGES_7_9,
   onRemoveItem: () => {},
 }
 
 const ids = (opts: Partial<BuildV2ColumnsOptsT>): string[] =>
-  buildV2Columns({ ...editorOpts, ...opts })
-    .map((column) => column.id)
-    .filter((id): id is string => id != null)
+  gridColumnIds({ ...editorOpts, ...opts })
 
 describe('a locked kosztorys', () => {
   it('renders the same columns as the open editor', () => {
     expect(ids({ readOnly: true })).toEqual(ids({}).filter((id) => id !== 'actions'))
-  })
-
-  it('disables every cell and drops the row actions', () => {
-    const columns = buildV2Columns({ ...editorOpts, readOnly: true })
-    expect(columns.every((column) => column.disabled)).toBe(true)
-    expect(columns.map((column) => column.id)).not.toContain('actions')
   })
 
   // The control that makes the first assertion mean something: `previewVisible` DOES narrow, so

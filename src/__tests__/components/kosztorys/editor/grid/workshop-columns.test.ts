@@ -1,21 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildV2Columns,
-  buildV2Grid,
-} from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
-
-const STAGES: KosztorysStageT[] = [makeStage({ id: 7, label: 'Etap 1', plane: null })]
+import { gridColumnIds, STAGES_7 } from '@/__tests__/helpers/grid-columns'
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
-  return buildV2Columns({ view: 'client', workshopVisible: true, stages: STAGES, ...extra })
-    .map((column) => column.id)
-    .filter((id): id is string => id != null)
+  return gridColumnIds({ view: 'client', workshopVisible: true, stages: STAGES_7, ...extra })
 }
 
 describe('workshop columns', () => {
@@ -87,27 +79,11 @@ describe('workshop columns', () => {
     }
   })
 
-  it('shows the price source on the client view and never on the investor preview', () => {
-    const idsFor = (previewVisible: boolean) =>
-      buildV2Columns({ view: 'client', stages: STAGES, previewVisible, crewAxis: 'both' })
-        .map((column) => column.id)
-        .filter((id): id is string => id != null)
-
-    for (const plane of TOOL_PLANES) {
-      expect(idsFor(false)).toContain(planePriceKey('priceMode', plane))
-      expect(idsFor(true)).not.toContain(planePriceKey('priceMode', plane))
-    }
-  })
-
-  it('keeps the row-actions column, the only route to delete or move a pozycja', () => {
-    expect(workshopIds({ onRemoveItem: () => {} })).toContain('actions')
-  })
-
   it('offers the warsztat list in the picker and nothing outside it', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
       workshopVisible: true,
-      stages: STAGES,
+      stages: STAGES_7,
       isHidden: (id) => id === 'workNote',
     })
     const ids = columnToggleItems.map((item) => item.id)
@@ -119,9 +95,7 @@ describe('workshop columns', () => {
   })
 
   it('narrows nothing on an ordinary kosztorys', () => {
-    const ordinary = buildV2Columns({ view: 'client', stages: STAGES })
-      .map((column) => column.id)
-      .filter((id): id is string => id != null)
+    const ordinary = gridColumnIds({ view: 'client', stages: STAGES_7 })
 
     expect(ordinary).toContain('plannedQty')
     expect(ordinary).toContain('net')

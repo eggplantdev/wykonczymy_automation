@@ -1,21 +1,13 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { fetchTrashedLeads } from '@/lib/db/lead-trash'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
-// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
-
-vi.mock('server-only', () => ({}))
-
-const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
-vi.mock('@/lib/auth/get-current-user-jwt', () => ({
-  getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const PREFIX = 'EX-970 lead'
 const FILE_PREFIX = 'ex-970-lead-trash-'
 const runTag = Date.now()
@@ -48,15 +40,8 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
     return { id: lead.id, name: name ?? '', externalId: lead.externalId }
   }
 
-  const insertMedia = async (suffix: string) => {
-    // Raw INSERT rather than an upload: a fixture nobody opens should not push bytes at Blob.
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, kind)
-      VALUES (${`${FILE_PREFIX}${runTag}-${suffix}.jpg`}, 'image/jpeg', 1024, 'zdjecie')
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (suffix: string) =>
+    insertTestMedia(db, `${FILE_PREFIX}${runTag}-${suffix}.jpg`)
 
   const readLead = async (id: number) => {
     const { rows } = await db.execute(
@@ -71,25 +56,23 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     actions = await import('@/lib/actions/lead-trash')
-  }, 30000)
+  })
 
   beforeEach(() => {
-    session.role = 'OWNER'
+    authState.role = 'OWNER'
   })
 
   afterAll(async () => {
     await db.execute(sql`DELETE FROM leads WHERE external_id LIKE ${`${PREFIX}-${runTag}-%`}`)
     for (const id of investmentIds) await deleteTestInvestment(payload, id)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILE_PREFIX}${runTag}-%`}`)
+    await purgeTestMedia(db, `${FILE_PREFIX}${runTag}-`)
   })
 
   it('lets a MANAGER trash in bulk, restore, and erase a lead into a tombstone', async () => {
-    session.role = 'MANAGER'
+    authState.role = 'MANAGER'
     const first = await createLead()
     const second = await createLead()
 
@@ -153,7 +136,7 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
 
   it('refuses an EMPLOYEE every action', async () => {
     const lead = await createLead()
-    session.role = 'EMPLOYEE'
+    authState.role = 'EMPLOYEE'
 
     expect((await actions.trashLeadsAction([lead.id])).success).toBe(false)
     expect((await readLead(lead.id)).trashed_at).toBeNull()

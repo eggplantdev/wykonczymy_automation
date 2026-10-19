@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
-import { type GridSeedT, seedGridInvestments } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { bare } from './support/money'
 import {
+  GRID_VIEWPORT,
   collapseSummaryPanel,
   columnHeaders,
   commitCellValue,
@@ -22,14 +23,14 @@ import {
   readSummaryFigures,
 } from './drivers/settlement'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-let seed: GridSeedT
+let seed: E2ESeedsT['discountOverrides']
 
 // Two investments, because the percent test overwrites every rabat on its own one while the first
 // test asserts exact figures.
-test.beforeAll(async ({ browser }) => {
-  seed = await seedGridInvestments(browser)
+test.beforeAll(() => {
+  seed = readSeed('discountOverrides')
 })
 
 // Seeded: three prace, przedmiar 10 at 100 zł, 2 done on „Etap 1" — so the executed robocizna is

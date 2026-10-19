@@ -11,6 +11,6 @@ worktree: ../wykonczymy-worktrees/other-expense-worker
 
 ## Notes
 
-Linear: EX-1027. Request: attach an optional worker to an `OTHER` expense (e.g. tools bought for the
+Request: attach an optional worker to an `OTHER` expense (e.g. tools bought for the
 company) so management can filter `Inny wydatek` + kategoria „narzędzia” and see how much went to a
 given worker. Research: `research.md`.

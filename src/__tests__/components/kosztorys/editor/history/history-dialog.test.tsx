@@ -1,9 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { HistoryDialog } from '@/components/kosztorys/editor/history/history-dialog'
 import type { HistoryEntryT } from '@/lib/kosztorys/history/types'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/k/token' }))
+navigationState.pathname = '/k/token'
 
 const ENTRIES: HistoryEntryT[] = [
   { id: 9, label: null, day: '2026-03-02', summary: '2 różnice względem bieżącej' },

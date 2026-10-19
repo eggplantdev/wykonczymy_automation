@@ -1,10 +1,7 @@
 import { test, expect, type Locator } from '@playwright/test'
 import { openExpenseInvestment } from './drivers/expenses'
 import { openPanelView, readSummaryFigures } from './drivers/settlement'
-
-// What it cannot assert is the status code: the segment ships `(frontend)/loading.tsx`, so the shell
-// is flushed at 200 before the page body runs and `notFound()` has no headers left to change.
-test.use({ storageState: 'e2e/.auth/user.json' })
+import { expectNotFound } from './support/not-found'
 
 const MISSING_INVESTMENT_ID = 99_999_999
 
@@ -31,10 +28,7 @@ async function readGridRow(grid: Locator, label: string): Promise<Record<string,
 
 test('a missing investment renders the 404 page, not the error boundary', async ({ page }) => {
   await page.goto(`/inwestycje/${MISSING_INVESTMENT_ID}/kosztorys_v2`)
-
-  // Bounded well above the project's 20 s: the 404 itself is served in milliseconds (curl proves it),
-  // what takes the time is the app shell hydrating around it on a machine already running the suite.
-  await expect(page.getByText('Nie znaleziono')).toBeVisible({ timeout: 60_000 })
+  await expectNotFound(page)
   await expect(page.getByText('Coś poszło nie tak')).toHaveCount(0)
 })
 

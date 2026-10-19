@@ -11,7 +11,7 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-invoice-duplicates
 
 ## Notes
 
-Linear: **EX-1025** (this change). Follow-up: **EX-1026**, the audit: a button that scans already-booked
+Follow-up: the audit (`expense-duplicate-finder`): a button that scans already-booked
 transakcje in a date range for duplicates. It reuses this change's matching rules and is built after
 this one ships.
 
@@ -37,7 +37,7 @@ rejects it, or skips single paragony (`worker_expense_draft_skipped_receipts`). 
 ### Rulings (owner, 2026-10-07)
 
 - **The hint appears in exactly two places:** the accept dialog of a zgłoszenie (this change) and the audit
-  (EX-1026). It does NOT appear as a badge on the queue list, in management's own expense form, or as a
+  (`expense-duplicate-finder`). It does NOT appear as a badge on the queue list, in management's own expense form, or as a
   „do sprawdzenia" view/flag on transakcje. A wydatek management books by hand is covered by the audit.
 - **The worker never sees anything,** on any surface: the send flow, his zgłoszenia list, his own
   `/pracownicy/[id]`. A worker who is told learns to dodge the check.
@@ -83,7 +83,7 @@ Booked `INVESTMENT_EXPENSE`, not cancelled; „number" = line 1 of `invoice_note
   An equal amount booked in the last 3 months is shown, as a muted „Ta sama kwota", unless a field
   read on _both_ sides tells the two apart: seller (NIP, else the name prefix), document number, or
   printed day — a different day is a different purchase. It mostly surfaces legacy rows that carry
-  none of those. Round amounts will trip it; EX-1029 measures how often before anyone tunes it.
+  none of those. Round amounts will trip it; measure how often before anyone tunes it.
 - **The same file reads differently.** Media 2127 (zgłoszenie 3, worker 69) and 2129 (zgłoszenie 4,
   worker 32) are byte-for-byte the same photo (equal size + dimensions), as are 2126/2130: one worker
   forwarded the photos to the other. From the identical 107,40 zł file the AI read `087393/0888` once
@@ -184,7 +184,7 @@ Full findings with file:line: `research.md`. What the plan has to carry:
 ### Rulings on the open questions (2026-10-08)
 
 - **„OK, to nie duplikat" is not stored.** It hides the row for the open dialog only; reopening a pending
-  zgłoszenie shows the pair again. Persisting dismissed pairs belongs to EX-1026, where the pair is two
+  zgłoszenie shows the pair again. Persisting dismissed pairs belongs to the audit (`expense-duplicate-finder`), where the pair is two
   transakcje and would otherwise come back on every audit.
 - **No hash for uploads > 4 MB.** Photos are compressed to ≤ 1920 px at q 0.6, so what exceeds 4 MB is in
   practice a long PDF, and PDFs carry a number and NIP.
@@ -192,7 +192,7 @@ Full findings with file:line: `research.md`. What the plan has to carry:
   script, not a migration — follow-up. Until it runs, transakcje booked before the deploy don't match.
 - **`CORRECTION` is not compared.** A worker's paragon always becomes a wydatek with a positive amount; a
   korekta is negative with its own number, so it can never pair with one. The new fields still fill for
-  any type booked through the form. Note for EX-1026: korekta vs korekta — 48 active korekty, 0 pairs
+  any type booked through the form. Note for the audit (`expense-duplicate-finder`): korekta vs korekta — 48 active korekty, 0 pairs
   with an equal amount in the dump of 2026-10-08; a faktura korygująca also prints the number it
   corrects, which the AI may read as its own, but the opposite sign keeps that from matching.
 - **A duplicate mark never outlives its zgłoszenie unexpectedly.** Only a pending zgłoszenie can be
@@ -230,4 +230,4 @@ Full findings with file:line: `research.md`. What the plan has to carry:
   `documentDate` exist, that parsing is redundant.
 - Backfill script: `documentNumber` from „Notatka" line 1 for existing transakcje, applied to prod by a human.
 - Stale `context/foundation/lessons.md:2127`.
-- Browser E2E deferred: EX-1028 (`e2e-backlog`).
+- Browser E2E deferred (`e2e-backlog`).

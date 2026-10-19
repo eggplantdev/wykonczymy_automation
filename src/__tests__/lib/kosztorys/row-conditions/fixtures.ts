@@ -2,7 +2,7 @@ import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
-import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage } from '@/__tests__/helpers/kosztorys-tree'
 
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 1, plane: null }),
@@ -21,26 +21,13 @@ export const priceCells = (...planes: ('w_tools' | 'own_tools')[]) => [
 
 export function row(overrides: Partial<KosztorysV2RowT> = {}): KosztorysV2RowT {
   return {
+    ...baseItem,
     id: 1,
-    sectionId: 10,
-    displayOrder: 0,
     description: 'Posadzki z mikrocementu',
-    unit: 'm2',
     plannedQty: 95,
-    sheetMeasuredQty: null,
-    discountType: null,
-    discountValue: 0,
     clientPrice: 100,
     wToolsOverrideValue: null,
     ownToolsOverrideValue: null,
-    wToolsOverrideCoeff: null,
-    ownToolsOverrideCoeff: null,
-    note: null,
-    catalogueItemId: null,
-    currentPlannedQty: null,
-    aiPlannedQty: null,
-    changeReason: null,
-    reviewStatus: null,
     sectionName: 'Podłogi',
     sectionColor: null,
     vatRate: 0.08,

@@ -13,7 +13,7 @@ worktree: null
 
 Linear: EX-1065.
 
-A Vercel cron does what the katalog's „Uzupełnij tłumaczenia (AI)" button does: `translateRows` over the katalog entries, then `fillDescriptionTranslations`. A szablon edits its opisy in the katalog entries (EX-1017), so szablony are covered too. The button stays for an immediate fill.
+A Vercel cron does what the katalog's „Uzupełnij tłumaczenia (AI)" button does: `translateRows` over the katalog entries, then `fillDescriptionTranslations`. A szablon edits its opisy in the katalog entries, so szablony are covered too. The button stays for an immediate fill.
 
 - The body of `fillCatalogueTranslationsAction` is extracted into one shared function. The action and the cron route both call it.
 - Once a day, `0 2 * * *` (UTC): the owner's call. A day's lag is fine, and an hourly run buys nothing.

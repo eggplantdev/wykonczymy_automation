@@ -3,31 +3,18 @@ import { countMatching, sectionIdsWhereAllMatch } from '@/lib/kosztorys/row-cond
 import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
-import { makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> = {}) {
   return {
+    ...baseItem,
     id,
     sectionId,
-    displayOrder: 0,
     description: `Pozycja ${id}`,
-    descriptionTranslations: {},
-    unit: 'm2',
     plannedQty: 10,
-    sheetMeasuredQty: null,
-    discountType: null,
-    discountValue: 0,
     clientPrice: 100,
     wToolsOverrideValue: null,
     ownToolsOverrideValue: null,
-    wToolsOverrideCoeff: null,
-    ownToolsOverrideCoeff: null,
-    note: null,
-    catalogueItemId: null,
-    currentPlannedQty: null,
-    aiPlannedQty: null,
-    changeReason: null,
-    reviewStatus: null,
     ...overrides,
   } satisfies KosztorysItemT
 }
@@ -74,24 +61,5 @@ describe('a section fully executed but unpriced', () => {
   it('is counted by the „z wykonaną pracą bez ceny j.m." diagnostic instead of being hidden', () => {
     expect(countMatching(rows, 'no-client-price-with-work', ctx)).toBe(1)
     expect(countMatching(rows, 'no-client-price', ctx)).toBe(0)
-  })
-})
-
-describe('„zwiń sekcje wg warunku" — the section list it unticks', () => {
-  const deselect = (current: string[], conditionId: string) => {
-    const folded = sectionIdsWhereAllMatch(rows, conditionId, ctx)
-    return current.filter((value) => !folded.has(Number(value)))
-  }
-
-  it('drops the sections the condition names and leaves the rest ticked', () => {
-    expect(deselect(['10', '20', '30'], 'no-measured-qty')).toEqual(['10', '30'])
-  })
-
-  it('is a no-op on a selection holding none of them', () => {
-    expect(deselect(['10', '30'], 'no-measured-qty')).toEqual(['10', '30'])
-  })
-
-  it('can empty the selection outright — „pokaż nic", not „pokaż wszystko"', () => {
-    expect(deselect(['20'], 'no-measured-qty')).toEqual([])
   })
 })

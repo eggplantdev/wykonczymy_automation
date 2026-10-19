@@ -1,6 +1,6 @@
 'use server'
 
-import type { Payload } from 'payload'
+import type { Payload, PayloadRequest } from 'payload'
 import { z } from 'zod'
 import type { Transaction } from '@/payload-types'
 import {
@@ -8,7 +8,14 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
 import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
-import { canBeSettled, carriesPayoutStatus, hasOptionalWorker } from '@/lib/constants/transfers'
+import {
+  canBeSettled,
+  canFillVatPlane,
+  carriesPayoutStatus,
+  hasOptionalWorker,
+  isLaborCost,
+  needsSourceRegister,
+} from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { decideExpenseParagons, type ParagonRefusalT } from '@/lib/db/worker-expense-drafts'
@@ -24,7 +31,6 @@ import {
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
-import { canFillVatPlane, isLaborCost, needsSourceRegister } from '../constants/transfers'
 import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
@@ -37,6 +43,7 @@ import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
 import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
+import { lockTransactionRow } from '@/lib/db/transaction-lock'
 import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {
@@ -241,17 +248,23 @@ async function fetchAndAuthorize(
   user: SessionUserT,
   transferId: number,
   errorVerb: string,
+  req: PayloadRequest,
 ): Promise<AuthErrorT | AuthSuccessT> {
+  const db = await getDb(payload, req)
+  // Locked before the read: two cancels, or an edit racing a cancel, would otherwise both pass the
+  // `cancelled` check and leave a cancelled row unequal to its CANCELLATION.
+  await lockTransactionRow(db, transferId)
   const original = await payload.findByID({
     collection: 'transactions',
     id: transferId,
     depth: 0,
+    req,
   })
 
   if (!original) return { error: 'Transakcja nie istnieje.' }
   if (original.cancelled) return { error: 'Transakcja jest już anulowana.' }
   if (original.type === 'CANCELLATION') return { error: 'Nie można edytować anulowania.' }
-  const lockMessage = await relatedInvestmentLockMessage(await getDb(payload), original.investment)
+  const lockMessage = await relatedInvestmentLockMessage(db, original.investment)
   if (lockMessage) return { error: lockMessage }
 
   const creatorId = resolveId(original.createdBy)
@@ -278,37 +291,40 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
 
-      const result = await fetchAndAuthorize(payload, user, transferId, 'anulowania')
-      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+      // No action-level sheet sync or skipSheetSync: the afterChange hook's post-commit after() removes
+      // the row and re-reads it, so a rollback syncs correctly.
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const result = await fetchAndAuthorize(payload, user, transferId, 'anulowania', req)
+          console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+          if ('error' in result) return { success: false, error: result.error }
 
-      if ('error' in result) return { success: false, error: result.error }
-      const { original } = result
+          await payload.update({
+            collection: 'transactions',
+            id: transferId,
+            req,
+            data: { cancelled: true },
+          })
+          console.log(`[PERF]   update cancelled ${step()}ms`)
 
-      await payload.update({
-        collection: 'transactions',
-        id: transferId,
-        data: { cancelled: true },
-      })
-      console.log(`[PERF]   update cancelled ${step()}ms`)
-
-      await payload.create({
-        collection: 'transactions',
-        data: {
-          type: 'CANCELLATION',
-          amount: original.amount,
-          date: warsawToday(),
-          description: `Anulowanie transakcji #${transferId}\n${parsed.data.reason}`,
-          cancelledTransaction: transferId,
-          createdBy: user.id,
+          await payload.create({
+            collection: 'transactions',
+            req,
+            data: {
+              type: 'CANCELLATION',
+              amount: result.original.amount,
+              date: warsawToday(),
+              description: `Anulowanie transakcji #${transferId}\n${parsed.data.reason}`,
+              cancelledTransaction: transferId,
+              createdBy: user.id,
+            },
+          })
+          console.log(`[PERF]   create CANCELLATION ${step()}ms`)
+          return { success: true }
         },
-      })
-      console.log(`[PERF]   create CANCELLATION ${step()}ms`)
-
-      // The kosztorys sheet row is removed by the collection afterChange hook, which
-      // fires on the `cancelled: true` update above — no action-level
-      // sync here, or it would double the work.
-
-      return { success: true }
+        {},
+      )
     },
     ['transfers'],
   )
@@ -328,66 +344,70 @@ export async function updateTransferAction(
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
 
-      const result = await fetchAndAuthorize(payload, user, transferId, 'edycji')
-      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+      const outcome = await withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const result = await fetchAndAuthorize(payload, user, transferId, 'edycji', req)
+          console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+          if ('error' in result) return { success: false, error: result.error }
+          const { original } = result
 
-      if ('error' in result) return { success: false, error: result.error }
-      const { original } = result
+          const { amount, vatPlane, netAmount, worker, ...fields } = parsed.data
+          const newAmount = isLaborCost(original.type) ? amount : undefined
 
-      const { amount, vatPlane, netAmount, worker, ...fields } = parsed.data
-      const newAmount = isLaborCost(original.type) ? amount : undefined
-      const amountChanged = newAmount !== undefined && newAmount !== original.amount
+          const fillsPlane = vatPlane !== undefined && canFillVatPlane(original)
+          if (fillsPlane) {
+            // The hook runs this too — called early so a bad kwota is refused before the write.
+            const netErr = getNetAmountError(netAmount, original.amount, original.type, vatPlane)
+            if (netErr) return { success: false, error: netErr }
+          }
 
-      const fillsPlane = vatPlane !== undefined && canFillVatPlane(original)
-      if (fillsPlane) {
-        // The hook runs this too — called early so a bad kwota is refused before the write.
-        const netErr = getNetAmountError(netAmount, original.amount, original.type, vatPlane)
-        if (netErr) return { success: false, error: netErr }
-      }
+          await payload.update({
+            collection: 'transactions',
+            id: transferId,
+            req,
+            data: {
+              ...fields,
+              ...documentIdentity(parsed.data),
+              ...(newAmount !== undefined && { amount: newAmount }),
+              ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
+              // Only an OTHER names its worker by choice — a PAYOUT/BONUS worker IS the booking.
+              ...(worker !== undefined && hasOptionalWorker(original.type) && { worker }),
+              // Newly picked files are extra pages of the same invoice, so they append — an edit that
+              // replaced the list would strand the pages the user never touched.
+              ...(invoiceMediaIds?.length && {
+                invoice: [...uploadFieldIds(original.invoice), ...invoiceMediaIds],
+              }),
+              updatedBy: user.id,
+            },
+          })
 
-      await payload.update({
-        collection: 'transactions',
-        id: transferId,
-        data: {
-          ...fields,
-          ...documentIdentity(parsed.data),
-          ...(newAmount !== undefined && { amount: newAmount }),
-          ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
-          // Only an OTHER names its worker by choice — a PAYOUT/BONUS worker IS the booking.
-          ...(worker !== undefined && hasOptionalWorker(original.type) && { worker }),
-          // Newly picked files are extra pages of the same invoice, so they append — an edit that
-          // replaced the list would strand the pages the user never touched.
-          ...(invoiceMediaIds?.length && {
-            invoice: [...uploadFieldIds(original.invoice), ...invoiceMediaIds],
-          }),
-          updatedBy: user.id,
+          if (newAmount !== undefined && newAmount !== original.amount) {
+            await payload.create({
+              collection: 'amount-edits',
+              req,
+              data: {
+                transaction: transferId,
+                previousAmount: original.amount,
+                newAmount,
+                editedBy: user.id,
+              },
+            })
+          }
+          return { success: true }
         },
-      })
-
-      if (amountChanged) {
-        await payload.create({
-          collection: 'amount-edits',
-          data: {
-            transaction: transferId,
-            previousAmount: original.amount,
-            newAmount,
-            editedBy: user.id,
-          },
-        })
-      }
+        {},
+      )
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
-      return { success: true }
+      return outcome
     },
     ['transfers'],
   )
 }
 
-/**
- * Deliberately does NOT go through `fetchAndAuthorize`: attaching and
- * detaching invoice pages is open to every management session regardless of who created the
- * transfer.
- */
+// The invoice actions below skip `fetchAndAuthorize`: every management session may attach and
+// detach invoice pages, whoever created the transfer.
 const invoiceOf = (transferId: number) =>
   ({ collection: 'transactions', field: 'invoice', id: transferId }) as const
 

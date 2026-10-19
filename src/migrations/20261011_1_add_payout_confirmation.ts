@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-1042: the worker's answer to a wypłata. A label, never a gate — no figure reads these columns.
+// The worker's answer to a wypłata. A label, never a gate — no figure reads these columns.
 // Nullable, no default, no backfill: a legacy wypłata was never put to any worker, so it has no
 // status (rendered „—"), and `validateTransfer` stamps `pending` on every new one. The decision is
 // a raw-SQL UPDATE that runs no collection hook, so the shape is enforced here instead.

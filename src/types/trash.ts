@@ -6,6 +6,7 @@ export type TrashKindT =
   | 'vehicle'
   | 'equipment'
   | 'lead'
+  | 'file'
 
 export type TrashRowT = {
   kind: TrashKindT
@@ -19,6 +20,8 @@ export type TrashRowT = {
   hasSheet: boolean
   pairedRegisters: string[]
   detail?: string
+  /** Set when restoring would put the row back into something that is itself in the trash. */
+  restoreBlockedReason?: string
 }
 
 export type DeleteForeverResultT =

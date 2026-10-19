@@ -1,12 +1,8 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { remapNewIds } from '@/lib/kosztorys/insert-rows'
 
 // The DB specs around restore can't fail on a reordered RETURNING, because Postgres doesn't reorder
 // one today — revert the key join to `res.rows.map(r => r.id)` and every one of them stays green.
-
-afterEach(() => {
-  vi.restoreAllMocks()
-})
 
 describe('remapNewIds', () => {
   const keyOf = (row: Record<string, unknown>) => Number(row.display_order)

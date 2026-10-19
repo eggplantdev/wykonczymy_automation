@@ -1,13 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
 import { parsePln } from './support/money'
-import {
-  createInvestmentExpense,
-  EXPENSE_CATEGORY,
-  openExpenseInvestment,
-} from './drivers/expenses'
+import { createInvestmentExpense, openExpenseInvestment } from './drivers/expenses'
+import { EXPENSE_CATEGORY } from '@/scripts/e2e-dump-rows'
 import { openPanelView, readInvestorBalance, readSummaryFigures } from './drivers/settlement'
-
-test.use({ storageState: 'e2e/.auth/user.json' })
 
 // The delta is asserted exactly, so a round 100 zł could be satisfied by an unrelated concurrent
 // booking.
@@ -39,7 +34,7 @@ test('a booked investment expense moves the investment page without a manual ref
   // `expect.poll` allows for the revalidation to land, but not for a manual refresh — nothing here
   // presses „Odśwież dane".
   await expect
-    .poll(() => readCategoryTile(page, investmentId), { timeout: 20_000 })
+    .poll(() => readCategoryTile(page, investmentId))
     .toBeCloseTo(categoryBefore + EXPENSE_AMOUNT, 2)
   expect(await readInvestorBalance(page)).toBeCloseTo(balanceBefore - EXPENSE_AMOUNT, 2)
 
@@ -48,9 +43,9 @@ test('a booked investment expense moves the investment page without a manual ref
   await page.goto(`/inwestycje/${investmentId}`)
   await openPanelView(page, 'Podsumowanie')
   await expect
-    .poll(async () => (await readSummaryFigures(page))['Materiały'], { timeout: 20_000 })
+    .poll(async () => (await readSummaryFigures(page))['Materiały'])
     .not.toBe(materialsBefore)
 
   await openPanelView(page, 'Materiały')
-  await expect(page.getByText(description).first()).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText(description).first()).toBeVisible()
 })

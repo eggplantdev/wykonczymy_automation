@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-EX-1032. Written-down general company knowledge — rules that belong to no single praca (the gap
+Written-down general company knowledge — rules that belong to no single praca (the gap
 `kosztorys-ai-knowledge-loop` left out of scope on purpose; „Komentarz do pracy” holds knowledge about
 one katalog entry).
 
@@ -24,10 +24,10 @@ Agreed with the owner, 2026-10-08:
 - **Entries**: a topic + text. First entry: what wall height to assume when the inquiry gives none.
 - **Management only** (ADMIN / OWNER / MANAGER) reads and writes. EMPLOYEE never sees it.
 - Readers: the AI agent (reads every entry before drafting a przedmiar, and can name the entry an
-  assumption came from in Komentarz AI „Co / ile założono” — EX-1030) and new management staff
+  assumption came from in Komentarz AI „Co / ile założono”) and new management staff
   (onboarding).
 - **Shape settled on a spike (2026-10-08):** the owner first leaned towards one plain document; the
   click-through spike with entries won. Required: search, sort, and drag reordering like other places
   in the app.
 - After the book exists: re-run the AI cases already analysed under the new system (Komentarz AI,
-  assumptions allowed — EX-1030).
+  assumptions allowed).

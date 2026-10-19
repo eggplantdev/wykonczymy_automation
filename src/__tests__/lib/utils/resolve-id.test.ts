@@ -1,0 +1,58 @@
+import { describe, it, expect } from 'vitest'
+
+import { entityTag, CACHE_TAGS } from '@/lib/cache/tags'
+import { resolveId } from '@/lib/utils/resolve-id'
+
+describe('resolveId', () => {
+  it('returns number directly', () => {
+    expect(resolveId(42)).toBe(42)
+  })
+
+  it('returns 0 for numeric zero', () => {
+    expect(resolveId(0)).toBe(0)
+  })
+
+  it('extracts id from populated object', () => {
+    expect(resolveId({ id: 10, name: 'Register A' })).toBe(10)
+  })
+
+  it('returns undefined for null', () => {
+    expect(resolveId(null)).toBeUndefined()
+  })
+
+  it('returns undefined for undefined', () => {
+    expect(resolveId(undefined)).toBeUndefined()
+  })
+
+  // A REST body sends the relationship as a string; the investment lock reads `undefined` as
+  // „no investment touched", so parsing it is what keeps the gate closed.
+  it('parses a numeric string id', () => {
+    expect(resolveId('42')).toBe(42)
+  })
+
+  it('returns undefined for a non-numeric string', () => {
+    expect(resolveId('abc')).toBeUndefined()
+  })
+
+  it('returns undefined for object without id', () => {
+    expect(resolveId({ name: 'no id' })).toBeUndefined()
+  })
+})
+
+describe('entityTag', () => {
+  it('builds tag from collection and numeric id', () => {
+    expect(entityTag('cash-register', 5)).toBe('cash-register:5')
+  })
+
+  it('builds tag from collection and string id', () => {
+    expect(entityTag('investment', '10')).toBe('investment:10')
+  })
+})
+
+describe('CACHE_TAGS', () => {
+  it('values follow the collection: / table: prefix pattern', () => {
+    for (const value of Object.values(CACHE_TAGS)) {
+      expect(value).toMatch(/^(collection|table):.+/)
+    }
+  })
+})

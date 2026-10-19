@@ -23,7 +23,7 @@ export type UndoRedoApiT = {
   amendTop: (expected: UndoCommandT, replacement: UndoCommandT | null) => boolean
 }
 
-export const MAX_DEPTH = 50
+const MAX_DEPTH = 50
 
 export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
   let undoStack: UndoCommandT[] = []

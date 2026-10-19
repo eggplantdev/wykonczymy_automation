@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -12,20 +12,10 @@ import {
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
 import { trashDaysAgo } from '@/__tests__/helpers/investment'
-
-vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const actions = await import('@/lib/actions/template-trash')
 const { purgeTemplateTrash } = await import('@/lib/kosztorys/templates/purge-trash')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('template trash actions (DB)', () => {
   let payload: Payload
@@ -47,9 +37,7 @@ describe.skipIf(!ENV_READY)('template trash actions (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     entryIds.push(await createTestCatalogueEntry(payload, 'template-trash Malowanie'))
   })

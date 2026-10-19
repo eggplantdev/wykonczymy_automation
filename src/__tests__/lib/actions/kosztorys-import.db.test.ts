@@ -1,0 +1,186 @@
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { firstUserId } from '@/__tests__/helpers/user'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import type { sheets_v4 } from 'googleapis'
+import { getInvestmentSheet } from '@/lib/google/sheet-lookup'
+import { getReadonlySheetsClient } from '@/lib/google/readonly-sheets-client'
+import { readImportGrids } from '@/lib/kosztorys/sheet-import/read-sheet'
+import { applyKosztorysImport, previewKosztorysImport } from '@/lib/actions/kosztorys-import'
+
+const sheetState = { spreadsheetId: 'sheet-under-test' as string | undefined }
+
+describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let investmentId: number
+
+  beforeAll(async () => {
+    vi.mocked(getInvestmentSheet).mockImplementation(async () =>
+      sheetState.spreadsheetId === undefined
+        ? undefined
+        : { id: 1, googleSheetId: sheetState.spreadsheetId, sheetColumnMapping: {} },
+    )
+    vi.mocked(getReadonlySheetsClient).mockReturnValue({} as sheets_v4.Sheets)
+    vi.mocked(readImportGrids).mockImplementation(async () => ({
+      laborGrid: BIALOSTOCKA_ROWS,
+      laborGridFormulas: [],
+      laborTabGid: undefined,
+      rateTabs: [
+        ratesTab('zakres pracy z narzędziami', [
+          { description: 'montaż jednostki wewnętrznej', wTools: 78, ownTools: 60 },
+        ]),
+      ],
+    }))
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    authState.userId = await firstUserId(payload)
+    investmentId = await createTestInvestment(payload, 'kosztorys-import-test')
+  })
+
+  afterAll(async () => {
+    if (investmentId) await deleteTestInvestment(payload, investmentId)
+  })
+
+  async function sectionNames(): Promise<string[]> {
+    const res = await db.execute(sql`
+      SELECT name FROM kosztorys_sections WHERE investment_id = ${investmentId} ORDER BY display_order
+    `)
+    return res.rows.map((row) => String(row.name))
+  }
+
+  async function seedSection(name: string): Promise<void> {
+    await createKosztorysTree(payload, investmentId, { sections: [{ name }] })
+  }
+
+  it('writes the sheet’s sections and prace to the investment', async () => {
+    const result = await applyKosztorysImport(investmentId)
+
+    expect(result).toMatchObject({ success: true })
+    expect(await sectionNames()).toEqual(['Prace dodatkowe', 'Klimatyzacja'])
+  })
+
+  it('writes the picked rozliczenie and wykonawca onto every imported etap', async () => {
+    await applyKosztorysImport(investmentId, 'own_tools', authState.userId)
+
+    const stages = await db.execute(sql`
+      SELECT ks.plane, ksw.worker_id, ksw.takes_rest
+      FROM kosztorys_stages ks
+      LEFT JOIN kosztorys_stage_workers ksw ON ksw.stage_id = ks.id
+      WHERE ks.investment_id = ${investmentId}
+    `)
+    expect(stages.rows.length).toBeGreaterThan(0)
+    expect(stages.rows).toEqual(
+      stages.rows.map(() => ({
+        plane: 'own_tools',
+        worker_id: authState.userId,
+        takes_rest: true,
+      })),
+    )
+  })
+
+  it('adopts the cennik’s markup as the investment’s multipliers, so „auto" prices at the sheet', async () => {
+    await applyKosztorysImport(investmentId)
+
+    const investment = await db.execute(sql`
+      SELECT w_tools_coeff, own_tools_coeff FROM investments WHERE id = ${investmentId}
+    `)
+    // 78 / 120 and 60 / 120 in the mocked cennik above.
+    expect(Number(investment.rows[0].w_tools_coeff)).toBeCloseTo(0.65, 6)
+    expect(Number(investment.rows[0].own_tools_coeff)).toBeCloseTo(0.5, 6)
+
+    const item = await db.execute(sql`
+      SELECT w_tools_override_value, own_tools_override_value FROM kosztorys_items
+      WHERE investment_id = ${investmentId} AND description = 'montaż jednostki wewnętrznej'
+    `)
+    expect(item.rows[0]).toMatchObject({
+      w_tools_override_value: null,
+      own_tools_override_value: null,
+    })
+  })
+
+  // Found by LABEL, not by „newest auto": the whole point of the pre-import row being `manual` is
+  // that it survives the auto count cap + 7-day GC and stays identifiable among the periodic
+  // autosaves.
+  it('takes a labelled pre-import snapshot that restores the tree the import replaced', async () => {
+    await payload.delete({
+      collection: 'kosztorys-sections',
+      where: { investment: { equals: investmentId } },
+      context: { skipRevalidation: true },
+      overrideAccess: true,
+    })
+    await seedSection('Stan sprzed importu')
+
+    await applyKosztorysImport(investmentId)
+    expect(await sectionNames()).not.toContain('Stan sprzed importu')
+
+    const snapshots = await db.execute(sql`
+      SELECT id FROM kosztorys_snapshots
+      WHERE investment_id = ${investmentId}
+        AND kind = 'manual'
+        AND label = 'Przed importem z arkusza Google'
+      ORDER BY id DESC LIMIT 1
+    `)
+    expect(snapshots.rows).toHaveLength(1)
+
+    const { restoreSnapshotAction } = await import('@/lib/actions/kosztorys-snapshots')
+    await restoreSnapshotAction(Number(snapshots.rows[0].id), investmentId)
+
+    expect(await sectionNames()).toEqual(['Stan sprzed importu'])
+  })
+
+  it('ignores a plan handed in by the caller and writes the one it derived itself', async () => {
+    // The second parameter is the rozliczenie, never a plan — the action re-reads the sheet. Asserted
+    // at runtime rather than only in the types, since a client can call a server action with any
+    // argument list it likes.
+    const forged = { sections: [{ id: 1, name: 'Podłożone przez klienta', displayOrder: 0 }] }
+    await (applyKosztorysImport as unknown as (id: number, plan: unknown) => Promise<unknown>)(
+      investmentId,
+      forged,
+    )
+
+    expect(await sectionNames()).not.toContain('Podłożone przez klienta')
+  })
+
+  it('lets a MANAGER preview and apply', async () => {
+    authState.role = 'MANAGER'
+    try {
+      await seedSection('Zastąpiona przez managera')
+      const preview = await previewKosztorysImport(investmentId)
+      const applied = await applyKosztorysImport(investmentId)
+
+      expect(preview).toMatchObject({ success: true })
+      expect(applied).toMatchObject({ success: true })
+      expect(await sectionNames()).not.toContain('Zastąpiona przez managera')
+    } finally {
+      authState.role = 'OWNER'
+    }
+  })
+
+  it('reports a missing sheet link in Polish instead of importing nothing silently', async () => {
+    sheetState.spreadsheetId = undefined
+    try {
+      expect(await previewKosztorysImport(investmentId)).toMatchObject({
+        success: false,
+        error: 'Inwestycja nie ma kosztorysu.',
+      })
+    } finally {
+      sheetState.spreadsheetId = 'sheet-under-test'
+    }
+  })
+
+  it('previews the same counts the import would write, without shipping the tree', async () => {
+    const preview = await previewKosztorysImport(investmentId)
+
+    expect(preview).toMatchObject({ success: true })
+    if (!preview.success) return
+    expect(preview.data.report.counts).toMatchObject({ sections: 2, items: 3, stages: 3 })
+    expect(preview.data).not.toHaveProperty('tree')
+  })
+})

@@ -111,7 +111,7 @@ service, production — is returned as a blocker naming the missing isolation.
   event's `clipboardData` for Ctrl/Cmd+C) and read the captured value.
 - **A hydration error seen in the MCP browser is not a finding yet.** Re-load the page in a clean
   headless Chrome (`chromium.launch({ channel: 'chrome' })`, console errors captured) and file only
-  with the full React diff in hand. EX-1037 was filed without one and never reproduced in eight
+  with the full React diff in hand. One such finding was filed without one and never reproduced in eight
   clean variants — the MCP tab had been switching roles in place.
 - **Test layers:** unit / DOM specs under `src/__tests__/` (mirrored path), e2e under `e2e/` against
   5435 — AGENTS.md → Testing.
@@ -196,8 +196,9 @@ rekordu z poprzedniego przebiegu weryfikacji nie jest stałą; szukaj stanu od n
 and each separate Playwright MCP call is slower (`browser_type` alone takes >1 s). To check that
 several edits undo in one step, make them inside one `browser_evaluate`.
 
-**The kosztorys „Filtry" menu is inverted too.** Every option starts ticked; unticking hides those
-rows (chip „Ukryto: …"), it never narrows to them. Only „Problemy" means show-only („Tylko: …").
+**The kosztorys „Filtry" menu is show-only (since 2026-10-16).** Nothing starts ticked; a tick narrows
+to those rows (chip „Tylko: …") — OR within a group, AND across groups. Old saved picks were dropped by
+a storage-key rename.
 
 **Grid resize handles capture the pointer** (`setPointerCapture`). `browser_drag` never shows the
 intermediate state; send `pointerdown` → `pointermove`×N → `pointerup` to the `role="separator"`

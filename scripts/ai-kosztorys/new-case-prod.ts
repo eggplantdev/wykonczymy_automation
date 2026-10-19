@@ -1,0 +1,134 @@
+// Step 1 of a case on PRODUCTION: uploads every file the client sent, creates the investment with its
+// kosztorys seeded from the szablon, and scaffolds `cases/<CASE>/` (the szablon's rozpiska + case.json)
+// for the agent to measure against. The client fields come from a JSON outside the repo (PII stays out
+// of git): { name, address, phone, email, contactPerson, notes }.
+//   TOKEN_FILE=… SOURCE_JSON=… FILES_DIR=… CASE=02-<slug> PRESET_ID=<szablon id> [DRY=1] \
+//     node --import tsx scripts/ai-kosztorys/new-case-prod.ts
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import {
+  api,
+  byKosztorysOrder,
+  BASE,
+  callAction,
+  CASES_ROOT,
+  itemsOfTemplate,
+  resolveActions,
+  uploadMedia,
+  type MediaKindT,
+} from './prod-client'
+
+// A szablon is a `templates` row: its id is not the id of the investment it used to be.
+const PRESET_ID = Number(process.env.PRESET_ID)
+if (!PRESET_ID) throw new Error('PRESET_ID=<szablon id> is required')
+const DRY = process.env.DRY === '1'
+const SOURCE = JSON.parse(readFileSync(process.env.SOURCE_JSON ?? '', 'utf8'))
+const FILES_DIR = process.env.FILES_DIR ?? ''
+const CASE_DIR = path.join(CASES_ROOT, 'cases', process.env.CASE ?? '')
+const DRAFT = 'measure/ai-draft-load.json'
+
+const MIME: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.heic': 'image/heic',
+}
+
+// A shopping list or an offer is not a drawing, and a plan scanned to an image is not a photo; only
+// the name tells them apart, and a wrong guess is one click to fix in „Pliki".
+function kindOf(name: string, mimeType: string): MediaKindT {
+  if (/rzut|projekt/i.test(name)) return 'projekt'
+  if (mimeType.startsWith('image/')) return 'zdjecie'
+  return /zakup|lista|oferta|wycena|faktura/i.test(name) ? 'inne' : 'projekt'
+}
+
+async function run() {
+  if (!process.env.CASE) throw new Error('CASE is required, e.g. CASE=02-mokotow-60m2')
+  if (existsSync(path.join(CASE_DIR, 'case.json')))
+    throw new Error(`${CASE_DIR} already has a case.json`)
+
+  const files = readdirSync(FILES_DIR)
+    .filter((name) => !name.startsWith('.'))
+    .sort()
+    .map((name) => {
+      const mimeType = MIME[path.extname(name).toLowerCase()]
+      return { name, mimeType, kind: mimeType ? kindOf(name, mimeType) : undefined }
+    })
+  const skipped = files.filter((f) => !f.mimeType)
+  const uploads = files.filter((f) => f.mimeType)
+
+  // REST lists trashed investments too; a rerun after trashing the old case must not trip on it.
+  const taken = await api<{ totalDocs: number }>(
+    `/investments?where[name][equals]=${encodeURIComponent(SOURCE.name)}&where[trashedAt][exists]=false&limit=1&depth=0`,
+  )
+  if (taken.totalDocs) throw new Error(`an investment named „${SOURCE.name}" already exists`)
+  // REST still returns a trashed szablon's items, but the create's seed refuses it — and only warns.
+  const preset = await api<{ trashedAt: string | null }>(
+    `/templates/${PRESET_ID}?depth=0&trash=true`,
+  )
+  if (preset.trashedAt) throw new Error(`szablon #${PRESET_ID} is in the kosz`)
+  const template = await itemsOfTemplate(PRESET_ID)
+  if (!template.length) throw new Error(`szablon #${PRESET_ID} has no items`)
+  await resolveActions('/inwestycje', ['createInvestmentAction'])
+
+  for (const f of uploads) console.log(`${f.kind?.padEnd(8)} ${f.name}`)
+  for (const f of skipped) console.log(`SKIPPED  ${f.name} (media takes only PDFs and images)`)
+  console.log(`ok: „${SOURCE.name}", szablon #${PRESET_ID} (${template.length} positions)`)
+  if (DRY) return
+
+  const assets: number[] = []
+  for (const f of uploads) {
+    const bytes = readFileSync(path.join(FILES_DIR, f.name))
+    const id = await uploadMedia(f.name, bytes, f.mimeType as string, f.kind as MediaKindT)
+    assets.push(id)
+    console.log(`media #${id} ${f.name}`)
+  }
+
+  const result = await callAction<{ warning?: string }>('createInvestmentAction', '/inwestycje', [
+    { status: 'quote', ...SOURCE, review: '', presetId: String(PRESET_ID), assets },
+  ])
+  if (result.warning && result.warning !== '$undefined') console.warn(`WARNING: ${result.warning}`)
+  const created = await api<{ docs: { id: number }[] }>(
+    `/investments?where[name][equals]=${encodeURIComponent(SOURCE.name)}&sort=-id&limit=1&depth=0`,
+  )
+  const investmentId = created.docs[0].id
+
+  const rozpiska = template
+    .toSorted(byKosztorysOrder)
+    .map((i) =>
+      [i.section.displayOrder, i.section.name, i.id, i.description, i.unit, i.clientPrice, ''].join(
+        ' | ',
+      ),
+    )
+  mkdirSync(path.join(CASE_DIR, 'inputs'), { recursive: true })
+  writeFileSync(
+    path.join(CASE_DIR, `inputs/rozpiska-szablon-${PRESET_ID}.txt`),
+    rozpiska.join('\n') + '\n',
+  )
+  writeFileSync(
+    path.join(CASE_DIR, 'case.json'),
+    JSON.stringify(
+      {
+        investmentId,
+        presetId: PRESET_ID,
+        files: uploads.map((f) => ({ name: f.name, kind: f.kind })),
+        przedmiar: 'measure/przedmiar.json',
+        newWorks: 'measure/new-works.json',
+        // A case whose agent wrote the `load-ai-draft.ts` shape keeps it; `fill-case-prod.ts` reads it.
+        ...(existsSync(path.join(CASE_DIR, DRAFT)) && { draft: DRAFT }),
+        notesAppendix: 'investment-notes-appendix.txt',
+      },
+      null,
+      2,
+    ) + '\n',
+  )
+  console.log(`investment #${investmentId} → ${BASE}/inwestycje/${investmentId}/kosztorys_v2`)
+  console.log(`scaffolded ${path.relative(process.cwd(), CASE_DIR)}`)
+}
+
+run().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})

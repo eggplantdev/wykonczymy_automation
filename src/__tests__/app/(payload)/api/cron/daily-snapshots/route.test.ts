@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
 vi.mock('@/lib/kosztorys/capture-daily-snapshots', () => ({ captureDailySnapshots: vi.fn() }))
@@ -13,15 +12,8 @@ import { revalidateTag } from '@/__tests__/stubs/next-cache'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
 describe('cron daily-snapshots route', () => {
-  const previous = process.env.CRON_SECRET
-
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
-  })
-
-  afterEach(() => {
-    process.env.CRON_SECRET = previous
-    vi.clearAllMocks()
+    vi.stubEnv('CRON_SECRET', 'test-secret')
   })
 
   function request(headers: Record<string, string> = {}) {

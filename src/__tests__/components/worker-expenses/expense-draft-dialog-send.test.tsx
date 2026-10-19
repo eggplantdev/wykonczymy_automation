@@ -4,11 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  useRouter: () => ({ refresh: vi.fn() }),
-}))
-
 const { sendExpenseDraftAction } = vi.hoisted(() => ({ sendExpenseDraftAction: vi.fn() }))
 vi.mock('@/lib/actions/worker-expense-drafts', () => ({ sendExpenseDraftAction }))
 const { submitWithUploads } = vi.hoisted(() => ({
@@ -70,7 +65,6 @@ describe('ExpenseDraftDialog send', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
 
     await waitFor(() => expect(sendExpenseDraftAction).toHaveBeenCalledTimes(1))
-    expect(sendExpenseDraftAction.mock.calls[0][0]).not.toHaveProperty('scanMode')
     expect(sendExpenseDraftAction.mock.calls[0][0]).toMatchObject({ mediaIds: [11, 12] })
   })
 

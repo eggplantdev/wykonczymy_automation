@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   // E2E builds into an isolated dir (NEXT_DIST_DIR=.next-e2e) so `pnpm build` for the
   // Playwright webServer never fights the dev server's `.next` lock.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
+  // The pre-push hook typechecks every push.
+  typescript: { ignoreBuildErrors: Boolean(process.env.NEXT_DIST_DIR) },
   // cacheComponents: true,
   experimental: {
     serverActions: {

@@ -3,17 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useInvestorActions } from '@/components/kosztorys/editor/actions/investor-actions'
 import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
+import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { ensureShareLinkAction } from '@/lib/actions/kosztorys-share'
+import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 
-const toastMessage = vi.hoisted(() => vi.fn())
-const readClientViewSettings = vi.hoisted(() => vi.fn())
-const ensureShareLinkAction = vi.hoisted(() => vi.fn())
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
-vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
-vi.mock('@/lib/actions/kosztorys-share', () => ({ ensureShareLinkAction }))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ investmentId: 7 }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(() => ({ investmentId: 7 }) as never)
 
 const writeText = vi.fn()
 const write = vi.fn()
@@ -42,7 +37,6 @@ async function share() {
 
 describe('useInvestorActions — „Udostępnij"', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     writeText.mockResolvedValue(undefined)
     write.mockResolvedValue(undefined)
     setClipboard(false)
@@ -51,7 +45,7 @@ describe('useInvestorActions — „Udostępnij"', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('copies the link the server hands back', async () => {
-    ensureShareLinkAction.mockResolvedValue({ success: true, data: 'stary' })
+    vi.mocked(ensureShareLinkAction).mockResolvedValue({ success: true, data: 'stary' })
 
     const result = await share()
 
@@ -62,22 +56,22 @@ describe('useInvestorActions — „Udostępnij"', () => {
   })
 
   it('keeps the latest click’s link when an earlier answer lands after it', async () => {
-    let resolveFirst: (value: unknown) => void = () => {}
-    ensureShareLinkAction
-      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+    const first = Promise.withResolvers<Awaited<ReturnType<typeof ensureShareLinkAction>>>()
+    vi.mocked(ensureShareLinkAction)
+      .mockReturnValueOnce(first.promise)
       .mockResolvedValueOnce({ success: true, data: 'drugi' })
 
     const { result } = renderHook(() => useInvestorActions())
     act(() => result.current.requestShare())
     act(() => result.current.requestShare())
     await waitFor(() => expect(result.current.shareToken).toBe('drugi'))
-    await act(async () => resolveFirst({ success: true, data: 'pierwszy' }))
+    await act(async () => first.resolve({ success: true, data: 'pierwszy' }))
 
     expect(result.current.shareToken).toBe('drugi')
   })
 
   it('does not read the preview settings', async () => {
-    ensureShareLinkAction.mockResolvedValue({ success: true, data: 'stary' })
+    vi.mocked(ensureShareLinkAction).mockResolvedValue({ success: true, data: 'stary' })
 
     await share()
 
@@ -87,21 +81,21 @@ describe('useInvestorActions — „Udostępnij"', () => {
   // Safari refuses a clipboard write that starts after an await, so it must start on the click.
   it('starts the clipboard write before the link is known', async () => {
     setClipboard(true)
-    let resolveRead: (value: unknown) => void = () => {}
-    ensureShareLinkAction.mockReturnValue(new Promise((resolve) => (resolveRead = resolve)))
+    const read = Promise.withResolvers<Awaited<ReturnType<typeof ensureShareLinkAction>>>()
+    vi.mocked(ensureShareLinkAction).mockReturnValue(read.promise)
 
     const { result } = renderHook(() => useInvestorActions())
     act(() => result.current.requestShare())
 
     expect(write).toHaveBeenCalledTimes(1)
     const [[item]] = write.mock.calls[0] as [[{ items: Record<string, Promise<Blob>> }]]
-    resolveRead({ success: true, data: 'stary' })
+    read.resolve({ success: true, data: 'stary' })
     const blob = await item.items['text/plain']
     expect(await blob.text()).toBe(investorShareUrl('stary'))
   })
 
   it('reports a failed mint as the action’s error, not as a copy failure', async () => {
-    ensureShareLinkAction.mockResolvedValue({ success: false, error: 'Brak uprawnień' })
+    vi.mocked(ensureShareLinkAction).mockResolvedValue({ success: false, error: 'Brak uprawnień' })
 
     const result = await share()
 
@@ -111,9 +105,9 @@ describe('useInvestorActions — „Udostępnij"', () => {
     expect(writeText).not.toHaveBeenCalled()
   })
 
-  it('says the connection dropped when the mint request never arrived (EX-940)', async () => {
+  it('says the connection dropped when the mint request never arrived', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    ensureShareLinkAction.mockRejectedValue(new TypeError('Failed to fetch'))
+    vi.mocked(ensureShareLinkAction).mockRejectedValue(new TypeError('Failed to fetch'))
 
     const result = await share()
 

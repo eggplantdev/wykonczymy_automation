@@ -11,7 +11,7 @@ worktree: null
 
 ## Notes
 
-EX-1009, follow-up EX-1005 (`worker-expense-drafts-history`).
+Follow-up of `worker-expense-drafts-history`.
 
 ### Problem
 

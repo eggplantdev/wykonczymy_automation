@@ -1,0 +1,74 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+const mockLogin = vi.fn()
+vi.mock('@payloadcms/next/auth', () => ({
+  login: (...args: unknown[]) => mockLogin(...args),
+  logout: vi.fn(),
+}))
+
+vi.mock('next/headers', () => ({ cookies: async () => ({ delete: vi.fn() }) }))
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(() => {
+    throw new Error('NEXT_REDIRECT')
+  }),
+}))
+
+const { loginAction, logoutAction } = await import('@/lib/actions/auth')
+const { revalidateCollections } = await import('@/__tests__/stubs/cache-revalidate')
+const { DISABLED_ACCOUNT_ERROR, DISABLED_ACCOUNT_MESSAGE } =
+  await import('@/lib/constants/worker-lock')
+
+describe('loginAction', () => {
+  beforeEach(() => {
+    mockLogin.mockReset()
+  })
+
+  // Payload locks the account after maxLoginAttempts and throws LockedAuth — the same 401 as a
+  // wrong password.
+  it('maps a locked-account error to a distinct lockout message', async () => {
+    const locked = new Error('This user is locked due to having too many failed login attempts.')
+    locked.name = 'LockedAuth'
+    mockLogin.mockRejectedValue(locked)
+
+    const result = await loginAction({ email: 'a@b.pl', password: 'x' })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toMatch(/zablokowane/i)
+  })
+
+  it('maps a disabled-account refusal to its own sentence', async () => {
+    const disabled = new Error('irrelevant')
+    disabled.name = DISABLED_ACCOUNT_ERROR
+    mockLogin.mockRejectedValue(disabled)
+
+    const result = await loginAction({ email: 'a@b.pl', password: 'x' })
+
+    expect(result).toEqual({ success: false, error: DISABLED_ACCOUNT_MESSAGE })
+  })
+
+  it('maps any other login failure to the generic message', async () => {
+    mockLogin.mockRejectedValue(new Error('The email or password provided is incorrect.'))
+
+    const result = await loginAction({ email: 'a@b.pl', password: 'wrong' })
+
+    expect(result).toEqual({ success: false, error: 'Nieprawidłowy email lub hasło' })
+  })
+
+  it('returns success when login resolves', async () => {
+    mockLogin.mockResolvedValue({ token: 'jwt' })
+
+    const result = await loginAction({ email: 'a@b.pl', password: 'correct' })
+
+    expect(result).toEqual({ success: true })
+  })
+})
+
+describe('logoutAction', () => {
+  // The session check caches its answer for an hour; a logout that left it would let a copied token
+  // keep working after the session row is gone.
+  it('expires the cached session check', async () => {
+    await expect(logoutAction()).rejects.toThrow('NEXT_REDIRECT')
+
+    expect(revalidateCollections).toHaveBeenCalledWith(['users'])
+  })
+})

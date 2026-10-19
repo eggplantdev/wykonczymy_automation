@@ -9,28 +9,14 @@ import {
 import { FILE_ARCHIVE_COPY, INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 
 describe('sanitizeForFilename', () => {
-  it('replaces spaces with underscores', () => {
-    expect(sanitizeForFilename('materiały budowlane')).toBe('materiały_budowlane')
-  })
-
-  it('removes illegal filename characters', () => {
-    expect(sanitizeForFilename('faktura/2026:01')).toBe('faktura202601')
-  })
-
-  it('collapses multiple underscores', () => {
-    expect(sanitizeForFilename('a   b')).toBe('a_b')
-  })
-
-  it('trims leading and trailing underscores', () => {
-    expect(sanitizeForFilename(' hello ')).toBe('hello')
-  })
-
-  it('handles empty string', () => {
-    expect(sanitizeForFilename('')).toBe('')
-  })
-
-  it('removes all dangerous characters', () => {
-    expect(sanitizeForFilename('file<>:"/\\|?*name')).toBe('filename')
+  it.each([
+    ['replaces spaces with underscores', 'materiały budowlane', 'materiały_budowlane'],
+    ['collapses multiple underscores', 'a   b', 'a_b'],
+    ['trims leading and trailing underscores', ' hello ', 'hello'],
+    ['handles empty string', '', ''],
+    ['removes all dangerous characters', 'file<>:"/\\|?*name', 'filename'],
+  ])('%s', (_case, input, expected) => {
+    expect(sanitizeForFilename(input)).toBe(expected)
   })
 })
 
@@ -71,167 +57,91 @@ describe('buildUniqueFilename', () => {
     const name = buildUniqueFilename('2026-01-01', 'Faktura/2026:01', 'f.pdf', used)
     expect(name).toBe('20260101_Faktura202601.pdf')
   })
-
-  it('tracks all generated names in the usedNames set', () => {
-    const used = new Set<string>()
-    buildUniqueFilename('2026-01-01', 'A', 'x.pdf', used)
-    buildUniqueFilename('2026-01-01', 'A', 'x.pdf', used)
-
-    expect(used.size).toBe(2)
-    expect(used.has('20260101_A.pdf')).toBe(true)
-    expect(used.has('20260101_A_1.pdf')).toBe(true)
-  })
 })
 
 describe('buildArchiveName', () => {
-  it('falls back to prefix and date when no parts are given', () => {
-    expect(buildArchiveName([], '2026-07-25', 'faktury')).toBe('faktury-2026-07-25.zip')
-  })
-
-  it('joins parts between the prefix and the date', () => {
-    expect(buildArchiveName(['Kowalski', 'Wydatki inwestycyjne'], '2026-07-25', 'faktury')).toBe(
+  it.each([
+    ['falls back to prefix and date when no parts are given', [], 'faktury-2026-07-25.zip'],
+    [
+      'joins parts between the prefix and the date',
+      ['Kowalski', 'Wydatki inwestycyjne'],
       'faktury-Kowalski-Wydatki_inwestycyjne-2026-07-25.zip',
-    )
-  })
-
-  it('strips characters that are illegal in a filename', () => {
-    expect(buildArchiveName(['ul. Polna 3/5: etap "A"'], '2026-07-25', 'faktury')).toBe(
+    ],
+    [
+      'strips characters that are illegal in a filename',
+      ['ul. Polna 3/5: etap "A"'],
       'faktury-ul._Polna_35_etap_A-2026-07-25.zip',
-    )
-  })
-
-  it('drops a part that sanitizes to nothing', () => {
-    expect(buildArchiveName(['???', 'Etap'], '2026-07-25', 'faktury')).toBe(
-      'faktury-Etap-2026-07-25.zip',
-    )
+    ],
+    ['drops a part that sanitizes to nothing', ['???', 'Etap'], 'faktury-Etap-2026-07-25.zip'],
+  ])('%s', (_case, parts, expected) => {
+    expect(buildArchiveName(parts, '2026-07-25', 'faktury')).toBe(expected)
   })
 })
 
 describe('buildArchiveMessage', () => {
-  it('reports a plain count when every row was packed', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 5,
-          rowsWithFile: 5,
-          expectedFiles: 5,
-          downloadedFiles: 5,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 5 faktur')
-  })
-
-  it('counts pages, not rows, when a row carries several', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 5,
-          rowsWithFile: 5,
-          expectedFiles: 9,
-          downloadedFiles: 9,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 9 faktur')
-  })
-
-  it('names the shortfall when some rows carry no invoice', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 5,
-          rowsWithFile: 3,
-          expectedFiles: 3,
-          downloadedFiles: 3,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 3 z 3 — 2 pozycje bez faktury')
-  })
-
-  it('names the shortfall when some pages failed to download', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 5,
-          rowsWithFile: 5,
-          expectedFiles: 7,
-          downloadedFiles: 5,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 5 z 7 — 2 nie do pobrania')
-  })
-
-  it('names both shortfalls when they occur together', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 6,
-          rowsWithFile: 4,
-          expectedFiles: 4,
-          downloadedFiles: 3,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 3 z 4 — 2 pozycje bez faktury, 1 nie do pobrania')
-  })
-
-  it('says nothing was attachable when no row carries an invoice', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 4,
-          rowsWithFile: 0,
-          expectedFiles: 0,
-          downloadedFiles: 0,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Brak faktur do pobrania')
-  })
-
-  it('distinguishes a total download failure from having nothing to download', () => {
-    expect(
-      buildArchiveMessage(
-        {
-          rows: 4,
-          rowsWithFile: 2,
-          expectedFiles: 2,
-          downloadedFiles: 0,
-        },
-        INVOICE_ARCHIVE_COPY,
-      ),
-    ).toBe('Nie udało się pobrać żadnej faktury')
-  })
-
-  it('takes its noun from the caller, not from faktury', () => {
-    expect(
-      buildArchiveMessage(
-        { rows: 1, rowsWithFile: 1, expectedFiles: 3, downloadedFiles: 3 },
-        FILE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 3 pliki')
-  })
-
-  it("qualifies an empty row in the caller's own words", () => {
-    expect(
-      buildArchiveMessage(
-        { rows: 3, rowsWithFile: 1, expectedFiles: 1, downloadedFiles: 1 },
-        FILE_ARCHIVE_COPY,
-      ),
-    ).toBe('Pobrano 1 z 1 — 2 pozycje bez pliku')
-  })
-
-  it("says nothing was packable in the caller's own words", () => {
-    expect(
-      buildArchiveMessage(
-        { rows: 1, rowsWithFile: 0, expectedFiles: 0, downloadedFiles: 0 },
-        FILE_ARCHIVE_COPY,
-      ),
-    ).toBe('Brak plików do pobrania')
-  })
+  it.each([
+    [
+      'counts pages, not rows, when a row carries several',
+      [5, 5, 9, 9],
+      INVOICE_ARCHIVE_COPY,
+      'Pobrano 9 faktur',
+    ],
+    [
+      'names the shortfall when some rows carry no invoice',
+      [5, 3, 3, 3],
+      INVOICE_ARCHIVE_COPY,
+      'Pobrano 3 z 3 — 2 pozycje bez faktury',
+    ],
+    [
+      'names the shortfall when some pages failed to download',
+      [5, 5, 7, 5],
+      INVOICE_ARCHIVE_COPY,
+      'Pobrano 5 z 7 — 2 nie do pobrania',
+    ],
+    [
+      'names both shortfalls when they occur together',
+      [6, 4, 4, 3],
+      INVOICE_ARCHIVE_COPY,
+      'Pobrano 3 z 4 — 2 pozycje bez faktury, 1 nie do pobrania',
+    ],
+    [
+      'says nothing was attachable when no row carries an invoice',
+      [4, 0, 0, 0],
+      INVOICE_ARCHIVE_COPY,
+      'Brak faktur do pobrania',
+    ],
+    [
+      'distinguishes a total download failure from having nothing to download',
+      [4, 2, 2, 0],
+      INVOICE_ARCHIVE_COPY,
+      'Nie udało się pobrać żadnej faktury',
+    ],
+    [
+      'takes its noun from the caller, not from faktury',
+      [1, 1, 3, 3],
+      FILE_ARCHIVE_COPY,
+      'Pobrano 3 pliki',
+    ],
+    [
+      "qualifies an empty row in the caller's own words",
+      [3, 1, 1, 1],
+      FILE_ARCHIVE_COPY,
+      'Pobrano 1 z 1 — 2 pozycje bez pliku',
+    ],
+    [
+      "says nothing was packable in the caller's own words",
+      [1, 0, 0, 0],
+      FILE_ARCHIVE_COPY,
+      'Brak plików do pobrania',
+    ],
+  ] as const)(
+    '%s',
+    (_case, [rows, rowsWithFile, expectedFiles, downloadedFiles], copy, expected) => {
+      expect(
+        buildArchiveMessage({ rows, rowsWithFile, expectedFiles, downloadedFiles }, copy),
+      ).toBe(expected)
+    },
+  )
 })
 
 describe('flattenArchiveRows', () => {

@@ -17,7 +17,6 @@ import { processUploadFile, BlockedFileError } from '@/lib/utils/process-upload-
 const heicFile = () => new File([new Uint8Array(3000)], 'IMG_1234.HEIC', { type: '' })
 
 beforeEach(() => {
-  vi.clearAllMocks()
   compressImage.mockImplementation(async (file: File) => file)
   compressToJpeg.mockImplementation(async (file: File) => file)
 })

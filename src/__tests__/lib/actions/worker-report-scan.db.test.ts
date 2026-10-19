@@ -7,28 +7,16 @@ import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import type { ScanPageT } from '@/lib/kosztorys/worker-report/types'
 import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/labels'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-
-vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'k@t.com', name: 'Kierownik', role: 'MANAGER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-const scheduled = vi.hoisted(() => [] as (() => unknown)[])
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: (task: () => unknown) => void scheduled.push(task) }
-})
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { scheduled } from '@/__tests__/stubs/next-server'
 
 const { createScannedReportAction } = await import('@/lib/actions/worker-report-scan')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-949-scan-'
 
 describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
@@ -40,20 +28,10 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
   let itemId: number
   let itemRef: number
 
-  const ctx = { context: { skipRevalidation: true } }
+  const purgeMedia = () => purgeTestMedia(db, FILENAME_PREFIX)
 
-  const purgeMedia = () =>
-    db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
-
-  // Raw INSERT: an upload through Payload would push bytes at the Blob store for a fixture nothing opens.
-  async function insertMedia(name: string, uploadedBy = managerId): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string, uploadedBy = managerId) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
   const mediaExists = async (id: number) =>
     (await db.execute(sql`SELECT 1 FROM media WHERE id = ${id}`)).rows.length > 0
@@ -75,23 +53,23 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     db.execute(sql`UPDATE users SET active = ${active} WHERE id = ${id}`)
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeMedia()
     await purgeFixtureUsers(db)
 
     investmentId = await createTestInvestment(payload, 'EX-949 scan report spec')
-    const user = (name: string, email: string, role: 'EMPLOYEE' | 'MANAGER') =>
-      payload.create({
-        collection: 'users',
-        data: { name, role, email, password: 'test-password-123' },
-        ...ctx,
-      })
-    workerId = Number((await user('Jan Skanowany', 'scan-worker@test.local', 'EMPLOYEE')).id)
-    managerId = Number((await user('Kierownik Skanu', 'scan-manager@test.local', 'MANAGER')).id)
+    workerId = await createTestUser(payload, {
+      name: 'Jan Skanowany',
+      email: 'scan-worker@test.local',
+    })
+    managerId = await createTestUser(payload, {
+      name: 'Kierownik Skanu',
+      email: 'scan-manager@test.local',
+      role: 'MANAGER',
+    })
     authState.userId = managerId
+    authState.role = 'MANAGER'
     ;({
       itemIds: [itemId],
     } = await createKosztorysTree(payload, investmentId, {
@@ -105,9 +83,7 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     )
   })
 
-  beforeEach(() => {
-    scheduled.length = 0
-  })
+  beforeEach(() => {})
 
   afterAll(async () => {
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})
@@ -207,7 +183,7 @@ describe.skipIf(!ENV_READY)('createScannedReportAction (DB)', () => {
     }
   })
 
-  it('refuses a worker whose every etap is zakończony, and stores nothing (EX-1034)', async () => {
+  it('refuses a worker whose every etap is zakończony, and stores nothing', async () => {
     const before = (await listWorkerReports(db, investmentId, workerId)).length
     await db.execute(
       sql`UPDATE kosztorys_stages SET completed = true WHERE investment_id = ${investmentId}`,

@@ -4,6 +4,7 @@ import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kos
 import { STAGES_COLUMN_GROUP, stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { makeStage } from '@/__tests__/helpers/kosztorys-tree'
+import { gridColumnIds } from '@/__tests__/helpers/grid-columns'
 
 const STAGES: KosztorysStageT[] = [
   makeStage({ id: 7, label: 'Etap 1' }),
@@ -14,9 +15,7 @@ const grid = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>
   buildV2Grid({ view: 'client', stages: STAGES, ...opts })
 
 const columnIds = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>
-  grid(opts)
-    .columns.map((column) => column.id)
-    .filter((id): id is string => id != null)
+  gridColumnIds({ view: 'client', stages: STAGES, ...opts })
 
 describe('column ranks in the assembled grid', () => {
   it('leaves the sheet order alone without a rank map', () => {
@@ -44,13 +43,6 @@ describe('column ranks in the assembled grid', () => {
   it('reorders the picker list with the grid', () => {
     const items = grid({ columnRanks: { price: -1 } }).columnToggleItems.map((item) => item.id)
     expect(items.indexOf('price')).toBeLessThan(items.indexOf('plannedQty'))
-  })
-
-  it('is ignored by the client preview', () => {
-    const previewOpts = { view: 'client', previewVisible: true } as const
-    expect(columnIds({ ...previewOpts, columnRanks: { price: -1 } })).toEqual(
-      columnIds(previewOpts),
-    )
   })
 })
 

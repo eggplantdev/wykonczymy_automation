@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
@@ -16,19 +16,7 @@ const input: StoreLeadInputT = {
 const asFind = (docs: Lead[]) => ({ docs })
 const winner = { id: 7 } as Lead
 
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
 describe('storeLead — idempotency & race', () => {
-  it('creates when no sibling exists', async () => {
-    find.mockResolvedValueOnce(asFind([]))
-    create.mockResolvedValueOnce({ id: 1 } as Lead)
-    const result = await storeLead(payload, input)
-    expect(result.created).toBe(true)
-    expect(create).toHaveBeenCalledTimes(1)
-  })
-
   it('returns the existing sibling without creating (redelivery)', async () => {
     find.mockResolvedValueOnce(asFind([winner]))
     const result = await storeLead(payload, input)

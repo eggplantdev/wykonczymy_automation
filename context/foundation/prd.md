@@ -96,7 +96,7 @@ automated, CI-runnable E2E replaces hand-driven MCP sessions for the financial c
   created and no syncing involved.
   > **Amended (2026-08-15).** Two originally-listed surfaces are cut: **pokoje**
   > (owner, POC 2026-06-20) and **print/PDF plus every other export** (owner —
-  > EX-400 CSV, EX-666 PDF + live-formula sheet). The client-facing job they were
+  > CSV, then PDF + live-formula sheet). The client-facing job they were
   > for is done by the **client view** (S-13, token link + „Podgląd dla klienta")
   > — live rather than a file. See roadmap → Cut & folded slices.
   > **Partly reversed (2026-09-23).** The **offer** print came back as „Wygeneruj ofertę w PDF";
@@ -189,7 +189,7 @@ were challenged and resolved as "stands as written."
   > release.
   > **CUT (2026-07-28, owner).** The catalogue half shipped as szablony
   > (`kosztorys_presets`, S-09); the autocomplete half never will — superseded by
-  > „Dodaj sekcję z szablonu" (EX-503), which composes from existing prace at
+  > „Dodaj sekcję z szablonu", which composes from existing prace at
   > section granularity. See roadmap → Cut & folded slices.
 - **[new] FR-007** — Owner sees per-row, per-section, and grand totals computed
   live.

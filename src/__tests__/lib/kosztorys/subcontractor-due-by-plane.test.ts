@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
-import { sumSectionSubtotalsNet } from '@/lib/kosztorys/settlement-client-totals'
 import { hasStagesOverPlanned, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
-import type { KosztorysStageT, KosztorysTreeT, StageSplitT } from '@/lib/kosztorys/types'
+import type {
+  KosztorysStageT,
+  KosztorysTreeT,
+  SectionSubtotalT,
+  StageSplitT,
+} from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+
+const preDiscountNet = (subtotals: SectionSubtotalT[]) =>
+  subtotals.reduce((sum, s) => sum + s.net + s.discount, 0)
 
 const makePlaneTree = (
   stages: KosztorysStageT[],
@@ -43,6 +50,14 @@ const makePlaneTree = (
     ...extra,
   })
 
+const dueFor = (stages: KosztorysStageT[], extra?: Partial<KosztorysTreeT>) => {
+  const tree = makePlaneTree(stages, extra)
+  return subcontractorDueByPlane(treeToRows(tree), tree.stages)
+}
+
+const sumOf = (byWorker: Map<number | null, number>) =>
+  [...byWorker.values()].reduce((sum, value) => sum + value, 0)
+
 const allWTools: KosztorysStageT[] = [makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2 })]
 const mixed: KosztorysStageT[] = [
   makeStage({ id: 100 }),
@@ -54,11 +69,11 @@ const allNull: KosztorysStageT[] = [
 ]
 
 describe('subcontractorDueByPlane', () => {
-  it('single-plane investment matches sumSectionSubtotalsNet at that view', () => {
+  it('single-plane investment matches the section subtotals at that view', () => {
     const tree = makePlaneTree(allWTools)
     const rows = treeToRows(tree)
     const due = subcontractorDueByPlane(rows, tree.stages)
-    const parity = sumSectionSubtotalsNet(sectionSubtotalsForView(rows, tree.stages, 'w_tools'))
+    const parity = preDiscountNet(sectionSubtotalsForView(rows, tree.stages, 'w_tools'))
     // Row 1: 5 qty @ 12 = 60; row 2: 4 qty @ 12 = 48 → 108, all z narzędziami.
     expect(due.wTools).toBeCloseTo(108)
     expect(due.ownTools).toBeCloseTo(0)
@@ -67,8 +82,7 @@ describe('subcontractorDueByPlane', () => {
   })
 
   it('mixed planes sum each side at its own price', () => {
-    const tree = makePlaneTree(mixed)
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor(mixed)
     // Stage 100 (z narzędziami @ 12): row1 2·12 + row2 4·12 = 72.
     // Stage 101 (bez narzędzi @ 10): row1 3·10 = 30.
     expect(due.wTools).toBeCloseTo(72)
@@ -78,34 +92,16 @@ describe('subcontractorDueByPlane', () => {
   })
 
   it('null plane belongs to neither crew and raises the unconfirmed flag', () => {
-    const tree = makePlaneTree(allNull)
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor(allNull)
     expect(due.wTools).toBe(0)
     expect(due.ownTools).toBe(0)
     expect(due.combined).toBe(0)
     expect(due.hasUnconfirmedPlane).toBe(true)
   })
 
-  it('flags unconfirmed when any single stage is null', () => {
-    const tree = makePlaneTree([
-      makeStage({ id: 100 }),
-      makeStage({ id: 101, ordinal: 2, plane: null }),
-    ])
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
-    expect(due.hasUnconfirmedPlane).toBe(true)
-  })
-
-  it('is unchanged by per-item rabat (pre-rabat: rabat never reaches subcontractors)', () => {
-    const tree = makePlaneTree(mixed)
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
-    expect(due.combined).toBeCloseTo(102)
-  })
-
   it('is unchanged by an active global discount', () => {
-    const plain = makePlaneTree(mixed)
-    const discounted = makePlaneTree(mixed, { globalDiscount: { type: 'amount', value: 10 } })
-    const a = subcontractorDueByPlane(treeToRows(plain), plain.stages)
-    const b = subcontractorDueByPlane(treeToRows(discounted), discounted.stages)
+    const a = dueFor(mixed)
+    const b = dueFor(mixed, { globalDiscount: { type: 'amount', value: 10 } })
     expect(b.combined).toBeCloseTo(a.combined)
     expect(b.wTools).toBeCloseTo(a.wTools)
     expect(b.ownTools).toBeCloseTo(a.ownTools)
@@ -120,8 +116,7 @@ describe('subcontractorDueByPlane', () => {
   })
 
   it('no stages → zeros and no warning', () => {
-    const tree = makePlaneTree([])
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor([])
     expect(due).toEqual({
       wTools: 0,
       ownTools: 0,
@@ -143,12 +138,8 @@ describe('subcontractorDueByPlane — byWorker', () => {
       return { ...stage, split: workerId == null ? null : oneWorkerSplit(workerId) }
     })
 
-  const sumOf = (byWorker: Map<number | null, number>) =>
-    [...byWorker.values()].reduce((sum, value) => sum + value, 0)
-
   it('partitions combined across workers, unassigned included', () => {
-    const tree = makePlaneTree(assigned(mixed, [7, null]))
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor(assigned(mixed, [7, null]))
     // Stage 100 (worker 7, z narzędziami) = 72; stage 101 (nobody, bez narzędzi) = 30.
     expect(due.byWorker.get(7)).toBeCloseTo(72)
     expect(due.byWorker.get(null)).toBeCloseTo(30)
@@ -156,30 +147,24 @@ describe('subcontractorDueByPlane — byWorker', () => {
   })
 
   it('accumulates a worker holding etapy on BOTH planes into one figure', () => {
-    const tree = makePlaneTree(assigned(mixed, [7, 7]))
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor(assigned(mixed, [7, 7]))
     expect(due.byWorker.get(7)).toBeCloseTo(102)
     expect(due.byWorker.get(7)).not.toBeCloseTo(due.wTools)
     expect(sumOf(due.byWorker)).toBeCloseTo(due.combined)
   })
 
   it('a worker´s należne is unmoved by per-item rabat or a global discount', () => {
-    const plain = makePlaneTree(assigned(mixed, [7, 8]))
-    const discounted = makePlaneTree(assigned(mixed, [7, 8]), {
-      globalDiscount: { type: 'amount', value: 10 },
-    })
-    const a = subcontractorDueByPlane(treeToRows(plain), plain.stages)
-    const b = subcontractorDueByPlane(treeToRows(discounted), discounted.stages)
+    const a = dueFor(assigned(mixed, [7, 8]))
+    const b = dueFor(assigned(mixed, [7, 8]), { globalDiscount: { type: 'amount', value: 10 } })
     expect(a.byWorker.get(7)).toBeCloseTo(72)
     expect(b.byWorker.get(7)).toBeCloseTo(a.byWorker.get(7)!)
     expect(b.byWorker.get(8)).toBeCloseTo(a.byWorker.get(8)!)
   })
 
   it('credits nobody for a plane-less etap, even when it is assigned', () => {
-    const tree = makePlaneTree(
+    const due = dueFor(
       assigned([makeStage({ id: 100 }), makeStage({ id: 101, ordinal: 2, plane: null })], [7, 8]),
     )
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect(due.byWorker.has(8)).toBe(false)
     expect(sumOf(due.byWorker)).toBeCloseTo(due.combined)
   })
@@ -189,9 +174,6 @@ describe('subcontractorDueByPlane — shared etapy', () => {
   const withSplits = (splits: (StageSplitT | null)[]): KosztorysStageT[] =>
     mixed.map((stage, index) => ({ ...stage, split: splits[index] }))
 
-  const sumOf = (byWorker: Map<number | null, number>) =>
-    [...byWorker.values()].reduce((sum, value) => sum + value, 0)
-
   it('splits one etap by percent and keeps Σ byWorker equal to combined', () => {
     const split: StageSplitT = {
       mode: 'percent',
@@ -200,8 +182,7 @@ describe('subcontractorDueByPlane — shared etapy', () => {
         { workerId: 8, value: 0, takesRest: true },
       ],
     }
-    const tree = makePlaneTree(withSplits([split, oneWorkerSplit(8)]))
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor(withSplits([split, oneWorkerSplit(8)]))
     // Stage 100 = 72 → 18 / 54; stage 101 = 30 → all worker 8.
     expect(due.byWorker.get(7)).toBeCloseTo(18)
     expect(due.byWorker.get(8)).toBeCloseTo(84)
@@ -219,8 +200,7 @@ describe('subcontractorDueByPlane — shared etapy', () => {
         { workerId: 8, value: 0, takesRest: true },
       ],
     }
-    const tree = makePlaneTree(withSplits([split, null]))
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor(withSplits([split, null]))
     expect(due.byWorker.get(7)).toBeCloseTo(36)
     expect(due.byWorker.get(9)).toBeCloseTo(36)
     expect(due.byWorker.get(8)).toBe(0)
@@ -236,8 +216,7 @@ describe('subcontractorDueByPlane — shared etapy', () => {
         { workerId: 8, value: 0, takesRest: true },
       ],
     }
-    const tree = makePlaneTree([makeStage({ id: 100, plane: null, split })])
-    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    const due = dueFor([makeStage({ id: 100, plane: null, split })])
     expect([...due.unconfirmedWorkers]).toEqual([7, 8])
     expect(due.byWorker.size).toBe(0)
   })
@@ -282,19 +261,14 @@ describe('subcontractorDueByPlane — shared etapy', () => {
 })
 
 describe('pomiar liczony po planie etapu', () => {
-  it('każdy widok podwykonawcy widzi tylko swoje etapy, klient widzi całe O', () => {
-    const tree = makePlaneTree(mixed)
-    const [row1] = treeToRows(tree) // stage 100 = 2 (z narzędziami), stage 101 = 3 (bez narzędzi)
-    expect(rowTotalQtyDone(row1, tree.stages, 'w_tools')).toBe(2)
-    expect(rowTotalQtyDone(row1, tree.stages, 'own_tools')).toBe(3)
-    expect(rowTotalQtyDone(row1, tree.stages, 'client')).toBe(5)
-  })
-
-  it('etap bez wybranego trybu nie należy do żadnego widoku podwykonawcy', () => {
-    const tree = makePlaneTree(allNull)
+  it.each([
+    ['każdy widok podwykonawcy widzi tylko swoje etapy, klient widzi całe O', mixed, 2, 3],
+    ['etap bez wybranego trybu nie należy do żadnego widoku podwykonawcy', allNull, 0, 0],
+  ])('%s', (_title, stages, wTools, ownTools) => {
+    const tree = makePlaneTree(stages)
     const [row1] = treeToRows(tree)
-    expect(rowTotalQtyDone(row1, tree.stages, 'w_tools')).toBe(0)
-    expect(rowTotalQtyDone(row1, tree.stages, 'own_tools')).toBe(0)
+    expect(rowTotalQtyDone(row1, tree.stages, 'w_tools')).toBe(wTools)
+    expect(rowTotalQtyDone(row1, tree.stages, 'own_tools')).toBe(ownTools)
     expect(rowTotalQtyDone(row1, tree.stages, 'client')).toBe(5)
   })
 
@@ -302,7 +276,7 @@ describe('pomiar liczony po planie etapu', () => {
     const tree = makePlaneTree(mixed)
     const rows = treeToRows(tree)
     const razem = (view: 'w_tools' | 'own_tools') =>
-      sumSectionSubtotalsNet(sectionSubtotalsForView(rows, tree.stages, view))
+      preDiscountNet(sectionSubtotalsForView(rows, tree.stages, view))
     const due = subcontractorDueByPlane(rows, tree.stages)
 
     expect(razem('w_tools')).toBeCloseTo(due.wTools)
@@ -317,7 +291,7 @@ describe('pomiar liczony po planie etapu', () => {
     ])
     const rows = treeToRows(tree)
     const due = subcontractorDueByPlane(rows, tree.stages)
-    const full = sumSectionSubtotalsNet(sectionSubtotalsForView(rows, tree.stages, 'client'))
+    const full = preDiscountNet(sectionSubtotalsForView(rows, tree.stages, 'client'))
 
     expect(due.combined).toBeCloseTo(72) // tylko etap 100: (2 + 4) · 12
     expect(due.combined).toBeLessThan(full)

@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-886, the deferred half of 20260928_2: that migration brought back the flat
+// The deferred half of 20260928_2: that migration brought back the flat
 // `hidden_columns` / `hide_empty_rows` pair, backfilled it from `mode` + `variants`, and left the
 // variant pair standing because the unauthenticated `/k/:token` route read it under the old code.
 // DEPLOY ORDER (destructive — AGENTS.md › Migrations): the code that no longer names `mode` /

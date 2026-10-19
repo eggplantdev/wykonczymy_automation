@@ -1,14 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppLanguageProvider } from '@/components/i18n/app-language-provider'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
-
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  useRouter: () => ({ refresh: vi.fn() }),
-}))
 
 const INVESTMENTS = [{ investmentId: 1, name: 'Mokotów' }] as WorkerStageInvestmentT[]
 const REGISTERS = [{ id: 3, name: 'Kasa Jana', active: true }] as never

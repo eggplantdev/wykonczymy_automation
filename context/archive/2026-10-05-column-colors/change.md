@@ -26,7 +26,7 @@ Malowanie: `background-image` z 20% odcienia nałożony na komórkę i nagłówe
 w `globals.css`) — nie zastępuje szarego „nie wpiszesz" ani czerwonych ostrzeżeń; pasmo nagłówka
 sekcji wygrywa i zostaje jedną belką.
 
-## Odłożone — zapis do bazy (EX-987, parked)
+## Odłożone — zapis do bazy (parked)
 
 Jeśli kolor ma stać się częścią kosztorysu (widoczny dla innych i u inwestora), szacunek ~1,5 dnia:
 

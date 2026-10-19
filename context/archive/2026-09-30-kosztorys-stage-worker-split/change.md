@@ -11,9 +11,7 @@ worktree: null
 
 ## Notes
 
-Linear: **EX-943**
-
-Reverses EX-613's „one stage, one worker — splitting a stage between people is explicitly out of
+Reverses the earlier „one stage, one worker — splitting a stage between people is explicitly out of
 scope" (`context/archive/2026-07-27-kosztorys-stage-worker-assignment/change.md`). The owner's sheet
 has no split to copy (a stage header there is just a crew name), so every rule below is an owner
 decision, not parity.
@@ -21,7 +19,7 @@ decision, not parity.
 Decided with the owner (2026-09-30):
 
 - **Several workers per etap.** The pool being split is the etap's executed-work value — the figure
-  EX-613 credits wholesale to the one assigned worker today (pomiar × stawka podwykonawcy, pre-rabat,
+  the current scheme credits wholesale to the one assigned worker today (pomiar × stawka podwykonawcy, pre-rabat,
   at the etap's own plane).
 - **Two modes, chosen per etap: percent or amount.** Example: 4 workers — 25% each, or 1 000 zł to
   each of three and the rest to the fourth.

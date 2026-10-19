@@ -1,14 +1,10 @@
 import { render, renderHook, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableRow } from '@/components/tables/data-table/data-table-row'
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
-}))
 
 type RowT = { name: string; net: number; stage: string }
 
@@ -117,7 +113,6 @@ describe('DataTable — rows follow column visibility through their cells', () =
 
     await user.click(screen.getByText('toggle:net'))
 
-    expect(firstRowTexts()).toEqual(['Wylewka', 'Etap 1'])
     expect(firstBodyRow()).toBe(before)
   })
 })

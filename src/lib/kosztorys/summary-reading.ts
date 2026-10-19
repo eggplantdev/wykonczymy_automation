@@ -10,13 +10,6 @@ export type SummaryReadingT = {
   discountAmount: number
 }
 
-export function readingFromTransactions(financials: InvestmentFinancialsT): SummaryReadingT {
-  return {
-    laborCostsNet: financials.totalLaborCosts - financials.totalDiscount,
-    discountAmount: financials.totalDiscount,
-  }
-}
-
 export function readingFromKosztorys(
   clientTotals: KosztorysClientTotalsT | null | undefined,
 ): SummaryReadingT {

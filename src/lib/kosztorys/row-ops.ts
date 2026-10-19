@@ -28,7 +28,7 @@ export function applyAddItem(rows: KosztorysV2RowT[], row: KosztorysV2RowT): Kos
 
 export type CatalogueSlicePlacementT = 'prepend' | 'fold' | 'reseed'
 
-// `rows` is mount-frozen (EX-441), so only a re-seed from the server draws it.
+// `rows` is mount-frozen, so only a re-seed from the server draws it.
 export function catalogueSlicePlacement(
   sectionIds: ReadonlySet<number>,
   sectionId: number,

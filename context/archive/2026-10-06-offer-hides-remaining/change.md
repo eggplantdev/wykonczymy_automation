@@ -23,4 +23,4 @@ Resulting offer view: Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmia
 
 Folded into `2026-10-07-kosztorys-przedmiar-aktualny` (2026-10-07) — same trigger (first etap entry) adds Przedmiar aktualny to the investor document; implement there, archive this folder with it.
 
-Folded into EX-921 (`kosztorys-przedmiar-aktualny`, Phase 4) and implemented there.
+Folded into `kosztorys-przedmiar-aktualny` (Phase 4) and implemented there.

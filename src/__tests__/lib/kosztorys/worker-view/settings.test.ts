@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { WORKER_VIEW_GROUPS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
 import { ALL_PLANE_PRICE_KEYS, planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
+import { toHiddenColumnMap } from '@/lib/kosztorys/columns/document-column-visibility'
 import {
   WORKER_VIEW_DEFAULT_SETTINGS,
   sanitizeWorkerViewSettings,
@@ -28,10 +29,19 @@ const CLIENT_PRICED = [
   'note',
 ]
 
+const WORKER_KEYS = new Set(WORKER_VIEW_GROUPS.flatMap((group) => group.keys))
+const storedHiding = (...keys: string[]) => toHiddenColumnMap(keys, WORKER_KEYS)
+
 describe('worker view settings', () => {
   it('drops a hand-added client-price or other-plane key', () => {
     const settings = sanitizeWorkerViewSettings({
-      hiddenColumns: ['unit', 'price', 'plannedNet', 'discountAmount', 'price__own_tools'],
+      hiddenColumns: {
+        ...storedHiding('unit'),
+        price: true,
+        plannedNet: true,
+        discountAmount: true,
+        price__own_tools: true,
+      },
       hideEmptyRows: false,
     })
 
@@ -57,7 +67,7 @@ describe('worker view settings', () => {
 
   it('reads a stored `plannedQty` untick and position as the Przedmiar ofertowy', () => {
     const settings = sanitizeWorkerViewSettings({
-      hiddenColumns: ['plannedQty', 'unit'],
+      hiddenColumns: storedHiding('plannedQty', 'unit'),
       columnRanks: { plannedQty: 3 },
     })
 
@@ -107,11 +117,6 @@ describe('worker view settings', () => {
     for (const key of CLIENT_PRICED) expect(columns.has(key), key).toBe(false)
   })
 
-  it('no key in any group is itself a client-priced column', () => {
-    const grouped = WORKER_VIEW_GROUPS.flatMap((group) => group.keys)
-    for (const key of CLIENT_PRICED) expect(grouped, key).not.toContain(key)
-  })
-
   it('subtracts the hidden keys, the stawka included', () => {
     const columns = workerVisibleColumns('own_tools', ['rate', STAGES_COLUMN_GROUP])
 
@@ -122,7 +127,7 @@ describe('worker view settings', () => {
 
   it('keeps a stored order only for keys inside the worker ceiling, never for „Opis prac"', () => {
     const settings = sanitizeWorkerViewSettings({
-      hiddenColumns: ['description', 'unit'],
+      hiddenColumns: { ...storedHiding('unit'), description: true },
       columnRanks: { rate: -1, price: -2, description: 99, net: Number.NaN, unit: 'x' },
     })
 
@@ -156,7 +161,10 @@ describe('stored worker view settings', () => {
   })
 
   it('stores one choice per offered column and reads back to the same settings', () => {
-    const settings = sanitizeWorkerViewSettings({ hiddenColumns: ['rate'], hideEmptyRows: false })
+    const settings = sanitizeWorkerViewSettings({
+      hiddenColumns: storedHiding('rate'),
+      hideEmptyRows: false,
+    })
     const stored = toStoredWorkerViewSettings(settings)
 
     expect(stored.hiddenColumns).toMatchObject({ rate: true, plannedQty: false, unit: false })

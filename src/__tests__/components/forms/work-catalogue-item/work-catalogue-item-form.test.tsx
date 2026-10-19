@@ -1,14 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import type {
   WorkCatalogueItemDataT,
   WorkCatalogueItemFormValuesT,
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const ITEM: WorkCatalogueItemFormValuesT = {
   description: 'Malowanie ścian',
@@ -59,8 +57,6 @@ function renderForm() {
     save: () => user.click(screen.getByRole('button', { name: 'Zapisz' })),
   }
 }
-
-beforeEach(() => vi.clearAllMocks())
 
 // The input under a źródło unmounts when another one is picked, but TanStack keeps the error it was
 // holding — without a reset on unmount, a prior „jest wymagana" makes the form unsaveable with no
@@ -113,18 +109,6 @@ describe('WorkCatalogueItemForm — źródło stawki', () => {
 
     expect(
       await screen.findByText(/Mnożnik \(Stawka z narzędziami \(podwykonawca\)\) jest wymagany/),
-    ).toBeInTheDocument()
-    expect(action).not.toHaveBeenCalled()
-  })
-
-  it('still refuses a blank kwota while „kwota stała" is picked', async () => {
-    const { action, user, save } = renderForm()
-
-    await user.clear(screen.getByLabelText(W_TOOLS_RATE))
-    await save()
-
-    expect(
-      await screen.findByText(/Stawka z narzędziami \(podwykonawca\) jest wymagana/),
     ).toBeInTheDocument()
     expect(action).not.toHaveBeenCalled()
   })

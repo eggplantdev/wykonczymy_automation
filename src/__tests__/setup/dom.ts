@@ -1,4 +1,8 @@
+import { afterAll, afterEach, vi, type Mock } from 'vitest'
+import { cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+import { navigationState } from '@/__tests__/stubs/next-navigation'
+import { resetAuthState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // Radix and cmdk gate on them — without the stubs a popover mounts and
 // instantly hides
@@ -38,3 +42,59 @@ if (!Element.prototype.hasPointerCapture) {
   Element.prototype.setPointerCapture = () => {}
   Element.prototype.releasePointerCapture = () => {}
 }
+
+// On `globalThis`: a module cached by an earlier `dom-shared` file keeps the toast it imported then.
+vi.mock('@/lib/utils/toast', () => ({
+  toastMessage: ((globalThis as { domToast?: Mock }).domToast ??= vi.fn()),
+}))
+
+// The App Router hooks throw outside a mounted Next app.
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  ...(await import('@/__tests__/stubs/next-navigation')),
+}))
+
+const { passThrough, resetSeams } = await vi.hoisted(() => import('@/__tests__/setup/seams'))
+
+vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', (importOriginal) =>
+  passThrough(importOriginal, 'useKosztorysEditorContext'),
+)
+vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', (importOriginal) =>
+  passThrough(importOriginal, 'useKosztorysActions'),
+)
+vi.mock('@/lib/media/submit-with-uploads', (importOriginal) =>
+  passThrough(importOriginal, 'submitWithUploads', 'submitWithUploadRows'),
+)
+vi.mock('@/lib/utils/scan-receipt-client', (importOriginal) =>
+  passThrough(importOriginal, 'scanReceiptClient'),
+)
+vi.mock('@/lib/media/ingest-files', (importOriginal) => passThrough(importOriginal, 'ingestFiles'))
+vi.mock('@/hooks/use-current-user', (importOriginal) =>
+  passThrough(importOriginal, 'useCurrentUser'),
+)
+
+vi.mock('react-resize-detector', () => import('@/__tests__/stubs/react-resize-detector'))
+
+// `dom-shared` runs every file in one jsdom window; these run before the spec's own top-level setup.
+Object.assign(navigationState, { pathname: '/', searchParams: new URLSearchParams() })
+resetAuthState()
+resetSeams()
+for (const action of (globalThis as { serverActionStubs?: Mock[] }).serverActionStubs ?? []) {
+  action.mockReset()
+}
+window.history.replaceState(null, '', '/')
+localStorage.clear()
+sessionStorage.clear()
+
+// Testing Library registers its auto-cleanup once per module instance — in `dom-shared` only for
+// the first file.
+afterEach(() => {
+  cleanup()
+  document.body.innerHTML = ''
+})
+
+afterAll(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+  vi.useRealTimers()
+})

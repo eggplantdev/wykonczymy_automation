@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysFiltersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-filters-menu'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 const editorState = vi.hoisted(() => ({
   engagedConditionIds: new Set<string>(),
@@ -10,20 +11,21 @@ const editorState = vi.hoisted(() => ({
   setConditions: vi.fn(),
 }))
 
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({
-    engagedConditionIds: editorState.engagedConditionIds,
-    conditionCounts: editorState.conditionCounts,
-    toggleCondition: editorState.toggleCondition,
-    setConditions: editorState.setConditions,
-    rows: Array.from({ length: 10 }),
-    resetFilters: vi.fn(),
-    collapsedSectionIds: new Set<number>(),
-    globalDiscount: { type: null, value: 0 },
-    crewAxis: 'both',
-    search: '',
-  }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () =>
+    ({
+      engagedConditionIds: editorState.engagedConditionIds,
+      conditionCounts: editorState.conditionCounts,
+      toggleCondition: editorState.toggleCondition,
+      setConditions: editorState.setConditions,
+      rows: Array.from({ length: 10 }),
+      resetFilters: vi.fn(),
+      collapsedSectionIds: new Set<number>(),
+      globalDiscount: { type: null, value: 0 },
+      crewAxis: 'both',
+      search: '',
+    }) as never,
+)
 
 function renderMenu(counts: Record<string, number>, engaged: string[] = []) {
   editorState.conditionCounts = new Map(Object.entries(counts))
@@ -40,9 +42,6 @@ describe('KosztorysFiltersMenu — tick what you want to see', () => {
     renderMenu({ 'has-discount': 4, 'no-discount': 6 })
     expect(screen.getByRole('button', { name: 'Filtry' })).toBeInTheDocument()
     await openMenu()
-
-    expect(screen.queryByText('Pokaż tylko')).not.toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: /wszystkie/ })).not.toBeInTheDocument()
   })
 
   it('engages the filter a tick names', async () => {

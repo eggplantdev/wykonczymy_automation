@@ -12,7 +12,7 @@ import type { LandingAssetT } from './landing'
  * The route budgets `MAX_LANDING_ASSETS × FETCH_TIMEOUT_MS` against its own `maxDuration`, so
  * raising either one without the other is what puts the handler back over the platform ceiling.
  */
-export const FETCH_TIMEOUT_MS = 15_000
+const FETCH_TIMEOUT_MS = 15_000
 export const MAX_ASSET_BYTES = 8 * 1024 * 1024
 
 /**

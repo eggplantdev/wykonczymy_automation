@@ -1,23 +1,25 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { type CatalogueSeedT, seedCatalogueInvestments } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { expectMoney } from './support/money'
 import { tableCell } from './support/table'
 import { settleWrite, waitForHydration } from './support/wait'
 import {
   collapseSummaryPanel,
   commitCellValue,
-  gridRow,
+  GRID_VIEWPORT,
   openEditor,
+  openRowMenu,
+  openSectionMenu,
   rowCell,
 } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-let seed: CatalogueSeedT
+let seed: E2ESeedsT['catalogue']
 
-test.beforeAll(async ({ browser }) => {
-  seed = await seedCatalogueInvestments(browser)
+test.beforeAll(() => {
+  seed = readSeed('catalogue')
 })
 
 const SEEDED_PRICE = 100
@@ -25,12 +27,17 @@ const RAISED_PRICE = 150
 
 const PRICE_COLUMN = COLUMN_LABELS.price
 const CATALOGUE_PRICE_COLUMN = 'Cena j.m.'
+const SAVE_TITLE = 'Zapisz do katalogu'
+const UPDATE_TITLE = 'Aktualizuj pozycję w katalogu prac'
 
-async function openSaveDialog(page: Page, description: string): Promise<Locator> {
-  await gridRow(page, description).getByRole('button', { name: 'Akcje wiersza' }).click()
-  await page.getByRole('menuitem', { name: 'Zapisz pozycję do katalogu prac' }).click()
+async function openSaveDialog(page: Page, description: string, title: string): Promise<Locator> {
+  await openRowMenu(page, description)
+  // A pozycja already linked to the katalog offers „Aktualizuj…" in place of „Zapisz…".
+  await page
+    .getByRole('menuitem', { name: /^(Zapisz pozycję do|Aktualizuj pozycję w) katalogu prac$/ })
+    .click()
   const dialog = page.getByRole('dialog')
-  await expect(dialog).toContainText('Zapisz do katalogu')
+  await expect(dialog).toContainText(title)
   return dialog
 }
 
@@ -59,7 +66,7 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
 
   await openEditor(page, seed.save.id)
 
-  const dialog = await openSaveDialog(page, seed.save.item)
+  const dialog = await openSaveDialog(page, seed.save.item, SAVE_TITLE)
   await expect(dialog).toContainText('Do zapisania')
   await expect(dialog).not.toContainText('W katalogu')
   await expectMoney(dialog, SEEDED_PRICE, 'cena z podglądu serwera')
@@ -80,15 +87,15 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
   await page.reload()
   await collapseSummaryPanel(page)
 
-  const overwrite = await openSaveDialog(page, seed.save.item)
+  const overwrite = await openSaveDialog(page, seed.save.item, UPDATE_TITLE)
   await expect(overwrite).toContainText('W katalogu')
   await expect(overwrite).toContainText('Po zapisie')
   await expectMoney(overwrite, SEEDED_PRICE, 'stara cena z katalogu')
   await expectMoney(overwrite, RAISED_PRICE, 'nowa cena z rozpiski')
-  await overwrite.getByRole('button', { name: 'Nadpisz…' }).click()
+  await overwrite.getByRole('button', { name: 'Aktualizuj…' }).click()
 
   const confirm = page.getByRole('alertdialog')
-  await expect(confirm).toContainText(`Nadpisać „${seed.save.item}"`)
+  await expect(confirm).toContainText(`Zaktualizować „${seed.save.item}" w katalogu?`)
   await expectMoney(confirm, SEEDED_PRICE, 'kwota „przed" w potwierdzeniu')
   await expectMoney(confirm, RAISED_PRICE, 'kwota „po" w potwierdzeniu')
 
@@ -101,10 +108,13 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
   )
 
   await openEditor(page, seed.save.id)
-  const again = await openSaveDialog(page, seed.save.item)
-  await again.getByRole('button', { name: 'Nadpisz…' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Nadpisz', exact: true }).click()
-  await expect(page.getByText('Nadpisano pozycję katalogu')).toBeVisible()
+  const again = await openSaveDialog(page, seed.save.item, UPDATE_TITLE)
+  await again.getByRole('button', { name: 'Aktualizuj…' }).click()
+  await page
+    .getByRole('alertdialog')
+    .getByRole('button', { name: 'Aktualizuj', exact: true })
+    .click()
+  await expect(page.getByText('Zaktualizowano pozycję katalogu')).toBeVisible()
 
   await findInCatalogue(page, seed.save.item)
   await expectMoney(
@@ -148,15 +158,11 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
   await openEditor(page, seed.insert.id)
 
   // only the save action invalidates the katalog cache that the picker below reads from.
-  const dialog = await openSaveDialog(page, seed.insert.item)
+  const dialog = await openSaveDialog(page, seed.insert.item, SAVE_TITLE)
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(page.getByText('Dodano do katalogu')).toBeVisible()
 
-  await page
-    .locator('.dsg-row.kosztorys-section-header')
-    .filter({ has: page.locator('input[value="Sekcja beta"]') })
-    .getByRole('button', { name: 'Akcje sekcji' })
-    .click()
+  await openSectionMenu(page, 'Sekcja beta')
   await page.getByRole('menuitem', { name: 'Dodaj pracę do sekcji…' }).click()
 
   const picker = page.getByRole('dialog')

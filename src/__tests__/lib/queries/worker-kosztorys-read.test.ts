@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('server-only', () => ({}))
-
 const authState = vi.hoisted(() => ({
   result: { success: true, user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' } } as
     | { success: true; user: { id: number; email: string; name: string; role: string } }
@@ -16,7 +14,9 @@ vi.mock('@/lib/queries/kosztorys', () => ({ buildKosztorysTree }))
 vi.mock('payload', () => ({
   getPayload: vi.fn(async () => ({ findByID: vi.fn(), find: vi.fn(), findGlobal: vi.fn() })),
 }))
-vi.mock('@payload-config', () => ({ default: {} }))
+
+const { requireAuth } = await import('@/lib/auth/require-auth')
+const { MANAGEMENT_ROLES } = await import('@/lib/auth/roles')
 
 const { getWorkerKosztorysPreview } = await import('@/lib/queries/worker-kosztorys')
 const { getWorkerKosztorysPrintData } =
@@ -32,13 +32,7 @@ describe('worker kosztorys preview auth gate', () => {
 
     await expect(getWorkerKosztorysPreview(42, 7)).rejects.toThrow('Brak autoryzacji')
     expect(buildKosztorysTree).not.toHaveBeenCalled()
-  })
-
-  it('rejects a role below MANAGEMENT_ROLES the same way — requireAuth owns the role check', async () => {
-    authState.result = { success: false, error: 'Brak uprawnień' }
-
-    await expect(getWorkerKosztorysPreview(42, 7)).rejects.toThrow('Brak uprawnień')
-    expect(buildKosztorysTree).not.toHaveBeenCalled()
+    expect(requireAuth).toHaveBeenCalledWith(MANAGEMENT_ROLES)
   })
 
   it('gates the PDF read behind the same check', async () => {

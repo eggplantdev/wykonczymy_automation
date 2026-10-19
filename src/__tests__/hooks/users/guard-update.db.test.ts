@@ -1,0 +1,67 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+
+describe.skipIf(!ENV_READY)('users beforeChange — trashed account freeze (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workerId: number
+
+  const nameOf = async () => {
+    const { rows } = await db.execute(sql`SELECT name FROM users WHERE id = ${workerId}`)
+    return rows[0]?.name
+  }
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    await purgeFixtureUsers(db)
+    workerId = await createTestUser(payload, {
+      name: 'Pracownik W Koszu',
+      email: 'users-update-guard@test.local',
+    })
+    await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${workerId}`)
+  })
+
+  afterAll(async () => {
+    await purgeFixtureUsers(db)
+  })
+
+  it('refuses editing a trashed worker', async () => {
+    await expect(
+      payload.update({
+        collection: 'users',
+        id: workerId,
+        data: { name: 'Zmieniony' },
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/w koszu/)
+
+    expect(await nameOf()).toBe('Pracownik W Koszu')
+  })
+
+  it('allows the restore, after which edits go through again', async () => {
+    await payload.update({
+      collection: 'users',
+      id: workerId,
+      data: { trashedAt: null },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    await payload.update({
+      collection: 'users',
+      id: workerId,
+      data: { name: 'Przywrócony' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+
+    const { rows } = await db.execute(sql`SELECT trashed_at FROM users WHERE id = ${workerId}`)
+    expect(rows[0]?.trashed_at).toBeNull()
+    expect(await nameOf()).toBe('Przywrócony')
+  })
+})

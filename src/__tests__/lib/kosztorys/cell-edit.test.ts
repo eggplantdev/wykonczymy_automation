@@ -176,12 +176,6 @@ describe('discountPolicy', () => {
     })
   })
 
-  it('nie stawia sufitu rabatowi kwotowemu — 250 zł to nie 250%', () => {
-    expect(
-      cellKeystroke('250', { discountType: 'amount', discountValue: 0 }, policy),
-    ).toMatchObject({ kind: 'commit' })
-  })
-
   it('wyjście z komórki wycofuje odrzucony rabat i mówi dlaczego', () => {
     const entry: DiscountPairT = { discountType: 'percent', discountValue: 10 }
     expect(

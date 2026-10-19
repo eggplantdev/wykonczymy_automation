@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -7,11 +7,9 @@ import {
   trashDaysAgo,
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/register'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
 
 describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
   let payload: Payload
@@ -27,71 +25,36 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
   }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    const ownerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Kosz Kas Purge',
-            role: 'EMPLOYEE',
-            email: 'kosz-kas-purge@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
-    const createRegister = async (name: string) =>
-      Number(
-        (
-          await payload.create({
-            collection: 'cash-registers',
-            data: { name, type: 'AUXILIARY', owner: ownerId },
-            context: { skipRevalidation: true },
-          })
-        ).id,
-      )
-    expired = await createRegister('Kasa do wyczyszczenia')
-    recent = await createRegister('Kasa w okresie')
-    pinned = await createRegister('Kasa z transakcją po koszu')
+    const ownerId = await createTestUser(payload, {
+      name: 'Kosz Kas Purge',
+      email: 'kosz-kas-purge@test.local',
+    })
+    expired = await createTestRegister(payload, ownerId, 'Kasa do wyczyszczenia')
+    recent = await createTestRegister(payload, ownerId, 'Kasa w okresie')
+    pinned = await createTestRegister(payload, ownerId, 'Kasa z transakcją po koszu')
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, pinned, PAST_RETENTION_DAYS, 'cash_registers')
-    const trashedOwnerId = Number(
-      (
-        await payload.create({
-          collection: 'users',
-          data: {
-            name: 'Kosz Kas Purge Właściciel w koszu',
-            role: 'EMPLOYEE',
-            email: 'kosz-kas-purge-trashed-owner@test.local',
-            password: 'test-password-123',
-          },
-          context: { skipRevalidation: true },
-        })
-      ).id,
+    const { ownerId: trashedOwnerId, registerId } = await createRegisterOwner(
+      payload,
+      {
+        name: 'Kosz Kas Purge Właściciel w koszu',
+        email: 'kosz-kas-purge-trashed-owner@test.local',
+        registerName: 'Kasa pracownika w koszu',
+      },
+      { context: { skipRevalidation: true } },
     )
-    withTrashedOwner = Number(
-      (
-        await payload.create({
-          collection: 'cash-registers',
-          data: { name: 'Kasa pracownika w koszu', type: 'AUXILIARY', owner: trashedOwnerId },
-          context: { skipRevalidation: true },
-        })
-      ).id,
-    )
+    withTrashedOwner = registerId
     await trashDaysAgo(db, withTrashedOwner, PAST_RETENTION_DAYS, 'cash_registers')
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${trashedOwnerId}`)
     // Only raw SQL gets past the write gate — the shape a purge must still refuse to orphan.
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
-      VALUES ('kosz-kas purge', 50, now(), 'EMPLOYEE_EXPENSE'::enum_transactions_type, 'CASH', ${pinned})
+      VALUES ('kosz-kas purge', 50, now(), 'OTHER'::enum_transactions_type, 'CASH', ${pinned})
     `)
   })
 

@@ -37,8 +37,8 @@ export type TransferRowT = {
   settled: boolean
   vatPlane: VatPlaneT | null
   originalType: TransferTypeT | null
-  // null on every other type and on a wypłata booked before EX-1042, which no worker was ever asked
-  // about.
+  // null on every other type and on a wypłata booked before payout confirmation existed — no worker
+  // was ever asked about those.
   payoutStatus: PayoutStatusT | null
   payoutDecidedAt: string | null
   payoutRejectionReason: string | null

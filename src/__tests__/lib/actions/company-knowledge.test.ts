@@ -2,10 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // The session is mocked rather than `requireAuth`, so the role gate under
 // test is the real one.
-vi.mock('server-only', () => ({}))
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const writes = vi.hoisted(() => ({
   create: vi.fn(async () => ({ id: 1 })),
@@ -13,7 +11,6 @@ const writes = vi.hoisted(() => ({
   delete: vi.fn(async () => ({})),
   execute: vi.fn(async () => ({ rows: [{ next: -1 }] })),
 }))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
   getPayload: vi.fn(async () => ({
@@ -44,7 +41,6 @@ const nothingWritten = () => {
 
 describe('company knowledge actions', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     sessionAs('MANAGER')
   })
 

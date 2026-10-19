@@ -21,7 +21,7 @@ import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 const qtyDone = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   ctx.qtyDoneByRowId?.get(row.id) ?? rowTotalQtyDone(row, ctx.stages, 'client')
 
-// Both przedmiary count (EX-921): a pozycja added after the offer has ofertowy 0 and a priced
+// Both przedmiary count: a pozycja added after the offer has ofertowy 0 and a priced
 // aktualizacja, and the client's document still shows that figure.
 const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   !(row.plannedQty > 0) && !(resolvedCurrentPlannedQty(row) > 0) && !(qtyDone(row, ctx) > 0)
@@ -66,7 +66,7 @@ function settledAtPercentRate(
   )
 }
 
-const percentRateProblemLabel = (plane: ToolPlaneT, count: number) =>
+const percentRateProblemLabel = (count: number) =>
   `Stawki wykonawców liczone według formuły — ta inwestycja ma materiały wliczone w robociznę, ` +
   `więc stawki liczone ze współczynnika będą zawyżone; ustaw „Źródło ceny wykonawcy" na „kwota stała" ` +
   `(${count})`
@@ -204,7 +204,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'measured',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
   },
-  // Its own group: ticks in „Przedmiar" and „Wykonana praca" AND together, so only this pair reaches their union.
+  // Its own group: ticks in „Przedmiar" and „Wykonana praca" AND together.
   {
     id: 'empty-both-axes',
     label: 'bez przedmiaru i bez wykonanej pracy',
@@ -394,7 +394,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    problemLabel: (count) => percentRateProblemLabel('w_tools', count),
+    problemLabel: percentRateProblemLabel,
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'w_tools'),
   },
   {
@@ -404,7 +404,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
-    problemLabel: (count) => percentRateProblemLabel('own_tools', count),
+    problemLabel: percentRateProblemLabel,
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'own_tools'),
   },
   ...TRANSLATION_LANGUAGES.flatMap((language): RowConditionT[] => [

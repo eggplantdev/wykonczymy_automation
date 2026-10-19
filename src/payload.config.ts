@@ -78,6 +78,8 @@ export default buildConfig({
   email: nodemailerAdapter({
     defaultFromAddress: process.env.EMAIL_USER ?? '',
     defaultFromName: 'Wykonczymy',
+    // Verify holds every getPayload() boot (DB specs, seed scripts) on an SMTP round trip.
+    skipVerify: process.env.NODE_ENV !== 'production',
     transport: nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: 465,

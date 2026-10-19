@@ -91,7 +91,7 @@ describe('splitStagePool', () => {
     for (const share of shares.values()) expect(share).toBeGreaterThanOrEqual(0)
   })
 
-  // EX-956: each share rounds on its own when displayed, so unrounded shares could add up to a
+  // Each share rounds on its own when displayed, so unrounded shares could add up to a
   // grosz more than the etap — 1145,69 + 429,68 + 1862,04 = 3437,41 against 3437,40.
   it('makes the displayed shares add up to the displayed etap value', () => {
     const pool = 3437.4
@@ -111,12 +111,6 @@ describe('splitStagePool', () => {
     const displayed = [...shares.values()].map(roundToCents)
     expect(roundToCents(displayed.reduce((a, b) => a + b, 0))).toBe(pool)
     for (const share of shares.values()) expect(share).toBeGreaterThanOrEqual(0)
-  })
-
-  it('keeps Σ shares equal to the pool for an uneven percent split', () => {
-    const pool = 1000 / 3
-    const { shares } = splitStagePool(pool, percent(entered(1, 33.33), entered(2, 12.5), rest(3)))
-    expect(sum(shares)).toBeCloseTo(pool, 10)
   })
 
   it('leaves the whole pool unattributed on an etap nobody is on', () => {

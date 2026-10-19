@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { baseItem } from '@/__tests__/helpers/kosztorys-tree'
 import { cellKeystroke, cellSettle } from '@/lib/kosztorys/cell-edit'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
@@ -17,27 +18,13 @@ const settle = (draft: string, rowData: ViewPricingT, view: ToolPlaneT, entry: n
 // Client price 100 makes every threshold readable at a glance: ceiling 65, which the w_tools
 // coefficient price meets exactly.
 const row: ViewPricingT = {
+  ...baseItem,
   id: 1,
-  sectionId: 10,
-  displayOrder: 0,
   description: 'Malowanie',
-  descriptionTranslations: {},
-  unit: 'm2',
   plannedQty: 10,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
-  wToolsOverrideCoeff: null,
-  ownToolsOverrideCoeff: null,
-  note: null,
-  catalogueItemId: null,
-  currentPlannedQty: null,
-  aiPlannedQty: null,
-  changeReason: null,
-  reviewStatus: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
   globalOwnToolsCoeff: 0.55,

@@ -1,5 +1,4 @@
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
-import { formOptions } from '@tanstack/react-form'
 import type { FormApiOfT } from '@/components/forms/hooks/form-api-of'
 import { randomId } from '@/lib/utils/random-id'
 
@@ -66,21 +65,5 @@ export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT 
 export function isBlankRow(row: Pick<BulkLineItemT, 'description' | 'amount'>): boolean {
   return !row.description && !row.amount
 }
-
-export const bulkExpenseFormOptions = formOptions({
-  defaultValues: {
-    date: '',
-    type: '',
-    paymentMethod: '',
-    sourceRegister: '',
-    targetRegister: '',
-    investment: '',
-    worker: '',
-    settled: false,
-    lineItems: [makeLineItem()],
-    // `as` (not `satisfies`) so TFormData is exactly BulkExpenseFormValuesT — `satisfies` would
-    // keep `settled: false` as a literal and reject the parent form's `settled: boolean`.
-  } as BulkExpenseFormValuesT,
-})
 
 export type BulkExpenseFormApiT = FormApiOfT<BulkExpenseFormValuesT>

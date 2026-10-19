@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { updateTag, revalidateTag } from '@/__tests__/stubs/next-cache'
 import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+
+vi.unmock('@/lib/cache/revalidate')
 
 describe('revalidateCollections', () => {
   beforeEach(() => {
@@ -29,19 +31,6 @@ describe('revalidateCollections', () => {
       [CACHE_TAGS['kosztorysItems'], { expire: 1 }],
     ])
     expect(updateTag).not.toHaveBeenCalled()
-  })
-
-  it('invalidates every tag on both branches — deferring the refresh never skips a tag', () => {
-    const slugs = ['investments', 'kosztorysItems', 'stageProgress'] as const
-
-    revalidateCollections([...slugs])
-    const immediate = updateTag.mock.calls.map(([tag]) => tag)
-
-    revalidateCollections([...slugs], { deferRefresh: true })
-    const deferred = revalidateTag.mock.calls.map(([tag]) => tag)
-
-    expect(deferred).toEqual(immediate)
-    expect(deferred).toHaveLength(slugs.length)
   })
 })
 

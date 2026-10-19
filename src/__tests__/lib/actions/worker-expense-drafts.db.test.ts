@@ -3,33 +3,20 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import { EXPIRE_NEXT, EXPIRE_NOW } from '@/lib/cache/tags'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { purgeFixtureUsers, firstUserId } from '@/__tests__/helpers/user'
+import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
-
-vi.mock('server-only', () => ({}))
-// after() schedules the sheet sync (live Google credentials) and throws outside a request scope.
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
-})
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
 const { revalidateTag } = await import('@/__tests__/stubs/next-cache')
 const { revalidateCollections } = await import('@/__tests__/stubs/cache-revalidate')
 const { rejectExpenseDraftAction } = await import('@/lib/actions/worker-expense-drafts')
 
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-decide-'
 
 describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
@@ -43,17 +30,16 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
   const ctx = { context: { skipRevalidation: true } }
 
   async function createDraft(name: string): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${workerId})
-      RETURNING id
-    `)
+    const mediaId = await insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, {
+      kind: null,
+      createdById: workerId,
+    })
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId,
       investmentId,
       cashRegisterId: registerId,
       note: null,
-      mediaIds: [Number(rows[0].id)],
+      mediaIds: [mediaId],
     })
     if (draftId === null) throw new Error('draft fixture refused')
     return draftId
@@ -99,9 +85,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     )
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
@@ -111,21 +95,14 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
       { name: 'Decide W', email: 'worker-expense-decide@test.local', registerName: 'Kasa W' },
       ctx,
     ))
-    const managers = await payload.find({
-      collection: 'users',
-      where: { role: { equals: 'OWNER' } },
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
+    authState.userId = await firstUserId(payload, { role: 'OWNER' })
     const categories = await payload.find({
       collection: 'expense-categories',
       limit: 1,
       depth: 0,
       overrideAccess: true,
     })
-    if (!managers.docs[0] || !categories.docs[0]) throw new Error('missing OWNER / category')
-    authState.userId = Number(managers.docs[0].id)
+    if (!categories.docs[0]) throw new Error('missing category')
     expenseCategoryId = Number(categories.docs[0].id)
   })
 
@@ -133,7 +110,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     await db.execute(sql`
       DELETE FROM transactions WHERE source_register_id = ${registerId}
     `)
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     if (investmentId) await deleteTestInvestment(payload, investmentId).catch(() => {})
     await purgeFixtureUsers(db)
   })
@@ -152,7 +129,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     })
   })
 
-  // An immediate expiry re-renders the dashboard inside the booking's response (EX-850).
+  // An immediate expiry re-renders the dashboard inside the booking's response.
   it('accepting expires the kasa, investment and transfers tags deferred, never immediately', async () => {
     const draftId = await createDraft('deferred')
     vi.clearAllMocks()
@@ -172,7 +149,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
 
     expect(await accept(draftId, description)).toEqual({
       success: false,
-      error: DRAFT_ALREADY_DECIDED,
+      error: pl.notices.draftAlreadyDecided,
       messageKey: 'draftAlreadyDecided',
       code: 'ALREADY_DECIDED',
     })
@@ -190,7 +167,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
 
     expect(await rejectExpenseDraftAction(accepted)).toEqual({
       success: false,
-      error: DRAFT_ALREADY_DECIDED,
+      error: pl.notices.draftAlreadyDecided,
       messageKey: 'draftAlreadyDecided',
     })
     expect(await readDraft(accepted)).toEqual(before)

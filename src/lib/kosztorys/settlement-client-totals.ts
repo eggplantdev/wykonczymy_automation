@@ -33,15 +33,11 @@ export function clientTotalsFromSubtotals(
 ): KosztorysClientTotalsT {
   const doneNet = clientSubtotals.reduce((sum, s) => sum + s.net, 0)
   const itemDiscountNet = clientSubtotals.reduce((sum, s) => sum + s.discount, 0)
-  const globalDiscountNet = globalDiscountAmount(doneNet, globalDiscount)
+  const globalDiscountNet = globalDiscountAmount(globalDiscount)
   return {
     doneNet,
     laborCostsNetFromKosztorys: doneNet + itemDiscountNet,
     discountNetFromKosztorys: globalDiscountNet + itemDiscountNet,
     globalDiscountNet,
   }
-}
-
-export function sumSectionSubtotalsNet(subtotals: SectionSubtotalT[]): number {
-  return subtotals.reduce((sum, s) => sum + s.net + s.discount, 0)
 }

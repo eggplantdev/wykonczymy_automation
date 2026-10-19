@@ -1,26 +1,23 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
 import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import type { FooterComparisonT } from '@/lib/kosztorys/sheet-import/footer-totals'
 import type { WorkerRefT } from '@/types/reference-data'
 import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { applyKosztorysImport } from '@/lib/actions/kosztorys-import'
 
-const applyKosztorysImport = vi.fn(async (..._args: unknown[]) => ({
-  success: true as const,
-  data: { sections: 2, items: 9, stages: 3 },
-}))
-
-vi.mock('@/lib/actions/kosztorys-import', () => ({
-  applyKosztorysImport: (...args: unknown[]) => applyKosztorysImport(...args),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ flushPendingSaves: async () => {} }),
-}))
+vi.mocked(applyKosztorysImport).mockResolvedValue({
+  success: true,
+  data: { sections: 2, items: 9, stages: 3, droppedWorkerAssignments: 0 },
+})
+vi.mocked(useKosztorysEditorContext).mockImplementation(
+  () => ({ flushPendingSaves: async () => {} }) as never,
+)
 
 const onImported = vi.fn()
 
@@ -119,8 +116,6 @@ function renderDialog() {
   }
 }
 
-beforeEach(() => vi.clearAllMocks())
-
 // The dialog never unmounts, so without a reset on open the pick outlives „Anuluj" — the next
 // import would silently inherit one nobody chose this time.
 describe('SheetImportDialog — the rozliczenie pick is per-opening', () => {
@@ -214,12 +209,11 @@ describe('SheetImportDialog — one wykonawca for every imported etap', () => {
   })
 })
 
-describe('SheetImportDialog — a request that never completed (EX-940)', () => {
+describe('SheetImportDialog — a request that never completed', () => {
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
-  afterEach(() => vi.restoreAllMocks())
 
   it('closes, says so and hands the editor a refetch', async () => {
-    applyKosztorysImport.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    vi.mocked(applyKosztorysImport).mockRejectedValueOnce(new TypeError('Failed to fetch'))
     const { user, openDialog } = renderDialog()
 
     await openDialog()

@@ -6,8 +6,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { currentPlannedQtyColumn } from '@/components/kosztorys/editor/grid/cells/current-planned-qty-cell'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const COLUMN = currentPlannedQtyColumn('Aktualizacja przedmiaru')
 const Cell = COLUMN.component as React.ComponentType<Record<string, unknown>>
 

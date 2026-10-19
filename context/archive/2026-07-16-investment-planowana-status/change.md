@@ -20,7 +20,7 @@ URL, and every action's required `investmentId`; verified — no standalone-kosz
 VAT/coeffs/discount, fork every "has/no investment" code path, and invent a new URL — a large
 structural change). Instead add a third **investment status `planowana`** ("prospect / proposal for an
 undecided client"). The kosztorys wiring is untouched: creating a planowana investment auto-seeds a
-blank kosztorys exactly as today (EX-463); when the client commits, the owner promotes it to
+blank kosztorys exactly as today; when the client commits, the owner promotes it to
 `aktywna` and the kosztorys is intact; if they decline it stays planowana or is deleted. The client
 never sees the word "investment" — to them it is a kosztorys/oferta.
 

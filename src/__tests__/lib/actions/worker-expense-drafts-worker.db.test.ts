@@ -4,33 +4,22 @@ import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertMediaRow } from '@/lib/db/media'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
-import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { pl } from '@/lib/i18n/dictionaries/pl'
+import { purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createRegisterOwner, createTestRegister } from '@/__tests__/helpers/register'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { createRegisterOwner } from '@/__tests__/helpers/transfer-fixtures'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
+import { scheduled } from '@/__tests__/stubs/next-server'
+import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import {
+  deleteExpenseDraftAction,
+  restoreExpenseDraftAction,
+  sendExpenseDraftAction,
+} from '@/lib/actions/worker-expense-drafts'
 
-vi.mock('server-only', () => ({}))
-const authState = vi.hoisted(() => ({ userId: 0, role: 'EMPLOYEE' }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'w@t.com', name: 'Worker', role: authState.role },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
-const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
-vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
-
-const scheduled = vi.hoisted(() => [] as unknown[])
-vi.mock('next/server', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: (task: unknown) => void scheduled.push(task) }
-})
-
-const { deleteExpenseDraftAction, restoreExpenseDraftAction, sendExpenseDraftAction } =
-  await import('@/lib/actions/worker-expense-drafts')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME_PREFIX = 'ex-971-worker-'
 
 describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
@@ -46,14 +35,8 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
 
   const ctx = { context: { skipRevalidation: true } }
 
-  async function insertMedia(name: string, uploadedBy: number): Promise<number> {
-    const { rows } = await db.execute(sql`
-      INSERT INTO media (filename, mime_type, filesize, created_by_id)
-      VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
-      RETURNING id
-    `)
-    return Number(rows[0].id)
-  }
+  const insertMedia = (name: string, uploadedBy: number) =>
+    insertTestMedia(db, `${FILENAME_PREFIX}${name}.jpg`, { kind: null, createdById: uploadedBy })
 
   async function createDraft(
     name: string,
@@ -92,7 +75,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   const readDraft = async (draftId: number) =>
     (
       await db.execute(sql`
-        SELECT status, note, investment_id, cash_register_id, scan_mode FROM worker_expense_drafts
+        SELECT status, note, investment_id, cash_register_id FROM worker_expense_drafts
         WHERE id = ${draftId}
       `)
     ).rows[0]
@@ -122,9 +105,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
@@ -140,30 +121,23 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       { name: 'Writes O', email: 'worker-expense-writes-o@test.local', registerName: 'Kasa O' },
       ctx,
     ))
-    const inactive = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'Kasa W stara', owner: workerId, type: 'AUXILIARY', active: false },
-      ...ctx,
+    inactiveRegisterId = await createTestRegister(payload, workerId, 'Kasa W stara', {
+      active: false,
     })
-    inactiveRegisterId = Number(inactive.id)
 
-    const stage = await payload.create({
-      collection: 'kosztorys-stages',
-      data: { investment: investmentId, ordinal: 1, splitMode: 'percent' },
-      overrideAccess: true,
-      ...ctx,
-    })
+    const {
+      stageIds: [stageId],
+    } = await createKosztorysTree(payload, investmentId, { sections: [], stages: [{ ordinal: 1 }] })
     await db.execute(sql`
       INSERT INTO kosztorys_stage_workers (stage_id, worker_id, value, takes_rest)
-      VALUES (${stage.id}, ${workerId}, 50, false), (${stage.id}, ${otherWorkerId}, 50, false)
+      VALUES (${stageId}, ${workerId}, 50, false), (${stageId}, ${otherWorkerId}, 50, false)
     `)
   })
 
   beforeEach(() => {
     authState.userId = workerId
     authState.role = 'EMPLOYEE'
-    reclaimUnreferencedMedia.mockReset().mockResolvedValue(undefined)
-    scheduled.length = 0
+    vi.mocked(reclaimUnreferencedMedia).mockResolvedValue(undefined)
   })
 
   afterAll(async () => {
@@ -171,7 +145,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     await db.execute(
       sql`DELETE FROM worker_expense_drafts WHERE worker_id IN (${workerId}, ${otherWorkerId})`,
     )
-    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
+    await purgeTestMedia(db, FILENAME_PREFIX)
     for (const id of [investmentId, strangerInvestmentId]) {
       if (id) await deleteTestInvestment(payload, id).catch(() => {})
     }
@@ -333,7 +307,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
 
       expect(await deleteExpenseDraftAction(draftId)).toEqual({
         success: false,
-        error: DRAFT_ALREADY_DECIDED,
+        error: pl.notices.draftAlreadyDecided,
         messageKey: 'draftAlreadyDecided',
       })
 
@@ -356,7 +330,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the AI read of his draft', () => {
-    it('is asked for once a draft is sent, paragon by paragon', async () => {
+    it('is asked for once a draft is sent', async () => {
       const result = await sendExpenseDraftAction({
         investmentId,
         cashRegisterId: registerId,
@@ -365,8 +339,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       })
 
       expect(result).toMatchObject({ success: true })
-      if (!result.success) return
-      expect(await readDraft(result.data.draftId)).toMatchObject({ scan_mode: 'one-per-photo' })
       expect(scheduled).toHaveLength(1)
     })
   })

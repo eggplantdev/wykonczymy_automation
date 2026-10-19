@@ -1,10 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { RecipientListForm } from '@/components/forms/recipient-list-form/recipient-list-form'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 function renderForm(emails: string[]) {
   const action = vi.fn(async (_emails: string[]) => ({ success: true as const }))
@@ -20,8 +18,6 @@ function renderForm(emails: string[]) {
 }
 
 const removeButtons = () => screen.getAllByRole('button', { name: 'Usuń odbiorcę' })
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('RecipientListForm — the last recipient cannot be removed', () => {
   it('disables the remove button while one address is left', () => {

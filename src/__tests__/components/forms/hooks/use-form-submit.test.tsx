@@ -1,12 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { toastMessage } from '@/lib/utils/toast'
-
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
-beforeEach(() => vi.clearAllMocks())
 
 describe('useFormSubmit — „Zostaw otwarte"', () => {
   it('reports a failed request in Polish and keeps the form filled', async () => {
@@ -52,14 +48,14 @@ describe('useFormSubmit — awaitBeforeClose', () => {
   })
 
   it('closes the dialog only once the save has succeeded', async () => {
-    let settle: (result: { success: true }) => void = () => {}
+    const save = Promise.withResolvers<{ success: true }>()
     const onSubmitSuccess = vi.fn()
     const { result } = renderHook(() => useFormSubmit('edit-vehicle-1'))
 
     let pending: Promise<void> = Promise.resolve()
     act(() => {
       pending = result.current.submit(false, {
-        action: () => new Promise((resolve) => (settle = resolve)),
+        action: () => save.promise,
         successMessage: 'Zapisano',
         onSubmitSuccess,
         onReset: vi.fn(),
@@ -69,7 +65,7 @@ describe('useFormSubmit — awaitBeforeClose', () => {
     expect(onSubmitSuccess).not.toHaveBeenCalled()
 
     await act(async () => {
-      settle({ success: true })
+      save.resolve({ success: true })
       await pending
     })
 

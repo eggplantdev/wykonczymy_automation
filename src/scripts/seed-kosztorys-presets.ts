@@ -1,5 +1,5 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
+import { seedCatalogueEntry } from '@/scripts/seed-catalogue-entry'
 
 const ctx = { context: { skipRevalidation: true } }
 
@@ -16,11 +16,7 @@ const RELOAD_SHAPE: ShapeT = [{ section: 'Sekcja zastępowana', items: ['Praca d
 const PLANNED_QTY = 10
 const QTY_DONE = 2
 
-async function seedInvestment(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  name: string,
-  shape: ShapeT,
-): Promise<number> {
+async function seedInvestment(payload: Payload, name: string, shape: ShapeT): Promise<number> {
   const investment = await payload.create({
     collection: 'investments',
     data: { name, status: 'active', vatRate: 0.23, settlementMode: 'NET' },
@@ -55,6 +51,7 @@ async function seedInvestment(
           section: section.id,
           displayOrder: itemOrder++,
           description,
+          catalogueItemId: await seedCatalogueEntry(payload, description),
           unit: 'm2',
           plannedQty: PLANNED_QTY,
           discountValue: 0,
@@ -73,8 +70,7 @@ async function seedInvestment(
   return investment.id
 }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedKosztorysPresets(payload: Payload) {
   // The test DB is never reset, so a stable name would collide across runs.
   const stamp = Date.now()
 
@@ -83,11 +79,5 @@ async function main() {
     reload: await seedInvestment(payload, `E2E Szablon cel ${stamp}`, RELOAD_SHAPE),
   }
 
-  console.log(`PRESET_SEED=${JSON.stringify(seed)}`)
-  process.exit(0)
+  return seed
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

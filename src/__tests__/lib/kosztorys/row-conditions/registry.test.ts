@@ -25,38 +25,37 @@ const matches = (conditionId: string, subject: KosztorysV2RowT, ctx: RowConditio
 }
 
 describe('the conditions, each on its boundary', () => {
-  it('„bez przedmiaru" reads a cleared cell and a zero alike, but not a real quantity', () => {
-    expect(matches('no-planned-qty', row({ plannedQty: 0 }))).toBe(true)
-    expect(matches('no-planned-qty', row({ plannedQty: null as unknown as number }))).toBe(true)
-    expect(matches('no-planned-qty', row({ plannedQty: 0.01 }))).toBe(false)
-  })
-
-  it('„bez wykonanej pracy" asks Σ etapów, across every crew', () => {
-    expect(matches('no-measured-qty', row())).toBe(true)
-    expect(matches('no-measured-qty', row({ [stageKey(1)]: 0, [stageKey(2)]: 0 }))).toBe(true)
-    expect(matches('no-measured-qty', row({ [stageKey(2)]: 3 }))).toBe(false)
-  })
-
-  it('„bez ceny j.m. i bez wykonanej pracy" asks the client price, the only one typed by hand', () => {
-    expect(matches('no-client-price', row({ clientPrice: 0 }))).toBe(true)
-    expect(matches('no-client-price', row({ clientPrice: 0, wToolsOverrideValue: 80 }))).toBe(true)
-    expect(matches('no-client-price', row({ clientPrice: 100 }))).toBe(false)
-  })
-
-  it('„z wykonaną pracą bez ceny j.m." needs work entered AND no price', () => {
-    expect(matches('no-client-price-with-work', row({ clientPrice: 0, [stageKey(2)]: 3 }))).toBe(
-      true,
-    )
-    expect(matches('no-client-price-with-work', row({ clientPrice: 0 }))).toBe(false)
-    expect(matches('no-client-price-with-work', row({ clientPrice: 100, [stageKey(2)]: 3 }))).toBe(
-      false,
-    )
-    expect(
-      matches(
-        'no-client-price-with-work',
-        row({ clientPrice: 0, plannedQty: 5, [stageKey(2)]: 3 }),
-      ),
-    ).toBe(true)
+  it.each<[string, Partial<KosztorysV2RowT>, boolean]>([
+    ['no-planned-qty', { plannedQty: 0 }, true],
+    ['no-planned-qty', { plannedQty: null as unknown as number }, true],
+    ['no-planned-qty', { plannedQty: 0.01 }, false],
+    ['no-measured-qty', {}, true],
+    ['no-measured-qty', { [stageKey(1)]: 0, [stageKey(2)]: 0 }, true],
+    ['no-measured-qty', { [stageKey(2)]: 3 }, false],
+    ['no-client-price', { clientPrice: 0 }, true],
+    ['no-client-price', { clientPrice: 0, wToolsOverrideValue: 80 }, true],
+    ['no-client-price', { clientPrice: 100 }, false],
+    ['no-client-price-with-work', { clientPrice: 0, [stageKey(2)]: 3 }, true],
+    ['no-client-price-with-work', { clientPrice: 0 }, false],
+    ['no-client-price-with-work', { clientPrice: 100, [stageKey(2)]: 3 }, false],
+    ['no-client-price-with-work', { clientPrice: 0, plannedQty: 5, [stageKey(2)]: 3 }, true],
+    ['measure-diverged', { [stageKey(1)]: 55 }, false],
+    ['measure-diverged', { sheetMeasuredQty: 95, [stageKey(1)]: 55 }, true],
+    ['measure-diverged', { sheetMeasuredQty: 55, [stageKey(1)]: 55 }, false],
+    ['client-empty', { plannedQty: 0, currentPlannedQty: 3 }, false],
+    ['client-empty', { plannedQty: 5, currentPlannedQty: 0 }, false],
+    ['client-empty', { plannedQty: 0, currentPlannedQty: 0 }, true],
+    ['client-empty', { plannedQty: 0, [stageKey(2)]: 3 }, false],
+    ['negative-rate-w-tools', { wToolsOverrideValue: -1 }, true],
+    ['negative-rate-w-tools', { wToolsOverrideValue: 0 }, false],
+    ['negative-rate-w-tools', { globalWToolsCoeff: -0.1 }, true],
+    ['negative-rate-w-tools', { wToolsOverrideValue: 95 }, false],
+    ['has-discount', { discountType: 'percent', discountValue: 10 }, true],
+    ['has-discount', { discountType: 'amount', discountValue: 250 }, true],
+    ['has-discount', { discountType: 'percent', discountValue: 0 }, false],
+    ['has-discount', { discountType: null, discountValue: 10 }, false],
+  ])('%s on %j → %s', (conditionId, overrides, expected) => {
+    expect(matches(conditionId, row(overrides))).toBe(expected)
   })
 
   it('splits every priceless pozycja into exactly one of the two cena j.m. problems', () => {
@@ -107,14 +106,6 @@ describe('the conditions, each on its boundary', () => {
     expect(columnsRevealedBy([CATALOGUE_MISSING_CONDITION_ID])).toEqual(new Set())
   })
 
-  it('„rozjazd" is the sheet’s pomiar against Σ etapów, silent when the sheet said nothing', () => {
-    expect(matches('measure-diverged', row({ [stageKey(1)]: 55 }))).toBe(false)
-    expect(matches('measure-diverged', row({ sheetMeasuredQty: 95, [stageKey(1)]: 55 }))).toBe(true)
-    expect(matches('measure-diverged', row({ sheetMeasuredQty: 55, [stageKey(1)]: 55 }))).toBe(
-      false,
-    )
-  })
-
   it('„z wykonaną pracą bez przedmiaru" needs work entered AND no offer', () => {
     expect(matches('work-without-planned-qty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(true)
     expect(matches('work-without-planned-qty', row({ plannedQty: 0 }))).toBe(false)
@@ -147,18 +138,6 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('work-without-planned-qty', row({ ...added, [stageKey(2)]: 3 }))).toBe(false)
   })
 
-  it('„client-empty" needs ofertowy AND aktualizacja at zero, and no work', () => {
-    expect(matches('client-empty', row({ plannedQty: 0, currentPlannedQty: 3 }))).toBe(false)
-    expect(matches('client-empty', row({ plannedQty: 5, currentPlannedQty: 0 }))).toBe(false)
-    expect(matches('client-empty', row({ plannedQty: 0, currentPlannedQty: 0 }))).toBe(true)
-  })
-
-  it('„bez przedmiaru i bez wykonanej pracy" needs BOTH axes empty', () => {
-    expect(matches('client-empty', row({ plannedQty: 0 }))).toBe(true)
-    expect(matches('client-empty', row({ plannedQty: 5 }))).toBe(false)
-    expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
-  })
-
   it('the „Filtry" pair reads both axes together, and its complement is its negation', () => {
     const cases = [
       row({ plannedQty: 0 }),
@@ -170,13 +149,6 @@ describe('the conditions, each on its boundary', () => {
     expect(cases.map((r) => matches('empty-both-axes', r))).toEqual(
       cases.map((r) => matches('client-empty', r)),
     )
-  })
-
-  it('„z ujemną stawką wykonawcy" reads the stawka as paid, per plane', () => {
-    expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: -1 }))).toBe(true)
-    expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 0 }))).toBe(false)
-    expect(matches('negative-rate-w-tools', row({ globalWToolsCoeff: -0.1 }))).toBe(true)
-    expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 95 }))).toBe(false)
   })
 
   it('keeps the two planes apart — a fault on one is silent on the other', () => {
@@ -271,13 +243,6 @@ describe('the conditions, each on its boundary', () => {
     const autoOverCeiling = row({ globalWToolsCoeff: 0.9 })
     expect(matches('rate-ceiling-na-w-tools', autoOverCeiling)).toBe(true)
     expect(matches('own-rate-within-ceiling-w-tools', autoOverCeiling)).toBe(false)
-  })
-
-  it('„z rabatem" asks the type, because a value under a null type buys nothing', () => {
-    expect(matches('has-discount', row({ discountType: 'percent', discountValue: 10 }))).toBe(true)
-    expect(matches('has-discount', row({ discountType: 'amount', discountValue: 250 }))).toBe(true)
-    expect(matches('has-discount', row({ discountType: 'percent', discountValue: 0 }))).toBe(false)
-    expect(matches('has-discount', row({ discountType: null, discountValue: 10 }))).toBe(false)
   })
 
   // BOTH halves must go quiet: if „bez rabatu" still matched everything,

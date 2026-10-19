@@ -7,7 +7,6 @@ describe('inspectionDraftId', () => {
   })
 
   it('keeps one slot for the fleet-wide dialog, where no vehicle is preselected', () => {
-    expect(inspectionDraftId(undefined)).toBe(inspectionDraftId(undefined))
     expect(inspectionDraftId(undefined)).not.toBe(inspectionDraftId(2))
   })
 })

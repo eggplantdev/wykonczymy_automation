@@ -1,0 +1,77 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { z } from 'zod'
+import type { Payload } from 'payload'
+
+const mockDbExecute = vi.fn()
+
+vi.mock('@/lib/db/get-db', () => ({
+  getDb: vi.fn().mockResolvedValue({ execute: (...args: unknown[]) => mockDbExecute(...args) }),
+}))
+
+const { validateAction } = await import('@/lib/actions/run-action')
+const { validateSourceRegister } = await import('@/lib/actions/validate-source-register')
+
+const fakePayload = {} as Payload
+
+const dbRows: Record<number, Record<string, unknown>> = {
+  1: { id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 2 },
+  2: { id: 2, name: 'Virtual', type: 'VIRTUAL', active: true, owner_id: 1 },
+  3: { id: 3, name: 'Aux', type: 'AUXILIARY', active: true, owner_id: 3 },
+}
+
+function mockRegisterLookup(registerId: number | undefined) {
+  const row = registerId !== undefined ? dbRows[registerId] : undefined
+  mockDbExecute.mockResolvedValue({ rows: row ? [row] : [] })
+}
+
+beforeEach(() => {
+  mockDbExecute.mockReset()
+})
+
+describe('validateAction', () => {
+  const schema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    age: z.number().positive('Age must be positive'),
+  })
+
+  it('returns parsed data on valid input', () => {
+    const result = validateAction(schema, { name: 'Jan', age: 25 })
+    expect(result).toEqual({ success: true, data: { name: 'Jan', age: 25 } })
+  })
+
+  it('returns first error message on invalid input', () => {
+    const result = validateAction(schema, { name: '', age: -1 })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(typeof result.error).toBe('string')
+      expect(result.error.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('returns error for completely wrong data', () => {
+    const result = validateAction(schema, null)
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('validateSourceRegister', () => {
+  it('returns error when register not found', async () => {
+    mockRegisterLookup(999)
+    const result = await validateSourceRegister(999, fakePayload)
+    expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
+  })
+
+  it('returns error for undefined cashRegisterId', async () => {
+    const result = await validateSourceRegister(undefined, fakePayload)
+    expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
+  })
+
+  it('returns the register it finds', async () => {
+    mockRegisterLookup(1)
+    const result = await validateSourceRegister(1, fakePayload)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.register.id).toBe(1)
+    }
+  })
+})

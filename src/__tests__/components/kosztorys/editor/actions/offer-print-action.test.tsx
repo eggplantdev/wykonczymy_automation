@@ -6,20 +6,16 @@ import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu
 import { GenerateOfferMenuItem } from '@/components/kosztorys/editor/actions/offer-print-action'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
+import { toastMessage } from '@/lib/utils/toast'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 
-const toastMessage = vi.hoisted(() => vi.fn())
-const readClientViewSettings = vi.hoisted(() => vi.fn())
 const editorContext = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
 const actionsContext = vi.hoisted(() => ({ clientView: null as unknown }))
 
-vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
-vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
-vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => editorContext.value,
-}))
-vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', () => ({
-  useKosztorysActions: () => ({ investor: actionsContext }),
-}))
+vi.mocked(useKosztorysEditorContext).mockImplementation(() => editorContext.value as never)
+vi.mocked(useKosztorysActions).mockImplementation(() => ({ investor: actionsContext }) as never)
 
 function setRows(rows: KosztorysV2RowT[]) {
   editorContext.value = {
@@ -45,7 +41,6 @@ async function clickOffer() {
 
 describe('GenerateOfferMenuItem', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     actionsContext.clientView = null
     setRows([row({ id: 1, plannedQty: 10, clientPrice: 100 })])
   })
@@ -70,7 +65,7 @@ describe('GenerateOfferMenuItem', () => {
   it('nieudany odczyt ustawień zamyka okno i mówi o tym', async () => {
     const printWindow = { document: { title: '' }, close: vi.fn() }
     vi.spyOn(window, 'open').mockReturnValue(printWindow as unknown as Window)
-    readClientViewSettings.mockRejectedValue(new Error('offline'))
+    vi.mocked(readClientViewSettings).mockRejectedValue(new Error('offline'))
 
     await clickOffer()
     await vi.waitFor(() => expect(printWindow.close).toHaveBeenCalled())

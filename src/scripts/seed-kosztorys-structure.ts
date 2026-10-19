@@ -1,5 +1,5 @@
-import { getPayload } from 'payload'
-import config from '../payload.config'
+import type { Payload } from 'payload'
+import { seedCatalogueEntry } from '@/scripts/seed-catalogue-entry'
 
 const ctx = { context: { skipRevalidation: true } }
 
@@ -35,9 +35,10 @@ const PRESET_APPEND_SHAPE: ShapeT = [{ section: 'Sekcja zastana', items: ['Praca
 const BARE_SHAPE: ShapeT = [{ section: 'Sekcja istniejąca', items: ['Praca istniejąca'] }]
 
 async function seedInvestment(
-  payload: Awaited<ReturnType<typeof getPayload>>,
+  payload: Payload,
   name: string,
   shape: ShapeT,
+  { catalogue = false }: { catalogue?: boolean } = {},
 ): Promise<number> {
   const investment = await payload.create({
     collection: 'investments',
@@ -60,6 +61,7 @@ async function seedInvestment(
           section: section.id,
           displayOrder: itemOrder++,
           description,
+          catalogueItemId: catalogue ? await seedCatalogueEntry(payload, description) : undefined,
           unit: 'm2',
           plannedQty: 10,
           discountValue: 0,
@@ -73,8 +75,7 @@ async function seedInvestment(
   return investment.id
 }
 
-async function main() {
-  const payload = await getPayload({ config })
+export async function seedKosztorysStructure(payload: Payload) {
   // The test DB is never reset, so a stable name would collide across runs.
   const stamp = Date.now()
 
@@ -82,8 +83,12 @@ async function main() {
     items: await seedInvestment(payload, `E2E Struktura pozycje ${stamp}`, ITEM_SHAPE),
     sections: await seedInvestment(payload, `E2E Struktura sekcje ${stamp}`, SECTION_SHAPE),
     target: await seedInvestment(payload, `E2E Struktura cel ${stamp}`, TARGET_SHAPE),
-    presetA: await seedInvestment(payload, `E2E Struktura szablon A ${stamp}`, PRESET_A_SHAPE),
-    presetB: await seedInvestment(payload, `E2E Struktura szablon B ${stamp}`, PRESET_B_SHAPE),
+    presetA: await seedInvestment(payload, `E2E Struktura szablon A ${stamp}`, PRESET_A_SHAPE, {
+      catalogue: true,
+    }),
+    presetB: await seedInvestment(payload, `E2E Struktura szablon B ${stamp}`, PRESET_B_SHAPE, {
+      catalogue: true,
+    }),
     presetAppend: await seedInvestment(
       payload,
       `E2E Struktura doklejenie ${stamp}`,
@@ -92,11 +97,5 @@ async function main() {
     bare: await seedInvestment(payload, `E2E Struktura bez pozycji ${stamp}`, BARE_SHAPE),
   }
 
-  console.log(`STRUCTURE_SEED=${JSON.stringify(seed)}`)
-  process.exit(0)
+  return seed
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})

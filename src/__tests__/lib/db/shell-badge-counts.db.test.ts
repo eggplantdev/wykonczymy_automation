@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -12,13 +12,11 @@ import { countShellBadges } from '@/lib/db/shell-badge-counts'
 import { countPendingExpenseDrafts } from '@/lib/db/worker-expense-drafts'
 import { countPendingReports } from '@/lib/db/worker-reports'
 import { warsawToday } from '@/lib/utils/days'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // The per-stream counters are what each stream's own spec pins, so the merged statement is pinned to
 // them: a badge wired to the wrong column would otherwise go unnoticed.
 
-vi.mock('server-only', () => ({}))
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 // No `notification_reads` row exists for it, so the cursor counters read from each stream's epoch.
 const NEVER_LOOKED = -1
 
@@ -28,9 +26,7 @@ describe.skipIf(!ENV_READY)('countShellBadges (DB)', () => {
   let userWithCursor: number | undefined
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
     const res = await db.execute(sql`SELECT user_id FROM notification_reads LIMIT 1`)
     userWithCursor = res.rows[0] ? Number(res.rows[0].user_id) : undefined

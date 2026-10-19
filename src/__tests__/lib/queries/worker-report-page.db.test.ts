@@ -1,0 +1,181 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+
+// „Podgląd pracownika" sits behind a management session; the token page never asks for one.
+
+const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-kosztorys')
+const { getWorkerReportPage, getWorkerReportPreview } =
+  await import('@/lib/queries/worker-report-page')
+
+describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let investmentId: number
+  let workerId: number
+  let otherWorkerId: number
+  let stageIds: number[]
+  let itemIds: number[]
+  // Per-run suffix: `token` is globally unique, so a crash mid-run would otherwise wedge later runs.
+  const suffix = `${process.pid}-${Date.now()}`
+  const workerToken = `test-token-ex966-worker-${suffix}`
+  const investorToken = `test-token-ex966-investor-${suffix}`
+
+  const readyPage = async () => {
+    const page = await getWorkerReportPage(workerToken)
+    if (page?.kind !== 'ready') throw new Error('expected a ready page')
+    return page
+  }
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    await purgeFixtureUsers(db)
+
+    investmentId = await createTestInvestment(payload, 'EX-966 worker report page spec')
+    workerId = await createTestUser(payload, {
+      name: 'Jan Kowalski',
+      email: 'worker-report-page-own@test.local',
+    })
+    otherWorkerId = await createTestUser(payload, {
+      name: 'Piotr Nowak',
+      email: 'worker-report-page-other@test.local',
+    })
+    ;({ stageIds, itemIds } = await createKosztorysTree(payload, investmentId, {
+      sections: [
+        {
+          name: 'Sekcja A',
+          items: [
+            { description: 'Malowanie', plannedQty: 10, clientPrice: 100 },
+            { description: 'Gruntowanie', plannedQty: 5, clientPrice: 40 },
+          ],
+        },
+      ],
+      stages: [
+        { worker: workerId, plane: 'w_tools' },
+        { worker: otherWorkerId, plane: 'w_tools' },
+        { worker: workerId, plane: 'w_tools' },
+      ],
+      progress: [
+        { item: 0, stage: 0, qtyDone: 2 },
+        { item: 0, stage: 1, qtyDone: 3 },
+        { item: 1, stage: 2, qtyDone: 1 },
+      ],
+    }))
+
+    // The etap already minted his link; pin it to a token the spec can name.
+    await payload.update({
+      collection: 'worker-report-shares',
+      where: { investment: { equals: investmentId }, worker: { equals: workerId } },
+      data: { token: workerToken },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    await payload.create({
+      collection: 'kosztorys-shares',
+      data: { investment: investmentId, token: investorToken },
+      overrideAccess: true,
+    })
+  })
+
+  afterAll(async () => {
+    if (investmentId) await deleteTestInvestment(payload, investmentId)
+    await purgeFixtureUsers(db)
+  })
+
+  it('resolves a live token to that worker’s projection', async () => {
+    const page = await readyPage()
+    expect(page.document).toMatchObject({
+      investmentName: 'EX-966 worker report page spec',
+      worker: { workerId, name: 'Jan Kowalski', plane: 'w_tools' },
+    })
+  })
+
+  it('carries only the worker’s etapy and their progress — never another crew’s', async () => {
+    const { document } = await readyPage()
+
+    expect(document.tree.stages.map((stage) => stage.id)).toEqual([stageIds[0], stageIds[2]])
+    expect(document.tree.progress.map((progress) => progress.stageId)).not.toContain(stageIds[1])
+    expect(document.tree.progress).toHaveLength(2)
+  })
+
+  it('still counts the other crew’s execution toward „Pozostało"', async () => {
+    const { document } = await readyPage()
+
+    expect(document.worker.executedQtyByItem).toEqual({ [itemIds[0]]: 5, [itemIds[1]]: 1 })
+  })
+
+  it('returns null for an unknown or empty token', async () => {
+    expect(await getWorkerReportPage('no-such-token-ex966')).toBeNull()
+    expect(await getWorkerReportPage('')).toBeNull()
+  })
+
+  it('keeps the two token spaces apart — neither route resolves the other’s token', async () => {
+    expect(await getWorkerReportPage(investorToken)).toBeNull()
+    expect(await getPreviewKosztorysByToken(workerToken)).toBeNull()
+  })
+
+  it('refuses the link once all his etapy are zakończone, while the podgląd still shows them', async () => {
+    const setCompleted = (completed: boolean) =>
+      db.execute(sql`
+        UPDATE kosztorys_stages SET completed = ${completed}
+        WHERE id IN (${stageIds[0]}, ${stageIds[2]})
+      `)
+    await setCompleted(true)
+    try {
+      expect(await getWorkerReportPage(workerToken)).toMatchObject({
+        kind: 'notice',
+        messageKey: 'stagesCompleted',
+      })
+      expect(await getWorkerReportPreview(investmentId, workerId)).toMatchObject({ kind: 'ready' })
+    } finally {
+      await setCompleted(false)
+    }
+  })
+
+  it('keeps the link open while one of his etapy is still open', async () => {
+    await db.execute(sql`UPDATE kosztorys_stages SET completed = true WHERE id = ${stageIds[0]}`)
+    try {
+      expect((await getWorkerReportPage(workerToken))?.kind).toBe('ready')
+    } finally {
+      await db.execute(sql`UPDATE kosztorys_stages SET completed = false WHERE id = ${stageIds[0]}`)
+    }
+  })
+
+  it('shows a notice instead of the kosztorys while the investment is in the trash', async () => {
+    await payload.update({
+      collection: 'investments',
+      id: investmentId,
+      data: { trashedAt: new Date().toISOString() },
+      overrideAccess: true,
+    })
+    try {
+      expect(await getWorkerReportPage(workerToken)).toMatchObject({
+        kind: 'notice',
+        messageKey: 'closed',
+      })
+    } finally {
+      await payload.update({
+        collection: 'investments',
+        id: investmentId,
+        data: { trashedAt: null },
+        overrideAccess: true,
+      })
+    }
+  })
+
+  it('returns null once the row is revoked', async () => {
+    await payload.delete({
+      collection: 'worker-report-shares',
+      where: { token: { equals: workerToken } },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    expect(await getWorkerReportPage(workerToken)).toBeNull()
+  })
+})

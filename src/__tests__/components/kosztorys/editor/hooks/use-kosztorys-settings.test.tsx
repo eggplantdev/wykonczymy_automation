@@ -12,28 +12,12 @@ import {
 import { discountNetFromGross } from '@/lib/kosztorys/calc'
 import { usePendingStore } from '@/stores/pending-store'
 
-vi.mock('@/lib/actions/kosztorys', () => ({
-  applyPercentDiscountToAllItemsAction: vi.fn(),
-  updateInvestmentCoeffsAction: vi.fn(),
-  updateInvestmentGlobalDiscountAction: vi.fn(),
-  updateInvestmentMaterialsNetRateAction: vi.fn(),
-  updateInvestmentSettlementModeAction: vi.fn(),
-  updateInvestmentVatAction: vi.fn(),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
 const TREE = {
   globalDiscount: { percent: 0, amount: 0 },
   vatRate: 0.23,
   settlementMode: 'net',
   materialsNetRate: 0.9,
 } as unknown as KosztorysTreeT
-
-function deferred() {
-  let settle!: (result: ActionResultT) => void
-  const promise = new Promise<ActionResultT>((resolve) => (settle = resolve))
-  return { promise, settle }
-}
 
 function renderSettings(tree: KosztorysTreeT = TREE) {
   const rowsRef = { current: [{ vatRate: 0.23 }] as unknown as KosztorysV2RowT[] }
@@ -49,14 +33,13 @@ function renderSettings(tree: KosztorysTreeT = TREE) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
   usePendingStore.setState({ pending: new Map() })
 })
 
 describe('useKosztorysSettings — two „Opcje rozliczenia" saves in flight at once', () => {
   it('keeps the pill up until the second save lands, not the first', async () => {
-    const vat = deferred()
-    const rate = deferred()
+    const vat = Promise.withResolvers<ActionResultT>()
+    const rate = Promise.withResolvers<ActionResultT>()
     vi.mocked(updateInvestmentVatAction).mockReturnValue(vat.promise)
     vi.mocked(updateInvestmentMaterialsNetRateAction).mockReturnValue(rate.promise)
     const { result } = renderSettings()
@@ -70,7 +53,7 @@ describe('useKosztorysSettings — two „Opcje rozliczenia" saves in flight at 
     expect(result.current.isSavingSettings).toBe(true)
 
     await act(async () => {
-      vat.settle({ success: true } as ActionResultT)
+      vat.resolve({ success: true } as ActionResultT)
       await vat.promise
     })
 
@@ -78,7 +61,7 @@ describe('useKosztorysSettings — two „Opcje rozliczenia" saves in flight at 
     expect(result.current.isSavingSettings).toBe(true)
 
     await act(async () => {
-      rate.settle({ success: true } as ActionResultT)
+      rate.resolve({ success: true } as ActionResultT)
       await rate.promise
     })
 

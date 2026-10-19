@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
-import { type GridSeedT, seedGridInvestments } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { settleWrites } from './support/wait'
 import {
+  GRID_VIEWPORT,
   collapseSummaryPanel,
   commitCellValue,
   expandSummaryPanel,
@@ -13,14 +14,14 @@ import {
   rowCell,
 } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-let seed: GridSeedT
+let seed: E2ESeedsT['gridWrites']
 
 // Two investments of one shape, one per test: the write test types over the rozpiska the read test
 // asserts exact figures on.
-test.beforeAll(async ({ browser }) => {
-  seed = await seedGridInvestments(browser)
+test.beforeAll(() => {
+  seed = readSeed('gridWrites')
 })
 
 const SUM_COLUMN = COLUMN_LABELS.stageQtySum
@@ -99,7 +100,7 @@ test('a run of cell edits reaches Postgres and refetches the route at most once 
 
   const executedNet = typed.reduce((sum, { qty }) => sum + (SEEDED_DONE + qty) * PRICE, 0)
   await expandSummaryPanel(page)
-  await expect(page.getByText(formatNet(executedNet)).first()).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText(formatNet(executedNet)).first()).toBeVisible()
 
   // A stage-quantity autosave defers its tag's expiry (`EXPIRE_NEXT`), so its response carries no
   // render and the router follows it with ONE refetch.

@@ -11,8 +11,6 @@ worktree: null
 
 ## Notes
 
-Linear: EX-1042 — open owner questions live there.
-
 A manager books a wypłata, the worker confirms the amount on his own `/pracownicy/[id]`, and only
 then is the transaction accepted. Needs a lifecycle status on the wypłata (pending → accepted).
 
@@ -49,5 +47,5 @@ Rulings (user, 2026-10-11, answering `research.md` Open Questions):
    it shows everywhere that table renders — the home page included. Users hide it through the
    table's existing column toggle. It is filled only on wypłata rows.
 
-Ships first, without push. `pwa-push-notifications` (EX-1040) builds on it: the push and the app
+Ships first, without push. `pwa-push-notifications` builds on it: the push and the app
 icon badge announce wypłaty this change leaves pending.

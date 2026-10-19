@@ -48,7 +48,7 @@ od 2, bo boksy niżej powołują się na nią — dawna blokada 1 (`/raporty`) z
 
 # Otwarte
 
-## cron-lead-reconcile (EX-416)
+## cron-lead-reconcile
 
 Setup: aplikacja lokalnie (`.env` → dev DB 5433), `CRON_SECRET` z `.env`. Wywołania Graph idą w
 **żywe dane Meta** nigdy niewygasającym tokenem Page, więc sweep naprawdę wstawia leady — nigdy na
@@ -68,7 +68,7 @@ produkcję.
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki). Cron na Preview stoi też za SSO i CRON_SECRET (blokada 3)._
       _needs human: mail dostarczony na listę „Alerty techniczne” — poczta wychodzi tylko z produkcji (blokady 2/3), brak dostępu do skrzynki_
 
-## lead-recovery-notifies-sales (EX-660)
+## lead-recovery-notifies-sales
 
 Setup jak w `cron-lead-reconcile`. **Uwaga:** te checki czytają żywe dane Meta i wysyłają prawdziwy
 mail na listy „Powiadomienia o nowych zgłoszeniach" i „Alerty techniczne" — a przy regresji na
@@ -76,7 +76,7 @@ prawdziwy adres klienta. Warunek wstępny: lead obecny w oknie Meta, a nieobecny
 
 2/4 odhaczone. Domknięte strukturalnie: klient **nie dostaje nic**, bo `reconcile-sweep.ts:91`
 podaje `autoReply: 'skip'`, więc `sendAutoReply` nie jest w ogóle wołane (12 odzyskanych leadów
-wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawiał (oba statusy na
+wylądowało z `auto_reply_status = 'skipped'`), a defekt, który ta zmiana naprawiała (oba statusy na
 `skipped`), **nie jest odtwarzalny** — `notify_status` siada na `failed`, czyli próbowano.
 
 - [ ] Przebieg sweepa (cron `/api/cron/leads-reconcile`) → skrzynka sprzedaży dostaje jedno zwykłe
@@ -95,7 +95,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
       _needs human: mail alertowy „Alerty techniczne” — poczta tylko z produkcji, brak dostępu do skrzynki_
 
-## EX-758 — Katalog narzędzi i urządzeń (rejestr sprzętu)
+## Katalog narzędzi i urządzeń (rejestr sprzętu)
 
 11/13 odhaczonych (ostatni przebieg 2026-09-04, staging). Pełny zapis: archiwum.
 
@@ -117,7 +117,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
       _needs human: dostarczony mail przeglądu — poczta tylko z produkcji (EMAIL_HOST=disabled.invalid), brak dostępu do skrzynki_
 
-## EX-802 — lead-delivery (wykonczymy half, 2026-09-21)
+## lead-delivery (wykonczymy half, 2026-09-21)
 
 Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 `LANDING_BLOB_HOST` w `.env`; kontrakt koperty: `context/reference/landing-intake-contract.md`.
@@ -131,7 +131,7 @@ zachowanie bramki, nie defekt i nie błąd podpisu, więc nie ma czego debugowa�
 i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekrecie.
 
 - [~] ~~Pasek miniatur nie przewija się w poziomie przy 375px~~ — nieaktualne: na karcie inwestycji
-      nie ma już paska miniatur (patrz sekcja „EX-802 — investment-assets-dialog", która to zastępuje)
+      nie ma już paska miniatur (patrz wpis „investment-assets-dialog", który to zastępuje)
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
       Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: POST podpisany HMAC-SHA256 (scope „landing-submission") z `LANDING_WEBHOOK_SECRET` z `.env` → 403 na stagingu, czyli sekret z `.env` nie jest sekretem Preview. Brakuje wartości sekretu Preview; do tego realny plik w blobie landingu (callback release dotyka landingu). Nic nie utworzono._
@@ -162,7 +162,7 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       _Nie sprawdzone 2026-10-04 (staging): spec E2E uruchamia człowiek (nie uruchamiam `pnpm test:e2e`)._
       _needs human: spec E2E (`pnpm test:e2e`) uruchamia wyłącznie człowiek_
 
-## catalogue-picker-virtualization — „Dodaj pracę z katalogu" rysuje tylko widoczne wiersze (EX-860, 2026-09-28)
+## catalogue-picker-virtualization — „Dodaj pracę z katalogu" rysuje tylko widoczne wiersze (2026-09-28)
 
 Lista w oknie rysuje tylko to, co widać; zmiana we wspólnej tabeli dotyka też dwóch tabel
 podsumowania kosztorysu. Pierwsze cztery sprawdzone lokalnie (build produkcyjny, inw. 157) — do
@@ -185,7 +185,7 @@ powtórzenia na stagingu.
 ## kosztorys-client-view-auto-columns — jeden zestaw kolumn inwestora, rozliczenie gdy są wpisy (2026-09-28)
 
 Zastępuje warianty „Oferta / Rozliczenie". Migracja `20260928_2_client_view_single_set` jest
-addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po wdrożeniu.
+addytywna — na produkcję **przed** pushem; DROP starych kolumn idzie osobną migracją, po wdrożeniu.
 
 ### „Udostępnij" kopiuje link
 
@@ -203,7 +203,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       _Nie sprawdzone 2026-10-04 (staging): spec E2E uruchamia człowiek (nie uruchamiam `pnpm test:e2e`)._
       _needs human: spec E2E uruchamia wyłącznie człowiek_
 
-## EX-919 — worker-payout-remaining — „Pozostało do wypłaty" per pracownik i „Rozlicz wypłaty" (2026-09-29)
+## worker-payout-remaining — „Pozostało do wypłaty" per pracownik i „Rozlicz wypłaty" (2026-09-29)
 
 Dane: prawdziwe inwestycje na stagingu, bez seedów. Nazwy w boksach to role, nie rekordy:
 „A" — aktywna inwestycja, na której pracownik ma coś do wypłaty; „B" — aktywna, z długiem u ≥ 2
@@ -217,18 +217,18 @@ i pracownicy; status inwestycji) i cofa po przebiegu; wypłaty zaksięgowane w t
       _Zweryfikowano 2026-09-29 (staging): pominięto — sprawdzenie wyłącznie na produkcji (zapis do arkusza właściciela wymaga konta Editor)._
       _needs human: tylko produkcja — zapis do arkusza właściciela wymaga konta Editor (na preview 403)_
 
-## EX-909 — szablony-plain-revalidation
+## szablony-plain-revalidation
 
 - [ ] To samo w szablonie z ~1000 pozycji: zapis komórki bez widocznego opóźnienia względem małego
       szablonu.
       _Staging 2026-10-01: nie sprawdzono — na preview DB nie ma szablonu z ~1000 pozycji (są 3: 0–202 pozycji; największa inwestycja ma 379 pozycji), seedów nie wolno. Boks zostaje otwarty._
       _Nie sprawdzone 2026-10-04 (staging): bez zmian — na preview nadal brak szablonu z ~1000 pozycji (największy: 202 pozycje), seedów nie wolno._
       _Staging 2026-10-06 (batch B): bez zmian — brak szablonu z ~1000 pozycji (największy szablon 202, największy kosztorys 379), nie seeduję. Zob. Findings._
-      _Zweryfikowano 2026-10-09 (lokalnie, 5435): szablon zbudowany z UI — „Zapisz jako nowy szablon” (z inw. 7, 1000 pozycji bez katalogu → szablon wyszedł pusty) + 3× „Sekcja z szablonu…” = 899 pozycji, 44 sekcje (szablon 1280). Zapis komórki „Opis prac” (edycja katalogu, EX-1017): akcja 89 ms / żądanie 135 ms, start po 460 ms debounce; w szablonie 294 pozycji (1278): akcja 61 ms / żądanie 120 ms, start po 472 ms — brak widocznej różnicy, bez przeładowania. Zmienione wpisy katalogu (130, 447) przywrócone SQL-em, szablon 1280 do usunięcia na teardown._
+      _Zweryfikowano 2026-10-09 (lokalnie, 5435): szablon zbudowany z UI — „Zapisz jako nowy szablon” (z inw. 7, 1000 pozycji bez katalogu → szablon wyszedł pusty) + 3× „Sekcja z szablonu…” = 899 pozycji, 44 sekcje (szablon 1280). Zapis komórki „Opis prac” (edycja katalogu): akcja 89 ms / żądanie 135 ms, start po 460 ms debounce; w szablonie 294 pozycji (1278): akcja 61 ms / żądanie 120 ms, start po 472 ms — brak widocznej różnicy, bez przeładowania. Zmienione wpisy katalogu (130, 447) przywrócone SQL-em, szablon 1280 do usunięcia na teardown._
       _Cofnięte do `[ ]` 2026-10-14: nie zweryfikowano całego boksu (zob. notatka powyżej)._
       _needs human: szablon ~1000 pozycji / pusty kosztorys — brak takiego fixture'a na preview, pomiar opóźnienia wymaga człowieka (pass 6)_
 
-## EX-943 — kosztorys-stage-worker-split — kilku pracowników na etap (2026-09-30)
+## kosztorys-stage-worker-split — kilku pracowników na etap (2026-09-30)
 
 - [ ] Etap sprzed zmiany z jednym przypisanym pracownikiem: po wdrożeniu nagłówek pokazuje tę samą
       osobę bez „+N", a jej należne i wypłaty się nie zmieniły.
@@ -237,20 +237,20 @@ i pracownicy; status inwestycji) i cofa po przebiegu; wypłaty zaksięgowane w t
       _Cofnięte do `[ ]` 2026-10-14: nie zweryfikowano całego boksu (zob. notatka powyżej)._
       Staging 2026-10-15: etapy z jednym pracownikiem na inw. 210 pokazują samą osobę bez „+N", ale stanu „sprzed zmiany" nie da się odtworzyć (inw. 138 z 30.08 jest w Koszu, nagłówek tylko „Etap 1"); wymaga starego etapu z danych prod.
 
-## EX-970 — kosz-zgloszen
+## kosz-zgloszen
 
 Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `erased_at` w zgłoszeniach).
 
 - [ ] „Usuń na zawsze" na zgłoszeniu, z którego utworzono inwestycję ze zdjęciami: wymaga wpisania
       nazwy; po usunięciu zgłoszenie znika z `/kosz`, a galeria inwestycji pokazuje wszystkie zdjęcia.
-      _Nie sprawdzone 2026-10-03 (staging): UI nie tworzy zgłoszeń, a formularz WWW wysłałby powiadomienia na prawdziwe adresy; kasować cudzego zgłoszenia nie wolno — bloker izolacji EX-937/EX-938._
+      _Nie sprawdzone 2026-10-03 (staging): UI nie tworzy zgłoszeń, a formularz WWW wysłałby powiadomienia na prawdziwe adresy; kasować cudzego zgłoszenia nie wolno — bloker izolacji._
       _Nie sprawdzone 2026-10-06 (staging, batch B): bez zmian — UI nie tworzy zgłoszeń ani inwestycji z nich, nie ma jednorazowego leada do skasowania. Zob. Findings._
       _Zweryfikowano 2026-10-09 (lokalnie, 5435; lead 224 z plikiem, inwestycja 154): potwierdzenie wymaga wpisania nazwy (zła nazwa → przycisk wyłączony); po usunięciu zgłoszenie znika z `/kosz` (wiersz wymazany w miejscu, `erased_at` ustawione, `leads_rels` 0); inwestycja 154 nadal ma „Zdjęcia i pliki — Dokumentacja (1)” i `investments_rels` → media 1799. Uwaga: bajty `/api/media/file/marki-pdf-a8a01d.pdf` dają 404 także dla nietkniętego PDF-a z innego leada — preview store nie ma PDF-ów, to nie skutek usunięcia._
       _Cofnięte do `[ ]` 2026-10-14: nie zweryfikowano całego boksu (zob. notatka powyżej)._
       _needs human: wymaga zgłoszenia (leada) z inwestycji ze zdjęciami — UI nie tworzy zgłoszeń, a kasowanie cudzego jest zabronione; część lokalna zweryfikowana 2026-10-09_
 - [ ] Usunięte na zawsze zgłoszenie z Facebooka nie wraca po nocnym uzgodnieniu zgłoszeń (staging,
       następny dzień).
-      _Nie sprawdzone 2026-10-03 (staging): wymaga sprawdzenia następnego dnia po przebiegu crona Facebooka — bloker izolacji EX-937/EX-938_
+      _Nie sprawdzone 2026-10-03 (staging): wymaga sprawdzenia następnego dnia po przebiegu crona Facebooka — bloker izolacji_
       _needs human: sprawdzenie następnego dnia po nocnym cronie uzgadniania Facebooka (cron + realne zgłoszenie FB)_
 
 ## 2026-10-02 — podsumowanie-pracownika-tabele
@@ -261,7 +261,7 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
       _Cofnięte do `[ ]` 2026-10-14: nie zweryfikowano całego boksu (zob. notatka powyżej)._
       _needs human: PDF z kilkudziesięcioma wypłatami — brak takiego pracownika na preview; ocena układu PDF wzrokowo (pass 6)_
 
-## EX-975 — purge-runner — nocne czyszczenie Kosza po scaleniu sześciu kopii (2026-10-05)
+## purge-runner — nocne czyszczenie Kosza po scaleniu sześciu kopii (2026-10-05)
 
 Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 
@@ -270,13 +270,13 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Odpowiedź crona `cleanup` zawiera dla każdego rodzaju `purged` / `blocked` / `failed` (pojazdy, sprzęt i zgłoszenia mają teraz też `blocked: 0`), a inwestycje dodatkowo `skippedKosztorys`.
       _needs human: jak wyżej — odpowiedź crona `cleanup` wymaga jego uruchomienia, które na preview DB kasuje prawdziwe przeterminowane wiersze_
 
-## EX-992 — ai-translations — AI uzupełnia tłumaczenia UA/RU i tłumaczy prace spoza rozpiski na polski (2026-10-05)
+## ai-translations — AI uzupełnia tłumaczenia UA/RU i tłumaczy prace spoza rozpiski na polski (2026-10-05)
 
 - [ ] Gdy AI było niedostępne w chwili wysyłki: przegląd pokazuje „Brak tłumaczenia" i „Przetłumacz"; po kliknięciu (z działającym AI) polski opis pojawia się bez zamykania okna. Pracownik na swoim linku nie widzi żadnego przycisku tłumaczenia.
       _Staging 2026-10-05:_ NIE sprawdzone — nie da się zasymulować niedostępności AI na stagingu. Sam przycisk „Przetłumacz" sprawdzony na zgłoszeniu z PL opisem (działa).
       _needs human: nie da się zasymulować niedostępności AI w chwili wysyłki na stagingu_
 
-## EX-949 — worker-report-scan — zgłoszenie prac wczytane z papierowej kartki
+## worker-report-scan — zgłoszenie prac wczytane z papierowej kartki
 
 Potrzebny stan: inwestycja w toku z rozpiską (kilka sekcji, kilkanaście prac), pracownik przypisany
 do jej etapu, drugi pracownik ustawiony na Українська. Odczyty AI idą naprawdę — nie oszczędzaj
@@ -304,7 +304,7 @@ zdjęć, każdy wariant poniżej to osobny skan.
 - [ ] Safari (desktop) → kosztorys z kilkoma sekcjami → „Akcje sekcji” → „Ustaw kolejność…”: lista sekcji i prac jest widoczna, przewija się w środku okna, „Zapisz kolejność” działa po przeciągnięciu.
       _needs human: prawdziwe Safari desktop (WebKit)_
 
-## EX-1014 — media-upload-other-forms — każdy formularz z plikami na szybkiej ścieżce (2026-10-07)
+## media-upload-other-forms — każdy formularz z plikami na szybkiej ścieżce (2026-10-07)
 
 Staging (albo preview brancha), konto OWNER, chyba że napisano inaczej. Zdjęcia z telefonu albo
 JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
@@ -316,7 +316,7 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
   - POMINIĘTE 2026-10-07 (staging): wymaga czytelnie wypełnionej kartki „Drukuj kartkę do zgłoszenia prac” — dwa zdjęcia z szumem skończyły się komunikatem „Na zdjęciach nie odczytano żadnej wpisanej ilości.” i raport się nie zapisuje. Potrzebne zdjęcie prawdziwej, wypełnionej kartki od człowieka.
       _needs human: zdjęcie prawdziwej, wypełnionej kartki zgłoszenia prac_
 - [ ] Okno leada (zgłoszenie z Facebooka) z plikami → miniatury wyglądają jak dotąd.
-      POMINIĘTE 2026-10-07 (staging): żadne z 221 zgłoszeń na preview DB nie ma plików (`leads_rels` bez media), a nowego z plikami nie da się utworzyć bez podpisanego webhooka landingu (sekret Preview niedostępny, zob. sekcja EX-802). Wymaga zgłoszenia z plikami od człowieka.
+      POMINIĘTE 2026-10-07 (staging): żadne z 221 zgłoszeń na preview DB nie ma plików (`leads_rels` bez media), a nowego z plikami nie da się utworzyć bez podpisanego webhooka landingu (sekret Preview niedostępny, zob. sekcja lead-delivery). Wymaga zgłoszenia z plikami od człowieka.
       _needs human: zgłoszenie z plikami — żadne z 221 leadów na preview nie ma załączników, a UI/webhook ich nie dopnie_
 - [ ] Zgłoszenie z formularza na stronie (landing) ze zdjęciem z telefonu i PDF-em → oba pliki są przy zgłoszeniu, miniatura zdjęcia się wyświetla.
       POMINIĘTE 2026-10-07 (staging): to wymaga prawdziwego formularza na stronie landingu i podpisanego webhooka (`LANDING_WEBHOOK_SECRET` Preview niedostępny, pliki leżą w blobie landingu). Nie da się zrobić z tej sesji.
@@ -339,13 +339,13 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Aplikacja zainstalowana (Android i iPhone): obok hamburgera jest strzałka wstecz na każdej stronie; cofa do poprzedniej strony, a przy pierwszej stronie po otwarciu prowadzi na stronę główną. W zwykłej karcie przeglądarki strzałki nie ma.
       _needs human: zainstalowana aplikacja na Androidzie i iPhonie (tryb standalone)_
 
-## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
+## kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
 
 - [ ] Pracownik, któremu wcześniej odznaczono „Przedmiar” w ustawieniach widoku pracownika → po zmianie „Aktualizacja przedmiaru” nadal jest u niego ukryta.
       POMINIĘTE bez próby (2026-10-07): wymaga starego klucza `plannedQty` zapisanego w globalu ustawień widoku pracownika, a UI zapisuje już tylko `currentPlannedQty`; stworzenie stanu to zapis do bazy poza UI. Mapowanie klucza pokrywa `src/__tests__/lib/kosztorys/worker-view/settings.test.ts`.
       Staging 2026-10-15: wymaga starego klucza plannedQty w globalu widoku pracownika, którego UI już nie zapisuje; ścieżkę pokrywa src/__tests__/lib/kosztorys/worker-view/settings.test.ts, ręcznie tylko przez edycję JSON w bazie.
 
-## EX-1025 — invoice-duplicate-detection — duplikaty paragonów przy akceptacji zgłoszeń wydatków (2026-10-08)
+## invoice-duplicate-detection — duplikaty paragonów przy akceptacji zgłoszeń wydatków (2026-10-08)
 
 - [ ] „Dodaj wydatek" → między wierszem pliku a „Notatką" stoi wiersz z polami „Nr dokumentu", „NIP sprzedawcy" i „Data na paragonie"; „Skanuj" / „Odczytaj ponownie" wypełnia wszystkie trzy.
       _Staging 2026-10-14 (pass 3): układ OK: FV (plik) → Nr dokumentu / NIP sprzedawcy / Data na paragonie → Notatka. „Odczytaj ponownie” z fixture paragon-a.jpg dał „NIE UDAŁO SIĘ ODCZYTAĆ” (puste pola) — wypełnienie trzech pól nieweryfikowalne bez czytelnego prawdziwego paragonu. Needs human._
@@ -354,9 +354,10 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 ## EX-1065 — catalogue-auto-translate — nocny cron dotłumacza katalog prac
 
 - [ ] Katalog prac → „Uzupełnij tłumaczenia (AI)” nadal tłumaczy i zeruje licznik, jak dotąd.
-- [ ] Vercel → Settings → Cron Jobs po wdrożeniu na produkcję: jest `/api/cron/translate-catalogue` o `0 2 * * *`.
+- [x] Vercel → Settings → Cron Jobs po wdrożeniu na produkcję: jest `/api/cron/translate-catalogue` o `0 2 * * *`.
+      _Prod 2026-10-18: logi Vercela — przebiegi 2026-10-17 i 2026-10-18 o 02:00:08 UTC, status 200; praca 970 przetłumaczona przez przebieg 2026-10-17 (02:00:13 UTC)._
 
-## EX-1032 — company-knowledge — „Manual Wykończymy” w górnym pasku
+## company-knowledge — „Manual Wykończymy” w górnym pasku
 
 - [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/manual-i-komentarze-do-prac.md` ma
       każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
@@ -390,13 +391,13 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
       i pracownika nadal czytelna (najwyżej ucięta wielokropkiem), przełącznik języka mieści się.
       _needs human: telefon/iPhone 390px na prawdziwym urządzeniu (viewport emulowany nie odtwarza dotyku, zoomu iOS ani klawiatury) (pass 6)_
 
-## 2026-10-11 — invoice-download-date-range — „Faktury” z zakresem dat (EX-1039)
+## 2026-10-11 — invoice-download-date-range — „Faktury” z zakresem dat
 
 - [ ] „Drukuj” dalej drukuje bieżący zestaw filtrów tabeli, niezależnie od dialogu.
       _Staging 2026-10-14: Okno druku nie weryfikowalne w tym narzędziu._
       _needs human: natywne okno druku — nie do sterowania w automatyzacji_
 
-## 2026-10-11 — pwa-push-notifications — powiadomienia push w zainstalowanej aplikacji (EX-1040)
+## 2026-10-11 — pwa-push-notifications — powiadomienia push w zainstalowanej aplikacji
 
 Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada środowiskowa, nie defekt).
 
@@ -421,7 +422,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] „Rozlicz wypłaty” dla jednego pracownika na dwóch inwestycjach → przychodzi jedno powiadomienie z sumą kwot, a ikona pokazuje 2.
       _needs human: push na prawdziwym telefonie_
 
-## 2026-10-12 — investment-ai-stage — „Etap AI” na inwestycji (EX-1046)
+## 2026-10-12 — investment-ai-stage — „Etap AI” na inwestycji
 
 - [ ] Po deployu i migracji produkcji: ustaw „Recenzja zakończona” na jednej inwestycji, uruchom `collect-reasons-prod.ts` bez `INVESTMENTS` → listuje Powody zmiany dokładnie tej inwestycji.
       _needs human: po deployu i migracji produkcji — skrypt `collect-reasons-prod.ts` na produkcji_
@@ -443,7 +444,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       _Staging 2026-10-14 (pass 3): oznaczenie Etapu 1 przy włączonym ustawieniu od razu go ukrywa. „Odznacz — wraca” nie da się wykonać z tej samej pozycji: ukryty etap nie ma nagłówka, więc zakończenie cofa się dopiero po wyłączeniu ustawienia (zachowanie spójne z ukrywaniem, do potwierdzenia przez człowieka)._
       Pass 7 (staging 2026-10-15), inw. 210, „Bez narzędzi”: przy włączonym „Ukryj zakończone” oznaczenie Etapu 5 jako zakończony od razu ukrywa jego kolumny (potwierdzone). Krok „odznacz — wraca” jest niewykonalny w tym UI: ukryty etap nie ma nagłówka ani menu, a jego wiersz w „Kolumny → Etapy” jest wyszarzony, więc cofnięcie wymaga najpierw wyłączenia „Ukryj zakończone”. needs human: decyzja produktowa, czy to ma być możliwe (finding z pass 3, bez zmian).
 
-## 2026-10-13 — report-line-decisions — „Przyjmij / Odrzuć” pozycja po pozycji (EX-1049)
+## 2026-10-13 — report-line-decisions — „Przyjmij / Odrzuć” pozycja po pozycji
 
 - [ ] Stare zgłoszenia z częściowymi decyzjami po migracji: „Do sprawdzenia” z postępem, nie „Przyjęte” (lokalnie: #7, #8, #11 na inw. 139; na preview te numery to inne inwestycje z kompletem decyzji — sprawdzać na lokalnym dumpie).
       _Staging 2026-10-14: na preview DB zgłoszenia #7/#8/#11 to inne inwestycje (139/149/119) i wszystkie linie mają decyzję → status „accepted” jest poprawny; danych do sprawdzenia „Do sprawdzenia z postępem” nie ma. Boks nieaktualny wobec preview DB — Needs human (dane lokalne)._
@@ -522,7 +523,7 @@ Stan: kosztorys ze zgłoszeniem pracy od pracownika czekającym na przyjęcie.
       w swojej kolumnie.
       _needs human: prawdziwe Safari (WebKit) — tego nie ma w środowisku MCP (pass 6)_
 
-## EX-1057 — kosztorys-ai-rounds — kolejne rundy AI: „Nowe informacje” i „Do ponownego sprawdzenia”
+## kosztorys-ai-rounds — kolejne rundy AI: „Nowe informacje” i „Do ponownego sprawdzenia”
 
 Stan: kosztorys AI (z AI przedmiarem) i drugi, zwykły kosztorys. Pozycje z flagą daje lokalne
 wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
@@ -557,29 +558,29 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       _Staging 2026-10-14 (pass 3): 390px: Mała=12px, Średnia=14px (różny tekst), nazwa sekcji mała. NIE sprawdzono wychodzenia długiej nazwy sekcji na sąsiednie puste komórki (brak długiej nazwy w inw. 210) — box otwarty._
       _needs human: telefon/iPhone 390px na prawdziwym urządzeniu (viewport emulowany nie odtwarza dotyku, zoomu iOS ani klawiatury) (pass 6)_
 
-## 2026-10-14 — backlog-fixes-14 — poprawki z backlogu: odrzucenie w zgłoszeniu, zapis przed podmianą rozpiski, menu etapu (EX-1052, EX-1002, EX-1036)
+## 2026-10-14 — backlog-fixes-14 — poprawki z backlogu: odrzucenie w zgłoszeniu, zapis przed podmianą rozpiski, menu etapu
 
-- [ ] EX-1052: ten sam kosztorys w dwóch kartach. W karcie A „Zgłoszenia prac” → zgłoszenie → przy
+- [ ] ten sam kosztorys w dwóch kartach. W karcie A „Zgłoszenia prac” → zgłoszenie → przy
       jednej pozycji tylko „Odrzuć” → zapisz. Przejdź do karty B: **nie** pojawia się „Rozpiska
       zmieniła się w innym oknie — wczytano aktualną wersję.”, a w „Wersje” nie przybyła wersja
       automatyczna. Po ponownym otwarciu zgłoszenia pozycja jest odrzucona.
       _needs human: dwie karty z jednym kosztorysem; wspólne ciasteczko i brak bezpiecznego stanu do odrzucenia/„Wyczyść” na prawdziwej inwestycji (zasada: nie nadpisujemy kosztorysu) (pass 6)_
-- [ ] EX-1052: to samo z „Przyjmij” jednej pozycji zamiast „Odrzuć” — karta B **pokazuje** ten
+- [ ] to samo z „Przyjmij” jednej pozycji zamiast „Odrzuć” — karta B **pokazuje** ten
       komunikat i ilość w etapie.
       _needs human: dwie karty z jednym kosztorysem; wspólne ciasteczko i brak bezpiecznego stanu do odrzucenia/„Wyczyść” na prawdziwej inwestycji (zasada: nie nadpisujemy kosztorysu) (pass 6)_
-- [ ] EX-1002: tak samo — świeża zmiana w komórce, od razu „Wyczyść kosztorys”, „Wczytaj z
+- [ ] tak samo — świeża zmiana w komórce, od razu „Wyczyść kosztorys”, „Wczytaj z
       szablonu”, import z arkusza i „Ustaw kolejność”: każda kończy się bez komunikatu o błędzie
       i bez „Kosztorys zmienił się w innym miejscu”.
       _needs human: dwie karty z jednym kosztorysem; wspólne ciasteczko i brak bezpiecznego stanu do odrzucenia/„Wyczyść” na prawdziwej inwestycji (zasada: nie nadpisujemy kosztorysu) (pass 6)_
 
-## EX-1021 — media-file-headers — pliki spoza dozwolonych typów pobierają się zamiast otwierać
+## media-file-headers — pliki spoza dozwolonych typów pobierają się zamiast otwierać
 
 - [ ] Plik SVG wgrany w pliki z ominięciem formularza (`/api/media/file/<nazwa>.svg`) → otwarcie
       linku pobiera plik zamiast wyświetlać obraz lub stronę.
       _Staging 2026-10-15 (pass 5): Pass 5: NIE sprawdzone — w sklepie preview nie ma SVG, a wgranie przez token route z pominięciem formularza wymaga ręcznie zbudowanego klienta; brak specu na hardenMediaFileHeaders (src/__tests__ nie ma testu). Do zrobienia ręcznie._
       _needs human: w sklepie preview nie ma SVG, a wgranie z pominięciem formularza wymaga ręcznie zbudowanego klienta; brak specu hardenMediaFileHeaders (pass 6)_
 
-## EX-1055 — pozycja ze zgłoszenia zapamiętana przed zapisem
+## pozycja ze zgłoszenia zapamiętana przed zapisem
 
 ### Findings — 2026-10-15
 
@@ -591,7 +592,7 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       uruchomiony; po deployu powtórzyć boks 1 na pracy, którą sekcja już ma.
       **Test disposition**: test-driven-debugging · unit (dom) — `onPick` z jedną pasującą pozycją woła akcję.
 
-## EX-950 — remount-latch-disarm — przerwane „Wyczyść” nie przebudowuje edytora przy następnej zmianie
+## remount-latch-disarm — przerwane „Wyczyść” nie przebudowuje edytora przy następnej zmianie
 
 - [ ] Jak wyżej, ale po powrocie Online od razu wpisz wartość w komórkę i w ciągu pół sekundy dodaj
       pozycję: wpisana wartość zostaje po odświeżeniu strony.
@@ -606,8 +607,8 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 - [ ] To samo na koncie z językiem Українська: przycisk „Позначити для аналізу AI”, toast
       „Файл позначено для аналізу AI”, po kliknięciu „Позначено для аналізу AI” — bez polskich napisów.
-      _Staging 2026-10-15 (pass 5): Pass 5 FINDING: staging (origin/staging b73d388fe) nie zawiera commita 108516943 (fix EX-1064, tylko lokalnie). Na koncie uk przycisk w galerii inw. 210 to wciąż „Oznacz do analizy AI” (reszta po ukraińsku: Видалити цей файл, Додати ще, Друк…). Do ponownego sprawdzenia po wdrożeniu poprawki. Język QA 75 przywrócony do Polski._
-      _needs human: commit EX-1064 (ukraińska etykieta) nie jest jeszcze na stagingu (pass 6)_
+      _Staging 2026-10-15 (pass 5): Pass 5 FINDING: staging (origin/staging b73d388fe) nie zawiera commita 108516943 (fix ukraińskiej etykiety, tylko lokalnie). Na koncie uk przycisk w galerii inw. 210 to wciąż „Oznacz do analizy AI” (reszta po ukraińsku: Видалити цей файл, Додати ще, Друк…). Do ponownego sprawdzenia po wdrożeniu poprawki. Język QA 75 przywrócony do Polski._
+      _needs human: commit z ukraińską etykietą nie jest jeszcze na stagingu (pass 6)_
 
 ## 2026-10-15 — expense-draft-loader — „Nowy wydatek” pracownika: loader na środku ekranu + limit zdjęć
 
@@ -634,11 +635,8 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Kosztorys → „Importuj z arkusza” i „Ustaw kolejność” działają jak wcześniej (porządki bez
       zmiany zachowania): import podmienia pozycje, kolejność zapisuje się po odświeżeniu strony.
 
-## EX-1075 — szablon-own-structure — szablon jako odwołania do katalogu prac
+## szablon-own-structure — szablon jako odwołania do katalogu prac
 
-- [x] Szablony → otwórz szablon → menu „…” przy dowolnej pracy: nie ma „Aktualizuj pozycję w katalogu
-      prac” ani „Zapisz pozycję do katalogu prac”; „Wstaw powyżej/poniżej”, „Ustaw kolejność…” i „Usuń
-      pozycję” są jak dotąd.
 - [ ] Inwestycja z kosztorysem → menu „…” przy pracy z katalogu: „Aktualizuj pozycję w katalogu prac”
       nadal jest i otwiera okno zapisu do katalogu.
 - [ ] Szablony → „Nowy szablon”, zmiana nazwy, otwarcie: działa; nazwa już zajęta (także przez szablon
@@ -838,7 +836,7 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 - [ ] Desktop → Transakcje: przełącznik, „Szukaj duplikatów” i „Kolumny” w jednym rzędzie po prawej,
       jak dotąd.
 
-## EX-1081 — enter-escape-keydown — Enter/Escape w polu komórki nie trafia już do siatki
+## enter-escape-keydown — Enter/Escape w polu komórki nie trafia już do siatki
 
 Edytor kosztorysu, desktop. Wygląd się nie zmienia; Enter/Escape w trakcie wpisywania obsługuje teraz
 tylko komórka, a siatka ich nie widzi.
@@ -933,6 +931,162 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Ten sam PDF z Chrome: wydruk poziomy, nagłówki kolumn powtarzają się na każdej stronie.
 - [ ] „Drukuj PDF” oferty dla inwestora i formularz pracownika do wypełnienia wyglądają jak dotąd.
 
+## 2026-10-18 — dead-code-cleanup — usunięty martwy kod, zachowanie bez zmian
+
+- [ ] Lista z więcej niż jedną stroną (np. „Wypłaty”): strzałki poprzednia/następna strona i „…”
+      w paginacji wyświetlają się i działają jak dotąd.
+- [ ] Pole wyszukiwanego wyboru w formularzu (np. inwestycja w „Dodaj transakcję”): strzałka
+      rozwijania jest widoczna, lista się otwiera.
+- [ ] Kosztorys z rabatem kwotowym: „Do zapłaty” = suma netto − rabat, tak jak przed zmianą;
+      to samo na widoku inwestycji (robocizna i rabat z kosztorysu).
+- [ ] Kosztorys inwestycji z materiałami wliczonymi w robociznę → „Problemy”: pozycja o stawkach
+      wykonawców liczonych według formuły pokazuje ten sam opis z liczbą wierszy.
+- [ ] „Transfer między kasami” z tą samą kasą źródłową i docelową: zapis jest odrzucony z
+      komunikatem jak dotąd.
+
+## 2026-10-18 — test-suite-audit faza 1 — zapytanie o wpłaty inwestora uproszczone, zachowanie bez zmian
+
+- [ ] Inwestycja z kilkoma wpłatami inwestora, w tym jedną anulowaną → kosztorys (rozliczenie)
+      oraz panel podsumowania inwestycji: widać te same wpłaty co przed zmianą, bez anulowanej,
+      najnowsze na górze; wpłaty innej inwestycji się nie pojawiają.
+
+## EX-1033 — document-settings-column-map — odczyt starego formatu ustawień kolumn usunięty
+
+- [ ] Kosztorys → ustawienia widoku dla inwestora oraz widoku pracownika: odznacz jedną kolumnę,
+      zaznacz inną ukrytą domyślnie, zapisz i odśwież stronę — wybór się utrzymuje; podgląd i PDF
+      pokazują dokładnie te kolumny (odczyt starego formatu usunięty, zachowanie bez zmian).
+
+## transfer-actions-db-spec — anulowanie i edycja kwoty zapisują się razem z wpisem w historii
+
+- [ ] Transakcje → anuluj wydatek z kasy, podając powód: wiersz jest oznaczony jako anulowany,
+      pojawia się wiersz anulowania z tym powodem, saldo kasy i bilans inwestycji wracają do stanu
+      sprzed wydatku.
+- [ ] Anuluj wydatek materiałowy inwestycji podpiętej do arkusza: jego wiersz znika z arkusza jak
+      dotąd.
+- [ ] Zmień kwotę robocizny na inwestycji: lista pokazuje nową kwotę, historia zmian kwoty ma wpis
+      stara → nowa, bilans przesuwa się o różnicę.
+
+## 2026-10-18 — kosz-plikow — usunięte pliki trafiają do Kosza na 7 dni
+
+Zamiatacz kasuje dopiero po siedmiu dniach, więc boksy o kasowaniu wymagają cofnięcia daty usunięcia
+na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blokada.
+
+- [ ] Usunięcie pliku z galerii inwestycji, faktury z transakcji i pliku ze zgłoszenia pyta o
+      potwierdzenie zdaniem o Koszu i 7 dniach — nigdzie nie pada „bezpowrotnie".
+- [ ] Galeria inwestycji z kilkoma plikami znów ma „Usuń wszystkie"; przy jednym pliku go nie ma.
+- [ ] Usunięty plik pojawia się w Koszu w sekcji „Pliki": nazwa pliku, skąd zszedł (np.
+      „Inwestycja … · pliki", „Wydatek inwestycyjny z … · faktura") i „usunie się samo za 7 dni";
+      nie ma przy nim „Usuń na zawsze".
+- [ ] „Przywróć" przy pliku wraca go do galerii inwestycji / faktur transakcji / plików zgłoszenia,
+      a wiersz znika z sekcji „Pliki".
+- [ ] Plik usunięty z inwestycji, którą potem przeniesiono do Kosza: wiersz jest, „Przywróć" jest
+      wyłączone, pod wierszem „Najpierw przywróć inwestycję z Kosza."; po przywróceniu inwestycji
+      plik da się przywrócić.
+- [ ] Jako MANAGER: faktura usunięta z transakcji kasy głównej nie pokazuje się w sekcji „Pliki";
+      jako OWNER — pokazuje się.
+- [ ] Pliki inwestycji usuniętej na zawsze nie pojawiają się w sekcji „Pliki".
+- [ ] Plik w Koszu dłużej niż 7 dni: po wywołaniu `/api/cron/cleanup` znika z Kosza i z Bloba, a
+      odpowiedź niesie krok `media` z rozbiciem `{ recorded, healed, deleted, failed }`; drugie
+      wywołanie pod rząd kasuje zero.
+- [ ] Paragon w zgłoszeniu wydatku pracownika i zdjęcie w zgłoszeniu prac przeżywają przebieg crona
+      nietknięte.
+- [ ] Skasowanie transakcji z fakturą kasuje fakturę od razu, bez Kosza (świadomy wyjątek).
+- [ ] „Usuń na zawsze" przy inwestycji, szablonie i zgłoszeniu w Koszu wygląda i działa jak dotąd:
+      ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
+- [ ] Zgłoszenie, które wcześniej straciło plik do Kosza, usunięte na zawsze: plik znika też z
+      sekcji „Pliki".
+
+## EX-1078 — drop-scan-mode — zgłoszenia wydatków bez martwej kolumny, zachowanie bez zmian
+
+- [ ] Jako pracownik wyślij zgłoszenie wydatku ze zdjęciem paragonu: zgłoszenie pojawia się
+      u kierownika jako oczekujące, a „Nowy wydatek" otwiera się z kwotą odczytaną przez AI.
+- [ ] Zgłoszenie przyjęte z pominiętym paragonem → przywróć paragon: komunikat „Paragon
+      przywrócony", a paragon wraca jako osobne oczekujące zgłoszenie z tą samą notatką i
+      odczytem AI.
+
+## EX-1080 — restore-lock-first — „Przywróć wersję" zapisuje stan sprzed przywrócenia
+
+- [ ] Kosztorys z zapisaną wersją → zmień opis pozycji → „Wersje" → przywróć tę wersję: rozpiska
+      wraca do stanu wersji (łącznie z VAT i współczynnikami), a na liście wersji pojawia się nowa
+      automatyczna wersja z opisem sprzed przywrócenia; przywrócenie jej oddaje zmieniony opis.
+
+## EX-1079 — worker-account-scope — „Edytuj pracownika" trzyma zasady kont
+
+- [ ] Jako Manager otwórz stronę Właściciela w „Pracownicy": brak przycisku „Edytuj pracownika".
+- [ ] Jako Manager na stronie pracownika → „Edytuj pracownika": lista „Rola" ma tylko „Pracownik";
+      zmiana e-maila i zapis działa.
+- [ ] Jako Manager na własnej stronie → „Edytuj pracownika": „Rola" pokazuje tylko „Manager", zmiana
+      e-maila zapisuje się; odznaczenie „Aktywny" kończy się komunikatem „Nie można wyłączyć…
+      własnego konta", konto zostaje aktywne.
+- [ ] Jako Manager „Pracownicy" → „Dodaj": lista „Rola" ma tylko „Pracownik".
+- [ ] Jako Właściciel „Edytuj pracownika" u pracownika zalogowanego na telefonie → odznacz „Aktywny"
+      i zapisz: telefon przy następnym kliknięciu zostaje wylogowany.
+
+## EX-1077 — scan-blocks-save — „Zapisz" czeka na odczyt paragonu
+
+- [ ] Zgłoszenie wydatku z inwestycją, jedna pozycja ze zdjęciem paragonu i jedna bez → „Odczytaj
+      ponownie" przy pozycji ze zdjęciem: póki trwa odczyt, „Zapisz" jest wyszarzony, a Enter w polu
+      pokazuje „Poczekaj na odczytanie paragonów."; po odczycie „Zapisz" → „Zapisz bez faktury":
+      zapisana transakcja ma opis i kwotę z odczytu.
+
+## EX-1076 — daily-snapshot-change-detection — nocna kopia kosztorysu tylko po zmianie
+
+- [ ] Noc po najbliższym wdrożeniu, które dokłada pole do pozycji kosztorysu (odczyt z proda, tylko
+      SELECT): liczba wierszy `kosztorys_snapshots` z `kind = 'daily'` z tej nocy ≈ liczba inwestycji,
+      w których poprzedniego dnia ktoś zmienił kosztorys — nie ~50–80 jak po wcześniejszych takich
+      wdrożeniach.
+
+## EX-1089 — cache-tag-epoch — po zapisie odczyt nie wraca do stanu sprzed zmiany
+
+- [ ] Inwestycja → zmień nazwę lub status i zapisz, od razu odśwież stronę, potem przejdź na
+      „Inwestycje" i z powrotem: wszędzie widać nową wartość, także po kolejnym odświeżeniu — bez
+      klikania „Odśwież dane".
+- [ ] Dodaj wydatek do inwestycji i od razu odśwież jej stronę oraz listę „Inwestycje": kwoty
+      (bilans, marża) uwzględniają wydatek za pierwszym razem i nie cofają się przy kolejnym
+      odświeżeniu.
+
+## 2026-10-18 — media-holders-one-list — pliki ze zgłoszeń dalej chronione
+
+- [ ] Zgłoszenie prac lub zgłoszenie wydatku pracownika ze zdjęciem/paragonem: plik nie pojawia się
+      w „Koszu plików" jako nieprzypięty, a próba jego usunięcia kończy się komunikatem „Nie można
+      usunąć pliku — jest używany w innych miejscach (zgłoszenia prac / zgłoszenia wydatków)".
+      Zdjęcie dalej widać w zgłoszeniu (refaktor listy tabel — zachowanie bez zmian).
+
+## 2026-10-18 — mobile-375-qa — poprawki widoków na telefonie (375 px)
+
+- [ ] Telefon (375 px) → podgląd zdjęcia z załącznika: przyciski akcji chowają się pod „Więcej
+      akcji” (⋯), a zdjęcie zajmuje większość ekranu.
+- [ ] Na desktopie ten sam podgląd zdjęcia wygląda jak dotąd — przyciski w rzędzie, bez „⋯”.
+- [ ] Telefon → „Rozlicz wypłaty”: „Kasa”, „Do rozdysponowania” i „Data” stoją jedna pod drugą
+      i nie nachodzą na siebie; na desktopie dalej w jednym rzędzie.
+- [ ] Telefon → inwestycja z długą nazwą: nazwa w górnym pasku skraca się, a przyciski po prawej
+      zostają na ekranie.
+- [ ] Telefon → dialog z długim tytułem bez spacji (np. nazwa pliku): tytuł łamie się, nie wychodzi
+      za ekran ani pod ✕.
+- [ ] Telefon → raporty pracowników: „Skanuj raport (AI)” mieści się w ekranie na pełną szerokość;
+      katalog prac → „Uzupełnij tłumaczenia (AI)” tak samo.
+- [ ] Telefon → kosztorys: „Opcje” ma tę samą szerokość co sąsiednie przyciski, a długa nazwa
+      inwestycji w nagłówku łamie się na dwie linie zamiast wypychać przyciski.
+- [ ] Telefon → link kosztorysu dla klienta i podgląd inwestora: „Opis prac” łamie się w ekranie,
+      a kolumna „Przedmiar” wystaje z prawej (tabela przewija się w bok). Na desktopie bez zmian.
+- [ ] Telefon → raport pracownika (`/z/…`): kolumny tabeli wyglądają jak dotąd.
+
+## 2026-10-18 — prepush-overlap — testy w hooku pre-push równolegle
+
+- [ ] Następny prawdziwy `git push`: najpierw nagłówek „unit tests + typecheck + DB integration specs,
+      parity (in parallel)”, potem trzy sekcje z wynikami („DB integration specs + parity” ostatnia)
+      i zrzut bazy. Część testowa trwa ok. 70–80 s zamiast ok. 100 s (dłużej, gdy przebudowuje się
+      szablon bazy testowej).
+- [ ] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
+      typecheck”, a zrzut bazy się nie uruchamia.
+
+## 2026-10-18 — e2e-run-speed — E2E bez zbędnego buildu, na świeżej bazie
+
+- [ ] Następny pełny `pnpm test:e2e`: na początku „test DB: cloned from template”, potem build bez
+      sprawdzania typów, i cały przebieg przechodzi.
+- [ ] Drugi `pnpm test:e2e` bez zmian w `src/` (zmieniony tylko spec): w logu „e2e build: reused”,
+      serwer startuje w kilka sekund, a wyniki są takie same.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -944,74 +1098,74 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 
 | slice                                                                                                                        | boksy | ostatnia weryfikacja |
 | ---------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------- |
-| EX-649 — zakładka „Marża": prognoza i marża rzeczywista                                                                      | 26/26 | 2026-09-04           |
-| EX-691 — „Porównaj z arkuszem Google" pod aktywnym rabatem globalnym                                                         | 4/4   | —                    |
-| EX-448 — stable per-row ids for expense line-items                                                                           | 6/6   | 2026-09-04           |
+| zakładka „Marża": prognoza i marża rzeczywista                                                                                 | 26/26 | 2026-09-04           |
+| „Porównaj z arkuszem Google" pod aktywnym rabatem globalnym                                                                    | 4/4   | —                    |
+| stable per-row ids for expense line-items                                                                                      | 6/6   | 2026-09-04           |
 | S-08 — kosztorys-delete-guard                                                                                                | 5/5   | 2026-07-10           |
 | kosztorys-zaliczka-v2 — materiały netto/brutto w Podsumowaniu (slice A)                                                      | 4/4   | —                    |
 | kosztorys-tryb-mieszany — cash-settlement view w Podsumowaniu (slice B)                                                      | 6/6   | 2026-09-04           |
-| kosztorys-podsumowanie-tabs — zaliczka-v2 batch: tabbed Podsumowanie, Mieszane via vatPlane, wpłaty base fix (EX-536)        | 11/11 | 2026-09-14           |
+| kosztorys-podsumowanie-tabs — zaliczka-v2 batch: tabbed Podsumowanie, Mieszane via vatPlane, wpłaty base fix        | 11/11 | 2026-09-14           |
 | remove-section-coeff — drop per-section coeff tier + explicit section sidebar buttons                                        | 2/2   | 2026-08-26           |
-| EX-564 — kosztorys-percent-rabat-bulk-apply                                                                                  | 8/8   | 2026-08-26           |
-| etap-tool-plane (EX-565) — per-etap rozliczenie plane + view-independent subcontractor settlement                            | 18/18 | 2026-09-14           |
-| EX-571 — subcontractor-view-settlement-only                                                                                  | 16/16 | 2026-09-14           |
-| EX-567 — netto investment-expense type (`INVESTMENT_EXPENSE_NET`)                                                            | 0/0   | 2026-07-26           |
-| EX-580 — section header rows (bands) in the kosztorys grid                                                                   | 15/15 | 2026-09-14           |
-| EX-581 — netto expenses get their own tab in the wydatki list                                                                | 10/10 | 2026-09-15           |
-| EX-569 — client-facing „Pobierz faktury" in the kosztorys Wydatki tab                                                        | 12/12 | 2026-09-04           |
-| EX-585 — kosztorys-invoice-note-and-preview                                                                                  | 17/17 | 2026-09-04           |
-| EX-588 — investment-settlement-mode                                                                                          | 14/14 | 2026-09-04           |
-| EX-594 — investment-summary-panel                                                                                            | 26/26 | 2026-09-15           |
-| EX-596 — materials-net-pricing-persisted                                                                                     | 15/15 | 2026-09-15           |
-| EX-597 — decouple-panel-write-refresh                                                                                        | 21/21 | 2026-09-15           |
-| EX-605 — rabat globalny: activates on selection, undoable, one „Zapisz"                                                      | 8/8   | —                    |
-| EX-606 — the % mass-overwrite gets a confirm dialog, not an undo entry                                                       | 9/9   | 2026-07-27           |
-| EX-607 — kosztorys-section-footer-row                                                                                        | 14/14 | 2026-09-14           |
-| EX-608 — nazwa inwestycji w górnym pasku bez trzeciego zapytania                                                             | 5/5   | —                    |
-| EX-609 — subcontractor-price-guard                                                                                           | 21/21 | 2026-09-15           |
-| EX-615 — drop-empty-kosztorys-scaffold                                                                                       | 8/8   | 2026-09-03           |
-| EX-618 — scalable-preset-section-picker                                                                                      | 12/12 | 2026-09-15           |
-| EX-574 — cancellation-sum-overcount                                                                                          | 10/10 | 2026-10-14           |
-| EX-575 — drop-cost-variant-columns                                                                                           | 7/7   | —                    |
-| EX-600 — investment-panel-filter-scope — ZDEZAKTUALIZOWANE                                                                   | 0/0   | 2026-08-08           |
-| EX-430 — harden bulk-insert restore                                                                                          | 2/2   | 2026-08-26           |
+| kosztorys-percent-rabat-bulk-apply                                                                                             | 8/8   | 2026-08-26           |
+| etap-tool-plane — per-etap rozliczenie plane + view-independent subcontractor settlement                            | 18/18 | 2026-09-14           |
+| subcontractor-view-settlement-only                                                                                             | 16/16 | 2026-09-14           |
+| netto investment-expense type (`INVESTMENT_EXPENSE_NET`)                                                                       | 0/0   | 2026-07-26           |
+| section header rows (bands) in the kosztorys grid                                                                              | 15/15 | 2026-09-14           |
+| netto expenses get their own tab in the wydatki list                                                                           | 10/10 | 2026-09-15           |
+| client-facing „Pobierz faktury" in the kosztorys Wydatki tab                                                                   | 12/12 | 2026-09-04           |
+| kosztorys-invoice-note-and-preview                                                                                             | 17/17 | 2026-09-04           |
+| investment-settlement-mode                                                                                                     | 14/14 | 2026-09-04           |
+| investment-summary-panel                                                                                                       | 26/26 | 2026-09-15           |
+| materials-net-pricing-persisted                                                                                                | 15/15 | 2026-09-15           |
+| decouple-panel-write-refresh                                                                                                   | 21/21 | 2026-09-15           |
+| rabat globalny: activates on selection, undoable, one „Zapisz"                                                                 | 8/8   | —                    |
+| the % mass-overwrite gets a confirm dialog, not an undo entry                                                                  | 9/9   | 2026-07-27           |
+| kosztorys-section-footer-row                                                                                                   | 14/14 | 2026-09-14           |
+| nazwa inwestycji w górnym pasku bez trzeciego zapytania                                                                        | 5/5   | —                    |
+| subcontractor-price-guard                                                                                                      | 21/21 | 2026-09-15           |
+| drop-empty-kosztorys-scaffold                                                                                                  | 8/8   | 2026-09-03           |
+| scalable-preset-section-picker                                                                                                 | 12/12 | 2026-09-15           |
+| cancellation-sum-overcount                                                                                                     | 10/10 | 2026-10-14           |
+| drop-cost-variant-columns                                                                                                      | 7/7   | —                    |
+| investment-panel-filter-scope — ZDEZAKTUALIZOWANE                                                                              | 0/0   | 2026-08-08           |
+| harden bulk-insert restore                                                                                                     | 2/2   | 2026-08-26           |
 | summary-panel-filter-blind — panel wholly filter-blind, scope-marker apparatus deleted                                       | 12/12 | 2026-09-15           |
-| AI receipt scan: extract the netto amount (EX-577)                                                                           | 5/5   | —                    |
-| Multi-page invoices (EX-659)                                                                                                 | 17/17 | 2026-09-15           |
-| Dodawanie faktur wprost z „+" w tabeli wydatków (EX-662)                                                                     | 5/5   | —                    |
-| cron-lead-reconcile (EX-416)                                                                                                 | 4/7   | 2026-09-15           |
-| lead-recovery-notifies-sales (EX-660)                                                                                        | 2/4   | 2026-09-15           |
+| AI receipt scan: extract the netto amount                                                                           | 5/5   | —                    |
+| Multi-page invoices                                                                                                 | 17/17 | 2026-09-15           |
+| Dodawanie faktur wprost z „+" w tabeli wydatków                                                                     | 5/5   | —                    |
+| cron-lead-reconcile                                                                                                 | 4/7   | 2026-09-15           |
+| lead-recovery-notifies-sales                                                                                        | 2/4   | 2026-09-15           |
 | investments-listing-expense-plane — wydatki w liście na płaszczyźnie rozliczenia materiałów                                  | 15/15 | 2026-09-15           |
-| kosztorys-importer (EX-417)                                                                                                  | 13/13 | 2026-09-04           |
-| EX-560 — ex-560-reload-from-preset                                                                                           | 7/7   | 2026-09-03           |
-| EX-555 — robocizna + rabat z kosztorysu na liście inwestycji (write-switch)                                                  | 16/16 | 2026-09-04           |
-| EX-557 — wpłaty bez inwestycji („Inna wpłata" wraca, oba typy tracą inwestycję)                                              | 6/6   | —                    |
-| EX-675 — strata obniża dług inwestora jak rabat                                                                              | 16/16 | 2026-09-15           |
-| EX-686 — rozjazd „Pomiar z natury" vs suma etapów po imporcie                                                                | 13/13 | 2026-09-15           |
-| EX-682 / EX-683 — sortowanie wewnątrz sekcji                                                                                 | 5/5   | —                    |
-| EX-688 — zakres sortowania kolumny + „Zapisz kolejność" w menu nagłówka                                                      | 13/13 | 2026-09-04           |
-| sheet-live-compare — „Porównaj z arkuszem Google" (EX-417)                                                                   | 17/17 | 2026-09-15           |
-| kosztorys-filter-conditions — jeden rejestr warunków filtrowania (EX-665)                                                    | 16/16 | 2026-09-15           |
-| sheet-column-mapping — ręczne wskazanie kolumny arkusza (EX-690)                                                             | 11/11 | 2026-09-15           |
-| kosztorys-terminology — rename identyfikatorów Polish→English (EX-548)                                                       | 5/5   | 2026-09-03           |
-| kosztorys-column-order — okno „Ustaw kolejność kolumn" (EX-692)                                                              | 11/11 | 2026-09-04           |
-| kosztorys-editor-hook-split — rozbicie hooka edytora (EX-521)                                                                | 22/22 | 2026-09-15           |
-| client-preview-settings — ustawienia podglądu inwestora (EX-695)                                                             | 11/11 | 2026-09-15           |
-| drop-stage-percent-columns — usunięcie kolumn „% wykonania" per etap (EX-703)                                                | 8/8   | 2026-08-26           |
+| kosztorys-importer                                                                                                  | 13/13 | 2026-09-04           |
+| ex-560-reload-from-preset                                                                                                      | 7/7   | 2026-09-03           |
+| robocizna + rabat z kosztorysu na liście inwestycji (write-switch)                                                             | 16/16 | 2026-09-04           |
+| wpłaty bez inwestycji („Inna wpłata" wraca, oba typy tracą inwestycję)                                                         | 6/6   | —                    |
+| strata obniża dług inwestora jak rabat                                                                                         | 16/16 | 2026-09-15           |
+| rozjazd „Pomiar z natury" vs suma etapów po imporcie                                                                           | 13/13 | 2026-09-15           |
+| sortowanie wewnątrz sekcji                                                                                                     | 5/5   | —                    |
+| zakres sortowania kolumny + „Zapisz kolejność" w menu nagłówka                                                                 | 13/13 | 2026-09-04           |
+| sheet-live-compare — „Porównaj z arkuszem Google"                                                                   | 17/17 | 2026-09-15           |
+| kosztorys-filter-conditions — jeden rejestr warunków filtrowania                                                    | 16/16 | 2026-09-15           |
+| sheet-column-mapping — ręczne wskazanie kolumny arkusza                                                             | 11/11 | 2026-09-15           |
+| kosztorys-terminology — rename identyfikatorów Polish→English                                                       | 5/5   | 2026-09-03           |
+| kosztorys-column-order — okno „Ustaw kolejność kolumn"                                                              | 11/11 | 2026-09-04           |
+| kosztorys-editor-hook-split — rozbicie hooka edytora                                                                | 22/22 | 2026-09-15           |
+| client-preview-settings — ustawienia podglądu inwestora                                                             | 11/11 | 2026-09-15           |
+| drop-stage-percent-columns — usunięcie kolumn „% wykonania" per etap                                                | 8/8   | 2026-08-26           |
 | filtry-problemy — grupa „Problemy" w menu Filtry — ZDEZAKTUALIZOWANE                                                         | 0/0   | 2026-08-26           |
 | nomenklatura inwestora + potwierdzenie zmiany trybu                                                                          | 9/9   | —                    |
 | filtry-problemy — osobny przycisk „Problemy" (fazy 5–7)                                                                      | 9/9   | —                    |
 | sortowanie-kolumn-spojne — sortowanie w każdej kolumnie z danymi                                                             | 13/13 | 2026-09-15           |
-| EX-713 / EX-714 — pasek aktywnych filtrów i trzy nowe pary warunków                                                          | 15/15 | 2026-09-15           |
-| EX-711 — moduł floty: przeglądy pojazdów i przypomnienia mailowe                                                             | 28/28 | 2026-09-15           |
+| pasek aktywnych filtrów i trzy nowe pary warunków                                                                              | 15/15 | 2026-09-15           |
+| moduł floty: przeglądy pojazdów i przypomnienia mailowe                                                                        | 28/28 | 2026-09-15           |
 | blob-store-isolation — lokalny dev na preview Blob store                                                                     | 11/11 | 2026-09-15           |
 | import-zastepuje-w-calosci — import zastępuje całą rozpiskę                                                                  | 7/7   | 2026-09-15           |
 | kosztorys-client-view-offer-settlement-variants — warianty „Oferta / Rozliczenie" — ZDEZAKTUALIZOWANE                        | 6/6   | 2026-09-28           |
 | sheet-measured-qty-from-formula — „Pomiar z natury" z formuły                                                                | 2/2   | 2026-09-04           |
 | mixed-settlement-both-planes — wpłaty na obu planach, jeden bilans na tryb                                                   | 7/7   | —                    |
-| EX-720 — nadmiarowe odczyty na trasach kosztorysu                                                                            | 12/12 | 2026-09-15           |
-| EX-711 — flota: ręczne znaczniki „do wymiany" i typ „Serwis"                                                                 | 31/31 | 2026-09-15           |
-| EX-394 — HEIC: dziura w edycji przelewu + backfill starych faktur                                                            | 12/12 | 2026-09-15           |
+| nadmiarowe odczyty na trasach kosztorysu                                                                                       | 12/12 | 2026-09-15           |
+| flota: ręczne znaczniki „do wymiany" i typ „Serwis"                                                                            | 31/31 | 2026-09-15           |
+| HEIC: dziura w edycji przelewu + backfill starych faktur                                                                       | 12/12 | 2026-09-15           |
 | S-18 (cut) — spot-check perfu edytora przy ~1000 pozycjach                                                                   | 7/7   | 2026-09-14           |
 | Kosztorys — jeden kontrakt edycji dla komórek liczbowych (przecinek, wycofanie, toast)                                       | 28/28 | 2026-09-15           |
 | fleet-sheet-parity — parytet z arkuszem kontroli przeglądów i ubezpieczeń                                                    | 5/5   | 2026-10-31           |
@@ -1022,74 +1176,74 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | forms-reset-clear — formularze czyszczą się po udanym zapisie                                                                | 13/13 | 2026-09-15           |
 | sheet-write-env-guard — zapis do Google Sheets tylko z produkcji                                                             | 12/12 | 2026-09-04           |
 | work-item-catalog — „Katalog prac"                                                                                           | 25/25 | 2026-09-15           |
-| EX-699 — wysokość wiersza w edytorze i dopasowanie do treści w podglądzie klienta                                            | 0/0   | 2026-08-31           |
+| wysokość wiersza w edytorze i dopasowanie do treści w podglądzie klienta                                                       | 0/0   | 2026-08-31           |
 | Stawka „auto" w katalogu prac (2026-09-01, `katalog-prac-auto-rates`)                                                        | 5/5   | 2026-09-03           |
-| EX-753 — legacy-sheet-work-import (2026-09-01)                                                                               | 8/8   | 2026-09-02           |
+| legacy-sheet-work-import (2026-09-01)                                                                                          | 8/8   | 2026-09-02           |
 | Kolumny stawek wykonawcy obu planów w widoku Inwestora (2026-09-01, `kosztorys-contractor-price-columns-in-client-view`)     | 0/0   | 2026-09-02           |
 | Dwie opcje źródła ceny wykonawcy (2026-09-01, `kosztorys-dwie-opcje-zrodla-ceny-wykonawcy`)                                  | 1/1   | 2026-09-02           |
 | Przerzedzanie snapshotów kosztorysu (2026-09-02, `snapshot-retention-thinning`)                                              | 4/4   | 2026-09-15           |
-| Zwinięcie nadpisania stawki podwykonawcy (2026-09-02, `subcontractor-override-value-collapse`, EX-766)                       | 8/8   | 2026-09-02           |
-| EX-761 — divergent-price-for-same-work (2026-09-02)                                                                          | 0/0   | 2026-09-02           |
-| EX-765 — rozbicie `row-conditions.ts` na rejestr i zapytania (2026-09-02, `row-conditions-registry-engine-split`)            | 4/4   | 2026-09-03           |
-| EX-748 — zakończona inwestycja jest zablokowana (2026-09-03, `investment-lock-on-completed`)                                 | 14/14 | 2026-09-04           |
-| EX-758 — Katalog narzędzi i urządzeń (rejestr sprzętu)                                                                       | 11/13 | 2026-09-15           |
+| Zwinięcie nadpisania stawki podwykonawcy (2026-09-02, `subcontractor-override-value-collapse`)                       | 8/8   | 2026-09-02           |
+| divergent-price-for-same-work (2026-09-02)                                                                                     | 0/0   | 2026-09-02           |
+| rozbicie `row-conditions.ts` na rejestr i zapytania (2026-09-02, `row-conditions-registry-engine-split`)                       | 4/4   | 2026-09-03           |
+| zakończona inwestycja jest zablokowana (2026-09-03, `investment-lock-on-completed`)                                            | 14/14 | 2026-09-04           |
+| Katalog narzędzi i urządzeń (rejestr sprzętu)                                                                                  | 11/13 | 2026-09-15           |
 | drag-drop-guard — chybiony drop pliku i widoczne dropzone (2026-09-14)                                                       | 14/14 | 2026-09-15           |
 | transfer-print-return — wydruk przefiltrowanej listy transakcji (2026-09-14)                                                 | 15/15 | 2026-09-15           |
 | szablony-crud                                                                                                                | 16/16 | 2026-09-15           |
 | kosztorys-section-menu-split — akcje sekcji na pasku, akcje pracy na wierszu                                                 | 18/18 | 2026-09-14           |
-| transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)                                        | 13/13 | 2026-09-15           |
-| rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16, EX-785)                            | 7/7   | 2026-09-16           |
-| media-upload-serial — równoległy upload gubił pliki na Neonie; szeregowy zapis wierszy `media` (2026-09-22, EX-855)          | 4/4   | 2026-09-22           |
+| transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15)                                        | 13/13 | 2026-09-15           |
+| rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16)                            | 7/7   | 2026-09-16           |
+| media-upload-serial — równoległy upload gubił pliki na Neonie; szeregowy zapis wierszy `media` (2026-09-22)          | 4/4   | 2026-09-22           |
 | empty-preset-create — pusty szablon zakładany z listy szablonów (2026-09-22)                                                 | 5/5   | 2026-09-23           |
 | szablon-autosave — warsztat szablonu zapisuje się sam (2026-09-22)                                                           | 12/14 | 2026-09-29           |
 | kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)                                              | 8/8   | 2026-09-23           |
 | zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)                                      | 25/25 | 2026-09-24           |
 | Nowa sekcja wprost w „Dodaj pracę z katalogu" (2026-09-22)                                                                   | 6/6   | 2026-09-23           |
 | kategorie-assetow-i-kompresja — kategorie assetów i luźniejsza kompresja (2026-09-22)                                        | 13/13 | 2026-09-23           |
-| EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)                                                      | 9/9   | 2026-09-29           |
+| sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)                                                                 | 9/9   | 2026-09-29           |
 | 2026-10-11 — raporty-removal                                                                                                 | 1/1   | 2026-10-14           |
 | clean-texts-catalogue-names — nazwy prac z tabeli poprawek katalogu (2026-09-15)                                             | 13/13 | 2026-09-29           |
-| EX-787 — ui/ layering refactor (staging/preview pass, 2026-09-16)                                                            | 10/10 | 2026-09-21           |
-| EX-802 — investment-assets-dialog (galeria bez miniatur, 2026-09-21)                                                         | 12/12 | 2026-09-22           |
+| ui/ layering refactor (staging/preview pass, 2026-09-16)                                                                       | 10/10 | 2026-09-21           |
+| investment-assets-dialog (galeria bez miniatur, 2026-09-21)                                                                    | 12/12 | 2026-09-22           |
 | katalog-problems — rozjazdy z katalogiem prac jako problemy edytora (2026-09-21)                                             | 9/9   | 2026-09-21           |
 | catalogue-compare-bulk-update — hurtowa aktualizacja rozpiski z katalogu (2026-09-21)                                        | 14/14 | 2026-09-21           |
-| EX-849 / EX-850 — tagowanie cache galerii i pojedynczy render po uploadzie (2026-09-22)                                      | 8/8   | 2026-09-23           |
-| EX-856 — „Filtry" bez bramki widoku, warsztat bez przełącznika cen (2026-09-23)                                              | 8/8   | 2026-09-23           |
-| EX-865 — „Własny mnożnik" jako trzecie źródło stawki wykonawcy (2026-09-23)                                                  | 15/15 | 2026-09-29           |
+| tagowanie cache galerii i pojedynczy render po uploadzie (2026-09-22)                                                          | 8/8   | 2026-09-23           |
+| „Filtry" bez bramki widoku, warsztat bez przełącznika cen (2026-09-23)                                                         | 8/8   | 2026-09-23           |
+| „Własny mnożnik" jako trzecie źródło stawki wykonawcy (2026-09-23)                                                             | 15/15 | 2026-09-29           |
 | wydruk-oferty — Wydruk oferty z kosztorysu (2026-09-23)                                                                      | 5/5   | 2026-09-29           |
 | zamrozone-brutto-wydatku-netto                                                                                               | 4/4   | —                    |
 | pokaz-wszystkie-pozycje                                                                                                      | 8/8   | 2026-09-28           |
 | Kosztorys — manager udostępnia inwestorowi + wydruk oferty bez nagłówków (cdd32061, 8a6552c5) — staging 2026-09-24           | 1/1   | 2026-09-24           |
-| EX-819 — wartość spoza zakresu odmawiana na głos, nie przycinana (2026-09-28)                                                | 6/6   | 2026-09-28           |
+| wartość spoza zakresu odmawiana na głos, nie przycinana (2026-09-28)                                                           | 6/6   | 2026-09-28           |
 | podglad-inwestora-czytelnosc — podgląd inwestora bez szarości, z pasami kolumn (2026-09-28)                                  | 8/8   | 2026-09-28           |
 | sheet-import-wartosc-pomiar — import rozpoznaje „Wartość netto pomiar z natury" (2026-09-28)                                 | 4/4   | 2026-09-28           |
-| kosztorys-worker-view — widok i PDF pracownika z menu „Pracownicy" (EX-875, 2026-09-28)                                      | 14/14 | 2026-09-29           |
-| kosztorys-remaining-skip-overrun — „Pozostało" bez wierszy na minusie, minus na czerwono (EX-885, 2026-09-28)                | 6/6   | 2026-09-28           |
-| szablon-open-speed — „Otwórz szablon" bez przeładowania trasy (EX-876, 2026-09-28)                                           | 11/11 | 2026-09-29           |
-| document-column-order — kolejność kolumn inwestora i pracownika ustawiana w ustawieniach (EX-884, 2026-09-28)                | 7/7   | 2026-09-28           |
-| investor-change-history — historia zmian w widoku inwestora (EX-881, 2026-09-28)                                             | 9/9   | 2026-09-28           |
-| kosztorys-column-value-single-source — sortowanie kolumn liczonych po liczbach z komórek (EX-894, 2026-09-29)                | 13/13 | 2026-09-30           |
-| worker-link-revoke — link pracownika do wyłączenia przy blokadzie (EX-888, 2026-09-29)                                       | 6/6   | 2026-09-29           |
-| warsztat-per-szablon — szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)                                     | 9/9   | 2026-09-29           |
+| kosztorys-worker-view — widok i PDF pracownika z menu „Pracownicy" (2026-09-28)                                      | 14/14 | 2026-09-29           |
+| kosztorys-remaining-skip-overrun — „Pozostało" bez wierszy na minusie, minus na czerwono (2026-09-28)                | 6/6   | 2026-09-28           |
+| szablon-open-speed — „Otwórz szablon" bez przeładowania trasy (2026-09-28)                                           | 11/11 | 2026-09-29           |
+| document-column-order — kolejność kolumn inwestora i pracownika ustawiana w ustawieniach (2026-09-28)                | 7/7   | 2026-09-28           |
+| investor-change-history — historia zmian w widoku inwestora (2026-09-28)                                             | 9/9   | 2026-09-28           |
+| kosztorys-column-value-single-source — sortowanie kolumn liczonych po liczbach z komórek (2026-09-29)                | 13/13 | 2026-09-30           |
+| worker-link-revoke — link pracownika do wyłączenia przy blokadzie (2026-09-29)                                       | 6/6   | 2026-09-29           |
+| warsztat-per-szablon — szablon jest inwestycją o statusie `szablon` (2026-09-29)                                     | 9/9   | 2026-09-29           |
 | investments-list-payout-remaining — „Pozostało do wypłaty" na liście inwestycji (2026-09-29)                                 | 5/5   | 2026-10-02           |
 | kosz-inwestycji-manager — kosz inwestycji dla kierownika (2026-09-29)                                                        | 6/6   | 2026-10-14           |
 | investment-wycena-status — status inwestycji „Wycena" (2026-09-29)                                                           | 6/6   | 2026-09-29           |
-| confirm-dialog-dead-pending — okno potwierdzenia bez martwego stanu „w toku" (EX-835, 2026-09-29)                            | 8/8   | 2026-10-15           |
+| confirm-dialog-dead-pending — okno potwierdzenia bez martwego stanu „w toku" (2026-09-29)                            | 8/8   | 2026-10-15           |
 | 2026-09-29 — pasy kolumn na wydrukach                                                                                        | 3/3   | 2026-09-29           |
 | 2026-09-29 — kolumna „Wartość netto (razem etapy)" na dokumencie inwestora                                                   | 3/3   | 2026-09-29           |
 | 2026-09-29 — akcja bez sieci kończy się toastem                                                                              | 19/19 | 2026-09-30           |
-| EX-933 — global-rabat-on-settlement-axis — rabat kwotowy w netto albo w brutto (2026-09-29)                                  | 11/11 | 2026-09-29           |
-| EX-908 — redundant-router-refresh — nieaktualne dane po zapisie, staging (2026-09-29)                                        | 75/75 | 2026-10-01           |
+| global-rabat-on-settlement-axis — rabat kwotowy w netto albo w brutto (2026-09-29)                                             | 11/11 | 2026-09-29           |
+| redundant-router-refresh — nieaktualne dane po zapisie, staging (2026-09-29)                                                   | 75/75 | 2026-10-01           |
 | 2026-09-29 — kosztorys-menu-widths                                                                                           | 3/3   | 2026-10-06           |
 | 2026-09-29 — import z arkusza czyta etapy aż do „Przedmiaru"                                                                 | 2/2   | 2026-09-30           |
 | 2026-09-29 — nowy etap kopiuje rozliczenie i wykonawcę ostatniego                                                            | 5/5   | 2026-10-01           |
 | 2026-09-30 — import z arkusza ustawia jednego wykonawcę wszystkim etapom                                                     | 6/6   | 2026-10-15           |
 | 2026-09-30 — „Rozlicz wypłaty": kwota do rozdysponowania i saldo kasy                                                        | 1/1   | 2026-09-30           |
-| EX-942 — okna edycji nie gubią wpisanych danych po nieudanym zapisie (2026-09-30)                                            | 3/3   | 2026-10-01           |
-| EX-917 — kosz-kas                                                                                                            | 9/9   | 2026-10-01           |
-| EX-947 — worker-work-reports — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)                                    | 35/35 | 2026-10-15           |
-| EX-951 — kosztorys-new-item-dialog — „Nowa praca” jako formularz (2026-09-30)                                                | 15/15 | 2026-10-15           |
-| EX-940 — request-failed-actions — zerwane połączenie kończy się polskim komunikatem (2026-09-30)                             | 16/16 | 2026-10-04           |
+| okna edycji nie gubią wpisanych danych po nieudanym zapisie (2026-09-30)                                                       | 3/3   | 2026-10-01           |
+| kosz-kas                                                                                                                       | 9/9   | 2026-10-01           |
+| worker-work-reports — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)                                               | 35/35 | 2026-10-15           |
+| kosztorys-new-item-dialog — „Nowa praca” jako formularz (2026-09-30)                                                           | 15/15 | 2026-10-15           |
+| request-failed-actions — zerwane połączenie kończy się polskim komunikatem (2026-09-30)                                        | 16/16 | 2026-10-04           |
 | 2026-10-01 — marza-v2-half-grosz — lista i strona inwestycji pokazują tę samą marżę v2                                       | 3/3   | 2026-10-01           |
 | 2026-10-01 — sidebar-scroll — przy niskim oknie menu boczne się przewija                                                     | 2/2   | 2026-10-03           |
 | 2026-10-01 — nazwy-zgloszen                                                                                                  | 2/2   | 2026-10-03           |
@@ -1098,54 +1252,54 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | 2026-10-01 — kosz-inwestycji-blokady                                                                                         | 8/8   | 2026-10-03           |
 | 2026-10-01 — loader-nad-pytaniem                                                                                             | 3/3   | 2026-10-03           |
 | 2026-10-01 — notatki-podzialy-linii                                                                                          | 2/2   | 2026-10-03           |
-| EX-918 — kosz-pracownikow                                                                                                    | 19/19 | 2026-10-06           |
-| EX-915/916 — kosz-floty-i-sprzetu                                                                                            | 12/12 | 2026-10-03           |
-| EX-948 — worker-report-translations-ua — link „Zgłoszenie prac" po ukraińsku i rosyjsku (2026-10-01)                         | 22/22 | 2026-10-15           |
-| EX-973 — investment-review-request — prośba o opinię Google dla zakończonej inwestycji (2026-10-02)                          | 2/2   | 2026-10-02           |
-| EX-965 — kosztorys-section-translations — nazwy sekcji po ukraińsku i rosyjsku na linku „Zgłoszenie prac"                    | 9/9   | 2026-10-04           |
+| kosz-pracownikow                                                                                                               | 19/19 | 2026-10-06           |
+| kosz-floty-i-sprzetu                                                                                                          | 12/12 | 2026-10-03           |
+| worker-report-translations-ua — link „Zgłoszenie prac" po ukraińsku i rosyjsku (2026-10-01)                                    | 22/22 | 2026-10-15           |
+| investment-review-request — prośba o opinię Google dla zakończonej inwestycji (2026-10-02)                                     | 2/2   | 2026-10-02           |
+| kosztorys-section-translations — nazwy sekcji po ukraińsku i rosyjsku na linku „Zgłoszenie prac"                               | 9/9   | 2026-10-04           |
 | 2026-10-02 — investments-listing-no-kosztorys-figures — inwestycja bez kosztorysu pokazuje prawdziwe kwoty v2                | 6/6   | 2026-10-02           |
-| EX-979 — premia — premia wyrównuje nadpłatę pracownika, inwestor jej nie widzi (2026-10-02)                                  | 11/11 | 2026-10-15           |
-| EX-968 — worker-email-clash — pracownik z e-mailem zajętym przez pracownika z Kosza (2026-10-05)                             | 3/3   | 2026-10-05           |
-| EX-960 — worker-kasy-visibility — kasy pracownika na liście i na jego stronie (2026-10-05)                                   | 11/11 | 2026-10-05           |
+| premia — premia wyrównuje nadpłatę pracownika, inwestor jej nie widzi (2026-10-02)                                             | 11/11 | 2026-10-15           |
+| worker-email-clash — pracownik z e-mailem zajętym przez pracownika z Kosza (2026-10-05)                                        | 3/3   | 2026-10-05           |
+| worker-kasy-visibility — kasy pracownika na liście i na jego stronie (2026-10-05)                                              | 11/11 | 2026-10-05           |
 | 2026-10-05 — share-links-copy-and-404 — nowy link od razu w schowku, cofnięty link mówi „wygasł"                             | 4/4   | 2026-10-05           |
 | 2026-10-05 — worker-report-reported-only — „Tylko zgłoszone” i szersza kolumna „Zgłaszam”                                    | 7/7   | 2026-10-14           |
-| EX-966 — worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z trybem „Inwestycja"                                | 1/1   | 2026-10-05           |
+| worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z trybem „Inwestycja"                                           | 1/1   | 2026-10-05           |
 | 2026-10-05 — worker-view-dogfooding — link `/z/…`, tryby w stopce, liczniki                                                  | 14/14 | 2026-10-15           |
-| EX-956 — stage-split-rounding — części podziału etapu sumują się do „Razem" co do grosza (2026-10-05)                        | 3/3   | 2026-10-05           |
-| EX-955 — worker-reports-pagination — strony, filtry i sortowanie na liście „Zgłoszenia prac” (2026-10-05)                    | 6/6   | 2026-10-05           |
+| stage-split-rounding — części podziału etapu sumują się do „Razem" co do grosza (2026-10-05)                                   | 3/3   | 2026-10-05           |
+| worker-reports-pagination — strony, filtry i sortowanie na liście „Zgłoszenia prac” (2026-10-05)                               | 6/6   | 2026-10-05           |
 | 2026-10-05 — settlement-negative-footnote — ujemne „Pozostało do zapłaty” zamiast „Nadpłata”                                 | 3/3   | 2026-10-05           |
 | 2026-10-05 — keep-date-on-keep-open — data zostaje po zapisie z „Nie zamykaj”                                                | 3/3   | 2026-10-05           |
-| EX-985 — worker-account — pracownik loguje się na własną stronę: kasy, sprzęt, transfery, kosztorysy (2026-10-05)            | 13/13 | 2026-10-06           |
-| EX-988 — worker-pdf-translations — j.m. i PDF pracownika w jego języku (2026-10-05)                                          | 11/11 | 2026-10-05           |
-| EX-971 — worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)         | 29/29 | 2026-10-15           |
+| worker-account — pracownik loguje się na własną stronę: kasy, sprzęt, transfery, kosztorysy (2026-10-05)                       | 13/13 | 2026-10-06           |
+| worker-pdf-translations — j.m. i PDF pracownika w jego języku (2026-10-05)                                                     | 11/11 | 2026-10-05           |
+| worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)                    | 29/29 | 2026-10-15           |
 | 2026-10-05 — pagination-limit-width — „100” mieści się w selekcie „Pokaż”                                                    | 1/1   | 2026-10-05           |
-| EX-989 — worker-self-credentials — pracownik zmienia swój e-mail i hasło (2026-10-05)                                        | 10/10 | 2026-10-05           |
-| EX-996 — worker-page-language — pracownik ustawia „Domyślny język”, aplikacja i raport idą za nim (2026-10-05)               | 3/3   | 2026-10-06           |
+| worker-self-credentials — pracownik zmienia swój e-mail i hasło (2026-10-05)                                                   | 10/10 | 2026-10-05           |
+| worker-page-language — pracownik ustawia „Domyślny język”, aplikacja i raport idą za nim (2026-10-05)                          | 3/3   | 2026-10-06           |
 | 2026-10-05 — worker-report-figures — „Wykonano” i „Pozostało” w raporcie pracownika, przełączniki w „Opcje”                  | 8/8   | 2026-10-05           |
 | 2026-10-06 — worker-report-pending-only — link pracownika pokazuje tylko zgłoszenia „do sprawdzenia”                         | 5/5   | 2026-10-06           |
 | 2026-10-06 — transfers-type-column-width — szersza kolumna „Typ” w tabeli transakcji                                         | 1/1   | 2026-10-06           |
-| EX-999 — kosztorys-reorder-dialog — „Ustaw kolejność” (prace i sekcje)                                                       | 18/18 | 2026-10-09           |
+| kosztorys-reorder-dialog — „Ustaw kolejność” (prace i sekcje)                                                                  | 18/18 | 2026-10-09           |
 | kosztorys-summary-resizable                                                                                                  | 16/16 | —                    |
-| EX-1001 — worker-expense-ai-prefill — zgłoszenie pracownika otwiera się z odczytanym paragonem (2026-10-06)                  | 0/0   | 2026-10-06           |
+| worker-expense-ai-prefill — zgłoszenie pracownika otwiera się z odczytanym paragonem (2026-10-06)                              | 0/0   | 2026-10-06           |
 | 2026-10-06 — worker-report-ref-column — numer „Nr” w oknie akceptacji zgłoszeń                                               | 2/2   | 2026-10-06           |
 | 2026-10-06 — cash-register-edit-button                                                                                       | 1/1   | 2026-10-06           |
-| EX-982 — telmak-invoice-check — sprawdzanie paczki faktur Telmak na stronie kasy Telmak (2026-10-06)                         | 17/17 | 2026-10-06           |
+| telmak-invoice-check — sprawdzanie paczki faktur Telmak na stronie kasy Telmak (2026-10-06)                                    | 17/17 | 2026-10-06           |
 | 2026-10-06 — worker-form-headers                                                                                             | 1/1   | 2026-10-06           |
 | 2026-10-06 — nav-user-name-link                                                                                              | 2/2   | 2026-10-06           |
 | 2026-10-06 — employee-access-audit — zalogowany pracownik nie widzi i nie zrobi niczego poza swoją stroną                    | 24/24 | 2026-10-06           |
-| EX-1006 — kosztorys-ai-knowledge-loop — Komentarz do pracy, przegląd szkicu AI, widoki „Oferta" i „Przegląd AI" (2026-10-07) | 5/5   | 2026-10-15           |
+| kosztorys-ai-knowledge-loop — Komentarz do pracy, przegląd szkicu AI, widoki „Oferta" i „Przegląd AI" (2026-10-07)             | 5/5   | 2026-10-15           |
 | 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”                                  | 2/2   | 2026-10-09           |
 | 2026-10-07 — kosztorys-fit-all-columns — „Dopasuj wysokość do treści” mierzy każdą kolumnę                                   | 5/5   | 2026-10-07           |
 | 2026-10-07 — investments-created-at-column — kolumna „Data dodania” na liście inwestycji                                     | 3/3   | 2026-10-07           |
 | 2026-10-08 — investment-notes-inline-edit — edycja notatki inwestycji w miejscu                                              | 5/5   | 2026-10-08           |
-| 2026-10-08 — other-expense-worker — „Inny wydatek” z opcjonalnym pracownikiem (EX-1027)                                      | 7/7   | 2026-10-08           |
-| EX-1017 — template-from-catalogue — szablon jako lista prac z katalogu (2026-10-08)                                          | 14/14 | 2026-10-09           |
+| 2026-10-08 — other-expense-worker — „Inny wydatek” z opcjonalnym pracownikiem                                      | 7/7   | 2026-10-08           |
+| template-from-catalogue — szablon jako lista prac z katalogu (2026-10-08)                                                      | 14/14 | 2026-10-09           |
 | 2026-10-08 — catalogue-usage-columns — kolumny „Kosztorysy” i „Szablony” w katalogu prac                                     | 7/7   | 2026-10-09           |
 | 2026-10-08 — expense-draft-missing-pages — odrzucenie zgłoszenia, którego zdjęć nie da się pobrać                            | 3/3   | 2026-10-09           |
 | 2026-10-08 — worker-report-columns-default — „Wykonano” i postęp widoczne domyślnie, wybór zapamiętany                       | 2/2   | 2026-10-08           |
 | 2026-10-08 — przycisk „Przegląd AI" na pasku narzędzi                                                                        | 3/3   | 2026-10-08           |
 | 2026-10-08 — „Komentarz" na widoku inwestora                                                                                 | 3/3   | 2026-10-08           |
-| EX-1030 — ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”                                                          | 5/5   | —                    |
+| ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”                                                                      | 5/5   | —                    |
 | 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie                                                     | 12/12 | 2026-10-09           |
 | 2026-10-09 — worker-report-default-new-stage — zgłoszenie pracy domyślnie do nowego etapu                                    | 3/3   | 2026-10-09           |
 | 2026-10-09 — done-percent-vs-offer — „% wykonania (względem przedmiaru ofertowego)”                                          | 18/18 | 2026-10-09           |
@@ -1156,7 +1310,7 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | 2026-10-11 — sidebar-wider-smaller-logo — szerszy pasek boczny, mniejsze logo                                                | 1/1   | 2026-10-14           |
 | 2026-10-11 — stage-plane-gate — jedno rozliczenie pracownika na inwestycji                                                   | 4/4   | 2026-10-15           |
 | 2026-10-11 — worker-report-extras-sum — pozycje dodatkowe dopisują się do istniejącej pracy                                  | 3/3   | 2026-10-14           |
-| 2026-10-11 — worker-payout-confirmation — pracownik potwierdza albo odrzuca wypłatę (EX-1042)                                | 12/12 | 2026-10-15           |
+| 2026-10-11 — worker-payout-confirmation — pracownik potwierdza albo odrzuca wypłatę                                | 12/12 | 2026-10-15           |
 | 2026-10-12 — install-button-phone-only — „Zainstaluj aplikację" tylko na telefonie                                           | 2/2   | 2026-10-14           |
 | 2026-10-12 — szablon-column-picker — ukrywanie i przesuwanie kolumn w szablonie                                              | 6/6   | 2026-10-14           |
 | 2026-10-12 — manual-naming — nazwa „Manual” i etykieta komentarza do pracy                                                   | 2/2   | 2026-10-14           |
@@ -1166,24 +1320,24 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | 2026-10-13 — stage-qty-sum-rename — „Pomiar z natury (etapy razem)”                                                          | 2/2   | 2026-10-15           |
 | 2026-10-13 — receipt-media-ids-copy — zapis wydatku ze zgłoszenia z wieloma paragonami na jednym zdjęciu                     | 1/1   | 2026-10-15           |
 | 2026-10-13 — report-review-layout — kolejność grup i stopka w „Zgłoszenia wykonanych prac”                                   | 3/3   | 2026-10-14           |
-| 2026-10-13 — worker-draft-merge-receipts — „Połącz zaznaczone” / „Rozłącz” w „Przyjmij” (EX-1048)                            | 11/11 | 2026-10-15           |
+| 2026-10-13 — worker-draft-merge-receipts — „Połącz zaznaczone” / „Rozłącz” w „Przyjmij”                            | 11/11 | 2026-10-15           |
 | 2026-10-13 — pending-drafts-collapsible — zwijana sekcja „Wydatki zgłoszone przez pracowników”                               | 3/3   | 2026-10-14           |
 | 2026-10-13 — percent-overrun-label — przekroczenie nigdy nie pokazuje „100%”                                                 | 2/2   | 2026-10-14           |
-| 2026-10-13 — worker-expense-paragon-decisions — „Przyjmij / Odrzuć” paragon po paragonie, „Połącz zgłoszenia” (EX-1053)      | 19/19 | 2026-10-13           |
-| 2026-10-14 — expense-duplicate-finder — „Szukaj duplikatów” na liście transakcji (EX-1026)                                   | 10/10 | 2026-10-15           |
+| 2026-10-13 — worker-expense-paragon-decisions — „Przyjmij / Odrzuć” paragon po paragonie, „Połącz zgłoszenia”      | 19/19 | 2026-10-13           |
+| 2026-10-14 — expense-duplicate-finder — „Szukaj duplikatów” na liście transakcji                                   | 10/10 | 2026-10-15           |
 | 2026-10-14 — review-gate-fixes-14 — poprawki z przeglądu commitów z 14.10                                                    | 3/3   | 2026-10-15           |
 | 2026-10-14 — ai-stage-new-information — status AI „Nowe informacje”                                                          | 2/2   | 2026-10-14           |
 | 2026-10-14 — investment-ai-notes — „Uwagi AI” przy inwestycji                                                                | 4/4   | 2026-10-14           |
 | 2026-10-14 — media-plan-hint — pole „Do analizy AI” przy dodawaniu plików                                                    | 1/1   | 2026-10-14           |
 | 2026-10-14 — input-shadow — delikatny cień pól tekstowych                                                                    | 1/1   | 2026-10-14           |
-| EX-855 — pg-pool-adapter — transakcje na Neonie z własnym połączeniem (staging)                                              | 47/47 | 2026-10-15           |
+| pg-pool-adapter — transakcje na Neonie z własnym połączeniem (staging)                                                         | 47/47 | 2026-10-15           |
 | 2026-10-14 — komentarz-ai-odstep — odstęp między polami „Komentarza AI”                                                      | 3/3   | 2026-10-14           |
 | 2026-10-14 — worker-report-sticky-wobble — nagłówek tabeli w raporcie pracownika nie drga                                    | 1/1   | 2026-10-14           |
-| EX-1004 — przełącznik „Zgłoszone wydatki” w transakcjach                                                                     | 15/15 | 2026-10-15           |
+| przełącznik „Zgłoszone wydatki” w transakcjach                                                                                 | 15/15 | 2026-10-15           |
 | EX-1033 — document-settings-column-map — ustawienia kolumn dokumentów zapisane jako wybór per kolumna                        | 8/8   | 2026-10-15           |
-| EX-862 — usun-wszystkie-ukryte — „Usuń wszystkie” schowane w dokumentacji inwestycji do czasu kosza                          | 3/3   | 2026-10-15           |
+| usun-wszystkie-ukryte — „Usuń wszystkie” schowane w dokumentacji inwestycji do czasu kosza                                     | 3/3   | 2026-10-15           |
 | 2026-10-15 — media-preview-pdf-preload — podgląd PDF nie kręci się bez końca + wczytywanie sąsiednich stron                  | 6/6   | 2026-10-15           |
-| EX-1019 — roundtrip-audit — mniej zapytań na stronę i lżejsza strona (bez zmiany wyglądu)                                    | 10/10 | 2026-10-15           |
+| roundtrip-audit — mniej zapytań na stronę i lżejsza strona (bez zmiany wyglądu)                                                | 10/10 | 2026-10-15           |
 | 2026-10-15 — workers-menu-scan-bottom — „Wczytaj zgłoszenie z kartki (AI)” na dole menu „Pracownicy”                         | 2/2   | 2026-10-15           |
-| EX-1063 — deploy-scoped-cache — cache kluczowany deploymentem zamiast ręcznych `-vN` (bez zmiany wyglądu)                    | 5/5   | 2026-10-15           |
-| EX-1066 — investment-status-rejected — status „Odrzucona” + inwestycje w formularzach przelewów                              | 2/2   | 2026-10-15           |
+| deploy-scoped-cache — cache kluczowany deploymentem zamiast ręcznych `-vN` (bez zmiany wyglądu)                                | 5/5   | 2026-10-15           |
+| investment-status-rejected — status „Odrzucona” + inwestycje w formularzach przelewów                                          | 2/2   | 2026-10-15           |

@@ -1,6 +1,6 @@
 ---
 change_id: worker-account
-title: Konto pracownika — logowanie na własną stronę, jego kasy i linki do kosztorysów (EX-985)
+title: Konto pracownika — logowanie na własną stronę, jego kasy i linki do kosztorysów
 status: archived
 created: 2026-10-05
 updated: 2026-10-05
@@ -11,9 +11,9 @@ worktree: .claude/worktrees/ex-985-worker-account
 
 ## Notes
 
-EX-985 — pracownik loguje się i ląduje na swojej stronie `/pracownicy/<id>` (tylko do odczytu):
+Pracownik loguje się i ląduje na swojej stronie `/pracownicy/<id>` (tylko do odczytu):
 jego kasy, transfery, sprzęt i lista kosztorysów z linkami do zgłaszania prac. Wydzielone
-2026-10-05 z EX-971 (wydatki pracownika), które jest osobnym change'em
+2026-10-05 z wydatków pracownika, które jest osobnym change'em
 `2026-10-05-worker-expenses` i stoi na tym.
 
 ### Stan wyjściowy (sprawdzony 2026-10-05, lokalna kopia bazy)
@@ -27,7 +27,7 @@ jego kasy, transfery, sprzęt i lista kosztorysów z linkami do zgłaszania prac
   Nikolajewicz: jedyna kasa `AUXILIARY`, id 37).
 - Pole „Pracownik" na transakcji mają tylko `PAYOUT` i `BONUS`; wydatek nie ma żadnego powiązania
   z pracownikiem poza właścicielem kasy-źródła.
-- Link zgłoszeń prac (EX-947, `/z/<inwestycja>/<pracownik>/<token>`) działa bez logowania, na
+- Link zgłoszeń prac (`/z/<inwestycja>/<pracownik>/<token>`) działa bez logowania, na
   telefonie, z akceptacją managera — alternatywne wejście.
 
 ### Kierunek (właściciel, 2026-10-05 — brainstorming)
@@ -47,7 +47,7 @@ jego kasy, transfery, sprzęt i lista kosztorysów z linkami do zgłaszania prac
   widok managera tej strony.
 - Elementy do zdjęcia / zmiany dla pracownika: `EditWorkerDialog`; linki kas do `/kasa/[id]` i
   sprzętu do `/sprzet/[id]` (strony managerskie); filtr kasy już jest na stronie, ale listuje
-  wszystkie kasy — zawęzić do jego kas (filtry „Wpisał" / „Pracownik" strona już wyłącza); akcje w wierszu — `canMutateTransfer` daje `true` dla `createdBy === user`, więc szkice wydatków (EX-971)
+  wszystkie kasy — zawęzić do jego kas (filtry „Wpisał" / „Pracownik" strona już wyłącza); akcje w wierszu — `canMutateTransfer` daje `true` dla `createdBy === user`, więc szkice wydatków
   pokazałyby edycję/anulowanie.
 - Strona startowa: `EMPLOYEE` → `/pracownicy/<własne id>` zamiast kasy `WORKER` (znika też 404 dla
   pracownika bez kasy `WORKER`). `/kasa/[id]` → `MANAGEMENT_ROLES`.
@@ -106,7 +106,7 @@ Logowanie pracownika (właściciel, 2026-10-05):
   Żadnego ustawiania hasła przez managera w aplikacji.
 - Logowanie nazwą użytkownika — osobno, poza tym change'em. Sesja zostaje 7 dni (`tokenExpiration` jest per kolekcja).
 - Zmiana hasła nie wylogowuje zalogowanego telefonu (auth nie czyta bazy) — natychmiastowe odcięcie
-  to „Aktywny" / kosz (EX-918).
+  to „Aktywny" / kosz.
 
 Po researchu (właściciel, 2026-10-05) — szczegóły w `research.md`:
 

@@ -6,7 +6,7 @@ import { selectTrashedRegisterIds } from '@/lib/db/worker-trash'
 import type { DeleteForeverResultT } from '@/types/trash'
 import { logError } from '@/lib/utils/log-error'
 
-export const WORKER_NOT_TRASHED_MESSAGE = 'Najpierw przenieś pracownika do kosza.'
+const WORKER_NOT_TRASHED_MESSAGE = 'Najpierw przenieś pracownika do kosza.'
 
 /**
  * One transaction with no catch inside: a refused kasa must take the ones before it back with it,

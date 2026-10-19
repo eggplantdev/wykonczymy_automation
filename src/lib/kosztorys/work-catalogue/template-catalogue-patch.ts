@@ -4,7 +4,7 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 export const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
 
-// What a szablon praca reads from its katalog entry (EX-1017) — a write to any of these goes to the
+// What a szablon praca reads from its katalog entry — a write to any of these goes to the
 // entry; a szablon row stores nothing else, so every other field is dropped.
 const CATALOGUE_FIELDS = [
   'description',
@@ -19,7 +19,9 @@ const CATALOGUE_FIELDS = [
 
 export function pickCataloguePatch(patch: ItemPatchT): ItemPatchT {
   return Object.fromEntries(
-    Object.entries(patch).filter(([field]) => (CATALOGUE_FIELDS as readonly string[]).includes(field)),
+    Object.entries(patch).filter(([field]) =>
+      (CATALOGUE_FIELDS as readonly string[]).includes(field),
+    ),
   )
 }
 

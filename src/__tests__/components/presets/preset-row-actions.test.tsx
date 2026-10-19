@@ -3,13 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { PresetRowActions } from '@/components/presets/preset-row-actions'
-import { trashInvestmentAction } from '@/lib/actions/investment-trash'
+import { trashTemplateAction } from '@/lib/actions/template-trash'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mock('@/lib/actions/investment-trash', () => ({
-  trashInvestmentAction: vi.fn(async () => ({ success: true })),
-}))
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+vi.mocked(trashTemplateAction).mockResolvedValue({ success: true })
 
 const PRESET = {
   id: 42,
@@ -26,10 +23,10 @@ describe('PresetRowActions', () => {
     render(<PresetRowActions preset={PRESET} />)
 
     await user.click(screen.getByRole('button', { name: 'Przenieś szablon do kosza' }))
-    expect(trashInvestmentAction).not.toHaveBeenCalled()
+    expect(trashTemplateAction).not.toHaveBeenCalled()
     await user.click(await screen.findByRole('button', { name: 'Przenieś do kosza' }))
 
-    expect(trashInvestmentAction).toHaveBeenCalledWith(42)
+    expect(trashTemplateAction).toHaveBeenCalledWith(42)
     expect(toastMessage).toHaveBeenCalledWith('Szablon przeniesiony do kosza.', 'success')
   })
 })

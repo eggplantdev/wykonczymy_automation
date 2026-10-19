@@ -1,13 +1,12 @@
 import { expect, type Locator } from '@playwright/test'
+import { bare } from '@/__tests__/helpers/money'
 import { formatPLN } from '@/lib/utils/format-currency'
 
 export function parsePln(text: string): number {
   return Number(text.replace(/[^\d,-]/g, '').replace(',', '.'))
 }
 
-// Strip every space a formatter may have put in — pl-PL groups thousands with a non-breaking space
-// and Intl's PLN uses a narrow one, neither of which a spec should have to reproduce to compare.
-export const bare = (text: string) => text.replace(/[\s\u00a0\u202f]/g, '')
+export { bare }
 
 // `toContain` rather than equality: a cell often carries a label or a second plane's figure beside
 // the one under test.

@@ -60,7 +60,7 @@ describe('resolveRowHeight', () => {
   })
 })
 
-describe("resolveRowHeight · the recheck flag's floor (EX-1057)", () => {
+describe("resolveRowHeight · the recheck flag's floor", () => {
   it('grows an untouched row to the floor', () => {
     expect(resolveRowHeight({ isSectionBand: false, minLines: 2 })).toBe(heightForLines(2))
   })
@@ -78,10 +78,6 @@ describe("resolveRowHeight · the recheck flag's floor (EX-1057)", () => {
 })
 
 describe('resolveRowHeight · the client preview never sees a drag', () => {
-  it('sizes to the content when no override is passed, whatever is stored elsewhere', () => {
-    expect(resolveRowHeight({ isSectionBand: false, contentLines: 4 })).toBe(heightForLines(4))
-  })
-
   it('ignores a corrupted stored height rather than passing NaN into the grid', () => {
     expect(resolveRowHeight({ isSectionBand: false, override: Number.NaN, contentLines: 3 })).toBe(
       heightForLines(3),

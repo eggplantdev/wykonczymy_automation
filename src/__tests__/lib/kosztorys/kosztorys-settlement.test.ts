@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
-import {
-  sumSectionSubtotalsNet,
-  kosztorysClientTotals,
-} from '@/lib/kosztorys/settlement-client-totals'
+import { kosztorysClientTotals } from '@/lib/kosztorys/settlement-client-totals'
 import { rowValueForView } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { baseItem, makeStage, makeTree } from '@/__tests__/helpers/kosztorys-tree'
@@ -149,45 +146,13 @@ describe('sectionSubtotalsForView › plannedNet (przedmiar) is client-only', ()
   })
 })
 
-describe('sumSectionSubtotalsNet (subcontractor należne)', () => {
-  const PRE_DISCOUNT_CLIENT = 140
-
-  it('adds the per-item rabat back — Σ(net + discount) is the pre-rabat executed value', () => {
-    const rows = treeToRows(tree)
-    const subtotals = sectionSubtotalsForView(rows, tree.stages, 'client')
-    expect(sumSectionSubtotalsNet(subtotals)).toBeCloseTo(PRE_DISCOUNT_CLIENT)
-  })
-
-  it('is unaffected by an active global discount (net already gross, discount 0)', () => {
-    const globalTree = { ...tree, globalDiscount: { type: 'amount' as const, value: 10 } }
-    const rows = treeToRows(globalTree)
-    const subtotals = sectionSubtotalsForView(rows, globalTree.stages, 'client')
-    expect(sumSectionSubtotalsNet(subtotals)).toBeCloseTo(PRE_DISCOUNT_CLIENT)
-  })
-
-  it('reprices with the active view — subcontractor price differs from client', () => {
-    const rows = treeToRows(tree)
-    const client = sumSectionSubtotalsNet(sectionSubtotalsForView(rows, tree.stages, 'client'))
-    const wTools = sumSectionSubtotalsNet(sectionSubtotalsForView(rows, tree.stages, 'w_tools'))
-    expect(wTools).not.toBeCloseTo(client)
-  })
-})
-
 describe('kosztorysClientTotals — rabat globalny w trybie kwotowym', () => {
   const withDiscount = (globalDiscount: KosztorysTreeT['globalDiscount']) => {
     const next = { ...tree, globalDiscount }
     return kosztorysClientTotals(treeToRows(next), next.stages, globalDiscount)
   }
 
-  it('tryb wyłączony → rabat to suma rabatów per pozycja', () => {
-    expect(withDiscount({ type: null, value: 0 }).discountNetFromKosztorys).toBeGreaterThan(0)
-  })
-
   it('kwota 0 → zero rabatu, rabaty per pozycja pozostają wyłączone', () => {
     expect(withDiscount({ type: 'amount', value: 0 }).discountNetFromKosztorys).toBe(0)
-  })
-
-  it('kwota dodatnia → rabat to sama kwota globalna', () => {
-    expect(withDiscount({ type: 'amount', value: 5 }).discountNetFromKosztorys).toBeCloseTo(5)
   })
 })

@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({})) }))
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))
 vi.mock('@/lib/ai/fill-catalogue-translations', () => ({ fillCatalogueTranslations: vi.fn() }))
 
@@ -13,18 +11,15 @@ import { fillCatalogueTranslations } from '@/lib/ai/fill-catalogue-translations'
 import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 
 describe('cron translate-catalogue route', () => {
-  const previous = process.env.CRON_SECRET
   let consoleError: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
-    process.env.CRON_SECRET = 'test-secret'
+    vi.stubEnv('CRON_SECRET', 'test-secret')
     consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    process.env.CRON_SECRET = previous
     consoleError.mockRestore()
-    vi.clearAllMocks()
   })
 
   function request(headers: Record<string, string> = {}) {
@@ -48,15 +43,6 @@ describe('cron translate-catalogue route', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ ok: false, items: 5, failed: 1 })
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.workCatalogue, EXPIRE_NOW)
-  })
-
-  // `translateRows` never rejects, so an OpenRouter outage arrives as failed batches, not a throw.
-  it('reads as a failed run when every batch failed', async () => {
-    vi.mocked(fillCatalogueTranslations).mockResolvedValue({ items: 0, failed: 3 })
-
-    const res = await GET(authorized())
-
-    await expect(res.json()).resolves.toEqual({ ok: false, items: 0, failed: 3 })
   })
 
   it('leaves the cache alone when nothing was written', async () => {

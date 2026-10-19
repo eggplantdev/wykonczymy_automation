@@ -1,25 +1,14 @@
 import { test, expect, type Page } from '@playwright/test'
-import { refreshReferenceData, runSeedScript } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
+import { GRID_VIEWPORT, sectionBands } from './drivers/kosztorys-grid'
 
-test.use({ storageState: 'e2e/.auth/user.json' })
+test.use({ viewport: GRID_VIEWPORT })
 
-type BandsSeed = {
-  investment: number
-  sections: { name: string; net: number; itemCount: number }[]
-}
+let seed: E2ESeedsT['sectionHeaders']
 
-let seed: BandsSeed
-
-// The seeded investment 404s on kosztorys_v2 until `fetchReferenceData`'s cache is busted — the
-// route resolves the investment off that cache, not off the DB.
-test.beforeAll(async ({ browser }) => {
-  seed = runSeedScript<BandsSeed>('seed:kosztorys-bands', 'BANDS_SEED')
-  await refreshReferenceData(browser)
+test.beforeAll(() => {
+  seed = readSeed('sectionHeaders')
 })
-
-function bands(page: Page) {
-  return page.locator('.dsg-row.kosztorys-section-header')
-}
 
 // Bands and the spacer/„Razem" rows leave their gutter empty, so this is exactly the visible item numbering.
 async function itemOrdinals(page: Page): Promise<string[]> {
@@ -38,15 +27,15 @@ function totalsRow(page: Page) {
 
 async function gotoEditor(page: Page): Promise<void> {
   await page.goto(`/inwestycje/${seed.investment}/kosztorys_v2`)
-  await bands(page).first().waitFor()
+  await sectionBands(page).first().waitFor()
 }
 
 test('one band per section, carrying its name and item count', async ({ page }) => {
   await gotoEditor(page)
-  await expect(bands(page)).toHaveCount(seed.sections.length)
+  await expect(sectionBands(page)).toHaveCount(seed.sections.length)
 
   for (const [index, section] of seed.sections.entries()) {
-    const band = bands(page).nth(index)
+    const band = sectionBands(page).nth(index)
     // The name is an editable input, so it lives in `value` — no text node carries it.
     await expect(band.getByRole('textbox')).toHaveValue(section.name)
     await expect(band).toContainText(`${section.itemCount} poz.`)
@@ -67,15 +56,15 @@ test('collapsing a section hides its items and leaves the rest at their document
   // (`field-sizing: content`), so its box never settles for Playwright's stability wait, and its
   // centre is that input, whose own click is stopped from bubbling.
   const toggleBand = (title: string) =>
-    bands(page)
+    sectionBands(page)
       .first()
       .locator(`[role="button"][title="${title}"]`)
       .evaluate((el: HTMLElement) => el.click())
 
   await toggleBand('Zwiń sekcję')
 
-  await expect(bands(page)).toHaveCount(seed.sections.length)
-  await expect(bands(page).first().getByRole('textbox')).toHaveValue(seed.sections[0].name)
+  await expect(sectionBands(page)).toHaveCount(seed.sections.length)
+  await expect(sectionBands(page).first().getByRole('textbox')).toHaveValue(seed.sections[0].name)
   const hidden = seed.sections[0].itemCount
   await expect
     .poll(() => itemOrdinals(page))

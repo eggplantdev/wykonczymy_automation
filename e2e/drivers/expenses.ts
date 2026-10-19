@@ -1,10 +1,7 @@
 import { expect, type Page } from '@playwright/test'
 import { pickComboOption } from './combo'
 import { nudgeUntil, RETRY_STEP_MS, waitForHydration } from '../support/wait'
-
-export const EXPENSE_REGISTER = { id: 5, name: 'Kasa główna Bartek' }
-export const EXPENSE_INVESTMENT = 'Plac Hallera 6'
-export const EXPENSE_CATEGORY = 'Materiały budowlane'
+import { EXPENSE_CATEGORY, EXPENSE_INVESTMENT, EXPENSE_REGISTER } from '@/scripts/e2e-dump-rows'
 
 // „Typ wydatku" is a Radix Select, so it opens a listbox rather than accepting `selectOption`.
 export async function pickExpenseType(page: Page, label: string): Promise<void> {
@@ -13,7 +10,7 @@ export async function pickExpenseType(page: Page, label: string): Promise<void> 
 }
 
 export async function openExpenseDialog(page: Page): Promise<void> {
-  const trigger = page.getByRole('button', { name: /Wydatek/ }).first()
+  const trigger = page.getByRole('button', { name: 'Wydatek', exact: true })
   await trigger.waitFor()
   await waitForHydration(trigger)
   const title = page.getByText('Nowy wydatek').first()
@@ -60,6 +57,10 @@ export async function createInvestmentExpense(
   netAmount?: string,
 ): Promise<void> {
   await openInvestmentExpenseForm(page, amount, description, netAmount)
+  await saveExpenseForm(page)
+}
+
+export async function saveExpenseForm(page: Page): Promise<void> {
   await submitExpenseForm(page)
   const saveWithoutInvoice = page.getByRole('button', { name: 'Zapisz bez faktury' })
   const refusal = page.getByRole('dialog').locator('[data-slot=field-error]')
@@ -68,7 +69,7 @@ export async function createInvestmentExpense(
   await waitForExpenseDialogToClose(page)
 }
 
-async function waitForExpenseDialogToClose(page: Page): Promise<void> {
+export async function waitForExpenseDialogToClose(page: Page): Promise<void> {
   const title = page.getByText('Nowy wydatek').first()
   try {
     await title.waitFor({ state: 'hidden' })
@@ -108,4 +109,16 @@ export async function openExpenseInvestment(page: Page): Promise<number> {
     true,
   )
   return id
+}
+
+// Every call also checks a known-bookable investment is in the same open list: without that,
+// „the prospekt is not offered" would pass just as well on a picker that rendered nothing at all.
+export async function isInvestmentOffered(page: Page, name: string): Promise<boolean> {
+  await page.goto('/')
+  await openExpenseDialog(page)
+  await page.getByLabel('Inwestycja').click()
+  await expect(page.getByRole('option', { name: EXPENSE_INVESTMENT, exact: true })).toHaveCount(1)
+  const count = await page.getByRole('option', { name, exact: true }).count()
+  await page.keyboard.press('Escape')
+  return count > 0
 }

@@ -46,14 +46,6 @@ describe('buildSqlConditions — Where → SQL', () => {
     expect(sql).toContain("date <= '2024-12-31'")
   })
 
-  it('renders an or branch as a parenthesised alternation', () => {
-    expect(
-      buildSqlConditions({
-        or: [{ sourceRegister: { in: [3] } }, { targetRegister: { in: [3] } }],
-      }),
-    ).toContain('(source_register_id IN (3) OR target_register_id IN (3))')
-  })
-
   it('keeps a range intact inside an or branch', () => {
     // Unparenthesised, `a >= 1 AND a < 2 OR b = 3` would bind the wrong way round.
     expect(

@@ -80,8 +80,6 @@ export const serverSchema = z
         (raw) => raw === undefined || isServiceAccountJson(raw),
         'GOOGLE_SERVICE_ACCOUNT_WRITE_JSON must be valid JSON with client_email and private_key',
       ),
-    KOSZTORYS_TEMPLATE_SHEET_ID: z.string().min(1, 'KOSZTORYS_TEMPLATE_SHEET_ID is required'),
-    KOSZTORYS_DRIVE_FOLDER_ID: z.string().optional(),
     OPENROUTER_API_KEY: z.string().min(1),
     OPENROUTER_HTTP_REFERER: z.string().optional(),
     OPENROUTER_APP_NAME: z.string().optional(),

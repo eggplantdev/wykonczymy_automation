@@ -15,7 +15,7 @@ type AppManagedTabT = {
   summaryKeys: (payload: Payload) => string[] | Promise<string[]>
 }
 
-export const APP_MANAGED_TABS: AppManagedTabT[] = [
+const APP_MANAGED_TABS: AppManagedTabT[] = [
   { cfg: EXPENSES_TAB_CONFIG, summaryKeys: getExpenseTypeNames },
   { cfg: SETTLED_TAB_CONFIG, summaryKeys: getExpenseTypeNames },
   { cfg: TRANSFERS_TAB_CONFIG, summaryKeys: transferSummaryKeys },

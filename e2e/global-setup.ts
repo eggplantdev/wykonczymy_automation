@@ -1,21 +1,41 @@
 import { execFileSync } from 'node:child_process'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { chromium, type FullConfig } from '@playwright/test'
+import { workerCredentials } from '@/scripts/e2e-user-credentials'
+import type { E2ESeedsT } from '@/scripts/seed-e2e-suite'
 import { chromeLaunchOptions } from './chrome-launch'
-import { login } from './support/auth'
+import { login, loginAsWorker } from './support/auth'
+import { refreshData } from './support/wait'
 
 export const STORAGE_STATE = 'e2e/.auth/user.json'
+export const WORKER_STORAGE_STATE = 'e2e/.auth/worker.json'
+export const SEEDS_FILE = 'e2e/.auth/seeds.json'
+
+const SEEDS_MARKER = 'E2E_SEEDS='
 
 // The seeder runs as a subprocess: importing it pulls the Payload config graph → next/cache, which
 // Playwright's module loader can't resolve.
-export default async function globalSetup(config: FullConfig): Promise<void> {
+function seedSuite(): E2ESeedsT {
   // An unset var would set DB_POSTGRES_URL to undefined and let the seed fall back to the dev DB.
   const testDbUrl = process.env.DB_POSTGRES_URL_TEST
   if (!testDbUrl)
     throw new Error('[global-setup] DB_POSTGRES_URL_TEST is not set — refusing to seed')
-  execFileSync('pnpm', ['seed:e2e'], {
-    stdio: 'inherit',
+  const out = execFileSync('pnpm', ['seed:e2e-suite'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit'],
     env: { ...process.env, DB_POSTGRES_URL: testDbUrl },
   })
+  const line = out.split('\n').find((row) => row.startsWith(SEEDS_MARKER))
+  if (!line) throw new Error(`[global-setup] the seeder emitted no ${SEEDS_MARKER} line:\n${out}`)
+  mkdirSync(dirname(SEEDS_FILE), { recursive: true })
+  const seeds = line.slice(SEEDS_MARKER.length)
+  writeFileSync(SEEDS_FILE, seeds)
+  return JSON.parse(seeds) as E2ESeedsT
+}
+
+export default async function globalSetup(config: FullConfig): Promise<void> {
+  const { workers } = seedSuite()
 
   const baseURL = config.projects[0]?.use?.baseURL
   if (!baseURL) throw new Error('[global-setup] no baseURL configured')
@@ -25,6 +45,14 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
     const page = await browser.newPage({ baseURL })
     await login(page)
     await page.context().storageState({ path: STORAGE_STATE })
+    // Without it `kosztorys_v2` 404s on a seeded investment: it resolves off cached reference data.
+    await page.goto('/szablony')
+    await refreshData(page)
+
+    // After the refresh: the worker page resolves its worker off the same cached reference data.
+    const workerPage = await browser.newPage({ baseURL })
+    await loginAsWorker(workerPage, workerCredentials('self'), workers.self.id)
+    await workerPage.context().storageState({ path: WORKER_STORAGE_STATE })
   } finally {
     await browser.close()
   }

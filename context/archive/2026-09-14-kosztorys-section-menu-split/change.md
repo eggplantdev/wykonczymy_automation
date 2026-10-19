@@ -13,7 +13,7 @@ worktree: null
 
 Splits the single ⋯ menu into two again: „Praca" (work) stays on the item row, the whole „Sekcja"
 (section) group moves to the section band. Reverses `2026-07-26-kosztorys-merged-row-menu` (archive deleted 2026-09-29; git history)
-(which itself reversed EX-580 p4, commit `7af257b2`).
+(which itself reversed phase 4 of the section-header-rows change, commit `7af257b2`).
 
 ### Why again
 

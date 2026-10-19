@@ -1,16 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { WorkerReportHistoryTable } from '@/components/worker-reports/worker-report-history-table'
 import type { ReportListRowT } from '@/lib/db/worker-reports'
+import { navigationState, router } from '@/__tests__/stubs/next-navigation'
 
-const { replace, push } = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn() }))
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/pracownicy/2',
-  useRouter: () => ({ refresh: vi.fn(), replace, push, prefetch: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
-}))
+navigationState.pathname = '/pracownicy/2'
 
 const report = (id: number, overrides: Partial<ReportListRowT> = {}): ReportListRowT => ({
   id,
@@ -48,8 +44,8 @@ describe('WorkerReportHistoryTable', () => {
 
     await user.click(screen.getByRole('button', { name: /3$/ }))
     expect(shownIds()).toEqual([21, 22, 23, 24, 25])
-    expect(replace).not.toHaveBeenCalled()
-    expect(push).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
+    expect(router.push).not.toHaveBeenCalled()
   })
 
   it('narrows to the ticked status, back on page 1, without touching the URL', async () => {
@@ -68,8 +64,8 @@ describe('WorkerReportHistoryTable', () => {
     await user.keyboard('{Escape}')
 
     expect(shownIds()).toEqual([26, 27])
-    expect(replace).not.toHaveBeenCalled()
-    expect(push).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
+    expect(router.push).not.toHaveBeenCalled()
   })
 
   it('gives the worker „Podgląd” alone', () => {

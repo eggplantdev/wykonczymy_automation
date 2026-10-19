@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  itemFromFields,
-  type ItemFieldsT,
-} from '@/lib/kosztorys/item-from-fields'
+import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
 
 describe('itemFromFields', () => {
   it('carries the katalog translations onto the new pozycja together with the opis', () => {

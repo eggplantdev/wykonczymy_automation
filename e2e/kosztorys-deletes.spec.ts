@@ -1,33 +1,30 @@
 import { test, expect, type Page } from '@playwright/test'
-import { type DeleteSeedT, seedDeleteInvestments } from './support/seeds'
+import { type E2ESeedsT, readSeed } from './support/seeds'
 import { clickAndSettle } from './support/wait'
 import {
   collapseSummaryPanel,
   expectCellValue,
+  GRID_VIEWPORT,
   gridRow,
   LOAD_VERSION_ITEM,
   openEditor,
+  openRowMenu,
+  openSectionMenu,
   pickKosztorysOption,
   rowCell,
+  sectionBand,
   versionsDrawer,
 } from './drivers/kosztorys-grid'
 
+test.use({ viewport: GRID_VIEWPORT })
+
 // The grid is seeded into `useState` at mount, so „the row is gone after a reload" and „the row is
 // gone now" are two different facts.
-test.use({ storageState: 'e2e/.auth/user.json' })
+let seed: E2ESeedsT['deletes']
 
-let seed: DeleteSeedT
-
-test.beforeAll(async ({ browser }) => {
-  seed = await seedDeleteInvestments(browser)
+test.beforeAll(() => {
+  seed = readSeed('deletes')
 })
-
-// By the rename input's value, not by text: the band's name lives in that input and nowhere else,
-// so a `hasText` filter matches no band at all.
-const band = (page: Page, sectionName: string) =>
-  page
-    .locator('.dsg-row.kosztorys-section-header')
-    .filter({ has: page.locator(`input[value="${sectionName}"]`) })
 
 // Anchored: „Etap 2" is also the prefix of the „Etap 2 netto" wartość column standing beside it.
 const headerCell = (page: Page, text: string) =>
@@ -41,7 +38,7 @@ test('deleting a populated pozycja asks first, and the version it leaves behind 
   await openEditor(page, seed.item)
   await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1)
 
-  await gridRow(page, 'Praca alfa jeden').getByRole('button', { name: 'Akcje wiersza' }).click()
+  await openRowMenu(page, 'Praca alfa jeden')
   await page.getByRole('menuitem', { name: 'Usuń pozycję' }).click()
 
   await expect(confirm(page)).toContainText('Usunąć pozycję?')
@@ -53,13 +50,13 @@ test('deleting a populated pozycja asks first, and the version it leaves behind 
   await collapseSummaryPanel(page)
   await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1)
 
-  await gridRow(page, 'Praca alfa jeden').getByRole('button', { name: 'Akcje wiersza' }).click()
+  await openRowMenu(page, 'Praca alfa jeden')
   await page.getByRole('menuitem', { name: 'Usuń pozycję' }).click()
   await clickAndSettle(confirm(page).getByRole('button', { name: 'Usuń' }))
 
   await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(0)
   await expect(gridRow(page, 'Praca alfa dwa')).toHaveCount(1)
-  await expect(band(page, 'Sekcja alfa')).toHaveCount(1)
+  await expect(sectionBand(page, 'Sekcja alfa')).toHaveCount(1)
 
   await page.reload()
   await collapseSummaryPanel(page)
@@ -74,25 +71,25 @@ test('deleting a populated pozycja asks first, and the version it leaves behind 
   await restore.click()
   await confirm(page).getByRole('button', { name: 'Przywróć' }).click()
 
-  await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1, { timeout: 20_000 })
+  await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1)
 })
 
 test('deleting a populated sekcja takes its prace with it and leaves the other sekcja standing', async ({
   page,
 }) => {
   await openEditor(page, seed.section)
-  await expect(band(page, 'Sekcja beta')).toHaveCount(1)
+  await expect(sectionBand(page, 'Sekcja beta')).toHaveCount(1)
 
-  await band(page, 'Sekcja beta').getByRole('button', { name: 'Akcje sekcji' }).click()
+  await openSectionMenu(page, 'Sekcja beta')
   await page.getByRole('menuitem', { name: 'Usuń sekcję' }).click()
 
   await expect(confirm(page)).toContainText('Sekcja beta')
   await expect(confirm(page)).toContainText('(1 poz.)')
   await clickAndSettle(confirm(page).getByRole('button', { name: 'Usuń' }))
 
-  await expect(band(page, 'Sekcja beta')).toHaveCount(0)
+  await expect(sectionBand(page, 'Sekcja beta')).toHaveCount(0)
   await expect(gridRow(page, 'Praca beta jeden')).toHaveCount(0)
-  await expect(band(page, 'Sekcja alfa')).toHaveCount(1)
+  await expect(sectionBand(page, 'Sekcja alfa')).toHaveCount(1)
   await expect(gridRow(page, 'Praca alfa jeden')).toHaveCount(1)
   await expect(gridRow(page, 'Praca alfa dwa')).toHaveCount(1)
 

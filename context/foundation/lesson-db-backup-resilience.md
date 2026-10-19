@@ -69,6 +69,14 @@ data or _restorable_. Real validation = **row counts of key tables + freshness +
 no-shrink vs the previous backup + a periodic restore test**. Green must mean _safe_,
 not _ran_.
 
+No-shrink needs a tolerance. A rejected dump is never uploaded, so the baseline it compares
+against never advances: a zero-tolerance check turned one planned delete (the 2026-10-16
+szablon-investments migration, 202 → 201) into two days of red runs with no backups. A small
+percentage catches mass loss but not a downgrade to a branch a day or two old, so pair it with
+**no-rewind**: id sequences never go back on a live DB, deletes included, only on a restore or
+the wrong branch. Either check can still fail on a deliberate change, so the job needs a manual
+"accept and reset the baseline" switch — without one, red runs pile up until someone edits the job.
+
 ### L3 — Read the actual error before blaming your code.
 
 `28P01` is authentication. `connection refused` is networking. A query that fails

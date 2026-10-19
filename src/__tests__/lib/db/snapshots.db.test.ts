@@ -1,0 +1,196 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
+import { gcSnapshots, insertSnapshot } from '@/lib/db/snapshots'
+import type { KosztorysSnapshotPayloadT, SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+
+const emptyPayload: KosztorysSnapshotPayloadT = {
+  schemaVersion: 1,
+  sections: [],
+  items: [],
+  stages: [],
+  progress: [],
+  settings: {
+    wToolsCoeff: 0,
+    ownToolsCoeff: 0,
+    vatRate: 0,
+  },
+  globalDiscount: { type: null, value: 0 },
+}
+
+// The mistake worth guarding is dropping `investment_id` from the PARTITION BY — it keeps ONE row
+// across every investment and is invisible to a single-investment fixture.
+describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let investmentId: number
+  let otherInvestmentId: number
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    investmentId = await createTestInvestment(payload, 'gc-snapshots-test')
+    otherInvestmentId = await createTestInvestment(payload, 'gc-snapshots-other')
+  })
+
+  afterAll(async () => {
+    if (investmentId) await deleteTestInvestment(payload, investmentId)
+    if (otherInvestmentId) await deleteTestInvestment(payload, otherInvestmentId)
+  })
+
+  // Backdate to a FIXED wall-clock point, not an offset from now(): "same day, three hours apart"
+  // straddles midnight on a pre-03:00 run, and a sub-week offset lands in one week or two depending
+  // on the weekday.
+  async function insertAt(
+    targetInvestmentId: number,
+    kind: SnapshotKindT,
+    daysAgo: number,
+    hour: number,
+  ): Promise<number> {
+    const id = await insertSnapshot(db, {
+      investmentId: targetInvestmentId,
+      kind,
+      label: kind === 'manual' || kind === 'named' ? 'wersja' : null,
+      takenBy: null,
+      payload: emptyPayload,
+    })
+    await db.execute(sql`
+      UPDATE kosztorys_snapshots SET taken_at = (
+        date_trunc('day', now() AT TIME ZONE 'Europe/Warsaw')
+          - make_interval(days => ${daysAgo})
+          + make_interval(hours => ${hour})
+      ) AT TIME ZONE 'Europe/Warsaw'
+      WHERE id = ${id}
+    `)
+    return id
+  }
+
+  // Two rows on different days of one week is the only fixture that tells date_trunc('week') from
+  // date_trunc('day') — day-aligned rows only, and a band truncating by day keeps both and passes.
+  async function insertInWeek(weeksAgo: number, dayInWeek: number, hour: number): Promise<number> {
+    const id = await insertSnapshot(db, {
+      investmentId,
+      kind: 'auto',
+      label: null,
+      takenBy: null,
+      payload: emptyPayload,
+    })
+    await db.execute(sql`
+      UPDATE kosztorys_snapshots SET taken_at = (
+        date_trunc('week', now() AT TIME ZONE 'Europe/Warsaw')
+          - make_interval(weeks => ${weeksAgo})
+          + make_interval(days => ${dayInWeek}, hours => ${hour})
+      ) AT TIME ZONE 'Europe/Warsaw'
+      WHERE id = ${id}
+    `)
+    return id
+  }
+
+  async function survivorsOf(targetInvestmentId: number): Promise<number[]> {
+    const res = await db.execute(
+      sql`SELECT id FROM kosztorys_snapshots WHERE investment_id = ${targetInvestmentId} ORDER BY id`,
+    )
+    return res.rows.map((row) => Number(row.id))
+  }
+
+  it('keeps full density for 30 days, one per day to 120, one per week to 365, and is idempotent', async () => {
+    // Every age sits clear of a band edge (30 / 120 / 365): the backdating UPDATE and the sweep's
+    // now() are separate transactions, so a row placed exactly on an edge races.
+
+    const freshEarly = await insertAt(investmentId, 'auto', 2, 8)
+    const freshLate = await insertAt(investmentId, 'auto', 2, 19)
+
+    await insertAt(investmentId, 'auto', 40, 2)
+    await insertAt(investmentId, 'auto', 40, 10)
+    const day40Evening = await insertAt(investmentId, 'auto', 40, 20)
+    const day41 = await insertAt(investmentId, 'auto', 41, 12)
+
+    await insertInWeek(29, 1, 5)
+    const sameWeekLater = await insertInWeek(29, 3, 15)
+    const previousWeek = await insertInWeek(30, 3, 9)
+
+    // One in each band, because a `kind` filter dropped from just one DELETE would still leave the other green.
+    const manualInDailyBand = await insertAt(investmentId, 'manual', 40, 6)
+    const manualInWeeklyBand = await insertAt(investmentId, 'manual', 200, 11)
+
+    await insertAt(investmentId, 'auto', 400, 9)
+    await insertAt(investmentId, 'manual', 400, 9)
+
+    await insertAt(otherInvestmentId, 'auto', 40, 3)
+    const otherDay40Evening = await insertAt(otherInvestmentId, 'auto', 40, 21)
+
+    const first = await gcSnapshots(db)
+    expect(first.daily).toBeGreaterThanOrEqual(3)
+    expect(first.weekly).toBeGreaterThanOrEqual(1)
+    expect(first.ceiling).toBeGreaterThanOrEqual(2)
+
+    const survivors = await survivorsOf(investmentId)
+    expect(survivors).toEqual(
+      [
+        freshEarly,
+        freshLate,
+        day40Evening,
+        day41,
+        sameWeekLater,
+        previousWeek,
+        manualInDailyBand,
+        manualInWeeklyBand,
+      ].sort((a, b) => a - b),
+    )
+
+    const otherSurvivors = await survivorsOf(otherInvestmentId)
+    expect(otherSurvivors).toEqual([otherDay40Evening])
+
+    // Asserted as survivor stability rather than `deleted === 0`, because the sweep covers the whole table — a neighbouring run's leftovers count.
+    await gcSnapshots(db)
+    expect(await survivorsOf(investmentId)).toEqual(survivors)
+    expect(await survivorsOf(otherInvestmentId)).toEqual(otherSurvivors)
+  })
+
+  it('keeps daily/named rows while the investment is open, and drops them a year after completion', async () => {
+    const [open, completedLongAgo, completedRecently, completedUndated] = await Promise.all(
+      ['gc-investor-open', 'gc-investor-old', 'gc-investor-recent', 'gc-investor-undated'].map(
+        (name) => createTestInvestment(payload, name),
+      ),
+    )
+    try {
+      // Straight SQL: the stamping hook would set completed_at to now.
+      const complete = (id: number, daysAgo: number | null) =>
+        db.execute(sql`
+          UPDATE investments SET status = 'completed', completed_at = ${
+            daysAgo === null ? null : sql`now() - make_interval(days => ${daysAgo})`
+          } WHERE id = ${id}
+        `)
+      await complete(completedLongAgo, 400)
+      await complete(completedRecently, 100)
+      await complete(completedUndated, null)
+
+      const openDaily = await insertAt(open, 'daily', 400, 23)
+      const openNamed = await insertAt(open, 'named', 400, 10)
+      const openBandMorning = await insertAt(open, 'daily', 40, 8)
+      const openBandEvening = await insertAt(open, 'named', 40, 20)
+      await insertAt(completedLongAgo, 'daily', 500, 23)
+      await insertAt(completedLongAgo, 'named', 450, 12)
+      const recentDaily = await insertAt(completedRecently, 'daily', 400, 23)
+      const undatedDaily = await insertAt(completedUndated, 'daily', 800, 23)
+      await insertAt(completedRecently, 'auto', 400, 9)
+
+      const result = await gcSnapshots(db)
+      expect(result.investorExpired).toBeGreaterThanOrEqual(2)
+
+      expect(await survivorsOf(open)).toEqual(
+        [openDaily, openNamed, openBandMorning, openBandEvening].sort((a, b) => a - b),
+      )
+      expect(await survivorsOf(completedLongAgo)).toEqual([])
+      expect(await survivorsOf(completedRecently)).toEqual([recentDaily])
+      expect(await survivorsOf(completedUndated)).toEqual([undatedDaily])
+    } finally {
+      for (const id of [open, completedLongAgo, completedRecently, completedUndated]) {
+        await deleteTestInvestment(payload, id)
+      }
+    }
+  })
+})

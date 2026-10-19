@@ -14,7 +14,6 @@ vi.mock('next/headers', () => ({
     get: (name: string) => (cookieJar.has(name) ? { value: cookieJar.get(name) } : undefined),
   }),
 }))
-vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('next/cache', () => ({ unstable_cache: unstableCache }))
 vi.mock('payload', () => ({ getPayload: vi.fn(async () => ({ secret: SECRET })) }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({})) }))

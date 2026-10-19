@@ -7,7 +7,6 @@ import { buildPaginationMeta, type PaginationParamsT } from '@/lib/utils/paginat
 import { getDb } from '@/lib/db/get-db'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
-import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { FIELDS_ONLY_THE_ORIGINAL_CARRIES } from '@/lib/queries/transfer-filters'
 import { DEFAULT_TRANSFER_SORT } from '@/lib/transfers/sortable-columns'
 

@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { redirect } from 'next/navigation'
 import { settleAction } from '@/lib/utils/settle-action'
 
 describe('settleAction', () => {
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
-  afterEach(() => vi.restoreAllMocks())
 
   it('passes a resolved result through untouched', async () => {
     const result = { success: false as const, error: 'Nie znaleziono', code: 'NOT_FOUND' as const }

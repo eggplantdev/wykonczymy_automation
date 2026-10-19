@@ -2,17 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 import { LANDING_SUBMISSION } from '@/__tests__/fixtures/landing-submission'
 
-vi.mock('next/server', () => ({
+vi.mock('next/server', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/server')>()),
   after: (fn: () => unknown) => void fn(),
-  NextResponse: {
-    json: (body: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, body }),
-  },
 }))
-vi.mock('@payload-config', () => ({ default: {} }))
 
 const update = vi.fn(async () => ({}))
 vi.mock('payload', () => ({ getPayload: async () => ({ update }) }))
-vi.mock('@/lib/env/server', () => ({ serverEnv: { LANDING_WEBHOOK_SECRET: 'test-secret' } }))
 vi.mock('@/lib/leads/capture-lead', () => ({ captureLead: vi.fn() }))
 vi.mock('@/lib/leads/fetch-landing-asset', () => ({ fetchLandingAsset: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ deleteUnreferencedMedia: vi.fn() }))
@@ -49,7 +45,7 @@ const capturedLead = (assets?: unknown, created = true) =>
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.stubEnv('LANDING_WEBHOOK_SECRET', 'test-secret')
   capturedLead()
   vi.mocked(fetchLandingAsset).mockImplementation(
     async () => 100 + vi.mocked(fetchLandingAsset).mock.calls.length,

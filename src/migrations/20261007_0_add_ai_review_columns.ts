@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-1006: the katalog's Komentarz do pracy, and the AI draft review on a pozycja — AI przedmiar
+// The katalog's Komentarz do pracy, and the AI draft review on a pozycja — AI przedmiar
 // (what the agent offered; NULL = the agent never saw the row, 0 = it left the row out), the
 // manager's Status and the Powód zmiany. One migration for both tables so prod migrates once.
 export async function up({ db }: MigrateUpArgs): Promise<void> {

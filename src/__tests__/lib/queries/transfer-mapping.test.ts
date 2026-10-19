@@ -129,3 +129,36 @@ describe('buildTransferLookups — a trashed worker', () => {
     expect(row.createdByName).toBe('Piotr W Koszu')
   })
 })
+
+describe('mapTransferRow — createdByName', () => {
+  const lookups = buildTransferLookups(
+    {
+      cashRegisters: [],
+      trashedCashRegisters: [],
+      trashedInvestments: [],
+      investments: [],
+      workers: [
+        {
+          id: 100,
+          name: 'Jan Kowalski',
+          role: 'MANAGER',
+          email: '',
+          language: null,
+          canAddExpensesWithoutInvestment: false,
+        },
+      ],
+      trashedWorkers: [],
+      otherCategories: [],
+      expenseCategories: [],
+    },
+    mediaMap,
+  )
+
+  it.each([
+    [100, 'Jan Kowalski'],
+    [null, '—'],
+    [999, '—'],
+  ])('createdBy %s → %s', (createdBy, name) => {
+    expect(mapTransferRow({ ...doc([]), createdBy }, lookups).createdByName).toBe(name)
+  })
+})

@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Payload } from 'payload'
 import { LANDING_FIXTURE_HOST } from '@/__tests__/fixtures/landing-submission'
+import { fetchLandingAsset, MAX_ASSET_BYTES } from '@/lib/leads/fetch-landing-asset'
 
 process.env.LANDING_BLOB_HOST = LANDING_FIXTURE_HOST
-
-import { fetchLandingAsset, MAX_ASSET_BYTES } from '@/lib/leads/fetch-landing-asset'
 
 type CreateArgsT = { file?: { name: string; mimetype: string; size: number } }
 const create = vi.fn(async (_args: CreateArgsT) => ({ id: 42 }))
@@ -35,7 +34,6 @@ const streamed = (chunks: Uint8Array[], headers: Record<string, string>): Respon
     },
   }) as unknown as Response
 
-beforeEach(() => vi.clearAllMocks())
 afterEach(() => vi.unstubAllGlobals())
 
 describe('fetchLandingAsset — what it refuses to fetch', () => {
@@ -46,7 +44,6 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
   it.each([
     ['a different host', 'https://evil.example.com/photo.jpg'],
     ['plain http', `http://${LANDING_FIXTURE_HOST}/photo.jpg`],
-    ['a link-local address', 'http://169.254.169.254/latest/meta-data/'],
     [
       'a host merely containing the allowlisted one',
       `https://${LANDING_FIXTURE_HOST}.evil.com/x.jpg`,

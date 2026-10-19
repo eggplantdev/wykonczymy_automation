@@ -2,6 +2,8 @@ import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
 export const ENTITY_TRASH_RETENTION_DAYS = 30
 
+export const FILE_TRASH_RETENTION_DAYS = 7
+
 export const KOSZTORYS_IN_USE_WARNING =
   'Kosztorys tej inwestycji jest w użyciu — ma wpisany przedmiar lub ilości na etapach.'
 

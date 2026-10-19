@@ -3,25 +3,27 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
 import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { fetchCompanyKnowledge } from '@/lib/queries/company-knowledge'
+import {
+  createCompanyKnowledgeAction,
+  deleteCompanyKnowledgeAction,
+  updateCompanyKnowledgeAction,
+} from '@/lib/actions/company-knowledge'
 
-const state = vi.hoisted(() => ({
-  role: 'MANAGER',
-  entries: [] as CompanyKnowledgeEntryT[],
+const state = { entries: [] as CompanyKnowledgeEntryT[] }
+vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
+vi.mocked(fetchCompanyKnowledge).mockImplementation(async () => ({
+  success: true,
+  data: state.entries,
 }))
-vi.mock('@/hooks/use-current-user', () => ({
-  useCurrentUser: () => ({ id: 1, email: 'm@example.test', name: 'Testowy', role: state.role }),
-}))
-vi.mock('@/lib/queries/company-knowledge', () => ({
-  fetchCompanyKnowledge: vi.fn(async () => ({ success: true, data: state.entries })),
-}))
-const actions = vi.hoisted(() => ({
-  createCompanyKnowledgeAction: vi.fn(),
-  updateCompanyKnowledgeAction: vi.fn(),
-  deleteCompanyKnowledgeAction: vi.fn(),
-  reorderCompanyKnowledgeAction: vi.fn(),
-}))
-vi.mock('@/lib/actions/company-knowledge', () => actions)
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+const actions = {
+  createCompanyKnowledgeAction: vi.mocked(createCompanyKnowledgeAction),
+  updateCompanyKnowledgeAction: vi.mocked(updateCompanyKnowledgeAction),
+  deleteCompanyKnowledgeAction: vi.mocked(deleteCompanyKnowledgeAction),
+}
 
 const entry = (id: number, topic: string, content: string): CompanyKnowledgeEntryT => ({
   id,
@@ -71,13 +73,12 @@ async function typeEntry(user: ReturnType<typeof userEvent.setup>, topic: string
 
 describe('CompanyKnowledgeButton', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    state.role = 'MANAGER'
+    authState.role = 'MANAGER'
     state.entries = BOOK
   })
 
   it('renders nothing for an EMPLOYEE', () => {
-    state.role = 'EMPLOYEE'
+    authState.role = 'EMPLOYEE'
     const { container } = render(<CompanyKnowledgeButton />)
     expect(container).toBeEmptyDOMElement()
   })

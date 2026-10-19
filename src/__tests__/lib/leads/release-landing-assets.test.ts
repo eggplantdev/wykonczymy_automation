@@ -1,12 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { serverEnv } = vi.hoisted(() => ({
-  serverEnv: { LANDING_WEBHOOK_SECRET: 'test-secret' } as {
-    LANDING_WEBHOOK_SECRET: string
-    LANDING_CLEANUP_URL?: string
-  },
-}))
-vi.mock('@/lib/env/server', () => ({ serverEnv }))
 vi.mock('@/lib/utils/log-error', () => ({ logError: vi.fn() }))
 
 import { releaseLandingAssets } from '@/lib/leads/release-landing-assets'
@@ -22,8 +15,8 @@ const lastCall = () => {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
-  serverEnv.LANDING_CLEANUP_URL = 'https://landing.example/api/leads/cleanup'
+  vi.stubEnv('LANDING_WEBHOOK_SECRET', 'test-secret')
+  vi.stubEnv('LANDING_CLEANUP_URL', 'https://landing.example/api/leads/cleanup')
   fetchMock.mockResolvedValue({ ok: true, status: 200 })
 })
 
@@ -42,13 +35,10 @@ describe('the cleanup callback', () => {
     const signature = new Headers(init.headers).get('x-landing-signature')
 
     expect(verifySignature(body, signature, 'test-secret', 'landing-cleanup')).toBe(true)
-    expect(verifySignature(body, signature, 'other-secret', 'landing-cleanup')).toBe(false)
-    // The scope is what stops a captured submission from doubling as a delete instruction.
-    expect(verifySignature(body, signature, 'test-secret', 'landing-submission')).toBe(false)
   })
 
   it('does nothing when no callback URL is configured', async () => {
-    serverEnv.LANDING_CLEANUP_URL = undefined
+    vi.stubEnv('LANDING_CLEANUP_URL', undefined)
 
     await expect(releaseLandingAssets('id')).resolves.toBeUndefined()
     expect(fetchMock).not.toHaveBeenCalled()

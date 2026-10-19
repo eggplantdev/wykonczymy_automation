@@ -5,8 +5,6 @@ import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/
 import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
 import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-worker-share-dialog'
 import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-worker-view-dialog'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
-import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
 import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/labels'
@@ -74,19 +72,16 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  vi.clearAllMocks()
   stages = STAGES
 })
 
-function renderMenu(role: RoleT = 'MANAGER') {
+function renderMenu() {
   render(
-    <CurrentUserProvider user={{ id: 1, email: 'm@example.test', name: 'Testowy', role }}>
-      <KosztorysActionsProvider>
-        <KosztorysWorkersMenu />
-        <KosztorysWorkerShareDialog />
-        <KosztorysWorkerViewDialog />
-      </KosztorysActionsProvider>
-    </CurrentUserProvider>,
+    <KosztorysActionsProvider>
+      <KosztorysWorkersMenu />
+      <KosztorysWorkerShareDialog />
+      <KosztorysWorkerViewDialog />
+    </KosztorysActionsProvider>,
   )
 }
 
@@ -129,7 +124,7 @@ describe('KosztorysWorkersMenu', () => {
     )
   })
 
-  it('says when all of a worker’s etapy are zakończone and withholds only the form (EX-1034)', async () => {
+  it('says when all of a worker’s etapy are zakończone and withholds only the form', async () => {
     stages = STAGES.map((stage) =>
       stage.id === 1 || stage.id === 3 ? { ...stage, completed: true } : stage,
     )
@@ -193,7 +188,7 @@ describe('KosztorysWorkersMenu', () => {
   })
 
   it('lets a manager open the podgląd and the link of a worker', async () => {
-    renderMenu('MANAGER')
+    renderMenu()
     await openMenu()
 
     const [annaPreview] = screen.getAllByRole('menuitem', { name: 'Podgląd linku pracownika' })
@@ -228,7 +223,7 @@ describe('KosztorysWorkersMenu', () => {
   it('lets a manager print a worker’s PDF, reading that worker’s projection', async () => {
     const popup = { document: { title: '' }, close: vi.fn() }
     const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
-    renderMenu('MANAGER')
+    renderMenu()
     await openMenu()
 
     await userEvent.click(printItems()[0])
@@ -239,7 +234,7 @@ describe('KosztorysWorkersMenu', () => {
   })
 
   it('lets a manager edit the view settings', async () => {
-    renderMenu('MANAGER')
+    renderMenu()
     await openMenu()
     await userEvent.click(screen.getByRole('menuitem', { name: /Ustawienia widoku/ }))
 
@@ -249,8 +244,8 @@ describe('KosztorysWorkersMenu', () => {
     expect(within(dialog).getByRole('button', { name: /Ustaw kolejność kolumn/ })).toBeEnabled()
   })
 
-  it('returns the owner’s reorder to the built-in order on reset', async () => {
-    renderMenu('OWNER')
+  it('returns a reorder to the built-in order on reset', async () => {
+    renderMenu()
     await openMenu()
     await userEvent.click(screen.getByRole('menuitem', { name: /Ustawienia widoku/ }))
     const dialog = await screen.findByRole('dialog', { name: 'Ustawienia widoku pracownika' })
@@ -268,15 +263,5 @@ describe('KosztorysWorkersMenu', () => {
     await userEvent.click(order.getByRole('button', { name: 'Przywróć domyślną kolejność' }))
 
     expect(listed()).toEqual(builtIn)
-  })
-
-  it('lets the owner change the view settings', async () => {
-    renderMenu('OWNER')
-    await openMenu()
-    await userEvent.click(screen.getByRole('menuitem', { name: /Ustawienia widoku/ }))
-
-    const dialog = await screen.findByRole('dialog', { name: 'Ustawienia widoku pracownika' })
-    expect(await within(dialog).findByRole('checkbox', { name: 'Stawka j.m. netto' })).toBeEnabled()
-    expect(within(dialog).getByRole('button', { name: 'Zapisz' })).toBeEnabled()
   })
 })

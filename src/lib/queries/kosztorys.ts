@@ -52,7 +52,6 @@ export async function buildKosztorysTree(
   return tree
 }
 
-// A szablon is read from its own tables (EX-1075) into the same tree, so the editor renders both.
 export async function getTemplateTree(templateId: number): Promise<KosztorysTreeT> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)

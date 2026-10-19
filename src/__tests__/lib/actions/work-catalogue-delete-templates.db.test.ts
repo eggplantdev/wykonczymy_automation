@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -10,22 +10,14 @@ import {
   createTestTemplate,
   deleteTestTemplate,
 } from '@/__tests__/helpers/template'
+import { authState } from '@/__tests__/stubs/get-current-user-jwt'
+import { firstUserId } from '@/__tests__/helpers/user'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 // Deleting the entry must take the praca with it — a trashed szablon included, or restoring it would
 // bring back a praca with no content.
-const authState = vi.hoisted(() => ({ userId: 0 }))
-vi.mock('server-only', () => ({}))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  })),
-}))
-vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { deleteCatalogueItemAction } = await import('@/lib/actions/work-catalogue')
-
-const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)', () => {
   let payload: Payload
@@ -37,12 +29,9 @@ describe.skipIf(!ENV_READY)('deleting a katalog entry reaches its szablony (DB)'
   const itemIds = { live: 0, trashed: 0, kosztorys: 0 }
 
   beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
+    payload = await bootTestPayload()
     db = await getDb(payload)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0 })
-    authState.userId = Number(users.docs[0]?.id)
+    authState.userId = await firstUserId(payload)
 
     entryId = await createTestCatalogueEntry(payload, 'Malowanie', { clientPrice: 30 })
     liveTemplateId = await createTestTemplate(payload, 'catalogue-delete-live')

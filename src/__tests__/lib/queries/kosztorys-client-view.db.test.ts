@@ -1,0 +1,112 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import type { Payload } from 'payload'
+import {
+  getClientViewSettings,
+  getClientViewSettingsRead,
+} from '@/lib/queries/kosztorys-client-view'
+import {
+  sanitizeClientViewSettings,
+  toStoredClientViewSettings,
+} from '@/lib/kosztorys/client-view/settings'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+
+const CODE_DEFAULTS = sanitizeClientViewSettings({})
+
+// The row carries an order so the resolver's roundtrip covers it: a stored rank that came back
+// empty would silently serve every investment in the built-in order.
+const ROW_SETTINGS = {
+  hiddenColumns: ['discountValue'],
+  hideEmptyRows: false,
+  columnRanks: { net: -1 },
+}
+const GLOBAL_SETTINGS = { hiddenColumns: ['remaining'], hideEmptyRows: true, columnRanks: {} }
+const STORED_ROW = toStoredClientViewSettings(ROW_SETTINGS)
+const STORED_GLOBAL = toStoredClientViewSettings(GLOBAL_SETTINGS)
+
+describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
+  let payload: Payload
+  let investmentWithRow: number
+  let investmentWithoutRow: number
+
+  const resetGlobal = () =>
+    payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: { hiddenColumns: null, hideEmptyRows: true, columnRanks: null },
+    })
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+
+    investmentWithRow = await createTestInvestment(payload, 'EX-695 client view spec (row)')
+    investmentWithoutRow = await createTestInvestment(payload, 'EX-695 client view spec (fallback)')
+    await payload.create({
+      collection: 'kosztorys-client-view',
+      data: { investment: investmentWithRow, ...STORED_ROW },
+    })
+  })
+
+  afterAll(async () => {
+    if (investmentWithRow) await deleteTestInvestment(payload, investmentWithRow)
+    if (investmentWithoutRow) await deleteTestInvestment(payload, investmentWithoutRow)
+    await resetGlobal()
+  })
+
+  it("serves the investment's own row over the firm-wide default", async () => {
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: STORED_GLOBAL })
+
+    expect(await getClientViewSettings(investmentWithRow)).toEqual(ROW_SETTINGS)
+  })
+
+  it('drops a stored key outside the allowlist — the ceiling is not a stored decision', async () => {
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: {
+        hiddenColumns: { ...STORED_GLOBAL.hiddenColumns, aiPlannedQty: true, priceMode: true },
+      },
+    })
+
+    const settings = await getClientViewSettings(investmentWithRow)
+    expect(settings.hiddenColumns).toEqual(['remaining'])
+  })
+
+  it('resolves a row with no hidden set to the code default, not to the global', async () => {
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: STORED_GLOBAL })
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: { hiddenColumns: null, hideEmptyRows: true, columnRanks: null },
+    })
+
+    expect(await getClientViewSettings(investmentWithRow)).toEqual(CODE_DEFAULTS)
+  })
+
+  it('falls back to the firm-wide default for an investment with no row', async () => {
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: STORED_GLOBAL })
+
+    expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
+  })
+
+  it("hands back the firm's order beside an investment's own settings", async () => {
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: { columnRanks: null },
+    })
+    await payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: { ...STORED_GLOBAL, columnRanks: { plannedQty: -1 } },
+    })
+
+    const read = await getClientViewSettingsRead(investmentWithRow)
+    expect(read.settings.columnRanks).toEqual({})
+    expect(read.defaultColumnRanks).toEqual({ plannedQty: -1 })
+  })
+
+  it('falls back to the code default when the global holds nothing', async () => {
+    await resetGlobal()
+
+    expect(await getClientViewSettings(investmentWithoutRow)).toEqual(CODE_DEFAULTS)
+  })
+})

@@ -1,4 +1,4 @@
-# Baseline — before (EX-909)
+# Baseline — before
 
 Same run and rig as `../2026-09-29-redundant-router-refresh/baseline.md`: 2026-09-29, clean
 worktree at `4c3ee036`, prod build (`.next-e2e`) on :3100 against the 5435 test DB, OWNER
@@ -67,19 +67,19 @@ visible is the pushed page streaming in, not the action.
 Window = commit → +4.5–5 s. `renders` = `buildKosztorysTree` lines, since the szablon page has no
 `7-fetch fan-out` line.
 
-| fixture                                                                                                           | runs | POST / edit                            | GET / edit (offset)                           | PF  | renders / edit |
-| ----------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------- | --------------------------------------------- | --- | -------------- |
-| small: „EX909 baseline A” (498; 2 sections / 3 items), row „Praca szablonowa jeden”                               | 5    | 1 (rev 1, 37 773 B where read)         | 1 at 747–769 ms (the EX-908 trailing refresh) | 26  | **2**          |
-| large: „EX909 baseline C” (500; `INV=500 pnpm seed:kosztorys:test` → 10 sections / 1000 items), row „Pozycja 1.2” | 4    | 1 — **59 KB encoded / 617 KB decoded** | 1 at 784–959 ms — **59 / 617 KB**             | 26  | **2**          |
+| fixture                                                                                                           | runs | POST / edit                            | GET / edit (offset)                    | PF  | renders / edit |
+| ----------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------- | -------------------------------------- | --- | -------------- |
+| small: „EX909 baseline A” (498; 2 sections / 3 items), row „Praca szablonowa jeden”                               | 5    | 1 (rev 1, 37 773 B where read)         | 1 at 747–769 ms (the trailing refresh) | 26  | **2**          |
+| large: „EX909 baseline C” (500; `INV=500 pnpm seed:kosztorys:test` → 10 sections / 1000 items), row „Pozycja 1.2” | 4    | 1 — **59 KB encoded / 617 KB decoded** | 1 at 784–959 ms — **59 / 617 KB**      | 26  | **2**          |
 
 On 500 the action takes 28–57 ms (one outlier 319 ms), and `buildKosztorysTree` takes 13–60 ms (one
 outlier 158 ms). The after-response `presets` expiry shows no measurable cost of its own
-(`revalidate 0ms`). The second render per edit is EX-908's trailing `router.refresh()`, not
+(`revalidate 0ms`). The second render per edit is the trailing `router.refresh()`, not
 anything szablon-specific.
 
-**Ordering note for the after-run:** EX-909 ships after EX-908. Measure the after-run on a tree
-that carries EX-908, and compare against this table minus the trailing GET, i.e. the expected
-count is **1 render per edit**. Otherwise EX-908's delta is credited to EX-909.
+**Ordering note for the after-run:** this change ships after the trailing `router.refresh()`. Measure the after-run on a tree
+that carries it, and compare against this table minus the trailing GET, i.e. the expected
+count is **1 render per edit**. Otherwise the trailing refresh's delta is credited to this change.
 
 `snapshotAction` (≤1 per 10 min) was not triggered in these windows. Research §2 expects +1 render
 for it after the change.

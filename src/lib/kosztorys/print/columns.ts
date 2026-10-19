@@ -16,7 +16,7 @@ export type PrintColumnT = {
   cell: (row: KosztorysV2RowT) => string
 }
 
-export const formattedValue =
+const formattedValue =
   (value: ColumnValueT, format: (n: number) => string) => (row: KosztorysV2RowT) => {
     const n = value(row)
     return n === null ? '' : format(n)

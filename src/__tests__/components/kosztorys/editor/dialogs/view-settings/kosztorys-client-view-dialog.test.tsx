@@ -23,7 +23,6 @@ vi.mock(
   '@/components/ui/column-order-dialog',
   () => import('@/__tests__/stubs/column-order-dialog'),
 )
-vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/kosztorys-client-view', () => ({
   saveClientViewSettingsAction,
   saveClientViewDefaultsAction,
@@ -61,7 +60,6 @@ const listed = (order: ReturnType<typeof within>) =>
 
 describe('KosztorysClientViewDialog — kolejność kolumn', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     saveClientViewSettingsAction.mockResolvedValue({ success: true })
   })
 

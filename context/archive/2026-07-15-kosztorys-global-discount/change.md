@@ -16,7 +16,7 @@ A discount on all executed work, entered once per kosztorys. Owner (2026-07-15):
 
 > **Superseded:** the control contract (only „Kwotowy" overrides per-item discounts, „%" is a
 > destructive one-shot overwrite, reversibility) lives in `context/reference/kosztorys-editor-domain-notes.md`
-> („Rabat globalny — kontrakt sterowania", EX-605); base = executed net total and no distribution
+> („Rabat globalny — kontrakt sterowania"); base = executed net total and no distribution
 > onto sections/stages are in `src/lib/kosztorys/calc.ts` (`globalDiscountAmount`). The sheet probe
 > (no whole-kosztorys discount in V1; `transfery!K3` read by nothing) and the sequencing after
 > `kosztorys-stages-source-of-truth` are in `context/foundation/lessons.md`. What follows is the one
@@ -34,8 +34,8 @@ enter it when the data lived in two places". The history fits:
 
 `RABAT` predates the first kosztorys schema by 8 days — the kosztorys was still only a sheet, so a
 labor discount had nowhere to go but the transfers. The commit gives mechanics only ("RABAT mirrors
-LABOR_COST cash semantics: no source register, requires an investment"), no reason for a discount
-to _be_ a transfer.
+LABOR*COST cash semantics: no source register, requires an investment"), no reason for a discount
+to \_be* a transfer.
 
 **Live-data evidence (local prod copy, 2026-07-15).** 9 `type='RABAT'` rows in `transactions` (1
 `cancelled` — a type test on template investment 90 the same day):
@@ -45,14 +45,14 @@ to _be_ a transfer.
 - **Six entries on the evening of 2026-06-18** (by hand, 21:53→23:32, no description) — five hit the
   balance to the grosz:
 
-  | investment | balance before discount | discount                                      |
-  | ---------- | ----------------------- | --------------------------------------------- |
-  | 72         | −14,21                  | 14,21                                         |
-  | 68         | −30,86                  | 30,86                                         |
-  | 71         | −79,11                  | 79,11                                         |
-  | 14         | −226,19                 | 226,19                                        |
-  | 21         | −882,18                 | 882,18                                        |
-  | 74         | −1 013,30               | 1 289,89 (outlier — probably later expenses)  |
+  | investment | balance before discount | discount                                     |
+  | ---------- | ----------------------- | -------------------------------------------- |
+  | 72         | −14,21                  | 14,21                                        |
+  | 68         | −30,86                  | 30,86                                        |
+  | 71         | −79,11                  | 79,11                                        |
+  | 14         | −226,19                 | 226,19                                       |
+  | 21         | −882,18                 | 882,18                                       |
+  | 74         | −1 013,30               | 1 289,89 (outlier — probably later expenses) |
 
   The amount is **computed from the balance** to make it zero. Nobody gives a client a 14,21 zł
   discount.

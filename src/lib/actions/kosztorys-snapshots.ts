@@ -6,10 +6,9 @@ import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { snapshotLabelSchema } from '@/lib/kosztorys/snapshot-label-schema'
 import { getDb } from '@/lib/db/get-db'
-import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { getSnapshot, insertSnapshot, listSnapshots, type SnapshotMetaT } from '@/lib/db/snapshots'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
-import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
+import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { withTakenByNames } from '@/lib/kosztorys/snapshot-taken-by-names'
 import type { ActionResultT } from '@/types/action'
@@ -70,15 +69,13 @@ export async function restoreSnapshotAction(
         return { success: false, error: 'Nie znaleziono wersji' }
       }
 
-      const restored = await withPayloadTransaction(
-        payload,
-        async (req) => {
-          const txDb = await getDb(payload, req)
-          await captureAutoSnapshot(txDb, snapshot.investmentId, user.id)
-          return restoreKosztorys(payload, req, snapshot.investmentId, snapshot.payload)
-        },
-        { skipRevalidation: true },
-      )
+      const restored = await replaceTreeWithSnapshot(payload, {
+        investmentId: snapshot.investmentId,
+        label: null,
+        takenBy: user.id,
+        tree: snapshot.payload,
+        takeSettingsFromTree: true,
+      })
       // The count travels to the client because the restore silently moved money: należne that the
       // snapshot attributed to a since-deleted person lands in the residual bucket instead.
       return { success: true, data: restored }

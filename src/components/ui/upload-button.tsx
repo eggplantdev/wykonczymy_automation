@@ -5,28 +5,18 @@ import { Button, type ButtonPropsT } from '@/components/ui/button'
 
 type UploadButtonPropsT = {
   label: string
-  // Drives the LABEL, so it must stay narrow: a surface that also withholds the picker during an
-  // unrelated removal passes that through `disabled`, or the button announces „Przesyłanie…" for it.
   isUploading: boolean
-  disabled?: boolean
   onClick: () => void
 } & Pick<ButtonPropsT, 'size' | 'className'>
 
-export function UploadButton({
-  label,
-  isUploading,
-  disabled,
-  onClick,
-  size,
-  className,
-}: UploadButtonPropsT) {
+export function UploadButton({ label, isUploading, onClick, size, className }: UploadButtonPropsT) {
   return (
     <Button
       type="button"
       variant="outline"
       align="start"
       size={size}
-      disabled={isUploading || disabled}
+      disabled={isUploading}
       onClick={onClick}
       className={className}
     >
