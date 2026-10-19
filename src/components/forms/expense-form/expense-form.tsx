@@ -93,6 +93,7 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
+  orderValues?: FormValuesT
   isPrefillReading?: boolean
   isSaveBlocked?: boolean
   secondaryAction?: React.ReactNode
@@ -116,6 +117,7 @@ export function ExpenseForm({
   keepOpen,
   formId = FORM_ID,
   prefill,
+  orderValues,
   isPrefillReading = false,
   isSaveBlocked = false,
   secondaryAction,
@@ -125,6 +127,9 @@ export function ExpenseForm({
   onDecided,
 }: TransferFormPropsT) {
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
+  // The store holds ONE draft: a prefilled form writing it would wipe the half-typed
+  // „Nowy wydatek" waiting there.
+  const isDraftBacked = !prefill && !orderValues
   const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<DecisionStatusT>>(
     () => new Set(['accepted', 'rejected']),
   )
@@ -136,7 +141,7 @@ export function ExpenseForm({
 
   const storedFormId = useExpenseFormStore((s) => s.formId)
   const draft = useExpenseFormStore((s) => s.formData)
-  const storedValues = storedFormId === formId ? draft : null
+  const storedValues = isDraftBacked && storedFormId === formId ? draft : null
   const updateFormData = useExpenseFormStore((s) => s.updateFormData)
   const resetFormData = useExpenseFormStore((s) => s.resetFormData)
 
@@ -172,16 +177,20 @@ export function ExpenseForm({
   )
 
   function handleReset() {
-    // Not plain `blankValues`: that snapshot is frozen at first render, so a default kasa pinned
-    // from inside this dialog would be undone by „Wyczyść".
-    form.reset({ ...blankValues, sourceRegister: getDefaultCashRegister(referenceData) })
-    // Set apart from the reset above: reset adopts whatever it is given as the new defaults, and the
-    // next render would swap the stale row back in.
-    form.setFieldValue('lineItems', [makeLineItem({ expenseCategory: defaultExpenseCategory })], {
-      dontUpdateMeta: true,
-      dontRunListeners: true,
-    })
-    if (!prefill) resetFormData()
+    if (orderValues) {
+      form.reset(orderValues)
+    } else {
+      // That snapshot is frozen at first render, so a default kasa pinned from inside this dialog
+      // would be undone by „Wyczyść".
+      form.reset({ ...blankValues, sourceRegister: getDefaultCashRegister(referenceData) })
+      // Set apart from the reset above: reset adopts whatever it is given as the new defaults, and
+      // the next render would swap the stale row back in.
+      form.setFieldValue('lineItems', [makeLineItem({ expenseCategory: defaultExpenseCategory })], {
+        dontUpdateMeta: true,
+        dontRunListeners: true,
+      })
+    }
+    if (isDraftBacked) resetFormData()
     resetRegisterBalance()
     resetInvoiceFiles()
     resetGeneration()
@@ -204,15 +213,16 @@ export function ExpenseForm({
     lineItems: [makeLineItem({ expenseCategory: defaultExpenseCategory })],
   }))
 
-  const initialValues = prefill
-    ? prefill.values
-    : storedValues
+  const initialValues =
+    prefill?.values ??
+    orderValues ??
+    (storedValues
       ? {
           ...storedValues,
           investment: storedValues.investment || investmentFromUrl,
           type: restorableType(storedValues.type),
         }
-      : blankValues
+      : blankValues)
 
   const form = useAppForm({
     defaultValues: initialValues,
@@ -220,10 +230,8 @@ export function ExpenseForm({
       onSubmit: bulkExpenseFormSchema,
     },
     listeners: {
-      // The store holds ONE draft: a prefilled form writing it would wipe the half-typed
-      // „Nowy wydatek" waiting there.
       onChange: ({ formApi }) => {
-        if (!prefill) updateFormData(formId, formApi.state.values as FormValuesT)
+        if (isDraftBacked) updateFormData(formId, formApi.state.values as FormValuesT)
       },
       onChangeDebounceMs: 500,
     },
@@ -260,11 +268,12 @@ export function ExpenseForm({
                   expenseDraftId: prefill.expenseDraftId,
                   ...receiptDecision(draftReceipts.receipts, value.lineItems, duplicateOfByItemId),
                 },
+                orderValues && { order: true },
               ),
             draftMediaIdOf,
           ),
         // No stored draft backs this form, so an optimistic close would lose it on a failed save.
-        awaitBeforeClose: !!prefill,
+        awaitBeforeClose: !isDraftBacked,
         successMessage: 'Transakcje dodane',
         files,
         onSubmitSuccess,

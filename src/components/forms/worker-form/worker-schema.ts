@@ -5,6 +5,7 @@ import { languageSchema, storedLanguageSchema } from '@/lib/i18n/languages'
 export const workerFormSchema = z.object({
   name: z.string().min(1, 'Imię i nazwisko jest wymagane'),
   email: z.union([z.literal(''), z.email('Nieprawidłowy adres email')]),
+  phone: z.string().trim(),
   role: z.enum(ROLES),
   active: z.boolean(),
   canAddExpensesWithoutInvestment: z.boolean(),
@@ -22,6 +23,7 @@ export const workerSchema = workerFormSchema.extend({
     .toLowerCase()
     .pipe(z.union([z.literal(''), z.email('Nieprawidłowy adres email')]))
     .default(''),
+  phone: z.string().trim().optional(),
   defaultCashRegister: z.number().optional(),
   language: storedLanguageSchema,
 })

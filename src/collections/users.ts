@@ -103,6 +103,11 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      name: 'phone',
+      type: 'text',
+      label: { en: 'Phone', pl: 'Telefon' },
+    },
+    {
       name: 'canAddExpensesWithoutInvestment',
       type: 'checkbox',
       defaultValue: false,

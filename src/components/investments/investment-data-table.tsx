@@ -24,6 +24,9 @@ import {
 import type { TemplateMetaT } from '@/lib/db/templates'
 import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { isClosedStatus } from '@/lib/constants/investment-status'
+import { OrderDialog } from '@/components/orders/order-dialog'
+import type { OrderSettingsT } from '@/types/order-settings'
+import type { ReferenceDataT } from '@/types/reference-data'
 
 const getStatus = (row: InvestmentRowT) => row.status
 const getAiProgress = (row: InvestmentRowT) => row.aiProgress
@@ -43,9 +46,16 @@ const LAYERS = [
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
   presets: TemplateMetaT[]
+  referenceData: ReferenceDataT
+  orderSettings: OrderSettingsT
 }
 
-export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT) {
+export function InvestmentDataTable({
+  data,
+  presets,
+  referenceData,
+  orderSettings,
+}: InvestmentDataTablePropsT) {
   const { role: userRole } = useCurrentUser()
 
   const {
@@ -72,12 +82,14 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
   } = useClientMultiFilter(searched, getAiProgress)
 
   const [settleTarget, setSettleTarget] = useState<SettleDialogTargetT | null>(null)
+  const [orderTarget, setOrderTarget] = useState<InvestmentRowT | null>(null)
   const columns = useMemo(
     () =>
       getInvestmentColumns({
         userRole,
         onSettle: (investment) =>
           setSettleTarget({ kind: 'investment', id: investment.id, name: investment.name }),
+        onOrder: setOrderTarget,
       }),
     [userRole],
   )
@@ -147,6 +159,22 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         }}
       />
       <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
+      {orderTarget && (
+        <OrderDialog
+          investment={{
+            id: orderTarget.id,
+            street: orderTarget.address,
+            postalCode: orderTarget.postalCode,
+            city: orderTarget.city,
+            siteManagerId: referenceData.investments.find(({ id }) => id === orderTarget.id)
+              ?.siteManagerId,
+          }}
+          referenceData={referenceData}
+          orderSettings={orderSettings}
+          open
+          onOpenChange={(open) => !open && setOrderTarget(null)}
+        />
+      )}
     </>
   )
 }

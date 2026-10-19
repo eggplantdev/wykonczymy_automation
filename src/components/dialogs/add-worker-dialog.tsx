@@ -12,6 +12,7 @@ import type { ReferenceItemT } from '@/types/reference-data'
 const EMPTY_DEFAULTS: WorkerFormValuesT = {
   name: '',
   email: '',
+  phone: '',
   role: 'EMPLOYEE',
   active: true,
   canAddExpensesWithoutInvestment: false,

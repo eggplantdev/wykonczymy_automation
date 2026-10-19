@@ -6,6 +6,7 @@ import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bul
 import type { VehicleFormValuesT } from '@/components/forms/vehicle-form/vehicle-schema'
 import type { InspectionFormValuesT } from '@/components/forms/inspection-form/inspection-schema'
 import type { RecipientListFormValuesT } from '@/components/forms/recipient-list-form/recipient-list-schema'
+import type { OrderSettingsFormValuesT } from '@/components/forms/order-settings-form/order-settings-schema'
 import type { WorkCatalogueItemFormValuesT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import type { NewItemFormValuesT } from '@/components/kosztorys/editor/dialogs/new-item/new-item-form-schema'
 import type {
@@ -52,6 +53,8 @@ export const useNewItemFormStore = createFormStore<NewItemFormValuesT>('new-item
 export const useInspectionFormStore = createFormStore<InspectionFormValuesT>('inspection-form')
 export const useRecipientListFormStore =
   createFormStore<RecipientListFormValuesT>('recipient-list-form')
+export const useOrderSettingsFormStore =
+  createFormStore<OrderSettingsFormValuesT>('order-settings-form')
 export const useEquipmentFormStore = createFormStore<EquipmentFormValuesT>('equipment-form')
 export const useAddEquipmentFormStore =
   createFormStore<AddEquipmentFormValuesT>('add-equipment-form')

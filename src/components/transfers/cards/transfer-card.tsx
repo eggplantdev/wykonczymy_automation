@@ -55,6 +55,7 @@ export function TransferCard({ row, uncoloredAmounts = false, className }: Props
       <div className="flex items-center justify-between gap-1.5">
         <TransferTypeBadge transfer={transfer} translator={translator} />
         {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell('payoutStatus')}
+        {hasColumn('orderStatus') && transfer.orderStatus && renderCell('orderStatus')}
       </div>
 
       <div className="flex items-baseline gap-2">

@@ -30,6 +30,7 @@ export type InvestmentRefT = ReferenceItemT & {
   hasSheet: boolean
   aiStage: InvestmentAiStageT | null
   createdAt: string
+  siteManagerId?: number
   // `vatRate` is non-null because the read applies DEFAULT_VAT — a null here would make the brutto
   // column NaN.
   materialsNetRate: number | null
@@ -70,6 +71,7 @@ export type InvestmentWithDetailsT = InvestmentRefT & InvestmentDetailsT
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   role: RoleT
   email: string
+  phone?: string
   language: LanguageT | null
   canAddExpensesWithoutInvestment: boolean
 }

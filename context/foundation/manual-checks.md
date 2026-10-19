@@ -1416,6 +1416,42 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
 - [ ] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.
 
+## 2026-10-19 — investment-notes-save — zapis notatki nie czyści adresu inwestycji
+
+- [ ] Inwestycja z wpisanym kodem pocztowym, miastem i krajem → „Edytuj notatkę”, zmień tekst,
+      „Zapisz”: notatka się zmienia, a po odświeżeniu „Edytuj inwestycję” wciąż pokazuje kod
+      pocztowy, miasto i kraj.
+- [ ] Ta sama zmiana notatki z zakładki inwestycji w podsumowaniu kosztorysu: zapis działa, adres
+      zostaje.
+
+## 2026-10-19 — big-bag-order — zamówienie big bagu / kontenera z SMS-em do dostawcy
+
+- [ ] Po restarcie `pnpm dev` `/inwestycje`, strona inwestycji i `/pracownicy` ładują się bez błędu
+      „column does not exist”.
+- [ ] „Edytuj pracownika” → wpisz „Telefon” → otwórz ponownie: numer zostaje.
+- [ ] Strona inwestycji → „Kierownik budowy” → wybierz konto → odśwież: wybór zostaje, a adres, kod
+      pocztowy i miasto bez zmian.
+- [ ] Jako OWNER na `/inwestycje`: edytuj kartę ustawień zamówień → dodaj dwóch dostawców, zmień cenę →
+      zapisz. Karta je pokazuje. Jako MANAGER karta jest widoczna, bez „Edytuj”.
+- [ ] Strona inwestycji → „Zamów big bag / kontener” → kontener × 2 → „Dalej”: formularz pokazuje
+      „2 × kontener”, 3000 zł, „Materiały budowlane” / „kontener”. Zapisz (potwierdź brak faktury) →
+      otwiera się SMS z adresem bez kraju oraz imieniem i telefonem kierownika budowy.
+- [ ] W kroku SMS „Zapisz jako domyślnego dostawcę” przy innym dostawcy → następne zamówienie wybiera
+      go od razu.
+- [ ] Z telefonu (IP w sieci LAN): „Wyślij SMS” otwiera Wiadomości z domyślnym dostawcą i treścią.
+- [ ] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
+- [ ] Inwestycja bez kierownika budowy: krok SMS ostrzega, a treść nie ma linii „Kontakt na miejscu”.
+- [ ] Transakcje inwestycji → wiersz zamówienia pokazuje „Czeka” → klik → „Dostarczone” → odśwież:
+      zostaje. Klik ponownie → „Czeka”.
+- [ ] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
+- [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
+      widoczny, ale nieklikalny.
+- [ ] Jako EMPLOYEE na własnym `/pracownicy/[id]`, jeśli widać wiersz zamówienia: bez przycisku.
+- [ ] Druk tabeli transakcji: kolumna „Zamówienie” drukuje „Czeka” / „Dostarczone”.
+- [ ] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
+      listę” dalej zapisuje adresy (wspólna obudowa karty z kartą zamówień — bez zmiany wyglądu).
+- [ ] Zamówienie 3 big bagów przy cenie z groszami (np. 799,99 zł): „Kwota” to dokładnie 2399,97.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

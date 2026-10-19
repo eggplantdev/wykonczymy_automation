@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { InvestmentNotes } from '@/components/investments/investment-notes'
-import { updateInvestmentAction } from '@/lib/actions/investments'
+import { setInvestmentNotesAction } from '@/lib/actions/investments'
 import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
@@ -31,7 +31,7 @@ const INVESTMENT: InvestmentWithDetailsT = {
 const NEW_NOTE = 'Doszła elewacja od strony ogrodu.'
 
 beforeEach(() => {
-  vi.mocked(updateInvestmentAction).mockReset()
+  vi.mocked(setInvestmentNotesAction).mockReset()
   vi.mocked(toastMessage).mockReset()
 })
 
@@ -51,26 +51,14 @@ describe('InvestmentNotes', () => {
     expect(screen.getByText('—')).toBeInTheDocument()
   })
 
-  // The action writes the whole record: anything but the note sent differently from the server copy
-  // would silently change another field on a note save.
-  it('saves the edited note with the rest of the record unchanged', async () => {
-    vi.mocked(updateInvestmentAction).mockResolvedValue({ success: true })
+  it('saves the edited note', async () => {
+    vi.mocked(setInvestmentNotesAction).mockResolvedValue({ success: true })
     render(<InvestmentNotes investment={INVESTMENT} />)
 
     const user = await editNote(NEW_NOTE)
     await user.click(screen.getByRole('button', { name: 'Zapisz' }))
 
-    expect(updateInvestmentAction).toHaveBeenCalledWith(INVESTMENT.id, {
-      name: INVESTMENT.name,
-      address: INVESTMENT.address,
-      phone: INVESTMENT.phone,
-      email: INVESTMENT.email,
-      contactPerson: INVESTMENT.contactPerson,
-      notes: NEW_NOTE,
-      reviewRequested: INVESTMENT.reviewRequested,
-      status: INVESTMENT.status,
-      presetId: '',
-    })
+    expect(setInvestmentNotesAction).toHaveBeenCalledWith(INVESTMENT.id, NEW_NOTE)
     expect(toastMessage).toHaveBeenCalledWith('Notatka zapisana', 'success')
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
   })
@@ -81,12 +69,12 @@ describe('InvestmentNotes', () => {
     const user = await editNote(NEW_NOTE)
     await user.click(screen.getByRole('button', { name: 'Anuluj' }))
 
-    expect(updateInvestmentAction).not.toHaveBeenCalled()
+    expect(setInvestmentNotesAction).not.toHaveBeenCalled()
     expect(screen.getByText(INVESTMENT.notes)).toBeInTheDocument()
   })
 
   it('keeps the typed note open for another try when the save fails', async () => {
-    vi.mocked(updateInvestmentAction).mockResolvedValue({ success: false, error: 'Błąd zapisu' })
+    vi.mocked(setInvestmentNotesAction).mockResolvedValue({ success: false, error: 'Błąd zapisu' })
     render(<InvestmentNotes investment={INVESTMENT} />)
 
     const user = await editNote(NEW_NOTE)

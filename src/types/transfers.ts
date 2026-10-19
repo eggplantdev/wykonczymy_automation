@@ -1,5 +1,6 @@
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
 import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { OrderStatusT } from '@/lib/constants/orders'
 import type { PreviewFileT } from '@/types/media'
 
 export type TransferRowT = {
@@ -42,6 +43,7 @@ export type TransferRowT = {
   payoutStatus: PayoutStatusT | null
   payoutDecidedAt: string | null
   payoutRejectionReason: string | null
+  orderStatus: OrderStatusT | null
   fromWorkerDraft?: boolean
 }
 

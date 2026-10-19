@@ -175,8 +175,8 @@ export async function setInvestmentStatusAction(id: number, status: InvestmentSt
 
 const aiStageSchema = z.enum(INVESTMENT_AI_STAGES).nullable()
 
-// the edit form and the notes save send the whole
-// record, and a stage riding along would be overwritten from a stale copy.
+// the edit form sends the whole record, and a stage riding along would be overwritten from a stale
+// copy.
 export async function setInvestmentAiStageAction(id: number, aiStage: InvestmentAiStageT | null) {
   return protectedAction(
     'setInvestmentAiStageAction',
@@ -185,6 +185,67 @@ export async function setInvestmentAiStageAction(id: number, aiStage: Investment
       if (!parsed.success) return parsed
 
       await payload.update({ collection: 'investments', id, data: { aiStage: parsed.data }, user })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}
+
+const notesSchema = z.string()
+
+// Through `updateInvestmentAction` a note would carry the rest of the record, and `investmentSchema`
+// blanks every field the caller leaves out.
+export async function setInvestmentNotesAction(id: number, notes: string) {
+  return protectedAction(
+    'setInvestmentNotesAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(notesSchema, notes)
+      if (!parsed.success) return parsed
+
+      await payload.update({ collection: 'investments', id, data: { notes: parsed.data }, user })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}
+
+const siteManagerSchema = z.number().int().positive().nullable()
+
+// `overrideAccess` because the field is closed to access-checked writes; `user` keeps the hooks'
+// role checks.
+export async function setInvestmentSiteManagerAction(id: number, userId: number | null) {
+  return protectedAction(
+    'setInvestmentSiteManagerAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(siteManagerSchema, userId)
+      if (!parsed.success) return parsed
+
+      if (parsed.data !== null) {
+        const { docs } = await payload.find({
+          collection: 'users',
+          where: {
+            id: { equals: parsed.data },
+            active: { equals: true },
+            trashedAt: { exists: false },
+          },
+          depth: 0,
+          limit: 1,
+          overrideAccess: true,
+        })
+        if (docs.length === 0) {
+          return { success: false, error: 'Wybrane konto jest nieaktywne lub w Koszu.' }
+        }
+      }
+
+      await payload.update({
+        collection: 'investments',
+        id,
+        data: { siteManager: parsed.data },
+        user,
+        overrideAccess: true,
+      })
 
       return { success: true }
     },

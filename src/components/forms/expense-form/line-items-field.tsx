@@ -39,14 +39,11 @@ import {
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { CollapsibleLineItem } from '@/components/forms/expense-form/collapsible-line-item'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
+import type { ArrayFieldT } from '@/components/forms/hooks/form-api-of'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
 
-type LineItemsArrayFieldT = {
-  state: { value: BulkExpenseFormValuesT['lineItems'] }
-  pushValue: (value: BulkExpenseFormValuesT['lineItems'][number]) => void
-  removeValue: (index: number) => void
-}
+type LineItemsArrayFieldT = ArrayFieldT<BulkExpenseFormValuesT['lineItems'][number]>
 
 type RowSelectConfigT = {
   fieldName: 'category' | 'expenseCategory' | 'worker'
