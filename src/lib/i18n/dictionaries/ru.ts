@@ -133,7 +133,7 @@ export const ru: typeof pl = {
     testPushTitle: 'Тестовое уведомление',
     testPushBody: 'Если вы это видите, уведомления работают на этом устройстве.',
     payoutPushTitle: 'Выплата для подтверждения',
-    payoutPushBody: 'Подтвердите получение {{amount}} или напишите, чего не хватает.',
+    payoutPushBody: 'Подтвердите получение {{amount}}.',
   },
   account: {
     title: 'Изменить e-mail или пароль',

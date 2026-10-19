@@ -134,7 +134,7 @@ export const uk: typeof pl = {
     testPushTitle: 'Тестове сповіщення',
     testPushBody: 'Якщо ви це бачите, сповіщення працюють на цьому пристрої.',
     payoutPushTitle: 'Виплата для підтвердження',
-    payoutPushBody: 'Підтвердіть отримання {{amount}} або напишіть, чого бракує.',
+    payoutPushBody: 'Підтвердіть отримання {{amount}}.',
   },
   account: {
     title: 'Змінити e-mail або пароль',

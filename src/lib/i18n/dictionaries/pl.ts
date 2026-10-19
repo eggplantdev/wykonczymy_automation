@@ -140,7 +140,7 @@ export const pl = {
     testPushTitle: 'Powiadomienie testowe',
     testPushBody: 'Jeśli to widzisz, powiadomienia działają na tym urządzeniu.',
     payoutPushTitle: 'Wypłata do potwierdzenia',
-    payoutPushBody: 'Potwierdź odbiór {{amount}} albo napisz, czego brakuje.',
+    payoutPushBody: 'Potwierdź odbiór {{amount}}.',
   },
   account: {
     title: 'Zmień e-mail lub hasło',

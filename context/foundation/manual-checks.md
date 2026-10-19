@@ -1664,7 +1664,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] (tylko produkcja) Telefon z zainstalowaną aplikacją i włączonymi „Powiadomieniami”, aplikacja
       zamknięta: zaksięguj wypłatę na to konto z komputera → na telefonie przychodzi powiadomienie
-      „Wypłata do potwierdzenia” z kwotą, a na ikonie aplikacji licznik rośnie o 1.
+      „Wypłata do potwierdzenia” z treścią „Potwierdź odbiór {kwota}.” (bez „albo napisz, czego
+      brakuje”), a na ikonie aplikacji licznik rośnie o 1.
 - [ ] Stuknięcie w to powiadomienie otwiera stronę pracownika z wypłatą do potwierdzenia; po
       potwierdzeniu licznik na ikonie znika.
 
