@@ -94,7 +94,7 @@ export function ZoomablePreviewImage({
 
           {hasOriginalFailed && (
             <p className="bg-background/85 text-muted-foreground absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-md border px-3 py-1 text-sm shadow-sm">
-              Nie udało się wczytać oryginału — widok pozostaje w jakości podglądu.
+              {t('originalLoadFailed')}
             </p>
           )}
 

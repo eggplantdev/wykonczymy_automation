@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/command'
 import Icon from '@/components/ui/icons/icon'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 export type SearchSelectItemT = {
   value: string
@@ -38,14 +39,15 @@ export function SearchSelect({
   onChange,
   items,
   placeholder,
-  searchPlaceholder = 'Szukaj...',
-  emptyMessage = 'Nie znaleziono.',
+  searchPlaceholder,
+  emptyMessage,
   disabled,
   id,
   onBlur,
   isInvalid,
   className,
 }: SearchSelectPropsT) {
+  const { t } = useTranslation('filters')
   const [open, setOpen] = useState(false)
   const selectedLabel = items.find((item) => item.value === value)?.label
 
@@ -73,9 +75,9 @@ export function SearchSelect({
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder={searchPlaceholder ?? t('search')} />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandEmpty>{emptyMessage ?? t('notFound')}</CommandEmpty>
             <CommandGroup>
               {items.map((item) => (
                 <CommandItem

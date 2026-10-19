@@ -1606,6 +1606,11 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       jest właścicielem — także gdy inne konto ma takie samo imię i nazwisko (jego kasy się nie pojawiają).
 - [ ] Edytor kosztorysu → podsumowanie → „Podwykonawcy” (inwestycja z wypłatą dla podwykonawcy): sekcja
       nad tabelą wypłat nazywa się „Lista wypłat”.
+- [ ] Lista transakcji: kasa źródłowa i docelowa linkują do `/kasa/[id]`; kasa w koszu i „—” nie są
+      linkami (zachowanie jak przed refaktorem).
+- [ ] Konto z językiem ukraińskim lub rosyjskim: „Wyczyść filtry” (lista i kolejka), „Nie znaleziono.”
+      w wyszukiwanych selectach, dialog akceptacji zgłoszenia wydatków (tytuł, „Odrzuć”, potwierdzenie
+      odrzucenia, toasty) są przetłumaczone; po polsku wyglądają jak wcześniej.
 
 # Zamknięte — indeks
 

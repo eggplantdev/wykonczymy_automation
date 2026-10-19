@@ -21,7 +21,6 @@ export function RowSelect({
           label={config.label}
           placeholder={config.placeholder}
           searchPlaceholder={`Szukaj: ${config.label.toLowerCase()}...`}
-          emptyMessage="Nie znaleziono."
           items={config.options.map((opt) => ({ value: String(opt.id), label: opt.name }))}
           fieldClassName={fieldClassName}
         />
