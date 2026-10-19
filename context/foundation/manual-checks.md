@@ -1380,6 +1380,16 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       wydatku nie ma „Anuluj”; przy swoich transakcjach i przy cudzej robociźnie jest.
 - [ ] Jako MANAGER przy cudzej odrzuconej wypłacie edycja dalej jest niedostępna.
 
+## 2026-10-19 — payout-card-buttons — przyciski karty wypłaty i warianty kolorów
+
+- [ ] Pracownik, `/pracownicy/[id]` z wypłatą oczekującą: „Potwierdzam” jest zielony obramowany z
+      ptaszkiem, „Odrzuć” czerwony obramowany z koszem; po najechaniu oba wypełniają się kolorem.
+- [ ] Odrzucona wypłata na karcie pracownika pokazuje „Powód odrzucenia: …” (uk/ru: przetłumaczone).
+- [ ] Na telefonie (390 px) „Dodaj wydatek” / „Zgłoś pracę” są niższe niż dotąd, a dłuższa etykieta
+      uk/ru dalej się zawija, bez wychodzenia poza wiersz.
+- [ ] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
+      (obramowane w swoim kolorze).
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
