@@ -49,14 +49,7 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
   const renderList = (items: PayoutToConfirmT[]) => (
     <ul className={CARD_LIST_CLASS}>
       {items.map((payout) => (
-        <li
-          key={payout.id}
-          className={cn(
-            'flex flex-col gap-3 p-4',
-            CARD_SHELL_CLASS,
-            payout.cancelled && 'text-muted-foreground opacity-70',
-          )}
-        >
+        <li key={payout.id} className={cn('flex flex-col gap-3 p-4', CARD_SHELL_CLASS)}>
           <header className="flex items-start gap-2">
             <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-muted-foreground text-xs">{formatPLDate(payout.date)}</span>
@@ -67,16 +60,12 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
             <div className="ml-auto shrink-0">
               <PayoutStatusBadge
                 status={payout.status}
-                cancelled={payout.cancelled}
+                cancelled={false}
                 translator={transfersTranslator}
               />
             </div>
           </header>
-          <span
-            className={cn('text-lg font-semibold tabular-nums', payout.cancelled && 'line-through')}
-          >
-            {formatPLN(payout.amount)}
-          </span>
+          <span className="text-lg font-semibold tabular-nums">{formatPLN(payout.amount)}</span>
           {payout.description && (
             <p className="line-clamp-3 text-sm break-words whitespace-pre-line">
               {payout.description}
@@ -87,30 +76,28 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
               {t('payoutRejectionReason', { reason: payout.rejectionReason })}
             </p>
           )}
-          {!payout.cancelled && (
-            <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
+          <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
+            <Button
+              variant="greenOutline"
+              className="h-11"
+              disabled={pendingId === payout.id}
+              onClick={() => setOpenDialog({ kind: 'accept', payout })}
+            >
+              <Check />
+              {t('payoutConfirm')}
+            </Button>
+            {payout.status === 'pending' && (
               <Button
-                variant="greenOutline"
+                variant="redOutline"
                 className="h-11"
                 disabled={pendingId === payout.id}
-                onClick={() => setOpenDialog({ kind: 'accept', payout })}
+                onClick={() => setOpenDialog({ kind: 'reject', payout })}
               >
-                <Check />
-                {t('payoutConfirm')}
+                <Trash2 />
+                {t('payoutReject')}
               </Button>
-              {payout.status === 'pending' && (
-                <Button
-                  variant="redOutline"
-                  className="h-11"
-                  disabled={pendingId === payout.id}
-                  onClick={() => setOpenDialog({ kind: 'reject', payout })}
-                >
-                  <Trash2 />
-                  {t('payoutReject')}
-                </Button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </li>
       ))}
     </ul>

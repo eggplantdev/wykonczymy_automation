@@ -1,8 +1,5 @@
 import { sql } from '@payloadcms/db-postgres'
-import {
-  CANCELLED_PAYOUT_VISIBLE_DAYS,
-  type PayoutStatusT,
-} from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
 import type { DbExecutorT } from './get-db'
 import { lockMessageOf } from './investment-gate'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
@@ -15,7 +12,6 @@ export type PayoutToConfirmT = {
   investmentName: string | null
   status: PayoutStatusT
   rejectionReason: string | null
-  cancelled: boolean
 }
 
 export type RejectedPayoutT = {
@@ -69,27 +65,18 @@ export async function rejectPayout(
   return res.rows.length > 0
 }
 
-// A cancelled one stays listed for a while, or a wypłata he was waiting to answer just vanishes.
 export async function listPayoutsToConfirm(
   db: DbExecutorT,
   workerId: number,
 ): Promise<PayoutToConfirmT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.date, t.amount, t.description, i.name AS investment_name,
-           t.payout_status, t.payout_rejection_reason, t.cancelled IS TRUE AS cancelled
+           t.payout_status, t.payout_rejection_reason
     FROM transactions t
     LEFT JOIN investments i ON i.id = t.investment_id
-    WHERE t.worker_id = ${workerId} AND t.type = 'PAYOUT'
+    WHERE t.worker_id = ${workerId} AND t.type = 'PAYOUT' AND t.cancelled IS NOT TRUE
       AND t.payout_status IN ('pending', 'rejected')
-      AND (
-        t.cancelled IS NOT TRUE
-        OR EXISTS (
-          SELECT 1 FROM transactions c
-          WHERE c.cancelled_transaction_id = t.id AND c.type = 'CANCELLATION'
-            AND c.created_at > now() - make_interval(days => ${CANCELLED_PAYOUT_VISIBLE_DAYS})
-        )
-      )
-    ORDER BY t.cancelled IS TRUE, t.payout_status <> 'pending', t.date DESC, t.id DESC
+    ORDER BY t.payout_status <> 'pending', t.date DESC, t.id DESC
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),
@@ -99,7 +86,6 @@ export async function listPayoutsToConfirm(
     investmentName: textOrNull(row.investment_name),
     status: row.payout_status as PayoutStatusT,
     rejectionReason: textOrNull(row.payout_rejection_reason),
-    cancelled: Boolean(row.cancelled),
   }))
 }
 
