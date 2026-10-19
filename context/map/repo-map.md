@@ -149,11 +149,8 @@ Ordered by cost/value. None block a branch switch; captured here so they survive
    auth chain (7 nodes, no longer via the now-deleted `actions/utils.ts`); `sum-transfers.ts`
    flipped stable→unstable; `parse-date-range.ts` is a false orphan (test-only, keep).
 
-2. **Wire depcruise into CI/pre-push as a guard.** The config already encodes AGENTS.md
-   invariants as `error`-severity rules (`no-hook-imports-revalidate`,
-   `no-payload-graph-imports-env-server`). Add a `depcruise` script to `package.json` and
-   call it from `.husky/pre-push` so a boundary violation fails locally instead of drifting.
-   Turns the map from a snapshot into a living check.
+2. ~~**Wire depcruise into CI/pre-push as a guard.**~~ Dropped 2026-10-19: dependency-cruiser was
+   removed — its boundary rules duplicated ESLint, and the env rule targeted a path that doesn't exist.
 
 3. **Decide how pre-push treats `no-circular`.** Originally scoped as an "M4L3 Deep
    Focus refactor" on the Payload cycle — but a code read showed both real cycles (Payload +
