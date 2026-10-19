@@ -209,6 +209,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
                 transferTypes: offeredIfChoice(transferTypes),
                 otherCategories: toOptions(refData.otherCategories),
                 showCancelledFilter: false,
+                showPayoutStatusFilter: transferTypes.includes('PAYOUT'),
                 showSearchFilters: false,
               },
               invoiceDownload: isManager,
