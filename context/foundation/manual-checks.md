@@ -1598,6 +1598,7 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
       listę” dalej zapisuje adresy (wspólna obudowa karty z kartą zamówień — bez zmiany wyglądu).
 - [ ] Zamówienie 3 big bagów przy cenie z groszami (np. 799,99 zł): „Kwota” to dokładnie 2399,97.
+- [ ] Ekran „Transakcje” (konto zarządu): nie ma już przycisku „Wyślij wiadomość (test)”.
 
 ## EX-1118 — user-register-stats — „Moje Kasy” po właścicielu kasy, nie po imieniu
 
