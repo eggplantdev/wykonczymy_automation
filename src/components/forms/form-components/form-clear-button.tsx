@@ -9,7 +9,7 @@ export function FormClearButton({ onReset }: FormClearButtonPropsT) {
   return (
     <Button
       type="button"
-      variant="blue"
+      variant="blueOutline"
       size="sm"
       // Icon-only below sm: with the label it reaches ~180px into a phone-width dialog and lands on
       // the title.
