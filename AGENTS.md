@@ -203,7 +203,10 @@ revalidation. Harness traps: `src/__tests__/AGENTS.md`.
 
 - **Vercel is on a PAID plan** — Hobby limits (2 daily crons, 2K Blob ops) don't apply; a new scheduled
   job is a new `vercel.json` entry.
-- React Compiler is on — no hand-written `useMemo` / `useCallback`.
+- React Compiler is on — no hand-written `useMemo` / `useCallback`, **except where the compiled
+  output drops the cache** (the kosztorys editor, data tables): those hand memos are load-bearing and
+  pinned by a `*-memoization.test.ts` spec on `__tests__/helpers/react-compiler-cache.ts`. Never strip
+  a memo such a spec guards; touching a hot derived value elsewhere, add one.
 - **The app speaks the viewer's account language** via `AppLanguageProvider`, falling back to
   Polish. Make a shared component translatable in place (`useTranslation(ns)` or a translator defaulting
   to `POLISH_<ns>`). **Never translate through the `lib/constants/transfers.ts` label maps** — sheet sync
