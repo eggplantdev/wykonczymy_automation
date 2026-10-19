@@ -8,19 +8,18 @@ import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
 import { LeadAssetsDialog, type InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
-import { BADGE_BASE } from '@/components/ui/badge'
+import { Badge, type BadgeToneT } from '@/components/ui/badge'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashLeadsAction } from '@/lib/actions/lead-trash'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
-import { cn } from '@/lib/utils/cn'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
 import type { LeadRowT, LeadSourceT } from '@/types/leads'
 
-const SOURCE_BADGE_CLASS: Record<LeadSourceT, string> = {
-  facebook_lead_ads: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-  website_form: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
-  landing_form: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
+const SOURCE_TONES: Record<LeadSourceT, BadgeToneT> = {
+  facebook_lead_ads: 'sky',
+  website_form: 'positive',
+  landing_form: 'violet',
 }
 
 const col = createColumnHelper<LeadRowT>()
@@ -67,9 +66,7 @@ export function getLeadColumns({
       header: 'Źródło',
       enableSorting: true,
       cell: (info) => (
-        <span className={cn(BADGE_BASE, SOURCE_BADGE_CLASS[info.getValue()])}>
-          {LEAD_SOURCE_LABELS[info.getValue()]}
-        </span>
+        <Badge tone={SOURCE_TONES[info.getValue()]}>{LEAD_SOURCE_LABELS[info.getValue()]}</Badge>
       ),
     }),
     col.accessor('email', {

@@ -1,8 +1,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { isServerSortableColumn } from '@/lib/transfers/sortable-columns'
 import { OptionalLink } from '@/components/ui/optional-link'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
-import { cn } from '@/lib/utils/cn'
+import { Badge } from '@/components/ui/badge'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
@@ -103,9 +102,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       cell: (info) => (
         <span className="flex flex-wrap items-center gap-1">
           <TransferTypeBadge transfer={info.row.original} translator={translator} />
-          {info.row.original.fromWorkerDraft && (
-            <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('fromWorker')}</span>
-          )}
+          {info.row.original.fromWorkerDraft && <Badge tone="muted">{t('fromWorker')}</Badge>}
         </span>
       ),
     }),
