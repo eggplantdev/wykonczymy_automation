@@ -113,7 +113,7 @@ export const ru: TranslationsT = {
     payoutNoInvestment: 'Без инвестиции',
     payoutConfirm: 'Подтверждаю',
     payoutReject: 'Отклонить',
-    payoutYourReason: 'Ваша причина: {{reason}}',
+    payoutRejectionReason: 'Причина отклонения: {{reason}}',
     payoutAcceptTitle: 'Подтверждаете получение выплаты?',
     payoutAcceptDescription: 'Вы подтверждаете, что получили {{amount}}.',
     payoutAccepted: 'Выплата подтверждена',

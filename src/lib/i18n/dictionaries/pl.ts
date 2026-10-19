@@ -120,7 +120,7 @@ export const pl = {
     payoutNoInvestment: 'Bez inwestycji',
     payoutConfirm: 'Potwierdzam',
     payoutReject: 'Odrzuć',
-    payoutYourReason: 'Twój powód: {{reason}}',
+    payoutRejectionReason: 'Powód odrzucenia: {{reason}}',
     payoutAcceptTitle: 'Potwierdzasz odbiór wypłaty?',
     payoutAcceptDescription: 'Potwierdzasz, że dostałeś {{amount}}.',
     payoutAccepted: 'Wypłata potwierdzona',

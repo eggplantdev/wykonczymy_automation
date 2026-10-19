@@ -114,7 +114,7 @@ export const uk: TranslationsT = {
     payoutNoInvestment: 'Без інвестиції',
     payoutConfirm: 'Підтверджую',
     payoutReject: 'Відхилити',
-    payoutYourReason: 'Ваша причина: {{reason}}',
+    payoutRejectionReason: 'Причина відхилення: {{reason}}',
     payoutAcceptTitle: 'Підтверджуєте отримання виплати?',
     payoutAcceptDescription: 'Ви підтверджуєте, що отримали {{amount}}.',
     payoutAccepted: 'Виплату підтверджено',

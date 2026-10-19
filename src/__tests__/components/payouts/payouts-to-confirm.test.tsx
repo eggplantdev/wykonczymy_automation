@@ -46,7 +46,7 @@ describe('Wypłaty do potwierdzenia', () => {
 
     expect(rowOf('odrzucona').getByRole('button', { name: 'Potwierdzam' })).toBeInTheDocument()
     expect(rowOf('odrzucona').queryByRole('button', { name: 'Odrzuć' })).toBeNull()
-    expect(rowOf('odrzucona').getByText('Twój powód: Brak 100 zł')).toBeInTheDocument()
+    expect(rowOf('odrzucona').getByText('Powód odrzucenia: Brak 100 zł')).toBeInTheDocument()
 
     expect(rowOf('anulowana').queryAllByRole('button')).toHaveLength(0)
     expect(rowOf('anulowana').getByText('Anulowana')).toBeInTheDocument()

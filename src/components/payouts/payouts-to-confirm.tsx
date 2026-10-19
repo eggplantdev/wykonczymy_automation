@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
@@ -83,25 +84,28 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
           )}
           {payout.status === 'rejected' && payout.rejectionReason && (
             <p className="text-muted-foreground text-sm whitespace-pre-line">
-              {t('payoutYourReason', { reason: payout.rejectionReason })}
+              {t('payoutRejectionReason', { reason: payout.rejectionReason })}
             </p>
           )}
           {!payout.cancelled && (
             <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
               <Button
+                variant="greenOutline"
                 className="h-11"
                 disabled={pendingId === payout.id}
                 onClick={() => setOpenDialog({ kind: 'accept', payout })}
               >
+                <Check />
                 {t('payoutConfirm')}
               </Button>
               {payout.status === 'pending' && (
                 <Button
-                  variant="destructive"
+                  variant="redOutline"
                   className="h-11"
                   disabled={pendingId === payout.id}
                   onClick={() => setOpenDialog({ kind: 'reject', payout })}
                 >
+                  <Trash2 />
                   {t('payoutReject')}
                 </Button>
               )}
