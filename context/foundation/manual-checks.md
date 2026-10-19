@@ -1606,6 +1606,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
 - [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
       widoczny, ale nieklikalny.
+- [ ] Zwykły formularz wydatku → wybierz inną kasę → „Zapisz jako domyślną kasę” → przycisk zmienia
+      się na „Kasa domyślna”, wyrównany do lewej jak wcześniej; następny wydatek ma tę kasę.
 - [ ] Jako EMPLOYEE na własnym `/pracownicy/[id]`, jeśli widać wiersz zamówienia: bez przycisku.
 - [ ] Druk tabeli transakcji: kolumna „Zamówienie” drukuje „Czeka” / „Dostarczone”.
 - [ ] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
