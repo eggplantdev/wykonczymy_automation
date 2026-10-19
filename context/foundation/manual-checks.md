@@ -1294,6 +1294,21 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Drugi `pnpm test:e2e` bez zmian w `src/` (zmieniony tylko spec): w logu „e2e build: reused”,
       serwer startuje w kilka sekund, a wyniki są takie same.
 
+## 2026-10-19 — app-audit-refactor faza 1 — przeniesione komponenty wyglądają i działają jak dotąd
+
+Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie ma wyglądać inaczej.
+
+- [ ] `/pracownicy`: kolorowe plakietki ról w tabeli jak dotąd; na telefonie (390 px) plakietka roli w
+      menu.
+- [ ] Inwestycja z kosztorysem → podsumowanie kosztorysu: wykresy kołowe (koszty i „Udział sekcji w
+      kosztach robocizny”) pokazują procenty w legendzie i w dymku po najechaniu, jak dotąd.
+- [ ] Dowolny formularz w oknie (np. „Dodaj kasę”): otwiera się, zapis zamyka okno, a z zaznaczonym
+      „Nie zamykaj po zapisaniu” zostaje otwarte; w trakcie zapisu widać pigułkę z postępem.
+- [ ] Strona inwestycji wejściem z listy → „Wróć” wraca na listę; ta sama strona otwarta z adresu →
+      „Wróć” prowadzi na listę inwestycji.
+- [ ] `/transakcje` → menu kolumn: ukrywanie i pokazywanie kolumn działa, okno kolejności kolumn
+      przestawia kolumny.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
