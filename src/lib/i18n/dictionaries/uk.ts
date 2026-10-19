@@ -108,6 +108,9 @@ export const uk: TranslationsT = {
     installIosStep3: 'Торкніться «На початковий екран», потім «Додати».',
     payoutsTitle: 'Виплати для підтвердження',
     payoutsHint: 'Підтвердіть, що отримали ці гроші, — або відхиліть і напишіть, чого бракує.',
+    rejectedPayoutsTitle: 'Відхилені виплати',
+    rejectedPayoutsHint:
+      'Ці виплати чекають на з’ясування з керівником. Ви все ще можете їх підтвердити або дочекатися, поки керівник їх скасує.',
     payoutNoInvestment: 'Без інвестиції',
     payoutConfirm: 'Підтверджую',
     payoutReject: 'Відхилити',

@@ -114,6 +114,9 @@ export const pl = {
     installIosStep3: 'Stuknij „Dodaj do ekranu początkowego", potem „Dodaj".',
     payoutsTitle: 'Wypłaty do potwierdzenia',
     payoutsHint: 'Potwierdź, że dostałeś te pieniądze — albo odrzuć i napisz, czego brakuje.',
+    rejectedPayoutsTitle: 'Odrzucone wypłaty',
+    rejectedPayoutsHint:
+      'Te wypłaty czekają na wyjaśnienie z kierownikiem. Nadal możesz je potwierdzić albo poczekać, aż kierownik je anuluje.',
     payoutNoInvestment: 'Bez inwestycji',
     payoutConfirm: 'Potwierdzam',
     payoutReject: 'Odrzuć',

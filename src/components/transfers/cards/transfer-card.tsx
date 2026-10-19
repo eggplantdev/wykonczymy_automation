@@ -9,6 +9,7 @@ import { billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { transferPaymentMethodText } from '@/lib/transfers/transfer-text'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
+import { CardChip } from '@/components/transfers/cards/card-chip'
 import { RowActionLabels } from '@/components/ui/row-actions/row-action-labels'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferRowT } from '@/types/transfers'
@@ -28,30 +29,6 @@ function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
 }
 
 const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
-
-const CHIP_BORDER = {
-  register: 'border-chart-blue',
-  worker: 'border-chart-yellow',
-  category: 'border-chart-purple',
-  paymentMethod: 'border-chart-teal',
-  createdBy: 'border-border',
-} as const
-
-type ChipKindT = keyof typeof CHIP_BORDER
-
-function Chip({ kind, label, children }: { kind: ChipKindT; label: string; children: ReactNode }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex max-w-full items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs',
-        CHIP_BORDER[kind],
-      )}
-    >
-      <span className="text-muted-foreground shrink-0">{label}:</span>
-      <span className="truncate">{children}</span>
-    </span>
-  )
-}
 
 export function TransferCard({
   row,
@@ -114,37 +91,37 @@ export function TransferCard({
 
       <div className="flex flex-wrap gap-1">
         {hasColumn('sourceRegister') && isNamed(transfer.sourceRegisterName) && (
-          <Chip kind="register" label={t('colSourceRegister')}>
+          <CardChip kind="register" label={t('colSourceRegister')}>
             {renderCell(row, 'sourceRegister')}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn('targetRegister') && isNamed(transfer.targetRegisterName) && (
-          <Chip kind="register" label={t('colTargetRegister')}>
+          <CardChip kind="register" label={t('colTargetRegister')}>
             {renderCell(row, 'targetRegister')}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn('worker') && isNamed(transfer.workerName) && (
-          <Chip kind="worker" label={t('colWorker')}>
+          <CardChip kind="worker" label={t('colWorker')}>
             {renderCell(row, 'worker')}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn(categoryColumn) && category && isNamed(category) && (
-          <Chip
+          <CardChip
             kind="category"
             label={t(hasExpenseCategory ? 'colExpenseCategory' : 'colOtherCategory')}
           >
             {category}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn('paymentMethod') && transfer.paymentMethod && (
-          <Chip kind="paymentMethod" label={t('colPaymentMethod')}>
+          <CardChip kind="paymentMethod" label={t('colPaymentMethod')}>
             {transferPaymentMethodText(transfer, translator)}
-          </Chip>
+          </CardChip>
         )}
         {hasColumn('createdBy') && transfer.createdByName && isNamed(transfer.createdByName) && (
-          <Chip kind="createdBy" label={t('colCreatedBy')}>
+          <CardChip kind="createdBy" label={t('colCreatedBy')}>
             {transfer.createdByName}
-          </Chip>
+          </CardChip>
         )}
       </div>
 

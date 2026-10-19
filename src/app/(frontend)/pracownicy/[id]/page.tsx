@@ -160,7 +160,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         </div>
       )}
       <InfoList items={infoFields} />
-      {isOwnPage && <PayoutsToConfirm payouts={payoutsToConfirm} />}
       {isOwnPage && (
         <WorkerQuickActions
           investmentLinks={investmentLinks}
@@ -170,6 +169,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           locale={locale}
         />
       )}
+      {isOwnPage && <PayoutsToConfirm payouts={payoutsToConfirm} />}
       <OwnedRegistersSection
         registers={registers}
         balances={balances}
