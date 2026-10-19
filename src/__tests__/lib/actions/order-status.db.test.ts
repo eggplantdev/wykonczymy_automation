@@ -24,7 +24,7 @@ describe.skipIf(!ENV_READY)('setOrderStatusAction (DB)', () => {
 
   const rowOf = async (id: number) => {
     const result = await db.execute(sql`
-      SELECT order_status, amount, description FROM transactions WHERE id = ${id}
+      SELECT order_status, amount, description, updated_by_id FROM transactions WHERE id = ${id}
     `)
     return result.rows[0]
   }
@@ -89,6 +89,7 @@ describe.skipIf(!ENV_READY)('setOrderStatusAction (DB)', () => {
     expect(await rowOf(id)).toMatchObject({
       order_status: 'delivered',
       description: `${MARKER} toggle`,
+      updated_by_id: ownerId,
     })
     expect(Number((await rowOf(id)).amount)).toBe(800)
 

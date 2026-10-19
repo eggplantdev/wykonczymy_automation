@@ -3,19 +3,19 @@
 import { useState } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { Label } from '@/components/ui/label'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { Textarea } from '@/components/ui/textarea'
 import { DefaultSupplierButton } from '@/components/orders/default-supplier-button'
 import { composeOrderSms, type OrderContactT } from '@/lib/orders/compose-order-sms'
 import type { OrderPickT } from '@/components/orders/order-pick-step'
+import type { SiteAddressT } from '@/lib/investments/format-address'
 import type { OrderSettingsT } from '@/types/order-settings'
-
-export type OrderAddressT = { street: string; postalCode: string; city: string }
 
 type OrderSmsStepPropsT = {
   pick: OrderPickT
-  address: OrderAddressT
+  address: SiteAddressT
   siteManager: { name: string; phone?: string } | undefined
   orderSettings: OrderSettingsT
   onClose: () => void
@@ -38,7 +38,7 @@ export function OrderSmsStep({
   const [message, setMessage] = useState(() => composeOrderSms({ ...pick, address, contact }))
 
   const phone = suppliers.find((supplier) => supplier.id === supplierId)?.phone ?? ''
-  const smsHref = `sms:${phone.replace(/\s/g, '')}?&body=${encodeURIComponent(message)}`
+  const smsHref = `sms:${phone.replace(/[^\d+]/g, '')}?&body=${encodeURIComponent(message)}`
 
   const warnings = [
     !siteManager && 'Inwestycja nie ma kierownika budowy — ustaw go na stronie inwestycji.',
@@ -72,9 +72,9 @@ export function OrderSmsStep({
         />
       </div>
       {warnings.map((warning) => (
-        <p key={warning} className="text-destructive text-sm">
+        <Description key={warning} tone="error" withIcon={false}>
           {warning}
-        </p>
+        </Description>
       ))}
       <div className="flex items-center gap-2">
         <Button asChild>

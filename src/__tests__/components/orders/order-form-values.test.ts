@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
-import { orderFormValues } from '@/lib/orders/order-form-values'
+import { orderFormValues } from '@/components/orders/order-form-values'
 
 const referenceData = {
   ...referenceDataFor('MANAGER'),
@@ -51,5 +51,17 @@ describe('orderFormValues', () => {
       amount: '3000',
       category: '21',
     })
+  })
+
+  it('rounds the amount to grosze', () => {
+    const values = orderFormValues({
+      kind: 'bigBag',
+      quantity: 3,
+      investmentId: 42,
+      prices: { ...PRICES, bigBagPrice: 799.99 },
+      referenceData,
+    })
+
+    expect(values.lineItems[0].amount).toBe('2399.97')
   })
 })

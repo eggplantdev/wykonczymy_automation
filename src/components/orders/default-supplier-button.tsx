@@ -18,8 +18,6 @@ export function DefaultSupplierButton({ selectedId, defaultSupplierId }: Default
   const [savedId, setSavedId] = useState(defaultSupplierId)
   const [isPending, startTransition] = useTransition()
 
-  if (!selectedId) return null
-
   const isDefault = savedId === selectedId
 
   function handleSave() {

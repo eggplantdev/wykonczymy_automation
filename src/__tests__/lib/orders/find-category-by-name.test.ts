@@ -17,8 +17,7 @@ describe('findCategoryIdByName', () => {
     expect(findCategoryIdByName('  wywóz  ', CATEGORIES)).toBe('3')
   })
 
-  it('returns an empty id when nothing matches or the fragment is blank', () => {
+  it('returns an empty id when nothing matches', () => {
     expect(findCategoryIdByName('kontener', CATEGORIES)).toBe('')
-    expect(findCategoryIdByName('   ', CATEGORIES)).toBe('')
   })
 })

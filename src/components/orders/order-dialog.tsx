@@ -4,15 +4,16 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 import { OrderPickStep, type OrderPickT } from '@/components/orders/order-pick-step'
-import { OrderSmsStep, type OrderAddressT } from '@/components/orders/order-sms-step'
-import { orderFormValues } from '@/lib/orders/order-form-values'
+import { OrderSmsStep } from '@/components/orders/order-sms-step'
+import { orderFormValues } from '@/components/orders/order-form-values'
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
 import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
+import type { SiteAddressT } from '@/lib/investments/format-address'
 import type { OrderSettingsT } from '@/types/order-settings'
 import type { ReferenceDataT } from '@/types/reference-data'
 
-export type OrderInvestmentT = OrderAddressT & { id: number; siteManagerId?: number }
+export type OrderInvestmentT = SiteAddressT & { id: number; siteManagerId?: number }
 
 type OrderDialogPropsT = {
   investment: OrderInvestmentT
@@ -63,7 +64,7 @@ function OrderFlow({ investment, referenceData, orderSettings, onClose }: OrderF
   }
 
   return (
-    <div className="h-auto">
+    <div>
       <DialogHeader title={STEP_TITLES[step]} />
       <div className="mt-6 pr-1">
         {step === 'pick' && <OrderPickStep prices={orderSettings} onNext={handlePick} />}

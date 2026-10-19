@@ -93,7 +93,6 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
-  /** A big bag / container order: books with the order flag and never touches the stored draft. */
   orderValues?: FormValuesT
   isPrefillReading?: boolean
   isSaveBlocked?: boolean
@@ -181,8 +180,8 @@ export function ExpenseForm({
     if (orderValues) {
       form.reset(orderValues)
     } else {
-      // Not plain `blankValues`: that snapshot is frozen at first render, so a default kasa pinned
-      // from inside this dialog would be undone by „Wyczyść".
+      // That snapshot is frozen at first render, so a default kasa pinned from inside this dialog
+      // would be undone by „Wyczyść".
       form.reset({ ...blankValues, sourceRegister: getDefaultCashRegister(referenceData) })
       // Set apart from the reset above: reset adopts whatever it is given as the new defaults, and
       // the next render would swap the stale row back in.
@@ -214,17 +213,16 @@ export function ExpenseForm({
     lineItems: [makeLineItem({ expenseCategory: defaultExpenseCategory })],
   }))
 
-  const initialValues = prefill
-    ? prefill.values
-    : orderValues
-      ? orderValues
-      : storedValues
+  const initialValues =
+    prefill?.values ??
+    orderValues ??
+    (storedValues
       ? {
           ...storedValues,
           investment: storedValues.investment || investmentFromUrl,
           type: restorableType(storedValues.type),
         }
-      : blankValues
+      : blankValues)
 
   const form = useAppForm({
     defaultValues: initialValues,

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import type { ArrayFieldT } from '@/components/forms/hooks/form-api-of'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { useOrderSettingsFormStore } from '@/stores/form-stores'
@@ -15,12 +16,6 @@ import {
   type OrderSettingsDataT,
   type OrderSettingsFormValuesT,
 } from './order-settings-schema'
-
-type SuppliersArrayFieldT = {
-  state: { value: OrderSettingsFormValuesT['suppliers'] }
-  pushValue: (value: OrderSettingsFormValuesT['suppliers'][number]) => void
-  removeValue: (index: number) => void
-}
 
 type PropsT = {
   formId: string
@@ -66,7 +61,7 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
           </form.AppField>
         </div>
         <form.Field name="suppliers" mode="array">
-          {(suppliersField: SuppliersArrayFieldT) => (
+          {(suppliersField: ArrayFieldT<OrderSettingsFormValuesT['suppliers'][number]>) => (
             <div className="space-y-3">
               {suppliersField.state.value.map((row, index) => (
                 <div key={row.id} className="flex items-end gap-2">

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import type { ArrayFieldT } from '@/components/forms/hooks/form-api-of'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { useRecipientListFormStore } from '@/stores/form-stores'
@@ -13,12 +14,6 @@ import {
   type RecipientListFormValuesT,
 } from './recipient-list-schema'
 import type { ActionResultT } from '@/types/action'
-
-type EmailsArrayFieldT = {
-  state: { value: RecipientListFormValuesT['emails'] }
-  pushValue: (value: RecipientListFormValuesT['emails'][number]) => void
-  removeValue: (index: number) => void
-}
 
 type RecipientListFormPropsT = {
   formId: string
@@ -54,7 +49,7 @@ export function RecipientListForm({
     <FormShell form={form} onReset={reset}>
       <FieldGroup>
         <form.Field name="emails" mode="array">
-          {(emailsField: EmailsArrayFieldT) => (
+          {(emailsField: ArrayFieldT<RecipientListFormValuesT['emails'][number]>) => (
             <div className="space-y-3">
               {emailsField.state.value.map((row, index) => (
                 <div key={row.id} className="flex items-end gap-2">

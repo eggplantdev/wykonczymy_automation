@@ -27,7 +27,6 @@ export const orderSettingsFormSchema = z.object({
 
 export type OrderSettingsFormValuesT = z.infer<typeof orderSettingsFormSchema>
 
-// A new row's id is kept by Payload, so the default supplier can point at it after the save.
 export const makeSupplierRow = (): OrderSettingsFormValuesT['suppliers'][number] => ({
   id: randomId(),
   name: '',

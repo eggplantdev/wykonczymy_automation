@@ -1,5 +1,5 @@
 import type { OrderItemT } from '@/lib/constants/orders'
-import { formatAddress } from '@/lib/investments/format-address'
+import { formatAddress, type SiteAddressT } from '@/lib/investments/format-address'
 import { orderLine } from '@/lib/orders/order-line'
 
 export type OrderContactT = { name: string; phone: string }
@@ -7,7 +7,7 @@ export type OrderContactT = { name: string; phone: string }
 type OrderSmsT = {
   kind: OrderItemT
   quantity: number
-  address: { street: string; postalCode: string; city: string }
+  address: SiteAddressT
   contact: OrderContactT | undefined
 }
 

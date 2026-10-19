@@ -3,6 +3,7 @@
 import { Star, Truck } from 'lucide-react'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { Description } from '@/components/ui/description'
+import { SettingsCard } from '@/components/ui/settings-card'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { OrderSettingsForm } from '@/components/forms/order-settings-form/order-settings-form'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -18,11 +19,11 @@ type PropsT = {
 
 export function OrderSettingsCard({ settings, canEdit }: PropsT) {
   return (
-    <section className="border-border rounded-md border p-4">
-      <div className="flex items-center gap-2">
-        <Truck className="text-muted-foreground size-4 shrink-0" />
-        <h2 className="flex-1 text-sm font-semibold">{TITLE}</h2>
-        {canEdit && (
+    <SettingsCard
+      icon={Truck}
+      title={TITLE}
+      action={
+        canEdit && (
           <FormDialog
             formId={FORM_ID}
             title={TITLE}
@@ -38,8 +39,9 @@ export function OrderSettingsCard({ settings, canEdit }: PropsT) {
               />
             )}
           </FormDialog>
-        )}
-      </div>
+        )
+      }
+    >
       <p className="text-muted-foreground mt-2 text-sm">
         Big bag: {formatPLN(settings.bigBagPrice)} · Kontener: {formatPLN(settings.containerPrice)}
       </p>
@@ -59,6 +61,6 @@ export function OrderSettingsCard({ settings, canEdit }: PropsT) {
           ))}
         </ul>
       )}
-    </section>
+    </SettingsCard>
   )
 }

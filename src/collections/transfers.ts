@@ -316,7 +316,6 @@ export const Transfers: CollectionConfig = {
       access: { update: () => false },
       admin: { readOnly: true, condition: (data) => carriesPayoutStatus(typeOf(data)) },
     },
-    // Stamped only by the order flow, flipped only by `setOrderStatusAction`.
     {
       name: 'orderStatus',
       type: 'select',

@@ -8,3 +8,9 @@ function _formApiProbe<TValues>() {
 }
 
 export type FormApiOfT<TValues> = ComponentProps<ReturnType<typeof _formApiProbe<TValues>>>['form']
+
+export type ArrayFieldT<RowT> = {
+  state: { value: RowT[] }
+  pushValue: (value: RowT) => void
+  removeValue: (index: number) => void
+}

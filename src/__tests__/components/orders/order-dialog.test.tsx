@@ -111,6 +111,21 @@ describe('OrderDialog', () => {
     expect(body).toContain('Kontakt na miejscu: Jan Kowalski, 601 234 567')
   })
 
+  it('keeps only digits and a plus of a free-text supplier number', async () => {
+    const user = renderDialog({
+      settings: {
+        ...SETTINGS,
+        suppliers: [{ id: 'supplier-gamma', name: 'Gamma', phone: '+48 601-000-003 (Marek)' }],
+        defaultSupplierId: 'supplier-gamma',
+      },
+      siteManagerId: SITE_MANAGER_ID,
+    })
+
+    const send = await bookAndReachSms(user)
+
+    expect(send.getAttribute('href')).toMatch(/^sms:\+48601000003\?&body=/)
+  })
+
   it('leaves the recipient empty when there are no suppliers', async () => {
     const user = renderDialog({
       settings: { ...SETTINGS, suppliers: [], defaultSupplierId: undefined },
