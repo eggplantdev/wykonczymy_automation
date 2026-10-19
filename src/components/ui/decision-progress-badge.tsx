@@ -1,6 +1,6 @@
 'use client'
 
-import { badgeVariants, type BadgeToneT } from '@/components/ui/badge'
+import { Badge, BadgeButton, type BadgeToneT } from '@/components/ui/badge'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 
@@ -26,26 +26,21 @@ export function DecisionProgressBadge({
   return (
     <span className="flex flex-wrap gap-1">
       {PARTS.filter(({ key }) => counts[key] > 0).map(({ key, label, tone }) => {
-        const className = cn(badgeVariants({ tone }), 'w-fit tabular-nums')
         const text = `${t(label)} ${counts[key]}`
         return onToggle ? (
-          <button
+          <BadgeButton
             key={key}
-            type="button"
+            tone={tone}
             aria-pressed={!hidden?.has(key)}
-            className={cn(
-              className,
-              'cursor-pointer',
-              hidden?.has(key) && 'line-through opacity-40',
-            )}
+            className={cn('w-fit tabular-nums', hidden?.has(key) && 'line-through opacity-40')}
             onClick={() => onToggle(key)}
           >
             {text}
-          </button>
+          </BadgeButton>
         ) : (
-          <span key={key} className={className}>
+          <Badge key={key} tone={tone} className="w-fit tabular-nums">
             {text}
-          </span>
+          </Badge>
         )
       })}
     </span>

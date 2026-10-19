@@ -4,11 +4,10 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { SelectPageHeader, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
-import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
 import { LeadAssetsDialog, type InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
-import { Badge, type BadgeToneT } from '@/components/ui/badge'
+import { Badge, BadgeButton, type BadgeToneT } from '@/components/ui/badge'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashLeadsAction } from '@/lib/actions/lead-trash'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
@@ -101,15 +100,17 @@ export function getLeadColumns({
           'Czy ktoś z zespołu skontaktował się już z tym klientem. Ustawiane ręcznie — kliknij odznakę, aby zmienić.',
       },
       enableSorting: true,
-      cell: (info) => (
-        <ActiveToggleBadge
-          id={info.row.original.id}
-          isActive={info.getValue() === 'contacted'}
-          onToggle={onToggle}
-          activeLabel="Skontaktowano"
-          inactiveLabel="Oczekuje"
-        />
-      ),
+      cell: (info) => {
+        const isContacted = info.getValue() === 'contacted'
+        return (
+          <BadgeButton
+            tone={isContacted ? 'positive' : 'muted'}
+            onClick={() => onToggle(info.row.original.id, !isContacted)}
+          >
+            {isContacted ? 'Skontaktowano' : 'Oczekuje'}
+          </BadgeButton>
+        )
+      },
     }),
     col.display({
       id: 'details',

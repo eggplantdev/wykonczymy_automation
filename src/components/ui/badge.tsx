@@ -30,7 +30,7 @@ type BadgeAppearanceT = 'soft' | 'outline'
 
 type BadgeVariantsT = { tone: BadgeToneT; appearance?: BadgeAppearanceT }
 
-export function badgeVariants({ tone, appearance = 'soft' }: BadgeVariantsT) {
+function badgeVariants({ tone, appearance = 'soft' }: BadgeVariantsT) {
   return cn(
     'inline-flex items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium',
     appearance === 'outline' ? ['border', BADGE_OUTLINE_TONES[tone]] : SOFT_TONES[tone],
@@ -41,4 +41,20 @@ type BadgePropsT = React.ComponentProps<'span'> & BadgeVariantsT
 
 export function Badge({ tone, appearance, className, ...props }: BadgePropsT) {
   return <span className={cn(badgeVariants({ tone, appearance }), className)} {...props} />
+}
+
+type BadgeButtonPropsT = React.ComponentProps<'button'> & BadgeVariantsT
+
+export function BadgeButton({ tone, appearance, className, ...props }: BadgeButtonPropsT) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        badgeVariants({ tone, appearance }),
+        'focus-visible:ring-ring/50 cursor-pointer outline-none hover:opacity-70 focus-visible:ring-3',
+        className,
+      )}
+      {...props}
+    />
+  )
 }

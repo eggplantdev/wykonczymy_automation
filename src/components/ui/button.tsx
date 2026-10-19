@@ -19,10 +19,7 @@ const buttonVariants = cva(
           'border border-input bg-background shadow-sm text-destructive hover:bg-destructive/10 hover:text-destructive',
         destructive: 'bg-destructive text-white hover:bg-destructive/90',
         link: 'text-primary underline-offset-4 hover:underline',
-        badgeActive:
-          'border border-chart-green text-chart-green hover:bg-chart-green hover:text-white',
-        badgePending: 'border border-amber-500 text-amber-500 opacity-50',
-        badgeInactive: 'bg-muted text-muted-foreground hover:bg-muted-foreground/20',
+        green: 'border border-chart-green text-chart-green hover:bg-chart-green hover:text-white',
         activeFilter: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
         red: 'border border-chart-red text-chart-red hover:bg-chart-red hover:text-white',
         blue: 'border border-chart-blue text-chart-blue hover:bg-chart-blue hover:text-white',
@@ -37,7 +34,6 @@ const buttonVariants = cva(
         xs: 'h-7 rounded-md gap-1 px-2 text-xs',
         lg: "h-10 rounded-md px-6 [&_svg:not([class*='size-'])]:size-5",
         icon: 'size-9',
-        badge: 'rounded-full px-2 py-0.5 text-xs',
       },
       align: {
         center: 'justify-center',

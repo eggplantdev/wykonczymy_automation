@@ -2,7 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { BalanceCell } from '@/components/ui/balance-cell'
-import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { Badge, BadgeButton } from '@/components/ui/badge'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashCashRegisterAction } from '@/lib/actions/cash-register-trash'
 import type { CashRegisterTypeT } from '@/types/reference-data'
@@ -54,15 +54,18 @@ export function getCashRegisterColumns(
       header: 'Status',
       meta: { align: 'right' },
       enableSorting: true,
-      cell: (info) => (
-        <ActiveToggleBadge
-          id={info.row.original.id}
-          isActive={info.getValue()}
-          onToggle={canManage(info.row.original) ? onToggle : undefined}
-          activeLabel="Aktywna"
-          inactiveLabel="Nieaktywna"
-        />
-      ),
+      cell: (info) => {
+        const isActive = info.getValue()
+        const tone = isActive ? 'positive' : 'muted'
+        const label = isActive ? 'Aktywna' : 'Nieaktywna'
+        return canManage(info.row.original) ? (
+          <BadgeButton tone={tone} onClick={() => onToggle(info.row.original.id, !isActive)}>
+            {label}
+          </BadgeButton>
+        ) : (
+          <Badge tone={tone}>{label}</Badge>
+        )
+      },
     }),
     col.display({
       id: 'actions',
