@@ -2,7 +2,7 @@
 
 import type { Payload } from 'payload'
 import { sessionAction, validateAction } from '@/lib/actions/run-action'
-import { findEmailHolder } from '@/lib/workers/find-email-holder'
+import { findUniqueHolder } from '@/lib/trash/unique-holder'
 import { loginRefusalKey } from '@/lib/constants/worker-lock'
 import { noticeFailure, type NoticeKeyT } from '@/lib/i18n/notice-failure'
 import {
@@ -53,7 +53,15 @@ export async function changeOwnCredentialsAction(
       const refusal = await verifyCurrentPassword(payload, stored.email, currentPassword)
       if (refusal) return noticeFailure(refusal)
 
-      if (emailChanged && (await findEmailHolder(payload, email, userId))) {
+      if (
+        emailChanged &&
+        (await findUniqueHolder(payload, {
+          collection: 'users',
+          field: 'email',
+          value: email,
+          ownId: userId,
+        }))
+      ) {
         return noticeFailure('emailTaken')
       }
 

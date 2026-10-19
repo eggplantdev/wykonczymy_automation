@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { VEHICLE_STATUS_LABELS, VEHICLE_STATUSES } from '@/lib/fleet/vehicle-status'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 export const Vehicles: CollectionConfig = {
   slug: 'vehicles',
@@ -87,14 +88,6 @@ export const Vehicles: CollectionConfig = {
         value,
       })),
     },
-    // Closed to access-checked writes: the trash actions (overrideAccess) stamp it server-side, so no
-    // client-supplied date can bring the 30-day purge forward.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
   ],
 }

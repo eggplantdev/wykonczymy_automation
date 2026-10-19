@@ -4,6 +4,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { makeResetBookkeeping } from '@/hooks/reset-bookkeeping'
 import { EQUIPMENT_STATUS_LABELS, EQUIPMENT_STATUSES } from '@/lib/equipment/equipment-status'
 import { resetWarrantyBookkeeping } from '@/lib/equipment/reset-warranty-bookkeeping'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 export const Equipment: CollectionConfig = {
   slug: 'equipment',
@@ -103,14 +104,6 @@ export const Equipment: CollectionConfig = {
       type: 'date',
       admin: { hidden: true },
     },
-    // Closed to access-checked writes: the trash actions (overrideAccess) stamp it server-side, so no
-    // client-supplied date can bring the 30-day purge forward.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
   ],
 }

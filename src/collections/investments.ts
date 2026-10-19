@@ -20,6 +20,7 @@ import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
   SETTLEMENT_MODE_DEFAULT,
 } from '@/lib/kosztorys/settlement-mode'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 const STATUS_OPTIONS = INVESTMENT_STATUSES.map((value) => ({
   label: INVESTMENT_STATUS_LABELS[value],
@@ -226,15 +227,7 @@ export const Investments: CollectionConfig = {
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
-    // Written only by the trash actions (overrideAccess) — closed to REST, which would skip their
-    // checks.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
     // Set by the stampCompletedAt hook only; the investor's change history expires a year after it.
     {
       name: 'completedAt',

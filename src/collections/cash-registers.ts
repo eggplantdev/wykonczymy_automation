@@ -5,6 +5,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { guardCashRegisterUpdate } from '@/hooks/cash-registers/guard-update'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {
   if (isManager({ req })) return { ...data, type: 'AUXILIARY' }
@@ -75,14 +76,6 @@ export const CashRegisters: CollectionConfig = {
         update: isAdminOrOwnerField,
       },
     },
-    // Closed to access-checked writes: a REST PATCH would skip the use check, the default clearing and
-    // the MAIN hiding that the trash actions (overrideAccess) run.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
   ],
 }

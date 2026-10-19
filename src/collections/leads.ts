@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 const SOURCE_OPTIONS = [
   { label: { en: 'Facebook Lead Ads', pl: 'Facebook Lead Ads' }, value: 'facebook_lead_ads' },
@@ -183,15 +184,8 @@ export const Leads: CollectionConfig = {
       options: [...DELIVERY_STATUS_OPTIONS],
       admin: { readOnly: true },
     },
-    // Closed to access-checked writes: the trash actions (overrideAccess) stamp both server-side, so
-    // no client-supplied date can bring the 30-day purge forward or fake a tombstone.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
+    // Closed to access-checked writes: no client-supplied date can fake a tombstone.
     {
       name: 'erasedAt',
       type: 'date',

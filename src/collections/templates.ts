@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 // The name is unique on `lower(trim(name))` INCLUDING trashed szablony (a migration index, since
 // Payload's `unique` is exact-match only).
@@ -22,12 +23,6 @@ export const Templates: CollectionConfig = {
   },
   fields: [
     { name: 'name', type: 'text', required: true, label: { en: 'Name', pl: 'Nazwa' } },
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
   ],
 }

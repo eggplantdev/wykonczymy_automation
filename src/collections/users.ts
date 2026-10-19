@@ -16,6 +16,7 @@ import { refuseDisabledLogin } from '@/hooks/users/refuse-disabled-login'
 import { workerDeleteBlocker } from '@/lib/workers/delete-blocker'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { LANGUAGES, isLanguage } from '@/lib/i18n/languages'
+import { trashedAtField } from '@/collections/fields/trashed-at'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -117,14 +118,6 @@ export const Users: CollectionConfig = {
       relationTo: 'cash-registers',
       label: { en: 'Default Cash Register', pl: 'Domyślna kasa' },
     },
-    // Closed to access-checked writes: a REST PATCH would skip the use check, the kasy and the
-    // session purge that the trash actions (overrideAccess) run.
-    {
-      name: 'trashedAt',
-      type: 'date',
-      access: { create: () => false, update: () => false },
-      admin: { hidden: true },
-      label: { en: 'Trashed at', pl: 'W koszu od' },
-    },
+    trashedAtField(),
   ],
 }
