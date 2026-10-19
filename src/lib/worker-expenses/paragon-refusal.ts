@@ -1,6 +1,7 @@
-import type { ParagonRefusalT } from '@/lib/actions/expense-draft-flows'
 import { noticeFailure } from '@/lib/i18n/notice-failure'
 import type { FailureT } from '@/types/action'
+
+export type ParagonRefusalT = { refusal: 'not-pending' } | { refusal: 'clash'; readRows: number[] }
 
 export const paragonRefusalFailure = (refusal: ParagonRefusalT): FailureT => ({
   ...(refusal.refusal === 'clash'

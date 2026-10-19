@@ -26,11 +26,11 @@ import { CollapsibleLineItem } from '@/components/forms/expense-form/collapsible
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
+import { RowSelect } from '@/components/forms/expense-form/row-select'
 import {
   getInlineCategory,
   getSecondRowSelects,
-  RowSelect,
-} from '@/components/forms/expense-form/row-select'
+} from '@/components/forms/expense-form/row-select-config'
 import {
   useReceiptScan,
   type LineItemsArrayFieldT,

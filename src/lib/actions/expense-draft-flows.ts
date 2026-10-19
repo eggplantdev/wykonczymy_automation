@@ -14,8 +14,7 @@ import {
   type RejectedReceiptT,
 } from '@/lib/db/worker-expense-drafts'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
-
-export type ParagonRefusalT = { refusal: 'not-pending' } | { refusal: 'clash'; readRows: number[] }
+import type { ParagonRefusalT } from '@/lib/worker-expenses/paragon-refusal'
 
 /**
  * Refused once the zgłoszenie is decided or any of these paragony already is, so two managers can't

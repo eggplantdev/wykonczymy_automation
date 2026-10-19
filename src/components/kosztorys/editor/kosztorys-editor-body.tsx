@@ -65,7 +65,7 @@ import { TemplateCatalogueBanner } from '@/components/kosztorys/editor/template-
 import { HistoryBanner } from '@/components/kosztorys/editor/history/history-banner'
 import { withHistoryChanges } from '@/components/kosztorys/editor/history/history-change-cell'
 import { PreviewHeader } from '@/components/kosztorys/editor/preview-header-actions'
-import { GridEmptyOverlay } from '@/components/kosztorys/editor/grid-empty-overlay'
+import { GridEmptyOverlay } from '@/components/kosztorys/editor/grid/grid-empty-overlay'
 import { historyGridTree, stageIdsFilledNow } from '@/lib/kosztorys/history/history-grid'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
