@@ -7,7 +7,6 @@ import { OrderPickStep, type OrderPickT } from '@/components/orders/order-pick-s
 import { OrderSmsStep } from '@/components/orders/order-sms-step'
 import { orderFormValues } from '@/components/orders/order-form-values'
 import { OrderSettingsButton } from '@/components/orders/order-settings-button'
-import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
 import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
@@ -47,7 +46,7 @@ function OrderFlow({ investment, referenceData, orderSettings, onClose }: OrderF
   const [pick, setPick] = useState<OrderPickT>()
   const [formValues, setFormValues] = useState<BulkExpenseFormValuesT>()
   const [isBooked, setIsBooked] = useState(false)
-  const canEditSettings = isAdminOrOwnerRole(useCurrentUser().role)
+  const canEditSettings = isAdminOrOwnerRole(referenceData.currentUserRole)
 
   const step = isBooked ? 'sms' : formValues ? 'form' : 'pick'
 
@@ -68,7 +67,6 @@ function OrderFlow({ investment, referenceData, orderSettings, onClose }: OrderF
       <div className="mt-6 pr-1">
         {step === 'pick' && (
           <OrderPickStep
-            key={`${orderSettings.bigBagPrice}:${orderSettings.containerPrice}`}
             prices={orderSettings}
             investmentId={investment.id}
             workers={referenceData.workers}

@@ -1588,6 +1588,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
       „Kwota”, a przełączenie big bag / kontener wraca do ceny z ustawień. Przełącznik, pola, „Dalej”
       i zębatka mają jedną wysokość.
+- [ ] Dialog zamówienia → ilość 3, wybierz kontakt → zębatka → zmień cenę big bagu → „Zapisz”: cena
+      w dialogu się zmienia, ilość i kontakt zostają.
+- [ ] Dialog zamówienia → „Cena za sztukę” `0,001` albo `1e3`: „Dalej” nieaktywne.
 - [ ] Dialog zamówienia → „Kontakt na miejscu” → wybierz inną osobę → gwiazdka „Ustaw jako kierownika
       budowy” → strona inwestycji po odświeżeniu pokazuje ją jako „Kierownik budowy”.
 - [ ] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o

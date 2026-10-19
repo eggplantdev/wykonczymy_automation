@@ -4,16 +4,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { OrderDialog } from '@/components/orders/order-dialog'
 import { expenseReferenceData } from '@/__tests__/helpers/expense-form'
-import { authState } from '@/__tests__/stubs/get-current-user-jwt'
-import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
-import { useCurrentUser } from '@/hooks/use-current-user'
 import { setInvestmentSiteManagerAction } from '@/lib/actions/investments'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 import { formatPLN } from '@/lib/utils/format-currency'
+import type { RoleT } from '@/lib/auth/roles'
 import type { OrderSettingsT } from '@/types/order-settings'
 
-vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
 vi.mocked(createBulkTransferAction).mockResolvedValue({ success: true })
 vi.mocked(submitWithUploadRows).mockImplementation((_rowCount, _files, submit) =>
   submit(undefined as never),
@@ -62,16 +59,22 @@ const INVESTMENT = {
   siteManagerId: SITE_MANAGER_ID,
 }
 
-function renderDialog(overrides: { settings?: OrderSettingsT; siteManagerId?: number } = {}) {
-  render(
+function dialogFor(
+  overrides: { settings?: OrderSettingsT; siteManagerId?: number; role?: RoleT } = {},
+) {
+  return (
     <OrderDialog
       investment={{ ...INVESTMENT, siteManagerId: overrides.siteManagerId }}
-      referenceData={referenceData}
+      referenceData={{ ...referenceData, currentUserRole: overrides.role ?? 'OWNER' }}
       orderSettings={overrides.settings ?? SETTINGS}
       open
       onOpenChange={vi.fn()}
-    />,
+    />
   )
+}
+
+function renderDialog(overrides: Parameters<typeof dialogFor>[0] = {}) {
+  render(dialogFor(overrides))
   return userEvent.setup()
 }
 
@@ -108,6 +111,29 @@ describe('OrderDialog', () => {
     await pickTwoBigBags(user)
 
     expect(await screen.findByDisplayValue('1501')).toBeInTheDocument()
+  })
+
+  it('rejects a price that is not a plain amount in grosze', async () => {
+    const user = renderDialog()
+    const price = screen.getByLabelText('Cena za sztukę (zł)')
+
+    for (const text of ['0x10', '1e3', '0,001']) {
+      await user.clear(price)
+      await user.type(price, text)
+      expect(screen.getByRole('button', { name: 'Dalej' })).toBeDisabled()
+    }
+  })
+
+  it('takes a price saved from the gear without losing the quantity', async () => {
+    const view = render(dialogFor())
+    const user = userEvent.setup()
+
+    await user.clear(screen.getByLabelText('Ilość'))
+    await user.type(screen.getByLabelText('Ilość'), '3')
+    view.rerender(dialogFor({ settings: { ...SETTINGS, bigBagPrice: 900 } }))
+
+    expect(screen.getByLabelText('Cena za sztukę (zł)')).toHaveValue('900')
+    expect(screen.getByLabelText('Ilość')).toHaveValue('3')
   })
 
   it('resets the price to the setting when the kind changes', async () => {
@@ -216,8 +242,7 @@ describe('OrderDialog', () => {
   })
 
   it('hides the gear from a manager', () => {
-    authState.role = 'MANAGER'
-    renderDialog()
+    renderDialog({ role: 'MANAGER' })
 
     expect(screen.queryByRole('button', { name: 'Ustawienia zamówień' })).not.toBeInTheDocument()
   })

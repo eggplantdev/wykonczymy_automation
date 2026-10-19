@@ -36,6 +36,8 @@ type OrderPickStepPropsT = {
 // Radix Select refuses an empty-string item value.
 const NONE = 'none'
 
+const PRICE_PATTERN = /^\d+(\.\d{1,2})?$/
+
 const SITE_MANAGER_LABELS = {
   isDefault: 'Kierownik budowy',
   save: 'Ustaw jako kierownika budowy',
@@ -61,15 +63,24 @@ export function OrderPickStep({
 
   const [kind, setKind] = useState<OrderItemT>('bigBag')
   const [quantityText, setQuantityText] = useState('1')
-  const [priceText, setPriceText] = useState(String(prices[ORDER_ITEMS.bigBag.priceKey]))
+  const defaultPrice = String(prices[ORDER_ITEMS[kind].priceKey])
+  const [priceText, setPriceText] = useState(defaultPrice)
+  const [shownDefaultPrice, setShownDefaultPrice] = useState(defaultPrice)
   const [contactId, setContactId] = useState(() =>
     contacts.some((worker) => worker.id === siteManagerId) ? String(siteManagerId) : NONE,
   )
 
+  // A price saved from the gear replaces the field; re-keying the step instead would close the
+  // settings dialog and drop the rest of the pick.
+  if (shownDefaultPrice !== defaultPrice) {
+    setShownDefaultPrice(defaultPrice)
+    setPriceText(defaultPrice)
+  }
+
   const quantity = Number(quantityText)
   const unitPrice = Number(priceText)
   const isQuantityValid = Number.isInteger(quantity) && quantity >= 1
-  const isPriceValid = priceText !== '' && Number.isFinite(unitPrice) && unitPrice > 0
+  const isPriceValid = PRICE_PATTERN.test(priceText) && unitPrice > 0
   const contactWorker = contacts.find((worker) => String(worker.id) === contactId)
   const contact = contactWorker && { name: contactWorker.name, phone: contactWorker.phone }
 
