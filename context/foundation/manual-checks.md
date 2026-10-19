@@ -937,6 +937,10 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] Nazwa sekcji: zmień ją i **Enter** — zapis i zejście o wiersz; zmień ponownie i **Escape** —
       stara nazwa wraca, zaznaczenie zostaje w miejscu.
       __Staging 2026-10-19 (pass 11): needs human: na inw. 210 komórka nazwy sekcji zaznacza się (klik/dwuklik), ale Enter ani wpisywanie nie otwiera edycji w sterowaniu myszą/klawiaturą z Playwrighta (pole input w nagłówku istnieje, fokus zostaje na body); przewijanie siatki zamiast edycji. Wymaga ręcznego sprawdzenia w realnej przeglądarce.__
+      _Staging 2026-10-19 (desktop-regression-audit, MANAGER): edycję w pasku sekcji otwiera
+      **dwuklik**. Enter zapisuje nazwę, Escape przywraca starą; zaznaczenie zostaje na pasku, bo
+      zejście o wiersz ma tylko kolumna „Sekcja” w wierszu pozycji. Ta kolumna była ukryta, więc
+      zostaje do sprawdzenia; kod zmiany nazwy się nie zmienił od c713fa2bf._
 - [x] Widok podwykonawcy, komórki ceny i współczynnika: Enter i Escape jak w pierwszych dwóch boksach.
       _Staging 2026-10-18 (pass 8): Cena j.m. w widoku podwykonawcy: Enter schodzi, Escape zostaje; Mnożnik jest tylko do odczytu (wyliczany)._
 - [x] Nagłówek etapu: kliknij zwykłą komórkę, potem z menu etapu zmień nazwę i **Enter** — nazwa się
@@ -1297,26 +1301,37 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 
 - [ ] `/pracownicy`: kolorowe plakietki ról w tabeli jak dotąd; na telefonie (390 px) plakietka roli w
       menu.
-- [ ] Inwestycja z kosztorysem → podsumowanie kosztorysu: wykresy kołowe (koszty i „Udział sekcji w
+- [x] Inwestycja z kosztorysem → podsumowanie kosztorysu: wykresy kołowe (koszty i „Udział sekcji w
       kosztach robocizny”) pokazują procenty w legendzie i w dymku po najechaniu, jak dotąd.
+      _Staging 2026-10-19 (desktop-regression-audit, MANAGER): koszty — % w legendzie i w dymku;
+      udział sekcji — % w legendzie, w dymku kwota netto (tak samo przed refaktorem)._
 - [ ] Dowolny formularz w oknie (np. „Dodaj kasę”): otwiera się, zapis zamyka okno, a z zaznaczonym
       „Nie zamykaj po zapisaniu” zostaje otwarte; w trakcie zapisu widać pigułkę z postępem.
-- [ ] Strona inwestycji wejściem z listy → „Wróć” wraca na listę; ta sama strona otwarta z adresu →
+      _Staging 2026-10-19 (desktop-regression-audit, MANAGER): „Dodaj kasę” z zaznaczonym „Nie zamykaj…”
+      — „Kasa dodana”, okno zostaje i czyści się. Zwykły zapis z pigułką — do sprawdzenia jako OWNER._
+- [ ] Dowolny formularz w oknie (np. „Dodaj kasę” z właścicielem, którego nie wolno ustawić): po
+      odrzuconym zapisie okno wraca z wpisanymi danymi i nadal ma „Nie zamykaj po zapisaniu”.
+- [x] Strona inwestycji wejściem z listy → „Wróć” wraca na listę; ta sama strona otwarta z adresu →
       „Wróć” prowadzi na listę inwestycji.
-- [ ] `/transakcje` → menu kolumn: ukrywanie i pokazywanie kolumn działa, okno kolejności kolumn
+- [x] `/transakcje` → menu kolumn: ukrywanie i pokazywanie kolumn działa, okno kolejności kolumn
       przestawia kolumny.
 
 ## 2026-10-19 — app-audit-refactor faza 2 — dostęp do kas, synchronizacja arkusza, saldo zero
 
-- [ ] Jako MANAGER na `/kasy`: przy kasie pracownika i swojej status („Aktywna” / „Nieaktywna”) da się
+- [x] Jako MANAGER na `/kasy`: przy kasie pracownika i swojej status („Aktywna” / „Nieaktywna”) da się
       przełączyć i zostaje po odświeżeniu; przy kasie innego managera, ownera i admina status widać,
       ale kliknięcie go nie przełącza.
-- [ ] Jako MANAGER na `/kasy`: kosz w kolumnie „Akcje” jest przy kasie pracownika i swojej, przy kasie
+      _Staging 2026-10-19 (desktop-regression-audit): kasa pracownika przełączona i z powrotem, stan po
+      odświeżeniu; przy cudzych kasach status jest tekstem, nie przyciskiem._
+- [x] Jako MANAGER na `/kasy`: kosz w kolumnie „Akcje” jest przy kasie pracownika i swojej, przy kasie
       innego managera, ownera i admina go nie ma. W `/kosz` widać tylko kasy pracowników i swoje.
+      _Staging 2026-10-19 (desktop-regression-audit): kosz tylko przy kasach pracowników i swojej; tymczasowa
+      kasa przeniesiona do kosza widoczna w `/kosz` (jedyna kasa w koszu na stagingu), potem usunięta na
+      zawsze po wpisaniu nazwy._
 - [ ] Jako OWNER na `/kasy`: przełącz kasę na „Nieaktywna” i z powrotem — stan zostaje po odświeżeniu.
-- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/kasa/1`: trafiasz na swoją stronę pracownika, nie na
+- [x] Jako pracownik (EMPLOYEE) wpisz adres `/kasa/1`: trafiasz na swoją stronę pracownika, nie na
       „Nie znaleziono”.
-- [ ] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
+- [x] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
 - [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
       synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
 - [ ] Jako ADMIN na `/pracownicy` kliknij kwotę wypłat przy pracowniku („Rozlicz wypłaty”): kwota
@@ -1331,6 +1346,9 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       pozycji — „… już istnieje.”
 - [ ] Jako MANAGER: typ kasy na `/kasy`, w formularzu kasy i na wykresie sald na pulpicie brzmi tak
       samo („Główne”, „Pomocnicze”, „Wirtualne”, „Pracownicze”).
+      _Staging 2026-10-19 (desktop-regression-audit): `/kasy` — „Pomocnicze”, „Pracownicze”, „Wirtualne”
+      ✓. Formularz kasy MANAGER-a nie ma pola „Typ” (zamierzone) — formularz i wykres do sprawdzenia jako
+      OWNER._
 - [ ] Jako ADMIN wydrukuj listę transakcji, ofertę i umowę: logo i układ jak dotąd, okno zamyka się
       po druku.
 - [ ] Jako ADMIN zeskanuj paragon i papierowe zgłoszenie prac, przetłumacz opis pozycji kosztorysu —
@@ -1362,22 +1380,22 @@ Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
 - [ ] Jako EMPLOYEE na telefonie (390 px) → „Zgłoszenia wydatków”: filtry „Status” i „Inwestycja” zawężają
       listę i wracają na stronę 1; zmiana „na stronę” też wraca na 1; po wysłaniu nowego zgłoszenia lista
       pokazuje stronę 1 z tym zgłoszeniem.
-- [ ] Jako EMPLOYEE na swojej stronie pracownika → historia raportów: te same filtry i paginacja działają jak
+- [x] Jako EMPLOYEE na swojej stronie pracownika → historia raportów: te same filtry i paginacja działają jak
       wcześniej.
 - [ ] Jako ADMIN dodaj przelew z pozycjami ze zeskanowanej faktury (przycisk skanu i przeciągnięcie pliku na
       oba tryby): pozycje powstają, suma pod listą się zgadza, wybór kategorii/pracownika w wierszu działa.
 - [ ] Jako ADMIN w trybie paragonów: suma zaznaczonych pozycji w stopce zgadza się z zaznaczeniem.
 - [ ] Jako ADMIN edytuj przelew i wyczyść formularz przyciskiem resetu; „Rozlicz wypłaty” zapisuje się jak
       wcześniej (oba formularze mają teraz wspólną obudowę).
-- [ ] Na koncie z językiem ukraińskim/rosyjskim → „Zgłoszenia wydatków”: daty wysłania i decyzji w formacie
+- [x] Na koncie z językiem ukraińskim/rosyjskim → „Zgłoszenia wydatków”: daty wysłania i decyzji w formacie
       tego języka (wcześniej zawsze polskim).
-- [ ] Przełącznik lista/karty przelewów i skala UI działają jak wcześniej.
+- [x] Przełącznik lista/karty przelewów i skala UI działają jak wcześniej.
 - [ ] Bez logowania: logowanie i „Nie pamiętam hasła” działają.
 - [ ] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
       `/kasa` → wykres salda kasy rysuje się.
-- [ ] Leady → zaznaczanie zdjęć w „Zdjęcia” i przy przenoszeniu do inwestycji, zaznaczanie wierszy listy leadów.
+- [x] Leady → zaznaczanie zdjęć w „Zdjęcia” i przy przenoszeniu do inwestycji, zaznaczanie wierszy listy leadów.
 - [ ] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
-- [ ] Nowy pracownik dodany przez „Dodaj pracownika” ma język polski.
+- [x] Nowy pracownik dodany przez „Dodaj pracownika” ma język polski.
 
 ## 2026-10-19 — app-audit-refactor faza 7 — bez ręcznych memo w tabelach i hookach
 
@@ -1406,7 +1424,7 @@ Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez 
       (logo, nazwa inwestycji, przyciski) wygląda jak wcześniej.
 - [ ] Pusty kosztorys pokazuje „Kosztorys jest pusty” z przyciskiem „Pobierz z arkusza Google…”; wyszukiwanie bez
       wyników pokazuje „Wyczyść wyszukiwanie”, a filtr ukrywający wszystko — „Wyczyść filtry”.
-- [ ] Menu akcji kosztorysu: zapis presetu, porównanie z arkuszem, skan raportu, uzupełnienie tłumaczeń, czyszczenie
+- [x] Menu akcji kosztorysu: zapis presetu, porównanie z arkuszem, skan raportu, uzupełnienie tłumaczeń, czyszczenie
       tekstów pozycji, akcje pracownika i inwestora oraz „Zmień kolejność” i „Dodaj z katalogu” otwierają się jak wcześniej.
 - [ ] Wysokość wierszy: przeciągnięcie krawędzi wiersza, dwuklik „dopasuj do treści” i przełączenie rozmiaru tekstu
       zmieniają wysokość jak wcześniej; wiersz „do ponownego sprawdzenia” ma dwie linie.
@@ -1445,38 +1463,42 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       w menu zmienia się bez odświeżania.
 - [ ] Listy z sortowaniem (Transakcje, Leady, Zgłoszenia): posortuj, przejdź na stronę 2 — sortowanie zostaje
       w adresie i w kolejności.
-- [ ] Tabele z fazy 7 i pole „Kasa” w formularzu przelewu: w zakładce sieci nie ma powtarzających się w kółko
+- [x] Tabele z fazy 7 i pole „Kasa” w formularzu przelewu: w zakładce sieci nie ma powtarzających się w kółko
       zapytań, strona nie miga sama z siebie.
 - [ ] Edycja przelewu i „Rozlicz wypłaty”: błąd walidacji pokazuje się pod polem, udany zapis zamyka okno.
+      _Staging 2026-10-19 (desktop-regression-audit, MANAGER): „Rozlicz wypłaty” — błąd walidacji pod
+      polem OK; edycja przelewu i udany zapis jeszcze niesprawdzone._
 - [ ] Po najbliższym przebiegu crona czyszczenia wersji kosztorysu: w logach Vercela przebieg bez błędu.
 
 ## 2026-10-19 — app-audit-refactor — poprawki z bramki przeglądu
 
-- [ ] Formularz wydatków z kilkoma pozycjami: przy pozycji wybierz kategorię „Inne” i pracownika — drugi rząd
+- [x] Formularz wydatków z kilkoma pozycjami: przy pozycji wybierz kategorię „Inne” i pracownika — drugi rząd
       wyboru pojawia się i zapisuje jak wcześniej (przeniesienie kodu, bez zmiany działania).
 - [ ] Pusty kosztorys w edytorze: widać podpowiedź na pustej siatce; w wypełnionym wpisanie wartości i cofnięcie
       błędnej zmiany działa jak wcześniej.
-- [ ] Jako EMPLOYEE otwórz `/kasa/{id}` swojej kasy — trafiasz na swoją stronę pracownika, nie na 404.
+- [x] Jako EMPLOYEE otwórz `/kasa/{id}` swojej kasy — trafiasz na swoją stronę pracownika, nie na 404.
 
 ## 2026-10-19 — kursor na statusie inwestycji
 
 - [ ] „Edytuj inwestycję” i tabela inwestycji: najechanie na status („Aktywna” ze strzałką) pokazuje
       rączkę; w trakcie zapisu zmiany statusu kursor jest zablokowany.
+      _Staging 2026-10-19 (desktop-regression-audit, MANAGER): rączka na statusie w tabeli i w „Edytuj
+      inwestycję” ✓; kursor w trakcie zapisu niesprawdzony._
 
 ## 2026-10-19 — szerszy dialog „Szczegóły" leada
 
-- [ ] Leady → „Szczegóły" przy zgłoszeniu z długą wiadomością: okno jest szerokie, etykiety w wąskiej
+- [x] Leady → „Szczegóły" przy zgłoszeniu z długą wiadomością: okno jest szerokie, etykiety w wąskiej
       kolumnie po lewej, wiadomość zajmuje resztę szerokości; podziały linii z formularza zostają.
-- [ ] To samo zgłoszenie z załącznikami: miniatury są ostre, nie rozmyte.
+- [x] To samo zgłoszenie z załącznikami: miniatury są ostre, nie rozmyte.
 
 ## 2026-10-19 — payout-cards — wypłaty pracownika jako karty, wspólny badge
 
-- [ ] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja
+- [x] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja
       „Wypłaty do potwierdzenia” jest zwijana, domyślnie rozwinięta i stoi pod przyciskami szybkich
       akcji. Karta ma u góry nazwę inwestycji po lewej i datę po prawej, w drugim wierszu kwotę po
       lewej i status po prawej (bez pustej przerwy pod nagłówkiem), niżej opis, na dole
       „Potwierdzam” i czerwone „Odrzuć” równej szerokości.
-- [ ] Jako pracownik odrzuć wypłatę z powodem: znika z „Wypłat do potwierdzenia” i pojawia się w
+- [x] Jako pracownik odrzuć wypłatę z powodem: znika z „Wypłat do potwierdzenia” i pojawia się w
       osobnej sekcji „Odrzucone wypłaty” z opisem o wyjaśnieniu z kierownikiem i twoim powodem; ma
       tylko „Potwierdzam”, które dalej działa.
 - [ ] Jako pracownik na telefonie (390 px): karty wypłat zajmują całą szerokość, przyciski są łatwe
@@ -1487,11 +1509,11 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
 - [ ] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
       są teraz morskie, a nie szmaragdowe; tekst czytelny w jasnym i ciemnym motywie.
-- [ ] Strona inwestycji → select etapu AI: obrys i kolor tekstu dalej zmieniają się z etapem (jak
+- [x] Strona inwestycji → select etapu AI: obrys i kolor tekstu dalej zmieniają się z etapem (jak
       kolor badge'a tego etapu na liście inwestycji); „Uzupełnianie informacji” ma zwykły szary obrys.
-- [ ] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
+- [x] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
       kolorowy obrys, zwykła grubość tekstu, długa wartość ucina się wielokropkiem.
-- [ ] Anuluj odrzuconą wypłatę pracownika: na jego stronie znika z kart „Odrzucone wypłaty”, a w
+- [x] Anuluj odrzuconą wypłatę pracownika: na jego stronie znika z kart „Odrzucone wypłaty”, a w
       „Liście wydatków / zaliczek” jest (przekreślona, wyszarzona) bez żadnego przełącznika; to samo
       widzi menedżer na tej stronie. Suma przy filtrze nie dolicza anulowanych.
 - [ ] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
@@ -1500,15 +1522,15 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       badge „Wypłata”, przy prawej krawędzi; nagłówek karty to dalej numer i data.
 - [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
       przełącza aktywność konta i nie otwiera strony pracownika.
-- [ ] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
+- [x] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
 - [ ] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
       jest nieklikalny.
 - [ ] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
-- [ ] Typ przelewu w tabeli i na kartach przelewów: obrys i kropka w kolorze typu, nazwa ucina się
+- [x] Typ przelewu w tabeli i na kartach przelewów: obrys i kropka w kolorze typu, nazwa ucina się
       wielokropkiem; rozliczony przelew ma kolor rozliczenia.
 - [ ] Raport pracy: nazwa sekcji obok kolorowego paska ma tło i tekst w kolorze tej sekcji, czytelne
       w jasnym i ciemnym motywie.
-- [ ] Filtr statusów linii (zaakceptowane / odrzucone / oczekujące) w zgłoszeniu wydatku: kliknięcie
+- [x] Filtr statusów linii (zaakceptowane / odrzucone / oczekujące) w zgłoszeniu wydatku: kliknięcie
       chowa i pokazuje linie, ukryty status jest przekreślony.
 
 ## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
@@ -1520,23 +1542,23 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       inwestycji (wypłata bez inwestycji — na „Transakcje”); kasa przeniesiona do Kosza nie jest linkiem.
 - [ ] „Anuluj” w tej tabeli pyta o powód i anuluje wypłatę: wiersz znika, licznik przy „Transakcje” w
       menu spada o jeden. Przy zakończonej inwestycji przycisk jest wyszarzony z podpowiedzią.
-- [ ] W menu nie ma pozycji „Wypłaty”, a adres `/wyplaty` pokazuje „Nie znaleziono”. Na „Transakcje”
+- [x] W menu nie ma pozycji „Wypłaty”, a adres `/wyplaty` pokazuje „Nie znaleziono”. Na „Transakcje”
       filtr statusu potwierdzenia zawęża listę do wypłat o wybranym statusie.
 
 ## 2026-10-19 — cancel-rejected-payout — odrzuconą wypłatę anuluje każdy z zarządu
 
-- [ ] Jako MANAGER: wypłata zaksięgowana przez innego kierownika albo właściciela i odrzucona przez
+- [x] Jako MANAGER: wypłata zaksięgowana przez innego kierownika albo właściciela i odrzucona przez
       pracownika → „Anuluj” na pulpicie anuluje ją bez „Nie masz uprawnień do anulowania tej
       transakcji.”, a saldo kasy wraca o tę kwotę.
-- [ ] Jako MANAGER na „Transakcje”: przy cudzej wypłacie oczekującej lub przyjętej i przy cudzym
+- [x] Jako MANAGER na „Transakcje”: przy cudzej wypłacie oczekującej lub przyjętej i przy cudzym
       wydatku nie ma „Anuluj”; przy swoich transakcjach i przy cudzej robociźnie jest.
-- [ ] Jako MANAGER przy cudzej odrzuconej wypłacie edycja dalej jest niedostępna.
+- [x] Jako MANAGER przy cudzej odrzuconej wypłacie edycja dalej jest niedostępna.
 
 ## 2026-10-19 — payout-card-buttons — przyciski karty wypłaty i warianty kolorów
 
-- [ ] Pracownik, `/pracownicy/[id]` z wypłatą oczekującą: „Potwierdzam” jest zielony obramowany z
+- [x] Pracownik, `/pracownicy/[id]` z wypłatą oczekującą: „Potwierdzam” jest zielony obramowany z
       ptaszkiem, „Odrzuć” czerwony obramowany z koszem; po najechaniu oba wypełniają się kolorem.
-- [ ] Odrzucona wypłata na karcie pracownika pokazuje „Powód odrzucenia: …” (uk/ru: przetłumaczone).
+- [x] Odrzucona wypłata na karcie pracownika pokazuje „Powód odrzucenia: …” (uk/ru: przetłumaczone).
 - [ ] Na telefonie (390 px) „Dodaj wydatek” / „Zgłoś pracę” są niższe niż dotąd, a dłuższa etykieta
       uk/ru dalej się zawija, bez wychodzenia poza wiersz.
 - [ ] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
@@ -1544,10 +1566,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-19 — cards-hide-table-controls — „Kolumny” i „Szukaj duplikatów” tylko w widoku tabeli
 
-- [ ] Transakcje → widok kart: nie ma przycisków „Kolumny” ani „Szukaj duplikatów”; po powrocie do
+- [x] Transakcje → widok kart: nie ma przycisków „Kolumny” ani „Szukaj duplikatów”; po powrocie do
       widoku tabeli oba są na miejscu.
-- [ ] Ukryj w tabeli kolumnę „Kasa źródłowa”, przełącz na karty: karty dalej pokazują „Kasa źródłowa: …”.
-- [ ] Strona pracownika w widoku kart: brak etykiety „Pracownik”, jak dotąd.
+- [x] Ukryj w tabeli kolumnę „Kasa źródłowa”, przełącz na karty: karty dalej pokazują „Kasa źródłowa: …”.
+- [x] Strona pracownika w widoku kart: brak etykiety „Pracownik”, jak dotąd.
 
 ## 2026-10-19 — slice-review-gate — właściciel kasy, kolory kwot, odrzucone wypłaty
 
@@ -1556,16 +1578,16 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
       właścicielem jesteś ty. Ustawienie innego managera kończy się „Brak uprawnień”.
 - [ ] Jako OWNER „Dodaj kasę” i edycja kasy z dowolnym właścicielem działają jak dotąd.
-- [ ] `/transakcje` w tabeli i na kartach: kwoty mają te same kolory co dotąd (wydatek, wpływ,
+- [x] `/transakcje` w tabeli i na kartach: kwoty mają te same kolory co dotąd (wydatek, wpływ,
       wypłata), anulowane są szare.
-- [ ] Kosztorys → nagłówek sekcji: kropka ma kolor paska sekcji.
+- [x] Kosztorys → nagłówek sekcji: kropka ma kolor paska sekcji.
 - [ ] Pulpit → odrzucone wypłaty: przy wypłacie z zablokowanej inwestycji „Anuluj transakcję” jest
       wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
-- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.
+- [x] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.
 
 ## 2026-10-19 — investment-notes-save — zapis notatki nie czyści adresu inwestycji
 
-- [ ] Inwestycja z wpisanym kodem pocztowym, miastem i krajem → „Edytuj notatkę”, zmień tekst,
+- [x] Inwestycja z wpisanym kodem pocztowym, miastem i krajem → „Edytuj notatkę”, zmień tekst,
       „Zapisz”: notatka się zmienia, a po odświeżeniu „Edytuj inwestycję” wciąż pokazuje kod
       pocztowy, miasto i kraj.
 - [ ] Ta sama zmiana notatki z zakładki inwestycji w podsumowaniu kosztorysu: zapis działa, adres
@@ -1575,8 +1597,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Po restarcie `pnpm dev` `/inwestycje`, strona inwestycji i `/pracownicy` ładują się bez błędu
       „column does not exist”.
-- [ ] „Edytuj pracownika” → wpisz „Telefon” → otwórz ponownie: numer zostaje.
-- [ ] Strona inwestycji → „Kierownik budowy” → wybierz konto → odśwież: wybór zostaje, a adres, kod
+- [x] „Edytuj pracownika” → wpisz „Telefon” → otwórz ponownie: numer zostaje.
+- [x] Strona inwestycji → „Kierownik budowy” → wybierz konto → odśwież: wybór zostaje, a adres, kod
       pocztowy i miasto bez zmian.
 - [ ] Jako OWNER w dialogu zamówienia: zębatka (prawy dolny róg, obok „Dalej”) → „Ustawienia zamówień”
       → dodaj dwóch dostawców, zmień cenę → zapisz (przycisk „Zapisz” po prawej, bez „Wyczyść
@@ -1587,18 +1609,20 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       zamyka, otwiera się SMS z adresem bez kraju oraz dostawcą i kontaktem z pierwszego kroku.
 - [ ] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
       „Kwota”, a przełączenie big bag / kontener wraca do ceny z ustawień. Przełącznik, pola, „Dalej”
-      i zębatka mają jedną wysokość.
+      i zębatka mają jedną wysokość. _(19.10 staging, MANAGER: tytuł, przeliczenie, powrót ceny i 36 px OK — zębatka do sprawdzenia jako OWNER.)_
 - [ ] Dialog zamówienia → ilość 3, wybierz kontakt → zębatka → zmień cenę big bagu → „Zapisz”: cena
       w dialogu się zmienia, ilość i kontakt zostają.
-- [ ] Dialog zamówienia → „Cena za sztukę” `0,001` albo `1e3`: „Dalej” nieaktywne.
+- [x] Dialog zamówienia → „Cena za sztukę” `0,001` albo `1e3`: „Dalej” nieaktywne.
 - [ ] Dialog zamówienia → „Kontakt na miejscu” → wybierz inną osobę → gwiazdka „Ustaw jako kierownika
       budowy” → strona inwestycji po odświeżeniu pokazuje ją jako „Kierownik budowy”.
-- [ ] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o
+- [x] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o
       brak faktury.
 - [ ] W pierwszym kroku „Dostawca” → inny → „Zapisz jako domyślnego dostawcę” → następne zamówienie
       wybiera go od razu. Bez dostawców: krok mówi „Lista dostawców jest pusta”, SMS bez odbiorcy.
 - [ ] Z telefonu (IP w sieci LAN): „Zapisz” wydatku sam otwiera Wiadomości z dostawcą i treścią.
-- [ ] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
+- [ ] Zwykły formularz wydatku → wybierz inną kasę → „Zapisz jako domyślną kasę” → przycisk zmienia
+      się na „Kasa domyślna”, wyrównany do lewej jak wcześniej; następny wydatek ma tę kasę.
+- [x] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
 - [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
       miejscu”.
 - [ ] Transakcje inwestycji → wiersz zamówienia pokazuje „Czeka” → klik → „Dostarczone” → odśwież:
@@ -1606,14 +1630,12 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
 - [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
       widoczny, ale nieklikalny.
-- [ ] Zwykły formularz wydatku → wybierz inną kasę → „Zapisz jako domyślną kasę” → przycisk zmienia
-      się na „Kasa domyślna”, wyrównany do lewej jak wcześniej; następny wydatek ma tę kasę.
 - [ ] Jako EMPLOYEE na własnym `/pracownicy/[id]`, jeśli widać wiersz zamówienia: bez przycisku.
 - [ ] Druk tabeli transakcji: kolumna „Zamówienie” drukuje „Czeka” / „Dostarczone”.
 - [ ] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
       listę” dalej zapisuje adresy (wspólna obudowa karty z kartą zamówień — bez zmiany wyglądu).
-- [ ] Zamówienie 3 big bagów przy cenie z groszami (np. 799,99 zł): „Kwota” to dokładnie 2399,97.
-- [ ] Ekran „Transakcje” (konto zarządu): nie ma już przycisku „Wyślij wiadomość (test)”.
+- [x] Zamówienie 3 big bagów przy cenie z groszami (np. 799,99 zł): „Kwota” to dokładnie 2399,97.
+- [x] Ekran „Transakcje” (konto zarządu): nie ma już przycisku „Wyślij wiadomość (test)”.
 - [ ] Strona inwestycji: w nagłówku nie ma „Dodaj” (kosztorys v1); przycisk v2 nazywa się „Kosztorys
       v2”. Inwestycja bez kosztorysu v1 nadal da się go dodać z `/kosztorysy` → „Dodaj kosztorys”.
 - [ ] Strona inwestycji: Adres, Osoba kontaktowa, Etap AI, Kierownik budowy, status, Notatki, Uwagi AI
@@ -1627,7 +1649,7 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       jest właścicielem — także gdy inne konto ma takie samo imię i nazwisko (jego kasy się nie pojawiają).
 - [ ] Edytor kosztorysu → podsumowanie → „Podwykonawcy” (inwestycja z wypłatą dla podwykonawcy): sekcja
       nad tabelą wypłat nazywa się „Lista wypłat”.
-- [ ] Lista transakcji: kasa źródłowa i docelowa linkują do `/kasa/[id]`; kasa w koszu i „—” nie są
+- [x] Lista transakcji: kasa źródłowa i docelowa linkują do `/kasa/[id]`; kasa w koszu i „—” nie są
       linkami (zachowanie jak przed refaktorem).
 - [ ] Konto z językiem ukraińskim lub rosyjskim: „Wyczyść filtry” (lista i kolejka), „Nie znaleziono.”
       w wyszukiwanych selectach, dialog akceptacji zgłoszenia wydatków (tytuł, „Odrzuć”, potwierdzenie
@@ -1635,7 +1657,7 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] To samo konto: w zgłoszeniu z odczytanymi paragonami przyjmij jeden paragon, potem odrzuć dwa —
       toasty („Paragon przyjęty”, „Odrzucono 2”) są przetłumaczone; zapis zwykłego formularza wydatku
       pokazuje przetłumaczone „Transakcje dodane”.
-- [ ] Lista transakcji: inwestycja linkuje do `/inwestycje/[id]`, pracownik do `/pracownicy/[id]`; „—”
+- [x] Lista transakcji: inwestycja linkuje do `/inwestycje/[id]`, pracownik do `/pracownicy/[id]`; „—”
       nie jest linkiem. „Wyczyść filtry” nad listą transakcji działa i (uk/ru) jest przetłumaczone.
 
 ## 2026-10-19 — payout-push-unpause — push „Wypłata do potwierdzenia” włączony
@@ -1650,6 +1672,11 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Lista transakcji (desktop), widok tabeli: imię i nazwisko w kolumnie „Pracownik” mieści się w
       jednej linii, tak jak w „Dodane przez”.
+
+## 2026-10-19 — desktop-regression-audit — poprawki z przeklikania desktopu
+
+- [ ] Strona inwestycji: strzałki przy „Etap AI” i „Kierownik budowy” są szare, jak przy „Notatki”,
+      a nie czarne.
 
 # Zamknięte — indeks
 

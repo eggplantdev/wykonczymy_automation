@@ -37,29 +37,30 @@ Values: `pending` / `ok` / `finding #n` / `blocked` / `n/a`.
 
 | #   | Route                           | EMPLOYEE | MANAGER | OWNER   | ADMIN |
 | --- | ------------------------------- | -------- | ------- | ------- | ----- |
-| 1   | `/inwestycje/[id]/kosztorys`    | ok       | pending | pending | n/a   |
+| 1   | `/inwestycje/[id]/kosztorys`    | ok       | ok      | pending | n/a   |
 | 2   | `/inwestycje/[id]/kosztorys_v2` | ok       | ok      | pending | n/a   |
-| 3   | `/inwestycje/[id]`              | ok       | pending | pending | n/a   |
+| 3   | `/inwestycje/[id]`              | ok       | ok      | pending | n/a   |
 | 4   | `/` (transakcje)                | ok       | ok      | pending | n/a   |
-| 5   | `/pracownicy/[id]`              | ok       | pending | pending | n/a   |
-| 6   | `/kasa/[id]`                    | ok       | pending | pending | —     |
-| 7   | `/kasy`                         | ok       | pending | pending | —     |
-| 8   | `/inwestycje`                   | ok       | pending | pending | —     |
-| 9   | `/zgloszenia-wydatkow`          | ok       | pending | pending | —     |
-| 10  | `/zgloszenia-prac`              | ok       | pending | pending | —     |
-| 11  | `/pracownicy`                   | ok       | pending | pending | n/a   |
-| 12  | `/kosztorysy`                   | ok       | pending | pending | —     |
-| 13  | `/katalog-prac`                 | ok       | pending | pending | —     |
-| 14  | `/szablony`, `/szablony/[id]`   | ok       | pending | pending | —     |
-| 15  | `/zgloszenia` (leads)           | ok       | pending | pending | n/a   |
-| 16  | `/flota`, `/flota/[id]`         | ok       | pending | pending | —     |
-| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | pending | pending | —     |
-| 18  | `/kosz`                         | ok       | pending | pending | n/a   |
+| 5   | `/pracownicy/[id]`              | ok       | ok      | pending | n/a   |
+| 6   | `/kasa/[id]`                    | ok       | ok      | pending | —     |
+| 7   | `/kasy`                         | ok       | ok      | pending | —     |
+| 8   | `/inwestycje`                   | ok       | ok      | pending | —     |
+| 9   | `/zgloszenia-wydatkow`          | ok       | ok      | pending | —     |
+| 10  | `/zgloszenia-prac`              | ok       | ok      | pending | —     |
+| 11  | `/pracownicy`                   | ok       | ok      | pending | n/a   |
+| 12  | `/kosztorysy`                   | ok       | ok      | pending | —     |
+| 13  | `/katalog-prac`                 | ok       | ok      | pending | —     |
+| 14  | `/szablony`, `/szablony/[id]`   | ok       | ok      | pending | —     |
+| 15  | `/zgloszenia` (leads)           | ok       | ok      | pending | n/a   |
+| 16  | `/flota`, `/flota/[id]`         | ok       | ok      | pending | —     |
+| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | ok      | pending | —     |
+| 18  | `/kosz`                         | ok       | ok      | pending | n/a   |
 | 19  | `/warianty-badge`               | ok       | —       | pending | —     |
 | 20  | `[...catchAll]`                 | ok       | —       | pending | —     |
 | L   | logged-out + share routes       | pending  |         |         |       |
 
 EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
+
 - Every management route (rows 1–4, 6–18, plus `/szablony/1`, `/flota/1`, `/sprzet/1`) redirects to
   `/pracownicy/77`; `/kasa/1` and own `/kasa/50` too (registry L1317, L1459). Another worker's page and
   an unknown URL show „Nie znaleziono” inside the shell. `/warianty-badge` does not open (L1564).
@@ -72,6 +73,7 @@ EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
   (L1474, L1479, L1537, L1539; uk/ru strings checked in the dictionaries).
 
 MANAGER notes (1280, staging `9d7572296`):
+
 - „Edytuj”/„Anuluj” on `/`: active on own rows (#5967); on others' accepted payouts and expenses „Edytuj”
   is disabled and „Anuluj” absent — `canMutateTransfer` ownership rule, not a defect (L1531; the
   others'-pending and others'-robocizna halves confirmed in `canCancelTransfer`/`canMutateTransfer`, no
@@ -87,6 +89,52 @@ MANAGER notes (1280, staging `9d7572296`):
   open (L1409); „Rozlicz wypłaty” validates under the field (half of L1450); section dot matches the
   band (L1561). Section band rename: double-click opens it, Enter saves, Escape restores (L937 partial —
   the „Sekcja” column variant is hidden in this view). Add + delete section persist (part of L1345).
+- Row 3 (210, 1280 + 1024, no horizontal overflow): „Wróć” from the list and from a direct URL lands on
+  `/inwestycje`; AI-stage select colours; „Kierownik budowy” persists, address intact; note edit saves,
+  address intact (note restored afterwards). Order dialog: investment subtitle, „Kwota” recalculates
+  (3 × 799,99 = 2399,97), big bag / kontener resets to the settings price, controls 36 px, no gear for
+  MANAGER, `0,001` / `1e3` disable „Dalej”; order button on active rows of `/inwestycje`, none on
+  completed. Supplier-in-step-1, SMS-on-save and default-kasa boxes are `na` — `8f2b923d2`,
+  `442325fe3`, `a9fafe7ab` aren't deployed (staging at `9d7572296`). „Kontakt na miejscu” is empty (no
+  worker with a phone), so the contact-star box stays open. Select chevrons → finding L1620 below.
+- Row 1 (193 v1 sheet, 1280 + 1024): page and „Arkusz” embed render; only the docs.google.com 401 noise.
+- Row 5 (`/pracownicy/77`, 1280 + 1024): worker page with reports, payouts and register summary; no
+  horizontal overflow beyond the known „Zgłoszone wydatki” table scroll.
+- Row 6: worker register 50 and QA register 48 open with balance and transfer list; the main register
+  shows „Nie znaleziono” (L1325).
+- Row 7: status toggle and trash only on worker/own registers (L1317, L1320); „Dodaj” with a worker owner
+  and „Nie zamykaj po zapisaniu” creates the register and keeps the dialog open; own-manager owner on
+  edit persists, another manager → „Brak uprawnień”; `/kosz` lists the temp register, then deleted for
+  good with the typed name (DB row gone). Types read „Pomocnicze” / „Pracownicze” / „Wirtualne”; no Typ
+  field for MANAGER by design (L1338 form/chart half → OWNER). After a refused save the reopened dialog
+  lost „Nie zamykaj…” → fixed, see Findings.
+- Row 8 (1280 + 1024, no overflow): status pointer in the table and in „Edytuj inwestycję” (L1463 hover
+  half); order button active/completed and „column does not exist” already covered under row 3.
+- Rows 9, 10 (1280 + 1024): lists, filters and the „Zweryfikuj” dialog of a zgłoszenie wydatku open;
+  nav labels match the headings.
+- Row 11 (1280 + 1024): „Edytuj pracownika” → clearing „Telefon” persists (L1600; QA worker 77 left
+  with phone empty, active); „Dodaj pracownika” creates a worker with „Polski” (stored as no language,
+  L1398); „Usuń pracownika” → `/kosz` → „Usuń na zawsze” with the typed name removes it (temp worker
+  gone, DB count 0). Status badge → see the doubt below.
+- Row 12 (1280 + 1024): „Kosztorysy” and „Inwestycje bez arkusza” render and search; „Problemy” →
+  „Porównaj z katalogiem…” opens with matches and the empty state. The „może chodzi o…” hint and the
+  „Importuj z arkusza” preview were not reached, so that box stays open.
+- Row 13 (1280): list, search and filters; no repeating requests in the network tab, no flicker (L1448
+  table half).
+- Row 14 (1280 + 1024): list and template editor open; the template has no „Filtry” at all
+  (`KosztorysFiltersMenu` returns null without options) — L843 waits on the owner's ruling, see the doubt
+  below. The ~1000-item box needs a large template (none on preview).
+- Row 15 (1280): leads list, photo and row selection, „Załączniki” dialog, wide „Szczegóły” with sharp
+  thumbnails, „Skontaktowano”/„Oczekuje” toggle (toggled on a lead and restored, DB `new`). No shots in
+  the report — the list carries real people's data. L318 needs a Facebook lead with files.
+- Rows 16, 17 (1280 + 1024): `/flota`, `/flota/3`, `/sprzet`, `/sprzet/1` render, no overflow;
+  recipient cards are read-only for MANAGER (no „Edytuj listę”) — the editor half of L1611 is OWNER.
+- Row 18 (1280 + 1024, no overflow): investment „Usuń na zawsze” dialog lists what goes with it and keeps
+  the button disabled until the exact name (opened and cancelled on a real row). Temp template „QA tmp
+  szablon kosz”: created, „Przenieś do kosza” → listed under „Szablony” in `/kosz` → typed name, partial
+  name keeps the button disabled → gone after reload and from the DB. The lead half of L1139 stays open
+  (no lead in the Kosz). Cron boxes (L1451, L244, L251, L268, L270, L1129, L1133) and L1142 are left
+  open: firing `cleanup` on preview purges every expired row there — not done without a go.
 
 ## Findings
 
@@ -98,10 +146,22 @@ MANAGER notes (1280, staging `9d7572296`):
       min-widths are deliberate (`50796e2ec`); in-container scroll is the data-table pattern.
 - [x] · layout · fixed · `/inwestycje/210` · MANAGER · 1280 · „Etap AI” and „Kierownik budowy” select
       arrows are foreground-black, not the „Notatki” gray (L1620) — `37706f5eb` muted `SelectTrigger`'s
-      chevron but missed `SelectButtonTrigger` (`src/components/ui/select.tsx`); same class added there.
+      chevron but missed `SelectButtonTrigger` (`src/components/ui/select.tsx`); same class added there (`c7c47299f`).
+- [x] · bug (pre-existing) · fixed · `/kasy` „Dodaj” · MANAGER · 1280 · after a refused save the dialog
+      reopens without „Nie zamykaj po zapisaniu” — the optimistic path closes the dialog
+      (`closeDialog` drops `showKeepOpen`, `3723589e9`, 30.09) and the failure reopen never restored it;
+      not a refactor regression. `submitOptimistically` now restores it (`10cd3cbfa`).
+      test: test-driven-debugging · unit — `optimistic-form-store.test.ts` „a failed submit reopens with
+      the keep-open checkbox…”; run at the end-of-run gate (agent test runs are hook-blocked).
 - [ ] · doubtful · open · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
       MANAGER editor shows no amounts, but it shows section nets and all summary tables; only „Marża”
       is hidden — identical at `c713fa2bf`. Likely stale box wording — ask the user at stage close.
+- [ ] · doubtful · open · `/pracownicy` · MANAGER · 1280 · the „Aktywny/Nieaktywny” badge is clickable on
+      OWNER/MANAGER rows too; the server refuses with „Kierownik może zmieniać tylko konta pracowników.”
+      — no UI gate at `c713fa2bf` either (`/kasy` hides it instead). Not a regression — ask the user.
+- [ ] · doubtful · open · `/szablony/[id]` · MANAGER · 1280 · registry L843 expects „Filtry” in the
+      template like in the kosztorys; the template shows none (`KosztorysFiltersMenu` returns null with no
+      filter options) — same at `c713fa2bf`. Box or menu: ask the user.
 
 ## Manual checks
 
