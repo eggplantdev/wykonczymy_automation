@@ -1,7 +1,7 @@
 'use client'
 
 import 'react-datasheet-grid/dist/style.css'
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 // `DynamicDataSheetGrid`, not `DataSheetGrid`: the library aliases the plain name to
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount.
@@ -225,62 +225,95 @@ export function KosztorysEditorBody({
   const gridHeightBesideTotals = hasTotalsPanel
     ? gridHeightBesidePanel(gridHeight, { open: totalsOpen, fraction: totalsFraction })
     : gridHeight
-  const sectionHeader = {
-    figures: new Map(
-      subtotals.map((section) => [
-        section.sectionId,
-        { itemCount: section.itemCount, net: section.net },
-      ]),
-    ),
-    collapsedSectionIds,
-    onToggleCollapsed: toggleSectionCollapsed,
-    onRename: onRenameSection,
-    actions:
-      onInsertSection && onSetSectionColor && onRemoveSection && onAddItem
-        ? {
-            onInsert: onInsertSection,
-            onSetColor: onSetSectionColor,
-            onRemove: onRemoveSection,
-            onAddItem,
-          }
-        : undefined,
-    sortActive: !orderCommandsEnabled(sort),
-    labelColumnId: sectionBandLabelColumnId(columns.map((column) => column.id)),
-    isBare: isReportCompact,
-  }
+  // Hand-memoized: these reach dsg as `columns`, and the compiler drops their cache, so every
+  // keystroke would make dsg re-process every column.
+  const sectionHeader = useMemo(
+    () => ({
+      figures: new Map(
+        subtotals.map((section) => [
+          section.sectionId,
+          { itemCount: section.itemCount, net: section.net },
+        ]),
+      ),
+      collapsedSectionIds,
+      onToggleCollapsed: toggleSectionCollapsed,
+      onRename: onRenameSection,
+      actions:
+        onInsertSection && onSetSectionColor && onRemoveSection && onAddItem
+          ? {
+              onInsert: onInsertSection,
+              onSetColor: onSetSectionColor,
+              onRemove: onRemoveSection,
+              onAddItem,
+            }
+          : undefined,
+      sortActive: !orderCommandsEnabled(sort),
+      labelColumnId: sectionBandLabelColumnId(columns.map((column) => column.id)),
+      isBare: isReportCompact,
+    }),
+    [
+      isReportCompact,
+      subtotals,
+      collapsedSectionIds,
+      toggleSectionCollapsed,
+      onRenameSection,
+      onInsertSection,
+      onSetSectionColor,
+      onRemoveSection,
+      onAddItem,
+      sort,
+      columns,
+    ],
+  )
 
-  const sectionFooter = {
-    figures: sectionColumnTotals,
-    labelColumnId: sectionFooterLabelColumnId(columns.map((column) => column.id)),
-  }
+  const sectionFooter = useMemo(
+    () => ({
+      figures: sectionColumnTotals,
+      labelColumnId: sectionFooterLabelColumnId(columns.map((column) => column.id)),
+    }),
+    [sectionColumnTotals, columns],
+  )
 
   const fitsDescriptionToPhone = preview && !report && !isWide
-  const gridColumns = columns
-    .map((column) =>
-      fitsDescriptionToPhone && column.id === 'description'
-        ? { ...column, ...pinnedWidth(PHONE_PREVIEW_DESCRIPTION_WIDTH) }
-        : column,
-    )
-    .map((column) => (pastVersion ? withHistoryChanges(column, pastVersion.diff) : column))
-    .map((column) =>
-      column.id
-        ? { ...column, headerClassName: cn(column.headerClassName, wrapColumnClass(column.id)) }
-        : column,
-    )
-    .map((column, index) =>
-      withSyntheticRows(
-        // A class per column rather than `:nth-child` in CSS: dsg virtualizes columns, so a
-        // horizontal scroll shifts which DOM child a column is and the stripes would swap.
-        preview && index % 2 === 1
-          ? {
-              ...column,
-              cellClassName: withCellClass(column.cellClassName, STRIPE_COLUMN_CLASS),
-              headerClassName: cn(column.headerClassName, STRIPE_COLUMN_CLASS),
-            }
-          : column,
-        { totals: columnTotals, totalLabel, sectionHeader, sectionFooter },
-      ),
-    )
+  const gridColumns = useMemo(
+    () =>
+      columns
+        .map((column) =>
+          fitsDescriptionToPhone && column.id === 'description'
+            ? { ...column, ...pinnedWidth(PHONE_PREVIEW_DESCRIPTION_WIDTH) }
+            : column,
+        )
+        .map((column) => (pastVersion ? withHistoryChanges(column, pastVersion.diff) : column))
+        .map((column) =>
+          column.id
+            ? { ...column, headerClassName: cn(column.headerClassName, wrapColumnClass(column.id)) }
+            : column,
+        )
+        .map((column, index) =>
+          withSyntheticRows(
+            // A class per column rather than `:nth-child` in CSS: dsg virtualizes columns, so a
+            // horizontal scroll shifts which DOM child a column is and the stripes would swap.
+            preview && index % 2 === 1
+              ? {
+                  ...column,
+                  cellClassName: withCellClass(column.cellClassName, STRIPE_COLUMN_CLASS),
+                  headerClassName: cn(column.headerClassName, STRIPE_COLUMN_CLASS),
+                }
+              : column,
+            { totals: columnTotals, totalLabel, sectionHeader, sectionFooter },
+          ),
+        ),
+    [
+      columns,
+      fitsDescriptionToPhone,
+      pastVersion,
+      preview,
+      columnTotals,
+      totalLabel,
+      sectionHeader,
+      sectionFooter,
+    ],
+  )
   // a no-hit search empties `viewRows` over a kosztorys that is not in fact empty.
   const isEmpty = preview ? subtotals.length === 0 && !reportedOnly : sections.length === 0
   const banded = buildSectionBandRows(viewRows, {
@@ -309,7 +342,10 @@ export function KosztorysEditorBody({
   const [reportFooterAnchor, setReportFooterAnchor] = useState<HTMLElement | null>(null)
   const reportFooterHost =
     reportFooterAnchor?.parentElement?.querySelector<HTMLElement>('.dsg-container') ?? undefined
-  const gutterColumn = ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize })
+  const gutterColumn = useMemo(
+    () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
+    [ordinalByRowId, rowResize],
+  )
   const hidesGutter = isReportCompact && !isWide
   // The report's full sheet is wider than a phone, but dsg renders only the columns inside its own
   // box — so the box gets the columns' width up front.

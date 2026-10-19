@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, type RefObject } from 'react'
+import { useMemo, useRef, type RefObject } from 'react'
 import type { Column, DataSheetGridRef } from 'react-datasheet-grid'
 import { useRowHeightCacheReset } from '@/components/kosztorys/editor/hooks/use-row-height-cache-reset'
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
@@ -43,15 +43,18 @@ export function useRowSizing({
   setGuideY,
 }: ArgsT) {
   const datasheetRef = useRef<DataSheetGridRef>(null)
-  const measured = measuredColumns(columns)
+  // Hand-memoized: under the compiler a fresh `columnLinesFor` per render re-measures every row's text.
+  const measured = useMemo(() => measuredColumns(columns), [columns])
   // Deliberately keyed on `columns` identity, not on the ids: a rebuild is what follows a column drag
   // and dsg sizing its `grow` columns, and it is the hook's only cue to re-read the header widths.
-  const measuredIds = measured.map((column) => column.id)
+  const measuredIds = useMemo(() => measured.map((column) => column.id), [measured])
   const [storedTextSize] = useGridTextSize()
   const textSize = report?.textSize ?? (preview ? 'sm' : storedTextSize)
   const wrap = useWrapColumnWidths(gridNode, measuredIds, textSize)
-  const measure = measureTextWidth(wrap.font)
-  const columnLinesFor = memoisedByRow((row) => columnLines(row, measured, wrap.widths, measure))
+  const columnLinesFor = useMemo(() => {
+    const measure = measureTextWidth(wrap.font)
+    return memoisedByRow((row) => columnLines(row, measured, wrap.widths, measure))
+  }, [wrap, measured])
   const contentLinesFor = (row: KosztorysV2RowT) => rowContentLines(columnLinesFor(row))
   const sizeToContent = preview || fitRowsToContent
   const showsRecheckFloor = !preview && columns.some((column) => column.id === 'reviewStatus')
