@@ -214,16 +214,16 @@ export const uk: typeof pl = {
     resyncFailedToast: 'Не вдалося оновити чеки — відкрийте заявку ще раз',
     completeItem: 'Заповніть позицію',
     receiptsAcceptedToast: {
-      one: 'Чек прийнято',
-      few: 'Прийнято {{count}}',
-      many: 'Прийнято {{count}}',
-      other: 'Прийнято {{count}}',
+      one: 'Прийнято {{count}} чек',
+      few: 'Прийнято {{count}} чеки',
+      many: 'Прийнято {{count}} чеків',
+      other: 'Прийнято {{count}} чека',
     },
     receiptsRejectedToast: {
-      one: 'Чек відхилено',
-      few: 'Відхилено {{count}}',
-      many: 'Відхилено {{count}}',
-      other: 'Відхилено {{count}}',
+      one: 'Відхилено {{count}} чек',
+      few: 'Відхилено {{count}} чеки',
+      many: 'Відхилено {{count}} чеків',
+      other: 'Відхилено {{count}} чека',
     },
   },
   workerReports: {
@@ -443,7 +443,6 @@ export const uk: typeof pl = {
     showCancelled: 'Показати скасовані',
     searchAmount: 'Пошук за сумою',
     searchId: 'Пошук за id',
-    clearFilters: 'Очистити фільтри',
     filteredSum: 'Сума вибраних транзакцій',
     filteredSumTip:
       'Сума не враховує скасовані транзакції, але враховує скасування, що їх відміняють, — тому не збігається зі списком нижче.',
@@ -605,8 +604,7 @@ export const uk: typeof pl = {
     ingestFailed: 'Не вдалося обробити файл — спробуйте ще раз.',
     convertFailed: 'Не вдалося конвертувати «{{name}}» — збережіть як JPG і спробуйте ще раз.',
     zoomOut: 'Зменшити',
-    originalLoadFailed:
-      'Не вдалося завантажити оригінал — перегляд лишається в якості попереднього перегляду.',
+    originalLoadFailed: 'Не вдалося завантажити оригінал — показано зменшену версію.',
     zoomIn: 'Збільшити',
     fitToWindow: 'Припасувати до вікна',
   },

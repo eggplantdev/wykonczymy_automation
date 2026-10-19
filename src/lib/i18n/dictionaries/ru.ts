@@ -213,16 +213,16 @@ export const ru: typeof pl = {
     resyncFailedToast: 'Не удалось обновить чеки — откройте заявку снова',
     completeItem: 'Заполните позицию',
     receiptsAcceptedToast: {
-      one: 'Чек принят',
-      few: 'Принято {{count}}',
-      many: 'Принято {{count}}',
-      other: 'Принято {{count}}',
+      one: 'Принят {{count}} чек',
+      few: 'Принято {{count}} чека',
+      many: 'Принято {{count}} чеков',
+      other: 'Принято {{count}} чека',
     },
     receiptsRejectedToast: {
-      one: 'Чек отклонён',
-      few: 'Отклонено {{count}}',
-      many: 'Отклонено {{count}}',
-      other: 'Отклонено {{count}}',
+      one: 'Отклонён {{count}} чек',
+      few: 'Отклонено {{count}} чека',
+      many: 'Отклонено {{count}} чеков',
+      other: 'Отклонено {{count}} чека',
     },
   },
   workerReports: {
@@ -443,7 +443,6 @@ export const ru: typeof pl = {
     showCancelled: 'Показать отменённые',
     searchAmount: 'Поиск по сумме',
     searchId: 'Поиск по id',
-    clearFilters: 'Сбросить фильтры',
     filteredSum: 'Сумма выбранных транзакций',
     filteredSumTip:
       'Сумма не учитывает отменённые транзакции, но учитывает отмены, которые их аннулируют, — поэтому не совпадает со списком ниже.',
@@ -605,8 +604,7 @@ export const ru: typeof pl = {
     ingestFailed: 'Не удалось обработать файл — попробуйте ещё раз.',
     convertFailed: 'Не удалось конвертировать «{{name}}» — сохраните как JPG и попробуйте ещё раз.',
     zoomOut: 'Уменьшить',
-    originalLoadFailed:
-      'Не удалось загрузить оригинал — просмотр остаётся в качестве предпросмотра.',
+    originalLoadFailed: 'Не удалось загрузить оригинал — показана уменьшенная версия.',
     zoomIn: 'Увеличить',
     fitToWindow: 'Вписать в окно',
   },

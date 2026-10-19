@@ -39,6 +39,14 @@ describe('plurals', () => {
     ])
   })
 
+  it('a Ukrainian / Russian `one` above 1 still shows its count', () => {
+    for (const locale of ['uk', 'ru'] as const) {
+      const { tp } = createTranslator(locale, 'expenseDrafts')
+      expect(tp('receiptsAcceptedToast', 21)).toContain('21')
+      expect(tp('receiptsRejectedToast', 21)).toContain('21')
+    }
+  })
+
   it('a counted phrase interpolates its count', () => {
     expect(createTranslator('pl', 'report').tp('draftDropped', 22)).toBe(
       '22 prace ze szkicu zniknęły z rozpiski.',

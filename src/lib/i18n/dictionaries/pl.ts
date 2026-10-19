@@ -451,7 +451,6 @@ export const pl = {
     showCancelled: 'Pokaż anulowane',
     searchAmount: 'Szukaj po kwocie',
     searchId: 'Szukaj po id',
-    clearFilters: 'Wyczyść filtry',
     filteredSum: 'Suma wybranych transakcji',
     filteredSumTip:
       'Suma pomija transakcje anulowane, ale liczy anulowania, które je cofają — dlatego nie zgadza się z listą poniżej.',

@@ -39,8 +39,10 @@ const col = createColumnHelper<TransferRowT>()
 // follow the link into a 404.
 const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
-const registerLink = (name: string, id: number | null, isTrashed: boolean) => (
-  <OptionalLink href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `/kasa/${id}` : undefined}>
+const relationLink = (name: string, href: string, id: number | null, isTrashed = false) => (
+  <OptionalLink
+    href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `${href}/${id}` : undefined}
+  >
     {name}
   </OptionalLink>
 )
@@ -101,15 +103,7 @@ const buildColumns = (
       id: 'investment',
       header: t('colInvestment'),
       meta: { minWidth: 'min-w-56', printValue: (row) => row.investmentName },
-      cell: (info) => {
-        const id = info.row.original.investmentId
-        const name = info.getValue()
-        return (
-          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/inwestycje/${id}` : undefined}>
-            {name}
-          </OptionalLink>
-        )
-      },
+      cell: (info) => relationLink(info.getValue(), '/inwestycje', info.row.original.investmentId),
     }),
     col.accessor('type', {
       id: 'type',
@@ -162,7 +156,7 @@ const buildColumns = (
       meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
       cell: (info) => {
         const { sourceRegisterId, sourceRegisterTrashed } = info.row.original
-        return registerLink(info.getValue(), sourceRegisterId, sourceRegisterTrashed)
+        return relationLink(info.getValue(), '/kasa', sourceRegisterId, sourceRegisterTrashed)
       },
     }),
     col.accessor('targetRegisterName', {
@@ -171,7 +165,7 @@ const buildColumns = (
       meta: { printValue: (row) => row.targetRegisterName },
       cell: (info) => {
         const { targetRegisterId, targetRegisterTrashed } = info.row.original
-        return registerLink(info.getValue(), targetRegisterId, targetRegisterTrashed)
+        return relationLink(info.getValue(), '/kasa', targetRegisterId, targetRegisterTrashed)
       },
     }),
 
@@ -185,15 +179,7 @@ const buildColumns = (
       id: 'worker',
       header: t('colWorker'),
       meta: { printValue: (row) => row.workerName },
-      cell: (info) => {
-        const id = info.row.original.workerId
-        const name = info.getValue()
-        return (
-          <OptionalLink href={name !== EMPTY_RELATION_NAME && id ? `/pracownicy/${id}` : undefined}>
-            {name}
-          </OptionalLink>
-        )
-      },
+      cell: (info) => relationLink(info.getValue(), '/pracownicy', info.row.original.workerId),
     }),
     col.accessor('payoutStatus', {
       id: 'payoutStatus',

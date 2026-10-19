@@ -1630,6 +1630,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] To samo konto: w zgłoszeniu z odczytanymi paragonami przyjmij jeden paragon, potem odrzuć dwa —
       toasty („Paragon przyjęty”, „Odrzucono 2”) są przetłumaczone; zapis zwykłego formularza wydatku
       pokazuje przetłumaczone „Transakcje dodane”.
+- [ ] Lista transakcji: inwestycja linkuje do `/inwestycje/[id]`, pracownik do `/pracownicy/[id]`; „—”
+      nie jest linkiem. „Wyczyść filtry” nad listą transakcji działa i (uk/ru) jest przetłumaczone.
 
 # Zamknięte — indeks
 
