@@ -1633,6 +1633,14 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Lista transakcji: inwestycja linkuje do `/inwestycje/[id]`, pracownik do `/pracownicy/[id]`; „—”
       nie jest linkiem. „Wyczyść filtry” nad listą transakcji działa i (uk/ru) jest przetłumaczone.
 
+## 2026-10-19 — payout-push-unpause — push „Wypłata do potwierdzenia” włączony
+
+- [ ] (tylko produkcja) Telefon z zainstalowaną aplikacją i włączonymi „Powiadomieniami”, aplikacja
+      zamknięta: zaksięguj wypłatę na to konto z komputera → na telefonie przychodzi powiadomienie
+      „Wypłata do potwierdzenia” z kwotą, a na ikonie aplikacji licznik rośnie o 1.
+- [ ] Stuknięcie w to powiadomienie otwiera stronę pracownika z wypłatą do potwierdzenia; po
+      potwierdzeniu licznik na ikonie znika.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
