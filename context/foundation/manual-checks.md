@@ -1311,8 +1311,11 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 
 ## 2026-10-19 — app-audit-refactor faza 2 — dostęp do kas, synchronizacja arkusza, saldo zero
 
-- [ ] Jako MANAGER na `/kasy`: status kasy („Aktywna” / „Nieaktywna”) widać, ale kliknięcie go nie
-      przełącza — klik w wiersz otwiera kasę jak dotąd.
+- [ ] Jako MANAGER na `/kasy`: przy kasie pracownika i swojej status („Aktywna” / „Nieaktywna”) da się
+      przełączyć i zostaje po odświeżeniu; przy kasie innego managera, ownera i admina status widać,
+      ale kliknięcie go nie przełącza.
+- [ ] Jako MANAGER na `/kasy`: kosz w kolumnie „Akcje” jest przy kasie pracownika i swojej, przy kasie
+      innego managera, ownera i admina go nie ma. W `/kosz` widać tylko kasy pracowników i swoje.
 - [ ] Jako OWNER na `/kasy`: przełącz kasę na „Nieaktywna” i z powrotem — stan zostaje po odświeżeniu.
 - [ ] Jako pracownik (EMPLOYEE) wpisz adres `/kasa/1`: trafiasz na swoją stronę pracownika, nie na
       „Nie znaleziono”.
