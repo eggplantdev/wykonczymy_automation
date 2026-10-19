@@ -1395,6 +1395,13 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
       (obramowane w swoim kolorze).
 
+## 2026-10-19 — cards-hide-table-controls — „Kolumny” i „Szukaj duplikatów” tylko w widoku tabeli
+
+- [ ] Transakcje → widok kart: nie ma przycisków „Kolumny” ani „Szukaj duplikatów”; po powrocie do
+      widoku tabeli oba są na miejscu.
+- [ ] Ukryj w tabeli kolumnę „Kasa źródłowa”, przełącz na karty: karty dalej pokazują „Kasa źródłowa: …”.
+- [ ] Strona pracownika w widoku kart: brak etykiety „Pracownik”, jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
