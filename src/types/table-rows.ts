@@ -89,5 +89,5 @@ export type UserRowT = {
   /** Absent when the worker holds no pair on any investment with a kosztorys. */
   payoutRemaining?: WorkerColumnFiguresT
   registerNames: string[]
-  canTrash: boolean
+  canManage: boolean
 }

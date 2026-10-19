@@ -32,7 +32,7 @@ export default async function UsersListPage() {
     registerNames: ownedRegisters(refData.cashRegisters, worker.id).map(
       (register) => register.name,
     ),
-    canTrash: canTrashAccount(session.user, worker),
+    canManage: canTrashAccount(session.user, worker),
   }))
 
   return (

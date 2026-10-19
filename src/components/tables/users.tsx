@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import type { UserRowT } from '@/types/table-rows'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { RoleBadge } from '@/components/users/role-badge'
-import { BadgeButton } from '@/components/ui/badge'
+import { Badge, BadgeButton } from '@/components/ui/badge'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
@@ -112,13 +112,14 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       meta: { align: 'right' },
       cell: (info) => {
         const isActive = info.getValue()
-        return (
-          <BadgeButton
-            tone={isActive ? 'positive' : 'muted'}
-            onClick={() => onToggle(info.row.original.id, !isActive)}
-          >
-            {isActive ? 'Aktywny' : 'Nieaktywny'}
+        const tone = isActive ? 'positive' : 'muted'
+        const label = isActive ? 'Aktywny' : 'Nieaktywny'
+        return info.row.original.canManage ? (
+          <BadgeButton tone={tone} onClick={() => onToggle(info.row.original.id, !isActive)}>
+            {label}
           </BadgeButton>
+        ) : (
+          <Badge tone={tone}>{label}</Badge>
         )
       },
     }),
@@ -159,7 +160,7 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       header: 'Akcje',
       meta: { align: 'right' },
       cell: (info) =>
-        info.row.original.canTrash && (
+        info.row.original.canManage && (
           <div className="flex items-center justify-end gap-1">
             <TrashRowButton
               label="Usuń pracownika"

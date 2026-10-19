@@ -24,7 +24,7 @@ const worker = (
   active: true,
   payoutRemaining,
   registerNames: [],
-  canTrash: true,
+  canManage: true,
 })
 
 const bucket = (overrides: Partial<PayoutBucketT> = {}): PayoutBucketT => ({
@@ -233,11 +233,28 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
   })
 })
 
+describe('„Status" on the employee list', () => {
+  it('toggles only on a row the viewer may manage', () => {
+    render(
+      <UserDataTable
+        data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), canManage: false }]}
+        cashRegisters={[]}
+        assignableRoles={[...ROLES]}
+      />,
+    )
+    expect(within(rowOf('Jan')).getByRole('button', { name: 'Aktywny' })).toBeVisible()
+    expect(
+      within(rowOf('Piotr')).queryByRole('button', { name: 'Aktywny' }),
+    ).not.toBeInTheDocument()
+    expect(within(rowOf('Piotr')).getByText('Aktywny')).toBeVisible()
+  })
+})
+
 describe('„Do kosza" on the employee list', () => {
   it('offers the button only on a row the viewer may trash', () => {
     render(
       <UserDataTable
-        data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), canTrash: false }]}
+        data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), canManage: false }]}
         cashRegisters={[]}
         assignableRoles={[...ROLES]}
       />,
