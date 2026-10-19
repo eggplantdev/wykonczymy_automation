@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SimpleSelect } from '@/components/ui/simple-select'
+import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
 import { ToggleGroup } from '@/components/ui/toggle-group'
-import { SaveAsDefaultButton } from '@/components/orders/save-as-default-button'
+import { SaveAsDefaultButton } from '@/components/ui/save-as-default-button'
 import { setInvestmentSiteManagerAction } from '@/lib/actions/investments'
 import { setDefaultSupplierAction } from '@/lib/actions/order-settings'
 import { ORDER_ITEMS, ORDER_ITEM_KINDS, type OrderItemT } from '@/lib/constants/orders'
@@ -15,6 +15,7 @@ import { isOrderPrice } from '@/lib/orders/order-price'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import { roundToCents } from '@/lib/utils/round-to-cents'
+import { sanitizeNumericInput } from '@/lib/utils/sanitize-numeric-input'
 import type { OrderContactT } from '@/lib/orders/compose-order-sms'
 import type { OrderSettingsT } from '@/types/order-settings'
 import type { WorkerRefT } from '@/types/reference-data'
@@ -35,9 +36,6 @@ type OrderPickStepPropsT = {
   settingsButton?: React.ReactNode
   onNext: (pick: OrderPickT) => void
 }
-
-// Radix Select refuses an empty-string item value.
-const NONE = 'none'
 
 const SITE_MANAGER_LABELS = {
   isDefault: 'Kierownik budowy',
@@ -75,12 +73,11 @@ export function OrderPickStep({
   const [priceText, setPriceText] = useState(defaultPrice)
   const [shownDefaultPrice, setShownDefaultPrice] = useState(defaultPrice)
   const [contactId, setContactId] = useState(() =>
-    contacts.some((worker) => worker.id === siteManagerId) ? String(siteManagerId) : NONE,
+    contacts.some((worker) => worker.id === siteManagerId) ? String(siteManagerId) : SELECT_NONE,
   )
   const [supplierId, setSupplierId] = useState(defaultSupplierId)
 
-  // A price saved from the gear replaces the field; re-keying the step instead would close the
-  // settings dialog and drop the rest of the pick.
+  // A price saved from the gear replaces the field.
   if (shownDefaultPrice !== defaultPrice) {
     setShownDefaultPrice(defaultPrice)
     setPriceText(defaultPrice)
@@ -129,17 +126,16 @@ export function OrderPickStep({
             id="order-unit-price"
             inputMode="decimal"
             value={priceText}
-            onChange={(event) =>
-              setPriceText(event.target.value.replace(/\s/g, '').replace(',', '.'))
-            }
+            onChange={(event) => setPriceText(sanitizeNumericInput(event.target.value))}
           />
         </div>
       </div>
       <div className="grid gap-2">
-        <Label>Dostawca</Label>
+        <Label htmlFor="order-supplier">Dostawca</Label>
         {supplier ? (
           <>
             <SimpleSelect
+              id="order-supplier"
               value={supplier.id}
               onValueChange={setSupplierId}
               options={suppliers.map((candidate) => ({
@@ -161,17 +157,18 @@ export function OrderPickStep({
         )}
       </div>
       <div className="grid gap-2">
-        <Label>Kontakt na miejscu</Label>
+        <Label htmlFor="order-contact">Kontakt na miejscu</Label>
         {contacts.length === 0 ? (
           <Description withIcon={false}>
             Tutaj pojawią się pracownicy z zapisanymi numerami telefonów.
           </Description>
         ) : (
           <SimpleSelect
-            value={contactId}
+            id="order-contact"
+            value={contactWorker ? contactId : SELECT_NONE}
             onValueChange={setContactId}
             options={[
-              { value: NONE, label: '— brak —' },
+              { value: SELECT_NONE, label: '— brak —' },
               ...contacts.map((worker) => ({
                 value: String(worker.id),
                 label: `${worker.name} · ${worker.phone}`,

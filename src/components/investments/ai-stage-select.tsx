@@ -10,7 +10,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from 'lucide-react'
-import { SimpleSelect } from '@/components/ui/simple-select'
+import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
 import { BADGE_OUTLINE_TONES } from '@/components/ui/badge'
 import { AI_PROGRESS_TONES } from '@/components/investments/ai-progress-badge'
 import { setInvestmentAiStageAction } from '@/lib/actions/investments'
@@ -24,9 +24,6 @@ import {
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
-// Radix Select refuses an empty-string item value, so „Uzupełnianie informacji” (no stored stage) needs a sentinel.
-const NO_STAGE = 'none'
-
 const STAGE_ICONS: Record<InvestmentAiStageT, LucideIcon> = {
   ready_for_analysis: ClipboardList,
   analyzed: Sparkles,
@@ -37,7 +34,7 @@ const STAGE_ICONS: Record<InvestmentAiStageT, LucideIcon> = {
 
 const OPTIONS = [
   {
-    value: NO_STAGE,
+    value: SELECT_NONE,
     label: AI_STAGE_GATHERING.pl,
     icon: FolderInput,
     description: AI_STAGE_GATHERING.description,
@@ -73,7 +70,7 @@ export function AiStageSelect({ investmentId, aiStage }: PropsT) {
   return (
     <SimpleSelect
       variant="toolbarSm"
-      value={value ?? NO_STAGE}
+      value={value ?? SELECT_NONE}
       onValueChange={handleChange}
       options={OPTIONS}
       disabled={isPending}

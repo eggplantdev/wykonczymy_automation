@@ -183,7 +183,7 @@ describe('OrderDialog', () => {
   it('sends the SMS to the supplier picked in the first step', async () => {
     const user = renderDialog()
 
-    await user.click(screen.getByRole('combobox', { name: /Beta Wywóz/ }))
+    await user.click(screen.getByRole('combobox', { name: 'Dostawca' }))
     await user.click(await screen.findByRole('option', { name: 'Alfa Kontenery · 601 000 001' }))
     const href = await bookAndOpenSms(user)
 
@@ -194,7 +194,7 @@ describe('OrderDialog', () => {
     vi.mocked(setDefaultSupplierAction).mockResolvedValue({ success: true })
     const user = renderDialog()
 
-    await user.click(screen.getByRole('combobox', { name: /Beta Wywóz/ }))
+    await user.click(screen.getByRole('combobox', { name: 'Dostawca' }))
     await user.click(await screen.findByRole('option', { name: 'Alfa Kontenery · 601 000 001' }))
     await user.click(screen.getByRole('button', { name: 'Zapisz jako domyślnego dostawcę' }))
 
@@ -230,7 +230,7 @@ describe('OrderDialog', () => {
   it('puts the contact picked in the first step into the SMS', async () => {
     const user = renderDialog({ siteManagerId: SITE_MANAGER_ID })
 
-    await user.click(screen.getByRole('combobox', { name: 'Jan Kowalski · 601 234 567' }))
+    await user.click(screen.getByRole('combobox', { name: 'Kontakt na miejscu' }))
     await user.click(await screen.findByRole('option', { name: 'Anna Nowak · 602 345 678' }))
 
     expect(smsBody(await bookAndOpenSms(user))).toContain(
@@ -242,7 +242,7 @@ describe('OrderDialog', () => {
     vi.mocked(setInvestmentSiteManagerAction).mockResolvedValue({ success: true })
     const user = renderDialog()
 
-    await user.click(screen.getByRole('combobox', { name: '— brak —' }))
+    await user.click(screen.getByRole('combobox', { name: 'Kontakt na miejscu' }))
     await user.click(await screen.findByRole('option', { name: 'Jan Kowalski · 601 234 567' }))
     await user.click(screen.getByRole('button', { name: 'Ustaw jako kierownika budowy' }))
 
