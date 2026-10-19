@@ -24,7 +24,7 @@ export const REGISTER_TYPE_BORDER_COLORS: Record<CashRegisterTypeT, string> = {
 
 const col = createColumnHelper<CashRegisterRowT>()
 
-export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean) => void) {
+export function getCashRegisterColumns(onToggle?: (id: number, newActive: boolean) => void) {
   return [
     col.accessor('name', {
       id: 'name',

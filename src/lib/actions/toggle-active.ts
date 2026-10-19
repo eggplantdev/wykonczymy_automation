@@ -5,7 +5,7 @@ import config from '@payload-config'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES, isAdminOrOwnerRole } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
 import { toActionFailure } from '@/lib/actions/action-failure'
 import { logError } from '@/lib/utils/log-error'
@@ -83,5 +83,7 @@ export async function toggleCashRegisterActive(id: number, active: boolean) {
     cacheTag: 'cashRegisters',
     data: (active) => ({ active }),
     overrideAccess: true,
+    refusal: async (_payload, actor) =>
+      isAdminOrOwnerRole(actor.role) ? undefined : 'Brak uprawnień',
   })
 }

@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { createTestUser, purgeFixtureUsers } from '@/__tests__/helpers/user'
+import { createTestRegister } from '@/__tests__/helpers/register'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 
 // Real `payload.update`, because the update rewrites the sessions array from the merged doc — a
@@ -129,5 +130,53 @@ describe.skipIf(!ENV_READY)('toggleUserActive — who may deactivate whom (DB)',
 
     expect(await toggleUserActive(employeeId, false)).toEqual({ success: true })
     expect(await isActive(employeeId)).toBe(false)
+  })
+})
+
+describe.skipIf(!ENV_READY)('toggleCashRegisterActive — who may toggle (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let registerId: number
+
+  const isActive = async () => {
+    const { rows } = await db.execute(
+      sql`SELECT active FROM cash_registers WHERE id = ${registerId}`,
+    )
+    return rows[0]?.active !== false
+  }
+
+  beforeAll(async () => {
+    payload = await bootTestPayload()
+    db = await getDb(payload)
+    await purgeFixtureUsers(db)
+    const ownerId = await createTestUser(payload, {
+      name: 'Właściciel Kasy',
+      email: 'toggle-register-owner@test.local',
+      password: PASSWORD,
+    })
+    registerId = await createTestRegister(payload, ownerId, 'Kasa Przełącznika')
+  })
+
+  afterAll(async () => {
+    Object.assign(authState, { userId: 1, role: 'OWNER' })
+    await purgeFixtureUsers(db)
+  })
+
+  it('refuses a MANAGER, and the register stays active', async () => {
+    Object.assign(authState, { userId: 1, role: 'MANAGER' })
+    const { toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
+
+    const result = await toggleCashRegisterActive(registerId, false)
+
+    expect(result.success).toBe(false)
+    expect(await isActive()).toBe(true)
+  })
+
+  it('lets an OWNER deactivate it', async () => {
+    Object.assign(authState, { userId: 1, role: 'OWNER' })
+    const { toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
+
+    expect(await toggleCashRegisterActive(registerId, false)).toEqual({ success: true })
+    expect(await isActive()).toBe(false)
   })
 })
