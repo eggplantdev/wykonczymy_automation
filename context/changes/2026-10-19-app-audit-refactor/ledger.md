@@ -76,10 +76,16 @@ Cycles after the phase: 45 (−1).
 
 Cycles after the phase: 42 (−3).
 
-- [x] · fixed · `ACCESS` · `src/lib/actions/toggle-active.ts:86` · `toggleCashRegisterActive` refuses
-      every non-ADMIN/OWNER actor before the write (owner decision); `toggle-active.db.test.ts` failed
-      first. `/kasy` renders the status badge read-only to MANAGER (`ActiveToggleBadge` without
-      `onToggle`)
+- [x] · fixed · `ACCESS` · `src/lib/actions/toggle-active.ts:86` · `toggleCashRegisterActive` had no
+      scope: a MANAGER switched any kasa, the główna included. Now `canManageRegister` (owner ruling): a
+      MANAGER switches only his own kasa and an EMPLOYEE's, never the główna or another manager's,
+      the OWNER's or an ADMIN's; `toggle-active.db.test.ts` failed first. `/kasy` renders the badge
+      read-only on the kasy he may not switch. A first pass blocked MANAGER entirely — misread ruling,
+      corrected. Role-rule document: EX-1098
+- [x] · fixed · `ACCESS` · `src/lib/actions/cash-register-trash.ts:22` · the trash, restore and „Usuń
+      na zawsze" actions checked only the główna, so a MANAGER could bin another manager's or the
+      OWNER's kasa; now the same `canManageRegister`, and `/kosz` lists only the kasy he may act on
+      (`shapeTrashRows`). `cash-register-trash.db.test.ts` failed first
 - [x] · fixed · `ACCESS` · `src/app/(frontend)/kasa/[id]/page.tsx:25` · `requireAuth` +
       `notFound()` replaced by `requireManagementPage`, so an EMPLOYEE lands on his own page; the
       `canViewRegister` 404 for MANAGER on a MAIN register stays
