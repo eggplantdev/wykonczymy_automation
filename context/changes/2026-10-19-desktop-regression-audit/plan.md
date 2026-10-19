@@ -634,4 +634,4 @@ Not run: the full suite, E2E and the build. The user asks for those explicitly.
 
 #### Automated
 
-- [ ] 5.1 No open box in `review-gate.md`
+- [x] 5.1 No open box in `review-gate.md`

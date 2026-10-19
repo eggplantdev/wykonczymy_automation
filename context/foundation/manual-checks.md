@@ -608,8 +608,9 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
       _Staging 2026-10-18 (pass 10): tx 5314 (2 pliki, PDF): Drukuj otworzył okno z 2 iframe'ami (obie strony, PDF włącznie), okno zamknęło się samo; natywne okno drukowania = HUMAN (print stub)_
 ## 2026-10-16 — filters-tick-to-show — „Filtry” zaznaczasz to, co chcesz widzieć
 
-- [ ] Szablon → „Filtry” działają tak samo jak w kosztorysie (nic zaznaczone = wszystko).
-      _Staging 2026-10-18 (pass 10): szablon 3 nie ma przycisku „Filtry” w ogóle (pasek: Dodaj, Opcje, Problemy, Sekcje, Kolumny); `KosztorysFiltersMenu` zwraca null przy pustej liście opcji — szablon nie ma przedmiaru ani pracy wykonanej. Do decyzji właściciela: czy „Filtry” w szablonie mają istnieć (finding pass 10)._
+- [ ] Szablon, w którym część prac ma „Cenę j.m.”, a część nie → „Filtry” działają tak samo jak w
+      kosztorysie (nic zaznaczone = wszystko). Gdy wszystkie prace mają cenę (albo żadna), przycisku
+      „Filtry” nie ma — nie byłoby czego filtrować.
 - [ ] Kosztorys, szablon → „Filtry”: bez „Wyczyść filtry”. Przy czymkolwiek zaznaczonym na górze jest
       „Wyczyść” — odhacza tylko opcje tego menu („Problemy”, zwinięte sekcje i „Szukaj…” zostają), po
       czym znika. Przewinięte w dół — „Wyczyść” odjeżdża razem z listą.
@@ -800,7 +801,6 @@ Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez 
       wyników pokazuje „Wyczyść wyszukiwanie”, a filtr ukrywający wszystko — „Wyczyść filtry”.
 - [ ] Wysokość wierszy: przeciągnięcie krawędzi wiersza, dwuklik „dopasuj do treści” i przełączenie rozmiaru tekstu
       zmieniają wysokość jak wcześniej; wiersz „do ponownego sprawdzenia” ma dwie linie.
-- [ ] Jako MANAGER ten sam edytor nie pokazuje kwot.
 - [ ] Jako ADMIN na 390 px edytor się wyświetla, przewija i przyjmuje edycję komórki.
 
 ## 2026-10-19 — app-audit-refactor — preview brancha vs staging (luki z listy ryzyk)
@@ -933,6 +933,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Strona inwestycji: strzałki przy „Etap AI” i „Kierownik budowy” są szare, jak przy „Notatki”,
       a nie czarne.
+- [ ] Jako kierownik → „Pracownicy”: status „Aktywny/Nieaktywny” przy koncie właściciela, innego
+      kierownika i przy własnym jest zwykłym znaczkiem (nie da się kliknąć); przy pracowniku przełącza
+      jak dotąd. Jako właściciel: tylko własny status jest nieklikalny.
 
 # Zamknięte — indeks
 
@@ -1212,3 +1215,4 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | 2026-10-19 — szerszy dialog „Szczegóły" leada | 2/2 | 2026-10-19 |
 | 2026-10-19 — cancel-rejected-payout — odrzuconą wypłatę anuluje każdy z zarządu | 3/3 | 2026-10-19 |
 | 2026-10-19 — cards-hide-table-controls — „Kolumny” i „Szukaj duplikatów” tylko w widoku tabeli | 3/3 | 2026-10-19 |
+

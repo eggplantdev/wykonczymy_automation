@@ -202,15 +202,18 @@ Stage C notes (logged out unless noted, 1280 + 1024, staging `9d7572296`):
       not a refactor regression. `submitOptimistically` now restores it (`10cd3cbfa`).
       test: test-driven-debugging · unit — `optimistic-form-store.test.ts` „a failed submit reopens with
       the keep-open checkbox…”; green (17/17).
-- [ ] · doubtful · open · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
+- [x] · doubtful · dismissed · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
       MANAGER editor shows no amounts, but it shows section nets and all summary tables; only „Marża”
-      is hidden — identical at `c713fa2bf`. Likely stale box wording — ask the user at stage close.
-- [ ] · doubtful · open · `/pracownicy` · MANAGER · 1280 · the „Aktywny/Nieaktywny” badge is clickable on
+      is hidden — identical at `c713fa2bf`. Owner: current behaviour is right; box reworded to „nie pokazuje „Marży”” and ticked.
+- [x] · doubtful · fixed · `/pracownicy` · MANAGER · 1280 · the „Aktywny/Nieaktywny” badge is clickable on
       OWNER/MANAGER rows too; the server refuses with „Kierownik może zmieniać tylko konta pracowników.”
-      — no UI gate at `c713fa2bf` either (`/kasy` hides it instead). Not a regression — ask the user.
-- [ ] · doubtful · open · `/szablony/[id]` · MANAGER · 1280 · registry L843 expects „Filtry” in the
+      — no UI gate at `c713fa2bf` either (`/kasy` hides it instead). Owner: block it — the badge is a plain
+      `Badge` where `canTrashAccount` refuses (row field `canTrash` → `canManage`, gates both).
+      test: TDD · unit — `users.test.tsx` „toggles only on a row the viewer may manage”; not run (tests on the user's ask).
+- [x] · doubtful · dismissed · `/szablony/[id]` · MANAGER · 1280 · registry L843 expects „Filtry” in the
       template like in the kosztorys; the template shows none (`KosztorysFiltersMenu` returns null with no
-      filter options) — same at `c713fa2bf`. Box or menu: ask the user.
+      filter options) — same at `c713fa2bf`. Owner: keep it — a szablon offers only „Cena j.m.” filters, shown when they
+      split the prace; box reworded.
 
 ## Manual checks
 
@@ -616,6 +619,6 @@ Notes:
 
 - Registry sweep (2026-10-19): 24 fully ticked sections collapsed into index rows, 154 ticked boxes removed
   from open sections; 187 open boxes kept (count unchanged).
-- Still open: the three doubtful findings above (owner's call), and the registry box for the gray select
+- The three doubtful findings resolved by the owner (2026-10-19). Still open in the registry: the gray select
   arrows (`c7c47299f`) — the deployed staging build `9d7572296` predates the fix.
 - Teardown: nothing to stop — the run used deployed staging, no local dev server, no `tsconfig.json` drift.
