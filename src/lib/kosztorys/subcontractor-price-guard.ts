@@ -5,7 +5,7 @@ import { formatCoeff, formatNet } from '@/lib/kosztorys/format'
 import type { KosztorysItemT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // The ceiling is the standard rate — pay more than the deal and you are eating the marża.
-export const MAX_CLIENT_SHARE: Record<ToolPlaneT, number> = {
+const MAX_CLIENT_SHARE: Record<ToolPlaneT, number> = {
   w_tools: DEFAULT_COEFFS.wTools,
   own_tools: DEFAULT_COEFFS.ownTools,
 }

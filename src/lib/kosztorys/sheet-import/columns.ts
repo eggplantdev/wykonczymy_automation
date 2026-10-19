@@ -27,7 +27,7 @@ const COLUMN_FIELDS = Object.keys(FIELD_LABELS) as ColumnFieldT[]
 export const isColumnField = (value: unknown): value is ColumnFieldT =>
   typeof value === 'string' && (COLUMN_FIELDS as string[]).includes(value)
 
-export const OPTIONAL_FIELDS = ['discount', 'comment', 'measuredQty'] as const
+const OPTIONAL_FIELDS = ['discount', 'comment', 'measuredQty'] as const
 
 export type OptionalFieldT = (typeof OPTIONAL_FIELDS)[number]
 

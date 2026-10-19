@@ -4,7 +4,7 @@ import { HEADER_BLOCK_ROWS } from './columns'
 import type { RateTabGridT } from './read-sheet'
 import { resolveRates, type ResolvedRatesT } from './resolve-columns'
 
-export type RateRowT = {
+type RateRowT = {
   description: string
   wToolsRate: number
   ownToolsRate: number
@@ -19,7 +19,7 @@ export type RateTabT = { title: string; rows: RateRowT[] }
 
 export type RateConflictReasonT = 'disagree' | 'incoherent'
 
-export type RateDecisionKindT =
+type RateDecisionKindT =
   | 'agree' // both tabs, same pair
   | 'single' // only one tab has this praca
   | 'conflict' // the cenniki don't agree, or a pair reads as misread: NOT resolved, imports blank
@@ -27,9 +27,9 @@ export type RateDecisionKindT =
 
 // `missing` is reported as a count instead — on a sheet whose cenniki are unreadable EVERY praca is missing, and 400 identical lines
 // would bury the handful of real disagreements this list exists to surface.
-export type ReportedRateKindT = Exclude<RateDecisionKindT, 'agree' | 'missing'>
+type ReportedRateKindT = Exclude<RateDecisionKindT, 'agree' | 'missing'>
 
-export type RateCandidateT = {
+type RateCandidateT = {
   tab: string
   wToolsRate: number
   ownToolsRate: number

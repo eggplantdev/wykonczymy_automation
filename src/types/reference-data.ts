@@ -37,7 +37,7 @@ export type InvestmentRefT = ReferenceItemT & {
   vatRate: number
 }
 
-export type InvestmentNotesT = {
+type InvestmentNotesT = {
   notes: string
   aiNotes: string
 }

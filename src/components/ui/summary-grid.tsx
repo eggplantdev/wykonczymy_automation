@@ -46,8 +46,8 @@ const CELL_WEIGHT = {
   bold: 'font-bold',
 } as const
 
-export type SummaryCellToneT = keyof typeof CELL_TONE
-export type SummaryCellWeightT = keyof typeof CELL_WEIGHT
+type SummaryCellToneT = keyof typeof CELL_TONE
+type SummaryCellWeightT = keyof typeof CELL_WEIGHT
 
 type SummaryCellNoteT = {
   text: string

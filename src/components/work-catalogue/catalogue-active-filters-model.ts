@@ -1,7 +1,7 @@
 import type { ActiveFiltersBarChipT } from '@/components/filters/active-filters-bar'
 import type { CatalogueConditionT } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 
-export type CatalogueChipRemovalT = 'condition' | 'problem' | 'search' | 'category' | 'unit'
+type CatalogueChipRemovalT = 'condition' | 'problem' | 'search' | 'category' | 'unit'
 
 export type CatalogueActiveFilterChipT = ActiveFiltersBarChipT & { removal: CatalogueChipRemovalT }
 

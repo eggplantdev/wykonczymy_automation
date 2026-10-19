@@ -5,7 +5,7 @@ import type { StoreLeadInputT } from './store-lead'
 
 export const MAX_LANDING_ASSETS = 15
 
-export const landingAssetSchema = z.object({
+const landingAssetSchema = z.object({
   url: z.url(),
   filename: z.string().min(1),
   contentType: z.string().min(1),

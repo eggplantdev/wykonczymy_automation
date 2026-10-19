@@ -120,7 +120,7 @@ type PropsT = KosztorysEditorDataT & {
   }
 }
 
-export type ReportGridControlsT = {
+type ReportGridControlsT = {
   search: string
   onSearch: (value: string) => void
   showAllRows: boolean

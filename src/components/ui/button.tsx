@@ -95,4 +95,4 @@ function Button({
 }
 
 export { Button, buttonVariants, BUTTON_ANIMATION_CLASSES }
-export type { ButtonAnimationT, ButtonPropsT }
+export type { ButtonPropsT }

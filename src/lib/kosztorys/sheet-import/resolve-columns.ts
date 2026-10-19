@@ -14,7 +14,7 @@ import {
 import type { SheetColumnMappingT } from './sheet-column-mapping'
 import { columnLetter } from '@/lib/google/sheet-configs'
 
-export type StageColumnsT = { firstColumn: number; count: number }
+type StageColumnsT = { firstColumn: number; count: number }
 
 export type ResolveFailureT = { ok: false; problems: string[] }
 

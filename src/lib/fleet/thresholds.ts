@@ -5,7 +5,7 @@ export { isMoreUrgent }
 
 export const OVERDUE = ZERO_BUCKET
 
-export const DEADLINE_BUCKETS = [OVERDUE, 1, 7, 30] as const
+const DEADLINE_BUCKETS = [OVERDUE, 1, 7, 30] as const
 
 export type DeadlineBucketT = (typeof DEADLINE_BUCKETS)[number]
 

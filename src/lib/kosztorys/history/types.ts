@@ -4,7 +4,7 @@ import type { GlobalDiscountT, KosztorysStageT, KosztorysTreeT } from '@/lib/kos
 
 // A row stored before the investor history shipped has no rabat at all. `known: false` is that
 // state, and it is never read as 0 zł: a rabat of 0 is a claim, and nobody made it.
-export type HistoryDiscountT = ({ known: true } & GlobalDiscountT) | { known: false }
+type HistoryDiscountT = ({ known: true } & GlobalDiscountT) | { known: false }
 
 export type HistoryVersionT = { tree: KosztorysTreeT; discount: HistoryDiscountT }
 

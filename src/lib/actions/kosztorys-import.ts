@@ -46,7 +46,7 @@ export type ImportPreviewT = {
   failure: SheetFailureT | null
 }
 
-export type RefreshMeasuredQtyResultT = {
+type RefreshMeasuredQtyResultT = {
   updated: number
   cleared: number
   unmatched: number
