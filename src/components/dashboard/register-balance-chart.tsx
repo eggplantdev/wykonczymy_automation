@@ -1,7 +1,7 @@
 import {
   REGISTER_TYPE_BORDER_COLORS,
   REGISTER_TYPE_LABELS,
-} from '@/components/tables/cash-registers'
+} from '@/lib/cash-registers/register-types'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'

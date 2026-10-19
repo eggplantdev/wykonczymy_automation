@@ -8,7 +8,8 @@ import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
-import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/components/tables/cash-registers'
+import { getCashRegisterColumns } from '@/components/tables/cash-registers'
+import { REGISTER_TYPES, REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
 import { RegisterBalanceChart } from '@/components/dashboard/register-balance-chart'
 import { AddCashRegisterDialog } from '@/components/dialogs/add-cash-register-dialog'
 import { useActiveFilter } from '@/hooks/use-active-filter'
@@ -19,7 +20,7 @@ import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { canManageRegister } from '@/lib/auth/roles'
 import type { CashRegisterRowT } from '@/types/table-rows'
-import type { CashRegisterTypeT, WorkerRefT } from '@/types/reference-data'
+import type { WorkerRefT } from '@/types/reference-data'
 
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
 const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
@@ -33,7 +34,7 @@ type CashRegistersTablePropsT = {
   className?: string
 }
 
-const TYPE_OPTIONS = (Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]).map((value) => ({
+const TYPE_OPTIONS = REGISTER_TYPES.map((value) => ({
   value,
   label: REGISTER_TYPE_LABELS[value],
 }))
