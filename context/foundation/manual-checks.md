@@ -1309,6 +1309,19 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] `/transakcje` → menu kolumn: ukrywanie i pokazywanie kolumn działa, okno kolejności kolumn
       przestawia kolumny.
 
+## 2026-10-19 — app-audit-refactor faza 2 — dostęp do kas, synchronizacja arkusza, saldo zero
+
+- [ ] Jako MANAGER na `/kasy`: status kasy („Aktywna” / „Nieaktywna”) widać, ale kliknięcie go nie
+      przełącza — klik w wiersz otwiera kasę jak dotąd.
+- [ ] Jako OWNER na `/kasy`: przełącz kasę na „Nieaktywna” i z powrotem — stan zostaje po odświeżeniu.
+- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/kasa/1`: trafiasz na swoją stronę pracownika, nie na
+      „Nie znaleziono”.
+- [ ] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
+- [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
+      synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
+- [ ] Jako ADMIN na `/wyplaty` → „Rozlicz”: kwota „Pozostało”, która zaokrągla się do zera, pokazuje
+      „0,00 zł” bez czerwonego koloru.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
