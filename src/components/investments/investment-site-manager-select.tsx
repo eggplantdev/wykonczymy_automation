@@ -41,15 +41,12 @@ export function InvestmentSiteManagerSelect({ investmentId, siteManagerId, worke
   }
 
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground">Kierownik budowy</span>
-      <SimpleSelect
-        value={selectedId === undefined ? NONE : String(selectedId)}
-        onValueChange={handleChange}
-        options={options}
-        disabled={isPending}
-        variant="soft"
-      />
-    </label>
+    <SimpleSelect
+      value={selectedId === undefined ? NONE : String(selectedId)}
+      onValueChange={handleChange}
+      options={options}
+      disabled={isPending}
+      variant="toolbarSm"
+    />
   )
 }

@@ -10,7 +10,7 @@ type PropsT = {
 
 export function OpenKosztorysV2Button({
   investmentId,
-  label = 'Otwórz kosztorys_v2',
+  label = 'Kosztorys v2',
   size = 'xs',
 }: PropsT) {
   return (

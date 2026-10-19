@@ -10,7 +10,7 @@ export function InvestmentAiNotes({ aiNotes }: { aiNotes: string }) {
     <CollapsibleSection
       title="Uwagi AI"
       storageKey={AI_NOTES_STORAGE_KEY}
-      size="sm"
+      size="compact"
       withSeparator={false}
       className="text-sm"
     >

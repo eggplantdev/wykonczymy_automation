@@ -9,7 +9,7 @@ import { Description } from '@/components/ui/description'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
-type CollapsibleSectionSizeT = 'lg' | 'sm'
+type CollapsibleSectionSizeT = 'lg' | 'sm' | 'compact'
 
 type CollapsibleSectionPropsT = {
   title: string
@@ -26,9 +26,10 @@ type CollapsibleSectionPropsT = {
   children: React.ReactNode
 }
 
-const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string }> = {
-  lg: { title: SECTION_TITLE_CLASS, chevron: 'size-5' },
-  sm: { title: 'text-sm font-medium', chevron: 'size-4' },
+const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string; trigger: string }> = {
+  lg: { title: SECTION_TITLE_CLASS, chevron: 'size-5', trigger: 'py-2' },
+  sm: { title: 'text-sm font-medium', chevron: 'size-4', trigger: 'py-2' },
+  compact: { title: 'text-sm font-medium', chevron: 'size-4', trigger: 'min-h-7' },
 }
 
 export const OPEN_STATES = ['open', 'closed'] as const
@@ -62,7 +63,12 @@ export function CollapsibleSection({
     <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={cn(className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
         <div className="min-w-0 flex-1">
-          <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">
+          <Collapsible.Trigger
+            className={cn(
+              'flex w-full cursor-pointer items-center gap-2 text-left',
+              SIZE[size].trigger,
+            )}
+          >
             {Icon && (
               <Icon className={cn('text-foreground shrink-0', SIZE[size].chevron)} aria-hidden />
             )}

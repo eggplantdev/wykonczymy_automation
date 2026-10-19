@@ -82,14 +82,13 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
           <RequestReviewButton investment={investment} showLabel />
         )}
-        {(!trashed || investment.hasSheet) && (
-          <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} size="sm" />
-        )}
+        {investment.hasSheet && <SheetButton investmentId={investmentId} hasSheet size="sm" />}
         <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
         {!trashed && isOfferedForBooking(investment) && (
           <OrderButton
             investment={{
               id: investmentId,
+              name: investment.name,
               street: investment.address,
               postalCode: investment.postalCode,
               city: investment.city,
@@ -100,25 +99,37 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           />
         )}
       </div>
-      {!trashed && (
-        <div className="flex flex-wrap items-center gap-4">
-          <InvestmentStatusInlineSelect investment={investment} />
-          <InvestmentSiteManagerSelect
-            investmentId={investmentId}
-            siteManagerId={investment.siteManagerId}
-            workers={refData.workers}
-          />
-        </div>
-      )}
-      <InfoList
-        items={buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed })}
-      />
-      <InvestmentNotes investment={investment} readOnly={trashed} />
-      <InvestmentAiNotes aiNotes={investment.aiNotes} />
-
-      <Suspense fallback={null}>
-        <InvestmentAssetsSection investmentId={investmentId} />
-      </Suspense>
+      <div className="grid gap-2">
+        <InfoList
+          items={[
+            ...buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed }),
+            ...(trashed
+              ? []
+              : [
+                  {
+                    label: 'Kierownik budowy',
+                    value: (
+                      <InvestmentSiteManagerSelect
+                        investmentId={investmentId}
+                        siteManagerId={investment.siteManagerId}
+                        workers={refData.workers}
+                      />
+                    ),
+                  },
+                ]),
+          ]}
+        />
+        {!trashed && (
+          <div className="flex min-h-7 items-center">
+            <InvestmentStatusInlineSelect investment={investment} />
+          </div>
+        )}
+        <InvestmentNotes investment={investment} readOnly={trashed} />
+        <InvestmentAiNotes aiNotes={investment.aiNotes} />
+        <Suspense fallback={null}>
+          <InvestmentAssetsSection investmentId={investmentId} />
+        </Suspense>
+      </div>
 
       {/* The two readings render different trees, so a toggle living inside them moves under the
           cursor on every switch. */}

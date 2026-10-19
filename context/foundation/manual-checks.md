@@ -1578,16 +1578,26 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] „Edytuj pracownika” → wpisz „Telefon” → otwórz ponownie: numer zostaje.
 - [ ] Strona inwestycji → „Kierownik budowy” → wybierz konto → odśwież: wybór zostaje, a adres, kod
       pocztowy i miasto bez zmian.
-- [ ] Jako OWNER na `/inwestycje`: edytuj kartę ustawień zamówień → dodaj dwóch dostawców, zmień cenę →
-      zapisz. Karta je pokazuje. Jako MANAGER karta jest widoczna, bez „Edytuj”.
-- [ ] Strona inwestycji → „Zamów big bag / kontener” → kontener × 2 → „Dalej”: formularz pokazuje
-      „2 × kontener”, 3000 zł, „Materiały budowlane” / „kontener”. Zapisz (potwierdź brak faktury) →
-      otwiera się SMS z adresem bez kraju oraz imieniem i telefonem kierownika budowy.
+- [ ] Jako OWNER w dialogu zamówienia: zębatka (prawy dolny róg, obok „Dalej”) → „Ustawienia zamówień”
+      → dodaj dwóch dostawców, zmień cenę → zapisz (przycisk „Zapisz” po prawej, bez „Wyczyść
+      formularz”). Cena w dialogu zamówienia od razu się zmienia. Jako MANAGER zębatki nie ma.
+      `/inwestycje` i sidebar nie mają już ustawień zamówień.
+- [ ] Strona inwestycji → „Kontener” → kontener × 2 → „Dalej”: formularz pokazuje „2 × kontener”,
+      3000 zł, „Materiały budowlane” / „kontener”. Zapisz — bez pytania o brak faktury → otwiera się
+      SMS z adresem bez kraju oraz kontaktem wybranym w pierwszym kroku.
+- [ ] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
+      „Kwota”, a przełączenie big bag / kontener wraca do ceny z ustawień. Przełącznik, pola, „Dalej”
+      i zębatka mają jedną wysokość.
+- [ ] Dialog zamówienia → „Kontakt na miejscu” → wybierz inną osobę → gwiazdka „Ustaw jako kierownika
+      budowy” → strona inwestycji po odświeżeniu pokazuje ją jako „Kierownik budowy”.
+- [ ] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o
+      brak faktury.
 - [ ] W kroku SMS „Zapisz jako domyślnego dostawcę” przy innym dostawcy → następne zamówienie wybiera
       go od razu.
 - [ ] Z telefonu (IP w sieci LAN): „Wyślij SMS” otwiera Wiadomości z domyślnym dostawcą i treścią.
 - [ ] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
-- [ ] Inwestycja bez kierownika budowy: krok SMS ostrzega, a treść nie ma linii „Kontakt na miejscu”.
+- [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
+      miejscu”.
 - [ ] Transakcje inwestycji → wiersz zamówienia pokazuje „Czeka” → klik → „Dostarczone” → odśwież:
       zostaje. Klik ponownie → „Czeka”.
 - [ ] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
@@ -1599,6 +1609,12 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       listę” dalej zapisuje adresy (wspólna obudowa karty z kartą zamówień — bez zmiany wyglądu).
 - [ ] Zamówienie 3 big bagów przy cenie z groszami (np. 799,99 zł): „Kwota” to dokładnie 2399,97.
 - [ ] Ekran „Transakcje” (konto zarządu): nie ma już przycisku „Wyślij wiadomość (test)”.
+- [ ] Strona inwestycji: w nagłówku nie ma „Dodaj” (kosztorys v1); przycisk v2 nazywa się „Kosztorys
+      v2”. Inwestycja bez kosztorysu v1 nadal da się go dodać z `/kosztorysy` → „Dodaj kosztorys”.
+- [ ] Strona inwestycji: Adres, Osoba kontaktowa, Etap AI, Kierownik budowy, status, Notatki, Uwagi AI
+      i Zdjęcia i pliki stoją w jednym bloku z równymi odstępami; etykiety są wyśrodkowane względem
+      selectów. Strony sprzętu, kasy, pracownika i floty — listy informacji wyglądają porządnie.
+- [ ] Dowolny select w aplikacji: strzałka ma ten sam szary co strzałka „Notatki”.
 
 ## EX-1118 — user-register-stats — „Moje Kasy” po właścicielu kasy, nie po imieniu
 

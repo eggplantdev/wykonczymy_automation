@@ -46,7 +46,7 @@ export function InvestmentNotes({ investment, readOnly }: PropsT) {
     <CollapsibleSection
       title="Notatki"
       storageKey={NOTES_STORAGE_KEY}
-      size="sm"
+      size="compact"
       withSeparator={false}
       className="text-sm"
       action={
