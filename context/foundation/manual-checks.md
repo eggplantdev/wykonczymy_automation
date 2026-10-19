@@ -1397,6 +1397,25 @@ Refaktor bez zmiany zachowania.
 - [ ] Arkusze → „Kosztorysy” i „Inwestycje bez arkusza” wyświetlają się i wyszukują; kosztorys → „Porównaj z
       katalogiem prac” pokazuje podpowiedzi „może chodzi o…”, import z arkusza otwiera podgląd.
 
+## 2026-10-19 — app-audit-refactor faza 8 — edytor kosztorysu rozbity na części
+
+Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez kompilator Reacta, teraz jest.
+
+- [ ] Jako ADMIN na dużym kosztorysie (~1000 pozycji): pisanie w komórce, cofnij/ponów wklejenie kilku komórek
+      i przewijanie działają bez widocznego przycinania w porównaniu ze stagingiem sprzed zmiany.
+- [ ] Jako ADMIN: dodaj, przesuń i usuń sekcję, dodaj pozycję z katalogu, zmień ilości w etapach i ustaw rabat
+      globalny — sumy i „Pozostało” aktualizują się i zostają po odświeżeniu.
+- [ ] Jako ADMIN przełącz na historię, widok raportu pracownika i podgląd oferty, a potem wróć — nagłówek podglądu
+      (logo, nazwa inwestycji, przyciski) wygląda jak wcześniej.
+- [ ] Pusty kosztorys pokazuje „Kosztorys jest pusty” z przyciskiem „Pobierz z arkusza Google…”; wyszukiwanie bez
+      wyników pokazuje „Wyczyść wyszukiwanie”, a filtr ukrywający wszystko — „Wyczyść filtry”.
+- [ ] Menu akcji kosztorysu: zapis presetu, porównanie z arkuszem, skan raportu, uzupełnienie tłumaczeń, czyszczenie
+      tekstów pozycji, akcje pracownika i inwestora oraz „Zmień kolejność” i „Dodaj z katalogu” otwierają się jak wcześniej.
+- [ ] Wysokość wierszy: przeciągnięcie krawędzi wiersza, dwuklik „dopasuj do treści” i przełączenie rozmiaru tekstu
+      zmieniają wysokość jak wcześniej; wiersz „do ponownego sprawdzenia” ma dwie linie.
+- [ ] Jako MANAGER ten sam edytor nie pokazuje kwot.
+- [ ] Jako ADMIN na 390 px edytor się wyświetla, przewija i przyjmuje edycję komórki.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

@@ -723,6 +723,6 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [ ] 8.1 Editor specs pass
+- [x] 8.1 Editor specs pass (SHA8)
 - [ ] 8.2 `pnpm check:compiler` passes for every editor file
-- [ ] 8.3 Cycle count below the Phase 6 count
+- [x] 8.3 Cycle count below the Phase 6 count (SHA8)

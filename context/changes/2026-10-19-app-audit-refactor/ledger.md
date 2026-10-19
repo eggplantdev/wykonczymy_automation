@@ -257,3 +257,23 @@ Cycles after the phase: 25.
 - [x] · dismissed · `TEST` · no spec for the table/field memos (`columns`, options, `getSearchableText`) · stable
       values with no observable effect of their own; the existing table specs and the hook specs cover the rows they feed
 
+## Phase 8 — kosztorys editor split (2026-10-19)
+
+Cycles after the phase: 15 (none in `kosztorys/editor`).
+
+- [x] · fixed · `MEMO` · the React Compiler did not compile `useKosztorysEditor`, `KosztorysEditorV2` or
+      `useKosztorysStageOps` before this phase, so their hand-written memos were load-bearing · bailouts fixed
+      (ref writes moved into `useLayoutEffect`, try/finally and computed keys removed), memos stripped only after
+      `pnpm check:compiler` showed `ok`; `scripts/check-compiler-coverage.mjs` now mirrors Next's SWC prefilter
+- [x] · fixed · `SPLIT` · `use-kosztorys-editor.ts` → `hooks/{use-editor-rows,use-undo-bursts,use-section-crud,use-item-ops,
+      use-catalogue-ops,use-grid-change-pipeline}.ts`; return shape unchanged
+- [x] · fixed · `SPLIT` · `kosztorys-editor-body.tsx` 761 → 541 lines: `hooks/use-row-sizing.ts`, `grid-empty-overlay.tsx`,
+      `PreviewHeader` in `preview-header-actions.tsx` · split by concern, not by mode: history/report/preview differ by parameters
+- [x] · fixed · `CYCLE` · action hooks moved to `actions/use-*-action(s).ts`, the picker and reorder contexts to
+      `actions/{catalogue-picker,reorder-open}.ts` · 25 → 15 cycles
+- [x] · skipped · `MEMO` · compiler bails on `hooks/{use-debounced-save,use-external-change-reload,use-kosztorys-settings}.ts`,
+      `dialogs/new-item/new-item-form.tsx`, `dialogs/worker-reports/worker-reports-dialog.tsx`,
+      `dialogs/catalogue/{add-items-from-catalogue-dialog,save-item-to-catalogue-dialog}.tsx` · none holds a hand
+      memo and none is on the grid's render path; rewriting try/finally and ref reads in working code buys nothing measurable
+- [x] · skipped · `MEMO` · `use-wrap-column-widths.ts`, `use-inline-rename.ts` keep their `useCallback` · see Phase 7
+

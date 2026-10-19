@@ -44,7 +44,7 @@ Out of scope: `src/migrations/` (frozen history), `src/payload-types.ts` (genera
 | `src/components/dialogs`                                                                                                            |    27 |   [x]   |    [x]     |               |
 | `src/components/filters`                                                                                                            |    13 |   [x]   |    [x]     |               |
 | `src/components/nav`                                                                                                                |    16 |   [x]   |    [x]     |               |
-| `src/components/kosztorys/editor`                                                                                                   |   187 |   [ ]   |    [ ]     |               |
+| `src/components/kosztorys/editor`                                                                                                   |   187 |   [x]   |    [x]     |               |
 | `src/components/kosztorys/summary`                                                                                                  |    47 |   [x]   |    [x]     |               |
 | `src/components/kosztorys/worker-report`                                                                                            |    19 |   [x]   |    [x]     |               |
 | `src/components/kosztorys` (top-level files)                                                                                        |     3 |   [x]   |    [x]     |               |
