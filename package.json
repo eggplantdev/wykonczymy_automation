@@ -9,6 +9,7 @@
     "build": "payload generate:importmap && payload generate:types && next build",
     "start": "next start",
     "lint": "eslint .",
+    "check:compiler": "node scripts/check-compiler-coverage.mjs",
     "format": "prettier --check --ignore-path .gitignore .",
     "format:fix": "prettier --write --ignore-path .gitignore  .",
     "prepare": "husky",

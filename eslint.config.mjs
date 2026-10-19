@@ -168,6 +168,7 @@ export default ts.config(
       'scripts/blob-snapshot.mjs',
       'scripts/blob-restore.mjs',
       'scripts/share-sheets-with-reader.mjs',
+      'scripts/check-compiler-coverage.mjs',
       'scripts/perf/',
       'scripts/ai-kosztorys/',
       'context/**',
