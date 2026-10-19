@@ -101,6 +101,15 @@ export const Investments: CollectionConfig = {
       type: 'text',
       label: { en: 'Contact Person', pl: 'Osoba kontaktowa' },
     },
+    // Written only by `setInvestmentSiteManagerAction`, so the whole-record investment form can't
+    // overwrite it with a stale copy.
+    {
+      name: 'siteManager',
+      type: 'relationship',
+      relationTo: 'users',
+      label: { en: 'Site manager', pl: 'Kierownik budowy' },
+      access: { create: () => false, update: () => false },
+    },
     {
       name: 'billing',
       type: 'group',
