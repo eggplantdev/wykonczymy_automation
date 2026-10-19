@@ -32,7 +32,7 @@ type OptimisticFormStoreT = {
   clearSubmission: () => void
 }
 
-export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
+export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set, get) => ({
   openFormId: null,
   submission: null,
   keepOpen: false,
@@ -52,6 +52,9 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
   setKeepOpen: (keepOpen) => set({ keepOpen }),
 
   submitOptimistically: (formId, invoiceFiles, action, successMessage, onSuccess) => {
+    // The caller closes the dialog right after this, which drops `showKeepOpen`; a failed save
+    // reopens it and must bring the checkbox back.
+    const { showKeepOpen } = get()
     set({
       openFormId: null,
       submission: { formId, invoiceFiles, status: 'pending', error: null },
@@ -69,6 +72,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
         } else {
           set((state) => ({
             openFormId: formId,
+            showKeepOpen,
             submission: state.submission
               ? { ...state.submission, status: 'failed', error: result.error }
               : null,
@@ -83,6 +87,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
         const errorMessage = 'Wystąpił nieoczekiwany błąd'
         set((state) => ({
           openFormId: formId,
+          showKeepOpen,
           submission: state.submission
             ? { ...state.submission, status: 'failed', error: errorMessage }
             : null,
