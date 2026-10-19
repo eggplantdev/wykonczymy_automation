@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import {
-  buildPayoutFilters,
   buildTransferFilters,
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
@@ -233,19 +232,6 @@ describe('audit mode → scope through the cancelled original', () => {
     expect(() => buildSqlConditions(auditWhere({ investment: { equals: 31 } }))).toThrow(
       /unmapped field/,
     )
-  })
-})
-
-describe('buildPayoutFilters', () => {
-  it('keeps the list on wypłaty whatever Typ the URL carries', () => {
-    expect(buildPayoutFilters({ type: 'DEPOSIT' }, { id: 1 }).type).toEqual({ in: ['PAYOUT'] })
-  })
-
-  it('lists only the anulowania of wypłaty in audit mode', () => {
-    const where = buildPayoutFilters({ cancelledTransactionAudit: '1' }, { id: 1 })
-
-    expect(where.type).toEqual({ in: ['CANCELLATION'] })
-    expect(where['cancelledTransaction.type']).toEqual({ in: ['PAYOUT'] })
   })
 })
 

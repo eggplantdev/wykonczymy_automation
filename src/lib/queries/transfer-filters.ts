@@ -156,15 +156,6 @@ export function buildTransferFilters(
   return where
 }
 
-// Routed through the Typ param rather than overwriting `where.type`, so audit mode re-aims it at the
-// cancelled original like any other Typ scope.
-export function buildPayoutFilters(
-  searchParams: ResolvedSearchParamsT,
-  userContext: UserContextT,
-): Where {
-  return buildTransferFilters({ ...searchParams, type: 'PAYOUT' }, userContext)
-}
-
 // „Zgłoszone wydatki” rides in the Typ list, so beside ticked types it widens the scope (OR) like any
 // other option there; alone it narrows to the drafts. The audit list keeps narrowing: its Typ scope
 // is a dotted path, which the sum tile's where-to-sql cannot take inside an `or`.

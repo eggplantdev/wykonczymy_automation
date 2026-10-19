@@ -4,7 +4,6 @@ import {
   Car,
   FileSpreadsheet,
   FileUser,
-  HandCoins,
   Inbox,
   LayoutTemplate,
   ListChecks,
@@ -33,7 +32,6 @@ export const PAGE_TITLES = {
   fleet: 'Flota',
   equipment: 'Sprzęt',
   employees: 'Pracownicy',
-  payouts: 'Wypłaty',
   trash: 'Kosz',
 } as const
 
@@ -47,7 +45,12 @@ export type NavLinkT = {
 }
 
 export const NAV_LINKS: NavLinkT[] = [
-  { href: '/', label: PAGE_TITLES.transactions, icon: ArrowLeftRight },
+  {
+    href: '/',
+    label: PAGE_TITLES.transactions,
+    icon: ArrowLeftRight,
+    unreadStream: 'rejectedPayouts',
+  },
   { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
   { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
   { href: '/kosztorysy', label: PAGE_TITLES.sheets, icon: FileSpreadsheet },
@@ -56,12 +59,6 @@ export const NAV_LINKS: NavLinkT[] = [
   { href: '/flota', label: PAGE_TITLES.fleet, icon: Car, unreadStream: 'fleet' },
   { href: '/sprzet', label: PAGE_TITLES.equipment, icon: Wrench, unreadStream: 'equipment' },
   { href: '/pracownicy', label: PAGE_TITLES.employees, icon: Users },
-  {
-    href: '/wyplaty',
-    label: PAGE_TITLES.payouts,
-    icon: HandCoins,
-    unreadStream: 'rejectedPayouts',
-  },
   {
     href: '/zgloszenia-prac',
     label: PAGE_TITLES.workerReports,
