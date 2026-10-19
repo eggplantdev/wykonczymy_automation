@@ -1402,6 +1402,20 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Ukryj w tabeli kolumnę „Kasa źródłowa”, przełącz na karty: karty dalej pokazują „Kasa źródłowa: …”.
 - [ ] Strona pracownika w widoku kart: brak etykiety „Pracownik”, jak dotąd.
 
+## 2026-10-19 — slice-review-gate — właściciel kasy, kolory kwot, odrzucone wypłaty
+
+- [ ] Jako MANAGER „Dodaj kasę” z innym managerem jako właścicielem: komunikat „Brak uprawnień”, kasa
+      nie pojawia się na `/kasy`. Z pracownikiem jako właścicielem kasa powstaje.
+- [ ] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
+      właścicielem jesteś ty. Ustawienie innego managera kończy się „Brak uprawnień”.
+- [ ] Jako OWNER „Dodaj kasę” i edycja kasy z dowolnym właścicielem działają jak dotąd.
+- [ ] `/transakcje` w tabeli i na kartach: kwoty mają te same kolory co dotąd (wydatek, wpływ,
+      wypłata), anulowane są szare.
+- [ ] Kosztorys → nagłówek sekcji: kropka ma kolor paska sekcji.
+- [ ] Pulpit → odrzucone wypłaty: przy wypłacie z zablokowanej inwestycji „Anuluj transakcję” jest
+      wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
+- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -1656,17 +1670,3 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | 2026-10-15 — workers-menu-scan-bottom — „Wczytaj zgłoszenie z kartki (AI)” na dole menu „Pracownicy”                         | 2/2   | 2026-10-15           |
 | deploy-scoped-cache — cache kluczowany deploymentem zamiast ręcznych `-vN` (bez zmiany wyglądu)                                | 5/5   | 2026-10-15           |
 | investment-status-rejected — status „Odrzucona” + inwestycje w formularzach przelewów                                          | 2/2   | 2026-10-15           |
-
-## 2026-10-19 — slice-review-gate — właściciel kasy, kolory kwot, odrzucone wypłaty
-
-- [ ] Jako MANAGER „Dodaj kasę” z innym managerem jako właścicielem: komunikat „Brak uprawnień”, kasa
-      nie pojawia się na `/kasy`. Z pracownikiem jako właścicielem kasa powstaje.
-- [ ] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
-      właścicielem jesteś ty. Ustawienie innego managera kończy się „Brak uprawnień”.
-- [ ] Jako OWNER „Dodaj kasę” i edycja kasy z dowolnym właścicielem działają jak dotąd.
-- [ ] `/transakcje` w tabeli i na kartach: kwoty mają te same kolory co dotąd (wydatek, wpływ,
-      wypłata), anulowane są szare.
-- [ ] Kosztorys → nagłówek sekcji: kropka ma kolor paska sekcji.
-- [ ] Pulpit → odrzucone wypłaty: przy wypłacie z zablokowanej inwestycji „Anuluj transakcję” jest
-      wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
-- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/warianty-badge`: strona się nie otwiera.

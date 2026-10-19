@@ -6,6 +6,8 @@ comment-noise sweep (`6b4120318`), unused theme tokens (`28186af47`), faktura re
 plan phases 1–2 plus the payout-card / Badge / DotBadge / BadgeButton / Button-variant work.
 Phases 3–8 (`app-audit-refactor-wt`) are not in this gate. Previous gate ended at `97c725dff`
 (test-suite-speed); `7240f26ad`–`af55477e7` were that gate's own fixes and its archive.
+Extended to `562db26c9` on the owner's request: `a353e3506` (column toggle and duplicate finder only
+in the table view, cards read every column) and `562db26c9` (its manual checks).
 
 **Step 0.5 (browser verification):** skipped — not requested; the slice's boxes in `manual-checks.md`
 stay informational.
@@ -81,6 +83,9 @@ stay informational.
 - [x] fixed · reuse-scan · `src/components/payouts/rejected-payouts.tsx:25` · disabled copy of `CancelTransferButton`'s trigger — `CancelTransferButton` takes `disabledReason` (the `EditTransferDialog` pattern)
 - [x] fixed · reuse-scan · `src/components/forms/settle-payouts-form/settle-payouts-table.tsx:196` · sign-coloured money span duplicating `BalanceCell` (134b6123d had to fix both) — `<BalanceCell className="font-normal whitespace-nowrap" />`
 - [x] dropped · reuse-scan · active-toggle `BadgeButton` ×3, `DotBadge` vs `CardChip`, `CollapsibleSection` pair, inline `/kasa|/pracownicy|/inwestycje` links — a shared form would take the code as params, or no helper exists and inline is the repo norm
+
+- [x] dismissed · code-review · `src/components/transfers/cards/transfer-card.tsx:25` · cards now read `getAllCells()`, so a column hidden in the table shows on a card — intended by `a353e3506`; transfer tables set no `defaultColumnVisibility`, and `excludeColumns` still drops a page's columns from the defs, so nothing the page withholds reaches a card
+- [x] dismissed · code-review · `src/components/transfers/transfer-data-table.tsx:115` · hiding `ColumnToggle` in card view also hides its text-size menu — that size styles table cells only; cards don't read it
 
 ## Simplify pass
 
