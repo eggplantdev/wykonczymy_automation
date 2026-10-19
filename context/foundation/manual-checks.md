@@ -1450,6 +1450,14 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Edycja przelewu i „Rozlicz wypłaty”: błąd walidacji pokazuje się pod polem, udany zapis zamyka okno.
 - [ ] Po najbliższym przebiegu crona czyszczenia wersji kosztorysu: w logach Vercela przebieg bez błędu.
 
+## 2026-10-19 — app-audit-refactor — poprawki z bramki przeglądu
+
+- [ ] Formularz wydatków z kilkoma pozycjami: przy pozycji wybierz kategorię „Inne” i pracownika — drugi rząd
+      wyboru pojawia się i zapisuje jak wcześniej (przeniesienie kodu, bez zmiany działania).
+- [ ] Pusty kosztorys w edytorze: widać podpowiedź na pustej siatce; w wypełnionym wpisanie wartości i cofnięcie
+      błędnej zmiany działa jak wcześniej.
+- [ ] Jako EMPLOYEE otwórz `/kasa/{id}` swojej kasy — trafiasz na swoją stronę pracownika, nie na 404.
+
 ## 2026-10-19 — kursor na statusie inwestycji
 
 - [ ] „Edytuj inwestycję” i tabela inwestycji: najechanie na status („Aktywna” ze strzałką) pokazuje

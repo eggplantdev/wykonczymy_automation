@@ -36,8 +36,8 @@ From `research.md` (baseline `28186af47`):
   repo, its one useful job (counting cycles) done during this change.
 - No Payload collection hook lives in `src/hooks/`; no read lives in `lib/actions`; no multi-step
   flow lives in `lib/db`.
-- No hand-written `useMemo`/`useCallback` remains in a file the compiler compiles; any file it can't
-  compile is listed in the ledger with the reason.
+- No hand-written `useMemo`/`useCallback` remains where the compiled output caches the value; every
+  memo kept is pinned by a compiled-output spec or listed in the ledger with the reason.
 - `use-kosztorys-editor.ts` is a composition of focused sub-hooks; `kosztorys-editor-body.tsx` is
   split along its modes.
 - A MANAGER sees no active toggle on `/kasy` and the server refuses the write; an EMPLOYEE opening
@@ -642,7 +642,8 @@ The per-phase click-throughs above, under the roles each lists, rolled into
 ## Performance Considerations
 
 Only the editor matters: Phase 8's manual check compares a ~1000-row kosztorys against `staging`
-before the change. If the compiler can't cover a perf-critical memo, it stays and is ledgered.
+before the change. If the compiler can't cover a perf-critical memo, it stays and is ledgered. Outcome: the
+editor and work-catalogue memos stayed (ledger „Perf fix”).
 
 ## Whole-tree Gate
 
@@ -688,7 +689,7 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 - [x] 3.1 Touched `lib` specs pass (4f38b3556)
 - [x] 3.2 `pnpm generate:types` leaves `payload-types.ts` unchanged (4f38b3556)
 - [x] 3.3 `pnpm knip` reports nothing new (4f38b3556)
-- [ ] 3.4 No `document.write` / `generateObject` left in `src/`; print and AI specs pass
+- [x] 3.4 No `document.write` / `generateObject` left in `src/`; print and AI specs pass — skipped for `print-window.ts:28` (ledger `DEAD`: the print window needs it)
 
 ### Phase 4: actions / db / queries boundary
 
@@ -724,5 +725,5 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 #### Automated
 
 - [x] 8.1 Editor specs pass (37cb5f2d2)
-- [ ] 8.2 `pnpm check:compiler` passes for every editor file
+- [x] 8.2 `pnpm check:compiler` passes for every editor file — superseded: compiling is not caching; the editor's hand memos were restored and pinned by compiled-output specs (ledger „Perf fix”)
 - [x] 8.3 Cycle count below the Phase 6 count (37cb5f2d2)

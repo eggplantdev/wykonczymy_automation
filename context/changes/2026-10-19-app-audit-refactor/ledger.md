@@ -245,9 +245,9 @@ are left for after the merge — editing them here only buys a conflict.
 Cycles after the phase: 25.
 
 - [x] · fixed · `MEMO` · stripped from 20 of the 23 files: `src/hooks/{use-persisted-value,use-client-multi-filter,
-      use-active-filter,use-engaged-ids,create-json-map-store,use-search-filter,use-status-filter,use-optimistic-toggle}.ts`,
+    use-active-filter,use-engaged-ids,create-json-map-store,use-search-filter,use-status-filter,use-optimistic-toggle}.ts`,
       `ui/field.tsx`, `sheets/{investments-without-sheet-table,kosztorys-data-table}.tsx`, `{equipment,fleet,users,
-      investments,work-catalogue,cash-registers}/*-table.tsx`, `forms/form-fields/cash-register-field.tsx`,
+    investments,work-catalogue,cash-registers}/*-table.tsx`, `forms/form-fields/cash-register-field.tsx`,
       `editor/hooks/use-sheet-import.ts`, `editor/dialogs/catalogue/catalogue-compare-dialog.tsx` · `pnpm check:compiler` ok on each
 - [x] · fixed · `TEST` · new specs `hooks/{use-persisted-value,use-client-multi-filter,use-engaged-ids,use-optimistic-toggle}.test.tsx`
       (filtered rows, persisted values, optimistic revert) written before the strip
@@ -266,7 +266,7 @@ Cycles after the phase: 15 (none in `kosztorys/editor`).
       (ref writes moved into `useLayoutEffect`, try/finally and computed keys removed), memos stripped only after
       `pnpm check:compiler` showed `ok`; `scripts/check-compiler-coverage.mjs` now mirrors Next's SWC prefilter
 - [x] · fixed · `SPLIT` · `use-kosztorys-editor.ts` → `hooks/{use-editor-rows,use-undo-bursts,use-section-crud,use-item-ops,
-      use-catalogue-ops,use-grid-change-pipeline}.ts`; return shape unchanged
+    use-catalogue-ops,use-grid-change-pipeline}.ts`; return shape unchanged
 - [x] · fixed · `SPLIT` · `kosztorys-editor-body.tsx` 761 → 541 lines: `hooks/use-row-sizing.ts`, `grid-empty-overlay.tsx`,
       `PreviewHeader` in `preview-header-actions.tsx` · split by concern, not by mode: history/report/preview differ by parameters
 - [x] · fixed · `CYCLE` · action hooks moved to `actions/use-*-action(s).ts`, the picker and reorder contexts to
@@ -277,3 +277,17 @@ Cycles after the phase: 15 (none in `kosztorys/editor`).
       memo and none is on the grid's render path; rewriting try/finally and ref reads in working code buys nothing measurable
 - [x] · skipped · `MEMO` · `use-wrap-column-widths.ts`, `use-inline-rename.ts` keep their `useCallback` · see Phase 7
 
+## Perf fix — hand memos restored (2026-10-19)
+
+The Phase 7/8 strips trusted `pnpm check:compiler` ("compiles") as proof of caching. It is not:
+the compiler compiled these files but merged the row scans into scopes keyed on fresh values, so
+typing on a ~1000-pozycji kosztorys went from ~49 ms to ~65 ms median per keystroke.
+
+- [x] · fixed · `MEMO` · restored in `use-kosztorys-editor.ts` (b80e1064a), `kosztorys-editor-body.tsx` and
+      `hooks/use-row-sizing.ts` (d2967f9db), `work-catalogue-data-table.tsx` (4294bc8f6) · preview medians match staging
+- [x] · fixed · `TEST` · compiled-output specs on `__tests__/helpers/react-compiler-cache.ts` pin each restored memo
+      and the list-search identities (`*-memoization.test.ts`, 10 files) · they check the mechanism per file;
+      the cross-file outcome (a memo keyed on a parent's fresh `columns`) is EX-1116
+- [x] · fixed · `RULE` · `AGENTS.md` Stack Notes: hand memos stay where the compiled output drops the cache (aa1da3b6d)
+- [x] · dismissed · `MEMO` · Phase 8 moved the `rowsRef` / `sectionsRef` sync into `useLayoutEffect` · same
+      commit-time write, now compiler-clean; refs are read only in handlers
