@@ -12,7 +12,8 @@ export function useEditorRows(
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() =>
     initialRowPatch ? initialRowPatch(treeToRows(tree)) : treeToRows(tree),
   )
-  const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
+  const [initialById] = useState(() => new Map(rows.map((r) => [r.id, r])))
+  const prevById = useRef(initialById)
   const rowsRef = useRef(rows)
   useLayoutEffect(() => {
     rowsRef.current = rows
