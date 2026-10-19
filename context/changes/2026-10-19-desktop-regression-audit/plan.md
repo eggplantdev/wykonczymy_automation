@@ -628,7 +628,7 @@ Not run: the full suite, E2E and the build. The user asks for those explicitly.
 
 #### Automated
 
-- [ ] 4.1 Stage C regression specs green
+- [x] 4.1 Stage C regression specs green — no stage-C fix, no new spec
 
 ### Phase 5: Close-out
 

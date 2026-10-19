@@ -1399,7 +1399,9 @@ Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
 - [x] Na koncie z językiem ukraińskim/rosyjskim → „Zgłoszenia wydatków”: daty wysłania i decyzji w formacie
       tego języka (wcześniej zawsze polskim).
 - [x] Przełącznik lista/karty przelewów i skala UI działają jak wcześniej.
-- [ ] Bez logowania: logowanie i „Nie pamiętam hasła” działają.
+- [x] Bez logowania: logowanie i „Nie pamiętam hasła” działają.
+
+      _Staging 2026-10-19 (desktop-regression-audit, bez sesji): trasa chroniona → `/zaloguj`, logowanie wraca na `/` (nie na pierwotny adres — tak jak przed refaktorem); formularz resetu wysyła i pokazuje potwierdzenie._
 - [ ] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
       `/kasa` → wykres salda kasy rysuje się.
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Kosztorys”, „Umowa”, „Marża” otwierają się; wykres salda `/kasa` niesprawdzony._
@@ -1541,8 +1543,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
 - [x] Typ przelewu w tabeli i na kartach przelewów: obrys i kropka w kolorze typu, nazwa ucina się
       wielokropkiem; rozliczony przelew ma kolor rozliczenia.
-- [ ] Raport pracy: nazwa sekcji obok kolorowego paska ma tło i tekst w kolorze tej sekcji, czytelne
+- [x] Raport pracy: nazwa sekcji obok kolorowego paska ma tło i tekst w kolorze tej sekcji, czytelne
       w jasnym i ciemnym motywie.
+
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): zielona i fioletowa sekcja — tło w odcieniu sekcji, tekst ciemny w jasnym i jasny w ciemnym motywie. Linia z rozpiski bez pozycji kosztorysu ma szarą nazwę (brak sekcji = brak koloru)._
 - [x] Filtr statusów linii (zaakceptowane / odrzucone / oczekujące) w zgłoszeniu wydatku: kliknięcie
       chowa i pokazuje linie, ukryty status jest przekreślony.
 

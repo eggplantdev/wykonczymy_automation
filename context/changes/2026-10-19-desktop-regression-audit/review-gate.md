@@ -57,7 +57,7 @@ Values: `pending` / `ok` / `finding #n` / `blocked` / `n/a`.
 | 18  | `/kosz`                         | ok       | ok      | ok    | n/a   |
 | 19  | `/warianty-badge`               | ok       | —       | ok    | —     |
 | 20  | `[...catchAll]`                 | ok       | —       | ok    | —     |
-| L   | logged-out + share routes       | pending  |         |       |       |
+| L   | logged-out + share routes       | ok       | n/a     | n/a   | n/a   |
 
 EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
 
@@ -169,6 +169,21 @@ OWNER notes (OWNER 75 stands in for ADMIN, 1280 + 1024, staging `9d7572296`):
 - **Preview DB state left by stage B:** order settings (big bag 850, suppliers A/B, default B); worker 77
   phone 500100400; kasa 48 as default-kasa preference; cancelled #5972–#5975, #5977; BONUS #5979 (active);
   COMPANY_FUNDING +2 zł; template id 6 „QA audyt szablon”.
+
+Stage C notes (logged out unless noted, 1280 + 1024, staging `9d7572296`):
+
+- `/zaloguj`, „Nie pamiętam hasła” (sends, shows the confirmation), a protected route → `/zaloguj`,
+  legal pages: render, no overflow (L1402). Login after the redirect lands on `/`, not the original URL —
+  `src/proxy.ts` passes no return URL, same before the refactor.
+- `/z/<worker link>` and `/k/<investor link>` (link generated now for 210) render the QA investment only,
+  light and dark; `/podglad-pracownika/77/210` and `/podglad-inwestora/210` open for OWNER and redirect
+  to `/zaloguj` without a session.
+- Retired `/p/*` and `/zgloszenie-prac/*` show the custom expired-link page (PL/UK/RU); `/k/<bad token>` shows
+  Next's default 404 — the share layout has no `not-found`, same at `c713fa2bf`.
+- Work-report preview (OWNER): section names on green and purple sections take the section tint, dark
+  text in light mode and light text in dark mode (L1544); a rozpiska line with no kosztorys item has a
+  gray name, which is the no-section fallback.
+- **Preview DB state left by stage C:** a `kosztorys_shares` row for investment 210 (investor link).
 
 ## Findings
 
@@ -594,4 +609,5 @@ Notes:
 
 - Stage A: `optimistic-form-store.test.ts` 17/17 green (`10cd3cbfa`).
 - Stage B: no fix, no spec.
+- Stage C: no fix, no spec.
 - Whole-tree gate: not run — on the user's ask only.
