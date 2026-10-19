@@ -118,6 +118,24 @@ export default ts.config(
     },
   },
   {
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [NO_RAW_UNSTABLE_CACHE],
+          patterns: [
+            {
+              regex: '^@/(components/(?!ui/)|stores/|lib/(?!(utils|i18n|table|env)/))',
+              message:
+                'components/ui is domain-agnostic: pass domain data, formatters and store state in as props, or move the component to its feature directory.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
@@ -143,6 +161,8 @@ export default ts.config(
       '.next-qa/',
       'test.js',
       '.claude/',
+      '.worktrees/',
+      '.playwright-mcp/',
       'scripts/inspect-sheet.mjs',
       'scripts/blob-mirror.mjs',
       'scripts/blob-snapshot.mjs',
