@@ -217,6 +217,20 @@ export const pl = {
     pagesDownloadFailed: 'Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić.',
     reject: 'Odrzuć',
     rejectTitle: 'Odrzucić zgłoszenie?',
+    resyncFailedToast: 'Nie udało się odświeżyć paragonów — otwórz zgłoszenie ponownie',
+    completeItem: 'Uzupełnij pozycję',
+    receiptsAcceptedToast: {
+      one: 'Paragon przyjęty',
+      few: 'Przyjęto {{count}}',
+      many: 'Przyjęto {{count}}',
+      other: 'Przyjęto {{count}}',
+    },
+    receiptsRejectedToast: {
+      one: 'Paragon odrzucony',
+      few: 'Odrzucono {{count}}',
+      many: 'Odrzucono {{count}}',
+      other: 'Odrzucono {{count}}',
+    },
   },
   workerReports: {
     title: 'Zgłoszenia wykonanych prac',
@@ -461,6 +475,9 @@ export const pl = {
     invoiceShort: 'FV',
     viewTable: 'Tabela',
     viewCards: 'Karty',
+    waitForFilesToast: 'Poczekaj na przetworzenie plików.',
+    waitForReceiptsToast: 'Poczekaj na odczytanie paragonów.',
+    addedToast: 'Transakcje dodane',
   },
   filters: {
     search: 'Szukaj...',

@@ -210,6 +210,20 @@ export const ru: typeof pl = {
     pagesDownloadFailed: 'Не удалось загрузить фото — заявку можно только отклонить.',
     reject: 'Отклонить',
     rejectTitle: 'Отклонить заявку?',
+    resyncFailedToast: 'Не удалось обновить чеки — откройте заявку снова',
+    completeItem: 'Заполните позицию',
+    receiptsAcceptedToast: {
+      one: 'Чек принят',
+      few: 'Принято {{count}}',
+      many: 'Принято {{count}}',
+      other: 'Принято {{count}}',
+    },
+    receiptsRejectedToast: {
+      one: 'Чек отклонён',
+      few: 'Отклонено {{count}}',
+      many: 'Отклонено {{count}}',
+      other: 'Отклонено {{count}}',
+    },
   },
   workerReports: {
     title: 'Отчёты о выполненных работах',
@@ -453,6 +467,9 @@ export const ru: typeof pl = {
     invoiceShort: 'Фактура',
     viewTable: 'Таблица',
     viewCards: 'Карточки',
+    waitForFilesToast: 'Дождитесь обработки файлов.',
+    waitForReceiptsToast: 'Дождитесь считывания чеков.',
+    addedToast: 'Транзакции добавлены',
   },
   filters: {
     search: 'Поиск...',

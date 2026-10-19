@@ -211,6 +211,20 @@ export const uk: typeof pl = {
     pagesDownloadFailed: 'Не вдалося завантажити фото — заявку можна лише відхилити.',
     reject: 'Відхилити',
     rejectTitle: 'Відхилити заявку?',
+    resyncFailedToast: 'Не вдалося оновити чеки — відкрийте заявку ще раз',
+    completeItem: 'Заповніть позицію',
+    receiptsAcceptedToast: {
+      one: 'Чек прийнято',
+      few: 'Прийнято {{count}}',
+      many: 'Прийнято {{count}}',
+      other: 'Прийнято {{count}}',
+    },
+    receiptsRejectedToast: {
+      one: 'Чек відхилено',
+      few: 'Відхилено {{count}}',
+      many: 'Відхилено {{count}}',
+      other: 'Відхилено {{count}}',
+    },
   },
   workerReports: {
     title: 'Звіти про виконані роботи',
@@ -453,6 +467,9 @@ export const uk: typeof pl = {
     invoiceShort: 'Фактура',
     viewTable: 'Таблиця',
     viewCards: 'Картки',
+    waitForFilesToast: 'Зачекайте на обробку файлів.',
+    waitForReceiptsToast: 'Зачекайте на зчитування чеків.',
+    addedToast: 'Транзакції додано',
   },
   filters: {
     search: 'Пошук...',

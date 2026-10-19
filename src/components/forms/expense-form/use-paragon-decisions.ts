@@ -18,7 +18,7 @@ import {
 } from '@/lib/actions/worker-expense-drafts'
 import { isInvestmentExpense } from '@/lib/constants/transfers'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
-import { pl } from '@/lib/i18n/dictionaries/pl'
+import { useTranslation } from '@/hooks/use-translation'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 import { fetchExpenseDraftDecisions } from '@/lib/queries/expense-draft-decisions'
 import { missingInvoiceConfirm } from '@/lib/transfers/missing-invoice-confirm'
@@ -65,6 +65,8 @@ export function useParagonDecisions({
   onSubmitSuccess,
   onDecided,
 }: OptionsT) {
+  const { t, tp } = useTranslation('expenseDrafts')
+  const { t: tNotice } = useTranslation('notices')
   const [rejected, setRejected] = useState(() => prefill?.rejectedReceipts ?? [])
   const [isDeciding, setIsDeciding] = useState(false)
 
@@ -78,7 +80,7 @@ export function useParagonDecisions({
 
   function close(failure?: FailureT) {
     if (failure?.messageKey !== 'draftAlreadyDecided') {
-      toastMessage(pl.notices.draftAlreadyDecided, 'warning')
+      toastMessage(tNotice('draftAlreadyDecided'), 'warning')
     }
     onDecided?.()
     onSubmitSuccess()
@@ -89,7 +91,7 @@ export function useParagonDecisions({
     const result = await settleAction(() => fetchExpenseDraftDecisions(prefill.expenseDraftId))
     if (!result.success) {
       if (result.messageKey === 'draftAlreadyDecided') close(failure)
-      else toastMessage('Nie udało się odświeżyć paragonów — otwórz zgłoszenie ponownie', 'error')
+      else toastMessage(t('resyncFailedToast'), 'error')
       return
     }
     if (result.data.status !== 'pending') {
@@ -131,7 +133,7 @@ export function useParagonDecisions({
       (subsetIndex) => indexOf.get(subset[subsetIndex].id) ?? -1,
     )
     if (errors.length > 0) setSubmitErrors(errors)
-    else toastMessage(check.error.issues[0]?.message ?? 'Uzupełnij pozycję', 'warning')
+    else toastMessage(check.error.issues[0]?.message ?? t('completeItem'), 'warning')
     return false
   }
 
@@ -160,7 +162,7 @@ export function useParagonDecisions({
               }),
             linkedMediaIdOf,
           ),
-        successMessage: subset.length === 1 ? 'Paragon przyjęty' : `Przyjęto ${subset.length}`,
+        successMessage: tp('receiptsAcceptedToast', subset.length),
         files,
         onSubmitSuccess,
         onSaved: () => {
@@ -190,7 +192,7 @@ export function useParagonDecisions({
         if (needsResync(result)) await resync(result)
         return
       }
-      toastMessage(ids.length === 1 ? 'Paragon odrzucony' : `Odrzucono ${ids.length}`)
+      toastMessage(tp('receiptsRejectedToast', ids.length))
       setRejected((prev) => [...prev, ...result.data])
       draftReceipts.decide(ids, 'rejected')
       afterDecision(ids)

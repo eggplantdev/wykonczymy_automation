@@ -71,6 +71,7 @@ import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
+import { useTranslation } from '@/hooks/use-translation'
 
 type FormValuesT = BulkExpenseFormValuesT
 
@@ -115,6 +116,7 @@ export function ExpenseForm({
   wrapLineItem,
   onDecided,
 }: TransferFormPropsT) {
+  const { t } = useTranslation('transfers')
   const isParagonMode = !!prefill && prefill.aiReadRows.length > 0
   // The store holds ONE draft: a prefilled form writing it would wipe the half-typed
   // „Nowy wydatek" waiting there.
@@ -227,11 +229,7 @@ export function ExpenseForm({
     onSubmit: async ({ value }) => {
       // Backstop to the disabled submit button (a keyboard Enter can bypass it).
       if (isIngesting || isGenerating) {
-        toastMessage(
-          isIngesting ? 'Poczekaj na przetworzenie plików.' : 'Poczekaj na odczytanie paragonów.',
-          'warning',
-          4000,
-        )
+        toastMessage(t(isIngesting ? 'waitForFilesToast' : 'waitForReceiptsToast'), 'warning', 4000)
         return false
       }
       if (isSaveBlocked || isParagonMode) return false
@@ -263,7 +261,7 @@ export function ExpenseForm({
           ),
         // No stored draft backs this form, so an optimistic close would lose it on a failed save.
         awaitBeforeClose: !isDraftBacked,
-        successMessage: 'Transakcje dodane',
+        successMessage: t('addedToast'),
         files,
         onSubmitSuccess,
         onReset: () => {
@@ -377,11 +375,11 @@ export function ExpenseForm({
               >
                 {(field) => (
                   <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
-                    {TRANSACTION_TRANSFER_TYPES.filter((t) =>
-                      canBookTransferType(referenceData.currentUserRole, t),
-                    ).map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {TRANSFER_TYPE_LABELS[t]}
+                    {TRANSACTION_TRANSFER_TYPES.filter((type) =>
+                      canBookTransferType(referenceData.currentUserRole, type),
+                    ).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {TRANSFER_TYPE_LABELS[type]}
                       </SelectItem>
                     ))}
                   </field.Select>
