@@ -158,7 +158,7 @@ describe('Podsumowanie podwykonawców — host kompaktowy', () => {
     expect(screen.getByText('Pozostało do wypłaty')).toBeInTheDocument()
     expect(screen.queryByText('Podsumowanie pracowników')).toBeNull()
     expect(screen.queryByText('Z narzędziami (podwykonawca)')).toBeNull()
-    expect(screen.queryByText('Lista wpłat')).toBeNull()
+    expect(screen.queryByText('Lista wypłat')).toBeNull()
   })
 
   it('pokazuje rozbicie na płaszczyzny w pełnym widoku', () => {

@@ -1603,6 +1603,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Panel kierownika: „Moje Kasy” / „Saldo moich kas” pokazuje dokładnie kasy, których zalogowany
       jest właścicielem — także gdy inne konto ma takie samo imię i nazwisko (jego kasy się nie pojawiają).
+- [ ] Edytor kosztorysu → podsumowanie → „Podwykonawcy” (inwestycja z wypłatą dla podwykonawcy): sekcja
+      nad tabelą wypłat nazywa się „Lista wypłat”.
 
 # Zamknięte — indeks
 

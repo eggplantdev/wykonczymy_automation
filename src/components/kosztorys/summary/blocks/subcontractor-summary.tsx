@@ -71,7 +71,7 @@ export function SubcontractorSummary({
       )}
 
       {showTransactions && cashPayouts.length > 0 && (
-        <CollapsibleSection title="Lista wpłat" size="sm" defaultOpen={false}>
+        <CollapsibleSection title="Lista wypłat" size="sm" defaultOpen={false}>
           <SubcontractorPayoutsTable
             investmentId={investmentId}
             payouts={payouts}
