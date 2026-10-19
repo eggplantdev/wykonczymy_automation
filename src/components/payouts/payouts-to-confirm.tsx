@@ -50,22 +50,26 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
     <ul className={CARD_LIST_CLASS}>
       {items.map((payout) => (
         <li key={payout.id} className={cn('flex flex-col gap-3 p-4', CARD_SHELL_CLASS)}>
-          <header className="flex items-start gap-2">
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-muted-foreground text-xs">{formatPLDate(payout.date)}</span>
-              <span className="truncate text-sm font-medium">
+          <header className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="min-w-0 truncate text-sm font-medium">
                 {payout.investmentName ?? t('payoutNoInvestment')}
               </span>
+              <span className="text-muted-foreground ml-auto shrink-0 text-xs">
+                {formatPLDate(payout.date)}
+              </span>
             </div>
-            <div className="ml-auto shrink-0">
-              <PayoutStatusBadge
-                status={payout.status}
-                cancelled={false}
-                translator={transfersTranslator}
-              />
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold tabular-nums">{formatPLN(payout.amount)}</span>
+              <div className="ml-auto shrink-0">
+                <PayoutStatusBadge
+                  status={payout.status}
+                  cancelled={false}
+                  translator={transfersTranslator}
+                />
+              </div>
             </div>
           </header>
-          <span className="text-lg font-semibold tabular-nums">{formatPLN(payout.amount)}</span>
           {payout.description && (
             <p className="line-clamp-3 text-sm break-words whitespace-pre-line">
               {payout.description}
