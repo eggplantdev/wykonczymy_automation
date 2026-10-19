@@ -1421,8 +1421,12 @@ Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez 
 Porównanie: preview brancha `app-audit-refactor-wt` obok wdrożonego stagingu, ta sama baza preview. Boksy
 faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma.
 
-- [ ] Duży kosztorys (~1000 pozycji), ta sama inwestycja na obu: seria wpisów w Przedmiar, Pomiar i etap —
+- [x] Duży kosztorys (~1000 pozycji), ta sama inwestycja na obu: seria wpisów w Przedmiar, Pomiar i etap —
       czas od klawisza do odmalowania nie gorszy niż na stagingu (pomiar w przeglądarce, nie na oko).
+      _Zweryfikowano 2026-10-19 (aa1da3b6d, inw. 7, 1000 pozycji): 3 pary staging/preview na przemian, 27
+      klawiszy na kolumnę, czas do drugiej klatki. Mediana Przedmiar 48,8–49,0 ms na obu, Etap 1 48,7–49,1 ms
+      preview / 48,8–62,2 ms staging; p90 65–83 ms na obu. Pomiar z natury to suma etapów, więc wpis w etap
+      sprawdza też jego przeliczenie. Wartości przywrócone._
 - [ ] `/katalog-prac` i listy (sprzęt, flota, inwestycje, użytkownicy): szybkie wpisywanie w wyszukiwarkę —
       znaki pojawiają się bez opóźnienia, tak samo jak na stagingu.
 - [ ] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
