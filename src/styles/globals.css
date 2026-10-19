@@ -16,9 +16,21 @@
   }
 }
 
-/* Inline so `--section-rail-width` resolves on the row that wears the class. */
+/* Inline so `--section-rail*` resolves on the element that wears the class. Colour first: Tailwind
+   takes the first var() of a shadow for its colour slot. */
 @theme inline {
   --shadow-section-rail: inset var(--section-rail, transparent) var(--section-rail-width) 0 0;
+  --color-section-rail: var(--section-rail, var(--color-muted-foreground));
+  --color-section-pill: color-mix(
+    in oklab,
+    var(--section-rail, var(--color-muted-foreground)) var(--section-band-tint, 18%),
+    transparent
+  );
+  --color-section-pill-ink: color-mix(
+    in oklab,
+    var(--section-rail, var(--color-muted-foreground)) 45%,
+    var(--color-foreground)
+  );
 }
 
 @theme {
@@ -42,7 +54,7 @@
   --text-2xs: 0.625rem;
   --text-3xs: 0.5625rem;
 
-  /* They only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
+  /* Dialog widths only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
      tailwind-merge leaves an override beside the base class and stylesheet order eats it. */
   --container-dialog-sm: min(90vw, 26.25rem);
   --container-dialog: min(90vw, 37.5rem);
@@ -168,7 +180,7 @@
 }
 
 /* iOS Safari zooms the whole page when a focused input's font-size is under 16px, and does not zoom
-   back out. */
+   back out. The `max` holds the 16px floor when „Rozmiar" shrinks the root font-size. */
 @utility typing-surface {
   font-size: max(var(--text-base), 16px);
   line-height: var(--text-base--line-height);
@@ -216,6 +228,7 @@
   --grid-band-text-phone: var(--text-xs);
 }
 
+/* A header input (the etap rename) must not follow the rows' text size. */
 [data-grid-text-size] .dsg-row-header {
   --grid-cell-text: initial;
   --grid-cell-text-phone: initial;
@@ -358,8 +371,10 @@
   box-shadow: none !important;
 }
 
-/* the row is `lines × 20 + 12` (see row-height.ts) and dsg's cell eats 1px of that on its top
-   border, hence 5 above and 6 below. */
+/* The clip sits on the TEXT, never on the cell: a cell that clips also clips the long-text editing
+   overlay and the column-width handle. MARGIN, not padding: `overflow: hidden` clips at the padding
+   box, so padding would let the next line show through. The row is `lines × 20 + 12` (see
+   row-height.ts) and dsg's cell eats 1px of that on its top border, hence 5 above and 6 below. */
 .kosztorys-grid .dsg-cell:not(.dsg-cell-gutter) > span {
   align-self: stretch;
   display: flex;
@@ -522,7 +537,8 @@
 }
 
 /* Must stay above the section band rules: same specificity, and a band's wash has to win over the
-   stripe so the band still reads as one bar. */
+   stripe so the band still reads as one bar. The colour alone, not the `background` shorthand: the
+   shorthand would reset the column tint's background-image on every odd column. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-stripe-column {
   background-color: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
 }

@@ -5,7 +5,7 @@ import { flexRender, type Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import { billsNetAmount, transferTextClass } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { transferPaymentMethodText } from '@/lib/transfers/transfer-text'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
@@ -20,16 +20,15 @@ type PropsT = {
   className?: string
 }
 
-function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
-  const cell = row.getAllCells().find((candidate) => candidate.column.id === columnId)
-  return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
-}
-
 const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
 
 export function TransferCard({ row, uncoloredAmounts = false, className }: PropsT) {
-  const hasColumn = (columnId: string) =>
-    row.getAllCells().some((cell) => cell.column.id === columnId)
+  const cells = new Map(row.getAllCells().map((cell) => [cell.column.id, cell]))
+  const hasColumn = (columnId: string) => cells.has(columnId)
+  const renderCell = (columnId: string): ReactNode => {
+    const cell = cells.get(columnId)
+    return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
+  }
   const translator = useTranslation('transfers')
   const transfer = row.original
   const isMuted = transfer.cancelled || transfer.type === 'CANCELLATION'
@@ -55,13 +54,16 @@ export function TransferCard({ row, uncoloredAmounts = false, className }: Props
 
       <div className="flex items-center justify-between gap-1.5">
         <TransferTypeBadge transfer={transfer} translator={translator} />
-        {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell(row, 'payoutStatus')}
+        {hasColumn('payoutStatus') && transfer.payoutStatus && renderCell('payoutStatus')}
       </div>
 
       <div className="flex items-baseline gap-2">
         <span
-          className={cn('text-lg font-semibold', transfer.cancelled && 'line-through')}
-          style={isMuted || uncoloredAmounts ? undefined : { color: transferColorVar(transfer) }}
+          className={cn(
+            'text-lg font-semibold',
+            transfer.cancelled && 'line-through',
+            !isMuted && !uncoloredAmounts && transferTextClass(transfer),
+          )}
         >
           {formatPLN(transfer.amount)}
         </span>
@@ -73,9 +75,7 @@ export function TransferCard({ row, uncoloredAmounts = false, className }: Props
       </div>
 
       {hasColumn('investment') && isNamed(transfer.investmentName) && (
-        <div className="text-muted-foreground truncate text-sm">
-          {renderCell(row, 'investment')}
-        </div>
+        <div className="text-muted-foreground truncate text-sm">{renderCell('investment')}</div>
       )}
 
       {hasColumn('description') && transfer.description && (
@@ -85,17 +85,17 @@ export function TransferCard({ row, uncoloredAmounts = false, className }: Props
       <div className="flex flex-wrap gap-1">
         {hasColumn('sourceRegister') && isNamed(transfer.sourceRegisterName) && (
           <CardChip kind="register" label={t('colSourceRegister')}>
-            {renderCell(row, 'sourceRegister')}
+            {renderCell('sourceRegister')}
           </CardChip>
         )}
         {hasColumn('targetRegister') && isNamed(transfer.targetRegisterName) && (
           <CardChip kind="register" label={t('colTargetRegister')}>
-            {renderCell(row, 'targetRegister')}
+            {renderCell('targetRegister')}
           </CardChip>
         )}
         {hasColumn('worker') && isNamed(transfer.workerName) && (
           <CardChip kind="worker" label={t('colWorker')}>
-            {renderCell(row, 'worker')}
+            {renderCell('worker')}
           </CardChip>
         )}
         {hasColumn(categoryColumn) && category && isNamed(category) && (
@@ -120,9 +120,9 @@ export function TransferCard({ row, uncoloredAmounts = false, className }: Props
 
       <RowActionLabels value>
         <footer className="flex flex-wrap items-center gap-1.5">
-          {renderCell(row, 'invoice')}
-          {renderCell(row, 'invoiceNote')}
-          <div className="ml-auto">{renderCell(row, 'actions')}</div>
+          {renderCell('invoice')}
+          {renderCell('invoiceNote')}
+          <div className="ml-auto">{renderCell('actions')}</div>
         </footer>
       </RowActionLabels>
     </article>

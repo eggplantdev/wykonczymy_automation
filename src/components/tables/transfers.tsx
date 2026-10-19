@@ -16,7 +16,7 @@ import {
   isManagementRole,
   type RoleT,
 } from '@/lib/auth/roles'
-import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
+import { isCancellationType, billsNetAmount, transferTextClass } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
@@ -63,12 +63,10 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
         const showsNet = billsNetAmount(type) && netAmount !== null
         return (
           <span
-            className="flex flex-col font-medium"
-            style={
-              isMuted || uncoloredAmounts
-                ? undefined
-                : { color: transferColorVar(info.row.original) }
-            }
+            className={cn(
+              'flex flex-col font-medium',
+              !isMuted && !uncoloredAmounts && transferTextClass(info.row.original),
+            )}
           >
             {formatPLN(info.getValue())}
             {showsNet && (

@@ -1,4 +1,4 @@
-import type { DotBadgeColorT } from '@/components/ui/dot-badge'
+import { COLOR_TOKEN_CLASSES, type ColorTokenT } from '@/styles/color-tokens'
 
 // Sorted alphabetically by Polish label
 export const TRANSFER_TYPES = [
@@ -21,7 +21,7 @@ export type TransferTypeT = (typeof TRANSFER_TYPES)[number]
 
 type TransferSpecT = {
   label: string
-  color: DotBadgeColorT
+  color: ColorTokenT
   /** Adds to a register instead of subtracting, and counts as investor income. */
   deposit: boolean
   expensesSheetTab: boolean
@@ -219,13 +219,13 @@ const mapSpecs = <V>(pick: (spec: TransferSpecT) => V): Record<TransferTypeT, V>
 
 export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = mapSpecs((s) => s.label)
 
-export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, DotBadgeColorT> = mapSpecs((s) => s.color)
+export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, ColorTokenT> = mapSpecs((s) => s.color)
 
 export const transferColor = ({ type, settled }: { type: TransferTypeT; settled?: boolean }) =>
   settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
 
-export const transferColorVar = (transfer: { type: TransferTypeT; settled?: boolean }) =>
-  `var(--color-${transferColor(transfer)})`
+export const transferTextClass = (transfer: { type: TransferTypeT; settled?: boolean }) =>
+  COLOR_TOKEN_CLASSES[transferColor(transfer)].text
 
 export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
 

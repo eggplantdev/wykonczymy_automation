@@ -50,9 +50,7 @@ export function sectionHeaderSlot(
 }
 
 function SectionDot() {
-  return (
-    <span className="size-2.5 shrink-0 rounded-full bg-(--section-rail,var(--color-muted-foreground))" />
-  )
+  return <span className="bg-section-rail size-2.5 shrink-0 rounded-full" />
 }
 
 export function SectionHeaderCell({

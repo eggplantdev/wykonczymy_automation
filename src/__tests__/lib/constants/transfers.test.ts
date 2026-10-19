@@ -169,7 +169,8 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
 }
 
 const NOT_A_TRANSFER_TYPE_PREDICATE = [
-  'transferColorVar',
+  'transferColor',
+  'transferTextClass',
   'financialBucketOf',
   'billedAmountOf',
   'billedAmountFor',
