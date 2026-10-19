@@ -194,7 +194,9 @@ const COLUMNS = [
     header: 'Pozostało',
     meta: { align: 'right' },
     cell: (info) => (
-      <span className={cn('whitespace-nowrap', info.getValue() < 0 && 'text-destructive')}>
+      <span
+        className={cn('whitespace-nowrap', roundToCents(info.getValue()) < 0 && 'text-destructive')}
+      >
         {formatPLN(info.getValue())}
       </span>
     ),
