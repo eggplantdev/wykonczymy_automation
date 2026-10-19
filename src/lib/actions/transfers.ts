@@ -18,6 +18,7 @@ import {
   canFillVatPlane,
   carriesPayoutStatus,
   hasOptionalWorker,
+  isInvestmentExpense,
   isLaborCost,
   needsSourceRegister,
 } from '@/lib/constants/transfers'
@@ -135,6 +136,7 @@ export async function createBulkTransferAction(
     receiptReadRows: number[][]
     skippedReceipts: SkippedReceiptT[]
   },
+  flags?: { order?: boolean },
 ) {
   const lineCount = data.lineItems.length
 
@@ -171,6 +173,8 @@ export async function createBulkTransferAction(
         parsed.data.investment,
       )
       if (lockMessage) return { success: false, error: lockMessage }
+      const orderStatus =
+        flags?.order && isInvestmentExpense(parsed.data.type) ? ('awaiting' as const) : undefined
 
       // skipSheetSync: the per-row afterChange hook must NOT sync each created
       // row one-by-one — this action batches them all in a single sheet write below.
@@ -202,6 +206,7 @@ export async function createBulkTransferAction(
                 ...documentIdentity(item),
                 settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
                 createdBy: user.id,
+                orderStatus,
               },
             })
             ids.push(created.id)

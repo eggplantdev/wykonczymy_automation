@@ -30,7 +30,9 @@ import { InvestmentStatusInlineSelect } from '@/components/investments/investmen
 import { InvestmentSiteManagerSelect } from '@/components/investments/investment-site-manager-select'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { ContractDialog } from '@/components/investments/contract-dialog'
-import { investmentLockOf } from '@/lib/constants/investment-lock'
+import { investmentLockOf, isOfferedForBooking } from '@/lib/constants/investment-lock'
+import { fetchOrderSettings } from '@/lib/queries/order-settings'
+import { OrderButton } from '@/components/orders/order-button'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
@@ -54,7 +56,11 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
-  const [refData, detailsById] = await Promise.all([fetchReferenceData(), fetchInvestmentDetails()])
+  const [refData, detailsById, orderSettings] = await Promise.all([
+    fetchReferenceData(),
+    fetchInvestmentDetails(),
+    fetchOrderSettings(),
+  ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const found = findInvestmentRef(refData, investmentId)
@@ -80,6 +86,19 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} size="sm" />
         )}
         <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
+        {!trashed && isOfferedForBooking(investment) && (
+          <OrderButton
+            investment={{
+              id: investmentId,
+              street: investment.address,
+              postalCode: investment.postalCode,
+              city: investment.city,
+              siteManagerId: investment.siteManagerId,
+            }}
+            referenceData={{ ...refData, currentUserId: user.id, currentUserRole: user.role }}
+            orderSettings={orderSettings}
+          />
+        )}
       </div>
       {!trashed && (
         <div className="flex flex-wrap items-center gap-4">

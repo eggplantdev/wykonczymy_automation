@@ -13,3 +13,5 @@ export const ORDER_ITEMS = {
 
 export type OrderItemT = keyof typeof ORDER_ITEMS
 export const ORDER_ITEM_KINDS = Object.keys(ORDER_ITEMS) as OrderItemT[]
+
+export const ORDER_ACTION_LABEL = 'Zamów big bag / kontener'

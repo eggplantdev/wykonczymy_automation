@@ -722,16 +722,16 @@ See each phase's Manual Verification. They roll into `context/foundation/manual-
 
 #### Automated
 
-- [x] 3.1 Order settings actions DB spec passes
-- [x] 3.2 Order settings form DOM spec passes
+- [x] 3.1 Order settings actions DB spec passes — fa3928cb1
+- [x] 3.2 Order settings form DOM spec passes — fa3928cb1
 
 ### Phase 4: Order flow
 
 #### Automated
 
-- [ ] 4.1 Order helpers unit specs pass
-- [ ] 4.2 Order flag DB spec passes
-- [ ] 4.3 Order dialog DOM spec passes
+- [x] 4.1 Order helpers unit specs pass
+- [x] 4.2 Order flag DB spec passes
+- [x] 4.3 Order dialog DOM spec passes
 
 ### Phase 5: Order status — display and flip
 
