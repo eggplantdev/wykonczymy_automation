@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeferredValue } from 'react'
+import { useDeferredValue, useMemo } from 'react'
 import { Ruler, Tags } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -68,8 +68,9 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     clear: clearConditions,
   } = useEngagedIds('work-catalogue-show')
 
-  // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
-  const nearDuplicates = findNearDuplicates(data)
+  // ~0.1 s over 561 wpisy: once per `data`, never per keystroke — the compiler drops this file's cache, so
+  // the memos here are hand-written.
+  const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
 
   const conditions = [...CATALOGUE_CONDITIONS, catalogueDuplicateCondition(nearDuplicates)]
 
@@ -106,15 +107,17 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   const deferredRows = useDeferredValue(filteredData)
   const busy = filteredData !== deferredRows
 
-  const byCategory = Map.groupBy(data, (item) => item.category ?? '')
-  const categoryOptions = catalogueCategoryOptions(data).map((option) => ({
-    ...option,
-    count: byCategory.get(option.value)?.length ?? 0,
-  }))
+  const categoryOptions = useMemo(() => {
+    const byCategory = Map.groupBy(data, (item) => item.category ?? '')
+    return catalogueCategoryOptions(data).map((option) => ({
+      ...option,
+      count: byCategory.get(option.value)?.length ?? 0,
+    }))
+  }, [data])
 
-  const categorySuggestions = catalogueCategorySuggestions(data)
+  const categorySuggestions = useMemo(() => catalogueCategorySuggestions(data), [data])
 
-  const unitOptions = catalogueUnitOptions(data)
+  const unitOptions = useMemo(() => catalogueUnitOptions(data), [data])
 
   const chips = catalogueActiveFiltersModel({
     conditions,
@@ -148,13 +151,26 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   }
 
   // Numbered off `data`, never off what is on screen, so filtering cannot renumber a praca.
-  const ordinals = new Map(
-    [...data]
-      .sort((first, second) => compareDescriptions(first.description, second.description))
-      .map((row, index) => [row.id, index + 1]),
+  const ordinals = useMemo(
+    () =>
+      new Map(
+        [...data]
+          .sort((first, second) => compareDescriptions(first.description, second.description))
+          .map((row, index) => [row.id, index + 1]),
+      ),
+    [data],
   )
 
-  const columns = getWorkCatalogueColumns({ categorySuggestions, ordinals, usage, nearDuplicates })
+  const columns = useMemo(
+    () =>
+      getWorkCatalogueColumns({
+        categorySuggestions,
+        ordinals,
+        usage,
+        nearDuplicates,
+      }),
+    [categorySuggestions, ordinals, usage, nearDuplicates],
+  )
 
   return (
     <>

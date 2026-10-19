@@ -1423,6 +1423,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Duży kosztorys (~1000 pozycji), ta sama inwestycja na obu: seria wpisów w Przedmiar, Pomiar i etap —
       czas od klawisza do odmalowania nie gorszy niż na stagingu (pomiar w przeglądarce, nie na oko).
+- [ ] `/katalog-prac` i listy (sprzęt, flota, inwestycje, użytkownicy): szybkie wpisywanie w wyszukiwarkę —
+      znaki pojawiają się bez opóźnienia, tak samo jak na stagingu.
 - [ ] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
       cofnięcie przywraca dokładnie stan sprzed wklejenia.
 - [ ] Edytor otwarty w dwóch kartach: usuń pozycję w jednej, edytuj ją w drugiej — komunikat, że pozycji nie ma,
