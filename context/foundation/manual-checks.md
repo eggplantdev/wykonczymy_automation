@@ -1329,8 +1329,9 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 
 - [ ] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja
       „Wypłaty do potwierdzenia” jest zwijana, domyślnie rozwinięta i stoi pod przyciskami szybkich
-      akcji. Karta ma u góry po lewej datę i nazwę inwestycji, po prawej status, niżej kwotę i opis,
-      na dole „Potwierdzam” i czerwone „Odrzuć” równej szerokości.
+      akcji. Karta ma u góry nazwę inwestycji po lewej i datę po prawej, w drugim wierszu kwotę po
+      lewej i status po prawej (bez pustej przerwy pod nagłówkiem), niżej opis, na dole
+      „Potwierdzam” i czerwone „Odrzuć” równej szerokości.
 - [ ] Jako pracownik odrzuć wypłatę z powodem: znika z „Wypłat do potwierdzenia” i pojawia się w
       osobnej sekcji „Odrzucone wypłaty” z opisem o wyjaśnieniu z kierownikiem i twoim powodem; ma
       tylko „Potwierdzam”, które dalej działa.
@@ -1351,6 +1352,8 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       widzi menedżer na tej stronie. Suma przy filtrze nie dolicza anulowanych.
 - [ ] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
       potwierdzona / odrzucona) i zawęża listę do wypłat w tym stanie; pracownik bez wypłat go nie ma.
+- [ ] Karty przelewów (telefon, lista wypłat pracownika): status wypłaty stoi w tej samej linii co
+      badge „Wypłata”, przy prawej krawędzi; nagłówek karty to dalej numer i data.
 - [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
       przełącza aktywność konta i nie otwiera strony pracownika.
 - [ ] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
