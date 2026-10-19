@@ -18,6 +18,7 @@ const INVESTMENTS = [
 
 const seedFor = (pathname: string) => {
   vi.mocked(usePathname).mockReturnValue(pathname)
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- node spec, no renderer: the hook only reads the mocked usePathname
   return useInvestmentFromUrl(INVESTMENTS)
 }
 

@@ -87,8 +87,22 @@ stay informational.
 - [x] dismissed · code-review · `src/components/transfers/cards/transfer-card.tsx:25` · cards now read `getAllCells()`, so a column hidden in the table shows on a card — intended by `a353e3506`; transfer tables set no `defaultColumnVisibility`, and `excludeColumns` still drops a page's columns from the defs, so nothing the page withholds reaches a card
 - [x] dismissed · code-review · `src/components/transfers/transfer-data-table.tsx:115` · hiding `ColumnToggle` in card view also hides its text-size menu — that size styles table cells only; cards don't read it
 
+- [x] fixed · suite · `src/components/tables/transfers.tsx:66` · the gate's own color-class edit used `cn` without importing it — typecheck caught it; import added
+- [x] fixed · suite · `src/__tests__/components/forms/hooks/use-investment-from-url.test.ts:21` · lint error `react-hooks/rules-of-hooks` from `f004b9d08` (outside scope, red on staging) — node spec with no renderer, the hook only reads the mocked `usePathname`; line-level disable with that reason
+- [x] dismissed · suite · `.next-e2e/types/validator.ts:323` · tsc error on the removed `/wyplaty` page — a stale e2e build artifact, rewritten by the next `next build` into `.next-e2e`
+
 ## Simplify pass
 
 Ran /simplify (reuse · simplification · efficiency · altitude) over the gate's own edits — 5 applied, 0 proposed, 5 dropped/dismissed (efficiency: no findings); each folded into ## Findings (tagged simplify). primitive-reuse-scan: 5 fixed, 1 dropped (tagged reuse-scan).
 
 ## Tests & suite
+
+Run by the owner's go („testy”), touched specs only — no full suite, no e2e.
+
+- `tsc --noEmit`: green after the `cn` fix, apart from the stale `.next-e2e` artifact.
+- `eslint .`: 0 errors after the spec fix (51 pre-existing warnings).
+- Unit/DOM — 11 files, 561 tests passed: toggle-active, constants/transfers, sheets-sync,
+  transfer-sheet-sync, env schema, delete-invoice-media, column-order, cancel-transfer-button,
+  transfer-card-columns, investment-transfers-href, use-investment-from-url.
+- Integration (`pnpm test:integration`, 5435) — 4 files, 30 tests passed: cash-registers (new, 5),
+  cash-register-trash, toggle-active, delete-invoice-media.
