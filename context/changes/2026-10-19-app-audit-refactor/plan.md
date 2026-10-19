@@ -708,8 +708,8 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [x] 6.1 Specs for touched component directories pass (SHA6)
-- [x] 6.2 Cycle count below the Phase 2 count (SHA6)
+- [x] 6.1 Specs for touched component directories pass (522dc05a4)
+- [x] 6.2 Cycle count below the Phase 2 count (522dc05a4)
 
 ### Phase 7: Memo guard and removal (outside the editor pair)
 
