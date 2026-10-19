@@ -7,7 +7,12 @@ import {
   createBulkExpenseSchema,
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
-import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
+import {
+  BONUS_FORBIDDEN_MESSAGE,
+  canBookTransferType,
+  canCancelTransfer,
+  canMutateTransfer,
+} from '@/lib/auth/roles'
 import {
   canBeSettled,
   canFillVatPlane,
@@ -249,6 +254,7 @@ async function fetchAndAuthorize(
   transferId: number,
   errorVerb: string,
   req: PayloadRequest,
+  authorize: typeof canCancelTransfer,
 ): Promise<AuthErrorT | AuthSuccessT> {
   const db = await getDb(payload, req)
   // Locked before the read: two cancels, or an edit racing a cancel, would otherwise both pass the
@@ -268,11 +274,12 @@ async function fetchAndAuthorize(
   if (lockMessage) return { error: lockMessage }
 
   const creatorId = resolveId(original.createdBy)
-  const allowed = canMutateTransfer({
+  const allowed = authorize({
     role: user.role,
     userId: user.id,
     transferType: original.type,
     createdById: creatorId,
+    payoutStatus: original.payoutStatus,
   })
   if (!allowed) {
     return { error: `Nie masz uprawnień do ${errorVerb} tej transakcji.` }
@@ -296,7 +303,14 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       return withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
-          const result = await fetchAndAuthorize(payload, user, transferId, 'anulowania', req)
+          const result = await fetchAndAuthorize(
+            payload,
+            user,
+            transferId,
+            'anulowania',
+            req,
+            canCancelTransfer,
+          )
           console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
           if ('error' in result) return { success: false, error: result.error }
 
@@ -347,7 +361,14 @@ export async function updateTransferAction(
       const outcome = await withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
-          const result = await fetchAndAuthorize(payload, user, transferId, 'edycji', req)
+          const result = await fetchAndAuthorize(
+            payload,
+            user,
+            transferId,
+            'edycji',
+            req,
+            canMutateTransfer,
+          )
           console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
           if ('error' in result) return { success: false, error: result.error }
           const { original } = result

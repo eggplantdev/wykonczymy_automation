@@ -10,7 +10,12 @@ import { CancelTransferButton } from '@/components/transfers/cancel-transfer-but
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
-import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
+import {
+  canCancelTransfer,
+  canMutateTransfer,
+  isManagementRole,
+  type RoleT,
+} from '@/lib/auth/roles'
 import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
@@ -284,15 +289,18 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
       // Courtesy, not a gate — the collection hook refuses either write regardless.
       const lockedInvestment = row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
 
-      const canEdit =
-        !!currentUserRole &&
-        currentUserId !== undefined &&
-        canMutateTransfer({
-          role: currentUserRole,
-          userId: currentUserId,
-          transferType: row.type,
-          createdById: row.createdById,
-        })
+      const actor =
+        currentUserRole && currentUserId !== undefined
+          ? {
+              role: currentUserRole,
+              userId: currentUserId,
+              transferType: row.type,
+              createdById: row.createdById,
+            }
+          : undefined
+      const canEdit = actor !== undefined && canMutateTransfer(actor)
+      const canCancel =
+        actor !== undefined && canCancelTransfer({ ...actor, payoutStatus: row.payoutStatus })
 
       return (
         <div className="flex items-center justify-end gap-1">
@@ -304,7 +312,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
               disabledReason={lockedInvestment ? INVESTMENT_LOCKED_MESSAGE : undefined}
             />
           )}
-          {!lockedInvestment && <CancelTransferButton transactionId={row.id} />}
+          {!lockedInvestment && canCancel && <CancelTransferButton transactionId={row.id} />}
         </div>
       )
     },
