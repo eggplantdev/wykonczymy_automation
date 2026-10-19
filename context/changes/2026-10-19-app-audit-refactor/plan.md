@@ -694,7 +694,7 @@ before the change. If the compiler can't cover a perf-critical memo, it stays an
 
 #### Automated
 
-- [ ] 4.1 `pnpm test:integration` passes
+- [x] 4.1 `pnpm test:integration` passes (821dbe832, 159 files / 880 tests)
 - [x] 4.2 `lib/{actions,db,queries}` specs pass (555a7a7f1)
 
 ### Phase 5: Payload hooks out of `src/hooks`
