@@ -1,14 +1,19 @@
 # Reads /dev/tty because git feeds the pushed-ref list to a pre-push hook on stdin.
 PROD_BRANCH=main
-push_to_prod= sha_from= sha_to=
+DUMP_BRANCH=staging
+ZERO_SHA=0000000000000000000000000000000000000000
+push_to_prod= push_to_dump_branch= sha_from= sha_to=
 while read -r _local_ref local_sha remote_ref remote_sha; do
   if [ "$remote_ref" = "refs/heads/$PROD_BRANCH" ]; then
     push_to_prod=1; sha_from=$remote_sha; sha_to=$local_sha
   fi
+  if [ "$remote_ref" = "refs/heads/$DUMP_BRANCH" ] && [ "$local_sha" != "$ZERO_SHA" ]; then
+    push_to_dump_branch=1
+  fi
 done
 
 if [ -n "$push_to_prod" ]; then
-  if [ "$sha_from" = "0000000000000000000000000000000000000000" ]; then
+  if [ "$sha_from" = "$ZERO_SHA" ]; then
     sha_from=$(git hash-object -t tree /dev/null)   # new branch: diff vs empty tree
   fi
   # --diff-filter=A: only ADDED migrations are pending applies.
@@ -43,17 +48,30 @@ fi
 
 bash scripts/with-test-lock.sh bash scripts/pre-push-tests.sh || exit 1
 
-echo "Dumping production DB from Neon..."
-if pnpm db:dump && [ -s dumps/dump-latest.sql ]; then
-  echo "✅ DB dump succeeded ($(du -h dumps/dump-latest.sql | cut -f1))"
-else
-  echo "❌ DB dump failed or produced empty file"
-  exit 1
+dump_go=n
+if [ -n "$push_to_dump_branch" ]; then
+  if { : < /dev/tty; } 2>/dev/null; then
+    printf '\nDump the production DB from Neon before pushing to %s? [y/N] ' "$DUMP_BRANCH" > /dev/tty
+    read -r dump_go < /dev/tty || dump_go=n
+  else
+    echo "→ no terminal to confirm; skipping DB dump" >&2
+  fi
 fi
 
-echo "Pruning dumps older than 7 days..."
-pruned=$(find dumps -name 'dump-*.sql' ! -name 'dump-latest.sql' -mtime +7 -print -delete 2>/dev/null | wc -l | tr -d ' ')
-echo "✅ Pruned ${pruned:-0} old dump(s)"
+case "$dump_go" in [Yy]*)
+  echo "Dumping production DB from Neon..."
+  if pnpm db:dump && [ -s dumps/dump-latest.sql ]; then
+    echo "✅ DB dump succeeded ($(du -h dumps/dump-latest.sql | cut -f1))"
+  else
+    echo "❌ DB dump failed or produced empty file"
+    exit 1
+  fi
+
+  echo "Pruning dumps older than 7 days..."
+  pruned=$(find dumps -name 'dump-*.sql' ! -name 'dump-latest.sql' -mtime +7 -print -delete 2>/dev/null | wc -l | tr -d ' ')
+  echo "✅ Pruned ${pruned:-0} old dump(s)"
+  ;;
+esac
 
 # Detached subshell so `git push` returns immediately when the hook exits.
 # never block a push over LOCAL auth
