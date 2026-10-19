@@ -9,8 +9,7 @@ import { insertTestMedia, purgeTestMedia } from '@/__tests__/helpers/media'
 import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-// The reclaim is replaced so the fixture row never reaches the Blob plugin; the spec runs the
-// reference scan itself once the delete has committed, where the real reclaim would run.
+// The reclaim is replaced so the fixture row never reaches the Blob plugin.
 
 const MARKER = 'delete-invoice-media'
 const FILENAME_PREFIX = 'delete-invoice-media-'

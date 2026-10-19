@@ -1,8 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
 
-// `max-w-dialog*` are project tokens from `@theme`, so plain `twMerge` left them NEXT TO an override
-// instead of dropping one
 const twMerge = extendTailwindMerge({
   extend: {
     classGroups: {

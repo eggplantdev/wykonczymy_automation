@@ -85,7 +85,6 @@ type CanCancelTransferArgsT = CanMutateTransferArgsT & {
   payoutStatus: PayoutStatusT | null | undefined
 }
 
-// A wypłata the worker rejected sits in every manager's dashboard queue, so whoever picks it up must
-// be able to cancel it — editing it stays with the author.
+// A rejected wypłata sits in every manager's queue, so whoever picks it up may cancel it.
 export const canCancelTransfer = ({ payoutStatus, ...args }: CanCancelTransferArgsT): boolean =>
   canMutateTransfer(args) || (payoutStatus === 'rejected' && isManagementRole(args.role))

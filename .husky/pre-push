@@ -56,11 +56,11 @@ pruned=$(find dumps -name 'dump-*.sql' ! -name 'dump-latest.sql' -mtime +7 -prin
 echo "✅ Pruned ${pruned:-0} old dump(s)"
 
 # Detached subshell so `git push` returns immediately when the hook exits.
-# never block a push over LOCAL auth
 if [ -z "${SKIP_WATCH_DEPLOY:-}" ]; then
   if bash scripts/watch-deploy.sh --check-auth; then
     ( DEPLOY_SHA="$(git rev-parse HEAD)" bash scripts/watch-deploy.sh & )
   else
+    # Never block a push over LOCAL auth.
     echo "  🔒 vercel: skipping deploy watcher — fix local CLI auth (see above), then push again to tail." >&2
   fi
 fi
