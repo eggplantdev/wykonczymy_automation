@@ -13,9 +13,12 @@ import {
   LOSS_LABEL,
   MATERIALS_DISCOUNT_LABEL,
 } from '@/lib/constants/financial-field-labels'
-import { costForCategory } from '@/lib/utils/category-costs'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
+
+function costForCategory(categoryCosts: CategoryCostT[], categoryId: number): number {
+  return categoryCosts.find((c) => c.categoryId === categoryId)?.total ?? 0
+}
 
 // Rounded because the `!== 0` guards below are the seam where this becomes a rendered row: a float
 // residue between two SQL sums otherwise shows up as a „Korekta (bez kategorii)" row reading 0,00.

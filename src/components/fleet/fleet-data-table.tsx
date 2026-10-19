@@ -11,7 +11,7 @@ import { AddInspectionDialog } from '@/components/dialogs/add-inspection-dialog'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { sumKnown } from '@/lib/utils/sum-known'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
-import type { FleetRowT } from '@/types/fleet'
+import type { FleetRowT } from '@/lib/fleet/types'
 
 export function FleetDataTable({ data }: { data: FleetRowT[] }) {
   const getSearchableText = useCallback(

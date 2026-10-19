@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { netSuggestion } from '@/lib/utils/net-suggestion'
+import { netSuggestion } from '@/components/forms/deposit-form/net-suggestion'
 
 describe('netSuggestion', () => {
   const RATE = 0.23

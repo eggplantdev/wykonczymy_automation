@@ -22,7 +22,7 @@ import { useInspectionFormStore } from '@/stores/form-stores'
 import { inspectionFormSchema, type InspectionFormValuesT } from './inspection-schema'
 import type { InspectionFormDataT } from './inspection-schema'
 import type { ActionResultT } from '@/types/action'
-import type { FleetRowT } from '@/types/fleet'
+import type { FleetRowT } from '@/lib/fleet/types'
 
 type InspectionFormPropsT = {
   formId: string

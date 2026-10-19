@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
+import { scanReceiptClient } from '@/components/forms/expense-form/scan-receipt-client'
 import { postFormData } from '@/lib/utils/post-form-data'
 
 vi.mock('@/lib/utils/post-form-data', () => ({ postFormData: vi.fn() }))

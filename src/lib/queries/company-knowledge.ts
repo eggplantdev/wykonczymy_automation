@@ -8,7 +8,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { listCompanyKnowledge } from '@/lib/db/company-knowledge'
 import { getDb } from '@/lib/db/get-db'
 import type { ActionResultT } from '@/types/action'
-import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 const getCompanyKnowledge = cached(
   async (): Promise<CompanyKnowledgeEntryT[]> => {

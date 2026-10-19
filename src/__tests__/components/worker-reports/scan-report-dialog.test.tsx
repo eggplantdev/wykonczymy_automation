@@ -15,7 +15,7 @@ vi.mock('@/components/forms/hooks/use-file-pick-ingest', () => ({
 }))
 
 const mockReadPage = vi.fn()
-vi.mock('@/lib/utils/read-worker-report-client', () => ({
+vi.mock('@/components/worker-reports/read-worker-report-client', () => ({
   readWorkerReportClient: (...args: unknown[]) => mockReadPage(...args),
 }))
 

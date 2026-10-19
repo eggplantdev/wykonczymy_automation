@@ -65,7 +65,7 @@ vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', (impo
 vi.mock('@/lib/media/submit-with-uploads', (importOriginal) =>
   passThrough(importOriginal, 'submitWithUploads', 'submitWithUploadRows'),
 )
-vi.mock('@/lib/utils/scan-receipt-client', (importOriginal) =>
+vi.mock('@/components/forms/expense-form/scan-receipt-client', (importOriginal) =>
   passThrough(importOriginal, 'scanReceiptClient'),
 )
 vi.mock('@/lib/media/ingest-files', (importOriginal) => passThrough(importOriginal, 'ingestFiles'))

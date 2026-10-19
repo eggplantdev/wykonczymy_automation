@@ -17,7 +17,7 @@ import {
 } from './lead-asset-labels'
 import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 import { EMPTY_INVESTMENT_FORM_VALUES } from '@/components/forms/investment-form/empty-form-values'
 
 function buildNotes(lead: LeadRowT): string {

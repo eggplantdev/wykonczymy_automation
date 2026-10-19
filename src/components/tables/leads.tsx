@@ -15,7 +15,7 @@ import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { cn } from '@/lib/utils/cn'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
-import type { LeadRowT, LeadSourceT } from '@/types/leads'
+import type { LeadRowT, LeadSourceT } from '@/lib/leads/types'
 
 const SOURCE_BADGE_CLASS: Record<LeadSourceT, string> = {
   facebook_lead_ads: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',

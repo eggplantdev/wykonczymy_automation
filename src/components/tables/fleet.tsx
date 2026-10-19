@@ -11,7 +11,7 @@ import { makeModel } from '@/lib/utils/make-model'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashVehicleAction } from '@/lib/actions/vehicle-trash'
 import { describeVehicleTrash } from '@/lib/fleet/describe-trash'
-import type { FleetRowT } from '@/types/fleet'
+import type { FleetRowT } from '@/lib/fleet/types'
 
 const col = createColumnHelper<FleetRowT>()
 

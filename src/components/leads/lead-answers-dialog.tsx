@@ -4,7 +4,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components
 import { Button } from '@/components/ui/button'
 import { MediaStrip } from '@/components/media/media-strip'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
-import type { LeadAnswerT } from '@/types/leads'
+import type { LeadAnswerT } from '@/lib/leads/types'
 import type { MediaFileT } from '@/types/media'
 
 type LeadAnswersDialogPropsT = {

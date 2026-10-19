@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LeadsDataTable } from '@/components/leads/leads-data-table'
 import { trashLeadsAction } from '@/lib/actions/lead-trash'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 navigationState.pathname = '/zgloszenia'

@@ -10,7 +10,7 @@ import { warsawToday } from '@/lib/utils/days'
 import { historyOfType, toRow } from '@/lib/fleet/rows'
 import { byInspectionType } from '@/lib/fleet/inspection-types'
 import { ALL_TIME } from '@/lib/utils/date-range'
-import type { FleetRowT, VehicleDetailT } from '@/types/fleet'
+import type { FleetRowT, VehicleDetailT } from '@/lib/fleet/types'
 
 const getFleetDataset = cached(
   async (): Promise<FleetDatasetT> => {

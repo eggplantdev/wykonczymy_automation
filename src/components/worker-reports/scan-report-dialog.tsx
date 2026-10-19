@@ -19,7 +19,7 @@ import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { readScanWorkerInvestments } from '@/lib/queries/worker-reports'
 import { cn } from '@/lib/utils/cn'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
-import { readWorkerReportClient } from '@/lib/utils/read-worker-report-client'
+import { readWorkerReportClient } from '@/components/worker-reports/read-worker-report-client'
 import { toastMessage } from '@/lib/utils/toast'
 import { usePendingStore } from '@/stores/pending-store'
 

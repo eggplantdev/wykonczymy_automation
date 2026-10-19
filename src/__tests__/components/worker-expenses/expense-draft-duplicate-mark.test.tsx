@@ -18,7 +18,7 @@ import { expenseReferenceData, expenseValues } from '@/__tests__/helpers/expense
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 import type { DuplicateMatchT } from '@/lib/expense-duplicates/types'
-import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
+import { scanReceiptClient } from '@/components/forms/expense-form/scan-receipt-client'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
 import { ingestFiles } from '@/lib/media/ingest-files'

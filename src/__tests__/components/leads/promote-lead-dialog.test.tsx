@@ -6,7 +6,7 @@ import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 
 vi.mocked(promoteLeadAction).mockResolvedValue({ success: true })
 vi.mocked(attachLeadAssetsAction).mockResolvedValue({ success: true })

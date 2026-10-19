@@ -20,7 +20,7 @@ import {
 } from './lead-asset-labels'
 import { toastMessage } from '@/lib/utils/toast'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 
 const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
