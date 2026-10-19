@@ -611,3 +611,11 @@ Notes:
 - Stage B: no fix, no spec.
 - Stage C: no fix, no spec.
 - Whole-tree gate: not run — on the user's ask only.
+
+## Close-out
+
+- Registry sweep (2026-10-19): 24 fully ticked sections collapsed into index rows, 154 ticked boxes removed
+  from open sections; 187 open boxes kept (count unchanged).
+- Still open: the three doubtful findings above (owner's call), and the registry box for the gray select
+  arrows (`c7c47299f`) — the deployed staging build `9d7572296` predates the fix.
+- Teardown: nothing to stop — the run used deployed staging, no local dev server, no `tsconfig.json` drift.
