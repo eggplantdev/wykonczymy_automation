@@ -152,7 +152,7 @@ MANAGER notes (1280, staging `9d7572296`):
       (`closeDialog` drops `showKeepOpen`, `3723589e9`, 30.09) and the failure reopen never restored it;
       not a refactor regression. `submitOptimistically` now restores it (`10cd3cbfa`).
       test: test-driven-debugging · unit — `optimistic-form-store.test.ts` „a failed submit reopens with
-      the keep-open checkbox…”; run at the end-of-run gate (agent test runs are hook-blocked).
+      the keep-open checkbox…”; green (17/17).
 - [ ] · doubtful · open · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
       MANAGER editor shows no amounts, but it shows section nets and all summary tables; only „Marża”
       is hidden — identical at `c713fa2bf`. Likely stale box wording — ask the user at stage close.

@@ -616,7 +616,7 @@ Not run: the full suite, E2E and the build. The user asks for those explicitly.
 
 #### Automated
 
-- [ ] 2.1 Stage A regression specs green
+- [x] 2.1 Stage A regression specs green — `optimistic-form-store.test.ts` 17/17 (10cd3cbfa)
 
 ### Phase 3: Stage B — OWNER + ADMIN
 
