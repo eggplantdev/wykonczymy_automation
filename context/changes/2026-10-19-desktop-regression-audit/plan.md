@@ -622,7 +622,7 @@ Not run: the full suite, E2E and the build. The user asks for those explicitly.
 
 #### Automated
 
-- [ ] 3.1 Stage B regression specs green
+- [x] 3.1 Stage B regression specs green — no stage-B fix, no new spec
 
 ### Phase 4: Stage C — Logged-out and share routes
 

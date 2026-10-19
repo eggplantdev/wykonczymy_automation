@@ -1328,7 +1328,8 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       _Staging 2026-10-19 (desktop-regression-audit): kosz tylko przy kasach pracowników i swojej; tymczasowa
       kasa przeniesiona do kosza widoczna w `/kosz` (jedyna kasa w koszu na stagingu), potem usunięta na
       zawsze po wpisaniu nazwy._
-- [ ] Jako OWNER na `/kasy`: przełącz kasę na „Nieaktywna” i z powrotem — stan zostaje po odświeżeniu.
+- [x] Jako OWNER na `/kasy`: przełącz kasę na „Nieaktywna” i z powrotem — stan zostaje po odświeżeniu.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): kasa 48 → „Nieaktywna” → po odświeżeniu zostaje → „Aktywna”, też zostaje._
 - [x] Jako pracownik (EMPLOYEE) wpisz adres `/kasa/1`: trafiasz na swoją stronę pracownika, nie na
       „Nie znaleziono”.
 - [x] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
@@ -1344,11 +1345,13 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako ADMIN dodaj sprzęt z numerem seryjnym, pojazd z rejestracją i pracownika z e-mailem, które
       ma już pozycja w Koszu — komunikat „… jest w Koszu — przywróć go stamtąd.”; z wartością żywej
       pozycji — „… już istnieje.”
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): pojazd: oba komunikaty (toasty) OK; sprzęt i e-mail pracownika niesprawdzone._
 - [ ] Jako MANAGER: typ kasy na `/kasy`, w formularzu kasy i na wykresie sald na pulpicie brzmi tak
       samo („Główne”, „Pomocnicze”, „Wirtualne”, „Pracownicze”).
       _Staging 2026-10-19 (desktop-regression-audit): `/kasy` — „Pomocnicze”, „Pracownicze”, „Wirtualne”
       ✓. Formularz kasy MANAGER-a nie ma pola „Typ” (zamierzone) — formularz i wykres do sprawdzenia jako
       OWNER._
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): formularz kasy OWNER-a ma „Typ” z czterema nazwami; wykres na pulpicie jeszcze niesprawdzony._
 - [ ] Jako ADMIN wydrukuj listę transakcji, ofertę i umowę: logo i układ jak dotąd, okno zamyka się
       po druku.
 - [ ] Jako ADMIN zeskanuj paragon i papierowe zgłoszenie prac, przetłumacz opis pozycji kosztorysu —
@@ -1358,20 +1361,25 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 
 - [ ] Jako ADMIN na `/zgloszenia-wydatkow`: zaakceptuj zgłoszenie, scal dwa zgłoszenia jednego
       pracownika i odrzuć paragony z trzeciego — kwoty i decyzje przy paragonach zostają po odświeżeniu.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): akceptacja i odrzucenie OK; scalenie niesprawdzone (odmowa dla niepasujących zgłoszeń działa)._
 - [ ] Jako ADMIN otwórz podgląd zgłoszenia prac i stronę zgłoszenia z linku pracownika na telefonie
       (390 px) — te same pozycje, kwoty i zdjęcia co dotąd.
 - [ ] Jako ADMIN i jako MANAGER w edytorze kosztorysu: dodaj, zmień nazwę i usuń dział, dodaj pozycję
       na końcu działu i pod wskazaną pozycją, zmień etap i ustawienia inwestycji, przywróć wersję —
       wszystko zostaje po odświeżeniu.
 - [ ] Jako ADMIN w Szablonie: dodaj dział i pozycję pod wskazaną pozycją — zostają po odświeżeniu.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): dział i pozycje z katalogu zostają; „Wstaw poniżej” niezapisane._
 - [ ] Jako ADMIN w edytorze kosztorysu: podgląd importu z arkusza i podgląd synchronizacji materiałów
       pokazują to samo co dotąd.
 
 ## 2026-10-19 — app-audit-refactor faza 5 — reguły kolekcji w nowym miejscu
 
-- [ ] Jako ADMIN dodaj, edytuj i anuluj transakcję — salda kas zmieniają się bez odświeżania.
-- [ ] Jako ADMIN usuń wydatek z fakturą — faktura znika z listy plików.
-- [ ] Jako ADMIN spróbuj usunąć kasę, która ma transakcje — odmowa jak dotąd.
+- [x] Jako ADMIN dodaj, edytuj i anuluj transakcję — salda kas zmieniają się bez odświeżania.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): saldo kasy zmienia się od razu przy dodaniu, edycji i anulowaniu._
+- [x] Jako ADMIN usuń wydatek z fakturą — faktura znika z listy plików.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): faktura znika z listy plików._
+- [x] Jako ADMIN spróbuj usunąć kasę, która ma transakcje — odmowa jak dotąd.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): kasa z 19 transakcjami → toast „Nie można usunąć kasy — istnieją powiązane dane (transakcje: 19)…”._
 
 ## 2026-10-19 — app-audit-refactor faza 6 — porządki w komponentach
 
@@ -1385,14 +1393,16 @@ Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
 - [ ] Jako ADMIN dodaj przelew z pozycjami ze zeskanowanej faktury (przycisk skanu i przeciągnięcie pliku na
       oba tryby): pozycje powstają, suma pod listą się zgadza, wybór kategorii/pracownika w wierszu działa.
 - [ ] Jako ADMIN w trybie paragonów: suma zaznaczonych pozycji w stopce zgadza się z zaznaczeniem.
-- [ ] Jako ADMIN edytuj przelew i wyczyść formularz przyciskiem resetu; „Rozlicz wypłaty” zapisuje się jak
+- [x] Jako ADMIN edytuj przelew i wyczyść formularz przyciskiem resetu; „Rozlicz wypłaty” zapisuje się jak
       wcześniej (oba formularze mają teraz wspólną obudowę).
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): reset czyści edycję; „Rozlicz wypłaty” zapisuje wypłatę._
 - [x] Na koncie z językiem ukraińskim/rosyjskim → „Zgłoszenia wydatków”: daty wysłania i decyzji w formacie
       tego języka (wcześniej zawsze polskim).
 - [x] Przełącznik lista/karty przelewów i skala UI działają jak wcześniej.
 - [ ] Bez logowania: logowanie i „Nie pamiętam hasła” działają.
 - [ ] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
       `/kasa` → wykres salda kasy rysuje się.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Kosztorys”, „Umowa”, „Marża” otwierają się; wykres salda `/kasa` niesprawdzony._
 - [x] Leady → zaznaczanie zdjęć w „Zdjęcia” i przy przenoszeniu do inwestycji, zaznaczanie wierszy listy leadów.
 - [ ] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
 - [x] Nowy pracownik dodany przez „Dodaj pracownika” ma język polski.
@@ -1456,11 +1466,14 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       bez błędu serwera.
 - [ ] Jako OWNER spróbuj dezaktywować własne konto i ostatniego OWNER-a — odmowa; logowanie kontem
       nieaktywnym — odrzucone.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): własne konto — odmowa; ostatni OWNER i logowanie nieaktywnym kontem niesprawdzone._
 - [ ] Inwestycja: oznacz jako zakończoną (pojawia się data zakończenia), odblokuj status; inwestycja w Koszu nie
       daje się edytować.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): data zakończenia i odblokowanie OK; inwestycja w Koszu niesprawdzona._
 - [ ] Usunięcie pliku, który jest fakturą transakcji — odmowa.
-- [ ] Jako ADMIN na `/zgloszenia-wydatkow`: otwórz ponownie odrzucone zgłoszenie — wraca do decyzji, licznik
+- [x] Jako ADMIN na `/zgloszenia-wydatkow`: otwórz ponownie odrzucone zgłoszenie — wraca do decyzji, licznik
       w menu zmienia się bez odświeżania.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): odrzucone → „Otwórz ponownie” wraca do decyzji, licznik w menu bez odświeżania._
 - [ ] Listy z sortowaniem (Transakcje, Leady, Zgłoszenia): posortuj, przejdź na stronę 2 — sortowanie zostaje
       w adresie i w kolejności.
 - [x] Tabele z fazy 7 i pole „Kasa” w formularzu przelewu: w zakładce sieci nie ma powtarzających się w kółko
@@ -1535,9 +1548,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
 
-- [ ] Jako OWNER na „Transakcje”, gdy pracownik odrzucił wypłatę: sekcja „Wypłaty odrzucone przez
+- [x] Jako OWNER na „Transakcje”, gdy pracownik odrzucił wypłatę: sekcja „Wypłaty odrzucone przez
       pracowników” jest zwijana, pod tytułem ma „Takie wypłaty trzeba wyjaśnić z pracownikiem lub
       anulować.”, tabela zaczyna się kolumną „Anuluj”, a nagłówki i komórki są wyrównane do lewej.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): sekcja zwijana, linki, odrzucenie i anulowanie działają._
 - [ ] W tej tabeli ID, pracownik, inwestycja i kasa to linki: ID otwiera transakcję na liście
       inwestycji (wypłata bez inwestycji — na „Transakcje”); kasa przeniesiona do Kosza nie jest linkiem.
 - [ ] „Anuluj” w tej tabeli pyta o powód i anuluje wypłatę: wiersz znika, licznik przy „Transakcje” w
@@ -1577,7 +1591,8 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       nie pojawia się na `/kasy`. Z pracownikiem jako właścicielem kasa powstaje.
 - [ ] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
       właścicielem jesteś ty. Ustawienie innego managera kończy się „Brak uprawnień”.
-- [ ] Jako OWNER „Dodaj kasę” i edycja kasy z dowolnym właścicielem działają jak dotąd.
+- [x] Jako OWNER „Dodaj kasę” i edycja kasy z dowolnym właścicielem działają jak dotąd.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): właściciel MANAGER przy dodaniu, pracownik przy edycji — oba zapisy działają._
 - [x] `/transakcje` w tabeli i na kartach: kwoty mają te same kolory co dotąd (wydatek, wpływ,
       wypłata), anulowane są szare.
 - [x] Kosztorys → nagłówek sekcji: kropka ma kolor paska sekcji.
@@ -1600,40 +1615,50 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [x] „Edytuj pracownika” → wpisz „Telefon” → otwórz ponownie: numer zostaje.
 - [x] Strona inwestycji → „Kierownik budowy” → wybierz konto → odśwież: wybór zostaje, a adres, kod
       pocztowy i miasto bez zmian.
-- [ ] Jako OWNER w dialogu zamówienia: zębatka (prawy dolny róg, obok „Dalej”) → „Ustawienia zamówień”
+- [x] Jako OWNER w dialogu zamówienia: zębatka (prawy dolny róg, obok „Dalej”) → „Ustawienia zamówień”
       → dodaj dwóch dostawców, zmień cenę → zapisz (przycisk „Zapisz” po prawej, bez „Wyczyść
       formularz”). Cena w dialogu zamówienia od razu się zmienia. Jako MANAGER zębatki nie ma.
       `/inwestycje` i sidebar nie mają już ustawień zamówień.
-- [ ] Strona inwestycji → „Kontener” → kontener × 2 → „Dalej”: formularz pokazuje „2 × kontener”,
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): dwóch dostawców, nowa cena → cena w dialogu od razu; MANAGER bez zębatki (etap A)._
+- [x] Strona inwestycji → „Kontener” → kontener × 2 → „Dalej”: formularz pokazuje „2 × kontener”,
       3000 zł, „Materiały budowlane” / „kontener”. Zapisz — bez pytania o brak faktury → dialog się
       zamyka, otwiera się SMS z adresem bez kraju oraz dostawcą i kontaktem z pierwszego kroku.
-- [ ] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): „2 × kontener”, zapis bez pytania o fakturę, otworzył Wiadomości z adresem bez kraju._
+- [x] Dialog zamówienia: tytuł ma pod spodem nazwę inwestycji; zmiana „Cena za sztukę” przelicza
       „Kwota”, a przełączenie big bag / kontener wraca do ceny z ustawień. Przełącznik, pola, „Dalej”
       i zębatka mają jedną wysokość. _(19.10 staging, MANAGER: tytuł, przeliczenie, powrót ceny i 36 px OK — zębatka do sprawdzenia jako OWNER.)_
-- [ ] Dialog zamówienia → ilość 3, wybierz kontakt → zębatka → zmień cenę big bagu → „Zapisz”: cena
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): zębatka tej samej wysokości co „Dalej”._
+- [x] Dialog zamówienia → ilość 3, wybierz kontakt → zębatka → zmień cenę big bagu → „Zapisz”: cena
       w dialogu się zmienia, ilość i kontakt zostają.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): cena się zmienia, ilość i kontakt zostają._
 - [x] Dialog zamówienia → „Cena za sztukę” `0,001` albo `1e3`: „Dalej” nieaktywne.
-- [ ] Dialog zamówienia → „Kontakt na miejscu” → wybierz inną osobę → gwiazdka „Ustaw jako kierownika
+- [x] Dialog zamówienia → „Kontakt na miejscu” → wybierz inną osobę → gwiazdka „Ustaw jako kierownika
       budowy” → strona inwestycji po odświeżeniu pokazuje ją jako „Kierownik budowy”.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): gwiazdka → „Kierownik budowy” po odświeżeniu._
 - [x] Wydatek big bag / kontener dodany ręcznie (zwykły formularz wydatku, bez faktury) nadal pyta o
       brak faktury.
 - [ ] W pierwszym kroku „Dostawca” → inny → „Zapisz jako domyślnego dostawcę” → następne zamówienie
       wybiera go od razu. Bez dostawców: krok mówi „Lista dostawców jest pusta”, SMS bez odbiorcy.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Zapisz jako domyślnego dostawcę” działa; stan bez dostawców niesprawdzony._
 - [ ] Z telefonu (IP w sieci LAN): „Zapisz” wydatku sam otwiera Wiadomości z dostawcą i treścią.
-- [ ] Zwykły formularz wydatku → wybierz inną kasę → „Zapisz jako domyślną kasę” → przycisk zmienia
+- [x] Zwykły formularz wydatku → wybierz inną kasę → „Zapisz jako domyślną kasę” → przycisk zmienia
       się na „Kasa domyślna”, wyrównany do lewej jak wcześniej; następny wydatek ma tę kasę.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Kasa domyślna” po zapisie, następny wydatek ma tę kasę._
 - [x] `/inwestycje` → „Akcje” przy aktywnej inwestycji ma przycisk zamówienia; zakończona go nie ma.
 - [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
       miejscu”.
-- [ ] Transakcje inwestycji → wiersz zamówienia pokazuje „Czeka” → klik → „Dostarczone” → odśwież:
+- [x] Transakcje inwestycji → wiersz zamówienia pokazuje „Czeka” → klik → „Dostarczone” → odśwież:
       zostaje. Klik ponownie → „Czeka”.
-- [ ] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Czeka” → „Dostarczone” → po odświeżeniu zostaje → z powrotem „Czeka”._
+- [x] Anuluj transakcję zamówienia: znaczek jest wyszarzony i nieklikalny.
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): po anulowaniu znaczek szary i nieklikalny._
 - [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
       widoczny, ale nieklikalny.
 - [ ] Jako EMPLOYEE na własnym `/pracownicy/[id]`, jeśli widać wiersz zamówienia: bez przycisku.
 - [ ] Druk tabeli transakcji: kolumna „Zamówienie” drukuje „Czeka” / „Dostarczone”.
-- [ ] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
+- [x] Karty list odbiorców powiadomień (np. w „Zgłoszenia”, „Sprzęt”, „Flota”) wyglądają jak wcześniej, a „Edytuj
       listę” dalej zapisuje adresy (wspólna obudowa karty z kartą zamówień — bez zmiany wyglądu).
+      _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Edytuj listę” zapisuje i przywraca adresy, wygląd bez zmian._
 - [x] Zamówienie 3 big bagów przy cenie z groszami (np. 799,99 zł): „Kwota” to dokładnie 2399,97.
 - [x] Ekran „Transakcje” (konto zarządu): nie ma już przycisku „Wyślij wiadomość (test)”.
 - [ ] Strona inwestycji: w nagłówku nie ma „Dodaj” (kosztorys v1); przycisk v2 nazywa się „Kosztorys

@@ -35,29 +35,29 @@
 
 Values: `pending` / `ok` / `finding #n` / `blocked` / `n/a`.
 
-| #   | Route                           | EMPLOYEE | MANAGER | OWNER   | ADMIN |
-| --- | ------------------------------- | -------- | ------- | ------- | ----- |
-| 1   | `/inwestycje/[id]/kosztorys`    | ok       | ok      | pending | n/a   |
-| 2   | `/inwestycje/[id]/kosztorys_v2` | ok       | ok      | pending | n/a   |
-| 3   | `/inwestycje/[id]`              | ok       | ok      | pending | n/a   |
-| 4   | `/` (transakcje)                | ok       | ok      | pending | n/a   |
-| 5   | `/pracownicy/[id]`              | ok       | ok      | pending | n/a   |
-| 6   | `/kasa/[id]`                    | ok       | ok      | pending | —     |
-| 7   | `/kasy`                         | ok       | ok      | pending | —     |
-| 8   | `/inwestycje`                   | ok       | ok      | pending | —     |
-| 9   | `/zgloszenia-wydatkow`          | ok       | ok      | pending | —     |
-| 10  | `/zgloszenia-prac`              | ok       | ok      | pending | —     |
-| 11  | `/pracownicy`                   | ok       | ok      | pending | n/a   |
-| 12  | `/kosztorysy`                   | ok       | ok      | pending | —     |
-| 13  | `/katalog-prac`                 | ok       | ok      | pending | —     |
-| 14  | `/szablony`, `/szablony/[id]`   | ok       | ok      | pending | —     |
-| 15  | `/zgloszenia` (leads)           | ok       | ok      | pending | n/a   |
-| 16  | `/flota`, `/flota/[id]`         | ok       | ok      | pending | —     |
-| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | ok      | pending | —     |
-| 18  | `/kosz`                         | ok       | ok      | pending | n/a   |
-| 19  | `/warianty-badge`               | ok       | —       | pending | —     |
-| 20  | `[...catchAll]`                 | ok       | —       | pending | —     |
-| L   | logged-out + share routes       | pending  |         |         |       |
+| #   | Route                           | EMPLOYEE | MANAGER | OWNER | ADMIN |
+| --- | ------------------------------- | -------- | ------- | ----- | ----- |
+| 1   | `/inwestycje/[id]/kosztorys`    | ok       | ok      | ok    | n/a   |
+| 2   | `/inwestycje/[id]/kosztorys_v2` | ok       | ok      | ok    | n/a   |
+| 3   | `/inwestycje/[id]`              | ok       | ok      | ok    | n/a   |
+| 4   | `/` (transakcje)                | ok       | ok      | ok    | n/a   |
+| 5   | `/pracownicy/[id]`              | ok       | ok      | ok    | n/a   |
+| 6   | `/kasa/[id]`                    | ok       | ok      | ok    | —     |
+| 7   | `/kasy`                         | ok       | ok      | ok    | —     |
+| 8   | `/inwestycje`                   | ok       | ok      | ok    | —     |
+| 9   | `/zgloszenia-wydatkow`          | ok       | ok      | ok    | —     |
+| 10  | `/zgloszenia-prac`              | ok       | ok      | ok    | —     |
+| 11  | `/pracownicy`                   | ok       | ok      | ok    | n/a   |
+| 12  | `/kosztorysy`                   | ok       | ok      | ok    | —     |
+| 13  | `/katalog-prac`                 | ok       | ok      | ok    | —     |
+| 14  | `/szablony`, `/szablony/[id]`   | ok       | ok      | ok    | —     |
+| 15  | `/zgloszenia` (leads)           | ok       | ok      | ok    | n/a   |
+| 16  | `/flota`, `/flota/[id]`         | ok       | ok      | ok    | —     |
+| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | ok      | ok    | —     |
+| 18  | `/kosz`                         | ok       | ok      | ok    | n/a   |
+| 19  | `/warianty-badge`               | ok       | —       | ok    | —     |
+| 20  | `[...catchAll]`                 | ok       | —       | ok    | —     |
+| L   | logged-out + share routes       | pending  |         |       |       |
 
 EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
 
@@ -135,6 +135,40 @@ MANAGER notes (1280, staging `9d7572296`):
   name keeps the button disabled → gone after reload and from the DB. The lead half of L1139 stays open
   (no lead in the Kosz). Cron boxes (L1451, L244, L251, L268, L270, L1129, L1133) and L1142 are left
   open: firing `cleanup` on preview purges every expired row there — not done without a go.
+
+OWNER notes (OWNER 75 stands in for ADMIN, 1280 + 1024, staging `9d7572296`):
+
+- Sweep: all 20 routes at 1280 and 1024, no horizontal overflow, console only the known noise.
+- Row 4: „Wydatek” lists „Premia”, „Wpłata” lists „Zasilenie z konta firmowego”; BONUS (#5979, 1 zł)
+  and COMPANY_FUNDING (+2 zł, kasa 854,91 → 856,91) book; add / edit / cancel move the kasa balance
+  without a reload (L1354); delete of an expense with an invoice drops the file from the list (L1355);
+  edit dialog reset + „Rozlicz wypłaty” save (L1370); sort and filters survive reload; „Potwierdzenie”
+  filter; „Wypłaty odrzucone przez pracowników” collapses, links, reject and cancel work (L1516).
+- Row 7: status toggle persists after reload (L1316); trash on a kasa with 19 transactions is refused
+  with the count (toast); „Dodaj kasę” with a MANAGER owner and type „Wirtualne”, edit to a worker owner
+  — both save (L1558); OWNER form has „Typ” with the four types (L1338 form half).
+- Row 3: order settings (gear) → two suppliers, new price, default supplier → price updates in the
+  dialog, quantity and contact kept (L1581, L1591); order saved, „Czeka” → „Dostarczone” → back,
+  cancelled order's badge grey and inert (L1604, L1606); contact star sets „Kierownik budowy” (L1594);
+  finish → date shown, unlock (L1441 first half); „Kosztorys”, „Umowa”, „Marża” open (L1376);
+  „Zapisz jako domyślną kasę” persists (L1600 area). The order save opened the Mac's Messages with the
+  SMS body — expected handoff; no further orders saved.
+- Row 11: own account deactivation refused; „Rozlicz wypłaty” + payout; last-OWNER and inactive-login
+  halves not run (no second OWNER to spare, would lock a real account).
+- Row 9: accept / reopen / reject of a zgłoszenie wydatku, counter updates without reload; merge refused
+  with a toast for mismatched drafts — successful merge needs two fresh drafts (not run).
+- Row 2: cell edit, undo, reload persists, restored (Etap 1 of 210 back to 2). Import / sync preview
+  (L1349), ~1000-item (L1401) and the history / offer switch (L1405) not run.
+- Row 14: new template „QA audyt szablon” (id 6) with a section and two catalogue items persists;
+  „Wstaw poniżej” not saved.
+- Rows 16, 17: recipient cards „Edytuj listę” save and restore (L1611); vehicle duplicate shows the
+  „istnieje” / „w Koszu” toasts (equipment-serial and worker-email variants not run).
+- Work-report preview dialog opens. Left open: L318, L1412 half, L1523 (`/uzytkownicy` is no route),
+  L222, the pulpit Typ-label chart, „Katalog prac” filter persistence, every cron stand-in, L1609, L1610,
+  L1612 (phone).
+- **Preview DB state left by stage B:** order settings (big bag 850, suppliers A/B, default B); worker 77
+  phone 500100400; kasa 48 as default-kasa preference; cancelled #5972–#5975, #5977; BONUS #5979 (active);
+  COMPANY_FUNDING +2 zł; template id 6 „QA audyt szablon”.
 
 ## Findings
 
@@ -558,4 +592,6 @@ Notes:
 
 ## Tests & suite
 
-(pending)
+- Stage A: `optimistic-form-store.test.ts` 17/17 green (`10cd3cbfa`).
+- Stage B: no fix, no spec.
+- Whole-tree gate: not run — on the user's ask only.
