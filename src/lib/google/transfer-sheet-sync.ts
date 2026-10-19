@@ -21,20 +21,13 @@ import {
 } from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { logError } from '@/lib/utils/log-error'
-
-const relId = (rel: unknown): number | undefined =>
-  typeof rel === 'number'
-    ? rel
-    : typeof rel === 'object' && rel !== null
-      ? (rel as { id?: number }).id
-      : undefined
+import { resolveId } from '@/lib/utils/resolve-id'
 
 export type TabSyncSpecT = {
   cfg: SheetTabConfigT
   typeWhere: { equals: string } | { in: string[] }
-  // Deliberately NOT applied to the
-  // orphan-removal query: a row that stops matching (settled→normal) must still be
-  // recognised as a removable orphan, not silently kept.
+  // Not applied to the orphan-removal query: a row that stops matching (settled→normal) must
+  // still be removed as an orphan.
   extraWhere?: Where
   buildRow: (t: TxDocT) => TabRowInputT | undefined
   ensure?: (sheetId: string) => Promise<{ created: boolean }>
@@ -64,9 +57,7 @@ export const TRANSFERS_SYNC: TabSyncSpecT = {
   ensure: (sheetId) => ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys()),
 }
 
-// Routing
-// by type alone (not by the doc's settled flag) is what lets the cleanup paths drop a
-// row from every tab it could be on without knowing its current state.
+// Routing by type, not the settled flag, lets cleanup drop a row from every tab it could be on.
 const tabsForType = (type: unknown): TabSyncSpecT[] =>
   isExpensesTabType(type)
     ? [EXPENSES_SYNC, SETTLED_SYNC]
@@ -105,7 +96,9 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     if (!transfer) return
 
     if (transfer.type === 'CANCELLATION') {
-      const origId = relId((transfer as { cancelledTransaction?: unknown }).cancelledTransaction)
+      const origId = resolveId(
+        (transfer as { cancelledTransaction?: unknown }).cancelledTransaction,
+      )
       if (origId === undefined) return
       const original = await payload.findByID({
         collection: 'transactions',
@@ -115,7 +108,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       })
       const origTabs = tabsForType(original?.type)
       if (!original || origTabs.length === 0) return
-      const investmentId = relId(original.investment)
+      const investmentId = resolveId(original.investment)
       if (investmentId === undefined) return
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) return
@@ -126,7 +119,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
 
     const tabs = tabsForType(transfer.type)
     if (tabs.length === 0) return
-    const investmentId = relId(transfer.investment)
+    const investmentId = resolveId(transfer.investment)
     if (investmentId === undefined) return
 
     const sheetId = await getInvestmentSheetId(payload, investmentId)
@@ -173,7 +166,7 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
     const rowsByInvestment = new Map<number, Map<TabSyncSpecT, TabRowInputT[]>>()
     for (const doc of found.docs) {
       const t = doc as { type?: string; investment?: unknown }
-      const investmentId = relId(t.investment)
+      const investmentId = resolveId(t.investment)
       if (investmentId === undefined) continue
       for (const tab of tabsForType(t.type)) {
         const row = tab.buildRow(doc as unknown as TxDocT)
