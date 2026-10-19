@@ -31,6 +31,7 @@ export function EditWorkerDialog({ worker, cashRegisters, roles }: EditWorkerDia
           defaultValues={{
             name: worker.name,
             email: worker.email,
+            phone: worker.phone ?? '',
             role: worker.role,
             active: worker.active ?? true,
             canAddExpensesWithoutInvestment: worker.canAddExpensesWithoutInvestment,

@@ -707,16 +707,16 @@ See each phase's Manual Verification. They roll into `context/foundation/manual-
 
 #### Automated
 
-- [x] 1.1 Migration applies to the test DB
-- [x] 1.2 Migration applies to the local dev DB
-- [x] 1.3 payload-types regenerated with the new fields and global
+- [x] 1.1 Migration applies to the test DB — 0c8d144e8
+- [x] 1.2 Migration applies to the local dev DB — 0c8d144e8
+- [x] 1.3 payload-types regenerated with the new fields and global — 0c8d144e8
 
 ### Phase 2: Contacts — worker phone and site manager
 
 #### Automated
 
-- [ ] 2.1 Site manager action DB spec passes
-- [ ] 2.2 Worker phone round-trip DB spec passes
+- [x] 2.1 Site manager action DB spec passes
+- [x] 2.2 Worker phone round-trip DB spec passes
 
 ### Phase 3: Order settings — suppliers, default, prices
 

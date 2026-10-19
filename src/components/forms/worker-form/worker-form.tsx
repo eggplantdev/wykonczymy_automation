@@ -55,6 +55,7 @@ export function WorkerForm({
     toData: (value) => ({
       name: value.name,
       email: value.email,
+      phone: value.phone,
       role: value.role,
       active: value.active,
       canAddExpensesWithoutInvestment: value.canAddExpensesWithoutInvestment,
@@ -76,6 +77,10 @@ export function WorkerForm({
           {(field) => (
             <field.Input label="Email" type="email" placeholder="jan@example.com" showError />
           )}
+        </form.AppField>
+
+        <form.AppField name="phone">
+          {(field) => <field.Input label="Telefon" type="tel" placeholder="601 234 567" showError />}
         </form.AppField>
 
         <form.AppField name="role">

@@ -27,6 +27,7 @@ import { buildInvestmentInfoFields } from '@/components/investments/investment-i
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
 import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
+import { InvestmentSiteManagerSelect } from '@/components/investments/investment-site-manager-select'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { ContractDialog } from '@/components/investments/contract-dialog'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
@@ -80,7 +81,16 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         )}
         <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
       </div>
-      {!trashed && <InvestmentStatusInlineSelect investment={investment} />}
+      {!trashed && (
+        <div className="flex flex-wrap items-center gap-4">
+          <InvestmentStatusInlineSelect investment={investment} />
+          <InvestmentSiteManagerSelect
+            investmentId={investmentId}
+            siteManagerId={investment.siteManagerId}
+            workers={refData.workers}
+          />
+        </div>
+      )}
       <InfoList
         items={buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed })}
       />

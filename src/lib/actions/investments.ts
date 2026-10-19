@@ -210,3 +210,45 @@ export async function setInvestmentNotesAction(id: number, notes: string) {
     ['investments'],
   )
 }
+
+const siteManagerSchema = z.number().int().positive().nullable()
+
+// `overrideAccess` because the field is closed to access-checked writes; `user` keeps the hooks'
+// role checks.
+export async function setInvestmentSiteManagerAction(id: number, userId: number | null) {
+  return protectedAction(
+    'setInvestmentSiteManagerAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(siteManagerSchema, userId)
+      if (!parsed.success) return parsed
+
+      if (parsed.data !== null) {
+        const { docs } = await payload.find({
+          collection: 'users',
+          where: {
+            id: { equals: parsed.data },
+            active: { equals: true },
+            trashedAt: { exists: false },
+          },
+          depth: 0,
+          limit: 1,
+          overrideAccess: true,
+        })
+        if (docs.length === 0) {
+          return { success: false, error: 'Wybrane konto jest nieaktywne lub w Koszu.' }
+        }
+      }
+
+      await payload.update({
+        collection: 'investments',
+        id,
+        data: { siteManager: parsed.data },
+        user,
+        overrideAccess: true,
+      })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}

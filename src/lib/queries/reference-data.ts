@@ -70,13 +70,13 @@ export const fetchReferenceData = cache(
         SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
                i.address, i.phone, i.email, i.contact_person, i.review_requested,
                i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8, i.ai_stage::text,
-               i.created_at, (k.google_sheet_id IS NOT NULL) AS has_sheet
+               i.created_at, i.site_manager_id::integer, (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
         ORDER BY i.name
       `),
         db.execute(sql`
-        SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer,
+        SELECT id, name, role::text, active::boolean, email, phone, default_cash_register_id::integer,
                language, can_add_expenses_without_investment, (trashed_at IS NOT NULL) AS trashed
         FROM users
         ORDER BY name
@@ -131,6 +131,7 @@ export const fetchReferenceData = cache(
           hasSheet: Boolean(row.has_sheet),
           aiStage: (row.ai_stage as InvestmentAiStageT | null) ?? null,
           createdAt: isoOrNull(row.created_at) ?? '',
+          siteManagerId: row.site_manager_id == null ? undefined : Number(row.site_manager_id),
         } satisfies InvestmentRefT,
       }))
       const [investments, trashedInvestments] = splitTrashed(investmentRows)
@@ -143,6 +144,7 @@ export const fetchReferenceData = cache(
           role: (row.role as RoleT) ?? 'EMPLOYEE',
           active: row.active as boolean,
           email: (row.email as string) ?? '',
+          phone: (row.phone as string | null) ?? undefined,
           defaultCashRegisterId: row.default_cash_register_id
             ? Number(row.default_cash_register_id)
             : undefined,
