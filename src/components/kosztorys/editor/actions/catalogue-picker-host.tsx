@@ -1,12 +1,12 @@
 'use client'
 
-import { createContext, use, useCallback, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import {
+  CataloguePickerContext,
+  type OpenCataloguePickerT,
+} from '@/components/kosztorys/editor/actions/catalogue-picker'
 import { AddItemsFromCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/add-items-from-catalogue-dialog'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-
-type OpenCataloguePickerT = (sectionId?: number) => void
-
-const CataloguePickerContext = createContext<OpenCataloguePickerT | null>(null)
 
 // `children` is a prop, not JSX built inside — that is what keeps the grid out of the re-render when
 // the picker opens.
@@ -22,10 +22,7 @@ export function CataloguePickerHost({ children }: { children: ReactNode }) {
   } = useKosztorysEditorContext()
   // `null` = closed; a member `sectionId` of `null` = open with no section chosen yet.
   const [target, setTarget] = useState<{ sectionId: number | null } | null>(null)
-  const open = useCallback<OpenCataloguePickerT>(
-    (sectionId) => setTarget({ sectionId: sectionId ?? null }),
-    [],
-  )
+  const open: OpenCataloguePickerT = (sectionId) => setTarget({ sectionId: sectionId ?? null })
 
   return (
     <CataloguePickerContext value={open}>
@@ -49,10 +46,4 @@ export function CataloguePickerHost({ children }: { children: ReactNode }) {
       )}
     </CataloguePickerContext>
   )
-}
-
-export function useCataloguePicker() {
-  const open = use(CataloguePickerContext)
-  if (!open) throw new Error('useCataloguePicker must be used within CataloguePickerHost')
-  return open
 }

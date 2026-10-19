@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { useInvestorActions } from '@/components/kosztorys/editor/actions/investor-actions'
+import { useInvestorActions } from '@/components/kosztorys/editor/actions/use-investor-actions'
 import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
