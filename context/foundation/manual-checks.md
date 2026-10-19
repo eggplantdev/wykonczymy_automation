@@ -1340,6 +1340,12 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       „Od pracownika” w kolumnie typu, status inwestycji (odrzucona — teraz czerwona zamiast różowej),
       rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
       postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
+- [ ] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
+      są teraz morskie, a nie szmaragdowe; tekst czytelny w jasnym i ciemnym motywie.
+- [ ] Strona inwestycji → select etapu AI: obrys i kolor tekstu dalej zmieniają się z etapem (jak
+      kolor badge'a tego etapu na liście inwestycji); „Uzupełnianie informacji” ma zwykły szary obrys.
+- [ ] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
+      kolorowy obrys, zwykła grubość tekstu, długa wartość ucina się wielokropkiem.
 
 ## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
 
