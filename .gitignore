@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 .env*
 
 .mcp.json
@@ -7,56 +5,43 @@
 # kosztorys data exports/templates (contain client investment data)
 Kosztor*.csv
 
-# dependencies
 /node_modules
 /.pnp
 .pnp.js
 
-# testing
 /coverage
 
-# next.js
 /.next/
 /out/
 
-# production
 /build
 
-# misc
 .DS_Store
 *.pem
 
-# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
 .env*.local
 
-# vercel
 .vercel
 
-# typescript
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE
 .idea/
 
-# worktrees
 .worktrees/
-
 
 .notes
 claude_code_notes.md
 PROJECT_SUMMARY.md
 
-# Claude Code session artifacts (prompts, handoffs, cli manifest) — keep skills tracked
+# Claude Code session artifacts — keep skills tracked
 .claude/prompts/
 .claude/handoffs/
 .claude/.10x-cli-manifest.json
-
 
 /figma
 
@@ -64,7 +49,6 @@ wnioski.md
 
 /temp
 
-# playwright
 .playwright-mcp/
 /.next-e2e/
 /.next-qa/
@@ -72,36 +56,29 @@ wnioski.md
 /test-results/
 /e2e/.auth/
 
-# payload
 src/payload-types.ts
 src/app/(payload)/admin/importMap.js
 
-# database dumps
 dumps/
 dump.sql
 
 # local-only data (FB lead exports — real PII, never commit)
 .local/
 
-# local codex skills package
 /codex-skills/
 
-# kosztorys template source — kept locally by the owner, not tracked
 /Kopia kosztorys wzór dla konrada do testów.xlsx
 
-# Temp manual-test assets (HEIC + oversize) — not for commit
 tmp-heic-test/
 
 tmp-lessons/
 
-# Root-only scratch file. Anchored: an unanchored `test.js` would ignore any file of that name at
-# any depth, for every contributor, and a later legitimate fixture would vanish from `git status`.
+# an unanchored `test.js` would ignore any file of that name at any depth, for every contributor, and
+# a later legitimate fixture would vanish from `git status`.
 /test.js
 
-# QA screenshots, written next to the cwd. Anchored for the reason above.
 /*.png
 
-# Review-gate scratch ledgers
 .review-gate/
 
 # Client contract template — carries the company bank account; repo is public.

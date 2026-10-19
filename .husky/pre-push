@@ -1,10 +1,3 @@
-# ── Prod-migration gate (gate + remind only — NEVER touches the DB) ──────────
-# Payload migrations no longer run at build time, so a Vercel deploy can't change
-# the schema. Schema is now a separate, human-owned plane. On a push to main that
-# ADDS a migration under src/migrations/, stop and make the human acknowledge that
-# prod must be migrated by hand (`pnpm db:migrate:prod`, backup-first) — schema
-# BEFORE the code that needs it goes live, or AFTER for a migration marked
-# RUN-AFTER-DEPLOY. This block only asks; it runs no SQL.
 # Reads /dev/tty because git feeds the pushed-ref list to a pre-push hook on stdin.
 PROD_BRANCH=main
 push_to_prod= sha_from= sha_to=
@@ -18,16 +11,10 @@ if [ -n "$push_to_prod" ]; then
   if [ "$sha_from" = "0000000000000000000000000000000000000000" ]; then
     sha_from=$(git hash-object -t tree /dev/null)   # new branch: diff vs empty tree
   fi
-  # --diff-filter=A: only ADDED migrations are pending applies. A rename/edit or a
-  # deletion (e.g. removing a smoke-test migration) is never something prod needs.
+  # --diff-filter=A: only ADDED migrations are pending applies.
   added=$(git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep '\.ts$' || true)
   if [ -n "$added" ]; then
-    # A migration that rewrites what the OLD code reads must run once the new deploy is live —
-    # migrating first serves the old code a shape it misreads. A data rewrite says so with a
-    # RUN-AFTER-DEPLOY marker in its header; a DROP COLUMN/TABLE is detected on its own, because
-    # the old code still SELECTs what it drops (42703). Only up() counts — nearly every down() drops.
-    # `payload migrate` applies every pending migration at once, so a push mixing both directions
-    # cannot be ordered and has to be split.
+    # Only up() counts — nearly every down() drops.
     after_deploy=$(for f in $added; do
       src=$(git show "$sha_to:$f")
       if echo "$src" | grep -q 'RUN-AFTER-DEPLOY' \
@@ -68,15 +55,8 @@ echo "Pruning dumps older than 7 days..."
 pruned=$(find dumps -name 'dump-*.sql' ! -name 'dump-latest.sql' -mtime +7 -print -delete 2>/dev/null | wc -l | tr -d ' ')
 echo "✅ Pruned ${pruned:-0} old dump(s)"
 
-# Background watcher: prints Vercel deployment state transitions to this terminal.
 # Detached subshell so `git push` returns immediately when the hook exits.
-# DEPLOY_SHA pins the watcher to THIS commit's deploy (matched by SHA), not "newest".
-# Set SKIP_WATCH_DEPLOY=1 to bypass (CI machines, offline pushes, etc.).
-#
-# Foreground auth precheck FIRST (~1s): a dead local CLI token can't watch
-# deploys, and a backgrounded watcher would just poll blind and then misblame the
-# Git integration 3 min later. Surface it loudly here instead. Non-fatal — never
-# block a push over LOCAL auth; just skip the (useless) watcher.
+# never block a push over LOCAL auth
 if [ -z "${SKIP_WATCH_DEPLOY:-}" ]; then
   if bash scripts/watch-deploy.sh --check-auth; then
     ( DEPLOY_SHA="$(git rev-parse HEAD)" bash scripts/watch-deploy.sh & )

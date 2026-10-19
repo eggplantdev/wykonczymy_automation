@@ -1,20 +1,13 @@
 @import 'tailwindcss';
-/* Enter/exit utilities (animate-in/fade-in/zoom-in/slide-in) for Radix-driven shadcn overlays. v4 CSS-first replacement for tailwindcss-animate. */
 @import 'tw-animate-css';
-/* @source helps tailwind with scanning files - needed because i have styles inside a directory not project root */
 @source '..';
 
-/* Tailwind v4 keys `dark:` to prefers-color-scheme by default, but the theme is driven by a
-   `.dark` class on <html> (next-themes). Without this the two disagree: the class flips every
-   token below while the `dark:` utilities keep answering to the OS setting. */
+/* Without this the `dark:` utilities keep answering to the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* An installed app has no browser chrome, so no Back — controls standing in for it show only there. */
 @custom-variant standalone (@media (display-mode: standalone));
 
-/* Lucide ships icons at 24px; our app default is 16px, so nearly every call site was restating
-   size-4. Flip the default here — every Lucide svg carries the `.lucide` class. In @layer base so
-   an explicit size utility (size-3, size-5, …) at an exception site still overrides it. */
+/* In @layer base so an explicit size utility still overrides it. */
 @layer base {
   svg.lucide {
     width: 1rem;
@@ -23,9 +16,7 @@
   }
 }
 
-/* Inline so `--section-rail-width` resolves on the row that wears the class, not on :root where the
-   scope below doesn't reach. Colour first: Tailwind takes the first var() of a shadow for its colour
-   slot. A theme shadow composes with `ring-*` instead of replacing it. */
+/* Inline so `--section-rail-width` resolves on the row that wears the class. */
 @theme inline {
   --shadow-section-rail: inset var(--section-rail, transparent) var(--section-rail-width) 0 0;
 }
@@ -33,18 +24,14 @@
 @theme {
   --font-mono: var(--font-space-mono), monospace;
 
-  /* Breakpoints - Override Tailwind defaults */
-  --breakpoint-sm: 48rem; /* 768px - Tablet */
-  --breakpoint-md: 64rem; /* 1024px - Tablet Large */
-  --breakpoint-lg: 80rem; /* 1280px - Desktop */
-  --breakpoint-xl: 90rem; /* 1440px - Desktop Large */
-  --breakpoint-2xl: 120rem; /* 1920px - 3XL */
+  --breakpoint-sm: 48rem;
+  --breakpoint-md: 64rem;
+  --breakpoint-lg: 80rem;
+  --breakpoint-xl: 90rem;
+  --breakpoint-2xl: 120rem;
 
-  /* The worker's „Zgłaszam” column — Spotify green, brighter than the palette's greens on purpose. */
   --color-report-accent: #1db954;
 
-  /* SHADCN  */
-  /* Border Radius */
   --radius: 0.625rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -54,45 +41,27 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* Easing */
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 
   --text-2xs: 0.625rem;
-  /* Only under a header in the smallest table text size, one step below its 2xs body. */
   --text-3xs: 0.5625rem;
 
-  /* Dialog widths, from `sm:` up — below that a dialog is a full-bleed sheet and takes none of
-     these. The `min(90vw, …)` is the shared half: the cap is what the content wants, 90vw is what
-     stops it touching the edges on a narrow laptop. Seven sizes, not an open scale.
-     They only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
+  /* They only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
      tailwind-merge leaves an override beside the base class and stylesheet order eats it. */
   --container-dialog-sm: min(90vw, 26.25rem);
   --container-dialog: min(90vw, 37.5rem);
   --container-dialog-md: min(90vw, 46.875rem);
   --container-dialog-lg: min(90vw, 56.25rem);
-  /* For a window whose content is a TABLE — the report dialogs and the katalog picker. Anything
-     narrower wraps a long opis over three lines and pulls the figures off the row they describe.
-     80vw rather than 90vw, and capped at 1200px: past that the opis and the figures it belongs to
-     sit at opposite ends of a wide monitor. */
   --container-dialog-xl: min(80vw, 75rem);
-  /* A table whose rows carry their own inputs (ilość, etap, pomiar side by side) — at xl the last
-     columns scroll out of view. */
   --container-dialog-2xl: min(95vw, 87.5rem);
-  /* The worker-report review: on top of 2xl's inputs it carries the pomiar before and after the
-     accept, so 1400px still squeezed the opis. */
   --container-dialog-3xl: min(95vw, 112.5rem);
 
-  /* Viewport minus the shell's chrome — 3.5rem IS the TopNav's h-14, and two files were carrying it
-     as a bare number. Anything that must fill the page UNDER the top bar takes h-below-top-nav. */
+  /* 3.5rem IS the TopNav's h-14. */
   --spacing-below-top-nav: calc(100dvh - 3.5rem);
 
-  /* Ceiling on a scrolling list INSIDE a dialog — three of them carried 55vh as a bare number. Short
-     of the dialog's own 90vh cap, because the header, the footer buttons and a „(N)" line share the
-     window with it. */
   --spacing-dialog-scroll: 55vh;
-  --shadow-panel: 0 -2px 8px -4px rgb(0 0 0 / 0.2); /* upward top-edge elevation for the bottom totals panel */
+  --shadow-panel: 0 -2px 8px -4px rgb(0 0 0 / 0.2);
 
-  /* Semantic Colors - Light Mode */
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.145 0 0);
   --color-card: oklch(1 0 0);
@@ -112,7 +81,6 @@
   --color-input: oklch(0.922 0 0);
   --color-ring: oklch(0.708 0 0);
 
-  /* Chart Colors */
   --color-chart-blue: #6096ff;
   --color-chart-orange: #ff993b;
   --color-chart-red: #ef4444;
@@ -123,9 +91,6 @@
   --color-chart-teal: #3ae2d1;
   --color-chart-purple: #976cdf;
 
-  /* Section palette — the chart hues above at three tints (jasny / bazowy / ciemny), so a section's
-     colour is always in-family with the pies it feeds. Derived with color-mix rather than typed as
-     new hex values: a tweak to a chart hue carries into all three of its tints. */
   --color-section-blue-soft: color-mix(in oklch, var(--color-chart-blue) 45%, white);
   --color-section-blue: var(--color-chart-blue);
   --color-section-blue-deep: color-mix(in oklch, var(--color-chart-blue) 78%, black);
@@ -154,11 +119,9 @@
   --color-section-purple: var(--color-chart-purple);
   --color-section-purple-deep: color-mix(in oklch, var(--color-chart-purple) 78%, black);
 
-  /* AI-accent hues for the `ai` button variant's fuchsia→cyan gradient border. */
   --color-neon-fuchsia: #d946ef;
   --color-neon-cyan: #00e5ff;
 
-  /* Sidebar Colors */
   --color-sidebar: oklch(0.985 0 0);
   --color-sidebar-foreground: oklch(0.145 0 0);
   --color-sidebar-primary: oklch(0.205 0 0);
@@ -168,31 +131,22 @@
   --color-sidebar-border: oklch(0.922 0 0);
   --color-sidebar-ring: oklch(0.708 0 0);
 
-  /* Collapsible animations */
   --animate-collapse-down: collapse-down 200ms ease-out;
   --animate-collapse-up: collapse-up 200ms ease-out;
 }
 
 :root {
-  /* Two more reds for the transfer types: every outgoing type stays red, and there are four of
-     them — the section's soft red reads as pink. Outside @theme because only inline styles read
-     them, and Tailwind drops a theme variable no utility class uses. */
+  /* Outside @theme because only inline styles read them, and Tailwind drops a theme variable no
+     utility class uses. */
   --color-transfer-red-dark: color-mix(in oklch, var(--color-chart-red) 58%, black);
   --color-transfer-red-warm: color-mix(
     in oklch,
     var(--color-chart-red) 65%,
     var(--color-chart-orange)
   );
-  /* Materiały wliczone w robociznę: still an expense, so it leans red, but it must not read as
-     one of the four reds above. */
   --color-transfer-fuchsia: #d9268f;
 }
 
-/* The dark palette: overriding the semantic tokens here flips the whole token-driven UI without
-   touching a component. Light values stay the source of truth in @theme above.
-   Text runs brighter than shadcn's stock scale (foreground 1 instead of 0.985, muted 0.78 instead
-   of 0.708) — Space Mono is a thin face at 14px and the stock off-white read as grey against this
-   background, muted text worst of all. */
 .dark {
   --color-background: oklch(0.145 0 0);
   --color-foreground: oklch(1 0 0);
@@ -242,11 +196,7 @@
 }
 
 /* iOS Safari zooms the whole page when a focused input's font-size is under 16px, and does not zoom
-   back out — so every surface you can type into is 16px on a phone and the app's usual 14px from
-   `sm` up. The placeholder stays 14px throughout: it is a hint, and at 16px the longer Polish ones
-   ran out of field. Four inputs were carrying this as a copied three-class incantation and the
-   fifth (the kosztorys cell) silently missed it. The `max` holds the 16px floor when the „Rozmiar"
-   switch shrinks the root font-size below it. */
+   back out. */
 @utility typing-surface {
   font-size: max(var(--text-base), 16px);
   line-height: var(--text-base--line-height);
@@ -256,18 +206,13 @@
     line-height: var(--text-sm--line-height);
   }
 
-  /* Inside the kosztorys grid a cell being edited keeps the size chosen for the grid's text, so
-     the value doesn't jump size the moment it is opened. Unset everywhere else. */
   @variant sm {
     font-size: var(--grid-cell-text, var(--text-sm));
     line-height: calc(var(--spacing) * 5);
   }
 }
 
-/* `--grid-cell-text` is set only by the grid's text-size choice (below), so wherever it is unset
-   this is plain text-xs / text-sm. The line stays 20px at every size: rows are sized from ROW_LINE_HEIGHT, so
-   only the glyphs shrink and a smaller font fits more words per line. A phone runs its own scale one
-   step down, the default included — sharing desktop's would make „Mała” and „Średnia” both 12px. */
+/* The line stays 20px at every size: rows are sized from ROW_LINE_HEIGHT. */
 @utility grid-cell-text {
   font-size: var(--grid-cell-text-phone, var(--text-xs));
   line-height: calc(var(--spacing) * 5);
@@ -299,14 +244,13 @@
   --grid-band-text-phone: var(--text-xs);
 }
 
-/* The size is picked for the rows' text; a header input (the etap rename) must not follow it. */
 [data-grid-text-size] .dsg-row-header {
   --grid-cell-text: initial;
   --grid-cell-text-phone: initial;
 }
 
-/* Bottom-to-top text. Put it on an inline-block INSIDE the cell, never on the th: WebKit ignores
-   writing-mode on a table cell but still applies the transform (see print/styles.ts). */
+/* Put it on an inline-block INSIDE the cell, never on the th: WebKit ignores writing-mode on a table
+   cell but still applies the transform. */
 @utility vertical-text {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
@@ -318,8 +262,6 @@
   }
 }
 
-/* AI-accent gradient border for the `ai` button variant — over wykonczymy's `--color-card`
-   token, fading fuchsia → cyan. */
 @utility gradient-border {
   border: 1px solid transparent;
   background:
@@ -327,8 +269,6 @@
     linear-gradient(to right, var(--color-neon-fuchsia), var(--color-neon-cyan)) border-box;
 }
 
-/* Soft two-tone halo matching the border direction: fuchsia bleeds left, cyan bleeds right.
-   Low opacity + modest blur keeps it a subtle accent, not a heavy bloom. */
 @utility neon-glow-duo {
   box-shadow:
     -3px 0 10px color-mix(in oklch, var(--color-neon-fuchsia) 40%, transparent),
@@ -341,11 +281,7 @@
     3px 0 14px color-mix(in oklch, var(--color-neon-cyan) 55%, transparent);
 }
 
-/* ── Animated `ai` accents ───────────────────────────────────────────────────────────────────
-   The comet keeps `gradient-border`'s two-layer trick — a card-coloured padding-box fill hiding a
-   gradient border-box behind it — and animates only the border layer, so the button's own
-   background never moves. A conic gradient cannot be transitioned directly, hence `--ai-angle`:
-   registering it with @property gives it a type, which is what makes an angle interpolate instead
+/* registering it with @property gives it a type, which is what makes an angle interpolate instead
    of snapping. */
 @property --ai-angle {
   syntax: '<angle>';
@@ -367,10 +303,9 @@
   }
 }
 
-/* Three background layers, topmost first: the fill, the travelling highlight, the resting gradient
-   under it. Each accent contributes only its own `--ai-anim-*` slot and both utilities declare the
-   same two-slot `animation`, so composing them cannot clobber one another — an `animation`
-   shorthand in either body would, and `comet` carries `!` for the background layers. */
+/* Each accent contributes only its own `--ai-anim-*` slot and both utilities declare the same
+   two-slot `animation`, so composing them cannot clobber one another — an `animation` shorthand in
+   either body would. */
 @utility gradient-border-comet {
   border: 1px solid transparent;
   background:
@@ -394,14 +329,10 @@
   animation: var(--ai-anim-border, none), var(--ai-anim-glow, none);
 }
 
-/* Aurora glow for the kosztorys progress fill — halo in the fill's own green→cyan ramp. */
 @utility progress-glow {
   box-shadow: 0 0 8px color-mix(in oklch, var(--color-chart-turquoise) 65%, transparent);
 }
 
-/* Fuchsia→cyan gradient ring (the `ai`-accent hues) as a masked conic-gradient — a branded
-   spin loader that reads in the AI colours, versus a flat Lucide icon. `--spinner-w` sets the
-   ring thickness; default size-4 matches inline icon spinners. */
 @utility gradient-spinner {
   --spinner-w: 2px;
   border-radius: 9999px;
@@ -423,18 +354,12 @@
   );
 }
 
-/* The DSG root is a grid item in a definite-height cell. Its default `min-height: auto` lets it grow
-   PAST that cell to its content height, so with enough rows it overflows the viewport and the last
-   rows are clipped with no way to scroll to them. Pinning `min-height: 0` holds it to the cell, so
-   the datasheet scrolls its rows internally instead of expanding. */
+/* Its default `min-height: auto` lets it grow PAST that cell to its content height, so with enough
+   rows it overflows the viewport and the last rows are clipped with no way to scroll to them. */
 .kosztorys-grid {
   min-height: 0;
 }
 
-/* dsg draws its own 1px border around .dsg-container on all four sides, on top of the per-cell
-   box-shadow grid lines every cell already draws. Because .dsg-container is the scrolling element
-   itself, that border sits on its own box edges and never moves with the internal scroll — it reads
-   as a static line floating over content scrolling past it. Kill it; the cell shadows are enough. */
 .kosztorys-grid .dsg-container {
   border: none;
   padding-bottom: 3rem;
@@ -443,58 +368,32 @@
   background: var(--color-background);
 }
 
-/* The worker's report scrolls with the page, so dsg's container must not be a scroller: any overflow
-   other than visible would make it the sticky header's scroll parent and pin nothing. The cost is
-   virtualisation — every row renders, which one worker's rozpiska can afford. The full rozpiska is
-   wider than a phone, so the page itself scrolls sideways. */
+/* dsg's container must not be a scroller: any overflow other than visible would make it the sticky
+   header's scroll parent and pin nothing. */
 .kosztorys-grid.kosztorys-grid-report .dsg-container {
   height: auto !important;
   overflow: visible;
   padding-bottom: 0;
-  /* dsg's `will-change: transform` is for its own scroller. Here it only promotes the container to a
-     layer iOS moves on the compositor while the sticky header inside is placed on the main thread,
-     so the header wobbles against the page on a touch scroll. */
+  /* Here it only promotes the container to a layer iOS moves on the compositor while the sticky
+     header inside is placed on the main thread, so the header wobbles against the page on a touch
+     scroll. */
   will-change: auto;
 }
 
-/* The compact report fits the screen, so anything past its edge is cut rather than scrolled to.
-   `clip` is not a scroller, so the sticky header survives. */
+/* `clip` is not a scroller, so the sticky header survives. */
 .kosztorys-grid.kosztorys-grid-report-compact .dsg-container {
   overflow-x: clip;
 }
 
-/* dsg overlays a position: sticky "scrollable view" frame over the virtualized row list, meant to
-   draw a "more content this way" scroll-shadow cue at whichever edges still have unscrolled content.
-   Because it's sticky, the frame itself never moves with the internal scroll — border AND box-shadow
-   both paint on its own static edges, so both read as a line floating over content scrolling past
-   it, not just the border. Kill the whole thing; the per-cell borders already draw the grid. */
 .kosztorys-grid .dsg-scrollable-view {
   border: none;
-  /* dsg's -t/-r/-b/-l edge-combo classes (e.g. .dsg-scrollable-view-t.dsg-scrollable-view-r) restate
-     the scroll-shadow box-shadow with higher selector specificity than this rule — !important is the
-     only way to beat that without matching their exact combinatorial class chains. */
+  /* dsg's -t/-r/-b/-l edge-combo classes restate the scroll-shadow box-shadow with higher selector
+     specificity than this rule. */
   box-shadow: none !important;
 }
 
-/* Wrapped text has to stop at the row's edge — dsg's cells are absolutely positioned, so a
-   description taller than its row would otherwise paint over the rows beneath it. The clip sits on
-   the TEXT, never on the cell: a cell that clips its own overflow also clips the long-text editing
-   overlay (a textarea deliberately sized to float over the rows below) and the outer half of the
-   column-width handle, which straddles the header cell's right edge.
-
-   And it has to stop on a WHOLE line. Clipping a centred text block leaves the top of the first
-   line and the bottom of the last one shaved off — two half-lines where the truncated one-liner used
-   to be, which reads worse than the truncation did. So the read-only text stretches to the cell and
-   clips itself instead, with vertical padding chosen to leave a content box that is an exact
-   multiple of the 20px line: the row is `lines × 20 + 12` (see row-height.ts) and dsg's cell eats
-   1px of that on its top border, hence 5 above and 6 below rather than 6 and 6.
-   `safe center` is what vertically centres the text in the row while keeping that clip honest: it
-   centres whenever the text FITS, and falls back to top-aligned the moment it doesn't. Plain
-   centring would push an over-long description out of BOTH ends of the box and leave a shaved
-   half-line at the top and the bottom — worse than the truncation this replaced.
-   The gutter is out — its only child is the resize handle, positioned absolutely.
-   MARGIN, not padding: `overflow: hidden` clips at the padding box, so padding would let the next
-   line show through the 6px below the text. A margin sits outside the box that clips. */
+/* the row is `lines × 20 + 12` (see row-height.ts) and dsg's cell eats 1px of that on its top
+   border, hence 5 above and 6 below. */
 .kosztorys-grid .dsg-cell:not(.dsg-cell-gutter) > span {
   align-self: stretch;
   display: flex;
@@ -505,16 +404,8 @@
   margin-bottom: 6px;
 }
 
-/* The clip cue: a „…" pinned to the bottom-right of a cell whose text does not fit its row. It has to
-   be drawn OVER the text rather than inside it — `text-overflow` speaks only for a single
-   non-wrapping line, and this grid clips on a whole line (see above) precisely so a description can
-   wrap. The cue rides a cell class the editor sets on every clipped cell, because whether a value
-   fits is a fact about the row's height and the column's width, which CSS has no way to ask.
-   `background: inherit` is what makes it read as an ellipsis instead of three dots dropped on a
-   word: it takes the cell's own fill, section tint included, and hides the glyphs it covers.
-   No `position: relative` on the cell — dsg lays every cell out absolutely and positions it by
-   `left`, so relative would drop the whole row into a stack. An absolutely positioned cell is
-   already the containing block its `::after` anchors to. */
+/* No `position: relative` on the cell — dsg lays every cell out absolutely and positions it by
+   `left`, so relative would drop the whole row into a stack. */
 .kosztorys-grid .dsg-cell.kosztorys-clipped::after {
   content: '…';
   position: absolute;
@@ -534,26 +425,17 @@
   }
 }
 
-/* A span that only exists to be a tooltip trigger around a cell's input. The rule above is written
-   for read-only TEXT — it wraps, clips and pulls the box 5px/6px off the cell's edges — and an input
-   put through it renders its figure a couple of pixels above the identical figure in a plain cell.
-   Neutralised to nothing, the input fills the cell exactly as it does without a tooltip. */
 .kosztorys-grid .dsg-cell:not(.dsg-cell-gutter) > span.kosztorys-cell-input-body {
   display: block;
   margin: 0;
   overflow: visible;
 }
 
-/* The Akcje column is `disabled` only to keep the cell cursor out of it, so dsg's grey
-   "unavailable input" fill is wrong there — the cell holds a button. Transparent rather than the
-   cell colour so a section's row tint still shows through. */
 .kosztorys-grid .dsg-cell.kosztorys-actions-cell {
   background: transparent;
 }
 
-/* The review of an agent's draft wears the `ai` accent's cyan, so the block reads
-   as apart from the offer. Set through dsg's own vars: its unlayered `background` rules outrank a
-   Tailwind `bg-*` utility. The read-only tint stays a step darker, as grey does elsewhere. */
+/* Set through dsg's own vars: its unlayered `background` rules outrank a Tailwind `bg-*` utility. */
 .kosztorys-grid .dsg-cell.kosztorys-ai-column {
   --dsg-border-color: var(--color-neon-cyan);
   --dsg-cell-background-color: color-mix(in oklch, var(--color-neon-cyan) 6%, var(--color-card));
@@ -570,9 +452,6 @@
   font-weight: 600;
 }
 
-/* dsg virtualizes rows with @tanstack/react-virtual keyed by row id, so a row scrolling into view is
-   a fresh DOM node — the keyframe replays on every mount and softens the hard pop-in. The header row
-   is excluded — it never unmounts. */
 @keyframes kosztorys-row-in {
   from {
     opacity: 0;
@@ -589,17 +468,6 @@
   }
 }
 
-/* Retint dsg's native selection blue to the app's monochrome theme (border = primary,
-   faint primary-tinted fill), so the selection rect / active cell / row+col markers all
-   track light/dark via the theme tokens instead of a hardcoded rgb(69,128,230).
-
-   The rest of dsg's palette follows for the same reason: its stylesheet hardcodes a light
-   sheet (`white` cells, `#e8ebed` rules, `black` active header) at `:root`, so under `.dark`
-   the grid would stay a white rectangle in an otherwise dark app. Mapping every one of its
-   variables onto a token is what makes the grid theme-aware without touching a cell renderer.
-   The library's remaining hardcoded colours live in `.dsg-add-row*` and `.dsg-context-menu*`,
-   which this editor never mounts — `lockRows` hides the add-row bar and forces
-   `disableContextMenu` — so there is nothing to override there. */
 .kosztorys-grid {
   --dsg-selection-border-color: var(--color-ring);
   --dsg-selection-border-width: 1px;
@@ -619,21 +487,16 @@
   --dsg-scroll-shadow-color: color-mix(in oklab, var(--color-foreground) 20%, transparent);
 }
 
-/* Shared with the report review table and the reorder list, so a section's band reads the same as
-   in the grid. */
 .kosztorys-grid,
 .worker-report,
 .reorder-list {
   --section-rail-width: 3px;
   --section-divider-width: 2px;
-  /* Thinner than the opening rule: the heavy divider is what marks where a section STARTS. */
   --section-footer-divider-width: 1px;
   --section-rail-tint: 14%;
   --section-band-tint: 18%;
 }
 
-/* Mixed into the neutral border rather than the pure colour: a full-strength rule on every row
-   would outshout the rail that says where the section is. */
 .worker-report tr.worker-report-rail {
   border-bottom-color: color-mix(
     in oklab,
@@ -654,31 +517,23 @@
   );
 }
 
-/* The grey fill tells the owner "you can't type here" apart from the cells they can. In the
-   client's preview no cell is editable, so the contrast has nothing to separate and the whole sheet
-   just reads as greyed out. */
 .kosztorys-grid.kosztorys-grid-preview {
   --dsg-cell-disabled-background-color: var(--dsg-cell-background-color);
   --dsg-header-text-color: var(--color-foreground);
-  /* The preview's header sits right under the page header's dark rule. */
   --header-rule-color: var(--color-foreground);
 }
 
-/* Preview-only: in the editor a bold header is the active-sort cue (sort-header.tsx), and the
-   preview has no sort to signal. Aimed at the span because HeaderLabel's `font-medium` sits on it. */
+/* Aimed at the span because HeaderLabel's `font-medium` sits on it. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell-header span {
   font-weight: 700;
 }
 
-/* The summary under the last section is one plain white block: a grey „Razem" next to the white
-   spacer and titles read as a random mix of grey and white. The heavy rule above it still sets it off. */
 .kosztorys-grid.kosztorys-grid-preview .kosztorys-totals-cell {
   background: var(--color-background);
 }
 
-/* dsg's header cells draw no bottom edge of their own. Inset, because dsg lays cells out absolutely
-   and an outer shadow would be painted over by the row beneath. Coloured like the rule above the
-   header, so the header reads as one framed band. */
+/* Inset, because dsg lays cells out absolutely and an outer shadow would be painted over by the row
+   beneath. */
 .kosztorys-grid .dsg-cell-header {
   box-shadow: inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
 }
@@ -690,10 +545,6 @@
     1px 0 var(--dsg-border-color);
 }
 
-/* The header's rule stands in for the top edge of the row right under it — otherwise that row's own
-   1px border and a section band's divider stack beneath it into three lines. Only the unscrolled
-   first row is affected visibly: when scrolled, the DOM row after the header is an overscan row
-   hidden behind the sticky header. */
 .kosztorys-grid .dsg-row-header + .dsg-row .dsg-cell {
   border-top: none;
 }
@@ -708,21 +559,17 @@
     1px 0 var(--dsg-border-color);
 }
 
-/* Muted text marks a derived figure the owner can't type over — same contrast as the fill above,
-   with nothing to separate in a sheet where no cell is editable. */
 .kosztorys-grid.kosztorys-grid-preview [data-muted] {
   color: var(--color-foreground);
 }
 
 /* Must stay above the section band rules: same specificity, and a band's wash has to win over the
-   stripe so the band still reads as one bar. The colour alone, not the `background` shorthand: the
-   shorthand would reset the column tint's background-image on every odd column. */
+   stripe so the band still reads as one bar. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-stripe-column {
   background-color: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
 }
 
-/* After the stripe rule, which has the same specificity and would otherwise win. dsg's own
-   1px grid lines ride the same box-shadow, so they are restated. */
+/* After the stripe rule, which has the same specificity and would otherwise win. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-report-column {
   background: color-mix(in oklab, var(--color-lime-300) 40%, var(--color-background));
   box-shadow:
@@ -736,8 +583,6 @@
   text-align: center;
 }
 
-/* Hints of uneven length would centre each title at a different height. A phone has no hint and
-   stands the title on end, so there it is centred both ways. */
 .kosztorys-grid .dsg-cell-header.kosztorys-report-header {
   align-items: flex-start;
   padding-top: 0.75rem;
@@ -758,22 +603,15 @@
     inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
 }
 
-/* Section identity is carried by two quiet cues instead of a background wash: a colour rail down the
-   sticky gutter column, and a heavy rule above a section's first row. `--section-rail` is set per row
-   by the palette's `rail` class (src/lib/kosztorys/section-colors.ts); an unpinned section leaves it
-   unset, so both rules fall back to the neutral divider and the grid reads as one plain table.
-
-   Every rule here re-states dsg's own `box-shadow` alongside ours: dsg draws each cell's right/bottom
+/* Every rule here re-states dsg's own `box-shadow` alongside ours: dsg draws each cell's right/bottom
    edge with `box-shadow: 1px 1px`, and box-shadow doesn't cascade per-side — overriding it to add the
    rail would erase the grid lines. */
 .kosztorys-grid .dsg-cell-gutter {
-  /* Ordinals sit quieter than the data: a position is a landmark, not a figure to read across.
-     `tabular-nums` keeps the column of digits from jittering as the count crosses a decade. */
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   color: var(--color-muted-foreground);
-  /* The rail falls back to `transparent` (no rail drawn) but the background must not — mixing in
-     `transparent` would make the sticky gutter translucent and let scrolled cells bleed through it. */
+  /* mixing in `transparent` would make the sticky gutter translucent and let scrolled cells bleed
+     through it. */
   background: color-mix(
     in oklab,
     var(--section-rail, var(--color-background)) var(--section-rail-tint),
@@ -784,33 +622,24 @@
     1px 0 var(--dsg-border-color);
 }
 
-/* The band opening a section: a wash of its hue across every cell (so the group header reads as one
-   bar even though dsg paints each cell separately) plus the rule above it. Both hang on the cells,
-   not the row: dsg's cells are absolutely positioned and paint their own background, so a rule drawn
-   on the row element itself would sit entirely behind them. The wash outranks the gutter rule and the
-   transparent Akcje cell on specificity, which is what keeps it unbroken across the row. */
+/* dsg's cells are absolutely positioned and paint their own background, so a rule drawn on the row
+   element itself would sit entirely behind them. */
 .kosztorys-grid .dsg-row.kosztorys-section-header .dsg-cell {
   background: color-mix(
     in oklab,
     var(--section-rail, var(--color-muted-foreground)) var(--section-band-tint),
     var(--color-background)
   );
-  /* The band is one label spanning the row, so both halves of the column separator go: dsg draws it
-     as a `border-left` on the cell AND a `1px 0` shadow on its neighbour's right. Suppressing both is
-     how a merged row is spelled — dsg has no colspan. Only the horizontal rules survive. */
-  /* `none`, not a transparent colour: the divider above is an INSET shadow, which is clipped to the
-     padding box, so a 1px border left in place would notch the rule at every column boundary. */
+  /* the divider above is an INSET shadow, which is clipped to the padding box, so a 1px border left
+     in place would notch the rule at every column boundary. */
   border-left: none;
   box-shadow:
     inset 0 var(--section-divider-width) 0 var(--section-rail, var(--color-border)),
     0 1px var(--dsg-border-color);
 }
 
-/* The band only LOOKS merged — the label still lives in one cell alone (whichever column leads the
-   grid; withSyntheticRows marks it), so it clipped at that column's width no matter how empty the rest
-   of the row was. The cells beside it are blank, so the label is let out over them: `overflow: visible`
-   to stop the clip, `z-index` because dsg positions cells absolutely and a later sibling's background
-   would otherwise paint over the escaped text. */
+/* `z-index` because dsg positions cells absolutely and a later sibling's background would otherwise
+   paint over the escaped text. */
 .kosztorys-grid .dsg-row.kosztorys-section-header .dsg-cell.kosztorys-band-label-cell {
   overflow: visible;
   z-index: 1;
@@ -825,10 +654,7 @@
     1px 0 var(--dsg-border-color);
 }
 
-/* A column the owner tinted (use-column-colors.ts). A background-IMAGE, not a colour: it lays the hue
-   over whatever fill the cell already has — white, the disabled grey, a red warning — instead of
-   replacing it. The section band's `background` shorthand outranks this and resets the image, so the
-   band still reads as one unbroken bar across a tinted column. */
+/* A background-IMAGE: it lays the hue over whatever fill the cell already has instead of replacing it. */
 .kosztorys-grid .dsg-cell.kosztorys-column-tint {
   background-image: linear-gradient(
     color-mix(in oklab, var(--column-tint) 20%, transparent),
@@ -836,9 +662,6 @@
   );
 }
 
-/* The band closing a section: same construction and wash as the opening one, so the pair reads as one
-   bracket. It sits at item height, not band height — it is a row of figures under their own columns,
-   not a strip of chrome. */
 .kosztorys-grid .dsg-row.kosztorys-section-footer .dsg-cell {
   background: color-mix(
     in oklab,
@@ -858,8 +681,6 @@
     1px 0 var(--dsg-border-color);
 }
 
-/* A pozycja the owner hid and the investor revealed with „Pokaż wszystkie pozycje": offered, but
-   outside this offer's scope — it must read apart from what the offer prices. */
 .kosztorys-grid .dsg-row.kosztorys-revealed-row .dsg-cell {
   color: var(--color-muted-foreground);
 }
@@ -868,26 +689,3 @@
   color: var(--color-muted-foreground);
   text-decoration: line-through;
 }
-
-/*https://tailwindcss.com/docs/adding-custom-styles/*
-
-
-@theme namespaces
---color-*	Color utilities like bg-red-500, text-sky-300, and many more
---font-*	Font family utilities like font-sans
---text-*	Font size utilities like text-xl
---font-weight-*	Font weight utilities like font-bold
---tracking-*	Letter spacing utilities like tracking-wide
---leading-*	Line height utilities like leading-tight
---breakpoint-*	Responsive breakpoint variants like sm:*
---container-*	Container query variants like @sm:* and size utilities like max-w-md
---spacing-*	Spacing and sizing utilities like px-4, max-h-16, and many more
---radius-*	Border radius utilities like rounded-sm
---shadow-*	Box shadow utilities like shadow-md
---inset-shadow-*	Inset box shadow utilities like inset-shadow-xs
---drop-shadow-*	Drop shadow filter utilities like drop-shadow-md
---blur-*	Blur filter utilities like blur-md
---perspective-*	Perspective utilities like perspective-near
---aspect-*	Aspect ratio utilities like aspect-video
---ease-*	Transition timing function utilities like ease-out
---animate-*	Animation utilities like animate-spin */

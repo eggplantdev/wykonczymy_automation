@@ -1,6 +1,4 @@
--- READ-ONLY. Report every owned sequence whose last_value has fallen behind its table's MAX(id).
--- Each NOTICE = a sequence that will hand out an already-used id on the next INSERT (surfaces as
--- Payload "ValidationError: id"). No NOTICEs = all healthy. Safe on prod: no setval/DDL, only reads.
+-- Safe on prod: no setval/DDL, only reads.
 DO $$
 DECLARE
   rec RECORD;
