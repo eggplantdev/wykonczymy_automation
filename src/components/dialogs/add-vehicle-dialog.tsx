@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { VehicleForm } from '@/components/forms/vehicle-form/vehicle-form'
 import { createVehicleAction } from '@/lib/actions/fleet'
 import type { VehicleFormValuesT } from '@/components/forms/vehicle-form/vehicle-schema'

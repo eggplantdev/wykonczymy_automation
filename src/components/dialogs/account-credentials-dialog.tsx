@@ -1,7 +1,7 @@
 'use client'
 
 import { KeyRound } from 'lucide-react'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { AccountCredentialsForm } from '@/components/forms/account-credentials-form/account-credentials-form'
 import { useTranslation } from '@/hooks/use-translation'

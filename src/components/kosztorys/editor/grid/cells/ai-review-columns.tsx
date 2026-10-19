@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import type { Column, CellProps } from 'react-datasheet-grid'
 import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/save-item-to-catalogue-dialog'
 import { WorkNoteDialog } from '@/components/kosztorys/editor/dialogs/catalogue/work-note-dialog'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
@@ -23,7 +23,6 @@ import {
 } from '@/lib/kosztorys/review-status'
 import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { KosztorysV2RowT, ReviewStatusT } from '@/lib/kosztorys/types'
-import { cn } from '@/lib/utils/cn'
 
 export const AI_REVIEW_COLUMN_CLASS = {
   headerClassName: 'kosztorys-ai-column',
@@ -45,15 +44,9 @@ function statusOptions(row: KosztorysV2RowT) {
 function RecheckFlag({ children }: { children: ReactNode }) {
   return (
     <div className="flex size-full flex-col">
-      <span
-        className={cn(
-          BADGE_BASE,
-          BADGE_TONE.pending,
-          'mx-2 mt-1.5 block w-fit max-w-full shrink-0 truncate',
-        )}
-      >
+      <Badge tone="pending" className="mx-2 mt-1.5 block w-fit max-w-full shrink-0 truncate">
         {RECHECK_LABEL}
-      </span>
+      </Badge>
       <div className="min-h-0 flex-1">{children}</div>
     </div>
   )

@@ -2,7 +2,7 @@
 
 import { ArrowRightLeft } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { EquipmentTransferForm } from '@/components/forms/equipment-transfer-form/equipment-transfer-form'
 import { transferEquipmentAction } from '@/lib/actions/equipment'
 import { warsawToday } from '@/lib/utils/days'

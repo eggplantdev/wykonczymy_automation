@@ -1,7 +1,7 @@
 'use client'
 
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { EditTransferForm } from '@/components/forms/edit-transfer-form/edit-transfer-form'
 import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import { formatPLN } from '@/lib/utils/format-currency'

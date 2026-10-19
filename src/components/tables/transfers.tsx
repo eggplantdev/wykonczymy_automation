@@ -1,8 +1,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { isServerSortableColumn } from '@/lib/transfers/sortable-columns'
 import { OptionalLink } from '@/components/ui/optional-link'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
-import { cn } from '@/lib/utils/cn'
+import { Badge } from '@/components/ui/badge'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
@@ -11,7 +10,12 @@ import { CancelTransferButton } from '@/components/transfers/cancel-transfer-but
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
-import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
+import {
+  canCancelTransfer,
+  canMutateTransfer,
+  isManagementRole,
+  type RoleT,
+} from '@/lib/auth/roles'
 import { isCancellationType, billsNetAmount, transferColorVar } from '@/lib/constants/transfers'
 import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
@@ -103,9 +107,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>, uncoloredAmounts: bo
       cell: (info) => (
         <span className="flex flex-wrap items-center gap-1">
           <TransferTypeBadge transfer={info.row.original} translator={translator} />
-          {info.row.original.fromWorkerDraft && (
-            <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('fromWorker')}</span>
-          )}
+          {info.row.original.fromWorkerDraft && <Badge tone="muted">{t('fromWorker')}</Badge>}
         </span>
       ),
     }),
@@ -287,15 +289,18 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
       // Courtesy, not a gate — the collection hook refuses either write regardless.
       const lockedInvestment = row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
 
-      const canEdit =
-        !!currentUserRole &&
-        currentUserId !== undefined &&
-        canMutateTransfer({
-          role: currentUserRole,
-          userId: currentUserId,
-          transferType: row.type,
-          createdById: row.createdById,
-        })
+      const actor =
+        currentUserRole && currentUserId !== undefined
+          ? {
+              role: currentUserRole,
+              userId: currentUserId,
+              transferType: row.type,
+              createdById: row.createdById,
+            }
+          : undefined
+      const canEdit = actor !== undefined && canMutateTransfer(actor)
+      const canCancel =
+        actor !== undefined && canCancelTransfer({ ...actor, payoutStatus: row.payoutStatus })
 
       return (
         <div className="flex items-center justify-end gap-1">
@@ -307,7 +312,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
               disabledReason={lockedInvestment ? INVESTMENT_LOCKED_MESSAGE : undefined}
             />
           )}
-          {!lockedInvestment && <CancelTransferButton transactionId={row.id} />}
+          {!lockedInvestment && canCancel && <CancelTransferButton transactionId={row.id} />}
         </div>
       )
     },

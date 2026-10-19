@@ -107,10 +107,13 @@ export const ru: TranslationsT = {
     payoutsTitle: 'Выплаты для подтверждения',
     payoutsHint:
       'Подтвердите, что получили эти деньги, — или отклоните и напишите, чего не хватает.',
+    rejectedPayoutsTitle: 'Отклонённые выплаты',
+    rejectedPayoutsHint:
+      'Эти выплаты ждут выяснения с руководителем. Вы всё ещё можете их подтвердить или дождаться, пока руководитель их отменит.',
     payoutNoInvestment: 'Без инвестиции',
     payoutConfirm: 'Подтверждаю',
     payoutReject: 'Отклонить',
-    payoutYourReason: 'Ваша причина: {{reason}}',
+    payoutRejectionReason: 'Причина отклонения: {{reason}}',
     payoutAcceptTitle: 'Подтверждаете получение выплаты?',
     payoutAcceptDescription: 'Вы подтверждаете, что получили {{amount}}.',
     payoutAccepted: 'Выплата подтверждена',

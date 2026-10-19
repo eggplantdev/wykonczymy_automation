@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { createInvestmentAction } from '@/lib/actions/investments'
 import type { TemplateMetaT } from '@/lib/db/templates'

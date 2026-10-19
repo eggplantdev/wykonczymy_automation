@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react'
 
-import { useHistoryBack } from '@/components/ui/use-history-back'
+import { useHistoryBack } from '@/hooks/use-history-back'
 
 export function HistoryBackButton({ fallbackHref }: { fallbackHref: string }) {
   const goBack = useHistoryBack(fallbackHref)

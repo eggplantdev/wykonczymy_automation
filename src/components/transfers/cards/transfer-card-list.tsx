@@ -3,6 +3,7 @@
 import type { Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { TransferCard } from '@/components/transfers/cards/transfer-card'
+import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferRowT } from '@/types/transfers'
 
@@ -20,19 +21,14 @@ export function TransferCardList({ rows, visibleColumnIds, uncoloredAmounts, cla
   }
 
   return (
-    <div
-      className={cn(
-        'max-sm:divide-border max-sm:border-border w-full max-sm:divide-y max-sm:overflow-hidden max-sm:rounded-lg max-sm:border sm:max-w-3xl sm:space-y-3',
-        className,
-      )}
-    >
+    <div className={cn(CARD_LIST_CLASS, className)}>
       {rows.map((row) => (
         <TransferCard
           key={row.id}
           row={row}
           visibleColumnIds={visibleColumnIds}
           uncoloredAmounts={uncoloredAmounts}
-          className="bg-background sm:border-border sm:rounded-lg sm:border sm:shadow-sm"
+          className={CARD_SHELL_CLASS}
         />
       ))}
     </div>

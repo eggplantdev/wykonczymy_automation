@@ -185,3 +185,5 @@ Adapt commands to the project's stack (Neon/Supabase/RDS, GitHub Actions/other C
 - A `28P01` through a **shared pooler** does NOT prove the DB exists — a deleted branch returns the same error. Verify via the direct endpoint / provider console.
 - Production must use the **main/production** DB branch — **never a preview/staging branch**; a deployment-retention sweep will silently delete it (default windows are short).
 - Dump/restore over the **direct** connection, never the pooler.
+- A dump's `SET search_path = ''` sticks to Neon **pooled** backends (`relation does not exist` afterwards) — `ALTER DATABASE neondb SET search_path TO "$user", public;` over the direct connection, then `pg_terminate_backend` the stuck backends.
+- A dump that predates a migration still carries that migration's `_payload_migrations` row, so `payload migrate` skips it — run the migration's SQL by hand or delete the row and migrate again.

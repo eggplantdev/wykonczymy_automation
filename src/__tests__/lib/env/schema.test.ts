@@ -140,7 +140,7 @@ describe('blobTokenRefusal', () => {
 
 // The Editor credential exists only in Vercel Production, which is also the only environment that
 // writes to a sheet — so a malformed value has the fewest eyes on it and the longest silence: it
-// passes boot and dies inside a deferred write that sheets-sync swallows as non-fatal.
+// passes boot and dies inside a deferred write that transfer-sheet-sync swallows as non-fatal.
 describe('serverSchema — Editor service-account credential', () => {
   it('accepts a credential carrying client_email and private_key', () => {
     const result = serverSchema.safeParse({
@@ -169,7 +169,7 @@ describe('serverSchema — Editor service-account credential', () => {
   })
 
   // Optional everywhere, mandatory in production: deleting the var there breaks no request, it just
-  // stops every transfer from reaching the owner's sheet — sheets-sync defers the write and swallows
+  // stops every transfer from reaching the owner's sheet — transfer-sheet-sync defers the write and swallows
   // the throw. Boot is the last place the loss is still visible.
   it('refuses its absence in production', () => {
     const { GOOGLE_SERVICE_ACCOUNT_WRITE_JSON: _absent, ...withoutWriter } = productionEnv

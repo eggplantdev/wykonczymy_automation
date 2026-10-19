@@ -1,7 +1,7 @@
 'use client'
 
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { CashRegisterForm } from '@/components/forms/cash-register-form/cash-register-form'
 import { updateCashRegisterAction } from '@/lib/actions/cash-registers'
 import type { CashRegisterRefT, WorkerRefT } from '@/types/reference-data'

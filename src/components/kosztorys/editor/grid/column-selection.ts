@@ -2,13 +2,13 @@ import { Column } from 'react-datasheet-grid'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { appendTrailingGap, withResize } from '@/components/kosztorys/editor/grid/column-sizing'
 import { withColumnColor } from '@/components/kosztorys/editor/grid/column-color'
-import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { stageGroupOfKey, stageIdOfKey } from '@/lib/kosztorys/stage-keys'
 import {
   baseRanksFromKeys,
   groupColumns,
   orderColumns,
   type ColumnRanksT,
+  type ColumnToggleItemT,
 } from '@/lib/table/column-order'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import {

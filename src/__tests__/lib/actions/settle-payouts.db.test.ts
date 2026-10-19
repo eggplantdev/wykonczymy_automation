@@ -10,7 +10,7 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { flushAfter } from '@/__tests__/stubs/next-server'
-import { syncBulkExpensesToSheet } from '@/lib/actions/sheets-sync'
+import { syncBulkExpensesToSheet } from '@/lib/google/transfer-sheet-sync'
 import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
 

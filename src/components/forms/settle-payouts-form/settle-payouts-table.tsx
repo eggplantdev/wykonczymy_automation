@@ -5,7 +5,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { DataTable } from '@/components/tables/data-table/data-table'
@@ -62,7 +62,7 @@ function BlockedReason({ state }: { state: BlockedStateT }) {
       {state === 'locked' ? (
         <InvestmentStatusBadge status={LOCKED_INVESTMENT_STATUS} />
       ) : (
-        <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{BLOCKED_TAG[state]}</span>
+        <Badge tone="muted">{BLOCKED_TAG[state]}</Badge>
       )}
       <InfoTooltip content={reason} label={reason} />
     </span>
@@ -194,7 +194,9 @@ const COLUMNS = [
     header: 'Pozostało',
     meta: { align: 'right' },
     cell: (info) => (
-      <span className={cn('whitespace-nowrap', info.getValue() < 0 && 'text-destructive')}>
+      <span
+        className={cn('whitespace-nowrap', roundToCents(info.getValue()) < 0 && 'text-destructive')}
+      >
         {formatPLN(info.getValue())}
       </span>
     ),

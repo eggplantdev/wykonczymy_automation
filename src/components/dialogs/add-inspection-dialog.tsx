@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InspectionForm } from '@/components/forms/inspection-form/inspection-form'
 import { createInspectionAction } from '@/lib/actions/fleet'
 import { addMonthsToDay, warsawToday } from '@/lib/utils/days'

@@ -2,13 +2,13 @@
 
 import { type Table, type VisibilityState } from '@tanstack/react-table'
 import { type ReactNode } from 'react'
-import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
+import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
 import {
   TABLE_TEXT_SIZES,
   type TableTextSizeT,
 } from '@/components/tables/data-table/table-text-size'
 import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
-import { type ColumnRanksT } from '@/lib/table/column-order'
+import { type ColumnRanksT, type ColumnToggleItemT } from '@/lib/table/column-order'
 import { columnLabel } from '@/lib/table/column-label'
 import { useTranslation } from '@/hooks/use-translation'
 

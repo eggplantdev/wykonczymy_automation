@@ -7,7 +7,7 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 const mockSyncSingle = vi.fn()
 const mockSyncBulk = vi.fn()
 const mockRemoveFromSheet = vi.fn()
-vi.mock('@/lib/actions/sheets-sync', () => ({
+vi.mock('@/lib/google/transfer-sheet-sync', () => ({
   syncSingleTransferToSheet: (...a: unknown[]) => mockSyncSingle(...a),
   syncBulkExpensesToSheet: (...a: unknown[]) => mockSyncBulk(...a),
   removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),

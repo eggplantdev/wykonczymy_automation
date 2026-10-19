@@ -3,7 +3,7 @@
 import { Mail } from 'lucide-react'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { Description } from '@/components/ui/description'
-import { FormDialog } from '@/components/ui/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
 import { RecipientListForm } from '@/components/forms/recipient-list-form/recipient-list-form'
 import { saveRecipientListAction } from '@/lib/actions/notification-recipients'
 import type { RecipientListT } from '@/lib/email/recipients'

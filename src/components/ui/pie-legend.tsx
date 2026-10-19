@@ -1,12 +1,12 @@
-import { formatPercent } from '@/lib/kosztorys/format'
-
 export type PieSliceT = { id: string; name: string; value: number; fill: string }
 
 export function PieSliceLegend({
   slices,
+  formatShare,
   formatValue,
 }: {
   slices: PieSliceT[]
+  formatShare: (fraction: number | null) => string
   formatValue?: (value: number) => string
 }) {
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
@@ -21,7 +21,7 @@ export function PieSliceLegend({
           <span className="ml-auto flex shrink-0 items-center gap-2">
             {total > 0 && (
               <span className="text-muted-foreground tabular-nums">
-                {formatPercent(slice.value / total)}
+                {formatShare(slice.value / total)}
               </span>
             )}
             {formatValue && <span className="tabular-nums">{formatValue(slice.value)}</span>}

@@ -5,7 +5,7 @@ import config from '@payload-config'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES, canManageRegister } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
 import { toActionFailure } from '@/lib/actions/action-failure'
 import { logError } from '@/lib/utils/log-error'
@@ -13,6 +13,7 @@ import { getDb } from '@/lib/db/get-db'
 import { fetchRemovalSubject } from '@/lib/db/account-removal'
 import { accountChangeRefusal, revokeAccountAccess } from '@/lib/workers/account-removal'
 import type { SessionUserT } from '@/types/auth'
+import { toRegisterScope } from '@/lib/cash-registers/register-scope'
 
 type ToggleConfigT = {
   collection: 'users' | 'cash-registers'
@@ -83,5 +84,16 @@ export async function toggleCashRegisterActive(id: number, active: boolean) {
     cacheTag: 'cashRegisters',
     data: (active) => ({ active }),
     overrideAccess: true,
+    refusal: async (payload, actor, id) => {
+      const register = await payload.findByID({
+        collection: 'cash-registers',
+        id,
+        depth: 1,
+        overrideAccess: true,
+        disableErrors: true,
+      })
+      if (!register) return undefined
+      return canManageRegister(actor, toRegisterScope(register)) ? undefined : 'Brak uprawnień'
+    },
   })
 }

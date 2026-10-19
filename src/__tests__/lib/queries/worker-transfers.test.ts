@@ -53,7 +53,10 @@ describe('workerPageTransferWhere — URL filters only narrow', () => {
   })
 
   it('leaves the URL filters at the top level', () => {
-    expect(whereFor({}).cancelled).toEqual({ not_equals: true })
     expect(isNoResultsSentinel(whereFor({ investment: 'abc' }))).toBe(true)
+  })
+
+  it('shows his cancelled transactions without any toggle', () => {
+    expect(whereFor({}).cancelled).toBeUndefined()
   })
 })

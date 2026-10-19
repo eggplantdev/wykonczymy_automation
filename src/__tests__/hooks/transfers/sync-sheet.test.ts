@@ -3,7 +3,7 @@ import { flushAfter } from '@/__tests__/stubs/next-server'
 
 const mockSyncSingle = vi.fn()
 const mockRemoveFromSheet = vi.fn()
-vi.mock('@/lib/actions/sheets-sync', () => ({
+vi.mock('@/lib/google/transfer-sheet-sync', () => ({
   syncSingleTransferToSheet: (...a: unknown[]) => mockSyncSingle(...a),
   removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),
 }))

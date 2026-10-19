@@ -25,8 +25,9 @@ export function workerPageTransferWhere(
   workerId: number,
   registerIds: number[],
 ): Where {
+  // Cancelled rows always show: this list is the worker's only lasting record of a cancelled wypłata.
   return buildWorkerTransferWhere(
-    buildTransferFilters(searchParams, { id: viewerId }),
+    buildTransferFilters({ ...searchParams, showCancelled: '1' }, { id: viewerId }),
     workerTransferScope(workerId, registerIds),
   )
 }

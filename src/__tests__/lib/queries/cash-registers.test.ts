@@ -27,6 +27,8 @@ describe('shapeCashRegisters', () => {
         id: 10,
         name: 'Kasa główna',
         ownerName: 'Adrian',
+        ownerId: 1,
+        ownerRole: 'MANAGER',
         balance: 500,
         type: 'MAIN',
         active: true,

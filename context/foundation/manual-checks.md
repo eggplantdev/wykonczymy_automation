@@ -1291,6 +1291,110 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 - [ ] Drugi `pnpm test:e2e` bez zmian w `src/` (zmieniony tylko spec): w logu „e2e build: reused”,
       serwer startuje w kilka sekund, a wyniki są takie same.
 
+## 2026-10-19 — app-audit-refactor faza 1 — przeniesione komponenty wyglądają i działają jak dotąd
+
+Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie ma wyglądać inaczej.
+
+- [ ] `/pracownicy`: kolorowe plakietki ról w tabeli jak dotąd; na telefonie (390 px) plakietka roli w
+      menu.
+- [ ] Inwestycja z kosztorysem → podsumowanie kosztorysu: wykresy kołowe (koszty i „Udział sekcji w
+      kosztach robocizny”) pokazują procenty w legendzie i w dymku po najechaniu, jak dotąd.
+- [ ] Dowolny formularz w oknie (np. „Dodaj kasę”): otwiera się, zapis zamyka okno, a z zaznaczonym
+      „Nie zamykaj po zapisaniu” zostaje otwarte; w trakcie zapisu widać pigułkę z postępem.
+- [ ] Strona inwestycji wejściem z listy → „Wróć” wraca na listę; ta sama strona otwarta z adresu →
+      „Wróć” prowadzi na listę inwestycji.
+- [ ] `/transakcje` → menu kolumn: ukrywanie i pokazywanie kolumn działa, okno kolejności kolumn
+      przestawia kolumny.
+
+## 2026-10-19 — app-audit-refactor faza 2 — dostęp do kas, synchronizacja arkusza, saldo zero
+
+- [ ] Jako MANAGER na `/kasy`: przy kasie pracownika i swojej status („Aktywna” / „Nieaktywna”) da się
+      przełączyć i zostaje po odświeżeniu; przy kasie innego managera, ownera i admina status widać,
+      ale kliknięcie go nie przełącza.
+- [ ] Jako MANAGER na `/kasy`: kosz w kolumnie „Akcje” jest przy kasie pracownika i swojej, przy kasie
+      innego managera, ownera i admina go nie ma. W `/kosz` widać tylko kasy pracowników i swoje.
+- [ ] Jako OWNER na `/kasy`: przełącz kasę na „Nieaktywna” i z powrotem — stan zostaje po odświeżeniu.
+- [ ] Jako pracownik (EMPLOYEE) wpisz adres `/kasa/1`: trafiasz na swoją stronę pracownika, nie na
+      „Nie znaleziono”.
+- [ ] Jako MANAGER otwórz adres kasy głównej: „Nie znaleziono” jak dotąd.
+- [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
+      synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
+- [ ] Jako ADMIN na `/wyplaty` → „Rozlicz”: kwota „Pozostało”, która zaokrągla się do zera, pokazuje
+      „0,00 zł” bez czerwonego koloru.
+
+## 2026-10-19 — payout-cards — wypłaty pracownika jako karty, wspólny badge
+
+- [ ] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja
+      „Wypłaty do potwierdzenia” jest zwijana, domyślnie rozwinięta i stoi pod przyciskami szybkich
+      akcji. Karta ma u góry nazwę inwestycji po lewej i datę po prawej, w drugim wierszu kwotę po
+      lewej i status po prawej (bez pustej przerwy pod nagłówkiem), niżej opis, na dole
+      „Potwierdzam” i czerwone „Odrzuć” równej szerokości.
+- [ ] Jako pracownik odrzuć wypłatę z powodem: znika z „Wypłat do potwierdzenia” i pojawia się w
+      osobnej sekcji „Odrzucone wypłaty” z opisem o wyjaśnieniu z kierownikiem i twoim powodem; ma
+      tylko „Potwierdzam”, które dalej działa.
+- [ ] Jako pracownik na telefonie (390 px): karty wypłat zajmują całą szerokość, przyciski są łatwe
+      do trafienia, nic nie wychodzi poza ekran.
+- [ ] Badge'e wyglądają jak dotąd (refaktor na wspólny komponent): status wypłaty w tabeli transakcji,
+      „Od pracownika” w kolumnie typu, status inwestycji (odrzucona — teraz czerwona zamiast różowej),
+      rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
+      postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
+- [ ] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
+      są teraz morskie, a nie szmaragdowe; tekst czytelny w jasnym i ciemnym motywie.
+- [ ] Strona inwestycji → select etapu AI: obrys i kolor tekstu dalej zmieniają się z etapem (jak
+      kolor badge'a tego etapu na liście inwestycji); „Uzupełnianie informacji” ma zwykły szary obrys.
+- [ ] Karty przelewów: chipy „Kasa:”, „Pracownik:”, „Kategoria:” itd. wyglądają jak dotąd —
+      kolorowy obrys, zwykła grubość tekstu, długa wartość ucina się wielokropkiem.
+- [ ] Anuluj odrzuconą wypłatę pracownika: na jego stronie znika z kart „Odrzucone wypłaty”, a w
+      „Liście wydatków / zaliczek” jest (przekreślona, wyszarzona) bez żadnego przełącznika; to samo
+      widzi menedżer na tej stronie. Suma przy filtrze nie dolicza anulowanych.
+- [ ] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
+      potwierdzona / odrzucona) i zawęża listę do wypłat w tym stanie; pracownik bez wypłat go nie ma.
+- [ ] Karty przelewów (telefon, lista wypłat pracownika): status wypłaty stoi w tej samej linii co
+      badge „Wypłata”, przy prawej krawędzi; nagłówek karty to dalej numer i data.
+- [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
+      przełącza aktywność konta i nie otwiera strony pracownika.
+- [ ] `/leady`: „Skontaktowano” / „Oczekuje” przełącza się kliknięciem jak dotąd.
+- [ ] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
+      jest nieklikalny.
+- [ ] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
+- [ ] Typ przelewu w tabeli i na kartach przelewów: obrys i kropka w kolorze typu, nazwa ucina się
+      wielokropkiem; rozliczony przelew ma kolor rozliczenia.
+- [ ] Raport pracy: nazwa sekcji obok kolorowego paska ma tło i tekst w kolorze tej sekcji, czytelne
+      w jasnym i ciemnym motywie.
+- [ ] Filtr statusów linii (zaakceptowane / odrzucone / oczekujące) w zgłoszeniu wydatku: kliknięcie
+      chowa i pokazuje linie, ukryty status jest przekreślony.
+
+## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
+
+- [ ] Jako OWNER na „Transakcje”, gdy pracownik odrzucił wypłatę: sekcja „Wypłaty odrzucone przez
+      pracowników” jest zwijana, pod tytułem ma „Takie wypłaty trzeba wyjaśnić z pracownikiem lub
+      anulować.”, tabela zaczyna się kolumną „Anuluj”, a nagłówki i komórki są wyrównane do lewej.
+- [ ] W tej tabeli ID, pracownik, inwestycja i kasa to linki: ID otwiera transakcję na liście
+      inwestycji (wypłata bez inwestycji — na „Transakcje”); kasa przeniesiona do Kosza nie jest linkiem.
+- [ ] „Anuluj” w tej tabeli pyta o powód i anuluje wypłatę: wiersz znika, licznik przy „Transakcje” w
+      menu spada o jeden. Przy zakończonej inwestycji przycisk jest wyszarzony z podpowiedzią.
+- [ ] W menu nie ma pozycji „Wypłaty”, a adres `/wyplaty` pokazuje „Nie znaleziono”. Na „Transakcje”
+      filtr statusu potwierdzenia zawęża listę do wypłat o wybranym statusie.
+
+## 2026-10-19 — cancel-rejected-payout — odrzuconą wypłatę anuluje każdy z zarządu
+
+- [ ] Jako MANAGER: wypłata zaksięgowana przez innego kierownika albo właściciela i odrzucona przez
+      pracownika → „Anuluj” na pulpicie anuluje ją bez „Nie masz uprawnień do anulowania tej
+      transakcji.”, a saldo kasy wraca o tę kwotę.
+- [ ] Jako MANAGER na „Transakcje”: przy cudzej wypłacie oczekującej lub przyjętej i przy cudzym
+      wydatku nie ma „Anuluj”; przy swoich transakcjach i przy cudzej robociźnie jest.
+- [ ] Jako MANAGER przy cudzej odrzuconej wypłacie edycja dalej jest niedostępna.
+
+## 2026-10-19 — payout-card-buttons — przyciski karty wypłaty i warianty kolorów
+
+- [ ] Pracownik, `/pracownicy/[id]` z wypłatą oczekującą: „Potwierdzam” jest zielony obramowany z
+      ptaszkiem, „Odrzuć” czerwony obramowany z koszem; po najechaniu oba wypełniają się kolorem.
+- [ ] Odrzucona wypłata na karcie pracownika pokazuje „Powód odrzucenia: …” (uk/ru: przetłumaczone).
+- [ ] Na telefonie (390 px) „Dodaj wydatek” / „Zgłoś pracę” są niższe niż dotąd, a dłuższa etykieta
+      uk/ru dalej się zawija, bez wychodzenia poza wiersz.
+- [ ] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
+      (obramowane w swoim kolorze).
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
