@@ -16,27 +16,20 @@ import type { TransferRowT } from '@/types/transfers'
 
 type PropsT = {
   row: Row<TransferRowT>
-  // TanStack's rows are mutable and keep their identity when a column is toggled, so a memoized card
-  // would never see the change; a fresh list here is what makes it re-read the row.
-  visibleColumnIds: string[]
   uncoloredAmounts?: boolean
   className?: string
 }
 
 function renderCell(row: Row<TransferRowT>, columnId: string): ReactNode {
-  const cell = row.getVisibleCells().find((candidate) => candidate.column.id === columnId)
+  const cell = row.getAllCells().find((candidate) => candidate.column.id === columnId)
   return cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
 }
 
 const isNamed = (name: string) => name !== EMPTY_RELATION_NAME
 
-export function TransferCard({
-  row,
-  visibleColumnIds,
-  uncoloredAmounts = false,
-  className,
-}: PropsT) {
-  const hasColumn = (columnId: string) => visibleColumnIds.includes(columnId)
+export function TransferCard({ row, uncoloredAmounts = false, className }: PropsT) {
+  const hasColumn = (columnId: string) =>
+    row.getAllCells().some((cell) => cell.column.id === columnId)
   const translator = useTranslation('transfers')
   const transfer = row.original
   const isMuted = transfer.cancelled || transfer.type === 'CANCELLATION'
