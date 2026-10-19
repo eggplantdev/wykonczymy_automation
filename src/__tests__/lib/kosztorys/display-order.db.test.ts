@@ -8,14 +8,10 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const {
-  addItemAction,
-  addSectionAction,
-  insertSectionAction,
-  removeItemAction,
-  removeSectionAction,
-  renumberKosztorysOrderAction,
-} = await import('@/lib/actions/kosztorys')
+const { addItemAction, removeItemAction, renumberKosztorysOrderAction } =
+  await import('@/lib/actions/kosztorys-items')
+const { addSectionAction, insertSectionAction, removeSectionAction } =
+  await import('@/lib/actions/kosztorys-sections')
 
 const FIXTURE_PREFIX = 'display-order-test-'
 

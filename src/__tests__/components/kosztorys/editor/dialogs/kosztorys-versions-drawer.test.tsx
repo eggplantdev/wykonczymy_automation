@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/kosztorys-versions-drawer'
-import { listSnapshotsAction, restoreSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
-import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import { restoreSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
+import { fetchKosztorysSnapshots, type SnapshotListItemT } from '@/lib/queries/snapshot-list'
 import { toastMessage } from '@/lib/utils/toast'
 
 const SNAPSHOT: SnapshotListItemT = {
@@ -16,7 +16,7 @@ const SNAPSHOT: SnapshotListItemT = {
   takenByName: null,
 }
 
-vi.mocked(listSnapshotsAction).mockResolvedValue({ success: true, data: [SNAPSHOT] })
+vi.mocked(fetchKosztorysSnapshots).mockResolvedValue({ success: true, data: [SNAPSHOT] })
 
 describe('KosztorysVersionsDrawer — a restore whose request never completed', () => {
   beforeEach(() => {

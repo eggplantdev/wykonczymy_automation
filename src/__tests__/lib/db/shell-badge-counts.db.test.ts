@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-postgres'
-import { getDb } from '@/lib/db/get-db'
 import {
+  countPendingExpenseDrafts,
+  countPendingReports,
+  countRejectedPayouts,
   countUnreadFleetDeadlines,
   countUnreadLeads,
   countUnreadWarranties,
-} from '@/lib/db/notifications'
-import { countRejectedPayouts } from '@/lib/db/payout-confirmation'
+} from '@/__tests__/helpers/stream-counts'
+import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
+import { getDb } from '@/lib/db/get-db'
 import { countShellBadges } from '@/lib/db/shell-badge-counts'
-import { countPendingExpenseDrafts } from '@/lib/db/worker-expense-drafts'
-import { countPendingReports } from '@/lib/db/worker-reports'
 import { warsawToday } from '@/lib/utils/days'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
@@ -17,7 +18,7 @@ const EMPTY_DEFAULTS: WorkerFormValuesT = {
   active: true,
   canAddExpensesWithoutInvestment: false,
   defaultCashRegister: '',
-  language: 'pl',
+  language: DEFAULT_LANGUAGE,
 }
 
 type AddWorkerDialogPropsT = {

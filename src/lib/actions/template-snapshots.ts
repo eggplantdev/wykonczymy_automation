@@ -4,20 +4,15 @@ import { z } from 'zod'
 import type { Payload } from 'payload'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { templateAction } from '@/lib/actions/template-action'
-import type { RestoreResultT, SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import type { RestoreResultT } from '@/lib/actions/kosztorys-snapshots'
 import { TEMPLATE_NOT_FOUND } from '@/lib/constants/not-found'
 import { TEMPLATE_TRASHED_MESSAGE } from '@/lib/constants/template-lock'
 import { snapshotLabelSchema } from '@/lib/kosztorys/snapshot-label-schema'
 import { getDb } from '@/lib/db/get-db'
 import { templateGateFor } from '@/lib/db/template-gate'
 import { readTemplateLayout } from '@/lib/db/template-structure'
-import {
-  getTemplateSnapshot,
-  insertTemplateSnapshot,
-  listTemplateSnapshots,
-} from '@/lib/db/template-snapshots'
+import { getTemplateSnapshot, insertTemplateSnapshot } from '@/lib/db/template-snapshots'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { withTakenByNames } from '@/lib/kosztorys/snapshot-taken-by-names'
 import { restoreTemplateSnapshot } from '@/lib/kosztorys/templates/restore-template-snapshot'
 import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import type { ActionResultT } from '@/types/action'
@@ -99,16 +94,4 @@ export async function restoreTemplateSnapshotAction(
       return { success: true, data: { droppedWorkerAssignments: 0, skippedCatalogueItems } }
     },
   )
-}
-
-export async function listTemplateSnapshotsAction(
-  templateId: number,
-): Promise<ActionResultT<SnapshotListItemT[]>> {
-  return protectedAction('listTemplateSnapshotsAction', async ({ payload }) => {
-    const db = await getDb(payload)
-    return {
-      success: true,
-      data: await withTakenByNames(payload, await listTemplateSnapshots(db, templateId)),
-    }
-  })
 }

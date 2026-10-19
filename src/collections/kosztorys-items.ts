@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
 import { REVIEW_STATUSES } from '@/lib/kosztorys/review-status'
 
 // A stawka's NULL means „auto" and `0` is a kwota like any other, so neither field may carry a

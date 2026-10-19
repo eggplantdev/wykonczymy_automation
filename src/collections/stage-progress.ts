@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
 
 // Sparse — a missing row means 0.
 export const StageProgress: CollectionConfig = {

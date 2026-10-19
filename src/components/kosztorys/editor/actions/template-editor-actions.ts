@@ -5,7 +5,6 @@ import {
   saveTemplateAsPresetAction,
 } from '@/lib/actions/kosztorys-presets'
 import {
-  listTemplateSnapshotsAction,
   restoreTemplateSnapshotAction,
   saveTemplateSnapshotAction,
   templateSnapshotAction,
@@ -24,10 +23,11 @@ import {
 import { fillTemplateTranslationsAction } from '@/lib/actions/template-translations'
 import {
   clearTemplateAction,
-  readTemplateRevisionAction,
   renumberTemplateOrderAction,
   writeTemplateLayoutAction,
 } from '@/lib/actions/template-tree'
+import { readTemplateTreeRevision } from '@/lib/queries/kosztorys-revision'
+import { fetchTemplateSnapshots } from '@/lib/queries/snapshot-list'
 
 export const templateEditorActions: EditorActionsT = {
   isTemplate: true,
@@ -45,10 +45,10 @@ export const templateEditorActions: EditorActionsT = {
   clear: clearTemplateAction,
   autoSnapshot: templateSnapshotAction,
   saveSnapshot: saveTemplateSnapshotAction,
-  listSnapshots: listTemplateSnapshotsAction,
+  listSnapshots: fetchTemplateSnapshots,
   restoreSnapshot: restoreTemplateSnapshotAction,
   fillTranslations: fillTemplateTranslationsAction,
-  readRevision: readTemplateRevisionAction,
+  readRevision: readTemplateTreeRevision,
   savePreset: saveTemplateAsPresetAction,
   reloadFromPreset: reloadTemplateFromPresetAction,
   appendPresetSections: appendPresetSectionsToTemplateAction,

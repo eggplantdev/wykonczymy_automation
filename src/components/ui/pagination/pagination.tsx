@@ -80,26 +80,6 @@ function PaginationNext({ className, label = 'Go to next page', ...props }: Pagi
   )
 }
 
-type PaginationEllipsisPropsT = React.ComponentProps<'span'> & { srLabel?: string }
-
-function PaginationEllipsis({
-  className,
-  srLabel = 'More pages',
-  ...props
-}: PaginationEllipsisPropsT) {
-  return (
-    <PaginationLink
-      aria-hidden
-      data-slot="pagination-ellipsis"
-      className={cn('pointer-events-none w-auto gap-1 px-3', className)}
-      {...props}
-    >
-      <Icon iconName="menuDots" className="size-4" />
-      <span className="sr-only">{srLabel}</span>
-    </PaginationLink>
-  )
-}
-
 export {
   Pagination,
   PaginationContent,
@@ -107,5 +87,4 @@ export {
   PaginationItem,
   PaginationPrevious,
   PaginationNext,
-  PaginationEllipsis,
 }

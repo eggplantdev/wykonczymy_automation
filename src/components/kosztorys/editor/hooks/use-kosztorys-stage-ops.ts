@@ -1,12 +1,12 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import {
   addStageAction,
   removeStageAction,
   updateStageAction,
   updateStageSplitAction,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-stages'
 import { settleAction } from '@/lib/utils/settle-action'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type {
@@ -41,24 +41,25 @@ export function useKosztorysStageOps({
 }: ArgsT) {
   const [stages, setStages] = useState<KosztorysStageT[]>(initialStages)
   const stagesRef = useRef(stages)
-
-  // eslint-disable-next-line react-hooks/refs
-  stagesRef.current = stages
+  useLayoutEffect(() => {
+    stagesRef.current = stages
+  })
 
   // so the column renders 0s (not blanks) and the first progress entry diffs correctly.
+  function adoptStage(stage: KosztorysStageT) {
+    setStages((s) => [...s, stage])
+    const key = stageKey(stage.id)
+    patchRows(
+      () => true,
+      (r) => ({ ...r, [key]: 0 }),
+    )
+  }
+
   async function handleAddStage(plane: ToolPlaneT, split: StageSplitT | null) {
     const res = await settleAction(() => addStageAction(investmentId, plane, split))
     if (!res.success) return reportFailure(res.error, res.code)
     const { id, ordinal } = res.data
     adoptStage({ id, ordinal, label: null, plane, split, completed: false })
-  }
-
-  function adoptStage(stage: KosztorysStageT) {
-    setStages((s) => [...s, stage])
-    patchRows(
-      () => true,
-      (r) => ({ ...r, [stageKey(stage.id)]: 0 }),
-    )
   }
 
   // The revert restores the prior value only if nothing newer landed on the field meanwhile (it

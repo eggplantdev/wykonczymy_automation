@@ -8,7 +8,7 @@ import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
 import type { PlaneT } from './work-catalogue-item-schema'
 
-export type RateFieldNameT = `${PlaneT}${'Source' | 'Rate' | 'Coeff'}`
+type RateFieldNameT = `${PlaneT}${'Source' | 'Rate' | 'Coeff'}`
 
 const PLANE_LABEL = {
   wTools: RATE_LABELS.w_tools,

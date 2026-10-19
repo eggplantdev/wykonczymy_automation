@@ -3,10 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AddSheetDialog } from '@/components/dialogs/add-sheet-dialog'
 import { addUnlinkedSheetAction } from '@/lib/actions/sheets'
-import { getServiceAccountEmailAction } from '@/lib/actions/investments'
+import { fetchServiceAccountEmail } from '@/lib/queries/service-account-email'
 import { toastMessage } from '@/lib/utils/toast'
 
-vi.mocked(getServiceAccountEmailAction).mockResolvedValue('reader@example.test')
+vi.mocked(fetchServiceAccountEmail).mockResolvedValue('reader@example.test')
 
 describe('AddSheetDialog', () => {
   beforeEach(() => {

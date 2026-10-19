@@ -32,7 +32,7 @@ import {
   type ReportedRateResolutionT,
 } from './resolve-rates'
 
-export type MissingColumnT = {
+type MissingColumnT = {
   field: ColumnFieldT
   label: string
   reason: UnresolvedReasonT
@@ -45,9 +45,7 @@ const MISSING_COLUMN_CONSEQUENCES: Record<OptionalFieldT, string> = {
   comment: 'komentarze z arkusza nie wejdą',
 }
 
-export type DroppedItemT = { section: string; description: string; hasProgress: boolean }
-
-export type { ReportedRateResolutionT }
+type DroppedItemT = { section: string; description: string; hasProgress: boolean }
 
 export type ImportReportT = {
   missingColumns: MissingColumnT[]
@@ -61,7 +59,7 @@ export type ImportReportT = {
 
 export type StageDefaultsT = Pick<KosztorysStageT, 'plane'> & { workerId: number | null }
 
-export type ImportFailureT = { ok: false; problems: string[] } & UnresolvedColumnsT
+type ImportFailureT = { ok: false; problems: string[] } & UnresolvedColumnsT
 
 export type ImportPlanT =
   | ({ ok: true; tree: SnapshotPayloadT; report: ImportReportT } & UnresolvedColumnsT)

@@ -1,4 +1,4 @@
-export type TemplateSnapshotSectionT = {
+type TemplateSnapshotSectionT = {
   name: string
   color: string | null
   catalogueItemIds: number[]

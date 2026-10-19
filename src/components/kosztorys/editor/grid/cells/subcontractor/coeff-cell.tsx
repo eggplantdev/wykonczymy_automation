@@ -4,7 +4,7 @@ import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { decimalText } from '@/lib/utils/decimal-text'
 import { priceSourceOf, shownCoeff } from '@/lib/kosztorys/calc'
-import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
+import { FLAGGED_TONE } from '@/components/kosztorys/tones'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { subcontractorCoeffPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'

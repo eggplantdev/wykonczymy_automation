@@ -2,9 +2,9 @@ import { useState } from 'react'
 import type {
   BulkExpenseFormApiT,
   BulkLineItemT,
+  ExpenseFormPrefillT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { bulkExpenseFormSchema } from '@/components/forms/expense-form/bulk-expense-schema'
-import type { ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
 import { positionalFiles } from '@/components/forms/expense-form/row-file-positions'
 import { subsetFieldErrors } from '@/components/forms/expense-form/subset-field-errors'
 import { toBulkData } from '@/components/forms/expense-form/to-bulk-data'

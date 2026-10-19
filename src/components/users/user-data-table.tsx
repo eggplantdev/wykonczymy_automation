@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
@@ -31,6 +31,8 @@ type UserDataTablePropsT = {
   assignableRoles: RoleT[]
 }
 
+const getSearchableText = (row: UserRowT) => `${row.name} ${row.email}`
+
 export function UserDataTable({ data, cashRegisters, assignableRoles }: UserDataTablePropsT) {
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
@@ -40,21 +42,16 @@ export function UserDataTable({ data, cashRegisters, assignableRoles }: UserData
 
   const { toggles, clear, isListed, payoutBuckets } = useUserListFilters()
 
-  const getSearchableText = useCallback((row: UserRowT) => `${row.name} ${row.email}`, [])
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
     optimisticData.filter(isListed),
     getSearchableText,
   )
 
   const [settleTarget, setSettleTarget] = useState<SettleDialogTargetT | null>(null)
-  const columns = useMemo(
-    () =>
-      getUserColumns({
-        onToggle: handleToggle,
-        onSettle: (worker) => setSettleTarget({ kind: 'worker', id: worker.id, name: worker.name }),
-      }),
-    [handleToggle],
-  )
+  const columns = getUserColumns({
+    onToggle: handleToggle,
+    onSettle: (worker) => setSettleTarget({ kind: 'worker', id: worker.id, name: worker.name }),
+  })
   // The filter rides on the row, not on the columns: the column's sort accessor reads
   // `row.payoutRemaining`, so a filter applied only in the cell would sort by the unfiltered figure.
   const rows = filteredData.map(

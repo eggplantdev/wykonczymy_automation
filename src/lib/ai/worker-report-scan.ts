@@ -1,4 +1,4 @@
-import { generateObject } from 'ai'
+import { generateText, Output } from 'ai'
 import { RECEIPT_MODEL, RECEIPT_TIMEOUT_MS, type ReceiptPageT } from './openrouter'
 import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
 import { providerErrorDetail } from './provider-error-detail'
@@ -38,10 +38,10 @@ export async function readWorkerReportPage(
   ].join('\n')
 
   async function callModel(model: string): Promise<ScanPageT> {
-    const result = await generateObject({
+    const result = await generateText({
       model: openrouter(model),
       abortSignal: timeoutSignal(RECEIPT_TIMEOUT_MS, 'worker report scan'),
-      schema: workerReportScanSchema(units),
+      output: Output.object({ schema: workerReportScanSchema(units) }),
       messages: [
         {
           role: 'user',
@@ -57,7 +57,7 @@ export async function readWorkerReportPage(
         },
       ],
     })
-    return result.object
+    return result.output
   }
 
   try {

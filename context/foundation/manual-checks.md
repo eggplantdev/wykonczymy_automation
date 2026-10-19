@@ -1322,6 +1322,153 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako ADMIN na `/pracownicy` kliknij kwotę wypłat przy pracowniku („Rozlicz wypłaty”): kwota
       „Pozostało”, która zaokrągla się do zera, pokazuje „0,00 zł” bez czerwonego koloru.
 
+## 2026-10-19 — app-audit-refactor faza 3 — sortowanie, duplikaty, etykiety kas, druk, odczyt AI
+
+- [ ] Jako ADMIN na Transakcjach, Leadach, Zgłoszeniach wydatków i Zgłoszeniach prac: posortuj po
+      każdej sortowalnej kolumnie i odśwież — kolejność i adres zostają.
+- [ ] Jako ADMIN dodaj sprzęt z numerem seryjnym, pojazd z rejestracją i pracownika z e-mailem, które
+      ma już pozycja w Koszu — komunikat „… jest w Koszu — przywróć go stamtąd.”; z wartością żywej
+      pozycji — „… już istnieje.”
+- [ ] Jako MANAGER: typ kasy na `/kasy`, w formularzu kasy i na wykresie sald na pulpicie brzmi tak
+      samo („Główne”, „Pomocnicze”, „Wirtualne”, „Pracownicze”).
+- [ ] Jako ADMIN wydrukuj listę transakcji, ofertę i umowę: logo i układ jak dotąd, okno zamyka się
+      po druku.
+- [ ] Jako ADMIN zeskanuj paragon i papierowe zgłoszenie prac, przetłumacz opis pozycji kosztorysu —
+      wynik taki jak dotąd.
+
+## 2026-10-19 — app-audit-refactor faza 4 — zgłoszenia wydatków, raporty prac, edytor kosztorysu
+
+- [ ] Jako ADMIN na `/zgloszenia-wydatkow`: zaakceptuj zgłoszenie, scal dwa zgłoszenia jednego
+      pracownika i odrzuć paragony z trzeciego — kwoty i decyzje przy paragonach zostają po odświeżeniu.
+- [ ] Jako ADMIN otwórz podgląd zgłoszenia prac i stronę zgłoszenia z linku pracownika na telefonie
+      (390 px) — te same pozycje, kwoty i zdjęcia co dotąd.
+- [ ] Jako ADMIN i jako MANAGER w edytorze kosztorysu: dodaj, zmień nazwę i usuń dział, dodaj pozycję
+      na końcu działu i pod wskazaną pozycją, zmień etap i ustawienia inwestycji, przywróć wersję —
+      wszystko zostaje po odświeżeniu.
+- [ ] Jako ADMIN w Szablonie: dodaj dział i pozycję pod wskazaną pozycją — zostają po odświeżeniu.
+- [ ] Jako ADMIN w edytorze kosztorysu: podgląd importu z arkusza i podgląd synchronizacji materiałów
+      pokazują to samo co dotąd.
+
+## 2026-10-19 — app-audit-refactor faza 5 — reguły kolekcji w nowym miejscu
+
+- [ ] Jako ADMIN dodaj, edytuj i anuluj transakcję — salda kas zmieniają się bez odświeżania.
+- [ ] Jako ADMIN usuń wydatek z fakturą — faktura znika z listy plików.
+- [ ] Jako ADMIN spróbuj usunąć kasę, która ma transakcje — odmowa jak dotąd.
+
+## 2026-10-19 — app-audit-refactor faza 6 — porządki w komponentach
+
+Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
+
+- [ ] Jako EMPLOYEE na telefonie (390 px) → „Zgłoszenia wydatków”: filtry „Status” i „Inwestycja” zawężają
+      listę i wracają na stronę 1; zmiana „na stronę” też wraca na 1; po wysłaniu nowego zgłoszenia lista
+      pokazuje stronę 1 z tym zgłoszeniem.
+- [ ] Jako EMPLOYEE na swojej stronie pracownika → historia raportów: te same filtry i paginacja działają jak
+      wcześniej.
+- [ ] Jako ADMIN dodaj przelew z pozycjami ze zeskanowanej faktury (przycisk skanu i przeciągnięcie pliku na
+      oba tryby): pozycje powstają, suma pod listą się zgadza, wybór kategorii/pracownika w wierszu działa.
+- [ ] Jako ADMIN w trybie paragonów: suma zaznaczonych pozycji w stopce zgadza się z zaznaczeniem.
+- [ ] Jako ADMIN edytuj przelew i wyczyść formularz przyciskiem resetu; „Rozlicz wypłaty” zapisuje się jak
+      wcześniej (oba formularze mają teraz wspólną obudowę).
+- [ ] Na koncie z językiem ukraińskim/rosyjskim → „Zgłoszenia wydatków”: daty wysłania i decyzji w formacie
+      tego języka (wcześniej zawsze polskim).
+- [ ] Przełącznik lista/karty przelewów i skala UI działają jak wcześniej.
+- [ ] Bez logowania: logowanie i „Nie pamiętam hasła” działają.
+- [ ] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
+      `/kasa` → wykres salda kasy rysuje się.
+- [ ] Leady → zaznaczanie zdjęć w „Zdjęcia” i przy przenoszeniu do inwestycji, zaznaczanie wierszy listy leadów.
+- [ ] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
+- [ ] Nowy pracownik dodany przez „Dodaj pracownika” ma język polski.
+
+## 2026-10-19 — app-audit-refactor faza 7 — bez ręcznych memo w tabelach i hookach
+
+Refaktor bez zmiany zachowania.
+
+- [ ] Jako ADMIN w tabelach „Katalog prac”, „Sprzęt”, „Flota”, „Pracownicy”, „Inwestycje” i „Kasy”: wyszukiwanie
+      i filtry zawężają listę jak wcześniej, pisanie w polu wyszukiwania nie zacina się (zwłaszcza w „Katalogu prac”).
+- [ ] Jako ADMIN przełącz aktywność pracownika i kasy: przełącznik zmienia się od razu, bez mignięcia, a
+      ustawione filtry zostają.
+- [ ] Jako ADMIN ustaw filtr statusu w „Inwestycjach” i warunki w „Katalogu prac”, zwiń pasek boczny i odśwież
+      stronę: filtry i zwinięty pasek zostają.
+- [ ] Formularz przelewu → pole „Kasa”: „tylko aktywne” przełącza listę, wybrana nieaktywna kasa dalej widoczna;
+      błąd walidacji pod polem pokazuje się jak wcześniej.
+- [ ] Arkusze → „Kosztorysy” i „Inwestycje bez arkusza” wyświetlają się i wyszukują; kosztorys → „Porównaj z
+      katalogiem prac” pokazuje podpowiedzi „może chodzi o…”, import z arkusza otwiera podgląd.
+
+## 2026-10-19 — app-audit-refactor faza 8 — edytor kosztorysu rozbity na części
+
+Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez kompilator Reacta, teraz jest.
+
+- [ ] Jako ADMIN na dużym kosztorysie (~1000 pozycji): pisanie w komórce, cofnij/ponów wklejenie kilku komórek
+      i przewijanie działają bez widocznego przycinania w porównaniu ze stagingiem sprzed zmiany.
+- [ ] Jako ADMIN: dodaj, przesuń i usuń sekcję, dodaj pozycję z katalogu, zmień ilości w etapach i ustaw rabat
+      globalny — sumy i „Pozostało” aktualizują się i zostają po odświeżeniu.
+- [ ] Jako ADMIN przełącz na historię, widok raportu pracownika i podgląd oferty, a potem wróć — nagłówek podglądu
+      (logo, nazwa inwestycji, przyciski) wygląda jak wcześniej.
+- [ ] Pusty kosztorys pokazuje „Kosztorys jest pusty” z przyciskiem „Pobierz z arkusza Google…”; wyszukiwanie bez
+      wyników pokazuje „Wyczyść wyszukiwanie”, a filtr ukrywający wszystko — „Wyczyść filtry”.
+- [ ] Menu akcji kosztorysu: zapis presetu, porównanie z arkuszem, skan raportu, uzupełnienie tłumaczeń, czyszczenie
+      tekstów pozycji, akcje pracownika i inwestora oraz „Zmień kolejność” i „Dodaj z katalogu” otwierają się jak wcześniej.
+- [ ] Wysokość wierszy: przeciągnięcie krawędzi wiersza, dwuklik „dopasuj do treści” i przełączenie rozmiaru tekstu
+      zmieniają wysokość jak wcześniej; wiersz „do ponownego sprawdzenia” ma dwie linie.
+- [ ] Jako MANAGER ten sam edytor nie pokazuje kwot.
+- [ ] Jako ADMIN na 390 px edytor się wyświetla, przewija i przyjmuje edycję komórki.
+
+## 2026-10-19 — app-audit-refactor — preview brancha vs staging (luki z listy ryzyk)
+
+Porównanie: preview brancha `app-audit-refactor-wt` obok wdrożonego stagingu, ta sama baza preview. Boksy
+faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma.
+
+- [x] Duży kosztorys (~1000 pozycji), ta sama inwestycja na obu: seria wpisów w Przedmiar, Pomiar i etap —
+      czas od klawisza do odmalowania nie gorszy niż na stagingu (pomiar w przeglądarce, nie na oko).
+      _Zweryfikowano 2026-10-19 (aa1da3b6d, inw. 7, 1000 pozycji): 3 pary staging/preview na przemian, 27
+      klawiszy na kolumnę, czas do drugiej klatki. Mediana Przedmiar 48,8–49,0 ms na obu, Etap 1 48,7–49,1 ms
+      preview / 48,8–62,2 ms staging; p90 65–83 ms na obu. Pomiar z natury to suma etapów, więc wpis w etap
+      sprawdza też jego przeliczenie. Wartości przywrócone._
+- [x] `/katalog-prac` i listy (sprzęt, flota, inwestycje, użytkownicy): szybkie wpisywanie w wyszukiwarkę —
+      znaki pojawiają się bez opóźnienia, tak samo jak na stagingu.
+      _Zweryfikowano 2026-10-19 (aa1da3b6d): 27 klawiszy na przebieg, czas do drugiej klatki, staging/preview
+      na przemian. Mediany: sprzęt 32,0–32,4 / 32,4, flota 32,1–32,3 / 32,6–37,4, inwestycje 32,6–32,9 /
+      32,5–32,9, pracownicy 31,8–32,2 / 32,3–32,7 ms (staging / preview). Katalog: przy kolejności S→P
+      preview wychodził ~4 ms wolniej; przy odwróconej kolejności różnica znika (preview 39–64, staging
+      37–58 ms, p90 preview niższy w 3 z 4 par) — efekt kolejności, ścieżka katalogu poza importami bez
+      zmian._
+- [ ] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
+      cofnięcie przywraca dokładnie stan sprzed wklejenia.
+- [ ] Edytor otwarty w dwóch kartach: usuń pozycję w jednej, edytuj ją w drugiej — komunikat, że pozycji nie ma,
+      bez błędu serwera.
+- [ ] Jako OWNER spróbuj dezaktywować własne konto i ostatniego OWNER-a — odmowa; logowanie kontem
+      nieaktywnym — odrzucone.
+- [ ] Inwestycja: oznacz jako zakończoną (pojawia się data zakończenia), odblokuj status; inwestycja w Koszu nie
+      daje się edytować.
+- [ ] Usunięcie pliku, który jest fakturą transakcji — odmowa.
+- [ ] Jako ADMIN na `/zgloszenia-wydatkow`: otwórz ponownie odrzucone zgłoszenie — wraca do decyzji, licznik
+      w menu zmienia się bez odświeżania.
+- [ ] Listy z sortowaniem (Transakcje, Leady, Zgłoszenia): posortuj, przejdź na stronę 2 — sortowanie zostaje
+      w adresie i w kolejności.
+- [ ] Tabele z fazy 7 i pole „Kasa” w formularzu przelewu: w zakładce sieci nie ma powtarzających się w kółko
+      zapytań, strona nie miga sama z siebie.
+- [ ] Edycja przelewu i „Rozlicz wypłaty”: błąd walidacji pokazuje się pod polem, udany zapis zamyka okno.
+- [ ] Po najbliższym przebiegu crona czyszczenia wersji kosztorysu: w logach Vercela przebieg bez błędu.
+
+## 2026-10-19 — app-audit-refactor — poprawki z bramki przeglądu
+
+- [ ] Formularz wydatków z kilkoma pozycjami: przy pozycji wybierz kategorię „Inne” i pracownika — drugi rząd
+      wyboru pojawia się i zapisuje jak wcześniej (przeniesienie kodu, bez zmiany działania).
+- [ ] Pusty kosztorys w edytorze: widać podpowiedź na pustej siatce; w wypełnionym wpisanie wartości i cofnięcie
+      błędnej zmiany działa jak wcześniej.
+- [ ] Jako EMPLOYEE otwórz `/kasa/{id}` swojej kasy — trafiasz na swoją stronę pracownika, nie na 404.
+
+## 2026-10-19 — kursor na statusie inwestycji
+
+- [ ] „Edytuj inwestycję” i tabela inwestycji: najechanie na status („Aktywna” ze strzałką) pokazuje
+      rączkę; w trakcie zapisu zmiany statusu kursor jest zablokowany.
+
+## 2026-10-19 — szerszy dialog „Szczegóły" leada
+
+- [ ] Leady → „Szczegóły" przy zgłoszeniu z długą wiadomością: okno jest szerokie, etykiety w wąskiej
+      kolumnie po lewej, wiadomość zajmuje resztę szerokości; podziały linii z formularza zostają.
+- [ ] To samo zgłoszenie z załącznikami: miniatury są ostre, nie rozmyte.
+
 ## 2026-10-19 — payout-cards — wypłaty pracownika jako karty, wspólny badge
 
 - [ ] Jako pracownik (EMPLOYEE) na swojej stronie z wypłatą czekającą na potwierdzenie: sekcja

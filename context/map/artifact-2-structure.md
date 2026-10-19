@@ -1,5 +1,9 @@
 # Artifact 2 — Structure (dependency graph)
 
+> **dependency-cruiser was removed on 2026-10-19** (app-audit-refactor). Its only rule without another guard,
+> `no-circular`, served its one job — counting cycles during that refactor. Everything below is a
+> historical snapshot; the commands no longer run.
+
 > Wide Scan / structural signal for the Project Map. Evidence from `dependency-cruiser@17.4.3`
 > over `src/` (config: `.dependency-cruiser.cjs`), excluding tests, mocks, `.d.ts`, migrations.
 > Command: `pnpm exec depcruise src --config .dependency-cruiser.cjs --output-type <metrics|err-long>`

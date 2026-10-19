@@ -7,7 +7,8 @@ import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import { getServiceAccountEmailAction, linkSheetAction } from '@/lib/actions/investments'
+import { linkSheetAction } from '@/lib/actions/investments'
+import { fetchServiceAccountEmail } from '@/lib/queries/service-account-email'
 import { ExternalLink } from '../ui/external-link'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
@@ -26,7 +27,7 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
     if (next && !saEmail)
-      void getServiceAccountEmailAction()
+      void fetchServiceAccountEmail()
         .then(setSaEmail)
         .catch(() => {})
   }

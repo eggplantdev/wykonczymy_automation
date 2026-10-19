@@ -1,0 +1,51 @@
+import { describe, it, expect } from 'vitest'
+import {
+  guardInvestmentStatusUnlock,
+  INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE,
+} from '@/collections/hooks/investments/guard-status-unlock'
+import type { RoleT } from '@/lib/auth/roles'
+
+function hookArgs(data: Record<string, unknown>, role: RoleT, previousStatus = 'completed') {
+  return {
+    data,
+    req: { user: { id: 1, role } },
+    originalDoc: { id: 1, name: 'Inwestycja', status: previousStatus },
+    operation: 'update' as const,
+    collection: undefined,
+    context: {},
+  } as unknown as Parameters<typeof guardInvestmentStatusUnlock>[0]
+}
+
+const call = (args: Parameters<typeof guardInvestmentStatusUnlock>[0]) =>
+  guardInvestmentStatusUnlock(args)
+
+describe('guardInvestmentStatusUnlock', () => {
+  it.each(['MANAGER', 'EMPLOYEE'] as const)(
+    'refuses %s reopening a completed investment',
+    (role) => {
+      expect(() => call(hookArgs({ status: 'active' }, role))).toThrow(
+        INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE,
+      )
+    },
+  )
+
+  it('refuses a MANAGER moving a completed investment to „planowana" too', () => {
+    expect(() => call(hookArgs({ status: 'planowana' }, 'MANAGER'))).toThrow(
+      INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE,
+    )
+  })
+
+  it('lets a MANAGER close an active investment', () => {
+    expect(() => call(hookArgs({ status: 'completed' }, 'MANAGER', 'active'))).not.toThrow()
+  })
+
+  it('lets a MANAGER edit the kartoteka of a completed investment', () => {
+    expect(() =>
+      call(hookArgs({ notes: 'nowa notatka', phone: '600100200' }, 'MANAGER')),
+    ).not.toThrow()
+  })
+
+  it('does not touch an investment that was never completed', () => {
+    expect(() => call(hookArgs({ status: 'planowana' }, 'MANAGER', 'active'))).not.toThrow()
+  })
+})

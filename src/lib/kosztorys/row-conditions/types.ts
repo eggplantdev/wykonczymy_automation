@@ -42,7 +42,7 @@ export type FilterConditionT = RowConditionBaseT & {
 
 // A defect to close: it lives in the toolbar with a count, vanishes at zero, and when engaged keeps
 // ONLY what it matches.
-export type DiagnosticConditionT = RowConditionBaseT & {
+type DiagnosticConditionT = RowConditionBaseT & {
   kind: 'diagnostic'
   problemGroup: ProblemGroupIdT
   // A whole sentence for the „Problemy" row, replacing the „Pozycje … (n)" phrasing built from
@@ -50,7 +50,7 @@ export type DiagnosticConditionT = RowConditionBaseT & {
   problemLabel?: (count: number) => string
 }
 
-export type ClientConditionT = RowConditionBaseT & { kind: 'client' }
+type ClientConditionT = RowConditionBaseT & { kind: 'client' }
 
 export type RowConditionT = FilterConditionT | DiagnosticConditionT | ClientConditionT
 

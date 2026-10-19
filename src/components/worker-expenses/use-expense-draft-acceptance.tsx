@@ -12,7 +12,8 @@ import {
   ExpenseDraftDuplicateStatus,
   type DuplicateHintsStateT,
 } from '@/components/worker-expenses/expense-draft-duplicate-status'
-import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
+import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
+import type { ExpenseFormPrefillT } from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import {
   readExpenseDraftAction,

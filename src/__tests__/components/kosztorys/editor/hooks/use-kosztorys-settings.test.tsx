@@ -8,7 +8,7 @@ import {
   updateInvestmentGlobalDiscountAction,
   updateInvestmentMaterialsNetRateAction,
   updateInvestmentVatAction,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-settings'
 import { discountNetFromGross } from '@/lib/kosztorys/calc'
 import { usePendingStore } from '@/stores/pending-store'
 

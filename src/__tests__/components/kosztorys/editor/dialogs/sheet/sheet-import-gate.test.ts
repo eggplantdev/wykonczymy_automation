@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { evaluateImportGate } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-gate'
-import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
+import type { ImportPreviewT } from '@/lib/queries/kosztorys-import-preview'
 import type { FooterComparisonT } from '@/lib/kosztorys/sheet-import/footer-totals'
 
 const matchingTotal: FooterComparisonT = {

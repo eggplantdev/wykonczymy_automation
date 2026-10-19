@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { FleetDataTable } from '@/components/fleet/fleet-data-table'
 import { byInspectionType } from '@/lib/fleet/inspection-types'
 import { formatPLN } from '@/lib/utils/format-currency'
-import type { FleetRowT } from '@/types/fleet'
+import type { FleetRowT } from '@/lib/fleet/types'
 import { bare } from '@/__tests__/helpers/money'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
 

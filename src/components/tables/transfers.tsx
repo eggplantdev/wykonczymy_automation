@@ -1,5 +1,5 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
-import { isServerSortableColumn } from '@/lib/transfers/sortable-columns'
+import { transferSort } from '@/lib/transfers/sortable-columns'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
@@ -354,7 +354,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
     actionsColumn,
   ]
     .map((column) =>
-      isServerSortableColumn(column.id!)
+      transferSort.isSortable(column.id!)
         ? (column as ColumnDef<TransferRowT, unknown>)
         : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
     )

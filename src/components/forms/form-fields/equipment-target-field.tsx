@@ -13,7 +13,7 @@ import {
 import type { WarehouseOptionT } from '@/lib/equipment/types'
 import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
 
-export type TargetFieldNameT =
+type TargetFieldNameT =
   | 'occurredAt'
   | 'targetKind'
   | 'holder'

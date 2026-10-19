@@ -104,11 +104,6 @@ export const REJECTED_PAYOUTS_COUNT = sql`
   SELECT count(*)::int AS total FROM transactions t WHERE ${AWAITING_MANAGEMENT}
 `
 
-export async function countRejectedPayouts(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(REJECTED_PAYOUTS_COUNT)
-  return Number(res.rows[0]?.total ?? 0)
-}
-
 export async function listRejectedPayouts(db: DbExecutorT): Promise<RejectedPayoutT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.date, t.amount, t.description, t.worker_id, w.name AS worker_name,

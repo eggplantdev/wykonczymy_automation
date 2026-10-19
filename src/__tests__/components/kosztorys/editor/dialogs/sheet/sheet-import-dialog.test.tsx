@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
-import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
+import type { ImportPreviewT } from '@/lib/queries/kosztorys-import-preview'
 import type { FooterComparisonT } from '@/lib/kosztorys/sheet-import/footer-totals'
 import type { WorkerRefT } from '@/types/reference-data'
 import { toastMessage } from '@/lib/utils/toast'

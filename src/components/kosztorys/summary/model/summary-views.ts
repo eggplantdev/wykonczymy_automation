@@ -16,7 +16,7 @@ type SummaryViewDescriptorT = {
 }
 
 // Toggle order.
-export const SUMMARY_VIEWS = [
+const SUMMARY_VIEWS = [
   { value: 'summary', label: 'Podsumowanie', clientVisible: true },
   { value: 'expenses', label: 'Materiały', clientVisible: true },
   { value: 'stages', label: 'Robocizna', clientVisible: true },

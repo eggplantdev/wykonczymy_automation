@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useRef, useState } from 'react'
+import { Fragment } from 'react'
 import { Trash2, Unlink, WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -11,51 +11,30 @@ import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/expense-form/line-item-invoice-field'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils/cn'
-import {
-  FILE_DRAG_ARMED_CLASS,
-  FILE_DRAG_OVER_CLASS,
-  useWindowFileDrag,
-} from '@/hooks/use-window-file-drag'
 import { formatPLN } from '@/lib/utils/format-currency'
-import {
-  billsNetAmount,
-  EXPENSE_CATEGORY_LABEL,
-  hasOptionalWorker,
-  needsExpenseCategory,
-  needsOtherCategory,
-  showsOtherCategory,
-} from '@/lib/constants/transfers'
+import { billsNetAmount } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
-import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import {
   isBlankRow,
   makeLineItem,
   type BulkExpenseFormApiT,
-  type BulkExpenseFormValuesT,
   type BulkLineItemT,
   type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { CollapsibleLineItem } from '@/components/forms/expense-form/collapsible-line-item'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
-import type { ArrayFieldT } from '@/components/forms/hooks/form-api-of'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { orderedEntries } from '@/lib/worker-expenses/ordered-entries'
-
-type LineItemsArrayFieldT = ArrayFieldT<BulkExpenseFormValuesT['lineItems'][number]>
-
-type RowSelectConfigT = {
-  fieldName: 'category' | 'expenseCategory' | 'worker'
-  label: string
-  placeholder: string
-  options: { id: number; name: string }[]
-}
-
-// The raw browser type, not ALLOWED_UPLOAD_MIMES: this runs before ingest re-encodes e.g. a BMP to
-// PNG, so the upload allowlist would refuse files ingest can fix.
-const isReceiptFile = (file: File) =>
-  file.type.startsWith('image/') || file.type === 'application/pdf'
+import { RowSelect } from '@/components/forms/expense-form/row-select'
+import {
+  getInlineCategory,
+  getSecondRowSelects,
+} from '@/components/forms/expense-form/row-select-config'
+import {
+  useReceiptScan,
+  type LineItemsArrayFieldT,
+} from '@/components/forms/expense-form/use-receipt-scan'
 
 const SCAN_MODE_OPTIONS: OptionT<ScanModeT>[] = [
   { value: 'one-per-photo', label: 'Kilka wydatków' },
@@ -101,72 +80,6 @@ const rowTitle = (item: BulkLineItemT) =>
     .filter(Boolean)
     .join(' · ')
 
-const otherCategoryConfig = (type: string, refData: ReferenceDataBaseT): RowSelectConfigT => ({
-  fieldName: 'category',
-  label: 'Kategoria',
-  placeholder: needsOtherCategory(type) ? 'Kategoria *' : 'Opcjonalnie',
-  options: refData.otherCategories,
-})
-
-function getInlineCategory(
-  type: string,
-  refData: ReferenceDataBaseT,
-  hasInvestment?: boolean,
-): RowSelectConfigT | undefined {
-  if (needsExpenseCategory(type, hasInvestment)) {
-    return {
-      fieldName: 'expenseCategory',
-      label: EXPENSE_CATEGORY_LABEL,
-      placeholder: `${EXPENSE_CATEGORY_LABEL} *`,
-      options: refData.expenseCategories,
-    }
-  }
-  if (showsOtherCategory(type)) return otherCategoryConfig(type, refData)
-  return undefined
-}
-
-const workerConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
-  fieldName: 'worker',
-  label: 'Pracownik',
-  placeholder: 'Opcjonalnie',
-  options: refData.workers.filter(isActiveRef),
-})
-
-function getSecondRowSelects(type: string, refData: ReferenceDataBaseT): RowSelectConfigT[] {
-  const selects: RowSelectConfigT[] = []
-  if (needsExpenseCategory(type) && showsOtherCategory(type))
-    selects.push(otherCategoryConfig(type, refData))
-  if (hasOptionalWorker(type)) selects.push(workerConfig(refData))
-  return selects
-}
-
-function RowSelect({
-  form,
-  index,
-  config,
-  fieldClassName,
-}: {
-  form: BulkExpenseFormApiT
-  index: number
-  config: RowSelectConfigT
-  fieldClassName?: string
-}) {
-  return (
-    <form.AppField name={`lineItems[${index}].${config.fieldName}`}>
-      {(field) => (
-        <field.Combobox
-          label={config.label}
-          placeholder={config.placeholder}
-          searchPlaceholder={`Szukaj: ${config.label.toLowerCase()}...`}
-          emptyMessage="Nie znaleziono."
-          items={config.options.map((opt) => ({ value: String(opt.id), label: opt.name }))}
-          fieldClassName={fieldClassName}
-        />
-      )}
-    </form.AppField>
-  )
-}
-
 export function LineItemsField({
   form,
   transferType,
@@ -197,73 +110,16 @@ export function LineItemsField({
   const newItem = () =>
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
   const isDecideMode = !!receiptGrouping?.onDecide
-  const scanInputRef = useRef<HTMLInputElement>(null)
   const isIngesting = (ingestingIds?.size ?? 0) > 0
-  const isFileDragActive = useWindowFileDrag()
-  const [dragOverMode, setDragOverMode] = useState<ScanModeT | null>(null)
-  const [scanMode, setScanMode] = useState<ScanModeT>('one-per-photo')
-
-  async function scanReceipts(
-    picked: File[],
-    lineItemsField: LineItemsArrayFieldT,
-    mode: ScanModeT,
-  ) {
-    const rows = lineItemsField.state.value
-    const reuseFirstRow = rows.length === 1 && isBlankRow(rows[0]) && !getRowFiles(rows[0].id)
-    const rowCount = mode === 'one-invoice' ? 1 : picked.length
-    const newRows = Array.from({ length: reuseFirstRow ? rowCount - 1 : rowCount }, () => newItem())
-    for (const row of newRows) lineItemsField.pushValue(row)
-    const ids = (reuseFirstRow ? [rows[0], ...newRows] : newRows).map((row) => row.id)
-    await onRegisterFiles(ids, picked, mode === 'one-invoice' ? 'single-row' : 'per-row')
-    onGenerate?.()
-  }
-
-  function handleScanReceipts(
-    e: React.ChangeEvent<HTMLInputElement>,
-    lineItemsField: LineItemsArrayFieldT,
-    mode: ScanModeT,
-  ) {
-    const picked = Array.from(e.target.files ?? [])
-    e.target.value = '' // allow re-picking the same files after a reset
-    if (picked.length === 0) return
-    return scanReceipts(picked, lineItemsField, mode)
-  }
-
-  function handleDropReceipts(
-    e: React.DragEvent,
-    lineItemsField: LineItemsArrayFieldT,
-    mode: ScanModeT,
-  ) {
-    e.preventDefault()
-    setDragOverMode(null)
-    if (isGenerating || isIngesting) return
-    const picked = Array.from(e.dataTransfer.files).filter(isReceiptFile)
-    if (picked.length === 0) return
-    return scanReceipts(picked, lineItemsField, mode)
-  }
-
-  function dropZoneProps(lineItemsField: LineItemsArrayFieldT, mode: ScanModeT) {
-    return {
-      onDragOver: (e: React.DragEvent) => {
-        e.preventDefault()
-        setDragOverMode(mode)
-      },
-      onDragLeave: (e: React.DragEvent) => {
-        e.preventDefault()
-        // The icon and label are inside the button, so crossing them fires a leave that is not one.
-        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
-        setDragOverMode(null)
-      },
-      onDrop: (e: React.DragEvent) => handleDropReceipts(e, lineItemsField, mode),
-      className: cn(
-        isFileDragActive &&
-          dragOverMode !== mode &&
-          !(isGenerating || isIngesting) &&
-          FILE_DRAG_ARMED_CLASS,
-        dragOverMode === mode && FILE_DRAG_OVER_CLASS,
-      ),
-    }
-  }
+  const { scanInputRef, scanMode, setScanMode, handleScanReceipts, dropZoneProps } = useReceiptScan(
+    {
+      newItem,
+      getRowFiles,
+      onRegisterFiles,
+      onGenerate,
+      isBusy: isGenerating || isIngesting,
+    },
+  )
 
   return (
     <form.Field name="lineItems" mode="array">
@@ -540,7 +396,7 @@ export function LineItemsField({
                     accept="image/*,application/pdf"
                     multiple
                     className="sr-only"
-                    onChange={(e) => handleScanReceipts(e, lineItemsField, scanMode)}
+                    onChange={(e) => handleScanReceipts(e, lineItemsField)}
                   />
                   {onGenerate && (
                     <ToggleGroup
@@ -569,7 +425,7 @@ export function LineItemsField({
                       size="sm"
                       onClick={() => scanInputRef.current?.click()}
                       disabled={isGenerating || isIngesting}
-                      {...dropZoneProps(lineItemsField, scanMode)}
+                      {...dropZoneProps(lineItemsField)}
                     >
                       {isGenerating || isIngesting ? (
                         <GradientSpinner />

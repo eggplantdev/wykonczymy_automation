@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
-import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker'
 import { ReorderMenuItem } from '@/components/kosztorys/editor/actions/reorder-action'
 import { SectionTranslationDialog } from '@/components/kosztorys/editor/dialogs/section-translation/section-translation-dialog'
 import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'

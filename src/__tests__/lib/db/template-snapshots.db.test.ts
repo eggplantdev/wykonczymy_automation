@@ -3,7 +3,8 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { readTemplateLayout } from '@/lib/db/template-structure'
-import { gcTemplateSnapshots, insertTemplateSnapshot } from '@/lib/db/template-snapshots'
+import { insertTemplateSnapshot } from '@/lib/db/template-snapshots'
+import { gcTemplateSnapshots } from '@/lib/kosztorys/snapshot-gc'
 import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import {
   addTestTemplateSection,
@@ -17,6 +18,7 @@ import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const actions = await import('@/lib/actions/template-snapshots')
+const { fetchTemplateSnapshots } = await import('@/lib/queries/snapshot-list')
 
 describe.skipIf(!ENV_READY)('template snapshots (DB)', () => {
   let payload: Payload
@@ -53,7 +55,7 @@ describe.skipIf(!ENV_READY)('template snapshots (DB)', () => {
     )
     expect((await actions.templateSnapshotAction(templateId)).success).toBe(true)
 
-    const listed = await actions.listTemplateSnapshotsAction(templateId)
+    const listed = await fetchTemplateSnapshots(templateId)
     expect(listed.success && listed.data.map((s) => s.kind)).toEqual(['auto', 'named'])
     expect(listed.success && listed.data[1].label).toBe('Przed zmianą')
     expect(listed.success && listed.data[1].takenByName).not.toBeNull()
@@ -66,7 +68,7 @@ describe.skipIf(!ENV_READY)('template snapshots (DB)', () => {
     const saved = await readTemplateLayout(db, templateId)
     await db.execute(sql`DELETE FROM template_sections WHERE template_id = ${templateId}`)
     await addTestTemplateSection(payload, templateId, 'Kuchnia', [entryIds[2]])
-    const listed = await actions.listTemplateSnapshotsAction(templateId)
+    const listed = await fetchTemplateSnapshots(templateId)
     const named = listed.success ? listed.data.find((s) => s.kind === 'named') : undefined
 
     const restored = await actions.restoreTemplateSnapshotAction(named!.id, templateId)
@@ -76,7 +78,7 @@ describe.skipIf(!ENV_READY)('template snapshots (DB)', () => {
       data: { droppedWorkerAssignments: 0, skippedCatalogueItems: 0 },
     })
     expect(await readTemplateLayout(db, templateId)).toEqual(saved)
-    const after = await actions.listTemplateSnapshotsAction(templateId)
+    const after = await fetchTemplateSnapshots(templateId)
     expect(after.success && after.data[0].kind).toBe('auto')
   })
 
@@ -86,7 +88,7 @@ describe.skipIf(!ENV_READY)('template snapshots (DB)', () => {
     await addTestTemplateSection(payload, templateId, 'Salon', [entryIds[0], doomed])
     await actions.saveTemplateSnapshotAction(templateId, 'v1')
     await db.execute(sql`DELETE FROM work_catalogue_items WHERE id = ${doomed}`)
-    const listed = await actions.listTemplateSnapshotsAction(templateId)
+    const listed = await fetchTemplateSnapshots(templateId)
     const named = listed.success ? listed.data.find((s) => s.kind === 'named') : undefined
 
     const restored = await actions.restoreTemplateSnapshotAction(named!.id, templateId)
@@ -101,7 +103,7 @@ describe.skipIf(!ENV_READY)('template snapshots (DB)', () => {
     const own = await template('own')
     const other = await template('other')
     await actions.saveTemplateSnapshotAction(other, 'obcy')
-    const listed = await actions.listTemplateSnapshotsAction(other)
+    const listed = await fetchTemplateSnapshots(other)
     const foreign = listed.success ? listed.data[0].id : 0
 
     expect(await actions.restoreTemplateSnapshotAction(foreign, own)).toEqual({

@@ -13,7 +13,7 @@ import { trashLeadsAction } from '@/lib/actions/lead-trash'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
-import type { LeadRowT, LeadSourceT } from '@/types/leads'
+import type { LeadRowT, LeadSourceT } from '@/lib/leads/types'
 
 const SOURCE_TONES: Record<LeadSourceT, BadgeToneT> = {
   facebook_lead_ads: 'sky',

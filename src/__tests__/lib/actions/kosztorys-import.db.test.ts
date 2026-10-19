@@ -12,7 +12,8 @@ import type { sheets_v4 } from 'googleapis'
 import { getInvestmentSheet } from '@/lib/google/sheet-lookup'
 import { getReadonlySheetsClient } from '@/lib/google/readonly-sheets-client'
 import { readImportGrids } from '@/lib/kosztorys/sheet-import/read-sheet'
-import { applyKosztorysImport, previewKosztorysImport } from '@/lib/actions/kosztorys-import'
+import { applyKosztorysImport } from '@/lib/actions/kosztorys-import'
+import { previewKosztorysImport } from '@/lib/queries/kosztorys-import-preview'
 
 const sheetState = { spreadsheetId: 'sheet-under-test' as string | undefined }
 

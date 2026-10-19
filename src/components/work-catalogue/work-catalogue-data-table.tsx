@@ -68,7 +68,8 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
     clear: clearConditions,
   } = useEngagedIds('work-catalogue-show')
 
-  // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
+  // ~0.1 s over 561 wpisy: once per `data`, never per keystroke — the compiler drops this file's cache, so
+  // the memos here are hand-written.
   const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
 
   const conditions = [...CATALOGUE_CONDITIONS, catalogueDuplicateCondition(nearDuplicates)]

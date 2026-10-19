@@ -48,7 +48,7 @@ export type TransferRowT = {
 }
 
 // `workerId` null is the „Bez przypisanego pracownika" bucket
-export type PayoutByWorkerT = {
+type PayoutByWorkerT = {
   workerId: number | null
   total: number
   /** Σ BONUS — kept out of `total`, which is cash paid; a premia is owed, not paid. */

@@ -17,6 +17,7 @@ import {
   PAYMENT_METHOD_PLANE_LABELS,
   carriesPaymentMethod,
   type PaymentMethodT,
+  DEPOSIT_PLANE_INSTRUMENTAL,
 } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { transferFormSchema } from '@/lib/schemas/transfer-form'
@@ -26,7 +27,6 @@ import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { warsawToday } from '@/lib/utils/days'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { strandsDeposit } from '@/lib/kosztorys/off-plane-deposits'
-import { DEPOSIT_PLANE_INSTRUMENTAL } from '@/lib/constants/transfers'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { netFromGross } from '@/lib/kosztorys/net-gross-amounts'
 import {

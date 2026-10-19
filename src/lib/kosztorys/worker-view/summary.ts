@@ -23,9 +23,9 @@ export type WorkerSummaryT = {
   isOverpaid: boolean
 }
 
-export type WorkerPayoutT = Omit<PayoutTransactionRowT, 'workerId' | 'type'>
+type WorkerPayoutT = Omit<PayoutTransactionRowT, 'workerId' | 'type'>
 
-export type WorkerStageShareT = { percent: number | null; amount: number }
+type WorkerStageShareT = { percent: number | null; amount: number }
 
 // `label` stays raw: each surface names an unnamed etap in its own language (`stageLabel`).
 export type WorkerStageLineT = Pick<KosztorysStageT, 'label' | 'ordinal'> & {

@@ -5,7 +5,7 @@ import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
 
-export type SummaryRowOptsT = {
+type SummaryRowOptsT = {
   emphasize?: boolean
   bold?: boolean
   discount?: boolean

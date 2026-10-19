@@ -16,7 +16,7 @@ import {
   REPORT_STATUSES,
   REPORT_STATUS_LABEL_KEYS,
 } from '@/lib/kosztorys/worker-report/report-status'
-import { validWorkerReportSort } from '@/lib/queries/worker-report-sort'
+import { workerReportSort } from '@/lib/kosztorys/worker-report/sortable-columns'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { ReferenceItemT } from '@/types/reference-data'
@@ -66,7 +66,7 @@ export function WorkerReportsDataTable({ data, paginationMeta, investments, work
         storageKey="worker-reports"
         toolbar={() => <DataTableToolbar actions={<ScanReportButton />} />}
         sorting={sortParamToSortingState(
-          validWorkerReportSort(searchParams.get('sort') ?? undefined),
+          workerReportSort.valid(searchParams.get('sort') ?? undefined),
         )}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
       />

@@ -25,7 +25,7 @@ import { isLockedStatus, isOfferedForBooking } from '@/lib/constants/investment-
 import { Truck } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
-import { SheetButton } from '@/components/dialogs/sheet-button'
+import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { AiProgressBadge } from '@/components/investments/ai-progress-badge'

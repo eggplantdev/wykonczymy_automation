@@ -12,7 +12,7 @@ import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/cl
 import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
+import { cleanItemTextsAction } from '@/lib/actions/kosztorys-items'
 import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 
 const onTreeReplaced = vi.hoisted(() => vi.fn())

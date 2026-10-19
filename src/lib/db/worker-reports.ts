@@ -8,7 +8,7 @@ import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
 import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { REPORT_STATUSES, type ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 import {
-  isServerSortableReportColumn,
+  workerReportSort,
   type ServerSortableReportColumnT,
 } from '@/lib/kosztorys/worker-report/sortable-columns'
 import type { ReportLineKindT, ReportSourceT } from '@/lib/kosztorys/worker-report/types'
@@ -278,13 +278,6 @@ export async function listWorkerReports(
   return res.rows.map(toReportRow)
 }
 
-const reportMediaSql = (reportId: number) => sql`
-  SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url, m.kind
-  FROM worker_report_media rm JOIN media m ON m.id = rm.media_id
-  WHERE rm.report_id = ${reportId}
-  ORDER BY rm.position
-`
-
 const toMediaFile = (row: Record<string, unknown>): MediaFileT => ({
   id: Number(row.id),
   url: text(row.url),
@@ -294,86 +287,88 @@ const toMediaFile = (row: Record<string, unknown>): MediaFileT => ({
   kind: textOrNull(row.kind) as MediaFileT['kind'],
 })
 
+export async function listReportMedia(db: DbExecutorT, reportId: number): Promise<MediaFileT[]> {
+  const res = await db.execute(sql`
+    SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url, m.kind
+    FROM worker_report_media rm JOIN media m ON m.id = rm.media_id
+    WHERE rm.report_id = ${reportId}
+    ORDER BY rm.position
+  `)
+  return res.rows.map(toMediaFile)
+}
+
 /** Scoped by the investment as well as the id: a report id alone would let one editor read another's. */
-export async function readWorkerReport(
+export async function readReportRow(
   db: DbExecutorT,
   investmentId: number,
   reportId: number,
-): Promise<{
-  report: WorkerReportRowT
-  lines: WorkerReportLineRowT[]
-  media: MediaFileT[]
-} | null> {
-  const reportRes = await db.execute(sql`
+): Promise<WorkerReportRowT | null> {
+  const res = await db.execute(sql`
     SELECT ${REPORT_COLUMNS} FROM worker_reports r ${REPORT_JOINS}
     WHERE r.id = ${reportId} AND r.investment_id = ${investmentId}
   `)
-  const row = reportRes.rows[0]
-  if (!row) return null
+  const row = res.rows[0]
+  return row ? toReportRow(row) : null
+}
 
-  const [linesRes, mediaRes] = await Promise.all([
-    db.execute(sql`
-      SELECT id, position, kind, item_id, description, unit, section_name, reported_qty,
-        accepted_qty, is_rejected, created_item_id, catalogue_item_id, polish_description,
-        description_language, is_uncertain, scanned_ref
-      FROM worker_report_lines WHERE report_id = ${reportId}
-      ORDER BY position
-    `),
-    db.execute(reportMediaSql(reportId)),
-  ])
-  return {
-    report: toReportRow(row),
-    lines: linesRes.rows.map(toLineRow),
-    media: mediaRes.rows.map(toMediaFile),
-  }
+export async function listReportLines(
+  db: DbExecutorT,
+  reportId: number,
+): Promise<WorkerReportLineRowT[]> {
+  const res = await db.execute(sql`
+    SELECT id, position, kind, item_id, description, unit, section_name, reported_qty,
+      accepted_qty, is_rejected, created_item_id, catalogue_item_id, polish_description,
+      description_language, is_uncertain, scanned_ref
+    FROM worker_report_lines WHERE report_id = ${reportId}
+    ORDER BY position
+  `)
+  return res.rows.map(toLineRow)
 }
 
 /**
  * The access check is part of the statement: the
  * id comes from the client, so a foreign report and a missing one both come back `null`.
  */
-export async function readReportPreview(
+export async function readReportPreviewRow(
   db: DbExecutorT,
   reportId: number,
   viewer: { id: number; isManagement: boolean },
-): Promise<ReportPreviewReadT | null> {
-  const reportRes = await db.execute(sql`
+): Promise<ReportPreviewReadT['report'] | null> {
+  const res = await db.execute(sql`
     SELECT ${REPORT_COLUMNS}, i.name AS investment_name
     FROM worker_reports r ${REPORT_JOINS}
     JOIN investments i ON i.id = r.investment_id
     WHERE r.id = ${reportId} AND (${viewer.isManagement} OR r.worker_id = ${viewer.id})
   `)
-  const row = reportRes.rows[0]
-  if (!row) return null
+  const row = res.rows[0]
+  return row ? { ...toReportRow(row), investmentName: text(row.investment_name) } : null
+}
 
-  const [linesRes, mediaRes] = await Promise.all([
-    db.execute(sql`
-      SELECT l.id, l.position, l.kind, l.item_id, l.description, l.unit, l.section_name,
-        l.reported_qty, l.accepted_qty, l.is_rejected, l.created_item_id, l.catalogue_item_id, l.polish_description,
-        l.description_language, l.is_uncertain, l.scanned_ref,
-        k.ref, k.description AS item_description, k.description_translations,
-        s.name AS live_section_name, s.color AS section_color, s.display_order AS section_order
-      FROM worker_report_lines l
-      LEFT JOIN kosztorys_items k ON k.id = COALESCE(l.created_item_id, l.item_id)
-      LEFT JOIN kosztorys_sections s ON s.id = k.section_id
-      WHERE l.report_id = ${reportId}
-      ORDER BY l.position
-    `),
-    db.execute(reportMediaSql(reportId)),
-  ])
-  return {
-    report: { ...toReportRow(row), investmentName: text(row.investment_name) },
-    lines: linesRes.rows.map((line) => ({
-      ...toLineRow(line),
-      sectionName: textOrNull(line.live_section_name) ?? textOrNull(line.section_name),
-      ref: numOrNull(line.ref),
-      itemDescription: textOrNull(line.item_description),
-      descriptionTranslations: toDescriptionTranslations(line.description_translations),
-      sectionColor: isSectionColorKey(line.section_color) ? line.section_color : null,
-      sectionOrder: numOrNull(line.section_order),
-    })),
-    media: mediaRes.rows.map(toMediaFile),
-  }
+export async function listReportPreviewLines(
+  db: DbExecutorT,
+  reportId: number,
+): Promise<ReportPreviewLineRowT[]> {
+  const res = await db.execute(sql`
+    SELECT l.id, l.position, l.kind, l.item_id, l.description, l.unit, l.section_name,
+      l.reported_qty, l.accepted_qty, l.is_rejected, l.created_item_id, l.catalogue_item_id, l.polish_description,
+      l.description_language, l.is_uncertain, l.scanned_ref,
+      k.ref, k.description AS item_description, k.description_translations,
+      s.name AS live_section_name, s.color AS section_color, s.display_order AS section_order
+    FROM worker_report_lines l
+    LEFT JOIN kosztorys_items k ON k.id = COALESCE(l.created_item_id, l.item_id)
+    LEFT JOIN kosztorys_sections s ON s.id = k.section_id
+    WHERE l.report_id = ${reportId}
+    ORDER BY l.position
+  `)
+  return res.rows.map((line) => ({
+    ...toLineRow(line),
+    sectionName: textOrNull(line.live_section_name) ?? textOrNull(line.section_name),
+    ref: numOrNull(line.ref),
+    itemDescription: textOrNull(line.item_description),
+    descriptionTranslations: toDescriptionTranslations(line.description_translations),
+    sectionColor: isSectionColorKey(line.section_color) ? line.section_color : null,
+    sectionOrder: numOrNull(line.section_order),
+  }))
 }
 
 /**
@@ -410,7 +405,7 @@ const SORT_EXPRESSIONS: Record<ServerSortableReportColumnT, SqlT> = {
 function reportsOrderBy(sort: string | undefined): SqlT {
   if (!sort) return QUEUE_ORDER
   const column = sortParamColumnId(sort)
-  if (!isServerSortableReportColumn(column)) return QUEUE_ORDER
+  if (!workerReportSort.isSortable(column)) return QUEUE_ORDER
   const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
   return sql`${SORT_EXPRESSIONS[column]} ${direction}, r.sent_at DESC, r.id DESC`
 }
@@ -474,11 +469,6 @@ export const PENDING_REPORTS_COUNT = sql`
   FROM worker_reports r JOIN investments i ON i.id = r.investment_id
   WHERE r.status = 'pending' AND ${DECIDABLE_INVESTMENT}
 `
-
-export async function countPendingReports(db: DbExecutorT): Promise<number> {
-  const res = await db.execute(PENDING_REPORTS_COUNT)
-  return Number(res.rows[0]?.total ?? 0)
-}
 
 export async function countPendingForInvestment(
   db: DbExecutorT,

@@ -9,7 +9,7 @@ import { addMonthsToDay, warsawToday } from '@/lib/utils/days'
 import { INSPECTION_INTERVAL_MONTHS } from '@/lib/fleet/inspection-types'
 import { inspectionDraftId } from '@/lib/fleet/inspection-draft'
 import type { InspectionFormValuesT } from '@/components/forms/inspection-form/inspection-schema'
-import type { FleetRowT } from '@/types/fleet'
+import type { FleetRowT } from '@/lib/fleet/types'
 
 type AddInspectionDialogPropsT = {
   vehicles: Pick<FleetRowT, 'id' | 'registration' | 'make' | 'model' | 'latestOdometer'>[]

@@ -25,6 +25,7 @@ const LOGO_WAIT_MS = 4000
  * fires before the image is off the network and every page gets a blank box where the mark should be.
  */
 export function writeAndPrint(target: Window, html: string) {
+  // Deprecated but load-bearing: only a written `<!doctype html>` takes the `about:blank` window out of quirks mode.
   target.document.write(html)
   target.document.close()
   const logo = target.document.querySelector('img')

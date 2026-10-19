@@ -15,7 +15,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
-import { isServerSortableDraftColumn } from '@/lib/worker-expenses/sortable-columns'
+import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
 
 const col = createColumnHelper<ExpenseDraftRowT>()
 
@@ -59,9 +59,9 @@ export function useExpenseDraftColumns({
   actions,
   selection,
 }: OptionsT) {
-  const { t } = useTranslation('expenseDrafts')
+  const { t, locale } = useTranslation('expenseDrafts')
   const sortable = (id: string) =>
-    isManagerView && !isPendingQueue && isServerSortableDraftColumn(id)
+    isManagerView && !isPendingQueue && expenseDraftSort.isSortable(id)
   const actionsColumn = actions
     ? [
         col.display({
@@ -133,7 +133,7 @@ export function useExpenseDraftColumns({
       header: t('sentAt'),
       enableSorting: sortable('sentAt'),
       meta: { minWidth: 'min-w-40' },
-      cell: (info) => formatPLDateTime(info.getValue()),
+      cell: (info) => formatPLDateTime(info.getValue(), locale),
     }),
     col.display({
       id: 'media',
@@ -185,7 +185,7 @@ export function useExpenseDraftColumns({
             meta: { minWidth: 'min-w-56' },
             cell: ({ row: { original: draft } }) =>
               draft.decidedAt
-                ? [formatPLDateTime(draft.decidedAt), draft.decidedByName]
+                ? [formatPLDateTime(draft.decidedAt, locale), draft.decidedByName]
                     .filter(Boolean)
                     .join(' · ')
                 : '—',

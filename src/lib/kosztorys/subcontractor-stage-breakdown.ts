@@ -5,7 +5,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 
 export type StageBreakdownWorkerT = { workerId: number | null; name: string }
 
-export type StageBreakdownRowT = {
+type StageBreakdownRowT = {
   stageId: number
   label: string
   wholeNet: number

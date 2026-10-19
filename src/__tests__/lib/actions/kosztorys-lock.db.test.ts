@@ -10,28 +10,26 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 const {
   addItemAction,
-  addSectionAction,
-  addStageAction,
   applyPercentDiscountToAllItemsAction,
   cleanItemTextsAction,
-  clearKosztorysAction,
-  insertSectionAction,
   removeItemAction,
-  removeSectionAction,
-  removeStageAction,
   renumberKosztorysOrderAction,
-  setStageProgressAction,
+  updateItemFieldAction,
+} = await import('@/lib/actions/kosztorys-items')
+const { addSectionAction, insertSectionAction, removeSectionAction, updateSectionFieldAction } =
+  await import('@/lib/actions/kosztorys-sections')
+const { addStageAction, removeStageAction, setStageProgressAction, updateStageAction } =
+  await import('@/lib/actions/kosztorys-stages')
+const {
+  clearKosztorysAction,
   updateInvestmentCoeffsAction,
   updateInvestmentGlobalDiscountAction,
   updateInvestmentMaterialsNetRateAction,
   updateInvestmentSettlementModeAction,
   updateInvestmentVatAction,
-  updateItemFieldAction,
-  updateSectionFieldAction,
-  updateStageAction,
-} = await import('@/lib/actions/kosztorys')
-const { listSnapshotsAction, saveSnapshotAction, snapshotAction } =
-  await import('@/lib/actions/kosztorys-snapshots')
+} = await import('@/lib/actions/kosztorys-settings')
+const { saveSnapshotAction, snapshotAction } = await import('@/lib/actions/kosztorys-snapshots')
+const { fetchKosztorysSnapshots } = await import('@/lib/queries/snapshot-list')
 const { savePresetAction } = await import('@/lib/actions/kosztorys-presets')
 const { compareWithSheet } = await import('@/lib/actions/kosztorys-import')
 const { insertCatalogueItemsAction } = await import('@/lib/actions/catalogue-to-kosztorys')
@@ -151,7 +149,7 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
   })
 
   it('still lists versions', async () => {
-    expect((await listSnapshotsAction(investmentId)).success).toBe(true)
+    expect((await fetchKosztorysSnapshots(investmentId)).success).toBe(true)
   })
 
   it('still saves a preset from the locked kosztorys', async () => {

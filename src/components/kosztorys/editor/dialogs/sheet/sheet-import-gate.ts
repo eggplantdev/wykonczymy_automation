@@ -1,4 +1,4 @@
-import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
+import type { ImportPreviewT } from '@/lib/queries/kosztorys-import-preview'
 import {
   footerDisagreements,
   type FooterComparisonT,

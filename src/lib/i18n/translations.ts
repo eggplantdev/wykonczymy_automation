@@ -5,14 +5,14 @@ import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 
 export type TranslationsT = typeof pl
 export type NamespaceT = keyof TranslationsT
-export type PluralFormsT = { one: string; few: string; many: string; other: string }
+type PluralFormsT = { one: string; few: string; many: string; other: string }
 export type TranslationParamsT = Record<string, string | number>
 
 export type MessageKeyT<NS extends NamespaceT> = {
   [K in keyof TranslationsT[NS]]: TranslationsT[NS][K] extends string ? K : never
 }[keyof TranslationsT[NS]]
 
-export type PluralKeyT<NS extends NamespaceT> = {
+type PluralKeyT<NS extends NamespaceT> = {
   [K in keyof TranslationsT[NS]]: TranslationsT[NS][K] extends PluralFormsT ? K : never
 }[keyof TranslationsT[NS]]
 

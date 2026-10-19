@@ -2,7 +2,7 @@ import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { fetchWorkerReportsPage } from '@/lib/queries/worker-reports-list'
 import { parseQueueFilters } from '@/lib/queries/queue-filters'
 import { isReportStatus } from '@/lib/kosztorys/worker-report/report-status'
-import { parseWorkerReportSort } from '@/lib/queries/worker-report-sort'
+import { workerReportSort } from '@/lib/kosztorys/worker-report/sortable-columns'
 import { parsePagination } from '@/lib/utils/pagination'
 import { WorkerReportsDataTable } from '@/components/worker-reports/worker-reports-data-table'
 import { Description } from '@/components/ui/description'
@@ -16,7 +16,7 @@ export default async function WorkerReportsPage({ searchParams }: PagePropsT) {
   const reports = await fetchWorkerReportsPage(
     parseQueueFilters(sp, isReportStatus),
     parsePagination(sp),
-    parseWorkerReportSort(sp),
+    workerReportSort.parse(sp),
   )
 
   return (

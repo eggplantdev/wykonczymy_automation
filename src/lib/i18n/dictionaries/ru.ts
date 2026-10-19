@@ -1,6 +1,6 @@
-import type { TranslationsT } from '@/lib/i18n/translations'
+import type { pl } from '@/lib/i18n/dictionaries/pl'
 
-export const ru: TranslationsT = {
+export const ru: typeof pl = {
   common: {
     decisionAccepted: 'Принято',
     decisionRejected: 'Отклонено',

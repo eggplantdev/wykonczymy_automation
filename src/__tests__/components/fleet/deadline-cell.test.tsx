@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { DeadlineCell } from '@/components/fleet/deadline-cell'
 import { OVERDUE } from '@/lib/fleet/thresholds'
-import type { FleetDeadlineT } from '@/types/fleet'
+import type { FleetDeadlineT } from '@/lib/fleet/types'
 
 const RECORDED: FleetDeadlineT = {
   nextDueAt: '2026-04-20',

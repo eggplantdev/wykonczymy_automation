@@ -1,8 +1,9 @@
 'use client'
 
-import type {
-  BulkLineItemT,
-  ReceiptGroupingT,
+import {
+  sumLineItemAmounts,
+  type BulkLineItemT,
+  type ReceiptGroupingT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { ReceiptSelectionActions } from '@/components/forms/expense-form/receipt-selection-actions'
 import { Description } from '@/components/ui/description'
@@ -31,7 +32,7 @@ export function ParagonFooter({
   lineItems,
 }: ParagonFooterPropsT) {
   const selected = lineItems.filter((item) => grouping.selectedIds.has(item.id))
-  const selectedTotal = selected.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const selectedTotal = sumLineItemAmounts(selected)
   return (
     <div className="bg-background sticky -bottom-4 z-10 -mx-4 mt-6 -mb-4 flex flex-wrap items-center gap-2 px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6">
       <div className="space-y-2">

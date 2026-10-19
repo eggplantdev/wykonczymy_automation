@@ -24,7 +24,7 @@ import { sameItems } from '@/lib/utils/same-items'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { FailureT } from '@/types/action'
-import type { CompanyKnowledgeEntryT } from '@/types/company-knowledge'
+import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 type DraftT = { id: number | null; topic: string; content: string }
 

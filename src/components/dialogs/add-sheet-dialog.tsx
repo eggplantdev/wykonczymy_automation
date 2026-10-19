@@ -9,7 +9,7 @@ import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { ExternalLink } from '@/components/ui/external-link'
-import { getServiceAccountEmailAction } from '@/lib/actions/investments'
+import { fetchServiceAccountEmail } from '@/lib/queries/service-account-email'
 import { addUnlinkedSheetAction } from '@/lib/actions/sheets'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
@@ -30,7 +30,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
       setLink('')
       setName('')
       if (!saEmail)
-        void getServiceAccountEmailAction()
+        void fetchServiceAccountEmail()
           .then(setSaEmail)
           .catch(() => {})
     }

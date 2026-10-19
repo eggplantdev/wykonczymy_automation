@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker'
 import { AddSectionsFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/add-sections-from-preset-dialog'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'

@@ -1,11 +1,7 @@
 'use server'
 
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import { templateAction } from '@/lib/actions/template-action'
 import { validateAction } from '@/lib/actions/run-action'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import {
   applyTemplateLayout,
@@ -13,7 +9,7 @@ import {
   lockAndCheckTemplateLayout,
   lockTemplateItemSections,
 } from '@/lib/db/template-structure'
-import { bumpTemplateRevision, readTemplateRevision } from '@/lib/db/templates'
+import { bumpTemplateRevision } from '@/lib/db/templates'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   numberWithinSections,
@@ -104,11 +100,4 @@ export async function clearTemplateAction(templateId: number): Promise<ActionRes
       return { success: true }
     },
   )
-}
-
-// Uncached on purpose, like `readKosztorysRevision`: it is the probe for a tree replaced elsewhere.
-export async function readTemplateRevisionAction(templateId: number): Promise<string | undefined> {
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) return undefined
-  return readTemplateRevision(await getDb(await getPayload({ config })), templateId)
 }

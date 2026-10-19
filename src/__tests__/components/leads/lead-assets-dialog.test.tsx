@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { LeadAssetsDialog } from '@/components/leads/lead-assets-dialog'
 import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
 import { getInvestmentAssetIds } from '@/lib/queries/investment-asset-ids'
-import type { LeadRowT } from '@/types/leads'
+import type { LeadRowT } from '@/lib/leads/types'
 
 vi.mocked(attachLeadAssetsAction).mockResolvedValue({ success: true })
 vi.mocked(removeLeadAssetAction).mockResolvedValue({ success: true })

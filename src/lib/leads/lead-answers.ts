@@ -1,5 +1,5 @@
 import type { LeadFieldT, LeadFormQuestionT } from './lead-schema'
-import type { LeadAnswerT } from '@/types/leads'
+import type { LeadAnswerT } from '@/lib/leads/types'
 
 const humanizeKey = (key: string): string => key.replace(/[_-]+/g, ' ').trim()
 

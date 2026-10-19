@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -30,6 +30,8 @@ import type { ReferenceDataT } from '@/types/reference-data'
 
 const getStatus = (row: InvestmentRowT) => row.status
 const getAiProgress = (row: InvestmentRowT) => row.aiProgress
+const getSearchableText = (row: InvestmentRowT) =>
+  `${row.name} ${row.address} ${row.contactPerson}`
 
 const AI_PROGRESS_OPTIONS = AI_PROGRESS_STEPS.map((step) => ({
   value: step,
@@ -65,10 +67,6 @@ export function InvestmentDataTable({
     clearStatuses,
   } = useStatusFilter(data, getStatus, 'investments')
 
-  const getSearchableText = useCallback(
-    (row: InvestmentRowT) => `${row.name} ${row.address} ${row.contactPerson}`,
-    [],
-  )
   const {
     filteredData: searched,
     searchTerm,
@@ -83,16 +81,12 @@ export function InvestmentDataTable({
 
   const [settleTarget, setSettleTarget] = useState<SettleDialogTargetT | null>(null)
   const [orderTarget, setOrderTarget] = useState<InvestmentRowT | null>(null)
-  const columns = useMemo(
-    () =>
-      getInvestmentColumns({
-        userRole,
-        onSettle: (investment) =>
-          setSettleTarget({ kind: 'investment', id: investment.id, name: investment.name }),
-        onOrder: setOrderTarget,
-      }),
-    [userRole],
-  )
+  const columns = getInvestmentColumns({
+    userRole,
+    onSettle: (investment) =>
+      setSettleTarget({ kind: 'investment', id: investment.id, name: investment.name }),
+    onOrder: setOrderTarget,
+  })
 
   return (
     <>

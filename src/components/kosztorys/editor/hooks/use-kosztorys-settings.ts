@@ -1,14 +1,14 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { applyPercentDiscountToAllItemsAction } from '@/lib/actions/kosztorys-items'
 import {
-  applyPercentDiscountToAllItemsAction,
   updateInvestmentCoeffsAction,
   updateInvestmentGlobalDiscountAction,
   updateInvestmentMaterialsNetRateAction,
   updateInvestmentSettlementModeAction,
   updateInvestmentVatAction,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-settings'
 import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 import { pricingModeOf } from '@/lib/kosztorys/materials-pricing-mode'
 import {

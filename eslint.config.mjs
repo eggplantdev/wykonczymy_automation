@@ -100,7 +100,7 @@ export default ts.config(
     },
   },
   {
-    files: ['src/hooks/**/*.{ts,tsx}'],
+    files: ['src/collections/hooks/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -168,6 +168,7 @@ export default ts.config(
       'scripts/blob-snapshot.mjs',
       'scripts/blob-restore.mjs',
       'scripts/share-sheets-with-reader.mjs',
+      'scripts/check-compiler-coverage.mjs',
       'scripts/perf/',
       'scripts/ai-kosztorys/',
       'context/**',

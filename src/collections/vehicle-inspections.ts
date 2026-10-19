@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { makeResetBookkeeping } from '@/hooks/reset-bookkeeping'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import { makeResetBookkeeping } from '@/collections/hooks/reset-bookkeeping'
 import { INSPECTION_TYPE_LABELS, INSPECTION_TYPES } from '@/lib/fleet/inspection-types'
 import { resetNotificationBookkeeping } from '@/lib/fleet/reset-notification-bookkeeping'
 

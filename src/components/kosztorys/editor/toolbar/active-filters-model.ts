@@ -1,7 +1,7 @@
 import { PROBLEM_CONDITIONS } from '@/lib/kosztorys/problem-conditions'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
-export type ChipRemovalT = 'condition' | 'problem' | 'sections' | 'search'
+type ChipRemovalT = 'condition' | 'problem' | 'sections' | 'search'
 
 export type ActiveFilterChipT = {
   id: string

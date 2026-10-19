@@ -1,6 +1,9 @@
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import type { FormApiOfT } from '@/components/forms/hooks/form-api-of'
 import { randomId } from '@/lib/utils/random-id'
+import type { DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
+import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
+import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 
 export type BulkExpenseFormValuesT = {
   date: string
@@ -66,4 +69,18 @@ export function isBlankRow(row: Pick<BulkLineItemT, 'description' | 'amount'>): 
   return !row.description && !row.amount
 }
 
+export const sumLineItemAmounts = (items: Pick<BulkLineItemT, 'amount'>[]) =>
+  items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+
 export type BulkExpenseFormApiT = FormApiOfT<BulkExpenseFormValuesT>
+
+export type ExpenseFormPrefillT = {
+  values: BulkExpenseFormValuesT
+  files: Map<number, File[]>
+  expenseDraftId: number
+  receipts: Map<string, DraftReceiptT[]>
+  aiReadRows: ExpenseDraftReadRowT[]
+  pagesByMediaId: Map<number, File>
+  rejectedReceipts?: RejectedReceiptT[]
+  acceptedReadRows?: number[]
+}

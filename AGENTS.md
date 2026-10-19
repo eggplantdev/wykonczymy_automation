@@ -162,6 +162,7 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
   („przeanalizuj kolejne inwestycje”), rounds, Powody zmiany, experiments, analysis. Read its
   `README.md` in full first; cases, experiments and log entries go there, never under `context/`,
   and you may commit there. Tooling: `scripts/ai-kosztorys/`, run from this repo's root.
+- Payload collection hooks live in `src/collections/hooks/`; `src/hooks/` holds React hooks only.
 - Per-feature schemas/hooks live under `src/components/forms/<form>/`; `src/types` is cross-feature only.
 - **A hook's home follows its consumer count, counted in directories:** one form → `forms/<form>/`;
   two or more forms → `forms/hooks/` (domain-aware ones too); a non-form surface → `src/hooks/`.
@@ -201,7 +202,10 @@ revalidation. Harness traps: `src/__tests__/AGENTS.md`.
 
 - **Vercel is on a PAID plan** — Hobby limits (2 daily crons, 2K Blob ops) don't apply; a new scheduled
   job is a new `vercel.json` entry.
-- React Compiler is on — no hand-written `useMemo` / `useCallback`.
+- React Compiler is on — no hand-written `useMemo` / `useCallback`, **except where the compiled
+  output drops the cache** (the kosztorys editor, data tables): those hand memos are load-bearing and
+  pinned by a `*-memoization.test.ts` spec on `__tests__/helpers/react-compiler-cache.ts`. Never strip
+  a memo such a spec guards; touching a hot derived value elsewhere, add one.
 - **The app speaks the viewer's account language** via `AppLanguageProvider`, falling back to
   Polish. Make a shared component translatable in place (`useTranslation(ns)` or a translator defaulting
   to `POLISH_<ns>`). **Never translate through the `lib/constants/transfers.ts` label maps** — sheet sync
@@ -284,7 +288,7 @@ blames `globals.css`. Repair: `pnpm install --force`, `rm -rf .next`, restart de
 ## Databases
 
 - **Local dev:** docker Postgres on 5433 (`docker compose up -d`; `DB_POSTGRES_URL`, db
-  `wykonczymy-db`), restored from Neon dumps — `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by pre-push) and `pnpm db:import`.
+  `wykonczymy-db`), restored from Neon dumps — `pnpm db:dump` (prod → `dumps/dump-latest.sql`, offered by pre-push only on a push to `staging`) and `pnpm db:import`.
   Confirm before wiping it: a restore loses anything entered locally since the last dump.
 - **E2E:** isolated `db-test` container on 5435 (`DB_POSTGRES_URL_TEST`, db `wykonczymy-test`). Reset with
   `pnpm db:reset:test`. `pnpm test:e2e`, integration and parity clone it from

@@ -195,7 +195,7 @@ export type WorkerReportsSeedT = {
   openReportId: number | undefined
 }
 
-export type KosztorysV2RowBaseT = KosztorysItemT & {
+type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
   sectionColor: SectionColorKeyT | null
   vatRate: number

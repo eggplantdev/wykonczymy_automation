@@ -185,21 +185,27 @@ const RETENTION_SCOPES = {
   template: { table: sql.raw('template_snapshots'), owner: sql.raw('template_id') },
 } as const
 
-export async function gcRetentionBands(
+export type RetentionScopeT = keyof typeof RETENTION_SCOPES
+
+export async function deleteSnapshotsPastCeiling(
   db: DbExecutorT,
-  scope: keyof typeof RETENTION_SCOPES,
-): Promise<{ ceiling: number; daily: number; weekly: number }> {
-  const { table, owner } = RETENTION_SCOPES[scope]
-  const ceiling = await db.execute(sql`
+  scope: RetentionScopeT,
+): Promise<number> {
+  const { table } = RETENTION_SCOPES[scope]
+  const res = await db.execute(sql`
     DELETE FROM ${table}
     WHERE kind IN ('auto', 'manual')
       AND taken_at < now() - make_interval(days => ${MAX_AGE_DAYS})
     RETURNING id
   `)
+  return res.rows.length
+}
 
-  // Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would otherwise land in
-  // the previous calendar day.
-  const daily = await db.execute(sql`
+// Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would otherwise land in
+// the previous calendar day.
+export async function thinDailyBand(db: DbExecutorT, scope: RetentionScopeT): Promise<number> {
+  const { table, owner } = RETENTION_SCOPES[scope]
+  const res = await db.execute(sql`
     DELETE FROM ${table} WHERE id IN (
       SELECT id FROM (
         SELECT id, row_number() OVER (
@@ -214,8 +220,12 @@ export async function gcRetentionBands(
     )
     RETURNING id
   `)
+  return res.rows.length
+}
 
-  const weekly = await db.execute(sql`
+export async function thinWeeklyBand(db: DbExecutorT, scope: RetentionScopeT): Promise<number> {
+  const { table, owner } = RETENTION_SCOPES[scope]
+  const res = await db.execute(sql`
     DELETE FROM ${table} WHERE id IN (
       SELECT id FROM (
         SELECT id, row_number() OVER (
@@ -229,21 +239,12 @@ export async function gcRetentionBands(
     )
     RETURNING id
   `)
-
-  return { ceiling: ceiling.rows.length, daily: daily.rows.length, weekly: weekly.rows.length }
+  return res.rows.length
 }
 
-export async function gcSnapshots(db: DbExecutorT): Promise<{
-  deleted: number
-  ceiling: number
-  daily: number
-  weekly: number
-  investorExpired: number
-}> {
-  const bands = await gcRetentionBands(db, 'kosztorys')
-
-  // A NULL completed_at fails the comparison, so it keeps.
-  const investorExpired = await db.execute(sql`
+// A NULL completed_at fails the comparison, so it keeps.
+export async function deleteExpiredInvestorSnapshots(db: DbExecutorT): Promise<number> {
+  const res = await db.execute(sql`
     DELETE FROM kosztorys_snapshots s
     USING investments i
     WHERE i.id = s.investment_id
@@ -252,10 +253,5 @@ export async function gcSnapshots(db: DbExecutorT): Promise<{
       AND i.completed_at < now() - make_interval(days => ${INVESTOR_HISTORY_DAYS_AFTER_COMPLETION})
     RETURNING s.id
   `)
-
-  const counts = { ...bands, investorExpired: investorExpired.rows.length }
-  return {
-    deleted: counts.ceiling + counts.daily + counts.weekly + counts.investorExpired,
-    ...counts,
-  }
+  return res.rows.length
 }

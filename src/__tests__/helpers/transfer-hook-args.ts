@@ -1,4 +1,4 @@
-import type { validateTransfer } from '@/hooks/transfers/validate'
+import type { validateTransfer } from '@/collections/hooks/transfers/validate'
 
 type ExecuteT = (query: unknown) => Promise<{ rows: Array<Record<string, unknown>> }>
 

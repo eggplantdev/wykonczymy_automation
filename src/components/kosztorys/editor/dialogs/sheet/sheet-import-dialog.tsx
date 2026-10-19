@@ -19,7 +19,8 @@ import {
   ReportTable,
 } from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import { columnNoun, itemNoun, itemVanishesPhrase } from '@/lib/kosztorys/counted-nouns'
-import { applyKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
+import { applyKosztorysImport } from '@/lib/actions/kosztorys-import'
+import type { ImportPreviewT } from '@/lib/queries/kosztorys-import-preview'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { formatCoeff } from '@/lib/kosztorys/format'

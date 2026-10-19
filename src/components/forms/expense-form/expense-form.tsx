@@ -39,7 +39,9 @@ import {
 } from '@/lib/transfers/clear-fields-for-type'
 import {
   makeLineItem,
+  sumLineItemAmounts,
   type BulkExpenseFormValuesT,
+  type ExpenseFormPrefillT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import { positionalFiles } from '@/components/forms/expense-form/row-file-positions'
 import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
@@ -66,26 +68,13 @@ import { RegisterBalanceSummary } from '../form-components/register-balance-summ
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment, isOfferedForBooking } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
-import { receiptDecision, type DraftReceiptT } from '@/lib/worker-expenses/receipt-decision'
+import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
-import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
-import type { RejectedReceiptT } from '@/lib/db/worker-expense-drafts'
 import type { DecisionStatusT } from '@/components/ui/decision-progress-badge'
 
 type FormValuesT = BulkExpenseFormValuesT
 
 export type ParagonRowT = { itemId: string; position: number; status: DecisionStatusT }
-
-export type ExpenseFormPrefillT = {
-  values: FormValuesT
-  files: Map<number, File[]>
-  expenseDraftId: number
-  receipts: Map<string, DraftReceiptT[]>
-  aiReadRows: ExpenseDraftReadRowT[]
-  pagesByMediaId: Map<number, File>
-  rejectedReceipts?: RejectedReceiptT[]
-  acceptedReadRows?: number[]
-}
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -306,8 +295,6 @@ export function ExpenseForm({
     renameFile: prefill ? () => {} : renameFile,
   })
 
-  const handleGenerate = generateFromReceipts
-
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
@@ -329,9 +316,7 @@ export function ExpenseForm({
     onDecided,
   })
 
-  const sumAmounts = (items: typeof lineItems) =>
-    items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-  const total = sumAmounts(
+  const total = sumLineItemAmounts(
     lineItems.filter((item) => !isParagonMode || draftReceipts.pendingIds.has(item.id)),
   )
 
@@ -470,7 +455,7 @@ export function ExpenseForm({
               onRemoveFile={removeFileAt}
               onRegisterFiles={registerFiles}
               getRowFiles={getRowFiles}
-              onGenerate={handleGenerate}
+              onGenerate={generateFromReceipts}
               onGenerateRow={regenerateRow}
               isGenerating={isGenerating || isPrefillReading}
               generatingIds={generatingIds}

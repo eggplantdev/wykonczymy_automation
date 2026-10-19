@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { validateEquipmentEvent } from '@/hooks/equipment/validate'
+import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import { validateEquipmentEvent } from '@/collections/hooks/equipment/validate'
 
 export const EquipmentEvents: CollectionConfig = {
   slug: 'equipment-events',

@@ -133,7 +133,7 @@ export function DataTable<TData>({
   const rankedColumnIds = leafColumnIds(columns.filter((column) => column.enableHiding !== false))
 
   const table = useReactTable({
-    data: data as TData[],
+    data,
     columns,
     state: {
       sorting,

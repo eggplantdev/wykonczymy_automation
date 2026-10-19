@@ -29,10 +29,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const { t } = useTranslation('shell')
   const toggleLabel = collapsed ? t('expandMenu') : t('collapseMenu')
 
-  // Roundcube can't auto-login via URL; _user only prefills the username field on its
-  // login page (no-op when a Roundcube session is already active).
-  // const roundcubeUrl = `https://www.wykonczymy.com.pl/webmail/?_user=${encodeURIComponent(user.email)}`
-
   return (
     <aside
       className={cn(
@@ -90,12 +86,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           <CollapsibleTooltip collapsed={collapsed} label={PAGE_TITLES.trash}>
             <TrashButton collapsed={collapsed} active={isActive(TRASH_HREF)} />
           </CollapsibleTooltip>
-          {/* <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
-            <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">
-              <Mail />
-              Poczta
-            </Link>
-          </Button> */}
           {!collapsed && openRouterBalance}
           <CollapsibleTooltip collapsed={collapsed} label={t('logout')}>
             <LogoutButton collapsed={collapsed} />

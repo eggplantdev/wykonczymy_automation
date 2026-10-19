@@ -4,7 +4,7 @@ import { SelectItem } from '@/components/ui/select'
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 import { EQUIPMENT_STATUSES, EQUIPMENT_STATUS_LABELS } from '@/lib/equipment/equipment-status'
 
-export type EquipmentItemFieldNameT =
+type EquipmentItemFieldNameT =
   | 'name'
   | 'serialNumber'
   | 'make'
