@@ -38,8 +38,7 @@ export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
     async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
-      // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole
-      // here.
+      // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole here.
       const data = normalizeOverridePatch(parsed.data)
       await payload.update({ collection: 'kosztorys-items', id: itemId, data })
       return { success: true }

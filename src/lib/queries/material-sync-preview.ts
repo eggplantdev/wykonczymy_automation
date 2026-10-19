@@ -38,8 +38,7 @@ export async function previewMaterialSync(investmentId: number) {
 
     const tabs: TabSyncPreviewT[] = []
     for (const { label, spec } of previewTabs) {
-      // The expenses tab has no auto-create, so a missing one surfaces here
-      // (throws → the reset-button hint) rather than being silently treated as empty.
+      // The expenses tab has no auto-create, so a missing one must throw (the reset-button hint), not read as empty.
       const plan = await buildSyncPlan(payload, investmentId, sheetId, spec, {
         emptyIfMissing: !!spec.ensure,
       })

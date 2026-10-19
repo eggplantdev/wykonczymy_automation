@@ -9,7 +9,8 @@ import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settleme
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import type { ActionResultT } from '@/types/action'
 
-// Floor only: above 0,65 the mnożnik warns but saves (owner, 2026-09-21); below 0 is a typo.
+// Floor only: above the plane's ceiling (`MAX_CLIENT_SHARE`) the mnożnik warns but saves (owner,
+// 2026-09-21); below 0 is a typo.
 const investmentCoeffsSchema = z
   .object({
     wToolsCoeff: z.coerce.number().min(0),

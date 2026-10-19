@@ -40,10 +40,8 @@ export function useInvestorActions(): InvestorActionsT {
   const settingsRequest = useLatestRequest()
   const shareRequest = useLatestRequest()
 
-  // Radix onOpenChange never fires for a programmatic
-  // `open`, so the dialog can't fetch itself.
-  // Latest-wins: a slow first read landing after a second one would put a stale set back into the
-  // dialog — and the next „Zapisz" would write that stale set over what the owner had just saved.
+  // Radix onOpenChange never fires for a programmatic `open`, so the dialog can't fetch itself.
+  // Latest-wins: a slow first read landing late would put a stale set back, and „Zapisz" would save it.
   function readSettings() {
     const isCurrent = settingsRequest.start()
     setClientView(null)
