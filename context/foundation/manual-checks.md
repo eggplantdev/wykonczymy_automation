@@ -1341,6 +1341,27 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
       postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
 
+## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
+
+- [ ] Jako OWNER na „Transakcje”, gdy pracownik odrzucił wypłatę: sekcja „Wypłaty odrzucone przez
+      pracowników” jest zwijana, pod tytułem ma „Takie wypłaty trzeba wyjaśnić z pracownikiem lub
+      anulować.”, tabela zaczyna się kolumną „Anuluj”, a nagłówki i komórki są wyrównane do lewej.
+- [ ] W tej tabeli ID, pracownik, inwestycja i kasa to linki: ID otwiera transakcję na liście
+      inwestycji (wypłata bez inwestycji — na „Transakcje”); kasa przeniesiona do Kosza nie jest linkiem.
+- [ ] „Anuluj” w tej tabeli pyta o powód i anuluje wypłatę: wiersz znika, licznik przy „Transakcje” w
+      menu spada o jeden. Przy zakończonej inwestycji przycisk jest wyszarzony z podpowiedzią.
+- [ ] W menu nie ma pozycji „Wypłaty”, a adres `/wyplaty` pokazuje „Nie znaleziono”. Na „Transakcje”
+      filtr statusu potwierdzenia zawęża listę do wypłat o wybranym statusie.
+
+## 2026-10-19 — cancel-rejected-payout — odrzuconą wypłatę anuluje każdy z zarządu
+
+- [ ] Jako MANAGER: wypłata zaksięgowana przez innego kierownika albo właściciela i odrzucona przez
+      pracownika → „Anuluj” na pulpicie anuluje ją bez „Nie masz uprawnień do anulowania tej
+      transakcji.”, a saldo kasy wraca o tę kwotę.
+- [ ] Jako MANAGER na „Transakcje”: przy cudzej wypłacie oczekującej lub przyjętej i przy cudzym
+      wydatku nie ma „Anuluj”; przy swoich transakcjach i przy cudzej robociźnie jest.
+- [ ] Jako MANAGER przy cudzej odrzuconej wypłacie edycja dalej jest niedostępna.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
