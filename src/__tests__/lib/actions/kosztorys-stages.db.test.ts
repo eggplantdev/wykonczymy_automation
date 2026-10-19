@@ -13,7 +13,7 @@ const {
   setStageProgressAction,
   updateStageAction,
   updateStageSplitAction,
-} = await import('@/lib/actions/kosztorys')
+} = await import('@/lib/actions/kosztorys-stages')
 const { WORKER_TRASHED_MESSAGE } = await import('@/lib/constants/worker-lock')
 
 describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', () => {

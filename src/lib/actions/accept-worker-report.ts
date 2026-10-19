@@ -12,7 +12,6 @@ import { insertWorkerStage } from '@/lib/db/stage-split'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   clearLinesAcceptance,
-  readWorkerReport,
   setLinesRejected,
   setPendingExtraItem,
   settleReport,
@@ -20,6 +19,7 @@ import {
   type ReportLineDecisionT,
   type WorkerReportLineRowT,
 } from '@/lib/db/worker-reports'
+import { readWorkerReport } from '@/lib/queries/read-worker-report'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'

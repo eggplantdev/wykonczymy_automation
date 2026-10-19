@@ -3,11 +3,8 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { FALLBACK_MODEL } from '@/lib/ai/openrouter-client'
-import {
-  insertWorkerReport,
-  readWorkerReport,
-  type WorkerReportLineInputT,
-} from '@/lib/db/worker-reports'
+import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'
+import { readWorkerReport } from '@/lib/queries/read-worker-report'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'

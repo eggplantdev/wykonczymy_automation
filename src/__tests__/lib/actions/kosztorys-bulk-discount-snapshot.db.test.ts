@@ -8,7 +8,7 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const { applyPercentDiscountToAllItemsAction } = await import('@/lib/actions/kosztorys')
+const { applyPercentDiscountToAllItemsAction } = await import('@/lib/actions/kosztorys-items')
 
 describe.skipIf(!ENV_READY)('bulk percent rabat — snapshot-before-overwrite (DB)', () => {
   let payload: Payload

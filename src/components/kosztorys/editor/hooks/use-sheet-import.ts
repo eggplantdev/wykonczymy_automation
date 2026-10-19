@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { previewKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
+import { previewKosztorysImport, type ImportPreviewT } from '@/lib/queries/kosztorys-import-preview'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type OptionsT = {

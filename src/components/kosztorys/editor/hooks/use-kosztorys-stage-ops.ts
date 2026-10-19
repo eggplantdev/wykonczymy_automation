@@ -6,7 +6,7 @@ import {
   removeStageAction,
   updateStageAction,
   updateStageSplitAction,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-stages'
 import { settleAction } from '@/lib/utils/settle-action'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type {

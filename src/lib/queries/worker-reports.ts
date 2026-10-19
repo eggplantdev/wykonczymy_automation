@@ -3,10 +3,10 @@
 import { managementDb } from '@/lib/queries/management-db'
 import {
   listWorkerReports,
-  readWorkerReport,
   type WorkerReportLineRowT,
   type WorkerReportRowT,
 } from '@/lib/db/worker-reports'
+import { readWorkerReport } from '@/lib/queries/read-worker-report'
 import {
   listWorkersWithActiveStages,
   listWorkerStageInvestments,

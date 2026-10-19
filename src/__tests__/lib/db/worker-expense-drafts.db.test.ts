@@ -7,12 +7,8 @@ import { sqlList } from '@/lib/db/sql-list'
 import { findReferencedMediaIds } from '@/lib/db/media-detachments'
 import {
   decideExpenseDraft,
-  decideExpenseParagons,
   deletePendingExpenseDraft,
   findExpenseDraftDecisions,
-  mergeExpenseDrafts,
-  rejectPendingParagons,
-  reopenSkippedReceipt,
   insertWorkerExpenseDraft,
   listAllDraftTransferIds,
   listDraftTransferIds,
@@ -25,6 +21,12 @@ import {
   type ExpenseDraftFiltersT,
   type ExpenseDraftRowT,
 } from '@/lib/db/worker-expense-drafts'
+import {
+  decideExpenseParagons,
+  mergeExpenseDrafts,
+  rejectPendingParagons,
+  reopenSkippedReceipt,
+} from '@/lib/actions/expense-draft-flows'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { workerUseBlocker } from '@/lib/workers/delete-blocker'

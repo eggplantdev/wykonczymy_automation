@@ -1,8 +1,6 @@
 'use server'
 
 import { z } from 'zod'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, verifySheetAccess } from '@/lib/google/sheet-access'
 import { writeServiceAccountEmail } from '@/lib/google/auth'
@@ -45,19 +43,6 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
     },
     ['investments'],
   )
-}
-
-// never throws: returns '' if the
-// caller isn't authed or the credential env var is unset, so the caller's
-// fire-and-forget `.then(setSaEmail)` can't raise an unhandled rejection
-export async function getServiceAccountEmailAction(): Promise<string> {
-  const auth = await requireAuth(MANAGEMENT_ROLES)
-  if (!auth.success) return ''
-  try {
-    return writeServiceAccountEmail()
-  } catch {
-    return ''
-  }
 }
 
 export async function linkSheetAction(investmentId: number, input: string) {

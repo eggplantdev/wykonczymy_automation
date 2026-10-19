@@ -8,10 +8,9 @@ import {
   listDecidableReports,
   listReportFilterOptions,
   listReportsByWorker,
-  readReportPreview,
-  readWorkerReport,
   type WorkerReportFiltersT,
 } from '@/lib/db/worker-reports'
+import { readReportPreview, readWorkerReport } from '@/lib/queries/read-worker-report'
 import { setLineTranslations } from '@/lib/db/worker-report-line-translations'
 import { ALL_TIME } from '@/lib/utils/date-range'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'

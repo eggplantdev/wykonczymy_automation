@@ -7,12 +7,12 @@ import { DialogActions } from '@/components/ui/dialog-actions'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import { applyMaterialSync } from '@/lib/actions/sheets-sync'
 import {
-  applyMaterialSync,
   previewMaterialSync,
   type MaterialSyncPreviewT,
   type TabSyncPreviewT,
-} from '@/lib/actions/sheets-sync'
+} from '@/lib/queries/material-sync-preview'
 import { setupSheetAction } from '@/lib/actions/investments'
 import { formatPLN } from '@/lib/utils/format-currency'
 

@@ -1,4 +1,4 @@
-import type { AddItemInputT } from '@/lib/actions/kosztorys'
+import type { AddItemInputT } from '@/lib/actions/kosztorys-items'
 import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 
 const FIXTURE_DATA: AddItemInputT['data'] = {

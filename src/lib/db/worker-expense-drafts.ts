@@ -386,7 +386,7 @@ export async function listExpenseDraftFilterOptions(
   return { investments: investmentsRes.rows.map(toItem), workers: workersRes.rows.map(toItem) }
 }
 
-type DecisionRowsT = {
+export type DecisionRowsT = {
   transferIds: number[]
   // Positional to `transferIds`: the draft's pages each transakcja was booked from.
   transferMediaIds?: number[][]
@@ -395,7 +395,7 @@ type DecisionRowsT = {
   skippedReceipts?: SkippedReceiptT[]
 }
 
-function decisionRows(decision: DecisionRowsT) {
+export function decisionRows(decision: DecisionRowsT) {
   return {
     transfers: decision.transferIds.map((id, i) => ({
       id,
@@ -475,7 +475,7 @@ export const decidedReadRows = (draftId: SqlT) => sql`
 
 const DECIDED_READ_ROWS = decidedReadRows(sql`d.id`)
 
-async function settleExpenseDraft(
+export async function settleExpenseDraft(
   db: DbExecutorT,
   draftId: number,
   decidedBy: number | null,
@@ -500,47 +500,43 @@ async function settleExpenseDraft(
   `)
 }
 
-export type ParagonRefusalT = { refusal: 'not-pending' } | { refusal: 'clash'; readRows: number[] }
-
-/**
- * Refused once the zgłoszenie is decided or any of these paragony already is, so two managers can't
- * both book one.
- */
-export async function decideExpenseParagons(
-  db: DbExecutorT,
-  decision: DecisionRowsT & { draftId: number; decidedBy: number },
-): Promise<{ rejected: RejectedReceiptT[] } | ParagonRefusalT> {
-  const { transfers, skipped } = decisionRows(decision)
-  const requested = [
-    ...transfers.flatMap((t) => t.read_rows),
-    ...skipped.flatMap((r) => (r.read_row === null ? [] : [r.read_row])),
-  ]
+export async function lockPendingExpenseDraft(db: DbExecutorT, draftId: number): Promise<boolean> {
   const locked = await db.execute(sql`
     SELECT d.id FROM worker_expense_drafts d
-    WHERE d.id = ${decision.draftId} AND d.status = 'pending'
+    WHERE d.id = ${draftId} AND d.status = 'pending'
     FOR UPDATE
   `)
-  if (locked.rows.length === 0) return { refusal: 'not-pending' }
+  return locked.rows.length > 0
+}
+
+export async function findDecidedReadRows(
+  db: DbExecutorT,
+  draftId: number,
+  readRows: number[],
+): Promise<number[]> {
   const clash = await db.execute(sql`
     SELECT decided.read_row FROM worker_expense_drafts d,
       LATERAL (${DECIDED_READ_ROWS}) decided(read_row)
-    WHERE d.id = ${decision.draftId} AND decided.read_row = ANY(${asIntArray(requested)})
+    WHERE d.id = ${draftId} AND decided.read_row = ANY(${asIntArray(readRows)})
     ORDER BY 1
   `)
-  if (clash.rows.length > 0) {
-    return { refusal: 'clash', readRows: clash.rows.map((row) => Number(row.read_row)) }
-  }
+  return clash.rows.map((row) => Number(row.read_row))
+}
 
+export async function insertParagonDecisions(
+  db: DbExecutorT,
+  draftId: number,
+  rows: ReturnType<typeof decisionRows>,
+): Promise<RejectedReceiptT[]> {
   const res = await db.execute(sql`
     WITH decided AS (
       SELECT d.id, ${READ_COUNT} AS read_count FROM worker_expense_drafts d
-      WHERE d.id = ${decision.draftId}
-    ), ${insertDecisions({ transfers, skipped })}
+      WHERE d.id = ${draftId}
+    ), ${insertDecisions(rows)}
     SELECT json_build_object('id', id, 'readRow', read_row, 'mediaIds', media_ids) AS receipt
     FROM skipped
   `)
-  await settleExpenseDraft(db, decision.draftId, decision.decidedBy)
-  return { rejected: toRejectedReceipts(res.rows.map((row) => row.receipt)) }
+  return toRejectedReceipts(res.rows.map((row) => row.receipt))
 }
 
 export type ExpenseDraftDecisionsT = Pick<
@@ -564,10 +560,11 @@ export async function findExpenseDraftDecisions(
   }
 }
 
-export async function rejectPendingParagons(
+/** The draft's read count, or `null` when it is no longer pending. */
+export async function skipUndecidedParagons(
   db: DbExecutorT,
   decision: { draftId: number; decidedBy: number; duplicateOf?: DuplicateOfT },
-): Promise<'refused' | 'no-read' | 'done'> {
+): Promise<number | null> {
   const res = await db.execute(sql`
     WITH draft AS (
       SELECT d.id, d.ai_read, ${READ_COUNT} AS read_count FROM worker_expense_drafts d
@@ -584,17 +581,17 @@ export async function rejectPendingParagons(
     SELECT read_count FROM draft
   `)
   const row = res.rows[0]
-  if (!row) return 'refused'
-  if (Number(row.read_count) === 0) return 'no-read'
-  await settleExpenseDraft(db, decision.draftId, decision.decidedBy)
-  return 'done'
+  return row ? Number(row.read_count) : null
 }
 
 /**
  * Only a paragon named by its read row, and only on a zgłoszenie whose transakcje all name theirs —
  * one booked before read rows were kept would come back unbooked in the acceptance.
  */
-export async function reopenSkippedReceipt(db: DbExecutorT, receiptId: number): Promise<boolean> {
+export async function deleteReopenableSkippedReceipt(
+  db: DbExecutorT,
+  receiptId: number,
+): Promise<number | null> {
   const res = await db.execute(sql`
     DELETE FROM worker_expense_draft_skipped_receipts sr
     USING worker_expense_drafts d
@@ -607,9 +604,7 @@ export async function reopenSkippedReceipt(db: DbExecutorT, receiptId: number): 
     RETURNING d.id
   `)
   const row = res.rows[0]
-  if (!row) return false
-  await settleExpenseDraft(db, Number(row.id), null)
-  return true
+  return row ? Number(row.id) : null
 }
 
 export async function restoreRejectedExpenseDraft(
@@ -660,16 +655,21 @@ export async function restoreSkippedReceipt(
   return row ? Number(row.id) : null
 }
 
-export type MergeRefusalT = 'not-pending' | 'mixed' | 'decided' | 'unread'
+export type MergeCandidateT = {
+  id: number
+  workerId: number
+  investmentId: number | null
+  cashRegisterId: number
+  note: string | null
+  status: ExpenseDraftStatusT
+  hasRead: boolean
+  hasDecisions: boolean
+}
 
-/**
- * Refused once anything inside is decided — a decision names its read row by position, which the
- * chaining shifts — or while one has no read, whose photos would be paragony nothing tracks.
- */
-export async function mergeExpenseDrafts(
+export async function lockMergeCandidates(
   db: DbExecutorT,
   draftIds: number[],
-): Promise<{ draftId: number } | { refusal: MergeRefusalT }> {
+): Promise<MergeCandidateT[]> {
   const locked = await db.execute(sql`
     SELECT d.id, d.worker_id, d.investment_id, d.cash_register_id, d.note, d.status,
       jsonb_typeof(d.ai_read -> 'rows') = 'array' AS has_read,
@@ -681,24 +681,25 @@ export async function mergeExpenseDrafts(
     ORDER BY d.sent_at, d.id
     FOR UPDATE
   `)
-  const rows = locked.rows
-  if (rows.length !== draftIds.length || rows.some((row) => row.status !== 'pending')) {
-    return { refusal: 'not-pending' }
-  }
-  const [target] = rows
-  const sameParties = rows.every(
-    (row) =>
-      row.worker_id === target.worker_id &&
-      row.investment_id === target.investment_id &&
-      row.cash_register_id === target.cash_register_id,
-  )
-  if (!sameParties) return { refusal: 'mixed' }
-  if (rows.some((row) => row.has_decisions === true)) return { refusal: 'decided' }
-  if (rows.some((row) => row.has_read !== true)) return { refusal: 'unread' }
+  return locked.rows.map((row) => ({
+    id: Number(row.id),
+    workerId: Number(row.worker_id),
+    investmentId: numOrNull(row.investment_id),
+    cashRegisterId: Number(row.cash_register_id),
+    note: textOrNull(row.note),
+    status: row.status as ExpenseDraftStatusT,
+    hasRead: row.has_read === true,
+    hasDecisions: row.has_decisions === true,
+  }))
+}
 
-  const targetId = Number(target.id)
-  const mergedIds = rows.slice(1).map((row) => Number(row.id))
-  const note = rows.flatMap((row) => (row.note ? [text(row.note)] : [])).join('\n') || null
+/** Chains the merged drafts' pages and read rows onto the target, in `mergedIds` order. */
+export async function appendDraftsInto(
+  db: DbExecutorT,
+  targetId: number,
+  mergedIds: number[],
+  note: string | null,
+): Promise<void> {
   await db.execute(sql`
     WITH ordered AS (
       SELECT d.id, ord FROM unnest(${asIntArray([targetId, ...mergedIds])}) WITH ORDINALITY AS o(id, ord)
@@ -719,8 +720,10 @@ export async function mergeExpenseDrafts(
     ))
     WHERE id = ${targetId}
   `)
-  await db.execute(sql`DELETE FROM worker_expense_drafts WHERE id IN (${sqlList(mergedIds)})`)
-  return { draftId: targetId }
+}
+
+export async function deleteExpenseDrafts(db: DbExecutorT, draftIds: number[]): Promise<void> {
+  await db.execute(sql`DELETE FROM worker_expense_drafts WHERE id IN (${sqlList(draftIds)})`)
 }
 
 export async function loadExpenseDraftForRead(

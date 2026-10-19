@@ -3,7 +3,7 @@ import { fireEvent, render, renderHook, screen, waitFor, within } from '@testing
 import userEvent from '@testing-library/user-event'
 import { ReorderDialog } from '@/components/kosztorys/editor/dialogs/reorder/reorder-dialog'
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
-import { writeKosztorysLayoutAction } from '@/lib/actions/kosztorys'
+import { writeKosztorysLayoutAction } from '@/lib/actions/kosztorys-sections'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 

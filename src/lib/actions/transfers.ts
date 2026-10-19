@@ -18,7 +18,7 @@ import {
 } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { decideExpenseParagons, type ParagonRefusalT } from '@/lib/db/worker-expense-drafts'
+import { decideExpenseParagons, type ParagonRefusalT } from './expense-draft-flows'
 import { skippedReceiptSchema, type SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
 import { paragonRefusalFailure } from '@/lib/worker-expenses/paragon-refusal'
 import {

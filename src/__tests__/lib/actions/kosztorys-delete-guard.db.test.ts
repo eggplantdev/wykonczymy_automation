@@ -8,7 +8,8 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const { removeItemAction, removeSectionAction } = await import('@/lib/actions/kosztorys')
+const { removeItemAction } = await import('@/lib/actions/kosztorys-items')
+const { removeSectionAction } = await import('@/lib/actions/kosztorys-sections')
 
 describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', () => {
   let payload: Payload

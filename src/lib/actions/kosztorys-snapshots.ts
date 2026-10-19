@@ -2,15 +2,14 @@
 
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
-import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { snapshotLabelSchema } from '@/lib/kosztorys/snapshot-label-schema'
 import { getDb } from '@/lib/db/get-db'
-import { getSnapshot, insertSnapshot, listSnapshots, type SnapshotMetaT } from '@/lib/db/snapshots'
+import { getSnapshot, insertSnapshot } from '@/lib/db/snapshots'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
-import { withTakenByNames } from '@/lib/kosztorys/snapshot-taken-by-names'
 import type { ActionResultT } from '@/types/action'
 
 export async function snapshotAction(investmentId: number): Promise<ActionResultT> {
@@ -82,20 +81,4 @@ export async function restoreSnapshotAction(
     },
     [...KOSZTORYS_TREE_TAGS],
   )
-}
-
-// Without the owner id: the template plane lists its versions in the same drawer.
-export type SnapshotListItemT = Omit<SnapshotMetaT, 'investmentId'> & { takenByName: string | null }
-
-export async function listSnapshotsAction(
-  investmentId: number,
-): Promise<ActionResultT<SnapshotListItemT[]>> {
-  // Reads only — a locked kosztorys keeps its history browsable; restoring it is what's refused.
-  return protectedAction('listSnapshotsAction', async ({ payload }) => {
-    const db = await getDb(payload)
-    return {
-      success: true,
-      data: await withTakenByNames(payload, await listSnapshots(db, investmentId)),
-    }
-  })
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
-import type { MaterialSyncPreviewT } from '@/lib/actions/sheets-sync'
+import type { MaterialSyncPreviewT } from '@/lib/queries/material-sync-preview'
 import { setGoogleCredentialEnv } from '@/__tests__/helpers/google-credentials'
 import { activeInvestmentExecute } from '@/__tests__/helpers/transfer-hook-args'
 
@@ -79,7 +79,8 @@ vi.mock('payload', async (importOriginal) => {
 
 vi.mock('@/lib/auth/get-current-user-jwt', () => import('@/__tests__/stubs/get-current-user-jwt'))
 
-const { previewMaterialSync, applyMaterialSync } = await import('@/lib/actions/sheets-sync')
+const { applyMaterialSync } = await import('@/lib/actions/sheets-sync')
+const { previewMaterialSync } = await import('@/lib/queries/material-sync-preview')
 const { syncSingleTransferToSheet, removeTransferFromSheet } =
   await import('@/lib/google/transfer-sheet-sync')
 

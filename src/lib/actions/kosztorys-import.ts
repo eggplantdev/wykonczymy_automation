@@ -1,50 +1,37 @@
 'use server'
 
 import { investmentAction } from '@/lib/actions/investment-action'
-import { protectedAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { listCatalogueIdentitiesByMatchKey } from '@/lib/db/work-catalogue'
-import type { CatalogueIdentityT } from '@/lib/kosztorys/work-catalogue/types'
 import { setSheetMeasuredQty } from '@/lib/db/kosztorys-sheet-measured-qty'
-import { getInvestmentSheet, MISSING_SHEET, type InvestmentSheetT } from '@/lib/google/sheet-lookup'
+import { getInvestmentSheet, MISSING_SHEET } from '@/lib/google/sheet-lookup'
+import { getReadonlySheetsClient } from '@/lib/google/readonly-sheets-client'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
-import {
-  buildImportPlan,
-  type ImportPlanT,
-  type ImportReportT,
-  type StageDefaultsT,
-} from '@/lib/kosztorys/sheet-import/build-import-plan'
+import type { ImportPlanT } from '@/lib/kosztorys/sheet-import/build-import-plan'
 import { buildMeasuredQtyRefresh } from '@/lib/kosztorys/sheet-import/build-measured-qty-refresh'
 import {
   buildSheetComparison,
   type SheetComparisonT,
 } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'
+import type { SheetFailureT } from '@/lib/kosztorys/sheet-import/classify-sheet-failure'
+import {
+  derivePlan,
+  NO_COLUMNS,
+  sheetFailureMessage,
+  toSheetFailure,
+} from '@/lib/kosztorys/sheet-import/read-import-plan'
+import { readImportGrids } from '@/lib/kosztorys/sheet-import/read-sheet'
 import {
   resolveLaborColumns,
   type UnresolvedColumnsT,
 } from '@/lib/kosztorys/sheet-import/resolve-columns'
-import {
-  classifySheetFailure,
-  type SheetFailureReasonT,
-  type SheetFailureT,
-} from '@/lib/kosztorys/sheet-import/classify-sheet-failure'
-import { readImportGrids, LABOR_TAB } from '@/lib/kosztorys/sheet-import/read-sheet'
-import { getReadonlySheetsClient } from '@/lib/google/readonly-sheets-client'
-import { serviceAccountEmail } from '@/lib/google/sheet-access'
 import type { ActionResultT } from '@/types/action'
 
 const PRE_IMPORT_LABEL = 'Przed importem z arkusza Google'
-
-export type ImportPreviewT = {
-  report: ImportReportT
-  problems: string[]
-  columns: UnresolvedColumnsT
-  failure: SheetFailureT | null
-}
 
 type RefreshMeasuredQtyResultT = {
   updated: number
@@ -65,90 +52,6 @@ export type ApplyImportResultT = {
   items: number
   stages: number
   droppedWorkerAssignments: number
-}
-
-async function derivePlan(
-  investmentId: number,
-  sheet: InvestmentSheetT,
-  stageDefaults?: StageDefaultsT,
-  catalogue?: ReadonlyMap<string, CatalogueIdentityT>,
-): Promise<ImportPlanT> {
-  const grids = await readImportGrids(getReadonlySheetsClient(), sheet.googleSheetId)
-  return buildImportPlan(
-    grids,
-    await serializeKosztorys(investmentId),
-    sheet.sheetColumnMapping,
-    stageDefaults,
-    catalogue,
-  )
-}
-
-const FAILURE_MESSAGES: Record<SheetFailureReasonT, string> = {
-  forbidden: 'Arkusz Google nie jest udostępniony kontu usługi tej aplikacji.',
-  'not-found': 'Arkusz Google o tym identyfikatorze nie istnieje albo został usunięty.',
-  'missing-tab': `Arkusz Google nie ma zakładki „${LABOR_TAB}".`,
-  unknown: 'Nie udało się odczytać arkusza Google. Spróbuj ponownie za chwilę.',
-}
-
-function toSheetFailure(error: unknown): SheetFailureT {
-  const reason = classifySheetFailure(error)
-  if (reason === 'unknown') {
-    // TODO(EX-958) SENTRY-REQUIRED: capture the underlying Google error, not just the console line.
-    console.error('[kosztorys-import] sheet read failed', error)
-  }
-  return { reason, serviceAccountEmail: reason === 'forbidden' ? serviceAccountEmail() : null }
-}
-
-function sheetFailureMessage(error: unknown): string {
-  return FAILURE_MESSAGES[toSheetFailure(error).reason]
-}
-
-export async function previewKosztorysImport(
-  investmentId: number,
-): Promise<ActionResultT<ImportPreviewT>> {
-  return protectedAction<ImportPreviewT>('previewKosztorysImport', async ({ payload }) => {
-    const sheet = await getInvestmentSheet(payload, investmentId)
-    if (!sheet) return { success: false, error: MISSING_SHEET }
-
-    try {
-      const plan = await derivePlan(investmentId, sheet)
-      const columns = {
-        missingFields: plan.missingFields,
-        candidates: plan.candidates,
-        pointedFields: plan.pointedFields,
-      }
-      return plan.ok
-        ? { success: true, data: { report: plan.report, problems: [], columns, failure: null } }
-        : {
-            success: true,
-            data: { report: emptyReport(), problems: plan.problems, columns, failure: null },
-          }
-    } catch (error) {
-      return {
-        success: true,
-        data: {
-          report: emptyReport(),
-          problems: [],
-          columns: NO_COLUMNS,
-          failure: toSheetFailure(error),
-        },
-      }
-    }
-  })
-}
-
-const NO_COLUMNS: UnresolvedColumnsT = { missingFields: [], candidates: [], pointedFields: [] }
-
-function emptyReport(): ImportReportT {
-  return {
-    missingColumns: [],
-    counts: { sections: 0, items: 0, stages: 0 },
-    rateDecisions: [],
-    coeffs: { wTools: null, ownTools: null },
-    dropped: [],
-    totals: [],
-    warnings: [],
-  }
 }
 
 /**

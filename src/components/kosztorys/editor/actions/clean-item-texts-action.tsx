@@ -8,7 +8,7 @@ import {
   useTreeRewriteAction,
   type TreeRewriteActionT,
 } from '@/components/kosztorys/editor/actions/use-tree-rewrite-action'
-import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
+import { cleanItemTextsAction } from '@/lib/actions/kosztorys-items'
 import { toastMessage } from '@/lib/utils/toast'
 
 export function useCleanItemTextsAction(): TreeRewriteActionT {

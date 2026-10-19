@@ -1,4 +1,4 @@
-import type { ParagonRefusalT } from '@/lib/db/worker-expense-drafts'
+import type { ParagonRefusalT } from '@/lib/actions/expense-draft-flows'
 import { noticeFailure } from '@/lib/i18n/notice-failure'
 import type { FailureT } from '@/types/action'
 

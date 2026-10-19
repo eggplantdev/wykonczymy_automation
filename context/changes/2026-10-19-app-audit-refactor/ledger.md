@@ -145,3 +145,30 @@ Cycles after the phase: 42 (±0). knip: unused exports 36 → 30, unused exporte
       and a blob navigation can't start before the async fetch. Deprecated, not removed by browsers
 - [x] · fixed · `DEAD` · `src/lib/ai/{openrouter,translate,worker-report-scan}.ts` · `generateObject`
       → `generateText` with `Output.object`
+
+## Phase 4 — actions / db / queries boundary (2026-10-19)
+
+Cycles after the phase: 42 (±0).
+
+- [x] · fixed · `LAYER` · `src/lib/actions/{kosztorys-snapshots,template-snapshots,template-tree,investments,kosztorys-import,sheets-sync}.ts`
+      · reads moved to `src/lib/queries/{snapshot-list,service-account-email,kosztorys-import-preview,material-sync-preview,kosztorys-revision}.ts`;
+      the two revision probes share `probeRevision`
+- [x] · dismissed · `LAYER` · `src/lib/actions/sheets-sync.ts` `compareWithSheet` · writes the
+      measured quantities back (`setSheetMeasuredQty`) — a mutation, stays an action
+- [x] · dismissed · `LAYER` · `src/lib/actions/worker-expense-drafts.ts:180` · persists the AI read —
+      a mutation
+- [x] · fixed · `LAYER` · `src/lib/db/worker-expense-drafts.ts` decide / merge / reject / reopen ·
+      single statements in `lib/db`, flows in `src/lib/actions/expense-draft-flows.ts` (no
+      `'use server'`, so they never become endpoints); refusals unchanged
+- [x] · fixed · `LAYER` · `src/lib/db/snapshots.ts` `gcSnapshots`, `src/lib/db/template-snapshots.ts`
+      `gcTemplateSnapshots` · one statement per retention band; the flows in
+      `src/lib/kosztorys/snapshot-gc.ts`, the cron's only caller
+- [x] · fixed · `LAYER` · `src/lib/db/worker-reports.ts` `readWorkerReport`, `readReportPreview` · row,
+      lines and media as separate reads; assembled in `src/lib/queries/read-worker-report.ts`
+- [x] · fixed · `SIZE` · `src/lib/actions/kosztorys.ts` · split into
+      `kosztorys-{items,sections,settings,stages}.ts`
+- [x] · fixed · `DUP` · `addItemAction` / template `addItemAction` new-item slot · one
+      `resolveNewItemSlot` (`src/lib/kosztorys/new-item-slot.ts`); the local `ITEM_MISSING` twins
+      replaced by `ITEM_NOT_FOUND`
+- [x] · dropped · `DUP` · section insert in `kosztorys-sections.ts` vs `template-structure.ts` · the
+      two differ only in the create call; a helper's parameters would be its whole body

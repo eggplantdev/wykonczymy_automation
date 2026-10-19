@@ -1,6 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-postgres'
-import { gcRetentionBands, snapshotMetaOf } from '@/lib/db/snapshots'
+import { snapshotMetaOf } from '@/lib/db/snapshots'
 import { assertReadableSchemaVersion, type SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import {
   TEMPLATE_SNAPSHOT_SCHEMA_VERSION,
@@ -68,11 +68,4 @@ export async function getTemplateSnapshot(
     templateId: Number(row.template_id),
     payload: row.payload as TemplateSnapshotPayloadT,
   }
-}
-
-export async function gcTemplateSnapshots(
-  db: DbExecutorT,
-): Promise<{ deleted: number; ceiling: number; daily: number; weekly: number }> {
-  const counts = await gcRetentionBands(db, 'template')
-  return { deleted: counts.ceiling + counts.daily + counts.weekly, ...counts }
 }

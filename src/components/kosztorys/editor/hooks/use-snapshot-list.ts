@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
-import type { SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
+import type { SnapshotListItemT } from '@/lib/queries/snapshot-list'
 import { toastMessage } from '@/lib/utils/toast'
 
 type SnapshotListT = {
