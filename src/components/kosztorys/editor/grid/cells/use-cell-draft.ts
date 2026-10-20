@@ -33,7 +33,6 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
     setEdit(liveEdit.current)
     const result = cellKeystroke(draft, rowData, policy)
     setBlockReason(result.kind === 'blocked' ? result.message : null)
-    if (result.kind === 'commit') setRowData(result.row)
   }
 
   const closeDraft = () => {
@@ -49,6 +48,8 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
     if (!closed) return
     const settled = cellSettle(closed.draft, rowData, policy, closed.entry)
     if (settled.kind === 'keep') {
+      const committed = cellKeystroke(closed.draft, rowData, policy)
+      if (committed.kind === 'commit') setRowData(committed.row)
       if (settled.warning) toastMessage(settled.warning, 'warning', NOTICE_MS)
       return
     }
