@@ -9,7 +9,8 @@ import {
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentGates } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { type BookedPayoutT, notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
+import type { BookedReceiptT } from '@/lib/db/receipt-confirmation'
+import { notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import {
   BLOCKED_PAIR_REASON,
@@ -48,7 +49,7 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
         payload,
         async (
           req,
-        ): Promise<SettlePayoutsResultT | { createdIds: number[]; payouts: BookedPayoutT[] }> => {
+        ): Promise<SettlePayoutsResultT | { createdIds: number[]; payouts: BookedReceiptT[] }> => {
           const db = await getDb(payload, req)
           // Two overlapping submits of one pair (two tabs, a double Enter) would both pass the
           // re-read below and both book.
@@ -104,7 +105,7 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
           }
           return {
             createdIds,
-            payouts: bookings.map(({ workerId, amount }) => ({ workerId, amount })),
+            payouts: bookings.map(({ workerId, amount }) => ({ recipientId: workerId, amount })),
           }
         },
         { skipSheetSync: true },
@@ -114,7 +115,7 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
       console.log(`[PERF]   payload.create x${createdIds.length} ${step()}ms`)
 
       after(() => syncBulkExpensesToSheet(createdIds))
-      after(async () => notifyPendingPayouts(await getDb(payload), payouts))
+      after(async () => notifyPendingReceipts(await getDb(payload), payouts))
 
       return { success: true }
     },

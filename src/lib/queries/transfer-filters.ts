@@ -1,7 +1,7 @@
 import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
 import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { isPayoutStatus } from '@/lib/constants/payout-confirmation'
+import { isPayoutStatus } from '@/lib/constants/payout-status'
 import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
 import type { ClosedDateRangeT } from '@/lib/utils/date-range'
 

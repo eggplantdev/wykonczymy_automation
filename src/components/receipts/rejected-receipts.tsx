@@ -5,41 +5,49 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { OptionalLink } from '@/components/ui/optional-link'
-import type { RejectedPayoutT } from '@/lib/db/payout-confirmation'
+import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
+import type { RejectedReceiptT } from '@/lib/db/receipt-confirmation'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { transferHref } from '@/lib/utils/investment-transfers-href'
 
-const col = createColumnHelper<RejectedPayoutT>()
+const col = createColumnHelper<RejectedReceiptT>()
 
-export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
-  if (payouts.length === 0) return null
+export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] }) {
+  if (receipts.length === 0) return null
 
   const columns = [
     col.display({
       id: 'actions',
       header: 'Anuluj',
-      cell: ({ row: { original: payout } }) => (
+      cell: ({ row: { original: receipt } }) => (
         <CancelTransferButton
-          transactionId={payout.id}
-          disabledReason={payout.investmentLockMessage}
+          transactionId={receipt.id}
+          disabledReason={receipt.investmentLockMessage}
         />
       ),
     }),
     col.accessor('id', {
       header: 'ID',
-      cell: ({ row: { original: payout } }) => (
-        <OptionalLink href={transferHref(payout.id, payout.investmentId)}>
-          #{payout.id}
+      cell: ({ row: { original: receipt } }) => (
+        <OptionalLink href={transferHref(receipt.id, receipt.investmentId)}>
+          #{receipt.id}
         </OptionalLink>
       ),
     }),
     col.accessor('date', { header: 'Data', cell: (info) => formatPLDate(info.getValue()) }),
-    col.accessor('workerName', {
+    col.accessor('type', {
+      header: 'Typ',
+      meta: { minWidth: 'min-w-40' },
+      cell: (info) => TRANSFER_TYPE_LABELS[info.getValue()],
+    }),
+    col.accessor('recipientName', {
       header: 'Pracownik',
       meta: { minWidth: 'min-w-40' },
-      cell: ({ row: { original: payout } }) => (
-        <OptionalLink href={`/pracownicy/${payout.workerId}`}>{payout.workerName}</OptionalLink>
+      cell: ({ row: { original: receipt } }) => (
+        <OptionalLink href={`/pracownicy/${receipt.recipientId}`}>
+          {receipt.recipientName}
+        </OptionalLink>
       ),
     }),
     col.accessor('amount', {
@@ -49,26 +57,26 @@ export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
     col.accessor('investmentName', {
       header: 'Inwestycja',
       meta: { minWidth: 'min-w-40' },
-      cell: ({ row: { original: payout } }) => (
+      cell: ({ row: { original: receipt } }) => (
         <OptionalLink
-          href={payout.investmentId === null ? undefined : `/inwestycje/${payout.investmentId}`}
+          href={receipt.investmentId === null ? undefined : `/inwestycje/${receipt.investmentId}`}
         >
-          {payout.investmentName ?? '—'}
+          {receipt.investmentName ?? '—'}
         </OptionalLink>
       ),
     }),
-    col.accessor('sourceRegisterName', {
+    col.accessor('registerName', {
       header: 'Kasa',
       meta: { minWidth: 'min-w-40' },
-      cell: ({ row: { original: payout } }) => (
+      cell: ({ row: { original: receipt } }) => (
         <OptionalLink
           href={
-            payout.sourceRegisterId === null || payout.sourceRegisterTrashed
+            receipt.registerId === null || receipt.registerTrashed
               ? undefined
-              : `/kasa/${payout.sourceRegisterId}`
+              : `/kasa/${receipt.registerId}`
           }
         >
-          {payout.sourceRegisterName ?? '—'}
+          {receipt.registerName ?? '—'}
         </OptionalLink>
       ),
     }),
@@ -83,7 +91,7 @@ export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
       cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
     }),
     col.accessor('decidedAt', {
-      header: 'Odrzucona',
+      header: 'Odrzucono',
       meta: { minWidth: 'min-w-36' },
       cell: (info) => formatPLDateTime(info.getValue()),
     }),
@@ -92,13 +100,13 @@ export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
   return (
     <section>
       <CollapsibleSection
-        title="Wypłaty odrzucone przez pracowników"
-        hint="Takie wypłaty trzeba wyjaśnić z pracownikiem lub anulować."
+        title="Odrzucone przez pracowników"
+        hint="Trzeba je wyjaśnić z pracownikiem lub anulować."
         size="sm"
         withSeparator={false}
         storageKey="rejected-payouts:open"
       >
-        <DataTable data={payouts} columns={columns} storageKey="rejected-payouts" />
+        <DataTable data={receipts} columns={columns} storageKey="rejected-payouts" />
       </CollapsibleSection>
     </section>
   )

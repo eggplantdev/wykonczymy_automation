@@ -6,9 +6,9 @@ vi.mock('@/lib/actions/push', () => ({
   subscribePushAction: (...args: unknown[]) => subscribePushAction(...args),
   unsubscribePushAction: (...args: unknown[]) => unsubscribePushAction(...args),
 }))
-const fetchOwnPendingPayoutCount = vi.fn()
-vi.mock('@/lib/queries/pending-payouts', () => ({
-  fetchOwnPendingPayoutCount: () => fetchOwnPendingPayoutCount(),
+const fetchOwnPendingReceiptCount = vi.fn()
+vi.mock('@/lib/queries/pending-receipts', () => ({
+  fetchOwnPendingReceiptCount: () => fetchOwnPendingReceiptCount(),
 }))
 
 const { subscribeThisDevice, syncAppBadge, syncPushSubscription, unsubscribeThisDevice } =
@@ -189,7 +189,7 @@ describe('syncAppBadge', () => {
 
   it('shows the count of wypłaty waiting on his answer', async () => {
     const badge = installBadge()
-    fetchOwnPendingPayoutCount.mockResolvedValue(2)
+    fetchOwnPendingReceiptCount.mockResolvedValue(2)
 
     await syncAppBadge()
 
@@ -198,7 +198,7 @@ describe('syncAppBadge', () => {
 
   it('clears the badge once nothing is waiting', async () => {
     const badge = installBadge()
-    fetchOwnPendingPayoutCount.mockResolvedValue(0)
+    fetchOwnPendingReceiptCount.mockResolvedValue(0)
 
     await syncAppBadge()
 
@@ -208,10 +208,10 @@ describe('syncAppBadge', () => {
 
   it('asks the server nothing where the browser has no badge', async () => {
     vi.stubGlobal('navigator', {})
-    fetchOwnPendingPayoutCount.mockReset()
+    fetchOwnPendingReceiptCount.mockReset()
 
     await syncAppBadge()
 
-    expect(fetchOwnPendingPayoutCount).not.toHaveBeenCalled()
+    expect(fetchOwnPendingReceiptCount).not.toHaveBeenCalled()
   })
 })

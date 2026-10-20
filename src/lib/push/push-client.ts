@@ -1,5 +1,5 @@
 import { subscribePushAction, unsubscribePushAction } from '@/lib/actions/push'
-import { fetchOwnPendingPayoutCount } from '@/lib/queries/pending-payouts'
+import { fetchOwnPendingReceiptCount } from '@/lib/queries/pending-receipts'
 import { logError } from '@/lib/utils/log-error'
 import type { ActionResultT } from '@/types/action'
 
@@ -92,7 +92,7 @@ export async function unsubscribeThisDevice(): Promise<void> {
 export async function syncAppBadge(): Promise<void> {
   if (!('setAppBadge' in navigator)) return
   try {
-    const count = await fetchOwnPendingPayoutCount()
+    const count = await fetchOwnPendingReceiptCount()
     await (count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge())
   } catch (err) {
     logError('[PUSH] badge sync failed', err)

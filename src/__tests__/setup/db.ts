@@ -47,8 +47,8 @@ vi.mock('@/lib/media/delete-unreferenced-media', (importOriginal) =>
 vi.mock('@/lib/google/transfer-sheet-sync', (importOriginal) =>
   passThrough(importOriginal, 'syncBulkExpensesToSheet'),
 )
-vi.mock('@/lib/push/notify-pending-payouts', (importOriginal) =>
-  passThrough(importOriginal, 'notifyPendingPayouts'),
+vi.mock('@/lib/push/notify-pending-receipts', (importOriginal) =>
+  passThrough(importOriginal, 'notifyPendingReceipts'),
 )
 
 // `db-shared` keeps one module instance for every file, so a role set by the previous file would

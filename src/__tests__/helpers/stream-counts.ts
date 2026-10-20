@@ -5,7 +5,7 @@ import {
   unreadLeadsSql,
   unreadWarrantiesSql,
 } from '@/lib/db/notifications'
-import { REJECTED_PAYOUTS_COUNT } from '@/lib/db/payout-confirmation'
+import { REJECTED_RECEIPTS_COUNT } from '@/lib/db/receipt-confirmation'
 import { PENDING_EXPENSE_DRAFTS_COUNT } from '@/lib/db/worker-expense-drafts'
 import { PENDING_REPORTS_COUNT } from '@/lib/db/worker-reports'
 import type { SqlT } from '@/lib/db/sql-list'
@@ -24,7 +24,7 @@ export const countUnreadFleetDeadlines = async (payload: Payload, userId: number
 export const countUnreadWarranties = async (payload: Payload, userId: number, today: string) =>
   countOf(await getDb(payload), unreadWarrantiesSql(userId, today))
 
-export const countRejectedPayouts = (db: DbExecutorT) => countOf(db, REJECTED_PAYOUTS_COUNT)
+export const countRejectedReceipts = (db: DbExecutorT) => countOf(db, REJECTED_RECEIPTS_COUNT)
 
 export const countPendingExpenseDrafts = (db: DbExecutorT) =>
   countOf(db, PENDING_EXPENSE_DRAFTS_COUNT)

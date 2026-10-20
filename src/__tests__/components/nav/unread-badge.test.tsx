@@ -11,7 +11,7 @@ const VALUES = {
   equipment: 0,
   workerReports: 2,
   expenseDrafts: 4,
-  rejectedPayouts: 5,
+  rejectedReceipts: 5,
 }
 // Pre-settled the way React marks a thenable it has read, so `use` returns synchronously and a zero is
 // a real zero rather than a badge still suspended.
@@ -52,7 +52,7 @@ describe('UnreadBadge', () => {
   })
 
   it('keeps the rejected-payouts count on „Transakcje", where its queue is pinned', async () => {
-    renderBadge('rejectedPayouts', '/', '/')
+    renderBadge('rejectedReceipts', '/', '/')
 
     expect(screen.getByText('5')).toBeInTheDocument()
   })

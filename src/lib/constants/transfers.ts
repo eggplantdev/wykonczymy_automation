@@ -383,7 +383,8 @@ export const carriesVatPlane = (type: unknown): boolean => type === 'INVESTOR_DE
 export const carriesPaymentMethod = (type: unknown): boolean =>
   type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE_NET'
 
-export const carriesPayoutStatus = (type: unknown): boolean => type === 'PAYOUT'
+export const carriesPayoutStatus = (type: unknown): boolean =>
+  type === 'PAYOUT' || type === 'REGISTER_TRANSFER' || DEPOSIT_TYPES.includes(type as TransferTypeT)
 
 export const canFillVatPlane = (row: { type?: unknown; vatPlane?: unknown }): boolean =>
   carriesVatPlane(row.type) && row.vatPlane == null

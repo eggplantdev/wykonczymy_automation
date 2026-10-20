@@ -1054,6 +1054,21 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Kosztorys → przegląd zgłoszenia prac: strzałka przy nagłówku grupy obraca się, a grupa ukrywa
       i pokazuje wiersze jak dotąd.
 
+## 2026-10-20 — worker-receipt-confirmation — potwierdzenie odbioru dla każdych pieniędzy przekazanych pracownikowi
+
+- [ ] Transfer między kasami z kasy managera do kasy pracownika: pracownik widzi go na swojej stronie
+      w „Do potwierdzenia", dostaje push „Pieniądze do potwierdzenia", a „Potwierdzam" pokazuje toast
+      „Odbiór potwierdzony" i status „Potwierdzona" na liście transakcji.
+- [ ] Ten sam rodzaj transferu odrzucony przez pracownika z powodem: na „/" pojawia się w tabeli
+      „Odrzucone przez pracowników" z typem „Transfer między kasami", jego imieniem i jego kasą;
+      „Anuluj" usuwa go z tabeli.
+- [ ] Inna wpłata zaksięgowana do kasy pracownika też trafia do jego „Do potwierdzenia".
+- [ ] Transfer między dwiema kasami managerów, transfer między dwiema kasami tego samego pracownika
+      i korekta niczego nie pytają — brak wpisu w „Do potwierdzenia", kolumna potwierdzenia pusta.
+- [ ] Teksty przepływu (nagłówki, okna potwierdzenia i odrzucenia, toasty) nie mówią „wypłata" — po
+      polsku i po ukraińsku; filtr „Potwierdzenie" jest na stronie pracownika, który ma tylko
+      transfery i wpłaty, bez wypłat.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

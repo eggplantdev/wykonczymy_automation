@@ -2,15 +2,15 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { PayoutsToConfirm } from '@/components/payouts/payouts-to-confirm'
-import { acceptPayoutAction, rejectPayoutAction } from '@/lib/actions/payout-confirmation'
+import { ReceiptsToConfirm } from '@/components/receipts/receipts-to-confirm'
+import { acceptReceiptAction, rejectReceiptAction } from '@/lib/actions/receipt-confirmation'
 import { CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
-import type { PayoutToConfirmT } from '@/lib/db/payout-confirmation'
+import type { ReceiptToConfirmT } from '@/lib/db/receipt-confirmation'
 
-vi.mocked(acceptPayoutAction).mockResolvedValue({ success: true })
-vi.mocked(rejectPayoutAction).mockResolvedValue({ success: true })
+vi.mocked(acceptReceiptAction).mockResolvedValue({ success: true })
+vi.mocked(rejectReceiptAction).mockResolvedValue({ success: true })
 
-const payout = (overrides: Partial<PayoutToConfirmT>): PayoutToConfirmT => ({
+const receipt = (overrides: Partial<ReceiptToConfirmT>): ReceiptToConfirmT => ({
   id: 1,
   date: '2026-10-10T09:00:00.000Z',
   amount: 1200,
@@ -23,13 +23,13 @@ const payout = (overrides: Partial<PayoutToConfirmT>): PayoutToConfirmT => ({
 
 const rowOf = (description: string) => within(screen.getByText(description).closest('li')!)
 
-describe('Wypłaty do potwierdzenia', () => {
+describe('Do potwierdzenia', () => {
   it('offers each wypłata only the answers it can still take', () => {
     render(
-      <PayoutsToConfirm
-        payouts={[
-          payout({ id: 1, description: 'czeka' }),
-          payout({
+      <ReceiptsToConfirm
+        receipts={[
+          receipt({ id: 1, description: 'czeka' }),
+          receipt({
             id: 2,
             description: 'odrzucona',
             status: 'rejected',
@@ -48,28 +48,28 @@ describe('Wypłaty do potwierdzenia', () => {
   })
 
   it('renders nothing when nothing waits', () => {
-    const { container } = render(<PayoutsToConfirm payouts={[]} />)
+    const { container } = render(<ReceiptsToConfirm receipts={[]} />)
     expect(container).toBeEmptyDOMElement()
   })
 
   it('accepts only after the dialog’s confirm', async () => {
     const user = userEvent.setup()
-    render(<PayoutsToConfirm payouts={[payout({ id: 7 })]} />)
+    render(<ReceiptsToConfirm receipts={[receipt({ id: 7 })]} />)
 
     await user.click(screen.getByRole('button', { name: 'Potwierdzam' }))
-    expect(acceptPayoutAction).not.toHaveBeenCalled()
+    expect(acceptReceiptAction).not.toHaveBeenCalled()
 
     const dialog = screen.getByRole('alertdialog')
     await user.click(within(dialog).getByRole('button', { name: 'Potwierdzam' }))
 
-    expect(acceptPayoutAction).toHaveBeenCalledWith(7)
+    expect(acceptReceiptAction).toHaveBeenCalledWith(7)
   })
 
   it('locks the row while its acceptance is in flight', async () => {
     const accept = Promise.withResolvers<{ success: true }>()
-    vi.mocked(acceptPayoutAction).mockImplementationOnce(() => accept.promise)
+    vi.mocked(acceptReceiptAction).mockImplementationOnce(() => accept.promise)
     const user = userEvent.setup()
-    render(<PayoutsToConfirm payouts={[payout({ id: 7, description: 'czeka' })]} />)
+    render(<ReceiptsToConfirm receipts={[receipt({ id: 7, description: 'czeka' })]} />)
 
     await user.click(screen.getByRole('button', { name: 'Potwierdzam' }))
     await user.click(
@@ -87,7 +87,7 @@ describe('Wypłaty do potwierdzenia', () => {
 
   it('holds the rejection until the reason reaches the minimum', async () => {
     const user = userEvent.setup()
-    render(<PayoutsToConfirm payouts={[payout({ id: 9 })]} />)
+    render(<ReceiptsToConfirm receipts={[receipt({ id: 9 })]} />)
 
     await user.click(screen.getByRole('button', { name: 'Odrzuć' }))
     const dialog = screen.getByRole('dialog')
@@ -101,7 +101,7 @@ describe('Wypłaty do potwierdzenia', () => {
     expect(confirm).toBeEnabled()
 
     await user.click(confirm)
-    expect(rejectPayoutAction).toHaveBeenCalledWith(9, {
+    expect(rejectReceiptAction).toHaveBeenCalledWith(9, {
       reason: 'x'.repeat(CANCEL_REASON_MIN_LENGTH),
     })
   })

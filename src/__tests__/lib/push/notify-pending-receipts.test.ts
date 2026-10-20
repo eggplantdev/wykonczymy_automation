@@ -2,40 +2,40 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { PushMessageT } from '@/lib/push/send-push'
 
-const { sendPushToUser, isPushConfigured, countPendingPayouts } = vi.hoisted(() => ({
+const { sendPushToUser, isPushConfigured, countPendingReceipts } = vi.hoisted(() => ({
   sendPushToUser: vi.fn(),
   isPushConfigured: vi.fn(),
-  countPendingPayouts: vi.fn(),
+  countPendingReceipts: vi.fn(),
 }))
 vi.mock('@/lib/push/send-push', () => ({ sendPushToUser, isPushConfigured }))
-vi.mock('@/lib/db/payout-confirmation', () => ({ countPendingPayouts }))
-vi.mock('@/lib/push/constants', () => ({ PAYOUT_PUSH_PAUSED: false }))
+vi.mock('@/lib/db/receipt-confirmation', () => ({ countPendingReceipts }))
+vi.mock('@/lib/push/constants', () => ({ RECEIPT_PUSH_PAUSED: false }))
 
-import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
+import { notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
 
 const db = {} as DbExecutorT
 
-const messageTo = (workerId: number): PushMessageT => {
-  const call = sendPushToUser.mock.calls.find(([, userId]) => userId === workerId)
-  if (!call) throw new Error(`no push to worker ${workerId}`)
+const messageTo = (recipientId: number): PushMessageT => {
+  const call = sendPushToUser.mock.calls.find(([, userId]) => userId === recipientId)
+  if (!call) throw new Error(`no push to recipient ${recipientId}`)
   return (call[2] as (locale: 'pl') => PushMessageT)('pl')
 }
 
-describe('notifyPendingPayouts', () => {
+describe('notifyPendingReceipts', () => {
   beforeEach(() => {
     sendPushToUser.mockReset().mockResolvedValue(1)
     isPushConfigured.mockReset().mockReturnValue(true)
-    countPendingPayouts.mockReset().mockResolvedValue(2)
+    countPendingReceipts.mockReset().mockResolvedValue(2)
   })
 
   it('sends one push for two wypłaty booked to one worker, with the stored count on the badge', async () => {
-    await notifyPendingPayouts(db, [
-      { workerId: 7, amount: 300 },
-      { workerId: 7, amount: 200 },
+    await notifyPendingReceipts(db, [
+      { recipientId: 7, amount: 300 },
+      { recipientId: 7, amount: 200 },
     ])
 
     expect(sendPushToUser).toHaveBeenCalledTimes(1)
-    expect(countPendingPayouts).toHaveBeenCalledWith(db, 7)
+    expect(countPendingReceipts).toHaveBeenCalledWith(db, 7)
     expect(messageTo(7)).toMatchObject({
       tag: 'payout-pending',
       url: '/pracownicy/7',
@@ -45,9 +45,9 @@ describe('notifyPendingPayouts', () => {
   })
 
   it('sends one push per worker when a booking covers two', async () => {
-    await notifyPendingPayouts(db, [
-      { workerId: 7, amount: 300 },
-      { workerId: 9, amount: 100 },
+    await notifyPendingReceipts(db, [
+      { recipientId: 7, amount: 300 },
+      { recipientId: 9, amount: 100 },
     ])
 
     expect(sendPushToUser).toHaveBeenCalledTimes(2)
@@ -57,22 +57,22 @@ describe('notifyPendingPayouts', () => {
   it('reads nothing and sends nothing without the production keys', async () => {
     isPushConfigured.mockReturnValue(false)
 
-    await notifyPendingPayouts(db, [{ workerId: 7, amount: 300 }])
+    await notifyPendingReceipts(db, [{ recipientId: 7, amount: 300 }])
 
-    expect(countPendingPayouts).not.toHaveBeenCalled()
+    expect(countPendingReceipts).not.toHaveBeenCalled()
     expect(sendPushToUser).not.toHaveBeenCalled()
   })
 
   it('still notifies the other worker when one count fails', async () => {
-    countPendingPayouts.mockImplementation(async (_db, workerId: number) => {
-      if (workerId === 7) throw new Error('db down')
+    countPendingReceipts.mockImplementation(async (_db, recipientId: number) => {
+      if (recipientId === 7) throw new Error('db down')
       return 1
     })
 
     await expect(
-      notifyPendingPayouts(db, [
-        { workerId: 7, amount: 300 },
-        { workerId: 9, amount: 100 },
+      notifyPendingReceipts(db, [
+        { recipientId: 7, amount: 300 },
+        { recipientId: 9, amount: 100 },
       ]),
     ).resolves.toBeUndefined()
     expect(sendPushToUser).toHaveBeenCalledTimes(1)

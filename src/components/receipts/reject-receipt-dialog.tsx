@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { ReasonField } from '@/components/ui/reason-field'
-import { rejectPayoutAction } from '@/lib/actions/payout-confirmation'
+import { rejectReceiptAction } from '@/lib/actions/receipt-confirmation'
 import { failureMessage } from '@/lib/i18n/failure-message'
 import { CANCEL_REASON_MAX_LENGTH, CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -19,7 +19,7 @@ type PropsT = {
   onClose: () => void
 }
 
-export function RejectPayoutDialog({ transactionId, amount, onClose }: PropsT) {
+export function RejectReceiptDialog({ transactionId, amount, onClose }: PropsT) {
   const { locale, t } = useTranslation('workerPage')
   const [reason, setReason] = useState('')
   const [isPending, setIsPending] = useState(false)
@@ -30,14 +30,14 @@ export function RejectPayoutDialog({ transactionId, amount, onClose }: PropsT) {
     if (!isReasonValid) return
     setIsPending(true)
     const result = await settleAction(() =>
-      rejectPayoutAction(transactionId, { reason: trimmedReason }),
+      rejectReceiptAction(transactionId, { reason: trimmedReason }),
     )
     setIsPending(false)
     if (!result.success) {
       toastMessage(failureMessage(locale, result), 'error')
       return
     }
-    toastMessage(t('payoutRejected'), 'success')
+    toastMessage(t('receiptRejected'), 'success')
     void syncAppBadge()
     onClose()
   }
@@ -46,26 +46,26 @@ export function RejectPayoutDialog({ transactionId, amount, onClose }: PropsT) {
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       <DialogContent showCloseButton={false} className="sm:h-fit sm:max-w-md">
         <DialogHeader
-          title={t('payoutRejectTitle', { amount: formatPLN(amount) })}
-          description={t('payoutRejectDescription')}
+          title={t('receiptRejectTitle', { amount: formatPLN(amount) })}
+          description={t('receiptRejectDescription')}
         />
         <ReasonField
-          id={`payout-reject-reason-${transactionId}`}
+          id={`receipt-reject-reason-${transactionId}`}
           value={reason}
           onChange={setReason}
           min={CANCEL_REASON_MIN_LENGTH}
           max={CANCEL_REASON_MAX_LENGTH}
-          label={t('payoutRejectReason')}
-          placeholder={t('payoutRejectPlaceholder')}
+          label={t('receiptRejectReason')}
+          placeholder={t('receiptRejectPlaceholder')}
           counterText={({ length, missing }) =>
             missing === 0
-              ? t('payoutReasonCount', { length, max: CANCEL_REASON_MAX_LENGTH })
-              : t('payoutReasonMissing', { missing })
+              ? t('receiptReasonCount', { length, max: CANCEL_REASON_MAX_LENGTH })
+              : t('receiptReasonMissing', { missing })
           }
           disabled={isPending}
         />
         <DialogActions
-          confirmLabel={t('payoutReject')}
+          confirmLabel={t('receiptReject')}
           confirmVariant="destructive"
           pending={isPending}
           confirmDisabled={!isReasonValid}

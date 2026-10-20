@@ -1,5 +1,5 @@
 import { Badge, type BadgeToneT } from '@/components/ui/badge'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { TranslatorT } from '@/lib/i18n/translations'
 import { payoutStatusLabel } from '@/lib/transfers/transfer-text'
 

@@ -1,12 +1,12 @@
 import { formatPLN } from '@/lib/utils/format-currency'
-import { billsNetAmount, carriesPayoutStatus } from '@/lib/constants/transfers'
+import { billsNetAmount } from '@/lib/constants/transfers'
 import {
   POLISH_TRANSFERS,
   isMessageKey,
   type MessageKeyT,
   type TranslatorT,
 } from '@/lib/i18n/translations'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { TransferRowT } from '@/types/transfers'
 
 type TransfersTranslatorT = TranslatorT<'transfers'>
@@ -56,8 +56,8 @@ export function transferPayoutStatusText(
   { type, payoutStatus, cancelled }: TransferRowT,
   translator: TransfersTranslatorT = POLISH_TRANSFERS,
 ): string {
-  if (!carriesPayoutStatus(type)) return ''
-  return payoutStatus ? payoutStatusLabel(payoutStatus, cancelled, translator) : '—'
+  if (payoutStatus) return payoutStatusLabel(payoutStatus, cancelled, translator)
+  return type === 'PAYOUT' ? '—' : ''
 }
 
 export function transferOrderStatusText(
