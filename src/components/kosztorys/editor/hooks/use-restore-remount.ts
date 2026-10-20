@@ -10,7 +10,7 @@ type RestoreRemountT = {
 }
 
 // When it settles with the token unchanged, the write it was refetching never committed: left armed, the
-// latch would fire on the next ordinary write instead and drop the edit still in the body's debounce.
+// latch would fire on the next ordinary write instead and remount the grid under that write.
 export function useRestoreRemount(token: string, isRefreshing = false): RestoreRemountT {
   const [remountKey, setRemountKey] = useState(0)
   const [armed, setArmed] = useState<{ from: string; ownsRefresh: boolean } | null>(null)

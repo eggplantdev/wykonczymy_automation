@@ -65,7 +65,7 @@ const reportColumn: Column<KosztorysV2RowT> = {
   ...decimalColumn(
     REPORT_FIELD,
     <ReportHeader label="reportColumn" hint="reportColumnHint" />,
-    numericFieldPolicy<StageKeyT, KosztorysV2RowT>(REPORT_FIELD, formatQty),
+    numericFieldPolicy<StageKeyT, KosztorysV2RowT>(REPORT_FIELD),
   ),
   ...pinnedWidth(REPORT_WIDTH),
   cellClassName: `${REPORT_COLUMN_CLASS} ${REPORT_FIGURE_CLASS}`,

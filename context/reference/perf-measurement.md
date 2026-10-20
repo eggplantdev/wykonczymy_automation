@@ -52,6 +52,13 @@ All output goes to `dumps/perf/` (gitignored).
 `PERF_SQL_STACK=<sql fragment>` (set when starting) records the caller stack of every statement
 containing that fragment, which is how you find who issues a statement you don't recognise.
 
+`keystroke-ab.js` is not a node script: it is the body of a Playwright MCP `browser_run_code` call that
+times a keypress to the second animation frame in „Przedmiar ofertowy" and „Etap 1", interleaving
+staging and a preview three times each. Before running it, set its two URLs, load the perf kosztorys
+on inwestycja 7 (`perf-seed-kosztorys.ts`), and use a viewport of at least 1700 px so „Etap 1"
+renders. The script closes the totals panel and restores localStorage itself. ~31 ms is the floor of
+two frames: a median there means the keystroke costs nothing measurable.
+
 ## Traps hit so far
 
 - The root layout renders **twice** per request (the page, then the root not-found fallback). A query

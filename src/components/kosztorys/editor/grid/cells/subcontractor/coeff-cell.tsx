@@ -5,7 +5,6 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { decimalText } from '@/lib/utils/decimal-text'
 import { priceSourceOf, shownCoeff } from '@/lib/kosztorys/calc'
 import { FLAGGED_TONE } from '@/components/kosztorys/tones'
-import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { subcontractorCoeffPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
 import type { SubcontractorCellDataT } from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
@@ -35,10 +34,13 @@ export function SubcontractorCoeffCell({
     )
   }
 
-  const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null
+  const message = edit.verdict?.message ?? null
 
   return (
-    <CellTooltip message={message} forceOpen={edit.blockReason != null}>
+    <CellTooltip
+      message={message}
+      forceOpen={edit.draft !== null && edit.verdict?.severity === 'refuse'}
+    >
       <EditableCellInput
         {...edit.inputProps}
         className={message ? FLAGGED_TONE : undefined}

@@ -5,69 +5,52 @@ import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 
-type CellEditT<EntryT> = { draft: string; entry: EntryT; rowId: number }
+type CellEditT = { draft: string; rowId: number }
 
-/**
- * Typing „12,5" commits „12" at the comma, and a cell bound straight to the row re-renders over the
- * separator just typed, so the „5" lands on „12" and the row stores 125.
- */
-export function useCellDraft<RowT extends { id: number }, EntryT>(
+// Writing the row per keystroke re-runs the whole editor over every row.
+export function useCellDraft<RowT extends { id: number }>(
   rowData: RowT,
   setRowData: (row: RowT) => void,
-  policy: CellEditPolicyT<RowT, EntryT>,
+  policy: CellEditPolicyT<RowT>,
   stopEditing: StopEditingT,
 ) {
   const gridDictionary = useTranslation('grid')
-  const [blockReason, setBlockReason] = useState<string | null>(null)
-  const [edit, setEdit] = useState<CellEditT<EntryT> | null>(null)
+  const [draft, setDraft] = useState<string | null>(null)
   // The same draft, readable and clearable in one synchronous step, so a second close — a blur
-  // landing in the same commit as the unmount below — finds nothing and announces no second rollback.
-  const liveEdit = useRef<CellEditT<EntryT> | null>(null)
+  // landing in the same commit as the unmount below — finds nothing and writes nothing twice.
+  const liveEdit = useRef<CellEditT | null>(null)
 
-  const change = (draft: string) => {
-    // Entry AND rowId are captured once, on the first keystroke: refreshing `rowId` would let a row
-    // swapped under the caret still match the settle guard, rolling row A's snapshot onto row B.
-    liveEdit.current = liveEdit.current
-      ? { ...liveEdit.current, draft }
-      : { draft, entry: policy.snapshot(rowData), rowId: rowData.id }
-    setEdit(liveEdit.current)
-    const result = cellKeystroke(draft, rowData, policy)
-    setBlockReason(result.kind === 'blocked' ? result.message : null)
-    if (result.kind === 'commit') setRowData(result.row)
+  const change = (next: string) => {
+    // rowId is captured once, on the first keystroke: refreshing it would let a row swapped under the
+    // caret still match the settle guard, writing row A's draft onto row B.
+    liveEdit.current = { draft: next, rowId: liveEdit.current?.rowId ?? rowData.id }
+    setDraft(next)
   }
 
   const closeDraft = () => {
     const closed = liveEdit.current
+    if (!closed) return null
     liveEdit.current = null
-    setBlockReason(null)
-    setEdit(null)
-    return closed && closed.rowId === rowData.id ? closed : null
+    setDraft(null)
+    return closed.rowId === rowData.id ? closed : null
   }
 
   const settle = () => {
     const closed = closeDraft()
     if (!closed) return
-    const settled = cellSettle(closed.draft, rowData, policy, closed.entry)
-    if (settled.kind === 'keep') {
-      if (settled.warning) toastMessage(settled.warning, 'warning', NOTICE_MS)
+    const settled = cellSettle(closed.draft, rowData, policy)
+    if (settled.kind === 'reject') {
+      if (settled.reason === 'blocked')
+        toastMessage(
+          rejectedEntryMessage(policy.restoredLabel?.(rowData) ?? null, 'blocked', gridDictionary),
+          'error',
+          NOTICE_MS,
+        )
       return
     }
-    if (settled.kind === 'clear') {
-      setRowData(settled.row)
-      return
-    }
-    if (settled.row) setRowData(settled.row)
-    if (settled.reason === 'blocked' || settled.row) {
-      toastMessage(
-        rejectedEntryMessage(
-          policy.restoredLabel(settled.restored),
-          settled.reason === 'blocked' ? 'blocked' : 'invalid',
-          gridDictionary,
-        ),
-        'error',
-        NOTICE_MS,
-      )
-    }
+    setRowData(settled.row)
+    if (settled.kind === 'commit' && settled.warning)
+      toastMessage(settled.warning, 'warning', NOTICE_MS)
   }
 
   // rows are virtualized, so scrolling the edited row out unmounts the input, and removing a focused
@@ -78,16 +61,28 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
   })
   useEffect(() => () => settleRef.current(), [])
 
-  // It does NOT blur itself: the rollback has to be the last write, and a synchronous blur would
-  // settle the draft this render still holds.
-  const cancel = () => {
-    const closed = closeDraft()
-    if (closed) setRowData(policy.restore(rowData, closed.entry))
-  }
+  const isDrafting = draft !== null
+  // A phone backgrounding the page fires no blur, and the OS may kill it there.
+  useEffect(() => {
+    if (!isDrafting) return
+    const settleWhenHidden = () => {
+      if (document.visibilityState === 'hidden') settleRef.current()
+    }
+    document.addEventListener('visibilitychange', settleWhenHidden)
+    return () => document.removeEventListener('visibilitychange', settleWhenHidden)
+  }, [isDrafting])
+
+  const keystroke = draft === null ? null : cellKeystroke(draft, rowData, policy)
+  const verdict =
+    keystroke === null
+      ? (policy.guard?.(rowData) ?? null)
+      : keystroke.kind === 'value'
+        ? keystroke.verdict
+        : null
 
   return {
-    draft: edit?.draft ?? null,
-    blockReason,
+    draft,
+    verdict,
     inputProps: {
       inputMode: 'decimal' as const,
       onChange: (event: ChangeEvent<HTMLInputElement>) => change(event.target.value),
@@ -97,7 +92,7 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
         stopEditing({ nextRow: true })
       },
       onEscape: () => {
-        cancel()
+        closeDraft()
         // `stopEditing` defaults to `{ nextRow: true }`, which on a cancel path would walk the
         // selection down a row.
         stopEditing({ nextRow: false })

@@ -53,7 +53,6 @@ import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
-import { formatPLN } from '@/lib/utils/format-currency'
 import {
   hasStagesOverPlanned,
   isRemainingOverrun,
@@ -107,7 +106,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     decimalColumn(
       'price',
       columnTitle('price', opts),
-      numericFieldPolicy<'clientPrice', KosztorysV2RowT>('clientPrice', formatPLN),
+      numericFieldPolicy<'clientPrice', KosztorysV2RowT>('clientPrice'),
     ),
     ...subcontractorPriceCols,
   ]
@@ -156,7 +155,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       ...decimalColumn(
         'plannedQty',
         columnTitle('plannedQty', opts),
-        numericFieldPolicy<'plannedQty', KosztorysV2RowT>('plannedQty', formatQty),
+        numericFieldPolicy<'plannedQty', KosztorysV2RowT>('plannedQty'),
       ),
       minWidth: 150,
     },
@@ -264,11 +263,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       }
     }
     return {
-      ...decimalColumn(
-        qtyField,
-        header,
-        numericFieldPolicy<StageKeyT, KosztorysV2RowT>(qtyField, formatQty),
-      ),
+      ...decimalColumn(qtyField, header, numericFieldPolicy<StageKeyT, KosztorysV2RowT>(qtyField)),
       minWidth: 130,
     }
   })
