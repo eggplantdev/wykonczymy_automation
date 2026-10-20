@@ -150,7 +150,7 @@ export function OrderPickStep({
             />
           </>
         ) : (
-          <Description tone="error" withIcon={false}>
+          <Description tone="error">
             Lista dostawców jest pusta — numer wpiszesz w telefonie.
           </Description>
         )}

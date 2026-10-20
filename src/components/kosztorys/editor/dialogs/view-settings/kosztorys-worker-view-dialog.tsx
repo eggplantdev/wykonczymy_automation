@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
 import { FieldLegend, FieldSet } from '@/components/ui/field'
-import { InlineLoading } from '@/components/ui/inline-loading'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import {
   GROUP_LEGEND_CLASS,

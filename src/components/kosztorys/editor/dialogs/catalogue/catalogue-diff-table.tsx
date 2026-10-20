@@ -82,7 +82,7 @@ export function CatalogueDiffTable({
   return (
     <div className="space-y-2">
       {!readOnly && (
-        <Button variant="link" size="inline" className="gap-1 text-xs" onClick={toggleAll}>
+        <Button variant="link" size="inlineXs" className="gap-1" onClick={toggleAll}>
           <CheckCheck />
           {allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
         </Button>
@@ -158,7 +158,7 @@ function DiffGroup({
         </td>
         <td className="py-1 pl-3 text-right whitespace-nowrap">
           {!readOnly && (
-            <Button variant="link" size="inline" className="text-xs" onClick={onEditInCatalogue}>
+            <Button variant="link" size="inlineXs" onClick={onEditInCatalogue}>
               Edytuj w katalogu
             </Button>
           )}

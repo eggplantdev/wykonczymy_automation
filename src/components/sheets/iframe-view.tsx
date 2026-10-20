@@ -33,7 +33,6 @@ export function SheetIframeView({ sheetId, investmentName, toolbar }: PropsT) {
       </p>
       <iframe
         src={src}
-        // eslint-disable-next-line local/no-hand-rolled-ui -- an iframe's `title` names the frame; it is not a hover tooltip
         title={`Kosztorys for ${investmentName}`}
         className="min-h-0 w-full flex-1 border-0"
       />

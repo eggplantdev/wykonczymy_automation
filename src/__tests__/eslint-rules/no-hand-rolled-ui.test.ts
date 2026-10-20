@@ -22,6 +22,7 @@ ruleTester.run('no-hand-rolled-ui', noHandRolledUiRule, {
     '<div className="text-destructive text-xs" />',
     '<Button className="w-full" />',
     '<SimpleTooltip title="x" />',
+    '<iframe title="x" />',
   ],
   invalid: [
     { code: "import * as Dialog from '@radix-ui/react-dialog'", errors: [{ messageId: 'primitivePackage' }] },
@@ -31,11 +32,12 @@ ruleTester.run('no-hand-rolled-ui', noHandRolledUiRule, {
     { code: "import { toast } from 'react-toastify'", errors: [{ messageId: 'toast' }] },
     { code: "import { Loader2 } from 'lucide-react'", errors: [{ messageId: 'loader' }] },
     { code: "import { LoaderCircle } from 'lucide-react'", errors: [{ messageId: 'loader' }] },
+    { code: "import { Loader } from 'lucide-react'", errors: [{ messageId: 'loader' }] },
     { code: "const cls = 'text-red-600'", errors: [{ messageId: 'statusPalette' }] },
     { code: 'const cls = `p-2 ${x} bg-amber-50`', errors: [{ messageId: 'statusPalette' }] },
     { code: '<DialogContent className="sm:max-w-md" />', errors: [{ messageId: 'dialogWidth' }] },
     {
-      code: "<FormDialogShell className={cn('p-2', 'sm:max-w-[40rem]')} />",
+      code: "<FormDialogShell contentClassName={cn('p-2', 'sm:max-w-[40rem]')} />",
       errors: [{ messageId: 'dialogWidth' }],
     },
     { code: '<p className="text-destructive text-xs" />', errors: [{ messageId: 'errorText' }] },

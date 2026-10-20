@@ -165,7 +165,7 @@ function AcceptanceProtocolBody({
       <section className="flex flex-col gap-2">
         <h3 className={SUBSECTION_TITLE_CLASS}>Zakres prac ({scope.length})</h3>
         {scope.length === 0 ? (
-          <Description tone="error">
+          <Description tone="error" withIcon>
             Żadna pozycja nie ma jeszcze wykonanej pracy — uzupełnij etapy w kosztorysie.
           </Description>
         ) : (

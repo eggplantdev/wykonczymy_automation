@@ -219,7 +219,8 @@ function StageDefaultsBlock({
           searchPlaceholder={STAGE_HEADER_COPY.searchPlaceholder}
           emptyMessage={STAGE_HEADER_COPY.searchEmpty}
           disabled={plane === NO_PLANE}
-          className="h-7 w-auto min-w-56 px-2 text-xs"
+          size="xs"
+          className="w-auto min-w-56 text-xs"
         />
       </div>
     </SheetReportBlock>

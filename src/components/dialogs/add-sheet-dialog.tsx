@@ -119,7 +119,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
         </div>
 
         <DialogFooter>
-          <Button onClick={onSubmit} disabled={pending || !link.trim()}>
+          <Button onClick={onSubmit} pending={pending} disabled={!link.trim()}>
             {pending ? 'Sprawdzam…' : 'Dodaj kosztorys'}
           </Button>
         </DialogFooter>

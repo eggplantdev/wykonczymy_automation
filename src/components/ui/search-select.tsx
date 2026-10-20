@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactElement } from 'react'
+import { useState } from 'react'
 import { CheckIcon } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -33,7 +33,6 @@ type SearchSelectPropsT = {
   onBlur?: () => void
   isInvalid?: boolean
   size?: 'xs' | 'sm' | 'default'
-  trigger?: (state: { selectedLabel: string | undefined; open: boolean }) => ReactElement
   className?: string
 }
 
@@ -49,7 +48,6 @@ export function SearchSelect({
   onBlur,
   isInvalid,
   size = 'default',
-  trigger,
   className,
 }: SearchSelectPropsT) {
   const { t } = useTranslation('filters')
@@ -60,25 +58,21 @@ export function SearchSelect({
     // `modal`, always: inside a Dialog the dialog's lock kills scrolling over this list.
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
-        {trigger ? (
-          trigger({ selectedLabel, open })
-        ) : (
-          <button
-            type="button"
-            role="combobox"
-            aria-expanded={open}
-            aria-invalid={isInvalid}
-            id={id}
-            disabled={disabled}
-            onBlur={onBlur}
-            data-size={size}
-            data-placeholder={selectedLabel ? undefined : ''}
-            className={cn(SELECT_TRIGGER_CLASS, className)}
-          >
-            <span className="truncate">{selectedLabel ?? placeholder}</span>
-            <Icon iconName="dropdownDown" size="sm" />
-          </button>
-        )}
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-invalid={isInvalid}
+          id={id}
+          disabled={disabled}
+          onBlur={onBlur}
+          data-size={size}
+          data-placeholder={selectedLabel ? undefined : ''}
+          className={cn(SELECT_TRIGGER_CLASS, className)}
+        >
+          <span className="truncate">{selectedLabel ?? placeholder}</span>
+          <Icon iconName="dropdownDown" size="sm" />
+        </button>
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command>

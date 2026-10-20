@@ -78,7 +78,8 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
             />
             <Button
               onClick={onLink}
-              disabled={pending || !link.trim()}
+              pending={pending}
+              disabled={!link.trim()}
               variant="outline"
               className="w-full"
             >

@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { InlineLoading } from '@/components/ui/inline-loading'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 
 /**
  * `data` renders through a callback because the blocks below read it unconditionally — passed as
@@ -40,7 +40,7 @@ export function SheetReportDialog<DataT>({
         {!loaded ? (
           <InlineLoading label={loadingText} />
         ) : !data ? (
-          <Description tone="error" withIcon={false}>
+          <Description tone="error">
             {error ?? 'Nie udało się odczytać arkusza Google.'}
           </Description>
         ) : (

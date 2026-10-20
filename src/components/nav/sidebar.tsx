@@ -53,7 +53,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       )}
     >
       <SimpleTooltip content={toggleLabel}>
-        {/* eslint-disable-next-line local/no-hand-rolled-ui -- the rail handle is an invisible full-height hit strip around the pill, not a button look */}
+        {/* eslint-disable-next-line local/no-hand-rolled-ui -- an invisible full-height hit strip */}
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}

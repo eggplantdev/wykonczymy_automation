@@ -83,7 +83,8 @@ export function LinkSheetToInvestmentDialog({
         <DialogFooter>
           <Button
             onClick={onSubmit}
-            disabled={pending || !selectedId || availableInvestments.length === 0}
+            pending={pending}
+            disabled={!selectedId || availableInvestments.length === 0}
           >
             {pending ? 'Dodaję…' : 'Dodaj kosztorys'}
           </Button>

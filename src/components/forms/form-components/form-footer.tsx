@@ -64,7 +64,7 @@ export default function FormFooter({
           )}
         </div>
         {isInvalid && (
-          <Description tone="error" withIcon={false} className="mt-2 font-medium">
+          <Description tone="error" className="mt-2 font-medium">
             {t('formHasErrors')}
           </Description>
         )}

@@ -42,6 +42,7 @@ const buttonVariants = cva(
         touch: 'h-11 px-4 py-2',
         iconTouch: "size-11 [&_svg:not([class*='size-'])]:size-7",
         inline: 'h-auto p-0',
+        inlineXs: 'h-auto p-0 text-xs',
         row: 'h-auto w-full gap-2 px-1 py-1 text-xs font-normal whitespace-normal',
         iconLg: "size-9 [&_svg:not([class*='size-'])]:size-5",
       },

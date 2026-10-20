@@ -2,7 +2,7 @@
 
 import { CompanyKnowledgeBook } from '@/components/company-knowledge/company-knowledge-book'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { BlockLoading } from '@/components/ui/inline-loading'
+import { BlockLoading } from '@/components/ui/loader/inline-loading'
 import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
 
 type PropsT = {

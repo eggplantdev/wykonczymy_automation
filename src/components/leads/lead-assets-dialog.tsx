@@ -188,6 +188,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
             <Button
               size="sm"
               onClick={() => void attach()}
+              pending={pending}
               disabled={isBusy || target === null || chosenIds.length === 0}
             >
               {pending ? 'Dodawanie…' : `Dodaj do inwestycji (${chosenIds.length})`}

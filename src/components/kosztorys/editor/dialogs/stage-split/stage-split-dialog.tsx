@@ -209,7 +209,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
         />
 
         {error && (
-          <Description tone="error" size="xs" withIcon={false}>
+          <Description tone="error" size="xs">
             {error}
           </Description>
         )}

@@ -20,7 +20,7 @@ export function MediaPreviewTrigger({
 }: MediaPreviewTriggerPropsT) {
   if (variant === 'field') {
     return (
-      // eslint-disable-next-line local/no-hand-rolled-ui -- a field-shaped trigger on SearchSelect's own SELECT_TRIGGER_CLASS, not a Button look
+      // eslint-disable-next-line local/no-hand-rolled-ui -- styled as a select field, not a Button
       <button
         type="button"
         onClick={onClick}

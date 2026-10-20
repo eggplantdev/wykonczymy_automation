@@ -149,7 +149,7 @@ function MoneyBlock({ comparison }: { comparison: SheetComparisonT }) {
         </p>
       )}
       {comparison.globalDiscountMismatch && (
-        <Description tone="error" size="xs" withIcon={false}>
+        <Description tone="error" size="xs">
           Ta inwestycja ma aktywny rabat globalny, więc kwoty w tym oknie rozjeżdżają się z tymi w
           kosztorysie. Tutaj każda praca liczy się ze swoim własnym rabatem, tak jak w arkuszu
           Google — rabat globalny nie wchodzi. W kosztorysie jest odwrotnie: prace idą bez rabatu, a

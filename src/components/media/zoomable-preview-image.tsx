@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Minus, Plus, Scan } from 'lucide-react'
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
-import { Spinner } from '@/components/ui/loader/spinner'
+import { OverlayLoading } from '@/components/ui/loader/page-loading'
 import { useTranslation } from '@/hooks/use-translation'
 
 type ZoomablePreviewImagePropsT = {
@@ -87,9 +87,7 @@ export function ZoomablePreviewImage({
           </TransformComponent>
 
           {isOriginalLoading && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-              <Spinner />
-            </div>
+            <OverlayLoading />
           )}
 
           {hasOriginalFailed && (

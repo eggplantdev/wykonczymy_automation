@@ -143,7 +143,7 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
         className="mx-auto h-8 w-20 tabular-nums"
       />
       {note && (
-        <Description size="xs" withIcon={false} className="whitespace-nowrap">
+        <Description size="xs" withIcon={false} className="justify-center whitespace-nowrap">
           {note}
         </Description>
       )}
@@ -151,20 +151,22 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-const WARNING_NOTE = 'text-warning block text-xs'
-
 function ScanFlags({ row }: { row: ReviewRowT }) {
   const { drafts } = useReviewTable()
   return (
     <>
       {row.isUncertain && (
-        <span className={WARNING_NOTE}>Niepewny odczyt — sprawdź na zdjęciu</span>
+        <Description tone="warning" size="xs" withIcon={false}>
+          Niepewny odczyt — sprawdź na zdjęciu
+        </Description>
       )}
       {row.isDuplicateItem && (
-        <span className={WARNING_NOTE}>Ta pozycja jest w zgłoszeniu więcej niż raz</span>
+        <Description tone="warning" size="xs" withIcon={false}>
+          Ta pozycja jest w zgłoszeniu więcej niż raz
+        </Description>
       )}
       {row.isUnitMissing && drafts[row.id].matchedItemIds.length === 0 && (
-        <Description tone="error" size="xs" withIcon={false}>
+        <Description tone="error" size="xs">
           Brak j.m. — wybierz pracę z katalogu albo dodaj nową
         </Description>
       )}
@@ -188,7 +190,7 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
       <span className="block leading-snug">{row.description}</span>
       <ScanFlags row={row} />
       {row.isUnassigned && (
-        <Description tone="error" size="xs" withIcon={false}>
+        <Description tone="error" size="xs">
           {row.scannedRef === undefined
             ? 'Pozycja usunięta z rozpiski — do przypisania ręcznie'
             : `Nr ${row.scannedRef} nie pasuje do rozpiski — do przypisania ręcznie`}
@@ -207,8 +209,7 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
           />
           <Button
             variant="link"
-            size="inline"
-            className="text-xs"
+            size="inlineXs"
             onClick={() => onChange(row.id, { isExtra: true, itemId: undefined, isTicked: false })}
           >
             Przenieś do prac spoza rozpiski
@@ -280,7 +281,7 @@ function SwapNote({ row }: { row: ReviewRowT }) {
         {source} „{reviewedDescription(row)}”
       </span>
       {!row.isAccepted && (
-        <Button variant="link" size="inline" className="text-xs" onClick={() => onUndoSwap(row)}>
+        <Button variant="link" size="inlineXs" onClick={() => onUndoSwap(row)}>
           Cofnij podmianę
         </Button>
       )}
@@ -327,8 +328,7 @@ function TranslationNote({ row }: { row: ReviewRowT }) {
       {onRetranslate && !row.isAccepted && (
         <Button
           variant="link"
-          size="inline"
-          className="text-xs"
+          size="inlineXs"
           disabled={isTranslating}
           onClick={() => startTranslating(() => onRetranslate(row.id))}
         >

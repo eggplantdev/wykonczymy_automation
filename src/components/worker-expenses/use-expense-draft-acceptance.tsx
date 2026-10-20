@@ -243,7 +243,7 @@ export function useExpenseDraftAcceptance() {
               aboveLineItems={
                 <>
                   {!accepting.hasPages && accepting.prefill.aiReadRows.length === 0 && (
-                    <Description tone="error" withIcon={false}>
+                    <Description tone="error">
                       {t('pagesDownloadFailed')}
                     </Description>
                   )}

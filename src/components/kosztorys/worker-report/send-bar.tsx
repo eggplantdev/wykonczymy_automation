@@ -76,7 +76,7 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
     <>
       <div className="flex items-center gap-3">
         {hasInvalid && (
-          <Description tone="error" withIcon={false} className="whitespace-nowrap">
+          <Description tone="error" className="whitespace-nowrap">
             {t('fixErrors')}
           </Description>
         )}

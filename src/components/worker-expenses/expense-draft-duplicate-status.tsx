@@ -24,7 +24,7 @@ export function ExpenseDraftDuplicateStatus({ state }: { state: DuplicateHintsSt
   if (state.status === 'error') {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <Description tone="error" withIcon={false}>
+        <Description tone="error">
           Nie udało się sprawdzić duplikatów.
         </Description>
         <Button type="button" variant="outline" size="sm" onClick={state.retry}>

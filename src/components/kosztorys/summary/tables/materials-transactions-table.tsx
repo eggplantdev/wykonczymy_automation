@@ -91,7 +91,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
       // so reading the note doesn't navigate away.
       return (
         <SimpleTooltip content={note}>
-          {/* eslint-disable-next-line local/no-hand-rolled-ui -- a truncated tooltip trigger that keeps the table's configurable text size */}
+          {/* eslint-disable-next-line local/no-hand-rolled-ui -- keeps the table's configurable text size */}
           <button
             type="button"
             className="text-muted-foreground focus-visible:ring-ring/50 block max-w-32 cursor-help truncate text-left focus-visible:ring-3"

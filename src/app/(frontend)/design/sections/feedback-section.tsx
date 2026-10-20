@@ -3,8 +3,7 @@
 import { useState, type ComponentProps } from 'react'
 import { Button } from '@/components/ui/button'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
-import { InlineLoading, BlockLoading } from '@/components/ui/inline-loading'
-import { Spinner } from '@/components/ui/loader/spinner'
+import { InlineLoading, BlockLoading } from '@/components/ui/loader/inline-loading'
 import { Loader } from '@/components/ui/loader/loader'
 import { FixedClientLoader } from '@/components/ui/loader/fixed-client-loader'
 import {
@@ -58,16 +57,15 @@ export function FeedbackSection() {
     <ShowcaseSection id="feedback">
       <ShowcaseRow
         title="Spinnery"
-        source="ui/gradient-spinner.tsx, ui/loader/spinner.tsx, ui/loader/page-loading.tsx"
+        source="ui/gradient-spinner.tsx, ui/loader/page-loading.tsx"
       >
         <GradientSpinner />
         <GradientSpinner className="size-8" />
-        <Spinner />
         <ContentLoading />
       </ShowcaseRow>
       <ShowcaseRow
         title="InlineLoading, BlockLoading"
-        source="ui/inline-loading.tsx"
+        source="ui/loader/inline-loading.tsx"
         className="grid sm:grid-cols-2"
       >
         <InlineLoading />
@@ -132,7 +130,6 @@ export function FeedbackSection() {
         source="ui/warning-banner.tsx, ui/alert-icon.tsx, ui/label-hint-icon.tsx"
       >
         <WarningBanner className="px-2">Kwoty nie zgadzają się z kosztorysem.</WarningBanner>
-        <WarningBanner bordered={false}>Kwoty nie zgadzają się z kosztorysem.</WarningBanner>
         <AlertIcon />
         {LABEL_HINTS.map((hint) => (
           <LabelHintIcon key={hint.variant} {...hint} size="md" />

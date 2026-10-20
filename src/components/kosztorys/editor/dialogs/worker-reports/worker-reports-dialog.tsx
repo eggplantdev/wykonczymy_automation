@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { InlineLoading } from '@/components/ui/inline-loading'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { WorkerReportReview } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-report-review'
 import { WorkerReportsList } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-reports-list'
 import type { WorkerReportsActionT } from '@/components/kosztorys/editor/actions/worker-reports-action'

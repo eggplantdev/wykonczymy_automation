@@ -196,7 +196,7 @@ export function ScanReportDialog({ open, onOpenChange, investmentId, workers, on
             disabled={fileInputProps.disabled || isSending}
           />
           {isTooMany && (
-            <Description tone="error" withIcon={false}>
+            <Description tone="error">
               Maksymalnie {MAX_SCAN_PHOTOS} zdjęć na jedno zgłoszenie.
             </Description>
           )}

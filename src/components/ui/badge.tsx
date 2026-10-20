@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
 const SOFT_TONES = {
@@ -96,14 +97,16 @@ export function Badge({
     >
       {children}
       {onRemove && (
-        <button
+        <Button
           type="button"
+          variant="ghostDestructive"
+          size="inline"
           onClick={onRemove}
           aria-label={removeLabel}
-          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:ring-ring/50 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors focus-visible:ring-3 focus-visible:outline-none"
+          className="rounded-full p-0.5"
         >
           <X className="size-3.5" />
-        </button>
+        </Button>
       )}
     </span>
   )

@@ -194,7 +194,6 @@ export function LineItemsField({
                 <Description
                   tone="error"
                   size="xs"
-                  withIcon={false}
                   className="mt-8 shrink-0 whitespace-nowrap"
                 >
                   nie odczytano
@@ -241,7 +240,7 @@ export function LineItemsField({
                 />
                 {receiptGrouping?.statusOf(item.id) === 'pending' &&
                   receiptGrouping.isAcceptBlocked?.(item.id) && (
-                    <Description tone="error" size="xs">
+                    <Description tone="error" withIcon size="xs">
                       Nie udało się pobrać zdjęcia paragonu — dodaj je w polu „FV”, żeby go przyjąć.
                     </Description>
                   )}
@@ -423,14 +422,10 @@ export function LineItemsField({
                       variant="ai"
                       size="sm"
                       onClick={() => scanInputRef.current?.click()}
-                      disabled={isGenerating || isIngesting}
+                      pending={isGenerating || isIngesting}
                       {...dropZoneProps(lineItemsField)}
                     >
-                      {isGenerating || isIngesting ? (
-                        <GradientSpinner />
-                      ) : (
-                        <WandSparkles className="text-neon-cyan" />
-                      )}
+                      <WandSparkles className="text-neon-cyan" />
                       <span className="text-neon-cyan font-semibold">Wygeneruj z paragonów</span>
                     </Button>
                     {lineItemsField.state.value.some(

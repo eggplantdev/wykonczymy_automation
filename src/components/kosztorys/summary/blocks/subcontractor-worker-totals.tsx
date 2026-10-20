@@ -12,7 +12,7 @@ import {
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { OptionalLink } from '@/components/ui/optional-link'
-import { isNegativeMoney } from '@/components/ui/signed-money-display'
+import { isNegativeMoney } from '@/lib/utils/round-to-cents'
 import { formatNet } from '@/lib/kosztorys/format'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'

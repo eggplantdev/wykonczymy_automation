@@ -5,3 +5,6 @@ export const roundToCents = (amount: number) => {
   const scaled = Number((amount * 100).toPrecision(12))
   return (Math.sign(scaled) * Math.round(Math.abs(scaled))) / 100 + 0
 }
+
+// Rounded before the sign test, or a balance that renders „0,00" gets painted red by a −1e-13 residue.
+export const isNegativeMoney = (amount: number) => roundToCents(amount) < 0

@@ -1,12 +1,11 @@
 const PRIMITIVE_PACKAGES = /^(@radix-ui\/|radix-ui$|cmdk$|vaul$)/
-const LOADER_ICONS = new Set(['Loader2', 'Loader2Icon', 'LoaderCircle', 'LoaderCircleIcon'])
+const LOADER_ICONS = new Set(['Loader', 'LoaderIcon', 'Loader2', 'Loader2Icon', 'LoaderCircle', 'LoaderCircleIcon'])
 const STATUS_PALETTE = /\b(text|bg|border|ring|fill|stroke)-(red|green|amber|emerald|yellow|orange)-\d{2,3}\b/
 const RAW_DIALOG_WIDTH = /\bsm:max-w-(sm|md|lg|xl|\dxl|\[)/
 const DIALOG_SHELLS = new Set(['DialogContent', 'AlertDialogContent', 'FormDialogShell'])
 const ERROR_TEXT = /\btext-destructive\b/
 const SMALL_TEXT = /\btext-(xs|sm)\b/
 
-// Every string fragment reachable from a className value: literals, template quasis, cn() arguments.
 function classStrings(node) {
   if (!node) return []
   switch (node.type) {
@@ -69,6 +68,7 @@ export const noHandRolledUiRule = {
 
     return {
       ImportDeclaration(node) {
+        if (node.importKind === 'type') return
         const source = node.source.value
         if (PRIMITIVE_PACKAGES.test(source)) {
           context.report({ node, messageId: 'primitivePackage', data: { source } })
@@ -95,7 +95,11 @@ export const noHandRolledUiRule = {
         const classText = classStrings(attribute(node, 'className')?.value).join(' ')
 
         if (DIALOG_SHELLS.has(name)) {
-          const match = classText.match(RAW_DIALOG_WIDTH)
+          const widthText =
+            name === 'FormDialogShell'
+              ? classStrings(attribute(node, 'contentClassName')?.value).join(' ')
+              : classText
+          const match = widthText.match(RAW_DIALOG_WIDTH)
           if (match) context.report({ node, messageId: 'dialogWidth', data: { match: match[0] } })
         }
         if ((name === 'p' || name === 'span') && ERROR_TEXT.test(classText) && SMALL_TEXT.test(classText)) {
@@ -107,7 +111,7 @@ export const noHandRolledUiRule = {
           context.report({ node, messageId: 'button' })
         }
         const title = attribute(node, 'title')
-        if (title && (isIntrinsic(name) || name === 'Button')) {
+        if (title && name !== 'iframe' && (isIntrinsic(name) || name === 'Button')) {
           context.report({ node: title, messageId: 'title' })
         }
       },

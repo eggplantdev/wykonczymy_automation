@@ -124,7 +124,7 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
               </span>
             )}
             {isInverted && (
-              <Description tone="error" withIcon={false}>
+              <Description tone="error">
                 Nieprawidłowy zakres dat
               </Description>
             )}
@@ -132,7 +132,7 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
 
           {state.status === 'error' && (
             <div className="flex flex-wrap items-center gap-4" role="alert">
-              <Description tone="error" withIcon={false}>
+              <Description tone="error">
                 {state.message}
               </Description>
               <Button variant="outline" size="sm" onClick={() => void analyse()}>

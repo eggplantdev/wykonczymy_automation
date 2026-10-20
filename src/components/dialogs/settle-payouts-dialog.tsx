@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogBody, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { BlockLoading } from '@/components/ui/inline-loading'
+import { BlockLoading } from '@/components/ui/loader/inline-loading'
 import { SettlePayoutsForm } from '@/components/forms/settle-payouts-form/settle-payouts-form'
 import {
   fetchSettlePayoutRows,
@@ -66,7 +66,7 @@ function SettleDialogBody({
 
   if (loaded?.error)
     return (
-      <Description tone="error" withIcon={false}>
+      <Description tone="error">
         {loaded.error}
       </Description>
     )

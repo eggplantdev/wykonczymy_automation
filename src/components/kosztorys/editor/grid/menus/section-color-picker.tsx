@@ -12,15 +12,14 @@ type PropsT = {
   onChange: (color: SectionColorKeyT | null) => void
 }
 
-// Rendered inside the open dropdown, so the swatches are buttons, not DropdownMenuItems — an item
-// would close the menu on select.
+// Swatches are buttons, not DropdownMenuItems — an item would close the menu on select.
 export function SectionColorPicker({ value, onChange }: PropsT) {
   return (
     <div className="px-2 py-1.5">
       <div className="grid grid-cols-9 gap-1">
         {SECTION_COLORS.map((color) => (
           <SimpleTooltip key={color.key} content={color.label}>
-            {/* eslint-disable-next-line local/no-hand-rolled-ui -- a colour swatch: its fill is the palette entry, no Button variant fits */}
+            {/* eslint-disable-next-line local/no-hand-rolled-ui -- a colour swatch; no Button variant fits */}
             <button
               type="button"
               aria-label={color.label}

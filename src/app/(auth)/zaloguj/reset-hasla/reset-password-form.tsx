@@ -53,7 +53,7 @@ export function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <Description tone="error" withIcon={false} className="justify-center text-center">
+      <Description tone="error" className="justify-center text-center">
         Brak tokenu resetowania. Sprawdź link z wiadomości email.
       </Description>
     )
@@ -100,7 +100,7 @@ export function ResetPasswordForm() {
       </form.AppField>
 
       {error && (
-        <Description tone="error" withIcon={false}>
+        <Description tone="error">
           {error}
         </Description>
       )}

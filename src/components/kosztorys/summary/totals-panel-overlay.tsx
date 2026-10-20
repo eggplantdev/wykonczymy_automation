@@ -1,6 +1,6 @@
 'use client'
 
-// eslint-disable-next-line local/no-hand-rolled-ui -- needs forceMount, no animation and a className on Content itself; ui/collapsible forces all three
+// eslint-disable-next-line local/no-hand-rolled-ui -- needs no animation and a className on Content itself
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { useRef, useState, type PointerEvent, type ReactNode, type TransitionEvent } from 'react'
 import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
@@ -47,6 +47,7 @@ export function TotalsPanelOverlay({
   function onPointerDown(event: PointerEvent<HTMLElement>) {
     if (event.button !== 0 || drag.current) return
     event.preventDefault()
+    setHintOpen(false)
     drag.current = { y: event.clientY, fraction: shownFraction }
     event.currentTarget.setPointerCapture(event.pointerId)
     setDragFraction(shownFraction)

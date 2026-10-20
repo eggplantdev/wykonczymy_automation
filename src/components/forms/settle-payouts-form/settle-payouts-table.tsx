@@ -114,7 +114,7 @@ function AmountCell({ row, index }: { row: SettleRowT; index: number }) {
         onChange={(e) => onAmount(index, e.target.value)}
       />
       {ahead > 0 && (
-        <Description tone="error" size="xs" withIcon={false} className="mt-1">
+        <Description tone="error" size="xs" className="mt-1">
           {formatPLN(ahead)} ponad wykonaną pracę — zapisze się jako zaliczka
         </Description>
       )}

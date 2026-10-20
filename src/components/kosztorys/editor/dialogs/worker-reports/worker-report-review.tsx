@@ -352,7 +352,7 @@ export function WorkerReportReview({
         )}
       </div>
       {targetProblem && tickedLines.length > 0 && (
-        <Description tone="error" withIcon={false}>
+        <Description tone="error">
           {targetProblem}
         </Description>
       )}
@@ -408,7 +408,7 @@ export function WorkerReportReview({
                       <TextButton
                         aria-expanded={!collapsedGroups.has(group)}
                         onClick={() => toggleGroup(group)}
-                        className="flex"
+                        className="flex uppercase"
                       >
                         {title} ({lines.length}
                         {lines.length < total && ` z ${total}`})

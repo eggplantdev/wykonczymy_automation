@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
-import { InlineLoading } from '@/components/ui/inline-loading'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { copyToClipboard, copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -68,7 +68,7 @@ export function ShareLinkPanel({
   return (
     <>
       {blockReason !== undefined && (
-        <Description tone="error" withIcon={false} className="mb-3">
+        <Description tone="error" className="mb-3">
           {blockReason}
         </Description>
       )}

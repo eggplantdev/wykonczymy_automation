@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
+import { ContentLoading } from '@/components/ui/loader/page-loading'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 
@@ -25,7 +26,7 @@ export function InlineLoading({ label, className }: InlineLoadingPropsT) {
 export function BlockLoading({ className }: { className?: string }) {
   return (
     <div className={cn('flex justify-center py-8', className)}>
-      <GradientSpinner className="size-10" />
+      <ContentLoading />
     </div>
   )
 }

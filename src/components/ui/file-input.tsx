@@ -147,7 +147,7 @@ function FileInput({
         />
       </div>
       {error && (
-        <Description role="alert" tone="error" size="xs" className="mt-1">
+        <Description role="alert" tone="error" withIcon size="xs" className="mt-1">
           {error}
         </Description>
       )}

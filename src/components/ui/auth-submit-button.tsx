@@ -1,6 +1,5 @@
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { cn } from '@/lib/utils/cn'
 
 type AuthSubmitButtonPropsT = {
@@ -21,25 +20,23 @@ export function AuthSubmitButton({
   return (
     <Button
       type="submit"
-      disabled={isPending || isSuccess}
+      pending={isPending}
+      disabled={isSuccess}
       className={cn(
         'mt-2 transition-colors duration-300',
         isSuccess && 'bg-green-600 hover:bg-green-600',
       )}
     >
-      {isPending && (
-        <>
-          <GradientSpinner />
-          {pendingText}
-        </>
-      )}
-      {isSuccess && successText && (
+      {isSuccess && successText ? (
         <>
           <Check />
           {successText}
         </>
+      ) : isPending ? (
+        pendingText
+      ) : (
+        idleText
       )}
-      {!isPending && !isSuccess && idleText}
     </Button>
   )
 }

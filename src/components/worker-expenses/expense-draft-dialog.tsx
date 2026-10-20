@@ -181,7 +181,7 @@ export function ExpenseDraftDialog({
             {...fileInputProps}
           />
           {hasTooManyPhotos ? (
-            <Description size="xs" tone="error" role="alert">
+            <Description size="xs" tone="error" withIcon role="alert">
               {t('tooManyPhotos', { max: MAX_DRAFT_PAGES })}
             </Description>
           ) : (

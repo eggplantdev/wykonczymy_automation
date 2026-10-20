@@ -270,17 +270,6 @@ export function FieldsSection() {
           placeholder="size=sm"
           size="sm"
         />
-        <SearchSelect
-          value={searchValue}
-          onChange={setSearchValue}
-          items={SEARCH_ITEMS}
-          placeholder="trigger slot"
-          trigger={({ selectedLabel }) => (
-            <Button variant="outline" size="sm">
-              {selectedLabel ?? 'trigger slot'}
-            </Button>
-          )}
-        />
         <Combobox
           value={comboboxValue}
           onChange={setComboboxValue}

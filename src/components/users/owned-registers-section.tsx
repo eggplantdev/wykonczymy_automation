@@ -11,7 +11,7 @@ import {
 import { Description } from '@/components/ui/description'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { isNegativeMoney } from '@/components/ui/signed-money-display'
+import { isNegativeMoney } from '@/lib/utils/round-to-cents'
 import type { RegisterBalanceMapT } from '@/lib/queries/balances'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { createTranslator } from '@/lib/i18n/translations'

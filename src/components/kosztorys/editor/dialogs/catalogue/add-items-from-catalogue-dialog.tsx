@@ -220,7 +220,7 @@ export function AddItemsFromCatalogueDialog({
           <div className="flex items-center gap-2">
             <Button onClick={handleNewItem}>Dodaj nową pracę…</Button>
             {sectionHint && (
-              <Description tone="error" withIcon={false}>
+              <Description tone="error">
                 {sectionHint}
               </Description>
             )}

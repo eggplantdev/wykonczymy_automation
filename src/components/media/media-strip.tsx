@@ -49,7 +49,7 @@ export function MediaStrip({
 
           return (
             <li key={file.id} className="relative">
-              {/* eslint-disable-next-line local/no-hand-rolled-ui -- the thumbnail tile itself, an image surface rather than a Button look */}
+              {/* eslint-disable-next-line local/no-hand-rolled-ui -- a thumbnail tile, not a Button look */}
               <button
                 type="button"
                 onClick={() => (pick ? pick.onToggle(file) : setOpenIndex(index))}

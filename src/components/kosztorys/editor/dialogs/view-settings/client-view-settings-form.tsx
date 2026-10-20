@@ -1,7 +1,7 @@
 'use client'
 
 import { Description } from '@/components/ui/description'
-import { InlineLoading } from '@/components/ui/inline-loading'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings/view-settings-fields'
 import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/view-settings/document-column-order-button'

@@ -98,7 +98,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         size="sm"
         variant="outline"
         onClick={onCheck}
-        disabled={pending}
+        pending={pending}
         className="min-w-0 shrink"
         // eslint-disable-next-line local/no-hand-rolled-ui -- truncation reveal for the clipped label
         title="Synchronizuj wydatki inwestycyjne"

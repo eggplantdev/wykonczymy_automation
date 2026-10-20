@@ -1,7 +1,6 @@
-import { isNegativeMoney } from '@/components/ui/signed-money-display'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { roundToCents } from '@/lib/utils/round-to-cents'
+import { isNegativeMoney, roundToCents } from '@/lib/utils/round-to-cents'
 
 type BalanceCellPropsT = {
   value: number

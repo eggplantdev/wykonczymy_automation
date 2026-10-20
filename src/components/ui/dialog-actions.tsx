@@ -33,7 +33,12 @@ export function DialogActions({
       <Button variant="outline" onClick={onCancel} disabled={pending}>
         {cancelLabel ?? t('cancel')}
       </Button>
-      <Button variant={confirmVariant} onClick={onConfirm} disabled={confirmDisabled || pending}>
+      <Button
+        variant={confirmVariant}
+        onClick={onConfirm}
+        pending={pending}
+        disabled={confirmDisabled}
+      >
         {pending && pendingLabel ? pendingLabel : confirmLabel}
       </Button>
     </DialogFooter>

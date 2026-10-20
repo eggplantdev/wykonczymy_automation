@@ -57,7 +57,7 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
           </div>
           <DialogFooter className="sm:items-center sm:gap-3">
             {isCloseRefused && hasInvalid && (
-              <Description tone="error" withIcon={false}>
+              <Description tone="error">
                 {t('extrasFixErrors')}
               </Description>
             )}

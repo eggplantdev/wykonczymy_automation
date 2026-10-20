@@ -35,7 +35,7 @@ export function SheetProblemsBlock({
       }
     >
       {problems.map((problem) => (
-        <Description key={problem} tone="error" withIcon={false}>
+        <Description key={problem} tone="error">
           {problem}
         </Description>
       ))}

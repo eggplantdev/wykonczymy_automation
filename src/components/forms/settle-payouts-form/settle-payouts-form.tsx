@@ -260,7 +260,7 @@ export function SettlePayoutsForm({
         disabled={!canSubmit || isBooking}
         secondaryAction={
           overPool && (
-            <Description tone="error" withIcon={false}>
+            <Description tone="error">
               Przekroczono kwotę do rozdysponowania o {formatPLN(-poolLeft)}
             </Description>
           )

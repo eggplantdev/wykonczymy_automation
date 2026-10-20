@@ -35,9 +35,9 @@ const TONE_ICON: Record<DescriptionToneT, typeof Info> = {
 export function Description({
   children,
   className,
-  withIcon = true,
   size = 'sm',
   tone = 'muted',
+  withIcon = tone !== 'error',
   role,
 }: DescriptionPropsT) {
   const Icon = TONE_ICON[tone]

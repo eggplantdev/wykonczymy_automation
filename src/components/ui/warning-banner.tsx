@@ -5,18 +5,15 @@ import { cn } from '@/lib/utils/cn'
 export function WarningBanner({
   children,
   className,
-  bordered = true,
 }: {
   children: ReactNode
   className?: string
-  bordered?: boolean
 }) {
   return (
     <p
       role="alert"
       className={cn(
-        'text-destructive flex items-start gap-2 text-xs font-semibold',
-        bordered && 'rounded border-2 py-1.5',
+        'text-destructive flex items-start gap-2 rounded border-2 py-1.5 text-xs font-semibold',
         className,
       )}
     >

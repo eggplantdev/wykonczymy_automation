@@ -157,7 +157,7 @@ export function SectionHeaderCell({
   return (
     <div
       aria-hidden
-      // eslint-disable-next-line local/no-hand-rolled-ui -- one per virtualized section row; a tooltip per cell costs a Radix tree each
+      // eslint-disable-next-line local/no-hand-rolled-ui -- a Radix tooltip per virtualized row is too heavy
       title={title}
       onClick={foldable ? toggle : undefined}
       className={cn('size-full', foldable && 'cursor-pointer')}

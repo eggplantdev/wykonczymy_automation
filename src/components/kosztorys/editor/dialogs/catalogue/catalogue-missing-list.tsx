@@ -51,8 +51,8 @@ export function CatalogueMissingList({
             {!readOnly && (
               <Button
                 variant="link"
-                size="inline"
-                className="shrink-0 text-xs"
+                size="inlineXs"
+                className="shrink-0"
                 onClick={() => onAddToCatalogue(row.itemId)}
               >
                 Dodaj do katalogu

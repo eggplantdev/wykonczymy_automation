@@ -72,7 +72,7 @@ export function LoginForm() {
       </form.AppField>
 
       {error && (
-        <Description tone="error" withIcon={false}>
+        <Description tone="error">
           {error}
         </Description>
       )}
