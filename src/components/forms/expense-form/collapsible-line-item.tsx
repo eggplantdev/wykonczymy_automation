@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import * as Collapsible from '@radix-ui/react-collapsible'
-import { ChevronDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import {
+  Collapsible,
+  CollapsibleChevron,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { DECISION_TONE, type DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { cn } from '@/lib/utils/cn'
 
@@ -34,16 +38,11 @@ export function CollapsibleLineItem({
   const isDecided = status !== 'pending'
 
   return (
-    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className={cn('flex items-center gap-2', isDecided && 'opacity-60')}>
         {leading}
-        <Collapsible.Trigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1 text-left">
-          <ChevronDown
-            className={cn(
-              'text-muted-foreground size-4 shrink-0 transition-transform duration-200',
-              !isOpen && '-rotate-90',
-            )}
-          />
+        <CollapsibleTrigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1 text-left">
+          <CollapsibleChevron open={isOpen} className="text-muted-foreground size-4" />
           <span
             className={cn(
               'min-w-0 truncate text-sm font-medium',
@@ -55,14 +54,14 @@ export function CollapsibleLineItem({
           <Badge tone={DECISION_TONE[status]} className="shrink-0">
             {STATUS_LABEL[status]}
           </Badge>
-        </Collapsible.Trigger>
+        </CollapsibleTrigger>
         {action}
       </div>
-      <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
+      <CollapsibleContent>
         <fieldset disabled={isDecided} className="min-w-0 pt-2">
           {children}
         </fieldset>
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

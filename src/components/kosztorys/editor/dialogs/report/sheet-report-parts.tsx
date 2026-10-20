@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import * as Collapsible from '@radix-ui/react-collapsible'
-import { ChevronDown } from 'lucide-react'
+import {
+  Collapsible,
+  CollapsibleChevron,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils/cn'
 
 export function ReportTable({
@@ -143,16 +147,12 @@ export function ReportFold({
 }) {
   const [open, setOpen] = useState(false)
   return (
-    <Collapsible.Root open={open} onOpenChange={setOpen} className="space-y-0.5">
-      <Collapsible.Trigger className="flex w-full cursor-pointer items-start gap-1 text-left">
-        <ChevronDown
-          className={`mt-1 size-3.5 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''} ${tone}`}
-        />
+    <Collapsible open={open} onOpenChange={setOpen} className="space-y-0.5">
+      <CollapsibleTrigger className="flex w-full cursor-pointer items-start gap-1 text-left">
+        <CollapsibleChevron open={open} className={cn('mt-1 size-3.5', tone)} />
         <span className={tone}>{summary}</span>
-      </Collapsible.Trigger>
-      <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
-        <div className="space-y-0.5 pl-4.5">{children}</div>
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-0.5 pl-4.5">{children}</CollapsibleContent>
+    </Collapsible>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { CollapsibleChevron } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -55,7 +55,6 @@ import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { settleAction } from '@/lib/utils/settle-action'
 import { NOTICE_MS, retranslationNotice } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
-import { cn } from '@/lib/utils/cn'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { unitLabel } from '@/lib/kosztorys/format'
 
@@ -405,11 +404,9 @@ export function WorkerReportReview({
                       >
                         {title} ({lines.length}
                         {lines.length < total && ` z ${total}`})
-                        <ChevronDown
-                          className={cn(
-                            'size-3.5 transition-transform duration-200',
-                            !collapsedGroups.has(group) && 'rotate-180',
-                          )}
+                        <CollapsibleChevron
+                          open={!collapsedGroups.has(group)}
+                          className="size-3.5"
                         />
                       </button>
                     </h4>
