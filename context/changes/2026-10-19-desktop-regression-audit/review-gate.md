@@ -209,7 +209,7 @@ Stage C notes (logged out unless noted, 1280 + 1024, staging `9d7572296`):
       OWNER/MANAGER rows too; the server refuses with „Kierownik może zmieniać tylko konta pracowników.”
       — no UI gate at `c713fa2bf` either (`/kasy` hides it instead). Owner: block it — the badge is a plain
       `Badge` where `canTrashAccount` refuses (row field `canTrash` → `canManage`, gates both).
-      test: TDD · unit — `users.test.tsx` „toggles only on a row the viewer may manage”; not run (tests on the user's ask).
+      test: TDD · unit — `users.test.tsx` „toggles only on a row the viewer may manage” — red on the pre-fix `users.tsx`, green after; `tsc` clean.
 - [x] · doubtful · dismissed · `/szablony/[id]` · MANAGER · 1280 · registry L843 expects „Filtry” in the
       template like in the kosztorys; the template shows none (`KosztorysFiltersMenu` returns null with no
       filter options) — same at `c713fa2bf`. Owner: keep it — a szablon offers only „Cena j.m.” filters, shown when they
