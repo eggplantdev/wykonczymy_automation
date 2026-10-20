@@ -1169,6 +1169,12 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Pasek zwinięty → przeładowanie strony: pasek od razu stoi zwinięty, bez animacji zwężania.
 - [ ] Edytor kosztorysu z dużym kosztorysem: zwinięcie i rozwinięcie paska nie zacina siatki.
 
+## 2026-10-20 — badge-select-hover — klikalny badge statusu inwestycji podświetla się po najechaniu
+
+- [ ] Lista inwestycji → najechanie na badge statusu i badge etapu AI: badge przygasa tak samo jak
+      badge „Aktywna” na liście kas, kursor to rączka; klik otwiera listę wyboru.
+- [ ] W trakcie zapisu zmiany etapu AI (badge wyłączony) najechanie nie zmienia wyglądu badge'a.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

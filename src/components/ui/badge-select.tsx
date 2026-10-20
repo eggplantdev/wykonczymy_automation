@@ -42,7 +42,7 @@ export function BadgeSelect<TValue extends string>({
     <Select value={value} onValueChange={handleValueChange} disabled={disabled}>
       <SelectTrigger
         className={cn(
-          'w-fit cursor-pointer gap-1 border-0 bg-transparent px-0 shadow-none data-[size=default]:h-auto',
+          'w-fit cursor-pointer gap-1 border-0 bg-transparent px-0 shadow-none enabled:hover:opacity-70 data-[size=default]:h-auto',
           hideChevron && '[&>svg]:hidden',
         )}
       >
