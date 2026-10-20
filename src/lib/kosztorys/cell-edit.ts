@@ -1,9 +1,6 @@
 import { parseCellDecimal } from '@/lib/utils/parse-decimal-input'
 
-export type CellEditPolicyT<RowT, EntryT> = {
-  snapshot: (row: RowT) => EntryT
-  sameEntry: (a: EntryT, b: EntryT) => boolean
-  restore: (row: RowT, entry: EntryT) => RowT
+export type CellEditPolicyT<RowT> = {
   applyValue: (row: RowT, value: number) => RowT
   clear: (row: RowT) => RowT
   guard?: (row: RowT) => CellVerdictT | null
@@ -15,28 +12,17 @@ export type CellVerdictT = { severity: 'refuse' | 'warn'; message: string }
 export type CellKeystrokeT<RowT> =
   | { kind: 'hold' }
   | { kind: 'blocked'; message: string }
-  | { kind: 'commit'; row: RowT }
+  | { kind: 'accept'; row: RowT }
 
 export type CellSettleT<RowT> =
-  | { kind: 'keep'; warning: string | null }
+  | { kind: 'commit'; row: RowT; warning: string | null }
   | { kind: 'clear'; row: RowT }
-  | {
-      kind: 'rollback'
-      reason: 'blocked' | 'invalid'
-      /** `null` when the row already stands where the rollback would put it — announcement owed, write not. */
-      row: RowT | null
-      restored: RowT
-    }
+  | { kind: 'reject'; reason: 'blocked' | 'invalid' }
 
-/**
- * `hold` is the load-bearing case: writing an emptied field back mid-typing flips the cell out of
- * edit mode, which swaps the input for read-only text — the caret dies and the old value reappears
- * under the user's hands.
- */
-export function cellKeystroke<RowT, EntryT>(
+export function cellKeystroke<RowT>(
   raw: string,
   rowData: RowT,
-  policy: CellEditPolicyT<RowT, EntryT>,
+  policy: CellEditPolicyT<RowT>,
 ): CellKeystrokeT<RowT> {
   const parsed = parseCellDecimal(raw)
   if (parsed.kind !== 'value') return { kind: 'hold' }
@@ -44,42 +30,23 @@ export function cellKeystroke<RowT, EntryT>(
   const row = policy.applyValue(rowData, parsed.value)
   const verdict = policy.guard?.(row) ?? null
   if (verdict?.severity === 'refuse') return { kind: 'blocked', message: verdict.message }
-  // Keystrokes commit as they go, so a warning on this result would fire on „6",
-  // „66", „660" — three toasts for one number.
-  return { kind: 'commit', row }
+  return { kind: 'accept', row }
 }
 
-/**
- * Without the rollback, walking away leaves the last accepted PREFIX standing as a value nobody chose.
- */
-export function cellSettle<RowT, EntryT>(
+export function cellSettle<RowT>(
   draft: string,
   rowData: RowT,
-  policy: CellEditPolicyT<RowT, EntryT>,
-  entry: EntryT,
+  policy: CellEditPolicyT<RowT>,
 ): CellSettleT<RowT> {
-  const parsed = parseCellDecimal(draft)
-  if (parsed.kind === 'empty') return { kind: 'clear', row: policy.clear(rowData) }
+  if (parseCellDecimal(draft).kind === 'empty') return { kind: 'clear', row: policy.clear(rowData) }
 
   const result = cellKeystroke(draft, rowData, policy)
-  if (result.kind === 'commit')
-    return { kind: 'keep', warning: policy.guard?.(result.row)?.message ?? null }
-
-  const restored = policy.restore(rowData, entry)
-  const settled = policy.sameEntry(policy.snapshot(rowData), entry)
-  return {
-    kind: 'rollback',
-    reason: result.kind === 'blocked' ? 'blocked' : 'invalid',
-    row: settled ? null : restored,
-    restored,
-  }
+  if (result.kind === 'accept')
+    return { kind: 'commit', row: result.row, warning: policy.guard?.(result.row)?.message ?? null }
+  return { kind: 'reject', reason: result.kind === 'blocked' ? 'blocked' : 'invalid' }
 }
 
-export function cellPaste<RowT, EntryT>(
-  raw: string,
-  rowData: RowT,
-  policy: CellEditPolicyT<RowT, EntryT>,
-): RowT {
+export function cellPaste<RowT>(raw: string, rowData: RowT, policy: CellEditPolicyT<RowT>): RowT {
   const parsed = parseCellDecimal(raw)
   if (parsed.kind === 'empty') return policy.clear(rowData)
   if (parsed.kind === 'invalid') return rowData
@@ -87,15 +54,15 @@ export function cellPaste<RowT, EntryT>(
   return policy.guard?.(next)?.severity === 'refuse' ? rowData : next
 }
 
+export type NumericFieldPolicyT<RowT> = CellEditPolicyT<RowT> & { read: (row: RowT) => number }
+
 export function numericFieldPolicy<K extends string, RowT extends Record<K, number>>(
   field: K,
   format: (value: number) => string,
-): CellEditPolicyT<RowT, number> {
+): NumericFieldPolicyT<RowT> {
   const write = (row: RowT, value: number) => ({ ...row, [field]: value }) as RowT
   return {
-    snapshot: (row) => row[field],
-    sameEntry: (a, b) => a === b,
-    restore: write,
+    read: (row) => row[field],
     applyValue: write,
     clear: (row) => write(row, 0),
     restoredLabel: (row) => format(row[field]),

@@ -1651,6 +1651,21 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Lista transakcji (desktop), widok tabeli: imię i nazwisko w kolumnie „Pracownik” mieści się w
       jednej linii, tak jak w „Dodane przez”.
 
+## EX-1116 — kosztorys-commit-on-settle — komórki liczbowe zapisują się po Enterze
+
+- [ ] Edytor kosztorysu z ~1000 pozycjami → wpisz liczbę w „Przedmiar ofertowy": znaki pojawiają się
+      bez przycięć; „Wartość netto" wiersza i sumy w stopce zmieniają się dopiero po Enterze.
+- [ ] „Etap 1" → wpisz ilość, Enter: „Pomiar z natury" i suma etapów zmieniają się raz; Cofnij
+      (Ctrl+Z) przywraca poprzednią ilość jednym krokiem.
+- [ ] „Rabat" → wpisz 150 przy rabacie procentowym: czerwony komunikat widać już w trakcie pisania;
+      po Enterze komunikat „…przywrócono" i rabat bez zmian.
+- [ ] Dowolna komórka liczbowa → wpisz liczbę, Esc: wartość bez zmian, bez komunikatu, zaznaczenie
+      zostaje w tej samej komórce.
+- [ ] „Aktualizacja przedmiaru" → wyczyść komórkę, Enter: wartość wraca do szarej (podąża za
+      „Przedmiarem ofertowym").
+- [ ] Stawka podwykonawcy → mnożnik ponad sufitem, Enter: jedno ostrzeżenie, wartość zostaje.
+- [ ] Z aktywnym wyszukiwaniem w pasku narzędzi: edytowany wiersz nie znika w trakcie pisania.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

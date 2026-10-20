@@ -126,7 +126,7 @@ describe('Cena wykonawcy — wyjścia z edycji', () => {
 
     await user.clear(input)
     await user.type(input, '90')
-    expect(stored(1)).toBe('90')
+    expect(stored(1)).toBe('auto')
     expect(toastMessage).not.toHaveBeenCalled()
 
     unmount()

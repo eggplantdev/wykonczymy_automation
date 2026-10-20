@@ -14,13 +14,13 @@ type QtyRowT = { id: number; plannedQty: number }
 const qty = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty', String)
 const row = (plannedQty: number): QtyRowT => ({ id: 1, plannedQty })
 
-const capped: CellEditPolicyT<QtyRowT, number> = {
+const capped: CellEditPolicyT<QtyRowT> = {
   ...qty,
   guard: (candidate) =>
     candidate.plannedQty > 100 ? { severity: 'refuse', message: 'za dużo' } : null,
 }
 
-const warned: CellEditPolicyT<QtyRowT, number> = {
+const warned: CellEditPolicyT<QtyRowT> = {
   ...qty,
   guard: (candidate) =>
     candidate.plannedQty > 100 ? { severity: 'warn', message: 'dużo, ale niech będzie' } : null,
@@ -28,11 +28,10 @@ const warned: CellEditPolicyT<QtyRowT, number> = {
 
 describe('cellKeystroke', () => {
   it('przyjmuje przecinek jako separator dziesiętny', () => {
-    expect(cellKeystroke('12,5', row(0), qty)).toEqual({ kind: 'commit', row: row(12.5) })
+    expect(cellKeystroke('12,5', row(0), qty)).toEqual({ kind: 'accept', row: row(12.5) })
   })
 
   it('nie zapisuje nic po wyczyszczeniu pola', () => {
-    // Writing the cleared value here would flip the cell out of edit mode mid-typing
     expect(cellKeystroke('', row(7), qty)).toEqual({ kind: 'hold' })
   })
 
@@ -41,77 +40,51 @@ describe('cellKeystroke', () => {
     expect(cellKeystroke('1e', row(7), qty)).toEqual({ kind: 'hold' })
   })
 
-  it('kolejne klawisze ułamka dochodzą do pełnej liczby, nie do sklejonych cyfr', () => {
-    expect(cellKeystroke('12', row(0), qty)).toMatchObject({ kind: 'commit', row: row(12) })
-    expect(cellKeystroke('12,', row(12), qty)).toMatchObject({ kind: 'commit', row: row(12) })
-    expect(cellKeystroke('12,5', row(12), qty)).toMatchObject({ kind: 'commit', row: row(12.5) })
-  })
-
   it('guard odrzuca wartość, zanim wiersz ją przyjmie', () => {
     expect(cellKeystroke('101', row(5), capped)).toMatchObject({ kind: 'blocked' })
-    expect(cellKeystroke('99', row(5), capped)).toMatchObject({ kind: 'commit' })
+    expect(cellKeystroke('99', row(5), capped)).toMatchObject({ kind: 'accept' })
   })
 
-  it('ostrzeżenie zapisuje wartość i milczy do czasu wyjścia z komórki', () => {
-    // `toEqual`, not `toMatchObject`: the silence is the assertion. A warning reaching this result
-    // is what would fire a toast per keystroke.
-    expect(cellKeystroke('101', row(5), warned)).toEqual({ kind: 'commit', row: row(101) })
+  it('ostrzeżenie milczy do czasu wyjścia z komórki', () => {
+    expect(cellKeystroke('101', row(5), warned)).toEqual({ kind: 'accept', row: row(101) })
   })
 })
 
 describe('cellSettle', () => {
   it('puste pole zeruje dopiero po wyjściu z komórki', () => {
-    expect(cellSettle('', row(7), qty, 7)).toEqual({ kind: 'clear', row: row(0) })
+    expect(cellSettle('', row(7), qty)).toEqual({ kind: 'clear', row: row(0) })
   })
 
-  it('przyjęta wartość nie wymaga zapisu — wiersz już ją ma', () => {
-    expect(cellSettle('12,5', row(12.5), qty, 7)).toEqual({ kind: 'keep', warning: null })
-  })
-
-  it('odrzucony wpis cofa wiersz do stanu sprzed edycji', () => {
-    expect(cellSettle('1e', row(1), qty, 7)).toMatchObject({
-      kind: 'rollback',
-      reason: 'invalid',
-      row: row(7),
-      restored: row(7),
+  it('przyjęta wartość trafia do wiersza dopiero tutaj', () => {
+    expect(cellSettle('12,5', row(7), qty)).toEqual({
+      kind: 'commit',
+      row: row(12.5),
+      warning: null,
     })
   })
 
-  it('cofnięcie do stanu, w którym wiersz już jest, nic nie zapisuje — ale nadal jest odrzuceniem', () => {
-    expect(cellSettle('1e', row(7), qty, 7)).toMatchObject({
-      kind: 'rollback',
-      reason: 'invalid',
-      row: null,
-      restored: row(7),
-    })
+  it('niedokończony wpis odrzuca bez zapisu', () => {
+    expect(cellSettle('1e', row(7), qty)).toEqual({ kind: 'reject', reason: 'invalid' })
   })
 
   it('odrzucenie z guardu niesie własny powód', () => {
-    expect(cellSettle('101', row(101), capped, 5)).toMatchObject({
-      kind: 'rollback',
-      reason: 'blocked',
-      row: row(5),
-    })
+    expect(cellSettle('101', row(5), capped)).toEqual({ kind: 'reject', reason: 'blocked' })
   })
 
-  it('ostrzeżona wartość zostaje w wierszu i dopiero tu dostaje swój komunikat', () => {
-    expect(cellSettle('101', row(101), warned, 5)).toEqual({
-      kind: 'keep',
+  it('ostrzeżona wartość trafia do wiersza i dopiero tu dostaje swój komunikat', () => {
+    expect(cellSettle('101', row(5), warned)).toEqual({
+      kind: 'commit',
+      row: row(101),
       warning: 'dużo, ale niech będzie',
     })
-  })
-
-  it('podaje przywróconą wartość do ogłoszenia', () => {
-    const settled = cellSettle('1e', row(1), qty, 7)
-    expect(settled.kind === 'rollback' && qty.restoredLabel(settled.restored)).toBe('7')
   })
 })
 
 describe('cellPaste', () => {
   it('wkleja to samo, co da się wpisać z klawiatury', () => {
-    const pasted = cellPaste('1\u00a0234,5', row(0), qty)
+    const pasted = cellPaste('1 234,5', row(0), qty)
     expect(pasted).toEqual(row(1234.5))
-    expect(cellKeystroke('1\u00a0234,5', row(0), qty)).toMatchObject({
+    expect(cellSettle('1 234,5', row(0), qty)).toMatchObject({
       kind: 'commit',
       row: pasted,
     })
@@ -150,37 +123,32 @@ describe('discountPolicy', () => {
   const noDiscount: DiscountPairT = { discountType: null, discountValue: 0 }
 
   it('wpisana wartość bez typu domyśla się procentu', () => {
-    expect(cellKeystroke('10', noDiscount, policy)).toMatchObject({
+    expect(cellSettle('10', noDiscount, policy)).toMatchObject({
       kind: 'commit',
       row: { discountType: 'percent', discountValue: 10 },
     })
   })
 
   it('nie nadpisuje typu wybranego wcześniej', () => {
-    expect(
-      cellKeystroke('250', { discountType: 'amount', discountValue: 0 }, policy),
-    ).toMatchObject({ kind: 'commit', row: { discountType: 'amount', discountValue: 250 } })
-  })
-
-  it('wyczyszczone pole zdejmuje rabat razem z typem', () => {
-    expect(
-      cellSettle('', { discountType: 'percent', discountValue: 10 }, policy, noDiscount),
-    ).toEqual({ kind: 'clear', row: noDiscount })
-  })
-
-  it('odrzuca rabat procentowy powyżej 100%', () => {
-    expect(cellKeystroke('101', noDiscount, policy)).toMatchObject({ kind: 'blocked' })
-    expect(cellKeystroke('100', noDiscount, policy)).toMatchObject({
+    expect(cellSettle('250', { discountType: 'amount', discountValue: 0 }, policy)).toMatchObject({
       kind: 'commit',
-      row: { discountType: 'percent', discountValue: 100 },
+      row: { discountType: 'amount', discountValue: 250 },
     })
   })
 
-  it('wyjście z komórki wycofuje odrzucony rabat i mówi dlaczego', () => {
-    const entry: DiscountPairT = { discountType: 'percent', discountValue: 10 }
-    expect(
-      cellSettle('150', { discountType: 'percent', discountValue: 15 }, policy, entry),
-    ).toEqual({ kind: 'rollback', reason: 'blocked', row: entry, restored: entry })
+  it('wyczyszczone pole zdejmuje rabat razem z typem', () => {
+    expect(cellSettle('', { discountType: 'percent', discountValue: 10 }, policy)).toEqual({
+      kind: 'clear',
+      row: noDiscount,
+    })
+  })
+
+  it('odrzuca rabat procentowy powyżej 100%', () => {
+    expect(cellSettle('101', noDiscount, policy)).toEqual({ kind: 'reject', reason: 'blocked' })
+    expect(cellSettle('100', noDiscount, policy)).toMatchObject({
+      kind: 'commit',
+      row: { discountType: 'percent', discountValue: 100 },
+    })
   })
 
   it('wklejenie ponad sufit zostawia wiersz bez zmian', () => {

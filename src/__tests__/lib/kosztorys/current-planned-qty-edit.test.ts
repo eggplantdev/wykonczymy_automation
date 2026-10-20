@@ -14,7 +14,7 @@ describe('currentPlannedQtyPolicy', () => {
   })
 
   it('an emptied cell settles to null, never to 0', () => {
-    expect(cellSettle('', edited, policy, 15)).toEqual({
+    expect(cellSettle('', edited, policy)).toEqual({
       kind: 'clear',
       row: { plannedQty: 10, currentPlannedQty: null },
     })
@@ -24,17 +24,7 @@ describe('currentPlannedQtyPolicy', () => {
     expect(cellPaste('0', following, policy).currentPlannedQty).toBe(0)
   })
 
-  it('a refused first edit rolls back to null, so the row follows again', () => {
-    const settled = cellSettle('12x', { ...following, currentPlannedQty: 12 }, policy, null)
-    expect(settled).toMatchObject({ kind: 'rollback', restored: following })
-  })
-
-  it('snapshots the stored value, not the resolved one', () => {
-    expect(policy.snapshot(following)).toBeNull()
-    expect(policy.snapshot(edited)).toBe(15)
-  })
-
-  it('names the resolved quantity when it announces a rollback', () => {
+  it('names the resolved quantity when it announces a refusal', () => {
     expect(policy.restoredLabel(following)).toBe('10')
   })
 })

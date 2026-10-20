@@ -1,9 +1,4 @@
-import {
-  effectiveCoeff,
-  overrideCoeffFor,
-  overrideValueFor,
-  subcontractorPrice,
-} from '@/lib/kosztorys/calc'
+import { effectiveCoeff, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { type CellEditPolicyT } from '@/lib/kosztorys/cell-edit'
 import { OVERRIDE_COEFF_FIELDS, OVERRIDE_FIELDS } from '@/lib/kosztorys/constants'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -30,11 +25,8 @@ function withSource<RowT extends ViewPricingT>(
  */
 export function subcontractorPolicy<RowT extends ViewPricingT>(
   view: ToolPlaneT,
-): CellEditPolicyT<RowT, number | null> {
+): CellEditPolicyT<RowT> {
   return {
-    snapshot: (row) => overrideValueFor(row, view),
-    sameEntry: (a, b) => a === b,
-    restore: (row, entry) => withSource(row, view, entry, null),
     applyValue: (row, value) => withSource(row, view, value, null),
     clear: (row) => withSource(row, view, null, null),
     guard: (row) => checkSubcontractorPrice(row, view),
@@ -44,11 +36,8 @@ export function subcontractorPolicy<RowT extends ViewPricingT>(
 
 export function subcontractorCoeffPolicy<RowT extends ViewPricingT>(
   view: ToolPlaneT,
-): CellEditPolicyT<RowT, number | null> {
+): CellEditPolicyT<RowT> {
   return {
-    snapshot: (row) => overrideCoeffFor(row, view),
-    sameEntry: (a, b) => a === b,
-    restore: (row, entry) => withSource(row, view, null, entry),
     applyValue: (row, value) => withSource(row, view, null, value),
     clear: (row) => withSource(row, view, null, null),
     guard: (row) => checkSubcontractorPrice(row, view),
