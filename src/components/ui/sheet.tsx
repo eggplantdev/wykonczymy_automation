@@ -7,6 +7,10 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
+import { useOverlayPreview } from '@/components/ui/overlay-preview'
+
+const SHEET_SURFACE_CLASS =
+  'bg-background sm:max-w-dialog-sm flex w-full flex-col shadow-lg outline-none'
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -31,6 +35,29 @@ function SheetContent({
   showCloseButton?: boolean
 }) {
   const { t } = useTranslation('common')
+  const isPreview = useOverlayPreview()
+  const closeButton = showCloseButton && (
+    <SheetPrimitive.Close
+      data-slot="sheet-close"
+      className="text-foreground hover:bg-accent absolute top-2 right-2 rounded-md p-3 transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
+      aria-label={t('close')}
+    >
+      <X className="size-6" />
+    </SheetPrimitive.Close>
+  )
+
+  if (isPreview) {
+    return (
+      <div
+        data-slot="sheet-content"
+        className={cn(SHEET_SURFACE_CLASS, 'relative h-80', className)}
+      >
+        {children}
+        {closeButton}
+      </div>
+    )
+  }
+
   return (
     <SheetPrimitive.Portal>
       <SheetPrimitive.Overlay
@@ -44,22 +71,15 @@ function SheetContent({
         data-slot="sheet-content"
         className={cn(
           // `h-dvh`, not `h-screen`: iOS paints a fixed `lvh` box taller than the visible viewport, which buries the bottom band under the toolbar.
-          'bg-background sm:max-w-dialog-sm fixed inset-y-0 left-0 z-10002 flex h-dvh w-full flex-col overflow-y-auto overscroll-contain shadow-lg outline-none',
+          SHEET_SURFACE_CLASS,
+          'fixed inset-y-0 left-0 z-10002 h-dvh overflow-y-auto overscroll-contain',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left duration-300 ease-out',
           className,
         )}
         {...props}
       >
         {children}
-        {showCloseButton && (
-          <SheetPrimitive.Close
-            data-slot="sheet-close"
-            className="text-foreground hover:bg-accent absolute top-2 right-2 rounded-md p-3 transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
-            aria-label={t('close')}
-          >
-            <X className="size-6" />
-          </SheetPrimitive.Close>
-        )}
+        {closeButton}
       </SheetPrimitive.Content>
     </SheetPrimitive.Portal>
   )

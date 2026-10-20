@@ -7,10 +7,13 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 import { RowActionLabels } from '@/components/ui/row-actions/row-action-labels'
+import { useOverlayPreview } from '@/components/ui/overlay-preview'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
 
 export const DIALOG_TITLE_CLASS = `${SECTION_TITLE_CLASS} leading-none wrap-anywhere`
 export const DIALOG_FOOTER_CLASS = 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'
+const DIALOG_SURFACE_CLASS =
+  'bg-background sm:max-w-dialog flex w-full flex-col gap-4 p-4 shadow-lg outline-none max-sm:pt-6 sm:rounded-lg sm:p-6'
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -54,33 +57,49 @@ function DialogContent({
   showCloseButton?: boolean
 }) {
   const { t } = useTranslation('common')
+  const isPreview = useOverlayPreview()
+  const body = (
+    <>
+      {/* A dialog opened from a card portals out of the card visually but not out of its React
+          context — without this reset the dialog's own row actions would print their labels. */}
+      <RowActionLabels value={false}>{children}</RowActionLabels>
+      {showCloseButton && (
+        <DialogPrimitive.Close
+          data-slot="dialog-close"
+          className="text-foreground hover:bg-accent absolute top-2 right-2 rounded-md p-3 transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
+          aria-label={t('close')}
+        >
+          <X className="size-6" />
+        </DialogPrimitive.Close>
+      )}
+    </>
+  )
+
+  if (isPreview) {
+    return (
+      <div data-slot="dialog-content" className={cn(DIALOG_SURFACE_CLASS, 'relative', className)}>
+        {body}
+      </div>
+    )
+  }
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
+          DIALOG_SURFACE_CLASS,
           // `h-dvh` tracks the virtual keyboard where `vh` doesn't.
-          'bg-background fixed top-0 left-1/2 z-10000 flex h-dvh max-h-none w-full max-w-none -translate-x-1/2 flex-col gap-4 overflow-y-auto p-4 shadow-lg duration-200 outline-none max-sm:pt-6',
-          'sm:max-w-dialog sm:top-1/2 sm:h-fit sm:max-h-[90vh] sm:-translate-y-1/2 sm:rounded-lg sm:p-6',
+          'fixed top-0 left-1/2 z-10000 h-dvh max-h-none max-w-none -translate-x-1/2 overflow-y-auto duration-200',
+          'sm:max-w-dialog sm:top-1/2 sm:h-fit sm:max-h-[90vh] sm:-translate-y-1/2',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4',
           'sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0',
           className,
         )}
         {...props}
       >
-        {/* A dialog opened from a card portals out of the card visually but not out of its React
-            context — without this reset the dialog's own row actions would print their labels. */}
-        <RowActionLabels value={false}>{children}</RowActionLabels>
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="text-foreground hover:bg-accent absolute top-2 right-2 rounded-md p-3 transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
-            aria-label={t('close')}
-          >
-            <X className="size-6" />
-          </DialogPrimitive.Close>
-        )}
+        {body}
       </DialogPrimitive.Content>
     </DialogPortal>
   )
