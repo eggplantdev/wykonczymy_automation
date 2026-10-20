@@ -1,10 +1,10 @@
 ---
 change_id: investment-overview-shared
 title: One shared investment overview for the investment page and the kosztorys tab
-status: implemented
+status: archived
 created: 2026-10-20
 updated: 2026-10-20
-archived_at: null
+archived_at: 2026-10-20T15:30:48Z
 branch: investment-overview-shared
 worktree: ../wykonczymy-worktrees/investment-overview-shared
 ---
@@ -25,4 +25,11 @@ the layout, investment page and `kosztorys_v2` page timings and RSC payload size
 in `AuthenticatedShell` above `children` would serialize the page fetches behind it, so pass the
 promise (like `unreadCounts`) instead. Order settings: provider or the `kosztorys_v2` page (decided: same provider).
 
-Context: the EX-1115 badge-select work (uncommitted) is already in the tree.
+Open, owner's call pending: layout-provided reference data and order settings don't re-render on soft
+navigation, so another manager's new investment / worker / kasa / supplier reaches the AddSheet and
+„Zamów” pickers only after a reload or the viewer's own revalidating action. Accept, or refetch on
+dialog open.
+
+Open, owner's call pending: „Zdjęcia i pliki” stays writable for an investment in the Kosz
+(`addInvestmentAssetsAction` has no trashed check) — predates the slice, contradicts the overview's
+read-only contract.
