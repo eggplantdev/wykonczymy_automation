@@ -1,6 +1,9 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import {
+  makeRevalidateAfterChange,
+  makeRevalidateAfterDelete,
+} from '@/collections/hooks/revalidate-collection'
 import { refuseDeleteWhen } from '@/collections/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/collections/hooks/investments/guard-status-unlock'
@@ -19,7 +22,6 @@ import {
   INVESTMENT_INITIAL_INFO_FIELDS,
   INVESTMENT_INITIAL_INFO_TITLE,
   INVESTMENT_MARKETS,
-  INVESTMENT_MARKET_LABELS,
 } from '@/lib/constants/investment-initial-info'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
@@ -44,7 +46,7 @@ const CLIENT_TYPE_OPTIONS = INVESTMENT_CLIENT_TYPES.map((value) => ({
 }))
 
 const MARKET_OPTIONS = INVESTMENT_MARKETS.map((value) => ({
-  label: INVESTMENT_MARKET_LABELS[value],
+  label: INVESTMENT_INITIAL_INFO_FIELDS.market.options[value],
   value,
 }))
 

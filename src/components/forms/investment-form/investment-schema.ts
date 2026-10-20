@@ -23,8 +23,6 @@ const initialInfoFormSchema = z.object({
   market: z.enum(['', ...INVESTMENT_MARKETS]),
 })
 
-export type InvestmentInitialInfoFormValuesT = z.infer<typeof initialInfoFormSchema>
-
 export const investmentFormSchema = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   address: z.string(),
@@ -74,8 +72,7 @@ export const investmentSchema = investmentFormSchema.extend({
 // `z.input`, not `z.infer`: `assets` is supplied by the submit wrapper rather than by the form, so
 // a caller must be allowed to omit it.
 export type InvestmentFormDataT = z.input<typeof investmentSchema>
-// What reaches Payload: the schema's own defaults may still be missing, but `billing` and
-// `initialInfo` are parsed ('' became null, which Payload's select requires).
+// `billing` and `initialInfo` are parsed ('' became null, which Payload's select requires).
 export type InvestmentCreateDataT = Omit<InvestmentFormDataT, 'billing' | 'initialInfo'> & {
   billing?: z.output<typeof investmentSchema>['billing']
   initialInfo?: z.output<typeof investmentSchema>['initialInfo']

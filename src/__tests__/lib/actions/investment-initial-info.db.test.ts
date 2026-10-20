@@ -46,7 +46,6 @@ describe.skipIf(!ENV_READY)('investment „Wstępne informacje” (DB)', () => {
     authState.userId = await firstUserId(payload)
     updateInvestment = (await import('@/lib/actions/investments')).updateInvestmentAction
     fetchDetails = (await import('@/lib/queries/reference-data')).fetchInvestmentDetails
-    await purge()
   })
 
   beforeEach(async () => {

@@ -5,10 +5,6 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { put } from '@vercel/blob'
 import type { ReviewStatusT } from '@/lib/kosztorys/types'
-import {
-  INVESTMENT_INITIAL_INFO_FIELDS,
-  INVESTMENT_INITIAL_INFO_TITLE,
-} from '@/lib/constants/investment-initial-info'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 
 export const BASE = 'https://wykonczymy.vercel.app'
@@ -57,28 +53,7 @@ export const forAiAnalysis = (asset: AssetT) =>
   asset.kind === 'projekt' || new Date(asset.createdAt) < MARKER_PROMISE_SINCE
 
 export const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
-
-export type InitialInfoT = Record<string, string | null | undefined>
-
-const EMPTY_VALUE = '— (puste)'
-
-// A key the app has but this list doesn't yet still reaches the agent, raw.
-export function initialInfoLines(initialInfo: InitialInfoT | null | undefined): string[] {
-  const values = initialInfo ?? {}
-  const fields: Record<string, { label: { pl: string }; options?: Record<string, { pl: string }> }> =
-    INVESTMENT_INITIAL_INFO_FIELDS
-  const known = Object.entries(fields).map(([key, field]) => {
-    const value = values[key]
-    return `${field.label.pl}: ${value ? (field.options?.[value]?.pl ?? value) : EMPTY_VALUE}`
-  })
-  const unknown = Object.entries(values)
-    .filter(([key]) => !(key in fields))
-    .map(([key, value]) => `${key}: ${value || EMPTY_VALUE}`)
-  return [...known, ...unknown]
-}
-
-export const initialInfoMarkdown = (lines: readonly string[]) =>
-  [`# ${INVESTMENT_INITIAL_INFO_TITLE.pl}`, '', ...lines].join('\n') + '\n'
+export const lines = (text: string) => text.split('\n').map(norm).filter(Boolean)
 
 // Without it a round reads every Nowe informacje as empty: the re-run guard passes and the baseline
 // the next round diffs against loses what is already there.

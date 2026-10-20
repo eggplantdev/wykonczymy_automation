@@ -5,7 +5,7 @@ export type InvestmentMarketT = (typeof INVESTMENT_MARKETS)[number]
 
 type LabelT = { pl: string; en: string }
 
-export const INVESTMENT_MARKET_LABELS: Record<InvestmentMarketT, LabelT> = {
+const MARKET_LABELS: Record<InvestmentMarketT, LabelT> = {
   primary: { pl: 'Rynek pierwotny', en: 'Primary market' },
   secondary: { pl: 'Rynek wtórny', en: 'Secondary market' },
 }
@@ -16,5 +16,5 @@ export const INVESTMENT_INITIAL_INFO_TITLE: LabelT = {
 }
 
 export const INVESTMENT_INITIAL_INFO_FIELDS = {
-  market: { label: { pl: 'Rynek', en: 'Market' }, options: INVESTMENT_MARKET_LABELS },
+  market: { label: { pl: 'Rynek', en: 'Market' }, options: MARKET_LABELS },
 } satisfies Record<string, { label: LabelT; options?: Record<string, LabelT> }>

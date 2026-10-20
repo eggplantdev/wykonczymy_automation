@@ -17,14 +17,18 @@ import {
   BASE,
   CASES_ROOT,
   forAiAnalysis,
-  initialInfoLines,
-  initialInfoMarkdown,
   itemsOf,
+  lines,
   norm,
   type AssetT,
-  type InitialInfoT,
   type ItemT,
 } from './prod-client'
+import {
+  initialInfoLines,
+  initialInfoMarkdown,
+  parseInitialInfoMarkdown,
+  type InitialInfoT,
+} from './initial-info'
 
 type CaseT = { investmentId: number; files: { name: string }[] }
 type InvestmentT = {
@@ -52,7 +56,6 @@ const FILES_DIR =
 const ROUNDS_DIR = path.join(FILES_DIR, 'rounds')
 const ROUND_DIR = path.join(ROUNDS_DIR, String(ROUND))
 
-const lines = (text: string) => text.split('\n').map(norm).filter(Boolean)
 const cell = (value: string | number | null | undefined) =>
   value === null || value === undefined ? '' : norm(String(value))
 
@@ -66,8 +69,8 @@ function baseline(kase: CaseT): RoundRecordT {
     at: '',
     notes: readFileSync(path.join(CASE_DIR, 'inputs/client-inquiry.md'), 'utf8'),
     initialInfo: existsSync(initialInfoFile)
-      ? lines(readFileSync(initialInfoFile, 'utf8')).filter((line) => !line.startsWith('#'))
-      : [],
+      ? parseInitialInfoMarkdown(readFileSync(initialInfoFile, 'utf8'))
+      : initialInfoLines(null),
     files: kase.files.map((file) => ({ name: file.name, createdAt: null })),
     aiNotes: '',
   }
@@ -107,7 +110,8 @@ async function run() {
   const knownLines = new Set(lines(previous.notes))
   const newNotes = lines(notes).filter((line) => !knownLines.has(line))
   const initialInfo = initialInfoLines(investment.initialInfo)
-  const knownInitialInfo = new Set(previous.initialInfo ?? [])
+  // A baseline from before the section existed reads as every field empty, not as no lines.
+  const knownInitialInfo = new Set(previous.initialInfo ?? initialInfoLines(null))
   const newInitialInfo = initialInfo.filter((line) => !knownInitialInfo.has(line))
   const items = await itemsOf(kase.investmentId)
   assertRoundFieldsDeployed(items)
@@ -119,7 +123,7 @@ async function run() {
   console.log(
     `ok: #${kase.investmentId} round ${ROUND} against round ${previous.round}: ` +
       `${newFiles.length} new files, ${newNotes.length} new Notatki lines, ` +
-        `${newInitialInfo.length} changed Wstępne informacje lines, ${items.length} pozycji → ${ROUND_DIR}`,
+      `${newInitialInfo.length} changed Wstępne informacje lines, ${items.length} pozycji → ${ROUND_DIR}`,
   )
   if (DRY) return
 

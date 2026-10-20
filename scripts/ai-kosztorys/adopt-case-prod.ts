@@ -12,13 +12,11 @@ import {
   BASE,
   CASES_ROOT,
   forAiAnalysis,
-  initialInfoLines,
-  initialInfoMarkdown,
   itemsOf,
   itemsOfTemplate,
   type AssetT,
-  type InitialInfoT,
 } from './prod-client'
+import { initialInfoLines, initialInfoMarkdown, type InitialInfoT } from './initial-info'
 
 type InvestmentT = {
   id: number
