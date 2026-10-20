@@ -5,9 +5,7 @@
 > domain shape, verified facts, closed decisions, and the open questions in
 > `context/foundation/roadmap.md` — read alongside it, not a replacement.
 
-Kosztorys versions (snapshot kinds, retention bands, who reads them):
-https://claude.ai/artifact/XtKGG6NrvGmsPyVYu8DWMh (private, read on 2026-10-20 — verify against code
-before quoting).
+Kosztorys versions (snapshot kinds, retention bands, who reads them): `kosztorys-snapshots.md`.
 
 ## Cel
 
