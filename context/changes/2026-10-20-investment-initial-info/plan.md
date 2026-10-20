@@ -257,16 +257,16 @@ Preview/staging: `pnpm db:migrate:preview` after merge. Existing investments rea
 #### Automated
 
 - [ ] 1.1 Migration applies to the local DB
-- [ ] 1.2 investment-initial-info.db.test.ts passes
+- [ ] 1.2 investment-initial-info.db.test.ts passes — written in 86f309cb2 (at `src/__tests__/lib/actions/`, it drives the action), not run yet
 
 ### Phase 2: Form
 
 #### Automated
 
-- [ ] 2.1 investment-schema.test.ts passes
+- [ ] 2.1 investment-schema.test.ts passes — written in b7cfbaeab, not run yet
 
 ### Phase 3: AI agent reads the section
 
 #### Automated
 
-- [ ] 3.1 DRY adopt prints the „Wstępne informacje” lines
+- [ ] 3.1 DRY adopt prints the „Wstępne informacje” lines — code in e7301c93d; runnable once prod has the column
