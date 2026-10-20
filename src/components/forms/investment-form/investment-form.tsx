@@ -29,6 +29,11 @@ import {
   INVESTMENT_CLIENT_TYPE_LABELS,
   INVESTMENT_CLIENT_TYPES,
 } from '@/lib/constants/investment-client-type'
+import {
+  INVESTMENT_INITIAL_INFO_FIELDS,
+  INVESTMENT_INITIAL_INFO_TITLE,
+  INVESTMENT_MARKETS,
+} from '@/lib/constants/investment-initial-info'
 
 // Hidden fields still hold whatever was typed before a switch — drop them so the record keeps only
 // what the form shows.
@@ -146,7 +151,10 @@ export function InvestmentForm({
           {siteManager && (
             <Field>
               <FieldLabel>Kierownik budowy</FieldLabel>
-              <InvestmentSiteManagerSelect {...siteManager} />
+              {/* `Field` stretches every direct child to full width. */}
+              <div>
+                <InvestmentSiteManagerSelect {...siteManager} />
+              </div>
             </Field>
           )}
 
@@ -197,6 +205,29 @@ export function InvestmentForm({
                 </form.AppField>
               </div>
             </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title={INVESTMENT_INITIAL_INFO_TITLE.pl}
+            size="sm"
+            withSeparator={false}
+            defaultOpen={false}
+          >
+            <form.AppField name="initialInfo.market">
+              {(field) => (
+                <field.Select
+                  label={INVESTMENT_INITIAL_INFO_FIELDS.market.label.pl}
+                  placeholder="— nie wiadomo —"
+                  showError
+                >
+                  {INVESTMENT_MARKETS.map((market) => (
+                    <SelectItem key={market} value={market}>
+                      {INVESTMENT_INITIAL_INFO_FIELDS.market.options[market].pl}
+                    </SelectItem>
+                  ))}
+                </field.Select>
+              )}
+            </form.AppField>
           </CollapsibleSection>
 
           <CollapsibleSection

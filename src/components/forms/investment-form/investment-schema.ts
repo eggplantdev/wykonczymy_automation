@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 import { INVESTMENT_CLIENT_TYPES } from '@/lib/constants/investment-client-type'
+import { INVESTMENT_MARKETS } from '@/lib/constants/investment-initial-info'
 
 const billingFormSchema = z.object({
   clientType: z.enum(['', ...INVESTMENT_CLIENT_TYPES]),
@@ -18,6 +19,12 @@ const billingFormSchema = z.object({
 
 export type InvestmentBillingFormValuesT = z.infer<typeof billingFormSchema>
 
+const initialInfoFormSchema = z.object({
+  market: z.enum(['', ...INVESTMENT_MARKETS]),
+})
+
+export type InvestmentInitialInfoFormValuesT = z.infer<typeof initialInfoFormSchema>
+
 export const investmentFormSchema = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   address: z.string(),
@@ -28,6 +35,7 @@ export const investmentFormSchema = z.object({
   email: z.string(),
   contactPerson: z.string(),
   billing: billingFormSchema,
+  initialInfo: initialInfoFormSchema,
   notes: z.string(),
   reviewRequested: z.boolean(),
   status: z.enum(INVESTMENT_STATUSES),
@@ -53,6 +61,11 @@ export const investmentSchema = investmentFormSchema.extend({
       clientType: billingFormSchema.shape.clientType.transform((value) => value || null),
     })
     .optional(),
+  initialInfo: initialInfoFormSchema
+    .extend({
+      market: initialInfoFormSchema.shape.market.transform((value) => value || null),
+    })
+    .optional(),
   notes: z.string().optional().default(''),
   reviewRequested: z.boolean().optional().default(false),
   assets: z.array(z.number()).optional().default([]),
@@ -61,8 +74,9 @@ export const investmentSchema = investmentFormSchema.extend({
 // `z.input`, not `z.infer`: `assets` is supplied by the submit wrapper rather than by the form, so
 // a caller must be allowed to omit it.
 export type InvestmentFormDataT = z.input<typeof investmentSchema>
-// What reaches Payload: the schema's own defaults may still be missing, but `billing` is parsed
-// (`clientType` '' became null, which Payload's select requires).
-export type InvestmentCreateDataT = Omit<InvestmentFormDataT, 'billing'> & {
+// What reaches Payload: the schema's own defaults may still be missing, but `billing` and
+// `initialInfo` are parsed ('' became null, which Payload's select requires).
+export type InvestmentCreateDataT = Omit<InvestmentFormDataT, 'billing' | 'initialInfo'> & {
   billing?: z.output<typeof investmentSchema>['billing']
+  initialInfo?: z.output<typeof investmentSchema>['initialInfo']
 }

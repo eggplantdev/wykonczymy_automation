@@ -22,6 +22,7 @@ type EditInvestmentDialogPropsT = {
     | 'email'
     | 'contactPerson'
     | 'billing'
+    | 'initialInfo'
     | 'notes'
     | 'reviewRequested'
     | 'status'
@@ -71,6 +72,7 @@ export function EditInvestmentDialog({
             email: investment.email,
             contactPerson: investment.contactPerson,
             billing: toBillingFormValues(investment.billing),
+            initialInfo: { market: investment.initialInfo.market ?? '' },
             notes: investment.notes,
             reviewRequested: investment.reviewRequested,
             status: investment.status,
