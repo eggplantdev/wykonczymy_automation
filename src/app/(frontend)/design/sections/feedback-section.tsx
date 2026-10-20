@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { InlineLoading, BlockLoading } from '@/components/ui/loader/inline-loading'
 import { Loader } from '@/components/ui/loader/loader'
-import { FixedClientLoader } from '@/components/ui/loader/fixed-client-loader'
 import {
   ContentLoading,
   DetailPageLoading,
@@ -118,7 +117,7 @@ export function FeedbackSection() {
           <OverlayLoading />
         </div>
       </ShowcaseRow>
-      <ShowcaseRow title="Loader" source="ui/loader/loader.tsx, ui/loader/fixed-client-loader.tsx">
+      <ShowcaseRow title="Loader" source="ui/loader/loader.tsx">
         <div className="relative h-32 w-64 rounded-md border">
           <Loader loading portal={false} className="absolute z-0" />
         </div>
@@ -134,13 +133,6 @@ export function FeedbackSection() {
           Loader w portalu ({FIXED_LOADER_MS} ms)
         </Button>
         {isFixedLoaderShown && <Loader loading portal />}
-        {isFixedLoaderShown && (
-          <FixedClientLoader>
-            <p className="bg-popover fixed top-4 left-1/2 z-100000000 -translate-x-1/2 rounded-md border px-3 py-1 text-xs">
-              FixedClientLoader
-            </p>
-          </FixedClientLoader>
-        )}
       </ShowcaseRow>
       <ShowcaseRow title="EmptyState" source="ui/empty-state.tsx">
         <div className="w-full rounded-md border">
