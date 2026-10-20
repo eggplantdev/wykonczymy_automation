@@ -349,7 +349,7 @@ export const isTransferType = (type: string): type is TransferTypeT =>
 const specOf = (type: unknown): TransferSpecT | undefined =>
   typeof type === 'string' && isTransferType(type) ? TRANSFER_TYPE_SPECS[type] : undefined
 
-export const isDepositType = (type: string) => specOf(type)?.deposit === true
+export const isDepositType = (type: unknown) => specOf(type)?.deposit === true
 
 export const isExpensesTabType = (type: unknown): boolean => specOf(type)?.expensesSheetTab === true
 
@@ -384,7 +384,7 @@ export const carriesPaymentMethod = (type: unknown): boolean =>
   type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE_NET'
 
 export const carriesPayoutStatus = (type: unknown): boolean =>
-  type === 'PAYOUT' || type === 'REGISTER_TRANSFER' || DEPOSIT_TYPES.includes(type as TransferTypeT)
+  type === 'PAYOUT' || type === 'REGISTER_TRANSFER' || isDepositType(type)
 
 export const canFillVatPlane = (row: { type?: unknown; vatPlane?: unknown }): boolean =>
   carriesVatPlane(row.type) && row.vatPlane == null

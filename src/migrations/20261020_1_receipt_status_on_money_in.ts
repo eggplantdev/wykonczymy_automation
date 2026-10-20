@@ -2,7 +2,8 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-po
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // A worker now confirms every booking that hands him money, not only a wypłata. Additive — migrate
-// prod before pushing the code that stamps the new types.
+// prod before pushing the code that stamps the new types. down() erases every non-PAYOUT
+// confirmation, so a rollback loses the workers' answers on transfers and wpłaty.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     ALTER TABLE "transactions"

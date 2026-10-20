@@ -65,11 +65,13 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     if (type === 'PAYOUT') return true
     if (!carriesPayoutStatus(type)) return false
     const source = resolveId(sourceRegister)
-    const receiving = type === 'REGISTER_TRANSFER' ? resolveId(targetRegister) : source
+    const [receiving, sending] = needsTargetRegister(type)
+      ? [resolveId(targetRegister), source]
+      : [source, undefined]
     if (receiving === undefined) return false
     return handsMoneyToEmployee(await getDb(req.payload, req), {
       receivingRegisterId: receiving,
-      sendingRegisterId: type === 'REGISTER_TRANSFER' ? source : undefined,
+      sendingRegisterId: sending,
     })
   }
 

@@ -4,6 +4,7 @@ import type { TransferTypeT } from '@/lib/constants/transfers'
 import type { DbExecutorT } from './get-db'
 import { lockMessageOf } from './investment-gate'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
+import { sqlList } from './sql-list'
 
 export type ReceiptToConfirmT = {
   id: number
@@ -17,7 +18,7 @@ export type ReceiptToConfirmT = {
 
 export type BookedReceiptT = { recipientId: number; amount: number }
 
-export type RejectedReceiptT = {
+export type RejectedReceiptConfirmationT = {
   id: number
   date: string
   amount: number
@@ -40,14 +41,13 @@ export async function handsMoneyToEmployee(
   db: DbExecutorT,
   registers: { receivingRegisterId: number; sendingRegisterId?: number },
 ): Promise<boolean> {
-  const sameOwner =
-    registers.sendingRegisterId === undefined
-      ? sql`FALSE`
-      : sql`r.owner_id IS NOT DISTINCT FROM (SELECT owner_id FROM cash_registers WHERE id = ${registers.sendingRegisterId})`
   const res = await db.execute(sql`
     SELECT EXISTS (
       SELECT 1 FROM cash_registers r JOIN users u ON u.id = r.owner_id
-      WHERE r.id = ${registers.receivingRegisterId} AND u.role = 'EMPLOYEE' AND NOT (${sameOwner})
+      WHERE r.id = ${registers.receivingRegisterId} AND u.role = 'EMPLOYEE'
+        AND r.owner_id IS DISTINCT FROM (
+          SELECT owner_id FROM cash_registers WHERE id = ${registers.sendingRegisterId ?? null}
+        )
     ) AS hands
   `)
   return res.rows[0]?.hands === true
@@ -57,21 +57,20 @@ const RECEIVING_REGISTER = sql`
   CASE WHEN t.type = 'REGISTER_TRANSFER' THEN t.target_register_id ELSE t.source_register_id END
 `
 
-// Decide, list and count all read this one expression, so who may answer can never drift between them.
 const RECIPIENT = sql`
   CASE WHEN t.type = 'PAYOUT' THEN t.worker_id
        ELSE (SELECT r.owner_id FROM cash_registers r WHERE r.id = ${RECEIVING_REGISTER})
   END
 `
 
-// Ownership and state ride in the WHERE, so a foreign, cancelled or already-decided row matches
-// zero rows — the race between two tabs, or the worker and a cancellation, is settled by Postgres.
+// Ownership and state ride in the WHERE, so the race between two tabs, or the worker and a
+// cancellation, is settled by Postgres.
 const DECIDABLE = (transactionId: number, workerId: number) => sql`
   t.id = ${transactionId} AND ${RECIPIENT} = ${workerId}
   AND t.payout_status IS NOT NULL AND t.cancelled IS NOT TRUE
 `
 
-// A rejected row stays acceptable — he may have found the missing cash — and keeps its reason.
+// A rejected row stays acceptable — he may have found the missing cash.
 export async function acceptReceipt(
   db: DbExecutorT,
   decision: { transactionId: number; workerId: number },
@@ -138,11 +137,9 @@ export async function pendingReceiptsOf(
   if (transactionIds.length === 0) return []
   const res = await db.execute(sql`
     SELECT ${RECIPIENT} AS recipient_id, t.amount FROM transactions t
-    WHERE t.id IN (${sql.join(
-      transactionIds.map((id) => sql`${id}`),
-      sql.raw(', '),
-    )})
+    WHERE t.id IN (${sqlList(transactionIds)})
       AND t.payout_status = 'pending' AND t.cancelled IS NOT TRUE
+    ORDER BY t.id
   `)
   return res.rows.flatMap((row) =>
     row.recipient_id == null
@@ -157,7 +154,9 @@ export const REJECTED_RECEIPTS_COUNT = sql`
   SELECT count(*)::int AS total FROM transactions t WHERE ${AWAITING_MANAGEMENT}
 `
 
-export async function listRejectedReceipts(db: DbExecutorT): Promise<RejectedReceiptT[]> {
+export async function listRejectedReceipts(
+  db: DbExecutorT,
+): Promise<RejectedReceiptConfirmationT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.date, t.amount, t.description, t.type, w.id AS recipient_id,
            w.name AS recipient_name,

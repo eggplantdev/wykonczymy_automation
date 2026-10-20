@@ -7,8 +7,8 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
 import { cn } from '@/lib/utils/cn'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { PayoutStatusBadge } from '@/components/receipts/receipt-status-badge'
-import { RejectReceiptDialog } from '@/components/receipts/reject-receipt-dialog'
+import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
+import { RejectReceiptDialog } from '@/components/receipt-confirmation/reject-receipt-dialog'
 import { acceptReceiptAction } from '@/lib/actions/receipt-confirmation'
 import type { ReceiptToConfirmT } from '@/lib/db/receipt-confirmation'
 import { failureMessage } from '@/lib/i18n/failure-message'
@@ -60,7 +60,9 @@ export function ReceiptsToConfirm({ receipts }: { receipts: ReceiptToConfirmT[] 
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-semibold tabular-nums">{formatPLN(receipt.amount)}</span>
+              <span className="text-lg font-semibold tabular-nums">
+                {formatPLN(receipt.amount)}
+              </span>
               <div className="ml-auto shrink-0">
                 <PayoutStatusBadge
                   status={receipt.status}

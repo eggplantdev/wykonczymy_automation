@@ -19,8 +19,8 @@ const rejectReceiptSchema = z.object({
 
 type RejectReceiptInputT = z.infer<typeof rejectReceiptSchema>
 
-// Both decisions expire the whole `transfers` tag rather than an entity tag: the status is read
-// by many transfer caches, and re-tagging each risks one left showing a stale status.
+// Both decisions expire the whole `transfers` tag: the status is read by many transfer caches,
+// and re-tagging each risks one left showing a stale status.
 
 export async function acceptReceiptAction(transactionId: number): Promise<ActionResultT> {
   return sessionAction(

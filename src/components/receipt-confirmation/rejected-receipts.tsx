@@ -6,14 +6,14 @@ import { CancelTransferButton } from '@/components/transfers/cancel-transfer-but
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
-import type { RejectedReceiptT } from '@/lib/db/receipt-confirmation'
+import type { RejectedReceiptConfirmationT } from '@/lib/db/receipt-confirmation'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { transferHref } from '@/lib/utils/investment-transfers-href'
 
-const col = createColumnHelper<RejectedReceiptT>()
+const col = createColumnHelper<RejectedReceiptConfirmationT>()
 
-export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] }) {
+export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfirmationT[] }) {
   if (receipts.length === 0) return null
 
   const columns = [
@@ -42,6 +42,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
       cell: (info) => TRANSFER_TYPE_LABELS[info.getValue()],
     }),
     col.accessor('recipientName', {
+      id: 'workerName',
       header: 'Pracownik',
       meta: { minWidth: 'min-w-40' },
       cell: ({ row: { original: receipt } }) => (
@@ -66,6 +67,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
       ),
     }),
     col.accessor('registerName', {
+      id: 'sourceRegisterName',
       header: 'Kasa',
       meta: { minWidth: 'min-w-40' },
       cell: ({ row: { original: receipt } }) => (

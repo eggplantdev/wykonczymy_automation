@@ -50,14 +50,7 @@ import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
 import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
 import { lockTransactionRow } from '@/lib/db/transaction-lock'
-import { notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
-import { pendingReceiptsOf } from '@/lib/db/receipt-confirmation'
-
-// The stamp decides who is asked, so the push reads it back rather than re-deriving the rule.
-async function notifyCreatedReceipts(payload: Payload, transactionIds: number[]): Promise<void> {
-  const db = await getDb(payload)
-  await notifyPendingReceipts(db, await pendingReceiptsOf(db, transactionIds))
-}
+import { notifyCreatedReceipts } from '@/lib/push/notify-created-receipts'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {
   return protectedAction(
