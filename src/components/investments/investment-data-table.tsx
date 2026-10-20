@@ -82,6 +82,7 @@ export function InvestmentDataTable({
   const [orderTarget, setOrderTarget] = useState<InvestmentRowT | null>(null)
   const columns = getInvestmentColumns({
     userRole,
+    workers: referenceData.workers,
     onSettle: (investment) =>
       setSettleTarget({ kind: 'investment', id: investment.id, name: investment.name }),
     onOrder: setOrderTarget,
@@ -97,7 +98,6 @@ export function InvestmentDataTable({
         columns={columns}
         storageKey="investments"
         initialSorting={INITIAL_SORTING}
-        getRowHref={(row) => `/inwestycje/${row.id}`}
         getRowClassName={(row) => (isClosedStatus(row.status) ? 'opacity-50' : '')}
         toolbar={({ table, columnVisibility: cv, ...order }) => {
           return (
@@ -160,8 +160,7 @@ export function InvestmentDataTable({
             street: orderTarget.address,
             postalCode: orderTarget.postalCode,
             city: orderTarget.city,
-            siteManagerId: referenceData.investments.find(({ id }) => id === orderTarget.id)
-              ?.siteManagerId,
+            siteManagerId: orderTarget.siteManagerId,
           }}
           referenceData={referenceData}
           orderSettings={orderSettings}

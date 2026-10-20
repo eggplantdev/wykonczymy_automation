@@ -1,22 +1,12 @@
 'use client'
 
 import { useOptimistic, useTransition } from 'react'
-import {
-  BookOpenCheck,
-  ClipboardList,
-  FilePlus,
-  FolderInput,
-  SearchCheck,
-  Sparkles,
-  type LucideIcon,
-} from 'lucide-react'
-import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
-import { BADGE_OUTLINE_TONES } from '@/components/ui/badge'
-import { AI_PROGRESS_TONES } from '@/components/investments/ai-progress-badge'
+import { BadgeSelect } from '@/components/ui/badge-select'
+import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
 import { setInvestmentAiStageAction } from '@/lib/actions/investments'
 import {
+  AI_PROGRESS_STEPS,
   AI_STAGE_GATHERING,
-  INVESTMENT_AI_STAGES,
   INVESTMENT_AI_STAGE_LABELS,
   isInvestmentAiStage,
   type InvestmentAiStageT,
@@ -24,37 +14,20 @@ import {
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
-const STAGE_ICONS: Record<InvestmentAiStageT, LucideIcon> = {
-  ready_for_analysis: ClipboardList,
-  analyzed: Sparkles,
-  review_done: SearchCheck,
-  knowledge_extracted: BookOpenCheck,
-  new_information: FilePlus,
-}
-
-const OPTIONS = [
-  {
-    value: SELECT_NONE,
-    label: AI_STAGE_GATHERING.pl,
-    icon: FolderInput,
-    description: AI_STAGE_GATHERING.description,
-    tone: BADGE_OUTLINE_TONES[AI_PROGRESS_TONES.none],
-  },
-  ...INVESTMENT_AI_STAGES.map((stage) => ({
-    value: stage,
-    label: INVESTMENT_AI_STAGE_LABELS[stage].pl,
-    icon: STAGE_ICONS[stage],
-    description: INVESTMENT_AI_STAGE_LABELS[stage].description,
-    tone: BADGE_OUTLINE_TONES[AI_PROGRESS_TONES[stage]],
-  })),
-]
+const OPTIONS = AI_PROGRESS_STEPS.map((step) => ({
+  value: step,
+  badge: <AiProgressBadge step={step} />,
+  description:
+    step === 'none' ? AI_STAGE_GATHERING.description : INVESTMENT_AI_STAGE_LABELS[step].description,
+}))
 
 type PropsT = {
   investmentId: number
   aiStage: InvestmentAiStageT | null
+  hideChevron?: boolean
 }
 
-export function AiStageSelect({ investmentId, aiStage }: PropsT) {
+export function AiStageSelect({ investmentId, aiStage, hideChevron }: PropsT) {
   const [value, setValue] = useOptimistic(aiStage)
   const [isPending, startTransition] = useTransition()
 
@@ -68,13 +41,12 @@ export function AiStageSelect({ investmentId, aiStage }: PropsT) {
   }
 
   return (
-    <SimpleSelect
-      variant="toolbarSm"
-      value={value ?? SELECT_NONE}
-      onValueChange={handleChange}
+    <BadgeSelect
+      value={value ?? 'none'}
       options={OPTIONS}
+      onValueChange={handleChange}
       disabled={isPending}
-      className={BADGE_OUTLINE_TONES[AI_PROGRESS_TONES[value ?? 'none']]}
+      hideChevron={hideChevron}
     />
   )
 }

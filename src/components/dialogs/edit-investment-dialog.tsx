@@ -6,7 +6,7 @@ import { InvestmentForm } from '@/components/forms/investment-form/investment-fo
 import { updateInvestmentAction } from '@/lib/actions/investments'
 import { useReviewPromptStore } from '@/stores/review-prompt-store'
 import { toBillingFormValues } from '@/components/forms/investment-form/billing-form-values'
-import type { InvestmentWithDetailsT } from '@/types/reference-data'
+import type { InvestmentWithDetailsT, WorkerRefT } from '@/types/reference-data'
 
 type EditInvestmentDialogPropsT = {
   investment: Pick<
@@ -24,13 +24,17 @@ type EditInvestmentDialogPropsT = {
     | 'notes'
     | 'reviewRequested'
     | 'status'
+    | 'siteManagerId'
   >
+  // Without it the dialog leaves Kierownik budowy out.
+  workers?: WorkerRefT[]
   showLabel?: boolean
   triggerText?: string
 }
 
 export function EditInvestmentDialog({
   investment,
+  workers,
   showLabel,
   triggerText,
 }: EditInvestmentDialogPropsT) {
@@ -78,6 +82,13 @@ export function EditInvestmentDialog({
           keepOpen={keepOpen}
           persistDraft={false}
           assetsInvestmentId={investment.id}
+          siteManager={
+            workers && {
+              investmentId: investment.id,
+              siteManagerId: investment.siteManagerId,
+              workers,
+            }
+          }
           onEnteredCompleted={(data) =>
             openReviewPrompt({
               id: investment.id,

@@ -85,6 +85,7 @@ export function shapeInvestments(
       createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,
       aiProgress: inv.aiStage ?? 'none',
+      siteManagerId: inv.siteManagerId,
       settlementMode: inv.settlementMode,
       vatRate: inv.vatRate,
     }

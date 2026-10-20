@@ -13,9 +13,10 @@ import type { InvestmentWithDetailsT } from '@/types/reference-data'
 
 type PropsT = {
   investment: Pick<InvestmentWithDetailsT, 'id' | 'name' | 'email' | 'status' | 'reviewRequested'>
+  hideChevron?: boolean
 }
 
-export function InvestmentStatusInlineSelect({ investment }: PropsT) {
+export function InvestmentStatusInlineSelect({ investment, hideChevron }: PropsT) {
   const [status, setStatus] = useOptimistic(investment.status)
   const [isPending, startTransition] = useTransition()
   const [pendingCompletion, setPendingCompletion] = useState<InvestmentStatusT>()
@@ -46,7 +47,12 @@ export function InvestmentStatusInlineSelect({ investment }: PropsT) {
 
   return (
     <>
-      <InvestmentStatusSelect value={status} onValueChange={handleChange} disabled={isPending} />
+      <InvestmentStatusSelect
+        value={status}
+        onValueChange={handleChange}
+        disabled={isPending}
+        hideChevron={hideChevron}
+      />
       <ConfirmDialog
         open={pendingCompletion !== undefined}
         {...COMPLETE_INVESTMENT_CONFIRM}

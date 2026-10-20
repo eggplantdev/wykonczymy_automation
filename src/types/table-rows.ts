@@ -47,6 +47,7 @@ export type InvestmentRowT = {
    *  entered rozpiska with no etap progress reads zero robocizny — identical to no kosztorys at all. */
   hasKosztorys: boolean
   aiProgress: AiProgressStepT
+  siteManagerId?: number
   settlementMode: SettlementModeT
   vatRate: number
 }

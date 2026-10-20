@@ -266,7 +266,7 @@ export function SummaryPanelContent({
               />
             )}
             {view === 'investment' && investment && (
-              <SummaryInvestmentTab investment={investment} assets={assets} />
+              <SummaryInvestmentTab investment={investment} assets={assets} workers={workers} />
             )}
           </div>
         )}

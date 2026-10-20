@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
 import { pluralize } from '@/lib/utils/polish-plural'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -10,10 +11,11 @@ import { axisShows } from '@/lib/kosztorys/money-axis'
 import { settlementModeLabel, settlementModeToMoneyAxis } from '@/lib/kosztorys/settlement-mode'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { InvestmentRowT } from '@/types/table-rows'
+import type { WorkerRefT } from '@/types/reference-data'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { Button } from '@/components/ui/button'
-import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
+import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
 import { ContactLink } from '@/components/ui/contact-link'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { HintedValue } from '@/components/tables/hinted-value'
@@ -28,7 +30,7 @@ import { ORDER_ACTION_LABEL } from '@/lib/constants/orders'
 import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
-import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
+import { AiStageSelect } from '@/components/investments/ai-stage-select'
 
 const col = createColumnHelper<InvestmentRowT>()
 
@@ -83,17 +85,28 @@ const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
 
 type InvestmentColumnOptionsT = {
   userRole: RoleT
+  workers: WorkerRefT[]
   onSettle: (investment: InvestmentRowT) => void
   onOrder: (investment: InvestmentRowT) => void
 }
 
-export function getInvestmentColumns({ userRole, onSettle, onOrder }: InvestmentColumnOptionsT) {
+export function getInvestmentColumns({
+  userRole,
+  workers,
+  onSettle,
+  onOrder,
+}: InvestmentColumnOptionsT) {
   const isAdminOrOwner = isAdminOrOwnerRole(userRole)
   return [
     col.accessor('name', {
       id: 'name',
       header: 'Nazwa',
       meta: { minWidth: 'min-w-56' },
+      cell: (info) => (
+        <Link href={`/inwestycje/${info.row.original.id}`} className="hover:underline">
+          {info.getValue()}
+        </Link>
+      ),
     }),
     col.accessor('createdAt', {
       id: 'createdAt',
@@ -124,7 +137,16 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       sortingFn: (a, b) =>
         AI_PROGRESS_STEPS.indexOf(a.original.aiProgress) -
         AI_PROGRESS_STEPS.indexOf(b.original.aiProgress),
-      cell: (info) => <AiProgressBadge step={info.getValue()} />,
+      cell: (info) => {
+        const step = info.getValue()
+        return (
+          <AiStageSelect
+            investmentId={info.row.original.id}
+            aiStage={step === 'none' ? null : step}
+            hideChevron
+          />
+        )
+      },
     }),
 
     col.accessor('balanceFromTransactions', {
@@ -303,7 +325,11 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       header: 'Status',
       meta: { align: 'right' },
       enableSorting: true,
-      cell: (info) => <InvestmentStatusBadge status={info.getValue()} />,
+      cell: (info) => (
+        <div className="flex justify-end">
+          <InvestmentStatusInlineSelect investment={info.row.original} hideChevron />
+        </div>
+      ),
     }),
     col.display({
       id: 'actions',
@@ -321,7 +347,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
           {isLockedStatus(info.row.original.status) && (
             <RequestReviewButton investment={info.row.original} />
           )}
-          <EditInvestmentDialog investment={info.row.original} />
+          <EditInvestmentDialog investment={info.row.original} workers={workers} />
           <TrashInvestmentButton investment={info.row.original} />
         </div>
       ),

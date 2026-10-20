@@ -2,7 +2,7 @@
 
 import { SelectItem } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { FieldGroup } from '@/components/ui/field'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { FileInput } from '@/components/ui/file-input'
 import { useFilePickIngest } from '@/hooks/use-file-pick-ingest'
@@ -23,6 +23,8 @@ import type { TemplateMetaT } from '@/lib/db/templates'
 import type { ActionResultT } from '@/types/action'
 import { COMPLETE_INVESTMENT_CONFIRM, entersLockedStatus } from '@/lib/constants/investment-lock'
 import { InvestmentStatusSelect } from '@/components/investments/investment-status-select'
+import { InvestmentSiteManagerSelect } from '@/components/investments/investment-site-manager-select'
+import type { WorkerRefT } from '@/types/reference-data'
 import {
   INVESTMENT_CLIENT_TYPE_LABELS,
   INVESTMENT_CLIENT_TYPES,
@@ -69,6 +71,8 @@ type InvestmentFormPropsT = {
    * them through the update action would send an empty list and wipe what is already attached. */
   collectAssets?: boolean
   assetsInvestmentId?: number
+  // Saves on pick through its own action: the field is closed to the whole-record update.
+  siteManager?: { investmentId: number; siteManagerId: number | undefined; workers: WorkerRefT[] }
   onEnteredCompleted?: (data: InvestmentFormDataT) => void
 }
 
@@ -85,6 +89,7 @@ export function InvestmentForm({
   presetOptions,
   collectAssets,
   assetsInvestmentId,
+  siteManager,
   onEnteredCompleted,
 }: InvestmentFormPropsT) {
   // Set by the action, consumed after `onSubmitSuccess`: the prompt opens through the shared dialog
@@ -137,6 +142,13 @@ export function InvestmentForm({
               />
             )}
           </form.AppField>
+
+          {siteManager && (
+            <Field>
+              <FieldLabel>Kierownik budowy</FieldLabel>
+              <InvestmentSiteManagerSelect {...siteManager} />
+            </Field>
+          )}
 
           <form.AppField name="name">
             {(field) => <field.Input label="Nazwa" placeholder="Nazwa inwestycji" showError />}

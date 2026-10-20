@@ -944,6 +944,22 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       → „Wersje" zostają wersje automatyczne i ręczne. Inwestycja „Zakończona" niedawno zachowuje
       swoją historię jak dotąd.
 
+## EX-1115 — investments-row-badges — status i Etap AI zmieniane prosto z wiersza listy
+
+- [ ] Lista „Inwestycje" → klik w plakietkę statusu otwiera menu samych plakietek; wybór zmienia
+      status bez przechodzenia na stronę inwestycji, a wiersz zostaje na miejscu.
+- [ ] Lista „Inwestycje" → klik w plakietkę „Analiza AI" otwiera menu plakietek z opisem pod
+      każdą; wybór zmienia etap, opis nie pojawia się w zamkniętej plakietce.
+- [ ] Lista „Inwestycje" → klik w nazwę inwestycji przenosi na jej stronę; klik w puste miejsce
+      wiersza już nie przenosi.
+- [ ] Lista „Inwestycje" → „Zamów" na wierszu inwestycji z kierownikiem budowy: kierownik jest
+      wstępnie wybrany jak dotąd.
+- [ ] Strona inwestycji → „Edytuj": pole „Kierownik budowy" pokazuje obecnego kierownika, a wybór
+      innego zapisuje się od razu (widać go po zamknięciu okna). To samo z listy i z zakładki
+      „Inwestycja" w kosztorysie.
+- [ ] Strona inwestycji → plakietka statusu i „Etap AI" pod listą informacji działają jak wcześniej
+      (menu, zmiana, brak kursora tekstowego).
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
