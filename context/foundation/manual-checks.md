@@ -1010,43 +1010,43 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-20 — order-default-supplier-per-item — osobny domyślny dostawca big bagu i kontenera
 
-- [ ] Zamówienie na stronie inwestycji: „Big bag” wybiera domyślnego dostawcę big bagu; przełączenie
+- [x] Zamówienie na stronie inwestycji: „Big bag” wybiera domyślnego dostawcę big bagu; przełączenie
       na „Kontener” wybiera domyślnego dostawcę kontenera (albo pierwszego z listy, gdy go nie ma).
-- [ ] Na „Kontener” wybierz innego dostawcę → „Zapisz jako domyślnego dostawcę” → komunikat; otwórz
+- [x] Na „Kontener” wybierz innego dostawcę → „Zapisz jako domyślnego dostawcę” → komunikat; otwórz
       zamówienie ponownie: „Kontener” wybiera go od razu, „Big bag” nadal swojego.
-- [ ] „Dalej” → zapisz wydatek kontenera: SMS idzie na numer dostawcy kontenera.
-- [ ] „Ustawienia zamówień” (zębatka): „Domyślny dostawca big bag” i „Domyślny dostawca kontenera”
+- [x] „Dalej” → zapisz wydatek kontenera: SMS idzie na numer dostawcy kontenera.
+- [x] „Ustawienia zamówień” (zębatka): „Domyślny dostawca big bag” i „Domyślny dostawca kontenera”
       pokazują obecne wybory; zmień kontener → „Zapisz” → zamówienie wybiera nowego dostawcę.
-- [ ] „Ustawienia zamówień” → usuń wiersz dostawcy, który jest domyślny dla kontenera: jego pole
+- [x] „Ustawienia zamówień” → usuń wiersz dostawcy, który jest domyślny dla kontenera: jego pole
       pokazuje „— brak —”; po „Zapisz” domyślny big bagu zostaje, kontener nie ma domyślnego.
-- [ ] Zamówienie otwarte → zębatka → zmień domyślnego dostawcę big bagu → „Zapisz”: krok zamówienia
+- [x] Zamówienie otwarte → zębatka → zmień domyślnego dostawcę big bagu → „Zapisz”: krok zamówienia
       od razu pokazuje nowego dostawcę, a przycisk „Dostawca domyślny” jest nieaktywny.
 
 ## EX-1111 — design-system — strona `/design` z całym zestawem komponentów
 
-- [ ] Konto zarządu otwiera `/design`: linki spisu treści skaczą do sekcji, a spis zostaje
+- [x] Konto zarządu otwiera `/design`: linki spisu treści skaczą do sekcji, a spis zostaje
       widoczny przy przewijaniu.
-- [ ] Konto pracownika (EMPLOYEE) wchodzące na `/design` zostaje przekierowane.
-- [ ] Sekcja „Kolory": siatki jasna i ciemna stoją obok siebie, żadna próbka nie jest pusta.
-- [ ] `/warianty-badge` zwraca 404.
-- [ ] Każda sekcja renderuje się w jasnym i ciemnym motywie bez błędów w konsoli.
-- [ ] „Nakładki": tooltip trzymany otwarty zostaje przy swoim przycisku przy przewijaniu strony.
-- [ ] „Dialogi": każdy dialog otwiera się ze swojego przycisku i zamyka Escape oraz swoim przyciskiem
+- [x] Konto pracownika (EMPLOYEE) wchodzące na `/design` zostaje przekierowane.
+- [x] Sekcja „Kolory": siatki jasna i ciemna stoją obok siebie, żadna próbka nie jest pusta.
+- [x] `/warianty-badge` zwraca 404.
+- [x] Każda sekcja renderuje się w jasnym i ciemnym motywie bez błędów w konsoli.
+- [x] „Nakładki": tooltip trzymany otwarty zostaje przy swoim przycisku przy przewijaniu strony.
+- [x] „Dialogi": każdy dialog otwiera się ze swojego przycisku i zamyka Escape oraz swoim przyciskiem
       zamknięcia.
-- [ ] „Przyciski": w siatce wariant × rozmiar widać wszystkie warianty, także osiem nieużywanych
+- [x] „Przyciski": w siatce wariant × rozmiar widać wszystkie warianty, także osiem nieużywanych
       w aplikacji oraz parę `destructiveOutline` / `outlineDestructive`.
-- [ ] „Nawigacja": paginacja w URL zmienia `?page=` bez przeładowania i bez błędu.
+- [x] „Nawigacja": paginacja w URL zmienia `?page=` bez przeładowania i bez błędu.
 
 ## 2026-10-20 — shared-collapsible — zwijana sekcja konta w pasku bocznym, jedno rozwijanie wszędzie
 
-- [ ] Pasek boczny (desktop): przy pierwszym wejściu sekcja konta pod linkami jest zwinięta — widać
+- [x] Pasek boczny (desktop): przy pierwszym wejściu sekcja konta pod linkami jest zwinięta — widać
       tylko imię i strzałkę; klik w strzałkę rozwija ją z animacją (Ciemny motyw … Wyloguj), drugi
       klik zwija. Stan zostaje po przeładowaniu strony.
-- [ ] Pasek boczny zwinięty do ikon: strzałka sekcji konta stoi na środku, ma tooltip „Pokaż opcje
+- [x] Pasek boczny zwinięty do ikon: strzałka sekcji konta stoi na środku, ma tooltip „Pokaż opcje
       konta" / „Ukryj opcje konta" i działa tak samo.
-- [ ] Rozwinięta sekcja konta: poświata przycisku „Saldo" i obwódki fokusu przycisków nie są ucięte
+- [x] Rozwinięta sekcja konta: poświata przycisku „Saldo" i obwódki fokusu przycisków nie są ucięte
       po bokach.
-- [ ] Sekcje zwijane na stronie pracownika, w formularzu inwestycji i na liście przelewów rozwijają
+- [x] Sekcje zwijane na stronie pracownika, w formularzu inwestycji i na liście przelewów rozwijają
       się i zwijają z animacją jak dotąd; tabele w nich nie wystają poza krawędź.
 - [ ] Formularz wydatku z kilkoma pozycjami: pozycja rozwija się z animacją, strzałka w dół przy
       zwiniętej i w górę przy rozwiniętej.
@@ -1059,23 +1059,30 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Transfer między kasami z kasy managera do kasy pracownika: pracownik widzi go na swojej stronie
       w „Do potwierdzenia", dostaje push „Pieniądze do potwierdzenia", a „Potwierdzam" pokazuje toast
       „Odbiór potwierdzony" i status „Potwierdzona" na liście transakcji.
-- [ ] Ten sam rodzaj transferu odrzucony przez pracownika z powodem: na „/" pojawia się w tabeli
+      _Staging 2026-10-20: widoczność w „Do potwierdzenia", toast „Odbiór potwierdzony" i status „Potwierdzona" OK; push „Pieniądze do potwierdzenia" niesprawdzalny (VAPID tylko na produkcji)._
+      _needs human: push „Pieniądze do potwierdzenia" — produkcja, prawdziwy telefon_
+- [x] Ten sam rodzaj transferu odrzucony przez pracownika z powodem: na „/" pojawia się w tabeli
       „Odrzucone przez pracowników" z typem „Transfer między kasami", jego imieniem i jego kasą;
       „Anuluj" usuwa go z tabeli.
-- [ ] Inna wpłata zaksięgowana do kasy pracownika też trafia do jego „Do potwierdzenia".
-- [ ] Transfer między dwiema kasami managerów, transfer między dwiema kasami tego samego pracownika
+- [x] Inna wpłata zaksięgowana do kasy pracownika też trafia do jego „Do potwierdzenia".
+- [x] Transfer między dwiema kasami managerów, transfer między dwiema kasami tego samego pracownika
       i korekta niczego nie pytają — brak wpisu w „Do potwierdzenia", kolumna potwierdzenia pusta.
-- [ ] Teksty przepływu (nagłówki, okna potwierdzenia i odrzucenia, toasty) nie mówią „wypłata" — po
+- [x] Teksty przepływu (nagłówki, okna potwierdzenia i odrzucenia, toasty) nie mówią „wypłata" — po
       polsku i po ukraińsku; filtr „Potwierdzenie" jest na stronie pracownika, który ma tylko
       transfery i wpłaty, bez wypłat.
 
+### Findings — 2026-10-20
+
+- [x] **Korekta nie do zaksięgowania z UI** — niesprawdzona wprost: CHECK `transactions_payout_status_only_on_money_in` nie dopuszcza `payout_status` na CORRECTION, więc korekta strukturalnie nie trafia do „Do potwierdzenia". **Test disposition:** no automated test · — pokryte constraintem (spec DB stamp CHECK już istnieje).
+
+
 ## EX-1120 — investment-initial-info — sekcja „Wstępne informacje" z polem „Rynek"
 
-- [ ] Dodaj inwestycję → rozwiń „Wstępne informacje" (pod „Kontakt", domyślnie zwinięta) → „Rynek"
+- [x] Dodaj inwestycję → rozwiń „Wstępne informacje" (pod „Kontakt", domyślnie zwinięta) → „Rynek"
       → „Rynek wtórny" → zapisz. Edytuj tę inwestycję: „Rynek" pokazuje „Rynek wtórny".
-- [ ] Inwestycja bez wybranego rynku: w edycji „Rynek" pokazuje „— nie wiadomo —"; po zmianie innego
+- [x] Inwestycja bez wybranego rynku: w edycji „Rynek" pokazuje „— nie wiadomo —"; po zmianie innego
       pola i zapisie nadal „— nie wiadomo —".
-- [ ] Edycja inwestycji (z tabeli i ze strony inwestycji): „Kierownik budowy" jest szeroki jak jego
+- [x] Edycja inwestycji (z tabeli i ze strony inwestycji): „Kierownik budowy" jest szeroki jak jego
       treść i wyrównany do lewej; wybór pracownika nadal zapisuje się od razu.
 - [ ] Następna sprawa AI przyjęta z produkcji ma `inputs/initial-info.md` z linią „Rynek: …".
 
