@@ -995,6 +995,21 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Zamówienie otwarte → zębatka → zmień domyślnego dostawcę big bagu → „Zapisz”: krok zamówienia
       od razu pokazuje nowego dostawcę, a przycisk „Dostawca domyślny” jest nieaktywny.
 
+## EX-1111 — design-system — strona `/design-system` z całym zestawem komponentów
+
+- [ ] Konto zarządu otwiera `/design-system`: linki spisu treści skaczą do sekcji, a spis zostaje
+      widoczny przy przewijaniu.
+- [ ] Konto pracownika (EMPLOYEE) wchodzące na `/design-system` zostaje przekierowane.
+- [ ] Sekcja „Kolory": siatki jasna i ciemna stoją obok siebie, żadna próbka nie jest pusta.
+- [ ] `/warianty-badge` zwraca 404.
+- [ ] Każda sekcja renderuje się w jasnym i ciemnym motywie bez błędów w konsoli.
+- [ ] „Nakładki": tooltip trzymany otwarty zostaje przy swoim przycisku przy przewijaniu strony.
+- [ ] „Dialogi": każdy dialog otwiera się ze swojego przycisku i zamyka Escape oraz swoim przyciskiem
+      zamknięcia.
+- [ ] „Przyciski": w siatce wariant × rozmiar widać wszystkie warianty, także osiem nieużywanych
+      w aplikacji oraz parę `destructiveOutline` / `outlineDestructive`.
+- [ ] „Nawigacja": paginacja w URL zmienia `?page=` bez przeładowania i bez błędu.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
