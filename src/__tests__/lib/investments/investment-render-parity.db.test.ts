@@ -39,7 +39,10 @@ import type {
 } from '@/lib/queries/balances'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
-import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
+import {
+  NO_INVESTMENT_BILLING,
+  NO_INVESTMENT_INITIAL_INFO,
+} from '@/lib/investments/investment-details'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
 describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly paths (DB)', () => {
@@ -83,6 +86,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         city: '',
         country: '',
         billing: NO_INVESTMENT_BILLING,
+        initialInfo: NO_INVESTMENT_INITIAL_INFO,
         createdAt: String(d.createdAt),
         materialsNetRate: d.materialsNetRate ?? null,
         settlementMode: (d.settlementMode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,

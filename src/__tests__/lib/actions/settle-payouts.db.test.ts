@@ -11,7 +11,7 @@ import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 import { flushAfter } from '@/__tests__/stubs/next-server'
 import { syncBulkExpensesToSheet } from '@/lib/google/transfer-sheet-sync'
-import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
+import { notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
 
 const ITEMS = [{ description: 'pozycja', plannedQty: 10, clientPrice: 100 }]
@@ -61,7 +61,7 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
 
   beforeAll(async () => {
     vi.mocked(syncBulkExpensesToSheet).mockResolvedValue(undefined)
-    vi.mocked(notifyPendingPayouts).mockResolvedValue(undefined)
+    vi.mocked(notifyPendingReceipts).mockResolvedValue(undefined)
     payload = await bootTestPayload()
     db = await getDb(payload)
 
@@ -160,10 +160,10 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     expect(ahead.description).toMatch(new RegExp(`^${marker}\\nw tym zaliczka 150,00`))
     await flushAfter()
     expect(syncBulkExpensesToSheet).toHaveBeenCalledTimes(1)
-    expect(notifyPendingPayouts).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(notifyPendingPayouts).mock.calls[0][1]).toEqual([
-      { workerId: worker.a, amount: remainingA },
-      { workerId: worker.a, amount: remainingB + 150 },
+    expect(notifyPendingReceipts).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(notifyPendingReceipts).mock.calls[0][1]).toEqual([
+      { recipientId: worker.a, amount: remainingA },
+      { recipientId: worker.a, amount: remainingB + 150 },
     ])
   })
 
@@ -217,7 +217,7 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     expect(result).toMatchObject({ success: false, stale: true })
     expect(await booked()).toHaveLength(0)
     await flushAfter()
-    expect(notifyPendingPayouts).not.toHaveBeenCalled()
+    expect(notifyPendingReceipts).not.toHaveBeenCalled()
   })
 
   it('reads a premia into the pair and refuses a submit that predates it', async () => {

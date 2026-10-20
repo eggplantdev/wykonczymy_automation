@@ -1129,6 +1129,39 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Plakietka z X (np. aktywny filtr, wybrany odbiorca): X ma ten sam rozmiar, po najechaniu
       czerwienieje, kliknięcie usuwa.
 
+## 2026-10-20 — worker-receipt-confirmation — potwierdzenie odbioru dla każdych pieniędzy przekazanych pracownikowi
+
+- [ ] Transfer między kasami z kasy managera do kasy pracownika: pracownik widzi go na swojej stronie
+      w „Do potwierdzenia", dostaje push „Pieniądze do potwierdzenia", a „Potwierdzam" pokazuje toast
+      „Odbiór potwierdzony" i status „Potwierdzona" na liście transakcji.
+- [ ] Ten sam rodzaj transferu odrzucony przez pracownika z powodem: na „/" pojawia się w tabeli
+      „Odrzucone przez pracowników" z typem „Transfer między kasami", jego imieniem i jego kasą;
+      „Anuluj" usuwa go z tabeli.
+- [ ] Inna wpłata zaksięgowana do kasy pracownika też trafia do jego „Do potwierdzenia".
+- [ ] Transfer między dwiema kasami managerów, transfer między dwiema kasami tego samego pracownika
+      i korekta niczego nie pytają — brak wpisu w „Do potwierdzenia", kolumna potwierdzenia pusta.
+- [ ] Teksty przepływu (nagłówki, okna potwierdzenia i odrzucenia, toasty) nie mówią „wypłata" — po
+      polsku i po ukraińsku; filtr „Potwierdzenie" jest na stronie pracownika, który ma tylko
+      transfery i wpłaty, bez wypłat.
+
+## EX-1120 — investment-initial-info — sekcja „Wstępne informacje" z polem „Rynek"
+
+- [ ] Dodaj inwestycję → rozwiń „Wstępne informacje" (pod „Kontakt", domyślnie zwinięta) → „Rynek"
+      → „Rynek wtórny" → zapisz. Edytuj tę inwestycję: „Rynek" pokazuje „Rynek wtórny".
+- [ ] Inwestycja bez wybranego rynku: w edycji „Rynek" pokazuje „— nie wiadomo —"; po zmianie innego
+      pola i zapisie nadal „— nie wiadomo —".
+- [ ] Edycja inwestycji (z tabeli i ze strony inwestycji): „Kierownik budowy" jest szeroki jak jego
+      treść i wyrównany do lewej; wybór pracownika nadal zapisuje się od razu.
+- [ ] Następna sprawa AI przyjęta z produkcji ma `inputs/initial-info.md` z linią „Rynek: …".
+
+## 2026-10-20 — sidebar-width-animation — pasek boczny zwija się i rozwija z animacją
+
+- [ ] Pasek boczny (desktop): klik w uchwyt na krawędzi płynnie zwęża pasek do ikon i z powrotem
+      rozszerza, w tym samym tempie co rozwijanie sekcji konta; podpisy linków nie łamią się ani nie
+      skaczą w trakcie, uchwyt nie jest ucięty.
+- [ ] Pasek zwinięty → przeładowanie strony: pasek od razu stoi zwinięty, bez animacji zwężania.
+- [ ] Edytor kosztorysu z dużym kosztorysem: zwinięcie i rozwinięcie paska nie zacina siatki.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

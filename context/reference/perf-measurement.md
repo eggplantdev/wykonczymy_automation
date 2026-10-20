@@ -67,3 +67,9 @@ two frames: a median there means the keystroke costs nothing measurable.
   mutation too (the shape of a collection-slug tag bumped by writes that touch nothing on that page).
 - Removing work from a cache key or tag is a stale-data question first, a speed question second. The
   owner's bar: real gain, low risk, no stale-data risk.
+- One local timing pass proves nothing — two passes of the same build swung up to 6× while caches warmed.
+  Run both builds side by side (`start.mjs` on :3100 / :3101), one identical warm-up each, then interleave
+  passes (before → after → after → before) and compare per-side medians. SQL count and doc KB are exact.
+- Vercel field numbers (`POST /v2/observability/query` grouped by route) are mostly router prefetches,
+  which with PPR off render only layouts + `loading.tsx` — p50 ≈ the layout's cost, p95 ≈ cold starts.
+  Nothing separates real navigations from prefetches.

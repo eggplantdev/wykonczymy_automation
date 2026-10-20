@@ -49,7 +49,7 @@ export const NAV_LINKS: NavLinkT[] = [
     href: '/',
     label: PAGE_TITLES.transactions,
     icon: ArrowLeftRight,
-    unreadStream: 'rejectedPayouts',
+    unreadStream: 'rejectedReceipts',
   },
   { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
   { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },

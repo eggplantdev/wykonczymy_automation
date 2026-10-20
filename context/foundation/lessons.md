@@ -322,6 +322,8 @@
   re-run the full build per hypothesis, never `pkill` by pattern.
 - A cold `pnpm test:e2e` rebuilds `.next-e2e` only when a file the build reads changed
   (`scripts/e2e-build.sh`); editing a spec alone reuses the build.
+- `test:e2e:warm` never runs `db:reset:test`: a reset under the running warm server leaves its
+  `unstable_cache` serving figures from rows the reset removed. Reset, then restart the server.
 - Helpers: waits in `e2e/support/wait.ts`, UI drivers in `e2e/drivers/*` (cmdk:
   `pickComboOption`). Playwright can't import the Payload graph — seed via a subprocess; wait for
   hydration (`waitForHydration`); `workers: 1`; seeds pass `context: { skipRevalidation: true }`.

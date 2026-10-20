@@ -11,7 +11,7 @@ import type { UnreadStreamT } from '@/types/notifications'
 const QUEUE_STREAMS: ReadonlySet<UnreadStreamT> = new Set([
   'workerReports',
   'expenseDrafts',
-  'rejectedPayouts',
+  'rejectedReceipts',
 ])
 
 export function UnreadBadge({ stream, path }: { stream: UnreadStreamT; path: string }) {

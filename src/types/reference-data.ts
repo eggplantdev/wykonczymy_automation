@@ -4,6 +4,7 @@ import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import type { InvestmentClientTypeT } from '@/lib/constants/investment-client-type'
+import type { InvestmentMarketT } from '@/lib/constants/investment-initial-info'
 
 export type ReferenceItemT = {
   id: number
@@ -57,11 +58,16 @@ export type InvestmentBillingT = {
   country: string
 }
 
+export type InvestmentInitialInfoT = {
+  market: InvestmentMarketT | null
+}
+
 export type InvestmentDetailsT = InvestmentNotesT & {
   postalCode: string
   city: string
   country: string
   billing: InvestmentBillingT
+  initialInfo: InvestmentInitialInfoT
 }
 
 // The edit dialog takes this type, not the slim one: it sends every field back, so a ref with blank

@@ -1,6 +1,6 @@
 ---
 name: restore-prod-backup-local
-description: Restore the latest Neon production backup into the local Docker Postgres for this repo (wykonczymy), and/or check that the automated backup pipeline is healthy. The dumps live on an FTP server (188.210.222.1, /db_backups/) that GitHub Actions uploads to hourly (cron `0 4-22 * * *` = 04:00–22:00 UTC, with a ~6h overnight gap) — THIS skill is how you fetch data off that FTP server, so it is the answer to any "do you have a skill to get/pull the latest data from the FTP server?" question. Use whenever the user asks to "refresh the local DB from prod", "restore the latest backup locally", "populate local Docker from a backup", "pull down a prod dump", "get/pull/download the latest data or dump from the FTP server", "grab the newest backup off FTP", "fetch data from the backup FTP server", "check if backups are working", "is the db-backup GitHub Action green", or mentions anything about the Neon → GitHub Actions → FTP → local Docker backup chain. Trigger even if the user only says "FTP server", "the backup server", or "backup" loosely in the context of getting the local database's data — this skill owns the whole verify-and-restore flow end to end.
+description: Restore the latest Neon production backup into the local Docker Postgres for this repo (wykonczymy), and/or check that the automated backup pipeline is healthy. The dumps live on an FTP server (188.210.222.1, /db_backups/) that GitHub Actions uploads to hourly (cron `0 4-22 * * *` = 04:00–22:00 UTC, with a ~6h overnight gap) — THIS skill is how you fetch data off that FTP server, so it is the answer to any "do you have a skill to get/pull the latest data from the FTP server?" question. Use whenever the user asks to "refresh the local DB from prod", "restore the latest backup locally", "populate local Docker from a backup", "pull down a prod dump", "get/pull/download the latest data or dump from the FTP server", "grab the newest backup off FTP", "fetch data from the backup FTP server", "check if backups are working", "is the db-backup GitHub Action green", or mentions anything about the Neon → GitHub Actions → FTP → local Docker backup chain, or the daily laptop copy in `~/Backups/wykonczymy-db`. Trigger even if the user only says "FTP server", "the backup server", or "backup" loosely in the context of getting the local database's data — this skill owns the whole verify-and-restore flow end to end.
 ---
 
 # Restore prod backup → local Docker Postgres
@@ -14,6 +14,16 @@ gzipped dump to an FTP server. This skill verifies that pipeline is healthy and 
 the newest dump into the **local** Docker Postgres so you can work against real data.
 
 The chain: **Neon (prod) → GitHub Actions (hourly, 04:00–22:00 UTC) → FTP `188.210.222.1:/db_backups/` → local Docker `wykonczymy` container**.
+
+A second copy that skips GitHub and FTP lives on the user's laptop: a launchd job
+(`com.wykonczymy.db-backup`, `~/Library/LaunchAgents/`) runs `~/Backups/wykonczymy-db/backup.sh`
+daily at 13:00 — `pg_dump` straight from Neon, gzipped, kept 30 days, a macOS notification on
+failure, log in `backup.log` there. It is machine setup, not in the repo. When FTP is down or its
+newest dump is stale, skip steps 3–4 and replace step 5's `gzip -dkf` / `SQL=` lines with
+`SQL=dumps/wykonczymy-backup-laptop.sql; gzip -dc "$(ls ~/Backups/wykonczymy-db/wykonczymy-*.sql.gz | sort | tail -1)" > "$SQL"`
+— the name keeps step 6's cleanup glob matching it. `pnpm db:dump` also leaves gzipped
+history in `dumps/dump-<date>.sql.gz` beside the plain `dumps/dump-latest.sql` that
+`pnpm db:import` reads.
 
 ## Hard safety rules
 

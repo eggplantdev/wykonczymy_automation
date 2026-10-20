@@ -1,6 +1,9 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/collections/hooks/revalidate-collection'
+import {
+  makeRevalidateAfterChange,
+  makeRevalidateAfterDelete,
+} from '@/collections/hooks/revalidate-collection'
 import { refuseDeleteWhen } from '@/collections/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/collections/hooks/investments/guard-status-unlock'
@@ -15,6 +18,11 @@ import {
   INVESTMENT_CLIENT_TYPES,
   INVESTMENT_CLIENT_TYPE_LABELS,
 } from '@/lib/constants/investment-client-type'
+import {
+  INVESTMENT_INITIAL_INFO_FIELDS,
+  INVESTMENT_INITIAL_INFO_TITLE,
+  INVESTMENT_MARKETS,
+} from '@/lib/constants/investment-initial-info'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
@@ -34,6 +42,11 @@ const AI_STAGE_OPTIONS = INVESTMENT_AI_STAGES.map((value) => ({
 
 const CLIENT_TYPE_OPTIONS = INVESTMENT_CLIENT_TYPES.map((value) => ({
   label: INVESTMENT_CLIENT_TYPE_LABELS[value],
+  value,
+}))
+
+const MARKET_OPTIONS = INVESTMENT_MARKETS.map((value) => ({
+  label: INVESTMENT_INITIAL_INFO_FIELDS.market.options[value],
   value,
 }))
 
@@ -141,6 +154,19 @@ export const Investments: CollectionConfig = {
         { name: 'postalCode', type: 'text', label: { en: 'Postal code', pl: 'Kod pocztowy' } },
         { name: 'city', type: 'text', label: { en: 'City', pl: 'Miejscowość' } },
         { name: 'country', type: 'text', label: { en: 'Country', pl: 'Kraj' } },
+      ],
+    },
+    {
+      name: 'initialInfo',
+      type: 'group',
+      label: INVESTMENT_INITIAL_INFO_TITLE,
+      fields: [
+        {
+          name: 'market',
+          type: 'select',
+          label: INVESTMENT_INITIAL_INFO_FIELDS.market.label,
+          options: MARKET_OPTIONS,
+        },
       ],
     },
     {

@@ -79,6 +79,7 @@ export function shapeInvestments(
       email: inv.email,
       contactPerson: inv.contactPerson,
       billing: inv.billing,
+      initialInfo: inv.initialInfo,
       reviewRequested: inv.reviewRequested,
       notes: inv.notes,
       hasSheet: inv.hasSheet,

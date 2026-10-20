@@ -13,7 +13,7 @@ import {
   showsWorker,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { OrderStatusT } from '@/lib/constants/orders'
 import { validateTransfer } from '@/collections/hooks/transfers/validate'
 import { guardDeleteOnLockedInvestment } from '@/collections/hooks/transfers/guard-delete'

@@ -9,7 +9,7 @@ import { DotBadge } from '@/components/ui/dot-badge'
 import { BadgeSelect } from '@/components/ui/badge-select'
 import { COLOR_TOKENS } from '@/styles/color-tokens'
 import { SectionPill } from '@/components/worker-reports/section-pill'
-import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
+import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import { AiProgressBadge, AI_PROGRESS_TONES } from '@/components/investments/ai-progress-badge'
 import { RoleBadge } from '@/components/users/role-badge'
@@ -85,7 +85,7 @@ export function BadgesSection() {
           </DotBadge>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="PayoutStatusBadge" source="payouts/payout-status-badge.tsx">
+      <ShowcaseRow title="PayoutStatusBadge" source="receipt-confirmation/payout-status-badge.tsx">
         {DECISIONS.map((status) => (
           <PayoutStatusBadge
             key={status}

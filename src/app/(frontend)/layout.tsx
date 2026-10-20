@@ -76,6 +76,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
   // of every page, and nothing below could stream.
   const unreadCounts = fetchUnreadCounts()
   const isManager = isManagementRole(user.role)
+  // Raw promises, never a `.then` copy: Flight dedupes by identity and would re-serialize every worker.
   const referenceData = isManager ? fetchReferenceData() : null
   const orderSettings = isManager ? fetchOrderSettings() : null
   const locale = await fetchUserLanguage(user.id)

@@ -53,6 +53,7 @@ export const forAiAnalysis = (asset: AssetT) =>
   asset.kind === 'projekt' || new Date(asset.createdAt) < MARKER_PROMISE_SINCE
 
 export const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
+export const lines = (text: string) => text.split('\n').map(norm).filter(Boolean)
 
 // Without it a round reads every Nowe informacje as empty: the re-run guard passes and the baseline
 // the next round diffs against loses what is already there.

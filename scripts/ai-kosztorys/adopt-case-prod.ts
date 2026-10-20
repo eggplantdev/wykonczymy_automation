@@ -16,8 +16,15 @@ import {
   itemsOfTemplate,
   type AssetT,
 } from './prod-client'
+import { initialInfoLines, initialInfoMarkdown, type InitialInfoT } from './initial-info'
 
-type InvestmentT = { id: number; name: string; notes: string | null; assets: AssetT[] | null }
+type InvestmentT = {
+  id: number
+  name: string
+  notes: string | null
+  initialInfo?: InitialInfoT | null
+  assets: AssetT[] | null
+}
 
 const INVESTMENT = Number(process.env.INVESTMENT)
 // A szablon is a `templates` row: its id is not the id of the investment it used to be.
@@ -47,8 +54,10 @@ async function run() {
   // przedmiar, so it is never reloaded over. An empty one is seeded by fill-case-prod, so this step
   // writes nothing to production.
   const isEmpty = items.length === 0
+  const initialInfo = initialInfoLines(investment.initialInfo)
 
   for (const asset of assets) console.log(`${(asset.kind ?? '—').padEnd(8)} ${asset.filename}`)
+  for (const line of initialInfo) console.log(`info     ${line}`)
   console.log(
     `ok: #${INVESTMENT} „${investment.name.trim()}", ${assets.length} files → ${FILES_DIR}, ` +
       (isEmpty
@@ -82,6 +91,7 @@ async function run() {
     path.join(CASE_DIR, 'inputs/client-inquiry.md'),
     (investment.notes ?? '').trim() + '\n',
   )
+  writeFileSync(path.join(CASE_DIR, 'inputs/initial-info.md'), initialInfoMarkdown(initialInfo))
   writeFileSync(
     path.join(CASE_DIR, 'case.json'),
     JSON.stringify(

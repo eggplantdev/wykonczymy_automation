@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
@@ -42,21 +43,29 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const [accountOpen, setAccountOpen] = usePersistedFlag(ACCOUNT_STORAGE_KEY, OPEN_STATES, false)
   const toggleLabel = collapsed ? t('expandMenu') : t('collapseMenu')
   const accountToggleLabel = accountOpen ? t('hideAccountMenu') : t('showAccountMenu')
+  // SSR renders expanded and hydration applies the stored flag — animating from mount would slide
+  // a collapsed sidebar shut on every page load.
+  const [hasToggled, setHasToggled] = useState(false)
+  const width = collapsed ? 'w-14' : 'w-64'
 
   return (
     <aside
       className={cn(
         // z-40: the handle overhangs into the page, and the kosztorys v2 grid paints its frozen
         // columns at z-30 — without a stacking context above that, the pill disappears under them.
-        'border-border bg-background sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r pb-3 sm:flex',
-        collapsed ? 'w-14 px-2' : 'w-64 px-3',
+        'border-border bg-background sticky top-0 z-40 box-content hidden h-screen shrink-0 border-r sm:block',
+        hasToggled && 'transition-[width] duration-200 ease-out motion-reduce:transition-none',
+        width,
       )}
     >
       <SimpleTooltip content={toggleLabel}>
         {/* eslint-disable-next-line local/no-hand-rolled-ui -- an invisible full-height hit strip */}
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => {
+            setHasToggled(true)
+            setCollapsed(!collapsed)
+          }}
           aria-label={toggleLabel}
           aria-expanded={!collapsed}
           className="group absolute inset-y-0 -right-3 z-20 flex w-6 cursor-pointer items-center justify-center"
@@ -66,62 +75,68 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           </EdgeHandlePill>
         </button>
       </SimpleTooltip>
-      {/* `-m-1 p-1`: the scroll container clips, and the collapsed unread badge overhangs its row by 4px. */}
-      <div className="-m-1 flex min-h-0 flex-col overflow-y-auto p-1">
-        <Link href="/" className="mx-auto flex items-center py-3">
-          <BrandLogo height={collapsed ? 36 : 40} priority />
-        </Link>
-        <nav className="flex flex-col gap-1">
-          {links.map((link) => (
-            <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
-              <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
-            </CollapsibleTooltip>
-          ))}
-        </nav>
-      </div>
-      <Collapsible
-        open={accountOpen}
-        onOpenChange={setAccountOpen}
-        className="mt-auto flex flex-col gap-2 pt-4"
-      >
-        <div
-          className={cn(
-            'flex items-center gap-1',
-            collapsed ? 'justify-center' : 'justify-between',
-          )}
-        >
-          {!collapsed && (
-            <NavNameLink href={`/pracownicy/${user.id}`} className="truncate">
-              {user.name}
-            </NavNameLink>
-          )}
-          <SimpleTooltip content={accountToggleLabel}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="iconSm" aria-label={accountToggleLabel}>
-                <CollapsibleChevron open={accountOpen} />
-              </Button>
-            </CollapsibleTrigger>
-          </SimpleTooltip>
+      {/* Content snaps to its final width and the animating aside clips it, or labels wrap
+          mid-animation; the handle stays outside the clip because it overhangs the aside. */}
+      <div className="h-full overflow-x-clip">
+        <div className={cn('flex h-full flex-col pb-3', width, collapsed ? 'px-2' : 'px-3')}>
+          {/* `-m-1 p-1`: the scroll container clips, and the collapsed unread badge overhangs its row by 4px. */}
+          <div className="-m-1 flex min-h-0 flex-col overflow-y-auto p-1">
+            <Link href="/" className="mx-auto flex items-center py-3">
+              <BrandLogo height={collapsed ? 36 : 40} priority />
+            </Link>
+            <nav className="flex flex-col gap-1">
+              {links.map((link) => (
+                <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
+                  <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
+                </CollapsibleTooltip>
+              ))}
+            </nav>
+          </div>
+          <Collapsible
+            open={accountOpen}
+            onOpenChange={setAccountOpen}
+            className="mt-auto flex flex-col gap-2 pt-4"
+          >
+            <div
+              className={cn(
+                'flex items-center gap-1',
+                collapsed ? 'justify-center' : 'justify-between',
+              )}
+            >
+              {!collapsed && (
+                <NavNameLink href={`/pracownicy/${user.id}`} className="truncate">
+                  {user.name}
+                </NavNameLink>
+              )}
+              <SimpleTooltip content={accountToggleLabel}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="iconSm" aria-label={accountToggleLabel}>
+                    <CollapsibleChevron open={accountOpen} />
+                  </Button>
+                </CollapsibleTrigger>
+              </SimpleTooltip>
+            </div>
+            <CollapsibleContent className="flex flex-col gap-2">
+              <CollapsibleTooltip collapsed={collapsed} label={t('toggleTheme')}>
+                <ThemeToggle collapsed={collapsed} />
+              </CollapsibleTooltip>
+              <CollapsibleTooltip collapsed={collapsed} label={t('refreshData')}>
+                <RefreshDataButton collapsed={collapsed} />
+              </CollapsibleTooltip>
+              <CollapsibleTooltip collapsed={collapsed} label="Admin">
+                <AdminButton collapsed={collapsed} />
+              </CollapsibleTooltip>
+              <CollapsibleTooltip collapsed={collapsed} label={PAGE_TITLES.trash}>
+                <TrashButton collapsed={collapsed} active={isActive(TRASH_HREF)} />
+              </CollapsibleTooltip>
+              {!collapsed && openRouterBalance}
+              <CollapsibleTooltip collapsed={collapsed} label={t('logout')}>
+                <LogoutButton collapsed={collapsed} />
+              </CollapsibleTooltip>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
-        <CollapsibleContent className="flex flex-col gap-2">
-          <CollapsibleTooltip collapsed={collapsed} label={t('toggleTheme')}>
-            <ThemeToggle collapsed={collapsed} />
-          </CollapsibleTooltip>
-          <CollapsibleTooltip collapsed={collapsed} label={t('refreshData')}>
-            <RefreshDataButton collapsed={collapsed} />
-          </CollapsibleTooltip>
-          <CollapsibleTooltip collapsed={collapsed} label="Admin">
-            <AdminButton collapsed={collapsed} />
-          </CollapsibleTooltip>
-          <CollapsibleTooltip collapsed={collapsed} label={PAGE_TITLES.trash}>
-            <TrashButton collapsed={collapsed} active={isActive(TRASH_HREF)} />
-          </CollapsibleTooltip>
-          {!collapsed && openRouterBalance}
-          <CollapsibleTooltip collapsed={collapsed} label={t('logout')}>
-            <LogoutButton collapsed={collapsed} />
-          </CollapsibleTooltip>
-        </CollapsibleContent>
-      </Collapsible>
+      </div>
     </aside>
   )
 }
