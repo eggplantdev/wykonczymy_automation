@@ -5,6 +5,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { OptionalLink } from '@/components/ui/optional-link'
+import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import type { RejectedReceiptT } from '@/lib/db/receipt-confirmation'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
@@ -35,11 +36,18 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
       ),
     }),
     col.accessor('date', { header: 'Data', cell: (info) => formatPLDate(info.getValue()) }),
-    col.accessor('workerName', {
+    col.accessor('type', {
+      header: 'Typ',
+      meta: { minWidth: 'min-w-40' },
+      cell: (info) => TRANSFER_TYPE_LABELS[info.getValue()],
+    }),
+    col.accessor('recipientName', {
       header: 'Pracownik',
       meta: { minWidth: 'min-w-40' },
       cell: ({ row: { original: receipt } }) => (
-        <OptionalLink href={`/pracownicy/${receipt.workerId}`}>{receipt.workerName}</OptionalLink>
+        <OptionalLink href={`/pracownicy/${receipt.recipientId}`}>
+          {receipt.recipientName}
+        </OptionalLink>
       ),
     }),
     col.accessor('amount', {
@@ -57,18 +65,18 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
         </OptionalLink>
       ),
     }),
-    col.accessor('sourceRegisterName', {
+    col.accessor('registerName', {
       header: 'Kasa',
       meta: { minWidth: 'min-w-40' },
       cell: ({ row: { original: receipt } }) => (
         <OptionalLink
           href={
-            receipt.sourceRegisterId === null || receipt.sourceRegisterTrashed
+            receipt.registerId === null || receipt.registerTrashed
               ? undefined
-              : `/kasa/${receipt.sourceRegisterId}`
+              : `/kasa/${receipt.registerId}`
           }
         >
-          {receipt.sourceRegisterName ?? '—'}
+          {receipt.registerName ?? '—'}
         </OptionalLink>
       ),
     }),
@@ -96,9 +104,9 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
         hint="Takie wypłaty trzeba wyjaśnić z pracownikiem lub anulować."
         size="sm"
         withSeparator={false}
-        storageKey="rejected-receipts:open"
+        storageKey="rejected-payouts:open"
       >
-        <DataTable data={receipts} columns={columns} storageKey="rejected-receipts" />
+        <DataTable data={receipts} columns={columns} storageKey="rejected-payouts" />
       </CollapsibleSection>
     </section>
   )

@@ -1,13 +1,11 @@
 import 'server-only'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { countPendingReceipts } from '@/lib/db/receipt-confirmation'
+import { type BookedReceiptT, countPendingReceipts } from '@/lib/db/receipt-confirmation'
 import { translate } from '@/lib/i18n/translations'
 import { RECEIPT_PUSH_PAUSED } from '@/lib/push/constants'
 import { isPushConfigured, sendPushToUser } from '@/lib/push/send-push'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { logError } from '@/lib/utils/log-error'
-
-export type BookedReceiptT = { recipientId: number; amount: number }
 
 export async function notifyPendingReceipts(
   db: DbExecutorT,

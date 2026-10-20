@@ -9,7 +9,8 @@ import {
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentGates } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { type BookedReceiptT, notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
+import type { BookedReceiptT } from '@/lib/db/receipt-confirmation'
+import { notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import {
   BLOCKED_PAIR_REASON,

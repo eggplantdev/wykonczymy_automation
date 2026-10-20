@@ -57,7 +57,9 @@ describe('transferPayoutStatusText', () => {
 
   it('names the answer on a transfer handed to a worker', () => {
     expect(
-      transferPayoutStatusText(transferRow({ type: 'REGISTER_TRANSFER', payoutStatus: 'accepted' })),
+      transferPayoutStatusText(
+        transferRow({ type: 'REGISTER_TRANSFER', payoutStatus: 'accepted' }),
+      ),
     ).not.toBe('')
   })
 

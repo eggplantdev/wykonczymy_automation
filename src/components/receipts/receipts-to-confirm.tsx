@@ -113,7 +113,7 @@ export function ReceiptsToConfirm({ receipts }: { receipts: ReceiptToConfirmT[] 
         <CollapsibleSection
           title={t('receiptsTitle')}
           hint={t('receiptsHint')}
-          storageKey="worker:receipts"
+          storageKey="worker:payouts"
           withSeparator={false}
           className="sm:max-w-lg"
         >
@@ -124,7 +124,7 @@ export function ReceiptsToConfirm({ receipts }: { receipts: ReceiptToConfirmT[] 
         <CollapsibleSection
           title={t('rejectedReceiptsTitle')}
           hint={t('rejectedReceiptsHint')}
-          storageKey="worker:receipts-rejected"
+          storageKey="worker:payouts-rejected"
           withSeparator={false}
           className="sm:max-w-lg"
         >

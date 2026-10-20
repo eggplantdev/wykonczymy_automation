@@ -8,6 +8,7 @@ import {
   countPendingReceipts,
   listReceiptsToConfirm,
   listRejectedReceipts,
+  pendingReceiptsOf,
   rejectReceipt,
 } from '@/lib/db/receipt-confirmation'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -18,12 +19,13 @@ import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 const MARKER = 'payout confirmation spec'
 const CONTEXT = { skipRevalidation: true, skipSheetSync: true }
 
-describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => {
+describe.skipIf(!ENV_READY)('the receiving worker’s decision on money handed to him (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
   let worker: { ownerId: number; registerId: number }
   let stranger: { ownerId: number; registerId: number }
+  let manager: { ownerId: number; registerId: number }
 
   async function bookPayout(label: string, workerId = worker.ownerId): Promise<number> {
     const created = await payload.create({
@@ -42,6 +44,38 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     })
     return Number(created.id)
   }
+
+  async function bookMoneyIn(
+    label: string,
+    data:
+      | { type: 'REGISTER_TRANSFER'; from: number; to: number }
+      | { type: 'OTHER_DEPOSIT'; into: number },
+  ): Promise<number> {
+    const registers =
+      data.type === 'REGISTER_TRANSFER'
+        ? { sourceRegister: data.from, targetRegister: data.to }
+        : { sourceRegister: data.into }
+    const created = await payload.create({
+      collection: 'transactions',
+      data: {
+        description: `${MARKER} ${label}`,
+        type: data.type,
+        amount: 300,
+        date: '2026-10-20T09:00:00.000Z',
+        ...registers,
+      },
+      overrideAccess: true,
+      context: CONTEXT,
+    })
+    return Number(created.id)
+  }
+
+  const intoWorkerFromManager = (label: string) =>
+    bookMoneyIn(label, {
+      type: 'REGISTER_TRANSFER',
+      from: manager.registerId,
+      to: worker.registerId,
+    })
 
   async function cancel(transactionId: number): Promise<void> {
     await db.execute(sql`UPDATE transactions SET cancelled = true WHERE id = ${transactionId}`)
@@ -89,13 +123,25 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
       },
       ctx,
     )
+    manager = await createRegisterOwner(
+      payload,
+      {
+        name: 'Payout Manager',
+        email: 'payout-manager@test.local',
+        registerName: 'payout-manager',
+        role: 'MANAGER',
+      },
+      ctx,
+    )
     investmentId = await createTestInvestment(payload, 'receipt-confirmation-investment')
   })
 
   afterAll(async () => {
     await cleanUp()
     if (investmentId) await deleteTestInvestment(payload, investmentId)
-    const owners = [worker?.ownerId, stranger?.ownerId].filter((id) => id !== undefined)
+    const owners = [worker?.ownerId, stranger?.ownerId, manager?.ownerId].filter(
+      (id) => id !== undefined,
+    )
     for (const ownerId of owners) {
       await db.execute(sql`DELETE FROM cash_registers WHERE owner_id = ${ownerId}`)
       await db.execute(sql`DELETE FROM users WHERE id = ${ownerId}`)
@@ -109,12 +155,83 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     expect((await stored(id)).status).toBe('pending')
   })
 
+  it('lets only the receiving worker answer a transfer, never the sender or another worker', async () => {
+    const id = await intoWorkerFromManager('transfer to worker')
+
+    for (const workerId of [manager.ownerId, stranger.ownerId]) {
+      expect(await acceptReceipt(db, { transactionId: id, workerId })).toBe(false)
+      expect(await rejectReceipt(db, { transactionId: id, workerId, reason: 'Nie moje' })).toBe(
+        false,
+      )
+    }
+    expect((await stored(id)).status).toBe('pending')
+
+    expect(await acceptReceipt(db, { transactionId: id, workerId: worker.ownerId })).toBe(true)
+    expect((await stored(id)).status).toBe('accepted')
+  })
+
+  it('hands a transfer between two workers to the receiver, not the sender', async () => {
+    const id = await bookMoneyIn('worker to worker', {
+      type: 'REGISTER_TRANSFER',
+      from: worker.registerId,
+      to: stranger.registerId,
+    })
+
+    expect(await acceptReceipt(db, { transactionId: id, workerId: worker.ownerId })).toBe(false)
+    expect(
+      await rejectReceipt(db, {
+        transactionId: id,
+        workerId: stranger.ownerId,
+        reason: 'Brak 50 zł',
+      }),
+    ).toBe(true)
+    expect((await stored(id)).status).toBe('rejected')
+  })
+
+  it('lets the owner of the kasa answer a deposit into it, and shows it to management', async () => {
+    const id = await bookMoneyIn('deposit', { type: 'OTHER_DEPOSIT', into: worker.registerId })
+
+    expect(await acceptReceipt(db, { transactionId: id, workerId: stranger.ownerId })).toBe(false)
+    expect(
+      await rejectReceipt(db, {
+        transactionId: id,
+        workerId: worker.ownerId,
+        reason: 'Brak 20 zł',
+      }),
+    ).toBe(true)
+
+    const row = (await listRejectedReceipts(db)).find((receipt) => receipt.id === id)
+    expect(row).toMatchObject({
+      type: 'OTHER_DEPOSIT',
+      recipientId: worker.ownerId,
+      recipientName: 'Payout Worker',
+      registerId: worker.registerId,
+      registerName: 'payout-worker',
+    })
+  })
+
+  it('names the receiving kasa, not the sending one, on a rejected transfer', async () => {
+    const id = await intoWorkerFromManager('rejected transfer')
+    await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 10 zł' })
+
+    const row = (await listRejectedReceipts(db)).find((receipt) => receipt.id === id)
+    expect(row).toMatchObject({
+      type: 'REGISTER_TRANSFER',
+      recipientId: worker.ownerId,
+      registerId: worker.registerId,
+    })
+  })
+
   it('changes nothing on a second rejection', async () => {
     const id = await bookPayout('rejected twice')
     await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 100 zł' })
 
     expect(
-      await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Inny powód' }),
+      await rejectReceipt(db, {
+        transactionId: id,
+        workerId: worker.ownerId,
+        reason: 'Inny powód',
+      }),
     ).toBe(false)
     expect((await stored(id)).reason).toBe('Brak 100 zł')
   })
@@ -150,7 +267,11 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     await acceptReceipt(db, { transactionId: id, workerId: worker.ownerId })
 
     expect(
-      await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Jednak nie' }),
+      await rejectReceipt(db, {
+        transactionId: id,
+        workerId: worker.ownerId,
+        reason: 'Jednak nie',
+      }),
     ).toBe(false)
     expect(await stored(id)).toMatchObject({ status: 'accepted', reason: null })
   })
@@ -168,10 +289,18 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     const accepted = await bookPayout('already accepted')
     await acceptReceipt(db, { transactionId: accepted, workerId: worker.ownerId })
     const strangers = await bookPayout('someone else', stranger.ownerId)
+    const transfer = await intoWorkerFromManager('transfer to confirm')
+    const deposit = await bookMoneyIn('deposit to confirm', {
+      type: 'OTHER_DEPOSIT',
+      into: worker.registerId,
+    })
+    const cancelledTransfer = await intoWorkerFromManager('cancelled transfer')
+    await cancel(cancelledTransfer)
 
     const listed = (await listReceiptsToConfirm(db, worker.ownerId)).map((row) => row.id)
 
-    expect(listed).toEqual(expect.arrayContaining([pending, rejected]))
+    expect(listed).toEqual(expect.arrayContaining([pending, rejected, transfer, deposit]))
+    expect(listed).not.toContain(cancelledTransfer)
     expect(listed).not.toContain(cancelled)
     expect(listed).not.toContain(accepted)
     expect(listed).not.toContain(strangers)
@@ -204,7 +333,31 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
       reason: 'Brak 100 zł',
     })
     await bookPayout('badge stranger', stranger.ownerId)
+    await intoWorkerFromManager('badge transfer')
+    await bookMoneyIn('badge deposit', { type: 'OTHER_DEPOSIT', into: worker.registerId })
 
-    expect(await countPendingReceipts(db, worker.ownerId)).toBe(2)
+    expect(await countPendingReceipts(db, worker.ownerId)).toBe(4)
+  })
+
+  it('looks up who to notify only for the rows still pending', async () => {
+    const transfer = await intoWorkerFromManager('push transfer')
+    const payout = await bookPayout('push payout', stranger.ownerId)
+    const accepted = await intoWorkerFromManager('push accepted')
+    await acceptReceipt(db, { transactionId: accepted, workerId: worker.ownerId })
+    const unasked = await bookMoneyIn('push unasked', {
+      type: 'REGISTER_TRANSFER',
+      from: worker.registerId,
+      to: manager.registerId,
+    })
+
+    const pending = await pendingReceiptsOf(db, [transfer, payout, accepted, unasked])
+    expect(pending).toHaveLength(2)
+    expect(pending).toEqual(
+      expect.arrayContaining([
+        { recipientId: worker.ownerId, amount: 300 },
+        { recipientId: stranger.ownerId, amount: 800 },
+      ]),
+    )
+    expect(await pendingReceiptsOf(db, [accepted, unasked])).toEqual([])
   })
 })
