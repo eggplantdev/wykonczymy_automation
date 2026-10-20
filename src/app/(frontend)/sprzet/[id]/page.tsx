@@ -71,11 +71,7 @@ export default async function EquipmentDetailPage({ params }: DynamicPagePropsT)
       />
 
       <div className="flex flex-wrap gap-2">
-        <TransferEquipmentDialog
-          equipment={equipment}
-          warehouses={warehouses}
-          showLabel
-        />
+        <TransferEquipmentDialog equipment={equipment} warehouses={warehouses} showLabel />
         <EditEquipmentDialog equipment={equipment} showLabel />
       </div>
 

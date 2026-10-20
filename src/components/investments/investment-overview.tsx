@@ -14,6 +14,7 @@ import { RequestReviewButton } from '@/components/investments/request-review-but
 import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { OrderButton } from '@/components/orders/order-button'
+import { toOrderInvestment } from '@/components/orders/order-dialog'
 import { investmentLockOf, isOfferedForBooking } from '@/lib/constants/investment-lock'
 import { useOrderSettings, useReferenceData } from '@/hooks/use-reference-data'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
@@ -22,7 +23,6 @@ import type { MediaFileT } from '@/types/media'
 type PropsT = {
   investment: InvestmentWithDetailsT
   trashed: boolean
-  // `undefined` = a surface with no gallery, as in `KosztorysEditorDataT.assets`.
   assets?: MediaFileT[]
   showKosztorysButton?: boolean
 }
@@ -49,14 +49,7 @@ export function InvestmentOverview({ investment, trashed, assets, showKosztorysB
         {showKosztorysButton && <OpenKosztorysV2Button investmentId={investment.id} size="sm" />}
         {!trashed && isOfferedForBooking(investment) && referenceData && orderSettings && (
           <OrderButton
-            investment={{
-              id: investment.id,
-              name: investment.name,
-              street: investment.address,
-              postalCode: investment.postalCode,
-              city: investment.city,
-              siteManagerId: investment.siteManagerId,
-            }}
+            investment={toOrderInvestment(investment)}
             referenceData={referenceData}
             orderSettings={orderSettings}
           />

@@ -64,7 +64,7 @@ export function TransferDataTable({ data, paginationMeta, config }: TransferData
   const [view, setView] = usePersistedEnum(TRANSFER_VIEW_STORAGE_KEY, TRANSFER_VIEWS, 'table')
 
   const columns = getTransferColumns(excludeColumns, {
-    referenceData: excludeColumns.includes('actions') ? undefined : (referenceData ?? undefined),
+    referenceData: excludeColumns.includes('actions') ? undefined : referenceData,
     currentUserId,
     currentUserRole,
     translator,

@@ -8,7 +8,7 @@ import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicates'
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { referenceDataFor } from '@/__tests__/fixtures/reference-data'
 import { useReferenceData } from '@/hooks/use-reference-data'
 import { router } from '@/__tests__/stubs/next-navigation'
 import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
@@ -117,9 +117,7 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
 
   it('w odczytanym zgłoszeniu blokuje przyjęcie paragonu bez zdjęcia, a zdjęcie dodane ręcznie je zdejmuje', async () => {
     const user = userEvent.setup()
-    render(
-      <PendingExpenseDrafts drafts={[{ ...draft, aiRead: read }]} />,
-    )
+    render(<PendingExpenseDrafts drafts={[{ ...draft, aiRead: read }]} />)
 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
 
@@ -229,9 +227,7 @@ describe('podpowiedzi duplikatów', () => {
 describe('zgłoszenie bez inwestycji', () => {
   it('stoi w kolejce jako „Bez inwestycji”', () => {
     render(
-      <PendingExpenseDrafts
-        drafts={[{ ...draft, investmentId: null, investmentName: null }]}
-      />,
+      <PendingExpenseDrafts drafts={[{ ...draft, investmentId: null, investmentName: null }]} />,
     )
 
     expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
@@ -246,23 +242,13 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
 
   it('otwiera dialog wskazanego zgłoszenia raz, a parametr zdejmuje dopiero przy zamknięciu', async () => {
     const user = userEvent.setup()
-    const { rerender } = render(
-      <PendingExpenseDrafts
-        drafts={[draft]}
-        openDraftId={draft.id}
-      />,
-    )
+    const { rerender } = render(<PendingExpenseDrafts drafts={[draft]} openDraftId={draft.id} />)
 
     expect(await screen.findByDisplayValue('Klej do płytek')).toBeInTheDocument()
     expect(router.replace).not.toHaveBeenCalled()
     expect(window.location.search).toBe('?zgloszenie=7&status=pending')
 
-    rerender(
-      <PendingExpenseDrafts
-        drafts={[{ ...draft }]}
-        openDraftId={draft.id}
-      />,
-    )
+    rerender(<PendingExpenseDrafts drafts={[{ ...draft }]} openDraftId={draft.id} />)
     expect(readExpenseDraftAction).toHaveBeenCalledTimes(1)
 
     await user.keyboard('{Escape}')

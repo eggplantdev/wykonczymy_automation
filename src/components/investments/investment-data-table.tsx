@@ -24,7 +24,7 @@ import {
 import type { TemplateMetaT } from '@/lib/db/templates'
 import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { isClosedStatus } from '@/lib/constants/investment-status'
-import { OrderDialog } from '@/components/orders/order-dialog'
+import { OrderDialog, toOrderInvestment } from '@/components/orders/order-dialog'
 import { useOrderSettings, useReferenceData } from '@/hooks/use-reference-data'
 
 const getStatus = (row: InvestmentRowT) => row.status
@@ -147,14 +147,7 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
       <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
       {orderTarget && referenceData && orderSettings && (
         <OrderDialog
-          investment={{
-            id: orderTarget.id,
-            name: orderTarget.name,
-            street: orderTarget.address,
-            postalCode: orderTarget.postalCode,
-            city: orderTarget.city,
-            siteManagerId: orderTarget.siteManagerId,
-          }}
+          investment={toOrderInvestment(orderTarget)}
           referenceData={referenceData}
           orderSettings={orderSettings}
           open

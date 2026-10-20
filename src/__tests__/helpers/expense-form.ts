@@ -2,7 +2,7 @@ import {
   makeLineItem,
   type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { referenceDataFor } from '@/__tests__/fixtures/reference-data'
 
 export const expenseReferenceData = {
   ...referenceDataFor('OWNER'),

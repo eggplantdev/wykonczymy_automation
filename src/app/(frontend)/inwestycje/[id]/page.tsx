@@ -56,7 +56,12 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   return (
     <PageWrapper title={investment.name}>
-      <InvestmentOverview investment={investment} trashed={trashed} assets={assets} showKosztorysButton />
+      <InvestmentOverview
+        investment={investment}
+        trashed={trashed}
+        assets={assets}
+        showKosztorysButton
+      />
 
       {/* The two readings render different trees, so a toggle living inside them moves under the
           cursor on every switch. */}

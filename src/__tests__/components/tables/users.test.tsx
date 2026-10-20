@@ -53,9 +53,7 @@ beforeEach(() => {
 
 describe('„Pozostało do wypłaty" on the employee list', () => {
   it('replaces the all-time „Wypłaty"', () => {
-    render(
-      <UserDataTable data={[worker(1, 'Jan')]} assignableRoles={[...ROLES]} />,
-    )
+    render(<UserDataTable data={[worker(1, 'Jan')]} assignableRoles={[...ROLES]} />)
     expect(screen.getByRole('columnheader', { name: /Pozostało do wypłaty/ })).toBeInTheDocument()
     expect(screen.queryByRole('columnheader', { name: /^Wypłaty$/ })).not.toBeInTheDocument()
   })
@@ -70,7 +68,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
           }),
           worker(2, 'Piotr'),
         ]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -94,7 +91,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
             completed: bucket(),
           }),
         ]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -109,9 +105,7 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
       active: bucket({ overpaid: 1295.81, overpaidCount: 1 }),
       completed: bucket({ owed: 2000, owedCount: 1, overpaid: 80, overpaidCount: 2 }),
     })
-    const { unmount } = render(
-      <UserDataTable data={[jan]} assignableRoles={[...ROLES]} />,
-    )
+    const { unmount } = render(<UserDataTable data={[jan]} assignableRoles={[...ROLES]} />)
     const row = () => within(rowOf('Jan'))
     expect(row().getByText(/nadpłata aktywne \(1\)/)).toBeInTheDocument()
     expect(row().queryByText(/zakończone/)).not.toBeInTheDocument()
@@ -137,7 +131,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
         data={[
           worker(1, 'Jan', { active: bucket({ owed: 5000, owedCount: 1 }), completed: bucket() }),
         ]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -167,7 +160,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     render(
       <UserDataTable
         data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), active: false }]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -184,7 +176,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     render(
       <UserDataTable
         data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), active: false }]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -204,7 +195,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
     render(
       <UserDataTable
         data={[jan, { ...worker(2, 'Piotr'), active: false }]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -225,7 +215,6 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
             completed: bucket({ owed: 2000, owedCount: 1 }),
           }),
         ]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -238,7 +227,6 @@ describe('„Status" on the employee list', () => {
     render(
       <UserDataTable
         data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), canManage: false }]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -255,7 +243,6 @@ describe('„Do kosza" on the employee list', () => {
     render(
       <UserDataTable
         data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), canManage: false }]}
-       
         assignableRoles={[...ROLES]}
       />,
     )
@@ -270,7 +257,6 @@ describe('„Do kosza" on the employee list', () => {
     render(
       <UserDataTable
         data={[{ ...worker(1, 'Jan'), registerNames: ['Kasa Jana'] }]}
-       
         assignableRoles={[...ROLES]}
       />,
     )

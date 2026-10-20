@@ -36,10 +36,7 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   return (
     <PageWrapper title={PAGE_TITLES.leads}>
       <Description>{leads.newCount} nowych</Description>
-      <LeadsDataTable
-        data={leads.rows}
-        paginationMeta={leads.paginationMeta}
-      />
+      <LeadsDataTable data={leads.rows} paginationMeta={leads.paginationMeta} />
       <div className="grid gap-4 sm:grid-cols-2">
         <RecipientListCard
           list="newLead"

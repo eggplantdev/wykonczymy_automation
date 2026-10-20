@@ -148,10 +148,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       {(isManager || isOwnPage) && (
         <div className="flex flex-wrap gap-2">
           {isManager && (isOwnPage || canManageAccount(currentUser.role, role)) && (
-            <EditWorkerDialog
-              worker={worker}
-              roles={assignableRoles(currentUser.role, role)}
-            />
+            <EditWorkerDialog worker={worker} roles={assignableRoles(currentUser.role, role)} />
           )}
           {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
           {isOwnPage && <InstallAppButton />}

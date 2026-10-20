@@ -102,10 +102,7 @@ export function getEquipmentColumns({ today, warehouses }: EquipmentColumnsArgsT
       // The row's own click is unaffected — `DataTableRow` ignores a click that landed on a button.
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
-          <TransferEquipmentDialog
-            equipment={info.row.original}
-            warehouses={warehouses}
-          />
+          <TransferEquipmentDialog equipment={info.row.original} warehouses={warehouses} />
           <EditEquipmentDialog equipment={info.row.original} />
           <TrashRowButton
             label="Usuń sprzęt"

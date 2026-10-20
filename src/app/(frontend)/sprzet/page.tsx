@@ -34,11 +34,7 @@ export default async function EquipmentPage() {
       <Description>
         {inUse} {pluralize(inUse, ['sztuka', 'sztuki', 'sztuk'])} w użyciu
       </Description>
-      <EquipmentDataTable
-        data={equipment}
-        today={warsawToday()}
-        warehouses={warehouses}
-      />
+      <EquipmentDataTable data={equipment} today={warsawToday()} warehouses={warehouses} />
       <RecipientListCard
         list="equipmentDigest"
         title="Powiadomienia"

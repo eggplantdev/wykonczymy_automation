@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { referenceDataFor } from '@/__tests__/fixtures/reference-data'
 import { orderFormValues } from '@/components/orders/order-form-values'
 
 const referenceData = {

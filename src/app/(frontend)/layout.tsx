@@ -84,34 +84,34 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
     <AppLanguageProvider locale={locale}>
       <CurrentUserProvider user={user}>
         <ReferenceDataProvider referenceData={referenceData} orderSettings={orderSettings}>
-        <UnreadCountsProvider counts={unreadCounts}>
-          <div className="flex h-screen">
-            <Sidebar
-              openRouterBalance={
-                isManager && (
-                  <Suspense fallback={null}>
-                    <NavOpenRouterBalance />
-                  </Suspense>
-                )
-              }
-            />
-            {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
+          <UnreadCountsProvider counts={unreadCounts}>
+            <div className="flex h-screen">
+              <Sidebar
+                openRouterBalance={
+                  isManager && (
+                    <Suspense fallback={null}>
+                      <NavOpenRouterBalance />
+                    </Suspense>
+                  )
+                }
+              />
+              {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
             min-content width, so one wide child (the kosztorys grid) widened this whole column past
             the viewport and took the sticky top bar with it — the page body scrolled sideways. */}
-            <div className="flex min-w-0 flex-1 flex-col">
-              <TopNav investmentCrumb={investmentCrumb} />
-              {/* transform-gpu forces a compositing layer: Safari otherwise fails to
+              <div className="flex min-w-0 flex-1 flex-col">
+                <TopNav investmentCrumb={investmentCrumb} />
+                {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after
               the initial paint (blank until you scroll / move the cursor). */}
-              <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
-                {children}
-              </main>
+                <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-          <ReviewPromptHost />
-          <PushSubscriptionSync />
-          {needsSessionRefresh(issuedAt) && <SessionRefresher />}
-        </UnreadCountsProvider>
+            <ReviewPromptHost />
+            <PushSubscriptionSync />
+            {needsSessionRefresh(issuedAt) && <SessionRefresher />}
+          </UnreadCountsProvider>
         </ReferenceDataProvider>
       </CurrentUserProvider>
     </AppLanguageProvider>

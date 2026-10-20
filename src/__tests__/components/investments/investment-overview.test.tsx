@@ -42,7 +42,14 @@ describe('InvestmentOverview', () => {
   })
 
   it('offers every action on a live investment', () => {
-    render(<InvestmentOverview investment={INVESTMENT} trashed={false} assets={[]} showKosztorysButton />)
+    render(
+      <InvestmentOverview
+        investment={INVESTMENT}
+        trashed={false}
+        assets={[]}
+        showKosztorysButton
+      />,
+    )
 
     expect(screen.getByRole('button', { name: 'Edytuj inwestycję' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Umowa' })).toBeInTheDocument()

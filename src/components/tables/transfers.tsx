@@ -254,7 +254,7 @@ const buildColumns = (
 }
 
 type ColumnOptionsT = {
-  referenceData?: ReferenceDataBaseT
+  referenceData?: ReferenceDataBaseT | null
   currentUserId?: number
   currentUserRole?: RoleT
   translator?: TranslatorT<'transfers'>

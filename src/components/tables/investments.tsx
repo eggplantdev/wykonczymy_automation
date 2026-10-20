@@ -88,11 +88,7 @@ type InvestmentColumnOptionsT = {
   onOrder: (investment: InvestmentRowT) => void
 }
 
-export function getInvestmentColumns({
-  userRole,
-  onSettle,
-  onOrder,
-}: InvestmentColumnOptionsT) {
+export function getInvestmentColumns({ userRole, onSettle, onOrder }: InvestmentColumnOptionsT) {
   const isAdminOrOwner = isAdminOrOwnerRole(userRole)
   return [
     col.accessor('name', {

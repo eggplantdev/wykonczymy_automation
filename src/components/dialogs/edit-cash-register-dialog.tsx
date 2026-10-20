@@ -12,10 +12,7 @@ type EditCashRegisterDialogPropsT = {
   isOwnerLocked: boolean
 }
 
-export function EditCashRegisterDialog({
-  register,
-  isOwnerLocked,
-}: EditCashRegisterDialogPropsT) {
+export function EditCashRegisterDialog({ register, isOwnerLocked }: EditCashRegisterDialogPropsT) {
   const workers = useReferenceData()?.workers ?? []
   const formId = `edit-cash-register-${register.id}`
 

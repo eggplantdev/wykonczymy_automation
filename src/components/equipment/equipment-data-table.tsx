@@ -37,11 +37,7 @@ const statusFilterValue = (row: EquipmentRowT) => row.status
 const getSearchableText = (row: EquipmentRowT) =>
   `${row.name} ${row.make} ${row.model} ${row.serialNumber}`
 
-export function EquipmentDataTable({
-  data,
-  today,
-  warehouses,
-}: EquipmentDataTablePropsT) {
+export function EquipmentDataTable({ data, today, warehouses }: EquipmentDataTablePropsT) {
   const {
     filteredData: searched,
     searchTerm,
@@ -103,9 +99,7 @@ export function EquipmentDataTable({
               />
             </>
           }
-          actions={
-<AddEquipmentDialog warehouses={warehouses} />
-          }
+          actions={<AddEquipmentDialog warehouses={warehouses} />}
         />
       )}
     />

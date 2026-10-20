@@ -26,7 +26,7 @@ type TelmakCheckDialogPropsT = {
 }
 
 export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
-  const referenceData = useReferenceData() ?? undefined
+  const referenceData = useReferenceData()
   const { id: currentUserId, role: currentUserRole } = useCurrentUser()
   const [open, setOpen] = useState(false)
   const [parsed, setParsed] = useState<TelmakPackageFileT[]>([])

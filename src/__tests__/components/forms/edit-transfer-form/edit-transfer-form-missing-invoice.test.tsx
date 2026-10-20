@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { EditTransferForm } from '@/components/forms/edit-transfer-form/edit-transfer-form'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { referenceDataFor } from '@/__tests__/fixtures/reference-data'
 import { transferRow } from '@/__tests__/fixtures/transfer-row'
 import { updateTransferAction } from '@/lib/actions/transfers'
 import type { TransferRowT } from '@/types/transfers'
